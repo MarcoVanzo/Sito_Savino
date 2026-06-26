@@ -17,6 +17,10 @@ class Player extends Model implements HasMedia
         'nationality', 'instagram_handle', 'lega_volley_id'
     ];
 
+    protected $casts = [
+        'date_of_birth' => 'date',
+    ];
+
     protected $appends = ['full_name'];
 
     public function getFullNameAttribute()

@@ -17,10 +17,14 @@ class TeamResource extends Resource
 {
     protected static ?string $model = Team::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?string $modelLabel = 'Squadra';
     protected static ?string $pluralModelLabel = 'Squadre';
     protected static ?string $navigationIcon = 'heroicon-o-flag';
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
     {
@@ -31,11 +35,14 @@ class TeamResource extends Resource
                         Forms\Components\TextInput::make('name')
                             ->label('Nome Squadra')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', \Illuminate\Support\Str::slug($state)) : null),
                         Forms\Components\TextInput::make('slug')
                             ->label('Slug')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
                         Forms\Components\TextInput::make('category')
                             ->label('Categoria (es. Serie A1)')
                             ->maxLength(255),
@@ -75,6 +82,8 @@ class TeamResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }

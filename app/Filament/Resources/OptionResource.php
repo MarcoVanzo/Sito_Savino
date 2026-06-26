@@ -15,10 +15,14 @@ class OptionResource extends Resource
 {
     protected static ?string $model = Option::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'key';
+
     protected static ?string $modelLabel = 'Impostazione';
     protected static ?string $pluralModelLabel = 'Impostazioni Sito';
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static ?string $navigationGroup = 'Sito Web';
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {

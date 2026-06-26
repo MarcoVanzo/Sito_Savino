@@ -124,7 +124,7 @@ const page = usePage();
                             
                             <!-- Corporate Logo with Preview -->
                             <div class="relative group">
-                                <a href="https://www.savinodelbene.com/it/home/" target="_blank" class="block">
+                                <a href="https://www.savinodelbene.com/it/home/" target="_blank" rel="noopener noreferrer" class="block">
                                     <img src="/images/Logo_Savino.jpeg" alt="Savino Del Bene" class="h-[85px] w-[85px] object-cover rounded-2xl shadow-xl z-0 transition-transform duration-300 group-hover:scale-105 bg-white mb-2" />
                                 </a>
                                 
@@ -139,7 +139,7 @@ const page = usePage();
                                             <img src="/images/Logo_Savino.jpeg" alt="SDB" class="w-12 h-12 rounded-lg shadow-sm mb-3" />
                                             <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1">Savino Del Bene</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">Global Logistics and Forwarding Company</p>
-                                            <a href="https://www.savinodelbene.com/it/home/" target="_blank" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">
+                                            <a href="https://www.savinodelbene.com/it/home/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">
                                                 Visita il Sito Ufficiale
                                             </a>
                                         </div>
@@ -155,12 +155,12 @@ const page = usePage();
                     </div>
 
                     <!-- MEGA MENU (Desktop) -->
-                    <nav class="hidden lg:flex flex-1 justify-end items-center h-full">
+                    <nav role="navigation" aria-label="Navigazione principale" class="hidden lg:flex flex-1 justify-end items-center h-full">
                         <div class="flex items-center h-full">
                             <template v-for="(item, index) in navigation" :key="item.name">
                                 <div class="group static h-full flex items-center">
                                     <Link 
-                                        :href="route(item.route)" 
+                                        :href="item.path" 
                                         class="text-[12px] xl:text-[14px] font-black tracking-wider uppercase transition-colors flex items-center h-full px-2 lg:px-3 whitespace-nowrap"
                                         :class="[
                                             $page.url.startsWith(item.path) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-400 hover:text-white border-b-[3px] border-transparent pt-[3px]',
@@ -206,7 +206,7 @@ const page = usePage();
 
                                                 <div class="relative z-10">
                                                     <div class="w-12 h-1 bg-savino-red mb-4"></div>
-                                                    <p class="text-white text-3xl font-serif font-bold italic leading-tight mb-2" v-html="item.mottoTitle || 'Eccellenza<br/>nello Sport.'"></p>
+                                                    <p class="text-white text-3xl font-serif font-bold italic leading-tight mb-2"><template v-for="(line, i) in (item.mottoTitle || 'Eccellenza<br/>nello Sport.').split('<br/>')" :key="i">{{ line }}<br v-if="i < (item.mottoTitle || 'Eccellenza<br/>nello Sport.').split('<br/>').length - 1" /></template></p>
                                                     <p class="text-gray-300 text-sm font-medium">{{ item.mottoSubtitle || 'Passione, determinazione e orgoglio in ogni partita.' }}</p>
                                                 </div>
                                             </div>
@@ -238,7 +238,7 @@ const page = usePage();
 
                     <!-- MOBILE MENU BUTTON -->
                     <div class="flex items-center lg:hidden z-50">
-                        <button @click="isMobileMenuOpen = !isMobileMenuOpen" type="button" class="text-white hover:text-savino-red focus:outline-none p-2">
+                        <button @click="isMobileMenuOpen = !isMobileMenuOpen" type="button" aria-label="Apri menu" :aria-expanded="isMobileMenuOpen" class="text-white hover:text-savino-red focus:outline-none p-2">
                             <svg v-if="!isMobileMenuOpen" class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
@@ -260,10 +260,12 @@ const page = usePage();
                 leave-to-class="-translate-y-full opacity-0"
             >
                 <div v-show="isMobileMenuOpen" class="lg:hidden absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-20 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
-                    <nav class="flex flex-col space-y-2 text-center pb-10">
+                    <nav role="navigation" aria-label="Menu mobile" class="flex flex-col space-y-2 text-center pb-10">
                         <div v-for="(item, index) in navigation" :key="item.name" class="border-b border-white/10 last:border-0">
                             <button 
                                 @click="toggleMobileItem(index)"
+                                aria-haspopup="true"
+                                :aria-expanded="activeMobileIndex === index"
                                 class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none"
                                 :class="{'text-savino-red': $page.url.startsWith(item.path) || activeMobileIndex === index, 'text-[#ED028C]': item.isHighlight}"
                             >
@@ -294,16 +296,16 @@ const page = usePage();
         </main>
 
         <!-- FOOTER -->
-        <footer class="bg-gray-900 text-gray-400 py-12 mt-auto">
+        <footer role="contentinfo" class="bg-gray-900 text-gray-400 py-12 mt-auto">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
                 <div class="mb-4 md:mb-0">
                     <span class="font-serif text-xl font-bold text-white">Savino Del Bene Volley</span>
                     <p class="text-sm mt-2">© 2026 Tutti i diritti riservati.</p>
                 </div>
                 <div class="flex items-center space-x-6">
-                    <a href="#" class="hover:text-white">Facebook</a>
-                    <a href="#" class="hover:text-white">Instagram</a>
-                    <a href="#" class="hover:text-white">YouTube</a>
+                    <a href="#" class="hover:text-white" aria-label="Facebook di Savino Del Bene Volley">Facebook</a>
+                    <a href="#" class="hover:text-white" aria-label="Instagram di Savino Del Bene Volley">Instagram</a>
+                    <a href="#" class="hover:text-white" aria-label="YouTube di Savino Del Bene Volley">YouTube</a>
                     <span class="text-gray-700">|</span>
                     <a href="/privacy-policy" class="text-xs hover:text-white">Privacy Policy</a>
                     <a href="/cookie-policy" class="text-xs hover:text-white">Cookie Policy</a>

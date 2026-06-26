@@ -10,15 +10,21 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?string $modelLabel = 'Prodotto';
     protected static ?string $pluralModelLabel = 'Prodotti';
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
     protected static ?string $navigationGroup = 'Shop';
+    protected static ?int $navigationSort = 13;
 
     public static function form(Form $form): Form
     {
@@ -35,11 +41,13 @@ class ProductResource extends Resource
                         Forms\Components\TextInput::make('slug')
                             ->label('URL Slug')
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
                         Forms\Components\Select::make('product_category_id')
                             ->label('Categoria')
                             ->relationship('category', 'name')
                             ->searchable()
+                            ->preload()
                             ->nullable(),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Visibile nello Shop')
@@ -56,15 +64,18 @@ class ProductResource extends Resource
                             ->label('Prezzo (€)')
                             ->required()
                             ->numeric()
+                            ->minValue(0)
                             ->prefix('€'),
                         Forms\Components\TextInput::make('stock')
                             ->label('Stock Base')
                             ->required()
                             ->numeric()
+                            ->minValue(0)
                             ->default(0),
                         Forms\Components\TextInput::make('sku')
                             ->label('Codice (SKU)')
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
                     ])->columns(3),
 
                 Forms\Components\Section::make('Galleria Immagini')
@@ -130,6 +141,7 @@ class ProductResource extends Resource
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Attivo'),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\Action::make('Anteprima')
@@ -141,6 +153,8 @@ class ProductResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -159,5 +173,13 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

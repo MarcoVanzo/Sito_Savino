@@ -17,10 +17,14 @@ class SeasonResource extends Resource
 {
     protected static ?string $model = Season::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?string $modelLabel = 'Stagione';
     protected static ?string $pluralModelLabel = 'Stagioni';
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {
@@ -65,6 +69,8 @@ class SeasonResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }

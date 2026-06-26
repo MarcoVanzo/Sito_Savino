@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Post;
 use App\Models\User;
 
@@ -12,7 +13,7 @@ class PostPolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'editor']);
+        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
     }
 
     /**
@@ -20,7 +21,7 @@ class PostPolicy
      */
     public function view(User $user, Post $model): bool
     {
-        return in_array($user->role, ['admin', 'editor']);
+        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
     }
 
     /**
@@ -28,7 +29,7 @@ class PostPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'editor']);
+        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
     }
 
     /**
@@ -36,7 +37,7 @@ class PostPolicy
      */
     public function update(User $user, Post $model): bool
     {
-        return $user->role === 'admin' || ($user->role === 'editor' && $model->author_id === $user->id);
+        return $user->role === UserRole::Admin || ($user->role === UserRole::Editor && $model->author_id === $user->id);
     }
 
     /**
@@ -44,6 +45,6 @@ class PostPolicy
      */
     public function delete(User $user, Post $model): bool
     {
-        return $user->role === 'admin';
+        return $user->role === UserRole::Admin;
     }
 }

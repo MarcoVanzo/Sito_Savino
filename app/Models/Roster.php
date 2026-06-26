@@ -16,6 +16,11 @@ class Roster extends Model implements HasMedia
         'bio'
     ];
 
+    protected $casts = [
+        'is_captain' => 'boolean',
+        'height_cm' => 'integer',
+    ];
+
     public function player()
     {
         return $this->belongsTo(Player::class);

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\OrderStatus;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Order;
@@ -10,15 +11,21 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'id';
+
     protected static ?string $modelLabel = 'Ordine';
     protected static ?string $pluralModelLabel = 'Ordini';
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
     protected static ?string $navigationGroup = 'Shop';
+    protected static ?int $navigationSort = 14;
 
     public static function form(Form $form): Form
     {
@@ -32,22 +39,21 @@ class OrderResource extends Resource
                             ->searchable(),
                         Forms\Components\Select::make('status')
                             ->label('Stato Ordine')
-                            ->options([
-                                'pending' => 'In Attesa',
-                                'paid' => 'Pagato',
-                                'shipped' => 'Spedito',
-                                'cancelled' => 'Annullato',
-                            ])
+                            ->options(OrderStatus::class)
                             ->required()
-                            ->default('pending'),
+                            ->default(OrderStatus::Pending),
                         Forms\Components\TextInput::make('total_price')
                             ->label('Totale Ordine (€)')
                             ->required()
                             ->numeric()
+                            ->minValue(0)
                             ->prefix('€'),
                         Forms\Components\TextInput::make('stripe_payment_id')
                             ->label('ID Pagamento Stripe')
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('Gestito automaticamente dal sistema di pagamento.'),
                     ])->columns(2),
                 Forms\Components\Section::make('Indirizzi')
                     ->schema([
@@ -72,12 +78,12 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Stato Ordine')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'warning',
-                        'paid' => 'success',
-                        'shipped' => 'info',
-                        'cancelled' => 'danger',
-                        default => 'gray',
+                    ->formatStateUsing(fn (OrderStatus $state): string => $state->label())
+                    ->color(fn (OrderStatus $state): string => match ($state) {
+                        OrderStatus::Pending => 'warning',
+                        OrderStatus::Paid => 'success',
+                        OrderStatus::Shipped => 'info',
+                        OrderStatus::Cancelled => 'danger',
                     }),
                 Tables\Columns\TextColumn::make('total_price')
                     ->label('Totale')
@@ -88,22 +94,22 @@ class OrderResource extends Resource
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Stato Ordine')
-                    ->options([
-                        'pending' => 'In Attesa',
-                        'paid' => 'Pagato',
-                        'shipped' => 'Spedito',
-                        'cancelled' => 'Annullato',
-                    ]),
+                    ->options(OrderStatus::class),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -122,5 +128,13 @@ class OrderResource extends Resource
             'create' => Pages\CreateOrder::route('/create'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

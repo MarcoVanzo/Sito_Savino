@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PostStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -27,6 +28,7 @@ class Post extends Model implements HasMedia
 
     protected $casts = [
         'published_at' => 'datetime',
+        'status' => PostStatus::class,
     ];
 
     public function categories(): BelongsToMany
@@ -46,6 +48,6 @@ class Post extends Model implements HasMedia
 
     public function scopePublished($query)
     {
-        return $query->where('status', 'publish');
+        return $query->where('status', PostStatus::Published);
     }
 }

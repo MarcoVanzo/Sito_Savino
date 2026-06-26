@@ -5,6 +5,46 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.">
 
+        <!-- Open Graph -->
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="Savino Del Bene Volley">
+        <meta property="og:locale" content="it_IT">
+        <meta property="og:title" content="{{ config('app.name', 'Savino Del Bene Volley') }}">
+        <meta property="og:url" content="{{ config('app.url') }}">
+        <meta property="og:image" content="{{ config('app.url') }}/images/logo.png">
+
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+
+        <!-- Theme Color -->
+        <meta name="theme-color" content="#003063">
+
+        <!-- Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SportsTeam",
+            "name": "Savino Del Bene Volley",
+            "sport": "Volleyball",
+            "url": "{{ config('app.url') }}",
+            "logo": "{{ config('app.url') }}/images/logo.png",
+            "location": {
+                "@type": "Place",
+                "name": "Palazzo Wanny",
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Firenze",
+                    "addressRegion": "Toscana",
+                    "addressCountry": "IT"
+                }
+            },
+            "memberOf": {
+                "@type": "SportsOrganization",
+                "name": "Lega Pallavolo Serie A Femminile"
+            }
+        }
+        </script>
+
         <title inertia>{{ config('app.name', 'Savino Del Bene Volley') }}</title>
 
         <!-- Favicon -->

@@ -30,5 +30,10 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\User::observe(\App\Observers\UserObserver::class);
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \App\Models\StockMovement::observe(\App\Observers\StockMovementObserver::class);
+
+        // Forza HTTPS in produzione
+        if (app()->isProduction()) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }

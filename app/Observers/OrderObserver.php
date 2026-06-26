@@ -2,6 +2,8 @@
 
 namespace App\Observers;
 
+use App\Enums\OrderStatus;
+use App\Enums\StockMovementType;
 use App\Models\Order;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
@@ -10,68 +12,121 @@ use Illuminate\Support\Facades\Log;
 class OrderObserver
 {
     /**
-     * Handle the Order "created" event.
-     */
-    public function created(Order $order): void
-    {
-        //
-    }
-
-    /**
      * Handle the Order "updated" event.
+     *
      * Quando un ordine passa a "paid", decrementa lo stock atomicamente.
+     * Quando un ordine viene cancellato, ripristina lo stock.
      */
     public function updated(Order $order): void
     {
-        if ($order->isDirty('status') && $order->status === 'paid') {
-            // Controlla se lo stock è già stato decrementato per questo ordine
-            // usando match esatto sulla stringa notes (non LIKE, non JSON)
-            $alreadyProcessed = StockMovement::where('type', 'Vendita')
-                ->where('notes', "Vendita da Ordine #{$order->id}")
-                ->exists();
+        if (!$order->isDirty('status')) {
+            return;
+        }
 
-            if ($alreadyProcessed) {
-                return;
-            }
+        // Ordine pagato → decrementa stock
+        if ($order->status === OrderStatus::Paid) {
+            $this->decrementStock($order);
+        }
 
-            // Transazione DB per garantire atomicità
-            DB::transaction(function () use ($order) {
-                foreach ($order->items as $item) {
-                    StockMovement::create([
-                        'product_id' => $item->product_id,
-                        'product_variant_id' => $item->product_variant_id,
-                        'quantity' => -abs($item->quantity),
-                        'type' => 'Vendita',
-                        'notes' => "Vendita da Ordine #{$order->id}",
-                    ]);
-                }
-            });
-
-            Log::info("Stock decrementato per Ordine #{$order->id}");
+        // Ordine cancellato → ripristina stock (solo se era stato pagato)
+        if ($order->status === OrderStatus::Cancelled && $order->getOriginal('status') === OrderStatus::Paid->value) {
+            $this->restoreStock($order);
         }
     }
 
     /**
-     * Handle the Order "deleted" event.
+     * Decrementa lo stock per un ordine pagato.
+     * Usa order_id per idempotenza (non più la fragile stringa notes).
      */
-    public function deleted(Order $order): void
+    private function decrementStock(Order $order): void
     {
-        //
+        // Check idempotenza: controlla se esistono già movimenti per quest'ordine
+        $alreadyProcessed = StockMovement::where('order_id', $order->id)
+            ->where('type', StockMovementType::Sale)
+            ->exists();
+
+        if ($alreadyProcessed) {
+            Log::warning("Stock già decrementato per Ordine #{$order->id} — operazione saltata");
+            return;
+        }
+
+        DB::transaction(function () use ($order) {
+            // Eager-load items CON relazioni per evitare N+1
+            $order->load('items.variant', 'items.product');
+
+            foreach ($order->items as $item) {
+                // Verifica disponibilità stock prima di decrementare
+                $currentStock = $this->getCurrentStock($item);
+
+                if ($currentStock < $item->quantity) {
+                    Log::error("Stock insufficiente per Ordine #{$order->id}: " .
+                        "prodotto {$item->product_id}, richiesti {$item->quantity}, disponibili {$currentStock}");
+                    // Procede comunque (il pagamento è avvenuto), ma logga il warning
+                }
+
+                StockMovement::create([
+                    'product_id' => $item->product_id,
+                    'product_variant_id' => $item->product_variant_id,
+                    'order_id' => $order->id,
+                    'quantity' => -abs($item->quantity),
+                    'type' => StockMovementType::Sale,
+                    'notes' => "Ordine #{$order->id} — vendita",
+                ]);
+            }
+        });
+
+        Log::info("Stock decrementato per Ordine #{$order->id}");
     }
 
     /**
-     * Handle the Order "restored" event.
+     * Ripristina lo stock per un ordine cancellato.
      */
-    public function restored(Order $order): void
+    private function restoreStock(Order $order): void
     {
-        //
+        // Verifica che ci siano movimenti di vendita da ripristinare (via FK)
+        $salesMovements = StockMovement::where('order_id', $order->id)
+            ->where('type', StockMovementType::Sale)
+            ->get();
+
+        if ($salesMovements->isEmpty()) {
+            return;
+        }
+
+        // Verifica che non sia già stato ripristinato
+        $alreadyRestored = StockMovement::where('order_id', $order->id)
+            ->where('type', StockMovementType::Adjustment)
+            ->exists();
+
+        if ($alreadyRestored) {
+            Log::warning("Stock già ripristinato per Ordine #{$order->id} — operazione saltata");
+            return;
+        }
+
+        DB::transaction(function () use ($order, $salesMovements) {
+            foreach ($salesMovements as $movement) {
+                StockMovement::create([
+                    'product_id' => $movement->product_id,
+                    'product_variant_id' => $movement->product_variant_id,
+                    'order_id' => $order->id,
+                    'quantity' => abs($movement->quantity), // Inverti: riaggiungi
+                    'type' => StockMovementType::Adjustment,
+                    'notes' => "Ripristino Ordine #{$order->id} — cancellazione",
+                ]);
+            }
+        });
+
+        Log::info("Stock ripristinato per Ordine #{$order->id} (cancellazione)");
     }
 
     /**
-     * Handle the Order "force deleted" event.
+     * Recupera lo stock corrente per un item (variante o prodotto).
      */
-    public function forceDeleted(Order $order): void
+    private function getCurrentStock($item): int
     {
-        //
+        if ($item->product_variant_id) {
+            return $item->variant?->stock ?? 0;
+        }
+
+        return $item->product?->stock ?? 0;
     }
 }

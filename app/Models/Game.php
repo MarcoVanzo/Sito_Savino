@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GameStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,7 @@ class Game extends Model
 
     protected $casts = [
         'match_date' => 'datetime',
+        'status' => GameStatus::class,
     ];
 
     public function season(): BelongsTo

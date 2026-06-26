@@ -17,10 +17,14 @@ class PlayerStatResource extends Resource
 {
     protected static ?string $model = PlayerStat::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'id';
+
     protected static ?string $modelLabel = 'Statistica Partita';
     protected static ?string $pluralModelLabel = 'Statistiche Partite';
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?int $navigationSort = 9;
 
     public static function form(Form $form): Form
     {

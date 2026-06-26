@@ -1,10 +1,16 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { useSanitize } from '@/Composables/useSanitize';
+
+const { sanitize } = useSanitize();
 
 const props = defineProps({
     page: Object,
 });
+
+const safeContent = computed(() => sanitize(props.page?.content));
 </script>
 
 <template>
@@ -27,9 +33,10 @@ const props = defineProps({
                 <!-- Content -->
                 <div 
                     class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-a:text-savino-gold prose-a:no-underline hover:prose-a:underline"
-                    v-html="page.content"
+                    v-html="safeContent"
                 ></div>
             </div>
         </section>
     </PublicLayout>
 </template>
+

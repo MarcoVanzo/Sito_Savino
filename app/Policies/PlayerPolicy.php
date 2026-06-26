@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Player;
 use App\Models\User;
 
@@ -12,7 +13,7 @@ class PlayerPolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, ['admin', 'editor']);
+        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
     }
 
     /**
@@ -20,7 +21,7 @@ class PlayerPolicy
      */
     public function view(User $user, Player $model): bool
     {
-        return in_array($user->role, ['admin', 'editor']);
+        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
     }
 
     /**
@@ -28,7 +29,7 @@ class PlayerPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'editor']);
+        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
     }
 
     /**
@@ -36,7 +37,7 @@ class PlayerPolicy
      */
     public function update(User $user, Player $model): bool
     {
-        return in_array($user->role, ['admin', 'editor']);
+        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
     }
 
     /**
@@ -44,6 +45,6 @@ class PlayerPolicy
      */
     public function delete(User $user, Player $model): bool
     {
-        return $user->role === 'admin';
+        return $user->role === UserRole::Admin;
     }
 }

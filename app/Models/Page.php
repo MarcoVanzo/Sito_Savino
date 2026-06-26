@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PostStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -17,6 +18,10 @@ class Page extends Model implements HasMedia
         'wp_id', 'title', 'slug', 'template', 'content', 'excerpt', 
         'status', 'author_id', 'parent_id',
         'meta_title', 'meta_description', 'meta_keywords'
+    ];
+
+    protected $casts = [
+        'status' => PostStatus::class,
     ];
 
     public function author(): BelongsTo
@@ -36,6 +41,6 @@ class Page extends Model implements HasMedia
 
     public function scopePublished($query)
     {
-        return $query->where('status', 'publish');
+        return $query->where('status', PostStatus::Published);
     }
 }

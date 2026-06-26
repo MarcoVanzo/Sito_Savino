@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
@@ -12,16 +13,20 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?string $modelLabel = 'Utente / Amministratore';
     protected static ?string $pluralModelLabel = 'Utenti / Amministratori';
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    
     protected static ?string $navigationGroup = 'Amministrazione';
+    protected static ?int $navigationSort = 16;
 
 
     public static function form(Form $form): Form
@@ -38,10 +43,12 @@ class UserResource extends Resource
                             ->label('Email')
                             ->email()
                             ->required()
-                            ->maxLength(255),
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
                         Forms\Components\TextInput::make('password')
                             ->label('Password')
                             ->password()
+                            ->revealable()
                             ->required(fn (string $context): bool => $context === 'create')
                             ->maxLength(255)
                             ->dehydrated(fn ($state) => filled($state))
@@ -51,13 +58,9 @@ class UserResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('role')
                             ->label('Ruolo')
-                            ->options([
-                                'admin' => 'Admin (Accesso Totale)',
-                                'editor' => 'Editor (Scrittura Contenuti)',
-                                'user' => 'User (Cliente Shop)',
-                            ])
+                            ->options(UserRole::class)
                             ->required()
-                            ->default('user')
+                            ->default(UserRole::User)
                             ->disabled(fn ($record) => $record && $record->id === auth()->id()),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Attivo (Abilitato all\'accesso)')
@@ -80,11 +83,11 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('role')
                     ->label('Ruolo')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'admin' => 'danger',
-                        'editor' => 'warning',
-                        'user' => 'success',
-                        default => 'gray',
+                    ->formatStateUsing(fn (UserRole $state): string => $state->label())
+                    ->color(fn (UserRole $state): string => match ($state) {
+                        UserRole::Admin => 'danger',
+                        UserRole::Editor => 'warning',
+                        UserRole::User => 'success',
                     }),
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->label('Attivo')
@@ -98,11 +101,7 @@ class UserResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
                     ->label('Ruolo')
-                    ->options([
-                        'admin' => 'Admin',
-                        'editor' => 'Editor',
-                        'user' => 'User',
-                    ]),
+                    ->options(UserRole::class),
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Attivo'),
             ])

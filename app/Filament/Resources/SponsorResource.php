@@ -15,10 +15,14 @@ class SponsorResource extends Resource
 {
     protected static ?string $model = Sponsor::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static ?string $modelLabel = 'Sponsor';
     protected static ?string $pluralModelLabel = 'Sponsor';
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?int $navigationSort = 11;
 
     public static function form(Form $form): Form
     {
@@ -56,7 +60,7 @@ class SponsorResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tier')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state) {
                         'main' => 'warning',
                         'technical' => 'info',
                         default => 'gray',

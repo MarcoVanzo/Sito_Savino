@@ -37,3 +37,8 @@ proposta_tecnica_sdb.html
 mockups_block.html
 Pantone colori.jpeg
 *.py
+
+# File temporanei/auto-generati
+current_app.json
+spec.json
+spec_fixed.json

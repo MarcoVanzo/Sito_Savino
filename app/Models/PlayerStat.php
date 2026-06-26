@@ -12,6 +12,10 @@ class PlayerStat extends Model
         'last_synced_at'
     ];
 
+    protected $casts = [
+        'last_synced_at' => 'datetime',
+    ];
+
     public function player()
     {
         return $this->belongsTo(Player::class);

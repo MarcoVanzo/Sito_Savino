@@ -1,0 +1,69 @@
+# Pipeline CI per Sito Savino
+# Esegue controlli di qualità su push a main e pull request
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-lint:
+    name: Build & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout del codice sorgente
+      - name: Checkout codice
+        uses: actions/checkout@v4
+
+      # Configurazione PHP 8.3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, json, bcmath, curl, pdo, pdo_pgsql, pdo_sqlite
+          coverage: none
+
+      # Configurazione Node.js 20
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Cache dipendenze Composer
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      # Installazione dipendenze PHP
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      # Installazione dipendenze Node.js
+      - name: NPM install
+        run: npm ci
+
+      # Build degli asset frontend (Vite)
+      - name: NPM build
+        run: npm run build
+
+      # Lint PHP — verifica errori di sintassi in app/
+      - name: PHP Lint
+        run: find app/ -name "*.php" -print0 | xargs -0 -n1 php -l
+
+      # Preparazione ambiente per i test
+      - name: Prepara .env per test
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      # TODO: Abilitare quando i test PHPUnit saranno pronti
+      # - name: Esegui test PHPUnit
+      #   run: php artisan test

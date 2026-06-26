@@ -18,10 +18,14 @@ class PlayerResource extends Resource
 {
     protected static ?string $model = Player::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'last_name';
+
     protected static ?string $modelLabel = 'Anagrafica Atleta';
     protected static ?string $pluralModelLabel = 'Anagrafica Atleti';
     protected static ?string $navigationIcon = 'heroicon-o-user';
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?int $navigationSort = 7;
 
     public static function form(Form $form): Form
     {
@@ -52,6 +56,7 @@ class PlayerResource extends Resource
                         Forms\Components\TextInput::make('lega_volley_id')
                             ->label('ID Lega Volley')
                             ->numeric()
+                            ->unique(ignoreRecord: true)
                             ->helperText('Identificativo sul sito della Lega (se applicabile)'),
                     ])->columns(2),
                 Forms\Components\Section::make('Foto Profilo')
@@ -92,6 +97,8 @@ class PlayerResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }

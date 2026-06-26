@@ -20,8 +20,8 @@ const filteredRoster = computed(() => {
 
 <template>
         <Head>
-        <title>{{ page?.meta_title || page?.title || 'Savino Del Bene Volley' }}</title>
-        <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
+        <title>Roster Serie A1 — Savino Del Bene Volley</title>
+        <meta name="description" content="La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1." />
     </Head>
     <PublicLayout>
         <div class="bg-savino-blue min-h-screen py-16">

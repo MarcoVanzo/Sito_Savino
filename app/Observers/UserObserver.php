@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Filament\Notifications\Notification;
 
@@ -13,7 +14,7 @@ class UserObserver
     public function created(User $user): void
     {
         if (! $user->is_active) {
-            $admins = User::where('role', 'admin')->where('is_active', true)->get();
+            $admins = User::where('role', UserRole::Admin)->where('is_active', true)->get();
             
             if ($admins->isNotEmpty()) {
                 Notification::make()

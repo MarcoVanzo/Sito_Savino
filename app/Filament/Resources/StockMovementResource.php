@@ -17,11 +17,14 @@ class StockMovementResource extends Resource
 {
     protected static ?string $model = StockMovement::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'id';
+
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
     protected static ?string $navigationGroup = 'Shop';
     protected static ?string $modelLabel = 'Movimento Magazzino';
     protected static ?string $pluralModelLabel = 'Movimenti Magazzino';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 15;
 
     public static function form(Form $form): Form
     {
@@ -86,7 +89,7 @@ class StockMovementResource extends Resource
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state) {
                         'Rifornimento' => 'success',
                         'Vendita' => 'danger',
                         'Rettifica' => 'warning',

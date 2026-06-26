@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,11 +15,12 @@ class Order extends Model
 
     protected $fillable = [
         'user_id', 'status', 'total_price', 
-        'shipping_address', 'billing_address', 'stripe_payment_id'
+        'shipping_address', 'billing_address',
     ];
 
     protected $casts = [
         'total_price' => 'decimal:2',
+        'status' => OrderStatus::class,
     ];
 
     public function user(): BelongsTo
@@ -33,6 +35,6 @@ class Order extends Model
 
     public function scopePaid($query)
     {
-        return $query->where('status', 'paid');
+        return $query->where('status', OrderStatus::Paid);
     }
 }

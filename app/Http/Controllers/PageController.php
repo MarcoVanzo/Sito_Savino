@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PostStatus;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,20 +16,13 @@ class PageController extends Controller
      */
     private const ALLOWED_TEMPLATES = [
         'Public/ContentPage',
-        'Public/Societa',
-        'Public/Shop',
-        'Public/Ticketing',
-        'Public/Sponsor',
-        'Public/Youth',
-        'Public/SummerCamp',
-        'Public/Sociale',
-        'Public/Comunicazione',
+        'Public/Stagione',
     ];
 
     public function show($slug)
     {
         $page = Page::where('slug', $slug)
-            ->where('status', 'publish')
+            ->where('status', PostStatus::Published)
             ->firstOrFail();
 
         // Se il template è nella whitelist, usalo. Altrimenti renderizza

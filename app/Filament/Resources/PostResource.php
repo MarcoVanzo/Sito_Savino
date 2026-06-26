@@ -16,10 +16,14 @@ class PostResource extends Resource
 {
     protected static ?string $model = Post::class;
 
+    // Attributo usato per il titolo nei risultati di ricerca globale
+    protected static ?string $recordTitleAttribute = 'title';
+
     protected static ?string $modelLabel = 'Notizia / Articolo';
     protected static ?string $pluralModelLabel = 'Notizie / Articoli';
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationGroup = 'Sito Web';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -108,9 +112,10 @@ class PostResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state) {
                         'draft' => 'gray',
                         'publish' => 'success',
+                        default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('published_at')
                     ->label('Data Pubblicazione')

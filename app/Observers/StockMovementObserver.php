@@ -2,57 +2,99 @@
 
 namespace App\Observers;
 
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockMovement;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StockMovementObserver
 {
     /**
      * Handle the StockMovement "created" event.
-     * 
-     * Aggiorna lo stock: se il movement ha una variante, aggiorna SOLO quella.
-     * Se non ha variante, aggiorna il prodotto padre.
-     * Questo evita il doppio conteggio.
+     *
+     * Aggiorna lo stock atomicamente: se il movement ha una variante,
+     * aggiorna SOLO quella. Se non ha variante, aggiorna il prodotto padre.
+     * Protegge da stock negativo con UPDATE condizionale atomico.
      */
     public function created(StockMovement $stockMovement): void
     {
-        if ($stockMovement->product_variant_id && $stockMovement->variant) {
-            // Ha variante → aggiorna SOLO la variante
-            $stockMovement->variant->increment('stock', $stockMovement->quantity);
-        } elseif ($stockMovement->product_id && $stockMovement->product) {
-            // Non ha variante → aggiorna il prodotto
-            $stockMovement->product->increment('stock', $stockMovement->quantity);
-        }
-    }
+        DB::transaction(function () use ($stockMovement) {
+            if ($stockMovement->product_variant_id) {
+                $this->updateStock(
+                    ProductVariant::class,
+                    $stockMovement->product_variant_id,
+                    $stockMovement->quantity
+                );
+            } elseif ($stockMovement->product_id) {
+                $this->updateStock(
+                    Product::class,
+                    $stockMovement->product_id,
+                    $stockMovement->quantity
+                );
+            }
+        });
 
-    /**
-     * Handle the StockMovement "updated" event.
-     */
-    public function updated(StockMovement $stockMovement): void
-    {
-        //
+        Log::debug("StockMovement #{$stockMovement->id}: {$stockMovement->type->value} qty={$stockMovement->quantity} " .
+            "product={$stockMovement->product_id} variant={$stockMovement->product_variant_id}");
     }
 
     /**
      * Handle the StockMovement "deleted" event.
+     *
+     * Quando un movimento viene eliminato, inverti l'effetto sullo stock.
+     * Questo mantiene l'integrità dei dati.
      */
     public function deleted(StockMovement $stockMovement): void
     {
-        //
+        $reverseQuantity = -$stockMovement->quantity;
+
+        DB::transaction(function () use ($stockMovement, $reverseQuantity) {
+            if ($stockMovement->product_variant_id) {
+                $this->updateStock(
+                    ProductVariant::class,
+                    $stockMovement->product_variant_id,
+                    $reverseQuantity
+                );
+            } elseif ($stockMovement->product_id) {
+                $this->updateStock(
+                    Product::class,
+                    $stockMovement->product_id,
+                    $reverseQuantity
+                );
+            }
+        });
+
+        Log::info("StockMovement #{$stockMovement->id} eliminato — stock invertito di {$reverseQuantity}");
     }
 
     /**
-     * Handle the StockMovement "restored" event.
+     * Aggiorna lo stock con guard atomico contro valori negativi.
+     * Usa un UPDATE condizionale (WHERE stock >= abs(quantity)) per evitare
+     * race condition TOCTOU. Se nessuna riga viene aggiornata, lo stock
+     * è insufficiente.
+     *
+     * @param  class-string<Product|ProductVariant>  $modelClass
+     * @throws \RuntimeException Se lo stock risultante sarebbe negativo.
      */
-    public function restored(StockMovement $stockMovement): void
+    private function updateStock(string $modelClass, int $id, int $quantity): void
     {
-        //
-    }
+        if ($quantity < 0) {
+            // UPDATE atomico condizionale: aggiorna SOLO se stock sufficiente
+            $affected = $modelClass::where('id', $id)
+                ->where('stock', '>=', abs($quantity))
+                ->update(['stock' => DB::raw('stock + (' . (int) $quantity . ')')]);
 
-    /**
-     * Handle the StockMovement "force deleted" event.
-     */
-    public function forceDeleted(StockMovement $stockMovement): void
-    {
-        //
+            if ($affected === 0) {
+                $currentStock = $modelClass::where('id', $id)->value('stock') ?? 0;
+                $label = $modelClass === ProductVariant::class ? 'Variante' : 'Prodotto';
+                Log::error("Stock insufficiente: {$label} #{$id} ha stock={$currentStock}, richiesto decremento di " . abs($quantity));
+                throw new \RuntimeException(
+                    "Stock insufficiente per {$label} #{$id}: disponibile {$currentStock}, richiesto " . abs($quantity)
+                );
+            }
+        } else {
+            $modelClass::where('id', $id)->increment('stock', $quantity);
+        }
     }
 }
