@@ -4,7 +4,7 @@ services:
     github:
       repo: MarcoVanzo/sito_savino
       branch: main
-    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build && php artisan migrate --force
+    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build-assets && php artisan migrate --force
     run_command: heroku-php-apache2 public/
     envs:
       - key: APP_ENV
