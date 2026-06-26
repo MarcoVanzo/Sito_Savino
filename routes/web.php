@@ -31,3 +31,4 @@ require __DIR__.'/auth.php';
 Route::get('/{slug}', [PageController::class, 'show'])
     ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password).*$')
     ->name('pages.show');
+Route::get('/debug-log', function () { return file_get_contents(storage_path('logs/laravel.log')); });
