@@ -12,8 +12,13 @@ export default {
 
     theme: {
         extend: {
+            colors: {
+                'savino-blue': '#003063',
+                'savino-red': '#CD1719',
+            },
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                serif: ['Playfair Display', ...defaultTheme.fontFamily.serif],
             },
         },
     },

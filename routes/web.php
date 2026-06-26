@@ -5,14 +5,17 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+// Rotte Pubbliche SDB
+Route::get('/', function () { return Inertia::render('Public/Home'); })->name('home');
+Route::get('/stagione', function () { return Inertia::render('Public/Stagione'); })->name('stagione');
+Route::get('/societa', function () { return Inertia::render('Public/Societa'); })->name('societa');
+Route::get('/ticketing', function () { return Inertia::render('Public/Ticketing'); })->name('ticketing');
+Route::get('/sponsor', function () { return Inertia::render('Public/Sponsor'); })->name('sponsor');
+Route::get('/youth', function () { return Inertia::render('Public/Youth'); })->name('youth');
+Route::get('/summer-camp', function () { return Inertia::render('Public/SummerCamp'); })->name('summer-camp');
+Route::get('/sociale', function () { return Inertia::render('Public/Sociale'); })->name('sociale');
+Route::get('/comunicazione', function () { return Inertia::render('Public/Comunicazione'); })->name('comunicazione');
+Route::get('/shop', function () { return Inertia::render('Public/Shop'); })->name('shop');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
