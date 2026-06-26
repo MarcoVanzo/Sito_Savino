@@ -3,21 +3,20 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RosterResource\Pages;
-use App\Filament\Resources\RosterResource\RelationManagers;
 use App\Models\Roster;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
 class RosterResource extends Resource
 {
     protected static ?string $model = Roster::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationGroup = 'Sport';
 
     public static function form(Form $form): Form
     {
@@ -25,8 +24,6 @@ class RosterResource extends Resource
             ->schema([
                 Forms\Components\Select::make('player_id')
                     ->relationship('player', 'last_name')
-                    ->searchable()
-                    ->preload()
                     ->required(),
                 Forms\Components\Select::make('team_id')
                     ->relationship('team', 'name')
@@ -36,29 +33,20 @@ class RosterResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('jersey_number')
                     ->numeric(),
-                Forms\Components\Select::make('role')
-                    ->options([
-                        'Palleggiatrice' => 'Palleggiatrice',
-                        'Centrale' => 'Centrale',
-                        'Schiacciatrice' => 'Schiacciatrice',
-                        'Opposta' => 'Opposta',
-                        'Libero' => 'Libero',
-                    ])
-                    ->required(),
+                Forms\Components\TextInput::make('role')
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('height_cm')
                     ->numeric(),
                 Forms\Components\Toggle::make('is_captain')
                     ->required(),
-                Forms\Components\FileUpload::make('official_photo_url')
-                    ->disk('public')
-                    ->directory('images/roster')
-                    ->image(),
-                Forms\Components\FileUpload::make('action_photo_url')
-                    ->disk('public')
-                    ->directory('images/roster')
-                    ->image(),
                 Forms\Components\Textarea::make('bio')
                     ->columnSpanFull(),
+                SpatieMediaLibraryFileUpload::make('official_photo')
+                    ->collection('rosters_official')
+                    ->image(),
+                SpatieMediaLibraryFileUpload::make('action_photo')
+                    ->collection('rosters_action')
+                    ->image(),
             ]);
     }
 
@@ -67,33 +55,15 @@ class RosterResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('player.last_name')
-                    ->label('Giocatrice')
-                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('team.name')
-                    ->label('Squadra')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('season.name')
-                    ->label('Stagione')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('jersey_number')
-                    ->label('Numero')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('role')
-                    ->label('Ruolo')
-                    ->searchable(),
-                Tables\Columns\ImageColumn::make('official_photo_url')
-                    ->label('Foto')
-                    ->disk('public'),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('jersey_number'),
+                Tables\Columns\TextColumn::make('role'),
+                Tables\Columns\IconColumn::make('is_captain')
+                    ->boolean(),
             ])
             ->filters([
                 //

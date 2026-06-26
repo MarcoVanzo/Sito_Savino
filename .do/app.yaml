@@ -1,0 +1,47 @@
+name: sito-savino
+services:
+  - name: web
+    github:
+      repo: MarcoVanzo/sito_savino
+      branch: main
+    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build
+    run_command: heroku-php-apache2 public/
+    envs:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: ${APP_URL}
+      - key: PREVIEW_AUTH_USER
+        value: admin # Modifica questo con la username che vuoi per il test
+      - key: PREVIEW_AUTH_PASS
+        value: savino2026 # Modifica con la password che vuoi per il test
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: ${SITO_SAVINO_DB.HOSTNAME}
+      - key: DB_PORT
+        value: ${SITO_SAVINO_DB.PORT}
+      - key: DB_DATABASE
+        value: ${SITO_SAVINO_DB.DATABASE}
+      - key: DB_USERNAME
+        value: ${SITO_SAVINO_DB.USERNAME}
+      - key: DB_PASSWORD
+        value: ${SITO_SAVINO_DB.PASSWORD}
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: AWS_ACCESS_KEY_ID
+        value: ${SITO_SAVINO_SPACES.ACCESS_KEY_ID}
+      - key: AWS_SECRET_ACCESS_KEY
+        value: ${SITO_SAVINO_SPACES.SECRET_ACCESS_KEY}
+      - key: AWS_DEFAULT_REGION
+        value: ams3 # Assicurati che sia la region del tuo Space DO
+      - key: AWS_BUCKET
+        value: ${SITO_SAVINO_SPACES.BUCKET_NAME}
+      - key: AWS_ENDPOINT
+        value: ${SITO_SAVINO_SPACES.ENDPOINT}
+databases:
+  - name: sito-savino-db
+    engine: MYSQL
+    version: "8"

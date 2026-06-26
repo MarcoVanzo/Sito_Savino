@@ -15,9 +15,11 @@ export default {
             colors: {
                 'savino-blue': '#003063',
                 'savino-red': '#CD1719',
+                'savino-gold': '#C9A84C',
+                'savino-pink': '#ED028C',
             },
             fontFamily: {
-                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                sans: ['Montserrat', ...defaultTheme.fontFamily.sans],
                 serif: ['Playfair Display', ...defaultTheme.fontFamily.serif],
             },
         },

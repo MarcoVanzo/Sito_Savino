@@ -17,7 +17,8 @@ class PlayerStatResource extends Resource
 {
     protected static ?string $model = PlayerStat::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+    protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     public static function form(Form $form): Form
     {

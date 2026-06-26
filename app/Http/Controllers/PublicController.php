@@ -10,6 +10,11 @@ use App\Models\Team;
 
 class PublicController extends Controller
 {
+    public function home()
+    {
+        return Inertia::render('Public/Home');
+    }
+
     public function stagione()
     {
         $teamA1 = Team::where('slug', 'serie-a1')->first();

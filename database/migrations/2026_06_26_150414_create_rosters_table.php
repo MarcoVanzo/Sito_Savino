@@ -21,9 +21,6 @@ return new class extends Migration
             $table->string('role')->nullable(); // 'Schiacciatrice', 'Palleggiatrice'
             $table->integer('height_cm')->nullable();
             $table->boolean('is_captain')->default(false);
-            
-            $table->string('official_photo_url')->nullable();
-            $table->string('action_photo_url')->nullable();
             $table->text('bio')->nullable(); // Captain bio
             
             $table->timestamps();

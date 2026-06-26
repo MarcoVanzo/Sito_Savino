@@ -8,7 +8,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\PublicController;
 
 // Rotte Pubbliche SDB
-Route::get('/', function () { return Inertia::render('Public/Home'); })->name('home');
+Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
 Route::get('/societa', function () { return Inertia::render('Public/Societa'); })->name('societa');
 Route::get('/ticketing', function () { return Inertia::render('Public/Ticketing'); })->name('ticketing');

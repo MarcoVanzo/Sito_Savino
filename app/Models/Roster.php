@@ -3,13 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Roster extends Model
+class Roster extends Model implements HasMedia
 {
+    use InteractsWithMedia;
+
     protected $fillable = [
         'player_id', 'team_id', 'season_id',
         'jersey_number', 'role', 'height_cm', 'is_captain',
-        'official_photo_url', 'action_photo_url', 'bio'
+        'bio'
     ];
 
     public function player()

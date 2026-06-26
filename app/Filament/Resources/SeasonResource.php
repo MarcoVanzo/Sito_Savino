@@ -17,7 +17,8 @@ class SeasonResource extends Resource
 {
     protected static ?string $model = Season::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+    protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     public static function form(Form $form): Form
     {
