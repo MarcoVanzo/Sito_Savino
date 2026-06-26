@@ -14,15 +14,11 @@ services:
       - key: APP_URL
         value: ${APP_URL}
       - key: APP_KEY
-        type: SECRET
-        # Genera con: php artisan key:generate --show
-        # Poi imposta come variabile segreta nel pannello DigitalOcean
+        value: "base64:GM+BEvGel2vMIRAgcAJLRwFmZDaLzcvqiBsirjJi/MQ="
       - key: PREVIEW_AUTH_USER
-        type: SECRET
-        # Imposta come variabile segreta nel pannello DigitalOcean
+        value: "admin"
       - key: PREVIEW_AUTH_PASS
-        type: SECRET
-        # Imposta come variabile segreta nel pannello DigitalOcean
+        value: "savino2026"
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
