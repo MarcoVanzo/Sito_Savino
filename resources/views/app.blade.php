@@ -22,24 +22,24 @@
         <!-- Structured Data -->
         <script type="application/ld+json">
         {
-            "@context": "https://schema.org",
-            "@type": "SportsTeam",
+            "@@context": "https://schema.org",
+            "@@type": "SportsTeam",
             "name": "Savino Del Bene Volley",
             "sport": "Volleyball",
             "url": "{{ config('app.url') }}",
             "logo": "{{ config('app.url') }}/images/logo.png",
             "location": {
-                "@type": "Place",
+                "@@type": "Place",
                 "name": "Palazzo Wanny",
                 "address": {
-                    "@type": "PostalAddress",
+                    "@@type": "PostalAddress",
                     "addressLocality": "Firenze",
                     "addressRegion": "Toscana",
                     "addressCountry": "IT"
                 }
             },
             "memberOf": {
-                "@type": "SportsOrganization",
+                "@@type": "SportsOrganization",
                 "name": "Lega Pallavolo Serie A Femminile"
             }
         }

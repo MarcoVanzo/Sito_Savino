@@ -10,8 +10,8 @@ on:
     branches: [main]
 
 jobs:
-  build-and-lint:
-    name: Build & Lint
+  build-and-test:
+    name: Build, Lint & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -64,6 +64,6 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
-      # TODO: Abilitare quando i test PHPUnit saranno pronti
-      # - name: Esegui test PHPUnit
-      #   run: php artisan test
+      # Test PHPUnit con SQLite in-memory
+      - name: Esegui test PHPUnit
+        run: php artisan test --parallel

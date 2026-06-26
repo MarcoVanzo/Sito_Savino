@@ -25,7 +25,7 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::get('/debug-log', function () { return file_get_contents(storage_path('logs/laravel.log')); });
+
 
 // Rotta dinamica per le pagine del CMS (CATCH-ALL)
 // DEVE essere l'ULTIMA route — intercetta tutto ciò che non è stato matchato sopra.
