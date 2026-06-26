@@ -5,9 +5,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+use App\Http\Controllers\PublicController;
+
 // Rotte Pubbliche SDB
 Route::get('/', function () { return Inertia::render('Public/Home'); })->name('home');
-Route::get('/stagione', function () { return Inertia::render('Public/Stagione'); })->name('stagione');
+Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
 Route::get('/societa', function () { return Inertia::render('Public/Societa'); })->name('societa');
 Route::get('/ticketing', function () { return Inertia::render('Public/Ticketing'); })->name('ticketing');
 Route::get('/sponsor', function () { return Inertia::render('Public/Sponsor'); })->name('sponsor');
