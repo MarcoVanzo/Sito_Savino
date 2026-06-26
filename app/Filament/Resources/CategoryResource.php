@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
-use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,7 +10,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class CategoryResource extends Resource
 {
@@ -43,7 +41,9 @@ class CategoryResource extends Resource
                     ->maxLength(65535)
                     ->columnSpanFull(),
                 Forms\Components\Select::make('parent_id')
-                    ->relationship('parent', 'name')
+                    ->relationship('parent', 'name', fn (Builder $query, $record) => 
+                        $record ? $query->where('id', '!=', $record->id) : $query
+                    )
                     ->label('Categoria Genitore')
                     ->searchable(),
             ]);
@@ -90,5 +90,11 @@ class CategoryResource extends Resource
             'create' => Pages\CreateCategory::route('/create'),
             'edit' => Pages\EditCategory::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['parent']);
     }
 }

@@ -22,20 +22,27 @@ class OrderItemsRelationManager extends RelationManager
                     ->label('Prodotto')
                     ->relationship('product', 'name')
                     ->searchable()
-                    ->required(),
+                    ->preload()
+                    ->required()
+                    ->live(),
                 Forms\Components\Select::make('product_variant_id')
                     ->label('Variante')
-                    ->relationship('variant', 'sku')
-                    ->searchable(),
+                    ->relationship('variant', 'sku', fn (\Illuminate\Database\Eloquent\Builder $query, Forms\Get $get) => 
+                        $query->where('product_id', $get('product_id'))
+                    )
+                    ->searchable()
+                    ->preload(),
                 Forms\Components\TextInput::make('quantity')
                     ->label('Quantità')
                     ->required()
                     ->numeric()
+                    ->minValue(1)
                     ->default(1),
                 Forms\Components\TextInput::make('price_at_time_of_purchase')
                     ->label('Prezzo Unitario (€)')
                     ->required()
                     ->numeric()
+                    ->minValue(0)
                     ->prefix('€'),
             ]);
     }

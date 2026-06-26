@@ -4,7 +4,14 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
 
 const props = defineProps({
-    roster: Array
+    roster: {
+        type: Array,
+        default: () => [],
+    },
+    seasonName: {
+        type: String,
+        default: '',
+    },
 });
 
 const selectedRole = ref('Tutti');
@@ -34,7 +41,7 @@ const filteredRoster = computed(() => {
                 <div class="absolute inset-0 flex items-center justify-center z-20">
                     <h1 class="font-serif text-5xl md:text-7xl font-bold text-white tracking-wide shadow-black drop-shadow-2xl text-center px-4">
                         Roster Serie A1 <br/>
-                        <span class="text-3xl text-[#ED028C] font-sans uppercase tracking-widest mt-4 block">Stagione 2026/2027</span>
+                        <span class="text-3xl text-[#ED028C] font-sans uppercase tracking-widest mt-4 block">Stagione {{ seasonName || '' }}</span>
                     </h1>
                 </div>
             </div>
@@ -55,20 +62,25 @@ const filteredRoster = computed(() => {
                 </div>
 
                 <!-- Griglia Atlete -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div v-if="filteredRoster.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                     <div 
                         v-for="item in filteredRoster" 
                         :key="item.id"
                         class="bg-white rounded-lg overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.05)] border border-[#eee]"
                     >
                         <!-- Immagine di Copertina -->
-                        <div class="h-[250px] relative">
+                        <div class="h-[250px] relative bg-gray-100">
                             <img 
                                 v-if="item.official_photo_url" 
                                 :src="'/storage/' + item.official_photo_url" 
                                 :alt="item.player.first_name + ' ' + item.player.last_name"
                                 class="w-full h-full object-cover object-center"
+                                loading="lazy"
                             />
+                            <!-- Fallback per atlete senza foto -->
+                            <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200">
+                                <svg class="w-20 h-20 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            </div>
                             
                             <!-- Badge Numero di Maglia -->
                             <div class="absolute top-[15px] left-[15px] bg-savino-blue text-white w-[40px] h-[40px] flex items-center justify-center rounded-full font-bold text-[18px]">
@@ -92,6 +104,15 @@ const filteredRoster = computed(() => {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Empty state -->
+                <div v-else class="text-center py-20">
+                    <svg class="w-16 h-16 text-white/30 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    <p class="text-white/70 text-lg font-semibold">Nessuna atleta trovata per il ruolo selezionato.</p>
+                    <button @click="selectedRole = 'Tutti'" class="mt-4 px-6 py-2 bg-[#ED028C] text-white text-sm font-bold uppercase rounded-full hover:bg-[#ff30a6] transition-colors">
+                        Mostra tutte
+                    </button>
                 </div>
 
             </div>

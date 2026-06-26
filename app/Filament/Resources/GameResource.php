@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GameResource extends Resource
 {
@@ -32,6 +33,7 @@ class GameResource extends Resource
                         Forms\Components\Select::make('season_id')
                             ->label('Stagione')
                             ->relationship('season', 'name')
+                            ->preload()
                             ->required(),
                         Forms\Components\Select::make('competition_type')
                             ->label('Competizione')
@@ -47,17 +49,21 @@ class GameResource extends Resource
                         Forms\Components\Select::make('home_team_id')
                             ->label('Squadra in Casa')
                             ->relationship('homeTeam', 'name')
-                            ->required(),
+                            ->required()
+                            ->live(),
                         Forms\Components\TextInput::make('home_score')
                             ->label('Punti (Casa)')
-                            ->numeric(),
+                            ->numeric()
+                            ->minValue(0),
                         Forms\Components\Select::make('away_team_id')
                             ->label('Squadra in Trasferta')
                             ->relationship('awayTeam', 'name')
-                            ->required(),
+                            ->required()
+                            ->different('home_team_id'),
                         Forms\Components\TextInput::make('away_score')
                             ->label('Punti (Trasferta)')
-                            ->numeric(),
+                            ->numeric()
+                            ->minValue(0),
                     ])->columns(2),
                 Forms\Components\Section::make('Programmazione')
                     ->schema([
@@ -92,6 +98,7 @@ class GameResource extends Resource
                 Tables\Columns\TextColumn::make('competition_type')
                     ->label('Competizione'),
             ])
+            ->defaultSort('match_date', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('competition_type')
                     ->label('Competizione')
@@ -106,6 +113,7 @@ class GameResource extends Resource
                     ->relationship('season', 'name'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -129,5 +137,11 @@ class GameResource extends Resource
             'create' => Pages\CreateGame::route('/create'),
             'edit' => Pages\EditGame::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['homeTeam', 'awayTeam', 'season']);
     }
 }

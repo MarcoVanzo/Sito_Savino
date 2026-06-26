@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlayerStatResource\Pages;
-use App\Filament\Resources\PlayerStatResource\RelationManagers;
 use App\Models\PlayerStat;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,7 +10,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PlayerStatResource extends Resource
 {
@@ -31,33 +29,48 @@ class PlayerStatResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('player_id')
+                    ->label('Giocatrice')
                     ->relationship('player', 'last_name')
                     ->searchable()
+                    ->preload()
                     ->required(),
                 Forms\Components\Select::make('season_id')
+                    ->label('Stagione')
                     ->relationship('season', 'name')
+                    ->preload()
                     ->required(),
                 Forms\Components\TextInput::make('points')
+                    ->label('Punti')
                     ->required()
                     ->numeric()
+                    ->minValue(0)
                     ->default(0),
                 Forms\Components\TextInput::make('blocks')
+                    ->label('Muri')
                     ->required()
                     ->numeric()
+                    ->minValue(0)
                     ->default(0),
                 Forms\Components\TextInput::make('aces')
+                    ->label('Ace')
                     ->required()
                     ->numeric()
+                    ->minValue(0)
                     ->default(0),
                 Forms\Components\TextInput::make('attacks')
+                    ->label('Attacchi')
                     ->required()
                     ->numeric()
+                    ->minValue(0)
                     ->default(0),
                 Forms\Components\TextInput::make('receptions')
+                    ->label('Ricezioni')
                     ->required()
                     ->numeric()
+                    ->minValue(0)
                     ->default(0),
-                Forms\Components\DateTimePicker::make('last_synced_at'),
+                Forms\Components\DateTimePicker::make('last_synced_at')
+                    ->label('Ultimo Sync'),
             ]);
     }
 
@@ -105,6 +118,7 @@ class PlayerStatResource extends Resource
                     ->relationship('season', 'name'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -128,5 +142,11 @@ class PlayerStatResource extends Resource
             'create' => Pages\CreatePlayerStat::route('/create'),
             'edit' => Pages\EditPlayerStat::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['player', 'season']);
     }
 }

@@ -25,7 +25,10 @@ class PublicController extends Controller
 
         $roster = [];
         if ($teamA1 && $currentSeason) {
-            $roster = Roster::with('player', 'player.stats')
+            $roster = Roster::with([
+                    'player',
+                    'player.stats' => fn ($query) => $query->where('season_id', $currentSeason->id),
+                ])
                 ->where('team_id', $teamA1->id)
                 ->where('season_id', $currentSeason->id)
                 ->orderBy('jersey_number')
@@ -33,7 +36,8 @@ class PublicController extends Controller
         }
 
         return Inertia::render('Public/Stagione', [
-            'roster' => $roster
+            'roster' => $roster,
+            'seasonName' => $currentSeason?->name,
         ]);
     }
 }

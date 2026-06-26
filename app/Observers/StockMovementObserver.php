@@ -40,33 +40,11 @@ class StockMovementObserver
     }
 
     /**
-     * Handle the StockMovement "deleted" event.
-     *
-     * Quando un movimento viene eliminato, inverti l'effetto sullo stock.
-     * Questo mantiene l'integrità dei dati.
+     * Il metodo deleted() è stato rimosso intenzionalmente.
+     * I movimenti di magazzino sono record di audit immutabili.
+     * La cancellazione è impedita a livello UI (StockMovementResource).
+     * Il ripristino stock è gestito da OrderObserver::restoreStock().
      */
-    public function deleted(StockMovement $stockMovement): void
-    {
-        $reverseQuantity = -$stockMovement->quantity;
-
-        DB::transaction(function () use ($stockMovement, $reverseQuantity) {
-            if ($stockMovement->product_variant_id) {
-                $this->updateStock(
-                    ProductVariant::class,
-                    $stockMovement->product_variant_id,
-                    $reverseQuantity
-                );
-            } elseif ($stockMovement->product_id) {
-                $this->updateStock(
-                    Product::class,
-                    $stockMovement->product_id,
-                    $reverseQuantity
-                );
-            }
-        });
-
-        Log::info("StockMovement #{$stockMovement->id} eliminato — stock invertito di {$reverseQuantity}");
-    }
 
     /**
      * Aggiorna lo stock con guard atomico contro valori negativi.

@@ -15,8 +15,8 @@ const safeContent = computed(() => sanitize(props.page?.content));
 
 <template>
     <Head>
-        <title>{{ page.title }} — Savino Del Bene Volley</title>
-        <meta v-if="page.meta_description" name="description" :content="page.meta_description" />
+        <title>{{ page?.title ?? 'Pagina' }} — Savino Del Bene Volley</title>
+        <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
     </Head>
 
     <PublicLayout>
@@ -25,7 +25,7 @@ const safeContent = computed(() => sanitize(props.page?.content));
                 <!-- Header -->
                 <div class="mb-12 border-b border-gray-200 pb-8">
                     <h1 class="text-4xl font-black text-savino-blue uppercase tracking-tighter mb-2" style="font-family: 'Montserrat', sans-serif;">
-                        {{ page.title }}
+                        {{ page?.title }}
                     </h1>
                     <div class="w-16 h-1 bg-savino-gold"></div>
                 </div>

@@ -24,4 +24,20 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, \Throwable $exception, Request $request) {
+            // Renderizza errori HTTP come pagine Inertia con il design del sito
+            if (in_array($response->getStatusCode(), [403, 404, 500, 503])
+                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
+                && ! app()->environment('local')
+            ) {
+                return \Inertia\Inertia::render('Error', [
+                    'status' => $response->getStatusCode(),
+                ])
+                ->toResponse($request)
+                ->setStatusCode($response->getStatusCode());
+            }
+
+            return $response;
+        });
     })->create();

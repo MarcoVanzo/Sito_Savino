@@ -29,8 +29,15 @@ class OrderObserver
         }
 
         // Ordine cancellato → ripristina stock (solo se era stato pagato)
-        if ($order->status === OrderStatus::Cancelled && $order->getOriginal('status') === OrderStatus::Paid->value) {
-            $this->restoreStock($order);
+        if ($order->status === OrderStatus::Cancelled) {
+            $originalStatus = $order->getOriginal('status');
+            // getOriginal() può tornare stringa o enum in base alla versione Laravel
+            $wasPaid = $originalStatus === OrderStatus::Paid 
+                || $originalStatus === OrderStatus::Paid->value;
+            
+            if ($wasPaid) {
+                $this->restoreStock($order);
+            }
         }
     }
 
@@ -40,17 +47,18 @@ class OrderObserver
      */
     private function decrementStock(Order $order): void
     {
-        // Check idempotenza: controlla se esistono già movimenti per quest'ordine
-        $alreadyProcessed = StockMovement::where('order_id', $order->id)
-            ->where('type', StockMovementType::Sale)
-            ->exists();
-
-        if ($alreadyProcessed) {
-            Log::warning("Stock già decrementato per Ordine #{$order->id} — operazione saltata");
-            return;
-        }
-
         DB::transaction(function () use ($order) {
+            // Check idempotenza DENTRO la transaction: controlla se esistono già movimenti per quest'ordine
+            $alreadyProcessed = StockMovement::where('order_id', $order->id)
+                ->where('type', StockMovementType::Sale)
+                ->lockForUpdate()
+                ->exists();
+
+            if ($alreadyProcessed) {
+                Log::warning("Stock già decrementato per Ordine #{$order->id} — operazione saltata");
+                return;
+            }
+
             // Eager-load items CON relazioni per evitare N+1
             $order->load('items.variant', 'items.product');
 
@@ -83,32 +91,33 @@ class OrderObserver
      */
     private function restoreStock(Order $order): void
     {
-        // Verifica che ci siano movimenti di vendita da ripristinare (via FK)
-        $salesMovements = StockMovement::where('order_id', $order->id)
-            ->where('type', StockMovementType::Sale)
-            ->get();
+        DB::transaction(function () use ($order) {
+            // Verifica che ci siano movimenti di vendita da ripristinare (via FK)
+            $salesMovements = StockMovement::where('order_id', $order->id)
+                ->where('type', StockMovementType::Sale)
+                ->lockForUpdate()
+                ->get();
 
-        if ($salesMovements->isEmpty()) {
-            return;
-        }
+            if ($salesMovements->isEmpty()) {
+                return;
+            }
 
-        // Verifica che non sia già stato ripristinato
-        $alreadyRestored = StockMovement::where('order_id', $order->id)
-            ->where('type', StockMovementType::Adjustment)
-            ->exists();
+            // Verifica che non sia già stato ripristinato
+            $alreadyRestored = StockMovement::where('order_id', $order->id)
+                ->where('type', StockMovementType::Adjustment)
+                ->exists();
 
-        if ($alreadyRestored) {
-            Log::warning("Stock già ripristinato per Ordine #{$order->id} — operazione saltata");
-            return;
-        }
+            if ($alreadyRestored) {
+                Log::warning("Stock già ripristinato per Ordine #{$order->id} — operazione saltata");
+                return;
+            }
 
-        DB::transaction(function () use ($order, $salesMovements) {
             foreach ($salesMovements as $movement) {
                 StockMovement::create([
                     'product_id' => $movement->product_id,
                     'product_variant_id' => $movement->product_variant_id,
                     'order_id' => $order->id,
-                    'quantity' => abs($movement->quantity), // Inverti: riaggiungi
+                    'quantity' => abs($movement->quantity),
                     'type' => StockMovementType::Adjustment,
                     'notes' => "Ripristino Ordine #{$order->id} — cancellazione",
                 ]);

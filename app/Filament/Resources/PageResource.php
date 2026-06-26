@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 
 class PageResource extends Resource
 {
@@ -58,7 +59,9 @@ class PageResource extends Resource
                             ->image()
                             ->maxSize(5120),
                         Forms\Components\Select::make('parent_id')
-                            ->relationship('parent', 'title')
+                            ->relationship('parent', 'title', fn (Builder $query, $record) => 
+                                $record ? $query->where('id', '!=', $record->id) : $query
+                            )
                             ->label('Pagina Genitore')
                             ->searchable(),
                         Forms\Components\Select::make('status')
@@ -72,7 +75,8 @@ class PageResource extends Resource
                         Forms\Components\Select::make('author_id')
                             ->label('Autore')
                             ->relationship('author', 'name')
-                            ->searchable(),
+                            ->searchable()
+                            ->default(fn () => auth()->id()),
                         Forms\Components\Select::make('template')
                             ->label('Template Pagina')
                             ->options([
@@ -150,5 +154,11 @@ class PageResource extends Resource
             'create' => Pages\CreatePage::route('/create'),
             'edit' => Pages\EditPage::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['parent', 'author']);
     }
 }

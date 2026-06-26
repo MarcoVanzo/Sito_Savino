@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\StockMovementType;
 use App\Filament\Resources\StockMovementResource\Pages;
-use App\Filament\Resources\StockMovementResource\RelationManagers;
 use App\Models\StockMovement;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,7 +11,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class StockMovementResource extends Resource
 {
@@ -49,12 +48,12 @@ class StockMovementResource extends Resource
                         Forms\Components\Select::make('type')
                             ->label('Tipo di Movimento')
                             ->options([
-                                'Rifornimento' => 'Rifornimento (+)',
-                                'Vendita' => 'Vendita (-)',
-                                'Rettifica' => 'Rettifica (+/-)',
+                                StockMovementType::Purchase->value => StockMovementType::Purchase->label(),
+                                StockMovementType::Adjustment->value => StockMovementType::Adjustment->label(),
                             ])
                             ->required()
-                            ->default('Rifornimento'),
+                            ->default(StockMovementType::Purchase)
+                            ->helperText('Le vendite vengono registrate automaticamente dagli ordini.'),
                         Forms\Components\TextInput::make('quantity')
                             ->label('Quantità')
                             ->numeric()
@@ -89,15 +88,19 @@ class StockMovementResource extends Resource
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
-                    ->color(fn ($state): string => match ($state) {
-                        'Rifornimento' => 'success',
-                        'Vendita' => 'danger',
-                        'Rettifica' => 'warning',
-                        default => 'gray',
+                    ->formatStateUsing(fn (StockMovementType $state): string => $state->label())
+                    ->color(fn (StockMovementType $state): string => match ($state) {
+                        StockMovementType::Purchase => 'success',
+                        StockMovementType::Sale => 'danger',
+                        StockMovementType::Adjustment => 'warning',
                     }),
                 Tables\Columns\TextColumn::make('quantity')
                     ->label('Q.tà')
                     ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('order.id')
+                    ->label('Ordine #')
+                    ->placeholder('Manuale')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('notes')
                     ->label('Note')
@@ -108,19 +111,14 @@ class StockMovementResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
                     ->label('Tipo Movimento')
-                    ->options([
-                        'Rifornimento' => 'Rifornimento',
-                        'Vendita' => 'Vendita',
-                        'Rettifica' => 'Rettifica',
-                    ]),
+                    ->options(StockMovementType::class),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
+                // Nessun EditAction: i movimenti di magazzino sono record di audit immutabili
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Nessun bulk delete: i movimenti non devono essere cancellati
             ]);
     }
 
@@ -136,7 +134,13 @@ class StockMovementResource extends Resource
         return [
             'index' => Pages\ListStockMovements::route('/'),
             'create' => Pages\CreateStockMovement::route('/create'),
-            'edit' => Pages\EditStockMovement::route('/{record}/edit'),
+            // Nessuna pagina edit: i movimenti sono immutabili
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['product', 'variant', 'order']);
     }
 }

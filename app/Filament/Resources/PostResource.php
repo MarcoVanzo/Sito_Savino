@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 
 class PostResource extends Resource
 {
@@ -82,7 +83,8 @@ class PostResource extends Resource
                         Forms\Components\Select::make('author_id')
                             ->label('Autore')
                             ->relationship('author', 'name')
-                            ->searchable(),
+                            ->searchable()
+                            ->default(fn () => auth()->id()),
                         Forms\Components\DateTimePicker::make('published_at')
                             ->label('Data e Ora Pubblicazione'),
                         Forms\Components\TextInput::make('meta_title')
@@ -126,6 +128,7 @@ class PostResource extends Resource
                     ->searchable()
                     ->sortable(),
             ])
+            ->defaultSort('published_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Stato')
@@ -139,6 +142,7 @@ class PostResource extends Resource
                     ->url(fn ($record) => url('news/' . ($record->slug ?? '')))
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-eye'),
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -162,5 +166,11 @@ class PostResource extends Resource
             'create' => Pages\CreatePost::route('/create'),
             'edit' => Pages\EditPost::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['author', 'categories']);
     }
 }

@@ -67,11 +67,14 @@ class ProductResource extends Resource
                             ->minValue(0)
                             ->prefix('€'),
                         Forms\Components\TextInput::make('stock')
-                            ->label('Stock Base')
+                            ->label('Stock Attuale')
                             ->required()
                             ->numeric()
                             ->minValue(0)
-                            ->default(0),
+                            ->default(0)
+                            ->disabled(fn (string $context): bool => $context === 'edit')
+                            ->dehydrated()
+                            ->helperText(fn (string $context): ?string => $context === 'edit' ? 'Gestito dai Movimenti Magazzino. Modifica tramite la sezione dedicata.' : null),
                         Forms\Components\TextInput::make('sku')
                             ->label('Codice (SKU)')
                             ->maxLength(255)
@@ -180,6 +183,7 @@ class ProductResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->with(['category']);
     }
 }

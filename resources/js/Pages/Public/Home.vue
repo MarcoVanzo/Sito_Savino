@@ -14,25 +14,18 @@ let slideInterval;
 onMounted(() => {
     slideInterval = setInterval(() => {
         currentSlide.value = (currentSlide.value + 1) % slides.length;
-    }, 5000); // Change image every 5 seconds
+    }, 5000);
 });
 
 onUnmounted(() => {
     clearInterval(slideInterval);
 });
-
-const props = defineProps({
-    page: {
-        type: Object,
-        default: null,
-    }
-});
 </script>
 
 <template>
         <Head>
-        <title>{{ page?.meta_title || page?.title || 'Savino Del Bene Volley' }}</title>
-        <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
+        <title>Savino Del Bene Volley — Sito Ufficiale</title>
+        <meta name="description" content="Sito ufficiale della Savino Del Bene Volley. Scopri il roster, il calendario e i risultati della Serie A1 femminile." />
     </Head>
     <PublicLayout>
         <!-- HERO SECTION -->
@@ -80,19 +73,19 @@ const props = defineProps({
             </div>
         </div>
         
-        <!-- Quick styles for the WOW transition -->
-        <style scoped>
-        .wow-slide {
-            opacity: 0;
-            transform: scale(1.05);
-            transition: opacity 2s ease-in-out, transform 10s ease-out;
-            z-index: 0;
-        }
-        .wow-slide.is-active {
-            opacity: 1;
-            transform: scale(1.15);
-            z-index: 10;
-        }
-        </style>
     </PublicLayout>
 </template>
+
+<style scoped>
+.wow-slide {
+    opacity: 0;
+    transform: scale(1.05);
+    transition: opacity 2s ease-in-out, transform 10s ease-out;
+    z-index: 0;
+}
+.wow-slide.is-active {
+    opacity: 1;
+    transform: scale(1.15);
+    z-index: 10;
+}
+</style>

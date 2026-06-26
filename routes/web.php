@@ -25,10 +25,11 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
+Route::get('/debug-log', function () { return file_get_contents(storage_path('logs/laravel.log')); });
+
 // Rotta dinamica per le pagine del CMS (CATCH-ALL)
 // DEVE essere l'ULTIMA route — intercetta tutto ciò che non è stato matchato sopra.
 // Ignora percorsi di sistema noti.
 Route::get('/{slug}', [PageController::class, 'show'])
     ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password).*$')
     ->name('pages.show');
-Route::get('/debug-log', function () { return file_get_contents(storage_path('logs/laravel.log')); });

@@ -56,16 +56,24 @@ class SponsorResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\SpatieMediaLibraryImageColumn::make('logo')
+                    ->label('Logo')
+                    ->collection('sponsors')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tier')
+                    ->label('Livello')
                     ->badge()
                     ->color(fn ($state): string => match ($state) {
                         'main' => 'warning',
+                        'gold' => 'warning',
+                        'silver' => 'gray',
                         'technical' => 'info',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('url'),
+                Tables\Columns\TextColumn::make('url')
+                    ->label('Sito Web'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('tier')
@@ -79,6 +87,7 @@ class SponsorResource extends Resource
                     ]),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Illuminate\Database\Eloquent\Builder;
 
 class RosterResource extends Resource
 {
@@ -34,29 +35,34 @@ class RosterResource extends Resource
                             ->label('Atleta')
                             ->relationship('player', 'last_name')
                             ->searchable()
+                            ->preload()
                             ->required(),
                         Forms\Components\Select::make('team_id')
                             ->label('Squadra')
                             ->relationship('team', 'name')
                             ->searchable()
+                            ->preload()
                             ->required(),
                         Forms\Components\Select::make('season_id')
                             ->label('Stagione')
                             ->relationship('season', 'name')
                             ->searchable()
+                            ->preload()
                             ->required(),
                     ])->columns(3),
                 Forms\Components\Section::make('Dettagli Tecnici')
                     ->schema([
                         Forms\Components\TextInput::make('jersey_number')
                             ->label('Numero di Maglia')
-                            ->numeric(),
+                            ->numeric()
+                            ->minValue(0),
                         Forms\Components\TextInput::make('role')
                             ->label('Ruolo in Campo')
                             ->maxLength(255),
                         Forms\Components\TextInput::make('height_cm')
                             ->label('Altezza (cm)')
-                            ->numeric(),
+                            ->numeric()
+                            ->minValue(0),
                         Forms\Components\Toggle::make('is_captain')
                             ->label('Capitano della Squadra')
                             ->required(),
@@ -110,6 +116,7 @@ class RosterResource extends Resource
                     ->relationship('season', 'name'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -133,5 +140,11 @@ class RosterResource extends Resource
             'create' => Pages\CreateRoster::route('/create'),
             'edit' => Pages\EditRoster::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['player', 'team', 'season']);
     }
 }
