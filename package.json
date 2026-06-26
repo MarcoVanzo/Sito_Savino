@@ -6,8 +6,9 @@
         "node": ">=20.0.0"
     },
     "scripts": {
-        "build-assets": "vite build",
-        "dev": "vite"
+        "build": "vite build",
+        "dev": "vite",
+        "heroku-postbuild": "echo 'Skipping auto-build'"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0.0",

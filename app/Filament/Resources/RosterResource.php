@@ -15,38 +15,62 @@ class RosterResource extends Resource
 {
     protected static ?string $model = Roster::class;
 
+    protected static ?string $modelLabel = 'Giocatore in Rosa';
+    protected static ?string $pluralModelLabel = 'Giocatori in Rosa (Roster)';
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    protected static ?string $navigationGroup = 'Sport';
+    protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('player_id')
-                    ->relationship('player', 'last_name')
-                    ->required(),
-                Forms\Components\Select::make('team_id')
-                    ->relationship('team', 'name')
-                    ->required(),
-                Forms\Components\Select::make('season_id')
-                    ->relationship('season', 'name')
-                    ->required(),
-                Forms\Components\TextInput::make('jersey_number')
-                    ->numeric(),
-                Forms\Components\TextInput::make('role')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('height_cm')
-                    ->numeric(),
-                Forms\Components\Toggle::make('is_captain')
-                    ->required(),
-                Forms\Components\Textarea::make('bio')
-                    ->columnSpanFull(),
-                SpatieMediaLibraryFileUpload::make('official_photo')
-                    ->collection('rosters_official')
-                    ->image(),
-                SpatieMediaLibraryFileUpload::make('action_photo')
-                    ->collection('rosters_action')
-                    ->image(),
+                Forms\Components\Section::make('Associazione Stagionale')
+                    ->schema([
+                        Forms\Components\Select::make('player_id')
+                            ->label('Atleta')
+                            ->relationship('player', 'last_name')
+                            ->searchable()
+                            ->required(),
+                        Forms\Components\Select::make('team_id')
+                            ->label('Squadra')
+                            ->relationship('team', 'name')
+                            ->searchable()
+                            ->required(),
+                        Forms\Components\Select::make('season_id')
+                            ->label('Stagione')
+                            ->relationship('season', 'name')
+                            ->searchable()
+                            ->required(),
+                    ])->columns(3),
+                Forms\Components\Section::make('Dettagli Tecnici')
+                    ->schema([
+                        Forms\Components\TextInput::make('jersey_number')
+                            ->label('Numero di Maglia')
+                            ->numeric(),
+                        Forms\Components\TextInput::make('role')
+                            ->label('Ruolo in Campo')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('height_cm')
+                            ->label('Altezza (cm)')
+                            ->numeric(),
+                        Forms\Components\Toggle::make('is_captain')
+                            ->label('Capitano della Squadra')
+                            ->required(),
+                    ])->columns(2),
+                Forms\Components\Section::make('Biografia e Foto')
+                    ->schema([
+                        Forms\Components\Textarea::make('bio')
+                            ->label('Biografia Stagionale')
+                            ->columnSpanFull(),
+                        SpatieMediaLibraryFileUpload::make('official_photo')
+                            ->label('Foto Ufficiale (Roster)')
+                            ->collection('rosters_official')
+                            ->image(),
+                        SpatieMediaLibraryFileUpload::make('action_photo')
+                            ->label('Foto in Azione')
+                            ->collection('rosters_action')
+                            ->image(),
+                    ])->columns(2),
             ]);
     }
 
@@ -54,19 +78,32 @@ class RosterResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\SpatieMediaLibraryImageColumn::make('official_photo')
+                    ->label('')
+                    ->collection('rosters_official')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('player.last_name')
-                    ->sortable(),
+                    ->label('Atleta')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('team.name')
+                    ->label('Squadra')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('season.name')
+                    ->label('Stagione')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('jersey_number'),
-                Tables\Columns\TextColumn::make('role'),
+                Tables\Columns\TextColumn::make('jersey_number')
+                    ->label('Maglia'),
+                Tables\Columns\TextColumn::make('role')
+                    ->label('Ruolo'),
                 Tables\Columns\IconColumn::make('is_captain')
+                    ->label('Capitano')
                     ->boolean(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('season_id')
+                    ->label('Stagione')
+                    ->relationship('season', 'name'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

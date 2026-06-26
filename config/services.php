@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'preview' => [
+        'user' => env('PREVIEW_AUTH_USER'),
+        'pass' => env('PREVIEW_AUTH_PASS'),
+    ],
+
 ];

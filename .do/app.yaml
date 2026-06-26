@@ -4,7 +4,7 @@ services:
     github:
       repo: MarcoVanzo/sito_savino
       branch: main
-    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build-assets && php artisan migrate --force
+    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build && php artisan migrate --force
     run_command: heroku-php-apache2 public/
     envs:
       - key: APP_ENV
@@ -14,11 +14,11 @@ services:
       - key: APP_URL
         value: ${APP_URL}
       - key: APP_KEY
-        value: "base64:GM+BEvGel2vMIRAgcAJLRwFmZDaLzcvqiBsirjJi/MQ="
+        type: SECRET
       - key: PREVIEW_AUTH_USER
-        value: "admin"
+        type: SECRET
       - key: PREVIEW_AUTH_PASS
-        value: "savino2026"
+        type: SECRET
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
@@ -34,9 +34,9 @@ services:
       - key: FILESYSTEM_DISK
         value: s3
       - key: AWS_ACCESS_KEY_ID
-        value: DO002PZMHRRDGTZYR674
+        type: SECRET
       - key: AWS_SECRET_ACCESS_KEY
-        value: dC+MMPAv0T93k/vq6NsBe8i1pB7tuMKRl+Z4WJaE7A4
+        type: SECRET
       - key: AWS_DEFAULT_REGION
         value: fra1
       - key: AWS_BUCKET
@@ -49,6 +49,10 @@ services:
         value: database
       - key: SESSION_ENCRYPT
         value: "true"
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
 databases:
   - name: sito-savino-db
     engine: MYSQL

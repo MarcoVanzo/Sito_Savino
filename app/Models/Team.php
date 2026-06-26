@@ -12,7 +12,13 @@ class Team extends Model implements HasMedia
 {
     use HasFactory, SoftDeletes, InteractsWithMedia;
 
-    protected $fillable = ['name', 'slug', 'category'];
+    protected $fillable = [
+        'name', 'slug', 'category', 'is_internal'
+    ];
+
+    protected $casts = [
+        'is_internal' => 'boolean',
+    ];
 
     public function rosters()
     {

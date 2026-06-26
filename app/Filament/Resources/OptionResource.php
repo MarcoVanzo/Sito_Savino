@@ -15,8 +15,10 @@ class OptionResource extends Resource
 {
     protected static ?string $model = Option::class;
 
+    protected static ?string $modelLabel = 'Impostazione';
+    protected static ?string $pluralModelLabel = 'Impostazioni Sito';
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
-    protected static ?string $navigationGroup = 'Impostazioni';
+    protected static ?string $navigationGroup = 'Sito Web';
 
     public static function form(Form $form): Form
     {
@@ -54,7 +56,7 @@ class OptionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                // Nessun filtro applicabile: tabella di configurazione chiave-valore
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

@@ -17,8 +17,8 @@ class PreviewBasicAuth
     public function handle(Request $request, Closure $next)
     {
         // Se non ci sono credenziali impostate nel .env, bypassa (utile per locale)
-        $user = env('PREVIEW_AUTH_USER');
-        $pass = env('PREVIEW_AUTH_PASS');
+        $user = config('services.preview.user');
+        $pass = config('services.preview.pass');
 
         if (!empty($user) && !empty($pass)) {
             if ($request->getUser() !== $user || $request->getPassword() !== $pass) {

@@ -13,7 +13,17 @@ class Post extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'title',
+        'slug',
+        'content',
+        'excerpt',
+        'status',
+        'published_at',
+        'author_id',
+        'meta_title',
+        'meta_description',
+    ];
 
     protected $casts = [
         'published_at' => 'datetime',
@@ -32,5 +42,10 @@ class Post extends Model implements HasMedia
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'publish');
     }
 }

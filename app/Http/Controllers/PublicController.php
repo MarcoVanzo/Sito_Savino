@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use Inertia\Inertia;
 use App\Models\Roster;
+use App\Models\Season;
 use App\Models\Team;
 
 class PublicController extends Controller
@@ -18,12 +19,15 @@ class PublicController extends Controller
     public function stagione()
     {
         $teamA1 = Team::where('slug', 'serie-a1')->first();
-        
+
+        // Usa la stagione corrente (is_current=true) anziché ID hardcoded
+        $currentSeason = Season::current()->first();
+
         $roster = [];
-        if ($teamA1) {
+        if ($teamA1 && $currentSeason) {
             $roster = Roster::with('player', 'player.stats')
                 ->where('team_id', $teamA1->id)
-                ->where('season_id', 1) // Attualmente hardcoded per la 26/27 (id 1)
+                ->where('season_id', $currentSeason->id)
                 ->orderBy('jersey_number')
                 ->get();
         }

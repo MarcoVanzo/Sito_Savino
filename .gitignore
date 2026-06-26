@@ -29,3 +29,11 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# File di proposta/mockup (non parte del progetto)
+Loghi/
+Proposta_Tecnica_SDB_v3.0.pdf
+proposta_tecnica_sdb.html
+mockups_block.html
+Pantone colori.jpeg
+*.py

@@ -13,7 +13,11 @@ class Page extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'wp_id', 'title', 'slug', 'template', 'content', 'excerpt', 
+        'status', 'author_id', 'parent_id',
+        'meta_title', 'meta_description', 'meta_keywords'
+    ];
 
     public function author(): BelongsTo
     {
@@ -28,5 +32,10 @@ class Page extends Model implements HasMedia
     public function children(): HasMany
     {
         return $this->hasMany(Page::class, 'parent_id');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'publish');
     }
 }

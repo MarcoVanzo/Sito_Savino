@@ -20,10 +20,20 @@ onMounted(() => {
 onUnmounted(() => {
     clearInterval(slideInterval);
 });
+
+const props = defineProps({
+    page: {
+        type: Object,
+        default: null,
+    }
+});
 </script>
 
 <template>
-    <Head title="Home" />
+        <Head>
+        <title>{{ page?.meta_title || page?.title || 'Savino Del Bene Volley' }}</title>
+        <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
+    </Head>
     <PublicLayout>
         <!-- HERO SECTION -->
         <div class="relative w-full min-h-screen flex items-center bg-gray-900 overflow-hidden -mt-[85px] pt-[85px]">

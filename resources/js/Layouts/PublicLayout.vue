@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import CookieConsent from '@/Components/CookieConsent.vue';
 
 const isMobileMenuOpen = ref(false);
 const activeMobileIndex = ref(null);
@@ -299,12 +300,18 @@ const page = usePage();
                     <span class="font-serif text-xl font-bold text-white">Savino Del Bene Volley</span>
                     <p class="text-sm mt-2">© 2026 Tutti i diritti riservati.</p>
                 </div>
-                <div class="flex space-x-6">
+                <div class="flex items-center space-x-6">
                     <a href="#" class="hover:text-white">Facebook</a>
                     <a href="#" class="hover:text-white">Instagram</a>
                     <a href="#" class="hover:text-white">YouTube</a>
+                    <span class="text-gray-700">|</span>
+                    <a href="/privacy-policy" class="text-xs hover:text-white">Privacy Policy</a>
+                    <a href="/cookie-policy" class="text-xs hover:text-white">Cookie Policy</a>
                 </div>
             </div>
         </footer>
+
+        <!-- GDPR Cookie Consent -->
+        <CookieConsent />
     </div>
 </template>

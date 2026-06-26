@@ -17,6 +17,8 @@ class SeasonResource extends Resource
 {
     protected static ?string $model = Season::class;
 
+    protected static ?string $modelLabel = 'Stagione';
+    protected static ?string $pluralModelLabel = 'Stagioni';
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
     protected static ?string $navigationGroup = 'Gestione Sportiva';
 
@@ -53,7 +55,9 @@ class SeasonResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TernaryFilter::make('is_current')
+                    ->label('Stagione Corrente'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -79,5 +83,13 @@ class SeasonResource extends Resource
             'create' => Pages\CreateSeason::route('/create'),
             'edit' => Pages\EditSeason::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

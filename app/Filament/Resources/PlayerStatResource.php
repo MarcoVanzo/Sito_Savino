@@ -17,6 +17,8 @@ class PlayerStatResource extends Resource
 {
     protected static ?string $model = PlayerStat::class;
 
+    protected static ?string $modelLabel = 'Statistica Partita';
+    protected static ?string $pluralModelLabel = 'Statistiche Partite';
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
     protected static ?string $navigationGroup = 'Gestione Sportiva';
 
@@ -94,7 +96,9 @@ class PlayerStatResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('season_id')
+                    ->label('Stagione')
+                    ->relationship('season', 'name'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

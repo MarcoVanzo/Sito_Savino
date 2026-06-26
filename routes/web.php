@@ -7,17 +7,11 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\PublicController;
 
+use App\Http\Controllers\PageController;
+
 // Rotte Pubbliche SDB
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
-Route::get('/societa', function () { return Inertia::render('Public/Societa'); })->name('societa');
-Route::get('/ticketing', function () { return Inertia::render('Public/Ticketing'); })->name('ticketing');
-Route::get('/sponsor', function () { return Inertia::render('Public/Sponsor'); })->name('sponsor');
-Route::get('/youth', function () { return Inertia::render('Public/Youth'); })->name('youth');
-Route::get('/summer-camp', function () { return Inertia::render('Public/SummerCamp'); })->name('summer-camp');
-Route::get('/sociale', function () { return Inertia::render('Public/Sociale'); })->name('sociale');
-Route::get('/comunicazione', function () { return Inertia::render('Public/Comunicazione'); })->name('comunicazione');
-Route::get('/shop', function () { return Inertia::render('Public/Shop'); })->name('shop');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -30,3 +24,10 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Rotta dinamica per le pagine del CMS (CATCH-ALL)
+// DEVE essere l'ULTIMA route — intercetta tutto ciò che non è stato matchato sopra.
+// Ignora percorsi di sistema noti.
+Route::get('/{slug}', [PageController::class, 'show'])
+    ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password).*$')
+    ->name('pages.show');

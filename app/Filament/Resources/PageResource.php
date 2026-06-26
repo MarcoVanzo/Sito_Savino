@@ -16,8 +16,10 @@ class PageResource extends Resource
 {
     protected static ?string $model = Page::class;
 
+    protected static ?string $modelLabel = 'Pagina';
+    protected static ?string $pluralModelLabel = 'Pagine';
     protected static ?string $navigationIcon = 'heroicon-o-document';
-    protected static ?string $navigationGroup = 'CMS';
+    protected static ?string $navigationGroup = 'Sito Web';
 
     public static function form(Form $form): Form
     {
@@ -26,23 +28,28 @@ class PageResource extends Resource
                 Forms\Components\Section::make('Contenuto Principale')
                     ->schema([
                         Forms\Components\TextInput::make('title')
+                            ->label('Titolo')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
                         Forms\Components\TextInput::make('slug')
+                            ->label('URL Slug')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
                         Forms\Components\RichEditor::make('content')
+                            ->label('Contenuto')
                             ->columnSpanFull(),
                         Forms\Components\Textarea::make('excerpt')
+                            ->label('Riassunto (Excerpt)')
                             ->columnSpanFull(),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Impostazioni e SEO')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('cover')
+                            ->label('Immagine di Copertina')
                             ->collection('cover')
                             ->image()
                             ->maxSize(5120),
@@ -51,6 +58,7 @@ class PageResource extends Resource
                             ->label('Pagina Genitore')
                             ->searchable(),
                         Forms\Components\Select::make('status')
+                            ->label('Stato Pubblicazione')
                             ->options([
                                 'draft' => 'Bozza',
                                 'publish' => 'Pubblicato',
@@ -58,11 +66,24 @@ class PageResource extends Resource
                             ->default('publish')
                             ->required(),
                         Forms\Components\Select::make('author_id')
+                            ->label('Autore')
                             ->relationship('author', 'name')
                             ->searchable(),
+                        Forms\Components\Select::make('template')
+                            ->label('Template Pagina')
+                            ->options([
+                                'Default' => 'Template Predefinito',
+                                'Public/Home' => 'Home Page',
+                                'Public/Societa' => 'Società',
+                                'Public/Roster' => 'Roster',
+                                'Public/Shop' => 'Shop',
+                            ])
+                            ->nullable(),
                         Forms\Components\TextInput::make('meta_title')
+                            ->label('Meta Titolo (SEO)')
                             ->maxLength(255),
                         Forms\Components\Textarea::make('meta_description')
+                            ->label('Meta Descrizione (SEO)')
                             ->maxLength(255)
                             ->columnSpanFull(),
                     ])->columns(2),
@@ -74,12 +95,14 @@ class PageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
+                    ->label('Titolo')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('parent.title')
                     ->label('Genitore')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
+                    ->label('Stato')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'draft' => 'gray',
@@ -87,9 +110,18 @@ class PageResource extends Resource
                     }),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Stato')
+                    ->options([
+                        'draft' => 'Bozza',
+                        'publish' => 'Pubblicato',
+                    ]),
             ])
             ->actions([
+                Tables\Actions\Action::make('Anteprima')
+                    ->url(fn ($record) => url($record->slug ?? ''))
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-o-eye'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

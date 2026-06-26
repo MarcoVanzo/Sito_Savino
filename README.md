@@ -1,58 +1,104 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Savino Del Bene Volley — Sito Ufficiale
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sito web ufficiale della **Savino Del Bene Volley Scandicci**, squadra di Serie A1 femminile.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Componente | Tecnologia |
+|---|---|
+| **Backend** | Laravel 13.x, PHP 8.3 |
+| **Admin** | Filament v3 |
+| **Frontend** | Vue 3 + Inertia.js |
+| **Styling** | Tailwind CSS v3 |
+| **Media** | Spatie Media Library |
+| **Deploy** | DigitalOcean App Platform + MySQL 8 |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup Locale
 
 ```bash
-composer require laravel/boost --dev
+# Clona il repository
+git clone <repo-url> savino-del-bene
+cd savino-del-bene
 
-php artisan boost:install
+# Installa le dipendenze
+composer install
+npm install
+
+# Configura l'ambiente
+cp .env.example .env
+php artisan key:generate
+
+# Database
+php artisan migrate --seed
+
+# Avvia il frontend (dev server con HMR)
+npm run dev
+
+# In un altro terminale, avvia il backend
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+L'applicazione sarà disponibile su `http://localhost:8000`.
 
-## Contributing
+## Struttura Progetto
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```
+app/
+├── Enums/                        — Enum PHP (PostStatus, OrderStatus, GameStatus, StockMovementType)
+├── Filament/Resources/           — Pannello admin Filament (16 resource)
+├── Models/                       — Modelli Eloquent
+├── Observers/                    — Event observer (OrderObserver, StockMovementObserver)
+├── Policies/                     — Autorizzazione (12 policy)
+resources/
+├── js/
+│   ├── Layouts/                  — Layout (PublicLayout, AuthenticatedLayout)
+│   └── Pages/Public/             — Pagine Vue pubbliche
+```
 
-## Code of Conduct
+## Pannello Admin
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Accessibile su `/admin`. Richiede ruolo `admin` o `editor`.
 
-## Security Vulnerabilities
+Gestisce: articoli, pagine, prodotti, ordini, categorie, tag, partite, giocatrici, staff, sponsor, media, utenti e altro.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Enums
 
-## License
+Il progetto utilizza PHP Enums nativi (PHP 8.1+) per gestire gli status in modo type-safe:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **`PostStatus`** — `draft`, `publish`
+- **`OrderStatus`** — `pending`, `paid`, `shipped`, `cancelled`
+- **`GameStatus`** — `scheduled`, `in_progress`, `completed`, `postponed`
+- **`StockMovementType`** — `Vendita`, `Acquisto`, `Rettifica`
+
+Ogni enum espone un metodo `label()` che restituisce l'etichetta localizzata in italiano.
+
+## Query Scopes
+
+I modelli Eloquent espongono scope dedicati per le query più comuni:
+
+```php
+Post::published()->get();        // Post con status 'publish'
+Page::published()->get();        // Pagine con status 'publish'
+Product::active()->get();        // Prodotti attivi (is_active = true)
+Order::paid()->get();            // Ordini con status 'paid'
+```
+
+## Deploy
+
+Configurato per **DigitalOcean App Platform**. Il file di configurazione si trova in `.do/app.yaml`.
+
+### Variabili d'ambiente richieste
+
+| Variabile | Descrizione |
+|---|---|
+| `APP_KEY` | Chiave di crittografia Laravel |
+| `DB_HOST` | Host del database MySQL |
+| `DB_DATABASE` | Nome del database |
+| `DB_USERNAME` | Utente del database |
+| `DB_PASSWORD` | Password del database |
+| `PREVIEW_AUTH_USER` | Username per preview environment |
+| `PREVIEW_AUTH_PASSWORD` | Password per preview environment |
+
+## Licenza
+
+Progetto proprietario — Tutti i diritti riservati.

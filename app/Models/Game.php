@@ -12,7 +12,7 @@ class Game extends Model
 
     protected $fillable = [
         'season_id', 'home_team_id', 'away_team_id',
-        'match_date', 'home_score', 'away_score',
+        'match_date', 'status', 'home_score', 'away_score',
         'location', 'competition_type'
     ];
 

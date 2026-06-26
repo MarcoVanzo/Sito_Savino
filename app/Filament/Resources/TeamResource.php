@@ -10,30 +10,44 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TeamResource extends Resource
 {
     protected static ?string $model = Team::class;
 
+    protected static ?string $modelLabel = 'Squadra';
+    protected static ?string $pluralModelLabel = 'Squadre';
     protected static ?string $navigationIcon = 'heroicon-o-flag';
-    protected static ?string $navigationGroup = 'Sport';
+    protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('slug')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('category')
-                    ->maxLength(255),
-                SpatieMediaLibraryFileUpload::make('logo')
-                    ->collection('teams')
-                    ->image()
-                    ->columnSpanFull(),
+                Forms\Components\Section::make('Dettagli Squadra')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome Squadra')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('slug')
+                            ->label('Slug')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('category')
+                            ->label('Categoria (es. Serie A1)')
+                            ->maxLength(255),
+                    ])->columns(2),
+                Forms\Components\Section::make('Immagine')
+                    ->schema([
+                        SpatieMediaLibraryFileUpload::make('logo')
+                            ->label('Logo Squadra')
+                            ->collection('teams')
+                            ->image()
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
@@ -41,15 +55,19 @@ class TeamResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\SpatieMediaLibraryImageColumn::make('logo')
+                    ->label('')
+                    ->collection('teams')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('slug')
+                    ->label('Nome Squadra')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('category')
+                    ->label('Categoria')
                     ->searchable(),
             ])
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -75,5 +93,13 @@ class TeamResource extends Resource
             'create' => Pages\CreateTeam::route('/create'),
             'edit' => Pages\EditTeam::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

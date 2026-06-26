@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlayerResource\Pages;
+use App\Filament\Resources\PlayerResource\RelationManagers;
 use App\Models\Player;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -10,35 +11,58 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PlayerResource extends Resource
 {
     protected static ?string $model = Player::class;
 
+    protected static ?string $modelLabel = 'Anagrafica Atleta';
+    protected static ?string $pluralModelLabel = 'Anagrafica Atleti';
     protected static ?string $navigationIcon = 'heroicon-o-user';
-    protected static ?string $navigationGroup = 'Sport';
+    protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('first_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('last_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\DatePicker::make('date_of_birth'),
-                Forms\Components\TextInput::make('nationality')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('instagram_handle')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('lega_volley_id')
-                    ->numeric(),
-                SpatieMediaLibraryFileUpload::make('avatar')
-                    ->collection('players')
-                    ->image()
-                    ->columnSpanFull(),
+                Forms\Components\Section::make('Dati Anagrafici')
+                    ->schema([
+                        Forms\Components\TextInput::make('first_name')
+                            ->label('Nome')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('last_name')
+                            ->label('Cognome')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\DatePicker::make('date_of_birth')
+                            ->label('Data di Nascita'),
+                        Forms\Components\TextInput::make('nationality')
+                            ->label('Nazionalità')
+                            ->maxLength(255),
+                    ])->columns(2),
+                Forms\Components\Section::make('Informazioni Aggiuntive')
+                    ->schema([
+                        Forms\Components\TextInput::make('instagram_handle')
+                            ->label('Profilo Instagram')
+                            ->prefix('@')
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('lega_volley_id')
+                            ->label('ID Lega Volley')
+                            ->numeric()
+                            ->helperText('Identificativo sul sito della Lega (se applicabile)'),
+                    ])->columns(2),
+                Forms\Components\Section::make('Foto Profilo')
+                    ->schema([
+                        SpatieMediaLibraryFileUpload::make('avatar')
+                            ->label('Immagine di Profilo (Avatar)')
+                            ->collection('players')
+                            ->image()
+                            ->helperText('Immagine ottimale: quadrata (es. 800x800px).')
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
@@ -46,14 +70,21 @@ class PlayerResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
+                    ->label('')
+                    ->collection('players')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('first_name')
+                    ->label('Nome')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('last_name')
+                    ->label('Cognome')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('nationality'),
+                Tables\Columns\TextColumn::make('nationality')
+                    ->label('Nazionalità'),
             ])
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -68,7 +99,7 @@ class PlayerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\PlayerStatsRelationManager::class,
         ];
     }
 
@@ -79,5 +110,13 @@ class PlayerResource extends Resource
             'create' => Pages\CreatePlayer::route('/create'),
             'edit' => Pages\EditPlayer::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

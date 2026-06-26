@@ -15,8 +15,10 @@ class SponsorResource extends Resource
 {
     protected static ?string $model = Sponsor::class;
 
+    protected static ?string $modelLabel = 'Sponsor';
+    protected static ?string $pluralModelLabel = 'Sponsor';
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
-    protected static ?string $navigationGroup = 'Impostazioni';
+    protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     public static function form(Form $form): Form
     {
@@ -62,7 +64,15 @@ class SponsorResource extends Resource
                 Tables\Columns\TextColumn::make('url'),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('tier')
+                    ->label('Livello')
+                    ->options([
+                        'main' => 'Main Sponsor',
+                        'gold' => 'Gold',
+                        'silver' => 'Silver',
+                        'technical' => 'Sponsor Tecnico',
+                        'standard' => 'Standard',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

@@ -19,7 +19,10 @@ const filteredRoster = computed(() => {
 </script>
 
 <template>
-    <Head title="Roster Serie A1" />
+        <Head>
+        <title>{{ page?.meta_title || page?.title || 'Savino Del Bene Volley' }}</title>
+        <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
+    </Head>
     <PublicLayout>
         <div class="bg-savino-blue min-h-screen py-16">
             <!-- Copertina Squadra -->

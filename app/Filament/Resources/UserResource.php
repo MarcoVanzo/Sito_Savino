@@ -17,40 +17,53 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    protected static ?string $modelLabel = 'Utente / Amministratore';
+    protected static ?string $pluralModelLabel = 'Utenti / Amministratori';
     protected static ?string $navigationIcon = 'heroicon-o-users';
     
-    protected static ?string $navigationGroup = 'Gestione Utenti';
+    protected static ?string $navigationGroup = 'Amministrazione';
 
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('password')
-                    ->password()
-                    ->required(fn (string $context): bool => $context === 'create')
-                    ->maxLength(255)
-                    ->dehydrated(fn ($state) => filled($state)),
-                Forms\Components\Select::make('role')
-                    ->options([
-                        'admin' => 'Admin',
-                        'editor' => 'Editor',
-                        'user' => 'User',
-                    ])
-                    ->required()
-                    ->default('user')
-                    ->disabled(fn ($record) => $record && $record->id === auth()->id()),
-                Forms\Components\Toggle::make('is_active')
-                    ->label('Attivo (Abilitato)')
-                    ->default(false)
-                    ->disabled(fn ($record) => $record && $record->id === auth()->id()),
+                Forms\Components\Section::make('Dati Utente')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nome Completo')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('email')
+                            ->label('Email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('password')
+                            ->label('Password')
+                            ->password()
+                            ->required(fn (string $context): bool => $context === 'create')
+                            ->maxLength(255)
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->helperText('Lascia vuoto per non modificare la password attuale.'),
+                    ])->columns(2),
+                Forms\Components\Section::make('Permessi')
+                    ->schema([
+                        Forms\Components\Select::make('role')
+                            ->label('Ruolo')
+                            ->options([
+                                'admin' => 'Admin (Accesso Totale)',
+                                'editor' => 'Editor (Scrittura Contenuti)',
+                                'user' => 'User (Cliente Shop)',
+                            ])
+                            ->required()
+                            ->default('user')
+                            ->disabled(fn ($record) => $record && $record->id === auth()->id()),
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('Attivo (Abilitato all\'accesso)')
+                            ->default(false)
+                            ->disabled(fn ($record) => $record && $record->id === auth()->id()),
+                    ])->columns(2),
             ]);
     }
 
@@ -59,10 +72,13 @@ class UserResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nome')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
+                    ->label('Email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('role')
+                    ->label('Ruolo')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
@@ -74,12 +90,21 @@ class UserResource extends Resource
                     ->label('Attivo')
                     ->disabled(fn ($record) => $record && $record->id === auth()->id()),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Data Registrazione')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('role')
+                    ->label('Ruolo')
+                    ->options([
+                        'admin' => 'Admin',
+                        'editor' => 'Editor',
+                        'user' => 'User',
+                    ]),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Attivo'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
