@@ -1,9 +1,20 @@
 <script setup>
+import { ref, computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
     roster: Array
+});
+
+const selectedRole = ref('Tutti');
+const roles = ['Tutti', 'Palleggiatrice', 'Schiacciatrice', 'Centrale', 'Opposta', 'Libero'];
+
+const filteredRoster = computed(() => {
+    if (selectedRole.value === 'Tutti') {
+        return props.roster;
+    }
+    return props.roster.filter(item => item.role === selectedRole.value);
 });
 </script>
 
@@ -14,17 +25,30 @@ defineProps({
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 <!-- Intestazione della Pagina -->
-                <div class="text-center mb-16">
+                <div class="text-center mb-10">
                     <h1 class="font-serif text-4xl md:text-5xl font-bold text-white mb-4">Roster Serie A1</h1>
-                    <p class="text-gray-300 max-w-2xl mx-auto">
+                    <p class="text-gray-300 max-w-2xl mx-auto mb-8">
                         La squadra della Savino Del Bene Volley per la stagione 2026/2027.
                     </p>
+                    
+                    <!-- Filtri Ruolo -->
+                    <div class="flex flex-wrap justify-center gap-2 mb-8">
+                        <button 
+                            v-for="role in roles" 
+                            :key="role"
+                            @click="selectedRole = role"
+                            class="px-4 py-2 rounded-full text-sm font-bold uppercase transition-colors"
+                            :class="selectedRole === role ? 'bg-[#ED028C] text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'"
+                        >
+                            {{ role }}
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Griglia Atlete -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     <div 
-                        v-for="item in roster" 
+                        v-for="item in filteredRoster" 
                         :key="item.id"
                         class="group relative bg-white rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#ED028C]/30 border border-transparent hover:border-[#ED028C]/50"
                     >
@@ -32,7 +56,7 @@ defineProps({
                         <div class="h-[350px] bg-gray-200 relative overflow-hidden">
                             <img 
                                 v-if="item.official_photo_url" 
-                                :src="'/images/roster/' + item.official_photo_url" 
+                                :src="'/storage/' + item.official_photo_url" 
                                 :alt="item.player.first_name + ' ' + item.player.last_name"
                                 class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                             />

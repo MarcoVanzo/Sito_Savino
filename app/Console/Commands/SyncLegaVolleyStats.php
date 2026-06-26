@@ -40,6 +40,12 @@ class SyncLegaVolleyStats extends Command
         $bar = $this->output->createProgressBar(count($players));
         $bar->start();
 
+        $currentSeason = \App\Models\Season::where('is_current', true)->first();
+        if (!$currentSeason) {
+            $this->error('Nessuna stagione corrente (is_current = true) trovata nel database.');
+            return;
+        }
+
         foreach ($players as $player) {
             // Qui andrebbe la logica REALE di web scraping (es. Goutte/DOM Crawler)
             // Http::get("https://www.legavolleyfemminile.it/player/.../{$player->lega_volley_id}");
@@ -58,7 +64,7 @@ class SyncLegaVolleyStats extends Command
             PlayerStat::updateOrCreate(
                 [
                     'player_id' => $player->id,
-                    'season_id' => 1, // Stats correnti per la stagione 26/27 (Hardcoded temporaneamente)
+                    'season_id' => $currentSeason->id,
                 ],
                 [
                     'points' => $scrapedData['points'],

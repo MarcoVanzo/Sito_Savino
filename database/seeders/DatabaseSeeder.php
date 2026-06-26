@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             'jersey_number' => 11,
             'role' => 'Schiacciatrice',
             'is_captain' => false,
-            'official_photo_url' => 'Avery Skinner.JPG'
+            'official_photo_url' => 'images/roster/Avery Skinner.JPG'
         ]);
 
         // Giocatrice 2: Caterina Bosetti
@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
             'jersey_number' => 9,
             'role' => 'Schiacciatrice',
             'is_captain' => false,
-            'official_photo_url' => 'Caterina Bosetti .jpg'
+            'official_photo_url' => 'images/roster/Caterina Bosetti .jpg'
         ]);
 
         // Giocatrice 3: Emma Graziani
@@ -70,7 +70,7 @@ class DatabaseSeeder extends Seeder
             'jersey_number' => 14,
             'role' => 'Centrale',
             'is_captain' => false,
-            'official_photo_url' => 'Emma Graziani.JPG'
+            'official_photo_url' => 'images/roster/Emma Graziani.JPG'
         ]);
 
         // Giocatrice 4: Linda Nwakalor
@@ -87,7 +87,7 @@ class DatabaseSeeder extends Seeder
             'jersey_number' => 15,
             'role' => 'Centrale',
             'is_captain' => false,
-            'official_photo_url' => 'Linda Nwakalor.JPG'
+            'official_photo_url' => 'images/roster/Linda Nwakalor.JPG'
         ]);
 
         // Giocatrice 5: Maja Ognjenović
@@ -105,7 +105,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'Palleggiatrice',
             'is_captain' => true,
             'bio' => 'La leader carismatica della Savino Del Bene, Maja guida il gruppo con la sua esperienza immensa.',
-            'official_photo_url' => 'Maja Ognjenović.jpg'
+            'official_photo_url' => 'images/roster/Maja Ognjenović.jpg'
         ]);
         
         // Utente Admin per accesso
