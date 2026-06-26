@@ -4,7 +4,7 @@ services:
     github:
       repo: MarcoVanzo/sito_savino
       branch: main
-    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build
+    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build && php artisan migrate --force
     run_command: heroku-php-apache2 public/
     envs:
       - key: APP_ENV
@@ -13,35 +13,49 @@ services:
         value: "false"
       - key: APP_URL
         value: ${APP_URL}
+      - key: APP_KEY
+        type: SECRET
+        # Genera con: php artisan key:generate --show
+        # Poi imposta come variabile segreta nel pannello DigitalOcean
       - key: PREVIEW_AUTH_USER
-        value: admin # Modifica questo con la username che vuoi per il test
+        type: SECRET
+        # Imposta come variabile segreta nel pannello DigitalOcean
       - key: PREVIEW_AUTH_PASS
-        value: savino2026 # Modifica con la password che vuoi per il test
+        type: SECRET
+        # Imposta come variabile segreta nel pannello DigitalOcean
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
-        value: ${SITO_SAVINO_DB.HOSTNAME}
+        value: ${sito-savino-db.HOSTNAME}
       - key: DB_PORT
-        value: ${SITO_SAVINO_DB.PORT}
+        value: ${sito-savino-db.PORT}
       - key: DB_DATABASE
-        value: ${SITO_SAVINO_DB.DATABASE}
+        value: ${sito-savino-db.DATABASE}
       - key: DB_USERNAME
-        value: ${SITO_SAVINO_DB.USERNAME}
+        value: ${sito-savino-db.USERNAME}
       - key: DB_PASSWORD
-        value: ${SITO_SAVINO_DB.PASSWORD}
+        value: ${sito-savino-db.PASSWORD}
       - key: FILESYSTEM_DISK
         value: s3
       - key: AWS_ACCESS_KEY_ID
-        value: ${SITO_SAVINO_SPACES.ACCESS_KEY_ID}
+        value: DO002PZMHRRDGTZYR674
       - key: AWS_SECRET_ACCESS_KEY
-        value: ${SITO_SAVINO_SPACES.SECRET_ACCESS_KEY}
+        value: dC+MMPAv0T93k/vq6NsBe8i1pB7tuMKRl+Z4WJaE7A4
       - key: AWS_DEFAULT_REGION
-        value: ams3 # Assicurati che sia la region del tuo Space DO
+        value: fra1
       - key: AWS_BUCKET
-        value: ${SITO_SAVINO_SPACES.BUCKET_NAME}
+        value: sito-savino-assets-2026
       - key: AWS_ENDPOINT
-        value: ${SITO_SAVINO_SPACES.ENDPOINT}
+        value: https://fra1.digitaloceanspaces.com
+      - key: LOG_CHANNEL
+        value: daily
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_ENCRYPT
+        value: "true"
 databases:
   - name: sito-savino-db
     engine: MYSQL
     version: "8"
+    production: true
+    cluster_name: sito-savino-db
