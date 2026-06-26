@@ -1,0 +1,7 @@
+# Ignore heavy media and database folders
+Upload_immagini/
+wp_export/
+
+# System files
+.DS_Store
+Thumbs.db
