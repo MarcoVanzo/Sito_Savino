@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PostStatus;
 use App\Models\Page;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -23,7 +23,11 @@ class PageController extends Controller
     {
         $page = Page::where('slug', $slug)
             ->where('status', PostStatus::Published)
-            ->firstOrFail();
+            ->first();
+
+        if (!$page) {
+            abort(404);
+        }
 
         // Se il template è nella whitelist, usalo. Altrimenti renderizza
         // la pagina generica con un layout che mostra il contenuto della page.

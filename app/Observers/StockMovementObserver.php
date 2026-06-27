@@ -34,9 +34,6 @@ class StockMovementObserver
                 );
             }
         });
-
-        Log::debug("StockMovement #{$stockMovement->id}: {$stockMovement->type->value} qty={$stockMovement->quantity} " .
-            "product={$stockMovement->product_id} variant={$stockMovement->product_variant_id}");
     }
 
     /**

@@ -63,14 +63,8 @@ class OrderObserver
             $order->load('items.variant', 'items.product');
 
             foreach ($order->items as $item) {
-                // Verifica disponibilità stock prima di decrementare
-                $currentStock = $this->getCurrentStock($item);
-
-                if ($currentStock < $item->quantity) {
-                    Log::error("Stock insufficiente per Ordine #{$order->id}: " .
-                        "prodotto {$item->product_id}, richiesti {$item->quantity}, disponibili {$currentStock}");
-                    // Procede comunque (il pagamento è avvenuto), ma logga il warning
-                }
+                // Nota: la verifica stock è gestita atomicamente da StockMovementObserver
+                // che lancia RuntimeException se lo stock è insufficiente.
 
                 StockMovement::create([
                     'product_id' => $item->product_id,
@@ -81,9 +75,9 @@ class OrderObserver
                     'notes' => "Ordine #{$order->id} — vendita",
                 ]);
             }
-        });
 
-        Log::info("Stock decrementato per Ordine #{$order->id}");
+            Log::info("Stock decrementato per Ordine #{$order->id}");
+        });
     }
 
     /**
@@ -122,20 +116,9 @@ class OrderObserver
                     'notes' => "Ripristino Ordine #{$order->id} — cancellazione",
                 ]);
             }
+
+            Log::info("Stock ripristinato per Ordine #{$order->id} (cancellazione)");
         });
-
-        Log::info("Stock ripristinato per Ordine #{$order->id} (cancellazione)");
     }
 
-    /**
-     * Recupera lo stock corrente per un item (variante o prodotto).
-     */
-    private function getCurrentStock($item): int
-    {
-        if ($item->product_variant_id) {
-            return $item->variant?->stock ?? 0;
-        }
-
-        return $item->product?->stock ?? 0;
-    }
 }

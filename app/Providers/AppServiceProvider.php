@@ -5,6 +5,9 @@ namespace App\Providers;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,10 +33,26 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\User::observe(\App\Observers\UserObserver::class);
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \App\Models\StockMovement::observe(\App\Observers\StockMovementObserver::class);
+        \App\Models\Roster::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\Player::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\PlayerStat::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\Season::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\Team::observe(\App\Observers\CacheInvalidationObserver::class);
 
         // Forza HTTPS in produzione
         if (app()->isProduction()) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        // Rate limiters
+        RateLimiter::for('web', function (Request $request) {
+            return $request->user()
+                ? Limit::perMinute(120)->by($request->user()->id)
+                : Limit::perMinute(60)->by($request->ip());
+        });
+
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }

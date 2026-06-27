@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Enums\CompetitionType;
+use App\Enums\GameStatus;
 use Illuminate\Database\Eloquent\Builder;
 
 class GameResource extends Resource
@@ -37,12 +39,13 @@ class GameResource extends Resource
                             ->required(),
                         Forms\Components\Select::make('competition_type')
                             ->label('Competizione')
-                            ->options([
-                                'Campionato' => 'Campionato',
-                                'Coppa Italia' => 'Coppa Italia',
-                                'Champions League' => 'Champions League',
-                                'Amichevole' => 'Amichevole',
-                            ])->required(),
+                            ->options(CompetitionType::class)
+                            ->required(),
+                        Forms\Components\Select::make('status')
+                            ->label('Stato')
+                            ->options(GameStatus::class)
+                            ->default(GameStatus::Scheduled)
+                            ->required(),
                     ])->columns(2),
                 Forms\Components\Section::make('Squadre e Risultato')
                     ->schema([
@@ -102,12 +105,7 @@ class GameResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('competition_type')
                     ->label('Competizione')
-                    ->options([
-                        'Campionato' => 'Campionato',
-                        'Coppa Italia' => 'Coppa Italia',
-                        'Champions League' => 'Champions League',
-                        'Amichevole' => 'Amichevole',
-                    ]),
+                    ->options(CompetitionType::class),
                 Tables\Filters\SelectFilter::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name'),

@@ -47,6 +47,22 @@ class OrderPolicy
      */
     public function delete(User $user, Order $model): bool
     {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(User $user, Order $model): bool
+    {
         return $user->role === UserRole::Admin;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the model.
+     */
+    public function forceDelete(User $user, Order $model): bool
+    {
+        return false;
     }
 }

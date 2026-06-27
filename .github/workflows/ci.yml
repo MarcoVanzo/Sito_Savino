@@ -66,4 +66,4 @@ jobs:
 
       # Test PHPUnit con SQLite in-memory
       - name: Esegui test PHPUnit
-        run: php artisan test --parallel
+        run: php artisan test --no-interaction

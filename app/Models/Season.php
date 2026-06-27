@@ -33,4 +33,9 @@ class Season extends Model
     {
         return $this->hasMany(Game::class);
     }
+
+    public function playerStats(): HasMany
+    {
+        return $this->hasMany(PlayerStat::class);
+    }
 }

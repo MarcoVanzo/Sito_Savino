@@ -37,6 +37,16 @@ class Product extends Model implements HasMedia
         return $this->hasMany(StockMovement::class);
     }
 
+    public function orderItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function cartItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

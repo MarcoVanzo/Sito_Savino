@@ -21,7 +21,7 @@ class PreviewBasicAuth
         $pass = config('services.preview.pass');
 
         if (!empty($user) && !empty($pass)) {
-            if ($request->getUser() !== $user || $request->getPassword() !== $pass) {
+            if (!hash_equals($user, $request->getUser() ?? '') || !hash_equals($pass, $request->getPassword() ?? '')) {
                 $headers = ['WWW-Authenticate' => 'Basic'];
                 return response('Non autorizzato', 401, $headers);
             }

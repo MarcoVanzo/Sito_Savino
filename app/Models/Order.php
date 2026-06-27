@@ -14,7 +14,7 @@ class Order extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'status', 'total_price', 
+        'user_id', 'status',
         'shipping_address', 'billing_address',
     ];
 
@@ -31,6 +31,11 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
     }
 
     public function scopePaid($query)

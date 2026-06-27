@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Support\Str;
+use App\Enums\PostStatus;
 use Illuminate\Database\Eloquent\Builder;
 
 class PostResource extends Resource
@@ -74,11 +75,8 @@ class PostResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->label('Stato Pubblicazione')
-                            ->options([
-                                'draft' => 'Bozza',
-                                'publish' => 'Pubblicato',
-                            ])
-                            ->default('publish')
+                            ->options(PostStatus::class)
+                            ->default(PostStatus::Published)
                             ->required(),
                         Forms\Components\Select::make('author_id')
                             ->label('Autore')
@@ -132,10 +130,7 @@ class PostResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Stato')
-                    ->options([
-                        'draft' => 'Bozza',
-                        'publish' => 'Pubblicato',
-                    ]),
+                    ->options(PostStatus::class),
             ])
             ->actions([
                 Tables\Actions\Action::make('Anteprima')

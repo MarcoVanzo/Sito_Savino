@@ -10,8 +10,10 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\PageController;
 
 // Rotte Pubbliche SDB
-Route::get('/', [PublicController::class, 'home'])->name('home');
-Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
+Route::middleware('throttle:web')->group(function () {
+    Route::get('/', [PublicController::class, 'home'])->name('home');
+    Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
+});
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -31,5 +33,6 @@ require __DIR__.'/auth.php';
 // DEVE essere l'ULTIMA route — intercetta tutto ciò che non è stato matchato sopra.
 // Ignora percorsi di sistema noti.
 Route::get('/{slug}', [PageController::class, 'show'])
+    ->middleware('throttle:web')
     ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password).*$')
     ->name('pages.show');

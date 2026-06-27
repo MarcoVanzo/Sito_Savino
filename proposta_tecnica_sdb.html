@@ -1097,7 +1097,7 @@
     <div class="section-label">03 — Tecnologie</div>
     <h2 class="section-title">Stack Tecnologico</h2>
     <p class="section-intro">
-      Tecnologie mature, gratuite e senza licenze. Nessuna dipendenza da servizi SaaS per il core del sito.
+      Tecnologie mature, gratuite e senza licenze. Stack moderno full-stack con framework enterprise Laravel e pannello admin Filament, su piattaforma cloud gestita.
     </p>
 
     <div class="tech-grid">
@@ -1105,16 +1105,16 @@
         <div class="tech-card-header">
           <div class="tech-emoji">🐘</div>
           <div>
-            <div class="tech-name">Laravel 11 + PHP 8.2</div>
+            <div class="tech-name">Laravel 13 + PHP 8.2</div>
             <div class="tech-role">Backend — Framework Enterprise</div>
           </div>
         </div>
         <ul class="tech-list">
           <li>Architettura MVC sicura e robusta</li>
-          <li>Protezione nativa CSRF e XSS</li>
-          <li>Eloquent ORM per relazioni database</li>
-          <li>Routing avanzato e middleware</li>
-          <li>Ecosistema infinito per scalabilità</li>
+          <li>Protezione nativa CSRF e XSS (Blade auto-escaping)</li>
+          <li>Eloquent ORM con 21 modelli e relazioni avanzate</li>
+          <li>8 Enum PHP nativi per type-safety (UserRole, PostStatus, OrderStatus, GameStatus, CompetitionType…)</li>
+          <li>4 Observers per logica di dominio (Order, Stock, Cache, User)</li>
         </ul>
       </div>
 
@@ -1127,11 +1127,11 @@
           </div>
         </div>
         <ul class="tech-list">
-          <li>Database versionato via Migrations</li>
-          <li>Relazioni avanzate (Atlete, Partite)</li>
-          <li>Query builder sicuro anti-injection</li>
-          <li>Backup notturno automatico (ZIP)</li>
-          <li>Soft delete nativo su modelli Laravel</li>
+          <li>Database versionato via Migrations Laravel</li>
+          <li>21 modelli con relazioni (Atlete, Partite, Roster, Shop…)</li>
+          <li>Query builder sicuro anti-injection (prepared statements)</li>
+          <li>Soft delete nativo su Order</li>
+          <li>21 factories per seed e test automatizzati</li>
         </ul>
       </div>
 
@@ -1139,16 +1139,33 @@
         <div class="tech-card-header">
           <div class="tech-emoji">⚡</div>
           <div>
-            <div class="tech-name">Vue.js + Inertia.js</div>
-            <div class="tech-role">Frontend Reattivo e CMS Admin</div>
+            <div class="tech-name">Vue 3 + Inertia.js v2</div>
+            <div class="tech-role">Frontend Reattivo — SPA-like</div>
           </div>
         </div>
         <ul class="tech-list">
-          <li>Bundle ottimizzato con Vite</li>
-          <li>CMS Admin ultra-fluido stile SPA</li>
-          <li>Gestione stato semplificata senza API</li>
-          <li>View Transitions API pubbliche</li>
+          <li>Navigazione SPA senza API REST: Inertia collega Laravel direttamente a Vue</li>
+          <li>Bundle ottimizzato con Vite (HMR in sviluppo)</li>
+          <li>Pagine pubbliche server-rendered con props PHP → Vue</li>
+          <li>Composables riutilizzabili (es. useSanitize)</li>
           <li>Navigazione istantanea per i tifosi</li>
+        </ul>
+      </div>
+
+      <div class="tech-card">
+        <div class="tech-card-header">
+          <div class="tech-emoji">🛠️</div>
+          <div>
+            <div class="tech-name">Filament 3</div>
+            <div class="tech-role">CMS Admin — Pannello Gestionale</div>
+          </div>
+        </div>
+        <ul class="tech-list">
+          <li>16 risorse CRUD complete (News, Atlete, Partite, Shop…)</li>
+          <li>16 Policies per autorizzazione granulare (Admin vs Editor)</li>
+          <li>Editor rich-text integrato per contenuti</li>
+          <li>Dashboard con widget e statistiche</li>
+          <li>Drag &amp; drop, upload media, filtri avanzati</li>
         </ul>
       </div>
 
@@ -1156,16 +1173,16 @@
         <div class="tech-card-header">
           <div class="tech-emoji">🎨</div>
           <div>
-            <div class="tech-name">Tailwind CSS</div>
+            <div class="tech-name">Tailwind CSS 3</div>
             <div class="tech-role">Design system e performance</div>
           </div>
         </div>
         <ul class="tech-list">
-          <li>Utility-first CSS, bundle microscopico</li>
-          <li>Match Day dark theme nativo</li>
-          <li>Font: Inter (testi) + Playfair Display</li>
+          <li>Utility-first CSS, bundle microscopico (tree-shaking)</li>
+          <li>Palette brand custom: savino-blue, savino-gold, savino-pink</li>
+          <li>Font: Montserrat (testi) + Playfair Display (titoli)</li>
           <li>Glassmorphism e animazioni fluide</li>
-          <li>Nessun CSS inutilizzato in produzione</li>
+          <li>Match Day dark theme nativo</li>
         </ul>
       </div>
 
@@ -1173,16 +1190,16 @@
         <div class="tech-card-header">
           <div class="tech-emoji">☁️</div>
           <div>
-            <div class="tech-name">DigitalOcean Droplet</div>
-            <div class="tech-role">Hosting e deploy</div>
+            <div class="tech-name">DigitalOcean App Platform</div>
+            <div class="tech-role">Hosting PaaS — Deploy automatico</div>
           </div>
         </div>
         <ul class="tech-list">
-          <li>Ubuntu 22.04 LTS + PHP 8.2-FPM</li>
-          <li>SSL gratuito via Let's Encrypt (Certbot)</li>
-          <li>Deploy atomico via SSH + git pull</li>
-          <li>Cron jobs nativi (backup, sync LVF)</li>
-          <li>Storage locale su Droplet (interfaccia S3-ready)</li>
+          <li>Deploy automatico via GitHub push su main</li>
+          <li>Build command: migrazioni + config/route/view cache</li>
+          <li>SSL/TLS automatico (gestito dalla piattaforma)</li>
+          <li>Worker dedicato per code asincrone (queue:work)</li>
+          <li>Configurazione dichiarativa via app.yaml</li>
         </ul>
       </div>
 
@@ -1229,50 +1246,48 @@
     <h2 class="section-title">Come funziona il sistema</h2>
 
     <div class="highlight-box">
-      <h4>Principio chiave: PHP Server-Side Rendering</h4>
-      <p>Ogni pagina pubblica (news, roster, risultati, sponsor…) viene generata completamente dal server PHP e restituita
-      al browser come HTML pieno e completo — inclusi tutti i meta tag SEO, og:tags per Facebook/WhatsApp/LinkedIn,
-      e dati schema.org per Google Rich Results. Zero dipendenza da JavaScript per il contenuto visibile.</p>
+      <h4>Principio chiave: Laravel + Inertia (monolite moderno)</h4>
+      <p>Ogni pagina pubblica è gestita da un Controller Laravel che prepara i dati e li passa a un componente Vue
+      tramite Inertia.js v2. Il risultato è una navigazione SPA-like istantanea con SEO-friendly server-side rendering.
+      L'admin è gestito interamente da Filament 3, un pannello Livewire indipendente che non impatta il frontend pubblico.</p>
     </div>
 
     <div class="tree" style="margin: 24px 0; font-size: 13px; line-height: 2;">
 <span class="comment">Flusso di una richiesta pubblica:</span>
 
-Browser → Nginx/Apache → <span class="folder">index.php</span> (router)
-         └── Match route → include <span class="folder">templates/pages/news-detail.php</span>
-                           └── <span class="folder">TemplateEngine::render()</span>
-                               ├── <span class="new">SEO.php</span> → genera title, og:tags, schema.org
-                               ├── <span class="folder">layout/base.php</span> → HTML shell + head
-                               ├── <span class="folder">layout/header.php</span>
-                               ├── <span class="new">news-detail.php</span> → contenuto
-                               └── <span class="folder">layout/footer.php</span>
-                                   └── → HTML completo al browser ✓
+Browser → App Platform → <span class="folder">Laravel Router</span> (routes/web.php)
+         └── Match route → <span class="folder">Controller@method</span>
+                           └── <span class="folder">Inertia::render('Page', $props)</span>
+                               ├── <span class="new">PublicLayout.vue</span> → header, nav, footer
+                               ├── <span class="new">Home.vue / Stagione.vue / ContentPage.vue</span>
+                               └── → HTML + JS hydratato al browser ✓
 
-<span class="comment">Flusso CMS admin:</span>
+<span class="comment">Flusso CMS admin (Filament 3):</span>
 
-Admin → <span class="folder">/admin/</span> → SPA JavaScript → <span class="folder">api/router.php</span>
-         └── Auth::requireRole('admin') → Modulo → JSON → SPA aggiorna UI
+Admin → <span class="folder">/admin</span> → <span class="folder">Filament Panel</span> (Livewire)
+        └── Auth middleware → <span class="folder">16 Resources CRUD</span> → Eloquent → MySQL
+            └── 16 Policies controllano ogni azione (view/create/update/delete)
     </div>
 
     <div class="features-grid" style="margin-top: 24px;">
       <div class="feature-group">
-        <div class="feature-group-title">🌐 Pagine pubbliche (SEO-first)</div>
+        <div class="feature-group-title">🌐 Pagine pubbliche (Inertia + Vue)</div>
         <ul class="feature-list">
-          <li>HTML completo dal server (nessuna SPA)</li>
-          <li>og:image e og:title specifici per ogni pagina</li>
-          <li>schema.org JSON-LD iniettato server-side</li>
-          <li>Funziona senza JavaScript abilitato</li>
-          <li>FCP &lt; 1.2s (nessun JS bloccante)</li>
+          <li>Server-side rendering tramite Inertia: dati PHP → componenti Vue</li>
+          <li>Navigazione SPA senza ricaricamento: transizioni istantanee</li>
+          <li>og:image e og:title gestibili per ogni pagina</li>
+          <li>Layout condiviso (PublicLayout.vue) con header, mega-menu e footer</li>
+          <li>Componenti brandizzati con palette savino-blue / savino-gold</li>
         </ul>
       </div>
       <div class="feature-group">
-        <div class="feature-group-title">🔒 Area CMS admin (privata)</div>
+        <div class="feature-group-title">🔒 Area CMS admin (Filament 3)</div>
         <ul class="feature-list">
-          <li>Login con JWT (access token <strong>15 min</strong> + refresh token 7 giorni con rotazione)</li>
-          <li>3 ruoli: admin / editor / readonly</li>
-          <li>Audit log di ogni azione (chi, cosa, quando)</li>
-          <li>Rate limiting <strong>Redis-backed</strong> (persiste tra deploy)</li>
-          <li>Session fixation protection + password Argon2id</li>
+          <li>Sessioni Laravel standard con cookie HttpOnly + <strong>SESSION_SECURE_COOKIE</strong></li>
+          <li>3 ruoli gestiti via enum <strong>UserRole</strong>: admin / editor / readonly</li>
+          <li>16 Policies Filament per autorizzazione granulare</li>
+          <li>Verifica email obbligatoria (<strong>MustVerifyEmail</strong>)</li>
+          <li>Password Argon2id + protezione timing attack (hash_equals)</li>
         </ul>
       </div>
     </div>
@@ -2101,156 +2116,162 @@ Admin → <span class="folder">/admin/</span> → SPA JavaScript → <span class
     </div>
   </div>
 
-
   <!-- 07 — DATABASE -->
   <div class="section">
     <div class="section-label">07 — Database</div>
     <h2 class="section-title">Struttura Dati</h2>
-    <p class="section-intro">12 migrazioni SQL versionabili. Ogni modifica al database è tracciata e riproducibile.</p>
+    <p class="section-intro">21 modelli Eloquent con migrazioni versionabili. Ogni modifica al database è tracciata, riproducibile e testata con 21 factories.</p>
 
     <div class="db-grid">
       <div class="db-table">
         <div class="db-table-header">users</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
-          <div class="db-field">email</div>
-          <div class="db-field">password_hash</div>
-          <div class="db-field">full_name</div>
-          <div class="db-field">role</div>
-          <div class="db-field">status</div>
-          <div class="db-field">last_login_at</div>
+          <div class="db-field">name</div>
+          <div class="db-field">email (UNIQUE)</div>
+          <div class="db-field">password (Argon2id)</div>
+          <div class="db-field">role (enum: UserRole)</div>
+          <div class="db-field">email_verified_at</div>
         </div>
       </div>
       <div class="db-table">
-        <div class="db-table-header">news</div>
+        <div class="db-table-header">posts</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
           <div class="db-field fk">category_id</div>
-          <div class="db-field">title</div>
-          <div class="db-field">slug (UNIQUE)</div>
+          <div class="db-field">title / slug (UNIQUE)</div>
           <div class="db-field">content (LONGTEXT)</div>
           <div class="db-field">featured_image</div>
+          <div class="db-field">status (enum: PostStatus)</div>
           <div class="db-field">published_at</div>
         </div>
       </div>
       <div class="db-table">
-        <div class="db-table-header">athletes</div>
+        <div class="db-table-header">pages</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
-          <div class="db-field">first_name</div>
-          <div class="db-field">last_name</div>
+          <div class="db-field">title / slug (UNIQUE)</div>
+          <div class="db-field">content (LONGTEXT)</div>
+          <div class="db-field">template</div>
+          <div class="db-field">status (enum: PostStatus)</div>
+          <div class="db-field">featured_image</div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-header">categories / tags</div>
+        <div class="db-table-body">
+          <div class="db-field pk">id</div>
+          <div class="db-field">name / slug</div>
+          <div class="db-field">post_tag (pivot)</div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-header">players</div>
+        <div class="db-table-body">
+          <div class="db-field pk">id</div>
+          <div class="db-field">first_name / last_name</div>
           <div class="db-field">number</div>
-          <div class="db-field">role</div>
+          <div class="db-field">position (enum: PlayerPosition)</div>
           <div class="db-field">lega_key</div>
           <div class="db-field">photo</div>
         </div>
       </div>
       <div class="db-table">
-        <div class="db-table-header">matches</div>
+        <div class="db-table-header">teams / seasons</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
-          <div class="db-field fk">competition_id</div>
-          <div class="db-field">date (DATETIME)</div>
-          <div class="db-field">home_team</div>
-          <div class="db-field">away_team</div>
+          <div class="db-field">name / slug</div>
+          <div class="db-field">start_date / end_date</div>
+          <div class="db-field">is_current (boolean)</div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-header">rosters</div>
+        <div class="db-table-body">
+          <div class="db-field pk">id</div>
+          <div class="db-field fk">player_id / team_id / season_id</div>
+          <div class="db-field">shirt_number</div>
+          <div class="db-field">role</div>
+          <div class="db-field">is_captain</div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-header">player_stats</div>
+        <div class="db-table-body">
+          <div class="db-field pk">id</div>
+          <div class="db-field fk">player_id / season_id</div>
+          <div class="db-field">points / aces / blocks</div>
+          <div class="db-field">kills / digs / assists</div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-header">games</div>
+        <div class="db-table-body">
+          <div class="db-field pk">id</div>
+          <div class="db-field fk">season_id / home_team_id / away_team_id</div>
+          <div class="db-field">match_date (DATETIME)</div>
+          <div class="db-field">competition_type (enum)</div>
+          <div class="db-field">status (enum: GameStatus)</div>
           <div class="db-field">sets_detail (JSON)</div>
-          <div class="db-field">status</div>
         </div>
       </div>
       <div class="db-table">
         <div class="db-table-header">sponsors</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
-          <div class="db-field fk">category_id</div>
-          <div class="db-field">name</div>
-          <div class="db-field">logo</div>
-          <div class="db-field">website_url</div>
-          <div class="db-field">display_order</div>
           <div class="db-field fk">season_id</div>
+          <div class="db-field">name / logo / website_url</div>
+          <div class="db-field">tier (enum: SponsorTier)</div>
+          <div class="db-field">display_order</div>
         </div>
       </div>
       <div class="db-table">
-        <div class="db-table-header">shop_products</div>
+        <div class="db-table-header">products / product_variants</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
-          <div class="db-field">name</div>
-          <div class="db-field">sku (UNIQUE)</div>
+          <div class="db-field fk">product_category_id</div>
+          <div class="db-field">name / sku (UNIQUE)</div>
           <div class="db-field">price (DECIMAL)</div>
           <div class="db-field">stock_quantity</div>
-          <div class="db-field">is_variable</div>
-          <div class="db-field">status</div>
+          <div class="db-field">is_variable / status</div>
         </div>
       </div>
       <div class="db-table">
-        <div class="db-table-header">shop_orders</div>
+        <div class="db-table-header">orders / order_items</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
           <div class="db-field fk">user_id</div>
-          <div class="db-field">total_amount</div>
-          <div class="db-field">shipping_address</div>
-          <div class="db-field">payment_status</div>
-          <div class="db-field">shipping_status</div>
-          <div class="db-field">created_at</div>
+          <div class="db-field">total_price (calcolato, no mass-assign)</div>
+          <div class="db-field">status (enum: OrderStatus)</div>
+          <div class="db-field">SoftDeletes abilitato</div>
+          <div class="db-field">→ stock_movements (audit trail)</div>
         </div>
       </div>
       <div class="db-table">
-        <div class="db-table-header">shop_bids (Aste)</div>
+        <div class="db-table-header">carts / cart_items</div>
+        <div class="db-table-body">
+          <div class="db-field pk">id</div>
+          <div class="db-field fk">user_id / product_variant_id</div>
+          <div class="db-field">quantity</div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-header">stock_movements</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
           <div class="db-field fk">product_id</div>
-          <div class="db-field fk">user_id</div>
-          <div class="db-field">bid_amount</div>
-          <div class="db-field">bid_time (DATETIME)</div>
-          <div class="db-field">is_winning</div>
-          <div class="db-field">status</div>
+          <div class="db-field">type (enum: StockMovementType)</div>
+          <div class="db-field">quantity / reference</div>
+          <div class="db-field">Observer: RuntimeException se stock &lt; 0</div>
         </div>
       </div>
       <div class="db-table">
-        <div class="db-table-header">gallery_media</div>
+        <div class="db-table-header">options</div>
         <div class="db-table-body">
           <div class="db-field pk">id</div>
-          <div class="db-field fk">match_id</div>
-          <div class="db-field">file_path</div>
-          <div class="db-field">ai_tags (JSON)</div>
-          <div class="db-field">uploaded_by</div>
-          <div class="db-field">resolution</div>
-          <div class="db-field">uploaded_at</div>
-        </div>
-      </div>
-      <div class="db-table">
-        <div class="db-table-header">audit_logs</div>
-        <div class="db-table-body">
-          <div class="db-field pk">id</div>
-          <div class="db-field fk">user_id</div>
-          <div class="db-field">action</div>
-          <div class="db-field">table_name</div>
-          <div class="db-field">before_snapshot</div>
-          <div class="db-field">ip_address</div>
-          <div class="db-field">created_at</div>
-        </div>
-      </div>
-      <div class="db-table">
-        <div class="db-table-header">newsletter_subs</div>
-        <div class="db-table-body">
-          <div class="db-field pk">id</div>
-          <div class="db-field">email (UNIQUE)</div>
-          <div class="db-field">name</div>
-          <div class="db-field">confirmed_at</div>
-          <div class="db-field">gdpr_consent_at</div>
-          <div class="db-field">opt_in_token</div>
-          <div class="db-field">source</div>
-        </div>
-      </div>
-      <div class="db-table">
-        <div class="db-table-header">backups</div>
-        <div class="db-table-body">
-          <div class="db-field pk">id</div>
-          <div class="db-field">filename</div>
-          <div class="db-field">filesize</div>
-          <div class="db-field">table_count</div>
-          <div class="db-field">row_count</div>
-          <div class="db-field fk">created_by</div>
-          <div class="db-field">created_at</div>
+          <div class="db-field">key (UNIQUE)</div>
+          <div class="db-field">value (JSON)</div>
+          <div class="db-field">Configurazioni sito (hero, popup, match day…)</div>
         </div>
       </div>
     </div>
@@ -2314,17 +2335,17 @@ Admin → <span class="folder">/admin/</span> → SPA JavaScript → <span class
       <div class="security-item">
         <div class="s-icon">🛡️</div>
         <div class="s-title">SQL Injection</div>
-        <div class="s-text">Prepared statements obbligatori su ogni query. Zero SQL dinamico non parametrizzato.</div>
+        <div class="s-text">Eloquent ORM con prepared statements su ogni query. Zero SQL dinamico non parametrizzato. Query builder sicuro by default.</div>
       </div>
       <div class="security-item">
         <div class="s-icon">🔐</div>
         <div class="s-title">XSS — doppio livello</div>
-        <div class="s-text"><strong>Output:</strong> htmlspecialchars() su ogni variabile in TemplateEngine.php + CSP con nonce per-request. <strong>Stored (TipTap):</strong> HTMLPurifier lato server prima del salvataggio in DB.</div>
+        <div class="s-text"><strong>Output:</strong> Blade auto-escaping ({{ }}) su ogni variabile + Vue auto-escaping nelle SFC. <strong>Admin:</strong> Filament gestisce la sanitizzazione degli input rich-text.</div>
       </div>
       <div class="security-item">
         <div class="s-icon">🎭</div>
         <div class="s-title">CSRF</div>
-        <div class="s-text">Token CSRF su tutti i form pubblici (newsletter, contatti, accrediti). Verificato lato server su ogni POST.</div>
+        <div class="s-text">Token CSRF nativo Laravel + Inertia.js (gestito automaticamente su ogni richiesta). Verificato lato server su ogni POST/PUT/DELETE.</div>
       </div>
       <div class="security-item">
         <div class="s-icon">📁</div>
@@ -2333,28 +2354,33 @@ Admin → <span class="folder">/admin/</span> → SPA JavaScript → <span class
       </div>
       <div class="security-item">
         <div class="s-icon">🔑</div>
-        <div class="s-title">Auth JWT hardened</div>
-        <div class="s-text">Access token <strong>15 minuti</strong> (finestra minima se rubato) + refresh token <strong>7 giorni</strong> con rotazione. Cookie HttpOnly + SameSite=Strict. Blacklist su logout. Argon2id per le password.</div>
+        <div class="s-title">Autenticazione Laravel</div>
+        <div class="s-text">Sessioni Laravel standard con cookie HttpOnly + <strong>SESSION_SECURE_COOKIE=true</strong> in produzione. Password Argon2id. <strong>MustVerifyEmail</strong> attivo: registrazioni con email false impossibili. Protezione timing attack con <strong>hash_equals()</strong>.</div>
       </div>
       <div class="security-item">
         <div class="s-icon">🚚</div>
-        <div class="s-title">Rate Limiting (Redis)</div>
-        <div class="s-text"><strong>Redis-backed</strong>: persiste tra restart PHP e deploy. 10 login/ora, 3 newsletter/ora, 5 accrediti/giorno per IP. Nessun bypass possibile durante i deploy.</div>
+        <div class="s-title">Rate Limiting</div>
+        <div class="s-text">Laravel rate limiting nativo. Protezione brute-force su login e form pubblici (newsletter, contatti, accrediti). Configurabile per endpoint.</div>
       </div>
       <div class="security-item">
-        <div class="s-icon">📋</div>
-        <div class="s-title">Audit Log</div>
-        <div class="s-text">Ogni azione admin registrata con utente, IP, timestamp, snapshot dati prima/dopo. Retention 24 mesi (GDPR).</div>
+        <div class="s-icon">🏛️</div>
+        <div class="s-title">Autorizzazione (Policies)</div>
+        <div class="s-text"><strong>16 Policies Filament</strong> con autorizzazione granulare: Admin vs Editor su view/create/update/delete. OrderPolicy blocca delete/forceDelete. restore() solo admin. <strong>8 Enum PHP</strong> per type-safety su tutti gli stati e ruoli.</div>
       </div>
       <div class="security-item">
-        <div class="s-icon">💾</div>
-        <div class="s-title">Backup Doppio Livello</div>
-        <div class="s-text"><strong>DB:</strong> dump SQL compresso in ZIP ogni notte. <strong>File:</strong> rsync di /uploads/ e /storage/ su storage offsite (DO Spaces). Rotazione 30 giorni. Alert email se fallisce.</div>
+        <div class="s-icon">⚙️</div>
+        <div class="s-title">Deploy sicuro (App Platform)</div>
+        <div class="s-text">Migrazioni nel <strong>build_command</strong> (non al restart). Cache optimization: config:cache, route:cache, view:cache. Worker dedicato per queue. APP_KEY gestita come <strong>SECRET</strong> (mai in chiaro).</div>
       </div>
       <div class="security-item">
         <div class="s-icon">📜</div>
-        <div class="s-title">Security Headers (A+)</div>
-        <div class="s-text">HSTS (preload), CSP con nonce, Permissions-Policy, COOP, CORP, X-Frame-Options. Score A+ su securityheaders.com. TLS 1.3, score A+ SSL Labs.</div>
+        <div class="s-title">Security Headers</div>
+        <div class="s-text">HSTS, X-Frame-Options, Permissions-Policy configurabili. TLS gestito da App Platform. Cookiebot per conformità GDPR con Consent Mode v2.</div>
+      </div>
+      <div class="security-item">
+        <div class="s-icon">💾</div>
+        <div class="s-title">Backup</div>
+        <div class="s-text"><strong>DB:</strong> dump SQL compresso. <strong>File:</strong> storage su App Platform con possibilità di offsite su DO Spaces. Rotazione automatica.</div>
       </div>
       <div class="security-item">
         <div class="s-icon">📧</div>
@@ -2364,7 +2390,7 @@ Admin → <span class="folder">/admin/</span> → SPA JavaScript → <span class
       <div class="security-item">
         <div class="s-icon">📊</div>
         <div class="s-title">Monitoring 24/7</div>
-        <div class="s-text">UptimeRobot: ping ogni 5 min, alert SMS/email se down. DigitalOcean Alerts: CPU > 80%, disco > 85%. Healthchecks.io: verifica che ogni cron venga eseguito.</div>
+        <div class="s-text">UptimeRobot: ping ogni 5 min, alert SMS/email se down. DigitalOcean App Platform: metriche CPU, memoria, disco integrate. Healthchecks.io per cron jobs.</div>
       </div>
     </div>
   </div>
@@ -2374,27 +2400,27 @@ Admin → <span class="folder">/admin/</span> → SPA JavaScript → <span class
   <div class="section">
     <div class="section-label">10 — Tempistiche</div>
     <h2 class="section-title">Timeline di Realizzazione</h2>
-    <p class="section-intro">Stima realistica basata sulla complessità effettiva del progetto. Nessuna promessa irrealistica.</p>
+    <p class="section-intro">Stima realistica basata sulla complessità effettiva del progetto. Stack Laravel + Inertia + Filament riduce drasticamente i tempi rispetto a soluzioni custom.</p>
 
     <div class="timeline">
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <div class="timeline-fase">Fase 1 — Scaffolding e Fondamenta</div>
+            <div class="timeline-fase">Fase 1 — Scaffolding Laravel + Filament</div>
             <div class="timeline-duration">3 giorni</div>
           </div>
-          <div class="timeline-deliverable">Struttura file, .htaccess, Composer, Vite, index.php router, 23 servizi PHP, 8 migrazioni DB, security headers</div>
+          <div class="timeline-deliverable">Laravel 13 setup, Composer, Vite, Tailwind 3, 21 migrazioni DB, 8 Enum PHP, 4 Observers, app.yaml per App Platform</div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <div class="timeline-fase">Fase 2 — Design System + Layout</div>
+            <div class="timeline-fase">Fase 2 — Design System + PublicLayout</div>
             <div class="timeline-duration">3 giorni</div>
           </div>
-          <div class="timeline-deliverable">Token CSS definitivi (dark navy + magenta + gold), base.php, header con Quick Edit bar + Match Day banner, footer, font Inter self-hosted</div>
+          <div class="timeline-deliverable">Palette brand Tailwind (savino-blue, savino-gold, savino-pink), PublicLayout.vue con header/mega-menu/footer, font Montserrat + Playfair Display via Google Fonts</div>
         </div>
       </div>
       <div class="timeline-item">
@@ -2404,17 +2430,17 @@ Admin → <span class="folder">/admin/</span> → SPA JavaScript → <span class
             <div class="timeline-fase">Fase 3 — Homepage + Hero</div>
             <div class="timeline-duration">3 giorni</div>
           </div>
-          <div class="timeline-deliverable">Hero video loop con fallback immagine, countdown neon, news magazine layout, feed Instagram, sponsor carousel animato</div>
+          <div class="timeline-deliverable">Home.vue: hero video loop con fallback, countdown neon, news magazine layout, feed Instagram, sponsor carousel animato</div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <div class="timeline-fase">Fase 4 — Pagine Pubbliche (20)</div>
+            <div class="timeline-fase">Fase 4 — Pagine Pubbliche (20 Vue SFC)</div>
             <div class="timeline-duration">7 giorni</div>
           </div>
-          <div class="timeline-deliverable">Tutti i template PHP con CSS, Schema.org, og:tags, responsive mobile-first</div>
+          <div class="timeline-deliverable">20 componenti Vue via Inertia::render(), responsive mobile-first, navigazione SPA istantanea, brandizzazione completa</div>
         </div>
       </div>
       <div class="timeline-item">
@@ -2424,113 +2450,93 @@ Admin → <span class="folder">/admin/</span> → SPA JavaScript → <span class
             <div class="timeline-fase">Fase 5 — Roster Cinematografico</div>
             <div class="timeline-duration">2 giorni</div>
           </div>
-          <div class="timeline-deliverable">Poster NBA: portrait verticale, numero maglia gold, hover stats LVF, filtri per ruolo, capitana XL</div>
+          <div class="timeline-deliverable">Stagione.vue: poster NBA, hover stats LVF, filtri per ruolo (enum PlayerPosition), capitana XL, cache invalidation Observer</div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <div class="timeline-fase">Fase 6 — JavaScript Enhancement (10)</div>
-            <div class="timeline-duration">2 giorni</div>
+            <div class="timeline-fase">Fase 6 — CMS Admin (Filament 3)</div>
+            <div class="timeline-duration">5 giorni</div>
           </div>
-          <div class="timeline-deliverable">Hero video, news card 3D tilt, countdown, lightbox, carousel, form AJAX, lazy-load, match-day-theme</div>
+          <div class="timeline-deliverable">16 Filament Resources CRUD, 16 Policies (Admin vs Editor), dashboard widget, upload media, enum per tutti gli status</div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <div class="timeline-fase">Fase 7 — API Modules (13 moduli)</div>
-            <div class="timeline-duration">7 giorni</div>
+            <div class="timeline-fase">Fase 7 — E-commerce + Stock</div>
+            <div class="timeline-duration">5 giorni</div>
           </div>
-          <div class="timeline-deliverable">Tutti i moduli REST con autenticazione, CSRF, rate limiting, validazione input</div>
+          <div class="timeline-deliverable">Shop Vue pages, carrello, ordini con OrderObserver + StockMovementObserver, OrderPolicy (delete=false), 21 factories per test</div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <div class="timeline-fase">Fase 8 — CMS Admin SPA</div>
-            <div class="timeline-duration">8 giorni</div>
-          </div>
-          <div class="timeline-deliverable">TipTap news editor, Quick Post modal, roster, media manager, shop manager, settings live preview, users, logs, backup</div>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div class="timeline-fase">Fase 9 — Integrazioni</div>
+            <div class="timeline-fase">Fase 8 — Integrazioni</div>
             <div class="timeline-duration">3 giorni</div>
           </div>
-          <div class="timeline-deliverable">LVF sync, ActiveCampaign API v3, Cookiebot + GA4, migrazione WordPress, cron jobs</div>
+          <div class="timeline-deliverable">LVF sync, ActiveCampaign API v3, Cookiebot + GA4, migrazione WordPress, cron jobs, queue worker App Platform</div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <div class="timeline-fase">Fase 10 — Shop Vetrina (Fase 1)</div>
-            <div class="timeline-duration">1 giorno</div>
+            <div class="timeline-fase">Fase 9 — Sicurezza + GDPR</div>
+            <div class="timeline-duration">2 giorni</div>
           </div>
-          <div class="timeline-deliverable">Pagina /shop/ con prodotti featured gestibili da admin + redirect elegante al WooCommerce esistente</div>
+          <div class="timeline-deliverable">MustVerifyEmail, SESSION_SECURE_COOKIE, hash_equals(), Cookiebot Consent Mode v2, privacy policy, a11y fixes (aria-label, role=alert)</div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <div class="timeline-fase">Fase 11 — GDPR e Sicurezza</div>
-            <div class="timeline-duration">1 giorno</div>
-          </div>
-          <div class="timeline-deliverable">Cookiebot setup, GA4 Consent Mode v2, privacy policy, CSRF, CSP headers, right-to-erasure</div>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <div class="timeline-fase">Fase 12 — Design Polish e Animazioni</div>
+            <div class="timeline-fase">Fase 10 — Design Polish + Match Day</div>
             <div class="timeline-duration">4 giorni</div>
           </div>
-          <div class="timeline-deliverable">Match Day Mode completa, animazioni micro-interazione, responsive definitivo, WebP pipeline, Lighthouse ≥ 90 su 19 pagine</div>
+          <div class="timeline-deliverable">Match Day dark theme, animazioni micro-interazione, responsive definitivo, Lighthouse ≥ 90, componenti Breeze brandizzati</div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot" style="border-color: var(--pink)"></div>
         <div class="timeline-content" style="background: #fff0f8; border: 1px solid #fce7f3;">
           <div class="timeline-header">
-            <div class="timeline-fase" style="color: var(--pink)">🚀 Fase 13 — Testing e Go-Live</div>
+            <div class="timeline-fase" style="color: var(--pink)">🚀 Fase 11 — Testing e Go-Live</div>
             <div class="timeline-duration" style="color: var(--pink); background: rgba(237,2,140,0.08)">3–4 giorni</div>
           </div>
-          <div class="timeline-deliverable">Cross-browser, SEO audit, SSL Let's Encrypt, Google Search Console, migrazione DNS, go-live su DigitalOcean</div>
+          <div class="timeline-deliverable">Cross-browser, SEO audit, CI/CD via GitHub → App Platform, Google Search Console, migrazione DNS, go-live</div>
         </div>
       </div>
     </div>
 
     <div class="invest-box" style="margin-top: 40px;">
       <h3>Stima Totale</h3>
-      <p>Un progetto costruito per durare anni, senza dipendenze da plugin di terze parti o piattaforme con abbonamenti obbligatori.</p>
+      <p>Un progetto costruito per durare anni, con framework enterprise (Laravel 13 + Filament 3) e deploy automatizzato su piattaforma cloud gestita.</p>
       <div class="invest-stats">
         <div class="invest-stat">
-          <div class="invest-stat-num">7–9</div>
+          <div class="invest-stat-num">6–8</div>
           <div class="invest-stat-label">Settimane di sviluppo</div>
         </div>
         <div class="invest-stat">
           <div class="invest-stat-num">20</div>
-          <div class="invest-stat-label">Pagine pubbliche</div>
+          <div class="invest-stat-label">Pagine pubbliche (Vue)</div>
         </div>
         <div class="invest-stat">
-          <div class="invest-stat-num">13</div>
-          <div class="invest-stat-label">Moduli API</div>
+          <div class="invest-stat-num">16</div>
+          <div class="invest-stat-label">Risorse Filament admin</div>
         </div>
         <div class="invest-stat">
           <div class="invest-stat-num">≥90</div>
           <div class="invest-stat-label">Score Lighthouse target</div>
         </div>
       </div>
-      <div class="invest-note">Costi fissi ricorrenti: hosting DigitalOcean (~$24/mese) + DO Spaces backup (~$5/mese) + Redis (~$0 self-hosted) + Cookiebot Essential (~8€/mese) + ActiveCampaign (piano già attivo) + Postmark SMTP (~$15/mese) + Stripe (1,4% + 0,25€ per transazione shop) + UptimeRobot (free)</div>
+      <div class="invest-note">Costi fissi ricorrenti: DigitalOcean App Platform (~$24/mese, include web + worker) + DO Spaces backup (~$5/mese) + Cookiebot Essential (~8€/mese) + ActiveCampaign (piano già attivo) + Postmark SMTP (~$15/mese) + Stripe (1,4% + 0,25€ per transazione shop) + UptimeRobot (free)</div>
     </div>
   </div>
 
