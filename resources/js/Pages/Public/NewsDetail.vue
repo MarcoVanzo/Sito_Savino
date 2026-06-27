@@ -1,6 +1,6 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 
@@ -28,6 +28,29 @@ const formattedDate = computed(() => {
         <meta property="og:type" content="article" />
         <meta property="og:title" :content="post?.title" />
         <meta v-if="post?.excerpt" property="og:description" :content="post.excerpt" />
+        <component :is="'script'" type="application/ld+json" v-if="post">
+            {{ JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'NewsArticle',
+                'headline': post.title,
+                'datePublished': post.published_at,
+                'dateModified': post.updated_at || post.published_at,
+                'author': {
+                    '@type': 'Organization',
+                    'name': 'Savino Del Bene Volley',
+                },
+                'publisher': {
+                    '@type': 'Organization',
+                    'name': 'Savino Del Bene Volley',
+                },
+                'description': post.meta_description || post.excerpt || '',
+                'image': post.media?.length ? post.media[0].original_url : undefined,
+                'mainEntityOfPage': {
+                    '@type': 'WebPage',
+                    '@id': `${usePage().props.ziggy.url}/news/${post.slug}`,
+                },
+            }) }}
+        </component>
     </Head>
 
     <PublicLayout>

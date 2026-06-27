@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('sync:legavolley')->daily();
+Schedule::command('sitemap:generate')->daily()->at('04:00');

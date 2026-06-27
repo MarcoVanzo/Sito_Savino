@@ -1,10 +1,12 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useSanitize } from '@/Composables/useSanitize';
 
 const props = defineProps({
     posts: Object,
 });
+const { sanitize } = useSanitize();
 </script>
 
 <template>
@@ -85,12 +87,12 @@ const props = defineProps({
                             :href="link.url"
                             class="px-4 py-2 text-sm font-medium border rounded-md transition-colors"
                             :class="link.active ? 'bg-savino-blue text-white border-savino-blue' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
-                            v-html="link.label"
+                            v-html="sanitize(link.label)"
                         />
                         <span
                             v-else
                             class="px-4 py-2 text-sm text-gray-400 border border-gray-200 rounded-md"
-                            v-html="link.label"
+                            v-html="sanitize(link.label)"
                         />
                     </template>
                 </div>
