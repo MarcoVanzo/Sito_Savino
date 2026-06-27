@@ -126,7 +126,7 @@ const page = usePage();
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50 flex flex-col font-sans">
+    <div class="min-h-screen bg-gray-900 flex flex-col font-sans overflow-x-hidden">
         <!-- HEADER STICKY -->
         <header class="sticky top-0 z-50 bg-[#0B1521]/85 backdrop-blur-md text-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-none">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[85px] relative">
@@ -183,7 +183,7 @@ const page = usePage();
         </header>
 
         <!-- MAIN CONTENT -->
-        <main class="flex-grow">
+        <main class="flex-grow bg-gray-50">
             <slot />
         </main>
 
