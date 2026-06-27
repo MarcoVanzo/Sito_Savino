@@ -27,7 +27,8 @@ const filteredRoster = computed(() => {
 </script>
 
 <template>
-    <Head title="Roster Serie A1">
+    <Head>
+        <title>Roster Serie A1</title>
         <meta name="description" content="La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1." />
     </Head>
     <PublicLayout>

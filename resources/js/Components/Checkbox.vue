@@ -4,6 +4,7 @@ import { computed } from 'vue';
 const emit = defineEmits(['update:checked']);
 
 const props = defineProps({
+    id: { type: String, default: undefined },
     checked: {
         type: [Array, Boolean],
         required: true,
@@ -25,8 +26,8 @@ const proxyChecked = computed({
 </script>
 
 <template>
-    <!-- NOSONAR -->
     <input
+        :id="id"
         type="checkbox"
         :value="value"
         v-model="proxyChecked"

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\LogsActivity;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
@@ -19,7 +20,10 @@ use Filament\Panel;
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, LogsActivity;
+
+    /** Campi esclusi dal log (dati sensibili). */
+    protected array $logExclude = ['password', 'remember_token'];
 
     public function canAccessPanel(Panel $panel): bool
     {
@@ -56,5 +60,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function pages(): HasMany
     {
         return $this->hasMany(Page::class, 'author_id');
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 }

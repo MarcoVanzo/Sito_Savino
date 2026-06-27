@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Traits\LogsActivity;
 
 class Cart extends Model
 {
-    use HasFactory, MassPrunable;
+    use HasFactory, MassPrunable, LogsActivity;
 
     protected $fillable = [
         'session_id', 'user_id', 'expires_at'

@@ -26,7 +26,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <Head title="Sito Ufficiale">
+    <Head>
+        <title>Sito Ufficiale</title>
         <meta name="description" content="Sito ufficiale della Savino Del Bene Volley. Scopri il roster, il calendario e i risultati della Serie A1 femminile." />
     </Head>
     <PublicLayout>
