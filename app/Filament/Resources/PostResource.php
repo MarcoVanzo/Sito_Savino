@@ -77,7 +77,14 @@ class PostResource extends Resource
                             ->label('Stato Pubblicazione')
                             ->options(PostStatus::class)
                             ->default(PostStatus::Published)
-                            ->required(),
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                // Auto-imposta published_at quando si pubblica
+                                if ($state === PostStatus::Published->value && ! $get('published_at')) {
+                                    $set('published_at', now()->format('Y-m-d H:i:s'));
+                                }
+                            }),
                         Forms\Components\Select::make('author_id')
                             ->label('Autore')
                             ->relationship('author', 'name')

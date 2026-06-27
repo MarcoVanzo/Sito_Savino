@@ -13,7 +13,7 @@ class Sponsor extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
-        'name', 'url', 'tier'
+        'name', 'url', 'tier', 'sort_order',
     ];
 
     protected $casts = [

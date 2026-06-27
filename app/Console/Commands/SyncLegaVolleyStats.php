@@ -26,13 +26,13 @@ class SyncLegaVolleyStats extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         // GUARD: impedisci l'esecuzione in produzione con dati simulati
         if (app()->isProduction()) {
             $this->error('Questo comando usa dati simulati e NON deve essere eseguito in produzione.');
             $this->error('Implementare prima il vero web scraping dalla Lega Volley.');
-            return 1;
+            return self::FAILURE;
         }
 
         $this->info('Inizio sincronizzazione statistiche Lega Volley (SIMULAZIONE)...');
@@ -41,7 +41,7 @@ class SyncLegaVolleyStats extends Command
         
         if ($players->isEmpty()) {
             $this->warn('Nessuna giocatrice con lega_volley_id trovata nel database.');
-            return;
+            return self::SUCCESS;
         }
 
         $bar = $this->output->createProgressBar(count($players));
@@ -50,7 +50,7 @@ class SyncLegaVolleyStats extends Command
         $currentSeason = \App\Models\Season::where('is_current', true)->first();
         if (!$currentSeason) {
             $this->error('Nessuna stagione corrente (is_current = true) trovata nel database.');
-            return;
+            return self::FAILURE;
         }
 
         foreach ($players as $player) {
@@ -77,6 +77,7 @@ class SyncLegaVolleyStats extends Command
                     'points' => $scrapedData['points'],
                     'blocks' => $scrapedData['blocks'],
                     'aces' => $scrapedData['aces'],
+                    'last_synced_at' => now(),
                 ]
             );
 
@@ -89,5 +90,7 @@ class SyncLegaVolleyStats extends Command
         $bar->finish();
         $this->newLine();
         $this->info('Sincronizzazione completata con successo!');
+
+        return self::SUCCESS;
     }
 }

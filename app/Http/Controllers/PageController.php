@@ -21,12 +21,17 @@ class PageController extends Controller
         'Public/Societa',
         'Public/Roster',
         'Public/Shop',
+        'Public/ShopCheckout',
         'Public/Ticketing',
         'Public/Sponsor',
         'Public/Youth',
         'Public/SummerCamp',
         'Public/Sociale',
         'Public/Comunicazione',
+        'Public/Risultati',
+        'Public/Gallery',
+        'Public/Staff',
+        'Public/Contatti',
     ];
 
     public function show($slug)

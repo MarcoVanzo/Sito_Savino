@@ -1,11 +1,14 @@
 import DOMPurify from 'dompurify';
 
 // Hook: forza rel="noopener noreferrer" su tutti i link con target="_blank"
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-    if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
-        node.setAttribute('rel', 'noopener noreferrer');
-    }
-});
+// Guard SSR: DOMPurify hooks richiedono il DOM, registra solo lato client
+if (typeof window !== 'undefined') {
+    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+        if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+            node.setAttribute('rel', 'noopener noreferrer');
+        }
+    });
+}
 
 /**
  * Composable per la sanitizzazione del contenuto HTML.

@@ -12,5 +12,4 @@ Disallow: /storage/
 Disallow: /build/
 
 # Sitemap
-# Sitemap: https://www.savinodelbenevolley.com/sitemap.xml
-# TODO: Generare sitemap dinamica con spatie/laravel-sitemap
+Sitemap: https://www.savinodelbenevolley.com/sitemap.xml

@@ -8,11 +8,21 @@ use Inertia\Inertia;
 use App\Http\Controllers\PublicController;
 
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\NewsController;
 
 // Rotte Pubbliche SDB
 Route::middleware('throttle:web')->group(function () {
     Route::get('/', [PublicController::class, 'home'])->name('home');
     Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
+    Route::get('/stagione/b1', [PublicController::class, 'stagioneB1'])->name('stagione.b1');
+    Route::get('/risultati', [PublicController::class, 'risultati'])->name('risultati');
+    Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
+    Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
+    Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');
+    Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+    Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
+    Route::get('/shop', [PublicController::class, 'shop'])->name('shop');
+    Route::get('/shop/checkout', [PublicController::class, 'shopCheckout'])->name('shop.checkout');
 });
 
 Route::get('/dashboard', function () {
@@ -34,5 +44,5 @@ require __DIR__.'/auth.php';
 // Ignora percorsi di sistema noti.
 Route::get('/{slug}', [PageController::class, 'show'])
     ->middleware('throttle:web')
-    ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password).*$')
+    ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|gallery|staff|sponsor|news|shop).*$')
     ->name('pages.show');

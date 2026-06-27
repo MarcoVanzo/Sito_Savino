@@ -3,19 +3,22 @@
 namespace App\Models;
 
 use App\Enums\OrderStatus;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'status',
+        'user_id', 'status', 'total_price',
         'shipping_address', 'billing_address',
+        'stripe_payment_id',
     ];
 
     protected $casts = [
@@ -41,5 +44,23 @@ class Order extends Model
     public function scopePaid($query)
     {
         return $query->where('status', OrderStatus::Paid);
+    }
+
+    /**
+     * Ricalcola il totale ordine dalla somma degli items.
+     * Persiste il valore calcolato nel campo total_price.
+     */
+    public function recalculateTotal(): self
+    {
+        return DB::transaction(function () {
+            // Lock this order row to prevent concurrent recalculations
+            $this->refresh()->lockForUpdate();
+
+            $this->total_price = $this->items()
+                ->sum(DB::raw('quantity * price_at_time_of_purchase'));
+            $this->save();
+
+            return $this;
+        });
     }
 }

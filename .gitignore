@@ -15,6 +15,7 @@
 /auth.json
 /node_modules
 /public/build
+/bootstrap/ssr
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
@@ -33,6 +34,7 @@ Thumbs.db
 # File di proposta/mockup (non parte del progetto)
 Loghi/
 Proposta_Tecnica_SDB_v3.0.pdf
+Proposta_Tecnica_SDB_v3.3.pdf
 proposta_tecnica_sdb.html
 mockups_block.html
 Pantone colori.jpeg
