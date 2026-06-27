@@ -19,10 +19,14 @@ on:
 permissions:
   issues: write
 
+# Impedisce esecuzioni concorrenti (fix #10)
+concurrency:
+  group: backup-media
+  cancel-in-progress: false
+
 env:
   # Sorgente (produzione)
   PROD_BUCKET: sito-savino-assets-2026
-  PROD_REGION: fra1
   PROD_ENDPOINT: https://fra1.digitaloceanspaces.com
 
   # Destinazione (backup)
@@ -47,35 +51,40 @@ jobs:
 
       # ---------------------------------------------------------------
       # 2. Configurazione rclone
+      #    Fix #4: nessuna indentazione nel heredoc (rclone è sensibile)
       # ---------------------------------------------------------------
       - name: Configura rclone remotes
         env:
-          DO_PROD_SPACES_KEY: ${{ secrets.DO_PROD_SPACES_KEY }}
-          DO_PROD_SPACES_SECRET: ${{ secrets.DO_PROD_SPACES_SECRET }}
-          DO_BACKUP_SPACES_KEY: ${{ secrets.DO_BACKUP_SPACES_KEY }}
-          DO_BACKUP_SPACES_SECRET: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+          DO_PROD_KEY: ${{ secrets.DO_PROD_SPACES_KEY }}
+          DO_PROD_SECRET: ${{ secrets.DO_PROD_SPACES_SECRET }}
+          DO_BK_KEY: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          DO_BK_SECRET: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
         run: |
           mkdir -p ~/.config/rclone
-
           cat > ~/.config/rclone/rclone.conf <<EOF
           [do-prod]
           type = s3
           provider = DigitalOcean
-          access_key_id = ${DO_PROD_SPACES_KEY}
-          secret_access_key = ${DO_PROD_SPACES_SECRET}
+          access_key_id = ${DO_PROD_KEY}
+          secret_access_key = ${DO_PROD_SECRET}
           endpoint = ${PROD_ENDPOINT}
           acl = private
 
           [do-backup]
           type = s3
           provider = DigitalOcean
-          access_key_id = ${DO_BACKUP_SPACES_KEY}
-          secret_access_key = ${DO_BACKUP_SPACES_SECRET}
+          access_key_id = ${DO_BK_KEY}
+          secret_access_key = ${DO_BK_SECRET}
           endpoint = ${BACKUP_ENDPOINT}
           acl = private
           EOF
 
-          echo "✅ Rclone configurato con 2 remote."
+          # Fix #4: rimuovi indentazione residua da YAML
+          sed -i 's/^          //' ~/.config/rclone/rclone.conf
+
+          # Verifica che i remote funzionino
+          rclone lsd do-prod: > /dev/null 2>&1 && echo "✅ Remote do-prod OK" || { echo "❌ Remote do-prod fallito"; exit 1; }
+          rclone lsd do-backup: > /dev/null 2>&1 && echo "✅ Remote do-backup OK" || { echo "❌ Remote do-backup fallito"; exit 1; }
 
       # ---------------------------------------------------------------
       # 3. Conta file sorgente (pre-sync)
@@ -84,12 +93,15 @@ jobs:
         id: pre_sync
         run: |
           echo "📊 Conteggio file nel bucket di produzione..."
-          PROD_COUNT=$(rclone lsf "do-prod:${PROD_BUCKET}" --recursive | wc -l)
+          PROD_COUNT=$(rclone lsf "do-prod:${PROD_BUCKET}" --recursive 2>/dev/null | wc -l)
+          PROD_SIZE=$(rclone size "do-prod:${PROD_BUCKET}" --json 2>/dev/null | jq -r '.bytes // 0')
           echo "prod_count=${PROD_COUNT}" >> "$GITHUB_OUTPUT"
-          echo "📁 File in produzione: ${PROD_COUNT}"
+          echo "prod_size=${PROD_SIZE}" >> "$GITHUB_OUTPUT"
+          echo "📁 File in produzione: ${PROD_COUNT} ($(numfmt --to=iec ${PROD_SIZE}))"
 
       # ---------------------------------------------------------------
-      # 4. Sync con rclone copy (solo nuovi/modificati, no delete)
+      # 4. Sync con rclone copy
+      #    Fix #7: aggiunto --checksum per verifica integrità
       # ---------------------------------------------------------------
       - name: Copia media su bucket di backup
         run: |
@@ -98,6 +110,7 @@ jobs:
           rclone copy \
             "do-prod:${PROD_BUCKET}/" \
             "do-backup:${BACKUP_BUCKET}/media/" \
+            --checksum \
             --transfers 8 \
             --checkers 16 \
             --s3-chunk-size 64M \
@@ -119,15 +132,16 @@ jobs:
           MANIFEST_FILE="manifest-${TIMESTAMP}.txt"
 
           echo "📋 Generazione manifest..."
-          echo "# Media Backup Manifest" > "$MANIFEST_FILE"
-          echo "# Generated: ${TIMESTAMP}" >> "$MANIFEST_FILE"
-          echo "# Source: do-prod:${PROD_BUCKET}" >> "$MANIFEST_FILE"
-          echo "# Destination: do-backup:${BACKUP_BUCKET}/media/" >> "$MANIFEST_FILE"
-          echo "---" >> "$MANIFEST_FILE"
+          {
+            echo "# Media Backup Manifest"
+            echo "# Generated: ${TIMESTAMP}"
+            echo "# Source: do-prod:${PROD_BUCKET}"
+            echo "# Destination: do-backup:${BACKUP_BUCKET}/media/"
+            echo "---"
+            rclone lsl "do-backup:${BACKUP_BUCKET}/media/" 2>/dev/null || true
+          } > "$MANIFEST_FILE"
 
-          rclone lsl "do-backup:${BACKUP_BUCKET}/media/" >> "$MANIFEST_FILE" 2>/dev/null || true
-
-          BACKUP_COUNT=$(rclone lsf "do-backup:${BACKUP_BUCKET}/media/" --recursive | wc -l)
+          BACKUP_COUNT=$(rclone lsf "do-backup:${BACKUP_BUCKET}/media/" --recursive 2>/dev/null | wc -l)
           echo "backup_count=${BACKUP_COUNT}" >> "$GITHUB_OUTPUT"
           echo "timestamp=${TIMESTAMP}" >> "$GITHUB_OUTPUT"
           echo "manifest_file=${MANIFEST_FILE}" >> "$GITHUB_OUTPUT"
@@ -135,16 +149,13 @@ jobs:
           echo "📁 File nel backup: ${BACKUP_COUNT}"
 
       # ---------------------------------------------------------------
-      # 6. Upload manifest e log
+      # 6. Upload manifest e log (fix #2: usa env vars)
       # ---------------------------------------------------------------
-      - name: Configura credenziali AWS (per upload manifest)
-        run: |
-          aws configure set aws_access_key_id "${{ secrets.DO_BACKUP_SPACES_KEY }}"
-          aws configure set aws_secret_access_key "${{ secrets.DO_BACKUP_SPACES_SECRET }}"
-          aws configure set region "${{ env.BACKUP_REGION }}"
-          echo "✅ Credenziali AWS configurate per DO Spaces."
-
       - name: Upload manifest e log
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+          AWS_DEFAULT_REGION: ${{ env.BACKUP_REGION }}
         run: |
           YEAR=$(date -u +"%Y")
           MONTH=$(date -u +"%m")
@@ -167,7 +178,8 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          rm -f manifest-*.txt rclone-sync.log ~/.config/rclone/rclone.conf
+          rm -f manifest-*.txt rclone-sync.log
+          rm -f ~/.config/rclone/rclone.conf
           echo "🧹 Cleanup completato."
 
       # ---------------------------------------------------------------
@@ -182,7 +194,7 @@ jobs:
           echo "  Timestamp:       ${{ steps.manifest.outputs.timestamp }}"
           echo "  File produzione: ${{ steps.pre_sync.outputs.prod_count }}"
           echo "  File backup:     ${{ steps.manifest.outputs.backup_count }}"
-          echo "  Modalità:        Copia incrementale (no delete)"
+          echo "  Modalità:        Copia incrementale con checksum (no delete)"
           echo "  Trigger:         ${{ github.event_name }}"
           echo "============================================="
 
@@ -213,6 +225,23 @@ jobs:
               'Verificare i logs e risolvere il problema.',
               'Eseguire un backup manuale dopo la correzione.'
             ].join('\n');
+
+            for (const label of ['backup', 'urgente']) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label
+                });
+              } catch {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                  color: label === 'urgente' ? 'D93F0B' : '0E8A16'
+                });
+              }
+            }
 
             await github.rest.issues.create({
               owner: context.repo.owner,

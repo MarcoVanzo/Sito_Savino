@@ -10,7 +10,6 @@ on:
     # Ogni giorno alle 03:00 UTC (05:00 ora italiana)
     - cron: '0 3 * * *'
   workflow_dispatch:
-    # Trigger manuale dal pannello GitHub Actions
     inputs:
       reason:
         description: 'Motivo del backup manuale'
@@ -19,6 +18,11 @@ on:
 
 permissions:
   issues: write
+
+# Impedisce esecuzioni concorrenti (fix #10)
+concurrency:
+  group: backup-db
+  cancel-in-progress: false
 
 env:
   BUCKET_NAME: sito-savino-backups
@@ -59,6 +63,8 @@ jobs:
 
       # ---------------------------------------------------------------
       # 3. Dump MySQL → Compress → Encrypt
+      #    Fix #1: usa set -o pipefail per catturare errori di mysqldump
+      #    Fix #3: usa --passphrase-fd per evitare leak della passphrase
       # ---------------------------------------------------------------
       - name: Dump database, comprimi e cifra
         env:
@@ -69,6 +75,8 @@ jobs:
           DB_NAME: ${{ secrets.BACKUP_DB_NAME }}
           GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
         run: |
+          set -eo pipefail
+
           echo "🔄 Avvio mysqldump..."
 
           mysqldump \
@@ -81,21 +89,21 @@ jobs:
             --triggers \
             --events \
             --set-gtid-purged=OFF \
-            --column-statistics=0 \
             "$DB_NAME" \
           | gzip -9 \
           | gpg --symmetric \
                 --batch \
                 --yes \
-                --passphrase "$GPG_PASSPHRASE" \
+                --passphrase-fd 3 \
                 --cipher-algo AES256 \
                 --compress-algo none \
-                --output "${{ steps.naming.outputs.filename }}"
+                --output "${{ steps.naming.outputs.filename }}" \
+            3<<< "$GPG_PASSPHRASE"
 
-          # Verifica che il file esista e non sia vuoto
+          # Verifica che il file esista e abbia una dimensione ragionevole
           FILE_SIZE=$(stat --format="%s" "${{ steps.naming.outputs.filename }}")
-          if [ "$FILE_SIZE" -lt 100 ]; then
-            echo "❌ Errore: file di backup troppo piccolo (${FILE_SIZE} bytes)"
+          if [ "$FILE_SIZE" -lt 500 ]; then
+            echo "❌ Errore: file di backup troppo piccolo (${FILE_SIZE} bytes) — probabile dump vuoto"
             exit 1
           fi
 
@@ -113,15 +121,13 @@ jobs:
 
       # ---------------------------------------------------------------
       # 5. Upload su DO Spaces
+      #    Fix #2: usa env vars invece di aws configure (no file su disco)
       # ---------------------------------------------------------------
-      - name: Configura credenziali AWS (DO Spaces)
-        run: |
-          aws configure set aws_access_key_id "${{ secrets.DO_BACKUP_SPACES_KEY }}"
-          aws configure set aws_secret_access_key "${{ secrets.DO_BACKUP_SPACES_SECRET }}"
-          aws configure set region "${{ env.SPACES_REGION }}"
-          echo "✅ Credenziali AWS configurate per DO Spaces."
-
       - name: Upload backup su DO Spaces
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+          AWS_DEFAULT_REGION: ${{ env.SPACES_REGION }}
         run: |
           echo "📤 Upload backup..."
           aws s3 cp \
@@ -138,21 +144,27 @@ jobs:
           echo "✅ Upload completato."
 
       # ---------------------------------------------------------------
-      # 6. Verifica upload
+      # 6. Verifica upload (fix #6: verifica in un singolo step robusto)
       # ---------------------------------------------------------------
       - name: Verifica presenza file su Spaces
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+          AWS_DEFAULT_REGION: ${{ env.SPACES_REGION }}
         run: |
           echo "🔍 Verifica file caricato..."
-          aws s3 ls \
-            "s3://${{ env.BUCKET_NAME }}/${{ steps.naming.outputs.s3_path }}" \
-            --endpoint-url "${{ env.SPACES_ENDPOINT }}"
+          REMOTE_SIZE=$(aws s3api head-object \
+            --bucket "${{ env.BUCKET_NAME }}" \
+            --key "${{ steps.naming.outputs.s3_path }}" \
+            --endpoint-url "${{ env.SPACES_ENDPOINT }}" \
+            --query 'ContentLength' --output text)
 
-          if [ $? -eq 0 ]; then
-            echo "✅ Backup verificato su DO Spaces."
-          else
-            echo "❌ File non trovato su DO Spaces!"
+          if [ -z "$REMOTE_SIZE" ] || [ "$REMOTE_SIZE" -lt 500 ]; then
+            echo "❌ File non trovato o troppo piccolo su DO Spaces! (size: ${REMOTE_SIZE:-0})"
             exit 1
           fi
+
+          echo "✅ Backup verificato su DO Spaces (${REMOTE_SIZE} bytes)."
 
       # ---------------------------------------------------------------
       # 7. Cleanup
@@ -207,6 +219,24 @@ jobs:
               'Verificare i logs del workflow e risolvere il problema.',
               'Eseguire un backup manuale dopo la correzione.'
             ].join('\n');
+
+            // Fix #8: crea le labels se non esistono
+            for (const label of ['backup', 'urgente']) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label
+                });
+              } catch {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                  color: label === 'urgente' ? 'D93F0B' : '0E8A16'
+                });
+              }
+            }
 
             await github.rest.issues.create({
               owner: context.repo.owner,
