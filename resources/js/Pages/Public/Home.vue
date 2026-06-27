@@ -149,10 +149,10 @@ onUnmounted(() => {
 
 @keyframes kenBurns {
     0% {
-        transform: scale(1) translate(0, 0);
+        transform: scale(1.08) translate(0, 0);
     }
     100% {
-        transform: scale(1.12) translate(-1%, -0.5%);
+        transform: scale(1.18) translate(-1%, -0.5%);
     }
 }
 

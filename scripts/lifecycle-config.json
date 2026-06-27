@@ -1,0 +1,34 @@
+{
+    "Rules": [
+        {
+            "ID": "db-backup-retention-90days",
+            "Filter": {
+                "Prefix": "db/"
+            },
+            "Status": "Enabled",
+            "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 90
+            }
+        },
+        {
+            "ID": "media-backup-retention-30days",
+            "Filter": {
+                "Prefix": "media/"
+            },
+            "Status": "Enabled",
+            "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 30
+            }
+        },
+        {
+            "ID": "cleanup-incomplete-uploads",
+            "Filter": {
+                "Prefix": ""
+            },
+            "Status": "Enabled",
+            "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 7
+            }
+        }
+    ]
+}

@@ -1,0 +1,214 @@
+# =============================================================================
+# Backup Database — Sito Savino
+# Esegue mysqldump giornaliero, cifra con GPG AES-256, carica su DO Spaces
+# =============================================================================
+
+name: Backup Database
+
+on:
+  schedule:
+    # Ogni giorno alle 03:00 UTC (05:00 ora italiana)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    # Trigger manuale dal pannello GitHub Actions
+    inputs:
+      reason:
+        description: 'Motivo del backup manuale'
+        required: false
+        default: 'Backup manuale'
+
+env:
+  BUCKET_NAME: sito-savino-backups
+  SPACES_REGION: fra1
+  SPACES_ENDPOINT: https://fra1.digitaloceanspaces.com
+
+jobs:
+  backup:
+    name: Dump, Encrypt & Upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # ---------------------------------------------------------------
+      # 1. Installazione dipendenze
+      # ---------------------------------------------------------------
+      - name: Installa dipendenze
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mysql-client gpg
+
+      # ---------------------------------------------------------------
+      # 2. Variabili di naming
+      # ---------------------------------------------------------------
+      - name: Genera naming backup
+        id: naming
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H%M%SZ")
+          YEAR=$(date -u +"%Y")
+          MONTH=$(date -u +"%m")
+          FILENAME="backup-${TIMESTAMP}.sql.gz.gpg"
+          S3_PATH="db/${YEAR}/${MONTH}/${FILENAME}"
+          echo "timestamp=${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo "filename=${FILENAME}" >> "$GITHUB_OUTPUT"
+          echo "s3_path=${S3_PATH}" >> "$GITHUB_OUTPUT"
+          echo "📦 Backup file: ${FILENAME}"
+          echo "📁 Destinazione: s3://${BUCKET_NAME}/${S3_PATH}"
+
+      # ---------------------------------------------------------------
+      # 3. Dump MySQL → Compress → Encrypt
+      # ---------------------------------------------------------------
+      - name: Dump database, comprimi e cifra
+        env:
+          DB_HOST: ${{ secrets.BACKUP_DB_HOST }}
+          DB_PORT: ${{ secrets.BACKUP_DB_PORT }}
+          DB_USER: ${{ secrets.BACKUP_DB_USER }}
+          DB_PASSWORD: ${{ secrets.BACKUP_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.BACKUP_DB_NAME }}
+          GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
+        run: |
+          echo "🔄 Avvio mysqldump..."
+
+          mysqldump \
+            --host="$DB_HOST" \
+            --port="$DB_PORT" \
+            --user="$DB_USER" \
+            --password="$DB_PASSWORD" \
+            --single-transaction \
+            --routines \
+            --triggers \
+            --events \
+            --set-gtid-purged=OFF \
+            --column-statistics=0 \
+            "$DB_NAME" \
+          | gzip -9 \
+          | gpg --symmetric \
+                --batch \
+                --yes \
+                --passphrase "$GPG_PASSPHRASE" \
+                --cipher-algo AES256 \
+                --compress-algo none \
+                --output "${{ steps.naming.outputs.filename }}"
+
+          # Verifica che il file esista e non sia vuoto
+          FILE_SIZE=$(stat --format="%s" "${{ steps.naming.outputs.filename }}")
+          if [ "$FILE_SIZE" -lt 100 ]; then
+            echo "❌ Errore: file di backup troppo piccolo (${FILE_SIZE} bytes)"
+            exit 1
+          fi
+
+          echo "✅ Dump completato: ${FILE_SIZE} bytes"
+          echo "file_size=${FILE_SIZE}" >> "$GITHUB_OUTPUT"
+
+      # ---------------------------------------------------------------
+      # 4. Genera checksum SHA-256
+      # ---------------------------------------------------------------
+      - name: Genera checksum SHA-256
+        run: |
+          sha256sum "${{ steps.naming.outputs.filename }}" > "${{ steps.naming.outputs.filename }}.sha256"
+          echo "🔐 Checksum SHA-256:"
+          cat "${{ steps.naming.outputs.filename }}.sha256"
+
+      # ---------------------------------------------------------------
+      # 5. Upload su DO Spaces
+      # ---------------------------------------------------------------
+      - name: Configura credenziali AWS (DO Spaces)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          aws-secret-access-key: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+          aws-region: ${{ env.SPACES_REGION }}
+
+      - name: Upload backup su DO Spaces
+        run: |
+          echo "📤 Upload backup..."
+          aws s3 cp \
+            "${{ steps.naming.outputs.filename }}" \
+            "s3://${{ env.BUCKET_NAME }}/${{ steps.naming.outputs.s3_path }}" \
+            --endpoint-url "${{ env.SPACES_ENDPOINT }}"
+
+          echo "📤 Upload checksum..."
+          aws s3 cp \
+            "${{ steps.naming.outputs.filename }}.sha256" \
+            "s3://${{ env.BUCKET_NAME }}/${{ steps.naming.outputs.s3_path }}.sha256" \
+            --endpoint-url "${{ env.SPACES_ENDPOINT }}"
+
+          echo "✅ Upload completato."
+
+      # ---------------------------------------------------------------
+      # 6. Verifica upload
+      # ---------------------------------------------------------------
+      - name: Verifica presenza file su Spaces
+        run: |
+          echo "🔍 Verifica file caricato..."
+          aws s3 ls \
+            "s3://${{ env.BUCKET_NAME }}/${{ steps.naming.outputs.s3_path }}" \
+            --endpoint-url "${{ env.SPACES_ENDPOINT }}"
+
+          if [ $? -eq 0 ]; then
+            echo "✅ Backup verificato su DO Spaces."
+          else
+            echo "❌ File non trovato su DO Spaces!"
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------
+      # 7. Cleanup
+      # ---------------------------------------------------------------
+      - name: Cleanup file locali
+        if: always()
+        run: |
+          rm -f *.sql.gz.gpg *.sha256
+          echo "🧹 File locali rimossi."
+
+      # ---------------------------------------------------------------
+      # 8. Riepilogo
+      # ---------------------------------------------------------------
+      - name: Riepilogo backup
+        if: success()
+        run: |
+          echo "============================================="
+          echo "  ✅ BACKUP DATABASE COMPLETATO"
+          echo "============================================="
+          echo "  Timestamp: ${{ steps.naming.outputs.timestamp }}"
+          echo "  File:      ${{ steps.naming.outputs.filename }}"
+          echo "  Path S3:   s3://${{ env.BUCKET_NAME }}/${{ steps.naming.outputs.s3_path }}"
+          echo "  Cifratura: GPG AES-256"
+          echo "  Trigger:   ${{ github.event_name }}"
+          echo "============================================="
+
+  # -----------------------------------------------------------------
+  # Job di notifica in caso di fallimento
+  # -----------------------------------------------------------------
+  notify-failure:
+    name: Notifica fallimento
+    runs-on: ubuntu-latest
+    needs: backup
+    if: failure()
+    steps:
+      - name: Crea issue di notifica
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `⚠️ Backup DB fallito — ${new Date().toISOString().split('T')[0]}`;
+            const body = [
+              '## Backup Database Fallito',
+              '',
+              `**Data:** ${new Date().toISOString()}`,
+              `**Workflow:** ${context.workflow}`,
+              `**Run ID:** ${context.runId}`,
+              `**Trigger:** ${context.eventName}`,
+              '',
+              `🔗 [Vedi logs del workflow](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              '',
+              '### Azione richiesta',
+              'Verificare i logs del workflow e risolvere il problema.',
+              'Eseguire un backup manuale dopo la correzione.'
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['backup', 'urgente']
+            });

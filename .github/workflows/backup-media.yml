@@ -1,0 +1,220 @@
+# =============================================================================
+# Backup Media — Sito Savino
+# Sincronizza i file media da DO Spaces produzione a DO Spaces backup
+# =============================================================================
+
+name: Backup Media
+
+on:
+  schedule:
+    # Ogni domenica alle 04:00 UTC (06:00 ora italiana)
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Motivo del backup manuale'
+        required: false
+        default: 'Backup media manuale'
+
+env:
+  # Sorgente (produzione)
+  PROD_BUCKET: sito-savino-assets-2026
+  PROD_REGION: fra1
+  PROD_ENDPOINT: https://fra1.digitaloceanspaces.com
+
+  # Destinazione (backup)
+  BACKUP_BUCKET: sito-savino-backups
+  BACKUP_REGION: fra1
+  BACKUP_ENDPOINT: https://fra1.digitaloceanspaces.com
+
+jobs:
+  backup-media:
+    name: Sync Media Files
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      # ---------------------------------------------------------------
+      # 1. Installazione rclone
+      # ---------------------------------------------------------------
+      - name: Installa rclone
+        run: |
+          curl -sSfL https://rclone.org/install.sh | sudo bash
+          rclone version
+
+      # ---------------------------------------------------------------
+      # 2. Configurazione rclone
+      # ---------------------------------------------------------------
+      - name: Configura rclone remotes
+        env:
+          DO_PROD_SPACES_KEY: ${{ secrets.DO_PROD_SPACES_KEY }}
+          DO_PROD_SPACES_SECRET: ${{ secrets.DO_PROD_SPACES_SECRET }}
+          DO_BACKUP_SPACES_KEY: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          DO_BACKUP_SPACES_SECRET: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+        run: |
+          mkdir -p ~/.config/rclone
+
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          [do-prod]
+          type = s3
+          provider = DigitalOcean
+          access_key_id = ${DO_PROD_SPACES_KEY}
+          secret_access_key = ${DO_PROD_SPACES_SECRET}
+          endpoint = ${PROD_ENDPOINT}
+          acl = private
+
+          [do-backup]
+          type = s3
+          provider = DigitalOcean
+          access_key_id = ${DO_BACKUP_SPACES_KEY}
+          secret_access_key = ${DO_BACKUP_SPACES_SECRET}
+          endpoint = ${BACKUP_ENDPOINT}
+          acl = private
+          EOF
+
+          echo "✅ Rclone configurato con 2 remote."
+
+      # ---------------------------------------------------------------
+      # 3. Conta file sorgente (pre-sync)
+      # ---------------------------------------------------------------
+      - name: Conta file sorgente
+        id: pre_sync
+        run: |
+          echo "📊 Conteggio file nel bucket di produzione..."
+          PROD_COUNT=$(rclone lsf "do-prod:${PROD_BUCKET}" --recursive | wc -l)
+          echo "prod_count=${PROD_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "📁 File in produzione: ${PROD_COUNT}"
+
+      # ---------------------------------------------------------------
+      # 4. Sync con rclone copy (solo nuovi/modificati, no delete)
+      # ---------------------------------------------------------------
+      - name: Copia media su bucket di backup
+        run: |
+          echo "🔄 Avvio copia incrementale media..."
+
+          rclone copy \
+            "do-prod:${PROD_BUCKET}/" \
+            "do-backup:${BACKUP_BUCKET}/media/" \
+            --transfers 8 \
+            --checkers 16 \
+            --s3-chunk-size 64M \
+            --stats 30s \
+            --stats-one-line \
+            --log-level INFO \
+            --log-file rclone-sync.log \
+            -v
+
+          echo "✅ Copia completata."
+
+      # ---------------------------------------------------------------
+      # 5. Genera manifest
+      # ---------------------------------------------------------------
+      - name: Genera manifest post-sync
+        id: manifest
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H%M%SZ")
+          MANIFEST_FILE="manifest-${TIMESTAMP}.txt"
+
+          echo "📋 Generazione manifest..."
+          echo "# Media Backup Manifest" > "$MANIFEST_FILE"
+          echo "# Generated: ${TIMESTAMP}" >> "$MANIFEST_FILE"
+          echo "# Source: do-prod:${PROD_BUCKET}" >> "$MANIFEST_FILE"
+          echo "# Destination: do-backup:${BACKUP_BUCKET}/media/" >> "$MANIFEST_FILE"
+          echo "---" >> "$MANIFEST_FILE"
+
+          rclone lsl "do-backup:${BACKUP_BUCKET}/media/" >> "$MANIFEST_FILE" 2>/dev/null || true
+
+          BACKUP_COUNT=$(rclone lsf "do-backup:${BACKUP_BUCKET}/media/" --recursive | wc -l)
+          echo "backup_count=${BACKUP_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "timestamp=${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo "manifest_file=${MANIFEST_FILE}" >> "$GITHUB_OUTPUT"
+
+          echo "📁 File nel backup: ${BACKUP_COUNT}"
+
+      # ---------------------------------------------------------------
+      # 6. Upload manifest e log
+      # ---------------------------------------------------------------
+      - name: Configura credenziali AWS (per upload manifest)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          aws-secret-access-key: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+          aws-region: ${{ env.BACKUP_REGION }}
+
+      - name: Upload manifest e log
+        run: |
+          YEAR=$(date -u +"%Y")
+          MONTH=$(date -u +"%m")
+
+          aws s3 cp \
+            "${{ steps.manifest.outputs.manifest_file }}" \
+            "s3://${BACKUP_BUCKET}/media/_manifests/${YEAR}/${MONTH}/${{ steps.manifest.outputs.manifest_file }}" \
+            --endpoint-url "${BACKUP_ENDPOINT}"
+
+          aws s3 cp \
+            rclone-sync.log \
+            "s3://${BACKUP_BUCKET}/media/_logs/${YEAR}/${MONTH}/sync-${{ steps.manifest.outputs.timestamp }}.log" \
+            --endpoint-url "${BACKUP_ENDPOINT}"
+
+          echo "✅ Manifest e log caricati."
+
+      # ---------------------------------------------------------------
+      # 7. Cleanup
+      # ---------------------------------------------------------------
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f manifest-*.txt rclone-sync.log ~/.config/rclone/rclone.conf
+          echo "🧹 Cleanup completato."
+
+      # ---------------------------------------------------------------
+      # 8. Riepilogo
+      # ---------------------------------------------------------------
+      - name: Riepilogo
+        if: success()
+        run: |
+          echo "============================================="
+          echo "  ✅ BACKUP MEDIA COMPLETATO"
+          echo "============================================="
+          echo "  Timestamp:       ${{ steps.manifest.outputs.timestamp }}"
+          echo "  File produzione: ${{ steps.pre_sync.outputs.prod_count }}"
+          echo "  File backup:     ${{ steps.manifest.outputs.backup_count }}"
+          echo "  Modalità:        Copia incrementale (no delete)"
+          echo "  Trigger:         ${{ github.event_name }}"
+          echo "============================================="
+
+  # -----------------------------------------------------------------
+  # Notifica fallimento
+  # -----------------------------------------------------------------
+  notify-failure:
+    name: Notifica fallimento
+    runs-on: ubuntu-latest
+    needs: backup-media
+    if: failure()
+    steps:
+      - name: Crea issue di notifica
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `⚠️ Backup Media fallito — ${new Date().toISOString().split('T')[0]}`;
+            const body = [
+              '## Backup Media Fallito',
+              '',
+              `**Data:** ${new Date().toISOString()}`,
+              `**Workflow:** ${context.workflow}`,
+              `**Run ID:** ${context.runId}`,
+              '',
+              `🔗 [Vedi logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              '',
+              '### Azione richiesta',
+              'Verificare i logs e risolvere il problema.',
+              'Eseguire un backup manuale dopo la correzione.'
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['backup', 'urgente']
+            });
