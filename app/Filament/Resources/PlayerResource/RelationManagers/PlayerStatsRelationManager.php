@@ -19,68 +19,39 @@ class PlayerStatsRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
+        $statFields = collect([
+            'points' => 'Punti', 'aces' => 'Aces', 'blocks' => 'Muri',
+            'attacks' => 'Attacchi', 'receptions' => 'Ricezioni',
+        ])->map(fn ($label, $name) => Forms\Components\TextInput::make($name)
+            ->label($label)->required()->numeric()->default(0)
+        )->values()->all();
+
         return $form
             ->schema([
                 Forms\Components\Select::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name')
                     ->required(),
-                Forms\Components\TextInput::make('points')
-                    ->label('Punti')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\TextInput::make('aces')
-                    ->label('Aces')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\TextInput::make('blocks')
-                    ->label('Muri')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\TextInput::make('attacks')
-                    ->label('Attacchi')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
-                Forms\Components\TextInput::make('receptions')
-                    ->label('Ricezioni')
-                    ->required()
-                    ->numeric()
-                    ->default(0),
+                ...$statFields,
             ]);
     }
 
     public function table(Table $table): Table
     {
+        $statColumns = collect([
+            'points' => 'Punti', 'aces' => 'Aces', 'blocks' => 'Muri',
+            'attacks' => 'Attacchi', 'receptions' => 'Ricezioni',
+        ])->map(fn ($label, $name) => Tables\Columns\TextColumn::make($name)
+            ->label($label)->numeric()->sortable()
+        )->values()->all();
+
         return $table
             ->recordTitleAttribute('id')
             ->columns([
                 Tables\Columns\TextColumn::make('season.name')
                     ->label('Stagione')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('points')
-                    ->label('Punti')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('aces')
-                    ->label('Aces')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('blocks')
-                    ->label('Muri')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('attacks')
-                    ->label('Attacchi')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('receptions')
-                    ->label('Ricezioni')
-                    ->numeric()
-                    ->sortable(),
+                ...$statColumns,
             ])
             ->filters([
                 //
