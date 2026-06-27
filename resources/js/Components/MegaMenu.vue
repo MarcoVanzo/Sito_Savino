@@ -23,9 +23,18 @@ const dropdownStyles = ref({});
 function recalcPositions() {
     if (!navRef.value) return;
 
-    const navRect = navRef.value.getBoundingClientRect();
+    // The dropdown is position:absolute. Its containing block is the
+    // nearest positioned ancestor — the max-w-7xl div with `relative`
+    // in PublicLayout.  Walk up the DOM to find it.
+    let containingBlock = navRef.value.parentElement;
+    while (containingBlock && getComputedStyle(containingBlock).position === 'static') {
+        containingBlock = containingBlock.parentElement;
+    }
+    if (!containingBlock) containingBlock = document.documentElement;
+
+    const cbRect = containingBlock.getBoundingClientRect();
     const viewportW = window.innerWidth;
-    const cardW = 720; // matches min-w-[720px] in the template
+    const cardW = 720; // matches w-[720px] in the template
 
     props.navigation.forEach((item, index) => {
         if (!(item.items && item.items.length > 0)) return;
@@ -45,12 +54,11 @@ function recalcPositions() {
         const maxLeft = viewportW - cardW - 16;
         idealLeft = Math.max(minLeft, Math.min(maxLeft, idealLeft));
 
-        // Convert from viewport coords to nav-relative coords
-        // (the dropdown is position:absolute inside navRef)
-        const navRelativeLeft = idealLeft - navRect.left;
+        // Convert from viewport coords to containing-block-relative coords
+        const relativeLeft = idealLeft - cbRect.left;
 
         dropdownStyles.value[index] = {
-            left: `${navRelativeLeft}px`,
+            left: `${relativeLeft}px`,
             right: 'auto',
         };
     });
