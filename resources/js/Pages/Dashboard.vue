@@ -4,7 +4,7 @@ import { Head } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <Head title="Pannello di Controllo" />
+    <Head><title>Pannello di Controllo</title></Head>
 
     <AuthenticatedLayout>
         <template #header>

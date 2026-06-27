@@ -34,7 +34,7 @@ const page = usePage();
                             <!-- Left side with links -->
                             <div class="w-3/5 p-10 flex flex-col">
                                 <div class="mb-8">
-                                    <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-2" style="font-family: 'Montserrat', sans-serif;">{{ item.name }}</h3>
+                                    <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-2">{{ item.name }}</h3>
                                     <div class="w-16 h-1 bg-savino-gold"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 flex-1 content-start">

@@ -1,7 +1,7 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const slides = [
     '/images/hero1.jpg',
@@ -9,16 +9,11 @@ const slides = [
 ];
 
 const currentSlide = ref(0);
-const isTransitioning = ref(false);
+
 let slideInterval;
 
 const nextSlide = () => {
-    isTransitioning.value = true;
     currentSlide.value = (currentSlide.value + 1) % slides.length;
-    // Reset transition flag after the crossfade completes
-    setTimeout(() => {
-        isTransitioning.value = false;
-    }, 1800);
 };
 
 onMounted(() => {
@@ -31,8 +26,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-        <Head>
-        <title>Savino Del Bene Volley — Sito Ufficiale</title>
+    <Head title="Sito Ufficiale">
         <meta name="description" content="Sito ufficiale della Savino Del Bene Volley. Scopri il roster, il calendario e i risultati della Serie A1 femminile." />
     </Head>
     <PublicLayout>
@@ -112,7 +106,141 @@ onUnmounted(() => {
                 </div>
             </div>
         </div>
-        
+
+        <!-- PROSSIMA PARTITA -->
+        <section class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Prossimo Impegno</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3">
+                        Prossima Partita
+                    </h2>
+                    <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
+                </div>
+                <div class="max-w-4xl mx-auto bg-gradient-to-r from-savino-blue via-gray-900 to-savino-blue rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="px-8 py-12 md:px-16 md:py-14">
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                            <!-- Home Team -->
+                            <div class="text-center md:text-right flex-1">
+                                <img src="/images/Logo_Savino.jpeg" alt="Savino Del Bene" class="w-20 h-20 rounded-xl object-cover mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" />
+                                <h3 class="text-white font-black text-xl uppercase tracking-tight">Savino Del Bene</h3>
+                                <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">Casa</span>
+                            </div>
+                            <!-- VS -->
+                            <div class="text-center px-6">
+                                <div class="text-white/20 text-5xl font-black">VS</div>
+                                <div class="mt-3 bg-savino-gold/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                                    <div class="text-savino-gold text-xs font-bold uppercase tracking-wider">Serie A1</div>
+                                    <div class="text-white text-sm font-bold mt-1">Data da definire</div>
+                                </div>
+                            </div>
+                            <!-- Away Team -->
+                            <div class="text-center md:text-left flex-1">
+                                <div class="w-20 h-20 rounded-xl bg-white/10 mx-auto md:mr-auto md:ml-0 mb-4 flex items-center justify-center">
+                                    <svg class="w-10 h-10 text-white/30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                </div>
+                                <h3 class="text-white font-black text-xl uppercase tracking-tight">Avversario</h3>
+                                <span class="text-white/50 text-xs font-bold uppercase tracking-wider">Trasferta</span>
+                            </div>
+                        </div>
+                        <!-- CTA -->
+                        <div class="text-center mt-10">
+                            <Link href="/ticketing" class="inline-flex items-center gap-2 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-8 py-3.5 rounded-lg hover:bg-savino-gold/90 transition-all duration-300 shadow-lg shadow-savino-gold/30">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                                Acquista Biglietti
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- IL CLUB IN NUMERI -->
+        <section class="py-20 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">I Numeri</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3">
+                        Il Club in Numeri
+                    </h2>
+                    <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div v-for="stat in [
+                        { value: '40+', label: 'Anni di Storia', icon: '🏆' },
+                        { value: '4.000+', label: 'Posti al Palazzo Wanny', icon: '🏟️' },
+                        { value: 'A1', label: 'Serie — Massima Divisione', icon: '🏐' },
+                        { value: 'CEV', label: 'Champions League', icon: '🌍' },
+                    ]" :key="stat.label" class="text-center group">
+                        <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-savino-blue/5 flex items-center justify-center group-hover:bg-savino-blue/10 transition-colors duration-300">
+                            <span class="text-3xl">{{ stat.icon }}</span>
+                        </div>
+                        <div class="text-savino-blue text-3xl md:text-4xl font-black tracking-tight">{{ stat.value }}</div>
+                        <div class="text-gray-500 text-sm font-medium mt-1">{{ stat.label }}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEWS IN EVIDENZA -->
+        <section class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12">
+                    <div>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Ultime Notizie</span>
+                        <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3">News</h2>
+                        <div class="w-16 h-1 bg-savino-gold mt-4"></div>
+                    </div>
+                    <Link href="/news" class="mt-6 sm:mt-0 inline-flex items-center gap-2 text-savino-blue font-bold text-sm uppercase tracking-wider hover:text-savino-gold transition-colors">
+                        Tutte le News
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                    </Link>
+                </div>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div v-for="i in 3" :key="i" class="group bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                        <div class="aspect-video bg-gradient-to-br from-savino-blue/10 to-savino-gold/10 flex items-center justify-center">
+                            <svg class="w-12 h-12 text-savino-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                        </div>
+                        <div class="p-6">
+                            <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">In arrivo</span>
+                            <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors">Le ultime notizie saranno disponibili qui</h3>
+                            <p class="text-gray-500 text-sm mt-3 leading-relaxed">Segui il club per restare aggiornato su tutte le novità della stagione.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA SPLIT BANNER -->
+        <section class="py-0">
+            <div class="grid md:grid-cols-2">
+                <Link href="/ticketing" class="group relative bg-savino-blue py-16 px-8 text-center hover:bg-savino-blue/90 transition-colors duration-300 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    <div class="relative">
+                        <svg class="w-10 h-10 text-savino-gold mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                        <h3 class="text-white text-2xl font-black uppercase tracking-tight">Biglietteria</h3>
+                        <p class="text-white/60 text-sm mt-2">Acquista i biglietti per la prossima partita</p>
+                        <span class="inline-flex items-center gap-1 text-savino-gold text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
+                            Scopri
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        </span>
+                    </div>
+                </Link>
+                <Link href="/shop" class="group relative bg-gray-900 py-16 px-8 text-center hover:bg-gray-800 transition-colors duration-300 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    <div class="relative">
+                        <svg class="w-10 h-10 text-savino-gold mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                        <h3 class="text-white text-2xl font-black uppercase tracking-tight">Shop Ufficiale</h3>
+                        <p class="text-white/60 text-sm mt-2">Maglie, merchandise e accessori della squadra</p>
+                        <span class="inline-flex items-center gap-1 text-savino-gold text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
+                            Vai allo Shop
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        </span>
+                    </div>
+                </Link>
+            </div>
+        </section>
+
     </PublicLayout>
 </template>
 

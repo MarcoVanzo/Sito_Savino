@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SponsorResource\Pages;
 use App\Enums\SponsorTier;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Sponsor;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -14,6 +15,8 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
 class SponsorResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Sponsor::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -75,15 +78,8 @@ class SponsorResource extends Resource
                     ->label('Livello')
                     ->options(SponsorTier::class),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->actions(static::viewAndEditActions())
+            ->bulkActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array

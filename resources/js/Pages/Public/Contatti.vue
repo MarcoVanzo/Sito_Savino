@@ -62,7 +62,9 @@ const contactInfo = [
 </script>
 
 <template>
-    <Head :title="page?.title ?? 'Contatti'" />
+    <Head>
+      <title>{{ page?.title ?? 'Contatti' }}</title>
+    </Head>
 
     <PublicLayout>
         <!-- Hero -->

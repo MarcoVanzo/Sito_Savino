@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlayerStatResource\Pages;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\PlayerStat;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PlayerStatResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = PlayerStat::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -103,29 +106,15 @@ class PlayerStatResource extends Resource
                 Tables\Columns\TextColumn::make('last_synced_at')
                     ->dateTime()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                ...static::timestampColumns(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name'),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->actions(static::viewAndEditActions())
+            ->bulkActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array

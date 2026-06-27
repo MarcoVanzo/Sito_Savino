@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProductResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Product::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -154,13 +157,7 @@ class ProductResource extends Resource
                     ->icon('heroicon-o-eye'),
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::softDeleteBulkActions());
     }
 
     public static function getRelations(): array

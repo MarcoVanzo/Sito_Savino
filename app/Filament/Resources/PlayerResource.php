@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlayerResource\Pages;
 use App\Filament\Resources\PlayerResource\RelationManagers;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Player;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PlayerResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Player::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -94,13 +97,7 @@ class PlayerResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::softDeleteBulkActions());
     }
 
     public static function getRelations(): array

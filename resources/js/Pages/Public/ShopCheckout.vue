@@ -47,7 +47,9 @@ const submitOrder = () => {
 </script>
 
 <template>
-    <Head :title="page?.title ?? 'Checkout'" />
+    <Head>
+      <title>{{ page?.title ?? 'Checkout' }}</title>
+    </Head>
 
     <!-- Hero -->
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">

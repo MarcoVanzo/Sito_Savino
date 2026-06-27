@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OptionResource\Pages;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Option;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,6 +14,8 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
 class OptionResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Option::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -65,11 +68,7 @@ class OptionResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array

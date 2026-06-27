@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PageResource\Pages;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Page;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PageResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Page::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -136,11 +139,7 @@ class PageResource extends Resource
                     ->icon('heroicon-o-eye'),
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array

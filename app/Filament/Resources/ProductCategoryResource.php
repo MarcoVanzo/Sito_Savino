@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductCategoryResource\Pages;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\ProductCategory;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,6 +13,8 @@ use Filament\Tables\Table;
 
 class ProductCategoryResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = ProductCategory::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -55,14 +58,7 @@ class ProductCategoryResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                ...static::timestampColumns(),
             ])
             ->filters([
                 // Nessun filtro applicabile: tabella di lookup semplice
@@ -70,11 +66,7 @@ class ProductCategoryResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array

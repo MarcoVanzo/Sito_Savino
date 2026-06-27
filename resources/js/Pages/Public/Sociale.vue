@@ -56,18 +56,20 @@ const impactNumbers = [
 </script>
 
 <template>
-    <Head :title="page?.title ?? 'Progetti Sociali'" />
+    <Head>
+      <title>{{ page?.title ?? 'Progetti Sociali' }}</title>
+    </Head>
 
     <!-- Hero -->
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]" style="font-family: 'Montserrat', sans-serif;">Sport e Società</span>
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4" style="font-family: 'Montserrat', sans-serif;">
+            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Sport e Società</span>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ page?.title ?? 'Progetti Sociali' }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-            <p class="text-white/70 text-lg max-w-2xl mx-auto" style="font-family: 'Montserrat', sans-serif;">
+            <p class="text-white/70 text-lg max-w-2xl mx-auto">
                 Il nostro impegno per la comunità va oltre il campo da gioco.
             </p>
         </div>
@@ -77,17 +79,17 @@ const impactNumbers = [
     <section class="py-20 bg-white">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl mx-auto text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]" style="font-family: 'Montserrat', sans-serif;">La Nostra Missione</span>
-                <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2" style="font-family: 'Montserrat', sans-serif;">
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">La Nostra Missione</span>
+                <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
                     Sport Come Strumento Sociale
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4 mb-8"></div>
-                <p class="text-gray-600 text-lg leading-relaxed" style="font-family: 'Montserrat', sans-serif;">
+                <p class="text-gray-600 text-lg leading-relaxed">
                     La Savino Del Bene crede fermamente nel potere trasformativo dello sport.
                     Attraverso i nostri progetti sociali, lavoriamo ogni giorno per costruire una comunità
                     più inclusiva, sostenibile e attenta ai bisogni di tutti.
                 </p>
-                <p class="text-gray-600 text-lg leading-relaxed mt-4" style="font-family: 'Montserrat', sans-serif;">
+                <p class="text-gray-600 text-lg leading-relaxed mt-4">
                     Dalla pallavolo per tutti ai programmi educativi, dal sitting volley alle iniziative
                     ambientali: ogni progetto è un passo verso un futuro migliore.
                 </p>
@@ -99,8 +101,8 @@ const impactNumbers = [
     <section class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]" style="font-family: 'Montserrat', sans-serif;">Iniziative</span>
-                <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2" style="font-family: 'Montserrat', sans-serif;">
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Iniziative</span>
+                <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
                     I Nostri Progetti
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
@@ -120,19 +122,19 @@ const impactNumbers = [
                                 'bg-savino-gold/10 text-savino-gold': project.color === 'savino-gold',
                                 'bg-savino-red/10 text-savino-red': project.color === 'savino-red'
                             }"
-                            style="font-family: 'Montserrat', sans-serif;"
+                           
                         >
                             {{ project.tag }}
                         </span>
                     </div>
-                    <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-3 group-hover:text-savino-blue transition-colors" style="font-family: 'Montserrat', sans-serif;">
+                    <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-3 group-hover:text-savino-blue transition-colors">
                         {{ project.title }}
                     </h3>
-                    <p class="text-gray-600 leading-relaxed" style="font-family: 'Montserrat', sans-serif;">
+                    <p class="text-gray-600 leading-relaxed">
                         {{ project.description }}
                     </p>
                     <div class="mt-6 pt-6 border-t border-gray-100">
-                        <a href="#" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-gold transition-colors" style="font-family: 'Montserrat', sans-serif;">
+                        <a href="#" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-gold transition-colors">
                             Scopri di più
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -148,8 +150,8 @@ const impactNumbers = [
     <section class="py-20 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]" style="font-family: 'Montserrat', sans-serif;">Risultati</span>
-                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-2" style="font-family: 'Montserrat', sans-serif;">
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Risultati</span>
+                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-2">
                     Il Nostro Impatto
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
@@ -160,10 +162,10 @@ const impactNumbers = [
                     :key="index"
                     class="text-center"
                 >
-                    <div class="text-4xl md:text-5xl font-black text-savino-gold mb-2" style="font-family: 'Montserrat', sans-serif;">
+                    <div class="text-4xl md:text-5xl font-black text-savino-gold mb-2">
                         {{ stat.value }}
                     </div>
-                    <div class="text-white/70 text-sm font-medium uppercase tracking-wider" style="font-family: 'Montserrat', sans-serif;">
+                    <div class="text-white/70 text-sm font-medium uppercase tracking-wider">
                         {{ stat.label }}
                     </div>
                 </div>
@@ -174,7 +176,7 @@ const impactNumbers = [
     <!-- Dynamic Content -->
     <section v-if="page?.content" class="py-20 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="prose prose-lg max-w-none" style="font-family: 'Montserrat', sans-serif;" v-html="safeContent"></div>
+            <div class="prose prose-lg max-w-none" v-html="safeContent"></div>
         </div>
     </section>
 </template>

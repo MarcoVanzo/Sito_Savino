@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class CategoryResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Category::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -69,11 +72,7 @@ class CategoryResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array

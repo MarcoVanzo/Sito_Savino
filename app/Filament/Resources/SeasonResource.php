@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SeasonResource\Pages;
 use App\Filament\Resources\SeasonResource\RelationManagers;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Season;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SeasonResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Season::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -49,14 +52,7 @@ class SeasonResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                ...static::timestampColumns(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -66,13 +62,7 @@ class SeasonResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::softDeleteBulkActions());
     }
 
     public static function getRelations(): array

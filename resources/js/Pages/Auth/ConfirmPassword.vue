@@ -19,7 +19,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Conferma Password" />
+        <Head><title>Conferma Password</title></Head>
 
         <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
             Questa è un'area protetta dell'applicazione. Per favore conferma la

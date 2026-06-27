@@ -74,17 +74,19 @@ const values = [
 </script>
 
 <template>
-    <Head :title="page?.title ?? 'Settore Giovanile'" />
+    <Head>
+      <title>{{ page?.title ?? 'Settore Giovanile' }}</title>
+    </Head>
 
     <PublicLayout>
         <!-- Hero -->
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]" style="font-family: 'Montserrat', sans-serif;">Il Futuro in Campo</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4" style="font-family: 'Montserrat', sans-serif;">{{ page?.title ?? 'Settore Giovanile' }}</h1>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Il Futuro in Campo</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Settore Giovanile' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto" style="font-family: 'Montserrat', sans-serif;">Costruiamo il futuro della pallavolo con passione, talento e dedizione.</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">Costruiamo il futuro della pallavolo con passione, talento e dedizione.</p>
             </div>
         </section>
 
@@ -93,15 +95,15 @@ const values = [
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-wider" style="font-family: 'Montserrat', sans-serif;">La Nostra Filosofia</span>
-                        <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-4" style="font-family: 'Montserrat', sans-serif;">Formare Campioni Dentro e Fuori dal Campo</h2>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-wider">La Nostra Filosofia</span>
+                        <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-4">Formare Campioni Dentro e Fuori dal Campo</h2>
                         <div class="w-12 h-1 bg-savino-gold mb-6"></div>
-                        <p class="text-gray-600 leading-relaxed mb-4" style="font-family: 'Montserrat', sans-serif;">
+                        <p class="text-gray-600 leading-relaxed mb-4">
                             Il settore giovanile della Savino Del Bene rappresenta il cuore pulsante della nostra società.
                             Crediamo che la formazione sportiva debba andare di pari passo con la crescita personale,
                             accompagnando ogni giovane atleta in un percorso di eccellenza.
                         </p>
-                        <p class="text-gray-600 leading-relaxed" style="font-family: 'Montserrat', sans-serif;">
+                        <p class="text-gray-600 leading-relaxed">
                             Con oltre 70 atlete distribuite nelle diverse categorie, il nostro vivaio è una fucina di talenti
                             che si allenano quotidianamente con l'obiettivo di raggiungere i massimi livelli.
                         </p>
@@ -109,20 +111,20 @@ const values = [
                     <div class="bg-gradient-to-br from-savino-blue/5 to-savino-gold/5 rounded-2xl p-8 border border-gray-100">
                         <div class="grid grid-cols-2 gap-6">
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-blue block" style="font-family: 'Montserrat', sans-serif;">70+</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block" style="font-family: 'Montserrat', sans-serif;">Giovani Atlete</span>
+                                <span class="text-4xl font-black text-savino-blue block">70+</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">Giovani Atlete</span>
                             </div>
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-gold block" style="font-family: 'Montserrat', sans-serif;">4</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block" style="font-family: 'Montserrat', sans-serif;">Categorie</span>
+                                <span class="text-4xl font-black text-savino-gold block">4</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">Categorie</span>
                             </div>
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-red block" style="font-family: 'Montserrat', sans-serif;">12</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block" style="font-family: 'Montserrat', sans-serif;">Allenatori</span>
+                                <span class="text-4xl font-black text-savino-red block">12</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">Allenatori</span>
                             </div>
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-blue block" style="font-family: 'Montserrat', sans-serif;">15+</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block" style="font-family: 'Montserrat', sans-serif;">Anni di Attività</span>
+                                <span class="text-4xl font-black text-savino-blue block">15+</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">Anni di Attività</span>
                             </div>
                         </div>
                     </div>
@@ -133,7 +135,7 @@ const values = [
         <!-- Values -->
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2" style="font-family: 'Montserrat', sans-serif;">I Nostri Valori</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">I Nostri Valori</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-12"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -160,8 +162,8 @@ const values = [
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                         </div>
-                        <h3 class="text-base font-black text-gray-900 uppercase tracking-tight mb-2" style="font-family: 'Montserrat', sans-serif;">{{ value.title }}</h3>
-                        <p class="text-gray-500 text-sm leading-relaxed" style="font-family: 'Montserrat', sans-serif;">{{ value.description }}</p>
+                        <h3 class="text-base font-black text-gray-900 uppercase tracking-tight mb-2">{{ value.title }}</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">{{ value.description }}</p>
                     </div>
                 </div>
             </div>
@@ -170,7 +172,7 @@ const values = [
         <!-- Youth Teams Grid -->
         <section class="py-16 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2" style="font-family: 'Montserrat', sans-serif;">Le Nostre Squadre</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">Le Nostre Squadre</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -192,30 +194,30 @@ const values = [
                                 <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/20"></div>
                                 <div class="absolute -left-4 -bottom-4 w-20 h-20 rounded-full bg-white/10"></div>
                             </div>
-                            <h3 class="text-2xl font-black text-white uppercase tracking-tight relative z-10" style="font-family: 'Montserrat', sans-serif;">{{ team.name }}</h3>
+                            <h3 class="text-2xl font-black text-white uppercase tracking-tight relative z-10">{{ team.name }}</h3>
                         </div>
                         <!-- Team Info -->
                         <div class="p-5">
-                            <span class="text-savino-gold text-xs font-bold uppercase tracking-wider" style="font-family: 'Montserrat', sans-serif;">{{ team.category }}</span>
+                            <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">{{ team.category }}</span>
 
                             <div class="space-y-3 mt-4">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    <span class="text-sm text-gray-600" style="font-family: 'Montserrat', sans-serif;">{{ team.coach }}</span>
+                                    <span class="text-sm text-gray-600">{{ team.coach }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    <span class="text-sm text-gray-600" style="font-family: 'Montserrat', sans-serif;">{{ team.training }}</span>
+                                    <span class="text-sm text-gray-600">{{ team.training }}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    <span class="text-sm text-gray-600" style="font-family: 'Montserrat', sans-serif;">{{ team.players }} atlete</span>
+                                    <span class="text-sm text-gray-600">{{ team.players }} atlete</span>
                                 </div>
                             </div>
                         </div>
@@ -227,21 +229,21 @@ const values = [
         <!-- Talent Scouting -->
         <section class="py-16 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]" style="font-family: 'Montserrat', sans-serif;">Talent Scouting</span>
-                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4" style="font-family: 'Montserrat', sans-serif;">Cerchiamo Nuovi Talenti</h2>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Talent Scouting</span>
+                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4">Cerchiamo Nuovi Talenti</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-8"></div>
-                <p class="text-white/70 text-lg leading-relaxed max-w-2xl mx-auto mb-6" style="font-family: 'Montserrat', sans-serif;">
+                <p class="text-white/70 text-lg leading-relaxed max-w-2xl mx-auto mb-6">
                     Sei una giovane atleta con la passione per la pallavolo? Il nostro programma di scouting è sempre alla ricerca di nuovi talenti.
                     Partecipa alle giornate di prova e inizia il tuo percorso verso l'eccellenza sportiva.
                 </p>
-                <p class="text-white/50 text-sm mb-8" style="font-family: 'Montserrat', sans-serif;">
+                <p class="text-white/50 text-sm mb-8">
                     Per informazioni sulle prove e le iscrizioni, contattaci via email o telefono.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a
                         href="/contatti"
                         class="inline-flex items-center justify-center px-8 py-3.5 bg-savino-gold text-white font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-all duration-300 shadow-lg shadow-savino-gold/30 text-sm"
-                        style="font-family: 'Montserrat', sans-serif;"
+                       
                     >
                         Contattaci
                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,7 +253,7 @@ const values = [
                     <a
                         href="mailto:giovanili@savinodelbenescandicci.it"
                         class="inline-flex items-center justify-center px-8 py-3.5 border-2 border-white/30 text-white font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition-all duration-300 text-sm"
-                        style="font-family: 'Montserrat', sans-serif;"
+                       
                     >
                         Scrivi una Email
                     </a>
@@ -264,7 +266,7 @@ const values = [
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div
                     class="prose prose-lg max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight prose-a:text-savino-blue"
-                    style="font-family: 'Montserrat', sans-serif;"
+                   
                     v-html="safeContent"
                 ></div>
             </div>

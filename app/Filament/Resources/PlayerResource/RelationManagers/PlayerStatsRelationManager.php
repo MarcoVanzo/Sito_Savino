@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PlayerResource\RelationManagers;
 
+use App\Filament\Traits\HasStandardTableActions;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -10,6 +11,8 @@ use Filament\Tables\Table;
 
 class PlayerStatsRelationManager extends RelationManager
 {
+    use HasStandardTableActions;
+
     protected static string $relationship = 'stats';
 
     protected static ?string $title = 'Statistiche';
@@ -89,10 +92,6 @@ class PlayerStatsRelationManager extends RelationManager
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::standardBulkActions());
     }
 }

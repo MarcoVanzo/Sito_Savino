@@ -23,7 +23,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Password Dimenticata" />
+        <Head><title>Password Dimenticata</title></Head>
 
         <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
             Hai dimenticato la password? Nessun problema. Inserisci il tuo

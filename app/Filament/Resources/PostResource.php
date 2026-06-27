@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PostResource\Pages;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Post;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PostResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Post::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -147,11 +150,7 @@ class PostResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array

@@ -40,12 +40,12 @@ const tiers = ['main', 'gold', 'silver', 'technical', 'standard'];
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.04]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Crect x=&quot;10&quot; y=&quot;10&quot; width=&quot;40&quot; height=&quot;40&quot; rx=&quot;4&quot; fill=&quot;none&quot; stroke=&quot;%23C5A55A&quot; stroke-width=&quot;1&quot;/%3E%3C/svg%3E'); background-size: 60px 60px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]" style="font-family: 'Montserrat', sans-serif;">I Nostri Partner</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4" style="font-family: 'Montserrat', sans-serif;">
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">I Nostri Partner</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ page?.title ?? 'Sponsor & Partner' }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto" style="font-family: 'Montserrat', sans-serif;">
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">
                     Un network di eccellenza che condivide la passione per lo sport e i valori della Savino Del Bene Volley. Insieme, costruiamo il futuro della pallavolo.
                 </p>
             </div>
@@ -61,7 +61,7 @@ const tiers = ['main', 'gold', 'silver', 'technical', 'standard'];
                 >
                     <!-- Tier Header -->
                     <div class="text-center mb-10">
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]" style="font-family: 'Montserrat', sans-serif;">{{ tierConfig[tier].label }}</span>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ tierConfig[tier].label }}</span>
                         <div class="w-12 h-0.5 bg-savino-gold mx-auto mt-3"></div>
                     </div>
 
@@ -86,7 +86,7 @@ const tiers = ['main', 'gold', 'silver', 'technical', 'standard'];
                                 loading="lazy"
                             />
                             <div v-else class="flex flex-col items-center justify-center" :class="tierConfig[tier].size">
-                                <div class="text-savino-blue font-bold text-center uppercase tracking-wide" style="font-family: 'Montserrat', sans-serif;">
+                                <div class="text-savino-blue font-bold text-center uppercase tracking-wide">
                                     {{ sponsor.name }}
                                 </div>
                             </div>
@@ -97,7 +97,7 @@ const tiers = ['main', 'gold', 'silver', 'technical', 'standard'];
                     <div v-else class="text-center py-8">
                         <div class="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-6 py-3">
                             <div class="w-2 h-2 rounded-full bg-savino-gold/50"></div>
-                            <span class="text-gray-400 text-sm font-medium" style="font-family: 'Montserrat', sans-serif;">Sponsor in fase di definizione</span>
+                            <span class="text-gray-400 text-sm font-medium">Sponsor in fase di definizione</span>
                         </div>
                     </div>
                 </div>
@@ -107,12 +107,12 @@ const tiers = ['main', 'gold', 'silver', 'technical', 'standard'];
         <!-- BECOME A SPONSOR CTA -->
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-savino-blue">
             <div class="max-w-4xl mx-auto text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]" style="font-family: 'Montserrat', sans-serif;">Unisciti a Noi</span>
-                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mt-3" style="font-family: 'Montserrat', sans-serif;">
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Unisciti a Noi</span>
+                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mt-3">
                     Diventa Partner
                 </h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-8"></div>
-                <p class="text-white/80 text-lg leading-relaxed max-w-2xl mx-auto mb-10" style="font-family: 'Montserrat', sans-serif;">
+                <p class="text-white/80 text-lg leading-relaxed max-w-2xl mx-auto mb-10">
                     Associa il tuo brand a una realtà sportiva di primo livello. Offriamo pacchetti di visibilità personalizzati con presenza su maglia, LED bordocampo, digital e hospitality al Palazzo Wanny.
                 </p>
                 <div class="grid sm:grid-cols-3 gap-6 mb-12">
@@ -121,11 +121,11 @@ const tiers = ['main', 'gold', 'silver', 'technical', 'standard'];
                         { value: '50K+', label: 'Spettatori Stagione' },
                         { value: '100+', label: 'Eventi Annuali' }
                     ]" :key="index" class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
-                        <div class="text-savino-gold text-3xl font-black" style="font-family: 'Montserrat', sans-serif;">{{ stat.value }}</div>
-                        <div class="text-white/60 text-sm font-medium mt-1" style="font-family: 'Montserrat', sans-serif;">{{ stat.label }}</div>
+                        <div class="text-savino-gold text-3xl font-black">{{ stat.value }}</div>
+                        <div class="text-white/60 text-sm font-medium mt-1">{{ stat.label }}</div>
                     </div>
                 </div>
-                <button class="inline-flex items-center gap-2 bg-savino-gold text-savino-blue px-8 py-4 font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors" style="font-family: 'Montserrat', sans-serif;">
+                <button class="inline-flex items-center gap-2 bg-savino-gold text-savino-blue px-8 py-4 font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors">
                     Contattaci per una Proposta
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </button>

@@ -42,7 +42,7 @@ const formattedDate = computed(() => {
                 <time v-if="formattedDate" class="text-savino-gold text-sm font-semibold uppercase tracking-wider">
                     {{ formattedDate }}
                 </time>
-                <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mt-2" style="font-family: 'Montserrat', sans-serif;">
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mt-2">
                     {{ post?.title }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mt-4"></div>
@@ -87,7 +87,7 @@ const formattedDate = computed(() => {
         <!-- RELATED POSTS -->
         <section v-if="relatedPosts?.length" class="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div class="max-w-7xl mx-auto">
-                <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-8" style="font-family: 'Montserrat', sans-serif;">
+                <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-8">
                     Articoli Correlati
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">

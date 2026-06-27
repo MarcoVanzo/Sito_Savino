@@ -1,7 +1,7 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
     page: {
@@ -26,18 +26,18 @@ const placeholderMedia = [
     { id: 9, url: '/images/placeholder-9.jpg', alt: 'Gruppo squadra', category: 'Backstage' },
 ]
 
-const displayMedia = props.media.length > 0 ? props.media : placeholderMedia
+const displayMedia = computed(() => props.media.length > 0 ? props.media : placeholderMedia)
 
-const categories = ['Tutte', ...new Set(displayMedia.map(m => m.category))]
+const categories = computed(() => ['Tutte', ...new Set(displayMedia.value.map(m => m.category))])
 const activeCategory = ref('Tutte')
 
-const filteredMedia = ref(displayMedia)
+const filteredMedia = computed(() => {
+    if (activeCategory.value === 'Tutte') return displayMedia.value
+    return displayMedia.value.filter(m => m.category === activeCategory.value)
+})
 
 function filterByCategory(cat) {
     activeCategory.value = cat
-    filteredMedia.value = cat === 'Tutte'
-        ? displayMedia
-        : displayMedia.filter(m => m.category === cat)
 }
 
 const lightboxOpen = ref(false)
@@ -62,17 +62,19 @@ function nextImage() {
 </script>
 
 <template>
-    <Head :title="page?.title ?? 'Foto Gallery'" />
+    <Head>
+      <title>{{ page?.title ?? 'Foto Gallery' }}</title>
+    </Head>
 
     <PublicLayout>
         <!-- Hero -->
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]" style="font-family: 'Montserrat', sans-serif;">I Nostri Momenti</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4" style="font-family: 'Montserrat', sans-serif;">{{ page?.title ?? 'Foto Gallery' }}</h1>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">I Nostri Momenti</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Foto Gallery' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto" style="font-family: 'Montserrat', sans-serif;">Rivivi i momenti più emozionanti della nostra stagione attraverso le immagini.</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">Rivivi i momenti più emozionanti della nostra stagione attraverso le immagini.</p>
             </div>
         </section>
 
@@ -89,7 +91,7 @@ function nextImage() {
                         :class="activeCategory === cat
                             ? 'bg-savino-blue text-white shadow-lg shadow-savino-blue/30'
                             : 'bg-white text-gray-600 hover:bg-savino-blue/10 hover:text-savino-blue border border-gray-200'"
-                        style="font-family: 'Montserrat', sans-serif;"
+                       
                     >{{ cat }}</button>
                 </div>
 
@@ -100,8 +102,8 @@ function nextImage() {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 uppercase mb-3" style="font-family: 'Montserrat', sans-serif;">Gallery in aggiornamento</h3>
-                    <p class="text-gray-500 max-w-md mx-auto" style="font-family: 'Montserrat', sans-serif;">Stiamo preparando i migliori scatti della stagione. Torna a trovarci presto!</p>
+                    <h3 class="text-2xl font-black text-gray-900 uppercase mb-3">Gallery in aggiornamento</h3>
+                    <p class="text-gray-500 max-w-md mx-auto">Stiamo preparando i migliori scatti della stagione. Torna a trovarci presto!</p>
                 </div>
 
                 <!-- Photo Grid -->
@@ -126,8 +128,8 @@ function nextImage() {
                             loading="lazy"
                         />
                         <div class="absolute bottom-0 left-0 right-0 p-4 z-20 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                            <span class="text-savino-gold text-xs font-bold uppercase tracking-wider" style="font-family: 'Montserrat', sans-serif;">{{ item.category }}</span>
-                            <p class="text-white text-sm font-semibold mt-1" style="font-family: 'Montserrat', sans-serif;">{{ item.alt }}</p>
+                            <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">{{ item.category }}</span>
+                            <p class="text-white text-sm font-semibold mt-1">{{ item.alt }}</p>
                         </div>
                     </div>
                 </div>
@@ -164,7 +166,7 @@ function nextImage() {
                             </svg>
                         </div>
                     </div>
-                    <p class="text-white text-center mt-4 text-sm" style="font-family: 'Montserrat', sans-serif;">{{ filteredMedia[lightboxIndex]?.alt }}</p>
+                    <p class="text-white text-center mt-4 text-sm">{{ filteredMedia[lightboxIndex]?.alt }}</p>
                 </div>
             </div>
         </Teleport>

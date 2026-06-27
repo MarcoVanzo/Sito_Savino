@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\GameResource\Pages;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Game;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class GameResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Game::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -110,15 +113,8 @@ class GameResource extends Resource
                     ->label('Stagione')
                     ->relationship('season', 'name'),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->actions(static::viewAndEditActions())
+            ->bulkActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array

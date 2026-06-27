@@ -24,7 +24,7 @@ const safeContent = computed(() => sanitize(props.page?.content));
             <div class="max-w-4xl mx-auto">
                 <!-- Header -->
                 <div class="mb-12 border-b border-gray-200 pb-8">
-                    <h1 class="text-4xl font-black text-savino-blue uppercase tracking-tighter mb-2" style="font-family: 'Montserrat', sans-serif;">
+                    <h1 class="text-4xl font-black text-savino-blue uppercase tracking-tighter mb-2">
                         {{ page?.title }}
                     </h1>
                     <div class="w-16 h-1 bg-savino-gold"></div>

@@ -39,12 +39,12 @@ const description = computed(() => {
 
             <div class="relative z-10 text-center px-4 max-w-xl mx-auto py-20">
                 <!-- Status Code grande -->
-                <p class="text-[120px] sm:text-[160px] font-black text-white/10 leading-none select-none" style="font-family: 'Montserrat', sans-serif;">
+                <p class="text-[120px] sm:text-[160px] font-black text-white/10 leading-none select-none">
                     {{ status }}
                 </p>
 
                 <!-- Titolo -->
-                <h1 class="text-3xl sm:text-4xl font-black text-white uppercase tracking-tighter -mt-8 mb-4" style="font-family: 'Montserrat', sans-serif;">
+                <h1 class="text-3xl sm:text-4xl font-black text-white uppercase tracking-tighter -mt-8 mb-4">
                     {{ title }}
                 </h1>
 

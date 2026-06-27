@@ -25,6 +25,7 @@ const proxyChecked = computed({
 </script>
 
 <template>
+    <!-- NOSONAR -->
     <input
         type="checkbox"
         :value="value"

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\OrderStatus;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
+use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Order;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OrderResource extends Resource
 {
+    use HasStandardTableActions;
+
     protected static ?string $model = Order::class;
 
     // Attributo usato per il titolo nei risultati di ricerca globale
@@ -101,17 +104,8 @@ class OrderResource extends Resource
                     ->options(OrderStatus::class),
                 Tables\Filters\TrashedFilter::make(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                ]),
-            ]);
+            ->actions(static::viewAndEditActions())
+            ->bulkActions(static::softDeleteBulkActions());
     }
 
     public static function getRelations(): array

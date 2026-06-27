@@ -41,17 +41,19 @@ function getCategoryColor(category) {
 </script>
 
 <template>
-    <Head :title="page?.title ?? 'Staff Tecnico e Medico'" />
+    <Head>
+      <title>{{ page?.title ?? 'Staff Tecnico e Medico' }}</title>
+    </Head>
 
     <PublicLayout>
         <!-- Hero -->
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]" style="font-family: 'Montserrat', sans-serif;">Il Nostro Team</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4" style="font-family: 'Montserrat', sans-serif;">{{ page?.title ?? 'Staff Tecnico e Medico' }}</h1>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Il Nostro Team</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Staff Tecnico e Medico' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto" style="font-family: 'Montserrat', sans-serif;">I professionisti che guidano e supportano le nostre atlete ogni giorno.</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">I professionisti che guidano e supportano le nostre atlete ogni giorno.</p>
             </div>
         </section>
 
@@ -72,21 +74,21 @@ function getCategoryColor(category) {
                                 :alt="member.name"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
-                            <span v-else class="text-5xl font-black text-white/30" style="font-family: 'Montserrat', sans-serif;">{{ getInitials(member.name) }}</span>
+                            <span v-else class="text-5xl font-black text-white/30">{{ getInitials(member.name) }}</span>
                             <div class="absolute top-3 right-3">
                                 <span
                                     class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
                                     :class="getCategoryColor(member.category)"
-                                    style="font-family: 'Montserrat', sans-serif;"
+                                   
                                 >{{ member.category }}</span>
                             </div>
                         </div>
                         <!-- Info -->
                         <div class="p-5">
-                            <h3 class="text-lg font-black text-gray-900 uppercase tracking-tight" style="font-family: 'Montserrat', sans-serif;">{{ member.name }}</h3>
-                            <p class="text-savino-gold text-sm font-bold mt-1" style="font-family: 'Montserrat', sans-serif;">{{ member.role }}</p>
+                            <h3 class="text-lg font-black text-gray-900 uppercase tracking-tight">{{ member.name }}</h3>
+                            <p class="text-savino-gold text-sm font-bold mt-1">{{ member.role }}</p>
                             <div class="w-8 h-0.5 bg-savino-gold mt-3 mb-3"></div>
-                            <p class="text-gray-500 text-sm leading-relaxed" style="font-family: 'Montserrat', sans-serif;">{{ member.bio }}</p>
+                            <p class="text-gray-500 text-sm leading-relaxed">{{ member.bio }}</p>
                         </div>
                     </div>
                 </div>
@@ -98,8 +100,8 @@ function getCategoryColor(category) {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 uppercase mb-3" style="font-family: 'Montserrat', sans-serif;">Staff in aggiornamento</h3>
-                    <p class="text-gray-500 max-w-md mx-auto" style="font-family: 'Montserrat', sans-serif;">Le informazioni sullo staff saranno disponibili a breve.</p>
+                    <h3 class="text-2xl font-black text-gray-900 uppercase mb-3">Staff in aggiornamento</h3>
+                    <p class="text-gray-500 max-w-md mx-auto">Le informazioni sullo staff saranno disponibili a breve.</p>
                 </div>
             </div>
         </section>
