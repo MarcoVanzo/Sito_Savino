@@ -17,11 +17,11 @@ jobs:
     steps:
       # Checkout del codice sorgente
       - name: Checkout codice
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Configurazione PHP 8.3
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, json, bcmath, curl, pdo, pdo_pgsql, pdo_sqlite
@@ -29,14 +29,14 @@ jobs:
 
       # Configurazione Node.js 20
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
 
       # Cache dipendenze Composer
       - name: Cache Composer
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}

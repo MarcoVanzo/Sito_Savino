@@ -59,12 +59,12 @@ class SyncLegaVolleyStats extends Command
             // Per questa architettura, simuliamo l'estrazione dati usando il lega_volley_id come seme.
             
             // SIMULAZIONE DI SCRAPING
-            srand($player->lega_volley_id + date('Ymd')); // Genera dati verosimili e stabili per la giornata
-            
+            // Genera dati verosimili e stabili per la giornata (deterministico senza rand)
+            $seed = crc32($player->lega_volley_id . date('Ymd'));
             $scrapedData = [
-                'points' => rand(50, 450),
-                'blocks' => rand(5, 80),
-                'aces'   => rand(2, 40),
+                'points' => 50 + abs($seed) % 401,           // 50-450
+                'blocks' => 5 + abs($seed >> 8) % 76,         // 5-80
+                'aces'   => 2 + abs($seed >> 16) % 39,        // 2-40
             ];
             
             // Salvataggio nel Data Warehouse interno (Upsert o updateOrCreate)

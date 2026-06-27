@@ -69,10 +69,10 @@ const contactInfo = [
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]" style="font-family: 'Montserrat', sans-serif;">Resta in Contatto</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4" style="font-family: 'Montserrat', sans-serif;">{{ page?.title ?? 'Contatti' }}</h1>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Resta in Contatto</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Contatti' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto" style="font-family: 'Montserrat', sans-serif;">Scrivici, chiamaci o vieni a trovarci. Siamo qui per te.</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">Scrivici, chiamaci o vieni a trovarci. Siamo qui per te.</p>
             </div>
         </section>
 
@@ -107,14 +107,14 @@ const contactInfo = [
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </div>
-                        <h3 class="text-sm font-bold text-savino-gold uppercase tracking-wider mb-2" style="font-family: 'Montserrat', sans-serif;">{{ info.title }}</h3>
+                        <h3 class="text-sm font-bold text-savino-gold uppercase tracking-wider mb-2">{{ info.title }}</h3>
                         <a
                             v-if="info.link"
                             :href="info.link"
                             class="text-gray-700 font-semibold hover:text-savino-blue transition-colors"
-                            style="font-family: 'Montserrat', sans-serif;"
+                           
                         >{{ info.value }}</a>
-                        <p v-else class="text-gray-700 font-semibold" style="font-family: 'Montserrat', sans-serif;">{{ info.value }}</p>
+                        <p v-else class="text-gray-700 font-semibold">{{ info.value }}</p>
                     </div>
                 </div>
 
@@ -122,7 +122,7 @@ const contactInfo = [
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <!-- Form -->
                     <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-                        <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2" style="font-family: 'Montserrat', sans-serif;">Scrivici</h2>
+                        <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2">Scrivici</h2>
                         <div class="w-10 h-1 bg-savino-gold mb-6"></div>
 
                         <!-- Success State -->
@@ -132,60 +132,64 @@ const contactInfo = [
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2" style="font-family: 'Montserrat', sans-serif;">Messaggio inviato!</h3>
-                            <p class="text-gray-500 mb-6" style="font-family: 'Montserrat', sans-serif;">Ti risponderemo il prima possibile.</p>
-                            <button @click="resetForm" class="text-savino-blue font-bold hover:underline" style="font-family: 'Montserrat', sans-serif;">Invia un altro messaggio</button>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Messaggio inviato!</h3>
+                            <p class="text-gray-500 mb-6">Ti risponderemo il prima possibile.</p>
+                            <button @click="resetForm" class="text-savino-blue font-bold hover:underline">Invia un altro messaggio</button>
                         </div>
 
                         <!-- Form -->
                         <form v-else @submit.prevent="handleSubmit" class="space-y-5">
-                            <div v-if="formError" class="bg-savino-red/10 border border-savino-red/30 rounded-lg p-3 text-savino-red text-sm" style="font-family: 'Montserrat', sans-serif;">
+                            <div v-if="formError" class="bg-savino-red/10 border border-savino-red/30 rounded-lg p-3 text-savino-red text-sm">
                                 Compila tutti i campi obbligatori.
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1.5" style="font-family: 'Montserrat', sans-serif;">Nome e Cognome *</label>
+                                <label for="contact-name" class="block text-sm font-bold text-gray-700 mb-1.5">Nome e Cognome *</label>
                                 <input
+                                    id="contact-name"
                                     v-model="form.name"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
-                                    style="font-family: 'Montserrat', sans-serif;"
+                                   
                                     placeholder="Il tuo nome"
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1.5" style="font-family: 'Montserrat', sans-serif;">Email *</label>
+                                <label for="contact-email" class="block text-sm font-bold text-gray-700 mb-1.5">Email *</label>
                                 <input
+                                    id="contact-email"
                                     v-model="form.email"
                                     type="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
-                                    style="font-family: 'Montserrat', sans-serif;"
+                                   
                                     placeholder="La tua email"
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1.5" style="font-family: 'Montserrat', sans-serif;">Oggetto</label>
+                                <label for="contact-subject" class="block text-sm font-bold text-gray-700 mb-1.5">Oggetto</label>
                                 <input
+                                    id="contact-subject"
                                     v-model="form.subject"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
-                                    style="font-family: 'Montserrat', sans-serif;"
+                                   
                                     placeholder="Oggetto del messaggio"
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-1.5" style="font-family: 'Montserrat', sans-serif;">Messaggio *</label>
+                                <label for="contact-message" class="block text-sm font-bold text-gray-700 mb-1.5">Messaggio *</label>
                                 <textarea
+                                    id="contact-message"
                                     v-model="form.message"
                                     rows="5"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all resize-none"
-                                    style="font-family: 'Montserrat', sans-serif;"
+                                   
                                     placeholder="Scrivi il tuo messaggio..."
                                 ></textarea>
                             </div>
                             <button
                                 type="submit"
                                 class="w-full bg-savino-blue text-white py-3.5 rounded-lg font-bold uppercase tracking-wider hover:bg-savino-blue/90 transition-all duration-300 shadow-lg shadow-savino-blue/30 hover:shadow-xl hover:shadow-savino-blue/40"
-                                style="font-family: 'Montserrat', sans-serif;"
+                               
                             >Invia Messaggio</button>
                         </form>
                     </div>
@@ -200,9 +204,9 @@ const contactInfo = [
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
-                                <h3 class="text-lg font-black text-gray-900 uppercase mb-2" style="font-family: 'Montserrat', sans-serif;">Palazzo Wanny</h3>
-                                <p class="text-gray-500 text-sm" style="font-family: 'Montserrat', sans-serif;">Via Allende 10, Firenze</p>
-                                <p class="text-gray-400 text-xs mt-4" style="font-family: 'Montserrat', sans-serif;">Mappa interattiva disponibile a breve</p>
+                                <h3 class="text-lg font-black text-gray-900 uppercase mb-2">Palazzo Wanny</h3>
+                                <p class="text-gray-500 text-sm">Via Allende 10, Firenze</p>
+                                <p class="text-gray-400 text-xs mt-4">Mappa interattiva disponibile a breve</p>
                             </div>
                         </div>
                     </div>

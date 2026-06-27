@@ -122,7 +122,8 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     <p class="text-xs text-gray-500">Indispensabili per il funzionamento del sito. Non disattivabili.</p>
                                 </div>
                                 <div class="relative">
-                                    <input type="checkbox" checked disabled
+                                    <input id="cookie-necessary" type="checkbox" checked disabled
+                                        aria-label="Cookie Necessari"
                                         class="w-10 h-5 rounded-full appearance-none bg-savino-gold/50 cursor-not-allowed checked:bg-savino-gold" />
                                 </div>
                             </div>
@@ -133,8 +134,8 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     <p class="text-sm font-bold">Cookie Analitici</p>
                                     <p class="text-xs text-gray-500">Ci aiutano a capire come usi il sito per migliorarlo.</p>
                                 </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" v-model="consent.analytics" class="sr-only peer" />
+                                <label for="cookie-analytics" class="relative inline-flex items-center cursor-pointer">
+                                    <input id="cookie-analytics" type="checkbox" v-model="consent.analytics" class="sr-only peer" />
                                     <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-gold transition-colors"></div>
                                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
                                 </label>
@@ -146,8 +147,8 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     <p class="text-sm font-bold">Cookie di Marketing</p>
                                     <p class="text-xs text-gray-500">Personalizzano la pubblicità in base ai tuoi interessi.</p>
                                 </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" v-model="consent.marketing" class="sr-only peer" />
+                                <label for="cookie-marketing" class="relative inline-flex items-center cursor-pointer">
+                                    <input id="cookie-marketing" type="checkbox" v-model="consent.marketing" class="sr-only peer" />
                                     <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-gold transition-colors"></div>
                                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
                                 </label>
