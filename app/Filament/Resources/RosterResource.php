@@ -96,7 +96,8 @@ class RosterResource extends Resource
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('official_photo')
                     ->label('')
                     ->collection('rosters_official')
-                    ->circular(),
+                    ->circular()
+                    ->checkFileExistence(false),
                 Tables\Columns\TextColumn::make('player.last_name')
                     ->label('Atleta')
                     ->sortable()

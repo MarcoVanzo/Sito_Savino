@@ -70,17 +70,23 @@ trait LogsActivity
             $changes = static::buildCreatedSnapshot($model);
         }
 
-        ActivityLog::create([
-            'user_id' => Auth::id(), // null se azione da CLI/queue
-            'action' => $action,
-            'model_type' => get_class($model),
-            'model_id' => $model->getKey(),
-            'model_label' => static::extractLabel($model),
-            'changes' => $changes,
-            'ip_address' => Request::ip(), // null-safe in CLI
-            'user_agent' => Request::userAgent(),
-            'created_at' => now(),
-        ]);
+        try {
+            ActivityLog::create([
+                'user_id' => Auth::id(), // null se azione da CLI/queue
+                'action' => $action,
+                'model_type' => get_class($model),
+                'model_id' => $model->getKey(),
+                'model_label' => static::extractLabel($model),
+                'changes' => $changes,
+                'ip_address' => Request::ip(), // null-safe in CLI
+                'user_agent' => Request::userAgent(),
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            // Non bloccare l'operazione principale se il log fallisce
+            // (es. tabella activity_logs non ancora migrata)
+            report($e);
+        }
     }
 
     /**
