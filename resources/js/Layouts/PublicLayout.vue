@@ -38,7 +38,7 @@ const page = usePage();
                         <div class="absolute top-2 left-0 z-[60] flex items-end">
                             
                             <!-- Corporate Logo with Preview -->
-                            <div class="relative group">
+                            <div class="relative group overflow-hidden hover:overflow-visible">
                                 <a href="https://www.savinodelbene.com/it/home/" target="_blank" rel="noopener noreferrer" class="block">
                                     <img src="/images/Logo_Savino.jpeg" alt="Savino Del Bene" class="h-[85px] w-[85px] object-cover rounded-2xl shadow-xl z-0 transition-transform duration-300 group-hover:scale-105 bg-white mb-2" />
                                 </a>
