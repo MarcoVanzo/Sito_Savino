@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RosterResource\Pages;
+use App\Enums\PlayerPosition;
 use App\Models\Roster;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -56,9 +57,10 @@ class RosterResource extends Resource
                             ->label('Numero di Maglia')
                             ->numeric()
                             ->minValue(0),
-                        Forms\Components\TextInput::make('role')
+                        Forms\Components\Select::make('role')
                             ->label('Ruolo in Campo')
-                            ->maxLength(255),
+                            ->options(PlayerPosition::class)
+                            ->required(),
                         Forms\Components\TextInput::make('height_cm')
                             ->label('Altezza (cm)')
                             ->numeric()

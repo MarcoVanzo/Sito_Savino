@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum SponsorTier: string
+use Filament\Support\Contracts\HasLabel;
+
+enum SponsorTier: string implements HasLabel
 {
     case Main = 'main';
     case Gold = 'gold';
@@ -10,7 +12,7 @@ enum SponsorTier: string
     case Technical = 'technical';
     case Standard = 'standard';
 
-    public function label(): string
+    public function getLabel(): string
     {
         return match ($this) {
             self::Main => 'Main Sponsor',

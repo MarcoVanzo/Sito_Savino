@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SponsorResource\Pages;
+use App\Enums\SponsorTier;
 use App\Models\Sponsor;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -35,14 +36,8 @@ class SponsorResource extends Resource
                     ->url()
                     ->maxLength(255),
                 Forms\Components\Select::make('tier')
-                    ->options([
-                        'main' => 'Main Sponsor',
-                        'gold' => 'Gold',
-                        'silver' => 'Silver',
-                        'technical' => 'Sponsor Tecnico',
-                        'standard' => 'Standard',
-                    ])
-                    ->default('standard')
+                    ->options(SponsorTier::class)
+                    ->default(SponsorTier::Standard)
                     ->required(),
                 SpatieMediaLibraryFileUpload::make('logo')
                     ->collection('sponsors')
@@ -66,10 +61,10 @@ class SponsorResource extends Resource
                     ->label('Livello')
                     ->badge()
                     ->color(fn ($state): string => match ($state) {
-                        'main' => 'warning',
-                        'gold' => 'warning',
-                        'silver' => 'gray',
-                        'technical' => 'info',
+                        SponsorTier::Main => 'warning',
+                        SponsorTier::Gold => 'warning',
+                        SponsorTier::Silver => 'gray',
+                        SponsorTier::Technical => 'info',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('url')
@@ -78,13 +73,7 @@ class SponsorResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('tier')
                     ->label('Livello')
-                    ->options([
-                        'main' => 'Main Sponsor',
-                        'gold' => 'Gold',
-                        'silver' => 'Silver',
-                        'technical' => 'Sponsor Tecnico',
-                        'standard' => 'Standard',
-                    ]),
+                    ->options(SponsorTier::class),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

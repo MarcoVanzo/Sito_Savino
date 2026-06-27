@@ -4,8 +4,8 @@ services:
     github:
       repo: MarcoVanzo/sito_savino
       branch: main
-    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build && php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache
-    run_command: heroku-php-apache2 public/
+    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build && php artisan config:cache && php artisan route:cache && php artisan view:cache
+    run_command: php artisan migrate --force && heroku-php-apache2 public/
     envs:
       - key: APP_ENV
         value: production
@@ -84,6 +84,18 @@ services:
         value: ${sito-savino-db.PASSWORD}
       - key: QUEUE_CONNECTION
         value: database
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: AWS_ACCESS_KEY_ID
+        type: SECRET
+      - key: AWS_SECRET_ACCESS_KEY
+        type: SECRET
+      - key: AWS_DEFAULT_REGION
+        value: fra1
+      - key: AWS_BUCKET
+        value: sito-savino-assets-2026
+      - key: AWS_ENDPOINT
+        value: https://fra1.digitaloceanspaces.com
 databases:
   - name: sito-savino-db
     engine: MYSQL

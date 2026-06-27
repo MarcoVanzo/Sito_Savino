@@ -83,6 +83,14 @@ class PageResource extends Resource
                                 'Public/Societa' => 'Società',
                                 'Public/Roster' => 'Roster',
                                 'Public/Shop' => 'Shop',
+                                'Public/Ticketing' => 'Biglietteria',
+                                'Public/Sponsor' => 'Sponsor',
+                                'Public/Youth' => 'Settore Giovanile',
+                                'Public/SummerCamp' => 'Summer Camp',
+                                'Public/Sociale' => 'Progetti Sociali',
+                                'Public/Comunicazione' => 'Comunicazione',
+                                'Public/Stagione' => 'Stagione',
+                                'Public/ContentPage' => 'Pagina Contenuto',
                             ])
                             ->nullable(),
                         Forms\Components\TextInput::make('meta_title')

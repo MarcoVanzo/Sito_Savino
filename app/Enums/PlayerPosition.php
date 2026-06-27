@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum PlayerPosition: string
+use Filament\Support\Contracts\HasLabel;
+
+enum PlayerPosition: string implements HasLabel
 {
     case Setter = 'palleggiatrice';
     case OutsideHitter = 'schiacciatrice';
@@ -10,7 +12,7 @@ enum PlayerPosition: string
     case MiddleBlocker = 'centrale';
     case Libero = 'libero';
 
-    public function label(): string
+    public function getLabel(): string
     {
         return match ($this) {
             self::Setter => 'Palleggiatrice',

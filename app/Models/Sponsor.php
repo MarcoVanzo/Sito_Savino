@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SponsorTier;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -13,5 +14,9 @@ class Sponsor extends Model implements HasMedia
 
     protected $fillable = [
         'name', 'url', 'tier'
+    ];
+
+    protected $casts = [
+        'tier' => SponsorTier::class,
     ];
 }

@@ -21,11 +21,21 @@ class StockMovementObserver
     {
         DB::transaction(function () use ($stockMovement) {
             if ($stockMovement->product_variant_id) {
+                // Aggiorna lo stock della variante
                 $this->updateStock(
                     ProductVariant::class,
                     $stockMovement->product_variant_id,
                     $stockMovement->quantity
                 );
+
+                // Aggiorna anche lo stock aggregato del prodotto padre
+                if ($stockMovement->product_id) {
+                    $this->updateStock(
+                        Product::class,
+                        $stockMovement->product_id,
+                        $stockMovement->quantity
+                    );
+                }
             } elseif ($stockMovement->product_id) {
                 $this->updateStock(
                     Product::class,

@@ -17,6 +17,16 @@ class PageController extends Controller
     private const ALLOWED_TEMPLATES = [
         'Public/ContentPage',
         'Public/Stagione',
+        'Public/Home',
+        'Public/Societa',
+        'Public/Roster',
+        'Public/Shop',
+        'Public/Ticketing',
+        'Public/Sponsor',
+        'Public/Youth',
+        'Public/SummerCamp',
+        'Public/Sociale',
+        'Public/Comunicazione',
     ];
 
     public function show($slug)

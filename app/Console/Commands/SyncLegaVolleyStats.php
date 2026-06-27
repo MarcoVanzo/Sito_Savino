@@ -28,7 +28,14 @@ class SyncLegaVolleyStats extends Command
      */
     public function handle()
     {
-        $this->info('Inizio sincronizzazione statistiche Lega Volley...');
+        // GUARD: impedisci l'esecuzione in produzione con dati simulati
+        if (app()->isProduction()) {
+            $this->error('Questo comando usa dati simulati e NON deve essere eseguito in produzione.');
+            $this->error('Implementare prima il vero web scraping dalla Lega Volley.');
+            return 1;
+        }
+
+        $this->info('Inizio sincronizzazione statistiche Lega Volley (SIMULAZIONE)...');
         
         $players = Player::whereNotNull('lega_volley_id')->get();
         

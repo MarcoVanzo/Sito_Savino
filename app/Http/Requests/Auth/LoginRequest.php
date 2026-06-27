@@ -50,6 +50,17 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Verifica che l'utente sia attivo dopo l'autenticazione
+        if (! Auth::user()->is_active) {
+            Auth::guard('web')->logout();
+
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Il tuo account non è ancora stato attivato. Contatta l\'amministratore.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
