@@ -16,6 +16,9 @@ on:
         required: false
         default: 'Backup media manuale'
 
+permissions:
+  issues: write
+
 env:
   # Sorgente (produzione)
   PROD_BUCKET: sito-savino-assets-2026
@@ -135,11 +138,11 @@ jobs:
       # 6. Upload manifest e log
       # ---------------------------------------------------------------
       - name: Configura credenziali AWS (per upload manifest)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.DO_BACKUP_SPACES_KEY }}
-          aws-secret-access-key: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
-          aws-region: ${{ env.BACKUP_REGION }}
+        run: |
+          aws configure set aws_access_key_id "${{ secrets.DO_BACKUP_SPACES_KEY }}"
+          aws configure set aws_secret_access_key "${{ secrets.DO_BACKUP_SPACES_SECRET }}"
+          aws configure set region "${{ env.BACKUP_REGION }}"
+          echo "✅ Credenziali AWS configurate per DO Spaces."
 
       - name: Upload manifest e log
         run: |
