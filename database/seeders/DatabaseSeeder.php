@@ -192,6 +192,7 @@ class DatabaseSeeder extends Seeder
             HeroSlideSeeder::class,
             MenuItemSeeder::class,
             ContentDataSeeder::class,
+            StaffAndDirigenzaSeeder::class,
         ]);
     }
 }
