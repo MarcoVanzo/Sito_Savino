@@ -117,7 +117,7 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 w-full h-full">
                 <div 
                     v-for="(slide, index) in slides"
-                    :key="slide"
+                    :key="'slide-' + index"
                     class="hero-slide absolute inset-0 w-full h-full"
                     :class="{
                         'is-active': currentSlide === index,
