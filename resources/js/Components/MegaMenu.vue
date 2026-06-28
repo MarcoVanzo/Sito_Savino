@@ -210,10 +210,7 @@ onBeforeUnmount(() => {
 
                                 <!-- Content on top of the image -->
                                 <div class="relative z-10 p-10 flex flex-col justify-between h-full">
-                                    <!-- Decorative element -->
-                                    <div class="flex justify-end">
-                                        <svg class="w-12 h-12 text-savino-gold opacity-50" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13h-13L12 6.5z"/></svg>
-                                    </div>
+
 
                                     <div>
                                         <div class="w-12 h-1 bg-savino-red mb-4"></div>
