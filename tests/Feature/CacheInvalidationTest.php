@@ -62,11 +62,11 @@ class CacheInvalidationTest extends TestCase
         $team = Team::factory()->create();
 
         Cache::put('public:stagione:b1', 'cached_data', now()->addMinutes(30));
-        Cache::put('public:shop', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:risultati', 'cached_data', now()->addMinutes(30));
 
         $team->update(['name' => 'Nuovo Nome']);
 
         $this->assertNull(Cache::get('public:stagione:b1'));
-        $this->assertNull(Cache::get('public:shop'));
+        $this->assertNull(Cache::get('public:risultati'));
     }
 }

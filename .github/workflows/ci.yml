@@ -14,17 +14,34 @@ jobs:
     name: Build, Lint & Test
     runs-on: ubuntu-latest
 
+    # MySQL 8.4 LTS — allineato a produzione DigitalOcean
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: sito_savino_test
+          MYSQL_USER: sito_savino
+          MYSQL_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       # Checkout del codice sorgente
       - name: Checkout codice
         uses: actions/checkout@v6
 
-      # Configurazione PHP 8.3
+      # Configurazione PHP 8.4
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.4'
-          extensions: mbstring, xml, ctype, json, bcmath, curl, pdo, pdo_pgsql, pdo_sqlite
+          extensions: mbstring, xml, ctype, json, bcmath, curl, pdo, pdo_mysql
           coverage: none
 
       # Configurazione Node.js 20
@@ -64,6 +81,6 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
-      # Test PHPUnit con SQLite in-memory
+      # Test PHPUnit con MySQL 8.4 (allineato a produzione)
       - name: Esegui test PHPUnit
         run: php artisan test

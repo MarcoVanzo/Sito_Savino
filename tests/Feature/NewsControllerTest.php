@@ -70,8 +70,13 @@ class NewsControllerTest extends TestCase
 
     public function test_news_show_includes_related_posts(): void
     {
+        $category = \App\Models\Category::factory()->create();
+
         $post = Post::factory()->create(['status' => PostStatus::Published, 'slug' => 'main-post']);
-        Post::factory()->count(5)->create(['status' => PostStatus::Published]);
+        $post->categories()->attach($category);
+
+        $related = Post::factory()->count(5)->create(['status' => PostStatus::Published]);
+        $related->each(fn ($p) => $p->categories()->attach($category));
 
         $response = $this->get('/news/main-post');
         $response->assertInertia(fn ($page) =>
