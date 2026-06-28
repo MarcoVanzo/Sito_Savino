@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StaffType;
-use App\Filament\Resources\StaffMemberResource\Pages;
+use App\Filament\Resources\ManagementResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\StaffMember;
 use Filament\Forms;
@@ -13,7 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 
-class StaffMemberResource extends Resource
+class ManagementResource extends Resource
 {
     use HasStandardTableActions;
 
@@ -21,20 +21,20 @@ class StaffMemberResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'last_name';
 
-    protected static ?string $modelLabel = 'Membro Staff/Medico';
+    protected static ?string $modelLabel = 'Dirigente';
 
-    protected static ?string $pluralModelLabel = 'Staff Tecnico e Medico';
+    protected static ?string $pluralModelLabel = 'Dirigenza';
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?string $navigationGroup = 'Gestione Società';
+
+    protected static ?int $navigationSort = 2;
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->whereIn('type', [StaffType::Tecnico, StaffType::Medico]);
+        return parent::getEloquentQuery()->where('type', StaffType::Dirigenza);
     }
-
-    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -53,10 +53,11 @@ class StaffMemberResource extends Resource
                         Forms\Components\Select::make('type')
                             ->label('Sezione (Tipologia)')
                             ->options([
-                                StaffType::Tecnico->value => StaffType::Tecnico->label(),
-                                StaffType::Medico->value => StaffType::Medico->label(),
+                                StaffType::Dirigenza->value => StaffType::Dirigenza->label(),
                             ])
+                            ->default(StaffType::Dirigenza->value)
                             ->required()
+                            ->hidden()
                             ->helperText('Determina in quale pagina del sito comparirà.'),
                         Forms\Components\TextInput::make('role')
                             ->label('Ruolo specifico')
@@ -102,12 +103,6 @@ class StaffMemberResource extends Resource
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->filters([
-                Tables\Filters\SelectFilter::make('type')
-                    ->label('Filtra per Sezione')
-                    ->options([
-                        StaffType::Tecnico->value => StaffType::Tecnico->label(),
-                        StaffType::Medico->value => StaffType::Medico->label(),
-                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -122,9 +117,9 @@ class StaffMemberResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListStaffMembers::route('/'),
-            'create' => Pages\CreateStaffMember::route('/create'),
-            'edit' => Pages\EditStaffMember::route('/{record}/edit'),
+            'index' => Pages\ListManagement::route('/'),
+            'create' => Pages\CreateManagement::route('/create'),
+            'edit' => Pages\EditManagement::route('/{record}/edit'),
         ];
     }
 }
