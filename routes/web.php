@@ -9,13 +9,24 @@ use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/debug-log-xyz', function () {
-    $files = glob(storage_path('logs/*.log'));
-    if (empty($files)) {
-        return 'No log files found.';
+Route::get('/run-seeds-xyz-123', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\DatabaseSeeder',
+            '--force' => true
+        ]);
+        $out1 = \Illuminate\Support\Facades\Artisan::output();
+
+        \Illuminate\Support\Facades\Artisan::call('app:seed-menu-images');
+        $out2 = \Illuminate\Support\Facades\Artisan::output();
+        
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        $out3 = \Illuminate\Support\Facades\Artisan::output();
+
+        return "<pre>Seed:\n$out1\n\nMenu:\n$out2\n\nCache:\n$out3</pre>";
+    } catch (\Exception $e) {
+        return "<pre>Error: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "</pre>";
     }
-    $latest = end($files);
-    return response(file_get_contents($latest))->header('Content-Type', 'text/plain');
 });
 
 // Rotte Pubbliche SDB
