@@ -71,6 +71,10 @@ class AdminPanelProvider extends PanelProvider
                 // I widget sono auto-discoverati e ordinati tramite la proprietà $sort nelle rispettive classi.
                 // Rimuoviamo i widget di default di Filament se non necessari, oppure li lasciamo vuoti.
             ])
+            ->plugin(
+                \Filament\SpatieLaravelTranslatablePlugin::make()
+                    ->defaultLocales(['it', 'en'])
+            )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::FOOTER,
                 fn (): string => view('filament.hooks.footer')->render()

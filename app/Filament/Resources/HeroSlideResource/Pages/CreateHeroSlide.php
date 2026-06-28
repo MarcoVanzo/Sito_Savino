@@ -4,8 +4,11 @@ namespace App\Filament\Resources\HeroSlideResource\Pages;
 
 use App\Filament\Resources\HeroSlideResource;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
 
 class CreateHeroSlide extends CreateRecord
 {
-    protected static string $resource = HeroSlideResource::class;
+    use Translatable;
+
+protected static string $resource = HeroSlideResource::class;
 }

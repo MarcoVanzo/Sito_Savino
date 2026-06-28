@@ -12,6 +12,7 @@
         "ext-pdo": "*",
         "filament/filament": "^3.2",
         "filament/spatie-laravel-media-library-plugin": "^3.2",
+        "filament/spatie-laravel-translatable-plugin": "^3.3",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^13.8",
         "laravel/sanctum": "^4.0",
@@ -20,6 +21,7 @@
         "predis/predis": "^3.5",
         "spatie/laravel-medialibrary": "^11.0",
         "spatie/laravel-sitemap": "^8.2",
+        "spatie/laravel-translatable": "^6.14",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\HasTranslations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -20,6 +21,8 @@ class HeroSlide extends Model implements HasMedia
         'sort_order',
         'is_active',
     ];
+
+    public $translatable = ['title', 'subtitle', 'cta_text'];
 
     protected $casts = [
         'is_active' => 'boolean',

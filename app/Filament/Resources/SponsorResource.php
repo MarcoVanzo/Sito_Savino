@@ -10,12 +10,15 @@ use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Resources\Concerns\Translatable;
 use Filament\Tables;
 use Filament\Tables\Table;
 
 class SponsorResource extends Resource
 {
-    use HasStandardTableActions;
+    use Translatable;
+
+use HasStandardTableActions;
 
     protected static ?string $model = Sponsor::class;
 

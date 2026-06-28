@@ -8,13 +8,16 @@ use App\Models\ProductCategory;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Resources\Concerns\Translatable;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
 class ProductCategoryResource extends Resource
 {
-    use HasStandardTableActions;
+    use Translatable;
+
+use HasStandardTableActions;
 
     protected static ?string $model = ProductCategory::class;
 

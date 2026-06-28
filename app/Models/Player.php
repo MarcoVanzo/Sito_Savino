@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -17,6 +18,8 @@ class Player extends Model implements HasMedia
         'first_name', 'last_name', 'date_of_birth',
         'nationality', 'instagram_handle', 'lega_volley_id',
     ];
+
+    public $translatable = ['role', 'biography'];
 
     protected $casts = [
         'date_of_birth' => 'date',

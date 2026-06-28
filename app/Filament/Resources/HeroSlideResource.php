@@ -8,12 +8,15 @@ use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Resources\Concerns\Translatable;
 use Filament\Tables;
 use Filament\Tables\Table;
 
 class HeroSlideResource extends Resource
 {
-    protected static ?string $model = HeroSlide::class;
+    use Translatable;
+
+protected static ?string $model = HeroSlide::class;
 
     protected static ?string $recordTitleAttribute = 'title';
 

@@ -1,4 +1,4 @@
-# Savino Del Bene Volley — Sito Ufficiale
+# Savino Del Bene Volley — Sito Ufficiale (Release 3.4)
 
 Sito web ufficiale della **Savino Del Bene Volley Scandicci**, squadra di Serie A1 femminile.
 
@@ -6,7 +6,7 @@ Sito web ufficiale della **Savino Del Bene Volley Scandicci**, squadra di Serie 
 
 | Componente | Tecnologia |
 |---|---|
-| **Backend** | Laravel 13.x, PHP 8.3 |
+| **Backend** | Laravel 13.x, PHP 8.4 |
 | **Admin** | Filament v3 |
 | **Frontend** | Vue 3 + Inertia.js |
 | **Styling** | Tailwind CSS v3 |

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,6 +20,8 @@ class Product extends Model implements HasMedia
         'product_category_id', 'name', 'slug', 'description', 'price',
         'stock', 'sku', 'is_active',
     ];
+
+    public $translatable = ['name', 'description', 'short_description'];
 
     protected $casts = [
         'is_active' => 'boolean',

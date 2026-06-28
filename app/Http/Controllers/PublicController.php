@@ -133,10 +133,26 @@ class PublicController extends Controller
 
     public function gallery()
     {
-        // Le foto vengono gestite tramite Spatie Media Library.
-        // Per ora rendiamo la pagina senza dati, il contenuto arriverà dal CMS.
+        $page = Cache::remember('public:page:gallery', now()->addMinutes(30), function () {
+            return \App\Models\Page::where('slug', 'gallery')->first();
+        });
+
+        $media = Cache::remember('public:gallery_images', now()->addMinutes(30), function () {
+            return \App\Models\GalleryImage::active()
+                ->ordered()
+                ->get()
+                ->map(fn ($img) => [
+                    'id' => $img->id,
+                    'url' => $img->getFirstMediaUrl('gallery'),
+                    'alt' => $img->title ?? 'Immagine Galleria',
+                    'category' => $img->category ?? 'Partite',
+                ])
+                ->toArray();
+        });
+
         return Inertia::render('Public/Gallery', [
-            'media' => [],
+            'page' => $page,
+            'media' => $media,
         ]);
     }
 

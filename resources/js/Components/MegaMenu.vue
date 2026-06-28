@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
                                             {{ sub.label }}
                                             <svg class="w-5 h-5 text-savino-gold opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                         </span>
-                                        <span class="text-xs text-gray-500 font-medium">Esplora la sezione dedicata</span>
+                                        <span class="text-xs text-gray-500 font-medium">{{ sub.description || 'Esplora la sezione dedicata' }}</span>
                                     </Link>
                                 </div>
                             </div>

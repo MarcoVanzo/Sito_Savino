@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
@@ -21,10 +22,11 @@ class Page extends Model implements HasMedia
         'meta_title', 'meta_description', 'meta_keywords',
     ];
 
+    public $translatable = ['title', 'content', 'excerpt', 'content_data', 'meta_description'];
+
     protected $casts = [
         'status' => PostStatus::class,
-        'content_data' => 'array',
-    ];
+        ];
 
     public function author(): BelongsTo
     {

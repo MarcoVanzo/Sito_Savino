@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Translatable\HasTranslations;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\HasMedia;
@@ -26,6 +27,8 @@ class Post extends Model implements HasMedia
         'meta_title',
         'meta_description',
     ];
+
+    public $translatable = ['title', 'content', 'excerpt', 'meta_description'];
 
     protected $casts = [
         'published_at' => 'datetime',
