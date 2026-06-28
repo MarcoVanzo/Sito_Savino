@@ -368,7 +368,7 @@ const ogMeta = useOgMeta({
             
             <!-- Content with Parallax -->
             <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20 will-change-transform" :style="parallaxContentStyle">
-                <div class="max-w-3xl ml-auto text-right">
+                <div class="max-w-4xl lg:max-w-5xl ml-auto text-right">
                     <!-- Badge Campioni del Mondo -->
                     <div 
                         class="badge-campioni inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full border border-savino-gold/40 bg-savino-gold/10 backdrop-blur-sm"
@@ -384,7 +384,7 @@ const ogMeta = useOgMeta({
                     <!-- Titolo con Text Reveal -->
                     <h1 class="text-white font-sans font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-none tracking-tighter mb-4 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] uppercase">
                         <span 
-                            class="hero-text-reveal block break-words" 
+                            class="hero-text-reveal block break-words lg:whitespace-nowrap" 
                             :class="{ 'revealed': heroRevealed }"
                         >
                             {{ heroTitle }}
