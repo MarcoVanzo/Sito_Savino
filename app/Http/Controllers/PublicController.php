@@ -68,7 +68,7 @@ class PublicController extends Controller
 
     public function stagione()
     {
-        return $this->stagioneForTeam('serie-a1', 'public:stagione');
+        return $this->stagioneForTeam('savino-del-bene-volley', 'public:stagione');
     }
 
     public function stagioneB1()
