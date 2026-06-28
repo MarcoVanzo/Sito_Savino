@@ -101,6 +101,7 @@ const parallaxContentStyle = computed(() => ({
 // === GOLD PARTICLES (Canvas) ===
 const particleCanvas = ref(null);
 let particleAnimId = null;
+let canvasObserver = null;
 let particles = [];
 let resizeHandler = null;
 const PARTICLE_COUNT = 45;
@@ -159,7 +160,10 @@ const initParticles = () => {
 
     particles = Array.from({ length: PARTICLE_COUNT }, () => new GoldParticle(canvas.width, canvas.height));
 
+    let isAnimating = false;
+
     const animate = () => {
+        if (!isAnimating) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles.forEach(p => {
             p.update(canvas.width, canvas.height);
@@ -167,7 +171,27 @@ const initParticles = () => {
         });
         particleAnimId = requestAnimationFrame(animate);
     };
-    animate();
+
+    if (typeof IntersectionObserver !== 'undefined') {
+        canvasObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                if (!isAnimating) {
+                    isAnimating = true;
+                    animate();
+                }
+            } else {
+                isAnimating = false;
+                if (particleAnimId) {
+                    cancelAnimationFrame(particleAnimId);
+                    particleAnimId = null;
+                }
+            }
+        });
+        canvasObserver.observe(canvas);
+    } else {
+        isAnimating = true;
+        animate();
+    }
 };
 
 // === COUNT UP ===
@@ -246,6 +270,7 @@ onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
     if (resizeHandler) window.removeEventListener('resize', resizeHandler);
     if (particleAnimId) cancelAnimationFrame(particleAnimId);
+    if (canvasObserver) canvasObserver.disconnect();
 });
 
 // === UTILS ===

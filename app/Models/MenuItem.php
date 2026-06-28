@@ -82,40 +82,42 @@ class MenuItem extends Model implements HasMedia
      */
     public static function getTree(string $location = 'main'): array
     {
-        return static::where('location', $location)
-            ->where('is_active', true)
-            ->whereNull('parent_id')
-            ->with(['children'])
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function ($item) {
-                // Immagine statica da public/images/menu/
-                $menuImage = null;
-                if (isset(self::$staticMenuImages[$item->label])) {
-                    $menuImage = '/images/menu/' . self::$staticMenuImages[$item->label];
-                }
+        return Cache::remember(self::CACHE_KEY . '_' . $location, self::CACHE_TTL, function () use ($location) {
+            return static::where('location', $location)
+                ->where('is_active', true)
+                ->whereNull('parent_id')
+                ->with(['children'])
+                ->orderBy('sort_order')
+                ->get()
+                ->map(function ($item) {
+                    // Immagine statica da public/images/menu/
+                    $menuImage = null;
+                    if (isset(self::$staticMenuImages[$item->label])) {
+                        $menuImage = '/images/menu/' . self::$staticMenuImages[$item->label];
+                    }
 
-                return [
-                    'id' => $item->id,
-                    'label' => $item->label,
-                    'href' => $item->url,
-                    'description' => $item->description,
-                    'mottoTitle' => $item->motto_title,
-                    'mottoSubtitle' => $item->motto_subtitle,
-                    'menuImage' => $menuImage,
-                    'isHighlight' => $item->is_highlight,
-                    'children' => $item->children->map(function ($child) {
-                        return [
-                            'id' => $child->id,
-                            'label' => $child->label,
-                            'href' => $child->url,
-                            'description' => $child->description,
-                            'isHighlight' => $child->is_highlight,
-                        ];
-                    })->toArray(),
-                ];
-            })
-            ->toArray();
+                    return [
+                        'id' => $item->id,
+                        'label' => $item->label,
+                        'href' => $item->url,
+                        'description' => $item->description,
+                        'mottoTitle' => $item->motto_title,
+                        'mottoSubtitle' => $item->motto_subtitle,
+                        'menuImage' => $menuImage,
+                        'isHighlight' => $item->is_highlight,
+                        'children' => $item->children->map(function ($child) {
+                            return [
+                                'id' => $child->id,
+                                'label' => $child->label,
+                                'href' => $child->url,
+                                'description' => $child->description,
+                                'isHighlight' => $child->is_highlight,
+                            ];
+                        })->toArray(),
+                    ];
+                })
+                ->toArray();
+        });
     }
 
     /**

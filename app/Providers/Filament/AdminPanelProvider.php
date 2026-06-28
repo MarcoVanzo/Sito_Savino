@@ -27,8 +27,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Hex('#00265a'), // Savino Blue
-                'danger' => Color::Hex('#e30613'), // Savino Red
+                'primary' => Color::Hex('#003063'), // Savino Blue
+                'danger' => Color::Hex('#CD1719'), // Savino Red
                 'warning' => Color::Hex('#bda871'), // Savino Gold
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
@@ -68,10 +68,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                \App\Filament\Widgets\StatsOverviewWidget::class,
-                \App\Filament\Widgets\QuickActionsWidget::class,
-                \App\Filament\Widgets\NextMatchWidget::class,
+                // I widget sono auto-discoverati e ordinati tramite la proprietà $sort nelle rispettive classi.
+                // Rimuoviamo i widget di default di Filament se non necessari, oppure li lasciamo vuoti.
             ])
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::FOOTER,
+                fn (): string => view('filament.hooks.footer')->render()
+            )
             ->databaseNotifications()
             ->maxContentWidth('full')
             ->middleware([

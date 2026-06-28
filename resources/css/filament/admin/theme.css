@@ -2,7 +2,7 @@
 
 @config 'tailwind.config.js';
 
-/* Premium Customizations */
+/* Premium Customizations - Background & Glassmorphism */
 .fi-simple-layout {
     background-image: url('/images/home_hero.jpg');
     background-size: cover;
@@ -16,16 +16,149 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 38, 90, 0.85); /* Savino Blue with heavy overlay */
+    background: rgba(0, 48, 99, 0.85); /* Savino Blue con overlay */
     z-index: -1;
 }
 
 .fi-simple-main {
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(12px);
 }
 
-/* Make rounded corners a bit more pronounced across the dashboard */
+/* Base UI Improvements */
 :root {
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+}
+
+/* Sidebar Styling */
+.fi-sidebar {
+    background: linear-gradient(180deg, #003063 0%, #001833 100%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark .fi-sidebar {
+    background: linear-gradient(180deg, #050505 0%, #0a0a0a 100%) !important;
+}
+
+/* Sidebar Links */
+.fi-sidebar-item-active > a {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-left: 3px solid #bda871 !important; /* Gold accent */
+    border-radius: 0 0.5rem 0.5rem 0 !important;
+}
+.fi-sidebar-item-active .fi-sidebar-item-label {
+    color: #bda871 !important;
+    font-weight: 600;
+}
+.fi-sidebar-item-active .fi-sidebar-item-icon {
+    color: #bda871 !important;
+}
+
+.fi-sidebar-group-label {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em;
+}
+
+.fi-sidebar-item-label, .fi-sidebar-item-icon {
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+}
+
+.fi-sidebar-item > a:hover .fi-sidebar-item-label,
+.fi-sidebar-item > a:hover .fi-sidebar-item-icon {
+    color: #ffffff;
+}
+
+/* Topbar Styling */
+.fi-topbar {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid #bda871 !important; /* Gold accent on topbar */
+}
+.dark .fi-topbar {
+    background: rgba(15, 23, 42, 0.9) !important;
+    border-bottom-color: #CD1719 !important; /* Red accent on dark topbar */
+}
+
+/* Cards & Sections */
+.fi-section {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+    border-radius: var(--radius-xl) !important;
+    border: 1px solid rgba(0, 0, 0, 0.03) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.dark .fi-section {
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2) !important;
+    background: #111827 !important;
+}
+
+/* Widget Cards Hover */
+.fi-wi-stats-overview-stat {
+    transition: all 0.3s ease;
+    border-radius: var(--radius-xl) !important;
+}
+.fi-wi-stats-overview-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+.dark .fi-wi-stats-overview-stat:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Tables */
+.fi-ta-table {
+    border-radius: var(--radius-lg) !important;
+    overflow: hidden;
+}
+.fi-ta-row {
+    transition: background-color 0.2s ease;
+}
+.fi-ta-row:hover {
+    background-color: rgba(0, 48, 99, 0.02) !important;
+}
+.dark .fi-ta-row:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Brand Button Override */
+.fi-btn-color-primary {
+    background: linear-gradient(135deg, #003063 0%, #002244 100%) !important;
+    box-shadow: 0 2px 10px rgba(0, 48, 99, 0.2) !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+.fi-btn-color-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 48, 99, 0.3) !important;
+    filter: brightness(1.1);
+}
+
+.fi-btn-color-danger {
+    background: linear-gradient(135deg, #CD1719 0%, #a00d10 100%) !important;
+    border: none !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
 }

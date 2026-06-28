@@ -45,3 +45,4 @@ current_app.json
 spec.json
 spec_fixed.json
 test_vite.php
+current_do_spec.yaml
