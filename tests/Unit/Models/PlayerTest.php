@@ -70,10 +70,4 @@ class PlayerTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $player->date_of_birth);
     }
 
-    public function test_is_staff_is_cast_to_boolean(): void
-    {
-        $player = Player::factory()->create(['is_staff' => 1]);
-
-        $this->assertTrue($player->is_staff);
-    }
 }

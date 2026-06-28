@@ -58,7 +58,6 @@ class Roster2026Seeder extends Seeder
                     'last_name' => $lastName,
                     'nationality' => $row[2],
                     'date_of_birth' => $row[6] . '-01-01', // Approx
-                    'is_staff' => false,
                 ]);
             } else {
                 // Aggiorna dettagli se mancano
