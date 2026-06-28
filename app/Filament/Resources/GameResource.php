@@ -29,6 +29,8 @@ class GameResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
+    protected static ?string $navigationLabel = 'Gestione Partite (Lega + CEV)';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     protected static ?int $navigationSort = 10;

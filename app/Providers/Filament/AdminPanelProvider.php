@@ -54,6 +54,10 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Amministrazione')
                     ->icon('heroicon-o-cog-8-tooth')
                     ->collapsed(),
+                \Filament\Navigation\NavigationGroup::make()
+                    ->label('Archivi Sistema')
+                    ->icon('heroicon-o-archive-box')
+                    ->collapsed(),
             ])
             ->userMenuItems([
                 \Filament\Navigation\MenuItem::make()

@@ -1,6 +1,6 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import { ref, computed, nextTick } from 'vue'
 
 const props = defineProps({
@@ -11,6 +11,14 @@ const props = defineProps({
     media: {
         type: Array,
         default: () => []
+    },
+    athletes: {
+        type: Array,
+        default: () => []
+    },
+    currentAthlete: {
+        type: Object,
+        default: null
     }
 })
 
@@ -67,9 +75,9 @@ function nextImage() {
 
 <template>
     <Head>
-      <title>{{ (page?.title ?? 'Foto Gallery') + ' — Savino Del Bene Volley' }}</title>
+      <title>{{ (currentAthlete ? 'Foto di ' + currentAthlete.name : (page?.title ?? 'Foto Gallery')) + ' — Savino Del Bene Volley' }}</title>
       <meta name="description" content="La galleria fotografica ufficiale della Savino Del Bene Volley. Immagini dalle partite, eventi e dietro le quinte." />
-      <meta property="og:title" :content="(page?.title ?? 'Foto Gallery') + ' — Savino Del Bene Volley'" />
+      <meta property="og:title" :content="(currentAthlete ? 'Foto di ' + currentAthlete.name : (page?.title ?? 'Foto Gallery')) + ' — Savino Del Bene Volley'" />
       <meta property="og:description" content="La galleria fotografica ufficiale della Savino Del Bene Volley. Immagini dalle partite, eventi e dietro le quinte." />
       <meta property="og:image" :content="'/images/logo.png'" />
       <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
@@ -82,7 +90,10 @@ function nextImage() {
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">I Nostri Momenti</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Foto Gallery' }}</h1>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
+                    <template v-if="currentAthlete">Foto di {{ currentAthlete.name }}</template>
+                    <template v-else>{{ page?.title ?? 'Foto Gallery' }}</template>
+                </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">Rivivi i momenti più emozionanti della nostra stagione attraverso le immagini.</p>
             </div>
@@ -91,18 +102,54 @@ function nextImage() {
         <!-- Gallery Content -->
         <section class="py-16 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- Category Filter -->
-                <div class="flex flex-wrap gap-3 justify-center mb-12">
-                    <button
-                        v-for="cat in categories"
-                        :key="cat"
-                        @click="filterByCategory(cat)"
-                        class="px-5 py-2 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300"
-                        :class="activeCategory === cat
-                            ? 'bg-savino-blue text-white shadow-lg shadow-savino-blue/30'
-                            : 'bg-white text-gray-600 hover:bg-savino-blue/10 hover:text-savino-blue border border-gray-200'"
-                       
-                    >{{ cat }}</button>
+                <!-- Filters Container -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12 border-b border-gray-200 pb-8">
+                    <!-- Category Filter -->
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            v-for="cat in categories"
+                            :key="cat"
+                            @click="filterByCategory(cat)"
+                            class="px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300"
+                            :class="activeCategory === cat
+                                ? 'bg-savino-blue text-white shadow-md shadow-savino-blue/30'
+                                : 'bg-white text-gray-600 hover:bg-savino-blue/10 hover:text-savino-blue border border-gray-200'"
+                        >
+                            {{ cat }}
+                        </button>
+                    </div>
+
+                    <!-- Athlete Filter -->
+                    <div v-if="athletes && athletes.length > 0" class="relative group">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Filtra per Atleta:</span>
+                            <div class="relative inline-block">
+                                <select 
+                                    @change="(e) => { 
+                                        if (e.target.value) {
+                                            $inertia.visit(route('gallery.atleta', { slug: e.target.value }))
+                                        } else {
+                                            $inertia.visit(route('gallery'))
+                                        }
+                                    }" 
+                                    class="appearance-none bg-white border border-gray-300 text-savino-blue text-sm rounded-lg focus:ring-savino-blue focus:border-savino-blue block w-full p-2.5 pr-8 font-semibold shadow-sm cursor-pointer hover:bg-gray-50"
+                                >
+                                    <option value="">Tutte le atlete</option>
+                                    <option 
+                                        v-for="athlete in athletes" 
+                                        :key="athlete.id" 
+                                        :value="athlete.slug"
+                                        :selected="currentAthlete && currentAthlete.id === athlete.id"
+                                    >
+                                        {{ athlete.name }}
+                                    </option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-savino-blue">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Empty State -->

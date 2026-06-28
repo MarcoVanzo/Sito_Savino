@@ -31,6 +31,8 @@ use HasStandardTableActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
 
+    protected static ?string $navigationLabel = 'Gestione Sponsor';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     protected static ?int $navigationSort = 11;

@@ -26,6 +26,8 @@ class ActivityLogResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
+    protected static ?string $navigationLabel = 'Log, Sconti & Password Utenti';
+
     protected static ?string $navigationGroup = 'Amministrazione';
 
     protected static ?int $navigationSort = 17;

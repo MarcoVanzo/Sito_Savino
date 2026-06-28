@@ -133,14 +133,35 @@ class PublicController extends Controller
 
     public function gallery()
     {
+        return $this->renderGallery();
+    }
+
+    public function galleryAtleta(string $slug)
+    {
+        $id = explode('-', $slug)[0];
+        $player = Player::findOrFail($id);
+
+        return $this->renderGallery($player);
+    }
+
+    private function renderGallery(?Player $playerFilter = null)
+    {
         $page = Cache::remember('public:page:gallery', now()->addMinutes(30), function () {
             return \App\Models\Page::where('slug', 'gallery')->first();
         });
 
-        $media = Cache::remember('public:gallery_images', now()->addMinutes(30), function () {
-            return \App\Models\GalleryImage::active()
-                ->ordered()
-                ->get()
+        $cacheKey = $playerFilter ? 'public:gallery_images:player_' . $playerFilter->id : 'public:gallery_images';
+
+        $media = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter) {
+            $query = \App\Models\GalleryImage::active()->ordered();
+            
+            if ($playerFilter) {
+                $query->whereHas('players', function ($q) use ($playerFilter) {
+                    $q->where('players.id', $playerFilter->id);
+                });
+            }
+
+            return $query->get()
                 ->map(fn ($img) => [
                     'id' => $img->id,
                     'url' => $img->getFirstMediaUrl('gallery'),
@@ -150,9 +171,24 @@ class PublicController extends Controller
                 ->toArray();
         });
 
+        // Get all players that have at least one gallery image for the filter dropdown
+        $athletes = Cache::remember('public:gallery_athletes', now()->addMinutes(30), function () {
+            return Player::whereHas('galleryImages')->get()->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->full_name,
+                'slug' => $p->id . '-' . \Illuminate\Support\Str::slug($p->full_name),
+            ])->toArray();
+        });
+
         return Inertia::render('Public/Gallery', [
             'page' => $page,
             'media' => $media,
+            'athletes' => $athletes,
+            'currentAthlete' => $playerFilter ? [
+                'id' => $playerFilter->id,
+                'name' => $playerFilter->full_name,
+                'slug' => $playerFilter->id . '-' . \Illuminate\Support\Str::slug($playerFilter->full_name),
+            ] : null,
         ]);
     }
 

@@ -102,6 +102,41 @@ use HasStandardTableActions;
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\Action::make('syncFace')
+                    ->label('Sincronizza Volto AI')
+                    ->icon('heroicon-o-face-smile')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Sincronizza Volto con AI')
+                    ->modalDescription('Invia la foto profilo attuale al sistema di riconoscimento facciale per addestrare l\'AI a riconoscere questa atleta.')
+                    ->action(function (Player $record) {
+                        $media = $record->getFirstMedia('players');
+                        if (!$media) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Errore')
+                                ->body('Nessuna immagine di profilo trovata per l\'addestramento.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        $service = app(\App\Services\FacialRecognitionService::class);
+                        $success = $service->addFaceExample($record, $media->getPath());
+
+                        if ($success) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Successo')
+                                ->body('Volto sincronizzato correttamente con l\'AI.')
+                                ->success()
+                                ->send();
+                        } else {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Errore API')
+                                ->body('Impossibile sincronizzare il volto. Verifica i log.')
+                                ->danger()
+                                ->send();
+                        }
+                    }),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions(static::softDeleteBulkActions());

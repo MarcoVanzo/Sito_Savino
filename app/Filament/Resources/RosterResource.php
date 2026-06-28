@@ -29,6 +29,8 @@ class RosterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+    protected static ?string $navigationLabel = 'Gestione Squadre (A1, B1, Giovanili)';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
 
     protected static ?int $navigationSort = 8;

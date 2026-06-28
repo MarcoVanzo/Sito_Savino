@@ -38,4 +38,11 @@ class GalleryImage extends Model implements HasMedia
     {
         return $query->orderBy('sort_order');
     }
+
+    public function players()
+    {
+        return $this->belongsToMany(Player::class, 'gallery_image_player')
+            ->withPivot('confidence_score')
+            ->withTimestamps();
+    }
 }

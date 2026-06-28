@@ -33,6 +33,8 @@ use HasStandardTableActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
+    protected static ?string $navigationLabel = 'Gestione News e Comunicati';
+
     protected static ?string $navigationGroup = 'Sito Web';
 
     protected static ?int $navigationSort = 2;

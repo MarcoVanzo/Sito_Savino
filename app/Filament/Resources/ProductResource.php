@@ -34,6 +34,8 @@ use HasStandardTableActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
+    protected static ?string $navigationLabel = 'Gestione Shop (Prodotti e Magazzino)';
+
     protected static ?string $navigationGroup = 'Shop';
 
     protected static ?int $navigationSort = 13;

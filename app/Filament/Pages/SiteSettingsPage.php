@@ -19,8 +19,11 @@ class SiteSettingsPage extends Page implements HasForms
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
-    protected static ?string $navigationGroup = 'Sito Web';
-    protected static ?string $navigationLabel = 'Impostazioni Sito';
+
+    protected static ?string $navigationLabel = 'Impostazioni';
+
+    protected static ?string $navigationGroup = 'Amministrazione';
+
     protected static ?string $title = 'Impostazioni Sito';
     protected static ?int $navigationSort = 50;
     protected static ?string $slug = 'settings';

@@ -21,6 +21,8 @@ class GalleryImageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
 
+    protected static ?string $navigationLabel = 'Gestione Gallery (AI Tagging)';
+
     protected static ?string $modelLabel = 'Immagine Galleria';
 
     protected static ?string $pluralModelLabel = 'Galleria Fotografica';
@@ -64,6 +66,13 @@ class GalleryImageResource extends Resource
                             ->label('Attiva')
                             ->default(true)
                             ->required(),
+                        Forms\Components\Select::make('players')
+                            ->label('Atlete Taggate')
+                            ->multiple()
+                            ->relationship('players', 'last_name')
+                            ->preload()
+                            ->searchable(['first_name', 'last_name'])
+                            ->getOptionLabelFromRecordUsing(fn (\App\Models\Player $record) => "{$record->first_name} {$record->last_name}"),
                     ])->columns(2),
             ]);
     }
@@ -84,6 +93,11 @@ class GalleryImageResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->badge(),
+                Tables\Columns\TextColumn::make('players.last_name')
+                    ->label('Atlete')
+                    ->badge()
+                    ->searchable()
+                    ->limitList(3),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Attiva')
                     ->boolean(),
@@ -101,8 +115,33 @@ class GalleryImageResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('analyze')
+                    ->label('Analizza AI')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('info')
+                    ->action(function (GalleryImage $record) {
+                        \App\Jobs\AnalyzeGalleryImageJob::dispatchSync($record);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Analisi completata')
+                            ->success()
+                            ->send();
+                    })
             ])
-            ->bulkActions(static::standardBulkActions())
+            ->bulkActions(array_merge(static::standardBulkActions(), [
+                Tables\Actions\BulkAction::make('analyzeBulk')
+                    ->label('Analizza con AI (Bulk)')
+                    ->icon('heroicon-o-sparkles')
+                    ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                        foreach ($records as $record) {
+                            \App\Jobs\AnalyzeGalleryImageJob::dispatch($record);
+                        }
+                        \Filament\Notifications\Notification::make()
+                            ->title('Analisi avviata')
+                            ->body('Le foto selezionate verranno analizzate in background.')
+                            ->success()
+                            ->send();
+                    })
+            ]))
             ->defaultSort('sort_order', 'asc')
             ->reorderable('sort_order');
     }
