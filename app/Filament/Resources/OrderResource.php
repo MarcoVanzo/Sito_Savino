@@ -34,6 +34,8 @@ class OrderResource extends Resource
 
     protected static ?int $navigationSort = 14;
 
+    protected static ?string $slug = 'shop/ordini';
+
     public static function form(Form $form): Form
     {
         return $form

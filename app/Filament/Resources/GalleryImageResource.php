@@ -29,6 +29,8 @@ class GalleryImageResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
+    protected static ?string $slug = 'gallery';
+
     public static function form(Form $form): Form
     {
         return $form

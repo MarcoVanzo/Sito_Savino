@@ -30,6 +30,8 @@ class ActivityLogResource extends Resource
 
     protected static ?int $navigationSort = 17;
 
+    protected static ?string $slug = 'log';
+
     /**
      * Solo gli admin possono vedere i log.
      */

@@ -23,6 +23,7 @@ class SiteSettingsPage extends Page implements HasForms
     protected static ?string $navigationLabel = 'Impostazioni Sito';
     protected static ?string $title = 'Impostazioni Sito';
     protected static ?int $navigationSort = 50;
+    protected static ?string $slug = 'settings';
     protected static string $view = 'filament.pages.site-settings-page';
 
     public ?array $data = [];

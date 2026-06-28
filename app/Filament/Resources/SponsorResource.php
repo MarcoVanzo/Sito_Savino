@@ -35,6 +35,8 @@ use HasStandardTableActions;
 
     protected static ?int $navigationSort = 11;
 
+    protected static ?string $slug = 'sponsor';
+
     public static function form(Form $form): Form
     {
         return $form

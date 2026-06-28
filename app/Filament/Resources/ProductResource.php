@@ -38,6 +38,8 @@ use HasStandardTableActions;
 
     protected static ?int $navigationSort = 13;
 
+    protected static ?string $slug = 'shop/products';
+
     public static function form(Form $form): Form
     {
         return $form
