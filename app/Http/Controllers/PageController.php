@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PostStatus;
+use App\Enums\StaffType;
 use App\Models\Page;
+use App\Models\StaffMember;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -49,8 +52,26 @@ class PageController extends Controller
             ? $page->template
             : 'Public/ContentPage'; // Fallback generico che renderizza il contenuto
 
-        return Inertia::render($template, [
+        // Props aggiuntive per template specifici
+        $extra = [];
+
+        if ($template === 'Public/Societa') {
+            $extra['dirigenza'] = Cache::remember('public:organigramma', now()->addMinutes(30), function () {
+                return StaffMember::where('type', StaffType::Dirigenza)
+                    ->orderBy('sort_order')
+                    ->get()
+                    ->map(fn ($p) => [
+                        'id' => $p->id,
+                        'name' => $p->full_name,
+                        'role' => $p->role,
+                        'photo_url' => $p->getFirstMediaUrl('staff'),
+                    ])
+                    ->toArray();
+            });
+        }
+
+        return Inertia::render($template, array_merge([
             'page' => $page,
-        ]);
+        ], $extra));
     }
 }

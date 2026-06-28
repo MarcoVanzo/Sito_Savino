@@ -5,6 +5,10 @@ import { computed } from 'vue';
 
 const props = defineProps({
     page: Object,
+    dirigenza: {
+        type: Array,
+        default: () => []
+    },
 });
 
 const inertiaPage = usePage();
@@ -32,15 +36,10 @@ const storiaYears = computed(() => cd.value.storia_years || '40+');
 
 // Organigramma
 const orgTitle = computed(() => cd.value.org_title || 'Il Nostro Team Dirigenziale');
-const orgRoles = computed(() => {
-    if (cd.value.org_roles && cd.value.org_roles.length > 0) return cd.value.org_roles;
-    return [
-        { title: 'Presidente', name: 'Presidenza', desc: 'Guida strategica e visione del club' },
-        { title: 'Direttore Generale', name: 'Direzione', desc: 'Gestione operativa e coordinamento' },
-        { title: 'Direttore Sportivo', name: 'Area Tecnica', desc: 'Pianificazione sportiva e roster' },
-        { title: 'Head Coach', name: 'Staff Tecnico', desc: 'Guida tecnica della prima squadra' },
-    ];
-});
+
+function getInitials(name) {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase()
+}
 
 // Palazzetto
 const palazzettoTitle = computed(() => cd.value.palazzetto_title || 'Palazzo Wanny');
@@ -119,7 +118,7 @@ const contactLocation = computed(() => contact.value.city || 'Scandicci (FI), To
         </section>
 
         <!-- ORGANIGRAMMA -->
-        <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <section id="organigramma" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center mb-16">
                     <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Organigramma</span>
@@ -128,15 +127,32 @@ const contactLocation = computed(() => contact.value.city || 'Scandicci (FI), To
                     </h2>
                     <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
                 </div>
-                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div v-for="(role, index) in orgRoles" :key="index" class="group text-center">
-                        <div class="w-28 h-28 mx-auto mb-5 rounded-full bg-gradient-to-br from-savino-blue to-gray-800 flex items-center justify-center shadow-lg group-hover:shadow-savino-gold/20 group-hover:shadow-xl transition-all duration-300">
-                            <svg class="w-12 h-12 text-savino-gold/70" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+
+                <div v-if="dirigenza.length > 0" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div
+                        v-for="member in dirigenza"
+                        :key="member.id"
+                        class="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:-translate-y-1"
+                    >
+                        <div class="relative h-48 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center overflow-hidden">
+                            <img
+                                v-if="member.photo_url"
+                                :src="member.photo_url"
+                                :alt="member.name"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <span v-else class="text-4xl font-black text-white/30">{{ getInitials(member.name) }}</span>
                         </div>
-                        <h3 class="text-xs font-bold text-savino-gold uppercase tracking-[0.15em] mb-1">{{ role.title }}</h3>
-                        <p class="text-savino-blue font-bold text-lg">{{ role.name }}</p>
-                        <p class="text-gray-500 text-sm mt-1">{{ role.desc }}</p>
+                        <div class="p-5 text-center">
+                            <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">{{ member.name }}</h3>
+                            <p class="text-savino-gold text-sm font-bold mt-1">{{ member.role }}</p>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Empty state fallback -->
+                <div v-else class="text-center py-12">
+                    <p class="text-gray-500">Organigramma in aggiornamento.</p>
                 </div>
             </div>
         </section>
