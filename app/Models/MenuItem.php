@@ -90,9 +90,8 @@ class MenuItem extends Model implements HasMedia
                 ->orderBy('sort_order')
                 ->get()
                 ->map(function ($item) {
-                    // Immagine statica da public/images/menu/
-                    $menuImage = null;
-                    if (isset(self::$staticMenuImages[$item->label])) {
+                    $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
+                    if (!$menuImage && isset(self::$staticMenuImages[$item->label])) {
                         $menuImage = '/images/menu/' . self::$staticMenuImages[$item->label];
                     }
 

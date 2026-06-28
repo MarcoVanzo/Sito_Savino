@@ -384,7 +384,7 @@ const ogMeta = useOgMeta({
                     <!-- Titolo con Text Reveal -->
                     <h1 class="text-white font-sans font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-none tracking-tighter mb-4 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] uppercase">
                         <span 
-                            class="hero-text-reveal block whitespace-nowrap" 
+                            class="hero-text-reveal block break-words" 
                             :class="{ 'revealed': heroRevealed }"
                         >
                             {{ heroTitle }}
