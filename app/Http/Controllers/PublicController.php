@@ -82,8 +82,11 @@ class PublicController extends Controller
     private function stagioneForTeam(string $teamSlug, string $cacheKey, ?string $teamLabel = null): Response
     {
         $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug) {
-            $team = Team::where('slug', $teamSlug)->first();
-            $currentSeason = Season::current()->first();
+            $team = Team::where('slug', $teamSlug)
+                ->orWhere('category', $teamSlug === 'savino-del-bene-volley' ? 'A1' : 'B1')
+                ->first();
+                
+            $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
             $roster = [];
             $seasonName = null;
@@ -111,7 +114,7 @@ class PublicController extends Controller
     public function risultati()
     {
         $data = Cache::remember('public:risultati', now()->addMinutes(5), function () {
-            $currentSeason = Season::current()->first();
+            $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
             $games = [];
 
