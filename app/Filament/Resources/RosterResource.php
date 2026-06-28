@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\RosterResource\Pages;
 use App\Enums\PlayerPosition;
+use App\Filament\Resources\RosterResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Roster;
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Database\Eloquent\Builder;
 
 class RosterResource extends Resource
@@ -24,9 +24,13 @@ class RosterResource extends Resource
     protected static ?string $recordTitleAttribute = 'id';
 
     protected static ?string $modelLabel = 'Giocatore in Rosa';
+
     protected static ?string $pluralModelLabel = 'Giocatori in Rosa (Roster)';
+
     protected static ?string $navigationIcon = 'heroicon-o-users';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+
     protected static ?int $navigationSort = 8;
 
     public static function form(Form $form): Form

@@ -1,4 +1,5 @@
 <?php
+
 namespace Tests\Unit\Models;
 
 use App\Enums\PostStatus;
@@ -7,6 +8,7 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class PostTest extends TestCase
@@ -54,7 +56,7 @@ class PostTest extends TestCase
     {
         $post = Post::factory()->create(['published_at' => '2025-01-15 10:00:00']);
 
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $post->published_at);
+        $this->assertInstanceOf(Carbon::class, $post->published_at);
     }
 
     public function test_status_is_cast_to_enum(): void

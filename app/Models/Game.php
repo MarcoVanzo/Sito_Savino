@@ -4,10 +4,10 @@ namespace App\Models;
 
 use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Traits\LogsActivity;
 
 class Game extends Model
 {
@@ -16,7 +16,7 @@ class Game extends Model
     protected $fillable = [
         'season_id', 'home_team_id', 'away_team_id',
         'match_date', 'status', 'home_score', 'away_score',
-        'location', 'competition_type'
+        'location', 'competition_type',
     ];
 
     protected $casts = [

@@ -15,7 +15,7 @@ const page = usePage();
 const openIndex = ref(-1);
 
 function toggleDropdown(index) {
-    if (props.navigation[index]?.items?.length > 0) {
+    if (props.navigation[index]?.children?.length > 0) {
         openIndex.value = openIndex.value === index ? -1 : index;
     }
 }
@@ -25,7 +25,7 @@ function closeDropdown() {
 }
 
 function handleKeydown(event, index) {
-    const hasSubmenu = props.navigation[index]?.items?.length > 0;
+    const hasSubmenu = props.navigation[index]?.children?.length > 0;
 
     switch (event.key) {
         case 'Enter':
@@ -95,7 +95,7 @@ function recalcPositions() {
     const cardW = 720; // matches w-[720px] in the template
 
     props.navigation.forEach((item, index) => {
-        if (!(item.items && item.items.length > 0)) return;
+        if (!(item.children && item.children.length > 0)) return;
 
         // Find the menu-item DOM node via data attribute
         const itemEl = navRef.value.querySelector(`[data-menu-index="${index}"]`);
@@ -144,53 +144,53 @@ onBeforeUnmount(() => {
 <template>
     <nav ref="navRef" role="navigation" aria-label="Navigazione principale" class="hidden lg:flex flex-1 justify-end items-center h-full">
         <div class="flex items-center h-full">
-            <template v-for="(item, index) in navigation" :key="item.name">
-                <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="item.items?.length > 0 ? openIndex = index : null" @mouseleave="closeDropdown">
+            <template v-for="(item, index) in navigation" :key="item.label">
+                <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="item.children?.length > 0 ? openIndex = index : null" @mouseleave="closeDropdown">
                     <Link 
-                        :href="item.path" 
+                        :href="item.href" 
                         prefetch
                         class="text-[12px] xl:text-[14px] font-black tracking-wider uppercase transition-colors flex items-center h-full px-2 lg:px-3 whitespace-nowrap"
                         :class="[
-                            $page.url.startsWith(item.path) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-400 hover:text-white border-b-[3px] border-transparent pt-[3px]',
+                            $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-400 hover:text-white border-b-[3px] border-transparent pt-[3px]',
                             item.isHighlight ? 'text-[#ED028C] hover:text-[#ff30a6]' : ''
                         ]"
-                        :aria-haspopup="item.items?.length > 0 ? 'true' : undefined"
-                        :aria-expanded="item.items?.length > 0 ? (openIndex === index).toString() : undefined"
+                        :aria-haspopup="item.children?.length > 0 ? 'true' : undefined"
+                        :aria-expanded="item.children?.length > 0 ? (openIndex === index).toString() : undefined"
                         @keydown="handleKeydown($event, index)"
                     >
-                        {{ item.name }}
-                        <svg v-if="item.items && item.items.length > 0" class="w-3 h-3 ml-1.5 opacity-70 transition-transform duration-300" :class="openIndex === index ? 'rotate-180' : 'group-hover:rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                        {{ item.label }}
+                        <svg v-if="item.children && item.children.length > 0" class="w-3 h-3 ml-1.5 opacity-70 transition-transform duration-300" :class="openIndex === index ? 'rotate-180' : 'group-hover:rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
                     </Link>
 
                     <!-- Sottomenu Mega Dropdown — positioned via JS relative to <nav> -->
                     <div
-                        v-if="item.items && item.items.length > 0"
+                        v-if="item.children && item.children.length > 0"
                         :data-dropdown-index="index"
                         class="absolute top-full pt-4 transition-all duration-300 z-50"
                         :class="openIndex === index ? 'opacity-100 visible' : 'opacity-0 invisible'"
                         :style="dropdownStyles[index] || {}"
                         role="menu"
-                        :aria-label="item.name + ' sottomenu'"
+                        :aria-label="item.label + ' sottomenu'"
                         @keydown="handleDropdownKeydown($event, index)"
                     >
                         <div class="flex bg-white/95 backdrop-blur-xl shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-white/20 rounded-2xl overflow-hidden transition-transform duration-300 ease-out w-[720px] min-h-[320px]" :class="openIndex === index ? 'translate-y-0' : 'translate-y-4 group-hover:translate-y-0'">
                             <!-- Left side with links -->
                             <div class="w-3/5 p-10 flex flex-col">
                                 <div class="mb-8">
-                                    <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-2">{{ item.name }}</h3>
+                                    <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-2">{{ item.label }}</h3>
                                     <div class="w-16 h-1 bg-savino-gold"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 flex-1 content-start">
                                     <Link 
-                                        v-for="sub in item.items" 
-                                        :key="sub.name"
+                                        v-for="sub in item.children" 
+                                        :key="sub.label"
                                         :href="sub.href"
                                         prefetch
                                         role="menuitem"
                                         class="flex flex-col p-4 rounded-xl border border-gray-100 hover:border-savino-gold/50 bg-gray-50 hover:bg-white hover:shadow-xl transition-all duration-300 group/link"
                                     >
                                         <span class="text-[14px] font-black text-savino-blue uppercase tracking-wider mb-1 flex justify-between items-center">
-                                            {{ sub.name }}
+                                            {{ sub.label }}
                                             <svg class="w-5 h-5 text-savino-gold opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                         </span>
                                         <span class="text-xs text-gray-500 font-medium">Esplora la sezione dedicata</span>
@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
                                 <!-- Topic image (lazy-loaded) -->
                                 <img 
                                     :src="item.menuImage || '/images/logo.png'" 
-                                    :alt="item.name"
+                                    :alt="item.label"
                                     loading="lazy"
                                     class="absolute inset-0 w-full h-full object-cover scale-110 transition-transform duration-[6s] ease-out group-hover:scale-125"
                                 />

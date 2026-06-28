@@ -10,7 +10,9 @@ use Illuminate\Support\Carbon;
 class OrdersChartWidget extends ChartWidget
 {
     protected static ?string $heading = 'Ordini ultimi 6 mesi';
+
     protected static ?int $sort = 2;
+
     protected static string $color = 'warning';
 
     protected function getData(): array
@@ -28,10 +30,10 @@ class OrdersChartWidget extends ChartWidget
         })->toArray();
 
         $revenueCents = $months->map(function ($month) {
-            return (int) Order::where('status', OrderStatus::Paid)
+            return round((float) Order::where('status', OrderStatus::Paid)
                 ->whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
-                ->sum('total_price');
+                ->sum('total_price'), 2);
         })->toArray();
 
         return [

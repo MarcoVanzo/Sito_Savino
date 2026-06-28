@@ -19,7 +19,7 @@ class OrderObserver
      */
     public function updated(Order $order): void
     {
-        if (!$order->isDirty('status')) {
+        if (! $order->isDirty('status')) {
             return;
         }
 
@@ -32,9 +32,9 @@ class OrderObserver
         if ($order->status === OrderStatus::Cancelled) {
             $originalStatus = $order->getOriginal('status');
             // getOriginal() può tornare stringa o enum in base alla versione Laravel
-            $wasPaid = $originalStatus === OrderStatus::Paid 
+            $wasPaid = $originalStatus === OrderStatus::Paid
                 || $originalStatus === OrderStatus::Paid->value;
-            
+
             if ($wasPaid) {
                 $this->restoreStock($order);
             }
@@ -56,6 +56,7 @@ class OrderObserver
 
             if ($alreadyProcessed) {
                 Log::warning("Stock già decrementato per Ordine #{$order->id} — operazione saltata");
+
                 return;
             }
 
@@ -103,6 +104,7 @@ class OrderObserver
 
             if ($alreadyRestored) {
                 Log::warning("Stock già ripristinato per Ordine #{$order->id} — operazione saltata");
+
                 return;
             }
 
@@ -120,5 +122,4 @@ class OrderObserver
             Log::info("Stock ripristinato per Ordine #{$order->id} (cancellazione)");
         });
     }
-
 }

@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Schema;
  * Aggiunge indici di performance su colonne di stato e chiavi esterne
  * frequentemente usate nelle query.
  *
- * In PostgreSQL (usato su DigitalOcean) i vincoli FK non creano
- * automaticamente indici, a differenza di MySQL/MariaDB.
- * Questa migrazione garantisce performance ottimali su entrambi i DBMS.
+ * MySQL 8.4 (usato su DigitalOcean) crea indici automatici per le FK,
+ * ma non per le colonne usate solo in WHERE/ORDER BY.
+ * Questa migrazione aggiunge indici espliciti per query ottimali.
  */
 return new class extends Migration
 {
@@ -21,12 +21,12 @@ return new class extends Migration
     private function indexDefinitions(): array
     {
         return [
-            'posts'           => ['status', 'author_id'],
-            'pages'           => ['status', 'author_id'],
-            'orders'          => ['status', 'user_id'],
-            'games'           => ['status', 'season_id'],
-            'rosters'         => [['team_id', 'season_id']],
-            'player_stats'    => ['player_id'],
+            'posts' => ['status', 'author_id'],
+            'pages' => ['status', 'author_id'],
+            'orders' => ['status', 'user_id'],
+            'games' => ['status', 'season_id'],
+            'rosters' => [['team_id', 'season_id']],
+            'player_stats' => ['player_id'],
             'stock_movements' => ['product_id', 'product_variant_id', 'type'],
         ];
     }

@@ -1,6 +1,6 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 
@@ -14,7 +14,12 @@ const props = defineProps({
 const { sanitize } = useSanitize()
 const safeContent = computed(() => sanitize(props.page?.content))
 
-const youthTeams = [
+const inertiaPage = usePage()
+const settings = computed(() => inertiaPage.props.siteSettings ?? {})
+const contact = computed(() => settings.value.contact ?? {})
+const cd = computed(() => props.page?.content_data ?? {})
+
+const youthTeams = computed(() => cd.value.youth_teams ?? [
     {
         name: 'Under 18',
         category: 'Serie C',
@@ -47,9 +52,9 @@ const youthTeams = [
         players: 20,
         color: 'savino-blue'
     }
-]
+])
 
-const values = [
+const values = computed(() => cd.value.values ?? [
     {
         icon: 'star',
         title: 'Eccellenza Tecnica',
@@ -70,15 +75,15 @@ const values = [
         title: 'Staff Dedicato',
         description: 'Allenatori certificati, preparatori atletici e supporto psicologico per ogni categoria.'
     }
-]
+])
 </script>
 
 <template>
     <Head>
       <title>{{ (page?.title ?? 'Settore Giovanile') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" content="Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley." />
+      <meta name="description" :content="cd.meta_description || 'Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley.'" />
       <meta property="og:title" :content="(page?.title ?? 'Settore Giovanile') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" content="Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley." />
+      <meta property="og:description" :content="cd.meta_description || 'Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley.'" />
       <meta property="og:image" :content="'/images/logo.png'" />
       <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
       <meta property="og:type" content="website" />
@@ -89,10 +94,10 @@ const values = [
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Il Futuro in Campo</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || 'Il Futuro in Campo' }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Settore Giovanile' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">Costruiamo il futuro della pallavolo con passione, talento e dedizione.</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description || 'Costruiamo il futuro della pallavolo con passione, talento e dedizione.' }}</p>
             </div>
         </section>
 
@@ -101,36 +106,33 @@ const values = [
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-wider">La Nostra Filosofia</span>
-                        <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-4">Formare Campioni Dentro e Fuori dal Campo</h2>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-wider">{{ cd.intro_label || 'La Nostra Filosofia' }}</span>
+                        <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-4">{{ cd.intro_title || 'Formare Campioni Dentro e Fuori dal Campo' }}</h2>
                         <div class="w-12 h-1 bg-savino-gold mb-6"></div>
                         <p class="text-gray-600 leading-relaxed mb-4">
-                            Il settore giovanile della Savino Del Bene rappresenta il cuore pulsante della nostra società.
-                            Crediamo che la formazione sportiva debba andare di pari passo con la crescita personale,
-                            accompagnando ogni giovane atleta in un percorso di eccellenza.
+                            {{ cd.intro_paragraph_1 || 'Il settore giovanile della Savino Del Bene rappresenta il cuore pulsante della nostra società. Crediamo che la formazione sportiva debba andare di pari passo con la crescita personale, accompagnando ogni giovane atleta in un percorso di eccellenza.' }}
                         </p>
                         <p class="text-gray-600 leading-relaxed">
-                            Con oltre 70 atlete distribuite nelle diverse categorie, il nostro vivaio è una fucina di talenti
-                            che si allenano quotidianamente con l'obiettivo di raggiungere i massimi livelli.
+                            {{ cd.intro_paragraph_2 || 'Con oltre 70 atlete distribuite nelle diverse categorie, il nostro vivaio è una fucina di talenti che si allenano quotidianamente con l\'obiettivo di raggiungere i massimi livelli.' }}
                         </p>
                     </div>
                     <div class="bg-gradient-to-br from-savino-blue/5 to-savino-gold/5 rounded-2xl p-8 border border-gray-100">
                         <div class="grid grid-cols-2 gap-6">
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-blue block">70+</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block">Giovani Atlete</span>
+                                <span class="text-4xl font-black text-savino-blue block">{{ cd.stat_athletes || '70+' }}</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_athletes_label || 'Giovani Atlete' }}</span>
                             </div>
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-gold block">4</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block">Categorie</span>
+                                <span class="text-4xl font-black text-savino-gold block">{{ cd.stat_categories || '4' }}</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_categories_label || 'Categorie' }}</span>
                             </div>
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-red block">12</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block">Allenatori</span>
+                                <span class="text-4xl font-black text-savino-red block">{{ cd.stat_coaches || '12' }}</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_coaches_label || 'Allenatori' }}</span>
                             </div>
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-blue block">15+</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block">Anni di Attività</span>
+                                <span class="text-4xl font-black text-savino-blue block">{{ cd.stat_years || '15+' }}</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_years_label || 'Anni di Attività' }}</span>
                             </div>
                         </div>
                     </div>
@@ -141,7 +143,7 @@ const values = [
         <!-- Values -->
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">I Nostri Valori</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.values_title || 'I Nostri Valori' }}</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-12"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -178,7 +180,7 @@ const values = [
         <!-- Youth Teams Grid -->
         <section class="py-16 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">Le Nostre Squadre</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.teams_title || 'Le Nostre Squadre' }}</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -235,15 +237,14 @@ const values = [
         <!-- Talent Scouting -->
         <section class="py-16 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Talent Scouting</span>
-                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4">Cerchiamo Nuovi Talenti</h2>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.scouting_label || 'Talent Scouting' }}</span>
+                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4">{{ cd.scouting_title || 'Cerchiamo Nuovi Talenti' }}</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-8"></div>
                 <p class="text-white/70 text-lg leading-relaxed max-w-2xl mx-auto mb-6">
-                    Sei una giovane atleta con la passione per la pallavolo? Il nostro programma di scouting è sempre alla ricerca di nuovi talenti.
-                    Partecipa alle giornate di prova e inizia il tuo percorso verso l'eccellenza sportiva.
+                    {{ cd.scouting_description || 'Sei una giovane atleta con la passione per la pallavolo? Il nostro programma di scouting è sempre alla ricerca di nuovi talenti. Partecipa alle giornate di prova e inizia il tuo percorso verso l\'eccellenza sportiva.' }}
                 </p>
                 <p class="text-white/50 text-sm mb-8">
-                    Per informazioni sulle prove e le iscrizioni, contattaci via email o telefono.
+                    {{ cd.scouting_info || 'Per informazioni sulle prove e le iscrizioni, contattaci via email o telefono.' }}
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a
@@ -251,17 +252,17 @@ const values = [
                         class="inline-flex items-center justify-center px-8 py-3.5 bg-savino-gold text-white font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-all duration-300 shadow-lg shadow-savino-gold/30 text-sm"
                        
                     >
-                        Contattaci
+                        {{ cd.scouting_cta_primary || 'Contattaci' }}
                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
                     </a>
                     <a
-                        href="mailto:giovanili@savinodelbenescandicci.it"
+                        :href="'mailto:' + (cd.scouting_email || contact.youth_email || 'giovanili@savinodelbenescandicci.it')"
                         class="inline-flex items-center justify-center px-8 py-3.5 border-2 border-white/30 text-white font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition-all duration-300 text-sm"
                        
                     >
-                        Scrivi una Email
+                        {{ cd.scouting_cta_secondary || 'Scrivi una Email' }}
                     </a>
                 </div>
             </div>

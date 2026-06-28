@@ -1,8 +1,7 @@
 <?php
+
 namespace Tests\Feature;
 
-use App\Enums\PostStatus;
-use App\Models\Post;
 use App\Models\Product;
 use App\Models\Sponsor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,6 +15,7 @@ class PublicRoutesTest extends TestCase
     {
         parent::setUp();
         $this->withoutVite();
+        \Illuminate\Support\Facades\Cache::flush();
     }
 
     // --- Rotte Statiche ---
@@ -69,8 +69,7 @@ class PublicRoutesTest extends TestCase
 
     public function test_home_renders_correct_component(): void
     {
-        $this->get('/')->assertInertia(fn ($page) =>
-            $page->component('Public/Home')
+        $this->get('/')->assertInertia(fn ($page) => $page->component('Public/Home')
         );
     }
 
@@ -78,9 +77,8 @@ class PublicRoutesTest extends TestCase
     {
         Sponsor::factory()->count(2)->create();
 
-        $this->get('/sponsor')->assertInertia(fn ($page) =>
-            $page->component('Public/Sponsor')
-                ->has('sponsors', 2)
+        $this->get('/sponsor')->assertInertia(fn ($page) => $page->component('Public/Sponsor')
+            ->has('sponsors', 2)
         );
     }
 
@@ -89,9 +87,8 @@ class PublicRoutesTest extends TestCase
         Product::factory()->create(['is_active' => true]);
         Product::factory()->create(['is_active' => false]);
 
-        $this->get('/shop')->assertInertia(fn ($page) =>
-            $page->component('Public/Shop')
-                ->has('products', 1)
+        $this->get('/shop')->assertInertia(fn ($page) => $page->component('Public/Shop')
+            ->has('products', 1)
         );
     }
 
@@ -104,5 +101,4 @@ class PublicRoutesTest extends TestCase
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('X-Frame-Options', 'DENY');
     }
-
 }

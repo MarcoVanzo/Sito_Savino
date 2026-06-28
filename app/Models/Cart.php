@@ -2,19 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Traits\LogsActivity;
 
 class Cart extends Model
 {
-    use HasFactory, MassPrunable, LogsActivity;
+    use HasFactory, LogsActivity, MassPrunable;
 
     protected $fillable = [
-        'session_id', 'user_id', 'expires_at'
+        'session_id', 'user_id', 'expires_at',
     ];
 
     protected $casts = [

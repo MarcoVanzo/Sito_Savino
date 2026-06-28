@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Traits\LogsActivity;
 
 class CartItem extends Model
 {
     use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'cart_id', 'product_id', 'product_variant_id', 'quantity'
+        'cart_id', 'product_id', 'product_variant_id', 'quantity',
     ];
 
     public function cart(): BelongsTo

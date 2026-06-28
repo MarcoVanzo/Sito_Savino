@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 class VariantsRelationManager extends RelationManager
 {
     protected static string $relationship = 'variants';
+
     protected static ?string $title = 'Varianti';
 
     public function form(Form $form): Form

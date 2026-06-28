@@ -2,20 +2,22 @@
 
 namespace App\Models;
 
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use App\Models\Traits\LogsActivity;
 
 class Product extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, LogsActivity;
+    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
-        'product_category_id', 'name', 'slug', 'description', 'price', 
-        'stock', 'sku', 'is_active'
+        'product_category_id', 'name', 'slug', 'description', 'price',
+        'stock', 'sku', 'is_active',
     ];
 
     protected $casts = [
@@ -23,27 +25,27 @@ class Product extends Model implements HasMedia
         'price' => 'decimal:2',
     ];
 
-    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
 
-    public function variants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
     }
 
-    public function stockMovements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
     }
 
-    public function orderItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    public function cartItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);
     }

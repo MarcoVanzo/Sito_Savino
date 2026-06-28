@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\CompetitionType;
+use App\Enums\GameStatus;
 use App\Filament\Resources\GameResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Game;
@@ -10,8 +12,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use App\Enums\CompetitionType;
-use App\Enums\GameStatus;
 use Illuminate\Database\Eloquent\Builder;
 
 class GameResource extends Resource
@@ -24,9 +24,13 @@ class GameResource extends Resource
     protected static ?string $recordTitleAttribute = 'competition_type';
 
     protected static ?string $modelLabel = 'Partita';
+
     protected static ?string $pluralModelLabel = 'Partite';
+
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+
     protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form
@@ -90,19 +94,36 @@ class GameResource extends Resource
                 Tables\Columns\TextColumn::make('match_date')
                     ->label('Data e Ora')
                     ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->description(fn ($record) => $record->location),
+                Tables\Columns\TextColumn::make('competition_type')
+                    ->label('Competizione')
+                    ->badge()
+                    ->color('primary'),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Stato')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        \App\Enums\GameStatus::Scheduled->value => 'gray',
+                        \App\Enums\GameStatus::Live->value => 'danger',
+                        \App\Enums\GameStatus::Finished->value => 'success',
+                        \App\Enums\GameStatus::Cancelled->value => 'warning',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('homeTeam.name')
                     ->label('Casa')
-                    ->searchable(),
+                    ->searchable()
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('home_score')
-                    ->label('Pt. Casa'),
+                    ->label('Pt.')
+                    ->alignCenter(),
                 Tables\Columns\TextColumn::make('away_score')
-                    ->label('Pt. Trasf.'),
+                    ->label('Pt.')
+                    ->alignCenter(),
                 Tables\Columns\TextColumn::make('awayTeam.name')
                     ->label('Trasferta')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('competition_type')
-                    ->label('Competizione'),
+                    ->searchable()
+                    ->weight('bold'),
             ])
             ->defaultSort('match_date', 'desc')
             ->filters([

@@ -1,6 +1,6 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 
@@ -14,54 +14,71 @@ const props = defineProps({
 const { sanitize } = useSanitize()
 const safeContent = computed(() => sanitize(props.page?.content))
 
-const plans = [
-    {
-        name: 'Singola Partita',
-        price: '15',
-        period: 'a partita',
-        features: [
-            'Accesso al Palazzo Wanny',
-            'Posto in tribuna laterale',
-            'Acquisto online o in cassa',
-        ],
-        highlight: false,
-        cta: 'Acquista Biglietto'
-    },
-    {
-        name: 'Abbonamento Gold',
-        price: '199',
-        period: 'stagione',
-        features: [
-            'Tutte le partite casalinghe',
-            'Posto numerato in tribuna centrale',
-            'Accesso prioritario al palazzetto',
-            'Sconto 10% su merchandising',
-            'Meet & Greet con le atlete',
-        ],
-        highlight: true,
-        cta: 'Sottoscrivi Ora'
-    },
-    {
-        name: 'Abbonamento Base',
-        price: '99',
-        period: 'stagione',
-        features: [
-            'Tutte le partite casalinghe',
-            'Posto in tribuna laterale',
-            'Ingresso dedicato',
-        ],
-        highlight: false,
-        cta: 'Sottoscrivi Ora'
+const inertiaPage = usePage()
+const settings = computed(() => inertiaPage.props.siteSettings ?? {})
+const contact = computed(() => settings.value.contact ?? {})
+const cd = computed(() => props.page?.content_data ?? {})
+
+const plans = computed(() => {
+    if (cd.value.plans && Array.isArray(cd.value.plans) && cd.value.plans.length > 0) {
+        return cd.value.plans.map(p => ({
+            name: p.name || 'Piano',
+            price: p.price || '0',
+            period: p.period || 'stagione',
+            features: Array.isArray(p.features) ? p.features : [],
+            highlight: !!p.highlight,
+            cta: p.cta || 'Acquista'
+        }))
     }
-]
+    return [
+        {
+            name: 'Singola Partita',
+            price: '15',
+            period: 'a partita',
+            features: [
+                'Accesso al Palazzo Wanny',
+                'Posto in tribuna laterale',
+                'Acquisto online o in cassa',
+            ],
+            highlight: false,
+            cta: 'Acquista Biglietto'
+        },
+        {
+            name: 'Abbonamento Gold',
+            price: '199',
+            period: 'stagione',
+            features: [
+                'Tutte le partite casalinghe',
+                'Posto numerato in tribuna centrale',
+                'Accesso prioritario al palazzetto',
+                'Sconto 10% su merchandising',
+                'Meet & Greet con le atlete',
+            ],
+            highlight: true,
+            cta: 'Sottoscrivi Ora'
+        },
+        {
+            name: 'Abbonamento Base',
+            price: '99',
+            period: 'stagione',
+            features: [
+                'Tutte le partite casalinghe',
+                'Posto in tribuna laterale',
+                'Ingresso dedicato',
+            ],
+            highlight: false,
+            cta: 'Sottoscrivi Ora'
+        }
+    ]
+})
 </script>
 
 <template>
     <Head>
       <title>{{ (page?.title ?? 'Biglietteria') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" content="Acquista i biglietti per le partite della Savino Del Bene Volley al Palazzo Wanny. Abbonamenti e biglietti singoli." />
+      <meta name="description" :content="cd.meta_description || 'Acquista i biglietti per le partite della Savino Del Bene Volley al Palazzo Wanny. Abbonamenti e biglietti singoli.'" />
       <meta property="og:title" :content="(page?.title ?? 'Biglietteria') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" content="Acquista i biglietti per le partite della Savino Del Bene Volley al Palazzo Wanny. Abbonamenti e biglietti singoli." />
+      <meta property="og:description" :content="cd.meta_description || 'Acquista i biglietti per le partite della Savino Del Bene Volley al Palazzo Wanny. Abbonamenti e biglietti singoli.'" />
       <meta property="og:image" :content="'/images/logo.png'" />
       <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
       <meta property="og:type" content="website" />
@@ -72,17 +89,17 @@ const plans = [
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Vivi l'Emozione</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label || 'Vivi l\'Emozione' }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Biglietteria' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">Scegli il tuo posto e vivi l'emozione della pallavolo dal vivo al Palazzo Wanny.</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_subtitle || 'Scegli il tuo posto e vivi l\'emozione della pallavolo dal vivo al Palazzo Wanny.' }}</p>
             </div>
         </section>
 
         <!-- Subscription Plans -->
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">Scegli il tuo Abbonamento</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.plans_heading || 'Scegli il tuo Abbonamento' }}</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-12"></div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -97,7 +114,7 @@ const plans = [
                         <!-- Popular Badge -->
                         <div v-if="plan.highlight" class="absolute top-0 right-0">
                             <div class="bg-savino-gold text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl">
-                                Più Popolare
+                                {{ cd.popular_badge || 'Più Popolare' }}
                             </div>
                         </div>
 
@@ -151,7 +168,7 @@ const plans = [
         <!-- Info Acquisto -->
         <section class="py-16 bg-white">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">Informazioni sull'Acquisto</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.info_heading || 'Informazioni sull\'Acquisto' }}</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -161,8 +178,8 @@ const plans = [
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-2">Online</h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">Acquista i biglietti comodamente online tramite il nostro sistema di ticketing. Pagamento sicuro con carta di credito o PayPal.</p>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">{{ cd.online_title || 'Online' }}</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">{{ cd.online_description || 'Acquista i biglietti comodamente online tramite il nostro sistema di ticketing. Pagamento sicuro con carta di credito o PayPal.' }}</p>
                     </div>
                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
                         <div class="w-12 h-12 rounded-full bg-savino-gold/10 flex items-center justify-center mb-4">
@@ -170,8 +187,8 @@ const plans = [
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-2">Al Botteghino</h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">La biglietteria del Palazzo Wanny apre 2 ore prima dell'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.</p>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">{{ cd.boxoffice_title || 'Al Botteghino' }}</h3>
+                        <p class="text-gray-500 text-sm leading-relaxed">{{ cd.boxoffice_description || 'La biglietteria del Palazzo Wanny apre 2 ore prima dell\'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.' }}</p>
                     </div>
                 </div>
             </div>

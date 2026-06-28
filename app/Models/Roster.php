@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use App\Enums\PlayerPosition;
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use App\Models\Traits\LogsActivity;
 
 class Roster extends Model implements HasMedia
 {
@@ -17,7 +17,7 @@ class Roster extends Model implements HasMedia
     protected $fillable = [
         'player_id', 'team_id', 'season_id',
         'jersey_number', 'role', 'height_cm', 'is_captain',
-        'bio'
+        'bio',
     ];
 
     protected $casts = [
@@ -34,6 +34,7 @@ class Roster extends Model implements HasMedia
     public function getOfficialPhotoUrlAttribute(): ?string
     {
         $url = $this->getFirstMediaUrl('rosters_official');
+
         return $url !== '' ? $url : null;
     }
 

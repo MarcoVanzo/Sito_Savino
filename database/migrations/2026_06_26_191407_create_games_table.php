@@ -13,13 +13,13 @@ return new class extends Migration
             $table->foreignId('season_id')->constrained()->cascadeOnDelete();
             $table->foreignId('home_team_id')->constrained('teams')->restrictOnDelete();
             $table->foreignId('away_team_id')->constrained('teams')->restrictOnDelete();
-            
+
             $table->datetime('match_date');
             $table->integer('home_score')->nullable();
             $table->integer('away_score')->nullable();
             $table->string('location')->nullable();
             $table->string('competition_type')->nullable(); // Campionato, Coppa Italia, Champions
-            
+
             $table->timestamps();
         });
     }

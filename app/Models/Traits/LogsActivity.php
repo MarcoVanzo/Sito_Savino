@@ -115,6 +115,7 @@ trait LogsActivity
             if (in_array($key, $heavyFields)) {
                 $old[$key] = '[contenuto precedente]';
                 $new[$key] = '[contenuto aggiornato]';
+
                 continue;
             }
 
@@ -147,6 +148,7 @@ trait LogsActivity
             }
             if (in_array($key, $heavyFields)) {
                 $snapshot[$key] = '[contenuto]';
+
                 continue;
             }
             $snapshot[$key] = $value;

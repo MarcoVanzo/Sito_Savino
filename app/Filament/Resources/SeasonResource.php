@@ -24,9 +24,13 @@ class SeasonResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Stagione';
+
     protected static ?string $pluralModelLabel = 'Stagioni';
+
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+
     protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
@@ -36,7 +40,14 @@ class SeasonResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required(),
                 Forms\Components\Toggle::make('is_current')
-                    ->required(),
+                    ->required()
+                    ->afterStateUpdated(function ($state) {
+                        if ($state) {
+                            // Disattiva tutte le altre stagioni
+                            Season::where('is_current', true)->update(['is_current' => false]);
+                        }
+                    })
+                    ->live(),
             ]);
     }
 

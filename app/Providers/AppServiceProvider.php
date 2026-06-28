@@ -2,12 +2,30 @@
 
 namespace App\Providers;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Vite;
-use Illuminate\Support\ServiceProvider;
+use App\Models\Game;
+use App\Models\Order;
+use App\Models\Page;
+use App\Models\Player;
+use App\Models\PlayerStat;
+use App\Models\Post;
+use App\Models\Product;
+use App\Models\Roster;
+use App\Models\Season;
+use App\Models\Sponsor;
+use App\Models\StockMovement;
+use App\Models\Team;
+use App\Models\User;
+use App\Observers\CacheInvalidationObserver;
+use App\Observers\OrderObserver;
+use App\Observers\StockMovementObserver;
+use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,23 +48,23 @@ class AppServiceProvider extends ServiceProvider
 
         Vite::prefetch(concurrency: 3);
 
-        \App\Models\User::observe(\App\Observers\UserObserver::class);
-        \App\Models\Order::observe(\App\Observers\OrderObserver::class);
-        \App\Models\StockMovement::observe(\App\Observers\StockMovementObserver::class);
-        \App\Models\Roster::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\Player::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\PlayerStat::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\Season::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\Team::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\Sponsor::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\Product::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\Post::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\Page::observe(\App\Observers\CacheInvalidationObserver::class);
-        \App\Models\Game::observe(\App\Observers\CacheInvalidationObserver::class);
+        User::observe(UserObserver::class);
+        Order::observe(OrderObserver::class);
+        StockMovement::observe(StockMovementObserver::class);
+        Roster::observe(CacheInvalidationObserver::class);
+        Player::observe(CacheInvalidationObserver::class);
+        PlayerStat::observe(CacheInvalidationObserver::class);
+        Season::observe(CacheInvalidationObserver::class);
+        Team::observe(CacheInvalidationObserver::class);
+        Sponsor::observe(CacheInvalidationObserver::class);
+        Product::observe(CacheInvalidationObserver::class);
+        Post::observe(CacheInvalidationObserver::class);
+        Page::observe(CacheInvalidationObserver::class);
+        Game::observe(CacheInvalidationObserver::class);
 
         // Forza HTTPS in produzione
         if (app()->isProduction()) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
         // Rate limiters

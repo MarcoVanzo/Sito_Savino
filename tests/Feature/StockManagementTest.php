@@ -1,4 +1,5 @@
 <?php
+
 namespace Tests\Feature;
 
 use App\Enums\OrderStatus;
@@ -53,7 +54,7 @@ class StockManagementTest extends TestCase
 
         // Simula doppio pagamento (idempotenza)
         $order->update(['status' => OrderStatus::Paid]);
-        
+
         // Forza un secondo trigger: reimposta e ri-aggiorna
         $order->status = OrderStatus::Pending;
         $order->saveQuietly(); // saveQuietly per non triggerare observer

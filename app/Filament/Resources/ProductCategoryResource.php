@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 
 class ProductCategoryResource extends Resource
 {
@@ -21,9 +22,13 @@ class ProductCategoryResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Categoria Prodotto';
+
     protected static ?string $pluralModelLabel = 'Categorie Prodotti';
+
     protected static ?string $navigationIcon = 'heroicon-o-tag';
+
     protected static ?string $navigationGroup = 'Shop';
+
     protected static ?int $navigationSort = 12;
 
     public static function form(Form $form): Form
@@ -35,7 +40,7 @@ class ProductCategoryResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->live(onBlur: true)
-                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', \Illuminate\Support\Str::slug($state)) : null),
+                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
                 Forms\Components\TextInput::make('slug')
                     ->label('Slug')
                     ->required()

@@ -2,11 +2,11 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Stat;
-use App\Models\Player;
 use App\Models\Game;
 use App\Models\Order;
+use App\Models\Player;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class DashboardStatsWidget extends BaseWidget
 {

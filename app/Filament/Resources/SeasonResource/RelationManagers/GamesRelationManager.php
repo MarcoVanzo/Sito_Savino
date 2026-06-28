@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 class GamesRelationManager extends RelationManager
 {
     protected static string $relationship = 'games';
+
     protected static ?string $title = 'Partite';
 
     public function form(Form $form): Form

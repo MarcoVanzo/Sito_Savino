@@ -1,7 +1,7 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, useForm, usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
 const props = defineProps({
     page: {
@@ -10,63 +10,65 @@ const props = defineProps({
     }
 })
 
-const form = ref({
+const form = useForm({
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
+    honeypot: '', // Anti-spam
 })
 
-const formSubmitted = ref(false)
-const formError = ref(false)
+const inertiaPage = usePage();
+const settings = computed(() => inertiaPage.props.siteSettings ?? {});
+const contact = computed(() => settings.value.contact ?? {});
+const cd = computed(() => props.page?.content_data ?? {});
+
+const flashSuccess = computed(() => inertiaPage.props.flash?.success)
 
 function handleSubmit() {
-    // Placeholder submit logic
-    if (!form.value.name || !form.value.email || !form.value.message) {
-        formError.value = true
-        return
-    }
-    formError.value = false
-    formSubmitted.value = true
+    form.post(route('contatti.submit'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Form reset automatico dopo successo
+        },
+    })
 }
 
 function resetForm() {
-    form.value = { name: '', email: '', subject: '', message: '' }
-    formSubmitted.value = false
-    formError.value = false
+    form.reset()
 }
 
-const contactInfo = [
+const contactInfo = computed(() => [
     {
         icon: 'email',
         title: 'Email',
-        value: 'info@savinodelbenescandicci.it',
-        link: 'mailto:info@savinodelbenescandicci.it',
+        value: contact.value.email || 'info@savinodelbenescandicci.it',
+        link: 'mailto:' + (contact.value.email || 'info@savinodelbenescandicci.it'),
         color: 'savino-blue'
     },
     {
         icon: 'phone',
         title: 'Telefono',
-        value: '+39 055 123 4567',
-        link: 'tel:+390551234567',
+        value: contact.value.phone || '+39 055 123 4567',
+        link: 'tel:' + (contact.value.phone_raw || contact.value.phone || '+390551234567').replace(/\s/g, ''),
         color: 'savino-gold'
     },
     {
         icon: 'location',
         title: 'Sede',
-        value: 'Palazzo Wanny, Via Allende 10, Firenze',
+        value: contact.value.address || 'Palazzo Wanny, Via Allende 10, Firenze',
         link: null,
         color: 'savino-red'
     }
-]
+])
 </script>
 
 <template>
     <Head>
       <title>{{ (page?.title ?? 'Contatti') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" content="Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto." />
+      <meta name="description" :content="cd.meta_description || 'Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto.'" />
       <meta property="og:title" :content="(page?.title ?? 'Contatti') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" content="Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto." />
+      <meta property="og:description" :content="cd.meta_description || 'Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto.'" />
       <meta property="og:image" :content="'/images/logo.png'" />
       <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
       <meta property="og:type" content="website" />
@@ -77,10 +79,10 @@ const contactInfo = [
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Resta in Contatto</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || 'Resta in Contatto' }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Contatti' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">Scrivici, chiamaci o vieni a trovarci. Siamo qui per te.</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description || 'Scrivici, chiamaci o vieni a trovarci. Siamo qui per te.' }}</p>
             </div>
         </section>
 
@@ -130,75 +132,81 @@ const contactInfo = [
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <!-- Form -->
                     <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-                        <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2">Scrivici</h2>
+                        <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.form_title || 'Scrivici' }}</h2>
                         <div class="w-10 h-1 bg-savino-gold mb-6"></div>
 
                         <!-- Success State -->
-                        <div v-if="formSubmitted" class="text-center py-12">
+                        <div v-if="flashSuccess" class="text-center py-12">
                             <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
                                 <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Messaggio inviato!</h3>
-                            <p class="text-gray-500 mb-6">Ti risponderemo il prima possibile.</p>
-                            <button @click="resetForm" class="text-savino-blue font-bold hover:underline">Invia un altro messaggio</button>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ flashSuccess }}</h3>
+                            <p class="text-gray-500 mb-6">{{ cd.form_success_message || 'Ti risponderemo il prima possibile.' }}</p>
+                            <button @click="resetForm" class="text-savino-blue font-bold hover:underline">{{ cd.form_reset_label || 'Invia un altro messaggio' }}</button>
                         </div>
 
                         <!-- Form -->
                         <form v-else @submit.prevent="handleSubmit" class="space-y-5">
-                            <div v-if="formError" class="bg-savino-red/10 border border-savino-red/30 rounded-lg p-3 text-savino-red text-sm">
-                                Compila tutti i campi obbligatori.
+                            <div v-if="Object.keys(form.errors).length > 0" class="bg-savino-red/10 border border-savino-red/30 rounded-lg p-3 text-savino-red text-sm">
+                                <p v-for="(error, field) in form.errors" :key="field">{{ error }}</p>
                             </div>
                             <div>
-                                <label for="contact-name" class="block text-sm font-bold text-gray-700 mb-1.5">Nome e Cognome *</label>
+                                <label for="contact-name" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_name || 'Nome e Cognome' }} *</label>
                                 <input
                                     id="contact-name"
                                     v-model="form.name"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
                                    
-                                    placeholder="Il tuo nome"
+                                    :placeholder="cd.form_placeholder_name || 'Il tuo nome'"
                                 />
                             </div>
                             <div>
-                                <label for="contact-email" class="block text-sm font-bold text-gray-700 mb-1.5">Email *</label>
+                                <label for="contact-email" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_email || 'Email' }} *</label>
                                 <input
                                     id="contact-email"
                                     v-model="form.email"
                                     type="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
                                    
-                                    placeholder="La tua email"
+                                    :placeholder="cd.form_placeholder_email || 'La tua email'"
                                 />
                             </div>
                             <div>
-                                <label for="contact-subject" class="block text-sm font-bold text-gray-700 mb-1.5">Oggetto</label>
+                                <label for="contact-subject" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_subject || 'Oggetto' }}</label>
                                 <input
                                     id="contact-subject"
                                     v-model="form.subject"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
                                    
-                                    placeholder="Oggetto del messaggio"
+                                    :placeholder="cd.form_placeholder_subject || 'Oggetto del messaggio'"
                                 />
                             </div>
                             <div>
-                                <label for="contact-message" class="block text-sm font-bold text-gray-700 mb-1.5">Messaggio *</label>
+                                <label for="contact-message" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_message || 'Messaggio' }} *</label>
                                 <textarea
                                     id="contact-message"
                                     v-model="form.message"
                                     rows="5"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all resize-none"
                                    
-                                    placeholder="Scrivi il tuo messaggio..."
+                                    :placeholder="cd.form_placeholder_message || 'Scrivi il tuo messaggio...'"
                                 ></textarea>
+                            </div>
+                            <div class="hidden" aria-hidden="true">
+                                <input type="text" v-model="form.honeypot" tabindex="-1" autocomplete="off" />
                             </div>
                             <button
                                 type="submit"
-                                class="w-full bg-savino-blue text-white py-3.5 rounded-lg font-bold uppercase tracking-wider hover:bg-savino-blue/90 transition-all duration-300 shadow-lg shadow-savino-blue/30 hover:shadow-xl hover:shadow-savino-blue/40"
-                               
-                            >Invia Messaggio</button>
+                                :disabled="form.processing"
+                                class="w-full bg-savino-blue text-white py-3.5 rounded-lg font-bold uppercase tracking-wider hover:bg-savino-blue/90 transition-all duration-300 shadow-lg shadow-savino-blue/30 hover:shadow-xl hover:shadow-savino-blue/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <span v-if="form.processing">{{ cd.form_sending_label || 'Invio in corso...' }}</span>
+                                <span v-else>{{ cd.form_submit_label || 'Invia Messaggio' }}</span>
+                            </button>
                         </form>
                     </div>
 
@@ -212,9 +220,9 @@ const contactInfo = [
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
-                                <h3 class="text-lg font-black text-gray-900 uppercase mb-2">Palazzo Wanny</h3>
-                                <p class="text-gray-500 text-sm">Via Allende 10, Firenze</p>
-                                <p class="text-gray-400 text-xs mt-4">Mappa interattiva disponibile a breve</p>
+                                <h3 class="text-lg font-black text-gray-900 uppercase mb-2">{{ cd.map_title || contact.venue_name || 'Palazzo Wanny' }}</h3>
+                                <p class="text-gray-500 text-sm">{{ cd.map_address || contact.short_address || 'Via Allende 10, Firenze' }}</p>
+                                <p class="text-gray-400 text-xs mt-4">{{ cd.map_note || 'Mappa interattiva disponibile a breve' }}</p>
                             </div>
                         </div>
                     </div>

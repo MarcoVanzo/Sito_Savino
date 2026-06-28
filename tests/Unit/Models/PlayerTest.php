@@ -1,10 +1,12 @@
 <?php
+
 namespace Tests\Unit\Models;
 
 use App\Models\Player;
 use App\Models\PlayerStat;
 use App\Models\Roster;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class PlayerTest extends TestCase
@@ -65,7 +67,7 @@ class PlayerTest extends TestCase
     {
         $player = Player::factory()->create(['date_of_birth' => '1998-12-18']);
 
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $player->date_of_birth);
+        $this->assertInstanceOf(Carbon::class, $player->date_of_birth);
     }
 
     public function test_is_staff_is_cast_to_boolean(): void

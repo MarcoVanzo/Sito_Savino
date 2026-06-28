@@ -33,16 +33,19 @@ class PruneActivityLogs extends Command
 
         if ($count === 0) {
             $this->info("Nessun log più vecchio di {$days} giorni.");
+
             return self::SUCCESS;
         }
 
         if ($dryRun) {
             $this->info("[Dry run] {$count} record verrebbero cancellati (più vecchi di {$cutoff->format('d/m/Y')}).");
+
             return self::SUCCESS;
         }
 
         if (! $this->confirm("Cancellare {$count} record di log più vecchi di {$days} giorni?")) {
             $this->info('Operazione annullata.');
+
             return self::SUCCESS;
         }
 

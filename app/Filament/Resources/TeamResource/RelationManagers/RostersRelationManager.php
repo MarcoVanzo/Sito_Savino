@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TeamResource\RelationManagers;
 
+use App\Enums\PlayerPosition;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -11,6 +12,7 @@ use Filament\Tables\Table;
 class RostersRelationManager extends RelationManager
 {
     protected static string $relationship = 'rosters';
+
     protected static ?string $title = 'Roster';
 
     public function form(Form $form): Form
@@ -34,7 +36,7 @@ class RostersRelationManager extends RelationManager
                 ->maxValue(99),
             Forms\Components\Select::make('role')
                 ->label('Ruolo')
-                ->options(\App\Enums\PlayerPosition::class)
+                ->options(PlayerPosition::class)
                 ->required(),
             Forms\Components\TextInput::make('height_cm')
                 ->label('Altezza (cm)')

@@ -25,9 +25,13 @@ class OrderResource extends Resource
     protected static ?string $recordTitleAttribute = 'id';
 
     protected static ?string $modelLabel = 'Ordine';
+
     protected static ?string $pluralModelLabel = 'Ordini';
+
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
+
     protected static ?string $navigationGroup = 'Shop';
+
     protected static ?int $navigationSort = 14;
 
     public static function form(Form $form): Form

@@ -2,16 +2,17 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\PostStatus;
+use App\Models\Page;
+use App\Models\Post;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
-use App\Models\Page;
-use App\Models\Post;
-use App\Enums\PostStatus;
 
 class GenerateSitemap extends Command
 {
     protected $signature = 'sitemap:generate';
+
     protected $description = 'Genera la sitemap.xml per il sito pubblico';
 
     public function handle(): int

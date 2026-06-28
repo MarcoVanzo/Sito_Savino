@@ -20,7 +20,7 @@ class GameFactory extends Factory
             'away_team_id' => Team::factory(),
             'match_date' => fake()->dateTimeBetween('-6 months', '+6 months'),
             'status' => GameStatus::Scheduled,
-            'location' => fake()->city() . ' - PalaVolley',
+            'location' => fake()->city().' - PalaVolley',
             'competition_type' => fake()->randomElement(['Campionato', 'Coppa Italia', 'Champions League', 'Amichevole']),
         ];
     }

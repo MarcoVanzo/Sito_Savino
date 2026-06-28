@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PostStatus;
 use App\Filament\Resources\PageResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Page;
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Illuminate\Support\Str;
-use App\Enums\PostStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class PageResource extends Resource
 {
@@ -25,9 +25,13 @@ class PageResource extends Resource
     protected static ?string $recordTitleAttribute = 'title';
 
     protected static ?string $modelLabel = 'Pagina';
+
     protected static ?string $pluralModelLabel = 'Pagine';
+
     protected static ?string $navigationIcon = 'heroicon-o-document';
+
     protected static ?string $navigationGroup = 'Sito Web';
+
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -63,8 +67,7 @@ class PageResource extends Resource
                             ->image()
                             ->maxSize(5120),
                         Forms\Components\Select::make('parent_id')
-                            ->relationship('parent', 'title', fn (Builder $query, $record) => 
-                                $record ? $query->where('id', '!=', $record->id) : $query
+                            ->relationship('parent', 'title', fn (Builder $query, $record) => $record ? $query->where('id', '!=', $record->id) : $query
                             )
                             ->label('Pagina Genitore')
                             ->searchable(),
@@ -103,6 +106,13 @@ class PageResource extends Resource
                             ->label('Meta Descrizione (SEO)')
                             ->maxLength(255)
                             ->columnSpanFull(),
+                        Forms\Components\Textarea::make('content_data')
+                            ->label('Dati Contenuto (JSON)')
+                            ->helperText('Dati strutturati in formato JSON.')
+                            ->rows(15)
+                            ->columnSpanFull()
+                            ->formatStateUsing(fn ($state) => is_array($state) ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $state)
+                            ->dehydrateStateUsing(fn ($state) => is_string($state) ? json_decode($state, true) : $state),
                     ])->columns(2),
             ]);
     }

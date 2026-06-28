@@ -3,18 +3,17 @@
 namespace App\Models;
 
 use App\Enums\OrderStatus;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
-use App\Models\Traits\LogsActivity;
 
 class Order extends Model
 {
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'user_id', 'status', 'total_price',
@@ -54,12 +53,15 @@ class Order extends Model
     public function recalculateTotal(): self
     {
         return DB::transaction(function () {
-            // Lock this order row to prevent concurrent recalculations
-            $this->refresh()->lockForUpdate();
+            // Acquisisce lock FOR UPDATE correttamente
+            $locked = static::lockForUpdate()->find($this->id);
 
-            $this->total_price = $this->items()
+            $locked->total_price = $locked->items()
                 ->sum(DB::raw('quantity * price_at_time_of_purchase'));
-            $this->save();
+            $locked->save();
+
+            // Sincronizza l'istanza corrente con i valori aggiornati
+            $this->setRawAttributes($locked->getAttributes());
 
             return $this;
         });

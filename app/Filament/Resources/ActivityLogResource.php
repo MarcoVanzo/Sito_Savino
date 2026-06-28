@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\ActivityLogResource\Pages;
 use App\Models\ActivityLog;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -19,9 +21,13 @@ class ActivityLogResource extends Resource
     protected static ?string $model = ActivityLog::class;
 
     protected static ?string $modelLabel = 'Registro Attività';
+
     protected static ?string $pluralModelLabel = 'Registro Attività';
+
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+
     protected static ?string $navigationGroup = 'Amministrazione';
+
     protected static ?int $navigationSort = 17;
 
     /**
@@ -31,7 +37,7 @@ class ActivityLogResource extends Resource
     {
         $user = auth()->user();
 
-        return $user && $user->role === \App\Enums\UserRole::Admin;
+        return $user && $user->role === UserRole::Admin;
     }
 
     /**
@@ -126,13 +132,14 @@ class ActivityLogResource extends Resource
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['from'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('Da ' . \Carbon\Carbon::parse($data['from'])->format('d/m/Y'))
+                            $indicators[] = Tables\Filters\Indicator::make('Da '.Carbon::parse($data['from'])->format('d/m/Y'))
                                 ->removeField('from');
                         }
                         if ($data['until'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('A ' . \Carbon\Carbon::parse($data['until'])->format('d/m/Y'))
+                            $indicators[] = Tables\Filters\Indicator::make('A '.Carbon::parse($data['until'])->format('d/m/Y'))
                                 ->removeField('until');
                         }
+
                         return $indicators;
                     }),
             ])

@@ -12,7 +12,8 @@ class TeamFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->city() . ' Volley';
+        $name = fake()->city().' Volley';
+
         return [
             'name' => $name,
             'slug' => Str::slug($name),

@@ -7,13 +7,14 @@ use App\Filament\Resources\TeamResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Team;
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class TeamResource extends Resource
 {
@@ -25,9 +26,13 @@ class TeamResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Squadra';
+
     protected static ?string $pluralModelLabel = 'Squadre';
+
     protected static ?string $navigationIcon = 'heroicon-o-flag';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+
     protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
@@ -41,7 +46,7 @@ class TeamResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', \Illuminate\Support\Str::slug($state)) : null),
+                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
                         Forms\Components\TextInput::make('slug')
                             ->label('Slug')
                             ->required()

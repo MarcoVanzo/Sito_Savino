@@ -2,19 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use App\Models\Traits\LogsActivity;
 
 class Player extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, LogsActivity;
+    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
-        'first_name', 'last_name', 'date_of_birth', 
+        'first_name', 'last_name', 'date_of_birth',
         'nationality', 'instagram_handle', 'lega_volley_id',
         'is_staff', 'staff_role', 'photo_url', 'sort_order',
     ];
@@ -35,7 +35,7 @@ class Player extends Model implements HasMedia
     {
         return $this->hasMany(Roster::class);
     }
-    
+
     public function stats()
     {
         return $this->hasMany(PlayerStat::class);

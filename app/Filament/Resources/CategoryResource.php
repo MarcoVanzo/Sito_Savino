@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
@@ -22,9 +23,13 @@ class CategoryResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Categoria Notizia';
+
     protected static ?string $pluralModelLabel = 'Categorie Notizie';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?string $navigationGroup = 'Sito Web';
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -35,7 +40,7 @@ class CategoryResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->live(onBlur: true)
-                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', \Illuminate\Support\Str::slug($state)) : null),
+                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
                 Forms\Components\TextInput::make('slug')
                     ->required()
                     ->unique(ignoreRecord: true)
@@ -44,8 +49,7 @@ class CategoryResource extends Resource
                     ->maxLength(65535)
                     ->columnSpanFull(),
                 Forms\Components\Select::make('parent_id')
-                    ->relationship('parent', 'name', fn (Builder $query, $record) => 
-                        $record ? $query->where('id', '!=', $record->id) : $query
+                    ->relationship('parent', 'name', fn (Builder $query, $record) => $record ? $query->where('id', '!=', $record->id) : $query
                     )
                     ->label('Categoria Genitore')
                     ->searchable(),

@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -44,8 +43,9 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        // Non effettuare login automatico: l'utente deve essere attivato dall'admin
+        return redirect()->route('login')->with('status',
+            'Registrazione completata! Il tuo account sarà attivato dall\'amministratore.'
+        );
     }
 }

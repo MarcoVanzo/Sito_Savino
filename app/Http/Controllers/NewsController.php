@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\PostStatus;
 use App\Models\Post;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -15,9 +14,9 @@ class NewsController extends Controller
      */
     public function index(): Response
     {
-        $page = request('page', 1);
+        $page = max(1, min((int) request('page', 1), 100));
 
-        $posts = Cache::remember('public:news:page:' . $page, now()->addMinutes(5), function () {
+        $posts = Cache::remember('public:news:page:'.$page, now()->addMinutes(5), function () {
             return Post::published()
                 ->with(['author', 'categories', 'media'])
                 ->orderByDesc('published_at')
@@ -34,7 +33,7 @@ class NewsController extends Controller
      */
     public function show(string $slug): Response
     {
-        $data = Cache::remember('public:news:' . $slug, now()->addMinutes(10), function () use ($slug) {
+        $data = Cache::remember('public:news:'.$slug, now()->addMinutes(10), function () use ($slug) {
             $post = Post::published()
                 ->with(['author', 'categories', 'tags', 'media'])
                 ->where('slug', $slug)

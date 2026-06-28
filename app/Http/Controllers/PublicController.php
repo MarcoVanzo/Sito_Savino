@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
-
-use Inertia\Inertia;
-use App\Models\Roster;
-use App\Models\Season;
-use App\Models\Team;
-use App\Models\Game;
-use App\Models\Player;
-use App\Models\Sponsor;
-use App\Models\Product;
-use App\Models\Post;
 use App\Enums\GameStatus;
 use App\Enums\PostStatus;
+use App\Models\Game;
+use App\Models\Player;
+use App\Models\HeroSlide;
+use App\Models\Page;
+use App\Models\Post;
+use App\Models\Product;
+use App\Models\Roster;
+use App\Models\Season;
+use App\Models\Sponsor;
+use App\Models\Team;
 use Illuminate\Support\Facades\Cache;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class PublicController extends Controller
 {
@@ -43,9 +45,20 @@ class PublicController extends Controller
                     'image_url' => $post->getFirstMediaUrl('post-images'),
                 ]);
 
+            $heroSlides = HeroSlide::active()->ordered()->with('media')->get()
+                ->map(fn ($slide) => [
+                    'id' => $slide->id,
+                    'title' => $slide->title,
+                    'subtitle' => $slide->subtitle,
+                    'image' => $slide->getFirstMediaUrl('hero-slides') ?: '/images/hero1.jpg',
+                    'cta_text' => $slide->cta_text,
+                    'cta_url' => $slide->cta_url,
+                ]);
+
             return [
                 'nextGame' => $nextGame,
                 'latestNews' => $latestNews,
+                'heroSlides' => $heroSlides,
             ];
         });
 
@@ -65,7 +78,7 @@ class PublicController extends Controller
     /**
      * Logica condivisa per il caricamento roster di un team specifico.
      */
-    private function stagioneForTeam(string $teamSlug, string $cacheKey, ?string $teamLabel = null): \Inertia\Response
+    private function stagioneForTeam(string $teamSlug, string $cacheKey, ?string $teamLabel = null): Response
     {
         $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug) {
             $team = Team::where('slug', $teamSlug)->first();
@@ -76,10 +89,10 @@ class PublicController extends Controller
 
             if ($team && $currentSeason) {
                 $roster = Roster::with([
-                        'player',
-                        'media',
-                        'player.stats' => fn ($query) => $query->where('season_id', $currentSeason->id),
-                    ])
+                    'player',
+                    'media',
+                    'player.stats' => fn ($query) => $query->where('season_id', $currentSeason->id),
+                ])
                     ->where('team_id', $team->id)
                     ->where('season_id', $currentSeason->id)
                     ->orderBy('jersey_number')
@@ -131,7 +144,7 @@ class PublicController extends Controller
                 ->get()
                 ->map(fn ($p) => [
                     'id' => $p->id,
-                    'name' => $p->first_name . ' ' . $p->last_name,
+                    'name' => $p->first_name.' '.$p->last_name,
                     'role' => $p->staff_role ?? 'Staff',
                     'photo_url' => $p->photo_url ?? $p->getFirstMediaUrl('player-photos'),
                 ])
@@ -149,11 +162,30 @@ class PublicController extends Controller
             return Sponsor::orderBy('tier')
                 ->orderBy('sort_order')
                 ->get()
-                ->toArray();
+                ->map(fn ($s) => [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'tier' => $s->tier,
+                    'website_url' => $s->url,
+                    'logo_url' => $s->getFirstMediaUrl('sponsor-logos'),
+                    'sort_order' => $s->sort_order,
+                ]);
         });
+
+        $page = Page::where('slug', 'sponsor')->first();
 
         return Inertia::render('Public/Sponsor', [
             'sponsors' => $sponsors,
+            'page' => $page,
+        ]);
+    }
+
+    public function contatti()
+    {
+        $page = Page::where('slug', 'contatti')->first();
+
+        return Inertia::render('Public/Contatti', [
+            'page' => $page,
         ]);
     }
 
@@ -163,7 +195,15 @@ class PublicController extends Controller
             return Product::where('is_active', true)
                 ->orderBy('sort_order')
                 ->get()
-                ->toArray();
+                ->map(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'slug' => $p->slug ?? null,
+                    'description' => $p->description,
+                    'price' => $p->price,
+                    'stock' => $p->stock,
+                    'image_url' => $p->getFirstMediaUrl('product-images'),
+                ]);
         });
 
         return Inertia::render('Public/Shop', [

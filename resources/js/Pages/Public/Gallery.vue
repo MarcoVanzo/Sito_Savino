@@ -1,7 +1,7 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 
 const props = defineProps({
     page: {
@@ -42,10 +42,14 @@ function filterByCategory(cat) {
 
 const lightboxOpen = ref(false)
 const lightboxIndex = ref(0)
+const lightboxEl = ref(null)
 
 function openLightbox(index) {
     lightboxIndex.value = index
     lightboxOpen.value = true
+    nextTick(() => {
+        lightboxEl.value?.focus()
+    })
 }
 
 function closeLightbox() {
@@ -146,16 +150,21 @@ function nextImage() {
         <Teleport to="body">
             <div
                 v-if="lightboxOpen"
+                ref="lightboxEl"
                 class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
+                tabindex="0"
                 @click.self="closeLightbox"
+                @keydown.escape="closeLightbox"
+                @keydown.arrow-left="prevImage"
+                @keydown.arrow-right="nextImage"
             >
-                <button @click="closeLightbox" class="absolute top-6 right-6 text-white/70 hover:text-white transition-colors">
+                <button @click="closeLightbox" aria-label="Chiudi lightbox" class="absolute top-6 right-6 text-white/70 hover:text-white transition-colors">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
-                <button @click="prevImage" class="absolute left-4 sm:left-8 text-white/70 hover:text-white transition-colors">
+                <button @click="prevImage" aria-label="Immagine precedente" class="absolute left-4 sm:left-8 text-white/70 hover:text-white transition-colors">
                     <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </button>
-                <button @click="nextImage" class="absolute right-4 sm:right-8 text-white/70 hover:text-white transition-colors">
+                <button @click="nextImage" aria-label="Immagine successiva" class="absolute right-4 sm:right-8 text-white/70 hover:text-white transition-colors">
                     <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
                 <div class="max-w-5xl max-h-[85vh] px-16">

@@ -43,27 +43,27 @@ const emit = defineEmits(['toggle', 'toggle-item']);
     >
         <div v-show="isOpen" class="lg:hidden absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-20 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
             <nav role="navigation" aria-label="Menu mobile" class="flex flex-col space-y-2 text-center pb-10">
-                <div v-for="(item, index) in navigation" :key="item.name" class="border-b border-white/10 last:border-0">
+                <div v-for="(item, index) in navigation" :key="item.label" class="border-b border-white/10 last:border-0">
                     <button 
                         @click="emit('toggle-item', index)"
                         aria-haspopup="true"
                         :aria-expanded="activeIndex === index"
                         class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none"
-                        :class="{'text-savino-red': $page.url.startsWith(item.path) || activeIndex === index, 'text-[#ED028C]': item.isHighlight}"
+                        :class="{'text-savino-red': $page.url.startsWith(item.href) || activeIndex === index, 'text-[#ED028C]': item.isHighlight}"
                     >
-                        <span>{{ item.name }}</span>
+                        <span>{{ item.label }}</span>
                         <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': activeIndex === index}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     
                     <!-- Sottomenu Mobile -->
                     <div v-show="activeIndex === index" class="bg-black/20 pb-4 pt-2">
                         <Link 
-                            v-for="sub in item.items" 
-                            :key="sub.name"
+                            v-for="sub in item.children" 
+                            :key="sub.label"
                             :href="sub.href"
                             class="block py-2 text-[12px] font-semibold uppercase tracking-widest text-gray-300 hover:text-white"
                         >
-                            {{ sub.name }}
+                            {{ sub.label }}
                         </Link>
                     </div>
                 </div>

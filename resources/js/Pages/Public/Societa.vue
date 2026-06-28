@@ -1,10 +1,58 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
     page: Object,
 });
+
+const inertiaPage = usePage();
+const settings = computed(() => inertiaPage.props.siteSettings ?? {});
+const contact = computed(() => settings.value.contact ?? {});
+
+// content_data dal backend con fallback
+const cd = computed(() => props.page?.content_data ?? {});
+
+// Hero
+const heroSubheading = computed(() => cd.value.hero_subheading || 'Dal 1982');
+const heroDescription = computed(() => cd.value.hero_description || "Oltre quarant'anni di passione, tradizione e successi nel panorama della pallavolo femminile italiana. Una storia costruita con determinazione e visione.");
+
+// Storia
+const storiaTitle = computed(() => cd.value.storia_title || 'Una Tradizione di Eccellenza');
+const storiaParagraphs = computed(() => {
+    if (cd.value.storia_paragraphs && cd.value.storia_paragraphs.length > 0) return cd.value.storia_paragraphs;
+    return [
+        'Fondata nel 1982 a Scandicci, la Savino Del Bene Volley è diventata una delle realtà più importanti della pallavolo femminile italiana. Dalle origini nel campionato regionale alla Serie A1, il percorso del club è stato segnato da una crescita costante.',
+        'Con la partnership strategica del Gruppo Savino Del Bene, il club ha raggiunto traguardi storici: la Finale Scudetto, la partecipazione alla CEV Champions League e la conquista di un posto stabile tra le migliori squadre d\'Europa.',
+        'Oggi la Savino Del Bene Volley rappresenta un modello di gestione sportiva, con un settore giovanile d\'eccellenza, un impegno sociale concreto e una visione proiettata verso il futuro.',
+    ];
+});
+const storiaYears = computed(() => cd.value.storia_years || '40+');
+
+// Organigramma
+const orgTitle = computed(() => cd.value.org_title || 'Il Nostro Team Dirigenziale');
+const orgRoles = computed(() => {
+    if (cd.value.org_roles && cd.value.org_roles.length > 0) return cd.value.org_roles;
+    return [
+        { title: 'Presidente', name: 'Presidenza', desc: 'Guida strategica e visione del club' },
+        { title: 'Direttore Generale', name: 'Direzione', desc: 'Gestione operativa e coordinamento' },
+        { title: 'Direttore Sportivo', name: 'Area Tecnica', desc: 'Pianificazione sportiva e roster' },
+        { title: 'Head Coach', name: 'Staff Tecnico', desc: 'Guida tecnica della prima squadra' },
+    ];
+});
+
+// Palazzetto
+const palazzettoTitle = computed(() => cd.value.palazzetto_title || 'Palazzo Wanny');
+const palazzettoDescription = computed(() => cd.value.palazzetto_description || "Il Palazzo Wanny di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l'impianto offre un'esperienza unica per tifosi e appassionati di pallavolo.");
+const palazzettoCapacity = computed(() => cd.value.palazzetto_capacity || '4.000+');
+const palazzettoHomologation = computed(() => cd.value.palazzetto_homologation || 'Serie A1');
+const palazzettoAddress = computed(() => cd.value.palazzetto_address || contact.value.address || 'Via del Tridente, 5 — 50127 Firenze (FI)');
+
+// Contatti
+const contactEmail = computed(() => contact.value.email || 'info@savinodelbenevolley.com');
+const contactPhone = computed(() => contact.value.phone || '+39 055 XXX XXXX');
+const contactLocation = computed(() => contact.value.city || 'Scandicci (FI), Toscana');
 </script>
 
 <template>
@@ -28,14 +76,14 @@ const props = defineProps({
             <div class="absolute inset-0 bg-gradient-to-t from-savino-blue/80 to-transparent"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <div class="inline-block mb-6">
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Dal 1982</span>
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ heroSubheading }}</span>
                 </div>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mb-6">
                     {{ page?.title ?? 'La Società' }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-8"></div>
                 <p class="text-white/80 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-                    Oltre quarant'anni di passione, tradizione e successi nel panorama della pallavolo femminile italiana. Una storia costruita con determinazione e visione.
+                    {{ heroDescription }}
                 </p>
             </div>
         </section>
@@ -47,24 +95,18 @@ const props = defineProps({
                     <div>
                         <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">La Nostra Storia</span>
                         <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3 mb-6">
-                            Una Tradizione di Eccellenza
+                            {{ storiaTitle }}
                         </h2>
                         <div class="w-16 h-1 bg-savino-gold mb-8"></div>
-                        <p class="text-gray-600 leading-relaxed mb-6">
-                            Fondata nel 1982 a Scandicci, la Savino Del Bene Volley è diventata una delle realtà più importanti della pallavolo femminile italiana. Dalle origini nel campionato regionale alla Serie A1, il percorso del club è stato segnato da una crescita costante.
-                        </p>
-                        <p class="text-gray-600 leading-relaxed mb-6">
-                            Con la partnership strategica del Gruppo Savino Del Bene, il club ha raggiunto traguardi storici: la Finale Scudetto, la partecipazione alla CEV Champions League e la conquista di un posto stabile tra le migliori squadre d'Europa.
-                        </p>
-                        <p class="text-gray-600 leading-relaxed">
-                            Oggi la Savino Del Bene Volley rappresenta un modello di gestione sportiva, con un settore giovanile d'eccellenza, un impegno sociale concreto e una visione proiettata verso il futuro.
+                        <p v-for="(para, idx) in storiaParagraphs" :key="idx" class="text-gray-600 leading-relaxed mb-6">
+                            {{ para }}
                         </p>
                     </div>
                     <div class="relative">
                         <div class="aspect-[4/3] bg-gradient-to-br from-savino-blue to-gray-900 rounded-lg overflow-hidden shadow-2xl">
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <div class="text-center">
-                                    <div class="text-savino-gold text-7xl font-black">40+</div>
+                                    <div class="text-savino-gold text-7xl font-black">{{ storiaYears }}</div>
                                     <div class="text-white/80 text-sm font-bold uppercase tracking-[0.2em] mt-3">Anni di Storia</div>
                                 </div>
                             </div>
@@ -82,17 +124,12 @@ const props = defineProps({
                 <div class="text-center mb-16">
                     <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Organigramma</span>
                     <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3">
-                        Il Nostro Team Dirigenziale
+                        {{ orgTitle }}
                     </h2>
                     <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div v-for="(role, index) in [
-                        { title: 'Presidente', name: 'Presidenza', desc: 'Guida strategica e visione del club' },
-                        { title: 'Direttore Generale', name: 'Direzione', desc: 'Gestione operativa e coordinamento' },
-                        { title: 'Direttore Sportivo', name: 'Area Tecnica', desc: 'Pianificazione sportiva e roster' },
-                        { title: 'Head Coach', name: 'Staff Tecnico', desc: 'Guida tecnica della prima squadra' }
-                    ]" :key="index" class="group text-center">
+                    <div v-for="(role, index) in orgRoles" :key="index" class="group text-center">
                         <div class="w-28 h-28 mx-auto mb-5 rounded-full bg-gradient-to-br from-savino-blue to-gray-800 flex items-center justify-center shadow-lg group-hover:shadow-savino-gold/20 group-hover:shadow-xl transition-all duration-300">
                             <svg class="w-12 h-12 text-savino-gold/70" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                         </div>
@@ -118,25 +155,25 @@ const props = defineProps({
                     <div class="order-1 md:order-2">
                         <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">La Nostra Casa</span>
                         <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3 mb-6">
-                            Palazzo Wanny
+                            {{ palazzettoTitle }}
                         </h2>
                         <div class="w-16 h-1 bg-savino-gold mb-8"></div>
                         <p class="text-gray-600 leading-relaxed mb-6">
-                            Il Palazzo Wanny di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l'impianto offre un'esperienza unica per tifosi e appassionati di pallavolo.
+                            {{ palazzettoDescription }}
                         </p>
                         <div class="grid grid-cols-2 gap-6 mt-8">
                             <div class="bg-gray-50 p-5 rounded-lg">
-                                <div class="text-savino-blue text-2xl font-black">4.000+</div>
+                                <div class="text-savino-blue text-2xl font-black">{{ palazzettoCapacity }}</div>
                                 <div class="text-gray-500 text-sm font-medium mt-1">Posti a Sedere</div>
                             </div>
                             <div class="bg-gray-50 p-5 rounded-lg">
-                                <div class="text-savino-blue text-2xl font-black">Serie A1</div>
+                                <div class="text-savino-blue text-2xl font-black">{{ palazzettoHomologation }}</div>
                                 <div class="text-gray-500 text-sm font-medium mt-1">Omologazione</div>
                             </div>
                         </div>
                         <div class="mt-8 flex items-start gap-3 text-gray-600">
                             <svg class="w-5 h-5 text-savino-gold flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                            <span class="text-sm">Via del Tridente, 5 — 50127 Firenze (FI)</span>
+                            <span class="text-sm">{{ palazzettoAddress }}</span>
                         </div>
                     </div>
                 </div>
@@ -155,17 +192,17 @@ const props = defineProps({
                     <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 hover:bg-white/10 transition-all duration-300">
                         <svg class="w-8 h-8 text-savino-gold mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                         <h3 class="text-white font-bold uppercase text-sm tracking-wider mb-2">Email</h3>
-                        <p class="text-white/70 text-sm">info@savinodelbenevolley.com</p>
+                        <p class="text-white/70 text-sm">{{ contactEmail }}</p>
                     </div>
                     <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 hover:bg-white/10 transition-all duration-300">
                         <svg class="w-8 h-8 text-savino-gold mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                         <h3 class="text-white font-bold uppercase text-sm tracking-wider mb-2">Telefono</h3>
-                        <p class="text-white/70 text-sm">+39 055 XXX XXXX</p>
+                        <p class="text-white/70 text-sm">{{ contactPhone }}</p>
                     </div>
                     <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 hover:bg-white/10 transition-all duration-300">
                         <svg class="w-8 h-8 text-savino-gold mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         <h3 class="text-white font-bold uppercase text-sm tracking-wider mb-2">Sede</h3>
-                        <p class="text-white/70 text-sm">Scandicci (FI), Toscana</p>
+                        <p class="text-white/70 text-sm">{{ contactLocation }}</p>
                     </div>
                 </div>
             </div>

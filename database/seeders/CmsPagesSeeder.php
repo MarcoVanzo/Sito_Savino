@@ -26,7 +26,7 @@ class CmsPagesSeeder extends Seeder
             );
         }
 
-        $this->command->info('✅ ' . count($pages) . ' pagine CMS create/aggiornate con successo.');
+        $this->command->info('✅ '.count($pages).' pagine CMS create/aggiornate con successo.');
     }
 
     /**

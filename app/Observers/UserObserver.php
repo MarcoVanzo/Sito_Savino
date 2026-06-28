@@ -15,7 +15,7 @@ class UserObserver
     {
         if (! $user->is_active) {
             $admins = User::where('role', UserRole::Admin)->where('is_active', true)->get();
-            
+
             if ($admins->isNotEmpty()) {
                 Notification::make()
                     ->title('Nuovo utente in attesa')

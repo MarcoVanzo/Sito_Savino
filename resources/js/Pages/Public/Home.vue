@@ -1,6 +1,6 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useOgMeta } from '@/Composables/useOgMeta';
 
@@ -13,19 +13,56 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    heroSlides: {
+        type: Array,
+        default: () => [],
+    },
 });
 
-const slides = [
-    '/images/hero1.jpg',
-    '/images/hero2.jpg'
-];
+const page = usePage();
+
+// Impostazioni home dal backend con fallback
+const settings = computed(() => page.props.siteSettings ?? {});
+const homeSettings = computed(() => settings.value.home ?? {});
+
+// Hero slides dal prop (backend) con fallback a immagini statiche
+const slides = computed(() => {
+    if (props.heroSlides && props.heroSlides.length > 0) {
+        return props.heroSlides.map(s => typeof s === 'string' ? s : (s.image || s.url || s));
+    }
+    return ['/images/hero1.jpg', '/images/hero2.jpg'];
+});
+
+// Hero testi dal backend con fallback
+const heroTitle = computed(() => homeSettings.value.hero_title || 'SAVINO DEL BENE');
+const heroSubtitle = computed(() => homeSettings.value.hero_subtitle || 'VOLLEY');
+const heroTagline = computed(() => homeSettings.value.hero_tagline || 'Scatena la Potenza.');
+const heroCta1Label = computed(() => homeSettings.value.hero_cta1_label || 'Prossima Partita');
+const heroCta1Url = computed(() => homeSettings.value.hero_cta1_url || '/stagione');
+const heroCta2Label = computed(() => homeSettings.value.hero_cta2_label || 'Biglietteria');
+const heroCta2Url = computed(() => homeSettings.value.hero_cta2_url || '/ticketing');
+
+// Stats section dal backend con fallback
+const statsTitle = computed(() => homeSettings.value.stats_title || 'Il Club in Numeri');
+const statsSubtitle = computed(() => homeSettings.value.stats_subtitle || 'I Numeri');
+const stats = computed(() => {
+    if (homeSettings.value.stats && homeSettings.value.stats.length > 0) {
+        return homeSettings.value.stats;
+    }
+    return [
+        { value: '40+', label: 'Anni di Storia', icon: '🏆' },
+        { value: '4.000+', label: 'Posti al Palazzo Wanny', icon: '🏟️' },
+        { value: 'A1', label: 'Serie — Massima Divisione', icon: '🏐' },
+        { value: 'CEV', label: 'Champions League', icon: '🌍' },
+    ];
+});
 
 const currentSlide = ref(0);
 
 let slideInterval;
 
 const nextSlide = () => {
-    currentSlide.value = (currentSlide.value + 1) % slides.length;
+    currentSlide.value = (currentSlide.value + 1) % slides.value.length;
 };
 
 onMounted(() => {
@@ -126,25 +163,25 @@ const ogMeta = useOgMeta({
             <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
                 <div class="max-w-3xl ml-auto text-right">
                     <h1 class="text-white font-sans font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-none tracking-tighter mb-4 drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] uppercase">
-                        <span class="block whitespace-nowrap">SAVINO DEL BENE</span>
-                        <span class="block text-[#D90000] mt-2">VOLLEY</span>
+                        <span class="block whitespace-nowrap">{{ heroTitle }}</span>
+                        <span class="block text-[#D90000] mt-2">{{ heroSubtitle }}</span>
                     </h1>
                     <p class="text-white font-sans font-bold text-2xl sm:text-3xl md:text-4xl tracking-widest uppercase mb-12 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                        Scatena la Potenza.
+                        {{ heroTagline }}
                     </p>
                     
                     <div class="flex flex-col sm:flex-row gap-4 justify-end">
                         <Link 
-                            href="/stagione" 
+                            :href="heroCta1Url" 
                             class="inline-flex items-center justify-center px-8 py-4 border-2 border-savino-gold bg-gray-900/40 hover:bg-savino-gold text-white hover:text-gray-900 text-sm font-bold uppercase tracking-widest transition-all duration-300 backdrop-blur-sm"
                         >
-                            Prossima Partita
+                            {{ heroCta1Label }}
                         </Link>
                         <Link 
-                            href="/ticketing" 
+                            :href="heroCta2Url" 
                             class="inline-flex items-center justify-center px-8 py-4 border-2 border-savino-red bg-savino-red hover:bg-white hover:text-savino-red hover:border-white text-white text-sm font-bold uppercase tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(237,2,140,0.4)]"
                         >
-                            Biglietteria
+                            {{ heroCta2Label }}
                         </Link>
                     </div>
                 </div>
@@ -203,19 +240,14 @@ const ogMeta = useOgMeta({
         <section class="py-20 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16">
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">I Numeri</span>
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ statsSubtitle }}</span>
                     <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3">
-                        Il Club in Numeri
+                        {{ statsTitle }}
                     </h2>
                     <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-                    <div v-for="stat in [
-                        { value: '40+', label: 'Anni di Storia', icon: '🏆' },
-                        { value: '4.000+', label: 'Posti al Palazzo Wanny', icon: '🏟️' },
-                        { value: 'A1', label: 'Serie — Massima Divisione', icon: '🏐' },
-                        { value: 'CEV', label: 'Champions League', icon: '🌍' },
-                    ]" :key="stat.label" class="text-center group">
+                    <div v-for="stat in stats" :key="stat.label" class="text-center group">
                         <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-savino-blue/5 flex items-center justify-center group-hover:bg-savino-blue/10 transition-colors duration-300">
                             <span class="text-3xl">{{ stat.icon }}</span>
                         </div>
@@ -314,47 +346,46 @@ const ogMeta = useOgMeta({
     padding-top: 85px;
 }
 
-/* === CINEMATIC CROSSFADE WITH BLOOM === */
+/* === FLUID CINEMATIC DISSOLVE === */
 .hero-slide {
     opacity: 0;
     z-index: 0;
-    /* Slow dissolve with a soft ease that lingers in the middle for overlap */
-    transition: opacity 2.4s cubic-bezier(0.16, 1, 0.3, 1),
-                filter 2.4s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Long, smooth dissolve — both slides remain visible during the crossfade period */
+    transition: opacity 2.8s cubic-bezier(0.4, 0, 0.2, 1);
     filter: brightness(1) saturate(1);
-    will-change: opacity, filter, transform;
+    will-change: opacity, transform;
 }
 
 .hero-slide.is-active {
     opacity: 1;
     z-index: 2;
-    /* Gentle brightness bloom as the image fades in — creates a luminous transition */
-    animation: slideBloomIn 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* Very subtle bloom — just a gentle warmth, no harsh flash */
+    animation: slideBloomIn 3.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 .hero-slide.is-leaving {
     opacity: 0;
     z-index: 1;
-    /* Slower fade-out than fade-in creates overlap period where both images are partially visible */
-    transition: opacity 3s cubic-bezier(0.4, 0, 0.2, 1),
-                filter 3s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: brightness(0.6) saturate(0.7);
+    /* Matched timing with the incoming slide for true overlap dissolve */
+    transition: opacity 3.2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Very mild dimming — keeps the image natural during fadeout */
+    filter: brightness(0.92) saturate(0.95);
 }
 
-/* Bloom: slight brightness pulse during the fade-in */
+/* Subtle bloom: gentle brightness shift, almost imperceptible but adds life */
 @keyframes slideBloomIn {
     0% {
-        filter: brightness(1.3) saturate(0.8);
+        filter: brightness(1.06) saturate(0.95);
     }
-    40% {
-        filter: brightness(1.1) saturate(1.05);
+    50% {
+        filter: brightness(1.02) saturate(1.02);
     }
     100% {
         filter: brightness(1) saturate(1);
     }
 }
 
-/* === KEN BURNS — CINEMATIC ZOOM/PAN (more dramatic) === */
+/* === KEN BURNS — SLOW CINEMATIC DRIFT === */
 .hero-slide-inner {
     transform: scale(1.02);
     transition: none;
@@ -363,7 +394,7 @@ const ogMeta = useOgMeta({
 
 /* Slide 1: slow drift from center to upper-right */
 .hero-slide:nth-child(odd) .hero-slide-inner.ken-burns-active {
-    animation: kenBurnsDriftRight 8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: kenBurnsDriftRight 10s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 @keyframes kenBurnsDriftRight {
@@ -371,21 +402,21 @@ const ogMeta = useOgMeta({
         transform: scale(1.02) translate(0, 0);
     }
     100% {
-        transform: scale(1.15) translate(-1.5%, -1%);
+        transform: scale(1.12) translate(-1%, -0.7%);
     }
 }
 
 /* Slide 2: slow drift from lower-right to center */
 .hero-slide:nth-child(even) .hero-slide-inner.ken-burns-active {
-    animation: kenBurnsDriftLeft 8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: kenBurnsDriftLeft 10s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 @keyframes kenBurnsDriftLeft {
     0% {
-        transform: scale(1.12) translate(-1%, 1%);
+        transform: scale(1.10) translate(-0.8%, 0.5%);
     }
     100% {
-        transform: scale(1.04) translate(0.5%, -0.5%);
+        transform: scale(1.04) translate(0.3%, -0.3%);
     }
 }
 

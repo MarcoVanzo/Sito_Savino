@@ -11,9 +11,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
 {
@@ -23,11 +20,14 @@ class UserResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Utente / Amministratore';
-    protected static ?string $pluralModelLabel = 'Utenti / Amministratori';
-    protected static ?string $navigationIcon = 'heroicon-o-users';
-    protected static ?string $navigationGroup = 'Amministrazione';
-    protected static ?int $navigationSort = 16;
 
+    protected static ?string $pluralModelLabel = 'Utenti / Amministratori';
+
+    protected static ?string $navigationIcon = 'heroicon-o-users';
+
+    protected static ?string $navigationGroup = 'Amministrazione';
+
+    protected static ?int $navigationSort = 16;
 
     public static function form(Form $form): Form
     {

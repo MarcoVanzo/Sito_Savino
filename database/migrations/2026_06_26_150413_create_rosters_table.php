@@ -16,15 +16,15 @@ return new class extends Migration
             $table->foreignId('player_id')->constrained()->cascadeOnDelete();
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
             $table->foreignId('season_id')->constrained()->cascadeOnDelete();
-            
+
             $table->integer('jersey_number')->nullable();
             $table->string('role')->nullable(); // 'Schiacciatrice', 'Palleggiatrice'
             $table->integer('height_cm')->nullable();
             $table->boolean('is_captain')->default(false);
             $table->text('bio')->nullable(); // Captain bio
-            
+
             $table->timestamps();
-            
+
             $table->unique(['player_id', 'team_id', 'season_id']);
         });
     }

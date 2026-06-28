@@ -3,26 +3,27 @@
 namespace App\Models;
 
 use App\Enums\PostStatus;
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Page extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
-        'wp_id', 'title', 'slug', 'template', 'content', 'excerpt', 
+        'wp_id', 'title', 'slug', 'template', 'content', 'content_data', 'excerpt',
         'status', 'author_id', 'parent_id',
-        'meta_title', 'meta_description', 'meta_keywords'
+        'meta_title', 'meta_description', 'meta_keywords',
     ];
 
     protected $casts = [
         'status' => PostStatus::class,
+        'content_data' => 'array',
     ];
 
     public function author(): BelongsTo

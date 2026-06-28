@@ -12,8 +12,9 @@ class SeasonFactory extends Factory
     public function definition(): array
     {
         $year = fake()->numberBetween(2020, 2026);
+
         return [
-            'name' => $year . '/' . ($year + 1),
+            'name' => $year.'/'.($year + 1),
             'is_current' => false,
         ];
     }

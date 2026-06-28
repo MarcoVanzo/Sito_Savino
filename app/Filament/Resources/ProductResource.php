@@ -7,13 +7,14 @@ use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Product;
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class ProductResource extends Resource
 {
@@ -25,9 +26,13 @@ class ProductResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Prodotto';
+
     protected static ?string $pluralModelLabel = 'Prodotti';
+
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
+
     protected static ?string $navigationGroup = 'Shop';
+
     protected static ?int $navigationSort = 13;
 
     public static function form(Form $form): Form
@@ -41,7 +46,7 @@ class ProductResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', \Illuminate\Support\Str::slug($state)) : null),
+                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
                         Forms\Components\TextInput::make('slug')
                             ->label('URL Slug')
                             ->required()
@@ -152,7 +157,7 @@ class ProductResource extends Resource
             ])
             ->actions([
                 Tables\Actions\Action::make('Anteprima')
-                    ->url(fn ($record) => url('shop/' . ($record->slug ?? '')))
+                    ->url(fn ($record) => url('shop/'.($record->slug ?? '')))
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-eye'),
                 Tables\Actions\EditAction::make(),

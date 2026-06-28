@@ -44,18 +44,24 @@ trait HasStandardTableActions
     }
 
     /**
-     * Bulk actions con soft-delete (cancella, ripristina, forza cancellazione).
+     * Bulk actions con soft-delete (cancella, ripristina, e opzionalmente forza cancellazione).
      *
+     * @param  bool  $allowForceDelete  Se true, aggiunge ForceDeleteBulkAction (default: false)
      * @return array<Tables\Actions\BulkActionGroup>
      */
-    protected static function softDeleteBulkActions(): array
+    protected static function softDeleteBulkActions(bool $allowForceDelete = false): array
     {
+        $actions = [
+            Tables\Actions\DeleteBulkAction::make(),
+            Tables\Actions\RestoreBulkAction::make(),
+        ];
+
+        if ($allowForceDelete) {
+            $actions[] = Tables\Actions\ForceDeleteBulkAction::make();
+        }
+
         return [
-            Tables\Actions\BulkActionGroup::make([
-                Tables\Actions\DeleteBulkAction::make(),
-                Tables\Actions\RestoreBulkAction::make(),
-                Tables\Actions\ForceDeleteBulkAction::make(),
-            ]),
+            Tables\Actions\BulkActionGroup::make($actions),
         ];
     }
 

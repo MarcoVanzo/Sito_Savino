@@ -1,10 +1,12 @@
 <?php
+
 namespace Tests\Unit\Models;
 
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class CartTest extends TestCase
@@ -33,7 +35,7 @@ class CartTest extends TestCase
     {
         $cart = Cart::factory()->create(['expires_at' => now()->addHours(2)]);
 
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $cart->expires_at);
+        $this->assertInstanceOf(Carbon::class, $cart->expires_at);
     }
 
     public function test_prunable_returns_expired_carts(): void

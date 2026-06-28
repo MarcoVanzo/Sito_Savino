@@ -15,17 +15,17 @@ return new class extends Migration
             $table->id();
             $table->foreignId('player_id')->constrained()->cascadeOnDelete();
             $table->foreignId('season_id')->constrained()->cascadeOnDelete();
-            
+
             $table->integer('points')->default(0);
             $table->integer('blocks')->default(0);
             $table->integer('aces')->default(0);
             $table->integer('attacks')->default(0);
             $table->integer('receptions')->default(0);
-            
+
             $table->timestamp('last_synced_at')->nullable();
-            
+
             $table->timestamps();
-            
+
             $table->unique(['player_id', 'season_id']);
         });
     }

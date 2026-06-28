@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Page;
+use Illuminate\Database\Seeder;
 
 class PageSeeder extends Seeder
 {
@@ -18,6 +18,7 @@ class PageSeeder extends Seeder
             ['title' => 'Summer Camp', 'slug' => 'summer-camp', 'template' => 'Public/SummerCamp'],
             ['title' => 'Progetti Sociali', 'slug' => 'sociale', 'template' => 'Public/Sociale'],
             ['title' => 'Comunicazione', 'slug' => 'comunicazione', 'template' => 'Public/Comunicazione'],
+            ['title' => 'Contatti', 'slug' => 'contatti', 'template' => 'Public/Contatti'],
             ['title' => 'Shop', 'slug' => 'shop', 'template' => 'Public/Shop'],
             [
                 'title' => 'Privacy Policy',

@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductVariant extends Model
 {
     use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'product_id', 'size', 'color', 'sku', 'price_modifier', 'stock'
+        'product_id', 'size', 'color', 'sku', 'price_modifier', 'stock',
     ];
 
     protected $casts = [
@@ -24,7 +25,7 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function stockMovements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
     }

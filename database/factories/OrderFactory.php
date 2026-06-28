@@ -1,5 +1,7 @@
 <?php
+
 namespace Database\Factories;
+
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;

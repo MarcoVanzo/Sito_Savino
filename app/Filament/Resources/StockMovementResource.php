@@ -20,9 +20,13 @@ class StockMovementResource extends Resource
     protected static ?string $recordTitleAttribute = 'id';
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
+
     protected static ?string $navigationGroup = 'Shop';
+
     protected static ?string $modelLabel = 'Movimento Magazzino';
+
     protected static ?string $pluralModelLabel = 'Movimenti Magazzino';
+
     protected static ?int $navigationSort = 15;
 
     public static function form(Form $form): Form
@@ -40,8 +44,7 @@ class StockMovementResource extends Resource
                             ->live(),
                         Forms\Components\Select::make('product_variant_id')
                             ->label('Variante (Opzionale)')
-                            ->relationship('variant', 'sku', fn (\Illuminate\Database\Eloquent\Builder $query, Forms\Get $get) => 
-                                $query->where('product_id', $get('product_id'))
+                            ->relationship('variant', 'sku', fn (Builder $query, Forms\Get $get) => $query->where('product_id', $get('product_id'))
                             )
                             ->searchable()
                             ->preload(),

@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PostStatus;
 use App\Filament\Resources\PostResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Post;
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Illuminate\Support\Str;
-use App\Enums\PostStatus;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class PostResource extends Resource
 {
@@ -25,9 +25,13 @@ class PostResource extends Resource
     protected static ?string $recordTitleAttribute = 'title';
 
     protected static ?string $modelLabel = 'Notizia / Articolo';
+
     protected static ?string $pluralModelLabel = 'Notizie / Articoli';
+
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
     protected static ?string $navigationGroup = 'Sito Web';
+
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -79,7 +83,7 @@ class PostResource extends Resource
                         Forms\Components\Select::make('status')
                             ->label('Stato Pubblicazione')
                             ->options(PostStatus::class)
-                            ->default(PostStatus::Published)
+                            ->default(PostStatus::Draft)
                             ->required()
                             ->live()
                             ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
@@ -144,7 +148,7 @@ class PostResource extends Resource
             ])
             ->actions([
                 Tables\Actions\Action::make('Anteprima')
-                    ->url(fn ($record) => url('news/' . ($record->slug ?? '')))
+                    ->url(fn ($record) => url('news/'.($record->slug ?? '')))
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-eye'),
                 Tables\Actions\ViewAction::make(),

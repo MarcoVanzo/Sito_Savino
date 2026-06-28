@@ -7,6 +7,7 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class OrderItemsRelationManager extends RelationManager
 {
@@ -27,8 +28,7 @@ class OrderItemsRelationManager extends RelationManager
                     ->live(),
                 Forms\Components\Select::make('product_variant_id')
                     ->label('Variante')
-                    ->relationship('variant', 'sku', fn (\Illuminate\Database\Eloquent\Builder $query, Forms\Get $get) => 
-                        $query->where('product_id', $get('product_id'))
+                    ->relationship('variant', 'sku', fn (Builder $query, Forms\Get $get) => $query->where('product_id', $get('product_id'))
                     )
                     ->searchable()
                     ->preload(),

@@ -60,6 +60,7 @@ class StockMovementObserver
      * è insufficiente.
      *
      * @param  class-string<Product|ProductVariant>  $modelClass
+     *
      * @throws \RuntimeException Se lo stock risultante sarebbe negativo.
      */
     private function updateStock(string $modelClass, int $id, int $quantity): void
@@ -68,14 +69,14 @@ class StockMovementObserver
             // UPDATE atomico condizionale: aggiorna SOLO se stock sufficiente
             $affected = $modelClass::where('id', $id)
                 ->where('stock', '>=', abs($quantity))
-                ->update(['stock' => DB::raw('stock + (' . (int) $quantity . ')')]);
+                ->update(['stock' => DB::raw('stock + ('.(int) $quantity.')')]);
 
             if ($affected === 0) {
                 $currentStock = $modelClass::where('id', $id)->value('stock') ?? 0;
                 $label = $modelClass === ProductVariant::class ? 'Variante' : 'Prodotto';
-                Log::error("Stock insufficiente: {$label} #{$id} ha stock={$currentStock}, richiesto decremento di " . abs($quantity));
+                Log::error("Stock insufficiente: {$label} #{$id} ha stock={$currentStock}, richiesto decremento di ".abs($quantity));
                 throw new \RuntimeException(
-                    "Stock insufficiente per {$label} #{$id}: disponibile {$currentStock}, richiesto " . abs($quantity)
+                    "Stock insufficiente per {$label} #{$id}: disponibile {$currentStock}, richiesto ".abs($quantity)
                 );
             }
         } else {

@@ -7,11 +7,11 @@ use App\Filament\Resources\PlayerResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Player;
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -25,9 +25,13 @@ class PlayerResource extends Resource
     protected static ?string $recordTitleAttribute = 'last_name';
 
     protected static ?string $modelLabel = 'Anagrafica Atleta';
+
     protected static ?string $pluralModelLabel = 'Anagrafica Atleti';
+
     protected static ?string $navigationIcon = 'heroicon-o-user';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+
     protected static ?int $navigationSort = 7;
 
     public static function form(Form $form): Form

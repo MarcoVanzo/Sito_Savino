@@ -36,13 +36,13 @@ class PageController extends Controller
 
     public function show($slug)
     {
-        $page = Cache::remember('public:page:' . $slug, now()->addMinutes(30), function () use ($slug) {
+        $page = Cache::remember('public:page:'.$slug, now()->addMinutes(30), function () use ($slug) {
             return Page::where('slug', $slug)
                 ->where('status', PostStatus::Published)
                 ->first();
         });
 
-        if (!$page) {
+        if (! $page) {
             abort(404);
         }
 

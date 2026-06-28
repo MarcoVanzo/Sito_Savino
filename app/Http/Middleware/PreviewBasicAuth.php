@@ -10,8 +10,6 @@ class PreviewBasicAuth
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
@@ -20,9 +18,10 @@ class PreviewBasicAuth
         $user = config('services.preview.user');
         $pass = config('services.preview.pass');
 
-        if (!empty($user) && !empty($pass)) {
-            if (!hash_equals($user, $request->getUser() ?? '') || !hash_equals($pass, $request->getPassword() ?? '')) {
+        if (! empty($user) && ! empty($pass)) {
+            if (! hash_equals($user, $request->getUser() ?? '') || ! hash_equals($pass, $request->getPassword() ?? '')) {
                 $headers = ['WWW-Authenticate' => 'Basic'];
+
                 return response('Non autorizzato', 401, $headers);
             }
         }

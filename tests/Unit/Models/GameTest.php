@@ -1,12 +1,14 @@
 <?php
+
 namespace Tests\Unit\Models;
 
-use App\Enums\GameStatus;
 use App\Enums\CompetitionType;
+use App\Enums\GameStatus;
 use App\Models\Game;
 use App\Models\Season;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class GameTest extends TestCase
@@ -39,7 +41,7 @@ class GameTest extends TestCase
     {
         $game = Game::factory()->create(['match_date' => '2025-03-15 20:30:00']);
 
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $game->match_date);
+        $this->assertInstanceOf(Carbon::class, $game->match_date);
     }
 
     public function test_status_is_cast_to_enum(): void

@@ -2,20 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use App\Models\Traits\LogsActivity;
 
 class Team extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, LogsActivity;
+    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
-        'name', 'slug', 'category', 'is_internal'
+        'name', 'slug', 'category', 'is_internal',
     ];
 
     protected $casts = [

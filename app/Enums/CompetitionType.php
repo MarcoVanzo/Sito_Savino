@@ -2,14 +2,16 @@
 
 namespace App\Enums;
 
-enum CompetitionType: string
+use Filament\Support\Contracts\HasLabel;
+
+enum CompetitionType: string implements HasLabel
 {
     case Championship = 'Campionato';
     case CoppaItalia = 'Coppa Italia';
     case ChampionsLeague = 'Champions League';
     case Friendly = 'Amichevole';
 
-    public function label(): string
+    public function getLabel(): string
     {
         return $this->value;
     }

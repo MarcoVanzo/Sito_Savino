@@ -26,13 +26,19 @@ class StockMovementPolicy
         return $user->role === UserRole::Admin;
     }
 
+    /**
+     * I movimenti di stock sono immutabili — nessuna modifica consentita.
+     */
     public function update(User $user, StockMovement $model): bool
     {
-        return $user->role === UserRole::Admin;
+        return false;
     }
 
+    /**
+     * I movimenti di stock sono immutabili — nessuna cancellazione consentita.
+     */
     public function delete(User $user, StockMovement $model): bool
     {
-        return $user->role === UserRole::Admin;
+        return false;
     }
 }

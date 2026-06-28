@@ -6,11 +6,11 @@ use App\Filament\Resources\OptionResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Option;
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
 class OptionResource extends Resource
 {
@@ -22,10 +22,19 @@ class OptionResource extends Resource
     protected static ?string $recordTitleAttribute = 'key';
 
     protected static ?string $modelLabel = 'Impostazione';
+
     protected static ?string $pluralModelLabel = 'Impostazioni Sito';
+
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
     protected static ?string $navigationGroup = 'Sito Web';
+
     protected static ?int $navigationSort = 4;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Form $form): Form
     {

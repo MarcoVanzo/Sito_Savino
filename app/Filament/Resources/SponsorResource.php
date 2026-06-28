@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\SponsorResource\Pages;
 use App\Enums\SponsorTier;
+use App\Filament\Resources\SponsorResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Sponsor;
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
 class SponsorResource extends Resource
 {
@@ -23,9 +23,13 @@ class SponsorResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static ?string $modelLabel = 'Sponsor';
+
     protected static ?string $pluralModelLabel = 'Sponsor';
+
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+
     protected static ?string $navigationGroup = 'Gestione Sportiva';
+
     protected static ?int $navigationSort = 11;
 
     public static function form(Form $form): Form

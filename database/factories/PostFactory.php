@@ -15,9 +15,10 @@ class PostFactory extends Factory
     public function definition(): array
     {
         $title = fake()->sentence(4);
+
         return [
             'title' => $title,
-            'slug' => Str::slug($title) . '-' . fake()->unique()->randomNumber(5),
+            'slug' => Str::slug($title).'-'.fake()->unique()->randomNumber(5),
             'content' => fake()->paragraphs(3, true),
             'excerpt' => fake()->sentence(),
             'status' => PostStatus::Published,
