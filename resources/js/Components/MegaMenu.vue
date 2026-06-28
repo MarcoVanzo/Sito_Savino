@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
                     <Link 
                         :href="item.href" 
                         prefetch
-                        class="text-[12px] xl:text-[14px] font-black tracking-wider uppercase transition-colors flex items-center h-full px-2 lg:px-3 whitespace-nowrap"
+                        class="text-[12px] xl:text-[14px] font-black tracking-wider uppercase transition-colors flex items-center h-full px-1.5 lg:px-2.5 whitespace-nowrap"
                         :class="[
                             $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-400 hover:text-white border-b-[3px] border-transparent pt-[3px]',
                             item.isHighlight ? 'text-[#ED028C] hover:text-[#ff30a6]' : ''
@@ -159,7 +159,6 @@ onBeforeUnmount(() => {
                         @keydown="handleKeydown($event, index)"
                     >
                         {{ item.label }}
-                        <svg v-if="item.children && item.children.length > 0" class="w-3 h-3 ml-1.5 opacity-70 transition-transform duration-300" :class="openIndex === index ? 'rotate-180' : 'group-hover:rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
                     </Link>
 
                     <!-- Sottomenu Mega Dropdown — positioned via JS relative to <nav> -->
