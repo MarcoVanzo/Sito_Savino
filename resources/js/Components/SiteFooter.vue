@@ -51,7 +51,7 @@ const displayedLinks = computed(() => {
 });
 
 // Logo e testi dal backend con fallback
-const footerLogo = computed(() => general.value.corporate_logo || '/images/Logo_Savino.jpeg');
+const footerLogo = computed(() => general.value.site_logo || '/images/logo.png');
 const footerBrandName = computed(() => general.value.corporate_name || 'Savino Del Bene');
 const footerTagline = computed(() => footerSettings.value.footer_tagline || 'Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.\nSerie A1 — Palazzo Wanny, Firenze.');
 const copyrightText = computed(() => (footerSettings.value.footer_copyright || `© ${currentYear} Savino Del Bene Volley — Tutti i diritti riservati.`).replace('{year}', currentYear));
@@ -101,16 +101,12 @@ const socialLinks = computed(() => {
 
                 <!-- Brand Column -->
                 <div class="lg:col-span-2">
-                    <div class="flex items-center gap-3 mb-6">
+                    <div class="mb-6">
                         <img
                             :src="footerLogo"
                             alt="Savino Del Bene Volley"
-                            class="h-12 w-12 rounded-lg object-cover"
+                            class="h-20 w-auto object-contain"
                         />
-                        <div>
-                            <span class="text-white font-black text-lg uppercase tracking-tight">{{ footerBrandName }}</span>
-                            <span class="block text-savino-gold text-xs font-bold uppercase tracking-[0.2em]">Volley</span>
-                        </div>
                     </div>
                     <p class="text-gray-400 text-sm leading-relaxed max-w-sm mb-6 whitespace-pre-line">{{ footerTagline }}</p>
                     <!-- Social Icons -->

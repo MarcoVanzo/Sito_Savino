@@ -1,0 +1,101 @@
+databases:
+- cluster_name: sito-savino-db
+  engine: MYSQL
+  name: sito-savino-db
+  production: true
+  version: "8"
+ingress:
+  rules:
+  - component:
+      name: web
+    match:
+      path:
+        prefix: /
+name: sito-savino
+region: fra
+services:
+- build_command: composer install --optimize-autoloader --no-dev && npm install &&
+    npm run build
+  envs:
+  - key: APP_ENV
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: APP_DEBUG
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
+  - key: APP_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${APP_URL}
+  - key: APP_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: base64:GM+BEvGel2vMIRAgcAJLRwFmZDaLzcvqiBsirjJi/MQ=
+  - key: PREVIEW_AUTH_USER
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:y8CrZJdHzxce8au7QQAh/dWXtDpcgFS1:4AAJVQ1fyiARacDsYiwq7Q==]
+  - key: PREVIEW_AUTH_PASS
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:YOzMAYLH3iwv1Ie8PthjcMUdSm8W6JeB:fE9mVXV14oRTwBQ0y8Tivg==]
+  - key: DB_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: mysql
+  - key: DB_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.HOSTNAME}
+  - key: DB_PORT
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.PORT}
+  - key: DB_DATABASE
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.DATABASE}
+  - key: DB_USERNAME
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.USERNAME}
+  - key: DB_PASSWORD
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.PASSWORD}
+  - key: FILESYSTEM_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+  - key: AWS_ACCESS_KEY_ID
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:+0P/MHPK7ORbDjYjAbL6tuWzseWZoJ2F:IlhdctsHbh4K9VAXeFH1EQ==]
+  - key: AWS_SECRET_ACCESS_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:qgVuoW9hZ6iSWEbpWpDk59AtMm2urStp:Zs4qrpIexwBeoteTjuEVyw==]
+  - key: AWS_DEFAULT_REGION
+    scope: RUN_AND_BUILD_TIME
+    value: fra1
+  - key: AWS_BUCKET
+    scope: RUN_AND_BUILD_TIME
+    value: sito-savino-assets-2026
+  - key: AWS_ENDPOINT
+    scope: RUN_AND_BUILD_TIME
+    value: https://fra1.digitaloceanspaces.com
+  - key: LOG_CHANNEL
+    scope: RUN_AND_BUILD_TIME
+    value: daily
+  - key: SESSION_DRIVER
+    scope: RUN_AND_BUILD_TIME
+    value: database
+  - key: SESSION_ENCRYPT
+    scope: RUN_AND_BUILD_TIME
+    value: "true"
+  - key: CACHE_STORE
+    scope: RUN_AND_BUILD_TIME
+    value: database
+  - key: QUEUE_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: database
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: MarcoVanzo/sito_savino
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  name: web
+  run_command: php artisan migrate --force && heroku-php-apache2 public/

@@ -13,6 +13,7 @@ use App\Models\Product;
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Sponsor;
+use App\Models\StaffMember;
 use App\Models\Team;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -138,21 +139,55 @@ class PublicController extends Controller
 
     public function staff()
     {
-        $staff = Cache::remember('public:staff', now()->addMinutes(30), function () {
-            return Player::where('is_staff', true)
+        $staffTecnico = Cache::remember('public:staff_tecnico', now()->addMinutes(30), function () {
+            return StaffMember::where('type', \App\Enums\StaffType::Tecnico)
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($p) => [
                     'id' => $p->id,
-                    'name' => $p->first_name.' '.$p->last_name,
-                    'role' => $p->staff_role ?? 'Staff',
-                    'photo_url' => $p->photo_url ?? $p->getFirstMediaUrl('player-photos'),
+                    'name' => $p->full_name,
+                    'role' => $p->role,
+                    'photo_url' => $p->getFirstMediaUrl('staff'),
+                ])
+                ->toArray();
+        });
+
+        $staffMedico = Cache::remember('public:staff_medico', now()->addMinutes(30), function () {
+            return StaffMember::where('type', \App\Enums\StaffType::Medico)
+                ->orderBy('sort_order')
+                ->get()
+                ->map(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->full_name,
+                    'role' => $p->role,
+                    'photo_url' => $p->getFirstMediaUrl('staff'),
                 ])
                 ->toArray();
         });
 
         return Inertia::render('Public/Staff', [
-            'staff' => $staff,
+            'staffTecnico' => $staffTecnico,
+            'staffMedico' => $staffMedico,
+        ]);
+    }
+
+    public function organigramma()
+    {
+        $dirigenza = Cache::remember('public:organigramma', now()->addMinutes(30), function () {
+            return StaffMember::where('type', \App\Enums\StaffType::Dirigenza)
+                ->orderBy('sort_order')
+                ->get()
+                ->map(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->full_name,
+                    'role' => $p->role,
+                    'photo_url' => $p->getFirstMediaUrl('staff'),
+                ])
+                ->toArray();
+        });
+
+        return Inertia::render('Public/Organigramma', [
+            'dirigenza' => $dirigenza,
         ]);
     }
 

@@ -48,6 +48,7 @@ Route::middleware('throttle:web')->group(function () {
     Route::get('/risultati', [PublicController::class, 'risultati'])->name('risultati');
     Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
     Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
+    Route::get('/organigramma', [PublicController::class, 'organigramma'])->name('organigramma');
     Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');
     Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
@@ -74,5 +75,5 @@ require __DIR__.'/auth.php';
 // Ignora percorsi di sistema noti.
 Route::get('/{slug}', [PageController::class, 'show'])
     ->middleware('throttle:web')
-    ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|gallery|staff|sponsor|news|shop|contatti).*$')
+    ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|gallery|staff|organigramma|sponsor|news|shop|contatti).*$')
     ->name('pages.show');
