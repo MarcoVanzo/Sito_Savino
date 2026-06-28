@@ -92,7 +92,7 @@ function isWin(game) {
                             <div class="flex-1 flex items-center justify-between px-4 sm:px-8 py-4">
                                 <div class="flex-1 text-right pr-4">
                                     <span
-                                        class="text-sm sm:text-base font-bold"
+                                        class="text-sm sm:text-base font-bold whitespace-nowrap"
                                         :class="game.home.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
                                        
                                     >{{ game.home }}</span>
@@ -104,7 +104,7 @@ function isWin(game) {
                                 </div>
                                 <div class="flex-1 text-left pl-4">
                                     <span
-                                        class="text-sm sm:text-base font-bold"
+                                        class="text-sm sm:text-base font-bold whitespace-nowrap"
                                         :class="game.away.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
                                        
                                     >{{ game.away }}</span>
@@ -157,7 +157,7 @@ function isWin(game) {
                                         :class="row.pos <= 3 ? 'bg-savino-gold text-white' : 'bg-gray-200 text-gray-600'"
                                     >{{ row.pos }}</span>
                                 </td>
-                                <td class="px-4 py-3 text-sm font-bold" :class="row.team.includes('Savino') ? 'text-savino-blue' : 'text-gray-900'">{{ row.team }}</td>
+                                <td class="px-4 py-3 text-sm font-bold whitespace-nowrap" :class="row.team.includes('Savino') ? 'text-savino-blue' : 'text-gray-900'">{{ row.team }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.played }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-green-600 font-semibold">{{ row.won }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-savino-red font-semibold">{{ row.lost }}</td>

@@ -66,7 +66,7 @@ const corporateDomain = computed(() => {
                                         </div>
                                         <div class="p-4 flex flex-col items-center justify-center text-center bg-gradient-to-b from-white to-gray-50">
                                             <img :src="corporateLogo" :alt="corporateName" class="w-12 h-12 rounded-lg shadow-sm mb-3" />
-                                            <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1">{{ corporateName }}</h4>
+                                            <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1 whitespace-nowrap">{{ corporateName }}</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">{{ corporateDescription }}</p>
                                             <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">
                                                 Visita il Sito Ufficiale
