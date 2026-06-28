@@ -9,6 +9,13 @@ use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('/debug-log-xyz', function () {
+    if (file_exists(storage_path('logs/laravel.log'))) {
+        return response(file_get_contents(storage_path('logs/laravel.log')))->header('Content-Type', 'text/plain');
+    }
+    return 'No log file found.';
+});
+
 // Rotte Pubbliche SDB
 Route::middleware('throttle:web')->group(function () {
     Route::get('/', [PublicController::class, 'home'])->name('home');
