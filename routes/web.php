@@ -28,6 +28,9 @@ Route::get('/run-seeders-now', function () {
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\ContentDataSeeder', '--force' => true]);
         $output .= "ContentDataSeeder: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
         
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\Roster2026Seeder', '--force' => true]);
+        $output .= "Roster2026Seeder: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
+        
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         $output .= "Cache Cleared: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
         
