@@ -69,7 +69,7 @@ class MenuItemSeeder extends Seeder
             'motto_subtitle' => 'Biglietti, abbonamenti e informazioni per le partite',
         ]);
         $this->createChildren($ticketing, [
-            ['label' => 'Biglietteria', 'url' => '/ticketing/', 'description' => 'Vivaticket WL'],
+            ['label' => 'Biglietteria', 'url' => '/ticketing/', 'description' => '- Vivaticket WL'],
             ['label' => 'Campagna Abbonamenti', 'url' => '/ticketing/abbonamenti/', 'description' => '/ticketing/abbonamenti/'],
             ['label' => 'Accessibilità & Info', 'url' => '/ticketing/accessibilita/', 'description' => 'Disabili, Cani, Ospiti'],
             ['label' => 'Convenzioni', 'url' => '/ticketing/convenzioni/', 'description' => 'Abbonati e possessori'],
@@ -144,7 +144,7 @@ class MenuItemSeeder extends Seeder
             ['label' => 'Volley 4 All', 'url' => '/sociale/volley-4-all/', 'description' => 'Partner AllunaMente'],
             ['label' => 'Bilancio Sostenibilità', 'url' => '/sociale/sostenibilita/', 'description' => 'PDF Stagioni'],
             ['label' => 'Progetto Scuola', 'url' => '/sociale/progetto-scuola/', 'description' => 'Istituti e Partner'],
-            ['label' => 'Aste Benefiche', 'url' => '/sociale/aste/', 'description' => 'E-Shop'],
+            ['label' => 'Aste Benefiche', 'url' => '/sociale/aste/', 'description' => '-> E-Shop'],
         ]);
 
         // 8. Media
@@ -162,7 +162,7 @@ class MenuItemSeeder extends Seeder
             ['label' => 'Accrediti Stampa', 'url' => '/comunicazione/accrediti/', 'description' => 'Form Richiesta'],
             ['label' => 'Cartelle Stampa', 'url' => '/comunicazione/cartelle/', 'description' => 'Materiali'],
             ['label' => 'Magazine', 'url' => '/comunicazione/magazine/', 'description' => 'PDF Online'],
-            ['label' => 'Double Face', 'url' => '/comunicazione/double-face/', 'description' => 'YouTube Channel'],
+            ['label' => 'Double Face', 'url' => '/comunicazione/double-face/', 'description' => '-> YouTube Channel'],
         ]);
 
         // 9. Shop
