@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\PostStatus;
 use App\Models\Page;
-use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -36,11 +35,9 @@ class PageController extends Controller
 
     public function show($slug)
     {
-        $page = Cache::remember('public:page:'.$slug, now()->addMinutes(30), function () use ($slug) {
-            return Page::where('slug', $slug)
-                ->where('status', PostStatus::Published)
-                ->first();
-        });
+        $page = Page::where('slug', $slug)
+            ->where('status', PostStatus::Published)
+            ->first();
 
         if (! $page) {
             abort(404);
