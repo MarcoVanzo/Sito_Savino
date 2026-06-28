@@ -6,7 +6,7 @@ services:
       branch: main
       deploy_on_push: true
     build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build
-    run_command: php artisan migrate --force && php artisan storage:link && php artisan cache:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan filament:optimize && php artisan app:seed-menu-images && (while true; do node bootstrap/ssr/ssr.js; echo 'SSR crashed, restarting in 2s...'; sleep 2; done) &  heroku-php-apache2 public/
+    run_command: php artisan migrate --force && php artisan storage:link; php artisan cache:clear; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan filament:optimize; php artisan app:seed-menu-images; (while true; do node bootstrap/ssr/ssr.js; echo 'SSR crashed, restarting in 2s...'; sleep 2; done) & heroku-php-apache2 public/
     envs:
       - key: APP_ENV
         value: production
@@ -46,8 +46,10 @@ services:
         value: sito-savino-assets-2026
       - key: AWS_ENDPOINT
         value: https://fra1.digitaloceanspaces.com
+      - key: AWS_URL
+        value: https://sito-savino-assets-2026.fra1.digitaloceanspaces.com
       - key: LOG_CHANNEL
-        value: daily
+        value: stderr
       - key: LOG_LEVEL
         value: warning
       - key: SESSION_DRIVER
