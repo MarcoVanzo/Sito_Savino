@@ -11,6 +11,19 @@ use Inertia\Inertia;
 
 
 
+Route::get('/debug-seed', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'MenuItemSeeder', '--force' => true]);
+        \App\Models\MenuItem::clearCache();
+        return response()->json([
+            'output' => \Illuminate\Support\Facades\Artisan::output(),
+            'menu' => \App\Models\MenuItem::all()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});
+
 $locales = ['it', 'en'];
 
 foreach ($locales as $loc) {
@@ -51,19 +64,6 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-Route::get('/debug-seed', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'MenuItemSeeder', '--force' => true]);
-        \App\Models\MenuItem::clearCache();
-        return response()->json([
-            'output' => \Illuminate\Support\Facades\Artisan::output(),
-            'menu' => \App\Models\MenuItem::all()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
 });
 
 require __DIR__.'/auth.php';
