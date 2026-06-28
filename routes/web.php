@@ -53,4 +53,17 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('/debug-seed', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'MenuItemSeeder', '--force' => true]);
+        \App\Models\MenuItem::clearCache();
+        return response()->json([
+            'output' => \Illuminate\Support\Facades\Artisan::output(),
+            'menu' => \App\Models\MenuItem::all()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});
+
 require __DIR__.'/auth.php';
