@@ -4,29 +4,17 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\MenuItem;
-use Illuminate\Support\Facades\File;
 
 class SeedMenuImages extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:seed-menu-images';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Seeds the menu images for production';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
+        $disk = config('media-library.disk_name', 'public');
+        $this->info("Using disk: {$disk}");
+
         $map = [
             'Stagione' => 'stagione.jpg',
             'Società' => 'societa.jpg',
@@ -40,21 +28,28 @@ class SeedMenuImages extends Command
         ];
 
         $items = MenuItem::whereNull('parent_id')->get();
+        $this->info("Found {$items->count()} parent menu items");
 
         foreach ($items as $item) {
             if (isset($map[$item->label])) {
                 $path = base_path('database/seeders/menu_images/' . $map[$item->label]);
                 if (file_exists($path)) {
-                    $item->clearMediaCollection('menu-images');
-                    $item->addMedia($path)->preservingOriginal()->toMediaCollection('menu-images');
-                    $this->info("Attached " . $map[$item->label] . " to " . $item->label);
+                    try {
+                        $item->clearMediaCollection('menu-images');
+                        $item->addMedia($path)
+                            ->preservingOriginal()
+                            ->toMediaCollection('menu-images', $disk);
+                        $url = $item->getFirstMediaUrl('menu-images');
+                        $this->info("✓ {$item->label} → {$url}");
+                    } catch (\Exception $e) {
+                        $this->error("✗ {$item->label}: " . $e->getMessage());
+                    }
                 } else {
                     $this->error("File not found: $path");
                 }
             }
         }
 
-        // Invalida la cache del menu per rigenerare gli URL delle immagini
         MenuItem::clearCache();
         $this->info('Menu cache cleared.');
     }
