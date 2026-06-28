@@ -100,11 +100,20 @@ jobs:
           echo "prod_size=${PROD_SIZE}" >> "$GITHUB_OUTPUT"
           echo "📁 File in produzione: ${PROD_COUNT} ($(numfmt --to=iec ${PROD_SIZE}))"
 
+          # Se il bucket è vuoto, salta la sincronizzazione
+          if [ "${PROD_COUNT}" -eq 0 ]; then
+            echo "⚠️ Bucket di produzione vuoto — nessun file da copiare."
+            echo "skip_sync=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip_sync=false" >> "$GITHUB_OUTPUT"
+          fi
+
       # ---------------------------------------------------------------
       # 4. Sync con rclone copy
       #    Fix #7: aggiunto --checksum per verifica integrità
       # ---------------------------------------------------------------
       - name: Copia media su bucket di backup
+        if: steps.pre_sync.outputs.skip_sync != 'true'
         run: |
           echo "🔄 Avvio copia incrementale media..."
 
@@ -128,6 +137,7 @@ jobs:
       # ---------------------------------------------------------------
       - name: Genera manifest post-sync
         id: manifest
+        if: steps.pre_sync.outputs.skip_sync != 'true'
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H%M%SZ")
           MANIFEST_FILE="manifest-${TIMESTAMP}.txt"
@@ -153,6 +163,7 @@ jobs:
       # 6. Upload manifest e log (fix #2: usa env vars)
       # ---------------------------------------------------------------
       - name: Upload manifest e log
+        if: steps.pre_sync.outputs.skip_sync != 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.DO_BACKUP_SPACES_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
@@ -187,7 +198,7 @@ jobs:
       # 8. Riepilogo
       # ---------------------------------------------------------------
       - name: Riepilogo
-        if: success()
+        if: success() && steps.pre_sync.outputs.skip_sync != 'true'
         run: |
           echo "============================================="
           echo "  ✅ BACKUP MEDIA COMPLETATO"
@@ -196,6 +207,17 @@ jobs:
           echo "  File produzione: ${{ steps.pre_sync.outputs.prod_count }}"
           echo "  File backup:     ${{ steps.manifest.outputs.backup_count }}"
           echo "  Modalità:        Copia incrementale con checksum (no delete)"
+          echo "  Trigger:         ${{ github.event_name }}"
+          echo "============================================="
+
+      - name: Riepilogo (bucket vuoto)
+        if: success() && steps.pre_sync.outputs.skip_sync == 'true'
+        run: |
+          echo "============================================="
+          echo "  ⚠️ BACKUP MEDIA SALTATO"
+          echo "============================================="
+          echo "  Il bucket di produzione è vuoto."
+          echo "  Nessun file da sincronizzare."
           echo "  Trigger:         ${{ github.event_name }}"
           echo "============================================="
 
