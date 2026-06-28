@@ -32,9 +32,9 @@ class DatabaseSeeder extends Seeder
         );
 
         // Creazione Squadra
-        $team = $this->restoreOrCreate(Team::class,
-            ['slug' => 'serie-a1'],
-            ['name' => 'Serie A1', 'category' => 'Professionistico']
+        $team = Team::firstOrCreate(
+            ['slug' => 'savino-del-bene-volley'],
+            ['name' => 'Savino Del Bene Volley', 'category' => 'A1']
         );
 
         // ── PALLEGGIATRICI ──────────────────────────────────────────────
