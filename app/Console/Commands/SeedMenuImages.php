@@ -53,5 +53,9 @@ class SeedMenuImages extends Command
                 }
             }
         }
+
+        // Invalida la cache del menu per rigenerare gli URL delle immagini
+        MenuItem::clearCache();
+        $this->info('Menu cache cleared.');
     }
 }
