@@ -14,10 +14,13 @@ use Inertia\Inertia;
 Route::get('/debug-seed', function () {
     try {
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'MenuItemSeeder', '--force' => true]);
-        \App\Models\MenuItem::clearCache();
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Cache::flush();
+        \Illuminate\Support\Facades\DB::table('cache')->truncate();
+        
         return response()->json([
-            'output' => \Illuminate\Support\Facades\Artisan::output(),
-            'menu' => \App\Models\MenuItem::all()
+            'cache_count' => \Illuminate\Support\Facades\DB::table('cache')->count(),
+            'tree' => \App\Models\MenuItem::getTree('main')
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()]);
@@ -39,6 +42,7 @@ foreach ($locales as $loc) {
         Route::get('/stagione/b1', [PublicController::class, 'stagioneB1'])->name('stagione.b1');
         Route::get('/risultati', [PublicController::class, 'risultati'])->name('risultati');
         Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
+        Route::get('/gallery/atleta/{slug}', [PublicController::class, 'galleryAtleta'])->name('gallery.atleta');
         Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
         Route::get('/organigramma', [PublicController::class, 'organigramma'])->name('organigramma');
         Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');
