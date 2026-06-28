@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (app()->environment('testing')) {
+            return;
+        }
+
         try {
             // Run the DatabaseSeeder which includes the new StaffAndDirigenzaSeeder and Roster2026Seeder
             Artisan::call('db:seed', [
