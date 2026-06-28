@@ -62,6 +62,22 @@ class MenuItem extends Model implements HasMedia
     }
 
     /**
+     * Mappa label → file immagine statica in public/images/menu/.
+     * Usata come fonte primaria; fallback alla media library Spatie.
+     */
+    private static array $staticMenuImages = [
+        'Stagione' => 'stagione.jpg',
+        'Società' => 'societa.jpg',
+        'Ticketing' => 'ticketing.jpg',
+        'Sponsor' => 'sponsor.jpg',
+        'SDB Youth' => 'youth.jpg',
+        'Camp' => 'camp.jpg',
+        'Sociale' => 'sociale.jpg',
+        'Media' => 'media.jpg',
+        'Shop' => 'shop.jpg',
+    ];
+
+    /**
      * Get the full navigation tree for a location, cached.
      */
     public static function getTree(string $location = 'main'): array
@@ -70,12 +86,16 @@ class MenuItem extends Model implements HasMedia
             return static::where('location', $location)
                 ->where('is_active', true)
                 ->whereNull('parent_id')
-                ->with(['children' => function ($q) {
-                    $q->with('media');
-                }, 'media'])
+                ->with(['children'])
                 ->orderBy('sort_order')
                 ->get()
                 ->map(function ($item) {
+                    // Immagine statica da public/images/menu/
+                    $menuImage = null;
+                    if (isset(self::$staticMenuImages[$item->label])) {
+                        $menuImage = '/images/menu/' . self::$staticMenuImages[$item->label];
+                    }
+
                     return [
                         'id' => $item->id,
                         'label' => $item->label,
@@ -83,7 +103,7 @@ class MenuItem extends Model implements HasMedia
                         'description' => $item->description,
                         'mottoTitle' => $item->motto_title,
                         'mottoSubtitle' => $item->motto_subtitle,
-                        'menuImage' => $item->getFirstMediaUrl('menu-images') ?: null,
+                        'menuImage' => $menuImage,
                         'isHighlight' => $item->is_highlight,
                         'children' => $item->children->map(function ($child) {
                             return [
