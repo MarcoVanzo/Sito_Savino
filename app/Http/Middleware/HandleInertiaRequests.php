@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\MenuItem;
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,6 +31,9 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // Skip heavy queries for admin/filament routes
+        $isPublic = !$request->is('admin*', 'filament*', 'livewire*');
+
         return [
             ...parent::share($request),
             'auth' => [
@@ -38,6 +43,9 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
+            'footerMenu' => fn () => $isPublic ? MenuItem::getTree('footer') : [],
+            'siteSettings' => fn () => $isPublic ? SiteSetting::getAllGrouped() : [],
         ];
     }
 }
