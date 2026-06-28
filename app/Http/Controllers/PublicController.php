@@ -28,7 +28,7 @@ class PublicController extends Controller
                 ->where('status', GameStatus::Scheduled)
                 ->where('match_date', '>=', now())
                 ->orderBy('match_date')
-                ->first();
+                ->first()?->toArray();
 
             // Ultime 3 news pubblicate
             $latestNews = Post::where('status', PostStatus::Published)
@@ -43,7 +43,7 @@ class PublicController extends Controller
                     'excerpt' => $post->excerpt,
                     'published_at' => $post->published_at?->toISOString(),
                     'image_url' => $post->getFirstMediaUrl('post-images'),
-                ]);
+                ])->toArray();
 
             $heroSlides = HeroSlide::active()->ordered()->with('media')->get()
                 ->map(fn ($slide) => [
@@ -53,7 +53,7 @@ class PublicController extends Controller
                     'image' => $slide->getFirstMediaUrl('hero-slides') ?: '/images/hero1.jpg',
                     'cta_text' => $slide->cta_text,
                     'cta_url' => $slide->cta_url,
-                ]);
+                ])->toArray();
 
             return [
                 'nextGame' => $nextGame,
@@ -95,8 +95,8 @@ class PublicController extends Controller
                 ])
                     ->where('team_id', $team->id)
                     ->where('season_id', $currentSeason->id)
-                    ->orderBy('jersey_number')
-                    ->get();
+                    ->get()
+                    ->toArray();
 
                 $seasonName = $currentSeason->name;
             }
@@ -117,8 +117,8 @@ class PublicController extends Controller
             if ($currentSeason) {
                 $games = Game::with(['homeTeam', 'awayTeam'])
                     ->where('season_id', $currentSeason->id)
-                    ->orderByDesc('match_date')
-                    ->get();
+                    ->get()
+                    ->toArray();
             }
 
             return compact('games');
@@ -169,7 +169,7 @@ class PublicController extends Controller
                     'website_url' => $s->url,
                     'logo_url' => $s->getFirstMediaUrl('sponsor-logos'),
                     'sort_order' => $s->sort_order,
-                ]);
+                ])->toArray();
         });
 
         $page = Page::where('slug', 'sponsor')->first();
@@ -203,7 +203,7 @@ class PublicController extends Controller
                     'price' => $p->price,
                     'stock' => $p->stock,
                     'image_url' => $p->getFirstMediaUrl('product-images'),
-                ]);
+                ])->toArray();
         });
 
         return Inertia::render('Public/Shop', [
