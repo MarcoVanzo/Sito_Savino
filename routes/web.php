@@ -11,21 +11,7 @@ use Inertia\Inertia;
 
 
 
-Route::get('/debug-seed', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'MenuItemSeeder', '--force' => true]);
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        \Illuminate\Support\Facades\Cache::flush();
-        \Illuminate\Support\Facades\DB::table('cache')->truncate();
-        
-        return response()->json([
-            'cache_count' => \Illuminate\Support\Facades\DB::table('cache')->count(),
-            'tree' => \App\Models\MenuItem::getTree('main')
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
-});
+
 
 $locales = ['it', 'en'];
 
