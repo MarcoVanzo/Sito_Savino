@@ -9,25 +9,7 @@ use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/run-seeds-xyz-123', function () {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('db:seed', [
-            '--class' => 'Database\\Seeders\\DatabaseSeeder',
-            '--force' => true
-        ]);
-        $out1 = \Illuminate\Support\Facades\Artisan::output();
 
-        \Illuminate\Support\Facades\Artisan::call('app:seed-menu-images');
-        $out2 = \Illuminate\Support\Facades\Artisan::output();
-        
-        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-        $out3 = \Illuminate\Support\Facades\Artisan::output();
-
-        return "<pre>Seed:\n$out1\n\nMenu:\n$out2\n\nCache:\n$out3</pre>";
-    } catch (\Exception $e) {
-        return "<pre>Error: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "</pre>";
-    }
-});
 
 // Rotte Pubbliche SDB
 Route::middleware('throttle:web')->group(function () {
