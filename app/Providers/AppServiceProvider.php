@@ -38,6 +38,11 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\PlayerStat::observe(\App\Observers\CacheInvalidationObserver::class);
         \App\Models\Season::observe(\App\Observers\CacheInvalidationObserver::class);
         \App\Models\Team::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\Sponsor::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\Product::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\Post::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\Page::observe(\App\Observers\CacheInvalidationObserver::class);
+        \App\Models\Game::observe(\App\Observers\CacheInvalidationObserver::class);
 
         // Forza HTTPS in produzione
         if (app()->isProduction()) {

@@ -63,7 +63,13 @@ const contactInfo = [
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Contatti' }}</title>
+      <title>{{ (page?.title ?? 'Contatti') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto." />
+      <meta property="og:title" :content="(page?.title ?? 'Contatti') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <PublicLayout>

@@ -17,6 +17,11 @@ const safeContent = computed(() => sanitize(props.page?.content));
     <Head>
         <title>{{ page?.title ?? 'Pagina' }} — Savino Del Bene Volley</title>
         <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
+        <meta property="og:title" :content="(page?.title ?? 'Pagina') + ' — Savino Del Bene Volley'" />
+        <meta property="og:description" :content="page?.meta_description || 'Savino Del Bene Volley - Sito ufficiale.'" />
+        <meta property="og:image" :content="'/images/logo.png'" />
+        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+        <meta property="og:type" content="website" />
     </Head>
 
     <PublicLayout>

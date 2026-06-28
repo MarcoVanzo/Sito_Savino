@@ -12,6 +12,11 @@ const props = defineProps({
         <title>{{ page?.title ?? 'La Società' }} — Savino Del Bene Volley</title>
         <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
         <meta v-else name="description" content="Scopri la storia, l'organigramma e le strutture della Savino Del Bene Volley. Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana." />
+        <meta property="og:title" :content="(page?.title ?? 'La Società') + ' — Savino Del Bene Volley'" />
+        <meta property="og:description" :content="page?.meta_description || 'Scopri la storia, l\'organigramma e le strutture della Savino Del Bene Volley. Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.'" />
+        <meta property="og:image" :content="'/images/logo.png'" />
+        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+        <meta property="og:type" content="website" />
     </Head>
 
     <PublicLayout>

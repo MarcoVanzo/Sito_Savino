@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import PageHero from '@/Components/PageHero.vue';
 import { Head } from '@inertiajs/vue3';
+import { roleLabels, displayRole } from '@/data/playerRoles';
 
 const props = defineProps({
     roster: {
@@ -16,7 +17,7 @@ const props = defineProps({
 });
 
 const selectedRole = ref('Tutti');
-const roles = ['Tutti', 'Palleggiatrice', 'Schiacciatrice', 'Centrale', 'Opposta', 'Libero'];
+const roles = ['Tutti', ...Object.keys(roleLabels)];
 
 const filteredRoster = computed(() => {
     if (selectedRole.value === 'Tutti') {
@@ -28,8 +29,13 @@ const filteredRoster = computed(() => {
 
 <template>
     <Head>
-        <title>Roster Serie A1</title>
+        <title>{{ 'Roster Serie A1' + (seasonName ? ' — ' + seasonName : '') + ' — Savino Del Bene Volley' }}</title>
         <meta name="description" content="La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1." />
+        <meta property="og:title" :content="'Roster Serie A1' + (seasonName ? ' — ' + seasonName : '') + ' — Savino Del Bene Volley'" />
+        <meta property="og:description" content="La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1." />
+        <meta property="og:image" :content="'/images/logo.png'" />
+        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+        <meta property="og:type" content="website" />
     </Head>
     <PublicLayout>
         <!-- Hero -->
@@ -54,7 +60,7 @@ const filteredRoster = computed(() => {
                             ? 'bg-savino-blue text-white shadow-lg shadow-savino-blue/30'
                             : 'bg-white text-gray-600 hover:bg-savino-blue/10 hover:text-savino-blue border border-gray-200'"
                     >
-                        {{ role }}
+                        {{ role === 'Tutti' ? 'Tutti' : roleLabels[role] ?? role }}
                     </button>
                 </div>
 
@@ -69,7 +75,7 @@ const filteredRoster = computed(() => {
                         <div class="h-64 relative bg-gray-100 overflow-hidden">
                             <img
                                 v-if="item.official_photo_url"
-                                :src="'/storage/' + item.official_photo_url"
+                                :src="item.official_photo_url"
                                 :alt="item.player.first_name + ' ' + item.player.last_name"
                                 class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
@@ -88,7 +94,7 @@ const filteredRoster = computed(() => {
                         <!-- Dati Atleta -->
                         <div class="p-5">
                             <div class="text-xs font-bold text-savino-gold uppercase tracking-wider mb-1">
-                                {{ item.role }}
+                                {{ displayRole(item.role) }}
                             </div>
                             <h3 class="text-xl text-savino-blue font-black tracking-tight mb-3">
                                 {{ item.player.first_name }} {{ item.player.last_name }}

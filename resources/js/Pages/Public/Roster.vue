@@ -2,6 +2,7 @@
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { roleLabels, roleColors, displayRole } from '@/data/playerRoles';
 
 const props = defineProps({
     page: Object,
@@ -12,26 +13,18 @@ const props = defineProps({
 });
 
 const placeholderPlayers = [
-    { id: 1, first_name: 'Atleta', last_name: '1', number: 1, role: 'Palleggiatrice' },
-    { id: 2, first_name: 'Atleta', last_name: '2', number: 7, role: 'Schiacciatrice' },
-    { id: 3, first_name: 'Atleta', last_name: '3', number: 10, role: 'Centrale' },
-    { id: 4, first_name: 'Atleta', last_name: '4', number: 4, role: 'Opposta' },
-    { id: 5, first_name: 'Atleta', last_name: '5', number: 14, role: 'Libero' },
-    { id: 6, first_name: 'Atleta', last_name: '6', number: 9, role: 'Schiacciatrice' },
-    { id: 7, first_name: 'Atleta', last_name: '7', number: 3, role: 'Centrale' },
-    { id: 8, first_name: 'Atleta', last_name: '8', number: 11, role: 'Palleggiatrice' },
+    { id: 1, first_name: 'Atleta', last_name: '1', number: 1, role: 'palleggiatrice' },
+    { id: 2, first_name: 'Atleta', last_name: '2', number: 7, role: 'schiacciatrice' },
+    { id: 3, first_name: 'Atleta', last_name: '3', number: 10, role: 'centrale' },
+    { id: 4, first_name: 'Atleta', last_name: '4', number: 4, role: 'opposto' },
+    { id: 5, first_name: 'Atleta', last_name: '5', number: 14, role: 'libero' },
+    { id: 6, first_name: 'Atleta', last_name: '6', number: 9, role: 'schiacciatrice' },
+    { id: 7, first_name: 'Atleta', last_name: '7', number: 3, role: 'centrale' },
+    { id: 8, first_name: 'Atleta', last_name: '8', number: 11, role: 'palleggiatrice' },
 ];
 
 const displayPlayers = computed(() => props.players.length > 0 ? props.players : placeholderPlayers);
 const isPlaceholder = computed(() => props.players.length === 0);
-
-const roleColors = {
-    'Palleggiatrice': 'bg-savino-gold',
-    'Schiacciatrice': 'bg-savino-red',
-    'Centrale': 'bg-savino-blue',
-    'Opposta': 'bg-purple-600',
-    'Libero': 'bg-emerald-600',
-};
 </script>
 
 <template>
@@ -39,6 +32,11 @@ const roleColors = {
         <title>{{ page?.title ?? 'Roster' }} — Savino Del Bene Volley</title>
         <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
         <meta v-else name="description" content="La rosa ufficiale della Savino Del Bene Volley. Scopri le atlete che compongono il roster per la stagione corrente." />
+        <meta property="og:title" :content="(page?.title ?? 'Roster') + ' — Savino Del Bene Volley'" />
+        <meta property="og:description" :content="page?.meta_description || 'La rosa ufficiale della Savino Del Bene Volley. Scopri le atlete che compongono il roster per la stagione corrente.'" />
+        <meta property="og:image" :content="'/images/logo.png'" />
+        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+        <meta property="og:type" content="website" />
     </Head>
 
     <PublicLayout>
@@ -100,7 +98,7 @@ const roleColors = {
                             <!-- Role Badge -->
                             <div class="absolute top-4 right-4">
                                 <span :class="roleColors[player.role] ?? 'bg-gray-600'" class="text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                                    {{ player.role }}
+                                    {{ displayRole(player.role) }}
                                 </span>
                             </div>
 
@@ -118,7 +116,7 @@ const roleColors = {
                                 {{ player.first_name }} {{ player.last_name }}
                             </h3>
                             <p class="text-gray-500 text-sm font-medium mt-1">
-                                {{ player.role }}
+                                {{ displayRole(player.role) }}
                             </p>
                         </div>
 

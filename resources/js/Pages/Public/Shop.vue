@@ -16,6 +16,11 @@ const props = defineProps({
         <title>{{ page?.title ?? 'Shop Ufficiale' }} — Savino Del Bene Volley</title>
         <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
         <meta v-else name="description" content="Lo shop ufficiale della Savino Del Bene Volley. Maglie, abbigliamento e merchandise per i tifosi." />
+        <meta property="og:title" :content="(page?.title ?? 'Shop Ufficiale') + ' — Savino Del Bene Volley'" />
+        <meta property="og:description" :content="page?.meta_description || 'Lo shop ufficiale della Savino Del Bene Volley. Maglie, abbigliamento e merchandise per i tifosi.'" />
+        <meta property="og:image" :content="'/images/logo.png'" />
+        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+        <meta property="og:type" content="website" />
         <component :is="'script'" type="application/ld+json">
             {{ JSON.stringify({
                 '@context': 'https://schema.org',

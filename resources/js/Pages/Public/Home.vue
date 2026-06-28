@@ -1,7 +1,19 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useOgMeta } from '@/Composables/useOgMeta';
+
+const props = defineProps({
+    nextGame: {
+        type: Object,
+        default: null,
+    },
+    latestNews: {
+        type: Array,
+        default: () => [],
+    },
+});
 
 const slides = [
     '/images/hero1.jpg',
@@ -23,12 +35,43 @@ onMounted(() => {
 onUnmounted(() => {
     clearInterval(slideInterval);
 });
+
+const formattedMatchDate = computed(() => {
+    if (!props.nextGame?.match_date) return null;
+    return new Date(props.nextGame.match_date).toLocaleDateString('it-IT', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+});
+
+const formatNewsDate = (dateStr) => {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleDateString('it-IT', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    });
+};
+
+const ogMeta = useOgMeta({
+    title: 'Sito Ufficiale',
+    description: 'Sito ufficiale della Savino Del Bene Volley. Scopri il roster, il calendario e i risultati della Serie A1 femminile.',
+});
 </script>
 
 <template>
     <Head>
-        <title>Sito Ufficiale</title>
-        <meta name="description" content="Sito ufficiale della Savino Del Bene Volley. Scopri il roster, il calendario e i risultati della Serie A1 femminile." />
+        <title>{{ ogMeta.title }}</title>
+        <meta name="description" :content="ogMeta.description" />
+        <meta property="og:title" :content="ogMeta.title" />
+        <meta property="og:description" :content="ogMeta.description" />
+        <meta property="og:image" :content="ogMeta.image" />
+        <meta property="og:url" :content="ogMeta.url" />
+        <meta property="og:type" :content="ogMeta.type" />
     </Head>
     <PublicLayout>
         <!-- HERO SECTION -->
@@ -123,16 +166,16 @@ onUnmounted(() => {
                         <div class="flex flex-col md:flex-row items-center justify-between gap-8">
                             <!-- Home Team -->
                             <div class="text-center md:text-right flex-1">
-                                <img src="/images/Logo_Savino.jpeg" alt="Savino Del Bene" class="w-20 h-20 rounded-xl object-cover mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" />
-                                <h3 class="text-white font-black text-xl uppercase tracking-tight">Savino Del Bene</h3>
+                                <img src="/images/Logo_Savino.jpeg" :alt="nextGame?.home_team?.name ?? 'Savino Del Bene'" class="w-20 h-20 rounded-xl object-cover mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" />
+                                <h3 class="text-white font-black text-xl uppercase tracking-tight">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
                                 <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">Casa</span>
                             </div>
                             <!-- VS -->
                             <div class="text-center px-6">
                                 <div class="text-white/20 text-5xl font-black">VS</div>
                                 <div class="mt-3 bg-savino-gold/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                                    <div class="text-savino-gold text-xs font-bold uppercase tracking-wider">Serie A1</div>
-                                    <div class="text-white text-sm font-bold mt-1">Data da definire</div>
+                                    <div class="text-savino-gold text-xs font-bold uppercase tracking-wider">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
+                                    <div class="text-white text-sm font-bold mt-1">{{ formattedMatchDate ?? 'Data da definire' }}</div>
                                 </div>
                             </div>
                             <!-- Away Team -->
@@ -140,8 +183,8 @@ onUnmounted(() => {
                                 <div class="w-20 h-20 rounded-xl bg-white/10 mx-auto md:mr-auto md:ml-0 mb-4 flex items-center justify-center">
                                     <svg class="w-10 h-10 text-white/30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
                                 </div>
-                                <h3 class="text-white font-black text-xl uppercase tracking-tight">Avversario</h3>
-                                <span class="text-white/50 text-xs font-bold uppercase tracking-wider">Trasferta</span>
+                                <h3 class="text-white font-black text-xl uppercase tracking-tight">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>
+                                <span class="text-white/50 text-xs font-bold uppercase tracking-wider">{{ nextGame?.location ?? 'Trasferta' }}</span>
                             </div>
                         </div>
                         <!-- CTA -->
@@ -198,16 +241,35 @@ onUnmounted(() => {
                     </Link>
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div v-for="i in 3" :key="i" class="group bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
-                        <div class="aspect-video bg-gradient-to-br from-savino-blue/10 to-savino-gold/10 flex items-center justify-center">
-                            <svg class="w-12 h-12 text-savino-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                    <!-- News reali dal backend -->
+                    <template v-if="latestNews.length > 0">
+                        <Link v-for="post in latestNews" :key="post.id" :href="`/news/${post.slug}`" class="group bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                            <div class="aspect-video overflow-hidden">
+                                <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                                <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue/10 to-savino-gold/10 flex items-center justify-center">
+                                    <span class="text-savino-gold text-4xl font-black opacity-30">SDB</span>
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">{{ formatNewsDate(post.published_at) }}</span>
+                                <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors line-clamp-2">{{ post.title }}</h3>
+                                <p v-if="post.excerpt" class="text-gray-500 text-sm mt-3 leading-relaxed line-clamp-3">{{ post.excerpt }}</p>
+                            </div>
+                        </Link>
+                    </template>
+                    <!-- Fallback placeholder -->
+                    <template v-else>
+                        <div v-for="i in 3" :key="i" class="group bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                            <div class="aspect-video bg-gradient-to-br from-savino-blue/10 to-savino-gold/10 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-savino-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+                            </div>
+                            <div class="p-6">
+                                <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">In arrivo</span>
+                                <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors">Le ultime notizie saranno disponibili qui</h3>
+                                <p class="text-gray-500 text-sm mt-3 leading-relaxed">Segui il club per restare aggiornato su tutte le novità della stagione.</p>
+                            </div>
                         </div>
-                        <div class="p-6">
-                            <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">In arrivo</span>
-                            <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors">Le ultime notizie saranno disponibili qui</h3>
-                            <p class="text-gray-500 text-sm mt-3 leading-relaxed">Segui il club per restare aggiornato su tutte le novità della stagione.</p>
-                        </div>
-                    </div>
+                    </template>
                 </div>
             </div>
         </section>

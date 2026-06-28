@@ -1,18 +1,29 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSanitize } from '@/Composables/useSanitize';
 
 const props = defineProps({
     posts: Object,
 });
 const { sanitize } = useSanitize();
+
+const ogMeta = useOgMeta({
+    title: 'News',
+    description: 'Ultime notizie e comunicati stampa dalla Savino Del Bene Volley. Seguici per restare aggiornato su partite, trasferimenti e attività del club.',
+});
 </script>
 
 <template>
     <Head>
-        <title>News — Savino Del Bene Volley</title>
-        <meta name="description" content="Ultime notizie e comunicati stampa dalla Savino Del Bene Volley. Seguici per restare aggiornato su partite, trasferimenti e attività del club." />
+        <title>{{ ogMeta.title }}</title>
+        <meta name="description" :content="ogMeta.description" />
+        <meta property="og:title" :content="ogMeta.title" />
+        <meta property="og:description" :content="ogMeta.description" />
+        <meta property="og:image" :content="ogMeta.image" />
+        <meta property="og:url" :content="ogMeta.url" />
+        <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <PublicLayout>

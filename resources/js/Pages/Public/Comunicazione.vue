@@ -67,7 +67,13 @@ const contacts = [
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Comunicazione' }}</title>
+      <title>{{ (page?.title ?? 'Comunicazione') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="Area comunicazione della Savino Del Bene Volley. Comunicati stampa, media kit e contatti per la stampa." />
+      <meta property="og:title" :content="(page?.title ?? 'Comunicazione') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="Area comunicazione della Savino Del Bene Volley. Comunicati stampa, media kit e contatti per la stampa." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <!-- Hero -->

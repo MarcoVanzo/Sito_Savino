@@ -63,7 +63,13 @@ function nextImage() {
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Foto Gallery' }}</title>
+      <title>{{ (page?.title ?? 'Foto Gallery') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="La galleria fotografica ufficiale della Savino Del Bene Volley. Immagini dalle partite, eventi e dietro le quinte." />
+      <meta property="og:title" :content="(page?.title ?? 'Foto Gallery') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="La galleria fotografica ufficiale della Savino Del Bene Volley. Immagini dalle partite, eventi e dietro le quinte." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <PublicLayout>

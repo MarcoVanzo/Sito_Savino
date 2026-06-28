@@ -1,6 +1,6 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 
 const props = defineProps({
     navigation: {
@@ -10,6 +10,64 @@ const props = defineProps({
 });
 
 const page = usePage();
+
+// --- Keyboard accessibility ---
+const openIndex = ref(-1);
+
+function toggleDropdown(index) {
+    if (props.navigation[index]?.items?.length > 0) {
+        openIndex.value = openIndex.value === index ? -1 : index;
+    }
+}
+
+function closeDropdown() {
+    openIndex.value = -1;
+}
+
+function handleKeydown(event, index) {
+    const hasSubmenu = props.navigation[index]?.items?.length > 0;
+
+    switch (event.key) {
+        case 'Enter':
+        case ' ':
+            if (hasSubmenu) {
+                event.preventDefault();
+                toggleDropdown(index);
+            }
+            break;
+        case 'Escape':
+            event.preventDefault();
+            closeDropdown();
+            // Return focus to the trigger
+            const trigger = navRef.value?.querySelector(`[data-menu-index="${index}"] a`);
+            trigger?.focus();
+            break;
+        case 'ArrowDown':
+            if (hasSubmenu && openIndex.value === index) {
+                event.preventDefault();
+                // Focus first link in dropdown
+                const firstLink = navRef.value?.querySelector(`[data-dropdown-index="${index}"] a`);
+                firstLink?.focus();
+            }
+            break;
+    }
+}
+
+function handleDropdownKeydown(event, parentIndex) {
+    if (event.key === 'Escape') {
+        event.preventDefault();
+        closeDropdown();
+        const trigger = navRef.value?.querySelector(`[data-menu-index="${parentIndex}"] a`);
+        trigger?.focus();
+    }
+}
+
+// Close dropdown when clicking outside
+function handleClickOutside(event) {
+    if (navRef.value && !navRef.value.contains(event.target)) {
+        closeDropdown();
+    }
+}
 
 // Dynamic positioning for dropdown cards.
 // We calculate the pixel `left` of each dropdown relative to the
@@ -73,10 +131,12 @@ function debouncedRecalc() {
 onMounted(() => {
     nextTick(recalcPositions);
     window.addEventListener('resize', debouncedRecalc);
+    document.addEventListener('click', handleClickOutside);
 });
 
 onBeforeUnmount(() => {
     window.removeEventListener('resize', debouncedRecalc);
+    document.removeEventListener('click', handleClickOutside);
     clearTimeout(resizeTimer);
 });
 </script>
@@ -85,26 +145,35 @@ onBeforeUnmount(() => {
     <nav ref="navRef" role="navigation" aria-label="Navigazione principale" class="hidden lg:flex flex-1 justify-end items-center h-full">
         <div class="flex items-center h-full">
             <template v-for="(item, index) in navigation" :key="item.name">
-                <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;">
+                <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="item.items?.length > 0 ? openIndex = index : null" @mouseleave="closeDropdown">
                     <Link 
                         :href="item.path" 
+                        prefetch
                         class="text-[12px] xl:text-[14px] font-black tracking-wider uppercase transition-colors flex items-center h-full px-2 lg:px-3 whitespace-nowrap"
                         :class="[
                             $page.url.startsWith(item.path) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-400 hover:text-white border-b-[3px] border-transparent pt-[3px]',
                             item.isHighlight ? 'text-[#ED028C] hover:text-[#ff30a6]' : ''
                         ]"
+                        :aria-haspopup="item.items?.length > 0 ? 'true' : undefined"
+                        :aria-expanded="item.items?.length > 0 ? (openIndex === index).toString() : undefined"
+                        @keydown="handleKeydown($event, index)"
                     >
                         {{ item.name }}
-                        <svg v-if="item.items && item.items.length > 0" class="w-3 h-3 ml-1.5 opacity-70 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
+                        <svg v-if="item.items && item.items.length > 0" class="w-3 h-3 ml-1.5 opacity-70 transition-transform duration-300" :class="openIndex === index ? 'rotate-180' : 'group-hover:rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" /></svg>
                     </Link>
 
                     <!-- Sottomenu Mega Dropdown — positioned via JS relative to <nav> -->
                     <div
                         v-if="item.items && item.items.length > 0"
-                        class="absolute top-full pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50"
+                        :data-dropdown-index="index"
+                        class="absolute top-full pt-4 transition-all duration-300 z-50"
+                        :class="openIndex === index ? 'opacity-100 visible' : 'opacity-0 invisible'"
                         :style="dropdownStyles[index] || {}"
+                        role="menu"
+                        :aria-label="item.name + ' sottomenu'"
+                        @keydown="handleDropdownKeydown($event, index)"
                     >
-                        <div class="flex bg-white/95 backdrop-blur-xl shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-white/20 rounded-2xl overflow-hidden translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-out w-[720px] min-h-[320px]">
+                        <div class="flex bg-white/95 backdrop-blur-xl shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-white/20 rounded-2xl overflow-hidden transition-transform duration-300 ease-out w-[720px] min-h-[320px]" :class="openIndex === index ? 'translate-y-0' : 'translate-y-4 group-hover:translate-y-0'">
                             <!-- Left side with links -->
                             <div class="w-3/5 p-10 flex flex-col">
                                 <div class="mb-8">
@@ -116,6 +185,8 @@ onBeforeUnmount(() => {
                                         v-for="sub in item.items" 
                                         :key="sub.name"
                                         :href="sub.href"
+                                        prefetch
+                                        role="menuitem"
                                         class="flex flex-col p-4 rounded-xl border border-gray-100 hover:border-savino-gold/50 bg-gray-50 hover:bg-white hover:shadow-xl transition-all duration-300 group/link"
                                     >
                                         <span class="text-[14px] font-black text-savino-blue uppercase tracking-wider mb-1 flex justify-between items-center">

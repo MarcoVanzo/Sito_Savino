@@ -11,59 +11,76 @@ use App\Models\Game;
 use App\Models\Player;
 use App\Models\Sponsor;
 use App\Models\Product;
+use App\Models\Post;
+use App\Enums\GameStatus;
+use App\Enums\PostStatus;
 use Illuminate\Support\Facades\Cache;
 
 class PublicController extends Controller
 {
     public function home()
     {
-        return Inertia::render('Public/Home');
+        $data = Cache::remember('public:home', now()->addMinutes(5), function () {
+            // Prossima partita programmata
+            $nextGame = Game::with(['homeTeam', 'awayTeam'])
+                ->where('status', GameStatus::Scheduled)
+                ->where('match_date', '>=', now())
+                ->orderBy('match_date')
+                ->first();
+
+            // Ultime 3 news pubblicate
+            $latestNews = Post::where('status', PostStatus::Published)
+                ->with('media')
+                ->orderByDesc('published_at')
+                ->take(3)
+                ->get()
+                ->map(fn ($post) => [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'slug' => $post->slug,
+                    'excerpt' => $post->excerpt,
+                    'published_at' => $post->published_at?->toISOString(),
+                    'image_url' => $post->getFirstMediaUrl('post-images'),
+                ]);
+
+            return [
+                'nextGame' => $nextGame,
+                'latestNews' => $latestNews,
+            ];
+        });
+
+        return Inertia::render('Public/Home', $data);
     }
 
     public function stagione()
     {
-        // Cache la query roster per 10 minuti (i dati cambiano raramente)
-        $data = Cache::remember('public:stagione', now()->addMinutes(10), function () {
-            $teamA1 = Team::where('slug', 'serie-a1')->first();
-            $currentSeason = Season::current()->first();
-
-            $roster = [];
-            $seasonName = null;
-
-            if ($teamA1 && $currentSeason) {
-                $roster = Roster::with([
-                        'player',
-                        'player.stats' => fn ($query) => $query->where('season_id', $currentSeason->id),
-                    ])
-                    ->where('team_id', $teamA1->id)
-                    ->where('season_id', $currentSeason->id)
-                    ->orderBy('jersey_number')
-                    ->get();
-
-                $seasonName = $currentSeason->name;
-            }
-
-            return compact('roster', 'seasonName');
-        });
-
-        return Inertia::render('Public/Stagione', $data);
+        return $this->stagioneForTeam('serie-a1', 'public:stagione');
     }
 
     public function stagioneB1()
     {
-        $data = Cache::remember('public:stagione:b1', now()->addMinutes(10), function () {
-            $teamB1 = Team::where('slug', 'serie-b1')->first();
+        return $this->stagioneForTeam('serie-b1', 'public:stagione:b1', 'Serie B1');
+    }
+
+    /**
+     * Logica condivisa per il caricamento roster di un team specifico.
+     */
+    private function stagioneForTeam(string $teamSlug, string $cacheKey, ?string $teamLabel = null): \Inertia\Response
+    {
+        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug) {
+            $team = Team::where('slug', $teamSlug)->first();
             $currentSeason = Season::current()->first();
 
             $roster = [];
             $seasonName = null;
 
-            if ($teamB1 && $currentSeason) {
+            if ($team && $currentSeason) {
                 $roster = Roster::with([
                         'player',
+                        'media',
                         'player.stats' => fn ($query) => $query->where('season_id', $currentSeason->id),
                     ])
-                    ->where('team_id', $teamB1->id)
+                    ->where('team_id', $team->id)
                     ->where('season_id', $currentSeason->id)
                     ->orderBy('jersey_number')
                     ->get();
@@ -74,7 +91,7 @@ class PublicController extends Controller
             return compact('roster', 'seasonName');
         });
 
-        return Inertia::render('Public/Stagione', array_merge($data, ['teamLabel' => 'Serie B1']));
+        return Inertia::render('Public/Stagione', $teamLabel ? array_merge($data, ['teamLabel' => $teamLabel]) : $data);
     }
 
     public function risultati()

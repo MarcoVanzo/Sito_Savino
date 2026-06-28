@@ -32,8 +32,10 @@ class RostersRelationManager extends RelationManager
                 ->numeric()
                 ->minValue(1)
                 ->maxValue(99),
-            Forms\Components\TextInput::make('role')
-                ->label('Ruolo'),
+            Forms\Components\Select::make('role')
+                ->label('Ruolo')
+                ->options(\App\Enums\PlayerPosition::class)
+                ->required(),
             Forms\Components\TextInput::make('height_cm')
                 ->label('Altezza (cm)')
                 ->numeric(),

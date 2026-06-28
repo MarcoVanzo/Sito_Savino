@@ -28,6 +28,8 @@ const formattedDate = computed(() => {
         <meta property="og:type" content="article" />
         <meta property="og:title" :content="post?.title" />
         <meta v-if="post?.excerpt" property="og:description" :content="post.excerpt" />
+        <meta property="og:image" :content="post?.media?.[0]?.original_url ?? '/images/logo.png'" />
+        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
         <component :is="'script'" type="application/ld+json" v-if="post">
             {{ JSON.stringify({
                 '@context': 'https://schema.org',

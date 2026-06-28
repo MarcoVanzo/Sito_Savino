@@ -144,6 +144,6 @@ class RosterResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['player', 'team', 'season']);
+            ->with(['player', 'team', 'season', 'media']);
     }
 }

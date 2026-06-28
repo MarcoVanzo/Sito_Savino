@@ -26,6 +26,17 @@ class Roster extends Model implements HasMedia
         'role' => PlayerPosition::class,
     ];
 
+    protected $appends = ['official_photo_url'];
+
+    /**
+     * URL della foto ufficiale (collection Spatie 'rosters_official').
+     */
+    public function getOfficialPhotoUrlAttribute(): ?string
+    {
+        $url = $this->getFirstMediaUrl('rosters_official');
+        return $url !== '' ? $url : null;
+    }
+
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);
