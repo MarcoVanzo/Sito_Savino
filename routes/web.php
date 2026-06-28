@@ -28,7 +28,7 @@ Route::get('/run-seeders-now', function () {
         \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\ContentDataSeeder', '--force' => true]);
         $output .= "ContentDataSeeder: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
         
-        \Illuminate\Support\Facades\Artisan::call('filament:optimize-clear');
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         $output .= "Cache Cleared: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
         
         return response('<pre>Seeders run successfully:\n' . $output . '</pre>');
