@@ -9,6 +9,34 @@ use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Temporary Route for running CMS seeders in production
+Route::get('/run-seeders-now', function () {
+    try {
+        $output = '';
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\PageSeeder', '--force' => true]);
+        $output .= "PageSeeder: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
+        
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\SiteSettingSeeder', '--force' => true]);
+        $output .= "SiteSettingSeeder: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
+        
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\HeroSlideSeeder', '--force' => true]);
+        $output .= "HeroSlideSeeder: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
+        
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\MenuItemSeeder', '--force' => true]);
+        $output .= "MenuItemSeeder: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
+        
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\ContentDataSeeder', '--force' => true]);
+        $output .= "ContentDataSeeder: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
+        
+        \Illuminate\Support\Facades\Artisan::call('filament:optimize-clear');
+        $output .= "Cache Cleared: " . \Illuminate\Support\Facades\Artisan::output() . "\n";
+        
+        return response('<pre>Seeders run successfully:\n' . $output . '</pre>');
+    } catch (\Exception $e) {
+        return response('<pre>Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString() . '</pre>');
+    }
+});
+
 // Rotte Pubbliche SDB
 Route::middleware('throttle:web')->group(function () {
     Route::get('/', [PublicController::class, 'home'])->name('home');
