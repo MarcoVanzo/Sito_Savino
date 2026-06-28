@@ -57,7 +57,13 @@ const impactNumbers = [
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Progetti Sociali' }}</title>
+      <title>{{ (page?.title ?? 'Progetti Sociali') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="I progetti sociali e le iniziative sul territorio della Savino Del Bene Volley." />
+      <meta property="og:title" :content="(page?.title ?? 'Progetti Sociali') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="I progetti sociali e le iniziative sul territorio della Savino Del Bene Volley." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <!-- Hero -->

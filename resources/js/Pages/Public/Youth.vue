@@ -75,7 +75,13 @@ const values = [
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Settore Giovanile' }}</title>
+      <title>{{ (page?.title ?? 'Settore Giovanile') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley." />
+      <meta property="og:title" :content="(page?.title ?? 'Settore Giovanile') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <PublicLayout>

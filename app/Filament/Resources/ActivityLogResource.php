@@ -21,8 +21,8 @@ class ActivityLogResource extends Resource
     protected static ?string $modelLabel = 'Registro Attività';
     protected static ?string $pluralModelLabel = 'Registro Attività';
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
-    protected static ?string $navigationGroup = 'Sistema';
-    protected static ?int $navigationSort = 100;
+    protected static ?string $navigationGroup = 'Amministrazione';
+    protected static ?int $navigationSort = 17;
 
     /**
      * Solo gli admin possono vedere i log.

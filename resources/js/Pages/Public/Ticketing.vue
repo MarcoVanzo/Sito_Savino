@@ -58,7 +58,13 @@ const plans = [
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Biglietteria' }}</title>
+      <title>{{ (page?.title ?? 'Biglietteria') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="Acquista i biglietti per le partite della Savino Del Bene Volley al Palazzo Wanny. Abbonamenti e biglietti singoli." />
+      <meta property="og:title" :content="(page?.title ?? 'Biglietteria') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="Acquista i biglietti per le partite della Savino Del Bene Volley al Palazzo Wanny. Abbonamenti e biglietti singoli." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <PublicLayout>

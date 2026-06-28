@@ -42,7 +42,13 @@ function getCategoryColor(category) {
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Staff Tecnico e Medico' }}</title>
+      <title>{{ (page?.title ?? 'Staff Tecnico e Medico') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="Lo staff tecnico e medico della Savino Del Bene Volley. Allenatori, preparatori e team di supporto." />
+      <meta property="og:title" :content="(page?.title ?? 'Staff Tecnico e Medico') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="Lo staff tecnico e medico della Savino Del Bene Volley. Allenatori, preparatori e team di supporto." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <PublicLayout>

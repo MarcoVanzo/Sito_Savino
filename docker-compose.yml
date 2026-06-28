@@ -9,7 +9,8 @@ services:
       MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: secret
     ports:
-      - "3306:3306"
+      # Porta 3307 per evitare conflitto con MySQL locale (Homebrew) sulla 3306
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:

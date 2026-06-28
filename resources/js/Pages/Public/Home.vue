@@ -314,50 +314,78 @@ const ogMeta = useOgMeta({
     padding-top: 85px;
 }
 
-/* === SLIDE CROSSFADE === */
+/* === CINEMATIC CROSSFADE WITH BLOOM === */
 .hero-slide {
     opacity: 0;
     z-index: 0;
-    transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Slow dissolve with a soft ease that lingers in the middle for overlap */
+    transition: opacity 2.4s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 2.4s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: brightness(1) saturate(1);
+    will-change: opacity, filter, transform;
 }
+
 .hero-slide.is-active {
     opacity: 1;
     z-index: 2;
+    /* Gentle brightness bloom as the image fades in — creates a luminous transition */
+    animation: slideBloomIn 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
 .hero-slide.is-leaving {
     opacity: 0;
     z-index: 1;
+    /* Slower fade-out than fade-in creates overlap period where both images are partially visible */
+    transition: opacity 3s cubic-bezier(0.4, 0, 0.2, 1),
+                filter 3s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: brightness(0.6) saturate(0.7);
 }
 
-/* === KEN BURNS CINEMATIC ZOOM/PAN === */
+/* Bloom: slight brightness pulse during the fade-in */
+@keyframes slideBloomIn {
+    0% {
+        filter: brightness(1.3) saturate(0.8);
+    }
+    40% {
+        filter: brightness(1.1) saturate(1.05);
+    }
+    100% {
+        filter: brightness(1) saturate(1);
+    }
+}
+
+/* === KEN BURNS — CINEMATIC ZOOM/PAN (more dramatic) === */
 .hero-slide-inner {
-    transform: scale(1);
+    transform: scale(1.02);
     transition: none;
-}
-.hero-slide-inner.ken-burns-active {
-    animation: kenBurns 7s ease-out forwards;
+    will-change: transform;
 }
 
-@keyframes kenBurns {
+/* Slide 1: slow drift from center to upper-right */
+.hero-slide:nth-child(odd) .hero-slide-inner.ken-burns-active {
+    animation: kenBurnsDriftRight 8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes kenBurnsDriftRight {
     0% {
-        transform: scale(1.08) translate(0, 0);
+        transform: scale(1.02) translate(0, 0);
     }
     100% {
-        transform: scale(1.18) translate(-1%, -0.5%);
+        transform: scale(1.15) translate(-1.5%, -1%);
     }
 }
 
-/* Alternate direction for visual variety — applied via nth-child */
+/* Slide 2: slow drift from lower-right to center */
 .hero-slide:nth-child(even) .hero-slide-inner.ken-burns-active {
-    animation: kenBurnsAlt 7s ease-out forwards;
+    animation: kenBurnsDriftLeft 8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-@keyframes kenBurnsAlt {
+@keyframes kenBurnsDriftLeft {
     0% {
-        transform: scale(1.04) translate(-1%, 0.5%);
+        transform: scale(1.12) translate(-1%, 1%);
     }
     100% {
-        transform: scale(1.14) translate(0.5%, -1%);
+        transform: scale(1.04) translate(0.5%, -0.5%);
     }
 }
 
@@ -372,6 +400,19 @@ const ogMeta = useOgMeta({
     }
     100% {
         transform: scaleX(1);
+    }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .hero-slide {
+        transition: opacity 0.5s ease;
+        filter: none !important;
+        animation: none !important;
+    }
+    .hero-slide-inner {
+        animation: none !important;
+        transform: scale(1) !important;
     }
 }
 </style>

@@ -48,7 +48,13 @@ const submitOrder = () => {
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Checkout' }}</title>
+      <title>{{ (page?.title ?? 'Checkout') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="Completa il tuo ordine sullo shop ufficiale della Savino Del Bene Volley." />
+      <meta property="og:title" :content="(page?.title ?? 'Checkout') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="Completa il tuo ordine sullo shop ufficiale della Savino Del Bene Volley." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <!-- Hero -->

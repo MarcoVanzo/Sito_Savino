@@ -59,7 +59,13 @@ const dates = [
 
 <template>
     <Head>
-      <title>{{ page?.title ?? 'Summer Camp & Experience' }}</title>
+      <title>{{ (page?.title ?? 'Summer Camp & Experience') + ' — Savino Del Bene Volley' }}</title>
+      <meta name="description" content="Summer Camp ed esperienze sportive con la Savino Del Bene Volley. Camp estivi per giovani appassionate di pallavolo." />
+      <meta property="og:title" :content="(page?.title ?? 'Summer Camp & Experience') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" content="Summer Camp ed esperienze sportive con la Savino Del Bene Volley. Camp estivi per giovani appassionate di pallavolo." />
+      <meta property="og:image" :content="'/images/logo.png'" />
+      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+      <meta property="og:type" content="website" />
     </Head>
 
     <!-- Hero -->
