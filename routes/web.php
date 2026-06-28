@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/debug-log-xyz', function () {
-    if (file_exists(storage_path('logs/laravel.log'))) {
-        return response(file_get_contents(storage_path('logs/laravel.log')))->header('Content-Type', 'text/plain');
+    $files = glob(storage_path('logs/*.log'));
+    if (empty($files)) {
+        return 'No log files found.';
     }
-    return 'No log file found.';
+    $latest = end($files);
+    return response(file_get_contents($latest))->header('Content-Type', 'text/plain');
 });
 
 // Rotte Pubbliche SDB
