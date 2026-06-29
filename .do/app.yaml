@@ -6,7 +6,7 @@ services:
       branch: main
       deploy_on_push: true
     build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build
-    run_command: php artisan migrate --force && php artisan storage:link; php artisan cache:clear; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan filament:optimize; (while true; do node bootstrap/ssr/ssr.js; echo 'SSR crashed, restarting in 2s...'; sleep 2; done) & heroku-php-apache2 public/
+    run_command: php artisan migrate --force && php artisan storage:link; php artisan cache:clear; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan filament:optimize; heroku-php-apache2 public/
     envs:
       - key: APP_ENV
         value: production
@@ -32,6 +32,7 @@ services:
         value: ${sito-savino-db.USERNAME}
       - key: DB_PASSWORD
         value: ${sito-savino-db.PASSWORD}
+
       - key: FILESYSTEM_DISK
         value: s3
       - key: MEDIA_DISK
@@ -64,10 +65,25 @@ services:
         value: "true"
       - key: APP_LOCALE
         value: it
+      - key: INERTIA_SSR_URL
+        value: ${ssr.INTERNAL_URL}
       - key: COMPREFACE_HOST
         value: http://157.230.98.6:8000
       - key: COMPREFACE_KEY
         type: SECRET
+  - name: ssr
+    github:
+      repo: MarcoVanzo/sito_savino
+      branch: main
+      deploy_on_push: true
+    build_command: npm install && npm run build
+    run_command: node bootstrap/ssr/ssr.js
+    http_port: 13714
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    envs:
+      - key: APP_ENV
+        value: production
   - name: worker
     github:
       repo: MarcoVanzo/sito_savino
