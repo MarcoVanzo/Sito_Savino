@@ -33,7 +33,7 @@ class TeamResource extends Resource
 
     protected static ?string $navigationGroup = 'SDB Youth';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

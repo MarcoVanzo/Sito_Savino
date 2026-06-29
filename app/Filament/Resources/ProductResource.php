@@ -38,7 +38,7 @@ use HasStandardTableActions;
 
     protected static ?string $navigationGroup = 'Shop';
 
-    protected static ?int $navigationSort = 13;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'shop/products';
 

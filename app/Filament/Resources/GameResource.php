@@ -33,7 +33,7 @@ class GameResource extends Resource
 
     protected static ?string $navigationGroup = 'Stagione';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $slug = 'partite';
 

@@ -37,7 +37,7 @@ use HasStandardTableActions;
 
     protected static ?string $navigationGroup = 'Media';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'news';
 

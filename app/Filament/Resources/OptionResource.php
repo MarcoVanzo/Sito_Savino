@@ -29,7 +29,7 @@ class OptionResource extends Resource
 
     protected static ?string $navigationGroup = 'Amministrazione';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
     public static function shouldRegisterNavigation(): bool
     {

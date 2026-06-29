@@ -22,6 +22,7 @@ class ContactMessageResource extends Resource
     protected static ?string $navigationLabel = 'Accrediti Stampa e Form';
 
     protected static ?string $navigationGroup = 'Media';
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'forms';
 

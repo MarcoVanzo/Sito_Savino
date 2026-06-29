@@ -30,7 +30,7 @@ class ActivityLogResource extends Resource
 
     protected static ?string $navigationGroup = 'Amministrazione';
 
-    protected static ?int $navigationSort = 17;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'log';
 

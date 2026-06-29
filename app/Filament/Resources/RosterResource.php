@@ -33,7 +33,7 @@ class RosterResource extends Resource
 
     protected static ?string $navigationGroup = 'Stagione';
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'roster';
 
