@@ -95,6 +95,9 @@ class MenuItem extends Model implements HasMedia
                 ->get()
                 ->map(function ($item) use ($prefix) {
                     $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
+                    if ($menuImage) {
+                        $menuImage = parse_url($menuImage, PHP_URL_PATH);
+                    }
                     if (!$menuImage && isset(self::$staticMenuImages[$item->label])) {
                         $menuImage = '/images/menu/' . self::$staticMenuImages[$item->label];
                     }
