@@ -27,7 +27,7 @@ class GalleryImageResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Galleria Fotografica';
 
-    protected static ?string $navigationGroup = 'Sito Web';
+    protected static ?string $navigationGroup = 'Media';
 
     protected static ?int $navigationSort = 4;
 

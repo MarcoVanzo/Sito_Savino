@@ -33,7 +33,7 @@ use HasStandardTableActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-user';
 
-    protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?string $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 7;
 

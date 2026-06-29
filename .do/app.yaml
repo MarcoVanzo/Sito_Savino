@@ -64,6 +64,10 @@ services:
         value: "true"
       - key: APP_LOCALE
         value: it
+      - key: COMPREFACE_HOST
+        value: http://157.230.98.6:8000
+      - key: COMPREFACE_KEY
+        type: SECRET
   - name: worker
     github:
       repo: MarcoVanzo/sito_savino
@@ -112,6 +116,10 @@ services:
         value: sito-savino-assets-2026
       - key: AWS_ENDPOINT
         value: https://fra1.digitaloceanspaces.com
+      - key: COMPREFACE_HOST
+        value: http://157.230.98.6:8000
+      - key: COMPREFACE_KEY
+        type: SECRET
 databases:
   - name: sito-savino-db
     engine: MYSQL

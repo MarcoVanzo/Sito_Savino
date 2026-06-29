@@ -31,7 +31,7 @@ class RosterResource extends Resource
 
     protected static ?string $navigationLabel = 'Gestione Squadre (A1, B1, Giovanili)';
 
-    protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?string $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 8;
 

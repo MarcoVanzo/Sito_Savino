@@ -39,25 +39,15 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('images/logo.png'))
             ->sidebarCollapsibleOnDesktop()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
-            ->navigationGroups([
-                \Filament\Navigation\NavigationGroup::make()
-                    ->label('Sito Web')
-                    ->icon('heroicon-o-globe-alt'),
-                \Filament\Navigation\NavigationGroup::make()
-                    ->label('Gestione Sportiva')
-                    ->icon('heroicon-o-trophy'),
-                \Filament\Navigation\NavigationGroup::make()
-                    ->label('Shop')
-                    ->icon('heroicon-o-shopping-bag')
-                    ->collapsed(),
-                \Filament\Navigation\NavigationGroup::make()
-                    ->label('Amministrazione')
-                    ->icon('heroicon-o-cog-8-tooth')
-                    ->collapsed(),
-                \Filament\Navigation\NavigationGroup::make()
-                    ->label('Archivi Sistema')
-                    ->icon('heroicon-o-archive-box')
-                    ->collapsed(),
+                        ->navigationGroups([
+                \Filament\Navigation\NavigationGroup::make()->label('Stagione')->icon('heroicon-o-trophy'),
+                \Filament\Navigation\NavigationGroup::make()->label('SDB Youth')->icon('heroicon-o-academic-cap'),
+                \Filament\Navigation\NavigationGroup::make()->label('Società')->icon('heroicon-o-building-office-2'),
+                \Filament\Navigation\NavigationGroup::make()->label('Sponsor')->icon('heroicon-o-currency-dollar'),
+                \Filament\Navigation\NavigationGroup::make()->label('Media')->icon('heroicon-o-megaphone'),
+                \Filament\Navigation\NavigationGroup::make()->label('Shop')->icon('heroicon-o-shopping-bag'),
+                \Filament\Navigation\NavigationGroup::make()->label('Pagine & Extra')->icon('heroicon-o-document-duplicate')->collapsed(),
+                \Filament\Navigation\NavigationGroup::make()->label('Amministrazione')->icon('heroicon-o-cog-8-tooth')->collapsed(),
             ])
             ->userMenuItems([
                 \Filament\Navigation\MenuItem::make()

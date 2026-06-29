@@ -30,7 +30,7 @@ use HasStandardTableActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?string $navigationGroup = 'Stagione';
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {

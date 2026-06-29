@@ -29,7 +29,7 @@ class SeasonResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?string $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 5;
 

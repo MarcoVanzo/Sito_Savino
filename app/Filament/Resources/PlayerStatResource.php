@@ -27,7 +27,7 @@ class PlayerStatResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?string $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 9;
 

@@ -26,7 +26,7 @@ protected static ?string $model = HeroSlide::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
 
-    protected static ?string $navigationGroup = 'Sito Web';
+    protected static ?string $navigationGroup = 'Pagine & Extra';
 
     protected static ?int $navigationSort = 45;
 

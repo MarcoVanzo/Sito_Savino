@@ -33,7 +33,7 @@ use HasStandardTableActions;
 
     protected static ?string $navigationLabel = 'Gestione Sponsor';
 
-    protected static ?string $navigationGroup = 'Gestione Sportiva';
+    protected static ?string $navigationGroup = 'Sponsor';
 
     protected static ?int $navigationSort = 11;
 

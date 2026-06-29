@@ -21,7 +21,7 @@ class ContactMessageResource extends Resource
 
     protected static ?string $navigationLabel = 'Gestione Accrediti e Form';
 
-    protected static ?string $navigationGroup = 'Amministrazione';
+    protected static ?string $navigationGroup = 'Media';
 
     protected static ?string $slug = 'forms';
 

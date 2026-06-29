@@ -27,7 +27,7 @@ class ManagementResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Gestione Società';
+    protected static ?string $navigationGroup = 'Società';
 
     protected static ?int $navigationSort = 2;
 
