@@ -21,13 +21,13 @@ class GalleryImageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
 
-    protected static ?string $navigationLabel = 'Gestione Gallery (AI Tagging)';
+    protected static ?string $navigationLabel = 'Gallery';
 
     protected static ?string $modelLabel = 'Immagine Galleria';
 
     protected static ?string $pluralModelLabel = 'Galleria Fotografica';
 
-    protected static ?string $navigationGroup = 'Media';
+    protected static ?string $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 4;
 

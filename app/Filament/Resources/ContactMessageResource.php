@@ -19,7 +19,7 @@ class ContactMessageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
-    protected static ?string $navigationLabel = 'Gestione Accrediti e Form';
+    protected static ?string $navigationLabel = 'Accrediti Stampa e Form';
 
     protected static ?string $navigationGroup = 'Media';
 

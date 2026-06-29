@@ -40,4 +40,9 @@ return [
         'pass' => env('PREVIEW_AUTH_PASS'),
     ],
 
+    'compreface' => [
+        'host' => env('COMPREFACE_HOST', 'http://localhost:8000'),
+        'key' => env('COMPREFACE_KEY'),
+    ],
+
 ];
