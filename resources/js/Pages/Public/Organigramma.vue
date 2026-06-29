@@ -6,6 +6,10 @@ const props = defineProps({
     dirigenza: {
         type: Array,
         default: () => []
+    },
+    page: {
+        type: Object,
+        default: null
     }
 })
 
@@ -16,10 +20,10 @@ function getInitials(name) {
 
 <template>
     <Head>
-      <title>Organigramma — Savino Del Bene Volley</title>
-      <meta name="description" content="L'organigramma e la dirigenza della Savino Del Bene Volley." />
-      <meta property="og:title" content="Organigramma — Savino Del Bene Volley" />
-      <meta property="og:description" content="L'organigramma e la dirigenza della Savino Del Bene Volley." />
+      <title>{{ page?.title || 'Organigramma' }} — Savino Del Bene Volley</title>
+      <meta name="description" :content="page?.meta_description || 'L\'organigramma e la dirigenza della Savino Del Bene Volley.'" />
+      <meta property="og:title" :content="(page?.title || 'Organigramma') + ' — Savino Del Bene Volley'" />
+      <meta property="og:description" :content="page?.meta_description || 'L\'organigramma e la dirigenza della Savino Del Bene Volley.'" />
       <meta property="og:image" :content="'/images/logo.png'" />
       <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
       <meta property="og:type" content="website" />
@@ -31,9 +35,11 @@ function getInitials(name) {
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">La Società</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">Organigramma</h1>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title || 'Organigramma' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">La struttura dirigenziale e organizzativa della nostra società.</p>
+                
+                <div v-if="page?.content" class="prose prose-lg prose-invert max-w-3xl mx-auto" v-html="page.content"></div>
+                <p v-else class="text-white/70 text-lg max-w-2xl mx-auto">La struttura dirigenziale e organizzativa della nostra società.</p>
             </div>
         </section>
 

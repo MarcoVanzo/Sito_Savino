@@ -14,6 +14,14 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    staffTecnico: {
+        type: Array,
+        default: () => [],
+    },
+    staffMedico: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const selectedRole = ref('Tutti');
@@ -25,6 +33,10 @@ const filteredRoster = computed(() => {
     }
     return props.roster.filter(item => item.role === selectedRole.value);
 });
+
+function getInitials(name) {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+}
 </script>
 
 <template>
@@ -120,6 +132,72 @@ const filteredRoster = computed(() => {
                     </button>
                 </div>
 
+            </div>
+        </section>
+
+        <!-- Staff Tecnico -->
+        <section v-if="staffTecnico.length > 0" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Il Nostro Team</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tight mt-3">Staff Tecnico</h2>
+                    <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div
+                        v-for="member in staffTecnico"
+                        :key="member.id"
+                        class="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:-translate-y-1"
+                    >
+                        <div class="relative h-56 bg-gradient-to-br from-savino-blue to-savino-blue/70 flex items-center justify-center overflow-hidden">
+                            <img
+                                v-if="member.photo_url"
+                                :src="member.photo_url"
+                                :alt="member.name"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                loading="lazy"
+                            />
+                            <span v-else class="text-5xl font-black text-white/30">{{ getInitials(member.name) }}</span>
+                        </div>
+                        <div class="p-5 text-center">
+                            <h3 class="text-lg font-black text-gray-900 uppercase tracking-tight">{{ member.name }}</h3>
+                            <p class="text-savino-gold text-sm font-bold mt-1">{{ member.role }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Staff Medico -->
+        <section v-if="staffMedico.length > 0" class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Supporto Alle Atlete</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-savino-red uppercase tracking-tight mt-3">Staff Medico</h2>
+                    <div class="w-16 h-1 bg-savino-red mx-auto mt-4"></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div
+                        v-for="member in staffMedico"
+                        :key="member.id"
+                        class="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:-translate-y-1"
+                    >
+                        <div class="relative h-56 bg-gradient-to-br from-savino-red to-savino-red/70 flex items-center justify-center overflow-hidden">
+                            <img
+                                v-if="member.photo_url"
+                                :src="member.photo_url"
+                                :alt="member.name"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                loading="lazy"
+                            />
+                            <span v-else class="text-5xl font-black text-white/30">{{ getInitials(member.name) }}</span>
+                        </div>
+                        <div class="p-5 text-center">
+                            <h3 class="text-lg font-black text-gray-900 uppercase tracking-tight">{{ member.name }}</h3>
+                            <p class="text-savino-red text-sm font-bold mt-1">{{ member.role }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </PublicLayout>

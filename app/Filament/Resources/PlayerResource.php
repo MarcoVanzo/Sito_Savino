@@ -24,7 +24,6 @@ use HasStandardTableActions;
 
     protected static ?string $model = Player::class;
 
-    // Attributo usato per il titolo nei risultati di ricerca globale
     protected static ?string $recordTitleAttribute = 'last_name';
 
     protected static ?string $modelLabel = 'Anagrafica Atleta';
@@ -36,6 +35,8 @@ use HasStandardTableActions;
     protected static ?string $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 7;
+
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Form $form): Form
     {

@@ -106,7 +106,7 @@ class FacialRecognitionService
     {
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping recognition.');
-            return [];
+            return ['detected_players' => [], 'has_unrecognized_faces' => false];
         }
 
         $response = Http::withHeaders([
@@ -117,11 +117,12 @@ class FacialRecognitionService
 
         if (!$response->successful()) {
             Log::error('CompreFace Recognize Error: ' . $response->body());
-            return [];
+            return ['detected_players' => [], 'has_unrecognized_faces' => false];
         }
 
         $result = $response->json();
         $detectedPlayers = [];
+        $hasUnrecognizedFaces = false;
 
         if (isset($result['result'])) {
             foreach ($result['result'] as $face) {
@@ -136,12 +137,19 @@ class FacialRecognitionService
                                 'confidence' => $topMatch['similarity'] * 100, // convert to percentage 0-100
                             ];
                         }
+                    } else {
+                        $hasUnrecognizedFaces = true;
                     }
+                } else {
+                    $hasUnrecognizedFaces = true;
                 }
             }
         }
 
-        return $detectedPlayers;
+        return [
+            'detected_players' => $detectedPlayers,
+            'has_unrecognized_faces' => $hasUnrecognizedFaces,
+        ];
     }
 
     /**

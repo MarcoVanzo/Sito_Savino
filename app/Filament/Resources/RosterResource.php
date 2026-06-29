@@ -13,10 +13,13 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Pages\SubNavigationPosition;
 
 class RosterResource extends Resource
 {
     use HasStandardTableActions;
+
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     protected static ?string $model = Roster::class;
 
@@ -26,12 +29,12 @@ class RosterResource extends Resource
     protected static ?string $modelLabel = 'Giocatore in Rosa';
 
     protected static ?string $pluralModelLabel = 'Giocatori in Rosa (Roster)';
+    
+    protected static ?string $cluster = \App\Filament\Clusters\SerieA1::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-user';
 
-    protected static ?string $navigationLabel = 'Serie A1';
-
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static ?string $navigationLabel = 'Atlete';
 
     protected static ?int $navigationSort = 1;
 
@@ -129,7 +132,43 @@ class RosterResource extends Resource
                     ->label('Stagione')
                     ->relationship('season', 'name'),
             ])
-            ->actions(static::viewAndEditActions())
+            ->actions(array_merge([
+                Tables\Actions\Action::make('syncFace')
+                    ->label('Addestra AI (Sincronizza Volto)')
+                    ->icon('heroicon-o-face-smile')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Sincronizza Volto con AI')
+                    ->modalDescription('Invia la foto ufficiale di questa atleta al sistema di riconoscimento facciale per addestrare l\'AI a riconoscerla.')
+                    ->action(function (Roster $record) {
+                        $media = $record->getFirstMedia('rosters_official') ?? $record->player->getFirstMedia('players');
+                        if (!$media) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Errore')
+                                ->body('Nessuna foto trovata (né ufficiale né avatar) per addestrare l\'AI.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        $service = app(\App\Services\FacialRecognitionService::class);
+                        $success = $service->addFaceExample($record->player, $media->getPath());
+
+                        if ($success) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Successo')
+                                ->body('Volto sincronizzato! L\'AI ora riconoscerà questa atleta.')
+                                ->success()
+                                ->send();
+                        } else {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Errore API')
+                                ->body('Impossibile sincronizzare il volto. Verifica i log.')
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+            ], static::viewAndEditActions()))
             ->bulkActions(static::standardBulkActions());
     }
 

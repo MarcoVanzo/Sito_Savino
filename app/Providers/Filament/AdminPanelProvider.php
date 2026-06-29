@@ -54,53 +54,52 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationItems([
                 // Stagione
-                \Filament\Navigation\NavigationItem::make('Foto Ufficiale')->group('Stagione')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('CEV Champions League')->group('Stagione')->url(fn () => url('/admin/pages'))->sort(4),
-                \Filament\Navigation\NavigationItem::make('Coppa Italia & Playoff')->group('Stagione')->url(fn () => url('/admin/pages'))->sort(5),
+                \Filament\Navigation\NavigationItem::make('CEV Champions League')->group('Stagione')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
+                \Filament\Navigation\NavigationItem::make('Coppa Italia & Playoff')->group('Stagione')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(5),
                 
                 // Società
-                \Filament\Navigation\NavigationItem::make('Storia')->group('Società')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Safeguarding')->group('Società')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Contatti')->group('Società')->url(fn () => url('/admin/pages'))->sort(4),
-                \Filament\Navigation\NavigationItem::make('Palazzetto & Google Maps')->group('Società')->url(fn () => url('/admin/pages'))->sort(5),
+                \Filament\Navigation\NavigationItem::make('Storia')->group('Società')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
+                \Filament\Navigation\NavigationItem::make('Safeguarding')->group('Società')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(3),
+                \Filament\Navigation\NavigationItem::make('Contatti')->group('Società')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
+                \Filament\Navigation\NavigationItem::make('Palazzetto & Google Maps')->group('Società')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(5),
                 
                 // Ticketing
-                \Filament\Navigation\NavigationItem::make('Biglietteria')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(1),
-                \Filament\Navigation\NavigationItem::make('Campagna Abbonamenti')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Accessibilità & Info')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Convenzioni')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Biglietteria')->group('Ticketing')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(1),
+                \Filament\Navigation\NavigationItem::make('Campagna Abbonamenti')->group('Ticketing')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
+                \Filament\Navigation\NavigationItem::make('Accessibilità & Info')->group('Ticketing')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(3),
+                \Filament\Navigation\NavigationItem::make('Convenzioni')->group('Ticketing')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
                 
                 // Sponsor
-                \Filament\Navigation\NavigationItem::make('Diventa Sponsor')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Title Sponsor (SDB)')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Hospitality')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Diventa Sponsor')->group('Sponsor')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
+                \Filament\Navigation\NavigationItem::make('Title Sponsor (SDB)')->group('Sponsor')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(3),
+                \Filament\Navigation\NavigationItem::make('Hospitality')->group('Sponsor')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
                 
                 // SDB Youth
-                \Filament\Navigation\NavigationItem::make('Serie U17 & U15')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Settore Giovanile')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Talent Day & Recruiting')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(4),
-                \Filament\Navigation\NavigationItem::make('Progetto Affiliazioni')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(5),
+                \Filament\Navigation\NavigationItem::make('Serie U17 & U15')->group('SDB Youth')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
+                \Filament\Navigation\NavigationItem::make('Settore Giovanile')->group('SDB Youth')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(3),
+                \Filament\Navigation\NavigationItem::make('Talent Day & Recruiting')->group('SDB Youth')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
+                \Filament\Navigation\NavigationItem::make('Progetto Affiliazioni')->group('SDB Youth')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(5),
                 
                 // Summer Camp
-                \Filament\Navigation\NavigationItem::make('Tutte le Info')->group('Summer Camp')->url(fn () => url('/admin/pages'))->sort(1),
-                \Filament\Navigation\NavigationItem::make('Iscrizione (Experience)')->group('Summer Camp')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('Tutte le Info')->group('Summer Camp')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(1),
+                \Filament\Navigation\NavigationItem::make('Iscrizione (Experience)')->group('Summer Camp')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
                 
                 // Sociale
-                \Filament\Navigation\NavigationItem::make('Progetti Sociali')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(1),
-                \Filament\Navigation\NavigationItem::make('Volley 4 All')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Bilancio Sostenibilità')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Progetto Scuola')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Progetti Sociali')->group('Sociale')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(1),
+                \Filament\Navigation\NavigationItem::make('Volley 4 All')->group('Sociale')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
+                \Filament\Navigation\NavigationItem::make('Bilancio Sostenibilità')->group('Sociale')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(3),
+                \Filament\Navigation\NavigationItem::make('Progetto Scuola')->group('Sociale')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
                 
                 // Comunicazione
-                \Filament\Navigation\NavigationItem::make('Cartelle Stampa')->group('Comunicazione')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Magazine')->group('Comunicazione')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Double Face')->group('Comunicazione')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Cartelle Stampa')->group('Comunicazione')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
+                \Filament\Navigation\NavigationItem::make('Magazine')->group('Comunicazione')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(3),
+                \Filament\Navigation\NavigationItem::make('Double Face')->group('Comunicazione')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
                 
                 // Shop Ufficiale
-                \Filament\Navigation\NavigationItem::make('Kit Gara')->group('Shop Ufficiale')->url(fn () => url('/admin/pages'))->sort(1),
-                \Filament\Navigation\NavigationItem::make('Abbigliamento & Accessori')->group('Shop Ufficiale')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Aste & Outlet')->group('Shop Ufficiale')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Guida Taglie & Contatti')->group('Shop Ufficiale')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Kit Gara')->group('Shop Ufficiale')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(1),
+                \Filament\Navigation\NavigationItem::make('Abbigliamento & Accessori')->group('Shop Ufficiale')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
+                \Filament\Navigation\NavigationItem::make('Aste & Outlet')->group('Shop Ufficiale')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(3),
+                \Filament\Navigation\NavigationItem::make('Guida Taglie & Contatti')->group('Shop Ufficiale')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
             ])
             ->userMenuItems([
                 \Filament\Navigation\MenuItem::make()
@@ -110,6 +109,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')
             ->pages([
                 \App\Filament\Pages\Dashboard::class,
             ])

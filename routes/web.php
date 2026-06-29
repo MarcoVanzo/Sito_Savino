@@ -30,7 +30,7 @@ foreach ($locales as $loc) {
         Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
         Route::get('/gallery/atleta/{slug}', [PublicController::class, 'galleryAtleta'])->name('gallery.atleta');
         Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
-        Route::get('/organigramma', [PublicController::class, 'organigramma'])->name('organigramma');
+        Route::get('/societa/organigramma', [PublicController::class, 'organigramma'])->name('organigramma');
         Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');
         Route::get('/news', [NewsController::class, 'index'])->name('news.index');
         Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
@@ -38,10 +38,11 @@ foreach ($locales as $loc) {
         Route::get('/shop/checkout', [PublicController::class, 'shopCheckout'])->name('shop.checkout');
         Route::get('/contatti', [PublicController::class, 'contatti'])->name('contatti');
         Route::post('/contatti', [ContactController::class, 'submit'])->name('contatti.submit');
-        
+        Route::get('/in-costruzione', [PublicController::class, 'underConstruction'])->name('in-costruzione');
+
         // Rotta dinamica per le pagine del CMS (CATCH-ALL)
         Route::get('/{slug}', [PageController::class, 'show'])
-            ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|gallery|staff|organigramma|sponsor|news|shop|contatti).*$')
+            ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|gallery|staff|societa/organigramma|sponsor|news|shop|contatti|in-costruzione).*$')
             ->name('pages.show');
     });
 }

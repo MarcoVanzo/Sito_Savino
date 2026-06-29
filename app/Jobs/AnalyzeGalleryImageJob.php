@@ -34,7 +34,11 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             return;
         }
 
-        $detectedPlayers = $facialRecognitionService->recognizeFaces($imagePath);
+        $analysisResult = $facialRecognitionService->recognizeFaces($imagePath);
+        $detectedPlayers = $analysisResult['detected_players'] ?? [];
+        $hasUnrecognizedFaces = $analysisResult['has_unrecognized_faces'] ?? false;
+
+        $needsReview = $hasUnrecognizedFaces;
 
         if (!empty($detectedPlayers)) {
             $syncData = [];
@@ -47,6 +51,12 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
             // Update title for SEO if not already containing player names
             $this->updateTitleWithPlayerNames();
+        }
+
+        // If there are unrecognized faces, flag the image for manual review
+        if ($needsReview) {
+            $this->galleryImage->needs_review = true;
+            $this->galleryImage->saveQuietly();
         }
     }
 

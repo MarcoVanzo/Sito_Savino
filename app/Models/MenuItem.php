@@ -99,7 +99,8 @@ class MenuItem extends Model implements HasMedia
                         $menuImage = '/images/menu/' . self::$staticMenuImages[$item->label];
                     }
 
-                    $href = str_starts_with($item->url, '/') ? $prefix . $item->url : $item->url;
+                    $url = $item->url ?: '/in-costruzione';
+                    $href = str_starts_with($url, '/') ? $prefix . $url : $url;
 
                     return [
                         'id' => $item->id,
@@ -111,10 +112,11 @@ class MenuItem extends Model implements HasMedia
                         'menuImage' => $menuImage,
                         'isHighlight' => $item->is_highlight,
                         'children' => $item->children->map(function ($child) use ($prefix) {
+                            $childUrl = $child->url ?: '/in-costruzione';
                             return [
                                 'id' => $child->id,
                                 'label' => $child->label,
-                                'href' => str_starts_with($child->url, '/') ? $prefix . $child->url : $child->url,
+                                'href' => str_starts_with($childUrl, '/') ? $prefix . $childUrl : $childUrl,
                                 'description' => $child->description,
                                 'isHighlight' => $child->is_highlight,
                             ];

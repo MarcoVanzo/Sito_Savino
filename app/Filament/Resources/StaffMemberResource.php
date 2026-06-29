@@ -13,12 +13,15 @@ use Filament\Resources\Resource;
 use Filament\Resources\Concerns\Translatable;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Pages\SubNavigationPosition;
 
 class StaffMemberResource extends Resource
 {
     use Translatable;
 
 use HasStandardTableActions;
+
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     protected static ?string $model = StaffMember::class;
 
@@ -28,9 +31,11 @@ use HasStandardTableActions;
 
     protected static ?string $pluralModelLabel = 'Staff Tecnico e Medico';
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $cluster = \App\Filament\Clusters\SerieA1::class;
 
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static ?string $navigationIcon = 'heroicon-o-briefcase';
+
+    protected static ?string $navigationLabel = 'Staff e Medico';
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {

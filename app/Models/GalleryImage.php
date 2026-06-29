@@ -13,14 +13,17 @@ class GalleryImage extends Model implements HasMedia
     use HasFactory, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
+        'gallery_event_id',
         'title',
         'category',
         'sort_order',
         'is_active',
+        'needs_review',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'needs_review' => 'boolean',
         'sort_order' => 'integer',
     ];
 
@@ -44,5 +47,10 @@ class GalleryImage extends Model implements HasMedia
         return $this->belongsToMany(Player::class, 'gallery_image_player')
             ->withPivot('confidence_score')
             ->withTimestamps();
+    }
+
+    public function galleryEvent()
+    {
+        return $this->belongsTo(GalleryEvent::class);
     }
 }

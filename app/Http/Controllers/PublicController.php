@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\GameStatus;
 use App\Enums\PostStatus;
+use App\Enums\StaffType;
 use App\Models\Game;
 use App\Models\Player;
 use App\Models\HeroSlide;
@@ -105,7 +106,21 @@ class PublicController extends Controller
                 $seasonName = $currentSeason->name;
             }
 
-            return compact('roster', 'seasonName');
+            // Staff tecnico e medico
+            $mapStaff = fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->full_name,
+                'role' => $p->role,
+                'photo_url' => $p->getFirstMediaUrl('staff'),
+            ];
+
+            $staffTecnico = StaffMember::where('type', StaffType::Tecnico)
+                ->orderBy('sort_order')->get()->map($mapStaff)->toArray();
+
+            $staffMedico = StaffMember::where('type', StaffType::Medico)
+                ->orderBy('sort_order')->get()->map($mapStaff)->toArray();
+
+            return compact('roster', 'seasonName', 'staffTecnico', 'staffMedico');
         });
 
         return Inertia::render('Public/Stagione', $teamLabel ? array_merge($data, ['teamLabel' => $teamLabel]) : $data);
@@ -241,8 +256,11 @@ class PublicController extends Controller
                 ->toArray();
         });
 
+        $page = Page::where('slug', 'organigramma')->first();
+
         return Inertia::render('Public/Organigramma', [
             'dirigenza' => $dirigenza,
+            'page' => $page,
         ]);
     }
 
@@ -308,5 +326,10 @@ class PublicController extends Controller
         return Inertia::render('Public/ShopCheckout', [
             'cart' => $cart,
         ]);
+    }
+
+    public function underConstruction()
+    {
+        return Inertia::render('Public/UnderConstruction');
     }
 }

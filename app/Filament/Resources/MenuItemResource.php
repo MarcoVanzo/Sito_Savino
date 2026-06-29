@@ -39,7 +39,8 @@ class MenuItemResource extends Resource
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('url')
-                            ->label('URL')
+                            ->label('URL (lascia vuoto per "Pagina in costruzione")')
+                            ->nullable()
                             ->maxLength(255),
                         Forms\Components\Textarea::make('description')
                             ->label('Descrizione')

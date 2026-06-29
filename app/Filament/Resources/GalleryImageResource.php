@@ -98,6 +98,13 @@ class GalleryImageResource extends Resource
                     ->badge()
                     ->searchable()
                     ->limitList(3),
+                Tables\Columns\IconColumn::make('needs_review')
+                    ->label('Da Rev.')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-exclamation-triangle')
+                    ->trueColor('warning')
+                    ->falseIcon('heroicon-o-check-circle')
+                    ->falseColor('success'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Attiva')
                     ->boolean(),
@@ -112,8 +119,41 @@ class GalleryImageResource extends Resource
                             ->pluck('category', 'category')
                             ->toArray();
                     }),
+                Tables\Filters\SelectFilter::make('gallery_event_id')
+                    ->label('Evento')
+                    ->relationship('galleryEvent', 'title')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\TernaryFilter::make('needs_review')
+                    ->label('Da Revisionare')
+                    ->placeholder('Tutte le foto')
+                    ->trueLabel('Sì, da identificare')
+                    ->falseLabel('No, OK'),
             ])
             ->actions([
+                Tables\Actions\Action::make('identifica')
+                    ->label('Identifica')
+                    ->icon('heroicon-o-user-plus')
+                    ->color('warning')
+                    ->visible(fn (GalleryImage $record) => $record->needs_review)
+                    ->mountUsing(function (Forms\Form $form, GalleryImage $record) {
+                        $form->fill([
+                            'players' => $record->players->pluck('id')->toArray(),
+                        ]);
+                    })
+                    ->form([
+                        Forms\Components\Select::make('players')
+                            ->label('Atlete presenti')
+                            ->multiple()
+                            ->options(\App\Models\Player::all()->pluck('last_name', 'id'))
+                            ->searchable()
+                    ])
+                    ->action(function (GalleryImage $record, array $data) {
+                        $record->players()->sync($data['players'] ?? []);
+                        $record->needs_review = false;
+                        $record->save();
+                        \Filament\Notifications\Notification::make()->title('Identificata con successo')->success()->send();
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('analyze')
                     ->label('Analizza AI')
