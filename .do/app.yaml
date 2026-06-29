@@ -66,7 +66,7 @@ services:
       - key: APP_LOCALE
         value: it
       - key: INERTIA_SSR_URL
-        value: ${ssr.INTERNAL_URL}
+        value: http://${ssr.HOSTNAME}:13714
       - key: COMPREFACE_HOST
         value: http://157.230.98.6:8000
       - key: COMPREFACE_KEY
@@ -78,7 +78,8 @@ services:
       deploy_on_push: true
     build_command: npm install && npm run build
     run_command: node bootstrap/ssr/ssr.js
-    http_port: 13714
+    internal_ports:
+      - 13714
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
     envs:
