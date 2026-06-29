@@ -11,7 +11,7 @@ class ListStaffMembers extends ListRecords
 {
     use Translatable;
 
-protected static string $resource = StaffMemberResource::class;
+    protected static string $resource = StaffMemberResource::class;
 
     protected function getHeaderActions(): array
     {

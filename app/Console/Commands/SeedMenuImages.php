@@ -2,12 +2,13 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\MenuItem;
+use Illuminate\Console\Command;
 
 class SeedMenuImages extends Command
 {
     protected $signature = 'app:seed-menu-images';
+
     protected $description = 'Seeds the menu images for production';
 
     public function handle()
@@ -32,7 +33,7 @@ class SeedMenuImages extends Command
 
         foreach ($items as $item) {
             if (isset($map[$item->label])) {
-                $path = base_path('database/seeders/menu_images/' . $map[$item->label]);
+                $path = base_path('database/seeders/menu_images/'.$map[$item->label]);
                 if (file_exists($path)) {
                     try {
                         $item->clearMediaCollection('menu-images');
@@ -42,7 +43,7 @@ class SeedMenuImages extends Command
                         $url = $item->getFirstMediaUrl('menu-images');
                         $this->info("✓ {$item->label} → {$url}");
                     } catch (\Exception $e) {
-                        $this->error("✗ {$item->label}: " . $e->getMessage());
+                        $this->error("✗ {$item->label}: ".$e->getMessage());
                     }
                 } else {
                     $this->error("File not found: $path");

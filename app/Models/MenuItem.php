@@ -33,6 +33,7 @@ class MenuItem extends Model implements HasMedia
     ];
 
     private const CACHE_KEY = 'menu_items';
+
     private const CACHE_TTL = 86400;
 
     /**
@@ -83,10 +84,10 @@ class MenuItem extends Model implements HasMedia
     public static function getTree(string $location = 'main'): array
     {
         $locale = app()->getLocale();
-        
-        return Cache::remember(self::CACHE_KEY . '_' . $location . '_' . $locale, self::CACHE_TTL, function () use ($location, $locale) {
-            $prefix = $locale === 'it' ? '' : '/' . $locale;
-            
+
+        return Cache::remember(self::CACHE_KEY.'_'.$location.'_'.$locale, self::CACHE_TTL, function () use ($location, $locale) {
+            $prefix = $locale === 'it' ? '' : '/'.$locale;
+
             return static::where('location', $location)
                 ->where('is_active', true)
                 ->whereNull('parent_id')
@@ -95,12 +96,12 @@ class MenuItem extends Model implements HasMedia
                 ->get()
                 ->map(function ($item) use ($prefix) {
                     $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
-                    if (!$menuImage && isset(self::$staticMenuImages[$item->label])) {
-                        $menuImage = '/images/menu/' . self::$staticMenuImages[$item->label];
+                    if (! $menuImage && isset(self::$staticMenuImages[$item->label])) {
+                        $menuImage = '/images/menu/'.self::$staticMenuImages[$item->label];
                     }
 
                     $url = $item->url ?: '/in-costruzione';
-                    $href = str_starts_with($url, '/') ? $prefix . $url : $url;
+                    $href = str_starts_with($url, '/') ? $prefix.$url : $url;
 
                     return [
                         'id' => $item->id,
@@ -113,10 +114,11 @@ class MenuItem extends Model implements HasMedia
                         'isHighlight' => $item->is_highlight,
                         'children' => $item->children->map(function ($child) use ($prefix) {
                             $childUrl = $child->url ?: '/in-costruzione';
+
                             return [
                                 'id' => $child->id,
                                 'label' => $child->label,
-                                'href' => str_starts_with($childUrl, '/') ? $prefix . $childUrl : $childUrl,
+                                'href' => str_starts_with($childUrl, '/') ? $prefix.$childUrl : $childUrl,
                                 'description' => $child->description,
                                 'isHighlight' => $child->is_highlight,
                             ];
@@ -133,8 +135,8 @@ class MenuItem extends Model implements HasMedia
     public static function clearCache(): void
     {
         foreach (['it', 'en'] as $locale) {
-            Cache::forget(self::CACHE_KEY . '_main_' . $locale);
-            Cache::forget(self::CACHE_KEY . '_footer_' . $locale);
+            Cache::forget(self::CACHE_KEY.'_main_'.$locale);
+            Cache::forget(self::CACHE_KEY.'_footer_'.$locale);
         }
     }
 

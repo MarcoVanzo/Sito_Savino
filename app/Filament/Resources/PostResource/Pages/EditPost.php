@@ -11,7 +11,7 @@ class EditPost extends EditRecord
 {
     use Translatable;
 
-protected static string $resource = PostResource::class;
+    protected static string $resource = PostResource::class;
 
     protected function getHeaderActions(): array
     {

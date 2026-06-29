@@ -10,5 +10,5 @@ class CreateProductCategory extends CreateRecord
 {
     use Translatable;
 
-protected static string $resource = ProductCategoryResource::class;
+    protected static string $resource = ProductCategoryResource::class;
 }

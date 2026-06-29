@@ -10,7 +10,7 @@ enum StaffType: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Tecnico => 'Staff Tecnico',
             self::Medico => 'Staff Medico',
             self::Dirigenza => 'Dirigenza / Organigramma',

@@ -11,7 +11,7 @@ class EditHeroSlide extends EditRecord
 {
     use Translatable;
 
-protected static string $resource = HeroSlideResource::class;
+    protected static string $resource = HeroSlideResource::class;
 
     protected function getHeaderActions(): array
     {

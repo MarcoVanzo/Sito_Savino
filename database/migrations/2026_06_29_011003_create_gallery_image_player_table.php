@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('player_id')->constrained()->cascadeOnDelete();
             $table->decimal('confidence_score', 5, 2)->nullable()->comment('Percentuale di sicurezza AI');
             $table->timestamps();
-            
+
             $table->unique(['gallery_image_id', 'player_id']);
         });
     }

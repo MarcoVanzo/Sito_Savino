@@ -12,6 +12,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ManagementResource extends Resource
 {
@@ -28,11 +29,12 @@ class ManagementResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $navigationGroup = 'Società';
+
     protected static ?string $navigationLabel = 'Organigramma';
 
     protected static ?int $navigationSort = 1;
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->where('type', StaffType::Dirigenza);
     }

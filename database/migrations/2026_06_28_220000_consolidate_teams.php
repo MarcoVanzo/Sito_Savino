@@ -27,15 +27,15 @@ return new class extends Migration
             $existingRosters = DB::table('rosters')
                 ->where('team_id', $sdb->id)
                 ->get(['player_id', 'season_id'])
-                ->map(fn ($r) => $r->player_id . '-' . $r->season_id)
+                ->map(fn ($r) => $r->player_id.'-'.$r->season_id)
                 ->toArray();
 
             DB::table('rosters')
                 ->where('team_id', $serieA1->id)
                 ->get()
                 ->each(function ($roster) use ($sdb, $existingRosters) {
-                    $key = $roster->player_id . '-' . $roster->season_id;
-                    if (!in_array($key, $existingRosters)) {
+                    $key = $roster->player_id.'-'.$roster->season_id;
+                    if (! in_array($key, $existingRosters)) {
                         DB::table('rosters')->where('id', $roster->id)->update(['team_id' => $sdb->id]);
                     } else {
                         // Duplicate — delete the one from Serie A1
@@ -52,7 +52,7 @@ return new class extends Migration
 
             Log::info("Team Serie A1 (ID:{$serieA1->id}) removed. All data moved to Savino Del Bene Volley (ID:{$sdb->id}).");
 
-        } elseif (!$sdb && $serieA1) {
+        } elseif (! $sdb && $serieA1) {
             // Local/fresh scenario: only "Serie A1" exists — rename it
             Log::info("Renaming team Serie A1 (ID:{$serieA1->id}) to Savino Del Bene Volley");
 

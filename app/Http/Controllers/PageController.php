@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Enums\PostStatus;
 use App\Enums\StaffType;
 use App\Models\Page;
-use App\Models\Player;
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\StaffMember;

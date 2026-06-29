@@ -46,6 +46,7 @@ return new class extends Migration
 
         if (empty($validIds)) {
             Log::warning('cleanup_extra_players: no valid players found, skipping.');
+
             return;
         }
 

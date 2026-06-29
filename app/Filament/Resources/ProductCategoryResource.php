@@ -7,17 +7,16 @@ use App\Filament\Traits\HasStandardTableActions;
 use App\Models\ProductCategory;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
 class ProductCategoryResource extends Resource
 {
+    use HasStandardTableActions;
     use Translatable;
-
-use HasStandardTableActions;
 
     protected static ?string $model = ProductCategory::class;
 
@@ -31,6 +30,7 @@ use HasStandardTableActions;
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
     protected static ?string $navigationGroup = 'Shop Ufficiale';
+
     protected static ?string $navigationLabel = 'Categorie Shop';
 
     protected static ?int $navigationSort = 8;

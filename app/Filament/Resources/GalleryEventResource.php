@@ -4,15 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\GalleryEventResource\Pages;
 use App\Models\GalleryEvent;
-use App\Models\GalleryImage;
+use App\Services\GalleryUploadService;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 class GalleryEventResource extends Resource
 {
@@ -64,7 +62,7 @@ class GalleryEventResource extends Resource
                             ->label('Descrizione')
                             ->columnSpanFull(),
                     ])->columns(2),
-                    
+
                 Forms\Components\Section::make('Caricamento Foto')
                     ->description('Le foto caricate qui verranno salvate, associate all\'evento e analizzate dall\'Intelligenza Artificiale automaticamente.')
                     ->schema([
@@ -76,31 +74,7 @@ class GalleryEventResource extends Resource
                             ->directory('temp_gallery_uploads')
                             ->dehydrated(false)
                             ->saveRelationshipsUsing(function (FileUpload $component, $state, GalleryEvent $record) {
-                                if (!is_array($state)) return;
-                                
-                                foreach ($state as $file) {
-                                    $image = new GalleryImage();
-                                    $image->gallery_event_id = $record->id;
-                                    $image->title = $record->title;
-                                    $image->category = $record->category;
-                                    $image->is_active = $record->is_active;
-                                    $image->save();
-                                    
-                                    if ($file instanceof TemporaryUploadedFile) {
-                                        $image->addMedia($file->getRealPath())
-                                              ->toMediaCollection('gallery');
-                                    } else {
-                                        // It's a string (path on disk)
-                                        $disk = $component->getDiskName();
-                                        $image->addMediaFromDisk($file, $disk)
-                                              ->toMediaCollection('gallery');
-                                    }
-                                    
-                                    \App\Jobs\AnalyzeGalleryImageJob::dispatch($image);
-                                }
-                                
-                                // Clear the state so they aren't processed again on next save
-                                $component->state([]);
+                                GalleryUploadService::processUploads($component, $state, $record);
                             }),
                     ]),
             ]);

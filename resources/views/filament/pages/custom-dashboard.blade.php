@@ -1,39 +1,65 @@
 <x-filament-panels::page>
     <div class="space-y-8">
-        <!-- Titolo e Area Riservata -->
-        <div class="text-center pb-4 border-b border-gray-200 dark:border-gray-800 border-dashed">
-            <h2 class="text-sm font-bold tracking-widest text-gray-500 uppercase">
-                🔒 AREA RISERVATA &mdash; PANNELLO DI AMMINISTRAZIONE (NON VISIBILE AL PUBBLICO)
-            </h2>
+        <!-- Header / Welcome Section -->
+        <div class="flex flex-col gap-2 mb-8">
+            <p class="text-gray-500 dark:text-gray-400">
+                Seleziona un'area di gestione per iniziare.
+            </p>
         </div>
 
-        <!-- Grid 10 elements -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             @php
                 $cards = [
-                    ['title' => 'Stagione', 'url' => '/admin/roster', 'icon' => '🏆', 'color' => 'bg-pink-500'],
-                    ['title' => 'Società', 'url' => '/admin/management', 'icon' => '🏢', 'color' => 'bg-blue-900'],
-                    ['title' => 'Ticketing', 'url' => '/admin/pages', 'icon' => '🎟️', 'color' => 'bg-green-500'],
-                    ['title' => 'Sponsor', 'url' => '/admin/sponsor', 'icon' => '🤝', 'color' => 'bg-yellow-500'],
-                    ['title' => 'SDB Youth', 'url' => '/admin/teams', 'icon' => '🎓', 'color' => 'bg-cyan-500'],
+                    ['title' => 'Stagione', 'url' => '/admin/roster', 'icon' => 'heroicon-s-trophy', 'color' => '#ec4899', 'bg' => 'rgba(236, 72, 153, 0.1)'],
+                    ['title' => 'Società', 'url' => '/admin/management', 'icon' => 'heroicon-s-building-office-2', 'color' => '#3b82f6', 'bg' => 'rgba(59, 130, 246, 0.1)'],
+                    ['title' => 'Ticketing', 'url' => '/admin/pages', 'icon' => 'heroicon-s-ticket', 'color' => '#10b981', 'bg' => 'rgba(16, 185, 129, 0.1)'],
+                    ['title' => 'Sponsor', 'url' => '/admin/sponsor', 'icon' => 'heroicon-s-briefcase', 'color' => '#f59e0b', 'bg' => 'rgba(245, 158, 11, 0.1)'],
+                    ['title' => 'SDB Youth', 'url' => '/admin/teams', 'icon' => 'heroicon-s-academic-cap', 'color' => '#06b6d4', 'bg' => 'rgba(6, 182, 212, 0.1)'],
                     
-                    ['title' => 'Camp', 'url' => '/admin/pages', 'icon' => '⛺', 'color' => 'bg-red-500'],
-                    ['title' => 'Sociale', 'url' => '/admin/pages', 'icon' => '❤️', 'color' => 'bg-purple-500'],
-                    ['title' => 'Media', 'url' => '/admin/news', 'icon' => '📣', 'color' => 'bg-gray-500'],
-                    ['title' => 'Shop', 'url' => '/admin/shop/products', 'icon' => '🛍️', 'color' => 'bg-pink-500'],
-                    ['title' => 'Amministrazione', 'url' => '/admin/settings', 'icon' => '⚙️', 'color' => 'bg-slate-700'],
+                    ['title' => 'Camp', 'url' => '/admin/pages', 'icon' => 'heroicon-s-sun', 'color' => '#ef4444', 'bg' => 'rgba(239, 68, 68, 0.1)'],
+                    ['title' => 'Sociale', 'url' => '/admin/pages', 'icon' => 'heroicon-s-heart', 'color' => '#a855f7', 'bg' => 'rgba(168, 85, 247, 0.1)'],
+                    ['title' => 'Media', 'url' => '/admin/news', 'icon' => 'heroicon-s-megaphone', 'color' => '#6366f1', 'bg' => 'rgba(99, 102, 241, 0.1)'],
+                    ['title' => 'Shop', 'url' => '/admin/shop/products', 'icon' => 'heroicon-s-shopping-bag', 'color' => '#d946ef', 'bg' => 'rgba(217, 70, 239, 0.1)'],
+                    ['title' => 'Sistema', 'url' => '/admin/settings', 'icon' => 'heroicon-s-cog-6-tooth', 'color' => '#64748b', 'bg' => 'rgba(100, 116, 139, 0.15)'],
                 ];
             @endphp
 
             @foreach($cards as $card)
-                <a href="{{ url($card['url']) }}" class="relative overflow-hidden flex flex-col items-center justify-center p-6 bg-[#1b263b] hover:bg-[#253550] transition rounded-xl text-center shadow-md min-h-[160px] group">
-                    <!-- Top color bar matching frontend -->
-                    <div class="absolute top-0 left-0 right-0 h-1 {{ $card['color'] }} opacity-75 group-hover:opacity-100 transition"></div>
+                <a href="{{ url($card['url']) }}" 
+                   class="group relative flex flex-col items-center justify-center p-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-800/50 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 ease-out hover:-translate-y-1.5 overflow-hidden ring-1 ring-gray-900/5 dark:ring-white/10 hover:ring-gray-500/50">
                     
-                    <div class="text-4xl mb-4">{{ $card['icon'] }}</div>
-                    <div class="text-white font-bold mb-1 leading-tight">{{ $card['title'] }}</div>
+                    <!-- Decorative Background Gradient on Hover -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-transparent to-gray-50 dark:to-gray-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    <!-- Icon -->
+                    <div class="relative z-10 flex items-center justify-center w-16 h-16 mb-4 rounded-2xl group-hover:scale-110 transition-transform duration-500 ease-out border border-gray-200/50 dark:border-gray-700/50" style="background-color: {{ $card['bg'] }}">
+                        <x-filament::icon
+                            :icon="$card['icon']"
+                            class="!w-8 !h-8 drop-shadow-sm group-hover:animate-bounce-short"
+                            style="color: {{ $card['color'] }}"
+                        />
+                    </div>
+                    
+                    <!-- Title -->
+                    <div class="relative z-10 text-gray-700 dark:text-gray-200 font-bold text-base tracking-wide text-center group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300">
+                        {{ $card['title'] }}
+                    </div>
+
+                    <!-- Floating orb effect (subtle) -->
+                    <div class="absolute -bottom-8 -right-8 w-24 h-24 {{ $card['color'] }} rounded-full blur-3xl opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
                 </a>
             @endforeach
         </div>
     </div>
+
+    <style>
+        .animate-bounce-short {
+            animation: bounce-short 0.5s ease-in-out 1;
+        }
+        @keyframes bounce-short {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10%); }
+        }
+    </style>
 </x-filament-panels::page>

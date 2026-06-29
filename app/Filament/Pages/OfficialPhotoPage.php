@@ -3,8 +3,8 @@
 namespace App\Filament\Pages;
 
 use App\Models\SiteSetting;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -22,8 +22,11 @@ class OfficialPhotoPage extends Page implements HasForms
     protected static ?string $navigationGroup = 'Stagione';
 
     protected static ?string $title = 'Foto Ufficiale';
+
     protected static ?int $navigationSort = 2;
+
     protected static ?string $slug = 'foto-ufficiale';
+
     protected static string $view = 'filament.pages.official-photo-page';
 
     public ?array $data = [];
@@ -46,14 +49,14 @@ class OfficialPhotoPage extends Page implements HasForms
                             ->directory('official-photos')
                             ->maxSize(51200) // 50MB
                             ->helperText('Seleziona o trascina un file in formato PDF.'),
-                    ])
+                    ]),
             ])->statePath('data');
     }
 
     public function save(): void
     {
         $data = $this->form->getState();
-        
+
         if (array_key_exists('official_photo_pdf', $data)) {
             $value = $data['official_photo_pdf'];
             if ($value) {
@@ -63,7 +66,7 @@ class OfficialPhotoPage extends Page implements HasForms
                 SiteSetting::clearCache();
             }
         }
-        
+
         Notification::make()->title('Documento salvato con successo')->success()->send();
     }
 }

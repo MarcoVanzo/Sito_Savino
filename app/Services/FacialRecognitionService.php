@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 class FacialRecognitionService
 {
     protected string $host;
+
     protected string $apiKey;
 
     public function __construct()
@@ -22,7 +23,7 @@ class FacialRecognitionService
      */
     protected function getBaseUrl(): string
     {
-        return rtrim($this->host, '/') . '/api/v1/recognition';
+        return rtrim($this->host, '/').'/api/v1/recognition';
     }
 
     /**
@@ -38,8 +39,8 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->post($this->getBaseUrl() . '/subjects', [
-            'subject' => $subjectName
+        ])->post($this->getBaseUrl().'/subjects', [
+            'subject' => $subjectName,
         ]);
 
         if ($response->successful() || $response->status() === 400) {
@@ -47,7 +48,8 @@ class FacialRecognitionService
             return true;
         }
 
-        Log::error('CompreFace Create Subject Error: ' . $response->body());
+        Log::error('CompreFace Create Subject Error: '.$response->body());
+
         return false;
     }
 
@@ -62,7 +64,7 @@ class FacialRecognitionService
         }
 
         $subjectName = $this->getSubjectName($player);
-        
+
         // Ensure subject exists first
         $this->createSubject($player);
 
@@ -70,13 +72,14 @@ class FacialRecognitionService
             'x-api-key' => $this->apiKey,
         ])->attach(
             'file', file_get_contents($imagePath), basename($imagePath)
-        )->post($this->getBaseUrl() . '/faces?subject=' . urlencode($subjectName));
+        )->post($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
         if ($response->successful()) {
             return true;
         }
 
-        Log::error('CompreFace Add Face Error: ' . $response->body());
+        Log::error('CompreFace Add Face Error: '.$response->body());
+
         return false;
     }
 
@@ -93,7 +96,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->delete($this->getBaseUrl() . '/faces?subject=' . urlencode($subjectName));
+        ])->delete($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
         return $response->successful();
     }
@@ -106,6 +109,7 @@ class FacialRecognitionService
     {
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping recognition.');
+
             return ['detected_players' => [], 'has_unrecognized_faces' => false];
         }
 
@@ -113,10 +117,11 @@ class FacialRecognitionService
             'x-api-key' => $this->apiKey,
         ])->attach(
             'file', file_get_contents($imagePath), basename($imagePath)
-        )->post($this->getBaseUrl() . '/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
+        )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
 
-        if (!$response->successful()) {
-            Log::error('CompreFace Recognize Error: ' . $response->body());
+        if (! $response->successful()) {
+            Log::error('CompreFace Recognize Error: '.$response->body());
+
             return ['detected_players' => [], 'has_unrecognized_faces' => false];
         }
 
@@ -157,6 +162,6 @@ class FacialRecognitionService
      */
     protected function getSubjectName(Player $player): string
     {
-        return 'player_' . $player->id;
+        return 'player_'.$player->id;
     }
 }

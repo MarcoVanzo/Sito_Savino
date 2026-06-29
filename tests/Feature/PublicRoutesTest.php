@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Product;
 use App\Models\Sponsor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class PublicRoutesTest extends TestCase
@@ -15,7 +16,7 @@ class PublicRoutesTest extends TestCase
     {
         parent::setUp();
         $this->withoutVite();
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
     }
 
     // --- Rotte Statiche ---

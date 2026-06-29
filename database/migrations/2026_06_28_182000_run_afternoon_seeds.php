@@ -19,7 +19,7 @@ return new class extends Migration
             // Run the DatabaseSeeder which includes the new StaffAndDirigenzaSeeder and Roster2026Seeder
             Artisan::call('db:seed', [
                 '--class' => 'Database\\Seeders\\DatabaseSeeder',
-                '--force' => true
+                '--force' => true,
             ]);
             Log::info('DatabaseSeeder executed successfully via migration.', ['output' => Artisan::output()]);
 
@@ -29,8 +29,8 @@ return new class extends Migration
 
             // Clear cache to ensure frontend fetches the fresh data
             Artisan::call('optimize:clear');
-        } catch (\Exception $e) {
-            Log::error('Error running seeds from migration: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Error running seeds from migration: '.$e->getMessage());
         }
     }
 

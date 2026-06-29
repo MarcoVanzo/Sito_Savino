@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -24,20 +23,24 @@ return new class extends Migration
     public function up(): void
     {
         foreach ($this->tables as $tableName => $columns) {
-            if (!Schema::hasTable($tableName)) continue;
+            if (! Schema::hasTable($tableName)) {
+                continue;
+            }
 
             $records = DB::table($tableName)->get();
             foreach ($records as $record) {
                 $updateData = [];
                 foreach ($columns as $column) {
-                    if (!property_exists($record, $column)) continue;
+                    if (! property_exists($record, $column)) {
+                        continue;
+                    }
                     $value = $record->$column;
                     if ($value !== null && $value !== '') {
                         $decoded = json_decode($value, true);
                         if (is_array($decoded) && (isset($decoded['it']) || isset($decoded['en']))) {
                             continue;
                         }
-                        
+
                         if (is_array($decoded)) {
                             $updateData[$column] = json_encode(['it' => $decoded], JSON_UNESCAPED_UNICODE);
                         } else {
@@ -47,7 +50,7 @@ return new class extends Migration
                         $updateData[$column] = null;
                     }
                 }
-                if (!empty($updateData)) {
+                if (! empty($updateData)) {
                     DB::table($tableName)->where('id', $record->id)->update($updateData);
                 }
             }
@@ -60,13 +63,17 @@ return new class extends Migration
     public function down(): void
     {
         foreach ($this->tables as $tableName => $columns) {
-            if (!Schema::hasTable($tableName)) continue;
+            if (! Schema::hasTable($tableName)) {
+                continue;
+            }
 
             $records = DB::table($tableName)->get();
             foreach ($records as $record) {
                 $updateData = [];
                 foreach ($columns as $column) {
-                    if (!property_exists($record, $column)) continue;
+                    if (! property_exists($record, $column)) {
+                        continue;
+                    }
                     $value = $record->$column;
                     if ($value !== null && $value !== '') {
                         $decoded = json_decode($value, true);
@@ -80,7 +87,7 @@ return new class extends Migration
                         }
                     }
                 }
-                if (!empty($updateData)) {
+                if (! empty($updateData)) {
                     DB::table($tableName)->where('id', $record->id)->update($updateData);
                 }
             }

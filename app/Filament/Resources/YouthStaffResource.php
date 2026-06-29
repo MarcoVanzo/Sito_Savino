@@ -3,22 +3,24 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StaffType;
+use App\Filament\Clusters\SdbYouth;
 use App\Filament\Resources\YouthStaffResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\StaffMember;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Pages\SubNavigationPosition;
+use Illuminate\Database\Eloquent\Builder;
 
 class YouthStaffResource extends Resource
 {
-    use Translatable;
     use HasStandardTableActions;
+    use Translatable;
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -30,7 +32,7 @@ class YouthStaffResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Staff Youth';
 
-    protected static ?string $cluster = \App\Filament\Clusters\SdbYouth::class;
+    protected static ?string $cluster = SdbYouth::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
 
@@ -43,7 +45,7 @@ class YouthStaffResource extends Resource
     /**
      * Filtra solo staff con section = 'youth'.
      */
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->where('section', 'youth')

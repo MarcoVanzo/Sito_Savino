@@ -310,6 +310,7 @@ const ogMeta = useOgMeta({
         <meta property="og:image" :content="ogMeta.image" />
         <meta property="og:url" :content="ogMeta.url" />
         <meta property="og:type" :content="ogMeta.type" />
+        <link rel="preload" as="image" :href="slides[0]" fetchpriority="high" />
     </Head>
     <PublicLayout>
         <!-- HERO SECTION -->
@@ -325,7 +326,17 @@ const ogMeta = useOgMeta({
                         'is-leaving': currentSlide !== index
                     }"
                 >
+                    <img 
+                        v-if="index === 0"
+                        :src="slide"
+                        alt=""
+                        fetchpriority="high"
+                        decoding="sync"
+                        class="absolute inset-0 w-full h-full object-cover object-center hero-slide-inner"
+                        :class="{ 'ken-burns-active': currentSlide === index }"
+                    />
                     <div 
+                        v-else
                         class="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat hero-slide-inner"
                         :class="{ 'ken-burns-active': currentSlide === index }"
                         :style="`background-image: url('${slide}');`"
@@ -337,6 +348,7 @@ const ogMeta = useOgMeta({
             <canvas 
                 ref="particleCanvas" 
                 class="absolute inset-0 w-full h-full z-[2] pointer-events-none"
+                aria-hidden="true"
             ></canvas>
             
             <!-- Cinematic Gradient Overlay -->

@@ -10,5 +10,5 @@ class CreatePage extends CreateRecord
 {
     use Translatable;
 
-protected static string $resource = PageResource::class;
+    protected static string $resource = PageResource::class;
 }

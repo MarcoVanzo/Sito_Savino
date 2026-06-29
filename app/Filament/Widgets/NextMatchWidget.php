@@ -8,6 +8,7 @@ use Filament\Widgets\Widget;
 class NextMatchWidget extends Widget
 {
     protected static string $view = 'filament.widgets.next-match-widget';
+
     protected static ?int $sort = 3;
 
     protected function getViewData(): array

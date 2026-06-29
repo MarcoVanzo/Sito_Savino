@@ -4,14 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\GalleryImageResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
+use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryImage;
+use App\Models\Player;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class GalleryImageResource extends Resource
 {
@@ -72,7 +76,7 @@ class GalleryImageResource extends Resource
                             ->relationship('players', 'last_name')
                             ->preload()
                             ->searchable(['first_name', 'last_name'])
-                            ->getOptionLabelFromRecordUsing(fn (\App\Models\Player $record) => "{$record->first_name} {$record->last_name}"),
+                            ->getOptionLabelFromRecordUsing(fn (Player $record) => "{$record->first_name} {$record->last_name}"),
                     ])->columns(2),
             ]);
     }
@@ -136,7 +140,7 @@ class GalleryImageResource extends Resource
                     ->icon('heroicon-o-user-plus')
                     ->color('warning')
                     ->visible(fn (GalleryImage $record) => $record->needs_review)
-                    ->mountUsing(function (Forms\Form $form, GalleryImage $record) {
+                    ->mountUsing(function (Form $form, GalleryImage $record) {
                         $form->fill([
                             'players' => $record->players->pluck('id')->toArray(),
                         ]);
@@ -145,14 +149,14 @@ class GalleryImageResource extends Resource
                         Forms\Components\Select::make('players')
                             ->label('Atlete presenti')
                             ->multiple()
-                            ->options(\App\Models\Player::all()->pluck('last_name', 'id'))
-                            ->searchable()
+                            ->options(Player::all()->pluck('last_name', 'id'))
+                            ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {
                         $record->players()->sync($data['players'] ?? []);
                         $record->needs_review = false;
                         $record->save();
-                        \Filament\Notifications\Notification::make()->title('Identificata con successo')->success()->send();
+                        Notification::make()->title('Identificata con successo')->success()->send();
                     }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('analyze')
@@ -160,27 +164,27 @@ class GalleryImageResource extends Resource
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
                     ->action(function (GalleryImage $record) {
-                        \App\Jobs\AnalyzeGalleryImageJob::dispatchSync($record);
-                        \Filament\Notifications\Notification::make()
+                        AnalyzeGalleryImageJob::dispatchSync($record);
+                        Notification::make()
                             ->title('Analisi completata')
                             ->success()
                             ->send();
-                    })
+                    }),
             ])
             ->bulkActions(array_merge(static::standardBulkActions(), [
                 Tables\Actions\BulkAction::make('analyzeBulk')
                     ->label('Analizza con AI (Bulk)')
                     ->icon('heroicon-o-sparkles')
-                    ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                    ->action(function (Collection $records) {
                         foreach ($records as $record) {
-                            \App\Jobs\AnalyzeGalleryImageJob::dispatch($record);
+                            AnalyzeGalleryImageJob::dispatch($record);
                         }
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Analisi avviata')
                             ->body('Le foto selezionate verranno analizzate in background.')
                             ->success()
                             ->send();
-                    })
+                    }),
             ]))
             ->defaultSort('sort_order', 'asc')
             ->reorderable('sort_order');

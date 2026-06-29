@@ -28,6 +28,7 @@ class OptionResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected static ?string $navigationGroup = 'Amministrazione';
+
     protected static ?string $navigationLabel = 'Impostazioni';
 
     protected static ?int $navigationSort = 3;

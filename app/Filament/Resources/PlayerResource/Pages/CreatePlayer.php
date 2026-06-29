@@ -10,5 +10,5 @@ class CreatePlayer extends CreateRecord
 {
     use Translatable;
 
-protected static string $resource = PlayerResource::class;
+    protected static string $resource = PlayerResource::class;
 }

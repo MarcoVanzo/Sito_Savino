@@ -17,6 +17,7 @@ class SiteSetting extends Model
      * Cache key prefix for site settings.
      */
     private const CACHE_KEY = 'site_settings';
+
     private const CACHE_TTL = 86400; // 24 hours
 
     /**
@@ -25,6 +26,7 @@ class SiteSetting extends Model
     public static function get(string $key, mixed $default = null): mixed
     {
         $settings = static::getAllCached();
+
         return $settings[$key] ?? $default;
     }
 
@@ -56,7 +58,7 @@ class SiteSetting extends Model
      */
     public static function getAllGrouped(): array
     {
-        return Cache::remember(self::CACHE_KEY . '_grouped', self::CACHE_TTL, function () {
+        return Cache::remember(self::CACHE_KEY.'_grouped', self::CACHE_TTL, function () {
             $settings = static::orderBy('group')->orderBy('sort_order')->get();
             $grouped = [];
 
@@ -89,6 +91,7 @@ class SiteSetting extends Model
     public static function getGroup(string $group): array
     {
         $all = static::getAllGrouped();
+
         return $all[$group] ?? [];
     }
 
@@ -98,7 +101,7 @@ class SiteSetting extends Model
     public static function clearCache(): void
     {
         Cache::forget(self::CACHE_KEY);
-        Cache::forget(self::CACHE_KEY . '_grouped');
+        Cache::forget(self::CACHE_KEY.'_grouped');
     }
 
     /**

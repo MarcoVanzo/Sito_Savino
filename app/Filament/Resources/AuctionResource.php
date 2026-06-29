@@ -3,15 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AuctionResource\Pages;
-use App\Filament\Resources\AuctionResource\RelationManagers;
 use App\Models\Auction;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AuctionResource extends Resource
 {
@@ -22,6 +18,7 @@ class AuctionResource extends Resource
     protected static ?string $navigationLabel = 'Aste Benefiche';
 
     protected static ?string $navigationGroup = 'Sociale';
+
     protected static ?int $navigationSort = 5;
 
     protected static ?string $slug = 'shop/aste';

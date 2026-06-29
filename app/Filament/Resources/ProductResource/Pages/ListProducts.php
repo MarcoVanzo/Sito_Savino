@@ -11,7 +11,7 @@ class ListProducts extends ListRecords
 {
     use Translatable;
 
-protected static string $resource = ProductResource::class;
+    protected static string $resource = ProductResource::class;
 
     protected function getHeaderActions(): array
     {

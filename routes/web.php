@@ -6,12 +6,9 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-
-
-
 
 $locales = ['it', 'en'];
 
@@ -21,7 +18,7 @@ foreach ($locales as $loc) {
 
     Route::middleware([
         'throttle:web',
-        \App\Http\Middleware\SetLocale::class . ':' . $loc,
+        SetLocale::class.':'.$loc,
     ])->prefix($prefix)->name($namePrefix)->group(function () {
         Route::get('/', [PublicController::class, 'home'])->name('home');
         Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');

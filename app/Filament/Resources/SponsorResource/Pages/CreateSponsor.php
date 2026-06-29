@@ -10,5 +10,5 @@ class CreateSponsor extends CreateRecord
 {
     use Translatable;
 
-protected static string $resource = SponsorResource::class;
+    protected static string $resource = SponsorResource::class;
 }

@@ -11,7 +11,7 @@ class ListPlayers extends ListRecords
 {
     use Translatable;
 
-protected static string $resource = PlayerResource::class;
+    protected static string $resource = PlayerResource::class;
 
     protected function getHeaderActions(): array
     {

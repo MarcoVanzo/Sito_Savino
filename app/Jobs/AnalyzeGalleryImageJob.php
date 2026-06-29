@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class AnalyzeGalleryImageJob implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue, Queueable, SerializesModels;
 
     public function __construct(
         public GalleryImage $galleryImage
@@ -22,15 +22,16 @@ class AnalyzeGalleryImageJob implements ShouldQueue
     {
         // Get the image file path from Spatie Media Library
         $media = $this->galleryImage->getFirstMedia('gallery');
-        
-        if (!$media) {
+
+        if (! $media) {
             return;
         }
 
         $imagePath = $media->getPath();
 
-        if (!file_exists($imagePath)) {
+        if (! file_exists($imagePath)) {
             Log::warning("AnalyzeGalleryImageJob: File not found at {$imagePath}");
+
             return;
         }
 
@@ -40,12 +41,12 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
         $needsReview = $hasUnrecognizedFaces;
 
-        if (!empty($detectedPlayers)) {
+        if (! empty($detectedPlayers)) {
             $syncData = [];
             foreach ($detectedPlayers as $detected) {
                 $syncData[$detected['player_id']] = ['confidence_score' => $detected['confidence']];
             }
-            
+
             // Sync players without detaching existing ones
             $this->galleryImage->players()->syncWithoutDetaching($syncData);
 
@@ -64,7 +65,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
     {
         $this->galleryImage->loadMissing('players');
         $playerNames = $this->galleryImage->players->map->full_name->toArray();
-        
+
         if (empty($playerNames)) {
             return;
         }
@@ -83,9 +84,9 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
         if ($needsUpdate) {
             if (empty($currentTitle)) {
-                $this->galleryImage->title = 'Foto con ' . $namesString;
+                $this->galleryImage->title = 'Foto con '.$namesString;
             } else {
-                $this->galleryImage->title = $currentTitle . ' - con ' . $namesString;
+                $this->galleryImage->title = $currentTitle.' - con '.$namesString;
             }
             // Temporarily disable activity log to avoid spamming logs for an automatic background process
             $this->galleryImage->saveQuietly();

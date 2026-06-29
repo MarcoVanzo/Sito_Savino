@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactMessageResource\Pages;
-use App\Filament\Resources\ContactMessageResource\RelationManagers;
 use App\Models\ContactMessage;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ContactMessageResource extends Resource
 {
@@ -22,6 +19,7 @@ class ContactMessageResource extends Resource
     protected static ?string $navigationLabel = 'Accrediti Stampa';
 
     protected static ?string $navigationGroup = 'Comunicazione';
+
     protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'forms';

@@ -69,5 +69,4 @@ class PlayerTest extends TestCase
 
         $this->assertInstanceOf(Carbon::class, $player->date_of_birth);
     }
-
 }

@@ -32,7 +32,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         // Skip heavy queries for admin/filament routes
-        $isPublic = !$request->is('admin*', 'filament*', 'livewire*');
+        $isPublic = ! $request->is('admin*', 'filament*', 'livewire*');
 
         return [
             ...parent::share($request),

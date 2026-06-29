@@ -5,6 +5,6 @@
     </div>
     <div class="flex items-center gap-2">
         <span>Developed by</span>
-        <a href="https://hup.it" target="_blank" class="font-bold hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Hup</a>
+        <span class="font-bold">MV Consulting Srl</span>
     </div>
 </footer>

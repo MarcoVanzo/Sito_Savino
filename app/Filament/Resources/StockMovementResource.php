@@ -22,6 +22,7 @@ class StockMovementResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
     protected static ?string $navigationGroup = 'Shop Ufficiale';
+
     protected static ?string $navigationLabel = 'Magazzino';
 
     protected static ?string $modelLabel = 'Movimento Magazzino';

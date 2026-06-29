@@ -7,19 +7,22 @@ use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     private function restoreOrCreate($modelClass, $attributes, $values = [])
     {
-        if (in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($modelClass))) {
+        if (in_array(SoftDeletes::class, class_uses_recursive($modelClass))) {
             $record = $modelClass::withTrashed()->firstOrCreate($attributes, $values);
             if ($record->trashed()) {
                 $record->restore();
             }
+
             return $record;
         }
+
         return $modelClass::firstOrCreate($attributes, $values);
     }
 

@@ -108,10 +108,10 @@ class GameResource extends Resource
                     ->label('Stato')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        \App\Enums\GameStatus::Scheduled->value => 'gray',
-                        \App\Enums\GameStatus::Live->value => 'danger',
-                        \App\Enums\GameStatus::Finished->value => 'success',
-                        \App\Enums\GameStatus::Cancelled->value => 'warning',
+                        GameStatus::Scheduled->value => 'gray',
+                        GameStatus::Live->value => 'danger',
+                        GameStatus::Finished->value => 'success',
+                        GameStatus::Cancelled->value => 'warning',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('homeTeam.name')

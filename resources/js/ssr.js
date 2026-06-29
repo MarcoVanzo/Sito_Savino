@@ -18,12 +18,26 @@ createServer((page) =>
                 import.meta.glob('./Pages/**/*.vue'),
             ),
         setup({ App, props, plugin }) {
-            return createSSRApp({ render: () => h(App, props) })
+            const app = createSSRApp({ render: () => h(App, props) })
                 .use(plugin)
                 .use(ZiggyVue, {
                     ...page.props.ziggy,
                     location: new URL(page.props.ziggy.location),
                 });
+                
+            const originalRoute = app.config.globalProperties.route;
+            app.config.globalProperties.route = (name, params, absolute, config) => {
+                const locale = props.initialPage.props.locale;
+                if (locale && locale !== 'it' && name && !name.startsWith(locale + '.')) {
+                    const localizedName = `${locale}.${name}`;
+                    if (page.props.ziggy.routes[localizedName] || (typeof originalRoute().has === 'function' && originalRoute().has(localizedName))) {
+                        return originalRoute(localizedName, params, absolute, config);
+                    }
+                }
+                return originalRoute(name, params, absolute, config);
+            };
+
+            return app;
         },
     }),
 );

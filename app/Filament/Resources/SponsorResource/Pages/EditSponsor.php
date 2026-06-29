@@ -11,7 +11,7 @@ class EditSponsor extends EditRecord
 {
     use Translatable;
 
-protected static string $resource = SponsorResource::class;
+    protected static string $resource = SponsorResource::class;
 
     protected function getHeaderActions(): array
     {

@@ -3,17 +3,20 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PlayerPosition;
+use App\Filament\Clusters\SdbYouth;
 use App\Filament\Resources\YouthRosterResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Roster;
+use App\Services\FacialRecognitionService;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Pages\SubNavigationPosition;
 
 class YouthRosterResource extends Resource
 {
@@ -29,7 +32,7 @@ class YouthRosterResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Atlete Youth';
 
-    protected static ?string $cluster = \App\Filament\Clusters\SdbYouth::class;
+    protected static ?string $cluster = SdbYouth::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user';
 
@@ -160,26 +163,27 @@ class YouthRosterResource extends Resource
                     ->modalDescription('Invia la foto ufficiale di questa atleta al sistema di riconoscimento facciale per addestrare l\'AI a riconoscerla.')
                     ->action(function (Roster $record) {
                         $media = $record->getFirstMedia('rosters_official') ?? $record->player->getFirstMedia('players');
-                        if (!$media) {
-                            \Filament\Notifications\Notification::make()
+                        if (! $media) {
+                            Notification::make()
                                 ->title('Errore')
                                 ->body('Nessuna foto trovata (né ufficiale né avatar) per addestrare l\'AI.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 
-                        $service = app(\App\Services\FacialRecognitionService::class);
+                        $service = app(FacialRecognitionService::class);
                         $success = $service->addFaceExample($record->player, $media->getPath());
 
                         if ($success) {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Successo')
                                 ->body('Volto sincronizzato! L\'AI ora riconoscerà questa atleta.')
                                 ->success()
                                 ->send();
                         } else {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Errore API')
                                 ->body('Impossibile sincronizzare il volto. Verifica i log.')
                                 ->danger()

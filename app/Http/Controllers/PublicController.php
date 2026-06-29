@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Enums\GameStatus;
 use App\Enums\PostStatus;
 use App\Enums\StaffType;
+use App\Models\GalleryImage;
 use App\Models\Game;
-use App\Models\Player;
 use App\Models\HeroSlide;
 use App\Models\Page;
+use App\Models\Player;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\Roster;
@@ -17,6 +18,7 @@ use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Team;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -86,7 +88,7 @@ class PublicController extends Controller
             $team = Team::where('slug', $teamSlug)
                 ->orWhere('category', $teamSlug === 'savino-del-bene-volley' ? 'A1' : 'B1')
                 ->first();
-                
+
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
             $roster = [];
@@ -114,10 +116,12 @@ class PublicController extends Controller
                 'photo_url' => $p->getFirstMediaUrl('staff'),
             ];
 
-            $staffTecnico = StaffMember::where('type', StaffType::Tecnico)
+            $staffTecnico = StaffMember::with('media')
+                ->where('type', StaffType::Tecnico)
                 ->orderBy('sort_order')->get()->map($mapStaff)->toArray();
 
-            $staffMedico = StaffMember::where('type', StaffType::Medico)
+            $staffMedico = StaffMember::with('media')
+                ->where('type', StaffType::Medico)
                 ->orderBy('sort_order')->get()->map($mapStaff)->toArray();
 
             return compact('roster', 'seasonName', 'staffTecnico', 'staffMedico');
@@ -162,14 +166,14 @@ class PublicController extends Controller
     private function renderGallery(?Player $playerFilter = null)
     {
         $page = Cache::remember('public:page:gallery', now()->addMinutes(30), function () {
-            return \App\Models\Page::where('slug', 'gallery')->first();
+            return Page::where('slug', 'gallery')->first();
         });
 
-        $cacheKey = $playerFilter ? 'public:gallery_images:player_' . $playerFilter->id : 'public:gallery_images';
+        $cacheKey = $playerFilter ? 'public:gallery_images:player_'.$playerFilter->id : 'public:gallery_images';
 
         $media = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter) {
-            $query = \App\Models\GalleryImage::active()->ordered();
-            
+            $query = GalleryImage::active()->ordered();
+
             if ($playerFilter) {
                 $query->whereHas('players', function ($q) use ($playerFilter) {
                     $q->where('players.id', $playerFilter->id);
@@ -191,7 +195,7 @@ class PublicController extends Controller
             return Player::whereHas('galleryImages')->get()->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->full_name,
-                'slug' => $p->id . '-' . \Illuminate\Support\Str::slug($p->full_name),
+                'slug' => $p->id.'-'.Str::slug($p->full_name),
             ])->toArray();
         });
 
@@ -202,7 +206,7 @@ class PublicController extends Controller
             'currentAthlete' => $playerFilter ? [
                 'id' => $playerFilter->id,
                 'name' => $playerFilter->full_name,
-                'slug' => $playerFilter->id . '-' . \Illuminate\Support\Str::slug($playerFilter->full_name),
+                'slug' => $playerFilter->id.'-'.Str::slug($playerFilter->full_name),
             ] : null,
         ]);
     }
@@ -210,7 +214,8 @@ class PublicController extends Controller
     public function staff()
     {
         $staffTecnico = Cache::remember('public:staff_tecnico', now()->addMinutes(30), function () {
-            return StaffMember::where('type', \App\Enums\StaffType::Tecnico)
+            return StaffMember::with('media')
+                ->where('type', StaffType::Tecnico)
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($p) => [
@@ -223,7 +228,8 @@ class PublicController extends Controller
         });
 
         $staffMedico = Cache::remember('public:staff_medico', now()->addMinutes(30), function () {
-            return StaffMember::where('type', \App\Enums\StaffType::Medico)
+            return StaffMember::with('media')
+                ->where('type', StaffType::Medico)
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($p) => [
@@ -244,7 +250,8 @@ class PublicController extends Controller
     public function organigramma()
     {
         $dirigenza = Cache::remember('public:organigramma', now()->addMinutes(30), function () {
-            return StaffMember::where('type', \App\Enums\StaffType::Dirigenza)
+            return StaffMember::with('media')
+                ->where('type', StaffType::Dirigenza)
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($p) => [
@@ -267,7 +274,8 @@ class PublicController extends Controller
     public function sponsor()
     {
         $sponsors = Cache::remember('public:sponsor', now()->addMinutes(30), function () {
-            return Sponsor::orderBy('tier')
+            return Sponsor::with('media')
+                ->orderBy('tier')
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($s) => [
@@ -300,7 +308,8 @@ class PublicController extends Controller
     public function shop()
     {
         $products = Cache::remember('public:shop', now()->addMinutes(10), function () {
-            return Product::where('is_active', true)
+            return Product::with('media')
+                ->where('is_active', true)
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($p) => [

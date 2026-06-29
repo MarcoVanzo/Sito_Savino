@@ -9,8 +9,8 @@ use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,9 +19,8 @@ use Illuminate\Support\Str;
 
 class ProductResource extends Resource
 {
+    use HasStandardTableActions;
     use Translatable;
-
-use HasStandardTableActions;
 
     protected static ?string $model = Product::class;
 

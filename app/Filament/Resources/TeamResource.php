@@ -32,6 +32,7 @@ class TeamResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
     protected static ?string $navigationGroup = 'SDB Youth';
+
     protected static ?string $navigationLabel = 'Squadre Youth';
 
     protected static ?int $navigationSort = 3;

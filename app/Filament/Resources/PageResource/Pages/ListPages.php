@@ -11,7 +11,7 @@ class ListPages extends ListRecords
 {
     use Translatable;
 
-protected static string $resource = PageResource::class;
+    protected static string $resource = PageResource::class;
 
     protected function getHeaderActions(): array
     {

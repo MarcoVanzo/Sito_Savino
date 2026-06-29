@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import { defineAsyncComponent } from 'vue';
 import MegaMenu from '@/Components/MegaMenu.vue';
-import MobileDrawer from '@/Components/MobileDrawer.vue';
 import SiteFooter from '@/Components/SiteFooter.vue';
-import CookieConsent from '@/Components/CookieConsent.vue';
+
+const MobileDrawer = defineAsyncComponent(() => import('@/Components/MobileDrawer.vue'));
+const CookieConsent = defineAsyncComponent(() => import('@/Components/CookieConsent.vue'));
 
 const isMobileMenuOpen = ref(false);
 const activeMobileIndex = ref(null);
@@ -54,7 +56,7 @@ const corporateDomain = computed(() => {
                             <!-- Corporate Logo with Preview -->
                             <div class="relative group overflow-hidden hover:overflow-visible">
                                 <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="block">
-                                    <img :src="corporateLogo" :alt="corporateName" class="h-[85px] w-[85px] object-cover rounded-2xl shadow-xl z-0 transition-transform duration-300 group-hover:scale-105 bg-white mb-2" />
+                                    <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="h-[85px] w-[85px] object-cover rounded-2xl shadow-xl z-0 transition-transform duration-300 group-hover:scale-105 bg-white mb-2" />
                                 </a>
                                 
                                 <!-- Finestrella Preview Card -->
@@ -78,7 +80,7 @@ const corporateDomain = computed(() => {
 
                             <!-- Volley Logo -->
                             <Link :href="route('home')" class="block z-10 -ml-6 transition-transform duration-300 hover:scale-105">
-                                <img :src="siteLogo" alt="Savino Del Bene Volley" class="h-[125px] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" />
+                                <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[125px] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" />
                             </Link>
                         </div>
                     </div>

@@ -10,5 +10,5 @@ class CreatePost extends CreateRecord
 {
     use Translatable;
 
-protected static string $resource = PostResource::class;
+    protected static string $resource = PostResource::class;
 }

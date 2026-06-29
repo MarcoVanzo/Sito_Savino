@@ -3,17 +3,17 @@
 namespace App\Filament\Resources\GalleryImageResource\Pages;
 
 use App\Filament\Resources\GalleryImageResource;
-use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\FileUpload;
+use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Filament\Actions;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ListRecords;
 
 class ListGalleryImages extends ListRecords
 {
@@ -52,7 +52,7 @@ class ListGalleryImages extends ListRecords
                         ->image()
                         ->maxSize(5120)
                         ->directory('temp_gallery_uploads')
-                        ->required()
+                        ->required(),
                 ])
                 ->action(function (array $data, Actions\Action $action) {
                     $event = GalleryEvent::create([
@@ -66,7 +66,7 @@ class ListGalleryImages extends ListRecords
                     $uploadedPhotos = $data['uploaded_photos'] ?? [];
 
                     foreach ($uploadedPhotos as $file) {
-                        $image = new GalleryImage();
+                        $image = new GalleryImage;
                         $image->gallery_event_id = $event->id;
                         $image->title = $event->title;
                         $image->category = $event->category;
@@ -78,15 +78,15 @@ class ListGalleryImages extends ListRecords
                         if (is_string($file)) {
                             // File was moved to the directory
                             $image->addMediaFromDisk($file, config('filament.default_filesystem_disk'))
-                                  ->toMediaCollection('gallery');
+                                ->toMediaCollection('gallery');
                         }
 
-                        \App\Jobs\AnalyzeGalleryImageJob::dispatch($image);
+                        AnalyzeGalleryImageJob::dispatch($image);
                     }
 
                     Notification::make()
                         ->title('Evento Creato')
-                        ->body(count($uploadedPhotos) . ' foto in fase di analisi AI.')
+                        ->body(count($uploadedPhotos).' foto in fase di analisi AI.')
                         ->success()
                         ->send();
                 }),

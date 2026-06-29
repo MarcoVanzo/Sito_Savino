@@ -11,7 +11,7 @@ class EditProduct extends EditRecord
 {
     use Translatable;
 
-protected static string $resource = ProductResource::class;
+    protected static string $resource = ProductResource::class;
 
     protected function getHeaderActions(): array
     {

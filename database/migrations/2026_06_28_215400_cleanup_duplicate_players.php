@@ -14,13 +14,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $duplicates = DB::select("
+        $duplicates = DB::select('
             SELECT first_name, last_name, COUNT(*) as cnt, GROUP_CONCAT(id ORDER BY id) as ids
             FROM players
             WHERE deleted_at IS NULL
             GROUP BY first_name, last_name
             HAVING cnt > 1
-        ");
+        ');
 
         foreach ($duplicates as $dup) {
             $ids = explode(',', $dup->ids);
@@ -45,18 +45,18 @@ return new class extends Migration
 
             // Delete duplicate roster entries that now conflict on unique keys
             // (keep the one with the lowest id for each team_id/season_id/player_id combo)
-            $dupeRosters = DB::select("
+            $dupeRosters = DB::select('
                 SELECT GROUP_CONCAT(id ORDER BY id) as ids
                 FROM rosters
                 WHERE player_id = ?
                 GROUP BY team_id, season_id, player_id
                 HAVING COUNT(*) > 1
-            ", [$keepId]);
+            ', [$keepId]);
 
             foreach ($dupeRosters as $dr) {
                 $rosterIds = explode(',', $dr->ids);
                 array_shift($rosterIds); // keep the first
-                if (!empty($rosterIds)) {
+                if (! empty($rosterIds)) {
                     DB::table('rosters')->whereIn('id', array_map('intval', $rosterIds))->delete();
                 }
             }

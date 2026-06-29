@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\StaffMember;
 use App\Enums\StaffType;
+use App\Models\StaffMember;
+use Illuminate\Database\Seeder;
 
 class StaffAndDirigenzaSeeder extends Seeder
 {

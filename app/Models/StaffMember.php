@@ -6,13 +6,13 @@ use App\Enums\StaffType;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Translatable\HasTranslations;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
 
 class StaffMember extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, LogsActivity, HasTranslations;
+    use HasFactory, HasTranslations, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
         'first_name',

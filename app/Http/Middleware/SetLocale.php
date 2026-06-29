@@ -10,6 +10,7 @@ class SetLocale
     public function handle(Request $request, Closure $next, $locale = 'it')
     {
         app()->setLocale($locale);
+
         return $next($request);
     }
 }

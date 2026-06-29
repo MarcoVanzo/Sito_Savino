@@ -6,11 +6,13 @@ use App\Filament\Resources\PlayerResource\Pages;
 use App\Filament\Resources\PlayerResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Player;
+use App\Services\FacialRecognitionService;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use Filament\Notifications\Notification;
 use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,9 +20,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PlayerResource extends Resource
 {
+    use HasStandardTableActions;
     use Translatable;
-
-use HasStandardTableActions;
 
     protected static ?string $model = Player::class;
 
@@ -112,26 +113,27 @@ use HasStandardTableActions;
                     ->modalDescription('Invia la foto profilo attuale al sistema di riconoscimento facciale per addestrare l\'AI a riconoscere questa atleta.')
                     ->action(function (Player $record) {
                         $media = $record->getFirstMedia('players');
-                        if (!$media) {
-                            \Filament\Notifications\Notification::make()
+                        if (! $media) {
+                            Notification::make()
                                 ->title('Errore')
                                 ->body('Nessuna immagine di profilo trovata per l\'addestramento.')
                                 ->danger()
                                 ->send();
+
                             return;
                         }
 
-                        $service = app(\App\Services\FacialRecognitionService::class);
+                        $service = app(FacialRecognitionService::class);
                         $success = $service->addFaceExample($record, $media->getPath());
 
                         if ($success) {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Successo')
                                 ->body('Volto sincronizzato correttamente con l\'AI.')
                                 ->success()
                                 ->send();
                         } else {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Errore API')
                                 ->body('Impossibile sincronizzare il volto. Verifica i log.')
                                 ->danger()

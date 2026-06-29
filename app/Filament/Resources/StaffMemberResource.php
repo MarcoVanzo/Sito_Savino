@@ -3,23 +3,24 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StaffType;
+use App\Filament\Clusters\SerieA1;
 use App\Filament\Resources\StaffMemberResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\StaffMember;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Concerns\Translatable;
+use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Pages\SubNavigationPosition;
+use Illuminate\Database\Eloquent\Builder;
 
 class StaffMemberResource extends Resource
 {
+    use HasStandardTableActions;
     use Translatable;
-
-use HasStandardTableActions;
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -31,13 +32,13 @@ use HasStandardTableActions;
 
     protected static ?string $pluralModelLabel = 'Staff Tecnico e Medico';
 
-    protected static ?string $cluster = \App\Filament\Clusters\SerieA1::class;
+    protected static ?string $cluster = SerieA1::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
 
     protected static ?string $navigationLabel = 'Staff e Medico';
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->where(function ($q) {
