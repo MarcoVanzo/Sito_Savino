@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PlayerPosition;
-use App\Filament\Resources\RosterResource\Pages;
+use App\Filament\Resources\YouthRosterResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Roster;
 use Filament\Forms;
@@ -15,7 +15,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Pages\SubNavigationPosition;
 
-class RosterResource extends Resource
+class YouthRosterResource extends Resource
 {
     use HasStandardTableActions;
 
@@ -23,14 +23,13 @@ class RosterResource extends Resource
 
     protected static ?string $model = Roster::class;
 
-    // Attributo usato per il titolo nei risultati di ricerca globale
     protected static ?string $recordTitleAttribute = 'id';
 
-    protected static ?string $modelLabel = 'Giocatore in Rosa';
+    protected static ?string $modelLabel = 'Atleta Youth';
 
-    protected static ?string $pluralModelLabel = 'Giocatori in Rosa (Roster)';
-    
-    protected static ?string $cluster = \App\Filament\Clusters\SerieA1::class;
+    protected static ?string $pluralModelLabel = 'Atlete Youth';
+
+    protected static ?string $cluster = \App\Filament\Clusters\SdbYouth::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user';
 
@@ -38,7 +37,7 @@ class RosterResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $slug = 'roster';
+    protected static ?string $slug = 'youth-roster';
 
     public static function form(Form $form): Form
     {
@@ -57,7 +56,7 @@ class RosterResource extends Resource
                             ->relationship(
                                 'team',
                                 'name',
-                                fn (Builder $query) => $query->whereNotIn('category', ['B1', 'U17', 'U15'])
+                                fn (Builder $query) => $query->whereIn('category', ['B1', 'U17', 'U15'])
                             )
                             ->searchable()
                             ->preload()
@@ -120,6 +119,10 @@ class RosterResource extends Resource
                 Tables\Columns\TextColumn::make('team.name')
                     ->label('Squadra')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('team.category')
+                    ->label('Categoria')
+                    ->badge()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('season.name')
                     ->label('Stagione')
                     ->sortable(),
@@ -135,6 +138,17 @@ class RosterResource extends Resource
                 Tables\Filters\SelectFilter::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name'),
+                Tables\Filters\SelectFilter::make('team_category')
+                    ->label('Categoria')
+                    ->options([
+                        'B1' => 'Serie B1',
+                        'U17' => 'Serie U17',
+                        'U15' => 'Serie U15',
+                    ])
+                    ->query(fn (Builder $query, array $data) => $data['value']
+                        ? $query->whereHas('team', fn ($q) => $q->where('category', $data['value']))
+                        : $query
+                    ),
             ])
             ->actions(array_merge([
                 Tables\Actions\Action::make('syncFace')
@@ -186,16 +200,19 @@ class RosterResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListRosters::route('/'),
-            'create' => Pages\CreateRoster::route('/create'),
-            'edit' => Pages\EditRoster::route('/{record}/edit'),
+            'index' => Pages\ListYouthRosters::route('/'),
+            'create' => Pages\CreateYouthRoster::route('/create'),
+            'edit' => Pages\EditYouthRoster::route('/{record}/edit'),
         ];
     }
 
+    /**
+     * Filtra solo i roster appartenenti a squadre Youth (B1, U17, U15).
+     */
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->with(['player', 'team', 'season', 'media'])
-            ->whereHas('team', fn (Builder $q) => $q->whereNotIn('category', ['B1', 'U17', 'U15']));
+            ->whereHas('team', fn (Builder $q) => $q->whereIn('category', ['B1', 'U17', 'U15']));
     }
 }

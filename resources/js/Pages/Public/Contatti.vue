@@ -210,19 +210,38 @@ const contactInfo = computed(() => [
                         </form>
                     </div>
 
-                    <!-- Map Placeholder -->
+                    <!-- Google Maps -->
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-                        <div class="h-full min-h-[400px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
-                            <div class="text-center">
-                                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-savino-blue/10 flex items-center justify-center">
-                                    <svg class="w-10 h-10 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="relative h-full min-h-[400px]">
+                            <iframe
+                                src="https://maps.google.com/maps?q=Palazzo+Wanny,+Via+Salvador+Allende,+Scandicci,+Firenze&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                class="absolute inset-0 w-full h-full border-0"
+                                allowfullscreen
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                title="Mappa Palazzo Wanny - Savino Del Bene Volley"
+                            ></iframe>
+                        </div>
+                        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-savino-red/10 flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-5 h-5 text-savino-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
-                                <h3 class="text-lg font-black text-gray-900 uppercase mb-2">{{ cd.map_title || contact.venue_name || 'Palazzo Wanny' }}</h3>
-                                <p class="text-gray-500 text-sm">{{ cd.map_address || contact.short_address || 'Via Allende 10, Firenze' }}</p>
-                                <p class="text-gray-400 text-xs mt-4">{{ cd.map_note || 'Mappa interattiva disponibile a breve' }}</p>
+                                <div>
+                                    <h3 class="text-sm font-black text-gray-900 uppercase">{{ cd.map_title || contact.venue_name || 'Palazzo Wanny' }}</h3>
+                                    <p class="text-gray-500 text-xs">{{ cd.map_address || contact.short_address || 'Via Allende 10, Firenze' }}</p>
+                                </div>
+                                <a
+                                    href="https://www.google.com/maps/dir//Palazzo+Wanny,+Via+Salvador+Allende,+Firenze"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="ml-auto text-xs font-bold text-savino-blue hover:text-savino-blue/80 transition-colors uppercase tracking-wider"
+                                >
+                                    Indicazioni →
+                                </a>
                             </div>
                         </div>
                     </div>

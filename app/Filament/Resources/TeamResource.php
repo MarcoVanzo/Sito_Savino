@@ -32,9 +32,9 @@ class TeamResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
     protected static ?string $navigationGroup = 'SDB Youth';
-    protected static ?string $navigationLabel = 'Serie B1 / U19';
+    protected static ?string $navigationLabel = 'Squadre Youth';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -53,9 +53,15 @@ class TeamResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
-                        Forms\Components\TextInput::make('category')
-                            ->label('Categoria (es. Serie A1)')
-                            ->maxLength(255),
+                        Forms\Components\Select::make('category')
+                            ->label('Categoria')
+                            ->options([
+                                'B1' => 'Serie B1',
+                                'U17' => 'Serie U17',
+                                'U15' => 'Serie U15',
+                            ])
+                            ->required()
+                            ->helperText('Determina a quale sotto-sezione youth appartiene.'),
                     ])->columns(2),
                 Forms\Components\Section::make('Immagine')
                     ->schema([
@@ -113,6 +119,7 @@ class TeamResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->whereIn('category', ['B1', 'U17', 'U15']);
     }
 }

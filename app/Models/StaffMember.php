@@ -19,6 +19,7 @@ class StaffMember extends Model implements HasMedia
         'last_name',
         'role',
         'type',
+        'section',
         'sort_order',
     ];
 

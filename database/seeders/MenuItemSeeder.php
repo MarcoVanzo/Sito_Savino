@@ -35,7 +35,7 @@ class MenuItemSeeder extends Seeder
             ['label' => 'CEV Champions League', 'url' => '/stagione/cev/', 'description' => 'Classifiche e Girone'],
             ['label' => 'Coppa Italia & Playoff', 'url' => '/stagione/coppa-italia/', 'description' => 'Tabellone Risultati'],
             ['label' => 'News & Comunicati', 'url' => '/stagione/news/', 'description' => '/stagione/news/'],
-            ['label' => 'Foto Gallery (AI)', 'url' => '/stagione/gallery/', 'description' => '/stagione/gallery/'],
+            ['label' => 'Foto Gallery', 'url' => '/gallery', 'description' => 'Galleria Fotografica'],
         ]);
 
         // 2. Società

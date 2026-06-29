@@ -75,7 +75,6 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\Navigation\NavigationItem::make('Hospitality')->group('Sponsor')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
                 
                 // SDB Youth
-                \Filament\Navigation\NavigationItem::make('Serie U17 & U15')->group('SDB Youth')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(2),
                 \Filament\Navigation\NavigationItem::make('Settore Giovanile')->group('SDB Youth')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(3),
                 \Filament\Navigation\NavigationItem::make('Talent Day & Recruiting')->group('SDB Youth')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(4),
                 \Filament\Navigation\NavigationItem::make('Progetto Affiliazioni')->group('SDB Youth')->url(fn () => \App\Filament\Pages\UnderConstruction::getUrl())->sort(5),

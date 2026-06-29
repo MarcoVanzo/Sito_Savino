@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StaffType;
-use App\Filament\Resources\StaffMemberResource\Pages;
+use App\Filament\Resources\YouthStaffResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\StaffMember;
 use Filament\Forms;
@@ -15,11 +15,10 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Pages\SubNavigationPosition;
 
-class StaffMemberResource extends Resource
+class YouthStaffResource extends Resource
 {
     use Translatable;
-
-use HasStandardTableActions;
+    use HasStandardTableActions;
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -27,26 +26,29 @@ use HasStandardTableActions;
 
     protected static ?string $recordTitleAttribute = 'last_name';
 
-    protected static ?string $modelLabel = 'Membro Staff/Medico';
+    protected static ?string $modelLabel = 'Membro Staff Youth';
 
-    protected static ?string $pluralModelLabel = 'Staff Tecnico e Medico';
+    protected static ?string $pluralModelLabel = 'Staff Youth';
 
-    protected static ?string $cluster = \App\Filament\Clusters\SerieA1::class;
+    protected static ?string $cluster = \App\Filament\Clusters\SdbYouth::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
 
     protected static ?string $navigationLabel = 'Staff e Medico';
 
+    protected static ?int $navigationSort = 2;
+
+    protected static ?string $slug = 'youth-staff';
+
+    /**
+     * Filtra solo staff con section = 'youth'.
+     */
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         return parent::getEloquentQuery()
-            ->where(function ($q) {
-                $q->where('section', 'a1')->orWhereNull('section');
-            })
+            ->where('section', 'youth')
             ->whereIn('type', [StaffType::Tecnico, StaffType::Medico]);
     }
-
-    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -76,7 +78,7 @@ use HasStandardTableActions;
                             ->maxLength(255)
                             ->helperText('Es. Allenatore, Presidente, Medico...'),
                         Forms\Components\Hidden::make('section')
-                            ->default('a1'),
+                            ->default('youth'),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Foto Profilo')
@@ -136,9 +138,9 @@ use HasStandardTableActions;
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListStaffMembers::route('/'),
-            'create' => Pages\CreateStaffMember::route('/create'),
-            'edit' => Pages\EditStaffMember::route('/{record}/edit'),
+            'index' => Pages\ListYouthStaff::route('/'),
+            'create' => Pages\CreateYouthStaff::route('/create'),
+            'edit' => Pages\EditYouthStaff::route('/{record}/edit'),
         ];
     }
 }
