@@ -29,7 +29,7 @@ class RosterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationLabel = 'Roster A1';
+    protected static ?string $navigationLabel = 'Serie A1';
 
     protected static ?string $navigationGroup = 'Stagione';
 

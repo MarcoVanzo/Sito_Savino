@@ -34,11 +34,11 @@ use HasStandardTableActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static ?string $navigationLabel = 'Catalogo Prodotti';
+    protected static ?string $navigationLabel = 'Gestione Catalogo';
 
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = 'Shop Ufficiale';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $slug = 'shop/products';
 

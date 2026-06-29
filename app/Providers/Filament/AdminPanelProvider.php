@@ -45,48 +45,62 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\Navigation\NavigationGroup::make()->label('Ticketing')->icon('heroicon-o-ticket'),
                 \Filament\Navigation\NavigationGroup::make()->label('Sponsor')->icon('heroicon-o-currency-dollar'),
                 \Filament\Navigation\NavigationGroup::make()->label('SDB Youth')->icon('heroicon-o-academic-cap'),
-                \Filament\Navigation\NavigationGroup::make()->label('Camp')->icon('heroicon-o-sun'),
+                \Filament\Navigation\NavigationGroup::make()->label('Summer Camp')->icon('heroicon-o-sun'),
                 \Filament\Navigation\NavigationGroup::make()->label('Sociale')->icon('heroicon-o-heart'),
-                \Filament\Navigation\NavigationGroup::make()->label('Media')->icon('heroicon-o-megaphone'),
-                \Filament\Navigation\NavigationGroup::make()->label('Shop')->icon('heroicon-o-shopping-bag'),
+                \Filament\Navigation\NavigationGroup::make()->label('Comunicazione')->icon('heroicon-o-megaphone'),
+                \Filament\Navigation\NavigationGroup::make()->label('Shop Ufficiale')->icon('heroicon-o-shopping-bag'),
                 \Filament\Navigation\NavigationGroup::make()->label('Pagine & Extra')->icon('heroicon-o-document-duplicate')->collapsed(),
                 \Filament\Navigation\NavigationGroup::make()->label('Amministrazione')->icon('heroicon-o-cog-8-tooth')->collapsed(),
             ])
             ->navigationItems([
+                // Stagione
+                \Filament\Navigation\NavigationItem::make('Foto Ufficiale')->group('Stagione')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('CEV Champions League')->group('Stagione')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Coppa Italia & Playoff')->group('Stagione')->url(fn () => url('/admin/pages'))->sort(5),
+                
                 // Società
-                \Filament\Navigation\NavigationItem::make('Storia')->group('Società')->url(fn () => url('/admin/pages'))->sort(1),
-                \Filament\Navigation\NavigationItem::make('Palazzetto')->group('Società')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Storia')->group('Società')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('Safeguarding')->group('Società')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Contatti')->group('Società')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Palazzetto & Google Maps')->group('Società')->url(fn () => url('/admin/pages'))->sort(5),
                 
                 // Ticketing
                 \Filament\Navigation\NavigationItem::make('Biglietteria')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(1),
-                \Filament\Navigation\NavigationItem::make('Abbonamenti')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Convenzioni')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Accessibilità')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Campagna Abbonamenti')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('Accessibilità & Info')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Convenzioni')->group('Ticketing')->url(fn () => url('/admin/pages'))->sort(4),
                 
                 // Sponsor
-                \Filament\Navigation\NavigationItem::make('Title Sponsor')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Diventa Sponsor')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Diventa Sponsor')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('Title Sponsor (SDB)')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(3),
                 \Filament\Navigation\NavigationItem::make('Hospitality')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(4),
-                \Filament\Navigation\NavigationItem::make('Affiliazioni')->group('Sponsor')->url(fn () => url('/admin/pages'))->sort(5),
                 
                 // SDB Youth
-                \Filament\Navigation\NavigationItem::make('Settore Giovanile')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Talent Day')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Progetto Scuola')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Serie U17 & U15')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('Settore Giovanile')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Talent Day & Recruiting')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(4),
+                \Filament\Navigation\NavigationItem::make('Progetto Affiliazioni')->group('SDB Youth')->url(fn () => url('/admin/pages'))->sort(5),
                 
-                // Camp
-                \Filament\Navigation\NavigationItem::make('Summer Camp')->group('Camp')->url(fn () => url('/admin/pages'))->sort(1),
-                \Filament\Navigation\NavigationItem::make('Iscrizioni')->group('Camp')->url(fn () => url('/admin/pages'))->sort(2),
+                // Summer Camp
+                \Filament\Navigation\NavigationItem::make('Tutte le Info')->group('Summer Camp')->url(fn () => url('/admin/pages'))->sort(1),
+                \Filament\Navigation\NavigationItem::make('Iscrizione (Experience)')->group('Summer Camp')->url(fn () => url('/admin/pages'))->sort(2),
                 
                 // Sociale
-                \Filament\Navigation\NavigationItem::make('Volley4All')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(1),
-                \Filament\Navigation\NavigationItem::make('Progetti Sociali')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(2),
-                \Filament\Navigation\NavigationItem::make('Sostenibilità')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Progetti Sociali')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(1),
+                \Filament\Navigation\NavigationItem::make('Volley 4 All')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('Bilancio Sostenibilità')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Progetto Scuola')->group('Sociale')->url(fn () => url('/admin/pages'))->sort(4),
                 
-                // Media
-                \Filament\Navigation\NavigationItem::make('Cartelle Stampa')->group('Media')->url(fn () => url('/admin/pages'))->sort(3),
-                \Filament\Navigation\NavigationItem::make('Double Face')->group('Media')->url(fn () => url('/admin/pages'))->sort(4),
-                \Filament\Navigation\NavigationItem::make('Foto Gallery')->group('Media')->url(fn () => url('/admin/gallery'))->sort(5),
+                // Comunicazione
+                \Filament\Navigation\NavigationItem::make('Cartelle Stampa')->group('Comunicazione')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('Magazine')->group('Comunicazione')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Double Face')->group('Comunicazione')->url(fn () => url('/admin/pages'))->sort(4),
+                
+                // Shop Ufficiale
+                \Filament\Navigation\NavigationItem::make('Kit Gara')->group('Shop Ufficiale')->url(fn () => url('/admin/pages'))->sort(1),
+                \Filament\Navigation\NavigationItem::make('Abbigliamento & Accessori')->group('Shop Ufficiale')->url(fn () => url('/admin/pages'))->sort(2),
+                \Filament\Navigation\NavigationItem::make('Aste & Outlet')->group('Shop Ufficiale')->url(fn () => url('/admin/pages'))->sort(3),
+                \Filament\Navigation\NavigationItem::make('Guida Taglie & Contatti')->group('Shop Ufficiale')->url(fn () => url('/admin/pages'))->sort(4),
             ])
             ->userMenuItems([
                 \Filament\Navigation\MenuItem::make()

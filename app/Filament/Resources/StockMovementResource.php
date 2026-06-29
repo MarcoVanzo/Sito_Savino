@@ -21,13 +21,14 @@ class StockMovementResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static ?string $navigationLabel = 'Magazzino';
 
     protected static ?string $modelLabel = 'Movimento Magazzino';
 
     protected static ?string $pluralModelLabel = 'Movimenti Magazzino';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 7;
 
     public static function form(Form $form): Form
     {

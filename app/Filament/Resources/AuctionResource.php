@@ -19,10 +19,10 @@ class AuctionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-gift';
 
-    protected static ?string $navigationLabel = 'Gestione Aste Benefiche';
+    protected static ?string $navigationLabel = 'Aste Benefiche';
 
-    protected static ?string $navigationGroup = 'Shop';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Sociale';
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $slug = 'shop/aste';
 

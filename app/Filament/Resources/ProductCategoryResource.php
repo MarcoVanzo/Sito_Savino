@@ -30,9 +30,10 @@ use HasStandardTableActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static ?string $navigationLabel = 'Categorie Shop';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 8;
 
     public static function form(Form $form): Form
     {

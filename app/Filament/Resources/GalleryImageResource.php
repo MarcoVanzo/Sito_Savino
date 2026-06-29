@@ -21,7 +21,7 @@ class GalleryImageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
 
-    protected static ?string $navigationLabel = 'Gallery';
+    protected static ?string $navigationLabel = 'Foto Gallery (AI)';
 
     protected static ?string $modelLabel = 'Immagine Galleria';
 
@@ -29,7 +29,7 @@ class GalleryImageResource extends Resource
 
     protected static ?string $navigationGroup = 'Stagione';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 7;
 
     protected static ?string $slug = 'gallery';
 

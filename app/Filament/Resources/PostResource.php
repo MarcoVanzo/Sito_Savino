@@ -33,11 +33,11 @@ use HasStandardTableActions;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationLabel = 'News';
+    protected static ?string $navigationLabel = 'News & Comunicati';
 
-    protected static ?string $navigationGroup = 'Media';
+    protected static ?string $navigationGroup = 'Stagione';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 6;
 
     protected static ?string $slug = 'news';
 
