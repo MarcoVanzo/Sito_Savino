@@ -67,15 +67,15 @@ class MenuItem extends Model implements HasMedia
      * Usata come fonte primaria; fallback alla media library Spatie.
      */
     private static array $staticMenuImages = [
-        'Stagione' => 'stagione.jpg',
-        'Società' => 'societa.jpg',
-        'Ticketing' => 'ticketing.jpg',
-        'Sponsor' => 'sponsor.jpg',
-        'SDB Youth' => 'youth.jpg',
-        'Summer Camp' => 'camp.jpg',
-        'Sociale' => 'sociale.jpg',
-        'Comunicazione' => 'media.jpg',
-        'Shop Ufficiale' => 'shop.jpg',
+        'stagione' => 'stagione.jpg',
+        'società' => 'societa.jpg',
+        'ticketing' => 'ticketing.jpg',
+        'sponsor' => 'sponsor.jpg',
+        'sdb youth' => 'youth.jpg',
+        'summer camp' => 'camp.jpg',
+        'sociale' => 'sociale.jpg',
+        'comunicazione' => 'media.jpg',
+        'shop ufficiale' => 'shop.jpg',
     ];
 
     /**
@@ -96,8 +96,9 @@ class MenuItem extends Model implements HasMedia
                 ->get()
                 ->map(function ($item) use ($prefix) {
                     $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
-                    if (! $menuImage && isset(self::$staticMenuImages[$item->label])) {
-                        $menuImage = '/images/menu/'.self::$staticMenuImages[$item->label];
+                    $normalizedLabel = mb_strtolower(trim($item->label));
+                    if (! $menuImage && isset(self::$staticMenuImages[$normalizedLabel])) {
+                        $menuImage = '/images/menu/'.self::$staticMenuImages[$normalizedLabel];
                     }
 
                     $url = $item->url ?: '/in-costruzione';
