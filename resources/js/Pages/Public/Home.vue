@@ -65,10 +65,58 @@ const stats = computed(() => {
 
 // === SLIDESHOW ===
 const currentSlide = ref(0);
+const previousSlide = ref(-1);
+const isTransitioning = ref(false);
+const slidesContainer = ref(null);
 let slideInterval;
+let cleanupTimeout = null; // Fallback safety timer
+
+// Cleanup: chiamato quando il fade-in della slide corrente è completato
+const cleanupTransition = () => {
+    previousSlide.value = -1;
+    isTransitioning.value = false;
+    if (cleanupTimeout) {
+        clearTimeout(cleanupTimeout);
+        cleanupTimeout = null;
+    }
+};
+
+// Listener per transitionend sull'elemento slide corrente
+const onSlideTransitionEnd = (event) => {
+    // Ascolta solo transition di opacity sulle .hero-slide (non sugli inner)
+    if (event.propertyName === 'opacity' && event.target.classList.contains('hero-slide') && event.target.classList.contains('is-current')) {
+        cleanupTransition();
+    }
+};
+
+const doTransition = (nextIndex) => {
+    if (isTransitioning.value) return;
+    previousSlide.value = currentSlide.value;
+    currentSlide.value = nextIndex;
+    isTransitioning.value = true;
+    // Fallback: se transitionend non arriva (es. tab in background),
+    // cleanup dopo 3s per sicurezza
+    cleanupTimeout = setTimeout(cleanupTransition, 3000);
+};
 
 const nextSlideAuto = () => {
-    currentSlide.value = (currentSlide.value + 1) % slides.value.length;
+    doTransition((currentSlide.value + 1) % slides.value.length);
+};
+
+// Navigazione manuale (click sugli indicatori)
+const goToSlide = (index) => {
+    if (index === currentSlide.value || isTransitioning.value) return;
+    doTransition(index);
+    // Reset timer auto
+    clearInterval(slideInterval);
+    slideInterval = setInterval(nextSlideAuto, 6000);
+};
+
+// Slide class helper: 3 stati distinti
+const getSlideClass = (index) => {
+    if (index === currentSlide.value) return 'is-current';    // Fade in, z-index:2
+    if (index === previousSlide.value) return 'is-previous';  // Resta visibile, z-index:1
+    return 'is-hidden';                                       // Nascosta, z-index:0
 };
 
 // === HERO TEXT REVEAL ===
@@ -231,7 +279,10 @@ const getCachedTiltHandlers = (index) => {
 
 // === LIFECYCLE ===
 onMounted(async () => {
-    // Slideshow
+    // Slideshow — transitionend per cleanup senza scatti
+    if (slidesContainer.value) {
+        slidesContainer.value.addEventListener('transitionend', onSlideTransitionEnd);
+    }
     slideInterval = setInterval(nextSlideAuto, 6000);
 
     // Parallax
@@ -270,6 +321,10 @@ onMounted(async () => {
 
 onUnmounted(() => {
     clearInterval(slideInterval);
+    if (cleanupTimeout) clearTimeout(cleanupTimeout);
+    if (slidesContainer.value) {
+        slidesContainer.value.removeEventListener('transitionend', onSlideTransitionEnd);
+    }
     window.removeEventListener('scroll', handleScroll);
     if (resizeHandler) window.removeEventListener('resize', resizeHandler);
     if (particleAnimId) cancelAnimationFrame(particleAnimId);
@@ -319,15 +374,12 @@ const ogMeta = useOgMeta({
         <!-- HERO SECTION -->
         <div class="hero-wrapper relative w-full min-h-screen flex items-center bg-gray-900 overflow-hidden">
             <!-- Background Images (Cinematic Ken Burns Crossfade) with Parallax -->
-            <div class="absolute inset-0 w-full h-full will-change-transform" :style="parallaxBgStyle">
+            <div ref="slidesContainer" class="absolute inset-0 w-full h-full will-change-transform" :style="parallaxBgStyle">
                 <div 
                     v-for="(slide, index) in slides"
                     :key="'slide-' + index"
                     class="hero-slide absolute inset-0 w-full h-full"
-                    :class="{
-                        'is-active': currentSlide === index,
-                        'is-leaving': currentSlide !== index
-                    }"
+                    :class="getSlideClass(index)"
                 >
                     <img 
                         v-if="index === 0"
@@ -336,13 +388,13 @@ const ogMeta = useOgMeta({
                         fetchpriority="high"
                         decoding="sync"
                         class="absolute inset-0 w-full h-full object-cover object-center hero-slide-inner"
-                        :class="{ 'ken-burns-active': currentSlide === index }"
+                        :class="{ 'ken-burns-active': currentSlide === index || previousSlide === index }"
                         @error="onImgError"
                     />
                     <div 
                         v-else
                         class="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat hero-slide-inner"
-                        :class="{ 'ken-burns-active': currentSlide === index }"
+                        :class="{ 'ken-burns-active': currentSlide === index || previousSlide === index }"
                         :style="`background-image: url('${slide}');`"
                     ></div>
                 </div>
@@ -370,7 +422,7 @@ const ogMeta = useOgMeta({
                 <button 
                     v-for="(slide, index) in slides"
                     :key="'indicator-' + index"
-                    @click="currentSlide = index"
+                    @click="goToSlide(index)"
                     class="group relative h-1 rounded-full transition-all duration-700 overflow-hidden"
                     :class="currentSlide === index ? 'w-12 bg-white/30' : 'w-6 bg-white/20 hover:bg-white/30'"
                     :aria-label="'Slide ' + (index + 1)"
@@ -644,27 +696,38 @@ const ogMeta = useOgMeta({
 }
 
 /* === FLUID CINEMATIC DISSOLVE ===
-   Pure GPU-accelerated opacity crossfade.
-   No filter animations to avoid layer compositing jank. */
+   3-state crossfade: is-current fades in on top,
+   is-previous stays visible underneath, is-hidden is off.
+   No z-index swap = no flash/snap between slides. */
 .hero-slide {
     opacity: 0;
     z-index: 0;
-    transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: opacity;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
 }
 
-.hero-slide.is-active {
+/* Nuova slide entrante: fade-in sopra la precedente */
+.hero-slide.is-current {
     opacity: 1;
     z-index: 2;
     transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hero-slide.is-leaving {
-    opacity: 0;
+/* Slide uscente: resta visibile SOTTO la slide entrante.
+   Nessuna transizione di opacity — resta a 1 finché il JS
+   non la sposta a is-hidden dopo il completamento del crossfade. */
+.hero-slide.is-previous {
+    opacity: 1;
     z-index: 1;
-    transition: opacity 2.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
+}
+
+/* Slide nascoste: invisibili, nessuna transizione */
+.hero-slide.is-hidden {
+    opacity: 0;
+    z-index: 0;
+    transition: none;
 }
 
 /* === KEN BURNS — SLOW CINEMATIC DRIFT ===
@@ -853,8 +916,9 @@ const ogMeta = useOgMeta({
 
 /* === REDUCED MOTION === */
 @media (prefers-reduced-motion: reduce) {
-    .hero-slide {
-        transition: opacity 0.3s ease;
+    .hero-slide,
+    .hero-slide.is-current {
+        transition: none;
     }
     .hero-slide-inner {
         animation: none !important;
