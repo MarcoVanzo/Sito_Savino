@@ -643,57 +643,55 @@ const ogMeta = useOgMeta({
     padding-top: 85px;
 }
 
-/* === FLUID CINEMATIC DISSOLVE === */
+/* === FLUID CINEMATIC DISSOLVE ===
+   Pure GPU-accelerated opacity crossfade.
+   No filter animations to avoid layer compositing jank. */
 .hero-slide {
     opacity: 0;
     z-index: 0;
-    transition: opacity 2.8s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: brightness(1) saturate(1);
-    will-change: opacity, transform;
+    transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .hero-slide.is-active {
     opacity: 1;
     z-index: 2;
-    animation: slideBloomIn 3.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+    transition: opacity 2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hero-slide.is-leaving {
     opacity: 0;
     z-index: 1;
-    transition: opacity 3.2s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: brightness(0.92) saturate(0.95);
+    transition: opacity 2.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes slideBloomIn {
-    0% { filter: brightness(1.06) saturate(0.95); }
-    50% { filter: brightness(1.02) saturate(1.02); }
-    100% { filter: brightness(1) saturate(1); }
-}
-
-/* === KEN BURNS — SLOW CINEMATIC DRIFT === */
+/* === KEN BURNS — SLOW CINEMATIC DRIFT ===
+   Uses transform only (GPU-accelerated), no filter changes during transition. */
 .hero-slide-inner {
-    transform: scale(1.02);
-    transition: none;
+    transform: scale(1.05) translateZ(0);
     will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .hero-slide:nth-child(odd) .hero-slide-inner.ken-burns-active {
-    animation: kenBurnsDriftRight 10s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: kenBurnsDriftRight 12s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 @keyframes kenBurnsDriftRight {
-    0% { transform: scale(1.02) translate(0, 0); }
-    100% { transform: scale(1.12) translate(-1%, -0.7%); }
+    0% { transform: scale(1.05) translate3d(0, 0, 0); }
+    100% { transform: scale(1.12) translate3d(-1%, -0.5%, 0); }
 }
 
 .hero-slide:nth-child(even) .hero-slide-inner.ken-burns-active {
-    animation: kenBurnsDriftLeft 10s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: kenBurnsDriftLeft 12s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 @keyframes kenBurnsDriftLeft {
-    0% { transform: scale(1.10) translate(-0.8%, 0.5%); }
-    100% { transform: scale(1.04) translate(0.3%, -0.3%); }
+    0% { transform: scale(1.08) translate3d(-0.5%, 0.3%, 0); }
+    100% { transform: scale(1.04) translate3d(0.3%, -0.3%, 0); }
 }
 
 /* === SLIDE PROGRESS INDICATOR === */
@@ -856,9 +854,7 @@ const ogMeta = useOgMeta({
 /* === REDUCED MOTION === */
 @media (prefers-reduced-motion: reduce) {
     .hero-slide {
-        transition: opacity 0.5s ease;
-        filter: none !important;
-        animation: none !important;
+        transition: opacity 0.3s ease;
     }
     .hero-slide-inner {
         animation: none !important;

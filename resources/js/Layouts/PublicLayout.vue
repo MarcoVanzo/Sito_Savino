@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { defineAsyncComponent } from 'vue';
 import MegaMenu from '@/Components/MegaMenu.vue';
@@ -11,12 +11,33 @@ const CookieConsent = defineAsyncComponent(() => import('@/Components/CookieCons
 
 const isMobileMenuOpen = ref(false);
 const activeMobileIndex = ref(null);
+const headerScrolled = ref(false);
 const { onImgError } = useImageFallback();
+
+let headerScrollTicking = false;
+const handleHeaderScroll = () => {
+    if (!headerScrollTicking) {
+        requestAnimationFrame(() => {
+            headerScrolled.value = window.scrollY > 40;
+            headerScrollTicking = false;
+        });
+        headerScrollTicking = true;
+    }
+};
 
 // Chiude il menu quando si cambia pagina
 router.on('navigate', () => {
     isMobileMenuOpen.value = false;
     activeMobileIndex.value = null;
+});
+
+onMounted(() => {
+    window.addEventListener('scroll', handleHeaderScroll, { passive: true });
+    handleHeaderScroll(); // Check initial state
+});
+
+onUnmounted(() => {
+    window.removeEventListener('scroll', handleHeaderScroll);
 });
 
 const toggleMobileMenu = () => {
@@ -48,7 +69,12 @@ const corporateDomain = computed(() => {
 <template>
     <div class="min-h-screen bg-gray-900 flex flex-col font-sans overflow-x-hidden">
         <!-- HEADER STICKY -->
-        <header class="sticky top-0 z-50 bg-[#0B1521]/85 backdrop-blur-md text-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-none">
+        <header 
+            class="sticky top-0 z-50 text-gray-200 transition-all duration-500 ease-out"
+            :class="headerScrolled 
+                ? 'bg-[#0B1521]/90 backdrop-blur-lg shadow-[0_10px_30px_rgba(0,0,0,0.5)]' 
+                : 'bg-gradient-to-b from-[#0B1521]/70 via-[#0B1521]/30 to-transparent backdrop-blur-[2px] shadow-none'"
+        >
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[85px] relative">
                 <div class="flex justify-between items-center h-full">
                     <!-- LOGHI CHE SBORDANO -->
