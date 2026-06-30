@@ -9,7 +9,6 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/filament/admin/theme.css'
             ],
-            ssr: 'resources/js/ssr.js',
             refresh: true,
         }),
         vue({

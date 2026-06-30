@@ -6,6 +6,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -18,6 +19,7 @@ foreach ($locales as $loc) {
 
     Route::middleware([
         'throttle:web',
+        ServeSocialCrawlerMeta::class,
         SetLocale::class.':'.$loc,
     ])->prefix($prefix)->name($namePrefix)->group(function () {
         Route::get('/', [PublicController::class, 'home'])->name('home');
