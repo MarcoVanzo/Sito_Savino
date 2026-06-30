@@ -1,6 +1,9 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
+import { useImageFallback } from '@/Composables/useImageFallback.js';
+
+const { onImgError } = useImageFallback();
 
 const props = defineProps({
     page: Object,
@@ -68,6 +71,7 @@ const props = defineProps({
                                 :alt="product.name"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
+                                @error="onImgError"
                             />
                             <div v-else class="w-full h-full flex items-center justify-center">
                                 <svg class="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>

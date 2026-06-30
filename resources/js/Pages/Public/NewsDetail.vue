@@ -3,6 +3,9 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
+import { useImageFallback } from '@/Composables/useImageFallback.js';
+
+const { onImgError } = useImageFallback();
 
 const { sanitize } = useSanitize();
 
@@ -83,6 +86,7 @@ const formattedDate = computed(() => {
                 :src="post.media[0]?.original_url"
                 :alt="post.title"
                 class="w-full rounded-xl shadow-2xl object-cover max-h-[500px]"
+                @error="onImgError"
             />
         </div>
 

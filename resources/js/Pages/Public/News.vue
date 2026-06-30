@@ -3,6 +3,9 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSanitize } from '@/Composables/useSanitize';
+import { useImageFallback } from '@/Composables/useImageFallback.js';
+
+const { onImgError } = useImageFallback();
 
 const props = defineProps({
     posts: Object,
@@ -56,6 +59,7 @@ const ogMeta = useOgMeta({
                                 :src="post.media[0]?.original_url"
                                 :alt="post.title"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                @error="onImgError"
                             />
                             <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue to-gray-700 flex items-center justify-center">
                                 <span class="text-savino-gold text-5xl font-black opacity-30">SDB</span>

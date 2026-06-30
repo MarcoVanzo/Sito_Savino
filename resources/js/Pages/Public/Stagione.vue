@@ -4,6 +4,9 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import PageHero from '@/Components/PageHero.vue';
 import { Head } from '@inertiajs/vue3';
 import { roleLabels, displayRole } from '@/data/playerRoles';
+import { useImageFallback } from '@/Composables/useImageFallback.js';
+
+const { onImgError } = useImageFallback();
 
 const props = defineProps({
     roster: {
@@ -91,6 +94,7 @@ function getInitials(name) {
                                 :alt="item.player.first_name + ' ' + item.player.last_name"
                                 class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
+                                @error="onImgError"
                             />
                             <!-- Fallback -->
                             <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200">
@@ -156,6 +160,7 @@ function getInitials(name) {
                                 :alt="member.name"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
+                                @error="onImgError"
                             />
                             <span v-else class="text-5xl font-black text-white/30">{{ getInitials(member.name) }}</span>
                         </div>
@@ -189,6 +194,7 @@ function getInitials(name) {
                                 :alt="member.name"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
+                                @error="onImgError"
                             />
                             <span v-else class="text-5xl font-black text-white/30">{{ getInitials(member.name) }}</span>
                         </div>

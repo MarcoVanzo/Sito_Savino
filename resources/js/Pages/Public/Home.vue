@@ -6,6 +6,9 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 import { useIntersectionReveal } from '@/Composables/useIntersectionReveal';
 import { useCountUp } from '@/Composables/useCountUp';
 import { useTiltEffect } from '@/Composables/useTiltEffect';
+import { useImageFallback } from '@/Composables/useImageFallback.js';
+
+const { onImgError } = useImageFallback();
 
 const props = defineProps({
     nextGame: {
@@ -334,6 +337,7 @@ const ogMeta = useOgMeta({
                         decoding="sync"
                         class="absolute inset-0 w-full h-full object-cover object-center hero-slide-inner"
                         :class="{ 'ken-burns-active': currentSlide === index }"
+                        @error="onImgError"
                     />
                     <div 
                         v-else
@@ -541,7 +545,7 @@ const ogMeta = useOgMeta({
                                 :style="getTiltStyle(index)"
                             >
                                 <div class="aspect-video overflow-hidden relative">
-                                    <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                                    <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" @error="onImgError" />
                                     <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue/10 to-savino-gold/10 flex items-center justify-center">
                                         <span class="text-savino-gold text-4xl font-black opacity-30">SDB</span>
                                     </div>
@@ -584,14 +588,14 @@ const ogMeta = useOgMeta({
                     <!-- Primo set (originale) -->
                     <div v-for="(slide, i) in slides" :key="'marquee-a-' + i" class="marquee-item">
                         <div class="w-72 h-44 md:w-96 md:h-56 rounded-xl overflow-hidden shadow-lg mx-3 relative group">
-                            <img :src="slide" :alt="'Highlight ' + (i+1)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                            <img :src="slide" :alt="'Highlight ' + (i+1)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
                             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                     </div>
                     <!-- Secondo set (duplicato per loop continuo) -->
                     <div v-for="(slide, i) in slides" :key="'marquee-b-' + i" class="marquee-item">
                         <div class="w-72 h-44 md:w-96 md:h-56 rounded-xl overflow-hidden shadow-lg mx-3 relative group">
-                            <img :src="slide" :alt="'Highlight ' + (i+1)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                            <img :src="slide" :alt="'Highlight ' + (i+1)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
                             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                     </div>

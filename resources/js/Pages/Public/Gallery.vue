@@ -2,6 +2,9 @@
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { useImageFallback } from '@/Composables/useImageFallback.js'
+
+const { onImgError } = useImageFallback()
 
 const props = defineProps({
     page: {
@@ -381,6 +384,7 @@ const totalTaggedAthletes = computed(() => props.athletes?.length || 0)
                         :class="{ 'gallery-masonry__img--loaded': loadedImages.has(item.id) }"
                         loading="lazy"
                         @load="onImageLoad(item.id)"
+                        @error="onImgError"
                     />
 
                     <!-- Hover overlay -->
@@ -443,6 +447,7 @@ const totalTaggedAthletes = computed(() => props.athletes?.length || 0)
                             :src="filteredMedia[lightboxIndex]?.url"
                             :alt="filteredMedia[lightboxIndex]?.alt"
                             class="gallery-lightbox__img"
+                            @error="onImgError"
                         />
 
                         <!-- Info bar -->
@@ -466,7 +471,7 @@ const totalTaggedAthletes = computed(() => props.athletes?.length || 0)
                             class="gallery-lightbox__thumb"
                             :class="{ 'gallery-lightbox__thumb--active': Math.max(0, lightboxIndex - 4) + i === lightboxIndex }"
                         >
-                            <img :src="item.url" :alt="item.alt" />
+                            <img :src="item.url" :alt="item.alt" @error="onImgError" />
                         </button>
                     </div>
                 </div>

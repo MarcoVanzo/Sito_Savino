@@ -2,6 +2,9 @@
 import { computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
+import { useImageFallback } from '@/Composables/useImageFallback.js';
+
+const { onImgError } = useImageFallback();
 
 const props = defineProps({
     page: Object,
@@ -95,6 +98,7 @@ const tiers = ['main', 'gold', 'silver', 'technical', 'standard'];
                                 class="max-w-full object-contain"
                                 :class="tierConfig[tier].size"
                                 loading="lazy"
+                                @error="onImgError"
                             />
                             <div v-else class="flex flex-col items-center justify-center" :class="tierConfig[tier].size">
                                 <div class="text-savino-blue font-bold text-center uppercase tracking-wide">

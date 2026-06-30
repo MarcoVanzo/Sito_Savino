@@ -1,6 +1,9 @@
 <script setup>
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useImageFallback } from '@/Composables/useImageFallback.js';
+
+const { onImgError } = useImageFallback();
 
 const currentYear = new Date().getFullYear();
 const page = usePage();
@@ -106,6 +109,7 @@ const socialLinks = computed(() => {
                             :src="footerLogo"
                             alt="Savino Del Bene Volley"
                             class="h-20 w-auto object-contain"
+                            @error="onImgError"
                         />
                     </div>
                     <p class="text-gray-400 text-sm leading-relaxed max-w-sm mb-6 whitespace-pre-line">{{ footerTagline }}</p>

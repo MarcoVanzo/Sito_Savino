@@ -1,6 +1,9 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
+import { useImageFallback } from '@/Composables/useImageFallback.js'
+
+const { onImgError } = useImageFallback()
 
 const props = defineProps({
     dirigenza: {
@@ -59,6 +62,7 @@ function getInitials(name) {
                                 :src="member.photo_url"
                                 :alt="member.name"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                @error="onImgError"
                             />
                             <span v-else class="text-5xl font-black text-white/30">{{ getInitials(member.name) }}</span>
                         </div>

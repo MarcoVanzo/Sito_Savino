@@ -1,6 +1,9 @@
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
 import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
+import { useImageFallback } from '@/Composables/useImageFallback.js';
+
+const { onImgError } = useImageFallback();
 
 const props = defineProps({
     navigation: {
@@ -204,6 +207,7 @@ onBeforeUnmount(() => {
                                     :alt="item.label"
                                     loading="lazy"
                                     class="absolute inset-0 w-full h-full object-cover scale-110 transition-transform duration-[6s] ease-out group-hover:scale-125"
+                                    @error="onImgError"
                                 />
                                 <!-- Blue overlay — 70% opacity to let the photo show through -->
                                 <div class="absolute inset-0 bg-gradient-to-br from-savino-blue/70 to-[#001a40]/80"></div>
