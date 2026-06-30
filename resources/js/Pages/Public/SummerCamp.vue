@@ -3,6 +3,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
+import { useOgMeta } from '@/Composables/useOgMeta'
 
 defineOptions({ layout: PublicLayout })
 
@@ -71,17 +72,22 @@ const defaultHighlights = [
     'Pranzo e merenda inclusi'
 ]
 const highlights = computed(() => cd.value.highlights || defaultHighlights)
+
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'Summer Camp & Experience',
+    description: cd.value.meta_description || 'Summer Camp ed esperienze sportive con la Savino Del Bene Volley. Camp estivi per giovani appassionate di pallavolo.',
+})
 </script>
 
 <template>
     <Head>
-      <title>{{ (page?.title ?? 'Summer Camp & Experience') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" :content="cd.meta_description || 'Summer Camp ed esperienze sportive con la Savino Del Bene Volley. Camp estivi per giovani appassionate di pallavolo.'" />
-      <meta property="og:title" :content="(page?.title ?? 'Summer Camp & Experience') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" :content="cd.meta_description || 'Summer Camp ed esperienze sportive con la Savino Del Bene Volley. Camp estivi per giovani appassionate di pallavolo.'" />
-      <meta property="og:image" :content="'/images/logo.png'" />
-      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-      <meta property="og:type" content="website" />
+      <title>{{ ogMeta.title }}</title>
+      <meta name="description" :content="ogMeta.description" />
+      <meta property="og:title" :content="ogMeta.title" />
+      <meta property="og:description" :content="ogMeta.description" />
+      <meta property="og:image" :content="ogMeta.image" />
+      <meta property="og:url" :content="ogMeta.url" />
+      <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <!-- Hero -->

@@ -2,6 +2,7 @@
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { useOgMeta } from '@/Composables/useOgMeta';
 
 const { onImgError } = useImageFallback();
 
@@ -12,18 +13,22 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'Shop Ufficiale',
+    description: props.page?.meta_description || 'Lo shop ufficiale della Savino Del Bene Volley. Maglie, abbigliamento e merchandise per i tifosi.',
+});
 </script>
 
 <template>
     <Head>
-        <title>{{ page?.title ?? 'Shop Ufficiale' }} — Savino Del Bene Volley</title>
-        <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
-        <meta v-else name="description" content="Lo shop ufficiale della Savino Del Bene Volley. Maglie, abbigliamento e merchandise per i tifosi." />
-        <meta property="og:title" :content="(page?.title ?? 'Shop Ufficiale') + ' — Savino Del Bene Volley'" />
-        <meta property="og:description" :content="page?.meta_description || 'Lo shop ufficiale della Savino Del Bene Volley. Maglie, abbigliamento e merchandise per i tifosi.'" />
-        <meta property="og:image" :content="'/images/logo.png'" />
-        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-        <meta property="og:type" content="website" />
+        <title>{{ ogMeta.title }}</title>
+        <meta name="description" :content="ogMeta.description" />
+        <meta property="og:title" :content="ogMeta.title" />
+        <meta property="og:description" :content="ogMeta.description" />
+        <meta property="og:image" :content="ogMeta.image" />
+        <meta property="og:url" :content="ogMeta.url" />
+        <meta property="og:type" :content="ogMeta.type" />
         <component :is="'script'" type="application/ld+json">
             {{ JSON.stringify({
                 '@context': 'https://schema.org',

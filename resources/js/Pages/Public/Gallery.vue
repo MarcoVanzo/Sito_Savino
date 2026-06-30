@@ -3,6 +3,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useImageFallback } from '@/Composables/useImageFallback.js'
+import { useOgMeta } from '@/Composables/useOgMeta'
 
 const { onImgError } = useImageFallback()
 
@@ -153,17 +154,22 @@ function onImageLoad(id) { loadedImages.value.add(id) }
 const totalPhotos = computed(() => displayMedia.value.length)
 const totalCategories = computed(() => new Set(displayMedia.value.map(m => m.category).filter(Boolean)).size)
 const totalTaggedAthletes = computed(() => props.athletes?.length || 0)
+
+const ogMeta = useOgMeta({
+    title: props.currentAthlete ? 'Foto di ' + props.currentAthlete.name : (props.page?.title ?? 'Foto Gallery'),
+    description: 'La galleria fotografica ufficiale della Savino Del Bene Volley. Immagini dalle partite, eventi e dietro le quinte.',
+})
 </script>
 
 <template>
     <Head>
-      <title>{{ (currentAthlete ? 'Foto di ' + currentAthlete.name : (page?.title ?? 'Foto Gallery')) + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" content="La galleria fotografica ufficiale della Savino Del Bene Volley. Immagini dalle partite, eventi e dietro le quinte." />
-      <meta property="og:title" :content="(currentAthlete ? 'Foto di ' + currentAthlete.name : (page?.title ?? 'Foto Gallery')) + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" content="La galleria fotografica ufficiale della Savino Del Bene Volley. Immagini dalle partite, eventi e dietro le quinte." />
-      <meta property="og:image" :content="'/images/logo.png'" />
-      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-      <meta property="og:type" content="website" />
+      <title>{{ ogMeta.title }}</title>
+      <meta name="description" :content="ogMeta.description" />
+      <meta property="og:title" :content="ogMeta.title" />
+      <meta property="og:description" :content="ogMeta.description" />
+      <meta property="og:image" :content="ogMeta.image" />
+      <meta property="og:url" :content="ogMeta.url" />
+      <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <PublicLayout>

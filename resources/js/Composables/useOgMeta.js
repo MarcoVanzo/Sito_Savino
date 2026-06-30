@@ -1,4 +1,5 @@
 import { usePage } from '@inertiajs/vue3';
+import LOGOS from '@/Constants/logos.js';
 
 /**
  * Composable per generare meta tag OG dinamici per ogni pagina.
@@ -25,7 +26,7 @@ export function useOgMeta({
     const baseUrl = page.props.ziggy?.url || '';
     const currentUrl = page.props.ziggy?.location || '';
     const siteName = 'Savino Del Bene Volley';
-    const defaultImage = `${baseUrl}/images/logo.png`;
+    const defaultImage = `${baseUrl}${LOGOS.VOLLEY}`;
     const defaultDescription = 'Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.';
 
     const fullTitle = title

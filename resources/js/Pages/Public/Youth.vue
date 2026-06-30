@@ -3,6 +3,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
+import { useOgMeta } from '@/Composables/useOgMeta'
 
 const props = defineProps({
     page: {
@@ -76,17 +77,22 @@ const values = computed(() => cd.value.values ?? [
         description: 'Allenatori certificati, preparatori atletici e supporto psicologico per ogni categoria.'
     }
 ])
+
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'Settore Giovanile',
+    description: cd.value.meta_description || 'Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley.',
+})
 </script>
 
 <template>
     <Head>
-      <title>{{ (page?.title ?? 'Settore Giovanile') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" :content="cd.meta_description || 'Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley.'" />
-      <meta property="og:title" :content="(page?.title ?? 'Settore Giovanile') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" :content="cd.meta_description || 'Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley.'" />
-      <meta property="og:image" :content="'/images/logo.png'" />
-      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-      <meta property="og:type" content="website" />
+      <title>{{ ogMeta.title }}</title>
+      <meta name="description" :content="ogMeta.description" />
+      <meta property="og:title" :content="ogMeta.title" />
+      <meta property="og:description" :content="ogMeta.description" />
+      <meta property="og:image" :content="ogMeta.image" />
+      <meta property="og:url" :content="ogMeta.url" />
+      <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <PublicLayout>

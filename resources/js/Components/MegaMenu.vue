@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import LOGOS from '@/Constants/logos.js';
 
 const { onImgError } = useImageFallback();
 
@@ -203,7 +204,7 @@ onBeforeUnmount(() => {
                             <div class="w-2/5 relative overflow-hidden">
                                 <!-- Topic image (lazy-loaded) -->
                                 <img 
-                                    :src="item.menuImage || '/images/logo.png'" 
+                                    :src="item.menuImage || LOGOS.VOLLEY" 
                                     :alt="item.label"
                                     loading="lazy"
                                     class="absolute inset-0 w-full h-full object-cover scale-110 transition-transform duration-[6s] ease-out group-hover:scale-125"

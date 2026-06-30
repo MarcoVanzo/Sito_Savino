@@ -3,6 +3,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
+import { useOgMeta } from '@/Composables/useOgMeta'
 
 defineOptions({ layout: PublicLayout })
 
@@ -53,17 +54,22 @@ const impactNumbers = [
     { value: '30+', label: 'Eventi Sociali' },
     { value: '€50K', label: 'Fondi Raccolti' }
 ]
+
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'Progetti Sociali',
+    description: 'I progetti sociali e le iniziative sul territorio della Savino Del Bene Volley.',
+})
 </script>
 
 <template>
     <Head>
-      <title>{{ (page?.title ?? 'Progetti Sociali') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" content="I progetti sociali e le iniziative sul territorio della Savino Del Bene Volley." />
-      <meta property="og:title" :content="(page?.title ?? 'Progetti Sociali') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" content="I progetti sociali e le iniziative sul territorio della Savino Del Bene Volley." />
-      <meta property="og:image" :content="'/images/logo.png'" />
-      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-      <meta property="og:type" content="website" />
+      <title>{{ ogMeta.title }}</title>
+      <meta name="description" :content="ogMeta.description" />
+      <meta property="og:title" :content="ogMeta.title" />
+      <meta property="og:description" :content="ogMeta.description" />
+      <meta property="og:image" :content="ogMeta.image" />
+      <meta property="og:url" :content="ogMeta.url" />
+      <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <!-- Hero -->

@@ -1,3 +1,5 @@
+import LOGOS from '@/Constants/logos.js';
+
 /**
  * Gestisce il fallback per le immagini rotte.
  * Quando un <img> non riesce a caricarsi, mostra il logo come placeholder.
@@ -8,7 +10,7 @@
  * Oppure con fallback personalizzato:
  *   <img :src="imageUrl" @error="(e) => onImgError(e, '/images/placeholder.jpg')" />
  */
-export function useImageFallback(defaultFallback = '/images/logo.png') {
+export function useImageFallback(defaultFallback = LOGOS.VOLLEY) {
     const onImgError = (event, fallback = null) => {
         const img = event.target;
         const fallbackSrc = fallback || defaultFallback;

@@ -3,6 +3,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { useOgMeta } from '@/Composables/useOgMeta';
 
 const { onImgError } = useImageFallback();
 
@@ -55,18 +56,22 @@ const palazzettoAddress = computed(() => cd.value.palazzetto_address || contact.
 const contactEmail = computed(() => contact.value.email || 'info@savinodelbenevolley.com');
 const contactPhone = computed(() => contact.value.phone || '+39 055 XXX XXXX');
 const contactLocation = computed(() => contact.value.city || 'Scandicci (FI), Toscana');
+
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'La Società',
+    description: props.page?.meta_description || "Scopri la storia, l'organigramma e le strutture della Savino Del Bene Volley. Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.",
+});
 </script>
 
 <template>
     <Head>
-        <title>{{ page?.title ?? 'La Società' }} — Savino Del Bene Volley</title>
-        <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
-        <meta v-else name="description" content="Scopri la storia, l'organigramma e le strutture della Savino Del Bene Volley. Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana." />
-        <meta property="og:title" :content="(page?.title ?? 'La Società') + ' — Savino Del Bene Volley'" />
-        <meta property="og:description" :content="page?.meta_description || 'Scopri la storia, l\'organigramma e le strutture della Savino Del Bene Volley. Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.'" />
-        <meta property="og:image" :content="'/images/logo.png'" />
-        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-        <meta property="og:type" content="website" />
+        <title>{{ ogMeta.title }}</title>
+        <meta name="description" :content="ogMeta.description" />
+        <meta property="og:title" :content="ogMeta.title" />
+        <meta property="og:description" :content="ogMeta.description" />
+        <meta property="og:image" :content="ogMeta.image" />
+        <meta property="og:url" :content="ogMeta.url" />
+        <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <PublicLayout>

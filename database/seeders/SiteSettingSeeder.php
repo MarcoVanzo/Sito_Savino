@@ -37,7 +37,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'corporate_logo',
-                'value' => '/images/Logo_Savino.jpeg',
+                'value' => '/images/logo-corporate.png',
                 'type' => 'image',
                 'group' => 'general',
                 'label' => 'Logo Corporate',

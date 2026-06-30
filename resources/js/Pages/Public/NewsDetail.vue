@@ -4,6 +4,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { useOgMeta } from '@/Composables/useOgMeta';
 
 const { onImgError } = useImageFallback();
 
@@ -22,17 +23,24 @@ const formattedDate = computed(() => {
         day: 'numeric', month: 'long', year: 'numeric'
     });
 });
+
+const ogMeta = useOgMeta({
+    title: props.post?.title,
+    description: props.post?.meta_description || props.post?.excerpt,
+    image: props.post?.media?.[0]?.original_url,
+    type: 'article',
+});
 </script>
 
 <template>
     <Head>
-        <title>{{ post?.title }} — Savino Del Bene Volley</title>
-        <meta v-if="post?.meta_description || post?.excerpt" name="description" :content="post.meta_description || post.excerpt" />
-        <meta property="og:type" content="article" />
-        <meta property="og:title" :content="post?.title" />
-        <meta v-if="post?.excerpt" property="og:description" :content="post.excerpt" />
-        <meta property="og:image" :content="post?.media?.[0]?.original_url ?? '/images/logo.png'" />
-        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
+        <title>{{ ogMeta.title }}</title>
+        <meta name="description" :content="ogMeta.description" />
+        <meta property="og:title" :content="ogMeta.title" />
+        <meta property="og:description" :content="ogMeta.description" />
+        <meta property="og:image" :content="ogMeta.image" />
+        <meta property="og:url" :content="ogMeta.url" />
+        <meta property="og:type" :content="ogMeta.type" />
         <component :is="'script'" type="application/ld+json" v-if="post">
             {{ JSON.stringify({
                 '@context': 'https://schema.org',

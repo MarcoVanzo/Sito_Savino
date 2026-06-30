@@ -508,7 +508,7 @@ const ogMeta = useOgMeta({
                         <div class="flex flex-col md:flex-row items-center justify-between gap-8">
                             <!-- Home Team -->
                             <div class="text-center md:text-right flex-1">
-                                <img src="/images/Logo_Savino.jpeg" :alt="nextGame?.home_team?.name ?? 'Savino Del Bene'" class="w-20 h-20 rounded-xl object-cover mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" />
+                                <img src="/images/logo-corporate.png" :alt="nextGame?.home_team?.name ?? 'Savino Del Bene'" class="w-24 h-16 rounded-xl object-contain bg-white p-2 mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" />
                                 <h3 class="text-white font-black text-xl uppercase tracking-tight whitespace-nowrap">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
                                 <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">Casa</span>
                             </div>

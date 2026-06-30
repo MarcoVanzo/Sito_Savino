@@ -2,6 +2,7 @@
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
+import { useOgMeta } from '@/Composables/useOgMeta'
 
 const props = defineProps({
     page: {
@@ -61,17 +62,22 @@ const contactInfo = computed(() => [
         color: 'savino-red'
     }
 ])
+
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'Contatti',
+    description: cd.value?.meta_description || 'Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto.',
+})
 </script>
 
 <template>
     <Head>
-      <title>{{ (page?.title ?? 'Contatti') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" :content="cd.meta_description || 'Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto.'" />
-      <meta property="og:title" :content="(page?.title ?? 'Contatti') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" :content="cd.meta_description || 'Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto.'" />
-      <meta property="og:image" :content="'/images/logo.png'" />
-      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-      <meta property="og:type" content="website" />
+      <title>{{ ogMeta.title }}</title>
+      <meta name="description" :content="ogMeta.description" />
+      <meta property="og:title" :content="ogMeta.title" />
+      <meta property="og:description" :content="ogMeta.description" />
+      <meta property="og:image" :content="ogMeta.image" />
+      <meta property="og:url" :content="ogMeta.url" />
+      <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <PublicLayout>

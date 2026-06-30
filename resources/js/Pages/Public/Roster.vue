@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { roleLabels, roleColors, displayRole } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { useOgMeta } from '@/Composables/useOgMeta';
 
 const { onImgError } = useImageFallback();
 
@@ -28,18 +29,22 @@ const placeholderPlayers = [
 
 const displayPlayers = computed(() => props.players.length > 0 ? props.players : placeholderPlayers);
 const isPlaceholder = computed(() => props.players.length === 0);
+
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'Roster',
+    description: props.page?.meta_description || 'La rosa ufficiale della Savino Del Bene Volley. Scopri le atlete che compongono il roster per la stagione corrente.',
+});
 </script>
 
 <template>
     <Head>
-        <title>{{ page?.title ?? 'Roster' }} — Savino Del Bene Volley</title>
-        <meta v-if="page?.meta_description" name="description" :content="page.meta_description" />
-        <meta v-else name="description" content="La rosa ufficiale della Savino Del Bene Volley. Scopri le atlete che compongono il roster per la stagione corrente." />
-        <meta property="og:title" :content="(page?.title ?? 'Roster') + ' — Savino Del Bene Volley'" />
-        <meta property="og:description" :content="page?.meta_description || 'La rosa ufficiale della Savino Del Bene Volley. Scopri le atlete che compongono il roster per la stagione corrente.'" />
-        <meta property="og:image" :content="'/images/logo.png'" />
-        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-        <meta property="og:type" content="website" />
+        <title>{{ ogMeta.title }}</title>
+        <meta name="description" :content="ogMeta.description" />
+        <meta property="og:title" :content="ogMeta.title" />
+        <meta property="og:description" :content="ogMeta.description" />
+        <meta property="og:image" :content="ogMeta.image" />
+        <meta property="og:url" :content="ogMeta.url" />
+        <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <PublicLayout>

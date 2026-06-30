@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import LOGOS from '@/Constants/logos.js';
 
 const { onImgError } = useImageFallback();
 
@@ -54,7 +55,7 @@ const displayedLinks = computed(() => {
 });
 
 // Logo e testi dal backend con fallback
-const footerLogo = computed(() => general.value.site_logo || '/images/logo.png');
+const footerLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
 const footerBrandName = computed(() => general.value.corporate_name || 'Savino Del Bene');
 const footerTagline = computed(() => footerSettings.value.footer_tagline || 'Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.\nSerie A1 — Palazzo Wanny, Firenze.');
 const copyrightText = computed(() => (footerSettings.value.footer_copyright || `© ${currentYear} <span class="whitespace-nowrap">Savino Del Bene</span> Volley — Tutti i diritti riservati.`).replace('{year}', currentYear).replace('Savino Del Bene', '<span class="whitespace-nowrap">Savino Del Bene</span>'));

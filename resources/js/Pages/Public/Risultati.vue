@@ -2,6 +2,7 @@
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
+import { useOgMeta } from '@/Composables/useOgMeta'
 
 const props = defineProps({
     page: {
@@ -45,17 +46,22 @@ function isWin(game) {
     if (isSavinoHome) return game.scoreHome > game.scoreAway
     return game.scoreAway > game.scoreHome
 }
+
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'Risultati e Classifica',
+    description: 'Risultati, calendario e classifica della Savino Del Bene Volley. Segui tutte le partite della stagione in corso.',
+})
 </script>
 
 <template>
     <Head>
-      <title>{{ (page?.title ?? 'Risultati e Classifica') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" content="Risultati, calendario e classifica della Savino Del Bene Volley. Segui tutte le partite della stagione in corso." />
-      <meta property="og:title" :content="(page?.title ?? 'Risultati e Classifica') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" content="Risultati, calendario e classifica della Savino Del Bene Volley. Segui tutte le partite della stagione in corso." />
-      <meta property="og:image" :content="'/images/logo.png'" />
-      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-      <meta property="og:type" content="website" />
+      <title>{{ ogMeta.title }}</title>
+      <meta name="description" :content="ogMeta.description" />
+      <meta property="og:title" :content="ogMeta.title" />
+      <meta property="og:description" :content="ogMeta.description" />
+      <meta property="og:image" :content="ogMeta.image" />
+      <meta property="og:url" :content="ogMeta.url" />
+      <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <PublicLayout>

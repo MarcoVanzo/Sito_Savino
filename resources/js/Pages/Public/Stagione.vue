@@ -5,6 +5,7 @@ import PageHero from '@/Components/PageHero.vue';
 import { Head } from '@inertiajs/vue3';
 import { roleLabels, displayRole } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { useOgMeta } from '@/Composables/useOgMeta';
 
 const { onImgError } = useImageFallback();
 
@@ -40,17 +41,22 @@ const filteredRoster = computed(() => {
 function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
 }
+
+const ogMeta = useOgMeta({
+    title: 'Roster Serie A1' + (props.seasonName ? ' — ' + props.seasonName : ''),
+    description: 'La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1.',
+});
 </script>
 
 <template>
     <Head>
-        <title>{{ 'Roster Serie A1' + (seasonName ? ' — ' + seasonName : '') + ' — Savino Del Bene Volley' }}</title>
-        <meta name="description" content="La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1." />
-        <meta property="og:title" :content="'Roster Serie A1' + (seasonName ? ' — ' + seasonName : '') + ' — Savino Del Bene Volley'" />
-        <meta property="og:description" content="La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1." />
-        <meta property="og:image" :content="'/images/logo.png'" />
-        <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-        <meta property="og:type" content="website" />
+        <title>{{ ogMeta.title }}</title>
+        <meta name="description" :content="ogMeta.description" />
+        <meta property="og:title" :content="ogMeta.title" />
+        <meta property="og:description" :content="ogMeta.description" />
+        <meta property="og:image" :content="ogMeta.image" />
+        <meta property="og:url" :content="ogMeta.url" />
+        <meta property="og:type" :content="ogMeta.type" />
     </Head>
     <PublicLayout>
         <!-- Hero -->

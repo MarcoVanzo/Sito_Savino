@@ -2,6 +2,7 @@
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
 import { useImageFallback } from '@/Composables/useImageFallback.js'
+import { useOgMeta } from '@/Composables/useOgMeta'
 
 const { onImgError } = useImageFallback()
 
@@ -24,17 +25,22 @@ function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
 }
 
+const ogMeta = useOgMeta({
+    title: props.page?.title ?? 'Staff Tecnico e Medico',
+    description: 'Lo staff tecnico e medico della Savino Del Bene Volley. Allenatori, preparatori e team di supporto.',
+})
+
 </script>
 
 <template>
     <Head>
-      <title>{{ (page?.title ?? 'Staff Tecnico e Medico') + ' — Savino Del Bene Volley' }}</title>
-      <meta name="description" content="Lo staff tecnico e medico della Savino Del Bene Volley. Allenatori, preparatori e team di supporto." />
-      <meta property="og:title" :content="(page?.title ?? 'Staff Tecnico e Medico') + ' — Savino Del Bene Volley'" />
-      <meta property="og:description" content="Lo staff tecnico e medico della Savino Del Bene Volley. Allenatori, preparatori e team di supporto." />
-      <meta property="og:image" :content="'/images/logo.png'" />
-      <meta property="og:url" :content="$page.props.ziggy?.location || ''" />
-      <meta property="og:type" content="website" />
+      <title>{{ ogMeta.title }}</title>
+      <meta name="description" :content="ogMeta.description" />
+      <meta property="og:title" :content="ogMeta.title" />
+      <meta property="og:description" :content="ogMeta.description" />
+      <meta property="og:image" :content="ogMeta.image" />
+      <meta property="og:url" :content="ogMeta.url" />
+      <meta property="og:type" :content="ogMeta.type" />
     </Head>
 
     <PublicLayout>
