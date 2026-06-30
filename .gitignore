@@ -45,4 +45,7 @@ current_app.json
 spec.json
 spec_fixed.json
 test_vite.php
+test_media.php
 current_do_spec.yaml
+data-page.json
+prod_home.html

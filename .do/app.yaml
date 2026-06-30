@@ -65,26 +65,12 @@ services:
         value: "true"
       - key: APP_LOCALE
         value: it
-      - key: INERTIA_SSR_URL
-        value: http://${ssr.HOSTNAME}:13714
+      - key: INERTIA_SSR_ENABLED
+        value: "false"
       - key: COMPREFACE_HOST
         value: http://157.230.98.6:8000
       - key: COMPREFACE_KEY
         type: SECRET
-  - name: ssr
-    github:
-      repo: MarcoVanzo/sito_savino
-      branch: main
-      deploy_on_push: true
-    build_command: npm install && npm run build
-    run_command: node bootstrap/ssr/ssr.js
-    internal_ports:
-      - 13714
-    instance_count: 1
-    instance_size_slug: apps-s-1vcpu-0.5gb
-    envs:
-      - key: APP_ENV
-        value: production
   - name: worker
     github:
       repo: MarcoVanzo/sito_savino
