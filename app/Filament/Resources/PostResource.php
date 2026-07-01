@@ -121,6 +121,7 @@ class PostResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('cover')
+                    ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('')
                     ->collection('cover')

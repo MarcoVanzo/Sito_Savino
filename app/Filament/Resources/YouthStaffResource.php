@@ -100,6 +100,7 @@ class YouthStaffResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
+                    ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('')
                     ->collection('staff')

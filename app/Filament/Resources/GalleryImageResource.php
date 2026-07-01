@@ -92,6 +92,7 @@ class GalleryImageResource extends Resource
         return $table
             ->columns([
                 SpatieMediaLibraryImageColumn::make('image')
+                    ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('Immagine')
                     ->collection('gallery')

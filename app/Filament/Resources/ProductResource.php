@@ -138,6 +138,7 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('images')
+                    ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('')
                     ->collection('products')

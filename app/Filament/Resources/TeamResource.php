@@ -80,6 +80,7 @@ class TeamResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('logo')
+                    ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('')
                     ->collection('teams')

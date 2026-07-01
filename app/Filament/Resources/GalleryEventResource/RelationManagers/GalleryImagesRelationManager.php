@@ -63,6 +63,7 @@ class GalleryImagesRelationManager extends RelationManager
         return $table
             ->columns([
                 SpatieMediaLibraryImageColumn::make('gallery')
+                    ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->collection('gallery')
                     ->label('Foto')
