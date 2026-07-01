@@ -41,7 +41,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->timeout(15)->retry(2, 1000)->post($this->getBaseUrl().'/subjects', [
+        ])->timeout(15)->retry(2, 1000, throw: false)->post($this->getBaseUrl().'/subjects', [
             'subject' => $subjectName,
         ]);
 
@@ -73,7 +73,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->timeout(30)->retry(2, 1000)->attach(
+        ])->timeout(30)->retry(2, 1000, throw: false)->attach(
             'file', file_get_contents($imagePath), basename($imagePath)
         )->post($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
@@ -123,7 +123,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->timeout(15)->retry(2, 1000)->delete($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
+        ])->timeout(15)->retry(2, 1000, throw: false)->delete($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
         return $response->successful();
     }
@@ -142,7 +142,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->timeout(30)->retry(2, 1000)->attach(
+        ])->timeout(30)->retry(2, 1000, throw: false)->attach(
             'file', file_get_contents($imagePath), basename($imagePath)
         )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
 
