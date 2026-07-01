@@ -6,7 +6,7 @@ services:
       branch: main
       deploy_on_push: false
     build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build
-    run_command: php artisan migrate --force && php artisan storage:link; php artisan cache:clear; php artisan route:cache && php artisan view:cache && php artisan filament:optimize; heroku-php-apache2 public/
+    run_command: bash start.sh
     envs:
       - key: APP_ENV
         value: production
