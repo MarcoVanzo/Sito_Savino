@@ -1,132 +1,209 @@
-name: sito-savino
-services:
-  - name: web
-    github:
-      repo: MarcoVanzo/sito_savino
-      branch: main
-      deploy_on_push: false
-    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build
-    run_command: bash start.sh
-    envs:
-      - key: APP_ENV
-        value: production
-      - key: APP_DEBUG
-        value: "false"
-      - key: APP_URL
-        value: ${APP_DOMAIN}
-      - key: APP_KEY
-        value: base64:F/Qm8yOzRcxjZFQRlTGoYJiVwueF6po7eCDcO0WnZq0=
-      - key: PREVIEW_AUTH_USER
-        type: SECRET
-      - key: PREVIEW_AUTH_PASS
-        type: SECRET
-      - key: DB_CONNECTION
-        value: mysql
-      - key: DB_HOST
-        value: ${sito-savino-db.HOSTNAME}
-      - key: DB_PORT
-        value: ${sito-savino-db.PORT}
-      - key: DB_DATABASE
-        value: ${sito-savino-db.DATABASE}
-      - key: DB_USERNAME
-        value: ${sito-savino-db.USERNAME}
-      - key: DB_PASSWORD
-        value: ${sito-savino-db.PASSWORD}
-
-      - key: FILESYSTEM_DISK
-        value: s3
-      - key: MEDIA_DISK
-        value: s3
-      - key: AWS_ACCESS_KEY_ID
-        type: SECRET
-      - key: AWS_SECRET_ACCESS_KEY
-        type: SECRET
-      - key: AWS_DEFAULT_REGION
-        value: fra1
-      - key: AWS_BUCKET
-        value: sito-savino-assets-2026
-      - key: AWS_ENDPOINT
-        value: https://fra1.digitaloceanspaces.com
-      - key: AWS_URL
-        value: https://sito-savino-assets-2026.fra1.digitaloceanspaces.com
-      - key: LOG_CHANNEL
-        value: stderr
-      - key: LOG_LEVEL
-        value: warning
-      - key: SESSION_DRIVER
-        value: database
-      - key: SESSION_ENCRYPT
-        value: "true"
-      - key: CACHE_STORE
-        value: file
-      - key: QUEUE_CONNECTION
-        value: database
-      - key: SESSION_SECURE_COOKIE
-        value: "true"
-      - key: APP_LOCALE
-        value: it
-      - key: INERTIA_SSR_ENABLED
-        value: "false"
-      - key: COMPREFACE_HOST
-        value: http://157.230.98.6:8000
-      - key: COMPREFACE_KEY
-        type: SECRET
-workers:
-  - name: worker
-    github:
-      repo: MarcoVanzo/sito_savino
-      branch: main
-      deploy_on_push: false
-    build_command: composer install --optimize-autoloader --no-dev
-    run_command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
-    instance_count: 1
-    instance_size_slug: apps-s-1vcpu-0.5gb
-    envs:
-      - key: APP_ENV
-        value: production
-      - key: APP_KEY
-        type: SECRET
-      - key: APP_DEBUG
-        value: "false"
-      - key: LOG_CHANNEL
-        value: stderr
-      - key: LOG_LEVEL
-        value: warning
-      - key: DB_CONNECTION
-        value: mysql
-      - key: DB_HOST
-        value: ${sito-savino-db.HOSTNAME}
-      - key: DB_PORT
-        value: ${sito-savino-db.PORT}
-      - key: DB_DATABASE
-        value: ${sito-savino-db.DATABASE}
-      - key: DB_USERNAME
-        value: ${sito-savino-db.USERNAME}
-      - key: DB_PASSWORD
-        value: ${sito-savino-db.PASSWORD}
-      - key: QUEUE_CONNECTION
-        value: database
-      - key: FILESYSTEM_DISK
-        value: s3
-      - key: MEDIA_DISK
-        value: s3
-      - key: AWS_ACCESS_KEY_ID
-        type: SECRET
-      - key: AWS_SECRET_ACCESS_KEY
-        type: SECRET
-      - key: AWS_DEFAULT_REGION
-        value: fra1
-      - key: AWS_BUCKET
-        value: sito-savino-assets-2026
-      - key: AWS_ENDPOINT
-        value: https://fra1.digitaloceanspaces.com
-      - key: COMPREFACE_HOST
-        value: http://157.230.98.6:8000
-      - key: COMPREFACE_KEY
-        type: SECRET
 databases:
-  - name: sito-savino-db
-    engine: MYSQL
-    version: "8"
-    production: true
-    cluster_name: sito-savino-db
+- cluster_name: sito-savino-db
+  engine: MYSQL
+  name: sito-savino-db
+  production: true
+  version: "8"
+ingress:
+  rules:
+  - component:
+      name: web
+    match:
+      path:
+        prefix: /
+name: sito-savino
+region: nyc
+services:
+- build_command: composer install --optimize-autoloader --no-dev && npm install &&
+    npm run build
+  envs:
+  - key: APP_ENV
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: APP_DEBUG
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
+  - key: APP_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${APP_DOMAIN}
+  - key: APP_KEY
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: base64:F/Qm8yOzRcxjZFQRlTGoYJiVwueF6po7eCDcO0WnZq0=
+  - key: PREVIEW_AUTH_USER
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:YKQFUJZOcCxZnTtcdfd33vqomoHS6Oy5:wCKDKq7bWRSQqgeEvK2WBA==]
+  - key: PREVIEW_AUTH_PASS
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:7LvxDq1kWdmbFX23z8GUY/71b2QKI6FM:BN31jZmQ3Vqz90V4nmHdAg==]
+  - key: DB_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: mysql
+  - key: DB_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.HOSTNAME}
+  - key: DB_PORT
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.PORT}
+  - key: DB_DATABASE
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.DATABASE}
+  - key: DB_USERNAME
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.USERNAME}
+  - key: DB_PASSWORD
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.PASSWORD}
+  - key: FILESYSTEM_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+  - key: MEDIA_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+  - key: AWS_ACCESS_KEY_ID
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: EV[1:HfXPcqOl/PEmTJ7YO+FHlL+PmkPw+Eiv:Whm/Yl7D/LaMhTI0ZpRDxg==]
+  - key: AWS_SECRET_ACCESS_KEY
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: EV[1:T9fotE3lLXEU6BoAiq4lwupttbH0gTcZ:JixIBJ8x+FbzIQsu0gno8A==]
+  - key: AWS_DEFAULT_REGION
+    scope: RUN_AND_BUILD_TIME
+    value: fra1
+  - key: AWS_BUCKET
+    scope: RUN_AND_BUILD_TIME
+    value: sito-savino-assets-2026
+  - key: AWS_ENDPOINT
+    scope: RUN_AND_BUILD_TIME
+    value: https://fra1.digitaloceanspaces.com
+  - key: AWS_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://sito-savino-assets-2026.fra1.digitaloceanspaces.com
+  - key: LOG_CHANNEL
+    scope: RUN_AND_BUILD_TIME
+    value: stderr
+  - key: LOG_LEVEL
+    scope: RUN_AND_BUILD_TIME
+    value: warning
+  - key: SESSION_DRIVER
+    scope: RUN_AND_BUILD_TIME
+    value: database
+  - key: SESSION_ENCRYPT
+    scope: RUN_AND_BUILD_TIME
+    value: "true"
+  - key: CACHE_STORE
+    scope: RUN_AND_BUILD_TIME
+    value: file
+  - key: QUEUE_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: database
+  - key: SESSION_SECURE_COOKIE
+    scope: RUN_AND_BUILD_TIME
+    value: "true"
+  - key: APP_LOCALE
+    scope: RUN_AND_BUILD_TIME
+    value: it
+  - key: INERTIA_SSR_ENABLED
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
+  - key: COMPREFACE_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: http://157.230.98.6:8000
+  - key: COMPREFACE_KEY
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: EV[1:6QCoSNI+powUeI7lyuGsyOBAFUh7By20:egYJlbgicI5OsyAIxvSYZQ==]
+  github:
+    branch: main
+    repo: MarcoVanzo/sito_savino
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  name: web
+  run_command: bash start.sh
+workers:
+- build_command: composer install --optimize-autoloader --no-dev
+  envs:
+  - key: APP_ENV
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: APP_KEY
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:OmHtEaJvph/SAC9NuXF5zbln2WfyyjPw:UAJo7fOM+W06PqaMgENXCQ==]
+  - key: APP_DEBUG
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
+  - key: LOG_CHANNEL
+    scope: RUN_AND_BUILD_TIME
+    value: stderr
+  - key: LOG_LEVEL
+    scope: RUN_AND_BUILD_TIME
+    value: warning
+  - key: DB_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: mysql
+  - key: DB_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.HOSTNAME}
+  - key: DB_PORT
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.PORT}
+  - key: DB_DATABASE
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.DATABASE}
+  - key: DB_USERNAME
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.USERNAME}
+  - key: DB_PASSWORD
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.PASSWORD}
+  - key: QUEUE_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: database
+  - key: FILESYSTEM_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+  - key: MEDIA_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+  - key: AWS_ACCESS_KEY_ID
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: EV[1:hPfkJvFBlF2pATwbwOLiek6Z3GcL3VyN:2O21kyCTcqb9BHGEkBLOLQ==]
+  - key: AWS_SECRET_ACCESS_KEY
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: EV[1:yvtvJeJbZIX70/Y4xyAY06nqxJjIx40x:Wgkf4zivnLAEoCsyOgb6Bg==]
+  - key: AWS_DEFAULT_REGION
+    scope: RUN_AND_BUILD_TIME
+    value: fra1
+  - key: AWS_BUCKET
+    scope: RUN_AND_BUILD_TIME
+    value: sito-savino-assets-2026
+  - key: AWS_ENDPOINT
+    scope: RUN_AND_BUILD_TIME
+    value: https://fra1.digitaloceanspaces.com
+  - key: AWS_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://sito-savino-assets-2026.fra1.digitaloceanspaces.com
+  - key: COMPREFACE_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: http://157.230.98.6:8000
+  - key: COMPREFACE_KEY
+    type: SECRET
+    scope: RUN_AND_BUILD_TIME
+    value: EV[1:lDjvrCHeTQP4y+MO3eX/zMUaEo+rJz/i:9BMEbVWiskOIBX091ocRnw==]
+  github:
+    branch: main
+    repo: MarcoVanzo/sito_savino
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  name: worker
+  run_command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
