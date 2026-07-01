@@ -6,7 +6,7 @@ services:
       branch: main
       deploy_on_push: true
     build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build
-    run_command: php artisan migrate --force && php artisan storage:link; php artisan cache:clear; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan filament:optimize; heroku-php-apache2 public/
+    run_command: echo "=== DEBUG APP_KEY ===" && echo "APP_KEY length:" $(echo -n "$APP_KEY" | wc -c) && php artisan migrate --force && php artisan storage:link; php artisan cache:clear; php artisan config:cache && php artisan tinker --execute="echo 'Cached key:' . (config('app.key') ? 'PRESENT' : 'MISSING');" && php artisan route:cache && php artisan view:cache && php artisan filament:optimize; heroku-php-apache2 public/
     envs:
       - key: APP_ENV
         value: production
