@@ -138,6 +138,6 @@ class OrderResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->with(['user', 'media']);
+            ->with(['user']);
     }
 }

@@ -222,7 +222,7 @@ class ActivityLogResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['user', 'media']);
+        return parent::getEloquentQuery()->with(['user']);
     }
 
     /**

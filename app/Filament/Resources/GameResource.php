@@ -161,6 +161,9 @@ class GameResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['homeTeam', 'awayTeam', 'season', 'media']);
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])
+            ->with(['homeTeam', 'awayTeam', 'season']);
     }
 }

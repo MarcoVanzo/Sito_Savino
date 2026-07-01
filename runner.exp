@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+set timeout 120
+spawn doctl apps console 392c0853-7009-41ec-87f9-45fdbc8e2d95 worker
+expect {
+    "$" {
+        send "php artisan media-library:regenerate\r"
+    }
+    "#" {
+        send "php artisan media-library:regenerate\r"
+    }
+    timeout {
+        puts "Timeout waiting for prompt"
+        exit 1
+    }
+}
+
+expect {
+    "All done!" {
+        puts "Regeneration complete!"
+        send "exit\r"
+    }
+    "$" {
+        send "exit\r"
+    }
+    "#" {
+        send "exit\r"
+    }
+    timeout {
+        puts "Timeout waiting for completion"
+        exit 1
+    }
+}
+expect eof

@@ -97,6 +97,6 @@ class SeasonResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ])->with('media');
+            ]);
     }
 }

@@ -146,6 +146,9 @@ class StockMovementResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['product', 'variant', 'order', 'media']);
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])
+            ->with(['product', 'variant', 'order']);
     }
 }
