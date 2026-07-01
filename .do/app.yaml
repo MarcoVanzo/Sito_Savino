@@ -87,6 +87,7 @@ services:
       - key: MAIL_FROM_NAME
         value: Savino Del Bene Volley
 
+workers:
   - name: worker
     github:
       repo: MarcoVanzo/sito_savino
