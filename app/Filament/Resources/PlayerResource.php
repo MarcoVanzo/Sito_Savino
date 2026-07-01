@@ -124,7 +124,7 @@ class PlayerResource extends Resource
                         }
 
                         $service = app(FacialRecognitionService::class);
-                        $success = $service->addFaceExample($record, $media->getPath());
+                        $success = $service->addFaceExampleFromMedia($record, $media);
 
                         if ($success) {
                             Notification::make()

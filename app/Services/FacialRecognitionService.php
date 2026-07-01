@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Player;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class FacialRecognitionService
 {
@@ -39,7 +41,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->post($this->getBaseUrl().'/subjects', [
+        ])->timeout(15)->retry(2, 1000)->post($this->getBaseUrl().'/subjects', [
             'subject' => $subjectName,
         ]);
 
@@ -55,11 +57,12 @@ class FacialRecognitionService
 
     /**
      * Add a training face for a player.
-     * $imagePath must be an absolute path to the local file, or a file stream.
+     * $imagePath must be an absolute path to a local file.
      */
     public function addFaceExample(Player $player, string $imagePath): bool
     {
         if (empty($this->apiKey)) {
+            Log::warning('CompreFace API Key missing. Skipping addFaceExample.');
             return false;
         }
 
@@ -70,7 +73,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->attach(
+        ])->timeout(30)->retry(2, 1000)->attach(
             'file', file_get_contents($imagePath), basename($imagePath)
         )->post($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
@@ -81,6 +84,30 @@ class FacialRecognitionService
         Log::error('CompreFace Add Face Error: '.$response->body());
 
         return false;
+    }
+
+    /**
+     * Add a training face from a Spatie Media object (S3 compatible).
+     * Downloads the file from the media disk before sending to CompreFace.
+     */
+    public function addFaceExampleFromMedia(Player $player, Media $media): bool
+    {
+        $tempPath = $this->downloadMediaToTemp($media);
+        if (! $tempPath) {
+            Log::error('CompreFace: impossibile scaricare media per il training', [
+                'player_id' => $player->id,
+                'media_id' => $media->id,
+            ]);
+            return false;
+        }
+
+        try {
+            return $this->addFaceExample($player, $tempPath);
+        } finally {
+            if (file_exists($tempPath)) {
+                @unlink($tempPath);
+            }
+        }
     }
 
     /**
@@ -96,7 +123,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->delete($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
+        ])->timeout(15)->retry(2, 1000)->delete($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
         return $response->successful();
     }
@@ -115,7 +142,7 @@ class FacialRecognitionService
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->attach(
+        ])->timeout(30)->retry(2, 1000)->attach(
             'file', file_get_contents($imagePath), basename($imagePath)
         )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
 
@@ -155,6 +182,31 @@ class FacialRecognitionService
             'detected_players' => $detectedPlayers,
             'has_unrecognized_faces' => $hasUnrecognizedFaces,
         ];
+    }
+
+    /**
+     * Download a Spatie Media object to a temporary file.
+     * Compatible with both local and S3 disks.
+     */
+    public function downloadMediaToTemp(Media $media): ?string
+    {
+        try {
+            $disk = Storage::disk($media->disk);
+            $relativePath = $media->getPathRelativeToRoot();
+
+            if (! $disk->exists($relativePath)) {
+                Log::warning("CompreFace: file not found on disk {$media->disk}: {$relativePath}");
+                return null;
+            }
+
+            $tempPath = sys_get_temp_dir().'/'.uniqid('compreface_').'_'.$media->file_name;
+            file_put_contents($tempPath, $disk->get($relativePath));
+
+            return $tempPath;
+        } catch (\Throwable $e) {
+            Log::error('CompreFace: download media failed', ['error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     /**

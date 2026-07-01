@@ -15,6 +15,14 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
+    public int $tries = 3;
+
+    public int $timeout = 120;
+
+    public int $maxExceptions = 2;
+
+    public array $backoff = [30, 60];
+
     public function __construct(
         public GalleryImage $galleryImage
     ) {}
@@ -106,5 +114,20 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             // Temporarily disable activity log to avoid spamming logs for an automatic background process
             $this->galleryImage->saveQuietly();
         }
+    }
+
+    /**
+     * Handle a job failure after all retries exhausted.
+     */
+    public function failed(\Throwable $exception): void
+    {
+        Log::error('AnalyzeGalleryImageJob definitively failed', [
+            'gallery_image_id' => $this->galleryImage->id,
+            'error' => $exception->getMessage(),
+        ]);
+
+        // Flag the image for manual review since AI couldn't process it
+        $this->galleryImage->needs_review = true;
+        $this->galleryImage->saveQuietly();
     }
 }

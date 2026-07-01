@@ -174,7 +174,7 @@ class YouthRosterResource extends Resource
                         }
 
                         $service = app(FacialRecognitionService::class);
-                        $success = $service->addFaceExample($record->player, $media->getPath());
+                        $success = $service->addFaceExampleFromMedia($record->player, $media);
 
                         if ($success) {
                             Notification::make()
