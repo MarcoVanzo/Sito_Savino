@@ -66,10 +66,10 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
                 // Sync players without detaching existing ones
                 $this->galleryImage->players()->syncWithoutDetaching($syncData);
-
-                // Update title for SEO if not already containing player names
-                $this->updateTitleWithPlayerNames();
             }
+
+            // Ottimizza SEO (titolo, alt text, meta) anche senza atlete riconosciute
+            $this->optimizeForSeo();
 
             // If there are unrecognized faces, flag the image for manual review
             if ($needsReview) {
@@ -84,36 +84,91 @@ class AnalyzeGalleryImageJob implements ShouldQueue
         }
     }
 
-    protected function updateTitleWithPlayerNames(): void
+    /**
+     * Ottimizza la foto per la SEO dopo il riconoscimento facciale.
+     * Genera: titolo descrittivo, alt text, custom properties sulla media.
+     */
+    protected function optimizeForSeo(): void
     {
-        $this->galleryImage->loadMissing('players');
-        $playerNames = $this->galleryImage->players->map->full_name->toArray();
+        $this->galleryImage->loadMissing(['players', 'galleryEvent']);
+        $players = $this->galleryImage->players;
+        $event = $this->galleryImage->galleryEvent;
 
-        if (empty($playerNames)) {
-            return;
-        }
-
+        // Costruisci i nomi delle atlete
+        $playerNames = $players->map->full_name->toArray();
+        $playerLastNames = $players->map->last_name->toArray();
         $namesString = implode(', ', $playerNames);
-        $currentTitle = $this->galleryImage->title ?? '';
+        $lastNamesString = implode(', ', $playerLastNames);
 
-        // If title doesn't contain the names, append them
-        $needsUpdate = false;
-        foreach ($playerNames as $name) {
-            if (stripos($currentTitle, $name) === false) {
-                $needsUpdate = true;
-                break;
-            }
+        // Contesto dell'evento
+        $eventTitle = $event?->title ?? '';
+        $category = $this->galleryImage->category ?? $event?->category ?? 'Partite';
+        $eventDate = $event?->event_date?->format('d/m/Y') ?? '';
+
+        // --- 1. Titolo SEO strutturato ---
+        // Formato: "Antropova, Mingardi - Partita vs Busto Arsizio 01/07/2026"
+        // o solo: "Partita vs Busto Arsizio 01/07/2026" se nessuna atleta
+        $titleParts = [];
+
+        if (! empty($playerNames)) {
+            $titleParts[] = $namesString;
         }
 
-        if ($needsUpdate) {
-            if (empty($currentTitle)) {
-                $this->galleryImage->title = 'Foto con '.$namesString;
-            } else {
-                $this->galleryImage->title = $currentTitle.' - con '.$namesString;
-            }
-            // Temporarily disable activity log to avoid spamming logs for an automatic background process
-            $this->galleryImage->saveQuietly();
+        if (! empty($eventTitle)) {
+            $titleParts[] = $eventTitle;
         }
+
+        if (! empty($eventDate)) {
+            $titleParts[] = $eventDate;
+        }
+
+        $seoTitle = implode(' - ', $titleParts);
+
+        if (! empty($seoTitle)) {
+            $this->galleryImage->title = $seoTitle;
+        }
+
+        // --- 2. Alt text sulla media Spatie ---
+        $media = $this->galleryImage->getFirstMedia('gallery');
+        if ($media) {
+            // Alt text descrittivo per Google Images
+            $altParts = ['Savino Del Bene Volley'];
+            if (! empty($playerNames)) {
+                $altParts[] = $namesString;
+            }
+            if (! empty($eventTitle)) {
+                $altParts[] = $eventTitle;
+            }
+            $altText = implode(' - ', $altParts);
+
+            $media->setCustomProperty('alt', $altText);
+
+            // Description per SEO
+            $description = 'Foto ';
+            if (! empty($playerNames)) {
+                $description .= 'di ' . $namesString . ' ';
+            }
+            $description .= 'della Savino Del Bene Volley';
+            if (! empty($eventTitle)) {
+                $description .= ' durante ' . $eventTitle;
+            }
+            if (! empty($eventDate)) {
+                $description .= ' (' . $eventDate . ')';
+            }
+            $media->setCustomProperty('description', $description);
+
+            // Keywords per ricerca interna
+            $keywords = array_merge(
+                ['Savino Del Bene', 'Volley', 'Serie A'],
+                $playerLastNames,
+                [$category]
+            );
+            $media->setCustomProperty('keywords', implode(', ', $keywords));
+
+            $media->save();
+        }
+
+        $this->galleryImage->saveQuietly();
     }
 
     /**
