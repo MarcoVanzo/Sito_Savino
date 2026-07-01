@@ -58,7 +58,7 @@ const general = computed(() => settings.value.general ?? {});
 
 // Valori derivati con fallback
 const corporateUrl = computed(() => general.value.corporate_url || 'https://www.savinodelbene.com/it/home/');
-const corporateLogo = computed(() => general.value.corporate_logo || LOGOS.CORPORATE);
+const corporateLogo = computed(() => general.value.corporate_logo || LOGOS.CORPORATE_ICON);
 const siteLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
 const corporateName = computed(() => general.value.corporate_name || 'Savino Del Bene');
 const corporateDescription = computed(() => general.value.corporate_description || 'Global Logistics and Forwarding Company');
