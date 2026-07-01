@@ -25,7 +25,7 @@ class GalleryImageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
 
-    protected static ?string $navigationLabel = 'Foto Gallery';
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $modelLabel = 'Immagine Galleria';
 

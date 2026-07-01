@@ -3,11 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\GalleryEventResource\Pages;
+use App\Filament\Resources\GalleryEventResource\RelationManagers;
+use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryEvent;
 use App\Services\GalleryUploadService;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -16,11 +19,9 @@ class GalleryEventResource extends Resource
 {
     protected static ?string $model = GalleryEvent::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-folder-open';
+    protected static ?string $navigationIcon = 'heroicon-o-photo';
 
-    protected static bool $shouldRegisterNavigation = false;
-
-    protected static ?string $navigationLabel = 'Eventi Galleria';
+    protected static ?string $navigationLabel = 'Foto Gallery';
 
     protected static ?string $modelLabel = 'Evento Galleria';
 
@@ -30,7 +31,7 @@ class GalleryEventResource extends Resource
 
     protected static ?int $navigationSort = 6;
 
-    protected static ?string $slug = 'gallery-events';
+    protected static ?string $slug = 'gallery';
 
     public static function form(Form $form): Form
     {
@@ -112,13 +113,26 @@ class GalleryEventResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('view_photos')
-                    ->label('Vedi Foto')
-                    ->icon('heroicon-o-photo')
-                    ->url(fn (GalleryEvent $record): string => GalleryImageResource::getUrl('index', ['tableFilters' => ['gallery_event_id' => ['value' => $record->id]]])),
+                Tables\Actions\Action::make('analyzeEvent')
+                    ->label('Analizza AI')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalDescription('Tutte le foto di questo evento verranno analizzate con AI in background.')
+                    ->action(function (GalleryEvent $record) {
+                        $count = 0;
+                        foreach ($record->galleryImages as $image) {
+                            AnalyzeGalleryImageJob::dispatch($image);
+                            $count++;
+                        }
+                        Notification::make()
+                            ->title('Analisi AI avviata')
+                            ->body($count . ' foto in fase di analisi.')
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\DeleteAction::make()
                     ->before(function (GalleryEvent $record) {
-                        // Elimina anche le immagini associate e i relativi media files
                         foreach ($record->galleryImages as $image) {
                             $image->clearMediaCollection('gallery');
                             $image->delete();
@@ -136,7 +150,7 @@ class GalleryEventResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Potremmo aggiungere una RelationManager per galleryImages in futuro
+            RelationManagers\GalleryImagesRelationManager::class,
         ];
     }
 
