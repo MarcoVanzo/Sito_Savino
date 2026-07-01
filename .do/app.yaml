@@ -71,6 +71,7 @@ services:
         value: http://157.230.98.6:8000
       - key: COMPREFACE_KEY
         type: SECRET
+workers:
   - name: worker
     github:
       repo: MarcoVanzo/sito_savino
