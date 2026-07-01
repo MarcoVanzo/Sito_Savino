@@ -1,5 +1,6 @@
-# Pipeline CI per Sito Savino
+# Pipeline CI/CD per Sito Savino
 # Esegue controlli di qualità su push a main e pull request
+# Deploya su DigitalOcean App Platform solo se i test passano (push a main)
 
 name: CI
 
@@ -84,3 +85,19 @@ jobs:
       # Test PHPUnit con MySQL 8.4 (allineato a produzione)
       - name: Esegui test PHPUnit
         run: php artisan test
+
+  # Deploy gated: esegue SOLO su push a main, DOPO che i test passano
+  deploy:
+    name: Deploy to DigitalOcean
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v6
+
+      - name: Deploy su App Platform
+        uses: digitalocean/app_action/deploy@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+

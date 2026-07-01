@@ -458,7 +458,7 @@ const ogMeta = useOgMeta({
                             {{ heroTitle }}
                         </span>
                         <span 
-                            class="hero-text-reveal hero-text-delay block text-[#D90000] mt-2" 
+                            class="hero-text-reveal hero-text-delay block text-savino-red mt-2" 
                             :class="{ 'revealed': heroRevealed }"
                         >
                             {{ heroSubtitle }}
@@ -849,8 +849,8 @@ const ogMeta = useOgMeta({
 }
 
 @keyframes ctaGlowRed {
-    0%, 100% { box-shadow: 0 0 15px rgba(205, 23, 25, 0.2), 0 0 30px rgba(205, 23, 25, 0.1); }
-    50% { box-shadow: 0 0 25px rgba(205, 23, 25, 0.4), 0 0 50px rgba(205, 23, 25, 0.2); }
+    0%, 100% { box-shadow: 0 0 15px rgba(224, 0, 77, 0.2), 0 0 30px rgba(224, 0, 77, 0.1); }
+    50% { box-shadow: 0 0 25px rgba(224, 0, 77, 0.4), 0 0 50px rgba(224, 0, 77, 0.2); }
 }
 
 /* === MATCH CARD GRADIENT SHIFT === */

@@ -99,6 +99,13 @@ Configurato per **DigitalOcean App Platform**. Il file di configurazione si trov
 | `PREVIEW_AUTH_USER` | Username per preview environment |
 | `PREVIEW_AUTH_PASSWORD` | Password per preview environment |
 
+## Documentazione
+
+| Documento | Descrizione |
+|---|---|
+| [`docs/BRAND_GUIDELINES.md`](docs/BRAND_GUIDELINES.md) | Linee guida brand: palette colori, varianti logo, regole di utilizzo LVF/SDB |
+| [`BACKUP.md`](BACKUP.md) | Architettura backup: MySQL dump + media sync su DigitalOcean Spaces |
+
 ## Licenza
 
 Progetto proprietario — Tutti i diritti riservati.

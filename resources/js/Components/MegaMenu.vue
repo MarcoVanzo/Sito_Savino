@@ -146,14 +146,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <nav ref="navRef" role="navigation" aria-label="Navigazione principale" class="hidden lg:flex flex-1 justify-end items-center h-full">
+    <nav ref="navRef" role="navigation" aria-label="Navigazione principale" class="hidden xl:flex flex-1 justify-end items-center h-full">
         <div class="flex items-center h-full">
             <template v-for="(item, index) in navigation" :key="item.label">
                 <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="item.children?.length > 0 ? openIndex = index : null" @mouseleave="closeDropdown">
                     <Link 
                         :href="item.href" 
                         prefetch
-                        class="text-[12px] xl:text-[14px] font-black tracking-wider uppercase transition-colors flex items-center h-full px-1.5 lg:px-2.5 whitespace-nowrap"
+                        class="text-[11px] 2xl:text-[13px] font-black tracking-wide uppercase transition-colors flex items-center h-full px-1 2xl:px-2.5 whitespace-nowrap"
                         :class="[
                             $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-400 hover:text-white border-b-[3px] border-transparent pt-[3px]',
                             item.isHighlight ? 'text-[#ED028C] hover:text-[#ff30a6]' : ''
@@ -229,7 +229,7 @@ onBeforeUnmount(() => {
                 </div>
                 
                 <!-- Vertical separator | -->
-                <div v-if="index < navigation.length - 1" class="text-white/20 select-none text-[10px] mx-1">|</div>
+                <div v-if="index < navigation.length - 1" class="text-white/20 select-none text-[10px] mx-0.5 2xl:mx-1">|</div>
             </template>
         </div>
         

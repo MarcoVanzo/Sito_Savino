@@ -14,7 +14,7 @@
                 </div>
                 
                 @if($nextMatch)
-                    <div class="bg-[#CD1719] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-red-900/50 uppercase tracking-widest border border-red-400/30">
+                    <div class="bg-[#E0004D] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-red-900/50 uppercase tracking-widest border border-red-400/30">
                         {{ $nextMatch->competition_type }}
                     </div>
                 @endif
@@ -62,7 +62,7 @@
                                 <img src="{{ $awayLogo }}" alt="Logo Trasferta" class="w-full h-full object-contain">
                             </div>
                         @else
-                            <div class="w-24 h-24 bg-gradient-to-br from-[#CD1719] to-[#8b0000] border-2 border-white/20 rounded-full flex items-center justify-center mb-4 shadow-lg">
+                            <div class="w-24 h-24 bg-gradient-to-br from-[#E0004D] to-[#990033] border-2 border-white/20 rounded-full flex items-center justify-center mb-4 shadow-lg">
                                 <span class="text-white font-black text-4xl">{{ substr($nextMatch->awayTeam->name, 0, 1) }}</span>
                             </div>
                         @endif

@@ -16,3 +16,14 @@
 - Branch di produzione: `main`
 - Storage file: **DigitalOcean Spaces (S3-compatible)**, regione `fra1`
 - SSR attivo con `bootstrap/ssr/ssr.mjs`
+
+## Brand e Loghi
+
+- **Documentazione completa**: Vedi `docs/BRAND_GUIDELINES.md` per palette colori, varianti logo, regole di utilizzo e dimensioni minime.
+- **Colori ufficiali** (da `tailwind.config.js`): `savino-blue` (#003063), `savino-red` (#E0004D), `savino-gold` (#C9A84C), `savino-pink` (#ED028C).
+- **Loghi centralizzati** in `resources/js/Constants/logos.js`. NON usare percorsi hardcoded — importare sempre le costanti `LOGOS`.
+- **Loghi web** in `public/images/`: `logo.png` (volley a colori), `logo-volley-white.png` (volley bianco), `logo-corporate.png` (corporate con payoff), `logo-lvf.png` (LVF ufficiale), `logo-lvf-small.png` (LVF ridotto).
+- **File sorgente loghi** nella cartella `Loghi/` (root del progetto), suddivisi in `Lega/`, `SDB Azienda/`, `SDB Volley/`.
+- **Logo LVF stagione 2026/27**: Brand book provvisorio in attesa di nuovo Title Sponsor. Usare versione con dicitura "SERIE A". NON modificare colori, cornice o lettering del logo LVF.
+- **Magenta LVF ufficiale**: `#FF23B0` (da brand book). Il token `savino-pink` nel Tailwind è `#ED028C` — c'è una discrepanza nota da valutare.
+- **Font**: Montserrat (sans, primario) e Playfair Display (serif, secondario) — scelte progettuali, non imposte dai brand book.

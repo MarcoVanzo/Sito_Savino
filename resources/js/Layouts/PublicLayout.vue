@@ -85,7 +85,7 @@ const corporateDomain = computed(() => {
                             <!-- Corporate Logo with Preview -->
                             <div class="relative group overflow-hidden hover:overflow-visible">
                                 <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="block">
-                                    <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="h-[85px] w-[85px] object-contain rounded-2xl shadow-xl z-0 transition-transform duration-300 group-hover:scale-105 bg-white p-2 mb-2" @error="onImgError" />
+                                    <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="h-[85px] w-[85px] object-contain rounded-2xl shadow-xl z-0 transition-transform duration-300 group-hover:scale-105 bg-white p-2 mb-2" @error="(e) => onImgError(e, LOGOS.CORPORATE)" />
                                 </a>
                                 
                                 <!-- Finestrella Preview Card -->
@@ -96,7 +96,7 @@ const corporateDomain = computed(() => {
                                             <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                         </div>
                                         <div class="p-4 flex flex-col items-center justify-center text-center bg-gradient-to-b from-white to-gray-50">
-                                            <img :src="corporateLogo" :alt="corporateName" class="w-16 h-12 object-contain rounded-lg shadow-sm mb-3" @error="onImgError" />
+                                            <img :src="corporateLogo" :alt="corporateName" class="w-16 h-12 object-contain rounded-lg shadow-sm mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE)" />
                                             <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1 whitespace-nowrap">{{ corporateName }}</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">{{ corporateDescription }}</p>
                                             <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">

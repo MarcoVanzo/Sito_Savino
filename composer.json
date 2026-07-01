@@ -19,6 +19,7 @@
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.35",
         "predis/predis": "^3.5",
+        "resend/resend-laravel": "^1.4",
         "spatie/laravel-medialibrary": "^11.0",
         "spatie/laravel-sitemap": "^8.2",
         "spatie/laravel-translatable": "^6.14",
