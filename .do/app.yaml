@@ -15,7 +15,7 @@ services:
       - key: APP_URL
         value: ${APP_DOMAIN}
       - key: APP_KEY
-        type: SECRET
+        value: base64:F/Qm8yOzRcxjZFQRlTGoYJiVwueF6po7eCDcO0WnZq0=
       - key: PREVIEW_AUTH_USER
         type: SECRET
       - key: PREVIEW_AUTH_PASS
