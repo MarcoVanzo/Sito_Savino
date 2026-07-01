@@ -54,11 +54,11 @@ services:
       - key: LOG_LEVEL
         value: warning
       - key: SESSION_DRIVER
-        value: database
+        value: file
       - key: SESSION_ENCRYPT
         value: "true"
       - key: CACHE_STORE
-        value: database
+        value: file
       - key: QUEUE_CONNECTION
         value: database
       - key: SESSION_SECURE_COOKIE

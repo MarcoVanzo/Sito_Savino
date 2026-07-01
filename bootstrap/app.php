@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CachePublicResponse;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PreviewBasicAuth;
 use App\Http\Middleware\SecurityHeadersMiddleware;
@@ -18,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(prepend: [
+            CachePublicResponse::class,
+        ]);
         $middleware->web(append: [
             SecurityHeadersMiddleware::class,
             PreviewBasicAuth::class,

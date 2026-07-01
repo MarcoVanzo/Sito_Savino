@@ -57,6 +57,9 @@ class CacheInvalidationObserver
             Cache::forget($key);
         }
 
+        // Flush full-page response cache so visitors see fresh content
+        $this->flushPageCache();
+
         // Post: invalida anche la cache per slug e le prime 5 pagine di listing
         if ($model instanceof Post) {
             if ($model->slug) {
@@ -73,5 +76,18 @@ class CacheInvalidationObserver
                 Cache::forget('public:page:'.$model->slug);
             }
         }
+    }
+
+    /**
+     * Flush all full-page response cache entries.
+     * Since file cache doesn't support tag-based invalidation,
+     * we clear the entire application cache. This is acceptable
+     * because all cached data has short TTLs and rebuilds quickly.
+     */
+    private function flushPageCache(): void
+    {
+        // Clear all cache — page cache + controller cache.
+        // With file driver and short TTLs this is fast and safe.
+        Cache::flush();
     }
 }
