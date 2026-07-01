@@ -20,7 +20,7 @@
 ## Brand e Loghi
 
 - **Documentazione completa**: Vedi `docs/BRAND_GUIDELINES.md` per palette colori, varianti logo, regole di utilizzo e dimensioni minime.
-- **Colori ufficiali** (da `tailwind.config.js`): `savino-blue` (#003063), `savino-red` (#E0004D), `savino-gold` (#C9A84C), `savino-pink` (#ED028C).
+- **Colori ufficiali** (da `tailwind.config.js`): `savino-blue` (#003063), `savino-red` (#DF338F), `savino-gold` (#C9A84C), `savino-pink` (#ED028C).
 - **Loghi centralizzati** in `resources/js/Constants/logos.js`. NON usare percorsi hardcoded — importare sempre le costanti `LOGOS`.
 - **Loghi web** in `public/images/`: `logo.png` (volley a colori), `logo-volley-white.png` (volley bianco), `logo-corporate.png` (corporate con payoff), `logo-lvf.png` (LVF ufficiale), `logo-lvf-small.png` (LVF ridotto).
 - **File sorgente loghi** nella cartella `Loghi/` (root del progetto), suddivisi in `Lega/`, `SDB Azienda/`, `SDB Volley/`.

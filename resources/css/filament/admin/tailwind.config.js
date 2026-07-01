@@ -11,7 +11,7 @@ export default {
         extend: {
             colors: {
                 savino: {
-                    red: '#E0004D',
+                    red: '#DF338F',
                     blue: '#003063',
                     gold: '#bda871',
                 }

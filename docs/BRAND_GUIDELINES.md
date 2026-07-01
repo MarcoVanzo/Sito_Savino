@@ -69,7 +69,7 @@ Stemma circolare composto da:
 
 | Colore | CMYK | RGB | HEX | Uso |
 |--------|------|-----|-----|-----|
-| **Rosso SDB** | 0 / 100 / 66 / 12 | 224, 0, 77 | `#E0004D` | Accento primario, CTA |
+| **Rosso SDB** | — | 223, 51, 143 | `#DF338F` | Accento primario, CTA |
 | **Blu Navy SDB** | 100 / 70 / 0 / 50 | 0, 48, 99 | `#003063` | Colore istituzionale, sfondi |
 | **Bianco** | 0 / 0 / 0 / 0 | 255, 255, 255 | `#FFFFFF` | Testo su fondo scuro |
 
@@ -157,7 +157,7 @@ Riepilogo di tutti i colori utilizzati nel progetto, come definiti in `tailwind.
 | Token Tailwind | HEX | RGB | Origine | Uso nel Sito |
 |----------------|-----|-----|---------|--------------|
 | `savino-blue` | `#003063` | 0, 48, 99 | Brand Book SDB Volley | Navbar, sidebar, sfondi, bottoni primari |
-| `savino-red` | `#E0004D` | 224, 0, 77 | Brand Book SDB Volley | CTA, accenti, pulsanti danger |
+| `savino-red` | `#DF338F` | 223, 51, 143 | Pantone DF338F | CTA, accenti, pulsanti danger |
 | `savino-gold` | `#C9A84C` | 201, 168, 76 | Design interno | Accenti premium, elementi decorativi |
 | `savino-pink` | `#ED028C` | 237, 2, 140 | Approssimazione LVF | Accenti correlati alla Lega |
 

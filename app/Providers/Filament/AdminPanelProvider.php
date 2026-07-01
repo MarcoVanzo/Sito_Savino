@@ -34,7 +34,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->colors([
                 'primary' => Color::Hex('#003063'), // Savino Blue
-                'danger' => Color::Hex('#E0004D'), // Savino Red
+                'danger' => Color::Hex('#DF338F'), // Savino Red
                 'warning' => Color::Hex('#bda871'), // Savino Gold
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')

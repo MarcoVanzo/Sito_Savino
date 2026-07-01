@@ -79,7 +79,7 @@
 }
 .dark .fi-topbar {
     background: rgba(15, 23, 42, 0.9) !important;
-    border-bottom-color: #E0004D !important; /* Red accent on dark topbar */
+    border-bottom-color: #DF338F !important; /* Red accent on dark topbar */
 }
 
 /* Cards & Sections */
@@ -137,7 +137,7 @@
 }
 
 .fi-btn-color-danger {
-    background: linear-gradient(135deg, #E0004D 0%, #a8003a 100%) !important;
+    background: linear-gradient(135deg, #DF338F 0%, #a82569 100%) !important;
     border: none !important;
 }
 

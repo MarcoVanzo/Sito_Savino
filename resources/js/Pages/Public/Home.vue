@@ -849,8 +849,8 @@ const ogMeta = useOgMeta({
 }
 
 @keyframes ctaGlowRed {
-    0%, 100% { box-shadow: 0 0 15px rgba(224, 0, 77, 0.2), 0 0 30px rgba(224, 0, 77, 0.1); }
-    50% { box-shadow: 0 0 25px rgba(224, 0, 77, 0.4), 0 0 50px rgba(224, 0, 77, 0.2); }
+    0%, 100% { box-shadow: 0 0 15px rgba(223, 51, 143, 0.2), 0 0 30px rgba(223, 51, 143, 0.1); }
+    50% { box-shadow: 0 0 25px rgba(223, 51, 143, 0.4), 0 0 50px rgba(223, 51, 143, 0.2); }
 }
 
 /* === MATCH CARD GRADIENT SHIFT === */
