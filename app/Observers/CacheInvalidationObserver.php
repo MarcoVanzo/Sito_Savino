@@ -2,6 +2,8 @@
 
 namespace App\Observers;
 
+use App\Http\Middleware\CachePublicResponse;
+
 use App\Models\Game;
 use App\Models\Page;
 use App\Models\Player;
@@ -79,15 +81,12 @@ class CacheInvalidationObserver
     }
 
     /**
-     * Flush all full-page response cache entries.
-     * Since file cache doesn't support tag-based invalidation,
-     * we clear the entire application cache. This is acceptable
-     * because all cached data has short TTLs and rebuilds quickly.
+     * Flush only full-page response cache entries.
+     * Uses CachePublicResponse's registry-based flush to avoid
+     * clearing controller-level caches unnecessarily.
      */
     private function flushPageCache(): void
     {
-        // Clear all cache — page cache + controller cache.
-        // With file driver and short TTLs this is fast and safe.
-        Cache::flush();
+        CachePublicResponse::flush();
     }
 }

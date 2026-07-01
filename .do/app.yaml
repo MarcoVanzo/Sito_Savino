@@ -54,7 +54,7 @@ services:
       - key: LOG_LEVEL
         value: warning
       - key: SESSION_DRIVER
-        value: file
+        value: database
       - key: SESSION_ENCRYPT
         value: "true"
       - key: CACHE_STORE
