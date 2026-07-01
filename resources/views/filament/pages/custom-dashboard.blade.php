@@ -11,7 +11,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             @php
                 $cards = [
-                    ['title' => 'Stagione', 'url' => '/admin/roster', 'icon' => 'heroicon-s-trophy', 'color' => '#ec4899', 'bg' => 'rgba(236, 72, 153, 0.1)'],
+                    ['title' => 'Stagione', 'url' => '/admin/serie-a1/roster', 'icon' => 'heroicon-s-trophy', 'color' => '#ec4899', 'bg' => 'rgba(236, 72, 153, 0.1)'],
                     ['title' => 'Società', 'url' => '/admin/management', 'icon' => 'heroicon-s-building-office-2', 'color' => '#3b82f6', 'bg' => 'rgba(59, 130, 246, 0.1)'],
                     ['title' => 'Ticketing', 'url' => '/admin/under-construction', 'icon' => 'heroicon-s-ticket', 'color' => '#10b981', 'bg' => 'rgba(16, 185, 129, 0.1)'],
                     ['title' => 'Sponsor', 'url' => '/admin/sponsor', 'icon' => 'heroicon-s-briefcase', 'color' => '#f59e0b', 'bg' => 'rgba(245, 158, 11, 0.1)'],
