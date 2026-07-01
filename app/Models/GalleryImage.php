@@ -19,6 +19,7 @@ class GalleryImage extends Model implements HasMedia
         'title',
         'category',
         'sort_order',
+        'file_hash',
         'is_active',
         'needs_review',
     ];

@@ -73,17 +73,32 @@ class ListGalleryImages extends ListRecords
                         ]);
 
                         $uploadedPhotos = $data['uploaded_photos'] ?? [];
+                        $duplicates = 0;
+                        $uploaded = 0;
 
                         foreach ($uploadedPhotos as $key => $file) {
+                            // Rilevamento duplicati via hash
+                            $fileHash = null;
+                            if (is_string($file)) {
+                                $fullPath = storage_path('app/private/' . $file);
+                                if (file_exists($fullPath)) {
+                                    $fileHash = hash_file('sha256', $fullPath);
+                                }
+                            }
+
+                            if ($fileHash && GalleryImage::where('file_hash', $fileHash)->exists()) {
+                                $duplicates++;
+                                continue;
+                            }
+
                             $image = new GalleryImage;
                             $image->gallery_event_id = $event->id;
                             $image->title = $event->title;
                             $image->category = $event->category;
                             $image->is_active = true;
+                            $image->file_hash = $fileHash;
                             $image->save();
 
-                            // FileUpload uses disk('local') — file is on local disk.
-                            // Spatie addMediaFromDisk reads from local, then stores on the media disk (S3 in prod).
                             if (is_string($file)) {
                                 $image->addMediaFromDisk($file, 'local')
                                     ->toMediaCollection('gallery');
@@ -95,11 +110,17 @@ class ListGalleryImages extends ListRecords
                             }
 
                             AnalyzeGalleryImageJob::dispatch($image);
+                            $uploaded++;
+                        }
+
+                        $body = $uploaded . ' foto in fase di analisi AI.';
+                        if ($duplicates > 0) {
+                            $body .= ' ' . $duplicates . ' duplicati saltati.';
                         }
 
                         Notification::make()
                             ->title('Evento Creato')
-                            ->body(count($uploadedPhotos).' foto in fase di analisi AI.')
+                            ->body($body)
                             ->success()
                             ->send();
                     } catch (\Throwable $e) {
