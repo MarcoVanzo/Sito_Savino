@@ -4,13 +4,9 @@ services:
     github:
       repo: MarcoVanzo/sito_savino
       branch: main
-      deploy_on_push: false
-    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build:prod
+      deploy_on_push: true
+    build_command: composer install --optimize-autoloader --no-dev && npm install && npm run build
     run_command: php artisan migrate --force && php artisan storage:link; php artisan cache:clear; php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan filament:optimize; heroku-php-apache2 public/
-    health_check:
-      http_path: /up
-      initial_delay_seconds: 10
-      period_seconds: 30
     envs:
       - key: APP_ENV
         value: production
@@ -51,9 +47,8 @@ services:
         value: sito-savino-assets-2026
       - key: AWS_ENDPOINT
         value: https://fra1.digitaloceanspaces.com
-      # CDN: abilitare Spaces CDN dalla console DO prima del deploy
       - key: AWS_URL
-        value: https://sito-savino-assets-2026.fra1.cdn.digitaloceanspaces.com
+        value: https://sito-savino-assets-2026.fra1.digitaloceanspaces.com
       - key: LOG_CHANNEL
         value: stderr
       - key: LOG_LEVEL
@@ -76,23 +71,11 @@ services:
         value: http://157.230.98.6:8000
       - key: COMPREFACE_KEY
         type: SECRET
-
-      # Mail — Resend (creare account su resend.com e aggiungere API key)
-      - key: MAIL_MAILER
-        value: resend
-      - key: RESEND_KEY
-        type: SECRET
-      - key: MAIL_FROM_ADDRESS
-        value: noreply@savinodelbenevolley.it
-      - key: MAIL_FROM_NAME
-        value: Savino Del Bene Volley
-
-workers:
   - name: worker
     github:
       repo: MarcoVanzo/sito_savino
       branch: main
-      deploy_on_push: false
+      deploy_on_push: true
     build_command: composer install --optimize-autoloader --no-dev
     run_command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
     instance_count: 1
@@ -104,10 +87,6 @@ workers:
         type: SECRET
       - key: APP_DEBUG
         value: "false"
-      - key: APP_URL
-        value: https://www.savinodelbenevolley.it
-      - key: APP_LOCALE
-        value: it
       - key: LOG_CHANNEL
         value: stderr
       - key: LOG_LEVEL
@@ -140,23 +119,10 @@ workers:
         value: sito-savino-assets-2026
       - key: AWS_ENDPOINT
         value: https://fra1.digitaloceanspaces.com
-      - key: AWS_URL
-        value: https://sito-savino-assets-2026.fra1.cdn.digitaloceanspaces.com
       - key: COMPREFACE_HOST
         value: http://157.230.98.6:8000
       - key: COMPREFACE_KEY
         type: SECRET
-
-      # Mail — Resend (stesse credenziali del web per i job in coda)
-      - key: MAIL_MAILER
-        value: resend
-      - key: RESEND_KEY
-        type: SECRET
-      - key: MAIL_FROM_ADDRESS
-        value: noreply@savinodelbenevolley.com
-      - key: MAIL_FROM_NAME
-        value: Savino Del Bene Volley
-
 databases:
   - name: sito-savino-db
     engine: MYSQL
