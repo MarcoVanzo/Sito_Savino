@@ -16,6 +16,10 @@ const props = defineProps({
     standings: {
         type: Array,
         default: () => []
+    },
+    seasonName: {
+        type: String,
+        default: 'Stagione corrente',
     }
 })
 
@@ -69,7 +73,7 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Stagione 2025/26</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Risultati e Classifica' }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">Segui i risultati delle nostre partite e la classifica aggiornata del campionato.</p>

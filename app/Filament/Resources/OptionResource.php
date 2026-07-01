@@ -48,7 +48,7 @@ class OptionResource extends Resource
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->helperText('Identificativo univoco (es. site_logo, contact_email)'),
+                            ->helperText('Identificativo univoco (es. site_logo, email)'),
                         Forms\Components\Textarea::make('value')
                             ->helperText('Valore testuale dell\'opzione. Lascia vuoto se stai caricando un file.')
                             ->columnSpanFull(),

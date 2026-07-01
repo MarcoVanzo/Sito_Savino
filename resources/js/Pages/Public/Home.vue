@@ -63,6 +63,14 @@ const stats = computed(() => {
     ];
 });
 
+// CTA Banner dal backend con fallback
+const ctaTicketingTitle = computed(() => homeSettings.value.cta_ticketing_title || 'Biglietteria');
+const ctaTicketingText = computed(() => homeSettings.value.cta_ticketing_text || 'Acquista i biglietti per la prossima partita');
+const ctaTicketingUrl = computed(() => homeSettings.value.cta_ticketing_url || '/ticketing');
+const ctaShopTitle = computed(() => homeSettings.value.cta_shop_title || 'Shop Ufficiale');
+const ctaShopText = computed(() => homeSettings.value.cta_shop_text || 'Maglie, merchandise e accessori della squadra');
+const ctaShopUrl = computed(() => homeSettings.value.cta_shop_url || '/shop');
+
 // === SLIDESHOW ===
 const currentSlide = ref(0);
 const previousSlide = ref(-1);
@@ -683,24 +691,24 @@ const ogMeta = useOgMeta({
         <!-- CTA SPLIT BANNER -->
         <section ref="ctaSection" class="py-0 overflow-hidden">
             <div class="grid md:grid-cols-2">
-                <Link href="/ticketing" class="group relative bg-savino-blue py-16 px-8 text-center hover:bg-savino-blue/90 transition-colors duration-300 overflow-hidden" data-reveal>
+                <Link :href="ctaTicketingUrl" class="group relative bg-savino-blue py-16 px-8 text-center hover:bg-savino-blue/90 transition-colors duration-300 overflow-hidden" data-reveal>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div class="relative">
                         <svg class="w-10 h-10 text-savino-gold mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
-                        <h3 class="text-white text-2xl font-black uppercase tracking-tight">Biglietteria</h3>
-                        <p class="text-white/60 text-sm mt-2">Acquista i biglietti per la prossima partita</p>
+                        <h3 class="text-white text-2xl font-black uppercase tracking-tight">{{ ctaTicketingTitle }}</h3>
+                        <p class="text-white/60 text-sm mt-2">{{ ctaTicketingText }}</p>
                         <span class="inline-flex items-center gap-1 text-savino-gold text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
                             Scopri
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
                     </div>
                 </Link>
-                <Link href="/shop" class="group relative bg-gray-900 py-16 px-8 text-center hover:bg-gray-800 transition-colors duration-300 overflow-hidden" data-reveal>
+                <Link :href="ctaShopUrl" class="group relative bg-gray-900 py-16 px-8 text-center hover:bg-gray-800 transition-colors duration-300 overflow-hidden" data-reveal>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div class="relative">
                         <svg class="w-10 h-10 text-savino-gold mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                        <h3 class="text-white text-2xl font-black uppercase tracking-tight">Shop Ufficiale</h3>
-                        <p class="text-white/60 text-sm mt-2">Maglie, merchandise e accessori della squadra</p>
+                        <h3 class="text-white text-2xl font-black uppercase tracking-tight">{{ ctaShopTitle }}</h3>
+                        <p class="text-white/60 text-sm mt-2">{{ ctaShopText }}</p>
                         <span class="inline-flex items-center gap-1 text-savino-gold text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
                             Vai allo Shop
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>

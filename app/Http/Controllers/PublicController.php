@@ -144,7 +144,9 @@ class PublicController extends Controller
                     ->toArray();
             }
 
-            return compact('games');
+            $seasonName = $currentSeason?->name ?? 'Stagione corrente';
+
+            return compact('games', 'seasonName');
         });
 
         return Inertia::render('Public/Risultati', $data);

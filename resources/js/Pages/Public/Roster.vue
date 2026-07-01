@@ -14,6 +14,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    seasonName: {
+        type: String,
+        default: 'Stagione corrente',
+    },
 });
 
 const placeholderPlayers = [
@@ -53,7 +57,7 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.04]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;40&quot; height=&quot;40&quot; viewBox=&quot;0 0 40 40&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Ccircle cx=&quot;20&quot; cy=&quot;20&quot; r=&quot;8&quot; fill=&quot;%23C5A55A&quot;/%3E%3C/svg%3E'); background-size: 40px 40px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Stagione 2025/26</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ page?.title ?? 'Il Nostro Roster' }}
                 </h1>

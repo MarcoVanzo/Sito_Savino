@@ -70,7 +70,7 @@ class SiteSettingSeeder extends Seeder
 
             // ── CONTACT ──────────────────────────────────────────────────
             [
-                'key' => 'contact_email',
+                'key' => 'email',
                 'value' => 'info@savinodelbenescandicci.it',
                 'type' => 'email',
                 'group' => 'contact',
@@ -78,7 +78,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 0,
             ],
             [
-                'key' => 'contact_phone',
+                'key' => 'phone',
                 'value' => '+39 055 XXX XXXX',
                 'type' => 'phone',
                 'group' => 'contact',
@@ -86,7 +86,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 1,
             ],
             [
-                'key' => 'contact_pec',
+                'key' => 'pec',
                 'value' => 'savinodelbenevolley@pec.it',
                 'type' => 'email',
                 'group' => 'contact',
@@ -94,7 +94,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 2,
             ],
             [
-                'key' => 'contact_address',
+                'key' => 'address',
                 'value' => 'Palazzo Wanny, Via Allende 10, Firenze',
                 'type' => 'text',
                 'group' => 'contact',
@@ -102,7 +102,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 3,
             ],
             [
-                'key' => 'contact_city',
+                'key' => 'city',
                 'value' => 'Scandicci (FI), Toscana',
                 'type' => 'text',
                 'group' => 'contact',
@@ -264,7 +264,7 @@ class SiteSettingSeeder extends Seeder
 
             // ── HOME ─────────────────────────────────────────────────────
             [
-                'key' => 'home_hero_title',
+                'key' => 'hero_title',
                 'value' => 'SAVINO DEL BENE',
                 'type' => 'text',
                 'group' => 'home',
@@ -272,7 +272,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 0,
             ],
             [
-                'key' => 'home_hero_title_accent',
+                'key' => 'hero_subtitle',
                 'value' => 'VOLLEY',
                 'type' => 'text',
                 'group' => 'home',
@@ -280,7 +280,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 1,
             ],
             [
-                'key' => 'home_hero_claim',
+                'key' => 'hero_tagline',
                 'value' => 'Scatena la Potenza.',
                 'type' => 'text',
                 'group' => 'home',
@@ -288,7 +288,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 2,
             ],
             [
-                'key' => 'home_cta_primary_text',
+                'key' => 'hero_cta1_label',
                 'value' => 'Prossima Partita',
                 'type' => 'text',
                 'group' => 'home',
@@ -296,7 +296,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 3,
             ],
             [
-                'key' => 'home_cta_primary_url',
+                'key' => 'hero_cta1_url',
                 'value' => '/stagione',
                 'type' => 'url',
                 'group' => 'home',
@@ -304,7 +304,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 4,
             ],
             [
-                'key' => 'home_cta_secondary_text',
+                'key' => 'hero_cta2_label',
                 'value' => 'Biglietteria',
                 'type' => 'text',
                 'group' => 'home',
@@ -312,7 +312,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 5,
             ],
             [
-                'key' => 'home_cta_secondary_url',
+                'key' => 'hero_cta2_url',
                 'value' => '/ticketing',
                 'type' => 'url',
                 'group' => 'home',
@@ -320,7 +320,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 6,
             ],
             [
-                'key' => 'home_stats',
+                'key' => 'stats',
                 'value' => json_encode([
                     ['value' => '40+', 'label' => 'Anni di Storia', 'icon' => '🏆'],
                     ['value' => '4.000+', 'label' => 'Posti al Palazzo Wanny', 'icon' => '🏟️'],
@@ -333,7 +333,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 7,
             ],
             [
-                'key' => 'home_cta_ticketing_title',
+                'key' => 'cta_ticketing_title',
                 'value' => 'Biglietteria',
                 'type' => 'text',
                 'group' => 'home',
@@ -341,7 +341,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 8,
             ],
             [
-                'key' => 'home_cta_ticketing_text',
+                'key' => 'cta_ticketing_text',
                 'value' => 'Acquista i biglietti per la prossima partita',
                 'type' => 'text',
                 'group' => 'home',
@@ -349,7 +349,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 9,
             ],
             [
-                'key' => 'home_cta_ticketing_url',
+                'key' => 'cta_ticketing_url',
                 'value' => '/ticketing',
                 'type' => 'url',
                 'group' => 'home',
@@ -357,7 +357,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 10,
             ],
             [
-                'key' => 'home_cta_shop_title',
+                'key' => 'cta_shop_title',
                 'value' => 'Shop Ufficiale',
                 'type' => 'text',
                 'group' => 'home',
@@ -365,7 +365,7 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 11,
             ],
             [
-                'key' => 'home_cta_shop_text',
+                'key' => 'cta_shop_text',
                 'value' => 'Maglie, merchandise e accessori della squadra',
                 'type' => 'text',
                 'group' => 'home',
@@ -373,12 +373,28 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 12,
             ],
             [
-                'key' => 'home_cta_shop_url',
+                'key' => 'cta_shop_url',
                 'value' => '/shop',
                 'type' => 'url',
                 'group' => 'home',
                 'label' => 'URL CTA Shop',
                 'sort_order' => 13,
+            ],
+            [
+                'key' => 'stats_title',
+                'value' => 'Il Club in Numeri',
+                'type' => 'text',
+                'group' => 'home',
+                'label' => 'Titolo Sezione Statistiche',
+                'sort_order' => 14,
+            ],
+            [
+                'key' => 'stats_subtitle',
+                'value' => 'I Numeri',
+                'type' => 'text',
+                'group' => 'home',
+                'label' => 'Sottotitolo Sezione Statistiche',
+                'sort_order' => 15,
             ],
         ];
 

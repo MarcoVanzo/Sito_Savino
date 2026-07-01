@@ -16,8 +16,9 @@ const props = defineProps({
 
 const { sanitize } = useSanitize()
 const safeContent = computed(() => sanitize(props.page?.content))
+const cd = computed(() => props.page?.content_data ?? {})
 
-const projects = [
+const projects = computed(() => cd.value.projects ?? [
     {
         icon: '🏐',
         title: 'Volley4All',
@@ -46,14 +47,14 @@ const projects = [
         description: 'Iniziative green per ridurre l\'impatto ambientale degli eventi sportivi e sensibilizzare la community.',
         tag: 'Ambiente'
     }
-]
+])
 
-const impactNumbers = [
+const impactNumbers = computed(() => cd.value.impact_stats ?? [
     { value: '500+', label: 'Ragazzi Coinvolti' },
     { value: '12', label: 'Scuole Partner' },
     { value: '30+', label: 'Eventi Sociali' },
     { value: '€50K', label: 'Fondi Raccolti' }
-]
+])
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? 'Progetti Sociali',
@@ -76,13 +77,13 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Sport e Società</span>
+            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge || 'Sport e Società' }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ page?.title ?? 'Progetti Sociali' }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
             <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                Il nostro impegno per la comunità va oltre il campo da gioco.
+                {{ cd.hero_description || 'Il nostro impegno per la comunità va oltre il campo da gioco.' }}
             </p>
         </div>
     </section>
@@ -93,17 +94,14 @@ const ogMeta = useOgMeta({
             <div class="max-w-3xl mx-auto text-center">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">La Nostra Missione</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    Sport Come Strumento Sociale
+                    {{ cd.mission_title || 'Sport Come Strumento Sociale' }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4 mb-8"></div>
                 <p class="text-gray-600 text-lg leading-relaxed">
-                    La Savino Del Bene crede fermamente nel potere trasformativo dello sport.
-                    Attraverso i nostri progetti sociali, lavoriamo ogni giorno per costruire una comunità
-                    più inclusiva, sostenibile e attenta ai bisogni di tutti.
+                    {{ cd.mission_text_1 || 'La Savino Del Bene crede fermamente nel potere trasformativo dello sport. Attraverso i nostri progetti sociali, lavoriamo ogni giorno per costruire una comunità più inclusiva, sostenibile e attenta ai bisogni di tutti.' }}
                 </p>
                 <p class="text-gray-600 text-lg leading-relaxed mt-4">
-                    Dalla pallavolo per tutti ai programmi educativi, dal sitting volley alle iniziative
-                    ambientali: ogni progetto è un passo verso un futuro migliore.
+                    {{ cd.mission_text_2 || 'Dalla pallavolo per tutti ai programmi educativi, dal sitting volley alle iniziative ambientali: ogni progetto è un passo verso un futuro migliore.' }}
                 </p>
             </div>
         </div>
