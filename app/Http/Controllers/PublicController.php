@@ -184,6 +184,7 @@ class PublicController extends Controller
                 ->map(fn ($img) => [
                     'id' => $img->id,
                     'url' => $img->getFirstMediaUrl('gallery'),
+                    'thumb' => $img->getFirstMediaUrl('gallery', 'thumb') ?: $img->getFirstMediaUrl('gallery'),
                     'alt' => $img->title ?? 'Immagine Galleria',
                     'category' => $img->category ?? 'Partite',
                 ])

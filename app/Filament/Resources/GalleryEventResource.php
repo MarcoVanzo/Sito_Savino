@@ -70,7 +70,11 @@ class GalleryEventResource extends Resource
                             ->label('Carica Nuove Foto')
                             ->multiple()
                             ->image()
-                            ->maxSize(5120)
+                            ->maxSize(51200)
+                            ->imageResizeMode('contain')
+                            ->imageResizeTargetWidth('2400')
+                            ->imageResizeTargetHeight('2400')
+                            ->imageResizeUpscale(false)
                             ->directory('temp_gallery_uploads')
                             ->dehydrated(false)
                             ->saveRelationshipsUsing(function (FileUpload $component, $state, GalleryEvent $record) {

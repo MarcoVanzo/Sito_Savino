@@ -50,7 +50,11 @@ class ListGalleryImages extends ListRecords
                         ->label('Cartella Foto')
                         ->multiple()
                         ->image()
-                        ->maxSize(5120)
+                        ->maxSize(51200)
+                        ->imageResizeMode('contain')
+                        ->imageResizeTargetWidth('2400')
+                        ->imageResizeTargetHeight('2400')
+                        ->imageResizeUpscale(false)
                         ->directory('temp_gallery_uploads')
                         ->required(),
                 ])
@@ -77,7 +81,7 @@ class ListGalleryImages extends ListRecords
                         // In an action, file paths are returned as strings if they are saved.
                         if (is_string($file)) {
                             // File was moved to the directory
-                            $image->addMediaFromDisk($file, config('filament.default_filesystem_disk'))
+                            $image->addMediaFromDisk($file, config('filesystems.default'))
                                 ->toMediaCollection('gallery');
                         }
 

@@ -9,6 +9,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class AnalyzeGalleryImageJob implements ShouldQueue
 {
@@ -27,37 +28,51 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             return;
         }
 
-        $imagePath = $media->getPath();
+        // Use Storage facade for S3 compatibility (getPath() only works with local disk)
+        $disk = Storage::disk($media->disk);
+        $relativePath = $media->getPathRelativeToRoot();
 
-        if (! file_exists($imagePath)) {
-            Log::warning("AnalyzeGalleryImageJob: File not found at {$imagePath}");
+        if (! $disk->exists($relativePath)) {
+            Log::warning("AnalyzeGalleryImageJob: File not found on disk {$media->disk}: {$relativePath}");
 
             return;
         }
 
-        $analysisResult = $facialRecognitionService->recognizeFaces($imagePath);
-        $detectedPlayers = $analysisResult['detected_players'] ?? [];
-        $hasUnrecognizedFaces = $analysisResult['has_unrecognized_faces'] ?? false;
+        // Download to a temporary file for CompreFace (which needs a local file path)
+        $tempPath = sys_get_temp_dir().'/'.uniqid('gallery_').'_'.$media->file_name;
 
-        $needsReview = $hasUnrecognizedFaces;
+        try {
+            file_put_contents($tempPath, $disk->get($relativePath));
 
-        if (! empty($detectedPlayers)) {
-            $syncData = [];
-            foreach ($detectedPlayers as $detected) {
-                $syncData[$detected['player_id']] = ['confidence_score' => $detected['confidence']];
+            $analysisResult = $facialRecognitionService->recognizeFaces($tempPath);
+            $detectedPlayers = $analysisResult['detected_players'] ?? [];
+            $hasUnrecognizedFaces = $analysisResult['has_unrecognized_faces'] ?? false;
+
+            $needsReview = $hasUnrecognizedFaces;
+
+            if (! empty($detectedPlayers)) {
+                $syncData = [];
+                foreach ($detectedPlayers as $detected) {
+                    $syncData[$detected['player_id']] = ['confidence_score' => $detected['confidence']];
+                }
+
+                // Sync players without detaching existing ones
+                $this->galleryImage->players()->syncWithoutDetaching($syncData);
+
+                // Update title for SEO if not already containing player names
+                $this->updateTitleWithPlayerNames();
             }
 
-            // Sync players without detaching existing ones
-            $this->galleryImage->players()->syncWithoutDetaching($syncData);
-
-            // Update title for SEO if not already containing player names
-            $this->updateTitleWithPlayerNames();
-        }
-
-        // If there are unrecognized faces, flag the image for manual review
-        if ($needsReview) {
-            $this->galleryImage->needs_review = true;
-            $this->galleryImage->saveQuietly();
+            // If there are unrecognized faces, flag the image for manual review
+            if ($needsReview) {
+                $this->galleryImage->needs_review = true;
+                $this->galleryImage->saveQuietly();
+            }
+        } finally {
+            // Cleanup: always delete the temporary file
+            if (file_exists($tempPath)) {
+                @unlink($tempPath);
+            }
         }
     }
 

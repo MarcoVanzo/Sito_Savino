@@ -47,7 +47,11 @@ class GalleryImageResource extends Resource
                             ->label('Immagine')
                             ->collection('gallery')
                             ->image()
-                            ->maxSize(5120)
+                            ->maxSize(51200)
+                            ->imageResizeMode('contain')
+                            ->imageResizeTargetWidth('2400')
+                            ->imageResizeTargetHeight('2400')
+                            ->imageResizeUpscale(false)
                             ->required()
                             ->columnSpanFull(),
                         Forms\Components\TextInput::make('title')

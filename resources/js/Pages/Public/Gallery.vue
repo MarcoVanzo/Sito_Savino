@@ -384,7 +384,7 @@ const ogMeta = useOgMeta({
                     </div>
 
                     <img
-                        :src="item.url"
+                        :src="item.thumb || item.url"
                         :alt="item.alt"
                         class="gallery-masonry__img"
                         :class="{ 'gallery-masonry__img--loaded': loadedImages.has(item.id) }"
@@ -477,7 +477,7 @@ const ogMeta = useOgMeta({
                             class="gallery-lightbox__thumb"
                             :class="{ 'gallery-lightbox__thumb--active': Math.max(0, lightboxIndex - 4) + i === lightboxIndex }"
                         >
-                            <img :src="item.url" :alt="item.alt" @error="onImgError" />
+                            <img :src="item.thumb || item.url" :alt="item.alt" @error="onImgError" />
                         </button>
                     </div>
                 </div>

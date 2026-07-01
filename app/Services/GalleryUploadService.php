@@ -24,6 +24,8 @@ class GalleryUploadService
             return;
         }
 
+        $disk = $component->getDiskName() ?? config('filesystems.default');
+
         foreach ($state as $file) {
             $image = new GalleryImage;
             $image->gallery_event_id = $record->id;
@@ -33,11 +35,28 @@ class GalleryUploadService
             $image->save();
 
             if ($file instanceof TemporaryUploadedFile) {
-                $image->addMedia($file->getRealPath())
-                    ->toMediaCollection('gallery');
+                // Livewire temp file: download content via readStream for S3 compatibility
+                $tempPath = sys_get_temp_dir().'/'.uniqid('upload_').'_'.$file->getClientOriginalName();
+                try {
+                    $stream = $file->readStream();
+                    file_put_contents($tempPath, $stream);
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+
+                    $image->addMedia($tempPath)
+                        ->usingFileName($file->getClientOriginalName())
+                        ->toMediaCollection('gallery');
+                } catch (\Throwable $e) {
+                    // Cleanup on failure
+                    if (file_exists($tempPath)) {
+                        @unlink($tempPath);
+                    }
+
+                    throw $e;
+                }
             } else {
-                // It's a string (path on disk)
-                $disk = $component->getDiskName();
+                // It's a string (path on disk) — already saved by Filament
                 $image->addMediaFromDisk($file, $disk)
                     ->toMediaCollection('gallery');
             }
