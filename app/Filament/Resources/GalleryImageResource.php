@@ -175,6 +175,10 @@ class GalleryImageResource extends Resource
                             ->success()
                             ->send();
                     }),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (GalleryImage $record) {
+                        $record->clearMediaCollection('gallery');
+                    }),
             ])
             ->bulkActions(array_merge(static::standardBulkActions(), [
                 Tables\Actions\BulkAction::make('analyzeBulk')

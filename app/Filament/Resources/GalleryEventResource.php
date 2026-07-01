@@ -116,6 +116,14 @@ class GalleryEventResource extends Resource
                     ->label('Vedi Foto')
                     ->icon('heroicon-o-photo')
                     ->url(fn (GalleryEvent $record): string => GalleryImageResource::getUrl('index', ['tableFilters' => ['gallery_event_id' => ['value' => $record->id]]])),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (GalleryEvent $record) {
+                        // Elimina anche le immagini associate e i relativi media files
+                        foreach ($record->galleryImages as $image) {
+                            $image->clearMediaCollection('gallery');
+                            $image->delete();
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
