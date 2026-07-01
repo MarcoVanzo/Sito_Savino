@@ -56,8 +56,6 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             $detectedPlayers = $analysisResult['detected_players'] ?? [];
             $hasUnrecognizedFaces = $analysisResult['has_unrecognized_faces'] ?? false;
 
-            $needsReview = $hasUnrecognizedFaces;
-
             if (! empty($detectedPlayers)) {
                 $syncData = [];
                 foreach ($detectedPlayers as $detected) {
@@ -68,14 +66,13 @@ class AnalyzeGalleryImageJob implements ShouldQueue
                 $this->galleryImage->players()->syncWithoutDetaching($syncData);
             }
 
-            // Ottimizza SEO (titolo, alt text, meta) anche senza atlete riconosciute
-            $this->optimizeForSeo();
-
-            // If there are unrecognized faces, flag the image for manual review
-            if ($needsReview) {
+            // Flag per revisione manuale se ci sono volti non riconosciuti
+            if ($hasUnrecognizedFaces) {
                 $this->galleryImage->needs_review = true;
-                $this->galleryImage->saveQuietly();
             }
+
+            // Ottimizza SEO (titolo, alt text, meta) — esegue saveQuietly() internamente
+            $this->optimizeForSeo();
         } finally {
             // Cleanup: always delete the temporary file
             if (file_exists($tempPath)) {
@@ -87,6 +84,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
     /**
      * Ottimizza la foto per la SEO dopo il riconoscimento facciale.
      * Genera: titolo descrittivo, alt text, custom properties sulla media.
+     * Esegue un unico save alla fine.
      */
     protected function optimizeForSeo(): void
     {
@@ -98,7 +96,6 @@ class AnalyzeGalleryImageJob implements ShouldQueue
         $playerNames = $players->map->full_name->toArray();
         $playerLastNames = $players->map->last_name->toArray();
         $namesString = implode(', ', $playerNames);
-        $lastNamesString = implode(', ', $playerLastNames);
 
         // Contesto dell'evento
         $eventTitle = $event?->title ?? '';
@@ -168,6 +165,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             $media->save();
         }
 
+        // Unico save del modello GalleryImage (include needs_review se settato)
         $this->galleryImage->saveQuietly();
     }
 
