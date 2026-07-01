@@ -50,6 +50,7 @@ class ListGalleryImages extends ListRecords
                         ->label('Cartella Foto')
                         ->multiple()
                         ->image()
+                        ->disk('local')
                         ->maxSize(51200)
                         ->imageResizeMode('contain')
                         ->imageResizeTargetWidth('2400')
@@ -77,10 +78,10 @@ class ListGalleryImages extends ListRecords
                         $image->is_active = true;
                         $image->save();
 
-                        // Access the disk used by FileUpload for temp storage.
-                        // Livewire temp uploads use 'local' disk (see config/livewire.php).
+                        // FileUpload uses disk('local') — file is on local disk.
+                        // Spatie addMediaFromDisk reads from local, then stores on the media disk (S3 in prod).
                         if (is_string($file)) {
-                            $image->addMediaFromDisk($file, config('livewire.temporary_file_upload.disk', 'local'))
+                            $image->addMediaFromDisk($file, 'local')
                                 ->toMediaCollection('gallery');
                         }
 

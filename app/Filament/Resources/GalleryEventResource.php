@@ -70,6 +70,7 @@ class GalleryEventResource extends Resource
                             ->label('Carica Nuove Foto')
                             ->multiple()
                             ->image()
+                            ->disk('local')
                             ->maxSize(51200)
                             ->imageResizeMode('contain')
                             ->imageResizeTargetWidth('2400')

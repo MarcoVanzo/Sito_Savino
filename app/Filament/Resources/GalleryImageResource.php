@@ -47,6 +47,7 @@ class GalleryImageResource extends Resource
                             ->label('Immagine')
                             ->collection('gallery')
                             ->image()
+                            ->disk('local')
                             ->maxSize(51200)
                             ->imageResizeMode('contain')
                             ->imageResizeTargetWidth('2400')
