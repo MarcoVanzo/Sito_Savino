@@ -104,42 +104,81 @@ class PlayerResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\Action::make('syncFace')
-                    ->label('Sincronizza Volto AI')
-                    ->icon('heroicon-o-face-smile')
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->modalHeading('Sincronizza Volto con AI')
-                    ->modalDescription('Invia la foto profilo attuale al sistema di riconoscimento facciale per addestrare l\'AI a riconoscere questa atleta.')
-                    ->action(function (Player $record) {
-                        $media = $record->getFirstMedia('players');
-                        if (! $media) {
-                            Notification::make()
-                                ->title('Errore')
-                                ->body('Nessuna immagine di profilo trovata per l\'addestramento.')
-                                ->danger()
-                                ->send();
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('addTrainingFaces')
+                        ->label('Addestra AI (Upload Foto)')
+                        ->icon('heroicon-o-academic-cap')
+                        ->color('success')
+                        ->form([
+                            Forms\Components\FileUpload::make('training_images')
+                                ->label('Foto per l\'Addestramento')
+                                ->multiple()
+                                ->image()
+                                ->helperText('Carica più foto del volto da diverse angolazioni. Non verranno salvate sul server, ma solo inviate all\'AI.')
+                                ->required(),
+                        ])
+                        ->modalHeading('Addestra Intelligenza Artificiale')
+                        ->modalDescription('L\'AI imparerà a riconoscere questa atleta analizzando le foto caricate. Questo processo non cancellerà le foto precedenti.')
+                        ->modalSubmitActionLabel('Invia e Addestra')
+                        ->action(function (Player $record, array $data) {
+                            $service = app(FacialRecognitionService::class);
+                            $successCount = 0;
+                            $errorCount = 0;
 
-                            return;
-                        }
+                            // Ensure subject exists
+                            $service->createSubject($record);
 
-                        $service = app(FacialRecognitionService::class);
-                        $success = $service->addFaceExampleFromMedia($record, $media);
+                            if (!empty($data['training_images'])) {
+                                foreach ($data['training_images'] as $image) {
+                                    // $image is an UploadedFile or string path depending on Filament version/config, 
+                                    // FileUpload multiple returns array of temporary string paths or UploadedFiles
+                                    $path = is_string($image) ? storage_path('app/public/' . $image) : $image->getRealPath();
+                                    
+                                    if ($service->addFaceExample($record, $path)) {
+                                        $successCount++;
+                                    } else {
+                                        $errorCount++;
+                                    }
+                                }
+                            }
 
-                        if ($success) {
+                            // Sync avatar as well
+                            $media = $record->getFirstMedia('players');
+                            if ($media && $service->addFaceExampleFromMedia($record, $media)) {
+                                $successCount++;
+                            }
+
                             Notification::make()
-                                ->title('Successo')
-                                ->body('Volto sincronizzato correttamente con l\'AI.')
-                                ->success()
+                                ->title('Addestramento Completato')
+                                ->body("{$successCount} volti appresi con successo. " . ($errorCount > 0 ? "{$errorCount} errori." : ""))
+                                ->status($errorCount > 0 ? 'warning' : 'success')
                                 ->send();
-                        } else {
-                            Notification::make()
-                                ->title('Errore API')
-                                ->body('Impossibile sincronizzare il volto. Verifica i log.')
-                                ->danger()
-                                ->send();
-                        }
-                    }),
+                        }),
+
+                    Tables\Actions\Action::make('resetAiFaces')
+                        ->label('Resetta Memoria Volto')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Resetta Volti da CompreFace')
+                        ->modalDescription('Attenzione: L\'AI dimenticherà completamente come riconoscere questa atleta. Dovrai addestrarla di nuovo. Procedere?')
+                        ->action(function (Player $record) {
+                            $service = app(FacialRecognitionService::class);
+                            if ($service->deleteAllSubjectExamples($record)) {
+                                Notification::make()
+                                    ->title('Memoria Azzerata')
+                                    ->body('L\'AI non riconoscerà più questa atleta fino al prossimo addestramento.')
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Errore API')
+                                    ->body('Impossibile azzerare la memoria.')
+                                    ->danger()
+                                    ->send();
+                            }
+                        }),
+                ])->icon('heroicon-m-sparkles')->label('Azioni AI'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions(static::softDeleteBulkActions());
