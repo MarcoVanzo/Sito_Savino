@@ -101,7 +101,8 @@ class MenuItem extends Model implements HasMedia
                         $menuImage = '/images/menu/'.self::$staticMenuImages[$normalizedLabel];
                     }
 
-                    $url = $item->url ?: '/in-costruzione';
+                    $url = rtrim($item->url ?: '/in-costruzione', '/');
+                    $url = $url === '' ? '/' : $url;
                     $href = str_starts_with($url, '/') ? $prefix.$url : $url;
 
                     return [
@@ -114,7 +115,8 @@ class MenuItem extends Model implements HasMedia
                         'menuImage' => $menuImage,
                         'isHighlight' => $item->is_highlight,
                         'children' => $item->children->map(function ($child) use ($prefix) {
-                            $childUrl = $child->url ?: '/in-costruzione';
+                            $childUrl = rtrim($child->url ?: '/in-costruzione', '/');
+                            $childUrl = $childUrl === '' ? '/' : $childUrl;
 
                             return [
                                 'id' => $child->id,
