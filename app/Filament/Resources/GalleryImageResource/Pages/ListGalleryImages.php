@@ -77,11 +77,10 @@ class ListGalleryImages extends ListRecords
                         $image->is_active = true;
                         $image->save();
 
-                        // Access the disk used by FileUpload (usually default public or s3)
-                        // In an action, file paths are returned as strings if they are saved.
+                        // Access the disk used by FileUpload for temp storage.
+                        // Livewire temp uploads use 'local' disk (see config/livewire.php).
                         if (is_string($file)) {
-                            // File was moved to the directory
-                            $image->addMediaFromDisk($file, config('filesystems.default'))
+                            $image->addMediaFromDisk($file, config('livewire.temporary_file_upload.disk', 'local'))
                                 ->toMediaCollection('gallery');
                         }
 
