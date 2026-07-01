@@ -71,7 +71,7 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[35vh] flex items-end bg-gradient-to-br from-gray-900 via-[#0B1521] to-gray-800">
             <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                 <div class="mb-4">
-                    <Link href="/news" class="text-savino-gold hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
+                    <Link href="/news" class="inline-flex items-center min-h-[44px] text-savino-gold hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
                         ← Torna alle News
                     </Link>
                 </div>

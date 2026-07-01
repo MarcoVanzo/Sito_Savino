@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
 
 class Page extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, LogsActivity;
+    use HasFactory, HasTranslations, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
         'wp_id', 'title', 'slug', 'template', 'content', 'content_data', 'excerpt',
@@ -45,5 +46,22 @@ class Page extends Model implements HasMedia
     public function scopePublished($query)
     {
         return $query->where('status', PostStatus::Published);
+    }
+
+    /**
+     * Quando il model viene serializzato (es. via Inertia), i campi translatable
+     * vengono risolti nella lingua corrente anziché restituire l'array completo.
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        foreach ($this->translatable as $field) {
+            if (isset($array[$field])) {
+                $array[$field] = $this->getTranslation($field, app()->getLocale());
+            }
+        }
+
+        return $array;
     }
 }

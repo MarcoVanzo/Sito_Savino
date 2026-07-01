@@ -88,19 +88,19 @@ const ogMeta = useOgMeta({
                         :key="game.id"
                         class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100"
                     >
-                        <div class="flex items-center">
+                        <!-- Desktop layout (sm+) -->
+                        <div class="hidden sm:flex items-center">
                             <!-- Date -->
-                            <div class="w-28 sm:w-32 flex-shrink-0 bg-savino-blue text-white text-center py-5 px-3">
+                            <div class="w-32 flex-shrink-0 bg-savino-blue text-white text-center py-5 px-3">
                                 <span class="text-xs font-bold uppercase tracking-wider block">{{ game.date }}</span>
                                 <span class="text-[10px] text-white/60 mt-1 block">{{ game.status }}</span>
                             </div>
                             <!-- Match -->
-                            <div class="flex-1 flex items-center justify-between px-4 sm:px-8 py-4">
+                            <div class="flex-1 flex items-center justify-between px-8 py-4">
                                 <div class="flex-1 text-right pr-4">
                                     <span
-                                        class="text-sm sm:text-base font-bold whitespace-nowrap"
+                                        class="text-base font-bold whitespace-nowrap"
                                         :class="game.home.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
-                                       
                                     >{{ game.home }}</span>
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
@@ -110,9 +110,8 @@ const ogMeta = useOgMeta({
                                 </div>
                                 <div class="flex-1 text-left pl-4">
                                     <span
-                                        class="text-sm sm:text-base font-bold whitespace-nowrap"
+                                        class="text-base font-bold whitespace-nowrap"
                                         :class="game.away.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
-                                       
                                     >{{ game.away }}</span>
                                 </div>
                             </div>
@@ -121,8 +120,39 @@ const ogMeta = useOgMeta({
                                 <span
                                     class="px-3 py-1 rounded-full text-xs font-bold uppercase"
                                     :class="isWin(game) ? 'bg-green-100 text-green-700' : 'bg-savino-red/10 text-savino-red'"
-                                   
                                 >{{ isWin(game) ? 'Vittoria' : 'Sconfitta' }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Mobile layout (<sm) -->
+                        <div class="sm:hidden">
+                            <!-- Header: date + status + badge -->
+                            <div class="flex items-center justify-between bg-savino-blue text-white px-4 py-2.5">
+                                <div>
+                                    <span class="text-xs font-bold uppercase tracking-wider">{{ game.date }}</span>
+                                    <span class="text-[10px] text-white/50 ml-2">{{ game.status }}</span>
+                                </div>
+                                <span
+                                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                                    :class="isWin(game) ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'"
+                                >{{ isWin(game) ? 'Vittoria' : 'Sconfitta' }}</span>
+                            </div>
+                            <!-- Teams -->
+                            <div class="px-4 py-3 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span
+                                        class="text-sm font-bold truncate mr-3"
+                                        :class="game.home.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
+                                    >{{ game.home }}</span>
+                                    <span class="text-xl font-black text-gray-900 flex-shrink-0">{{ game.scoreHome }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span
+                                        class="text-sm font-bold truncate mr-3"
+                                        :class="game.away.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
+                                    >{{ game.away }}</span>
+                                    <span class="text-xl font-black text-gray-900 flex-shrink-0">{{ game.scoreAway }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>

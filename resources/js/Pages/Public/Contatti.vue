@@ -244,7 +244,7 @@ const ogMeta = useOgMeta({
                                     href="https://www.google.com/maps/dir//Palazzo+Wanny,+Via+Salvador+Allende,+Firenze"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="ml-auto text-xs font-bold text-savino-blue hover:text-savino-blue/80 transition-colors uppercase tracking-wider"
+                                    class="ml-auto inline-flex items-center min-h-[44px] text-xs font-bold text-savino-blue hover:text-savino-blue/80 transition-colors uppercase tracking-wider"
                                 >
                                     Indicazioni →
                                 </a>

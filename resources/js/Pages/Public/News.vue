@@ -100,13 +100,13 @@ const ogMeta = useOgMeta({
                         <Link
                             v-if="link.url"
                             :href="link.url"
-                            class="px-4 py-2 text-sm font-medium border rounded-md transition-colors"
+                            class="px-4 py-2.5 min-h-[44px] flex items-center text-sm font-medium border rounded-md transition-colors"
                             :class="link.active ? 'bg-savino-blue text-white border-savino-blue' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
                             v-html="sanitize(link.label)"
                         />
                         <span
                             v-else
-                            class="px-4 py-2 text-sm text-gray-400 border border-gray-200 rounded-md"
+                            class="px-4 py-2.5 min-h-[44px] flex items-center text-sm text-gray-400 border border-gray-200 rounded-md"
                             v-html="sanitize(link.label)"
                         />
                     </template>

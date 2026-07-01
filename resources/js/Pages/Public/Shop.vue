@@ -81,8 +81,8 @@ const ogMeta = useOgMeta({
                             <div v-else class="w-full h-full flex items-center justify-center">
                                 <svg class="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             </div>
-                            <!-- Quick View Overlay -->
-                            <div class="absolute inset-0 bg-savino-blue/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <!-- Quick View Overlay (desktop hover only — on mobile the product info below serves as CTA) -->
+                            <div class="absolute inset-0 bg-savino-blue/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-center">
                                 <span class="text-white text-sm font-bold uppercase tracking-wider border-2 border-savino-gold px-6 py-3 hover:bg-savino-gold hover:text-savino-blue transition-colors">Dettagli</span>
                             </div>
                         </div>

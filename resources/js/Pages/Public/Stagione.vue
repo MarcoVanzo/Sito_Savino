@@ -76,7 +76,7 @@ const ogMeta = useOgMeta({
                         v-for="role in roles"
                         :key="role"
                         @click="selectedRole = role"
-                        class="px-5 py-2 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300"
+                        class="px-5 py-2.5 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300"
                         :class="selectedRole === role
                             ? 'bg-savino-blue text-white shadow-lg shadow-savino-blue/30'
                             : 'bg-white text-gray-600 hover:bg-savino-blue/10 hover:text-savino-blue border border-gray-200'"

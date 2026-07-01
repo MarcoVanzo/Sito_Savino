@@ -11,6 +11,18 @@ import { ref, onUnmounted } from 'vue';
  * @param {number} options.transitionDuration - Durata transizione in ms, default 400
  */
 export function useTiltEffect(options = {}) {
+    // Skip on touch devices or when user prefers reduced motion
+    if (typeof window !== 'undefined' &&
+        (window.matchMedia('(hover: none)').matches ||
+         window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+        const noop = () => ({});
+        return {
+            createTiltHandlers: () => ({ onMousemove: noop, onMouseleave: noop }),
+            getTiltStyle: noop,
+            getGlareStyle: noop,
+        };
+    }
+
     const {
         maxTilt = 8,
         perspective = 1000,
