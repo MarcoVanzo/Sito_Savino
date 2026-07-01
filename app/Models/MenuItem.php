@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class MenuItem extends Model implements HasMedia
 {
@@ -151,4 +152,13 @@ class MenuItem extends Model implements HasMedia
         static::saved(fn () => static::clearCache());
         static::deleted(fn () => static::clearCache());
     }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(400)
+            ->sharpen(10);
+    }
 }
+

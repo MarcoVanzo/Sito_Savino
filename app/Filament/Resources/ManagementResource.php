@@ -36,7 +36,7 @@ class ManagementResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('type', StaffType::Dirigenza);
+        return parent::getEloquentQuery()->where('type', StaffType::Dirigenza)->with('media');
     }
 
     public static function form(Form $form): Form
@@ -86,6 +86,7 @@ class ManagementResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
+                    ->conversion('thumb')
                     ->label('')
                     ->collection('staff')
                     ->circular(),

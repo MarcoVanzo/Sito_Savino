@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class GalleryImageResource extends Resource
@@ -91,6 +92,7 @@ class GalleryImageResource extends Resource
         return $table
             ->columns([
                 SpatieMediaLibraryImageColumn::make('image')
+                    ->conversion('thumb')
                     ->label('Immagine')
                     ->collection('gallery')
                     ->square(),
@@ -122,11 +124,13 @@ class GalleryImageResource extends Resource
                 Tables\Filters\SelectFilter::make('category')
                     ->label('Categoria')
                     ->options(function () {
-                        return GalleryImage::query()
-                            ->select('category')
-                            ->distinct()
-                            ->pluck('category', 'category')
-                            ->toArray();
+                        return \Illuminate\Support\Facades\Cache::remember('gallery_image_categories', 3600, fn() =>
+                            GalleryImage::query()
+                                ->select('category')
+                                ->distinct()
+                                ->pluck('category', 'category')
+                                ->toArray()
+                        );
                     }),
                 Tables\Filters\SelectFilter::make('gallery_event_id')
                     ->label('Evento')
@@ -154,7 +158,7 @@ class GalleryImageResource extends Resource
                         Forms\Components\Select::make('players')
                             ->label('Atlete presenti')
                             ->multiple()
-                            ->options(Player::all()->pluck('last_name', 'id'))
+                            ->options(Player::pluck('last_name', 'id'))
                             ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {
@@ -207,4 +211,10 @@ class GalleryImageResource extends Resource
             'edit' => Pages\EditGalleryImage::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['media', 'players']);
+    }
+
 }

@@ -80,6 +80,7 @@ class HeroSlideResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('image')
+                    ->conversion('thumb')
                     ->label('Immagine')
                     ->collection('hero-slides')
                     ->circular(),

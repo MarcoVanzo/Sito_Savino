@@ -98,6 +98,6 @@ class CategoryResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['parent']);
+            ->with(['parent', 'media']);
     }
 }

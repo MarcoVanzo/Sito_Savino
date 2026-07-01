@@ -114,12 +114,13 @@ class ActivityLogResource extends Resource
 
                 Tables\Filters\SelectFilter::make('model_type')
                     ->label('Tipo Risorsa')
-                    ->options(fn () => ActivityLog::query()
-                        ->distinct()
-                        ->pluck('model_type')
-                        ->mapWithKeys(fn ($type) => [$type => class_basename($type)])
-                        ->toArray()
-                    ),
+                    ->options(fn () => \Illuminate\Support\Facades\Cache::remember('activity_log_model_types', 3600, fn() =>
+                        ActivityLog::query()
+                            ->distinct()
+                            ->pluck('model_type')
+                            ->mapWithKeys(fn ($type) => [$type => class_basename($type)])
+                            ->toArray()
+                    )),
 
                 Tables\Filters\Filter::make('created_at')
                     ->form([
@@ -221,7 +222,7 @@ class ActivityLogResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('user');
+        return parent::getEloquentQuery()->with(['user', 'media']);
     }
 
     /**

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Translatable\HasTranslations;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class StaffMember extends Model implements HasMedia
 {
@@ -35,4 +36,13 @@ class StaffMember extends Model implements HasMedia
     {
         return "{$this->first_name} {$this->last_name}";
     }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(400)
+            ->sharpen(10);
+    }
 }
+

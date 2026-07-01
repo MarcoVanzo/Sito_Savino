@@ -140,6 +140,6 @@ class PlayerStatResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['player', 'season']);
+            ->with(['player', 'season', 'media']);
     }
 }

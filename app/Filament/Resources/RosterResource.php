@@ -111,6 +111,7 @@ class RosterResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('official_photo')
+                    ->conversion('thumb')
                     ->label('')
                     ->collection('rosters_official')
                     ->circular()

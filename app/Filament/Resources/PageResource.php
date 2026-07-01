@@ -184,6 +184,6 @@ class PageResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['parent', 'author']);
+            ->with(['parent', 'author', 'media']);
     }
 }

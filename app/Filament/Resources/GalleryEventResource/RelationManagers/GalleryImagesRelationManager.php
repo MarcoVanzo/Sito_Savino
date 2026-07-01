@@ -57,9 +57,13 @@ class GalleryImagesRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
+        // Aggiunto caricamento media e players per performance
+        $table->modifyQueryUsing(fn (Builder $query) => $query->with(['media', 'players']));
+
         return $table
             ->columns([
                 SpatieMediaLibraryImageColumn::make('gallery')
+                    ->conversion('thumb')
                     ->collection('gallery')
                     ->label('Foto')
                     ->circular(false)
@@ -123,7 +127,7 @@ class GalleryImagesRelationManager extends RelationManager
                         Forms\Components\Select::make('players')
                             ->label('Atlete presenti')
                             ->multiple()
-                            ->options(Player::all()->pluck('last_name', 'id'))
+                            ->options(Player::pluck('last_name', 'id'))
                             ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {

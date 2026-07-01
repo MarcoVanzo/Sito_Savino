@@ -42,7 +42,7 @@ class StaffMemberResource extends Resource
     {
         return parent::getEloquentQuery()
             ->where(function ($q) {
-                $q->where('section', 'a1')->orWhereNull('section');
+                $q->where('section', 'a1')->orWhereNull('section')->with('media');
             })
             ->whereIn('type', [StaffType::Tecnico, StaffType::Medico]);
     }
@@ -97,6 +97,7 @@ class StaffMemberResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
+                    ->conversion('thumb')
                     ->label('')
                     ->collection('staff')
                     ->circular(),

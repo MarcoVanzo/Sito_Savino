@@ -80,6 +80,7 @@ class TeamResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('logo')
+                    ->conversion('thumb')
                     ->label('')
                     ->collection('teams')
                     ->circular(),
@@ -121,6 +122,6 @@ class TeamResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->whereIn('category', ['B1', 'U17', 'U15']);
+            ->whereIn('category', ['B1', 'U17', 'U15'])->with('media');
     }
 }

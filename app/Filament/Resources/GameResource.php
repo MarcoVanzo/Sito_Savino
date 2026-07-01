@@ -161,6 +161,6 @@ class GameResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['homeTeam', 'awayTeam', 'season']);
+            ->with(['homeTeam', 'awayTeam', 'season', 'media']);
     }
 }

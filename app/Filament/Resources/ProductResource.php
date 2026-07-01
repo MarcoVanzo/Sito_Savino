@@ -138,6 +138,7 @@ class ProductResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('images')
+                    ->conversion('thumb')
                     ->label('')
                     ->collection('products')
                     ->square(),
@@ -193,6 +194,6 @@ class ProductResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->with(['category']);
+            ->with(['category', 'media']);
     }
 }

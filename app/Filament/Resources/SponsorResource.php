@@ -65,6 +65,7 @@ class SponsorResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('logo')
+                    ->conversion('thumb')
                     ->label('Logo')
                     ->collection('sponsors')
                     ->circular(),

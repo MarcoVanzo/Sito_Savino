@@ -146,6 +146,6 @@ class StockMovementResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['product', 'variant', 'order']);
+            ->with(['product', 'variant', 'order', 'media']);
     }
 }

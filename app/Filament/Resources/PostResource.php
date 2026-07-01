@@ -121,6 +121,7 @@ class PostResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('cover')
+                    ->conversion('thumb')
                     ->label('')
                     ->collection('cover')
                     ->circular(),
@@ -182,6 +183,6 @@ class PostResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['author', 'categories']);
+            ->with(['author', 'categories', 'media']);
     }
 }

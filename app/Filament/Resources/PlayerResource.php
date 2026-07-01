@@ -88,6 +88,7 @@ class PlayerResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
+                    ->conversion('thumb')
                     ->label('')
                     ->collection('players')
                     ->circular(),
@@ -205,6 +206,6 @@ class PlayerResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])->with('media');
     }
 }

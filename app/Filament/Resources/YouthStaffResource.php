@@ -49,7 +49,7 @@ class YouthStaffResource extends Resource
     {
         return parent::getEloquentQuery()
             ->where('section', 'youth')
-            ->whereIn('type', [StaffType::Tecnico, StaffType::Medico]);
+            ->whereIn('type', [StaffType::Tecnico, StaffType::Medico])->with('media');
     }
 
     public static function form(Form $form): Form
@@ -100,6 +100,7 @@ class YouthStaffResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
+                    ->conversion('thumb')
                     ->label('')
                     ->collection('staff')
                     ->circular(),
