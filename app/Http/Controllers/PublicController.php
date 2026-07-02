@@ -192,17 +192,22 @@ class PublicController extends Controller
 
             return $query->get()
                 ->map(function ($img) {
-                    $altText = $img->title ?? 'Immagine Galleria';
-                    if (is_string($altText) && str_starts_with($altText, '{"it":')) {
-                        $decoded = json_decode($altText, true);
-                        $altText = $decoded['it'] ?? $altText;
-                    }
+                    $decodeTitle = function ($text) {
+                        if (! is_string($text) || ! str_starts_with($text, '{"it":')) {
+                            return $text;
+                        }
+                        $decoded = json_decode($text, true);
+                        if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+                        // Attempt to fix truncated JSON
+                        $decoded = json_decode($text . '"}', true);
+                        if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+                        $decoded = json_decode($text . '}', true);
+                        if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+                        return $text;
+                    };
 
-                    $eventName = $img->galleryEvent?->title;
-                    if (is_string($eventName) && str_starts_with($eventName, '{"it":')) {
-                        $decoded = json_decode($eventName, true);
-                        $eventName = $decoded['it'] ?? $eventName;
-                    }
+                    $altText = $decodeTitle($img->title ?? 'Immagine Galleria');
+                    $eventName = $decodeTitle($img->galleryEvent?->title);
 
                     return [
                         'id' => $img->id,

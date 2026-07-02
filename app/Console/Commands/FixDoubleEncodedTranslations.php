@@ -157,48 +157,47 @@ class FixDoubleEncodedTranslations extends Command
      */
     private function fixGalleryTitles(): void
     {
+        $decodeTitle = function ($title) {
+            if (! $title || ! str_starts_with($title, '{"it":')) return null;
+            $decoded = json_decode($title, true);
+            if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+            $decoded = json_decode($title . '"}', true);
+            if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+            $decoded = json_decode($title . '}', true);
+            if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+            return null;
+        };
+
         $events = \App\Models\GalleryEvent::all();
         $eventFixed = 0;
 
         foreach ($events as $event) {
-            $title = $event->title;
-            if ($title && str_starts_with($title, '{"it":')) {
-                $decoded = json_decode($title, true);
-                if (is_array($decoded) && isset($decoded['it'])) {
-                    $plainTitle = $decoded['it'];
-                    
-                    if ($this->option('dry-run')) {
-                        $this->line("   [DRY] GalleryEvent #{$event->id}: \"{$title}\" → \"{$plainTitle}\"");
-                    } else {
-                        $event->title = $plainTitle;
-                        $event->save();
-                    }
-                    $eventFixed++;
-                    $this->fixed++;
+            if ($plainTitle = $decodeTitle($event->title)) {
+                if ($this->option('dry-run')) {
+                    $this->line("   [DRY] GalleryEvent #{$event->id}: \"{$event->title}\" → \"{$plainTitle}\"");
+                } else {
+                    $event->title = $plainTitle;
+                    $event->save();
                 }
+                $eventFixed++;
+                $this->fixed++;
             }
         }
         $this->info("   ✅ GalleryEvent: {$eventFixed} corretti");
 
         $imagesFixed = 0;
-        \App\Models\GalleryImage::query()->chunk(200, function ($images) use (&$imagesFixed) {
+        \App\Models\GalleryImage::query()->chunk(200, function ($images) use (&$imagesFixed, $decodeTitle) {
             foreach ($images as $image) {
-                $title = $image->title;
-                if ($title && str_starts_with($title, '{"it":')) {
-                    $decoded = json_decode($title, true);
-                    if (is_array($decoded) && isset($decoded['it'])) {
-                        $plainTitle = $decoded['it'];
-                        
-                        if ($this->option('dry-run')) {
-                            $preview = mb_substr($plainTitle, 0, 60);
-                            $this->line("   [DRY] GalleryImage #{$image->id}: → \"{$preview}...\"");
-                        } else {
-                            $image->title = $plainTitle;
-                            $image->save();
-                        }
-                        $imagesFixed++;
-                        $this->fixed++;
+                if ($plainTitle = $decodeTitle($image->title)) {
+                    if ($this->option('dry-run')) {
+                        $preview = mb_substr($plainTitle, 0, 60);
+                        $this->line("   [DRY] GalleryImage #{$image->id}: → \"{$preview}...\"");
+                    } else {
+                        $image->title = $plainTitle;
+                        $image->save();
                     }
+                    $imagesFixed++;
+                    $this->fixed++;
                 }
             }
         });
