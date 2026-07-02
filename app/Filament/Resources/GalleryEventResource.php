@@ -145,7 +145,16 @@ class GalleryEventResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            foreach ($records as $event) {
+                                $event->loadMissing('galleryImages');
+                                foreach ($event->galleryImages as $image) {
+                                    $image->clearMediaCollection('gallery');
+                                    $image->delete();
+                                }
+                            }
+                        }),
                 ]),
             ])
             ->defaultSort('event_date', 'desc');
