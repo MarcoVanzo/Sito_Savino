@@ -12,7 +12,7 @@ ingress:
       path:
         prefix: /
 name: sito-savino
-region: fra
+region: nyc
 services:
 - build_command: composer install --optimize-autoloader --no-dev && npm install &&
     npm run build
