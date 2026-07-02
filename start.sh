@@ -12,8 +12,12 @@ echo "[2/6] Creating storage link..."
 php artisan storage:link 2>/dev/null || true
 
 # 3. Clear old cache
-echo "[3/6] Clearing cache..."
+echo "[3/7] Clearing cache..."
 php artisan cache:clear
+
+# 3b. Fix dati double-encoded dall'import WP (one-time, idempotente)
+echo "[3b/7] Fix double-encoded translations..."
+php artisan fix:double-encoded-translations || true
 
 # 4. Config cache — solo se le credenziali S3 sono disponibili
 echo "[4/6] Config cache..."
