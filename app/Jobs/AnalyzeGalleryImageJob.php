@@ -16,6 +16,12 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 {
     use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * Se il modello GalleryImage viene eliminato prima che il job venga processato,
+     * il job viene automaticamente scartato invece di lanciare ModelNotFoundException.
+     */
+    public bool $deleteWhenMissingModels = true;
+
     public int $tries = 3;
 
     public int $timeout = 120;
@@ -76,12 +82,32 @@ class AnalyzeGalleryImageJob implements ShouldQueue
         $tempPath = sys_get_temp_dir().'/'.uniqid('gallery_').'_'.$media->file_name;
 
         try {
-            Log::info("AnalyzeGalleryImageJob: [STEP 3/6] Image #{$imageId} — Downloading from S3");
+            Log::info("AnalyzeGalleryImageJob: [STEP 3/6] Image #{$imageId} — Streaming from S3 to temp");
             $downloadStart = microtime(true);
-            file_put_contents($tempPath, $disk->get($relativePath));
+
+            // Stream da S3 a disco locale — evita di caricare tutto in RAM
+            $stream = $disk->readStream($relativePath);
+            if (! $stream) {
+                throw new \RuntimeException("Failed to open S3 read stream for: {$relativePath}");
+            }
+
+            $localFile = fopen($tempPath, 'wb');
+            if (! $localFile) {
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+                throw new \RuntimeException("Failed to open temp file for writing: {$tempPath}");
+            }
+
+            stream_copy_to_stream($stream, $localFile);
+            fclose($localFile);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+
             $downloadMs = round((microtime(true) - $downloadStart) * 1000);
             $fileSizeKb = round(filesize($tempPath) / 1024, 1);
-            Log::info("AnalyzeGalleryImageJob: [STEP 3/6] Image #{$imageId} — Downloaded {$fileSizeKb}KB in {$downloadMs}ms", [
+            Log::info("AnalyzeGalleryImageJob: [STEP 3/6] Image #{$imageId} — Streamed {$fileSizeKb}KB in {$downloadMs}ms", [
                 'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
             ]);
 
@@ -224,7 +250,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             );
             $media->setCustomProperty('keywords', implode(', ', $keywords));
 
-            $media->save();
+            $media->saveQuietly();
         }
 
         // Unico save del modello GalleryImage (include needs_review se settato)

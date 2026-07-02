@@ -103,13 +103,28 @@ class GalleryImagesRelationManager extends RelationManager
                     ->modalHeading('Analizza tutte le foto')
                     ->modalDescription('Verranno analizzate tutte le foto di questo evento con l\'Intelligenza Artificiale. L\'operazione avviene in background.')
                     ->action(function () {
-                        $images = $this->getOwnerRecord()->galleryImages;
+                        $images = $this->getOwnerRecord()
+                            ->galleryImages()
+                            ->whereHas('media')
+                            ->whereNull('ai_analyzed_at')
+                            ->get();
+
+                        if ($images->isEmpty()) {
+                            Notification::make()
+                                ->title('Tutte le foto sono già analizzate')
+                                ->body('Non ci sono nuove foto da analizzare per questo evento.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
                         foreach ($images as $image) {
                             AnalyzeGalleryImageJob::dispatch($image);
                         }
                         Notification::make()
                             ->title('Analisi AI avviata')
-                            ->body($images->count() . ' foto in fase di analisi in background.')
+                            ->body($images->count() . ' nuove foto in fase di analisi in background.')
                             ->success()
                             ->send();
                     }),

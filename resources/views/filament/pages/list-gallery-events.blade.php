@@ -85,8 +85,12 @@
                             </div>
                         </template>
 
-                        <template x-if="progress.finished && !progress.cancelled">
+                        <template x-if="progress.finished && !progress.cancelled && progress.failedJobs < progress.totalJobs">
                             <x-heroicon-o-check-circle class="w-6 h-6 text-success-500 flex-shrink-0" />
+                        </template>
+
+                        <template x-if="progress.finished && !progress.cancelled && progress.failedJobs >= progress.totalJobs">
+                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-danger-500 flex-shrink-0" />
                         </template>
 
                         <template x-if="progress.cancelled">
@@ -116,8 +120,8 @@
                             class="text-sm font-bold tabular-nums"
                             :class="{
                                 'text-warning-600 dark:text-warning-400': !progress.finished && !progress.cancelled,
-                                'text-success-600 dark:text-success-400': progress.finished && !progress.cancelled,
-                                'text-danger-600 dark:text-danger-400': progress.cancelled,
+                                'text-success-600 dark:text-success-400': progress.finished && !progress.cancelled && progress.failedJobs < progress.totalJobs,
+                                'text-danger-600 dark:text-danger-400': progress.cancelled || (progress.finished && progress.failedJobs >= progress.totalJobs),
                             }"
                             x-text="progress.progress + '%'"
                         ></span>
@@ -154,8 +158,8 @@
                         class="h-full transition-all duration-700 ease-out rounded-r-full"
                         :class="{
                             'bg-gradient-to-r from-warning-500 to-warning-400': !progress.finished && !progress.cancelled,
-                            'bg-gradient-to-r from-success-500 to-success-400': progress.finished && !progress.cancelled,
-                            'bg-gradient-to-r from-danger-500 to-danger-400': progress.cancelled,
+                            'bg-gradient-to-r from-success-500 to-success-400': progress.finished && !progress.cancelled && progress.failedJobs < progress.totalJobs,
+                            'bg-gradient-to-r from-danger-500 to-danger-400': progress.cancelled || (progress.finished && progress.failedJobs >= progress.totalJobs),
                         }"
                         :style="'width: ' + progress.progress + '%'"
                     ></div>

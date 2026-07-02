@@ -206,4 +206,4 @@ workers:
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
   name: worker
-  run_command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+  run_command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600 --max-jobs=100 --memory=384

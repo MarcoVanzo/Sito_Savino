@@ -137,19 +137,23 @@ class FacialRecognitionService
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping recognition.');
 
-            return ['detected_players' => [], 'has_unrecognized_faces' => false];
+            throw new \RuntimeException('CompreFace API Key non configurata.');
         }
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->timeout(30)->retry(2, 1000, throw: false)->attach(
+        ])->timeout(30)->retry(2, 1000)->attach(
             'file', file_get_contents($imagePath), basename($imagePath)
         )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
 
         if (! $response->successful()) {
-            Log::error('CompreFace Recognize Error: '.$response->body());
+            $errorBody = $response->body();
+            Log::error('CompreFace Recognize Error', [
+                'status' => $response->status(),
+                'body' => $errorBody,
+            ]);
 
-            return ['detected_players' => [], 'has_unrecognized_faces' => false];
+            throw new \RuntimeException("CompreFace API error (HTTP {$response->status()}): {$errorBody}");
         }
 
         $result = $response->json();

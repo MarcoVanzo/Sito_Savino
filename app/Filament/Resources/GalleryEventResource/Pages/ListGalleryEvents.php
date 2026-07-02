@@ -18,11 +18,12 @@ class ListGalleryEvents extends ListRecords
     protected static string $view = 'filament.pages.list-gallery-events';
 
     /**
-     * Cache key scoped per utente per evitare race condition multi-admin.
+     * Cache key globale — l'analisi AI è un'operazione che impatta tutti gli eventi,
+     * quindi qualsiasi admin deve poter vedere il progresso e la protezione anti-duplicato.
      */
     protected function batchCacheKey(): string
     {
-        return 'gallery_ai_batch_id_user_' . auth()->id();
+        return 'gallery_ai_batch_id_global';
     }
 
     protected function getHeaderActions(): array
@@ -34,10 +35,10 @@ class ListGalleryEvents extends ListRecords
                 ->color('warning')
                 ->requiresConfirmation()
                 ->modalHeading('Analizza tutte le foto')
-                ->modalDescription('Verranno analizzate tutte le foto di tutti gli eventi con l\'Intelligenza Artificiale. L\'operazione potrebbe richiedere tempo.')
+                ->modalDescription(fn () => $this->getAnalyzeModalDescription())
                 ->modalSubmitActionLabel('Avvia Analisi')
                 ->action(function () {
-                    // Protezione contro doppio lancio
+                    // Protezione contro doppio lancio (globale per tutti gli admin)
                     $existingBatchId = Cache::get($this->batchCacheKey());
                     if ($existingBatchId) {
                         $existingBatch = Bus::findBatch($existingBatchId);
@@ -52,22 +53,23 @@ class ListGalleryEvents extends ListRecords
                         }
                     }
 
-                    // Conta prima, senza caricare tutto in memoria
-                    $totalCount = GalleryImage::whereHas('media')->count();
+                    // Query base: solo foto NON ancora analizzate dall'AI
+                    $query = GalleryImage::whereHas('media')->whereNull('ai_analyzed_at');
+                    $totalCount = $query->count();
 
                     if ($totalCount === 0) {
                         Notification::make()
-                            ->title('Nessuna foto trovata')
-                            ->body('Non ci sono foto da analizzare.')
+                            ->title('Tutte le foto sono già analizzate')
+                            ->body('Non ci sono nuove foto da analizzare. Per ri-analizzare tutto, resetta prima i flag di analisi.')
                             ->warning()
                             ->send();
 
                         return;
                     }
 
-                    // Crea i job in chunk per evitare OOM
+                    // Crea i job in chunk — accumula solo gli ID, non i modelli interi
                     $jobs = [];
-                    GalleryImage::whereHas('media')->chunkById(200, function ($images) use (&$jobs) {
+                    $query->select('id')->chunkById(200, function ($images) use (&$jobs) {
                         foreach ($images as $image) {
                             $jobs[] = new AnalyzeGalleryImageJob($image);
                         }
@@ -85,12 +87,28 @@ class ListGalleryEvents extends ListRecords
 
                     Notification::make()
                         ->title('Analisi AI avviata')
-                        ->body("Analisi in corso per {$totalCount} foto di tutti gli eventi.")
+                        ->body("Analisi in corso per {$totalCount} foto non ancora analizzate.")
                         ->success()
                         ->send();
                 }),
             Actions\CreateAction::make(),
         ];
+    }
+
+    /**
+     * Genera la descrizione della modale con il conteggio delle foto da analizzare.
+     */
+    protected function getAnalyzeModalDescription(): string
+    {
+        $pendingCount = GalleryImage::whereHas('media')->whereNull('ai_analyzed_at')->count();
+        $totalCount = GalleryImage::whereHas('media')->count();
+        $analyzedCount = $totalCount - $pendingCount;
+
+        if ($pendingCount === 0) {
+            return "Tutte le {$totalCount} foto sono già state analizzate.";
+        }
+
+        return "Verranno analizzate {$pendingCount} foto non ancora processate (su {$totalCount} totali, {$analyzedCount} già analizzate). L'operazione avviene in background.";
     }
 
     /**
