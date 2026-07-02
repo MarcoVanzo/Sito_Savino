@@ -37,6 +37,9 @@ class FixDoubleEncodedTranslations extends Command
         $this->info('📁 Correzione Categorie...');
         $this->fixCategoryNames();
 
+        $this->info('🖼️ Correzione Gallery Events e Gallery Images...');
+        $this->fixGalleryTitles();
+
         $this->newLine();
         $this->info("✅ Completato: {$this->fixed} campi corretti, {$this->skipped} già OK");
 
@@ -147,5 +150,58 @@ class FixDoubleEncodedTranslations extends Command
         }
 
         $this->info("   ✅ Categorie: {$catFixed} corrette");
+    }
+
+    /**
+     * Corregge i titoli degli eventi e delle immagini della galleria.
+     */
+    private function fixGalleryTitles(): void
+    {
+        $events = \App\Models\GalleryEvent::all();
+        $eventFixed = 0;
+
+        foreach ($events as $event) {
+            $title = $event->title;
+            if ($title && str_starts_with($title, '{"it":')) {
+                $decoded = json_decode($title, true);
+                if (is_array($decoded) && isset($decoded['it'])) {
+                    $plainTitle = $decoded['it'];
+                    
+                    if ($this->option('dry-run')) {
+                        $this->line("   [DRY] GalleryEvent #{$event->id}: \"{$title}\" → \"{$plainTitle}\"");
+                    } else {
+                        $event->title = $plainTitle;
+                        $event->save();
+                    }
+                    $eventFixed++;
+                    $this->fixed++;
+                }
+            }
+        }
+        $this->info("   ✅ GalleryEvent: {$eventFixed} corretti");
+
+        $imagesFixed = 0;
+        \App\Models\GalleryImage::query()->chunk(200, function ($images) use (&$imagesFixed) {
+            foreach ($images as $image) {
+                $title = $image->title;
+                if ($title && str_starts_with($title, '{"it":')) {
+                    $decoded = json_decode($title, true);
+                    if (is_array($decoded) && isset($decoded['it'])) {
+                        $plainTitle = $decoded['it'];
+                        
+                        if ($this->option('dry-run')) {
+                            $preview = mb_substr($plainTitle, 0, 60);
+                            $this->line("   [DRY] GalleryImage #{$image->id}: → \"{$preview}...\"");
+                        } else {
+                            $image->title = $plainTitle;
+                            $image->save();
+                        }
+                        $imagesFixed++;
+                        $this->fixed++;
+                    }
+                }
+            }
+        });
+        $this->info("   ✅ GalleryImage: {$imagesFixed} corrette");
     }
 }

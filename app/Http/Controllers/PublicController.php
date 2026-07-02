@@ -191,15 +191,29 @@ class PublicController extends Controller
             }
 
             return $query->get()
-                ->map(fn ($img) => [
-                    'id' => $img->id,
-                    'url' => $img->getFirstMediaUrl('gallery', 'lightbox') ?: $img->getFirstMediaUrl('gallery'),
-                    'thumb' => $img->getFirstMediaUrl('gallery', 'thumb') ?: $img->getFirstMediaUrl('gallery'),
-                    'alt' => $img->title ?? 'Immagine Galleria',
-                    'category' => $img->category ?? 'Partite',
-                    'tags' => $img->players->map(fn ($p) => $p->full_name)->values()->toArray(),
-                    'event_name' => $img->galleryEvent?->title,
-                ])
+                ->map(function ($img) {
+                    $altText = $img->title ?? 'Immagine Galleria';
+                    if (is_string($altText) && str_starts_with($altText, '{"it":')) {
+                        $decoded = json_decode($altText, true);
+                        $altText = $decoded['it'] ?? $altText;
+                    }
+
+                    $eventName = $img->galleryEvent?->title;
+                    if (is_string($eventName) && str_starts_with($eventName, '{"it":')) {
+                        $decoded = json_decode($eventName, true);
+                        $eventName = $decoded['it'] ?? $eventName;
+                    }
+
+                    return [
+                        'id' => $img->id,
+                        'url' => $img->getFirstMediaUrl('gallery', 'lightbox') ?: $img->getFirstMediaUrl('gallery'),
+                        'thumb' => $img->getFirstMediaUrl('gallery', 'thumb') ?: $img->getFirstMediaUrl('gallery'),
+                        'alt' => mb_substr($altText, 0, 255),
+                        'category' => $img->category ?? 'Partite',
+                        'tags' => $img->players->map(fn ($p) => $p->full_name)->values()->toArray(),
+                        'event_name' => $eventName,
+                    ];
+                })
                 ->toArray();
         });
 
