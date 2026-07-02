@@ -120,7 +120,7 @@ class GalleryImagesRelationManager extends RelationManager
                         }
 
                         foreach ($images as $image) {
-                            AnalyzeGalleryImageJob::dispatch($image);
+                            AnalyzeGalleryImageJob::dispatch($image)->onQueue('ai');
                         }
                         Notification::make()
                             ->title('Analisi AI avviata')
@@ -175,7 +175,7 @@ class GalleryImagesRelationManager extends RelationManager
                         ->requiresConfirmation()
                         ->action(function (Collection $records) {
                             foreach ($records as $record) {
-                                AnalyzeGalleryImageJob::dispatch($record);
+                                AnalyzeGalleryImageJob::dispatch($record)->onQueue('ai');
                             }
                             Notification::make()
                                 ->title('Analisi avviata')

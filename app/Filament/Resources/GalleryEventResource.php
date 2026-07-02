@@ -190,7 +190,8 @@ class GalleryEventResource extends Resource
                         $jobs = $images->map(fn ($image) => new AnalyzeGalleryImageJob($image))->toArray();
 
                         $batch = Bus::batch($jobs)
-                            ->name("Analisi AI — {$record->title}")
+                            ->name('Analisi AI Evento: '.$record->title)
+                            ->onQueue('ai')
                             ->allowFailures()
                             ->dispatch();
 

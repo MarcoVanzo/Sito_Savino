@@ -77,6 +77,7 @@ class ListGalleryEvents extends ListRecords
 
                     $batch = Bus::batch($jobs)
                         ->name('Analisi AI Gallery - Tutti gli eventi')
+                        ->onQueue('ai')
                         ->allowFailures()
                         ->dispatch();
 

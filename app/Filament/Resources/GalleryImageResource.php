@@ -176,7 +176,7 @@ class GalleryImageResource extends Resource
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
                     ->action(function (GalleryImage $record) {
-                        AnalyzeGalleryImageJob::dispatch($record);
+                        AnalyzeGalleryImageJob::dispatch($record)->onQueue('ai');
                         Notification::make()
                             ->title('Analisi AI avviata')
                             ->body('La foto verrà analizzata in background.')
@@ -194,7 +194,7 @@ class GalleryImageResource extends Resource
                     ->icon('heroicon-o-sparkles')
                     ->action(function (Collection $records) {
                         foreach ($records as $record) {
-                            AnalyzeGalleryImageJob::dispatch($record);
+                            AnalyzeGalleryImageJob::dispatch($record)->onQueue('ai');
                         }
                         Notification::make()
                             ->title('Analisi avviata')
