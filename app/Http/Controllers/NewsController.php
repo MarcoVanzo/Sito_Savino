@@ -17,16 +17,17 @@ class NewsController extends Controller
         $page = max(1, min((int) request('page', 1), 100));
         $locale = app()->getLocale();
 
-        $posts = Cache::remember('public:news:'.$locale.':page:'.$page, now()->addMinutes(5), function () {
+        $posts = Cache::remember('public:news:'.$locale.':page:'.$page, now()->addMinutes(5), function () use ($page) {
             $paginator = Post::published()
                 ->with(['author', 'categories', 'media'])
                 ->orderByDesc('published_at')
-                ->paginate(12);
+                ->paginate(12, ['*'], 'page', $page);
 
             // Trasformiamo ogni post per estrarre la traduzione nella locale corrente prima di cacharlo.
-            $paginator->through(fn ($post) => $this->postToArray($post));
-            
-            return $paginator;
+            // ->through() restituisce un NUOVO paginator, non modifica l'originale.
+            $transformed = $paginator->through(fn ($post) => $this->postToArray($post));
+
+            return $transformed->toArray();
         });
 
         return Inertia::render('Public/News', [
