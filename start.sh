@@ -38,5 +38,5 @@ php artisan event:cache
 echo "[6/6] Filament optimize..."
 php artisan filament:optimize
 
-echo "=== Starting Apache server ==="
-exec heroku-php-apache2 public/
+echo "=== Starting Apache server (with OPcache tuning) ==="
+exec heroku-php-apache2 -i php-config/opcache.ini public/
