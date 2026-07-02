@@ -27,16 +27,14 @@ services:
     scope: RUN_AND_BUILD_TIME
     value: ${APP_DOMAIN}
   - key: APP_KEY
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
-    value: base64:F/Qm8yOzRcxjZFQRlTGoYJiVwueF6po7eCDcO0WnZq0=
-  - key: PREVIEW_AUTH_USER
     type: SECRET
+    value: EV[1:RUWZWKvJM8r0wVrFVOaICwXh5QlfgFFx:DfBDG/9Cwe6n071yJRZRL7V52SH21MaLsortBRZgqnztQEL9jkzdSCrNmmYl1qPiQYTRvacg3+5l2w61bo3ANT3TBw==]
+  - key: PREVIEW_AUTH_USER
     scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: EV[1:YKQFUJZOcCxZnTtcdfd33vqomoHS6Oy5:wCKDKq7bWRSQqgeEvK2WBA==]
   - key: PREVIEW_AUTH_PASS
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: EV[1:7LvxDq1kWdmbFX23z8GUY/71b2QKI6FM:BN31jZmQ3Vqz90V4nmHdAg==]
@@ -65,13 +63,13 @@ services:
     scope: RUN_AND_BUILD_TIME
     value: s3
   - key: AWS_ACCESS_KEY_ID
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
-    value: EV[1:HfXPcqOl/PEmTJ7YO+FHlL+PmkPw+Eiv:Whm/Yl7D/LaMhTI0ZpRDxg==]
+    type: SECRET
+    value: EV[1:N+4GIXt2nCvBxJphWGvQnFldKh2ClvQ0:jHb68CEhxATvpmTbt5aWo9ECmqidvdxBgAKgENuQzHTr3BKi]
   - key: AWS_SECRET_ACCESS_KEY
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
-    value: EV[1:T9fotE3lLXEU6BoAiq4lwupttbH0gTcZ:JixIBJ8x+FbzIQsu0gno8A==]
+    type: SECRET
+    value: EV[1:b5h5DNxroKK9EZM9pdl0EQ89xIUIaMLl:lXuCxUJBkQejZnpHNTZV3pd5MYRIhbJbjatoWRUoWiV2FtpCOr6sjlcEjQLVxZ1aXC6HsX9XHFhYMKU=]
   - key: AWS_DEFAULT_REGION
     scope: RUN_AND_BUILD_TIME
     value: fra1
@@ -115,8 +113,8 @@ services:
     scope: RUN_AND_BUILD_TIME
     value: http://157.230.98.6:8000
   - key: COMPREFACE_KEY
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
+    type: SECRET
     value: EV[1:6QCoSNI+powUeI7lyuGsyOBAFUh7By20:egYJlbgicI5OsyAIxvSYZQ==]
   github:
     branch: main
@@ -133,7 +131,6 @@ workers:
     scope: RUN_AND_BUILD_TIME
     value: production
   - key: APP_KEY
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: EV[1:OmHtEaJvph/SAC9NuXF5zbln2WfyyjPw:UAJo7fOM+W06PqaMgENXCQ==]
@@ -174,13 +171,13 @@ workers:
     scope: RUN_AND_BUILD_TIME
     value: s3
   - key: AWS_ACCESS_KEY_ID
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
-    value: EV[1:hPfkJvFBlF2pATwbwOLiek6Z3GcL3VyN:2O21kyCTcqb9BHGEkBLOLQ==]
+    type: SECRET
+    value: EV[1:2oyXgvBcvFNkjtaloxP9raPGij27GKqr:tCDRrHfDPnL0VCemCqH354MqHSQDUBY1mRZELclDe1uiX1Ti]
   - key: AWS_SECRET_ACCESS_KEY
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
-    value: EV[1:yvtvJeJbZIX70/Y4xyAY06nqxJjIx40x:Wgkf4zivnLAEoCsyOgb6Bg==]
+    type: SECRET
+    value: EV[1:iQcYFmvB8aQICMuFTIAIUYCy/LMcr4Rw:+sTQNP3MossxOgljk7vl+gHf25ElZT+tWJDTpYNiP46BTr3slcuVX8dn/5V2V/WPennrBr2ylNt4jqw=]
   - key: AWS_DEFAULT_REGION
     scope: RUN_AND_BUILD_TIME
     value: fra1
@@ -197,8 +194,8 @@ workers:
     scope: RUN_AND_BUILD_TIME
     value: http://157.230.98.6:8000
   - key: COMPREFACE_KEY
-    type: SECRET
     scope: RUN_AND_BUILD_TIME
+    type: SECRET
     value: EV[1:lDjvrCHeTQP4y+MO3eX/zMUaEo+rJz/i:9BMEbVWiskOIBX091ocRnw==]
   github:
     branch: main
@@ -206,4 +203,5 @@ workers:
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
   name: worker
-  run_command: php artisan queue:work --queue=ai,default --sleep=3 --tries=3 --max-time=3600 --max-jobs=100 --memory=384
+  run_command: php artisan queue:work --queue=ai,default --sleep=3 --tries=3 --max-time=3600
+    --max-jobs=100 --memory=384
