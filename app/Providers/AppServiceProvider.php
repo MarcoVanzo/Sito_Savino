@@ -24,7 +24,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -45,8 +44,6 @@ class AppServiceProvider extends ServiceProvider
         // In sviluppo: segnala lazy loading, mass assignment silenzioso,
         // e accesso ad attributi inesistenti
         Model::shouldBeStrict(! app()->isProduction());
-
-        Vite::prefetch(concurrency: 3);
 
         User::observe(UserObserver::class);
         Order::observe(OrderObserver::class);
