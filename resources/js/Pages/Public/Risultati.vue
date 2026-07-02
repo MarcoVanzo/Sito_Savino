@@ -170,7 +170,8 @@ const ogMeta = useOgMeta({
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">Classifica</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
-                <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
+                <div class="relative">
+                    <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-savino-blue text-white">
@@ -209,6 +210,9 @@ const ogMeta = useOgMeta({
                             </tr>
                         </tbody>
                     </table>
+                    </div>
+                    <!-- Mobile scroll hint gradient -->
+                    <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none rounded-r-xl md:hidden"></div>
                 </div>
 
                 <p class="text-xs text-gray-400 mt-4 text-center">G = Giocate · V = Vinte · P = Perse · SV = Set Vinti · SP = Set Persi</p>

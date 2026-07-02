@@ -22,12 +22,14 @@ class GalleryImage extends Model implements HasMedia
         'file_hash',
         'is_active',
         'needs_review',
+        'ai_analyzed_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'needs_review' => 'boolean',
         'sort_order' => 'integer',
+        'ai_analyzed_at' => 'datetime',
     ];
 
     public function registerMediaCollections(): void

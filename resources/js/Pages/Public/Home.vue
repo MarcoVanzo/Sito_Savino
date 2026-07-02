@@ -392,7 +392,7 @@ const ogMeta = useOgMeta({
                     <img 
                         v-if="index === 0"
                         :src="slide"
-                        alt=""
+                        :alt="'Savino Del Bene Volley — slide ' + (index + 1)"
                         fetchpriority="high"
                         decoding="sync"
                         class="absolute inset-0 w-full h-full object-cover object-center hero-slide-inner"
@@ -431,13 +431,13 @@ const ogMeta = useOgMeta({
                     v-for="(slide, index) in slides"
                     :key="'indicator-' + index"
                     @click="goToSlide(index)"
-                    class="group relative h-1 rounded-full transition-all duration-700 overflow-hidden"
+                    class="group relative h-1 rounded-full transition-all duration-700 overflow-hidden py-5 -my-5"
                     :class="currentSlide === index ? 'w-12 bg-white/30' : 'w-6 bg-white/20 hover:bg-white/30'"
                     :aria-label="'Slide ' + (index + 1)"
                 >
                     <span 
                         v-if="currentSlide === index"
-                        class="absolute inset-0 bg-white rounded-full origin-left slide-progress"
+                        class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-white rounded-full origin-left slide-progress"
                     ></span>
                 </button>
             </div>
@@ -492,7 +492,7 @@ const ogMeta = useOgMeta({
                         </Link>
                         <Link 
                             :href="heroCta2Url" 
-                            class="cta-glow-red inline-flex items-center justify-center px-8 py-4 border-2 border-savino-red bg-savino-red hover:bg-white hover:text-savino-red hover:border-white text-white text-sm font-bold uppercase tracking-widest transition-all duration-300"
+                            class="cta-glow-red inline-flex items-center justify-center px-8 py-4 border-2 border-[#C42D7E] bg-[#C42D7E] hover:bg-white hover:text-[#C42D7E] hover:border-white text-white text-sm font-bold uppercase tracking-widest transition-all duration-300"
                         >
                             {{ heroCta2Label }}
                         </Link>
@@ -525,12 +525,12 @@ const ogMeta = useOgMeta({
                             <!-- Home Team -->
                             <div class="text-center md:text-right flex-1">
                                 <img src="/images/logo.png" :alt="nextGame?.home_team?.name ?? 'Savino Del Bene'" class="w-36 h-28 rounded-xl object-contain bg-white mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" />
-                                <h3 class="text-white font-black text-2xl uppercase tracking-tight whitespace-nowrap">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
+                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
                                 <span class="text-savino-gold text-xs font-bold uppercase tracking-widest mt-1 inline-block">Casa</span>
                             </div>
                             <!-- VS -->
                             <div class="text-center px-8">
-                                <div class="text-white/10 text-8xl md:text-9xl font-black leading-none select-none">VS</div>
+                                <div class="text-white/10 text-6xl md:text-8xl lg:text-9xl font-black leading-none select-none">VS</div>
                                 <div class="-mt-4 bg-savino-gold/15 backdrop-blur-sm rounded-lg px-6 py-3 relative">
                                     <div class="text-savino-gold text-xs font-bold uppercase tracking-widest">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
                                     <div class="text-white text-sm font-bold mt-1">{{ formattedMatchDate ?? 'Data da definire' }}</div>
@@ -541,7 +541,7 @@ const ogMeta = useOgMeta({
                                 <div class="w-24 h-24 rounded-xl bg-white/10 mx-auto md:mr-auto md:ml-0 mb-4 flex items-center justify-center">
                                     <svg class="w-12 h-12 text-white/30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
                                 </div>
-                                <h3 class="text-white font-black text-2xl uppercase tracking-tight whitespace-nowrap">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>
+                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>
                                 <span class="text-white/50 text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ nextGame?.location ?? 'Trasferta' }}</span>
                             </div>
                         </div>

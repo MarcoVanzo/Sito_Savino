@@ -6,6 +6,7 @@ use App\Filament\Resources\GalleryEventResource\Pages;
 use App\Filament\Resources\GalleryEventResource\RelationManagers;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryEvent;
+use App\Models\GalleryImage;
 use App\Services\GalleryUploadService;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
@@ -14,6 +15,8 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 
 class GalleryEventResource extends Resource
 {
@@ -89,6 +92,9 @@ class GalleryEventResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->withCount([
+                'galleryImages as ai_analyzed_images_count' => fn ($q) => $q->whereNotNull('ai_analyzed_at'),
+            ]))
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->label('Titolo')
@@ -107,6 +113,50 @@ class GalleryEventResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Attivo')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('ai_status')
+                    ->label('Analisi AI')
+                    ->state(function (GalleryEvent $record): string {
+                        $total = $record->gallery_images_count ?? 0;
+                        if ($total === 0) {
+                            return 'empty';
+                        }
+                        $analyzed = $record->ai_analyzed_images_count ?? 0;
+                        if ($analyzed === $total) {
+                            return 'complete';
+                        }
+                        if ($analyzed > 0) {
+                            return 'partial';
+                        }
+
+                        return 'none';
+                    })
+                    ->badge()
+                    ->formatStateUsing(function (string $state, GalleryEvent $record): string {
+                        $total = $record->gallery_images_count ?? 0;
+                        if ($total === 0) {
+                            return '—';
+                        }
+                        $analyzed = $record->ai_analyzed_images_count ?? 0;
+
+                        return match ($state) {
+                            'complete' => '✓ ' . $analyzed . '/' . $total,
+                            'partial' => $analyzed . '/' . $total,
+                            'none' => '0/' . $total,
+                            default => '—',
+                        };
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'complete' => 'success',
+                        'partial' => 'warning',
+                        'none' => 'gray',
+                        default => 'gray',
+                    })
+                    ->tooltip(fn (string $state): string => match ($state) {
+                        'complete' => 'Tutte le foto sono state analizzate con AI',
+                        'partial' => 'Alcune foto non sono ancora state analizzate',
+                        'none' => 'Nessuna foto analizzata con AI',
+                        default => 'Nessuna foto presente',
+                    }),
             ])
             ->filters([
                 //
@@ -119,16 +169,38 @@ class GalleryEventResource extends Resource
                     ->color('info')
                     ->requiresConfirmation()
                     ->modalDescription('Tutte le foto di questo evento verranno analizzate con AI in background.')
-                    ->action(function (GalleryEvent $record) {
-                        $record->loadMissing('galleryImages');
-                        $count = 0;
-                        foreach ($record->galleryImages as $image) {
-                            AnalyzeGalleryImageJob::dispatch($image);
-                            $count++;
+                    ->action(function (GalleryEvent $record, \Filament\Tables\Actions\Action $action, $livewire) {
+                        // Query efficiente: evita N+1 con whereHas invece di filter+hasMedia
+                        $images = GalleryImage::where('gallery_event_id', $record->id)
+                            ->whereHas('media')
+                            ->get();
+
+                        if ($images->isEmpty()) {
+                            Notification::make()
+                                ->title('Nessuna foto trovata')
+                                ->body('Questo evento non ha foto da analizzare.')
+                                ->warning()
+                                ->send();
+
+                            return;
                         }
+
+                        $jobs = $images->map(fn ($image) => new AnalyzeGalleryImageJob($image))->toArray();
+
+                        $batch = Bus::batch($jobs)
+                            ->name("Analisi AI — {$record->title}")
+                            ->allowFailures()
+                            ->dispatch();
+
+                        // Cache key scoped per utente
+                        Cache::put('gallery_ai_batch_id_user_' . auth()->id(), $batch->id, now()->addHours(6));
+
+                        // Notifica il frontend di avviare il polling
+                        $livewire->dispatch('batch-started');
+
                         Notification::make()
                             ->title('Analisi AI avviata')
-                            ->body($count . ' foto in fase di analisi.')
+                            ->body($images->count() . ' foto in fase di analisi.')
                             ->success()
                             ->send();
                     }),

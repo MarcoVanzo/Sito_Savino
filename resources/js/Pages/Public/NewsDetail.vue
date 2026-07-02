@@ -127,7 +127,7 @@ const ogMeta = useOgMeta({
                 <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-8">
                     Articoli Correlati
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
                     <article
                         v-for="related in relatedPosts"
                         :key="related.id"

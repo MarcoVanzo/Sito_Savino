@@ -109,7 +109,7 @@ const ogMeta = useOgMeta({
                             {{ para }}
                         </p>
                     </div>
-                    <div class="relative">
+                    <div class="relative overflow-hidden">
                         <div class="aspect-[4/3] bg-gradient-to-br from-savino-blue to-gray-900 rounded-lg overflow-hidden shadow-2xl">
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <div class="text-center">

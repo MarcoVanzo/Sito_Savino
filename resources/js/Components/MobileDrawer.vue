@@ -22,7 +22,7 @@ const emit = defineEmits(['toggle', 'toggle-item']);
 <template>
     <!-- MOBILE MENU BUTTON -->
     <div class="flex items-center xl:hidden z-50">
-        <button @click="emit('toggle')" type="button" aria-label="Apri menu" :aria-expanded="isOpen" class="text-white hover:text-savino-red focus:outline-none p-2">
+        <button @click="emit('toggle')" type="button" aria-label="Apri menu" :aria-expanded="isOpen" class="text-white hover:text-savino-red focus:outline-none p-3 min-w-[44px] min-h-[44px] flex items-center justify-center">
             <svg v-if="!isOpen" class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -61,7 +61,7 @@ const emit = defineEmits(['toggle', 'toggle-item']);
                             v-for="sub in item.children" 
                             :key="sub.label"
                             :href="sub.href"
-                            class="block py-2 text-[12px] font-semibold uppercase tracking-widest text-gray-300 hover:text-white"
+                            class="block py-3 text-sm font-semibold uppercase tracking-widest text-gray-300 hover:text-white min-h-[44px] flex items-center justify-center"
                         >
                             {{ sub.label }}
                         </Link>

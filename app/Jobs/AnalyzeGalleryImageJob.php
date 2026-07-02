@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\GalleryImage;
 use App\Services\FacialRecognitionService;
+use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class AnalyzeGalleryImageJob implements ShouldQueue
 {
-    use InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
 
@@ -29,6 +30,11 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
     public function handle(FacialRecognitionService $facialRecognitionService): void
     {
+        // Skip if batch was cancelled
+        if ($this->batch() && $this->batch()->cancelled()) {
+            return;
+        }
+
         // Get the image file path from Spatie Media Library
         $media = $this->galleryImage->getFirstMedia('gallery');
 
@@ -70,6 +76,9 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             if ($hasUnrecognizedFaces) {
                 $this->galleryImage->needs_review = true;
             }
+
+            // Segna la foto come analizzata dall'AI
+            $this->galleryImage->ai_analyzed_at = now();
 
             // Ottimizza SEO (titolo, alt text, meta) — esegue saveQuietly() internamente
             $this->optimizeForSeo();
