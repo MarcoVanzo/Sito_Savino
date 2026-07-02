@@ -565,14 +565,14 @@ PYTHON;
         try {
             $postData = [
                 'wp_id' => $wpId,
-                'title' => json_encode(['it' => $title], JSON_UNESCAPED_UNICODE),
+                'title' => ['it' => $title],
                 'slug' => $slug,
-                'content' => json_encode(['it' => $cleanContent], JSON_UNESCAPED_UNICODE),
-                'excerpt' => json_encode(['it' => $cleanExcerpt], JSON_UNESCAPED_UNICODE),
+                'content' => ['it' => $cleanContent],
+                'excerpt' => ['it' => $cleanExcerpt],
                 'status' => PostStatus::Published->value,
                 'published_at' => $publishedAt,
                 'meta_title' => $metaTitle,
-                'meta_description' => $metaDesc ? json_encode(['it' => $metaDesc], JSON_UNESCAPED_UNICODE) : null,
+                'meta_description' => $metaDesc ? ['it' => $metaDesc] : null,
             ];
 
             if ($this->option('force')) {

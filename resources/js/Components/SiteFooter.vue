@@ -150,8 +150,7 @@ const socialLinks = computed(() => {
         <!-- Bottom Bar -->
         <div class="border-t border-white/10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="text-gray-400 text-xs">
-                    {{ copyrightText }}
+                <div class="text-gray-400 text-xs" v-html="copyrightText">
                 </div>
                 <div class="flex items-center gap-6">
                     <Link href="/privacy-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">Privacy Policy</Link>

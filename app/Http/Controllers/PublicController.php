@@ -26,7 +26,8 @@ class PublicController extends Controller
 {
     public function home()
     {
-        $data = Cache::remember('public:home', now()->addMinutes(5), function () {
+        $locale = app()->getLocale();
+        $data = Cache::remember("public:home:{$locale}", now()->addMinutes(5), function () {
             // Prossima partita programmata
             $nextGame = Game::with(['homeTeam', 'awayTeam'])
                 ->where('status', GameStatus::Scheduled)
@@ -42,9 +43,9 @@ class PublicController extends Controller
                 ->get()
                 ->map(fn ($post) => [
                     'id' => $post->id,
-                    'title' => $post->title,
+                    'title' => $post->getTranslation('title', app()->getLocale(), false),
                     'slug' => $post->slug,
-                    'excerpt' => $post->excerpt,
+                    'excerpt' => $post->getTranslation('excerpt', app()->getLocale(), false),
                     'published_at' => $post->published_at?->toISOString(),
                     'image_url' => $post->getFirstMediaUrl('cover'),
                 ])->toArray();
@@ -71,12 +72,14 @@ class PublicController extends Controller
 
     public function stagione()
     {
-        return $this->stagioneForTeam('savino-del-bene-volley', 'public:stagione');
+        $locale = app()->getLocale();
+        return $this->stagioneForTeam('savino-del-bene-volley', "public:stagione:{$locale}");
     }
 
     public function stagioneB1()
     {
-        return $this->stagioneForTeam('serie-b1', 'public:stagione:b1', 'Serie B1');
+        $locale = app()->getLocale();
+        return $this->stagioneForTeam('serie-b1', "public:stagione:b1:{$locale}", 'Serie B1');
     }
 
     /**
@@ -167,7 +170,8 @@ class PublicController extends Controller
 
     private function renderGallery(?Player $playerFilter = null)
     {
-        $page = Cache::remember('public:page:gallery', now()->addMinutes(30), function () {
+        $locale = app()->getLocale();
+        $page = Cache::remember("public:page:gallery:{$locale}", now()->addMinutes(30), function () {
             return Page::where('slug', 'gallery')->first();
         });
 
@@ -216,7 +220,8 @@ class PublicController extends Controller
 
     public function staff()
     {
-        $staffTecnico = Cache::remember('public:staff_tecnico', now()->addMinutes(30), function () {
+        $locale = app()->getLocale();
+        $staffTecnico = Cache::remember("public:staff_tecnico:{$locale}", now()->addMinutes(30), function () {
             return StaffMember::with('media')
                 ->where('type', StaffType::Tecnico)
                 ->orderBy('sort_order')
@@ -230,7 +235,7 @@ class PublicController extends Controller
                 ->toArray();
         });
 
-        $staffMedico = Cache::remember('public:staff_medico', now()->addMinutes(30), function () {
+        $staffMedico = Cache::remember("public:staff_medico:{$locale}", now()->addMinutes(30), function () {
             return StaffMember::with('media')
                 ->where('type', StaffType::Medico)
                 ->orderBy('sort_order')
@@ -252,7 +257,8 @@ class PublicController extends Controller
 
     public function organigramma()
     {
-        $dirigenza = Cache::remember('public:organigramma', now()->addMinutes(30), function () {
+        $locale = app()->getLocale();
+        $dirigenza = Cache::remember("public:organigramma:{$locale}", now()->addMinutes(30), function () {
             return StaffMember::with('media')
                 ->where('type', StaffType::Dirigenza)
                 ->orderBy('sort_order')

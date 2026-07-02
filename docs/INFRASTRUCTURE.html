@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentazione Tecnica Infrastruttura — Savino Del Bene Volley</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --savino-blue: #003063;
+            --savino-blue-light: #0a4a8a;
+            --savino-red: #DF338F;
+            --savino-gold: #C9A84C;
+            --savino-pink: #ED028C;
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a6a;
+            --text-light: #7a7a9a;
+            --bg-white: #ffffff;
+            --bg-light: #f8f9fc;
+            --bg-subtle: #eef1f6;
+            --border: #e2e5ec;
+            --border-light: #f0f2f5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @page {
+            size: A4;
+            margin: 20mm 18mm;
+        }
+
+        @media print {
+            body { font-size: 9pt; }
+            .cover-page { height: 100vh; page-break-after: always; }
+            .toc { page-break-after: always; }
+            section { page-break-inside: avoid; }
+            h2 { page-break-before: always; }
+            h2:first-of-type { page-break-before: auto; }
+            table { page-break-inside: avoid; }
+            .no-print { display: none; }
+            .architecture-diagram { page-break-inside: avoid; }
+        }
+
+        body {
+            font-family: 'Montserrat', -apple-system, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.7;
+            background: var(--bg-white);
+            font-size: 10pt;
+        }
+
+        /* === COVER PAGE === */
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--savino-blue) 0%, #001a3a 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cover-page::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(223,51,143,0.15) 0%, transparent 70%);
+        }
+
+        .cover-page::after {
+            content: '';
+            position: absolute;
+            bottom: -10%;
+            left: -5%;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%);
+        }
+
+        .cover-logo {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 40px;
+            border: 2px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .cover-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 38pt;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cover-subtitle {
+            font-size: 16pt;
+            font-weight: 300;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cover-meta {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 40px;
+            font-size: 9pt;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .cover-meta span { display: flex; align-items: center; gap: 8px; }
+
+        .cover-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--savino-pink), var(--savino-gold), var(--savino-blue-light));
+        }
+
+        /* === CONTENT === */
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        /* === TOC === */
+        .toc {
+            padding: 50px 0;
+        }
+
+        .toc h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 22pt;
+            color: var(--savino-blue);
+            margin-bottom: 30px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid var(--savino-gold);
+        }
+
+        .toc-list {
+            list-style: none;
+            counter-reset: toc-counter;
+        }
+
+        .toc-list li {
+            counter-increment: toc-counter;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+        }
+
+        .toc-list li::before {
+            content: counter(toc-counter, decimal-leading-zero);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12pt;
+            font-weight: 700;
+            color: var(--savino-gold);
+            margin-right: 16px;
+            min-width: 30px;
+        }
+
+        .toc-list a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 11pt;
+            font-weight: 500;
+        }
+
+        /* === HEADINGS === */
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20pt;
+            color: var(--savino-blue);
+            margin: 50px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--savino-gold);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 .section-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14pt;
+            font-weight: 700;
+            color: var(--savino-gold);
+            background: rgba(201,168,76,0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        h3 {
+            font-size: 13pt;
+            font-weight: 700;
+            color: var(--savino-blue);
+            margin: 30px 0 12px;
+            padding-left: 14px;
+            border-left: 4px solid var(--savino-pink);
+        }
+
+        h4 {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 20px 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* === PARAGRAPHS === */
+        p {
+            margin: 10px 0;
+            color: var(--text-secondary);
+            font-size: 10pt;
+        }
+
+        strong { color: var(--text-primary); }
+
+        /* === TABLES === */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 9pt;
+        }
+
+        thead th {
+            background: var(--savino-blue);
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 8.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        thead th:first-child { border-radius: 6px 0 0 0; }
+        thead th:last-child { border-radius: 0 6px 0 0; }
+
+        tbody td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        tbody tr:nth-child(even) { background: var(--bg-light); }
+        tbody tr:hover { background: rgba(0,48,99,0.03); }
+
+        .table-highlight td { font-weight: 600; color: var(--text-primary); }
+        .table-total td {
+            background: rgba(0,48,99,0.05) !important;
+            font-weight: 700;
+            color: var(--savino-blue);
+            border-top: 2px solid var(--savino-blue);
+        }
+
+        /* === CODE === */
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8.5pt;
+            background: var(--bg-subtle);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--savino-blue);
+        }
+
+        pre {
+            background: #0f1923;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8.5pt;
+            line-height: 1.8;
+            margin: 16px 0;
+            border-left: 4px solid var(--savino-gold);
+        }
+
+        pre .comment { color: #6a737d; }
+        pre .keyword { color: #c586c0; }
+        pre .string { color: #ce9178; }
+        pre .arrow { color: #d4d4d4; }
+
+        /* === SPEC BOX === */
+        .spec-box {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin: 16px 0;
+        }
+
+        .spec-box h4 {
+            margin: 0 0 12px;
+            padding: 0;
+            border: none;
+        }
+
+        .spec-grid {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 6px 16px;
+            font-size: 9pt;
+        }
+
+        .spec-label {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .spec-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* === CALLOUTS === */
+        .callout {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 9pt;
+            border-left: 4px solid;
+        }
+
+        .callout-info {
+            background: rgba(0,48,99,0.05);
+            border-color: var(--savino-blue);
+            color: var(--savino-blue);
+        }
+
+        .callout-warning {
+            background: rgba(201,168,76,0.1);
+            border-color: var(--savino-gold);
+            color: #8a7030;
+        }
+
+        .callout-pink {
+            background: rgba(237,2,140,0.05);
+            border-color: var(--savino-pink);
+            color: #a0006a;
+        }
+
+        .callout strong { display: block; margin-bottom: 4px; }
+
+        /* === ARCHITECTURE DIAGRAM === */
+        .architecture-diagram {
+            background: linear-gradient(135deg, #f8f9fc 0%, #eef1f8 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .arch-node {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            transition: box-shadow 0.2s;
+        }
+
+        .arch-node:hover { box-shadow: 0 4px 12px rgba(0,48,99,0.1); }
+
+        .arch-node-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .arch-node-name {
+            font-weight: 700;
+            font-size: 10pt;
+            color: var(--savino-blue);
+        }
+
+        .arch-node-detail {
+            font-size: 8pt;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .arch-node-cost {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 11pt;
+            color: var(--savino-pink);
+            margin-top: 8px;
+        }
+
+        .arch-node-full {
+            grid-column: 1 / -1;
+        }
+
+        .arch-flow {
+            text-align: center;
+            padding: 10px;
+            color: var(--text-light);
+            font-size: 8.5pt;
+        }
+
+        .arch-flow .arrow-down { font-size: 16px; color: var(--savino-gold); }
+
+        /* === FLOW STEPS === */
+        .flow-steps {
+            counter-reset: flow;
+            margin: 16px 0;
+        }
+
+        .flow-step {
+            counter-increment: flow;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .flow-step::before {
+            content: counter(flow);
+            min-width: 28px;
+            height: 28px;
+            background: var(--savino-blue);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8pt;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .flow-step .step-actor {
+            font-weight: 600;
+            color: var(--savino-blue);
+            min-width: 120px;
+        }
+
+        .flow-step .step-desc {
+            color: var(--text-secondary);
+        }
+
+        /* === COST PIE === */
+        .cost-summary {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .cost-card {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .cost-card-icon { font-size: 24px; margin-bottom: 6px; }
+        .cost-card-name { font-size: 7.5pt; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .cost-card-price { font-family: 'JetBrains Mono', monospace; font-size: 14pt; font-weight: 700; color: var(--savino-blue); margin-top: 6px; }
+        .cost-card-pct { font-size: 8pt; color: var(--text-light); margin-top: 2px; }
+
+        /* === STATUS BADGE === */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-green { background: #e6f9e6; color: #1a7a1a; }
+        .badge-yellow { background: #fff8e1; color: #8a6d00; }
+        .badge-red { background: #ffeef0; color: #a00020; }
+
+        /* === FOOTER === */
+        .doc-footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+            text-align: center;
+            color: var(--text-light);
+            font-size: 8pt;
+        }
+
+        /* === SEPARATOR === */
+        hr {
+            border: none;
+            height: 1px;
+            background: var(--border);
+            margin: 30px 0;
+        }
+
+        .section-divider {
+            height: 3px;
+            background: linear-gradient(90deg, var(--savino-blue), var(--savino-pink), var(--savino-gold));
+            border: none;
+            border-radius: 2px;
+            margin: 40px 0;
+        }
+
+        /* === SECRET === */
+        .secret {
+            background: repeating-linear-gradient(90deg, var(--text-light) 0px, var(--text-light) 6px, transparent 6px, transparent 10px);
+            display: inline-block;
+            width: 60px;
+            height: 12px;
+            border-radius: 2px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<div class="cover-page">
+    <div class="cover-logo">🏐</div>
+    <h1 class="cover-title">Infrastruttura</h1>
+    <p class="cover-subtitle">Documentazione Tecnica — DigitalOcean</p>
+    <div class="cover-meta">
+        <span>Savino Del Bene Volley</span>
+        <span>•</span>
+        <span>Luglio 2026</span>
+        <span>•</span>
+        <span>Versione 1.0</span>
+    </div>
+    <div class="cover-bar"></div>
+</div>
+
+<div class="content">
+
+<!-- ==================== TOC ==================== -->
+<div class="toc">
+    <h2>Indice</h2>
+    <ol class="toc-list">
+        <li><a href="#s1">Panoramica Architettura</a></li>
+        <li><a href="#s2">Stack Tecnologico</a></li>
+        <li><a href="#s3">Servizi DigitalOcean — Dettaglio</a></li>
+        <li><a href="#s4">Flusso delle Richieste</a></li>
+        <li><a href="#s5">Variabili d'Ambiente</a></li>
+        <li><a href="#s6">Build e Deploy</a></li>
+        <li><a href="#s7">Performance e OPcache</a></li>
+        <li><a href="#s8">Costi</a></li>
+        <li><a href="#s9">Backup e Sicurezza</a></li>
+    </ol>
+</div>
+
+<!-- ==================== 1. ARCHITETTURA ==================== -->
+<h2 id="s1"><span class="section-number">01</span> Panoramica Architettura</h2>
+
+<p>L'intera infrastruttura è ospitata su <strong>DigitalOcean</strong> nella region <strong>Frankfurt (fra/fra1)</strong>, garantendo bassa latenza per gli utenti europei e comunicazione veloce tra i componenti.</p>
+
+<!-- SVG Architecture Diagram with Connections -->
+<div class="architecture-diagram" style="padding:20px 10px;">
+    <div style="text-align:center; margin-bottom:12px; font-size:9pt; color:var(--text-light); text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">DigitalOcean — Region Frankfurt (fra / fra1)</div>
+
+    <svg viewBox="0 0 760 520" style="width:100%; max-width:760px; margin:0 auto; display:block;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#003063"/>
+            </marker>
+            <marker id="arrow-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#ED028C"/>
+            </marker>
+            <marker id="arrow-gold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#C9A84C"/>
+            </marker>
+            <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+                <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#003063" flood-opacity="0.08"/>
+            </filter>
+            <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#003063"/>
+                <stop offset="100%" stop-color="#001a3a"/>
+            </linearGradient>
+        </defs>
+
+        <!-- User -->
+        <g transform="translate(330,10)">
+            <rect x="0" y="0" width="100" height="60" rx="12" fill="white" stroke="#e2e5ec" stroke-width="1.5" filter="url(#shadow)"/>
+            <text x="50" y="26" text-anchor="middle" font-family="Montserrat" font-size="20">👤</text>
+            <text x="50" y="46" text-anchor="middle" font-family="Montserrat" font-size="9" font-weight="600" fill="#1a1a2e">Utente</text>
+        </g>
+
+        <!-- Arrow: User → Web -->
+        <line x1="380" y1="72" x2="220" y2="140" stroke="#003063" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="6,3"/>
+        <text x="280" y="100" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#003063" font-weight="500">HTTPS</text>
+
+        <!-- Arrow: User → CDN -->
+        <line x1="380" y1="72" x2="565" y2="280" stroke="#C9A84C" stroke-width="1.5" marker-end="url(#arrow-gold)" stroke-dasharray="4,3"/>
+        <text x="500" y="168" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#C9A84C" font-weight="500" transform="rotate(33, 500, 168)">immagini CDN</text>
+
+        <!-- App Web -->
+        <g transform="translate(100,140)">
+            <rect x="0" y="0" width="240" height="88" rx="12" fill="white" stroke="#003063" stroke-width="2" filter="url(#shadow)"/>
+            <rect x="0" y="0" width="240" height="30" rx="12 12 0 0" fill="url(#blueGrad)"/>
+            <rect x="0" y="12" width="240" height="18" fill="url(#blueGrad)"/>
+            <text x="16" y="21" font-family="Montserrat" font-size="11" font-weight="700" fill="white">🌐 App Web</text>
+            <text x="224" y="20" text-anchor="end" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#ED028C">$10/mo</text>
+            <text x="16" y="50" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">PHP 8.5 + Apache • 1 vCPU, 1GB RAM</text>
+            <text x="16" y="66" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Sito pubblico (Inertia/Vue) + CMS (Filament)</text>
+            <text x="16" y="80" font-family="JetBrains Mono" font-size="7.5" fill="#7a7a9a">apps-s-1vcpu-1gb-fixed</text>
+        </g>
+
+        <!-- MySQL -->
+        <g transform="translate(420,140)">
+            <rect x="0" y="0" width="240" height="88" rx="12" fill="white" stroke="#003063" stroke-width="2" filter="url(#shadow)"/>
+            <rect x="0" y="0" width="240" height="30" rx="12 12 0 0" fill="url(#blueGrad)"/>
+            <rect x="0" y="12" width="240" height="18" fill="url(#blueGrad)"/>
+            <text x="16" y="21" font-family="Montserrat" font-size="11" font-weight="700" fill="white">🗄️ MySQL 8.4</text>
+            <text x="224" y="20" text-anchor="end" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#ED028C">$15/mo</text>
+            <text x="16" y="50" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Managed Database • 1 vCPU, 1GB RAM</text>
+            <text x="16" y="66" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Dati, sessioni, code, log attività</text>
+            <text x="16" y="80" font-family="JetBrains Mono" font-size="7.5" fill="#7a7a9a">db-s-1vcpu-1gb • fra1 • rete privata</text>
+        </g>
+
+        <!-- Arrow: Web → MySQL -->
+        <line x1="342" y1="184" x2="418" y2="184" stroke="#003063" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="380" y="177" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#003063" font-weight="500">SQL</text>
+
+        <!-- Spaces S3 -->
+        <g transform="translate(420,270)">
+            <rect x="0" y="0" width="240" height="80" rx="12" fill="white" stroke="#C9A84C" stroke-width="2" filter="url(#shadow)"/>
+            <rect x="0" y="0" width="240" height="28" rx="12 12 0 0" fill="#C9A84C"/>
+            <rect x="0" y="12" width="240" height="16" fill="#C9A84C"/>
+            <text x="16" y="20" font-family="Montserrat" font-size="11" font-weight="700" fill="white">📦 Spaces S3 + CDN</text>
+            <text x="224" y="19" text-anchor="end" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="white">$5/mo</text>
+            <text x="16" y="48" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Object Storage • 250GB + 1TB transfer</text>
+            <text x="16" y="64" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Immagini, media, file caricati + CDN edge</text>
+        </g>
+
+        <!-- Arrow: Web → S3 -->
+        <line x1="270" y1="230" x2="440" y2="278" stroke="#C9A84C" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
+        <text x="340" y="248" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#C9A84C" font-weight="500">upload S3 API</text>
+
+        <!-- Worker -->
+        <g transform="translate(100,270)">
+            <rect x="0" y="0" width="240" height="80" rx="12" fill="white" stroke="#003063" stroke-width="1.5" filter="url(#shadow)"/>
+            <rect x="0" y="0" width="240" height="28" rx="12 12 0 0" fill="#0a4a8a"/>
+            <rect x="0" y="12" width="240" height="16" fill="#0a4a8a"/>
+            <text x="16" y="20" font-family="Montserrat" font-size="11" font-weight="700" fill="white">⚙️ Worker</text>
+            <text x="224" y="19" text-anchor="end" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#ED028C">$5/mo</text>
+            <text x="16" y="48" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">PHP 8.5 CLI • 0.5GB RAM</text>
+            <text x="16" y="64" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">queue:work — job analisi foto galleria</text>
+        </g>
+
+        <!-- Arrow: Worker → MySQL (job queue) -->
+        <line x1="342" y1="286" x2="500" y2="230" stroke="#003063" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3"/>
+        <text x="430" y="250" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#003063" font-weight="500">job queue</text>
+
+        <!-- Arrow: Worker → S3 -->
+        <line x1="342" y1="318" x2="418" y2="318" stroke="#C9A84C" stroke-width="1.5" marker-end="url(#arrow-gold)"/>
+        <text x="380" y="312" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#C9A84C" font-weight="500">download</text>
+
+        <!-- CompreFace -->
+        <g transform="translate(180,400)">
+            <rect x="0" y="0" width="400" height="88" rx="12" fill="white" stroke="#ED028C" stroke-width="2" filter="url(#shadow)"/>
+            <rect x="0" y="0" width="400" height="30" rx="12 12 0 0" fill="#ED028C"/>
+            <rect x="0" y="12" width="400" height="18" fill="#ED028C"/>
+            <text x="16" y="21" font-family="Montserrat" font-size="11" font-weight="700" fill="white">🖥️ Droplet CompreFace — Riconoscimento Facciale</text>
+            <text x="384" y="20" text-anchor="end" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="white">$24/mo</text>
+            <text x="16" y="50" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Ubuntu 24.04 • 2 vCPU, 4GB RAM • Java + Deep Learning models</text>
+            <text x="16" y="66" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Face detection, recognition, collection — addestrato sulle giocatrici</text>
+            <text x="16" y="80" font-family="JetBrains Mono" font-size="7.5" fill="#7a7a9a">157.230.98.6:8000 • API REST</text>
+        </g>
+
+        <!-- Arrow: Worker → CompreFace -->
+        <line x1="220" y1="352" x2="300" y2="398" stroke="#ED028C" stroke-width="2" marker-end="url(#arrow-pink)"/>
+        <text x="240" y="380" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#ED028C" font-weight="500">HTTP POST</text>
+
+        <!-- Total cost badge -->
+        <g transform="translate(620,440)">
+            <rect x="0" y="0" width="120" height="44" rx="10" fill="url(#blueGrad)"/>
+            <text x="60" y="18" text-anchor="middle" font-family="Montserrat" font-size="7" fill="rgba(255,255,255,0.6)" text-transform="uppercase" letter-spacing="1">TOTALE</text>
+            <text x="60" y="36" text-anchor="middle" font-family="JetBrains Mono" font-size="15" font-weight="700" fill="white">$59/mese</text>
+        </g>
+
+        <!-- Legend -->
+        <g transform="translate(16,470)">
+            <text x="0" y="12" font-family="Montserrat" font-size="7.5" fill="#7a7a9a" font-weight="600" text-transform="uppercase" letter-spacing="1">Legenda</text>
+            <line x1="0" y1="24" x2="24" y2="24" stroke="#003063" stroke-width="2"/>
+            <text x="30" y="28" font-family="Montserrat" font-size="7.5" fill="#4a4a6a">SQL / Queue</text>
+            <line x1="100" y1="24" x2="124" y2="24" stroke="#C9A84C" stroke-width="2"/>
+            <text x="130" y="28" font-family="Montserrat" font-size="7.5" fill="#4a4a6a">Storage S3</text>
+            <line x1="200" y1="24" x2="224" y2="24" stroke="#ED028C" stroke-width="2"/>
+            <text x="230" y="28" font-family="Montserrat" font-size="7.5" fill="#4a4a6a">API CompreFace</text>
+            <line x1="330" y1="24" x2="354" y2="24" stroke="#003063" stroke-width="2" stroke-dasharray="5,3"/>
+            <text x="360" y="28" font-family="Montserrat" font-size="7.5" fill="#4a4a6a">Asincrono</text>
+        </g>
+    </svg>
+</div>
+
+<div class="callout callout-info">
+    <strong>Colocalizzazione</strong>
+    Tutti i servizi sono nella stessa region Frankfurt. La latenza app↔database è &lt;2ms (rete privata). La latenza utente italiano→server è ~18ms.
+</div>
+
+
+<hr class="section-divider">
+
+<!-- ==================== 2. STACK ==================== -->
+<h2 id="s2"><span class="section-number">02</span> Stack Tecnologico</h2>
+
+<h3>Backend</h3>
+<table>
+    <thead><tr><th>Tecnologia</th><th>Versione</th><th>Ruolo</th></tr></thead>
+    <tbody>
+        <tr><td><strong>PHP</strong></td><td><code>8.5.5</code></td><td>Linguaggio backend</td></tr>
+        <tr><td><strong>Laravel</strong></td><td><code>13.17.0</code></td><td>Framework MVC</td></tr>
+        <tr><td><strong>Filament</strong></td><td><code>3.3.54</code></td><td>Pannello admin (CMS)</td></tr>
+        <tr><td><strong>Inertia.js</strong></td><td><code>2.x</code></td><td>Bridge server↔client (SSR)</td></tr>
+        <tr><td><strong>MySQL</strong></td><td><code>8.4 LTS</code></td><td>Database relazionale</td></tr>
+        <tr><td><strong>Apache</strong></td><td>Heroku buildpack</td><td>Web server</td></tr>
+        <tr><td><strong>OPcache + JIT</strong></td><td>tracing 1255</td><td>Compilazione PHP → codice nativo</td></tr>
+    </tbody>
+</table>
+
+<h3>Frontend</h3>
+<table>
+    <thead><tr><th>Tecnologia</th><th>Versione</th><th>Ruolo</th></tr></thead>
+    <tbody>
+        <tr><td><strong>Vue.js</strong></td><td><code>3.x</code></td><td>Framework UI (via Inertia)</td></tr>
+        <tr><td><strong>Vite</strong></td><td>latest</td><td>Bundler assets</td></tr>
+        <tr><td><strong>Node.js</strong></td><td><code>24.14.0</code></td><td>Build-time (SSR + compilazione)</td></tr>
+        <tr><td><strong>Tailwind CSS</strong></td><td>latest</td><td>Utility-first CSS framework</td></tr>
+    </tbody>
+</table>
+
+<h3>Librerie Principali</h3>
+<table>
+    <thead><tr><th>Pacchetto</th><th>Ruolo</th></tr></thead>
+    <tbody>
+        <tr><td><strong>Spatie Media Library</strong></td><td>Gestione media con conversioni automatiche (thumbnail, webp)</td></tr>
+        <tr><td><strong>Spatie Translatable</strong></td><td>Contenuti multilingua</td></tr>
+        <tr><td><strong>Spatie Sitemap</strong></td><td>Generazione sitemap SEO</td></tr>
+        <tr><td><strong>Resend</strong></td><td>Invio email transazionali</td></tr>
+        <tr><td><strong>Ziggy</strong></td><td>Routing Laravel → JavaScript</td></tr>
+        <tr><td><strong>Predis</strong></td><td>Client Redis (pronto per futuro uso)</td></tr>
+    </tbody>
+</table>
+
+<h3>Repository</h3>
+<div class="spec-box">
+    <div class="spec-grid">
+        <span class="spec-label">GitHub</span>
+        <span class="spec-value">MarcoVanzo/Sito_Savino</span>
+        <span class="spec-label">Branch produzione</span>
+        <span class="spec-value">main</span>
+        <span class="spec-label">Deploy</span>
+        <span class="spec-value">Automatico su push a main</span>
+    </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- ==================== 3. SERVIZI ==================== -->
+<h2 id="s3"><span class="section-number">03</span> Servizi DigitalOcean — Dettaglio</h2>
+
+<!-- 3.1 -->
+<h3>3.1 — App Web (sito + CMS)</h3>
+
+<p>È il <strong>container principale</strong> che serve tutte le pagine web. Quando un utente visita il sito o un admin accede al CMS, questa macchina elabora la richiesta PHP e restituisce la pagina HTML.</p>
+
+<div class="spec-box">
+    <div class="spec-grid">
+        <span class="spec-label">Slug</span>
+        <span class="spec-value"><code>apps-s-1vcpu-1gb-fixed</code></span>
+        <span class="spec-label">CPU</span>
+        <span class="spec-value">1 shared vCPU</span>
+        <span class="spec-label">RAM</span>
+        <span class="spec-value">1 GB</span>
+        <span class="spec-label">Bandwidth</span>
+        <span class="spec-value">100 GB/mese</span>
+        <span class="spec-label">Region</span>
+        <span class="spec-value">fra (Frankfurt)</span>
+        <span class="spec-label">Istanze</span>
+        <span class="spec-value">1 (fissa, no scaling)</span>
+        <span class="spec-label">Web server</span>
+        <span class="spec-value">heroku-php-apache2</span>
+        <span class="spec-label">Costo</span>
+        <span class="spec-value" style="color:var(--savino-pink); font-weight:700;">$10.00/mese</span>
+    </div>
+</div>
+
+<h4>Applicazioni servite</h4>
+<table>
+    <thead><tr><th>URL</th><th>Applicazione</th><th>Framework</th></tr></thead>
+    <tbody>
+        <tr><td><code>/</code></td><td>Sito pubblico (home, news, stagione, squadra, shop...)</td><td>Inertia + Vue.js (SSR)</td></tr>
+        <tr><td><code>/admin</code></td><td>CMS pannello amministrativo</td><td>Filament 3 (Livewire)</td></tr>
+    </tbody>
+</table>
+
+<h4>Processo di avvio (start.sh)</h4>
+<table>
+    <thead><tr><th>Step</th><th>Comando</th><th>Scopo</th></tr></thead>
+    <tbody>
+        <tr><td>1/6</td><td><code>migrate --force</code></td><td>Applica nuove migrazioni DB</td></tr>
+        <tr><td>2/6</td><td><code>storage:link</code></td><td>Symlink public/storage</td></tr>
+        <tr><td>3/6</td><td><code>cache:clear</code></td><td>Svuota cache precedente</td></tr>
+        <tr><td>4/6</td><td><code>config:cache</code></td><td>Serializza configurazione</td></tr>
+        <tr><td>5/6</td><td><code>route:cache</code> + <code>view:cache</code> + <code>event:cache</code></td><td>Pre-compila route, Blade, event</td></tr>
+        <tr><td>6/6</td><td><code>filament:optimize</code></td><td>Cachea componenti Filament</td></tr>
+    </tbody>
+</table>
+
+<!-- 3.2 -->
+<h3>3.2 — Worker (code)</h3>
+
+<p>Processa i <strong>job in background</strong>. Resta in ascolto sulla tabella <code>jobs</code> nel database e quando trova un nuovo job, lo esegue senza bloccare il browser.</p>
+
+<div class="spec-box">
+    <div class="spec-grid">
+        <span class="spec-label">Slug</span>
+        <span class="spec-value"><code>apps-s-1vcpu-0.5gb</code></span>
+        <span class="spec-label">RAM</span>
+        <span class="spec-value">512 MB</span>
+        <span class="spec-label">Run command</span>
+        <span class="spec-value"><code>queue:work --sleep=3 --tries=3 --max-time=3600</code></span>
+        <span class="spec-label">Costo</span>
+        <span class="spec-value" style="color:var(--savino-pink); font-weight:700;">$5.00/mese</span>
+    </div>
+</div>
+
+<table>
+    <thead><tr><th>Job</th><th>Trigger</th><th>Azione</th></tr></thead>
+    <tbody>
+        <tr><td><code>AnalyzeGalleryImageJob</code></td><td>Upload foto nel CMS</td><td>Scarica immagine da S3, invia a CompreFace per riconoscimento facciale, salva risultati nel DB</td></tr>
+    </tbody>
+</table>
+
+<!-- 3.3 -->
+<h3>3.3 — Database MySQL 8.4</h3>
+
+<p>Contiene <strong>tutti i dati strutturati</strong> dell'applicazione. Ogni pagina web legge da qui, ogni azione nel CMS scrive qui. È un database <strong>managed</strong> — DigitalOcean gestisce backup, aggiornamenti e monitoring.</p>
+
+<div class="spec-box">
+    <div class="spec-grid">
+        <span class="spec-label">Engine</span>
+        <span class="spec-value">MySQL 8.4 LTS</span>
+        <span class="spec-label">Size</span>
+        <span class="spec-value"><code>db-s-1vcpu-1gb</code> (1 vCPU, 1 GB RAM)</span>
+        <span class="spec-label">Nodi</span>
+        <span class="spec-value">1 (singolo, no replica)</span>
+        <span class="spec-label">Connessione</span>
+        <span class="spec-value">Rete privata (non esposta a internet)</span>
+        <span class="spec-label">Backup</span>
+        <span class="spec-value">Automatici giornalieri (inclusi)</span>
+        <span class="spec-label">Costo</span>
+        <span class="spec-value" style="color:var(--savino-pink); font-weight:700;">$15.23/mese</span>
+    </div>
+</div>
+
+<h4>Dati contenuti</h4>
+<table>
+    <thead><tr><th>Categoria</th><th>Tabelle</th><th>Esempi</th></tr></thead>
+    <tbody>
+        <tr><td>Contenuti</td><td>posts, pages, categories, hero_slides</td><td>News, pagine statiche, slider</td></tr>
+        <tr><td>Squadra</td><td>players, staff_members, rosters, player_stats</td><td>Rose, statistiche, organigramma</td></tr>
+        <tr><td>Partite</td><td>games, seasons, teams</td><td>Calendario, risultati, classifiche</td></tr>
+        <tr><td>Galleria</td><td>gallery_events, gallery_images</td><td>Eventi foto, analisi facciale</td></tr>
+        <tr><td>Shop</td><td>products, orders, stock_movements</td><td>Prodotti, ordini, magazzino</td></tr>
+        <tr><td>Sistema</td><td>users, activity_log, jobs, sessions</td><td>Utenti, log, code, sessioni</td></tr>
+    </tbody>
+</table>
+
+<!-- 3.4 -->
+<h3>3.4 — Spaces S3 + CDN</h3>
+
+<p><strong>Storage dei file</strong> — un object storage compatibile con Amazon S3, con CDN incluso per servire le immagini dal nodo più vicino all'utente.</p>
+
+<div class="spec-box">
+    <div class="spec-grid">
+        <span class="spec-label">Bucket</span>
+        <span class="spec-value"><code>sito-savino-assets-2026</code></span>
+        <span class="spec-label">Storage</span>
+        <span class="spec-value">250 GB inclusi</span>
+        <span class="spec-label">Transfer</span>
+        <span class="spec-value">1 TB/mese incluso</span>
+        <span class="spec-label">CDN</span>
+        <span class="spec-value"><span class="badge badge-green">ATTIVO</span> (incluso)</span>
+        <span class="spec-label">URL CDN</span>
+        <span class="spec-value" style="font-size:8pt"><code>sito-savino-assets-2026.fra1.cdn.digitaloceanspaces.com</code></span>
+        <span class="spec-label">Costo</span>
+        <span class="spec-value" style="color:var(--savino-pink); font-weight:700;">$5.00/mese</span>
+    </div>
+</div>
+
+<!-- 3.5 -->
+<h3>3.5 — Droplet CompreFace</h3>
+
+<p>Server dedicato che esegue <strong>CompreFace</strong>, un sistema open-source di riconoscimento facciale basato su deep learning. Analizza le foto della galleria per identificare automaticamente le giocatrici.</p>
+
+<div class="spec-box">
+    <div class="spec-grid">
+        <span class="spec-label">OS</span>
+        <span class="spec-value">Ubuntu 24.04 LTS</span>
+        <span class="spec-label">CPU</span>
+        <span class="spec-value">2 vCPU</span>
+        <span class="spec-label">RAM</span>
+        <span class="spec-value">4 GB (Java + modello ML)</span>
+        <span class="spec-label">Disco</span>
+        <span class="spec-value">80 GB SSD</span>
+        <span class="spec-label">IP</span>
+        <span class="spec-value"><code>157.230.98.6</code></span>
+        <span class="spec-label">Porta API</span>
+        <span class="spec-value"><code>8000</code></span>
+        <span class="spec-label">Costo</span>
+        <span class="spec-value" style="color:var(--savino-pink); font-weight:700;">$24.00/mese</span>
+    </div>
+</div>
+
+<table>
+    <thead><tr><th>Feature</th><th>Descrizione</th></tr></thead>
+    <tbody>
+        <tr><td><strong>Face Detection</strong></td><td>Rileva tutti i volti presenti in una foto</td></tr>
+        <tr><td><strong>Face Recognition</strong></td><td>Confronta un volto con i volti noti (giocatrici registrate)</td></tr>
+        <tr><td><strong>Face Collection</strong></td><td>Database dei volti noti, addestrato con le foto ufficiali</td></tr>
+    </tbody>
+</table>
+
+<hr class="section-divider">
+
+<!-- ==================== 4. FLUSSI ==================== -->
+<h2 id="s4"><span class="section-number">04</span> Flusso delle Richieste</h2>
+
+<h3>Visita sito pubblico (es. /news)</h3>
+
+<!-- SVG Sequence Diagram: Public Site -->
+<div class="architecture-diagram" style="padding:16px 10px;">
+    <svg viewBox="0 0 700 300" style="width:100%; max-width:700px; margin:0 auto; display:block;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#003063"/>
+            </marker>
+            <marker id="arr2g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#C9A84C"/>
+            </marker>
+            <marker id="arr2ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#1a7a1a"/>
+            </marker>
+        </defs>
+
+        <!-- Actor headers -->
+        <g font-family="Montserrat" font-weight="700" font-size="9" text-anchor="middle">
+            <rect x="40" y="8" width="80" height="32" rx="6" fill="white" stroke="#e2e5ec" stroke-width="1"/>
+            <text x="80" y="19" font-size="14">👤</text>
+            <text x="80" y="33" fill="#1a1a2e">Utente</text>
+
+            <rect x="195" y="8" width="100" height="32" rx="6" fill="#003063"/>
+            <text x="245" y="19" font-size="14" fill="white">🌐</text>
+            <text x="245" y="33" fill="white">App Web</text>
+
+            <rect x="370" y="8" width="80" height="32" rx="6" fill="#003063"/>
+            <text x="410" y="19" font-size="14" fill="white">🗄️</text>
+            <text x="410" y="33" fill="white">MySQL</text>
+
+            <rect x="525" y="8" width="100" height="32" rx="6" fill="#C9A84C"/>
+            <text x="575" y="19" font-size="14" fill="white">📦</text>
+            <text x="575" y="33" fill="white">CDN</text>
+        </g>
+
+        <!-- Lifelines -->
+        <line x1="80" y1="44" x2="80" y2="280" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="245" y1="44" x2="245" y2="280" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="410" y1="44" x2="410" y2="280" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="575" y1="44" x2="575" y2="280" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+
+        <!-- 1. User → Web: HTTPS GET /news -->
+        <line x1="82" y1="70" x2="243" y2="70" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="162" y="64" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#003063">GET /news (HTTPS)</text>
+
+        <!-- 2. Web: Cache check -->
+        <rect x="215" y="82" width="60" height="22" rx="4" fill="#eef1f6" stroke="#e2e5ec" stroke-width="1"/>
+        <text x="245" y="97" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#4a4a6a">cache?</text>
+
+        <!-- Branch: Cache HIT -->
+        <rect x="120" y="115" width="110" height="20" rx="4" fill="#e6f9e6" stroke="#1a7a1a" stroke-width="1"/>
+        <text x="175" y="129" text-anchor="middle" font-family="Montserrat" font-size="7" font-weight="600" fill="#1a7a1a">✅ Cache HIT → &lt;5ms</text>
+        <line x1="243" y1="104" x2="175" y2="115" stroke="#1a7a1a" stroke-width="1" stroke-dasharray="3,3"/>
+
+        <!-- 3. Cache MISS → MySQL -->
+        <line x1="247" y1="104" x2="247" y2="152" stroke="#003063" stroke-width="1"/>
+        <line x1="247" y1="152" x2="408" y2="152" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="327" y="146" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#003063">SELECT posts, categories</text>
+        <text x="290" y="136" font-family="Montserrat" font-size="6.5" fill="#7a7a9a" font-style="italic">cache MISS</text>
+
+        <!-- 4. MySQL → Web: data -->
+        <line x1="408" y1="172" x2="247" y2="172" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)" stroke-dasharray="5,3"/>
+        <text x="327" y="166" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#003063">dati</text>
+
+        <!-- 5. Web: SSR render -->
+        <rect x="205" y="186" width="80" height="22" rx="4" fill="#eef1f6" stroke="#003063" stroke-width="1"/>
+        <text x="245" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#003063">SSR render</text>
+
+        <!-- 6. Web → User: HTML -->
+        <line x1="243" y1="218" x2="82" y2="218" stroke="#1a7a1a" stroke-width="1.5" marker-end="url(#arr2ok)"/>
+        <text x="162" y="212" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#1a7a1a">HTML response</text>
+
+        <!-- 7. User → CDN: images -->
+        <line x1="82" y1="248" x2="573" y2="248" stroke="#C9A84C" stroke-width="1.5" marker-end="url(#arr2g)"/>
+        <text x="327" y="242" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#C9A84C">immagini (hero, thumbnail, webp)</text>
+
+        <!-- 8. CDN → User: images cached -->
+        <line x1="573" y1="268" x2="82" y2="268" stroke="#C9A84C" stroke-width="1.5" marker-end="url(#arr2g)" stroke-dasharray="5,3"/>
+        <text x="327" y="262" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#C9A84C">⚡ immagini da edge cache</text>
+    </svg>
+</div>
+
+<div class="flow-steps">
+    <div class="flow-step"><span class="step-actor">Utente</span><span class="step-desc">Richiede <code>GET /news</code> via HTTPS</span></div>
+    <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc">Controlla la cache (<code>CachePublicResponse</code> middleware)</span></div>
+    <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc"><strong>Cache HIT →</strong> restituisce HTML in &lt;5ms. <strong>Cache MISS →</strong> continua al passo 4</span></div>
+    <div class="flow-step"><span class="step-actor">MySQL</span><span class="step-desc">Query per recuperare post, categorie, media</span></div>
+    <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc">Render SSR con Inertia/Vue.js, salva in cache per richieste future</span></div>
+    <div class="flow-step"><span class="step-actor">CDN Spaces</span><span class="step-desc">Serve le immagini (hero, thumbnail) dal nodo più vicino all'utente</span></div>
+</div>
+
+<h3>Upload foto galleria (CMS)</h3>
+
+<!-- SVG Sequence Diagram: Gallery Upload -->
+<div class="architecture-diagram" style="padding:16px 10px;">
+    <svg viewBox="0 0 750 380" style="width:100%; max-width:750px; margin:0 auto; display:block;" xmlns="http://www.w3.org/2000/svg">
+        <!-- Actor headers -->
+        <g font-family="Montserrat" font-weight="700" font-size="8.5" text-anchor="middle">
+            <rect x="20" y="8" width="70" height="32" rx="6" fill="white" stroke="#e2e5ec" stroke-width="1"/>
+            <text x="55" y="19" font-size="13">👤</text>
+            <text x="55" y="33" fill="#1a1a2e">Admin</text>
+
+            <rect x="145" y="8" width="90" height="32" rx="6" fill="#003063"/>
+            <text x="190" y="19" font-size="13" fill="white">🌐</text>
+            <text x="190" y="33" fill="white">App Web</text>
+
+            <rect x="300" y="8" width="70" height="32" rx="6" fill="#C9A84C"/>
+            <text x="335" y="19" font-size="13" fill="white">📦</text>
+            <text x="335" y="33" fill="white">S3</text>
+
+            <rect x="425" y="8" width="70" height="32" rx="6" fill="#003063"/>
+            <text x="460" y="19" font-size="13" fill="white">🗄️</text>
+            <text x="460" y="33" fill="white">MySQL</text>
+
+            <rect x="545" y="8" width="70" height="32" rx="6" fill="#0a4a8a"/>
+            <text x="580" y="19" font-size="13" fill="white">⚙️</text>
+            <text x="580" y="33" fill="white">Worker</text>
+
+            <rect x="665" y="8" width="70" height="32" rx="6" fill="#ED028C"/>
+            <text x="700" y="19" font-size="13" fill="white">🖥️</text>
+            <text x="700" y="33" fill="white">CF</text>
+        </g>
+
+        <!-- Lifelines -->
+        <line x1="55" y1="44" x2="55" y2="370" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="190" y1="44" x2="190" y2="370" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="335" y1="44" x2="335" y2="370" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="460" y1="44" x2="460" y2="370" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="580" y1="44" x2="580" y2="370" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="700" y1="44" x2="700" y2="370" stroke="#e2e5ec" stroke-width="1" stroke-dasharray="4,4"/>
+
+        <!-- Sync phase label -->
+        <rect x="2" y="55" width="12" height="110" rx="3" fill="#003063"/>
+        <text x="8" y="115" text-anchor="middle" font-family="Montserrat" font-size="6" fill="white" transform="rotate(-90,8,115)" letter-spacing="1">SINCRONO</text>
+
+        <!-- 1. Admin → Web: upload -->
+        <line x1="57" y1="68" x2="188" y2="68" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="122" y="62" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#003063">POST upload foto</text>
+
+        <!-- 2. Web → S3: save image -->
+        <line x1="192" y1="92" x2="333" y2="92" stroke="#C9A84C" stroke-width="1.5" marker-end="url(#arr2g)"/>
+        <text x="262" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#C9A84C">PUT immagine originale</text>
+
+        <!-- 3. Web → MySQL: INSERT -->
+        <line x1="192" y1="116" x2="458" y2="116" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="325" y="110" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#003063">INSERT gallery_images + jobs</text>
+
+        <!-- 4. Web → Admin: response -->
+        <line x1="188" y1="142" x2="57" y2="142" stroke="#1a7a1a" stroke-width="1.5" marker-end="url(#arr2ok)"/>
+        <text x="122" y="136" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#1a7a1a">✅ "Foto caricata"</text>
+
+        <!-- Async separator -->
+        <line x1="0" y1="168" x2="750" y2="168" stroke="#ED028C" stroke-width="1" stroke-dasharray="8,4"/>
+        <rect x="300" y="159" width="150" height="18" rx="4" fill="#ED028C"/>
+        <text x="375" y="172" text-anchor="middle" font-family="Montserrat" font-size="7" font-weight="700" fill="white" letter-spacing="1">⚡ IN BACKGROUND</text>
+
+        <!-- Async phase label -->
+        <rect x="2" y="185" width="12" height="155" rx="3" fill="#ED028C"/>
+        <text x="8" y="265" text-anchor="middle" font-family="Montserrat" font-size="6" fill="white" transform="rotate(-90,8,265)" letter-spacing="1">ASINCRONO</text>
+
+        <!-- 5. Worker → MySQL: get job -->
+        <line x1="578" y1="198" x2="462" y2="198" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="520" y="192" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#003063">SELECT job dalla coda</text>
+
+        <!-- 6. Worker → S3: download image -->
+        <line x1="578" y1="228" x2="337" y2="228" stroke="#C9A84C" stroke-width="1.5" marker-end="url(#arr2g)"/>
+        <text x="457" y="222" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#C9A84C">GET immagine</text>
+
+        <!-- 7. Worker → CompreFace: analyze -->
+        <line x1="582" y1="260" x2="698" y2="260" stroke="#ED028C" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="640" y="254" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#ED028C">POST /recognize</text>
+
+        <!-- 8. CompreFace → Worker: results -->
+        <line x1="698" y1="286" x2="582" y2="286" stroke="#ED028C" stroke-width="1.5" marker-end="url(#arr2)" stroke-dasharray="5,3"/>
+        <text x="640" y="280" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#ED028C">volti + confidenza</text>
+
+        <!-- 9. Worker → MySQL: update results -->
+        <line x1="578" y1="316" x2="462" y2="316" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <text x="520" y="310" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#003063">UPDATE risultati</text>
+
+        <!-- 10. Worker → MySQL: delete job -->
+        <line x1="578" y1="342" x2="462" y2="342" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)" stroke-dasharray="5,3"/>
+        <text x="520" y="336" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#003063">DELETE job ✓</text>
+    </svg>
+</div>
+
+<div class="flow-steps">
+    <div class="flow-step"><span class="step-actor">Admin</span><span class="step-desc">Carica foto dalla sezione Galleria del CMS</span></div>
+    <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc">Salva l'immagine originale su Spaces S3</span></div>
+    <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc"><code>INSERT</code> in <code>gallery_images</code> + <code>INSERT</code> in <code>jobs</code> (accoda analisi)</span></div>
+    <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc">Risponde all'admin: "Foto caricata ✅"</span></div>
+    <div class="flow-step"><span class="step-actor">Worker</span><span class="step-desc">Preleva il job dalla coda, scarica l'immagine da S3</span></div>
+    <div class="flow-step"><span class="step-actor">CompreFace</span><span class="step-desc">Analizza i volti e restituisce: coordinate, identità, % confidenza</span></div>
+    <div class="flow-step"><span class="step-actor">Worker</span><span class="step-desc"><code>UPDATE</code> <code>gallery_images</code> con risultati, <code>DELETE</code> job completato</span></div>
+</div>
+
+<hr class="section-divider">
+
+
+<!-- ==================== 5. ENV VARS ==================== -->
+<h2 id="s5"><span class="section-number">05</span> Variabili d'Ambiente</h2>
+
+<h3>Web Container</h3>
+<table>
+    <thead><tr><th>Variabile</th><th>Valore</th><th>Descrizione</th></tr></thead>
+    <tbody>
+        <tr><td><code>APP_ENV</code></td><td>production</td><td>Ambiente di esecuzione</td></tr>
+        <tr><td><code>APP_DEBUG</code></td><td>false</td><td>Debug disattivato</td></tr>
+        <tr><td><code>APP_KEY</code></td><td><span class="secret"></span></td><td>Chiave di cifratura Laravel</td></tr>
+        <tr><td><code>DB_CONNECTION</code></td><td>mysql</td><td>Driver database</td></tr>
+        <tr><td><code>DB_HOST</code></td><td><code>${sito-savino-db.HOSTNAME}</code></td><td>Host DB (injected da DO)</td></tr>
+        <tr><td><code>DB_PORT</code></td><td><code>${sito-savino-db.PORT}</code></td><td>Porta DB (injected da DO)</td></tr>
+        <tr><td><code>DB_DATABASE</code></td><td><code>${sito-savino-db.DATABASE}</code></td><td>Nome database</td></tr>
+        <tr><td><code>DB_USERNAME</code></td><td><code>${sito-savino-db.USERNAME}</code></td><td>Utente database</td></tr>
+        <tr><td><code>DB_PASSWORD</code></td><td><span class="secret"></span></td><td>Password database</td></tr>
+        <tr><td><code>CACHE_STORE</code></td><td>file</td><td>Driver cache (filesystem locale)</td></tr>
+        <tr><td><code>SESSION_DRIVER</code></td><td>database</td><td>Sessioni salvate in MySQL</td></tr>
+        <tr><td><code>QUEUE_CONNECTION</code></td><td>database</td><td>Code via tabella <code>jobs</code></td></tr>
+        <tr><td><code>FILESYSTEM_DISK</code></td><td>s3</td><td>Storage file su Spaces</td></tr>
+        <tr><td><code>MEDIA_DISK</code></td><td>s3</td><td>Media Library su Spaces</td></tr>
+        <tr><td><code>AWS_ACCESS_KEY_ID</code></td><td><span class="secret"></span></td><td>Credenziali Spaces</td></tr>
+        <tr><td><code>AWS_SECRET_ACCESS_KEY</code></td><td><span class="secret"></span></td><td>Credenziali Spaces</td></tr>
+        <tr><td><code>AWS_DEFAULT_REGION</code></td><td>fra1</td><td>Region Spaces</td></tr>
+        <tr><td><code>AWS_BUCKET</code></td><td>sito-savino-assets-2026</td><td>Nome bucket</td></tr>
+        <tr><td><code>AWS_ENDPOINT</code></td><td>https://fra1.digitaloceanspaces.com</td><td>Endpoint S3 API</td></tr>
+        <tr><td><code>INERTIA_SSR_ENABLED</code></td><td>true</td><td>Server-Side Rendering attivo</td></tr>
+        <tr><td><code>LOG_CHANNEL</code></td><td>stderr</td><td>Log su stderr (visibili in DO)</td></tr>
+        <tr><td><code>LOG_LEVEL</code></td><td>warning</td><td>Solo warning ed errori</td></tr>
+    </tbody>
+</table>
+
+<h3>Worker (variabili aggiuntive)</h3>
+<table>
+    <thead><tr><th>Variabile</th><th>Valore</th><th>Descrizione</th></tr></thead>
+    <tbody>
+        <tr><td><code>COMPREFACE_HOST</code></td><td>http://157.230.98.6:8000</td><td>URL server CompreFace</td></tr>
+        <tr><td><code>COMPREFACE_KEY</code></td><td><span class="secret"></span></td><td>API key CompreFace</td></tr>
+    </tbody>
+</table>
+
+<hr class="section-divider">
+
+<!-- ==================== 6. BUILD ==================== -->
+<h2 id="s6"><span class="section-number">06</span> Build e Deploy</h2>
+
+<h3>Pipeline</h3>
+<div class="spec-box" style="text-align:center; font-size:9.5pt;">
+    <code>git push main</code> → GitHub webhook → DO App Platform → Build → Deploy → <span class="badge badge-green">ACTIVE</span>
+</div>
+
+<h3>Build Web</h3>
+<pre>composer install --optimize-autoloader --no-dev && npm install && npm run build</pre>
+<table>
+    <thead><tr><th>Step</th><th>Azione</th></tr></thead>
+    <tbody>
+        <tr><td><strong>Composer</strong></td><td>Installa dipendenze PHP (autoloader ottimizzato, no dev-dependencies)</td></tr>
+        <tr><td><strong>NPM install</strong></td><td>Installa dipendenze frontend (Vue, Vite, Tailwind...)</td></tr>
+        <tr><td><strong>NPM build</strong></td><td>Compila assets + SSR bundle (<code>bootstrap/ssr/ssr.mjs</code>)</td></tr>
+    </tbody>
+</table>
+
+<h3>Build Worker</h3>
+<pre>composer install --optimize-autoloader --no-dev</pre>
+<p>Solo dipendenze PHP (il worker non serve frontend).</p>
+
+<h3>Avvio Worker</h3>
+<pre>php artisan queue:work --sleep=3 --tries=3 --max-time=3600</pre>
+<p>Polling ogni 3 secondi, max 3 tentativi per job, riavvio ogni ora.</p>
+
+<hr class="section-divider">
+
+<!-- ==================== 7. PERFORMANCE ==================== -->
+<h2 id="s7"><span class="section-number">07</span> Performance e OPcache</h2>
+
+<h3>Configurazione OPcache</h3>
+<p>File: <code>php-config/opcache.ini</code> — caricato via <code>heroku-php-apache2 -i</code></p>
+
+<table>
+    <thead><tr><th>Setting</th><th>Valore</th><th>Effetto</th></tr></thead>
+    <tbody>
+        <tr><td><code>opcache.jit</code></td><td><strong>1255</strong></td><td>JIT tracing mode — compila PHP in codice macchina nativo</td></tr>
+        <tr><td><code>opcache.jit_buffer_size</code></td><td>32M</td><td>Buffer per il codice JIT compilato</td></tr>
+        <tr><td><code>opcache.memory_consumption</code></td><td>128 MB</td><td>Memoria per il bytecode cachato</td></tr>
+        <tr><td><code>opcache.max_accelerated_files</code></td><td>10.000</td><td>Max file PHP cachati</td></tr>
+        <tr><td><code>opcache.validate_timestamps</code></td><td><strong>0</strong></td><td>Non verifica mai se i file sono cambiati</td></tr>
+        <tr><td><code>opcache.enable_file_override</code></td><td>1</td><td>Ottimizza file_exists via OPcache</td></tr>
+    </tbody>
+</table>
+
+<h3>Utilizzo reale (misurato il 2 luglio 2026)</h3>
+<table>
+    <thead><tr><th>Risorsa</th><th>Allocata</th><th>Usata</th><th>%</th></tr></thead>
+    <tbody>
+        <tr><td>OPcache memory</td><td>128 MB</td><td>69 MB</td><td>54%</td></tr>
+        <tr><td>Interned strings</td><td>16 MB</td><td>10 MB</td><td>60%</td></tr>
+        <tr><td>JIT buffer</td><td>32 MB</td><td>&lt;1 MB</td><td>3%</td></tr>
+        <tr><td>File cachati</td><td>16.229 max</td><td>1.640</td><td>10%</td></tr>
+        <tr class="table-highlight"><td>Hit rate</td><td>—</td><td colspan="2"><strong>90.3%</strong></td></tr>
+    </tbody>
+</table>
+
+<h3>Benchmark TTFB</h3>
+<table>
+    <thead><tr><th>Pagina</th><th>TTFB</th></tr></thead>
+    <tbody>
+        <tr><td>CMS Admin <code>/admin/login</code></td><td><strong>0.18s</strong></td></tr>
+        <tr><td>Sito Home <code>/</code></td><td><strong>0.15s</strong></td></tr>
+        <tr><td>Sito Stagione <code>/stagione</code></td><td><strong>0.17s</strong></td></tr>
+        <tr><td>Sito News <code>/news</code></td><td><strong>0.11s</strong></td></tr>
+        <tr><td>TCP connect (Italia→Frankfurt)</td><td>0.017s</td></tr>
+        <tr><td>TLS handshake</td><td>0.037s</td></tr>
+    </tbody>
+</table>
+
+<h3>Cache Layers</h3>
+<table>
+    <thead><tr><th>Layer</th><th>Tipo</th><th>Scope</th></tr></thead>
+    <tbody>
+        <tr><td>OPcache + JIT</td><td>Bytecode → machine code</td><td>Tutte le pagine PHP</td></tr>
+        <tr><td>Laravel config/route/view cache</td><td>File serializzati</td><td>Boot framework</td></tr>
+        <tr><td>Filament optimize</td><td>Componenti cachati</td><td>CMS admin</td></tr>
+        <tr><td><code>CachePublicResponse</code></td><td>Full-page HTML cache</td><td>Solo sito pubblico (esclude /admin)</td></tr>
+        <tr><td>Spaces CDN</td><td>Edge cache immagini</td><td>Immagini e media</td></tr>
+    </tbody>
+</table>
+
+<hr class="section-divider">
+
+<!-- ==================== 8. COSTI ==================== -->
+<h2 id="s8"><span class="section-number">08</span> Costi</h2>
+
+<div class="cost-summary">
+    <div class="cost-card">
+        <div class="cost-card-icon">🖥️</div>
+        <div class="cost-card-name">CompreFace</div>
+        <div class="cost-card-price">$24</div>
+        <div class="cost-card-pct">40%</div>
+    </div>
+    <div class="cost-card">
+        <div class="cost-card-icon">🗄️</div>
+        <div class="cost-card-name">MySQL</div>
+        <div class="cost-card-price">$15</div>
+        <div class="cost-card-pct">26%</div>
+    </div>
+    <div class="cost-card">
+        <div class="cost-card-icon">🌐</div>
+        <div class="cost-card-name">App Web</div>
+        <div class="cost-card-price">$10</div>
+        <div class="cost-card-pct">17%</div>
+    </div>
+    <div class="cost-card">
+        <div class="cost-card-icon">⚙️</div>
+        <div class="cost-card-name">Worker</div>
+        <div class="cost-card-price">$5</div>
+        <div class="cost-card-pct">8%</div>
+    </div>
+    <div class="cost-card">
+        <div class="cost-card-icon">📦</div>
+        <div class="cost-card-name">Spaces</div>
+        <div class="cost-card-price">$5</div>
+        <div class="cost-card-pct">8%</div>
+    </div>
+</div>
+
+<table>
+    <thead><tr><th>#</th><th>Risorsa</th><th>Spec</th><th style="text-align:right">Costo/mese</th></tr></thead>
+    <tbody>
+        <tr><td>1</td><td>🖥️ Droplet CompreFace</td><td>2 vCPU, 4 GB RAM, 80 GB SSD, fra1</td><td style="text-align:right"><strong>$24.00</strong></td></tr>
+        <tr><td>2</td><td>🗄️ Database MySQL</td><td>db-s-1vcpu-1gb, fra1, managed</td><td style="text-align:right"><strong>$15.23</strong></td></tr>
+        <tr><td>3</td><td>🌐 App Web</td><td>apps-s-1vcpu-1gb-fixed, fra</td><td style="text-align:right"><strong>$10.00</strong></td></tr>
+        <tr><td>4</td><td>⚙️ Worker</td><td>apps-s-1vcpu-0.5gb, fra</td><td style="text-align:right"><strong>$5.00</strong></td></tr>
+        <tr><td>5</td><td>📦 Spaces S3 + CDN</td><td>250 GB storage, 1 TB transfer, fra1</td><td style="text-align:right"><strong>$5.00</strong></td></tr>
+        <tr class="table-total"><td colspan="3">TOTALE</td><td style="text-align:right">$59.23/mese<br><span style="font-weight:400;font-size:8pt">≈ €54/mese • ≈ €654/anno</span></td></tr>
+    </tbody>
+</table>
+
+<hr class="section-divider">
+
+<!-- ==================== 9. BACKUP ==================== -->
+<h2 id="s9"><span class="section-number">09</span> Backup e Sicurezza</h2>
+
+<h3>Backup</h3>
+<table>
+    <thead><tr><th>Componente</th><th>Backup</th><th>Frequenza</th><th>Gestione</th></tr></thead>
+    <tbody>
+        <tr><td>Database MySQL</td><td><span class="badge badge-green">ATTIVO</span></td><td>Giornaliero</td><td>DigitalOcean managed</td></tr>
+        <tr><td>Spaces S3</td><td><span class="badge badge-green">PERSISTENTE</span></td><td>In tempo reale</td><td>Object storage durabile</td></tr>
+        <tr><td>Codice sorgente</td><td><span class="badge badge-green">GIT</span></td><td>Ad ogni push</td><td>GitHub</td></tr>
+        <tr><td>Droplet CompreFace</td><td><span class="badge badge-yellow">MANUALE</span></td><td>Da configurare</td><td>Snapshot DigitalOcean</td></tr>
+    </tbody>
+</table>
+
+<h3>Sicurezza</h3>
+<table>
+    <thead><tr><th>Misura</th><th>Stato</th></tr></thead>
+    <tbody>
+        <tr><td>HTTPS (TLS)</td><td><span class="badge badge-green">ATTIVO</span> — Automatico via App Platform</td></tr>
+        <tr><td>Database su rete privata</td><td><span class="badge badge-green">ATTIVO</span> — Non esposto a internet</td></tr>
+        <tr><td>Sessioni cifrate</td><td><span class="badge badge-green">ATTIVO</span> — <code>SESSION_ENCRYPT</code></td></tr>
+        <tr><td>Cookie sicuri (HTTPS only)</td><td><span class="badge badge-green">ATTIVO</span> — <code>SESSION_SECURE_COOKIE</code></td></tr>
+        <tr><td>Debug disattivato</td><td><span class="badge badge-green">ATTIVO</span> — <code>APP_DEBUG=false</code></td></tr>
+        <tr><td>Secret cifrati in app.yaml</td><td><span class="badge badge-green">ATTIVO</span> — Encrypted values</td></tr>
+        <tr><td>Trust proxies</td><td><span class="badge badge-green">ATTIVO</span> — Configurato per App Platform</td></tr>
+        <tr><td>OPcache validate_timestamps</td><td><span class="badge badge-green">ATTIVO</span> — Disabilitato (previene code injection)</td></tr>
+    </tbody>
+</table>
+
+<h3>Task Schedulati</h3>
+<table>
+    <thead><tr><th>Comando</th><th>Frequenza</th><th>Scopo</th></tr></thead>
+    <tbody>
+        <tr><td><code>sitemap:generate</code></td><td>Giornaliero (04:00)</td><td>Genera sitemap XML per SEO</td></tr>
+        <tr><td><code>activity-log:prune --days=180</code></td><td>Settimanale</td><td>Pulisce log attività &gt; 6 mesi</td></tr>
+        <tr><td><code>model:prune</code></td><td>Giornaliero</td><td>Pulisce modelli scaduti</td></tr>
+    </tbody>
+</table>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="doc-footer">
+    <p><strong>Savino Del Bene Volley</strong> — Documentazione Infrastruttura v1.0</p>
+    <p>Generata il 2 luglio 2026 • DigitalOcean Frankfurt (fra/fra1)</p>
+</div>
+
+</div>
+</body>
+</html>
