@@ -70,6 +70,11 @@ class TeamResource extends Resource
                             ->label('Logo Squadra')
                             ->collection('teams')
                             ->image()
+                            ->maxSize(5120)
+                            ->imageResizeMode('contain')
+                            ->imageResizeTargetWidth(1200)
+                            ->imageResizeTargetHeight(1200)
+                            ->imageResizeUpscale(false)
                             ->columnSpanFull(),
                     ]),
             ]);

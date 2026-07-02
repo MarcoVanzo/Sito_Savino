@@ -87,7 +87,7 @@ class PageController extends Controller
                         'id' => $p->id,
                         'name' => $p->full_name,
                         'role' => $p->role,
-                        'photo_url' => $p->getFirstMediaUrl('staff'),
+                        'photo_url' => $p->getFirstMediaUrl('staff', 'card') ?: $p->getFirstMediaUrl('staff'),
                     ])
                     ->toArray();
             }),
@@ -115,7 +115,7 @@ class PageController extends Controller
                             'last_name' => $r->player->last_name ?? '',
                             'number' => $r->shirt_number ?? $r->player->shirt_number ?? null,
                             'role' => $r->player->role ?? null,
-                            'photo_url' => $r->getFirstMediaUrl('roster') ?: ($r->player?->getFirstMediaUrl('players') ?: null),
+                            'photo_url' => $r->getFirstMediaUrl('rosters_official', 'card') ?: ($r->player?->getFirstMediaUrl('players', 'card') ?: $r->player?->getFirstMediaUrl('players') ?: null),
                         ])
                         ->toArray();
                 }

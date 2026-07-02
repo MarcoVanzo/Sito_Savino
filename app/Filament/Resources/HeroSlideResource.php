@@ -41,6 +41,10 @@ class HeroSlideResource extends Resource
                             ->collection('hero-slides')
                             ->image()
                             ->maxSize(5120)
+                            ->imageResizeMode('contain')
+                            ->imageResizeTargetWidth(1920)
+                            ->imageResizeTargetHeight(1080)
+                            ->imageResizeUpscale(false)
                             ->columnSpanFull(),
                     ]),
 

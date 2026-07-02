@@ -99,11 +99,21 @@ class RosterResource extends Resource
                         SpatieMediaLibraryFileUpload::make('official_photo')
                             ->label('Foto Ufficiale (Roster)')
                             ->collection('rosters_official')
-                            ->image(),
+                            ->image()
+                            ->maxSize(5120)
+                            ->imageResizeMode('contain')
+                            ->imageResizeTargetWidth(1200)
+                            ->imageResizeTargetHeight(1200)
+                            ->imageResizeUpscale(false),
                         SpatieMediaLibraryFileUpload::make('action_photo')
                             ->label('Foto in Azione')
                             ->collection('rosters_action')
-                            ->image(),
+                            ->image()
+                            ->maxSize(5120)
+                            ->imageResizeMode('contain')
+                            ->imageResizeTargetWidth(1200)
+                            ->imageResizeTargetHeight(1200)
+                            ->imageResizeUpscale(false),
                     ])->columns(2),
             ]);
     }

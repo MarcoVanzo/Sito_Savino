@@ -67,6 +67,7 @@ const ogMeta = useOgMeta({
                                 v-if="member.photo_url"
                                 :src="member.photo_url"
                                 :alt="member.name"
+                                loading="lazy"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 @error="onImgError"
                             />

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PostStatus;
+use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Page extends Model implements HasMedia
 {
-    use HasFactory, HasTranslations, InteractsWithMedia, LogsActivity;
+    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
         'wp_id', 'title', 'slug', 'template', 'content', 'content_data', 'excerpt',
@@ -68,10 +69,7 @@ class Page extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->addMediaConversion('thumb')
-            ->width(400)
-            ->height(400)
-            ->sharpen(10);
+        $this->registerStandardConversions($media);
     }
 }
 

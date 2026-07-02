@@ -48,7 +48,7 @@ class PublicController extends Controller
                     'slug' => $post->slug,
                     'excerpt' => $post->getTranslation('excerpt', app()->getLocale(), false),
                     'published_at' => $post->published_at?->toISOString(),
-                    'image_url' => $post->getFirstMediaUrl('cover'),
+                    'image_url' => $post->getFirstMediaUrl('cover', 'card') ?: $post->getFirstMediaUrl('cover'),
                 ])->toArray();
 
             $heroSlides = HeroSlide::active()->ordered()->with('media')->get()
@@ -56,7 +56,7 @@ class PublicController extends Controller
                     'id' => $slide->id,
                     'title' => $slide->title,
                     'subtitle' => $slide->subtitle,
-                    'image' => $slide->getFirstMediaUrl('hero-slides') ?: '/images/hero1.jpg',
+                    'image' => $slide->getFirstMediaUrl('hero-slides', 'hero') ?: $slide->getFirstMediaUrl('hero-slides') ?: '/images/hero1.jpg',
                     'cta_text' => $slide->cta_text,
                     'cta_url' => $slide->cta_url,
                 ])->toArray();
@@ -117,7 +117,7 @@ class PublicController extends Controller
                 'id' => $p->id,
                 'name' => $p->full_name,
                 'role' => $p->role,
-                'photo_url' => $p->getFirstMediaUrl('staff'),
+                'photo_url' => $p->getFirstMediaUrl('staff', 'card') ?: $p->getFirstMediaUrl('staff'),
             ];
 
             $staffTecnico = StaffMember::with('media')
@@ -191,7 +191,7 @@ class PublicController extends Controller
             return $query->get()
                 ->map(fn ($img) => [
                     'id' => $img->id,
-                    'url' => $img->getFirstMediaUrl('gallery'),
+                    'url' => $img->getFirstMediaUrl('gallery', 'lightbox') ?: $img->getFirstMediaUrl('gallery'),
                     'thumb' => $img->getFirstMediaUrl('gallery', 'thumb') ?: $img->getFirstMediaUrl('gallery'),
                     'alt' => $img->title ?? 'Immagine Galleria',
                     'category' => $img->category ?? 'Partite',
@@ -241,7 +241,7 @@ class PublicController extends Controller
                     'id' => $p->id,
                     'name' => $p->full_name,
                     'role' => $p->role,
-                    'photo_url' => $p->getFirstMediaUrl('staff'),
+                    'photo_url' => $p->getFirstMediaUrl('staff', 'card') ?: $p->getFirstMediaUrl('staff'),
                 ])
                 ->toArray();
         });
@@ -255,7 +255,7 @@ class PublicController extends Controller
                     'id' => $p->id,
                     'name' => $p->full_name,
                     'role' => $p->role,
-                    'photo_url' => $p->getFirstMediaUrl('staff'),
+                    'photo_url' => $p->getFirstMediaUrl('staff', 'card') ?: $p->getFirstMediaUrl('staff'),
                 ])
                 ->toArray();
         });
@@ -278,7 +278,7 @@ class PublicController extends Controller
                     'id' => $p->id,
                     'name' => $p->full_name,
                     'role' => $p->role,
-                    'photo_url' => $p->getFirstMediaUrl('staff'),
+                    'photo_url' => $p->getFirstMediaUrl('staff', 'card') ?: $p->getFirstMediaUrl('staff'),
                 ])
                 ->toArray();
         });
@@ -303,7 +303,7 @@ class PublicController extends Controller
                     'name' => $s->name,
                     'tier' => $s->tier,
                     'website_url' => $s->url,
-                    'logo_url' => $s->getFirstMediaUrl('sponsor-logos'),
+                    'logo_url' => $s->getFirstMediaUrl('sponsors', 'card') ?: $s->getFirstMediaUrl('sponsors'),
                     'sort_order' => $s->sort_order,
                 ])->toArray();
         });
@@ -339,7 +339,7 @@ class PublicController extends Controller
                     'description' => $p->description,
                     'price' => $p->price,
                     'stock' => $p->stock,
-                    'image_url' => $p->getFirstMediaUrl('product-images'),
+                    'image_url' => $p->getFirstMediaUrl('products', 'card') ?: $p->getFirstMediaUrl('products'),
                 ])->toArray();
         });
 

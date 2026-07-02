@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Team extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, LogsActivity, SoftDeletes;
+    use HasFactory, HasOptimizedMedia, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'name', 'slug', 'category', 'is_internal',
@@ -40,10 +41,7 @@ class Team extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->addMediaConversion('thumb')
-            ->width(400)
-            ->height(400)
-            ->sharpen(10);
+        $this->registerStandardConversions($media);
     }
 }
 

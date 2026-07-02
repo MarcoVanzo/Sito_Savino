@@ -58,6 +58,7 @@ const ogMeta = useOgMeta({
                                 v-if="post.media?.length"
                                 :src="post.media[0]?.original_url"
                                 :alt="post.title"
+                                loading="lazy"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 @error="onImgError"
                             />
