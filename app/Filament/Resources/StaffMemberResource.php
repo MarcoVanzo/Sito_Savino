@@ -42,9 +42,10 @@ class StaffMemberResource extends Resource
     {
         return parent::getEloquentQuery()
             ->where(function ($q) {
-                $q->where('section', 'a1')->orWhereNull('section')->with('media');
+                $q->where('section', 'a1')->orWhereNull('section');
             })
-            ->whereIn('type', [StaffType::Tecnico, StaffType::Medico]);
+            ->whereIn('type', [StaffType::Tecnico, StaffType::Medico])
+            ->with('media');
     }
 
     protected static ?int $navigationSort = 2;

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\Cache;
 
 class ActivityLog extends Model
 {
@@ -31,6 +32,11 @@ class ActivityLog extends Model
             'changes' => 'array',
             'created_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::created(fn () => Cache::forget('filament:dashboard:recent_activity'));
     }
 
     // --- Relazioni ---

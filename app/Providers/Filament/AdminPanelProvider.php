@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('3rem')
             ->favicon(asset('images/logo.png'))
             ->sidebarCollapsibleOnDesktop()
+            ->spa()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->navigationGroups([
                 NavigationGroup::make()->label('Stagione')->icon('heroicon-o-trophy'),
@@ -132,6 +133,7 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => view('filament.hooks.footer')->render()
             )
             ->databaseNotifications()
+            ->databaseNotificationsPolling('120s')
             ->maxContentWidth('full')
             ->middleware([
                 EncryptCookies::class,

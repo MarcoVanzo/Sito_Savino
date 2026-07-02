@@ -28,6 +28,8 @@ class RosterResource extends Resource
     // Attributo usato per il titolo nei risultati di ricerca globale
     protected static ?string $recordTitleAttribute = 'id';
 
+    protected static bool $isGloballySearchable = false;
+
     protected static ?string $modelLabel = 'Giocatore in Rosa';
 
     protected static ?string $pluralModelLabel = 'Giocatori in Rosa (Roster)';

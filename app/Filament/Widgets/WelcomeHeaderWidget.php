@@ -12,6 +12,9 @@ class WelcomeHeaderWidget extends Widget
 
     protected static ?int $sort = 0;
 
+    // Il saluto cambia solo 3 volte al giorno — nessun polling necessario
+    protected static ?string $pollingInterval = null;
+
     protected function getViewData(): array
     {
         $hour = now()->hour;

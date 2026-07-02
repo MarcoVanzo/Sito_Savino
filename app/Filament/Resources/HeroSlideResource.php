@@ -129,4 +129,9 @@ class HeroSlideResource extends Resource
             'edit' => Pages\EditHeroSlide::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with('media');
+    }
 }

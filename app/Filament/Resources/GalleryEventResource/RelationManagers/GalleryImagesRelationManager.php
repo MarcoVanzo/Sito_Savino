@@ -129,7 +129,9 @@ class GalleryImagesRelationManager extends RelationManager
                         Forms\Components\Select::make('players')
                             ->label('Atlete presenti')
                             ->multiple()
-                            ->options(fn () => Player::orderBy('last_name')->get()->mapWithKeys(fn ($p) => [$p->id => $p->first_name . ' ' . $p->last_name]))
+                            ->options(fn () => Player::orderBy('last_name')
+                                ->selectRaw("id, CONCAT(first_name, ' ', last_name) as full_name")
+                                ->pluck('full_name', 'id'))
                             ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {

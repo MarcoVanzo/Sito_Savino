@@ -28,6 +28,8 @@ class YouthRosterResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'id';
 
+    protected static bool $isGloballySearchable = false;
+
     protected static ?string $modelLabel = 'Atleta Youth';
 
     protected static ?string $pluralModelLabel = 'Atlete Youth';

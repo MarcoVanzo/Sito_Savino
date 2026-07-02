@@ -34,6 +34,8 @@ class ActivityLogResource extends Resource
 
     protected static ?string $slug = 'log';
 
+    protected static bool $isGloballySearchable = false;
+
     /**
      * Solo gli admin possono vedere i log.
      */
@@ -151,8 +153,7 @@ class ActivityLogResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
             ])
-            ->bulkActions([])  // Nessuna bulk action — log immutabili
-            ->poll('30s'); // Auto-refresh ogni 30 secondi
+            ->bulkActions([]);  // Nessuna bulk action — log immutabili
     }
 
     public static function infolist(Infolist $infolist): Infolist

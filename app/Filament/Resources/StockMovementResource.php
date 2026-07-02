@@ -19,6 +19,8 @@ class StockMovementResource extends Resource
     // Attributo usato per il titolo nei risultati di ricerca globale
     protected static ?string $recordTitleAttribute = 'id';
 
+    protected static bool $isGloballySearchable = false;
+
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
     protected static ?string $navigationGroup = 'Shop Ufficiale';

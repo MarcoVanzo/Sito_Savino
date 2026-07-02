@@ -6,11 +6,22 @@ use App\Enums\OrderStatus;
 use App\Enums\StockMovementType;
 use App\Models\Order;
 use App\Models\StockMovement;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class OrderObserver
 {
+    /**
+     * Handle the Order "created" event.
+     * Invalida la cache dei widget dashboard.
+     */
+    public function created(Order $order): void
+    {
+        Cache::forget('filament:dashboard:stats');
+        Cache::forget('filament:dashboard:orders_chart');
+    }
+
     /**
      * Handle the Order "updated" event.
      *
@@ -22,6 +33,10 @@ class OrderObserver
         if (! $order->isDirty('status')) {
             return;
         }
+
+        // Invalida la cache dei widget dashboard quando lo status cambia
+        Cache::forget('filament:dashboard:stats');
+        Cache::forget('filament:dashboard:orders_chart');
 
         // Ordine pagato → decrementa stock
         if ($order->status === OrderStatus::Paid) {
@@ -121,5 +136,15 @@ class OrderObserver
 
             Log::info("Stock ripristinato per Ordine #{$order->id} (cancellazione)");
         });
+    }
+
+    /**
+     * Handle the Order "deleted" event.
+     * Invalida la cache dei widget dashboard.
+     */
+    public function deleted(Order $order): void
+    {
+        Cache::forget('filament:dashboard:stats');
+        Cache::forget('filament:dashboard:orders_chart');
     }
 }

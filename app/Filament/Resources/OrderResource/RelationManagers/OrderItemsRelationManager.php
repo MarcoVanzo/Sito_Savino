@@ -50,6 +50,7 @@ class OrderItemsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['product', 'variant']))
             ->recordTitleAttribute('id')
             ->columns([
                 Tables\Columns\TextColumn::make('product.name')

@@ -44,6 +44,7 @@ class GamesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->with(['homeTeam', 'awayTeam']))
             ->columns([
                 Tables\Columns\TextColumn::make('match_date')
                     ->label('Data')

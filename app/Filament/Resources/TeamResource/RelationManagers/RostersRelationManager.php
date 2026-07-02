@@ -49,6 +49,7 @@ class RostersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->with(['player', 'season']))
             ->columns([
                 Tables\Columns\TextColumn::make('player.full_name')
                     ->label('Giocatrice')

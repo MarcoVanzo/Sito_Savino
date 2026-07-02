@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class OrdersChartWidget extends ChartWidget
 {
@@ -15,46 +16,69 @@ class OrdersChartWidget extends ChartWidget
 
     protected static string $color = 'warning';
 
+    // Disabilita il polling automatico
+    protected static ?string $pollingInterval = null;
+
     protected function getData(): array
     {
-        $months = collect(range(5, 0))->map(function ($i) {
-            return Carbon::now()->subMonths($i);
+        $data = Cache::remember('filament:dashboard:orders_chart', 600, function () {
+            $sixMonthsAgo = Carbon::now()->subMonths(5)->startOfMonth();
+
+            // Una sola query per i conteggi mensili (invece di 6 separate)
+            $orderCounts = Order::query()
+                ->selectRaw("CONCAT(YEAR(created_at), '-', LPAD(MONTH(created_at), 2, '0')) as ym, COUNT(*) as total")
+                ->where('created_at', '>=', $sixMonthsAgo)
+                ->groupBy('ym')
+                ->pluck('total', 'ym')
+                ->toArray();
+
+            // Una sola query per il fatturato mensile (invece di 6 separate)
+            $revenueData = Order::query()
+                ->selectRaw("CONCAT(YEAR(created_at), '-', LPAD(MONTH(created_at), 2, '0')) as ym, ROUND(SUM(total_price), 2) as revenue")
+                ->where('status', OrderStatus::Paid)
+                ->where('created_at', '>=', $sixMonthsAgo)
+                ->groupBy('ym')
+                ->pluck('revenue', 'ym')
+                ->toArray();
+
+            // Costruisce gli array con tutti i mesi (anche quelli a zero)
+            $months = collect(range(5, 0))->map(fn ($i) => Carbon::now()->subMonths($i));
+            $labels = $months->map(fn ($m) => $m->translatedFormat('M Y'))->toArray();
+
+            $counts = $months->map(function ($month) use ($orderCounts) {
+                $key = $month->format('Y-m');
+
+                return (int) ($orderCounts[$key] ?? 0);
+            })->toArray();
+
+            $revenues = $months->map(function ($month) use ($revenueData) {
+                $key = $month->format('Y-m');
+
+                return (float) ($revenueData[$key] ?? 0);
+            })->toArray();
+
+            return compact('labels', 'counts', 'revenues');
         });
-
-        $labels = $months->map(fn ($m) => $m->translatedFormat('M Y'))->toArray();
-
-        $orderCounts = $months->map(function ($month) {
-            return Order::whereYear('created_at', $month->year)
-                ->whereMonth('created_at', $month->month)
-                ->count();
-        })->toArray();
-
-        $revenueCents = $months->map(function ($month) {
-            return round((float) Order::where('status', OrderStatus::Paid)
-                ->whereYear('created_at', $month->year)
-                ->whereMonth('created_at', $month->month)
-                ->sum('total_price'), 2);
-        })->toArray();
 
         return [
             'datasets' => [
                 [
                     'label' => 'Ordini',
-                    'data' => $orderCounts,
+                    'data' => $data['counts'],
                     'borderColor' => '#C9A84C',
                     'backgroundColor' => 'rgba(201, 168, 76, 0.1)',
                     'fill' => true,
                 ],
                 [
                     'label' => 'Fatturato (€)',
-                    'data' => $revenueCents,
+                    'data' => $data['revenues'],
                     'borderColor' => '#003063',
                     'backgroundColor' => 'rgba(0, 48, 99, 0.1)',
                     'fill' => true,
                     'yAxisID' => 'y1',
                 ],
             ],
-            'labels' => $labels,
+            'labels' => $data['labels'],
         ];
     }
 

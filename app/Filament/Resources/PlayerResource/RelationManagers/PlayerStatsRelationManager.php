@@ -46,6 +46,7 @@ class PlayerStatsRelationManager extends RelationManager
         )->values()->all();
 
         return $table
+            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->with('season'))
             ->recordTitleAttribute('id')
             ->columns([
                 Tables\Columns\TextColumn::make('season.name')

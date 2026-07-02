@@ -28,16 +28,16 @@ class CacheInvalidationObserver
      * Mantenere allineate con le chiavi usate nei controller pubblici.
      */
     private const MODEL_CACHE_MAP = [
-        Player::class => ['public:stagione', 'public:stagione:b1', 'public:staff', 'public:home'],
+        Player::class => ['public:stagione', 'public:stagione:b1', 'public:staff', 'public:home', 'filament:dashboard:stats'],
         PlayerStat::class => ['public:stagione', 'public:stagione:b1'],
         Roster::class => ['public:stagione', 'public:stagione:b1'],
         Season::class => ['public:stagione', 'public:stagione:b1', 'public:risultati', 'public:home'],
-        Team::class => ['public:stagione', 'public:stagione:b1', 'public:risultati'],
+        Team::class => ['public:stagione', 'public:stagione:b1', 'public:risultati', 'filament:dashboard:next_match'],
         Sponsor::class => ['public:sponsor'],
         Product::class => ['public:shop'],
-        Post::class => ['public:home'],
+        Post::class => ['public:home', 'filament:dashboard:stats'],
         Page::class => [],
-        Game::class => ['public:risultati', 'public:home'],
+        Game::class => ['public:risultati', 'public:home', 'filament:dashboard:stats', 'filament:dashboard:next_match'],
     ];
 
     public function saved(Model $model): void

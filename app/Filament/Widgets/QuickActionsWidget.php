@@ -11,4 +11,7 @@ class QuickActionsWidget extends Widget
     protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = 2;
+
+    // Widget statico — nessun polling necessario
+    protected static ?string $pollingInterval = null;
 }

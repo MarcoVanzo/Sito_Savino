@@ -120,6 +120,7 @@ class GalleryEventResource extends Resource
                     ->requiresConfirmation()
                     ->modalDescription('Tutte le foto di questo evento verranno analizzate con AI in background.')
                     ->action(function (GalleryEvent $record) {
+                        $record->loadMissing('galleryImages');
                         $count = 0;
                         foreach ($record->galleryImages as $image) {
                             AnalyzeGalleryImageJob::dispatch($image);
@@ -135,6 +136,7 @@ class GalleryEventResource extends Resource
                     ->requiresConfirmation()
                     ->modalDescription('Attenzione: verranno eliminate anche tutte le foto associate a questo evento. L\'operazione è irreversibile.')
                     ->before(function (GalleryEvent $record) {
+                        $record->loadMissing('galleryImages');
                         foreach ($record->galleryImages as $image) {
                             $image->clearMediaCollection('gallery');
                             $image->delete();

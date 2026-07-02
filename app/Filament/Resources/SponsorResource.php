@@ -109,4 +109,9 @@ class SponsorResource extends Resource
             'edit' => Pages\EditSponsor::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with('media');
+    }
 }
