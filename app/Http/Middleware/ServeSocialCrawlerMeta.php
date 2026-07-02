@@ -143,7 +143,7 @@ class ServeSocialCrawlerMeta
         return [
             'title' => $post->title.' — Savino Del Bene Volley',
             'description' => $post->excerpt ?? mb_substr(strip_tags($post->body ?? ''), 0, 160),
-            'image' => $post->getFirstMediaUrl('post-images') ?: null,
+            'image' => $post->getFirstMediaUrl('cover') ?: null,
         ];
     }
 

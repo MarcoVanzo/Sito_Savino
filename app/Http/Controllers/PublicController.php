@@ -46,7 +46,7 @@ class PublicController extends Controller
                     'slug' => $post->slug,
                     'excerpt' => $post->excerpt,
                     'published_at' => $post->published_at?->toISOString(),
-                    'image_url' => $post->getFirstMediaUrl('post-images'),
+                    'image_url' => $post->getFirstMediaUrl('cover'),
                 ])->toArray();
 
             $heroSlides = HeroSlide::active()->ordered()->with('media')->get()
