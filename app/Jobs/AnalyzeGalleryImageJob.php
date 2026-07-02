@@ -85,24 +85,14 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             Log::info("AnalyzeGalleryImageJob: [STEP 3/6] Image #{$imageId} — Streaming from S3 to temp");
             $downloadStart = microtime(true);
 
-            // Stream da S3 a disco locale — evita di caricare tutto in RAM
-            $stream = $disk->readStream($relativePath);
-            if (! $stream) {
-                throw new \RuntimeException("Failed to open S3 read stream for: {$relativePath}");
+            // Usa get() invece di readStream per evitare problemi di timeout con DigitalOcean Spaces
+            $fileContent = $disk->get($relativePath);
+            if ($fileContent === null) {
+                throw new \RuntimeException("Failed to read file from S3: {$relativePath}");
             }
-
-            $localFile = fopen($tempPath, 'wb');
-            if (! $localFile) {
-                if (is_resource($stream)) {
-                    fclose($stream);
-                }
-                throw new \RuntimeException("Failed to open temp file for writing: {$tempPath}");
-            }
-
-            stream_copy_to_stream($stream, $localFile);
-            fclose($localFile);
-            if (is_resource($stream)) {
-                fclose($stream);
+            
+            if (file_put_contents($tempPath, $fileContent) === false) {
+                throw new \RuntimeException("Failed to write to temp file: {$tempPath}");
             }
 
             $downloadMs = round((microtime(true) - $downloadStart) * 1000);
