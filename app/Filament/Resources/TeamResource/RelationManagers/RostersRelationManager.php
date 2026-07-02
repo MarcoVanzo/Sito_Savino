@@ -8,6 +8,7 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class RostersRelationManager extends RelationManager
 {
@@ -49,7 +50,7 @@ class RostersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->with(['player', 'season']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['player', 'season']))
             ->columns([
                 Tables\Columns\TextColumn::make('player.full_name')
                     ->label('Giocatrice')

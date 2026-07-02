@@ -159,4 +159,3 @@ class MenuItem extends Model implements HasMedia
         $this->registerStandardConversions($media);
     }
 }
-

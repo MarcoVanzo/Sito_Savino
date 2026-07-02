@@ -73,4 +73,3 @@ class Post extends Model implements HasMedia
             ->sharpen(10);
     }
 }
-

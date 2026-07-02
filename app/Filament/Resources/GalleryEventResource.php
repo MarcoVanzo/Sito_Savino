@@ -14,7 +14,9 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 
@@ -139,9 +141,9 @@ class GalleryEventResource extends Resource
                         $analyzed = $record->ai_analyzed_images_count ?? 0;
 
                         return match ($state) {
-                            'complete' => '✓ ' . $analyzed . '/' . $total,
-                            'partial' => $analyzed . '/' . $total,
-                            'none' => '0/' . $total,
+                            'complete' => '✓ '.$analyzed.'/'.$total,
+                            'partial' => $analyzed.'/'.$total,
+                            'none' => '0/'.$total,
                             default => '—',
                         };
                     })
@@ -163,13 +165,13 @@ class GalleryEventResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('analyzeEvent')
+                Action::make('analyzeEvent')
                     ->label('Analizza AI')
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
                     ->requiresConfirmation()
                     ->modalDescription('Tutte le foto di questo evento verranno analizzate con AI in background.')
-                    ->action(function (GalleryEvent $record, \Filament\Tables\Actions\Action $action, $livewire) {
+                    ->action(function (GalleryEvent $record, Action $action, $livewire) {
                         // Query efficiente: evita N+1 con whereHas invece di filter+hasMedia
                         $images = GalleryImage::where('gallery_event_id', $record->id)
                             ->whereHas('media')
@@ -193,14 +195,14 @@ class GalleryEventResource extends Resource
                             ->dispatch();
 
                         // Cache key scoped per utente
-                        Cache::put('gallery_ai_batch_id_user_' . auth()->id(), $batch->id, now()->addHours(6));
+                        Cache::put('gallery_ai_batch_id_user_'.auth()->id(), $batch->id, now()->addHours(6));
 
                         // Notifica il frontend di avviare il polling
                         $livewire->dispatch('batch-started');
 
                         Notification::make()
                             ->title('Analisi AI avviata')
-                            ->body($images->count() . ' foto in fase di analisi.')
+                            ->body($images->count().' foto in fase di analisi.')
                             ->success()
                             ->send();
                     }),
@@ -218,7 +220,7 @@ class GalleryEventResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->before(function (\Illuminate\Database\Eloquent\Collection $records) {
+                        ->before(function (Collection $records) {
                             foreach ($records as $event) {
                                 $event->loadMissing('galleryImages');
                                 foreach ($event->galleryImages as $image) {

@@ -61,4 +61,3 @@ class Player extends Model implements HasMedia
         $this->registerStandardConversions($media);
     }
 }
-

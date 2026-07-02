@@ -23,31 +23,61 @@ class TrainAiFacesAction
         // Ensure subject exists in CompreFace
         $service->createSubject($record);
 
+        $errorMessages = [];
+
         if (! empty($data['training_images'])) {
             foreach ($data['training_images'] as $image) {
                 $path = is_string($image)
                     ? Storage::disk('local')->path($image)
                     : $image->getRealPath();
 
-                if ($service->addFaceExample($record, $path)) {
+                $result = $service->addFaceExample($record, $path);
+                if ($result['success']) {
                     $successCount++;
                 } else {
                     $errorCount++;
+                    if ($result['error']) {
+                        $errorMessages[] = $result['error'];
+                    }
                 }
             }
         }
 
         // Sync avatar as well
         $media = $record->getFirstMedia('players');
-        if ($media && $service->addFaceExampleFromMedia($record, $media)) {
-            $successCount++;
+        if ($media) {
+            $result = $service->addFaceExampleFromMedia($record, $media);
+            if ($result['success']) {
+                $successCount++;
+            } else {
+                $errorCount++;
+                if ($result['error']) {
+                    $errorMessages[] = $result['error'];
+                }
+            }
         }
 
         $notification = Notification::make()
             ->title('Addestramento Completato')
-            ->body("{$successCount} volti appresi con successo." . ($errorCount > 0 ? " {$errorCount} errori." : ''));
+            ->body("{$successCount} volti appresi con successo.".($errorCount > 0 ? " {$errorCount} scartati." : ''));
 
         if ($errorCount > 0) {
+            // Deduplicate and translate common errors
+            $uniqueErrors = array_unique($errorMessages);
+            $translatedErrors = array_map(function ($err) {
+                if (str_contains(strtolower($err), 'more than one face')) {
+                    return 'Trovati più volti nella foto (usa un primo piano).';
+                }
+                if (str_contains(strtolower($err), 'no face is found')) {
+                    return 'Nessun volto trovato nella foto.';
+                }
+
+                return $err;
+            }, $uniqueErrors);
+
+            if (count($translatedErrors) > 0) {
+                $notification->body($notification->getBody().' Motivi: '.implode(' | ', $translatedErrors));
+            }
             $notification->warning();
         } else {
             $notification->success();

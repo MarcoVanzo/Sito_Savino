@@ -14,7 +14,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-
 use Illuminate\Support\Facades\Log;
 
 class ListGalleryImages extends ListRecords
@@ -80,7 +79,7 @@ class ListGalleryImages extends ListRecords
                             // Rilevamento duplicati via hash
                             $fileHash = null;
                             if (is_string($file)) {
-                                $fullPath = storage_path('app/private/' . $file);
+                                $fullPath = storage_path('app/private/'.$file);
                                 if (file_exists($fullPath)) {
                                     $fileHash = hash_file('sha256', $fullPath);
                                 }
@@ -88,6 +87,7 @@ class ListGalleryImages extends ListRecords
 
                             if ($fileHash && GalleryImage::where('file_hash', $fileHash)->exists()) {
                                 $duplicates++;
+
                                 continue;
                             }
 
@@ -113,9 +113,9 @@ class ListGalleryImages extends ListRecords
                             $uploaded++;
                         }
 
-                        $body = $uploaded . ' foto in fase di analisi AI.';
+                        $body = $uploaded.' foto in fase di analisi AI.';
                         if ($duplicates > 0) {
-                            $body .= ' ' . $duplicates . ' duplicati saltati.';
+                            $body .= ' '.$duplicates.' duplicati saltati.';
                         }
 
                         Notification::make()
@@ -142,4 +142,3 @@ class ListGalleryImages extends ListRecords
         ];
     }
 }
-

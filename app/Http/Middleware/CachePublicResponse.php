@@ -52,7 +52,7 @@ class CachePublicResponse
             return $next($request);
         }
 
-        $cacheKey = self::CACHE_PREFIX . md5($request->fullUrl());
+        $cacheKey = self::CACHE_PREFIX.md5($request->fullUrl());
 
         $cached = Cache::get($cacheKey);
 
@@ -85,10 +85,10 @@ class CachePublicResponse
             ], self::TTL);
 
             // Track this key in the registry for selective flush
-            $registry = Cache::get(self::CACHE_PREFIX . 'registry', []);
+            $registry = Cache::get(self::CACHE_PREFIX.'registry', []);
             if (! in_array($cacheKey, $registry, true)) {
                 $registry[] = $cacheKey;
-                Cache::put(self::CACHE_PREFIX . 'registry', $registry, self::TTL * 2);
+                Cache::put(self::CACHE_PREFIX.'registry', $registry, self::TTL * 2);
             }
 
             $response->headers->set('X-Page-Cache', 'MISS');
@@ -105,12 +105,12 @@ class CachePublicResponse
     {
         // With file cache driver we can't query by prefix,
         // so we maintain a registry of cached URLs.
-        $registry = Cache::get(self::CACHE_PREFIX . 'registry', []);
+        $registry = Cache::get(self::CACHE_PREFIX.'registry', []);
 
         foreach ($registry as $key) {
             Cache::forget($key);
         }
 
-        Cache::forget(self::CACHE_PREFIX . 'registry');
+        Cache::forget(self::CACHE_PREFIX.'registry');
     }
 }

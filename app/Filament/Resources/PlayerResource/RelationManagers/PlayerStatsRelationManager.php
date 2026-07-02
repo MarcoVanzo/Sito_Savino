@@ -8,6 +8,7 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PlayerStatsRelationManager extends RelationManager
 {
@@ -46,7 +47,7 @@ class PlayerStatsRelationManager extends RelationManager
         )->values()->all();
 
         return $table
-            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->with('season'))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('season'))
             ->recordTitleAttribute('id')
             ->columns([
                 Tables\Columns\TextColumn::make('season.name')

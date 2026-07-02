@@ -60,7 +60,7 @@ class CreateGalleryFromPosts extends Command
         ];
 
         $bar = $this->output->createProgressBar($months->count());
-        $bar->setFormat(" %current%/%max% [%bar%] %percent:3s%% — %message%");
+        $bar->setFormat(' %current%/%max% [%bar%] %percent:3s%% — %message%');
         $bar->setMessage('Inizio...');
 
         foreach ($months as $yearMonth => $monthPosts) {
@@ -78,6 +78,7 @@ class CreateGalleryFromPosts extends Command
                 $eventsCreated++;
                 $imagesCreated += $monthPosts->count();
                 $bar->advance();
+
                 continue;
             }
 
@@ -112,6 +113,7 @@ class CreateGalleryFromPosts extends Command
 
                 if ($existing) {
                     $duplicatesSkipped++;
+
                     continue;
                 }
 

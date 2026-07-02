@@ -231,14 +231,14 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             // Description per SEO
             $description = 'Foto ';
             if (! empty($playerNames)) {
-                $description .= 'di ' . $namesString . ' ';
+                $description .= 'di '.$namesString.' ';
             }
             $description .= 'della Savino Del Bene Volley';
             if (! empty($eventTitle)) {
-                $description .= ' durante ' . $eventTitle;
+                $description .= ' durante '.$eventTitle;
             }
             if (! empty($eventDate)) {
-                $description .= ' (' . $eventDate . ')';
+                $description .= ' ('.$eventDate.')';
             }
             $media->setCustomProperty('description', $description);
 

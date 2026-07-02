@@ -3,7 +3,6 @@
 namespace App\Observers;
 
 use App\Http\Middleware\CachePublicResponse;
-
 use App\Models\Game;
 use App\Models\Page;
 use App\Models\Player;

@@ -17,6 +17,7 @@ use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class GalleryImageResource extends Resource
 {
@@ -125,12 +126,11 @@ class GalleryImageResource extends Resource
                 Tables\Filters\SelectFilter::make('category')
                     ->label('Categoria')
                     ->options(function () {
-                        return \Illuminate\Support\Facades\Cache::remember('gallery_image_categories', 3600, fn() =>
-                            GalleryImage::query()
-                                ->select('category')
-                                ->distinct()
-                                ->pluck('category', 'category')
-                                ->toArray()
+                        return Cache::remember('gallery_image_categories', 3600, fn () => GalleryImage::query()
+                            ->select('category')
+                            ->distinct()
+                            ->pluck('category', 'category')
+                            ->toArray()
                         );
                     }),
                 Tables\Filters\SelectFilter::make('gallery_event_id')
@@ -220,5 +220,4 @@ class GalleryImageResource extends Resource
     {
         return parent::getEloquentQuery()->with(['media', 'players']);
     }
-
 }

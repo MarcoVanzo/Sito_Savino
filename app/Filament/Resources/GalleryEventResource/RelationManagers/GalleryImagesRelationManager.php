@@ -124,7 +124,7 @@ class GalleryImagesRelationManager extends RelationManager
                         }
                         Notification::make()
                             ->title('Analisi AI avviata')
-                            ->body($images->count() . ' nuove foto in fase di analisi in background.')
+                            ->body($images->count().' nuove foto in fase di analisi in background.')
                             ->success()
                             ->send();
                     }),
@@ -135,7 +135,7 @@ class GalleryImagesRelationManager extends RelationManager
                     ->icon('heroicon-o-user-plus')
                     ->color('warning')
                     ->visible(fn (GalleryImage $record) => $record->needs_review)
-                    ->mountUsing(function (Forms\Form $form, GalleryImage $record) {
+                    ->mountUsing(function (Form $form, GalleryImage $record) {
                         $form->fill([
                             'players' => $record->players->pluck('id')->toArray(),
                         ]);
@@ -179,7 +179,7 @@ class GalleryImagesRelationManager extends RelationManager
                             }
                             Notification::make()
                                 ->title('Analisi avviata')
-                                ->body($records->count() . ' foto in fase di analisi.')
+                                ->body($records->count().' foto in fase di analisi.')
                                 ->success()
                                 ->send();
                         }),

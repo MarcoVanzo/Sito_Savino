@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\Translatable\HasTranslations;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Translatable\HasTranslations;
 
 class Page extends Model implements HasMedia
 {
@@ -72,4 +72,3 @@ class Page extends Model implements HasMedia
         $this->registerStandardConversions($media);
     }
 }
-

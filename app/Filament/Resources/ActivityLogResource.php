@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 class ActivityLogResource extends Resource
 {
@@ -116,12 +117,11 @@ class ActivityLogResource extends Resource
 
                 Tables\Filters\SelectFilter::make('model_type')
                     ->label('Tipo Risorsa')
-                    ->options(fn () => \Illuminate\Support\Facades\Cache::remember('activity_log_model_types', 3600, fn() =>
-                        ActivityLog::query()
-                            ->distinct()
-                            ->pluck('model_type')
-                            ->mapWithKeys(fn ($type) => [$type => class_basename($type)])
-                            ->toArray()
+                    ->options(fn () => Cache::remember('activity_log_model_types', 3600, fn () => ActivityLog::query()
+                        ->distinct()
+                        ->pluck('model_type')
+                        ->mapWithKeys(fn ($type) => [$type => class_basename($type)])
+                        ->toArray()
                     )),
 
                 Tables\Filters\Filter::make('created_at')

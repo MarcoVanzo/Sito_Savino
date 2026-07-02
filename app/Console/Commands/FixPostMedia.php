@@ -47,17 +47,18 @@ class FixPostMedia extends Command
         $bar->start();
 
         foreach ($postMedia as $media) {
-            $expectedPath = $media->id . '/' . $media->file_name;
+            $expectedPath = $media->id.'/'.$media->file_name;
 
             // 1. Controlla se il file esiste già con il nome corretto
             if ($disk->exists($expectedPath)) {
                 $alreadyOk++;
                 $bar->advance();
+
                 continue;
             }
 
             // 2. Controlla se esiste un file con nome UUID nella stessa directory
-            $s3Files = $disk->allFiles($media->id . '/');
+            $s3Files = $disk->allFiles($media->id.'/');
 
             if (! empty($s3Files)) {
                 // File esiste con nome diverso → rinomina (copy + delete)
@@ -78,16 +79,18 @@ class FixPostMedia extends Command
                         $this->error("  ❌ Errore rename media {$media->id}: {$e->getMessage()}");
                         $failed++;
                         $bar->advance();
+
                         continue;
                     }
                 }
                 $renamed++;
                 $bar->advance();
+
                 continue;
             }
 
             // 3. File mancante su S3 → carica da export locale
-            $localPath = $exportPath . '/' . $media->file_name;
+            $localPath = $exportPath.'/'.$media->file_name;
 
             if (! file_exists($localPath)) {
                 // Prova senza estensione diversa o con varianti comuni
@@ -99,6 +102,7 @@ class FixPostMedia extends Command
                     $this->warn("  ⚠️  Media {$media->id}: file locale non trovato ({$media->file_name})");
                     $failed++;
                     $bar->advance();
+
                     continue;
                 }
             }
@@ -121,6 +125,7 @@ class FixPostMedia extends Command
                     $this->error("  ❌ Errore upload media {$media->id}: {$e->getMessage()}");
                     $failed++;
                     $bar->advance();
+
                     continue;
                 }
             }
@@ -149,7 +154,7 @@ class FixPostMedia extends Command
     private function findLocalFile(string $dir, string $filename): ?string
     {
         // Prova il nome esatto
-        $path = $dir . '/' . $filename;
+        $path = $dir.'/'.$filename;
         if (file_exists($path)) {
             return $path;
         }
@@ -160,22 +165,22 @@ class FixPostMedia extends Command
 
         $alternatives = [];
         if (strtolower($ext) === 'jpeg') {
-            $alternatives[] = $base . '.jpg';
-            $alternatives[] = $base . '.JPG';
+            $alternatives[] = $base.'.jpg';
+            $alternatives[] = $base.'.JPG';
         } elseif (strtolower($ext) === 'jpg') {
-            $alternatives[] = $base . '.jpeg';
-            $alternatives[] = $base . '.JPEG';
+            $alternatives[] = $base.'.jpeg';
+            $alternatives[] = $base.'.JPEG';
         }
 
         foreach ($alternatives as $alt) {
-            $altPath = $dir . '/' . $alt;
+            $altPath = $dir.'/'.$alt;
             if (file_exists($altPath)) {
                 return $altPath;
             }
         }
 
         // Cerca case-insensitive tramite glob
-        $pattern = $dir . '/' . $base . '.*';
+        $pattern = $dir.'/'.$base.'.*';
         $matches = glob($pattern, GLOB_NOSORT);
         if (! empty($matches)) {
             return $matches[0];

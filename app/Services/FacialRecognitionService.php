@@ -58,12 +58,14 @@ class FacialRecognitionService
     /**
      * Add a training face for a player.
      * $imagePath must be an absolute path to a local file.
+     * Returns an array: ['success' => bool, 'error' => ?string]
      */
-    public function addFaceExample(Player $player, string $imagePath): bool
+    public function addFaceExample(Player $player, string $imagePath): array
     {
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping addFaceExample.');
-            return false;
+
+            return ['success' => false, 'error' => 'API Key mancante'];
         }
 
         $subjectName = $this->getSubjectName($player);
@@ -74,23 +76,26 @@ class FacialRecognitionService
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
         ])->timeout(30)->retry(2, 1000, throw: false)->attach(
-            'file', file_get_contents($imagePath), basename($imagePath)
+            'file', fopen($imagePath, 'r'), basename($imagePath)
         )->post($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
         if ($response->successful()) {
-            return true;
+            return ['success' => true, 'error' => null];
         }
+
+        $errorData = $response->json();
+        $errorMessage = $errorData['message'] ?? $response->body();
 
         Log::error('CompreFace Add Face Error: '.$response->body());
 
-        return false;
+        return ['success' => false, 'error' => $errorMessage];
     }
 
     /**
      * Add a training face from a Spatie Media object (S3 compatible).
      * Downloads the file from the media disk before sending to CompreFace.
      */
-    public function addFaceExampleFromMedia(Player $player, Media $media): bool
+    public function addFaceExampleFromMedia(Player $player, Media $media): array
     {
         $tempPath = $this->downloadMediaToTemp($media);
         if (! $tempPath) {
@@ -98,7 +103,8 @@ class FacialRecognitionService
                 'player_id' => $player->id,
                 'media_id' => $media->id,
             ]);
-            return false;
+
+            return ['success' => false, 'error' => 'Impossibile scaricare file media'];
         }
 
         try {
@@ -143,7 +149,7 @@ class FacialRecognitionService
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
         ])->timeout(30)->retry(2, 1000)->attach(
-            'file', file_get_contents($imagePath), basename($imagePath)
+            'file', fopen($imagePath, 'r'), basename($imagePath)
         )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
 
         if (! $response->successful()) {
@@ -200,6 +206,7 @@ class FacialRecognitionService
 
             if (! $disk->exists($relativePath)) {
                 Log::warning("CompreFace: file not found on disk {$media->disk}: {$relativePath}");
+
                 return null;
             }
 
@@ -209,6 +216,7 @@ class FacialRecognitionService
             return $tempPath;
         } catch (\Throwable $e) {
             Log::error('CompreFace: download media failed', ['error' => $e->getMessage()]);
+
             return null;
         }
     }

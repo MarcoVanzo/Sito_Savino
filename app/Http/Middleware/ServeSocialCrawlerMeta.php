@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Post;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -134,7 +135,7 @@ class ServeSocialCrawlerMeta
 
     private function resolveNewsMeta(string $slug): array
     {
-        $post = \App\Models\Post::where('slug', $slug)->first();
+        $post = Post::where('slug', $slug)->first();
 
         if (! $post) {
             return self::PAGE_META['news'];

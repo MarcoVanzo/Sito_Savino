@@ -63,4 +63,3 @@ class HeroSlide extends Model implements HasMedia
             ->quality(85);
     }
 }
-

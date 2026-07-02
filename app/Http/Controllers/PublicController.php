@@ -74,12 +74,14 @@ class PublicController extends Controller
     public function stagione()
     {
         $locale = app()->getLocale();
+
         return $this->stagioneForTeam('savino-del-bene-volley', "public:stagione:{$locale}");
     }
 
     public function stagioneB1()
     {
         $locale = app()->getLocale();
+
         return $this->stagioneForTeam('serie-b1', "public:stagione:b1:{$locale}", 'Serie B1');
     }
 

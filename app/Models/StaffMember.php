@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\Translatable\HasTranslations;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Translatable\HasTranslations;
 
 class StaffMember extends Model implements HasMedia
 {
@@ -43,4 +43,3 @@ class StaffMember extends Model implements HasMedia
         $this->registerStandardConversions($media);
     }
 }
-

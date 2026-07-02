@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GamesRelationManager extends RelationManager
 {
@@ -44,7 +45,7 @@ class GamesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (\Illuminate\Database\Eloquent\Builder $query) => $query->with(['homeTeam', 'awayTeam']))
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['homeTeam', 'awayTeam']))
             ->columns([
                 Tables\Columns\TextColumn::make('match_date')
                     ->label('Data')

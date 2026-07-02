@@ -8,6 +8,7 @@ use App\Models\GalleryImage;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class GalleryUploadService
@@ -34,6 +35,7 @@ class GalleryUploadService
             if ($fileHash && static::isDuplicate($fileHash)) {
                 $duplicates++;
                 Log::info('Gallery upload: duplicato rilevato', ['hash' => $fileHash]);
+
                 continue;
             }
 
@@ -78,7 +80,7 @@ class GalleryUploadService
         if ($duplicates > 0) {
             Notification::make()
                 ->title('Duplicati rilevati')
-                ->body($duplicates . ' foto già presenti nel sistema e saltate. ' . $uploaded . ' nuove foto caricate.')
+                ->body($duplicates.' foto già presenti nel sistema e saltate. '.$uploaded.' nuove foto caricate.')
                 ->warning()
                 ->persistent()
                 ->send();
@@ -97,11 +99,12 @@ class GalleryUploadService
                 if (is_resource($stream)) {
                     fclose($stream);
                 }
+
                 return hash('sha256', $content);
             }
 
             if (is_string($file)) {
-                $fullPath = \Illuminate\Support\Facades\Storage::disk($disk)->path($file);
+                $fullPath = Storage::disk($disk)->path($file);
                 if (file_exists($fullPath)) {
                     return hash_file('sha256', $fullPath);
                 }

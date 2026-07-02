@@ -115,4 +115,3 @@ class NewsController extends Controller
         return $data;
     }
 }
-

@@ -64,4 +64,3 @@ class Product extends Model implements HasMedia
         $this->registerStandardConversions($media);
     }
 }
-

@@ -16,20 +16,20 @@ return new class extends Migration
     {
         // ── HOME group: rinomina per corrispondere alle chiavi in Home.vue ──
         $homeRenames = [
-            'home_hero_title'          => 'hero_title',
-            'home_hero_title_accent'   => 'hero_subtitle',
-            'home_hero_claim'          => 'hero_tagline',
-            'home_cta_primary_text'    => 'hero_cta1_label',
-            'home_cta_primary_url'     => 'hero_cta1_url',
-            'home_cta_secondary_text'  => 'hero_cta2_label',
-            'home_cta_secondary_url'   => 'hero_cta2_url',
-            'home_stats'               => 'stats',
+            'home_hero_title' => 'hero_title',
+            'home_hero_title_accent' => 'hero_subtitle',
+            'home_hero_claim' => 'hero_tagline',
+            'home_cta_primary_text' => 'hero_cta1_label',
+            'home_cta_primary_url' => 'hero_cta1_url',
+            'home_cta_secondary_text' => 'hero_cta2_label',
+            'home_cta_secondary_url' => 'hero_cta2_url',
+            'home_stats' => 'stats',
             'home_cta_ticketing_title' => 'cta_ticketing_title',
-            'home_cta_ticketing_text'  => 'cta_ticketing_text',
-            'home_cta_ticketing_url'   => 'cta_ticketing_url',
-            'home_cta_shop_title'      => 'cta_shop_title',
-            'home_cta_shop_text'       => 'cta_shop_text',
-            'home_cta_shop_url'        => 'cta_shop_url',
+            'home_cta_ticketing_text' => 'cta_ticketing_text',
+            'home_cta_ticketing_url' => 'cta_ticketing_url',
+            'home_cta_shop_title' => 'cta_shop_title',
+            'home_cta_shop_text' => 'cta_shop_text',
+            'home_cta_shop_url' => 'cta_shop_url',
         ];
 
         foreach ($homeRenames as $old => $new) {
@@ -40,11 +40,11 @@ return new class extends Migration
 
         // ── CONTACT group: rimuove prefisso ridondante 'contact_' ──
         $contactRenames = [
-            'contact_email'   => 'email',
-            'contact_phone'   => 'phone',
-            'contact_pec'     => 'pec',
+            'contact_email' => 'email',
+            'contact_phone' => 'phone',
+            'contact_pec' => 'pec',
             'contact_address' => 'address',
-            'contact_city'    => 'city',
+            'contact_city' => 'city',
         ];
 
         foreach ($contactRenames as $old => $new) {
@@ -58,21 +58,21 @@ return new class extends Migration
 
         $newSettings = [
             [
-                'key'        => 'stats_title',
-                'value'      => 'Il Club in Numeri',
-                'type'       => 'text',
-                'group'      => 'home',
-                'label'      => 'Titolo Sezione Statistiche',
+                'key' => 'stats_title',
+                'value' => 'Il Club in Numeri',
+                'type' => 'text',
+                'group' => 'home',
+                'label' => 'Titolo Sezione Statistiche',
                 'sort_order' => 15,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
             [
-                'key'        => 'stats_subtitle',
-                'value'      => 'I Numeri',
-                'type'       => 'text',
-                'group'      => 'home',
-                'label'      => 'Sottotitolo Sezione Statistiche',
+                'key' => 'stats_subtitle',
+                'value' => 'I Numeri',
+                'type' => 'text',
+                'group' => 'home',
+                'label' => 'Sottotitolo Sezione Statistiche',
                 'sort_order' => 16,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -98,20 +98,20 @@ return new class extends Migration
     {
         // ── HOME group: ripristina prefissi ──
         $homeRenames = [
-            'hero_title'          => 'home_hero_title',
-            'hero_subtitle'       => 'home_hero_title_accent',
-            'hero_tagline'        => 'home_hero_claim',
-            'hero_cta1_label'     => 'home_cta_primary_text',
-            'hero_cta1_url'       => 'home_cta_primary_url',
-            'hero_cta2_label'     => 'home_cta_secondary_text',
-            'hero_cta2_url'       => 'home_cta_secondary_url',
-            'stats'               => 'home_stats',
+            'hero_title' => 'home_hero_title',
+            'hero_subtitle' => 'home_hero_title_accent',
+            'hero_tagline' => 'home_hero_claim',
+            'hero_cta1_label' => 'home_cta_primary_text',
+            'hero_cta1_url' => 'home_cta_primary_url',
+            'hero_cta2_label' => 'home_cta_secondary_text',
+            'hero_cta2_url' => 'home_cta_secondary_url',
+            'stats' => 'home_stats',
             'cta_ticketing_title' => 'home_cta_ticketing_title',
-            'cta_ticketing_text'  => 'home_cta_ticketing_text',
-            'cta_ticketing_url'   => 'home_cta_ticketing_url',
-            'cta_shop_title'      => 'home_cta_shop_title',
-            'cta_shop_text'       => 'home_cta_shop_text',
-            'cta_shop_url'        => 'home_cta_shop_url',
+            'cta_ticketing_text' => 'home_cta_ticketing_text',
+            'cta_ticketing_url' => 'home_cta_ticketing_url',
+            'cta_shop_title' => 'home_cta_shop_title',
+            'cta_shop_text' => 'home_cta_shop_text',
+            'cta_shop_url' => 'home_cta_shop_url',
         ];
 
         foreach ($homeRenames as $old => $new) {
@@ -122,11 +122,11 @@ return new class extends Migration
 
         // ── CONTACT group: ripristina prefissi ──
         $contactRenames = [
-            'email'   => 'contact_email',
-            'phone'   => 'contact_phone',
-            'pec'     => 'contact_pec',
+            'email' => 'contact_email',
+            'phone' => 'contact_phone',
+            'pec' => 'contact_pec',
             'address' => 'contact_address',
-            'city'    => 'contact_city',
+            'city' => 'contact_city',
         ];
 
         foreach ($contactRenames as $old => $new) {
