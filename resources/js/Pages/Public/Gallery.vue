@@ -23,6 +23,10 @@ const props = defineProps({
     currentAthlete: {
         type: Object,
         default: null
+    },
+    totalEvents: {
+        type: Number,
+        default: 0
     }
 })
 
@@ -36,9 +40,29 @@ const categories = computed(() => {
 })
 const activeCategory = ref('Tutte')
 
+// ── Tag search ────────────────────────────────────────────────
+const searchQuery = ref('')
+
 const filteredMedia = computed(() => {
-    if (activeCategory.value === 'Tutte') return displayMedia.value
-    return displayMedia.value.filter(m => m.category === activeCategory.value)
+    let result = displayMedia.value
+
+    // Category filter
+    if (activeCategory.value !== 'Tutte') {
+        result = result.filter(m => m.category === activeCategory.value)
+    }
+
+    // Text search (AI tags, player names, event name, title)
+    const q = searchQuery.value.trim().toLowerCase()
+    if (q) {
+        result = result.filter(m => {
+            const matchAlt = m.alt?.toLowerCase().includes(q)
+            const matchTags = m.tags?.some(t => t.toLowerCase().includes(q))
+            const matchEvent = m.event_name?.toLowerCase().includes(q)
+            return matchAlt || matchTags || matchEvent
+        })
+    }
+
+    return result
 })
 
 function filterByCategory(cat) {
@@ -152,7 +176,7 @@ function onImageLoad(id) { loadedImages.value.add(id) }
 
 // ── Stats ─────────────────────────────────────────────────────
 const totalPhotos = computed(() => displayMedia.value.length)
-const totalCategories = computed(() => new Set(displayMedia.value.map(m => m.category).filter(Boolean)).size)
+const totalEvents = computed(() => props.totalEvents)
 const totalTaggedAthletes = computed(() => props.athletes?.length || 0)
 
 const ogMeta = useOgMeta({
@@ -216,9 +240,9 @@ const ogMeta = useOgMeta({
                         <span class="gallery-hero__stat-number">{{ totalPhotos }}</span>
                         <span class="gallery-hero__stat-label">Foto</span>
                     </div>
-                    <div class="gallery-hero__stat">
-                        <span class="gallery-hero__stat-number">{{ totalCategories }}</span>
-                        <span class="gallery-hero__stat-label">Categorie</span>
+                    <div v-if="totalEvents > 0" class="gallery-hero__stat">
+                        <span class="gallery-hero__stat-number">{{ totalEvents }}</span>
+                        <span class="gallery-hero__stat-label">Eventi</span>
                     </div>
                     <div v-if="totalTaggedAthletes > 0" class="gallery-hero__stat">
                         <span class="gallery-hero__stat-number">{{ totalTaggedAthletes }}</span>
@@ -337,6 +361,31 @@ const ogMeta = useOgMeta({
                         </div>
                     </Transition>
                 </div>
+
+                <!-- Tag search input -->
+                <div class="gallery-filters__tag-search">
+                    <div class="gallery-filters__tag-search-wrap">
+                        <svg class="gallery-filters__tag-search-icon" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/>
+                        </svg>
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            placeholder="Cerca per tag, giocatrice, evento..."
+                            class="gallery-filters__tag-search-input"
+                        />
+                        <button
+                            v-if="searchQuery"
+                            @click="searchQuery = ''"
+                            class="gallery-filters__tag-search-clear"
+                            aria-label="Pulisci ricerca"
+                        >
+                            <svg viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Photo count -->
@@ -344,6 +393,7 @@ const ogMeta = useOgMeta({
                 <span>{{ filteredMedia.length }}</span> foto{{ filteredMedia.length !== 1 ? '' : '' }}
                 <template v-if="activeCategory !== 'Tutte'"> in <strong>{{ activeCategory }}</strong></template>
                 <template v-if="currentAthlete"> · <strong>{{ currentAthlete.name }}</strong></template>
+                <template v-if="searchQuery.trim()"> · ricerca: <strong>"{{ searchQuery.trim() }}"</strong></template>
             </div>
         </section>
 
@@ -973,6 +1023,87 @@ const ogMeta = useOgMeta({
     transform: translateY(-8px) scale(0.96);
 }
 
+/* Tag search */
+.gallery-filters__tag-search {
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+}
+
+.gallery-filters__tag-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0,48,99,0.04);
+    border: 1.5px solid rgba(0,48,99,0.1);
+    border-radius: 9999px;
+    padding: 0.4rem 0.5rem 0.4rem 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-filters__tag-search-wrap:focus-within {
+    background: white;
+    border-color: #003063;
+    box-shadow: 0 0 0 3px rgba(0,48,99,0.08), 0 4px 12px rgba(0,48,99,0.1);
+}
+
+.gallery-filters__tag-search-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #9ca3af;
+    flex-shrink: 0;
+    transition: color 0.3s;
+}
+
+.gallery-filters__tag-search-wrap:focus-within .gallery-filters__tag-search-icon {
+    color: #C9A84C;
+}
+
+.gallery-filters__tag-search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #1f2937;
+    min-width: 0;
+}
+
+.gallery-filters__tag-search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.gallery-filters__tag-search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,48,99,0.08);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.gallery-filters__tag-search-clear svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    color: #6b7280;
+}
+
+.gallery-filters__tag-search-clear:hover {
+    background: rgba(0,48,99,0.15);
+}
+
+.gallery-filters__tag-search-clear:hover svg {
+    color: #003063;
+}
+
 /* Photo count */
 .gallery-filters__count {
     max-width: 80rem;
@@ -1437,4 +1568,22 @@ const ogMeta = useOgMeta({
 .lightbox-backdrop-leave-to {
     opacity: 0;
 }
+/* Tag search responsive */
+@media (max-width: 768px) {
+    .gallery-filters__inner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .gallery-filters__tag-search {
+        max-width: 100%;
+        order: -1;
+    }
+    .gallery-filters__categories {
+        justify-content: center;
+    }
+    .gallery-filters__athlete {
+        align-self: center;
+    }
+}
+
 </style>

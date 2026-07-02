@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\GameStatus;
 use App\Enums\PostStatus;
 use App\Enums\StaffType;
+use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
 use App\Models\HeroSlide;
@@ -178,7 +179,8 @@ class PublicController extends Controller
         $cacheKey = $playerFilter ? 'public:gallery_images:player_'.$playerFilter->id : 'public:gallery_images';
 
         $media = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter) {
-            $query = GalleryImage::active()->ordered();
+            $query = GalleryImage::active()->ordered()
+                ->with(['players:id,first_name,last_name', 'galleryEvent:id,title']);
 
             if ($playerFilter) {
                 $query->whereHas('players', function ($q) use ($playerFilter) {
@@ -193,6 +195,8 @@ class PublicController extends Controller
                     'thumb' => $img->getFirstMediaUrl('gallery', 'thumb') ?: $img->getFirstMediaUrl('gallery'),
                     'alt' => $img->title ?? 'Immagine Galleria',
                     'category' => $img->category ?? 'Partite',
+                    'tags' => $img->players->map(fn ($p) => $p->full_name)->values()->toArray(),
+                    'event_name' => $img->galleryEvent?->title,
                 ])
                 ->toArray();
         });
@@ -206,10 +210,17 @@ class PublicController extends Controller
             ])->toArray();
         });
 
+        $totalEvents = Cache::remember('public:gallery_total_events', now()->addMinutes(30), function () {
+            return GalleryEvent::where('is_active', true)
+                ->whereHas('galleryImages', fn ($q) => $q->where('is_active', true))
+                ->count();
+        });
+
         return Inertia::render('Public/Gallery', [
             'page' => $page,
             'media' => $media,
             'athletes' => $athletes,
+            'totalEvents' => $totalEvents,
             'currentAthlete' => $playerFilter ? [
                 'id' => $playerFilter->id,
                 'name' => $playerFilter->full_name,
