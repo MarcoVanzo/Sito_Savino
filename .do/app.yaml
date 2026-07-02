@@ -145,7 +145,7 @@ workers:
     value: stderr
   - key: LOG_LEVEL
     scope: RUN_AND_BUILD_TIME
-    value: warning
+    value: info
   - key: DB_CONNECTION
     scope: RUN_AND_BUILD_TIME
     value: mysql

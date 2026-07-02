@@ -30,24 +30,44 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
     public function handle(FacialRecognitionService $facialRecognitionService): void
     {
+        $imageId = $this->galleryImage->id;
+        $startTime = microtime(true);
+
+        Log::info("AnalyzeGalleryImageJob: [START] Image #{$imageId}", [
+            'attempt' => $this->attempts(),
+            'batch_id' => $this->batch()?->id,
+            'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
+        ]);
+
         // Skip if batch was cancelled
         if ($this->batch() && $this->batch()->cancelled()) {
+            Log::info("AnalyzeGalleryImageJob: [SKIP] Image #{$imageId} — batch cancelled");
+
             return;
         }
 
         // Get the image file path from Spatie Media Library
+        Log::info("AnalyzeGalleryImageJob: [STEP 1/6] Image #{$imageId} — Loading media");
         $media = $this->galleryImage->getFirstMedia('gallery');
 
         if (! $media) {
+            Log::warning("AnalyzeGalleryImageJob: [SKIP] Image #{$imageId} — no media found");
+
             return;
         }
+
+        Log::info("AnalyzeGalleryImageJob: [STEP 2/6] Image #{$imageId} — Checking S3 file", [
+            'disk' => $media->disk,
+            'file' => $media->file_name,
+            'size_kb' => round($media->size / 1024, 1),
+        ]);
 
         // Use Storage facade for S3 compatibility (getPath() only works with local disk)
         $disk = Storage::disk($media->disk);
         $relativePath = $media->getPathRelativeToRoot();
 
         if (! $disk->exists($relativePath)) {
-            Log::warning("AnalyzeGalleryImageJob: File not found on disk {$media->disk}: {$relativePath}");
+            Log::warning("AnalyzeGalleryImageJob: [FAIL] Image #{$imageId} — File not found on disk {$media->disk}: {$relativePath}");
 
             return;
         }
@@ -56,11 +76,26 @@ class AnalyzeGalleryImageJob implements ShouldQueue
         $tempPath = sys_get_temp_dir().'/'.uniqid('gallery_').'_'.$media->file_name;
 
         try {
+            Log::info("AnalyzeGalleryImageJob: [STEP 3/6] Image #{$imageId} — Downloading from S3");
+            $downloadStart = microtime(true);
             file_put_contents($tempPath, $disk->get($relativePath));
+            $downloadMs = round((microtime(true) - $downloadStart) * 1000);
+            $fileSizeKb = round(filesize($tempPath) / 1024, 1);
+            Log::info("AnalyzeGalleryImageJob: [STEP 3/6] Image #{$imageId} — Downloaded {$fileSizeKb}KB in {$downloadMs}ms", [
+                'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
+            ]);
 
+            Log::info("AnalyzeGalleryImageJob: [STEP 4/6] Image #{$imageId} — Calling CompreFace recognize");
+            $recognizeStart = microtime(true);
             $analysisResult = $facialRecognitionService->recognizeFaces($tempPath);
+            $recognizeMs = round((microtime(true) - $recognizeStart) * 1000);
             $detectedPlayers = $analysisResult['detected_players'] ?? [];
             $hasUnrecognizedFaces = $analysisResult['has_unrecognized_faces'] ?? false;
+
+            Log::info("AnalyzeGalleryImageJob: [STEP 4/6] Image #{$imageId} — CompreFace responded in {$recognizeMs}ms", [
+                'detected_count' => count($detectedPlayers),
+                'has_unrecognized' => $hasUnrecognizedFaces,
+            ]);
 
             if (! empty($detectedPlayers)) {
                 $syncData = [];
@@ -72,6 +107,8 @@ class AnalyzeGalleryImageJob implements ShouldQueue
                 $this->galleryImage->players()->syncWithoutDetaching($syncData);
             }
 
+            Log::info("AnalyzeGalleryImageJob: [STEP 5/6] Image #{$imageId} — Updating flags");
+
             // Flag per revisione manuale se ci sono volti non riconosciuti
             if ($hasUnrecognizedFaces) {
                 $this->galleryImage->needs_review = true;
@@ -81,7 +118,23 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             $this->galleryImage->ai_analyzed_at = now();
 
             // Ottimizza SEO (titolo, alt text, meta) — esegue saveQuietly() internamente
+            Log::info("AnalyzeGalleryImageJob: [STEP 6/6] Image #{$imageId} — SEO optimization");
             $this->optimizeForSeo();
+
+            $totalMs = round((microtime(true) - $startTime) * 1000);
+            Log::info("AnalyzeGalleryImageJob: [DONE] Image #{$imageId} completed in {$totalMs}ms", [
+                'detected_players' => count($detectedPlayers),
+                'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
+            ]);
+        } catch (\Throwable $e) {
+            $totalMs = round((microtime(true) - $startTime) * 1000);
+            Log::error("AnalyzeGalleryImageJob: [ERROR] Image #{$imageId} failed after {$totalMs}ms", [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile().':'.$e->getLine(),
+                'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
+            ]);
+
+            throw $e; // Re-throw to let the batch system handle retries
         } finally {
             // Cleanup: always delete the temporary file
             if (file_exists($tempPath)) {
