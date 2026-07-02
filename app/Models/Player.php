@@ -49,6 +49,12 @@ class Player extends Model implements HasMedia
             ->withTimestamps();
     }
 
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('players')
+            ->singleFile();
+    }
+
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')

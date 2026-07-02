@@ -131,7 +131,7 @@ class ListGalleryImages extends ListRecords
 
                         Notification::make()
                             ->title('Errore nel salvataggio')
-                            ->body($e->getMessage())
+                            ->body('Si è verificato un errore durante il salvataggio. Controlla i log per i dettagli.')
                             ->danger()
                             ->persistent()
                             ->send();

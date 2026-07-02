@@ -2,8 +2,11 @@
 
 namespace App\Filament\Resources\PlayerResource\Pages;
 
+use App\Filament\Actions\TrainAiFacesAction;
 use App\Filament\Resources\PlayerResource;
+use App\Services\FacialRecognitionService;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
 
@@ -21,49 +24,12 @@ class EditPlayer extends EditRecord
                     ->label('Addestra AI (Upload Foto)')
                     ->icon('heroicon-o-academic-cap')
                     ->color('success')
-                    ->form([
-                        \Filament\Forms\Components\FileUpload::make('training_images')
-                            ->label('Foto per l\'Addestramento')
-                            ->multiple()
-                            ->image()
-                            ->helperText('Carica più foto del volto da diverse angolazioni. Non verranno salvate sul server, ma solo inviate all\'AI.')
-                            ->required(),
-                    ])
+                    ->form(TrainAiFacesAction::formSchema())
                     ->modalHeading('Addestra Intelligenza Artificiale')
                     ->modalDescription('L\'AI imparerà a riconoscere questa atleta analizzando le foto caricate. Questo processo non cancellerà le foto precedenti.')
                     ->modalSubmitActionLabel('Invia e Addestra')
                     ->action(function (array $data) {
-                        $record = $this->record;
-                        $service = app(\App\Services\FacialRecognitionService::class);
-                        $successCount = 0;
-                        $errorCount = 0;
-
-                        // Ensure subject exists
-                        $service->createSubject($record);
-
-                        if (!empty($data['training_images'])) {
-                            foreach ($data['training_images'] as $image) {
-                                $path = is_string($image) ? storage_path('app/public/' . $image) : $image->getRealPath();
-                                
-                                if ($service->addFaceExample($record, $path)) {
-                                    $successCount++;
-                                } else {
-                                    $errorCount++;
-                                }
-                            }
-                        }
-
-                        // Sync avatar as well
-                        $media = $record->getFirstMedia('players');
-                        if ($media && $service->addFaceExampleFromMedia($record, $media)) {
-                            $successCount++;
-                        }
-
-                        \Filament\Notifications\Notification::make()
-                            ->title('Addestramento Completato')
-                            ->body("{$successCount} volti appresi con successo. " . ($errorCount > 0 ? "{$errorCount} errori." : ""))
-                            ->status($errorCount > 0 ? 'warning' : 'success')
-                            ->send();
+                        TrainAiFacesAction::execute($this->record, $data);
                     }),
 
                 Actions\Action::make('resetAiFaces')
@@ -74,16 +40,15 @@ class EditPlayer extends EditRecord
                     ->modalHeading('Resetta Volti da CompreFace')
                     ->modalDescription('Attenzione: L\'AI dimenticherà completamente come riconoscere questa atleta. Dovrai addestrarla di nuovo. Procedere?')
                     ->action(function () {
-                        $record = $this->record;
-                        $service = app(\App\Services\FacialRecognitionService::class);
-                        if ($service->deleteAllSubjectExamples($record)) {
-                            \Filament\Notifications\Notification::make()
+                        $service = app(FacialRecognitionService::class);
+                        if ($service->deleteAllSubjectExamples($this->record)) {
+                            Notification::make()
                                 ->title('Memoria Azzerata')
                                 ->body('L\'AI non riconoscerà più questa atleta fino al prossimo addestramento.')
                                 ->success()
                                 ->send();
                         } else {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('Errore API')
                                 ->body('Impossibile azzerare la memoria.')
                                 ->danger()

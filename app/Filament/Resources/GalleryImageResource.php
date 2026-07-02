@@ -36,7 +36,7 @@ class GalleryImageResource extends Resource
 
     protected static ?int $navigationSort = 7;
 
-    protected static ?string $slug = 'gallery';
+    protected static ?string $slug = 'gallery-images';
 
     public static function form(Form $form): Form
     {
@@ -159,7 +159,7 @@ class GalleryImageResource extends Resource
                         Forms\Components\Select::make('players')
                             ->label('Atlete presenti')
                             ->multiple()
-                            ->options(Player::pluck('last_name', 'id'))
+                            ->options(fn () => Player::orderBy('last_name')->get()->mapWithKeys(fn ($p) => [$p->id => $p->first_name . ' ' . $p->last_name]))
                             ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {
@@ -174,9 +174,10 @@ class GalleryImageResource extends Resource
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
                     ->action(function (GalleryImage $record) {
-                        AnalyzeGalleryImageJob::dispatchSync($record);
+                        AnalyzeGalleryImageJob::dispatch($record);
                         Notification::make()
-                            ->title('Analisi completata')
+                            ->title('Analisi AI avviata')
+                            ->body('La foto verrà analizzata in background.')
                             ->success()
                             ->send();
                     }),

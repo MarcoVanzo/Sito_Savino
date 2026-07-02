@@ -132,6 +132,8 @@ class GalleryEventResource extends Resource
                             ->send();
                     }),
                 Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalDescription('Attenzione: verranno eliminate anche tutte le foto associate a questo evento. L\'operazione è irreversibile.')
                     ->before(function (GalleryEvent $record) {
                         foreach ($record->galleryImages as $image) {
                             $image->clearMediaCollection('gallery');

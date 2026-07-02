@@ -129,7 +129,7 @@ class GalleryImagesRelationManager extends RelationManager
                         Forms\Components\Select::make('players')
                             ->label('Atlete presenti')
                             ->multiple()
-                            ->options(Player::pluck('last_name', 'id'))
+                            ->options(fn () => Player::orderBy('last_name')->get()->mapWithKeys(fn ($p) => [$p->id => $p->first_name . ' ' . $p->last_name]))
                             ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {
@@ -155,6 +155,7 @@ class GalleryImagesRelationManager extends RelationManager
                     Tables\Actions\BulkAction::make('analyzeBulk')
                         ->label('Analizza con AI')
                         ->icon('heroicon-o-sparkles')
+                        ->requiresConfirmation()
                         ->action(function (Collection $records) {
                             foreach ($records as $record) {
                                 AnalyzeGalleryImageJob::dispatch($record);

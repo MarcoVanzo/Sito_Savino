@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Actions\TrainAiFacesAction;
 use App\Filament\Resources\PlayerResource\Pages;
 use App\Filament\Resources\PlayerResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
@@ -111,50 +112,12 @@ class PlayerResource extends Resource
                         ->label('Addestra AI (Upload Foto)')
                         ->icon('heroicon-o-academic-cap')
                         ->color('success')
-                        ->form([
-                            Forms\Components\FileUpload::make('training_images')
-                                ->label('Foto per l\'Addestramento')
-                                ->multiple()
-                                ->image()
-                                ->helperText('Carica più foto del volto da diverse angolazioni. Non verranno salvate sul server, ma solo inviate all\'AI.')
-                                ->required(),
-                        ])
+                        ->form(TrainAiFacesAction::formSchema())
                         ->modalHeading('Addestra Intelligenza Artificiale')
                         ->modalDescription('L\'AI imparerà a riconoscere questa atleta analizzando le foto caricate. Questo processo non cancellerà le foto precedenti.')
                         ->modalSubmitActionLabel('Invia e Addestra')
                         ->action(function (Player $record, array $data) {
-                            $service = app(FacialRecognitionService::class);
-                            $successCount = 0;
-                            $errorCount = 0;
-
-                            // Ensure subject exists
-                            $service->createSubject($record);
-
-                            if (!empty($data['training_images'])) {
-                                foreach ($data['training_images'] as $image) {
-                                    // $image is an UploadedFile or string path depending on Filament version/config, 
-                                    // FileUpload multiple returns array of temporary string paths or UploadedFiles
-                                    $path = is_string($image) ? storage_path('app/public/' . $image) : $image->getRealPath();
-                                    
-                                    if ($service->addFaceExample($record, $path)) {
-                                        $successCount++;
-                                    } else {
-                                        $errorCount++;
-                                    }
-                                }
-                            }
-
-                            // Sync avatar as well
-                            $media = $record->getFirstMedia('players');
-                            if ($media && $service->addFaceExampleFromMedia($record, $media)) {
-                                $successCount++;
-                            }
-
-                            Notification::make()
-                                ->title('Addestramento Completato')
-                                ->body("{$successCount} volti appresi con successo. " . ($errorCount > 0 ? "{$errorCount} errori." : ""))
-                                ->status($errorCount > 0 ? 'warning' : 'success')
-                                ->send();
+                            TrainAiFacesAction::execute($record, $data);
                         }),
 
                     Tables\Actions\Action::make('resetAiFaces')
