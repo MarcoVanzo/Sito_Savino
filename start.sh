@@ -28,10 +28,12 @@ else
     php artisan config:clear
 fi
 
-# 5. Route & View cache (non dipendono da env vars)
-echo "[5/6] Route & View cache..."
+# 5. Route, View & Event cache (non dipendono da env vars)
+echo "[5/6] Route, View & Event cache..."
 php artisan route:cache
 php artisan view:cache
+php artisan event:cache
+php artisan icons:cache
 
 # 6. Filament optimize
 echo "[6/6] Filament optimize..."

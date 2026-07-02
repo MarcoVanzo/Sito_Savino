@@ -12,7 +12,7 @@ ingress:
       path:
         prefix: /
 name: sito-savino
-region: nyc
+region: fra
 services:
 - build_command: composer install --optimize-autoloader --no-dev && npm install &&
     npm run build
@@ -123,7 +123,7 @@ services:
     repo: MarcoVanzo/sito_savino
   http_port: 8080
   instance_count: 1
-  instance_size_slug: apps-s-1vcpu-0.5gb
+  instance_size_slug: apps-s-1vcpu-2gb
   name: web
   run_command: bash start.sh
 workers:

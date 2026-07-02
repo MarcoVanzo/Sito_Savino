@@ -59,54 +59,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()->label('Pagine & Extra')->icon('heroicon-o-document-duplicate')->collapsed(),
                 NavigationGroup::make()->label('Amministrazione')->icon('heroicon-o-cog-8-tooth')->collapsed(),
             ])
-            ->navigationItems([
-                // Stagione
-                NavigationItem::make('CEV Champions League')->group('Stagione')->url(fn () => UnderConstruction::getUrl())->sort(4),
-                NavigationItem::make('Coppa Italia & Playoff')->group('Stagione')->url(fn () => UnderConstruction::getUrl())->sort(5),
-
-                // Società
-                NavigationItem::make('Storia')->group('Società')->url(fn () => UnderConstruction::getUrl())->sort(2),
-                NavigationItem::make('Safeguarding')->group('Società')->url(fn () => UnderConstruction::getUrl())->sort(3),
-                NavigationItem::make('Contatti')->group('Società')->url(fn () => UnderConstruction::getUrl())->sort(4),
-                NavigationItem::make('Palazzetto & Google Maps')->group('Società')->url(fn () => UnderConstruction::getUrl())->sort(5),
-
-                // Ticketing
-                NavigationItem::make('Biglietteria')->group('Ticketing')->url(fn () => UnderConstruction::getUrl())->sort(1),
-                NavigationItem::make('Campagna Abbonamenti')->group('Ticketing')->url(fn () => UnderConstruction::getUrl())->sort(2),
-                NavigationItem::make('Accessibilità & Info')->group('Ticketing')->url(fn () => UnderConstruction::getUrl())->sort(3),
-                NavigationItem::make('Convenzioni')->group('Ticketing')->url(fn () => UnderConstruction::getUrl())->sort(4),
-
-                // Sponsor
-                NavigationItem::make('Diventa Sponsor')->group('Sponsor')->url(fn () => UnderConstruction::getUrl())->sort(2),
-                NavigationItem::make('Title Sponsor (SDB)')->group('Sponsor')->url(fn () => UnderConstruction::getUrl())->sort(3),
-                NavigationItem::make('Hospitality')->group('Sponsor')->url(fn () => UnderConstruction::getUrl())->sort(4),
-
-                // SDB Youth
-                NavigationItem::make('Settore Giovanile')->group('SDB Youth')->url(fn () => UnderConstruction::getUrl())->sort(3),
-                NavigationItem::make('Talent Day & Recruiting')->group('SDB Youth')->url(fn () => UnderConstruction::getUrl())->sort(4),
-                NavigationItem::make('Progetto Affiliazioni')->group('SDB Youth')->url(fn () => UnderConstruction::getUrl())->sort(5),
-
-                // Summer Camp
-                NavigationItem::make('Tutte le Info')->group('Summer Camp')->url(fn () => UnderConstruction::getUrl())->sort(1),
-                NavigationItem::make('Iscrizione (Experience)')->group('Summer Camp')->url(fn () => UnderConstruction::getUrl())->sort(2),
-
-                // Sociale
-                NavigationItem::make('Progetti Sociali')->group('Sociale')->url(fn () => UnderConstruction::getUrl())->sort(1),
-                NavigationItem::make('Volley 4 All')->group('Sociale')->url(fn () => UnderConstruction::getUrl())->sort(2),
-                NavigationItem::make('Bilancio Sostenibilità')->group('Sociale')->url(fn () => UnderConstruction::getUrl())->sort(3),
-                NavigationItem::make('Progetto Scuola')->group('Sociale')->url(fn () => UnderConstruction::getUrl())->sort(4),
-
-                // Comunicazione
-                NavigationItem::make('Cartelle Stampa')->group('Comunicazione')->url(fn () => UnderConstruction::getUrl())->sort(2),
-                NavigationItem::make('Magazine')->group('Comunicazione')->url(fn () => UnderConstruction::getUrl())->sort(3),
-                NavigationItem::make('Double Face')->group('Comunicazione')->url(fn () => UnderConstruction::getUrl())->sort(4),
-
-                // Shop Ufficiale
-                NavigationItem::make('Kit Gara')->group('Shop Ufficiale')->url(fn () => UnderConstruction::getUrl())->sort(1),
-                NavigationItem::make('Abbigliamento & Accessori')->group('Shop Ufficiale')->url(fn () => UnderConstruction::getUrl())->sort(2),
-                NavigationItem::make('Aste & Outlet')->group('Shop Ufficiale')->url(fn () => UnderConstruction::getUrl())->sort(3),
-                NavigationItem::make('Guida Taglie & Contatti')->group('Shop Ufficiale')->url(fn () => UnderConstruction::getUrl())->sort(4),
-            ])
+            ->navigationItems(self::wipNavigationItems())
             ->userMenuItems([
                 MenuItem::make()
                     ->label('Vai al Sito Pubblico')
@@ -149,5 +102,64 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    /**
+     * Voci di navigazione "in costruzione".
+     * L'URL viene risolto una sola volta e riusato per tutte le voci,
+     * invece di chiamare UnderConstruction::getUrl() 25 volte per render.
+     */
+    private static function wipNavigationItems(): array
+    {
+        $url = '/admin/under-construction';
+
+        $items = [
+            // Stagione
+            ['CEV Champions League', 'Stagione', 4],
+            ['Coppa Italia & Playoff', 'Stagione', 5],
+            // Società
+            ['Storia', 'Società', 2],
+            ['Safeguarding', 'Società', 3],
+            ['Contatti', 'Società', 4],
+            ['Palazzetto & Google Maps', 'Società', 5],
+            // Ticketing
+            ['Biglietteria', 'Ticketing', 1],
+            ['Campagna Abbonamenti', 'Ticketing', 2],
+            ['Accessibilità & Info', 'Ticketing', 3],
+            ['Convenzioni', 'Ticketing', 4],
+            // Sponsor
+            ['Diventa Sponsor', 'Sponsor', 2],
+            ['Title Sponsor (SDB)', 'Sponsor', 3],
+            ['Hospitality', 'Sponsor', 4],
+            // SDB Youth
+            ['Settore Giovanile', 'SDB Youth', 3],
+            ['Talent Day & Recruiting', 'SDB Youth', 4],
+            ['Progetto Affiliazioni', 'SDB Youth', 5],
+            // Summer Camp
+            ['Tutte le Info', 'Summer Camp', 1],
+            ['Iscrizione (Experience)', 'Summer Camp', 2],
+            // Sociale
+            ['Progetti Sociali', 'Sociale', 1],
+            ['Volley 4 All', 'Sociale', 2],
+            ['Bilancio Sostenibilità', 'Sociale', 3],
+            ['Progetto Scuola', 'Sociale', 4],
+            // Comunicazione
+            ['Cartelle Stampa', 'Comunicazione', 2],
+            ['Magazine', 'Comunicazione', 3],
+            ['Double Face', 'Comunicazione', 4],
+            // Shop Ufficiale
+            ['Kit Gara', 'Shop Ufficiale', 1],
+            ['Abbigliamento & Accessori', 'Shop Ufficiale', 2],
+            ['Aste & Outlet', 'Shop Ufficiale', 3],
+            ['Guida Taglie & Contatti', 'Shop Ufficiale', 4],
+        ];
+
+        return array_map(
+            fn (array $item) => NavigationItem::make($item[0])
+                ->group($item[1])
+                ->url($url)
+                ->sort($item[2]),
+            $items
+        );
     }
 }
