@@ -34,6 +34,8 @@ class SyncFaceAction
                 $success = $service->addFaceExampleFromMedia($record->player, $media);
 
                 if ($success) {
+                    $record->player->increment('ai_face_examples');
+
                     Notification::make()
                         ->title('Successo')
                         ->body('Volto sincronizzato! L\'AI ora riconoscerà questa atleta.')

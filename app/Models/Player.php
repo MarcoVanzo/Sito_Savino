@@ -19,6 +19,7 @@ class Player extends Model implements HasMedia
     protected $fillable = [
         'first_name', 'last_name', 'date_of_birth',
         'nationality', 'instagram_handle', 'lega_volley_id',
+        'ai_face_examples',
     ];
 
     public $translatable = ['role', 'biography'];

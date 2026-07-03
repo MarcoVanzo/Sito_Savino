@@ -165,6 +165,47 @@ class RosterResource extends Resource
                 Tables\Columns\IconColumn::make('is_captain')
                     ->label('Capitano')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('player.ai_face_examples')
+                    ->label('AI Score')
+                    ->formatStateUsing(function ($state) {
+                        $examples = (int) $state;
+                        // Scala: 0=0, 1=15, 2=30, 3=50, 4=65, 5=80, 6+=95
+                        $score = match (true) {
+                            $examples >= 6 => 95,
+                            $examples === 5 => 80,
+                            $examples === 4 => 65,
+                            $examples === 3 => 50,
+                            $examples === 2 => 30,
+                            $examples === 1 => 15,
+                            default => 0,
+                        };
+
+                        $color = match (true) {
+                            $score >= 80 => '#22c55e', // verde
+                            $score >= 50 => '#eab308', // giallo
+                            $score >= 15 => '#f97316', // arancione
+                            default => '#ef4444',      // rosso
+                        };
+
+                        $label = match (true) {
+                            $score >= 80 => 'Ottimo',
+                            $score >= 50 => 'Buono',
+                            $score >= 15 => 'Scarso',
+                            default => 'Non addestrato',
+                        };
+
+                        return new \Illuminate\Support\HtmlString(
+                            '<div style="min-width:80px">' .
+                            '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' .
+                            '<span>' . $label . '</span><span style="font-weight:600">' . $score . '/100</span></div>' .
+                            '<div style="background:#374151;border-radius:9999px;height:6px;overflow:hidden">' .
+                            '<div style="width:' . $score . '%;height:100%;background:' . $color . ';border-radius:9999px;transition:width 0.3s"></div>' .
+                            '</div></div>'
+                        );
+                    })
+                    ->html()
+                    ->tooltip(fn ($record) => $record->player->ai_face_examples . ' foto di addestramento caricate')
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('season_id')
