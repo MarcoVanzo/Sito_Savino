@@ -14,7 +14,7 @@ class UserObserver
     public function created(User $user): void
     {
         if (! $user->is_active) {
-            $admins = User::where('role', UserRole::Admin)->where('is_active', true)->get();
+            $admins = User::where('role', UserRole::SuperAdmin)->where('is_active', true)->get();
 
             if ($admins->isNotEmpty()) {
                 Notification::make()
