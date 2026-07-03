@@ -12,7 +12,12 @@ class EditYouthRoster extends EditRecord
 
     protected function getRedirectUrl(): string
     {
-        return $this->getResource()::getUrl('index');
+        return static::getResource()::getUrl('index');
+    }
+
+    protected function afterSave(): void
+    {
+        $this->redirect(static::getResource()::getUrl('index'));
     }
 
     protected function getHeaderActions(): array
