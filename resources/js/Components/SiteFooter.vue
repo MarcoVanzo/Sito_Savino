@@ -105,11 +105,18 @@ const socialLinks = computed(() => {
 
                 <!-- Brand Column -->
                 <div class="lg:col-span-2">
-                    <div class="mb-6">
+                    <div class="flex items-center gap-5 mb-6">
                         <img
                             :src="footerLogo"
                             alt="Savino Del Bene Volley"
                             class="h-20 w-auto object-contain"
+                            @error="onImgError"
+                        />
+                        <span class="h-14 w-px bg-white/20"></span>
+                        <img
+                            :src="LOGOS.CORPORATE"
+                            alt="Savino Del Bene"
+                            class="h-14 w-auto object-contain"
                             @error="onImgError"
                         />
                     </div>
