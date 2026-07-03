@@ -114,8 +114,7 @@ services:
     value: http://157.230.98.6:8000
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: EV[1:6QCoSNI+powUeI7lyuGsyOBAFUh7By20:egYJlbgicI5OsyAIxvSYZQ==]
+    value: 00000000-0000-0000-0000-000000000001
   github:
     branch: main
     repo: MarcoVanzo/sito_savino
@@ -195,8 +194,7 @@ workers:
     value: http://157.230.98.6:8000
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: EV[1:lDjvrCHeTQP4y+MO3eX/zMUaEo+rJz/i:9BMEbVWiskOIBX091ocRnw==]
+    value: 00000000-0000-0000-0000-000000000001
   github:
     branch: main
     repo: MarcoVanzo/sito_savino
