@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
+use App\Models\StaffMember;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -59,9 +60,24 @@ class GalleryImage extends Model implements HasMedia
 
     public function players()
     {
-        return $this->belongsToMany(Player::class, 'gallery_image_player')
+        return $this->morphedByMany(Player::class, 'person', 'gallery_image_person')
             ->withPivot('confidence_score')
             ->withTimestamps();
+    }
+
+    public function staffMembers()
+    {
+        return $this->morphedByMany(StaffMember::class, 'person', 'gallery_image_person')
+            ->withPivot('confidence_score')
+            ->withTimestamps();
+    }
+
+    /**
+     * Ritorna tutte le persone (Player + StaffMember) associate a questa foto.
+     */
+    public function getAllPersonsAttribute(): \Illuminate\Support\Collection
+    {
+        return $this->players->merge($this->staffMembers);
     }
 
     public function galleryEvent()

@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,6 +30,8 @@ class AnalyzeGalleryImageJob implements ShouldQueue
     public int $maxExceptions = 2;
 
     public array $backoff = [30, 60];
+
+    public string $queue = 'ai';
 
     public function __construct(
         public GalleryImage $galleryImage
@@ -90,10 +93,13 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             if ($fileContent === null) {
                 throw new \RuntimeException("Failed to read file from S3: {$relativePath}");
             }
-            
+
             if (file_put_contents($tempPath, $fileContent) === false) {
                 throw new \RuntimeException("Failed to write to temp file: {$tempPath}");
             }
+
+            // Libera la memoria subito dopo la scrittura su disco
+            unset($fileContent);
 
             $downloadMs = round((microtime(true) - $downloadStart) * 1000);
             $fileSizeKb = round(filesize($tempPath) / 1024, 1);
@@ -105,22 +111,30 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             $recognizeStart = microtime(true);
             $analysisResult = $facialRecognitionService->recognizeFaces($tempPath);
             $recognizeMs = round((microtime(true) - $recognizeStart) * 1000);
-            $detectedPlayers = $analysisResult['detected_players'] ?? [];
+            $detectedPersons = $analysisResult['detected_persons'] ?? [];
             $hasUnrecognizedFaces = $analysisResult['has_unrecognized_faces'] ?? false;
 
             Log::info("AnalyzeGalleryImageJob: [STEP 4/6] Image #{$imageId} — CompreFace responded in {$recognizeMs}ms", [
-                'detected_count' => count($detectedPlayers),
+                'detected_count' => count($detectedPersons),
                 'has_unrecognized' => $hasUnrecognizedFaces,
             ]);
 
-            if (! empty($detectedPlayers)) {
-                $syncData = [];
-                foreach ($detectedPlayers as $detected) {
-                    $syncData[$detected['player_id']] = ['confidence_score' => $detected['confidence']];
+            if (! empty($detectedPersons)) {
+                foreach ($detectedPersons as $detected) {
+                    // Inserisci nella tabella polimorfica gallery_image_person
+                    DB::table('gallery_image_person')->updateOrInsert(
+                        [
+                            'gallery_image_id' => $this->galleryImage->id,
+                            'person_type' => $detected['person_type'],
+                            'person_id' => $detected['person_id'],
+                        ],
+                        [
+                            'confidence_score' => $detected['confidence'],
+                            'updated_at' => now(),
+                            'created_at' => now(),
+                        ]
+                    );
                 }
-
-                // Sync players without detaching existing ones
-                $this->galleryImage->players()->syncWithoutDetaching($syncData);
             }
 
             Log::info("AnalyzeGalleryImageJob: [STEP 5/6] Image #{$imageId} — Updating flags");
@@ -139,7 +153,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
             $totalMs = round((microtime(true) - $startTime) * 1000);
             Log::info("AnalyzeGalleryImageJob: [DONE] Image #{$imageId} completed in {$totalMs}ms", [
-                'detected_players' => count($detectedPlayers),
+                'detected_persons' => count($detectedPersons),
                 'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
             ]);
         } catch (\Throwable $e) {
@@ -162,18 +176,18 @@ class AnalyzeGalleryImageJob implements ShouldQueue
     /**
      * Ottimizza la foto per la SEO dopo il riconoscimento facciale.
      * Genera: titolo descrittivo, alt text, custom properties sulla media.
-     * Esegue un unico save alla fine.
+     * Include sia Player che StaffMember riconosciuti.
      */
     protected function optimizeForSeo(): void
     {
-        $this->galleryImage->loadMissing(['players', 'galleryEvent']);
-        $players = $this->galleryImage->players;
+        $this->galleryImage->loadMissing(['players', 'staffMembers', 'galleryEvent']);
+        $allPersons = $this->galleryImage->players->merge($this->galleryImage->staffMembers);
         $event = $this->galleryImage->galleryEvent;
 
-        // Costruisci i nomi delle atlete
-        $playerNames = $players->map->full_name->toArray();
-        $playerLastNames = $players->map->last_name->toArray();
-        $namesString = implode(', ', $playerNames);
+        // Costruisci i nomi delle persone riconosciute
+        $personNames = $allPersons->map->full_name->toArray();
+        $personLastNames = $allPersons->map->last_name->toArray();
+        $namesString = implode(', ', $personNames);
 
         // Contesto dell'evento
         $eventTitle = $event?->title ?? '';
@@ -181,11 +195,10 @@ class AnalyzeGalleryImageJob implements ShouldQueue
         $eventDate = $event?->event_date?->format('d/m/Y') ?? '';
 
         // --- 1. Titolo SEO strutturato ---
-        // Formato: "Antropova, Mingardi - Partita vs Busto Arsizio 01/07/2026"
-        // o solo: "Partita vs Busto Arsizio 01/07/2026" se nessuna atleta
+        // Formato: "Bosetti, Gaspari - Partita vs Busto Arsizio 01/07/2026"
         $titleParts = [];
 
-        if (! empty($playerNames)) {
+        if (! empty($personNames)) {
             $titleParts[] = $namesString;
         }
 
@@ -208,7 +221,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
         if ($media) {
             // Alt text descrittivo per Google Images
             $altParts = ['Savino Del Bene Volley'];
-            if (! empty($playerNames)) {
+            if (! empty($personNames)) {
                 $altParts[] = $namesString;
             }
             if (! empty($eventTitle)) {
@@ -220,7 +233,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
             // Description per SEO
             $description = 'Foto ';
-            if (! empty($playerNames)) {
+            if (! empty($personNames)) {
                 $description .= 'di '.$namesString.' ';
             }
             $description .= 'della Savino Del Bene Volley';
@@ -235,7 +248,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             // Keywords per ricerca interna
             $keywords = array_merge(
                 ['Savino Del Bene', 'Volley', 'Serie A'],
-                $playerLastNames,
+                $personLastNames,
                 [$category]
             );
             $media->setCustomProperty('keywords', implode(', ', $keywords));

@@ -3,13 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StaffType;
+use App\Filament\Actions\TrainAiFacesAction;
 use App\Filament\Clusters\SerieA1;
 use App\Filament\Resources\StaffMemberResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\StaffMember;
+use App\Services\FacialRecognitionService;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
@@ -134,6 +137,37 @@ class StaffMemberResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('trainAi')
+                        ->label('Addestra AI (Upload Foto)')
+                        ->icon('heroicon-o-cpu-chip')
+                        ->color('info')
+                        ->modalHeading('Addestramento Riconoscimento Facciale')
+                        ->modalDescription('Carica foto del volto di questa persona. L\'AI imparerà a riconoscerla nelle foto della gallery.')
+                        ->form(TrainAiFacesAction::formSchema())
+                        ->action(function (StaffMember $record, array $data) {
+                            TrainAiFacesAction::execute($record, $data);
+                        }),
+                    Tables\Actions\Action::make('resetAi')
+                        ->label('Resetta Memoria Volto')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Resetta Memoria AI')
+                        ->modalDescription('L\'AI dimenticherà come riconoscere questa persona. Sarà necessario ri-addestrarla con nuove foto.')
+                        ->action(function (StaffMember $record) {
+                            $service = app(FacialRecognitionService::class);
+                            $service->deleteAllSubjectExamples($record);
+                            Notification::make()
+                                ->title('Memoria AI resettata')
+                                ->body('Il volto è stato rimosso dalla memoria AI.')
+                                ->success()
+                                ->send();
+                        }),
+                ])
+                    ->label('Azioni AI')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('info'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

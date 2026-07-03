@@ -5,6 +5,7 @@ namespace App\Filament\Resources\GalleryEventResource\RelationManagers;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryImage;
 use App\Models\Player;
+use App\Models\StaffMember;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
@@ -59,7 +60,7 @@ class GalleryImagesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         // Aggiunto caricamento media e players per performance
-        $table->modifyQueryUsing(fn (Builder $query) => $query->with(['media', 'players']));
+        $table->modifyQueryUsing(fn (Builder $query) => $query->with(['media', 'players', 'staffMembers']));
 
         return $table
             ->columns([
@@ -120,7 +121,7 @@ class GalleryImagesRelationManager extends RelationManager
                         }
 
                         foreach ($images as $image) {
-                            AnalyzeGalleryImageJob::dispatch($image)->onQueue('ai');
+                            AnalyzeGalleryImageJob::dispatch($image);
                         }
                         Notification::make()
                             ->title('Analisi AI avviata')
@@ -138,6 +139,7 @@ class GalleryImagesRelationManager extends RelationManager
                     ->mountUsing(function (Form $form, GalleryImage $record) {
                         $form->fill([
                             'players' => $record->players->pluck('id')->toArray(),
+                            'staff_members' => $record->staffMembers->pluck('id')->toArray(),
                         ]);
                     })
                     ->form([
@@ -148,9 +150,17 @@ class GalleryImagesRelationManager extends RelationManager
                                 ->selectRaw("id, CONCAT(first_name, ' ', last_name) as full_name")
                                 ->pluck('full_name', 'id'))
                             ->searchable(),
+                        Forms\Components\Select::make('staff_members')
+                            ->label('Staff presente')
+                            ->multiple()
+                            ->options(fn () => StaffMember::orderBy('last_name')
+                                ->selectRaw("id, CONCAT(first_name, ' ', last_name, ' (', role, ')') as full_name")
+                                ->pluck('full_name', 'id'))
+                            ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {
                         $record->players()->sync($data['players'] ?? []);
+                        $record->staffMembers()->sync($data['staff_members'] ?? []);
                         $record->needs_review = false;
                         $record->save();
                         Notification::make()->title('Identificata')->success()->send();
@@ -175,7 +185,7 @@ class GalleryImagesRelationManager extends RelationManager
                         ->requiresConfirmation()
                         ->action(function (Collection $records) {
                             foreach ($records as $record) {
-                                AnalyzeGalleryImageJob::dispatch($record)->onQueue('ai');
+                                AnalyzeGalleryImageJob::dispatch($record);
                             }
                             Notification::make()
                                 ->title('Analisi avviata')

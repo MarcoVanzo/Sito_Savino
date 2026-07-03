@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\StaffType;
+use App\Models\GalleryImage;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -41,5 +42,18 @@ class StaffMember extends Model implements HasMedia
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->registerStandardConversions($media);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('staff')
+            ->singleFile();
+    }
+
+    public function galleryImages()
+    {
+        return $this->morphToMany(GalleryImage::class, 'person', 'gallery_image_person')
+            ->withPivot('confidence_score')
+            ->withTimestamps();
     }
 }

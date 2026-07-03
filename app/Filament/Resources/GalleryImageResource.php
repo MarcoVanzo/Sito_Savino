@@ -7,6 +7,7 @@ use App\Filament\Traits\HasStandardTableActions;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryImage;
 use App\Models\Player;
+use App\Models\StaffMember;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
@@ -84,6 +85,13 @@ class GalleryImageResource extends Resource
                             ->preload()
                             ->searchable(['first_name', 'last_name'])
                             ->getOptionLabelFromRecordUsing(fn (Player $record) => "{$record->first_name} {$record->last_name}"),
+                        Forms\Components\Select::make('staff_members')
+                            ->label('Staff Taggato')
+                            ->multiple()
+                            ->relationship('staffMembers', 'last_name')
+                            ->preload()
+                            ->searchable(['first_name', 'last_name'])
+                            ->getOptionLabelFromRecordUsing(fn (StaffMember $record) => "{$record->first_name} {$record->last_name}"),
                     ])->columns(2),
             ]);
     }
@@ -153,6 +161,7 @@ class GalleryImageResource extends Resource
                     ->mountUsing(function (Form $form, GalleryImage $record) {
                         $form->fill([
                             'players' => $record->players->pluck('id')->toArray(),
+                            'staff_members' => $record->staffMembers->pluck('id')->toArray(),
                         ]);
                     })
                     ->form([
@@ -163,9 +172,17 @@ class GalleryImageResource extends Resource
                                 ->selectRaw("id, CONCAT(first_name, ' ', last_name) as full_name")
                                 ->pluck('full_name', 'id'))
                             ->searchable(),
+                        Forms\Components\Select::make('staff_members')
+                            ->label('Staff presente')
+                            ->multiple()
+                            ->options(fn () => StaffMember::orderBy('last_name')
+                                ->selectRaw("id, CONCAT(first_name, ' ', last_name) as full_name")
+                                ->pluck('full_name', 'id'))
+                            ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {
                         $record->players()->sync($data['players'] ?? []);
+                        $record->staffMembers()->sync($data['staff_members'] ?? []);
                         $record->needs_review = false;
                         $record->save();
                         Notification::make()->title('Identificata con successo')->success()->send();
@@ -176,7 +193,7 @@ class GalleryImageResource extends Resource
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
                     ->action(function (GalleryImage $record) {
-                        AnalyzeGalleryImageJob::dispatch($record)->onQueue('ai');
+                        AnalyzeGalleryImageJob::dispatch($record);
                         Notification::make()
                             ->title('Analisi AI avviata')
                             ->body('La foto verrà analizzata in background.')
@@ -194,7 +211,7 @@ class GalleryImageResource extends Resource
                     ->icon('heroicon-o-sparkles')
                     ->action(function (Collection $records) {
                         foreach ($records as $record) {
-                            AnalyzeGalleryImageJob::dispatch($record)->onQueue('ai');
+                            AnalyzeGalleryImageJob::dispatch($record);
                         }
                         Notification::make()
                             ->title('Analisi avviata')
@@ -218,6 +235,6 @@ class GalleryImageResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['media', 'players']);
+        return parent::getEloquentQuery()->with(['media', 'players', 'staffMembers']);
     }
 }

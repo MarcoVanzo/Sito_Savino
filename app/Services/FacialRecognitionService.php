@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Player;
+use App\Models\StaffMember;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -29,15 +31,15 @@ class FacialRecognitionService
     }
 
     /**
-     * Create a subject for the player in CompreFace.
+     * Create a subject for the person in CompreFace.
      */
-    public function createSubject(Player $player): bool
+    public function createSubject(Model $person): bool
     {
         if (empty($this->apiKey)) {
             return false;
         }
 
-        $subjectName = $this->getSubjectName($player);
+        $subjectName = $this->getSubjectName($person);
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
@@ -56,11 +58,11 @@ class FacialRecognitionService
     }
 
     /**
-     * Add a training face for a player.
+     * Add a training face for a person (Player or StaffMember).
      * $imagePath must be an absolute path to a local file.
      * Returns an array: ['success' => bool, 'error' => ?string]
      */
-    public function addFaceExample(Player $player, string $imagePath): array
+    public function addFaceExample(Model $person, string $imagePath): array
     {
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping addFaceExample.');
@@ -68,10 +70,10 @@ class FacialRecognitionService
             return ['success' => false, 'error' => 'API Key mancante'];
         }
 
-        $subjectName = $this->getSubjectName($player);
+        $subjectName = $this->getSubjectName($person);
 
         // Ensure subject exists first
-        $this->createSubject($player);
+        $this->createSubject($person);
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
@@ -95,12 +97,13 @@ class FacialRecognitionService
      * Add a training face from a Spatie Media object (S3 compatible).
      * Downloads the file from the media disk before sending to CompreFace.
      */
-    public function addFaceExampleFromMedia(Player $player, Media $media): array
+    public function addFaceExampleFromMedia(Model $person, Media $media): array
     {
         $tempPath = $this->downloadMediaToTemp($media);
         if (! $tempPath) {
             Log::error('CompreFace: impossibile scaricare media per il training', [
-                'player_id' => $player->id,
+                'person_type' => get_class($person),
+                'person_id' => $person->id,
                 'media_id' => $media->id,
             ]);
 
@@ -108,7 +111,7 @@ class FacialRecognitionService
         }
 
         try {
-            return $this->addFaceExample($player, $tempPath);
+            return $this->addFaceExample($person, $tempPath);
         } finally {
             if (file_exists($tempPath)) {
                 @unlink($tempPath);
@@ -119,13 +122,13 @@ class FacialRecognitionService
     /**
      * Delete all examples for a specific subject. Useful for resetting/retraining.
      */
-    public function deleteAllSubjectExamples(Player $player): bool
+    public function deleteAllSubjectExamples(Model $person): bool
     {
         if (empty($this->apiKey)) {
             return false;
         }
 
-        $subjectName = $this->getSubjectName($player);
+        $subjectName = $this->getSubjectName($person);
 
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
@@ -136,7 +139,7 @@ class FacialRecognitionService
 
     /**
      * Recognize faces in an image.
-     * Returns an array of detected subjects with confidence >= threshold.
+     * Returns an array of detected persons (Player or StaffMember) with confidence >= threshold.
      */
     public function recognizeFaces(string $imagePath, float $minConfidence = 0.85): array
     {
@@ -163,7 +166,7 @@ class FacialRecognitionService
         }
 
         $result = $response->json();
-        $detectedPlayers = [];
+        $detectedPersons = [];
         $hasUnrecognizedFaces = false;
 
         if (isset($result['result'])) {
@@ -171,12 +174,12 @@ class FacialRecognitionService
                 if (isset($face['subjects']) && count($face['subjects']) > 0) {
                     $topMatch = $face['subjects'][0];
                     if ($topMatch['similarity'] >= $minConfidence) {
-                        $subject = $topMatch['subject'];
-                        // Extract Player ID from subject name format: player_{id}
-                        if (preg_match('/^player_(\d+)$/', $subject, $matches)) {
-                            $detectedPlayers[] = [
-                                'player_id' => (int) $matches[1],
-                                'confidence' => $topMatch['similarity'] * 100, // convert to percentage 0-100
+                        $resolved = $this->resolveSubject($topMatch['subject']);
+                        if ($resolved) {
+                            $detectedPersons[] = [
+                                'person_type' => $resolved['type'],
+                                'person_id' => $resolved['id'],
+                                'confidence' => $topMatch['similarity'] * 100,
                             ];
                         }
                     } else {
@@ -189,7 +192,7 @@ class FacialRecognitionService
         }
 
         return [
-            'detected_players' => $detectedPlayers,
+            'detected_persons' => $detectedPersons,
             'has_unrecognized_faces' => $hasUnrecognizedFaces,
         ];
     }
@@ -222,10 +225,35 @@ class FacialRecognitionService
     }
 
     /**
-     * Helper to generate unique subject name per player.
+     * Genera un nome soggetto univoco per CompreFace.
+     * Player -> player_{id}, StaffMember -> staff_{id}
      */
-    protected function getSubjectName(Player $player): string
+    public function getSubjectName(Model $person): string
     {
-        return 'player_'.$player->id;
+        if ($person instanceof Player) {
+            return 'player_'.$person->id;
+        }
+
+        if ($person instanceof StaffMember) {
+            return 'staff_'.$person->id;
+        }
+
+        throw new \InvalidArgumentException('Unsupported model type: '.get_class($person));
+    }
+
+    /**
+     * Risolve un subject name CompreFace in tipo e ID del modello.
+     */
+    public function resolveSubject(string $subjectName): ?array
+    {
+        if (preg_match('/^player_(\d+)$/', $subjectName, $matches)) {
+            return ['type' => Player::class, 'id' => (int) $matches[1]];
+        }
+
+        if (preg_match('/^staff_(\d+)$/', $subjectName, $matches)) {
+            return ['type' => StaffMember::class, 'id' => (int) $matches[1]];
+        }
+
+        return null;
     }
 }

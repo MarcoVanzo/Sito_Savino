@@ -45,7 +45,7 @@ class Player extends Model implements HasMedia
 
     public function galleryImages()
     {
-        return $this->belongsToMany(GalleryImage::class, 'gallery_image_player')
+        return $this->morphToMany(GalleryImage::class, 'person', 'gallery_image_person')
             ->withPivot('confidence_score')
             ->withTimestamps();
     }

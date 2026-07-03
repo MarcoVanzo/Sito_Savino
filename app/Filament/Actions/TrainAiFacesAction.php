@@ -2,19 +2,19 @@
 
 namespace App\Filament\Actions;
 
-use App\Models\Player;
 use App\Services\FacialRecognitionService;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 class TrainAiFacesAction
 {
     /**
-     * Execute the AI training action for a player.
+     * Execute the AI training action for a person (Player or StaffMember).
      * Handles uploaded training images and syncs avatar.
      */
-    public static function execute(Player $record, array $data): void
+    public static function execute(Model $record, array $data): void
     {
         $service = app(FacialRecognitionService::class);
         $successCount = 0;
@@ -43,8 +43,9 @@ class TrainAiFacesAction
             }
         }
 
-        // Sync avatar as well
-        $media = $record->getFirstMedia('players');
+        // Sync avatar as well — determina automaticamente la collection in base al tipo di modello
+        $mediaCollection = static::getMediaCollection($record);
+        $media = $record->getFirstMedia($mediaCollection);
         if ($media) {
             $result = $service->addFaceExampleFromMedia($record, $media);
             if ($result['success']) {
@@ -101,5 +102,17 @@ class TrainAiFacesAction
                 ->helperText('Carica più foto del volto da diverse angolazioni. Non verranno salvate sul server, ma solo inviate all\'AI.')
                 ->required(),
         ];
+    }
+
+    /**
+     * Determina la media collection in base al tipo di modello.
+     */
+    protected static function getMediaCollection(Model $record): string
+    {
+        return match (get_class($record)) {
+            \App\Models\Player::class => 'players',
+            \App\Models\StaffMember::class => 'staff',
+            default => 'default',
+        };
     }
 }
