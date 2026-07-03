@@ -16,7 +16,6 @@ class SyncFaceAction
             ->modalHeading('Addestramento AI')
             ->modalContent(fn (Roster $record) => view('filament.actions.sync-face-progress', [
                 'recordId' => $record->getKey(),
-                'modalId' => $name . '-action',
             ]))
             ->modalSubmitAction(false)
             ->modalCancelAction(false)

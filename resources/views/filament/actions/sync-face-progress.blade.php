@@ -114,7 +114,7 @@
                 </template>
             </p>
             <x-filament::button
-                @click="$dispatch('close-modal', { id: '{{ $modalId }}' })"
+                @click="$wire.unmountTableAction()"
                 color="gray"
                 size="sm"
                 class="mt-3"
