@@ -16,7 +16,9 @@ use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class YouthRosterResource extends Resource
 {
@@ -26,7 +28,10 @@ class YouthRosterResource extends Resource
 
     protected static ?string $model = Roster::class;
 
-    protected static ?string $recordTitleAttribute = 'id';
+    public static function getRecordTitle(?Model $record): Htmlable|string|null
+    {
+        return $record?->player?->last_name ?? "Roster #{$record?->id}";
+    }
 
     protected static bool $isGloballySearchable = false;
 
@@ -100,6 +105,8 @@ class YouthRosterResource extends Resource
                             ->label('Foto Ufficiale (Roster)')
                             ->collection('rosters_official')
                             ->image()
+                            ->visibility('public')
+                            ->openable()
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
                             ->imageResizeTargetWidth(1200)
@@ -109,6 +116,8 @@ class YouthRosterResource extends Resource
                             ->label('Foto in Azione')
                             ->collection('rosters_action')
                             ->image()
+                            ->visibility('public')
+                            ->openable()
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
                             ->imageResizeTargetWidth(1200)

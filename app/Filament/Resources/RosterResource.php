@@ -15,7 +15,9 @@ use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class RosterResource extends Resource
 {
@@ -25,8 +27,15 @@ class RosterResource extends Resource
 
     protected static ?string $model = Roster::class;
 
-    // Attributo usato per il titolo nei risultati di ricerca globale
-    protected static ?string $recordTitleAttribute = 'id';
+    /**
+     * Titolo del record nelle modali Vedi/Modifica.
+     * Non si può usare $recordTitleAttribute con dot-notation perché
+     * Eloquent::getAttributeValue() non risolve le relazioni.
+     */
+    public static function getRecordTitle(?Model $record): Htmlable|string|null
+    {
+        return $record?->player?->last_name ?? "Roster #{$record?->id}";
+    }
 
     protected static bool $isGloballySearchable = false;
 
@@ -100,6 +109,8 @@ class RosterResource extends Resource
                             ->label('Foto Ufficiale (Roster)')
                             ->collection('rosters_official')
                             ->image()
+                            ->visibility('public')
+                            ->openable()
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
                             ->imageResizeTargetWidth(1200)
@@ -109,6 +120,8 @@ class RosterResource extends Resource
                             ->label('Foto in Azione')
                             ->collection('rosters_action')
                             ->image()
+                            ->visibility('public')
+                            ->openable()
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
                             ->imageResizeTargetWidth(1200)
