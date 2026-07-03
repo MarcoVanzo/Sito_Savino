@@ -46,8 +46,7 @@ class GalleryImagesRelationManager extends RelationManager
                         if ($record) {
                             $component->state($record->players->pluck('id')->toArray());
                         }
-                    })
-                    ->dehydrated(false),
+                    }),
                 Forms\Components\Toggle::make('is_active')
                     ->label('Attiva')
                     ->default(true),

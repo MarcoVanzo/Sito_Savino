@@ -90,8 +90,7 @@ class GalleryImageResource extends Resource
                                 if ($record) {
                                     $component->state($record->players->pluck('id')->toArray());
                                 }
-                            })
-                            ->dehydrated(false),
+                            }),
                         Forms\Components\Select::make('staff_members')
                             ->label('Staff Taggato')
                             ->multiple()
@@ -104,8 +103,7 @@ class GalleryImageResource extends Resource
                                 if ($record) {
                                     $component->state($record->staffMembers->pluck('id')->toArray());
                                 }
-                            })
-                            ->dehydrated(false),
+                            }),
                     ])->columns(2),
             ]);
     }
@@ -201,7 +199,11 @@ class GalleryImageResource extends Resource
                         $record->save();
                         Notification::make()->title('Identificata con successo')->success()->send();
                     }),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->after(function (GalleryImage $record, array $data) {
+                        $record->players()->sync($data['players'] ?? []);
+                        $record->staffMembers()->sync($data['staff_members'] ?? []);
+                    }),
                 Tables\Actions\Action::make('analyze')
                     ->label('Analizza AI')
                     ->icon('heroicon-o-sparkles')

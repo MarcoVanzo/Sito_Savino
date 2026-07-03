@@ -131,9 +131,16 @@ class AnalyzeGalleryImageJob implements ShouldQueue
                         [
                             'confidence_score' => $detected['confidence'],
                             'updated_at' => now(),
-                            'created_at' => now(),
                         ]
                     );
+
+                    // Imposta created_at solo per nuovi record (updateOrInsert non lo distingue)
+                    DB::table('gallery_image_person')
+                        ->where('gallery_image_id', $this->galleryImage->id)
+                        ->where('person_type', $detected['person_type'])
+                        ->where('person_id', $detected['person_id'])
+                        ->whereNull('created_at')
+                        ->update(['created_at' => now()]);
                 }
             }
 
@@ -181,7 +188,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
     protected function optimizeForSeo(): void
     {
         $this->galleryImage->loadMissing(['players', 'staffMembers', 'galleryEvent']);
-        $allPersons = $this->galleryImage->players->merge($this->galleryImage->staffMembers);
+        $allPersons = $this->galleryImage->players->concat($this->galleryImage->staffMembers);
         $event = $this->galleryImage->galleryEvent;
 
         // Costruisci i nomi delle persone riconosciute

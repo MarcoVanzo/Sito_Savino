@@ -77,7 +77,7 @@ class GalleryImage extends Model implements HasMedia
      */
     public function getAllPersonsAttribute(): \Illuminate\Support\Collection
     {
-        return $this->players->merge($this->staffMembers);
+        return $this->players->concat($this->staffMembers);
     }
 
     public function galleryEvent()

@@ -40,6 +40,11 @@ class TrainAiFacesAction
                         $errorMessages[] = $result['error'];
                     }
                 }
+
+                // Cleanup: rimuovi il file temporaneo dopo l'invio all'AI
+                if (is_string($image)) {
+                    Storage::disk('local')->delete($image);
+                }
             }
         }
 

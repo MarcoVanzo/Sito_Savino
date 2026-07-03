@@ -19,12 +19,12 @@ class EditGalleryImage extends EditRecord
 
     /**
      * Sincronizza le relazioni polimorfiche dopo il salvataggio del record.
-     * I select nel form sono dehydrated(false) perché Filament non supporta
+     * I select nel form usano ->options() manuale perché Filament non supporta
      * ->relationship() con morphedByMany, quindi gestiamo il sync manualmente.
      */
     protected function afterSave(): void
     {
-        $data = $this->form->getRawState();
+        $data = $this->data;
 
         $this->record->players()->sync($data['players'] ?? []);
         $this->record->staffMembers()->sync($data['staff_members'] ?? []);
