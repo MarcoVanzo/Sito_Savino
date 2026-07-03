@@ -2,10 +2,10 @@
 
 namespace App\Policies;
 
-use App\Models\Post;
+use App\Models\MenuItem;
 use App\Models\User;
 
-class PostPolicy
+class MenuItemPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -18,7 +18,7 @@ class PostPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Post $model): bool
+    public function view(User $user, MenuItem $model): bool
     {
         return $user->role->canManageEditorial();
     }
@@ -34,16 +34,15 @@ class PostPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Post $model): bool
+    public function update(User $user, MenuItem $model): bool
     {
-        return $user->role->isSuperAdmin()
-            || ($user->role->canManageEditorial() && $model->author_id === $user->id);
+        return $user->role->canManageEditorial();
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Post $model): bool
+    public function delete(User $user, MenuItem $model): bool
     {
         return $user->role->isSuperAdmin();
     }

@@ -8,31 +8,28 @@ use App\Models\User;
 
 class OptionPolicy
 {
-    /**
-     * Solo admin può gestire le opzioni del sito.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSystem();
     }
 
-    public function view(User $user, Option $model): bool
+    public function view(User $user, Option $option): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSystem();
     }
 
     public function create(User $user): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSystem();
     }
 
-    public function update(User $user, Option $model): bool
+    public function update(User $user, Option $option): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSystem();
     }
 
-    public function delete(User $user, Option $model): bool
+    public function delete(User $user, Option $option): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSystem();
     }
 }

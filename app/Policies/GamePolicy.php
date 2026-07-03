@@ -8,43 +8,28 @@ use App\Models\User;
 
 class GamePolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canViewSport();
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Game $model): bool
+    public function view(User $user, Game $game): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canViewSport();
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Game $model): bool
+    public function update(User $user, Game $game): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Game $model): bool
+    public function delete(User $user, Game $game): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->isSuperAdmin();
     }
 }

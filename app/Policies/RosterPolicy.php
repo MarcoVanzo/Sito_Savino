@@ -8,43 +8,28 @@ use App\Models\User;
 
 class RosterPolicy
 {
-    /**
-     * Determina se l'utente può visualizzare l'elenco dei modelli.
-     */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determina se l'utente può visualizzare il modello.
-     */
-    public function view(User $user, Roster $model): bool
+    public function view(User $user, Roster $roster): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determina se l'utente può creare modelli.
-     */
     public function create(User $user): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determina se l'utente può aggiornare il modello.
-     */
-    public function update(User $user, Roster $model): bool
+    public function update(User $user, Roster $roster): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determina se l'utente può eliminare il modello.
-     */
-    public function delete(User $user, Roster $model): bool
+    public function delete(User $user, Roster $roster): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->isSuperAdmin();
     }
 }

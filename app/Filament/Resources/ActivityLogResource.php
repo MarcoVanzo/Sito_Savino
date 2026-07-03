@@ -44,7 +44,7 @@ class ActivityLogResource extends Resource
     {
         $user = auth()->user();
 
-        return $user && $user->role === UserRole::Admin;
+        return $user && $user->role === UserRole::SuperAdmin;
     }
 
     /**

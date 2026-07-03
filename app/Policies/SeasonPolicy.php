@@ -10,26 +10,26 @@ class SeasonPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    public function view(User $user, Season $model): bool
+    public function view(User $user, Season $season): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
     public function create(User $user): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSport();
     }
 
-    public function update(User $user, Season $model): bool
+    public function update(User $user, Season $season): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSport();
     }
 
-    public function delete(User $user, Season $model): bool
+    public function delete(User $user, Season $season): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->isSuperAdmin();
     }
 }

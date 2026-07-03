@@ -2,25 +2,29 @@
 
 namespace App\Policies;
 
-use App\Models\Post;
+use App\Models\GalleryEvent;
 use App\Models\User;
+use App\Enums\UserRole;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
-class PostPolicy
+class GalleryEventPolicy
 {
+    use HandlesAuthorization;
+
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return $user->role->canManageEditorial();
+        return $user->role->canViewMedia();
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Post $model): bool
+    public function view(User $user, GalleryEvent $galleryEvent): bool
     {
-        return $user->role->canManageEditorial();
+        return $user->role->canViewMedia();
     }
 
     /**
@@ -28,22 +32,21 @@ class PostPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role->canManageEditorial();
+        return $user->role->canManageMedia();
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Post $model): bool
+    public function update(User $user, GalleryEvent $galleryEvent): bool
     {
-        return $user->role->isSuperAdmin()
-            || ($user->role->canManageEditorial() && $model->author_id === $user->id);
+        return $user->role->canManageMedia();
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Post $model): bool
+    public function delete(User $user, GalleryEvent $galleryEvent): bool
     {
         return $user->role->isSuperAdmin();
     }

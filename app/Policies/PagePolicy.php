@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\UserRole;
 use App\Models\Page;
 use App\Models\User;
 
@@ -13,7 +12,7 @@ class PagePolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageEditorial();
     }
 
     /**
@@ -21,7 +20,7 @@ class PagePolicy
      */
     public function view(User $user, Page $model): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageEditorial();
     }
 
     /**
@@ -29,7 +28,7 @@ class PagePolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageEditorial();
     }
 
     /**
@@ -37,7 +36,8 @@ class PagePolicy
      */
     public function update(User $user, Page $model): bool
     {
-        return $user->role === UserRole::Admin || ($user->role === UserRole::Editor && $model->author_id === $user->id);
+        return $user->role->isSuperAdmin()
+            || ($user->role->canManageEditorial() && $model->author_id === $user->id);
     }
 
     /**
@@ -45,6 +45,6 @@ class PagePolicy
      */
     public function delete(User $user, Page $model): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->isSuperAdmin();
     }
 }

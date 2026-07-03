@@ -8,43 +8,28 @@ use App\Models\User;
 
 class ProductCategoryPolicy
 {
-    /**
-     * Determina se l'utente può visualizzare l'elenco dei modelli.
-     */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageShop();
     }
 
-    /**
-     * Determina se l'utente può visualizzare il modello.
-     */
-    public function view(User $user, ProductCategory $model): bool
+    public function view(User $user, ProductCategory $productCategory): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageShop();
     }
 
-    /**
-     * Determina se l'utente può creare modelli.
-     */
     public function create(User $user): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageShop();
     }
 
-    /**
-     * Determina se l'utente può aggiornare il modello.
-     */
-    public function update(User $user, ProductCategory $model): bool
+    public function update(User $user, ProductCategory $productCategory): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageShop();
     }
 
-    /**
-     * Determina se l'utente può eliminare il modello.
-     */
-    public function delete(User $user, ProductCategory $model): bool
+    public function delete(User $user, ProductCategory $productCategory): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->isSuperAdmin();
     }
 }

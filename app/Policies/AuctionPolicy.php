@@ -3,17 +3,17 @@
 namespace App\Policies;
 
 use App\Enums\UserRole;
-use App\Models\StockMovement;
+use App\Models\Auction;
 use App\Models\User;
 
-class StockMovementPolicy
+class AuctionPolicy
 {
     public function viewAny(User $user): bool
     {
         return $user->role->canManageShop();
     }
 
-    public function view(User $user, StockMovement $stockMovement): bool
+    public function view(User $user, Auction $auction): bool
     {
         return $user->role->canManageShop();
     }
@@ -23,13 +23,13 @@ class StockMovementPolicy
         return $user->role->canManageShop();
     }
 
-    public function update(User $user, StockMovement $stockMovement): bool
+    public function update(User $user, Auction $auction): bool
     {
-        return false;
+        return $user->role->canManageShop();
     }
 
-    public function delete(User $user, StockMovement $stockMovement): bool
+    public function delete(User $user, Auction $auction): bool
     {
-        return false;
+        return $user->role->isSuperAdmin();
     }
 }

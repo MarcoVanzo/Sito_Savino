@@ -3,19 +3,19 @@
 namespace App\Policies;
 
 use App\Enums\UserRole;
-use App\Models\Player;
+use App\Models\StaffMember;
 use App\Models\User;
 
-class PlayerPolicy
+class StaffMemberPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->role->canViewSport();
+        return $user->role->canManageSport();
     }
 
-    public function view(User $user, Player $player): bool
+    public function view(User $user, StaffMember $staffMember): bool
     {
-        return $user->role->canViewSport();
+        return $user->role->canManageSport();
     }
 
     public function create(User $user): bool
@@ -23,12 +23,12 @@ class PlayerPolicy
         return $user->role->canManageSport();
     }
 
-    public function update(User $user, Player $player): bool
+    public function update(User $user, StaffMember $staffMember): bool
     {
         return $user->role->canManageSport();
     }
 
-    public function delete(User $user, Player $player): bool
+    public function delete(User $user, StaffMember $staffMember): bool
     {
         return $user->role->isSuperAdmin();
     }

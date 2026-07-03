@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\UserRole;
 use App\Models\SiteSetting;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Tabs;
@@ -29,6 +30,12 @@ class SiteSettingsPage extends Page implements HasForms
     protected static ?int $navigationSort = 50;
 
     protected static ?string $slug = 'settings';
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+        return $user && $user->role === UserRole::SuperAdmin;
+    }
 
     protected static string $view = 'filament.pages.site-settings-page';
 

@@ -45,6 +45,8 @@ trait HasFaceSyncMethods
         return $allMedia->map(fn (Media $m) => [
             'id' => $m->id,
             'name' => $m->file_name,
+            'url' => $m->getUrl($m->hasGeneratedConversion('thumb') ? 'thumb' : ''),
+            'type' => $m->collection_name === 'rosters_official' ? 'Ufficiale' : 'Azione',
         ])->values()->toArray();
     }
 

@@ -10,26 +10,26 @@ class TeamPolicy
 {
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    public function view(User $user, Team $model): bool
+    public function view(User $user, Team $team): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
     public function create(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    public function update(User $user, Team $model): bool
+    public function update(User $user, Team $team): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    public function delete(User $user, Team $model): bool
+    public function delete(User $user, Team $team): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->isSuperAdmin();
     }
 }

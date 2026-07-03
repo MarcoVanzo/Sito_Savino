@@ -86,11 +86,8 @@ class UserResource extends Resource
                     ->label('Ruolo')
                     ->badge()
                     ->formatStateUsing(fn (UserRole $state): string => $state->getLabel())
-                    ->color(fn (UserRole $state): string => match ($state) {
-                        UserRole::Admin => 'danger',
-                        UserRole::Editor => 'warning',
-                        UserRole::User => 'success',
-                    }),
+                    ->color(fn (UserRole $state): string => $state->getColor())
+                    ->icon(fn (UserRole $state): string => $state->getIcon()),
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->label('Attivo')
                     ->disabled(fn ($record) => $record && $record->id === auth()->id()),

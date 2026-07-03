@@ -26,7 +26,7 @@ class RecentActivityWidget extends Widget
     {
         $user = auth()->user();
 
-        return $user && $user->role === UserRole::Admin;
+        return $user && $user->role === UserRole::SuperAdmin;
     }
 
     public function getActivities(): Collection

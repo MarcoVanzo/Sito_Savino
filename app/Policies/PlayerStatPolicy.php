@@ -8,43 +8,28 @@ use App\Models\User;
 
 class PlayerStatPolicy
 {
-    /**
-     * Determina se l'utente può visualizzare l'elenco dei modelli.
-     */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determina se l'utente può visualizzare il modello.
-     */
-    public function view(User $user, PlayerStat $model): bool
+    public function view(User $user, PlayerStat $playerStat): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determina se l'utente può creare modelli.
-     */
     public function create(User $user): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determina se l'utente può aggiornare il modello.
-     */
-    public function update(User $user, PlayerStat $model): bool
+    public function update(User $user, PlayerStat $playerStat): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageSport();
     }
 
-    /**
-     * Determina se l'utente può eliminare il modello.
-     */
-    public function delete(User $user, PlayerStat $model): bool
+    public function delete(User $user, PlayerStat $playerStat): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->isSuperAdmin();
     }
 }

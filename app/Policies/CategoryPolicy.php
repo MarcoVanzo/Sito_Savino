@@ -2,49 +2,48 @@
 
 namespace App\Policies;
 
-use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\User;
 
 class CategoryPolicy
 {
     /**
-     * Determina se l'utente può visualizzare l'elenco dei modelli.
+     * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageEditorial();
     }
 
     /**
-     * Determina se l'utente può visualizzare il modello.
+     * Determine whether the user can view the model.
      */
     public function view(User $user, Category $model): bool
     {
-        return in_array($user->role, [UserRole::Admin, UserRole::Editor]);
+        return $user->role->canManageEditorial();
     }
 
     /**
-     * Determina se l'utente può creare modelli.
+     * Determine whether the user can create models.
      */
     public function create(User $user): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageEditorial();
     }
 
     /**
-     * Determina se l'utente può aggiornare il modello.
+     * Determine whether the user can update the model.
      */
     public function update(User $user, Category $model): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->canManageEditorial();
     }
 
     /**
-     * Determina se l'utente può eliminare il modello.
+     * Determine whether the user can delete the model.
      */
     public function delete(User $user, Category $model): bool
     {
-        return $user->role === UserRole::Admin;
+        return $user->role->isSuperAdmin();
     }
 }
