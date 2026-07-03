@@ -47,6 +47,19 @@ class GalleryImagesRelationManager extends RelationManager
                             $component->state($record->players->pluck('id')->toArray());
                         }
                     }),
+                Forms\Components\Select::make('staff_members')
+                    ->label('Staff presente')
+                    ->multiple()
+                    ->options(fn () => StaffMember::orderBy('last_name')
+                        ->get()
+                        ->mapWithKeys(fn (StaffMember $s) => [$s->id => "{$s->first_name} {$s->last_name} ({$s->role})"]))
+                    ->searchable()
+                    ->preload()
+                    ->afterStateHydrated(function (Forms\Components\Select $component, ?GalleryImage $record) {
+                        if ($record) {
+                            $component->state($record->staffMembers->pluck('id')->toArray());
+                        }
+                    }),
                 Forms\Components\Toggle::make('is_active')
                     ->label('Attiva')
                     ->default(true),
@@ -175,6 +188,7 @@ class GalleryImagesRelationManager extends RelationManager
                 Tables\Actions\EditAction::make()
                     ->after(function (GalleryImage $record, array $data) {
                         $record->players()->sync($data['players'] ?? []);
+                        $record->staffMembers()->sync($data['staff_members'] ?? []);
                     }),
                 Tables\Actions\DeleteAction::make()
                     ->before(function (GalleryImage $record) {
