@@ -31,11 +31,11 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
     public array $backoff = [30, 60];
 
-    public string $queue = 'ai';
-
     public function __construct(
         public GalleryImage $galleryImage
-    ) {}
+    ) {
+        $this->onQueue('ai');
+    }
 
     public function handle(FacialRecognitionService $facialRecognitionService): void
     {
