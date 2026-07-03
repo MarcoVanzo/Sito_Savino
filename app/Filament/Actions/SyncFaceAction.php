@@ -17,13 +17,33 @@ class SyncFaceAction
             ->color('info')
             ->requiresConfirmation()
             ->modalHeading('Sincronizza Volto con AI')
-            ->modalDescription('Invia la foto ufficiale di questa atleta al sistema di riconoscimento facciale per addestrare l\'AI a riconoscerla.')
+            ->modalDescription('Invia tutte le foto (ufficiale + in azione) al sistema di riconoscimento facciale per addestrare l\'AI a riconoscere questa atleta.')
             ->action(function (Roster $record) {
-                $media = $record->getFirstMedia('rosters_official') ?? $record->player->getFirstMedia('players');
-                if (! $media) {
+                // Raccogli TUTTE le foto: ufficiale + azione + avatar player
+                $allMedia = collect();
+
+                $officialPhoto = $record->getFirstMedia('rosters_official');
+                if ($officialPhoto) {
+                    $allMedia->push($officialPhoto);
+                }
+
+                $actionPhotos = $record->getMedia('rosters_action');
+                if ($actionPhotos->isNotEmpty()) {
+                    $allMedia = $allMedia->merge($actionPhotos);
+                }
+
+                // Fallback: avatar del player se non ci sono foto roster
+                if ($allMedia->isEmpty()) {
+                    $playerAvatar = $record->player->getFirstMedia('players');
+                    if ($playerAvatar) {
+                        $allMedia->push($playerAvatar);
+                    }
+                }
+
+                if ($allMedia->isEmpty()) {
                     Notification::make()
                         ->title('Errore')
-                        ->body('Nessuna foto trovata (né ufficiale né avatar) per addestrare l\'AI.')
+                        ->body('Nessuna foto trovata (né ufficiale, né in azione, né avatar) per addestrare l\'AI.')
                         ->danger()
                         ->send();
 
@@ -31,20 +51,37 @@ class SyncFaceAction
                 }
 
                 $service = app(FacialRecognitionService::class);
-                $success = $service->addFaceExampleFromMedia($record->player, $media);
+                $successCount = 0;
+                $failCount = 0;
 
-                if ($success) {
-                    $record->player->increment('ai_face_examples');
+                foreach ($allMedia as $media) {
+                    $result = $service->addFaceExampleFromMedia($record->player, $media);
+                    if (is_array($result) ? $result['success'] : $result) {
+                        $successCount++;
+                    } else {
+                        $failCount++;
+                    }
+                }
 
+                // Aggiorna il contatore con il totale reale
+                $record->player->update(['ai_face_examples' => $record->player->ai_face_examples + $successCount]);
+
+                if ($successCount > 0 && $failCount === 0) {
                     Notification::make()
                         ->title('Successo')
-                        ->body('Volto sincronizzato! L\'AI ora riconoscerà questa atleta.')
+                        ->body("Tutte le {$successCount} foto sincronizzate! L'AI ora riconoscerà meglio questa atleta.")
                         ->success()
+                        ->send();
+                } elseif ($successCount > 0) {
+                    Notification::make()
+                        ->title('Parzialmente completato')
+                        ->body("{$successCount} foto sincronizzate, {$failCount} fallite. Verifica i log.")
+                        ->warning()
                         ->send();
                 } else {
                     Notification::make()
                         ->title('Errore API')
-                        ->body('Impossibile sincronizzare il volto. Verifica i log.')
+                        ->body('Nessuna foto sincronizzata. Verifica i log.')
                         ->danger()
                         ->send();
                 }
