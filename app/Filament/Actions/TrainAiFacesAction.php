@@ -58,9 +58,7 @@ class TrainAiFacesAction
             }
         }
 
-        $notification = Notification::make()
-            ->title('Addestramento Completato')
-            ->body("{$successCount} volti appresi con successo.".($errorCount > 0 ? " {$errorCount} scartati." : ''));
+        $body = "{$successCount} volti appresi con successo.".($errorCount > 0 ? " {$errorCount} scartati." : '');
 
         if ($errorCount > 0) {
             // Deduplicate and translate common errors
@@ -77,14 +75,21 @@ class TrainAiFacesAction
             }, $uniqueErrors);
 
             if (count($translatedErrors) > 0) {
-                $notification->body($notification->getBody().' Motivi: '.implode(' | ', $translatedErrors));
+                $body .= ' Motivi: '.implode(' | ', $translatedErrors);
             }
-            $notification->warning();
-        } else {
-            $notification->success();
-        }
 
-        $notification->send();
+            Notification::make()
+                ->title('Addestramento Completato')
+                ->body($body)
+                ->warning()
+                ->send();
+        } else {
+            Notification::make()
+                ->title('Addestramento Completato')
+                ->body($body)
+                ->success()
+                ->send();
+        }
     }
 
     /**

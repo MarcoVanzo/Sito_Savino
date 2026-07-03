@@ -37,9 +37,17 @@ class GalleryImagesRelationManager extends RelationManager
                 Forms\Components\Select::make('players')
                     ->label('Atlete presenti')
                     ->multiple()
-                    ->relationship('players', 'last_name')
+                    ->options(fn () => Player::orderBy('last_name')
+                        ->get()
+                        ->mapWithKeys(fn (Player $p) => [$p->id => "{$p->first_name} {$p->last_name}"]))
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->afterStateHydrated(function (Forms\Components\Select $component, ?GalleryImage $record) {
+                        if ($record) {
+                            $component->state($record->players->pluck('id')->toArray());
+                        }
+                    })
+                    ->dehydrated(false),
                 Forms\Components\Toggle::make('is_active')
                     ->label('Attiva')
                     ->default(true),
@@ -147,15 +155,15 @@ class GalleryImagesRelationManager extends RelationManager
                             ->label('Atlete presenti')
                             ->multiple()
                             ->options(fn () => Player::orderBy('last_name')
-                                ->selectRaw("id, CONCAT(first_name, ' ', last_name) as full_name")
-                                ->pluck('full_name', 'id'))
+                                ->get()
+                                ->mapWithKeys(fn (Player $p) => [$p->id => "{$p->first_name} {$p->last_name}"]))
                             ->searchable(),
                         Forms\Components\Select::make('staff_members')
                             ->label('Staff presente')
                             ->multiple()
                             ->options(fn () => StaffMember::orderBy('last_name')
-                                ->selectRaw("id, CONCAT(first_name, ' ', last_name, ' (', role, ')') as full_name")
-                                ->pluck('full_name', 'id'))
+                                ->get()
+                                ->mapWithKeys(fn (StaffMember $s) => [$s->id => "{$s->first_name} {$s->last_name} ({$s->role})"]))
                             ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {
@@ -165,7 +173,10 @@ class GalleryImagesRelationManager extends RelationManager
                         $record->save();
                         Notification::make()->title('Identificata')->success()->send();
                     }),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->after(function (GalleryImage $record, array $data) {
+                        $record->players()->sync($data['players'] ?? []);
+                    }),
                 Tables\Actions\DeleteAction::make()
                     ->before(function (GalleryImage $record) {
                         $record->clearMediaCollection('gallery');

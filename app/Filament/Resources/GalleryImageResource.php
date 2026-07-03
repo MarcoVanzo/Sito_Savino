@@ -81,17 +81,31 @@ class GalleryImageResource extends Resource
                         Forms\Components\Select::make('players')
                             ->label('Atlete Taggate')
                             ->multiple()
-                            ->relationship('players', 'last_name')
+                            ->options(fn () => Player::orderBy('last_name')
+                                ->get()
+                                ->mapWithKeys(fn (Player $p) => [$p->id => "{$p->first_name} {$p->last_name}"]))
+                            ->searchable()
                             ->preload()
-                            ->searchable(['first_name', 'last_name'])
-                            ->getOptionLabelFromRecordUsing(fn (Player $record) => "{$record->first_name} {$record->last_name}"),
+                            ->afterStateHydrated(function (Forms\Components\Select $component, ?GalleryImage $record) {
+                                if ($record) {
+                                    $component->state($record->players->pluck('id')->toArray());
+                                }
+                            })
+                            ->dehydrated(false),
                         Forms\Components\Select::make('staff_members')
                             ->label('Staff Taggato')
                             ->multiple()
-                            ->relationship('staffMembers', 'last_name')
+                            ->options(fn () => StaffMember::orderBy('last_name')
+                                ->get()
+                                ->mapWithKeys(fn (StaffMember $s) => [$s->id => "{$s->first_name} {$s->last_name}"]))
+                            ->searchable()
                             ->preload()
-                            ->searchable(['first_name', 'last_name'])
-                            ->getOptionLabelFromRecordUsing(fn (StaffMember $record) => "{$record->first_name} {$record->last_name}"),
+                            ->afterStateHydrated(function (Forms\Components\Select $component, ?GalleryImage $record) {
+                                if ($record) {
+                                    $component->state($record->staffMembers->pluck('id')->toArray());
+                                }
+                            })
+                            ->dehydrated(false),
                     ])->columns(2),
             ]);
     }
@@ -169,15 +183,15 @@ class GalleryImageResource extends Resource
                             ->label('Atlete presenti')
                             ->multiple()
                             ->options(fn () => Player::orderBy('last_name')
-                                ->selectRaw("id, CONCAT(first_name, ' ', last_name) as full_name")
-                                ->pluck('full_name', 'id'))
+                                ->get()
+                                ->mapWithKeys(fn (Player $p) => [$p->id => "{$p->first_name} {$p->last_name}"]))
                             ->searchable(),
                         Forms\Components\Select::make('staff_members')
                             ->label('Staff presente')
                             ->multiple()
                             ->options(fn () => StaffMember::orderBy('last_name')
-                                ->selectRaw("id, CONCAT(first_name, ' ', last_name) as full_name")
-                                ->pluck('full_name', 'id'))
+                                ->get()
+                                ->mapWithKeys(fn (StaffMember $s) => [$s->id => "{$s->first_name} {$s->last_name} ({$s->role})"]))
                             ->searchable(),
                     ])
                     ->action(function (GalleryImage $record, array $data) {
