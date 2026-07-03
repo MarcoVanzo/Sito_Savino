@@ -108,6 +108,7 @@ class RosterResource extends Resource
                         SpatieMediaLibraryFileUpload::make('official_photo')
                             ->label('Foto Ufficiale (Roster)')
                             ->collection('rosters_official')
+                            ->disk('s3')
                             ->image()
                             ->visibility('public')
                             ->openable()
@@ -116,9 +117,12 @@ class RosterResource extends Resource
                             ->imageResizeTargetWidth(1200)
                             ->imageResizeTargetHeight(1200)
                             ->imageResizeUpscale(false),
-                        SpatieMediaLibraryFileUpload::make('action_photo')
+                        SpatieMediaLibraryFileUpload::make('action_photos')
                             ->label('Foto in Azione')
                             ->collection('rosters_action')
+                            ->disk('s3')
+                            ->multiple()
+                            ->reorderable()
                             ->image()
                             ->visibility('public')
                             ->openable()
@@ -126,7 +130,8 @@ class RosterResource extends Resource
                             ->imageResizeMode('contain')
                             ->imageResizeTargetWidth(1200)
                             ->imageResizeTargetHeight(1200)
-                            ->imageResizeUpscale(false),
+                            ->imageResizeUpscale(false)
+                            ->helperText('Puoi caricare più foto contemporaneamente.'),
                     ])->columns(2),
             ]);
     }
