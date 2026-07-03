@@ -135,6 +135,15 @@ class RosterResource extends Resource
                             ->imageResizeUpscale(false)
                             ->helperText('Puoi caricare più foto contemporaneamente.'),
                     ])->columns(2),
+                Forms\Components\Section::make('Stato Addestramento AI')
+                    ->description('Mostra quali foto sono state accettate o scartate dall\'AI per il riconoscimento facciale.')
+                    ->icon('heroicon-o-cpu-chip')
+                    ->collapsed()
+                    ->schema([
+                        Forms\Components\ViewField::make('ai_photo_status')
+                            ->label('')
+                            ->view('filament.components.ai-photo-status'),
+                    ]),
             ]);
     }
 

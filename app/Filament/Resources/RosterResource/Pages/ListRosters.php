@@ -75,6 +75,17 @@ class ListRosters extends ListRecords
         $result = $service->addFaceExampleFromMedia($roster->player, $media);
 
         $success = is_array($result) ? $result['success'] : (bool) $result;
+        $error = is_array($result) ? ($result['error'] ?? null) : null;
+
+        // Salva lo stato di sync sulla custom property del media
+        $media->setCustomProperty('ai_synced', $success);
+        $media->setCustomProperty('ai_synced_at', now()->toIso8601String());
+        if (! $success && $error) {
+            $media->setCustomProperty('ai_sync_error', $error);
+        } else {
+            $media->forgetCustomProperty('ai_sync_error');
+        }
+        $media->save();
 
         if ($success) {
             $roster->player->increment('ai_face_examples');
@@ -82,7 +93,7 @@ class ListRosters extends ListRecords
 
         return [
             'success' => $success,
-            'error' => is_array($result) ? ($result['error'] ?? null) : null,
+            'error' => $error,
             'newScore' => $roster->player->fresh()->ai_face_examples,
         ];
     }
