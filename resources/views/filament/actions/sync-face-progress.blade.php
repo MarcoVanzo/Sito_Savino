@@ -114,7 +114,7 @@
                 </template>
             </p>
             <x-filament::button
-                @click="$wire.unmountTableAction()"
+                @click="$wire.$refresh(); $wire.unmountTableAction()"
                 color="gray"
                 size="sm"
                 class="mt-3"

@@ -3,15 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PlayerPosition;
+use App\Filament\Actions\SyncFaceAction;
 use App\Filament\Clusters\SdbYouth;
 use App\Filament\Resources\YouthRosterResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Roster;
-use App\Services\FacialRecognitionService;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -131,6 +130,15 @@ class YouthRosterResource extends Resource
                             ->imageResizeUpscale(false)
                             ->helperText('Puoi caricare più foto contemporaneamente.'),
                     ])->columns(2),
+                Forms\Components\Section::make('Stato Addestramento AI')
+                    ->description('Mostra quali foto sono state accettate o scartate dall\'AI per il riconoscimento facciale.')
+                    ->icon('heroicon-o-cpu-chip')
+                    ->collapsed()
+                    ->schema([
+                        Forms\Components\ViewField::make('ai_photo_status')
+                            ->label('')
+                            ->view('filament.components.ai-photo-status'),
+                    ]),
             ]);
     }
 
@@ -165,6 +173,43 @@ class YouthRosterResource extends Resource
                 Tables\Columns\IconColumn::make('is_captain')
                     ->label('Capitano')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('player.ai_face_examples')
+                    ->label('AI Score')
+                    ->formatStateUsing(function ($state) {
+                        $examples = (int) $state;
+                        $score = match (true) {
+                            $examples >= 6 => 95,
+                            $examples === 5 => 80,
+                            $examples === 4 => 65,
+                            $examples === 3 => 50,
+                            $examples === 2 => 30,
+                            $examples === 1 => 15,
+                            default => 0,
+                        };
+                        $color = match (true) {
+                            $score >= 80 => '#22c55e',
+                            $score >= 50 => '#eab308',
+                            $score >= 15 => '#f97316',
+                            default => '#ef4444',
+                        };
+                        $label = match (true) {
+                            $score >= 80 => 'Ottimo',
+                            $score >= 50 => 'Buono',
+                            $score >= 15 => 'Scarso',
+                            default => 'Non addestrato',
+                        };
+                        return new \Illuminate\Support\HtmlString(
+                            '<div style="min-width:80px">' .
+                            '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' .
+                            '<span>' . $label . '</span><span style="font-weight:600">' . $score . '/100</span></div>' .
+                            '<div style="background:#374151;border-radius:9999px;height:6px;overflow:hidden">' .
+                            '<div style="width:' . $score . '%;height:100%;background:' . $color . ';border-radius:9999px;transition:width 0.3s"></div>' .
+                            '</div></div>'
+                        );
+                    })
+                    ->html()
+                    ->tooltip(fn ($record) => $record->player->ai_face_examples . ' foto di addestramento caricate')
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('season_id')
@@ -183,42 +228,7 @@ class YouthRosterResource extends Resource
                     ),
             ])
             ->actions(array_merge([
-                Tables\Actions\Action::make('syncFace')
-                    ->label('Addestra AI (Sincronizza Volto)')
-                    ->icon('heroicon-o-face-smile')
-                    ->color('info')
-                    ->requiresConfirmation()
-                    ->modalHeading('Sincronizza Volto con AI')
-                    ->modalDescription('Invia la foto ufficiale di questa atleta al sistema di riconoscimento facciale per addestrare l\'AI a riconoscerla.')
-                    ->action(function (Roster $record) {
-                        $media = $record->getFirstMedia('rosters_official') ?? $record->player->getFirstMedia('players');
-                        if (! $media) {
-                            Notification::make()
-                                ->title('Errore')
-                                ->body('Nessuna foto trovata (né ufficiale né avatar) per addestrare l\'AI.')
-                                ->danger()
-                                ->send();
-
-                            return;
-                        }
-
-                        $service = app(FacialRecognitionService::class);
-                        $success = $service->addFaceExampleFromMedia($record->player, $media);
-
-                        if ($success) {
-                            Notification::make()
-                                ->title('Successo')
-                                ->body('Volto sincronizzato! L\'AI ora riconoscerà questa atleta.')
-                                ->success()
-                                ->send();
-                        } else {
-                            Notification::make()
-                                ->title('Errore API')
-                                ->body('Impossibile sincronizzare il volto. Verifica i log.')
-                                ->danger()
-                                ->send();
-                        }
-                    }),
+                SyncFaceAction::make('syncFace'),
             ], static::viewAndEditActions()))
             ->bulkActions(static::standardBulkActions());
     }
