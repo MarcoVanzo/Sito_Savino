@@ -9,7 +9,7 @@ const messages = { it, en };
  * @param {string} key
  * @returns {*}
  */
-function resolve(obj, key) {
+export function resolve(obj, key) {
     return key.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
 }
 

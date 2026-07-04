@@ -35,9 +35,17 @@ createInertiaApp({
         app.config.globalProperties.route = window.route;
 
         // i18n: register $t as global translation function
-        const $t = createTranslations(props.initialPage.props.locale || 'it');
-        app.config.globalProperties.$t = $t;
-        if (typeof window !== 'undefined') window.$t = $t;
+        app.config.globalProperties.$t = function (key, params = {}) {
+            const locale = this.$page?.props?.locale || props.initialPage.props.locale || 'it';
+            return createTranslations(locale)(key, params);
+        };
+        if (typeof window !== 'undefined') {
+            window.$t = function (key, params = {}) {
+                const page = window.document.getElementById('app')?.__vue_app__?.config.globalProperties.$page;
+                const locale = page?.props?.locale || props.initialPage.props.locale || 'it';
+                return createTranslations(locale)(key, params);
+            };
+        }
 
         return app.mount(el);
     },

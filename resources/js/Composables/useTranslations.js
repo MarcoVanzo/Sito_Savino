@@ -1,5 +1,5 @@
 import { getCurrentInstance } from 'vue';
-import { createTranslations } from '@/i18n/index.js';
+import { createTranslations, messages, resolve } from '@/i18n/index.js';
 import { usePage } from '@inertiajs/vue3';
 
 /**
@@ -17,17 +17,30 @@ import { usePage } from '@inertiajs/vue3';
  * @returns {function(string, Object=): string}
  */
 export function useTranslations() {
-    // 1. Try Vue's globalProperties (works in both client & SSR)
-    const instance = getCurrentInstance();
-    const global$t = instance?.appContext?.config?.globalProperties?.$t;
-    if (global$t) return global$t;
-
-    // 2. Fallback: create from page locale (SSR without global registration)
+    let page;
     try {
-        const page = usePage();
-        return createTranslations(page.props.locale || 'it');
+        page = usePage();
     } catch {
-        // Ultimate fallback (should never happen in normal flow)
-        return createTranslations('it');
+        page = null;
     }
+
+    return function t(key, params = {}) {
+        let locale = 'it';
+        if (page && page.props && page.props.locale) {
+            locale = page.props.locale;
+        } else {
+            const instance = getCurrentInstance();
+            if (instance && instance.proxy && instance.proxy.$page && instance.proxy.$page.props) {
+                locale = instance.proxy.$page.props.locale;
+            }
+        }
+        
+        let value = resolve(messages[locale], key) ?? resolve(messages.it, key) ?? key;
+        if (typeof value === 'string' && params) {
+            Object.entries(params).forEach(([k, v]) => {
+                value = value.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+            });
+        }
+        return value;
+    };
 }

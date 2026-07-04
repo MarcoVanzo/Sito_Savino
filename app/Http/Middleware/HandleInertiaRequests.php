@@ -36,7 +36,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
-            'locale' => app()->getLocale(),
+            'locale' => fn () => app()->getLocale(),
             'alternateUrl' => function () use ($request) {
                 $locale = app()->getLocale();
                 $path = $request->getPathInfo();
