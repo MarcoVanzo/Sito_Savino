@@ -27,7 +27,12 @@ export function useOgMeta({
     const currentUrl = page.props.ziggy?.location || '';
     const siteName = 'Savino Del Bene Volley';
     const defaultImage = `${baseUrl}${LOGOS.VOLLEY}`;
-    const defaultDescription = 'Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.';
+
+    // Locale-aware default description via $t (with Italian fallback for SSR)
+    const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : null;
+    const defaultDescription = $t
+        ? $t('home.og_description')
+        : 'Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.';
 
     const fullTitle = title
         ? (suffix ? `${title} — ${siteName}` : title)

@@ -78,8 +78,9 @@ class PageController extends Controller
 
     private function getSocietaData(): array
     {
+        $locale = app()->getLocale();
         return [
-            'dirigenza' => Cache::remember('public:organigramma', now()->addMinutes(30), function () {
+            'dirigenza' => Cache::remember("public:organigramma:page:{$locale}", now()->addMinutes(30), function () {
                 return StaffMember::where('type', StaffType::Dirigenza)
                     ->orderBy('sort_order')
                     ->get()
@@ -96,7 +97,8 @@ class PageController extends Controller
 
     private function getRosterData(): array
     {
-        return Cache::remember('public:roster_page', now()->addMinutes(10), function () {
+        $locale = app()->getLocale();
+        return Cache::remember("public:roster_page:{$locale}", now()->addMinutes(10), function () {
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
             $players = [];
@@ -123,7 +125,7 @@ class PageController extends Controller
 
             return [
                 'players' => $players,
-                'seasonName' => $currentSeason?->name ?? 'Stagione corrente',
+                'seasonName' => $currentSeason?->name ?? __('Stagione corrente'),
             ];
         });
     }

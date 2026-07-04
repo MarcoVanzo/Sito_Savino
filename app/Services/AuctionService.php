@@ -90,15 +90,15 @@ class AuctionService
         $processed = 0;
 
         foreach ($auctions as $auction) {
-            // Verifica se il vincitore ha già pagato
-            $existingOrder = $this->getWinnerOrder($auction);
-
-            if ($existingOrder) {
-                continue; // Pagamento già effettuato
-            }
-
             DB::transaction(function () use ($auction, &$processed) {
                 $auction = Auction::lockForUpdate()->find($auction->id);
+
+                // Verifica se il vincitore ha già pagato (dentro la transazione per evitare TOCTOU)
+                $existingOrder = $this->getWinnerOrder($auction);
+
+                if ($existingOrder) {
+                    return; // Pagamento già effettuato
+                }
 
                 $currentAttempt = $auction->current_winner_attempt;
 

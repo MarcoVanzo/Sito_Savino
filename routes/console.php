@@ -22,3 +22,12 @@ Schedule::command('model:prune')->daily();
 // Controllo ordini bonifico non pagati (promemoria + cancellazione)
 Schedule::command('order:check-unpaid')->daily()->at('08:00');
 
+// Aste: attivazione aste programmate (ogni minuto)
+Schedule::command('auction:activate')->everyMinute()->withoutOverlapping();
+
+// Aste: chiusura aste scadute (ogni minuto)
+Schedule::command('auction:close')->everyMinute()->withoutOverlapping();
+
+// Aste: verifica pagamenti vincitori (ogni ora)
+Schedule::command('auction:check-payments')->hourly()->withoutOverlapping();
+

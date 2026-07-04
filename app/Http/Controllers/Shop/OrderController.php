@@ -54,10 +54,13 @@ class OrderController extends Controller
     {
         $order = Order::where('order_token', $orderToken)->firstOrFail();
 
-        // Verifica accesso: utente autenticato proprietario o token corrispondente
-        if (auth()->check() && $order->user_id !== auth()->id() && $order->user_id !== null) {
-            abort(403);
+        // Verifica accesso: utente autenticato può scaricare solo i propri ordini
+        if (auth()->check()) {
+            if ($order->user_id !== null && $order->user_id !== auth()->id()) {
+                abort(403);
+            }
         }
+        // Guest: l'unica protezione è il token UUID nell'URL (alta entropia)
 
         return $this->receiptService->download($order);
     }

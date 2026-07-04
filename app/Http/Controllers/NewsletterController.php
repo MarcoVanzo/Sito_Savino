@@ -20,7 +20,7 @@ class NewsletterController extends Controller
         if ($existing) {
             // Se è attivo → già iscritto
             if ($existing->unsubscribed_at === null) {
-                return back()->with('newsletter_info', __('Questa email è già iscritta alla newsletter.'));
+                return back()->with('newsletter_info', __('messages.newsletter.already_subscribed'));
             }
 
             // Se era disiscritto → riattiva
@@ -40,7 +40,7 @@ class NewsletterController extends Controller
 
             SyncNewsletterToActiveCampaign::dispatch($existing);
 
-            return back()->with('success', __('Iscrizione completata! Grazie per esserti iscritto.'));
+            return back()->with('success', __('messages.newsletter.success'));
         }
 
         // Nuovo iscritto — try/catch per race condition su UNIQUE constraint
@@ -54,7 +54,7 @@ class NewsletterController extends Controller
             ]);
         } catch (UniqueConstraintViolationException) {
             // Race condition: un'altra request ha inserito la stessa email tra il WHERE e il CREATE
-            return back()->with('newsletter_info', __('Questa email è già iscritta alla newsletter.'));
+            return back()->with('newsletter_info', __('messages.newsletter.already_subscribed'));
         }
 
         Log::channel('daily')->info('Nuova iscrizione newsletter', [
@@ -64,6 +64,6 @@ class NewsletterController extends Controller
 
         SyncNewsletterToActiveCampaign::dispatch($subscriber);
 
-        return back()->with('success', __('Iscrizione completata! Grazie per esserti iscritto.'));
+        return back()->with('success', __('messages.newsletter.success'));
     }
 }

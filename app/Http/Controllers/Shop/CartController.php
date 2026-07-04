@@ -51,7 +51,7 @@ class CartController extends Controller
                 $validated['variant_id'] ?? null,
             );
 
-            return back()->with('success', 'Prodotto aggiunto al carrello.');
+            return back()->with('success', __('messages.cart.added'));
         } catch (\OverflowException $e) {
             return back()->with('error', $e->getMessage());
         } catch (\InvalidArgumentException $e) {
@@ -74,7 +74,7 @@ class CartController extends Controller
                 $validated['quantity'],
             );
 
-            return back()->with('success', 'Quantità aggiornata.');
+            return back()->with('success', __('messages.cart.updated'));
         } catch (\OverflowException $e) {
             return back()->with('error', $e->getMessage());
         } catch (\InvalidArgumentException $e) {
@@ -90,7 +90,7 @@ class CartController extends Controller
         try {
             $this->cartService->removeItem($cartItem->id);
 
-            return back()->with('success', 'Prodotto rimosso dal carrello.');
+            return back()->with('success', __('messages.cart.removed'));
         } catch (\OverflowException $e) {
             return back()->with('error', $e->getMessage());
         } catch (\InvalidArgumentException $e) {

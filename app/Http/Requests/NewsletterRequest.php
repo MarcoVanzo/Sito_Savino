@@ -36,10 +36,10 @@ class NewsletterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => __('L\'email è obbligatoria.'),
-            'email.email' => __('Inserisci un indirizzo email valido.'),
-            'email.max' => __('L\'email non può superare i 255 caratteri.'),
-            'privacy_accepted.accepted' => __('Devi accettare l\'informativa sulla privacy.'),
+            'email.required' => __('messages.validation.email_required'),
+            'email.email' => __('messages.validation.email_invalid'),
+            'email.max' => __('messages.validation.email_max'),
+            'privacy_accepted.accepted' => __('messages.validation.privacy_accepted'),
         ];
     }
 }

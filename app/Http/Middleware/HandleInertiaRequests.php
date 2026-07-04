@@ -40,11 +40,15 @@ class HandleInertiaRequests extends Middleware
             'alternateUrl' => function () use ($request) {
                 $locale = app()->getLocale();
                 $path = $request->getPathInfo();
+                $query = $request->getQueryString() ? '?' . $request->getQueryString() : '';
+
                 if ($locale === 'it') {
-                    return url('/en' . $path);
+                    $enPath = $path === '/' ? '/en' : '/en' . $path;
+                    return url($enPath . $query);
                 }
+                
                 $itPath = preg_replace('#^/en(/|$)#', '/', $path);
-                return url($itPath);
+                return url($itPath . $query);
             },
             'locales' => ['it', 'en'],
             'auth' => [

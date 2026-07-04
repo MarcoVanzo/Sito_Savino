@@ -138,7 +138,8 @@ class PublicController extends Controller
 
     public function risultati()
     {
-        $data = Cache::remember('public:risultati', now()->addMinutes(5), function () {
+        $locale = app()->getLocale();
+        $data = Cache::remember("public:risultati:{$locale}", now()->addMinutes(5), function () {
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
             $games = [];
@@ -150,7 +151,7 @@ class PublicController extends Controller
                     ->toArray();
             }
 
-            $seasonName = $currentSeason?->name ?? 'Stagione corrente';
+            $seasonName = $currentSeason?->name ?? __('Stagione corrente');
 
             return compact('games', 'seasonName');
         });
@@ -178,9 +179,11 @@ class PublicController extends Controller
             return Page::where('slug', 'gallery')->first();
         });
 
-        $cacheKey = $playerFilter ? 'public:gallery_images:player_'.$playerFilter->id : 'public:gallery_images';
+        $cacheKey = $playerFilter
+            ? "public:gallery_images:player_{$playerFilter->id}:{$locale}"
+            : "public:gallery_images:{$locale}";
 
-        $media = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter) {
+        $media = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter, $locale) {
             $query = GalleryImage::active()->ordered()
                 ->with(['players:id,first_name,last_name', 'galleryEvent:id,title']);
 
@@ -191,22 +194,28 @@ class PublicController extends Controller
             }
 
             return $query->get()
-                ->map(function ($img) {
-                    $decodeTitle = function ($text) {
+                ->map(function ($img) use ($locale) {
+                    $decodeTitle = function ($text) use ($locale) {
                         if (! is_string($text) || ! str_starts_with($text, '{"it":')) {
                             return $text;
                         }
                         $decoded = json_decode($text, true);
-                        if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+                        if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
+                            return $decoded[$locale] ?? $decoded['it'];
+                        }
                         // Attempt to fix truncated JSON
                         $decoded = json_decode($text . '"}', true);
-                        if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+                        if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
+                            return $decoded[$locale] ?? $decoded['it'];
+                        }
                         $decoded = json_decode($text . '}', true);
-                        if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+                        if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
+                            return $decoded[$locale] ?? $decoded['it'];
+                        }
                         return $text;
                     };
 
-                    $altText = $decodeTitle($img->title ?? 'Immagine Galleria');
+                    $altText = $decodeTitle($img->title ?? __('Immagine Galleria'));
                     $eventName = $decodeTitle($img->galleryEvent?->title);
 
                     return [
@@ -223,7 +232,7 @@ class PublicController extends Controller
         });
 
         // Get all players that have at least one gallery image for the filter dropdown
-        $athletes = Cache::remember('public:gallery_athletes', now()->addMinutes(30), function () {
+        $athletes = Cache::remember("public:gallery_athletes:{$locale}", now()->addMinutes(30), function () {
             return Player::whereHas('galleryImages')->get()->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->full_name,
@@ -314,7 +323,8 @@ class PublicController extends Controller
 
     public function sponsor()
     {
-        $sponsors = Cache::remember('public:sponsor', now()->addMinutes(30), function () {
+        $locale = app()->getLocale();
+        $sponsors = Cache::remember("public:sponsor:{$locale}", now()->addMinutes(30), function () {
             return Sponsor::with('media')
                 ->orderBy('tier')
                 ->orderBy('sort_order')
@@ -348,7 +358,8 @@ class PublicController extends Controller
 
     public function shop()
     {
-        $products = Cache::remember('public:shop', now()->addMinutes(10), function () {
+        $locale = app()->getLocale();
+        $products = Cache::remember("public:shop:{$locale}", now()->addMinutes(10), function () {
             return Product::with('media')
                 ->where('is_active', true)
                 ->orderBy('sort_order')

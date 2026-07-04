@@ -1,12 +1,15 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
 import { useImageFallback } from '@/Composables/useImageFallback.js'
 import { useOgMeta } from '@/Composables/useOgMeta'
+import { useSanitize } from '@/Composables/useSanitize';
+import { computed } from 'vue';
 
+const { sanitize } = useSanitize();
 const { onImgError } = useImageFallback()
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const props = defineProps({
     dirigenza: {
@@ -22,6 +25,8 @@ const props = defineProps({
 function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
 }
+
+const safeContent = computed(() => sanitize(props.page?.content));
 
 const ogMeta = useOgMeta({
     title: props.page?.title || $t('organigramma.og_title'),
@@ -49,7 +54,7 @@ const ogMeta = useOgMeta({
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title || $t('organigramma.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
                 
-                <div v-if="page?.content" class="prose prose-lg prose-invert max-w-3xl mx-auto" v-html="page.content"></div>
+                <div v-if="page?.content" class="prose prose-lg prose-invert max-w-3xl mx-auto" v-html="safeContent"></div>
                 <p v-else class="text-white/70 text-lg max-w-2xl mx-auto">{{ $t('organigramma.hero_description') }}</p>
             </div>
         </section>

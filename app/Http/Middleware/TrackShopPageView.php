@@ -15,15 +15,23 @@ class TrackShopPageView
 
         // Only track GET requests that return 200
         if ($request->isMethod('GET') && $response->getStatusCode() === 200) {
-            dispatch(function () use ($request) {
+            // Extract serializable values before closure to avoid
+            // capturing the full Request (contains non-serializable WeakMap)
+            $userId = $request->user()?->id;
+            $sessionId = $request->session()->getId();
+            $ipAddress = $request->ip();
+            $fullUrl = $request->fullUrl();
+            $referer = $request->header('Referer');
+
+            dispatch(function () use ($userId, $sessionId, $ipAddress, $fullUrl, $referer) {
                 ShopEvent::create([
                     'event_type' => 'view',
-                    'user_id' => $request->user()?->id,
-                    'session_id' => $request->session()->getId(),
-                    'ip_address' => $request->ip(),
+                    'user_id' => $userId,
+                    'session_id' => $sessionId,
+                    'ip_address' => $ipAddress,
                     'metadata' => [
-                        'url' => $request->fullUrl(),
-                        'referer' => $request->header('Referer'),
+                        'url' => $fullUrl,
+                        'referer' => $referer,
                     ],
                 ]);
             })->afterResponse();

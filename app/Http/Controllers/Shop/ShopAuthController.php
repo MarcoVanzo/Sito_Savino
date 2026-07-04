@@ -53,6 +53,6 @@ class ShopAuthController extends Controller
         $this->cartService->mergeOnLogin($user);
 
         return redirect()->route('shop')
-            ->with('success', 'Registrazione completata! Benvenuto nello shop.');
+            ->with('success', __('messages.shop.register_success'));
     }
 }

@@ -21,7 +21,7 @@ class Auction extends Model
         'bid_increment', 'max_bid_jump',
         'start_date', 'end_date', 'status',
         'winner_user_id', 'current_winner_attempt',
-        'winner_checkout_deadline',
+        'winner_checkout_token', 'winner_checkout_deadline',
         'is_charity', 'charity_description',
     ];
 

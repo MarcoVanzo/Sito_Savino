@@ -34,8 +34,44 @@ foreach ($locales as $loc) {
         Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');
         Route::get('/news', [NewsController::class, 'index'])->name('news.index');
         Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
-        Route::get('/shop', [PublicController::class, 'shop'])->name('shop');
-        Route::get('/shop/checkout', [PublicController::class, 'shopCheckout'])->name('shop.checkout');
+        // =============================================
+        // Shop Routes
+        // =============================================
+        Route::prefix('shop')->middleware([\App\Http\Middleware\TrackShopPageView::class])->group(function () {
+            // Public shop pages
+            Route::get('/', [\App\Http\Controllers\Shop\ShopController::class, 'index'])->name('shop');
+            Route::get('/cerca', [\App\Http\Controllers\Shop\ShopController::class, 'search'])->name('shop.search');
+            Route::get('/categoria/{category:slug}', [\App\Http\Controllers\Shop\ShopController::class, 'categoryShow'])->name('shop.category');
+            Route::get('/prodotto/{product:slug}', [\App\Http\Controllers\Shop\ShopController::class, 'productShow'])->name('shop.product');
+
+            // Cart (web routes with CSRF)
+            Route::get('/carrello', [\App\Http\Controllers\Shop\CartController::class, 'index'])->name('shop.cart');
+            Route::post('/carrello', [\App\Http\Controllers\Shop\CartController::class, 'store'])->name('shop.cart.store');
+            Route::patch('/carrello/{cartItem}', [\App\Http\Controllers\Shop\CartController::class, 'update'])->name('shop.cart.update');
+            Route::delete('/carrello/{cartItem}', [\App\Http\Controllers\Shop\CartController::class, 'destroy'])->name('shop.cart.destroy');
+            Route::get('/carrello/count', [\App\Http\Controllers\Shop\CartController::class, 'count'])->name('shop.cart.count');
+
+            // Checkout
+            Route::get('/checkout', [\App\Http\Controllers\Shop\CheckoutController::class, 'show'])->name('shop.checkout');
+            Route::post('/checkout', [\App\Http\Controllers\Shop\CheckoutController::class, 'store'])->middleware('throttle:5,1')->name('shop.checkout.store');
+            Route::get('/checkout/conferma/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'success'])->name('shop.checkout.success');
+            Route::get('/checkout/annullato/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'cancel'])->name('shop.checkout.cancel');
+
+            // Order tracking (guest via token)
+            Route::get('/ordine/{orderNumber}', [\App\Http\Controllers\Shop\OrderController::class, 'show'])->name('shop.order.show');
+            Route::get('/ordine/{orderToken}/ricevuta', [\App\Http\Controllers\Shop\OrderController::class, 'downloadReceipt'])->name('shop.order.receipt');
+
+            // Auth-only shop routes
+            Route::middleware('auth')->group(function () {
+                Route::get('/ordini', [\App\Http\Controllers\Shop\OrderController::class, 'index'])->name('shop.orders');
+            });
+
+            // Shop registration
+            Route::middleware('guest')->group(function () {
+                Route::get('/registrati', [\App\Http\Controllers\Shop\ShopAuthController::class, 'showRegister'])->name('shop.register');
+                Route::post('/registrati', [\App\Http\Controllers\Shop\ShopAuthController::class, 'register'])->name('shop.register.store');
+            });
+        });
         Route::get('/contatti', [PublicController::class, 'contatti'])->name('contatti');
         Route::post('/contatti', [ContactController::class, 'submit'])->name('contatti.submit');
         Route::post('/newsletter', [NewsletterController::class, 'subscribe'])

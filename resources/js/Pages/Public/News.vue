@@ -1,4 +1,4 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
@@ -9,7 +9,7 @@ import { useLocale } from '@/Composables/useLocale.js';
 const { onImgError } = useImageFallback();
 const { formatDate } = useLocale();
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const props = defineProps({
     posts: Object,

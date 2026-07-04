@@ -35,6 +35,7 @@ export function useLocale() {
      * @returns {string}
      */
     function formatDate(dateStr, options = {}) {
+        if (!dateStr) return '';
         const defaults = { day: 'numeric', month: 'long', year: 'numeric' };
         const localeStr = locale.value === 'en' ? 'en-GB' : 'it-IT';
         return new Date(dateStr).toLocaleDateString(localeStr, { ...defaults, ...options });

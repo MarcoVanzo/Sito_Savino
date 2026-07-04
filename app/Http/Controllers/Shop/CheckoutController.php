@@ -40,7 +40,7 @@ class CheckoutController extends Controller
 
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('shop.cart')
-                ->with('error', 'Il carrello è vuoto.');
+                ->with('error', __('messages.cart.empty'));
         }
 
         $shippingZones = ShippingZone::active()->ordered()->get();
@@ -93,7 +93,7 @@ class CheckoutController extends Controller
         $cart = $this->cartService->getCart();
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('shop.cart')
-                ->with('error', 'Il carrello è vuoto.');
+                ->with('error', __('messages.cart.empty'));
         }
 
         try {
@@ -128,11 +128,14 @@ class CheckoutController extends Controller
                 'ip_address' => $request->ip(),
             ]);
 
-            // Notifica admin
-            $this->adminNotificationService->notifyNewOrder($order);
-
             // Gestisci il pagamento in base al gateway selezionato
             $gateway = PaymentGateway::from($validated['payment_gateway']);
+
+            // Notifica admin solo per bonifico (pagamento differito) —
+            // per Stripe/PayPal la notifica arriva dal webhook dopo il pagamento effettivo
+            if ($gateway === PaymentGateway::BankTransfer) {
+                $this->adminNotificationService->notifyNewOrder($order);
+            }
 
             return match ($gateway) {
                 PaymentGateway::Stripe => $this->handleStripe($order),
@@ -147,7 +150,7 @@ class CheckoutController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            return back()->with('error', 'Si è verificato un errore durante il checkout. Riprova.');
+            return back()->with('error', __('messages.checkout.error'));
         }
     }
 
@@ -215,6 +218,6 @@ class CheckoutController extends Controller
         }
 
         return redirect()->route('shop.checkout.success', ['orderToken' => $order->order_token])
-            ->with('success', 'Ordine creato con successo! Ti abbiamo inviato le istruzioni per il bonifico.');
+            ->with('success', __('messages.checkout.success_bank'));
     }
 }

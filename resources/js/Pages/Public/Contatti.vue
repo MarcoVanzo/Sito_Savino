@@ -1,10 +1,10 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const props = defineProps({
     page: {

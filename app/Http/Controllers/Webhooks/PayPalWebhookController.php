@@ -30,7 +30,13 @@ class PayPalWebhookController
             $service = new PayPalPaymentService;
             $result = $service->handleWebhook(
                 $request->getContent(),
-                $request->headers->all(),
+                [
+                    'paypal-auth-algo' => $request->header('PAYPAL-AUTH-ALGO', ''),
+                    'paypal-cert-url' => $request->header('PAYPAL-CERT-URL', ''),
+                    'paypal-transmission-id' => $request->header('PAYPAL-TRANSMISSION-ID', ''),
+                    'paypal-transmission-sig' => $request->header('PAYPAL-TRANSMISSION-SIG', ''),
+                    'paypal-transmission-time' => $request->header('PAYPAL-TRANSMISSION-TIME', ''),
+                ],
             );
         } catch (\RuntimeException $e) {
             Log::warning('PayPal webhook: verifica fallita', [
@@ -79,18 +85,21 @@ class PayPalWebhookController
             return response()->json(['error' => 'Ordine non trovato'], 404);
         }
 
-        // Idempotency check: if already paid, skip processing
-        if ($order->payment_id !== null) {
-            Log::info('PayPal webhook: ordine già processato (idempotenza)', [
-                'order_id' => $order->id,
-                'payment_id' => $order->payment_id,
-            ]);
-
-            return response()->json(['message' => 'Già processato'], 200);
-        }
-
         try {
             DB::transaction(function () use ($order, $result) {
+                // Lock the order row to prevent concurrent webhook processing (TOCTOU)
+                $order = Order::lockForUpdate()->find($order->id);
+
+                // Idempotency check: if already paid, skip processing
+                if ($order->payment_id !== null) {
+                    Log::info('PayPal webhook: ordine già processato (idempotenza)', [
+                        'order_id' => $order->id,
+                        'payment_id' => $order->payment_id,
+                    ]);
+
+                    return; // Already processed — skip within transaction
+                }
+
                 // 1. Update order payment info
                 $order->update([
                     'payment_id' => $result['payment_id'],

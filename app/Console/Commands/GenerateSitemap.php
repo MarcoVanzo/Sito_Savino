@@ -21,12 +21,41 @@ class GenerateSitemap extends Command
 
         $sitemap = Sitemap::create();
 
+        $addLocalizedUrls = function ($path, $config = [], $lastMod = null) use ($sitemap) {
+            $basePath = ltrim($path, '/');
+            $itPath = '/' . $basePath;
+            $enPath = '/en' . ($basePath ? '/' . $basePath : '');
+
+            $itUrl = Url::create($itPath)
+                ->addAlternate(url($itPath), 'it')
+                ->addAlternate(url($enPath), 'en');
+
+            $enUrl = Url::create($enPath)
+                ->addAlternate(url($itPath), 'it')
+                ->addAlternate(url($enPath), 'en');
+
+            if (isset($config['freq'])) {
+                $itUrl->setChangeFrequency($config['freq']);
+                $enUrl->setChangeFrequency($config['freq']);
+            }
+            if (isset($config['priority'])) {
+                $itUrl->setPriority($config['priority']);
+                $enUrl->setPriority($config['priority']);
+            }
+            if ($lastMod) {
+                $itUrl->setLastModificationDate($lastMod);
+                $enUrl->setLastModificationDate($lastMod);
+            }
+
+            $sitemap->add($itUrl);
+            $sitemap->add($enUrl);
+        };
+
         // Home page (priorità massima)
-        $sitemap->add(
-            Url::create('/')
-                ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
-                ->setPriority(1.0)
-        );
+        $addLocalizedUrls('/', [
+            'freq' => Url::CHANGE_FREQUENCY_DAILY,
+            'priority' => 1.0
+        ]);
 
         // Rotte statiche principali
         $staticRoutes = [
@@ -41,31 +70,23 @@ class GenerateSitemap extends Command
         ];
 
         foreach ($staticRoutes as $path => $config) {
-            $sitemap->add(
-                Url::create($path)
-                    ->setChangeFrequency($config['freq'])
-                    ->setPriority($config['priority'])
-            );
+            $addLocalizedUrls($path, $config);
         }
 
         // Pagine CMS pubblicate
-        Page::where('status', PostStatus::Published)->each(function (Page $page) use ($sitemap) {
-            $sitemap->add(
-                Url::create("/{$page->slug}")
-                    ->setLastModificationDate($page->updated_at)
-                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
-                    ->setPriority(0.7)
-            );
+        Page::where('status', PostStatus::Published)->each(function (Page $page) use ($addLocalizedUrls) {
+            $addLocalizedUrls("/{$page->slug}", [
+                'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
+                'priority' => 0.7
+            ], $page->updated_at);
         });
 
         // Post/News pubblicati
-        Post::published()->orderByDesc('published_at')->each(function (Post $post) use ($sitemap) {
-            $sitemap->add(
-                Url::create("/news/{$post->slug}")
-                    ->setLastModificationDate($post->updated_at)
-                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
-                    ->setPriority(0.6)
-            );
+        Post::published()->orderByDesc('published_at')->each(function (Post $post) use ($addLocalizedUrls) {
+            $addLocalizedUrls("/news/{$post->slug}", [
+                'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
+                'priority' => 0.6
+            ], $post->updated_at);
         });
 
         $sitemap->writeToFile(public_path('sitemap.xml'));

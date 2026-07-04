@@ -1,11 +1,11 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 defineOptions({ layout: PublicLayout })
 

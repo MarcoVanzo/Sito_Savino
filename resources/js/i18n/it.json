@@ -218,7 +218,8 @@
     "in_category": "in",
     "search_label": "ricerca",
     "empty_title": "Gallery in aggiornamento",
-    "empty_text": "Stiamo preparando i migliori scatti della stagione.<br>Torna a trovarci presto!",
+    "empty_text_1": "Stiamo preparando i migliori scatti della stagione.",
+    "empty_text_2": "Torna a trovarci presto!",
     "prev_image": "Immagine precedente",
     "next_image": "Immagine successiva"
   },

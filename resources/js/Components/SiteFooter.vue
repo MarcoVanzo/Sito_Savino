@@ -1,11 +1,11 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import LOGOS from '@/Constants/logos.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const { onImgError } = useImageFallback();
 

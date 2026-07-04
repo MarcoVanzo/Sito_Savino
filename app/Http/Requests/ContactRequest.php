@@ -25,11 +25,11 @@ class ContactRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Il nome è obbligatorio.',
-            'email.required' => 'L\'email è obbligatoria.',
-            'email.email' => 'Inserisci un indirizzo email valido.',
-            'message.required' => 'Il messaggio è obbligatorio.',
-            'message.max' => 'Il messaggio non può superare i 5000 caratteri.',
+            'name.required' => __('messages.validation.name_required'),
+            'email.required' => __('messages.validation.email_required'),
+            'email.email' => __('messages.validation.email_invalid'),
+            'message.required' => __('messages.validation.message_required'),
+            'message.max' => __('messages.validation.message_max'),
         ];
     }
 }

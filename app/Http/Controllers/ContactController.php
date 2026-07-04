@@ -15,7 +15,7 @@ class ContactController extends Controller
         // Anti-spam: se il honeypot è compilato, è un bot
         if (! empty($validated['honeypot'])) {
             // Simula successo per non rivelare il meccanismo
-            return back()->with('success', 'Messaggio inviato con successo!');
+            return back()->with('success', __('messages.contact.success_bot'));
         }
 
         // Log del messaggio (sempre, anche se mail fallisce)
@@ -40,6 +40,6 @@ class ContactController extends Controller
             // Non blocchiamo l'utente se la mail fallisce, il log c'è
         }
 
-        return back()->with('success', 'Messaggio inviato con successo! Ti risponderemo il prima possibile.');
+        return back()->with('success', __('messages.contact.success_human'));
     }
 }

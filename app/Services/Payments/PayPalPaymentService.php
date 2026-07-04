@@ -225,12 +225,24 @@ class PayPalPaymentService implements PaymentGatewayInterface
     {
         $resource = $payload['resource'] ?? [];
 
-        // The refund resource has a link to the original capture
+        // The refund resource 'id' is the refund ID, NOT the capture ID.
+        // The order's payment_id stores the capture ID, so we must extract
+        // the capture ID from the 'up' HATEOAS link (parent capture).
+        $captureId = '';
         $captureLink = collect($resource['links'] ?? [])
             ->firstWhere('rel', 'up');
 
+        if ($captureLink && ! empty($captureLink['href'])) {
+            $captureId = basename(parse_url($captureLink['href'], PHP_URL_PATH));
+        }
+
+        // Fallback: se non troviamo il link, proviamo custom_id dalle supplementary_data
+        if (empty($captureId)) {
+            $captureId = $resource['custom_id'] ?? $resource['id'] ?? '';
+        }
+
         return [
-            'payment_id' => $resource['id'] ?? '',
+            'payment_id' => $captureId,
             'status' => 'refunded',
         ];
     }

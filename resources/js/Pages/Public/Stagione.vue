@@ -1,4 +1,4 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import PageHero from '@/Components/PageHero.vue';
@@ -7,7 +7,7 @@ import { roleLabels, displayRole, getRoleLabels } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const { onImgError } = useImageFallback();
 

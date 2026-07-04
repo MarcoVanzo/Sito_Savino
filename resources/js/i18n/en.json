@@ -218,7 +218,8 @@
     "in_category": "in",
     "search_label": "search",
     "empty_title": "Gallery updating",
-    "empty_text": "We are preparing the best shots of the season.<br>Come back soon!",
+    "empty_text_1": "We are preparing the best shots of the season.",
+    "empty_text_2": "Come back soon!",
     "prev_image": "Previous image",
     "next_image": "Next image"
   },

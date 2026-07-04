@@ -1,11 +1,11 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useImageFallback } from '@/Composables/useImageFallback.js'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const { onImgError } = useImageFallback()
 
@@ -411,8 +411,8 @@ const ogMeta = useOgMeta({
                     </svg>
                 </div>
                 <h3 class="gallery-empty__title">{{ $t('gallery.empty_title') }}</h3>
-                <p class="gallery-empty__text" v-html="$t('gallery.empty_text')">
-                </p>
+                <p class="gallery-empty__text">{{ $t('gallery.empty_text_1') }}</p>
+                <p class="gallery-empty__text">{{ $t('gallery.empty_text_2') }}</p>
             </div>
 
             <!-- Masonry Grid -->

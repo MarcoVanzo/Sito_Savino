@@ -1,4 +1,4 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import { computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
@@ -7,7 +7,7 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 
 const { onImgError } = useImageFallback();
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const props = defineProps({
     page: Object,

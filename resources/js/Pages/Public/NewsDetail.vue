@@ -1,4 +1,4 @@
-<script setup>
+<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -10,7 +10,7 @@ import { useLocale } from '@/Composables/useLocale.js';
 const { onImgError } = useImageFallback();
 const { formatDate } = useLocale();
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const { sanitize } = useSanitize();
 

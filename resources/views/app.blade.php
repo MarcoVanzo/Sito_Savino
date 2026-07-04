@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-        <meta name="description" content="Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.">
+        <meta name="description" content="{{ __('site.default_description') }}">
         <link rel="canonical" href="{{ url()->current() }}">
         @php
             $currentLocale = app()->getLocale();
@@ -22,7 +22,7 @@
         <meta property="og:title" content="{{ config('app.name', 'Savino Del Bene Volley') }}">
         <meta property="og:url" content="{{ config('app.url') }}">
         <meta property="og:image" content="{{ config('app.url') }}/images/logo.png">
-        <meta property="og:description" content="Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.">
+        <meta property="og:description" content="{{ __('site.default_og_description') }}">
 
         <!-- Twitter Card -->
         <meta name="twitter:card" content="summary_large_image">
