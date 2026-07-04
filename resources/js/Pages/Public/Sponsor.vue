@@ -1,4 +1,5 @@
-<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
+<script setup>
+import { useTranslations } from '@/Composables/useTranslations.js';
 import { computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';

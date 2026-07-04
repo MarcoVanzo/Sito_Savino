@@ -1,4 +1,5 @@
-<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
+<script setup>
+import { useTranslations } from '@/Composables/useTranslations.js';
 import { Head, Link } from '@inertiajs/vue3';
 import LOGOS from '@/Constants/logos.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';

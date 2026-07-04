@@ -1,4 +1,5 @@
-<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
+<script setup>
+import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
 import { useImageFallback } from '@/Composables/useImageFallback.js'

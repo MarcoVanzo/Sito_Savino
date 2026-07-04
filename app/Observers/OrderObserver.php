@@ -38,62 +38,10 @@ class OrderObserver
         Cache::forget('filament:dashboard:stats');
         Cache::forget('filament:dashboard:orders_chart');
 
-        // Ordine pagato → decrementa stock
-        if ($order->status === OrderStatus::Paid) {
-            $this->decrementStock($order);
-        }
-
-        // Ordine cancellato → ripristina stock (solo se era stato pagato)
+        // Ordine cancellato → ripristina stock (se era stato decurtato alla creazione)
         if ($order->status === OrderStatus::Cancelled) {
-            $originalStatus = $order->getOriginal('status');
-            // getOriginal() può tornare stringa o enum in base alla versione Laravel
-            $wasPaid = $originalStatus === OrderStatus::Paid
-                || $originalStatus === OrderStatus::Paid->value;
-
-            if ($wasPaid) {
-                $this->restoreStock($order);
-            }
+            $this->restoreStock($order);
         }
-    }
-
-    /**
-     * Decrementa lo stock per un ordine pagato.
-     * Usa order_id per idempotenza (non più la fragile stringa notes).
-     */
-    private function decrementStock(Order $order): void
-    {
-        DB::transaction(function () use ($order) {
-            // Check idempotenza DENTRO la transaction: controlla se esistono già movimenti per quest'ordine
-            $alreadyProcessed = StockMovement::where('order_id', $order->id)
-                ->where('type', StockMovementType::Sale)
-                ->lockForUpdate()
-                ->exists();
-
-            if ($alreadyProcessed) {
-                Log::warning("Stock già decrementato per Ordine #{$order->id} — operazione saltata");
-
-                return;
-            }
-
-            // Eager-load items CON relazioni per evitare N+1
-            $order->load('items.variant', 'items.product');
-
-            foreach ($order->items as $item) {
-                // Nota: la verifica stock è gestita atomicamente da StockMovementObserver
-                // che lancia RuntimeException se lo stock è insufficiente.
-
-                StockMovement::create([
-                    'product_id' => $item->product_id,
-                    'product_variant_id' => $item->product_variant_id,
-                    'order_id' => $order->id,
-                    'quantity' => -abs($item->quantity),
-                    'type' => StockMovementType::Sale,
-                    'notes' => "Ordine #{$order->id} — vendita",
-                ]);
-            }
-
-            Log::info("Stock decrementato per Ordine #{$order->id}");
-        });
     }
 
     /**

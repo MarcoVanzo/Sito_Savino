@@ -1,4 +1,5 @@
-<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
+<script setup>
+import { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';

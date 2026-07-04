@@ -10,7 +10,9 @@ use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ShippingZone;
+use App\Models\StockMovement;
 use App\Models\User;
+use App\Enums\StockMovementType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -173,7 +175,19 @@ class CheckoutService
                 $coupon->incrementUsage();
             }
 
-            // 10. Svuota il carrello
+            // 10. Riserva lo stock istantaneamente
+            foreach ($cart->items as $cartItem) {
+                StockMovement::create([
+                    'product_id' => $cartItem->product_id,
+                    'product_variant_id' => $cartItem->product_variant_id,
+                    'order_id' => $order->id,
+                    'quantity' => -abs($cartItem->quantity),
+                    'type' => StockMovementType::Sale,
+                    'notes' => "Ordine #{$order->id} — vendita (riservato al checkout)",
+                ]);
+            }
+
+            // 11. Svuota il carrello
             $this->cartService->clearCart();
 
             return $order->load('items.product');

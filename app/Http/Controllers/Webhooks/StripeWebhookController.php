@@ -102,10 +102,7 @@ class StripeWebhookController
                     'status' => OrderStatus::Paid,
                 ]);
 
-                // 2. Decrement stock atomically and record movements
-                $this->decrementStock($order);
-
-                // 3. Track purchase event for analytics
+                // 2. Track purchase event for analytics
                 ShopEvent::create([
                     'event_type' => 'purchase',
                     'viewable_type' => Order::class,
@@ -164,33 +161,6 @@ class StripeWebhookController
         return response()->json(['message' => 'Rimborso processato'], 200);
     }
 
-    /**
-     * Atomically decrement stock for each order item and record stock movements.
-     */
-    private function decrementStock(Order $order): void
-    {
-        foreach ($order->items as $item) {
-            if ($item->product_variant_id) {
-                // Decrement variant stock atomically
-                ProductVariant::where('id', $item->product_variant_id)
-                    ->decrement('stock', $item->quantity);
-            } else {
-                // Decrement product stock atomically
-                Product::where('id', $item->product_id)
-                    ->decrement('stock', $item->quantity);
-            }
-
-            // Record stock movement
-            StockMovement::create([
-                'product_id' => $item->product_id,
-                'product_variant_id' => $item->product_variant_id,
-                'order_id' => $order->id,
-                'quantity' => -$item->quantity,
-                'type' => StockMovementType::Sale,
-                'notes' => "Vendita ordine {$order->order_number}",
-            ]);
-        }
-    }
 
     /**
      * Send order confirmation email to the customer.

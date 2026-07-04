@@ -1,4 +1,5 @@
-<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
+<script setup>
+import { useTranslations } from '@/Composables/useTranslations.js';
 import { computed, watch, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useCart } from '@/Composables/useCart.js';

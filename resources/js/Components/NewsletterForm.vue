@@ -1,4 +1,5 @@
-<script setup>\nimport { useTranslations } from '@/Composables/useTranslations.js';
+<script setup>
+import { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, computed } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 

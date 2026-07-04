@@ -18,7 +18,7 @@ class CheckUnpaidOrders extends Command
 {
     protected $signature = 'order:check-unpaid';
 
-    protected $description = 'Controlla ordini bonifico non pagati: promemoria dopo 5 giorni, cancellazione dopo 7 giorni';
+    protected $description = 'Cancella ordini abbandonati Stripe/PayPal (1h) e Bonifico (7gg)';
 
     public function handle(): int
     {
@@ -37,10 +37,19 @@ class CheckUnpaidOrders extends Command
             $reminded++;
         }
 
-        // 2. Auto-cancel: ordini pending via bonifico creati 7+ giorni fa
+        // 2. Auto-cancel: ordini pending via bonifico (7gg) o digitali abbandonati (1h)
         $ordersToCancel = Order::where('status', OrderStatus::Pending)
-            ->where('payment_gateway', PaymentGateway::BankTransfer)
-            ->where('created_at', '<=', now()->subDays(7))
+            ->where(function ($query) {
+                // Bonifico: cancella dopo 7 giorni
+                $query->where(function ($q) {
+                    $q->where('payment_gateway', PaymentGateway::BankTransfer)
+                      ->where('created_at', '<=', now()->subDays(7));
+                })->orWhere(function ($q) {
+                    // Stripe/PayPal: cancella dopo 1 ora (checkout abbandonato)
+                    $q->whereIn('payment_gateway', [PaymentGateway::Stripe, PaymentGateway::PayPal])
+                      ->where('created_at', '<=', now()->subHours(1));
+                });
+            })
             ->get();
 
         foreach ($ordersToCancel as $order) {
@@ -93,7 +102,8 @@ class CheckUnpaidOrders extends Command
     }
 
     /**
-     * Cancel an unpaid order: update status, restore stock, send notification.
+     * Cancel an unpaid order: update status and send notification.
+     * Note: Stock restoration is automatically handled by OrderObserver.
      */
     private function cancelOrder(Order $order): void
     {
@@ -101,34 +111,15 @@ class CheckUnpaidOrders extends Command
             DB::transaction(function () use ($order) {
                 // Update status to cancelled
                 $order->update(['status' => OrderStatus::Cancelled]);
-
-                // Restore stock for each order item
-                foreach ($order->items as $item) {
-                    if ($item->product_variant_id) {
-                        ProductVariant::where('id', $item->product_variant_id)
-                            ->increment('stock', $item->quantity);
-                    } else {
-                        Product::where('id', $item->product_id)
-                            ->increment('stock', $item->quantity);
-                    }
-
-                    StockMovement::create([
-                        'product_id' => $item->product_id,
-                        'product_variant_id' => $item->product_variant_id,
-                        'order_id' => $order->id,
-                        'quantity' => $item->quantity,
-                        'type' => StockMovementType::Adjustment,
-                        'notes' => "Ripristino stock per cancellazione ordine {$order->order_number} (bonifico non ricevuto)",
-                    ]);
-                }
             });
 
             // Send cancellation email
             $this->sendCancellationEmail($order);
 
-            Log::info('Ordine cancellato per mancato pagamento', [
+            Log::info('Ordine cancellato per mancato pagamento o abbandono', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
+                'gateway' => $order->payment_gateway->value ?? $order->payment_gateway,
             ]);
         } catch (\Throwable $e) {
             Log::error('Errore cancellazione ordine non pagato', [
