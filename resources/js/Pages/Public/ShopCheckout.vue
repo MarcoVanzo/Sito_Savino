@@ -3,6 +3,10 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
+import { useLocale } from '@/Composables/useLocale.js'
+
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const { locale } = useLocale();
 
 defineOptions({ layout: PublicLayout })
 
@@ -38,17 +42,18 @@ const orderTotal = computed(() => {
 })
 
 const formatPrice = (price) => {
-    return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(price)
+    const loc = locale.value === 'en' ? 'en-GB' : 'it-IT';
+    return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR' }).format(price)
 }
 
 const submitOrder = () => {
     // Placeholder per l'invio dell'ordine
-    alert('Ordine inviato! (placeholder)')
+    alert($t('shop_checkout.order_submitted_placeholder'))
 }
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Checkout',
-    description: 'Completa il tuo ordine sullo shop ufficiale della Savino Del Bene Volley.',
+    title: props.page?.title ?? $t('shop_checkout.og_title'),
+    description: $t('shop_checkout.og_description'),
 })
 </script>
 
@@ -67,13 +72,13 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Il Tuo Ordine</span>
+            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_checkout.hero_label') }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
-                {{ page?.title ?? 'Checkout' }}
+                {{ page?.title ?? $t('shop_checkout.og_title') }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
             <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                Completa il tuo ordine in pochi semplici passaggi.
+                {{ $t('shop_checkout.hero_subtitle') }}
             </p>
         </div>
     </section>
@@ -90,44 +95,44 @@ const ogMeta = useOgMeta({
                     <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                         <div class="flex items-center gap-3 mb-6">
                             <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">1</span>
-                            <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">Dati di Spedizione</h2>
+                            <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.shipping_title') }}</h2>
                         </div>
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="checkout-firstname" class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+                                <label for="checkout-firstname" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_firstname') }}</label>
                                 <input
                                     id="checkout-firstname"
                                     v-model="shippingForm.firstName"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
-                                    placeholder="Mario"
+                                    :placeholder="$t('shop_checkout.placeholder_firstname')"
                                 />
                             </div>
                             <div>
-                                <label for="checkout-lastname" class="block text-sm font-medium text-gray-700 mb-1">Cognome *</label>
+                                <label for="checkout-lastname" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_lastname') }}</label>
                                 <input
                                     id="checkout-lastname"
                                     v-model="shippingForm.lastName"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
-                                    placeholder="Rossi"
+                                    :placeholder="$t('shop_checkout.placeholder_lastname')"
                                 />
                             </div>
                             <div>
-                                <label for="checkout-email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                <label for="checkout-email" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_email') }}</label>
                                 <input
                                     id="checkout-email"
                                     v-model="shippingForm.email"
                                     type="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
-                                    placeholder="mario@esempio.it"
+                                    :placeholder="$t('shop_checkout.placeholder_email')"
                                 />
                             </div>
                             <div>
-                                <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
+                                <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }}</label>
                                 <input
                                     id="checkout-phone"
                                     v-model="shippingForm.phone"
@@ -138,30 +143,30 @@ const ogMeta = useOgMeta({
                                 />
                             </div>
                             <div class="sm:col-span-2">
-                                <label for="checkout-address" class="block text-sm font-medium text-gray-700 mb-1">Indirizzo *</label>
+                                <label for="checkout-address" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_address') }}</label>
                                 <input
                                     id="checkout-address"
                                     v-model="shippingForm.address"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
-                                    placeholder="Via Roma 1"
+                                    :placeholder="$t('shop_checkout.placeholder_address')"
                                 />
                             </div>
                             <div>
-                                <label for="checkout-city" class="block text-sm font-medium text-gray-700 mb-1">Città *</label>
+                                <label for="checkout-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }}</label>
                                 <input
                                     id="checkout-city"
                                     v-model="shippingForm.city"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
-                                    placeholder="Firenze"
+                                    :placeholder="$t('shop_checkout.placeholder_city')"
                                 />
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label for="checkout-province" class="block text-sm font-medium text-gray-700 mb-1">Prov.</label>
+                                    <label for="checkout-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }}</label>
                                     <input
                                         id="checkout-province"
                                         v-model="shippingForm.province"
@@ -173,7 +178,7 @@ const ogMeta = useOgMeta({
                                     />
                                 </div>
                                 <div>
-                                    <label for="checkout-cap" class="block text-sm font-medium text-gray-700 mb-1">CAP *</label>
+                                    <label for="checkout-cap" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_cap') }}</label>
                                     <input
                                         id="checkout-cap"
                                         v-model="shippingForm.cap"
@@ -186,14 +191,14 @@ const ogMeta = useOgMeta({
                                 </div>
                             </div>
                             <div class="sm:col-span-2">
-                                <label for="checkout-notes" class="block text-sm font-medium text-gray-700 mb-1">Note (opzionale)</label>
+                                <label for="checkout-notes" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_notes') }}</label>
                                 <textarea
                                     id="checkout-notes"
                                     v-model="shippingForm.notes"
                                     rows="3"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
                                    
-                                    placeholder="Istruzioni per la consegna..."
+                                    :placeholder="$t('shop_checkout.placeholder_notes')"
                                 ></textarea>
                             </div>
                         </div>
@@ -203,12 +208,12 @@ const ogMeta = useOgMeta({
                     <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                         <div class="flex items-center gap-3 mb-6">
                             <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">2</span>
-                            <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">Metodo di Pagamento</h2>
+                            <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.payment_title') }}</h2>
                         </div>
                         <div class="bg-gray-50 rounded-xl p-8 border border-dashed border-gray-300 text-center">
                             <span class="text-4xl block mb-3">💳</span>
-                            <p class="text-gray-500 font-medium">Integrazione pagamento</p>
-                            <p class="text-gray-400 text-sm mt-1">Stripe / PayPal — prossimamente disponibile</p>
+                            <p class="text-gray-500 font-medium">{{ $t('shop_checkout.payment_integration') }}</p>
+                            <p class="text-gray-400 text-sm mt-1">{{ $t('shop_checkout.payment_coming_soon') }}</p>
                             <div class="flex items-center justify-center gap-4 mt-6">
                                 <div class="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm text-gray-500">Visa</div>
                                 <div class="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm text-gray-500">Mastercard</div>
@@ -222,7 +227,7 @@ const ogMeta = useOgMeta({
                 <div class="lg:col-span-1">
                     <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 sticky top-24">
                         <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-6">
-                            Riepilogo Ordine
+                            {{ $t('shop_checkout.order_summary') }}
                         </h2>
 
                         <!-- Cart Items -->
@@ -237,7 +242,7 @@ const ogMeta = useOgMeta({
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
-                                    <p class="text-xs text-gray-500">Qtà: {{ item.quantity ?? 1 }}</p>
+                                    <p class="text-xs text-gray-500">{{ $t('shop_checkout.quantity_label') }} {{ item.quantity ?? 1 }}</p>
                                 </div>
                                 <span class="text-sm font-bold text-gray-900 flex-shrink-0">
                                     {{ formatPrice(item.price) }}
@@ -248,26 +253,26 @@ const ogMeta = useOgMeta({
                         <!-- Empty Cart -->
                         <div v-else class="text-center py-6 mb-6">
                             <span class="text-4xl block mb-2">🛒</span>
-                            <p class="text-gray-400 text-sm">Il tuo carrello è vuoto</p>
+                            <p class="text-gray-400 text-sm">{{ $t('shop_checkout.empty_cart') }}</p>
                         </div>
 
                         <!-- Totals -->
                         <div class="space-y-3 pt-4 border-t border-gray-100">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">Subtotale</span>
+                                <span class="text-gray-500">{{ $t('shop_checkout.subtotal') }}</span>
                                 <span class="text-gray-900 font-medium">{{ formatPrice(cart.total) }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">Spedizione</span>
+                                <span class="text-gray-500">{{ $t('shop_checkout.shipping') }}</span>
                                 <span class="text-gray-900 font-medium" :class="{ 'text-green-600': shippingCost === 0 }">
-                                    {{ shippingCost === 0 ? 'Gratuita' : formatPrice(shippingCost) }}
+                                    {{ shippingCost === 0 ? $t('shop_checkout.free_shipping') : formatPrice(shippingCost) }}
                                 </span>
                             </div>
                             <div v-if="cart.total < 50 && cart.items.length > 0" class="text-xs text-savino-gold">
-                                Spedizione gratuita per ordini sopra i €50
+                                {{ $t('shop_checkout.free_shipping_threshold') }}
                             </div>
                             <div class="flex justify-between pt-3 border-t border-gray-200">
-                                <span class="font-bold text-gray-900">Totale</span>
+                                <span class="font-bold text-gray-900">{{ $t('shop_checkout.total') }}</span>
                                 <span class="text-xl font-black text-savino-blue">
                                     {{ formatPrice(orderTotal) }}
                                 </span>
@@ -284,11 +289,11 @@ const ogMeta = useOgMeta({
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            Conferma Ordine
+                            {{ $t('shop_checkout.confirm_order') }}
                         </button>
 
                         <p class="text-xs text-gray-400 text-center mt-4">
-                            Pagamento sicuro e protetto. I tuoi dati sono al sicuro.
+                            {{ $t('shop_checkout.payment_secure_note') }}
                         </p>
                     </div>
                 </div>

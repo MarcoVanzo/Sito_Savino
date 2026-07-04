@@ -3,17 +3,24 @@
 namespace App\Filament\Resources;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentGateway;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
+use App\Mail\OrderShipped;
 use App\Models\Order;
+use App\Services\AdminNotificationService;
+use App\Services\ReceiptService;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Mail;
 
 class OrderResource extends Resource
 {
@@ -44,39 +51,106 @@ class OrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Dettagli Ordine')
-                    ->schema([
-                        Forms\Components\Select::make('user_id')
-                            ->label('Cliente (Utente)')
-                            ->relationship('user', 'name')
-                            ->searchable(),
-                        Forms\Components\Select::make('status')
-                            ->label('Stato Ordine')
-                            ->options(OrderStatus::class)
-                            ->required()
-                            ->default(OrderStatus::Pending),
-                        Forms\Components\TextInput::make('total_price')
-                            ->label('Totale Ordine (€)')
-                            ->required()
-                            ->numeric()
-                            ->minValue(0)
-                            ->prefix('€'),
-                        Forms\Components\TextInput::make('stripe_payment_id')
-                            ->label('ID Pagamento Stripe')
-                            ->maxLength(255)
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->helperText('Gestito automaticamente dal sistema di pagamento.'),
-                    ])->columns(2),
-                Forms\Components\Section::make('Indirizzi')
-                    ->schema([
-                        Forms\Components\Textarea::make('shipping_address')
-                            ->label('Indirizzo di Spedizione')
-                            ->columnSpanFull(),
-                        Forms\Components\Textarea::make('billing_address')
-                            ->label('Indirizzo di Fatturazione')
-                            ->columnSpanFull(),
-                    ])->columns(2),
+                Forms\Components\Tabs::make('Ordine')
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make('Dettagli')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
+                                Forms\Components\TextInput::make('order_number')
+                                    ->label('Numero Ordine')
+                                    ->disabled()
+                                    ->dehydrated(false),
+                                Forms\Components\Select::make('status')
+                                    ->label('Stato Ordine')
+                                    ->options(OrderStatus::class)
+                                    ->required()
+                                    ->default(OrderStatus::Pending),
+                                Forms\Components\Select::make('user_id')
+                                    ->label('Cliente (Utente)')
+                                    ->relationship('user', 'name')
+                                    ->searchable()
+                                    ->nullable(),
+                                Forms\Components\Select::make('payment_gateway')
+                                    ->label('Gateway Pagamento')
+                                    ->options(PaymentGateway::class)
+                                    ->nullable(),
+                                Forms\Components\TextInput::make('payment_id')
+                                    ->label('ID Pagamento')
+                                    ->disabled()
+                                    ->dehydrated(false),
+                                Forms\Components\DateTimePicker::make('paid_at')
+                                    ->label('Pagato il')
+                                    ->disabled()
+                                    ->dehydrated(false),
+                            ])->columns(2),
+
+                        Forms\Components\Tabs\Tab::make('Cliente Guest')
+                            ->icon('heroicon-o-user')
+                            ->schema([
+                                Forms\Components\TextInput::make('guest_name')
+                                    ->label('Nome Guest')
+                                    ->disabled(),
+                                Forms\Components\TextInput::make('guest_email')
+                                    ->label('Email Guest')
+                                    ->disabled(),
+                                Forms\Components\TextInput::make('guest_phone')
+                                    ->label('Telefono Guest')
+                                    ->disabled(),
+                            ])->columns(3),
+
+                        Forms\Components\Tabs\Tab::make('Spedizione')
+                            ->icon('heroicon-o-truck')
+                            ->schema([
+                                Forms\Components\Textarea::make('shipping_address')
+                                    ->label('Indirizzo di Spedizione')
+                                    ->rows(3),
+                                Forms\Components\Textarea::make('billing_address')
+                                    ->label('Indirizzo di Fatturazione')
+                                    ->rows(3),
+                                Forms\Components\TextInput::make('country')
+                                    ->label('Paese')
+                                    ->maxLength(2),
+                                Forms\Components\TextInput::make('tracking_number')
+                                    ->label('Numero Tracking'),
+                                Forms\Components\TextInput::make('tracking_url')
+                                    ->label('URL Tracking')
+                                    ->url(),
+                                Forms\Components\DateTimePicker::make('shipped_at')
+                                    ->label('Spedito il'),
+                            ])->columns(2),
+
+                        Forms\Components\Tabs\Tab::make('Importi')
+                            ->icon('heroicon-o-currency-euro')
+                            ->schema([
+                                Forms\Components\TextInput::make('total_price')
+                                    ->label('Totale Ordine')
+                                    ->disabled()
+                                    ->prefix('€'),
+                                Forms\Components\TextInput::make('shipping_cost')
+                                    ->label('Costo Spedizione')
+                                    ->disabled()
+                                    ->prefix('€'),
+                                Forms\Components\TextInput::make('coupon_discount')
+                                    ->label('Sconto Coupon')
+                                    ->disabled()
+                                    ->prefix('€'),
+                                Forms\Components\Select::make('coupon_id')
+                                    ->label('Coupon')
+                                    ->relationship('coupon', 'code')
+                                    ->disabled(),
+                            ])->columns(2),
+
+                        Forms\Components\Tabs\Tab::make('Note')
+                            ->icon('heroicon-o-chat-bubble-left-right')
+                            ->schema([
+                                Forms\Components\Textarea::make('notes')
+                                    ->label('Note')
+                                    ->rows(4)
+                                    ->columnSpanFull(),
+                            ]),
+                    ])
+                    ->persistTabInQueryString()
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -84,20 +158,30 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Cliente')
+                Tables\Columns\TextColumn::make('order_number')
+                    ->label('Numero Ordine')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->weight(FontWeight::Bold),
+                Tables\Columns\TextColumn::make('customer_name')
+                    ->label('Cliente')
+                    ->getStateUsing(fn ($record) => $record->user?->name ?? $record->guest_name ?? '-')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->where(function (Builder $query) use ($search) {
+                            $query->whereHas('user', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
+                                ->orWhere('guest_name', 'like', "%{$search}%")
+                                ->orWhere('guest_email', 'like', "%{$search}%");
+                        });
+                    }),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Stato Ordine')
                     ->badge()
-                    ->formatStateUsing(fn (OrderStatus $state): string => $state->label())
-                    ->color(fn (OrderStatus $state): string => match ($state) {
-                        OrderStatus::Pending => 'warning',
-                        OrderStatus::Paid => 'success',
-                        OrderStatus::Shipped => 'info',
-                        OrderStatus::Cancelled => 'danger',
-                    }),
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('payment_gateway')
+                    ->label('Pagamento')
+                    ->badge()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('total_price')
                     ->label('Totale')
                     ->money('EUR')
@@ -112,9 +196,167 @@ class OrderResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Stato Ordine')
                     ->options(OrderStatus::class),
+                Tables\Filters\SelectFilter::make('payment_gateway')
+                    ->label('Gateway Pagamento')
+                    ->options(PaymentGateway::class),
                 Tables\Filters\TrashedFilter::make(),
             ])
-            ->actions(static::viewAndEditActions())
+            ->actions([
+                // 1. Conferma Pagamento (solo bonifico bancario)
+                Tables\Actions\Action::make('confirm_payment')
+                    ->label('Conferma Pagamento')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (Order $record): bool =>
+                        $record->status === OrderStatus::Pending
+                        && $record->payment_gateway === PaymentGateway::BankTransfer
+                    )
+                    ->requiresConfirmation()
+                    ->modalHeading('Conferma pagamento bonifico')
+                    ->modalDescription('Confermi di aver ricevuto il pagamento tramite bonifico?')
+                    ->modalSubmitActionLabel('Conferma ricevuto')
+                    ->action(function (Order $record): void {
+                        $record->update([
+                            'status' => OrderStatus::Processing,
+                            'paid_at' => now(),
+                        ]);
+
+                        // Decrementa lo stock per ogni item (product o variant)
+                        foreach ($record->items()->with(['product', 'variant'])->get() as $item) {
+                            if ($item->product_variant_id && $item->variant) {
+                                $item->variant->decrement('stock', $item->quantity);
+                            } elseif ($item->product) {
+                                $item->product->decrement('stock', $item->quantity);
+                            }
+                        }
+
+                        app(AdminNotificationService::class)->notifyPaymentReceived($record);
+
+                        Notification::make()
+                            ->title('Pagamento confermato')
+                            ->body("Ordine #{$record->order_number} aggiornato a In Lavorazione.")
+                            ->success()
+                            ->send();
+                    }),
+
+                // 2. Segna Spedito
+                Tables\Actions\Action::make('mark_shipped')
+                    ->label('Segna Spedito')
+                    ->icon('heroicon-o-truck')
+                    ->color('info')
+                    ->visible(fn (Order $record): bool => in_array($record->status, [
+                        OrderStatus::Processing,
+                        OrderStatus::Paid,
+                    ]))
+                    ->form([
+                        Forms\Components\TextInput::make('tracking_number')
+                            ->label('Numero Tracking')
+                            ->required()
+                            ->maxLength(100),
+                        Forms\Components\TextInput::make('tracking_url')
+                            ->label('URL Tracking')
+                            ->url()
+                            ->maxLength(500),
+                    ])
+                    ->modalHeading('Inserisci dati spedizione')
+                    ->modalSubmitActionLabel('Conferma spedizione')
+                    ->action(function (Order $record, array $data): void {
+                        $record->update([
+                            'tracking_number' => $data['tracking_number'],
+                            'tracking_url' => $data['tracking_url'] ?? null,
+                            'shipped_at' => now(),
+                            'status' => OrderStatus::Shipped,
+                        ]);
+
+                        // Invia email di spedizione al cliente
+                        $recipientEmail = $record->user?->email ?? $record->guest_email;
+                        if ($recipientEmail) {
+                            Mail::to($recipientEmail)->queue(new OrderShipped($record));
+                        }
+
+                        Notification::make()
+                            ->title('Ordine spedito')
+                            ->body("Ordine #{$record->order_number} segnato come spedito. Email inviata.")
+                            ->success()
+                            ->send();
+                    }),
+
+                // 3. Segna Consegnato
+                Tables\Actions\Action::make('mark_delivered')
+                    ->label('Segna Consegnato')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->visible(fn (Order $record): bool => $record->status === OrderStatus::Shipped)
+                    ->requiresConfirmation()
+                    ->modalHeading('Conferma consegna')
+                    ->modalDescription('Confermi che l\'ordine è stato consegnato?')
+                    ->action(function (Order $record): void {
+                        $record->update(['status' => OrderStatus::Delivered]);
+
+                        Notification::make()
+                            ->title('Ordine consegnato')
+                            ->body("Ordine #{$record->order_number} segnato come consegnato.")
+                            ->success()
+                            ->send();
+                    }),
+
+                // 4. Annulla Ordine
+                Tables\Actions\Action::make('cancel_order')
+                    ->label('Annulla')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn (Order $record): bool => in_array($record->status, [
+                        OrderStatus::Pending,
+                        OrderStatus::Processing,
+                        OrderStatus::Paid,
+                    ]))
+                    ->requiresConfirmation()
+                    ->modalHeading('Annulla ordine')
+                    ->modalDescription('Sei sicuro? Lo stock verrà ripristinato.')
+                    ->modalSubmitActionLabel('Annulla ordine')
+                    ->action(function (Order $record): void {
+                        // Ripristina lo stock (product o variant)
+                        foreach ($record->items()->with(['product', 'variant'])->get() as $item) {
+                            if ($item->product_variant_id && $item->variant) {
+                                $item->variant->increment('stock', $item->quantity);
+                            } elseif ($item->product) {
+                                $item->product->increment('stock', $item->quantity);
+                            }
+                        }
+
+                        $record->update(['status' => OrderStatus::Cancelled]);
+
+                        $body = "Ordine #{$record->order_number} annullato. Stock ripristinato.";
+                        if ($record->paid_at) {
+                            $body .= ' ⚠️ Il pagamento era stato ricevuto: potrebbe essere necessario un rimborso manuale.';
+                        }
+
+                        Notification::make()
+                            ->title('Ordine annullato')
+                            ->body($body)
+                            ->warning()
+                            ->send();
+                    }),
+
+                // 5. Scarica Ricevuta
+                Tables\Actions\Action::make('download_receipt')
+                    ->label('Ricevuta')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->action(function (Order $record) {
+                        return response()->streamDownload(
+                            function () use ($record) {
+                                echo app(ReceiptService::class)->generate($record);
+                            },
+                            'ricevuta-' . $record->order_number . '.pdf',
+                            ['Content-Type' => 'application/pdf']
+                        );
+                    })
+                    ->visible(fn (Order $record): bool => $record->status !== OrderStatus::Cancelled),
+
+                // Standard view & edit
+                ...static::viewAndEditActions(),
+            ])
             ->bulkActions(static::softDeleteBulkActions());
     }
 
@@ -129,7 +371,6 @@ class OrderResource extends Resource
     {
         return [
             'index' => Pages\ListOrders::route('/'),
-            'create' => Pages\CreateOrder::route('/create'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
     }
@@ -140,6 +381,6 @@ class OrderResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->with(['user']);
+            ->with(['user', 'coupon']);
     }
 }

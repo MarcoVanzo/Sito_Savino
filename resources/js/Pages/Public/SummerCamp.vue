@@ -5,6 +5,8 @@ import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 defineOptions({ layout: PublicLayout })
 
 const props = defineProps({
@@ -25,57 +27,57 @@ const cd = computed(() => props.page?.content_data ?? {})
 const defaultActivities = [
     {
         icon: '🏐',
-        title: 'Pallavolo',
-        description: 'Allenamenti tecnici e tattici con i coach della prima squadra.'
+        title: $t('summer_camp.activity_volleyball'),
+        description: $t('summer_camp.activity_volleyball_desc')
     },
     {
         icon: '🏋️',
-        title: 'Preparazione Atletica',
-        description: 'Sessioni di forza, agilità e coordinazione per ogni età.'
+        title: $t('summer_camp.activity_fitness'),
+        description: $t('summer_camp.activity_fitness_desc')
     },
     {
         icon: '🎯',
         title: 'Talent Day',
-        description: 'Giornate di selezione aperte per scoprire nuovi talenti.'
+        description: $t('summer_camp.activity_talent_desc')
     },
     {
         icon: '🏊',
-        title: 'Attività Acquatiche',
-        description: 'Divertimento in piscina e giochi d\'acqua per rinfrescarsi.'
+        title: $t('summer_camp.activity_water'),
+        description: $t('summer_camp.activity_water_desc')
     },
     {
         icon: '🎨',
-        title: 'Laboratori Creativi',
-        description: 'Arte, musica e attività espressive per stimolare la creatività.'
+        title: $t('summer_camp.activity_creative'),
+        description: $t('summer_camp.activity_creative_desc')
     },
     {
         icon: '🤝',
         title: 'Team Building',
-        description: 'Giochi di squadra e attività per rafforzare lo spirito di gruppo.'
+        description: $t('summer_camp.activity_teambuilding_desc')
     }
 ]
 
 const defaultDates = [
-    { period: '1ª Settimana', dates: '16 - 20 Giugno', status: 'Iscrizioni Aperte' },
-    { period: '2ª Settimana', dates: '23 - 27 Giugno', status: 'Iscrizioni Aperte' },
-    { period: '3ª Settimana', dates: '30 Giugno - 4 Luglio', status: 'Posti Limitati' },
-    { period: '4ª Settimana', dates: '7 - 11 Luglio', status: 'Prossimamente' }
+    { period: $t('summer_camp.week_1'), dates: $t('summer_camp.dates_week_1'), status: $t('summer_camp.status_open') },
+    { period: $t('summer_camp.week_2'), dates: $t('summer_camp.dates_week_2'), status: $t('summer_camp.status_open') },
+    { period: $t('summer_camp.week_3'), dates: $t('summer_camp.dates_week_3'), status: $t('summer_camp.status_limited') },
+    { period: $t('summer_camp.week_4'), dates: $t('summer_camp.dates_week_4'), status: $t('summer_camp.status_coming_soon') }
 ]
 
 const activities = computed(() => cd.value.activities || defaultActivities)
 const dates = computed(() => cd.value.dates || defaultDates)
 
 const defaultHighlights = [
-    'Staff tecnico qualificato',
-    'Gruppi per fasce d\'età',
-    'Assicurazione inclusa',
-    'Pranzo e merenda inclusi'
+    $t('summer_camp.highlight_staff'),
+    $t('summer_camp.highlight_age_groups'),
+    $t('summer_camp.highlight_insurance'),
+    $t('summer_camp.highlight_meals')
 ]
 const highlights = computed(() => cd.value.highlights || defaultHighlights)
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? 'Summer Camp & Experience',
-    description: cd.value.meta_description || 'Summer Camp ed esperienze sportive con la Savino Del Bene Volley. Camp estivi per giovani appassionate di pallavolo.',
+    description: cd.value.meta_description || $t('summer_camp.og_description'),
 })
 </script>
 
@@ -94,13 +96,13 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label || 'Estate di Sport' }}</span>
+            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label || $t('summer_camp.hero_label') }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ page?.title ?? 'Summer Camp & Experience' }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
             <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                {{ cd.hero_subtitle || 'Un\'estate indimenticabile tra sport, divertimento e crescita personale.' }}
+                {{ cd.hero_subtitle || $t('summer_camp.hero_subtitle') }}
             </p>
         </div>
     </section>
@@ -110,16 +112,16 @@ const ogMeta = useOgMeta({
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.camp_section_label || 'Il Camp' }}</span>
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.camp_section_label || $t('summer_camp.camp_section_label') }}</span>
                     <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                        {{ cd.camp_title || 'Vivi la Pallavolo' }}
+                        {{ cd.camp_title || $t('summer_camp.camp_title') }}
                     </h2>
                     <div class="w-12 h-1 bg-savino-gold mt-4 mb-6"></div>
                     <p class="text-gray-600 leading-relaxed mb-4">
-                        {{ cd.camp_description_1 || 'Il Summer Camp della Savino Del Bene è un\'esperienza unica pensata per ragazze e ragazzi dai 6 ai 16 anni. Un programma completo che unisce la passione per la pallavolo ad attività ricreative e formative.' }}
+                        {{ cd.camp_description_1 || $t('summer_camp.camp_desc_1') }}
                     </p>
                     <p class="text-gray-600 leading-relaxed mb-6">
-                        {{ cd.camp_description_2 || 'I nostri istruttori qualificati seguiranno ogni partecipante in un percorso di crescita sportiva e personale, in un ambiente sicuro e stimolante.' }}
+                        {{ cd.camp_description_2 || $t('summer_camp.camp_desc_2') }}
                     </p>
                     <ul class="space-y-3">
                         <li v-for="item in highlights" :key="item" class="flex items-center gap-3">
@@ -136,7 +138,7 @@ const ogMeta = useOgMeta({
                     <div class="text-center">
                         <span class="text-6xl">🏐</span>
                         <p class="text-savino-blue font-bold mt-4 text-lg">{{ cd.camp_badge_title || 'Summer Camp 2026' }}</p>
-                        <p class="text-gray-500 text-sm mt-1">{{ cd.camp_badge_subtitle || 'Edizione speciale' }}</p>
+                        <p class="text-gray-500 text-sm mt-1">{{ cd.camp_badge_subtitle || $t('summer_camp.badge_subtitle') }}</p>
                     </div>
                 </div>
             </div>
@@ -147,9 +149,9 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.activities_section_label || 'Programma' }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.activities_section_label || $t('summer_camp.activities_label') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ cd.activities_title || 'Le Nostre Attività' }}
+                    {{ cd.activities_title || $t('summer_camp.activities_title') }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>
@@ -175,9 +177,9 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.dates_section_label || 'Calendario' }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.dates_section_label || $t('summer_camp.dates_label') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ cd.dates_title || 'Date e Turni' }}
+                    {{ cd.dates_title || $t('summer_camp.dates_title') }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>
@@ -198,9 +200,9 @@ const ogMeta = useOgMeta({
                     </div>
                     <span
                         class="text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full"
-                        :class="dateInfo.status === 'Posti Limitati'
+                        :class="dateInfo.status === $t('summer_camp.status_limited')
                             ? 'bg-savino-red/10 text-savino-red'
-                            : dateInfo.status === 'Prossimamente'
+                            : dateInfo.status === $t('summer_camp.status_coming_soon')
                                 ? 'bg-gray-200 text-gray-500'
                                 : 'bg-savino-gold/10 text-savino-gold'"
                        
@@ -214,7 +216,7 @@ const ogMeta = useOgMeta({
                     :href="cd.cta_url || (contact.email ? 'mailto:' + contact.email : '#')"
                     class="inline-flex items-center gap-2 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-colors"
                 >
-                    {{ cd.cta_text || 'Iscriviti Ora' }}
+                    {{ cd.cta_text || $t('summer_camp.cta_enroll') }}
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>

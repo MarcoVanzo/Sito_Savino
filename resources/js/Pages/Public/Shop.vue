@@ -4,6 +4,8 @@ import { Head, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const { onImgError } = useImageFallback();
 
 const props = defineProps({
@@ -15,8 +17,8 @@ const props = defineProps({
 });
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Shop Ufficiale',
-    description: props.page?.meta_description || 'Lo shop ufficiale della Savino Del Bene Volley. Maglie, abbigliamento e merchandise per i tifosi.',
+    title: props.page?.title ?? $t('shop.og_title'),
+    description: props.page?.meta_description || $t('shop.og_description'),
 });
 </script>
 
@@ -47,13 +49,13 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Merchandise Ufficiale</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.hero_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
-                    {{ page?.title ?? 'Shop Ufficiale' }}
+                    {{ page?.title ?? $t('shop.og_title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                    Indossa i colori della Savino Del Bene Volley. Maglie ufficiali, abbigliamento e accessori per i veri tifosi.
+                    {{ $t('shop.hero_description') }}
                 </p>
             </div>
         </section>
@@ -83,7 +85,7 @@ const ogMeta = useOgMeta({
                             </div>
                             <!-- Quick View Overlay (desktop hover only — on mobile the product info below serves as CTA) -->
                             <div class="absolute inset-0 bg-savino-blue/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-center">
-                                <span class="text-white text-sm font-bold uppercase tracking-wider border-2 border-savino-gold px-6 py-3 hover:bg-savino-gold hover:text-savino-blue transition-colors">Dettagli</span>
+                                <span class="text-white text-sm font-bold uppercase tracking-wider border-2 border-savino-gold px-6 py-3 hover:bg-savino-gold hover:text-savino-blue transition-colors">{{ $t('shop.product_details') }}</span>
                             </div>
                         </div>
 
@@ -107,15 +109,15 @@ const ogMeta = useOgMeta({
                             <svg class="w-14 h-14 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         </div>
                         <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mb-4">
-                            Negozio in Arrivo
+                            {{ $t('shop.coming_soon_title') }}
                         </h2>
                         <div class="w-16 h-1 bg-savino-gold mx-auto mb-6"></div>
                         <p class="text-gray-600 text-lg leading-relaxed mb-8">
-                            Stiamo preparando qualcosa di speciale per te. Il nostro shop ufficiale sarà presto online con maglie, abbigliamento e merchandise esclusivo della Savino Del Bene Volley.
+                            {{ $t('shop.coming_soon_description') }}
                         </p>
                         <div class="inline-flex items-center gap-3 bg-savino-blue/5 border border-savino-blue/10 rounded-full px-8 py-4">
                             <div class="w-2 h-2 rounded-full bg-savino-gold animate-pulse"></div>
-                            <span class="text-savino-blue text-sm font-bold uppercase tracking-wider">Prossimamente</span>
+                            <span class="text-savino-blue text-sm font-bold uppercase tracking-wider">{{ $t('common.coming_soon') }}</span>
                         </div>
                     </div>
                 </div>

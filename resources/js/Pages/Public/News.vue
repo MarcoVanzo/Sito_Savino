@@ -4,8 +4,12 @@ import { Head, Link } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { useLocale } from '@/Composables/useLocale.js';
 
 const { onImgError } = useImageFallback();
+const { formatDate } = useLocale();
+
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
 
 const props = defineProps({
     posts: Object,
@@ -13,8 +17,8 @@ const props = defineProps({
 const { sanitize } = useSanitize();
 
 const ogMeta = useOgMeta({
-    title: 'News',
-    description: 'Ultime notizie e comunicati stampa dalla Savino Del Bene Volley. Seguici per restare aggiornato su partite, trasferimenti e attività del club.',
+    title: $t('news.og_title'),
+    description: $t('news.og_description'),
 });
 </script>
 
@@ -35,11 +39,11 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cg fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;%3E%3Cg fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.4&quot;%3E%3Cpath d=&quot;M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4z&quot;/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">
-                    News & Comunicati
+                    {{ $t('news.hero_title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mt-4"></div>
                 <p class="text-gray-300 mt-4 text-lg max-w-2xl">
-                    Tutte le ultime notizie dal mondo Savino Del Bene Volley.
+                    {{ $t('news.hero_subtitle') }}
                 </p>
             </div>
         </section>
@@ -68,7 +72,7 @@ const ogMeta = useOgMeta({
                         </div>
                         <div class="p-6">
                             <time v-if="post.published_at" class="text-xs font-semibold text-savino-gold uppercase tracking-wider">
-                                {{ new Date(post.published_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) }}
+                                {{ formatDate(post.published_at) }}
                             </time>
                             <h2 class="mt-2 text-lg font-bold text-savino-blue group-hover:text-savino-red transition-colors line-clamp-2">
                                 <Link :href="`/news/${post.slug}`">
@@ -82,7 +86,7 @@ const ogMeta = useOgMeta({
                                 :href="`/news/${post.slug}`"
                                 class="inline-flex items-center mt-4 text-sm font-bold text-savino-gold hover:text-savino-red transition-colors uppercase tracking-wider"
                             >
-                                Leggi tutto →
+                                {{ $t('common.read_more') }} →
                             </Link>
                         </div>
                     </article>
@@ -91,8 +95,8 @@ const ogMeta = useOgMeta({
                 <!-- Empty state -->
                 <div v-else class="text-center py-20">
                     <div class="text-6xl mb-4">📰</div>
-                    <h2 class="text-2xl font-bold text-savino-blue mb-2">Nessuna notizia pubblicata</h2>
-                    <p class="text-gray-500">Le notizie saranno disponibili a breve.</p>
+                    <h2 class="text-2xl font-bold text-savino-blue mb-2">{{ $t('news.empty_title') }}</h2>
+                    <p class="text-gray-500">{{ $t('news.empty_text') }}</p>
                 </div>
 
                 <!-- Pagination -->
@@ -116,3 +120,4 @@ const ogMeta = useOgMeta({
         </section>
     </PublicLayout>
 </template>
+

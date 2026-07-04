@@ -45,4 +45,23 @@ return [
         'key' => env('COMPREFACE_KEY'),
     ],
 
+    'activecampaign' => [
+        'url' => env('ACTIVECAMPAIGN_URL'),
+        'key' => env('ACTIVECAMPAIGN_API_KEY'),
+        'list_id' => env('ACTIVECAMPAIGN_LIST_ID'),
+    ],
+
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
+    'paypal' => [
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+        'mode' => env('PAYPAL_MODE', 'sandbox'), // 'sandbox' or 'live'
+        'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
+    ],
+
 ];

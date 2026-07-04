@@ -6,6 +6,8 @@ import { roleLabels, roleColors, displayRole } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const { onImgError } = useImageFallback();
 
 const props = defineProps({
@@ -16,7 +18,7 @@ const props = defineProps({
     },
     seasonName: {
         type: String,
-        default: 'Stagione corrente',
+        default: '',
     },
 });
 
@@ -35,8 +37,8 @@ const displayPlayers = computed(() => props.players.length > 0 ? props.players :
 const isPlaceholder = computed(() => props.players.length === 0);
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Roster',
-    description: props.page?.meta_description || 'La rosa ufficiale della Savino Del Bene Volley. Scopri le atlete che compongono il roster per la stagione corrente.',
+    title: props.page?.title ?? $t('roster.og_title'),
+    description: props.page?.meta_description || $t('roster.og_description'),
 });
 </script>
 
@@ -57,13 +59,13 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.04]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;40&quot; height=&quot;40&quot; viewBox=&quot;0 0 40 40&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Ccircle cx=&quot;20&quot; cy=&quot;20&quot; r=&quot;8&quot; fill=&quot;%23C5A55A&quot;/%3E%3C/svg%3E'); background-size: 40px 40px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('roster.current_season') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
-                    {{ page?.title ?? 'Il Nostro Roster' }}
+                    {{ page?.title ?? $t('roster.hero_title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                    Le atlete che difendono i colori della Savino Del Bene Volley in Serie A1 e nelle competizioni europee.
+                    {{ $t('roster.hero_subtitle') }}
                 </p>
             </div>
         </section>
@@ -75,7 +77,7 @@ const ogMeta = useOgMeta({
                 <div v-if="isPlaceholder" class="text-center mb-12">
                     <div class="inline-flex items-center gap-2 bg-savino-gold/10 border border-savino-gold/30 rounded-full px-6 py-3">
                         <svg class="w-5 h-5 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span class="text-savino-blue text-sm font-semibold">Roster in fase di aggiornamento — Dati di anteprima</span>
+                        <span class="text-savino-blue text-sm font-semibold">{{ $t('roster.placeholder_notice') }}</span>
                     </div>
                 </div>
 
@@ -111,14 +113,14 @@ const ogMeta = useOgMeta({
                             <!-- Role Badge -->
                             <div class="absolute top-4 right-4">
                                 <span :class="roleColors[player.role] ?? 'bg-gray-600'" class="text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                                    {{ displayRole(player.role) }}
+                                    {{ displayRole(player.role, $t) }}
                                 </span>
                             </div>
 
                             <!-- Hover Content -->
                             <div class="absolute bottom-0 left-0 right-0 p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
                                 <p class="text-white/90 text-sm">
-                                    Scopri di più su questa atleta →
+                                    {{ $t('roster.discover_athlete') }} →
                                 </p>
                             </div>
                         </div>
@@ -129,7 +131,7 @@ const ogMeta = useOgMeta({
                                 {{ player.first_name }} {{ player.last_name }}
                             </h3>
                             <p class="text-gray-500 text-sm font-medium mt-1">
-                                {{ displayRole(player.role) }}
+                                {{ displayRole(player.role, $t) }}
                             </p>
                         </div>
 
@@ -141,3 +143,4 @@ const ogMeta = useOgMeta({
         </section>
     </PublicLayout>
 </template>
+

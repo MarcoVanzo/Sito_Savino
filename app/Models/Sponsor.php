@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Translatable\HasTranslations;
 
 class Sponsor extends Model implements HasMedia
 {
-    use HasFactory, HasOptimizedMedia, InteractsWithMedia, LogsActivity;
+    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
         'name', 'url', 'tier', 'sort_order',

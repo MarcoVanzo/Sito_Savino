@@ -1,4 +1,5 @@
 import { ref, onUnmounted } from 'vue';
+import { useLocale } from '@/Composables/useLocale.js';
 
 /**
  * Composable per animazione count-up dei numeri.
@@ -53,10 +54,15 @@ export function useCountUp(options = {}) {
     };
 
     /**
-     * Formatta un numero con separatore migliaia italiano.
+     * Formatta un numero con separatore migliaia locale-aware.
      */
+    const { formatNumber: localeFormat } = useLocale();
     const formatNumber = (num) => {
-        return num.toLocaleString('it-IT');
+        try {
+            return localeFormat(num);
+        } catch {
+            return num.toLocaleString('it-IT');
+        }
     };
 
     /**

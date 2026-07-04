@@ -10,10 +10,13 @@ use Illuminate\Support\Facades\Cache;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Translatable\HasTranslations;
 
 class MenuItem extends Model implements HasMedia
 {
-    use HasFactory, HasOptimizedMedia, InteractsWithMedia, LogsActivity;
+    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity;
+
+    public $translatable = ['label', 'description', 'motto_title', 'motto_subtitle'];
 
     protected $fillable = [
         'label',

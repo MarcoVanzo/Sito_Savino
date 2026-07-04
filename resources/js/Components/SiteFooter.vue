@@ -3,6 +3,9 @@ import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import LOGOS from '@/Constants/logos.js';
+import NewsletterForm from '@/Components/NewsletterForm.vue';
+
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
 
 const { onImgError } = useImageFallback();
 
@@ -33,23 +36,23 @@ const displayedLinks = computed(() => {
     }
     // Fallback ai link hardcoded
     return {
-        Stagione: [
-            { label: 'Roster Serie A1', url: '/stagione' },
-            { label: 'Risultati', url: '/risultati' },
-            { label: 'Gallery', url: '/gallery' },
-            { label: 'Staff Tecnico', url: '/staff' },
+        [$t('footer.season')]: [
+            { label: $t('footer.roster_a1'), url: '/stagione' },
+            { label: $t('footer.results'), url: '/risultati' },
+            { label: $t('footer.gallery'), url: '/gallery' },
+            { label: $t('footer.staff'), url: '/staff' },
         ],
-        'Il Club': [
-            { label: 'La Società', url: '/societa' },
-            { label: 'Settore Giovanile', url: '/youth' },
-            { label: 'Sponsor', url: '/sponsor' },
-            { label: 'News', url: '/news' },
+        [$t('footer.the_club')]: [
+            { label: $t('footer.the_club_about'), url: '/societa' },
+            { label: $t('footer.youth'), url: '/youth' },
+            { label: $t('footer.sponsors'), url: '/sponsor' },
+            { label: $t('footer.news'), url: '/news' },
         ],
-        Servizi: [
-            { label: 'Biglietteria', url: '/ticketing' },
-            { label: 'Shop Ufficiale', url: '/shop' },
-            { label: 'Contatti', url: '/contatti' },
-            { label: 'Comunicazione', url: '/comunicazione' },
+        [$t('footer.services')]: [
+            { label: $t('footer.ticketing'), url: '/ticketing' },
+            { label: $t('footer.official_shop'), url: '/shop' },
+            { label: $t('footer.contacts'), url: '/contatti' },
+            { label: $t('footer.communication'), url: '/comunicazione' },
         ],
     };
 });
@@ -57,8 +60,8 @@ const displayedLinks = computed(() => {
 // Logo e testi dal backend con fallback
 const footerLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
 const footerBrandName = computed(() => general.value.corporate_name || 'Savino Del Bene');
-const footerTagline = computed(() => footerSettings.value.footer_tagline || 'Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.\nSerie A1 — Palazzo Wanny, Firenze.');
-const copyrightText = computed(() => (footerSettings.value.footer_copyright || `© ${currentYear} <span class="whitespace-nowrap">Savino Del Bene</span> Volley — Tutti i diritti riservati.`).replace('{year}', currentYear).replace('Savino Del Bene', '<span class="whitespace-nowrap">Savino Del Bene</span>'));
+const footerTagline = computed(() => footerSettings.value.footer_tagline || $t('footer.tagline_default'));
+const copyrightText = computed(() => (footerSettings.value.footer_copyright || `© ${currentYear} <span class="whitespace-nowrap">Savino Del Bene</span> Volley — ${$t('footer.all_rights_reserved')}.`).replace('{year}', currentYear).replace('Savino Del Bene', '<span class="whitespace-nowrap">Savino Del Bene</span>'));
 
 // Mappa icone SVG per i social (mantenute le stesse SVG originali)
 const socialIconPaths = {
@@ -137,6 +140,10 @@ const socialLinks = computed(() => {
                             </svg>
                         </a>
                     </div>
+                    <!-- Newsletter -->
+                    <div class="mt-8">
+                        <NewsletterForm variant="footer" />
+                    </div>
                 </div>
 
                 <!-- Link Columns (dinamiche dal backend) -->
@@ -160,8 +167,8 @@ const socialLinks = computed(() => {
                 <div class="text-gray-400 text-xs" v-html="copyrightText">
                 </div>
                 <div class="flex items-center gap-6">
-                    <Link href="/privacy-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">Privacy Policy</Link>
-                    <Link href="/cookie-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">Cookie Policy</Link>
+                    <Link href="/privacy-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.privacy_policy') }}</Link>
+                    <Link href="/cookie-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.cookie_policy') }}</Link>
                 </div>
             </div>
         </div>

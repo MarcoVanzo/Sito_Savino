@@ -5,6 +5,8 @@ import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 defineOptions({ layout: PublicLayout })
 
 const props = defineProps({
@@ -23,42 +25,42 @@ const projects = computed(() => cd.value.projects ?? [
         icon: '🏐',
         title: 'Volley4All',
         color: 'savino-blue',
-        description: 'Pallavolo gratuita per ragazzi provenienti da famiglie in difficoltà economica. Lo sport come diritto, non come privilegio.',
-        tag: 'Inclusione Sportiva'
+        description: $t('sociale.project_volley4all_desc'),
+        tag: $t('sociale.tag_inclusion')
     },
     {
         icon: '📚',
         title: 'Scuola & Sport',
         color: 'savino-gold',
-        description: 'Programma di doposcuola che unisce supporto scolastico e attività sportiva, promuovendo la crescita a 360°.',
-        tag: 'Educazione'
+        description: $t('sociale.project_school_desc'),
+        tag: $t('sociale.tag_education')
     },
     {
         icon: '♿',
-        title: 'Inclusione',
+        title: $t('sociale.project_inclusion_title'),
         color: 'savino-red',
-        description: 'Attività di sitting volley e progetti dedicati ad atleti con disabilità. Abbattere le barriere attraverso lo sport.',
-        tag: 'Accessibilità'
+        description: $t('sociale.project_inclusion_desc'),
+        tag: $t('sociale.tag_accessibility')
     },
     {
         icon: '🌱',
-        title: 'Sostenibilità',
+        title: $t('sociale.project_sustainability_title'),
         color: 'savino-blue',
-        description: 'Iniziative green per ridurre l\'impatto ambientale degli eventi sportivi e sensibilizzare la community.',
-        tag: 'Ambiente'
+        description: $t('sociale.project_sustainability_desc'),
+        tag: $t('sociale.tag_environment')
     }
 ])
 
 const impactNumbers = computed(() => cd.value.impact_stats ?? [
-    { value: '500+', label: 'Ragazzi Coinvolti' },
-    { value: '12', label: 'Scuole Partner' },
-    { value: '30+', label: 'Eventi Sociali' },
-    { value: '€50K', label: 'Fondi Raccolti' }
+    { value: '500+', label: $t('sociale.stat_youth_involved') },
+    { value: '12', label: $t('sociale.stat_partner_schools') },
+    { value: '30+', label: $t('sociale.stat_social_events') },
+    { value: '€50K', label: $t('sociale.stat_funds_raised') }
 ])
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Progetti Sociali',
-    description: 'I progetti sociali e le iniziative sul territorio della Savino Del Bene Volley.',
+    title: props.page?.title ?? $t('sociale.og_title'),
+    description: $t('sociale.og_description'),
 })
 </script>
 
@@ -77,13 +79,13 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge || 'Sport e Società' }}</span>
+            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge || $t('sociale.hero_badge') }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
-                {{ page?.title ?? 'Progetti Sociali' }}
+                {{ page?.title ?? $t('sociale.og_title') }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
             <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                {{ cd.hero_description || 'Il nostro impegno per la comunità va oltre il campo da gioco.' }}
+                {{ cd.hero_description || $t('sociale.hero_description') }}
             </p>
         </div>
     </section>
@@ -92,16 +94,16 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-white">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl mx-auto text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">La Nostra Missione</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('sociale.mission_badge') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ cd.mission_title || 'Sport Come Strumento Sociale' }}
+                    {{ cd.mission_title || $t('sociale.mission_title') }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4 mb-8"></div>
                 <p class="text-gray-600 text-lg leading-relaxed">
-                    {{ cd.mission_text_1 || 'La Savino Del Bene crede fermamente nel potere trasformativo dello sport. Attraverso i nostri progetti sociali, lavoriamo ogni giorno per costruire una comunità più inclusiva, sostenibile e attenta ai bisogni di tutti.' }}
+                    {{ cd.mission_text_1 || $t('sociale.mission_text_1') }}
                 </p>
                 <p class="text-gray-600 text-lg leading-relaxed mt-4">
-                    {{ cd.mission_text_2 || 'Dalla pallavolo per tutti ai programmi educativi, dal sitting volley alle iniziative ambientali: ogni progetto è un passo verso un futuro migliore.' }}
+                    {{ cd.mission_text_2 || $t('sociale.mission_text_2') }}
                 </p>
             </div>
         </div>
@@ -111,9 +113,9 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Iniziative</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('sociale.initiatives_badge') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    I Nostri Progetti
+                    {{ $t('sociale.initiatives_title') }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>
@@ -145,7 +147,7 @@ const ogMeta = useOgMeta({
                     </p>
                     <div class="mt-6 pt-6 border-t border-gray-100">
                         <a href="#" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-gold transition-colors">
-                            Scopri di più
+                            {{ $t('common.discover') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                             </svg>
@@ -160,9 +162,9 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Risultati</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('sociale.results_badge') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-2">
-                    Il Nostro Impatto
+                    {{ $t('sociale.impact_title') }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>

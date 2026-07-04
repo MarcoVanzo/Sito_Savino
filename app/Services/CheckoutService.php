@@ -1,0 +1,244 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\OrderStatus;
+use App\Enums\PaymentGateway;
+use App\Models\Cart;
+use App\Models\Coupon;
+use App\Models\CouponUsage;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\ShippingZone;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+
+class CheckoutService
+{
+    public function __construct(
+        protected CartService $cartService,
+    ) {}
+
+    /**
+     * Valida tutti i prerequisiti per il checkout.
+     *
+     * @throws ValidationException
+     */
+    public function validateCheckout(Cart $cart, array $data): void
+    {
+        $errors = [];
+
+        // 1. Carrello vuoto
+        $cart->loadMissing('items.product', 'items.variant');
+        if ($cart->items->isEmpty()) {
+            $errors['cart'] = ['Il carrello è vuoto.'];
+        }
+
+        // 2. Controllo stock
+        if ($cart->items->isNotEmpty()) {
+            $stockIssues = $this->cartService->validateStock();
+            if (! empty($stockIssues)) {
+                $messages = [];
+                foreach ($stockIssues as $issue) {
+                    $productName = $issue['item']->product->name;
+                    $messages[] = "{$productName}: disponibili {$issue['available']}, richiesti {$issue['requested']}.";
+                }
+                $errors['stock'] = $messages;
+            }
+        }
+
+        // 3. Paese servito
+        if (! empty($data['country'])) {
+            $zone = ShippingZone::findByCountry($data['country']);
+            if (! $zone) {
+                $errors['country'] = ['Spedizione non disponibile per il paese selezionato.'];
+            }
+        } else {
+            $errors['country'] = ['Il paese di spedizione è obbligatorio.'];
+        }
+
+        // 4. Coupon valido (se fornito)
+        if (! empty($data['coupon_code'])) {
+            try {
+                $subtotal = $this->calculateSubtotal($cart);
+                $this->applyCoupon(
+                    $data['coupon_code'],
+                    $subtotal,
+                    $data['user_id'] ?? null,
+                    $data['guest_email'] ?? null
+                );
+            } catch (\Exception $e) {
+                $errors['coupon_code'] = [$e->getMessage()];
+            }
+        }
+
+        // 5. Privacy accettata
+        if (empty($data['privacy_accepted_at'])) {
+            $errors['privacy_accepted_at'] = ['Devi accettare l\'informativa sulla privacy.'];
+        }
+
+        if (! empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
+    /**
+     * Crea un ordine completo dal carrello.
+     * Tutti i prezzi vengono ricalcolati dal DB, mai dal client.
+     *
+     * @throws ValidationException
+     */
+    public function createOrder(Cart $cart, array $data, ?User $user = null): Order
+    {
+        return DB::transaction(function () use ($cart, $data, $user) {
+            // 1. Valida il checkout
+            $this->validateCheckout($cart, $data);
+
+            // 2. Carica items con relazioni
+            $cart->load(['items.product', 'items.variant']);
+
+            // 3. Calcola subtotale da DB
+            $subtotal = $this->calculateSubtotal($cart);
+
+            // 4. Calcola spedizione
+            $shippingCost = $this->calculateShipping($data['country'], $subtotal);
+
+            // 5. Applica coupon se presente
+            $couponId = null;
+            $couponDiscount = 0.0;
+            $coupon = null;
+
+            if (! empty($data['coupon_code'])) {
+                $couponResult = $this->applyCoupon(
+                    $data['coupon_code'],
+                    $subtotal,
+                    $user?->id,
+                    $data['guest_email'] ?? null
+                );
+                $couponDiscount = $couponResult['discount'];
+                $coupon = $couponResult['coupon'];
+                $couponId = $coupon->id;
+            }
+
+            // 6. Calcola totale finale
+            $totalPrice = max(0, $subtotal + $shippingCost - $couponDiscount);
+
+            // 7. Crea l'ordine
+            $order = Order::create([
+                'user_id' => $user?->id,
+                'order_token' => Str::uuid()->toString(),
+                'status' => OrderStatus::Pending,
+                'guest_name' => $data['guest_name'] ?? null,
+                'guest_email' => $data['guest_email'] ?? null,
+                'guest_phone' => $data['guest_phone'] ?? null,
+                'country' => $data['country'],
+                'shipping_address' => $data['shipping_address'],
+                'billing_address' => $data['billing_address'],
+                'payment_gateway' => PaymentGateway::from($data['payment_gateway']),
+                'total_price' => round($totalPrice, 2),
+                'shipping_cost' => round($shippingCost, 2),
+                'coupon_id' => $couponId,
+                'coupon_discount' => round($couponDiscount, 2),
+                'notes' => $data['notes'] ?? null,
+                'privacy_accepted_at' => $data['privacy_accepted_at'],
+            ]);
+
+            // 8. Crea OrderItems con snapshot dei prezzi
+            foreach ($cart->items as $cartItem) {
+                $effectivePrice = $cartItem->product->effectivePrice();
+                $modifier = $cartItem->variant ? (float) $cartItem->variant->price_modifier : 0.0;
+                $unitPrice = $effectivePrice + $modifier;
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $cartItem->product_id,
+                    'product_variant_id' => $cartItem->product_variant_id,
+                    'quantity' => $cartItem->quantity,
+                    'price_at_time_of_purchase' => round($unitPrice, 2),
+                ]);
+            }
+
+            // 9. Registra CouponUsage e incrementa contatore
+            if ($coupon) {
+                CouponUsage::create([
+                    'coupon_id' => $coupon->id,
+                    'order_id' => $order->id,
+                    'user_id' => $user?->id,
+                    'guest_email' => $data['guest_email'] ?? null,
+                    'used_at' => now(),
+                ]);
+
+                $coupon->incrementUsage();
+            }
+
+            // 10. Svuota il carrello
+            $this->cartService->clearCart();
+
+            return $order->load('items.product');
+        });
+    }
+
+    /**
+     * Calcola il costo di spedizione per un paese e subtotale.
+     *
+     * @throws \RuntimeException
+     */
+    public function calculateShipping(string $countryCode, float $subtotal): float
+    {
+        $zone = ShippingZone::findByCountry($countryCode);
+
+        if (! $zone) {
+            throw new \RuntimeException(
+                'Spedizione non disponibile per il paese selezionato.'
+            );
+        }
+
+        return $zone->calculateShippingCost($subtotal);
+    }
+
+    /**
+     * Applica un codice coupon e restituisce lo sconto calcolato.
+     *
+     * @return array{discount: float, coupon: Coupon}
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function applyCoupon(string $code, float $subtotal, ?int $userId = null, ?string $guestEmail = null): array
+    {
+        $coupon = Coupon::byCode($code)->first();
+
+        if (! $coupon) {
+            throw new \InvalidArgumentException('Codice coupon non valido.');
+        }
+
+        if (! $coupon->isValidForOrder($subtotal, $userId, $guestEmail)) {
+            throw new \InvalidArgumentException('Il coupon non è applicabile a questo ordine.');
+        }
+
+        $discount = $coupon->calculateDiscount($subtotal);
+
+        return [
+            'discount' => round($discount, 2),
+            'coupon' => $coupon,
+        ];
+    }
+
+    /**
+     * Calcola il subtotale del carrello dai prezzi in DB.
+     */
+    private function calculateSubtotal(Cart $cart): float
+    {
+        $cart->loadMissing('items.product', 'items.variant');
+        $subtotal = 0.0;
+
+        foreach ($cart->items as $item) {
+            $effectivePrice = $item->product->effectivePrice();
+            $modifier = $item->variant ? (float) $item->variant->price_modifier : 0.0;
+            $subtotal += ($effectivePrice + $modifier) * $item->quantity;
+        }
+
+        return round($subtotal, 2);
+    }
+}

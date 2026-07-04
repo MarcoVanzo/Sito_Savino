@@ -115,6 +115,16 @@ services:
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
     value: 00000000-0000-0000-0000-000000000001
+  - key: ACTIVECAMPAIGN_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://savinodelbenevolley.api-us1.com
+  - key: ACTIVECAMPAIGN_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: 6caf9e1800fc6da3fdbf3bd991880e8528093a488ebc5acd29d7b3681201d0d1f4732524
+  - key: ACTIVECAMPAIGN_LIST_ID
+    scope: RUN_AND_BUILD_TIME
+    value: "2"
   github:
     branch: main
     repo: MarcoVanzo/sito_savino
@@ -195,6 +205,16 @@ workers:
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
     value: 00000000-0000-0000-0000-000000000001
+  - key: ACTIVECAMPAIGN_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://savinodelbenevolley.api-us1.com
+  - key: ACTIVECAMPAIGN_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: 6caf9e1800fc6da3fdbf3bd991880e8528093a488ebc5acd29d7b3681201d0d1f4732524
+  - key: ACTIVECAMPAIGN_LIST_ID
+    scope: RUN_AND_BUILD_TIME
+    value: "2"
   github:
     branch: main
     repo: MarcoVanzo/sito_savino

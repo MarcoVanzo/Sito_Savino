@@ -5,6 +5,8 @@ import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const props = defineProps({
     page: {
         type: Object,
@@ -31,7 +33,7 @@ const youthTeams = computed(() => cd.value.youth_teams ?? [
     },
     {
         name: 'Under 16',
-        category: 'Campionato Regionale',
+        category: $t('youth.category_regional'),
         coach: 'Francesca Galli',
         training: 'Mar-Gio-Sab 15:00-17:00',
         players: 16,
@@ -39,7 +41,7 @@ const youthTeams = computed(() => cd.value.youth_teams ?? [
     },
     {
         name: 'Under 14',
-        category: 'Campionato Provinciale',
+        category: $t('youth.category_provincial'),
         coach: 'Simone Marchetti',
         training: 'Lun-Mer-Ven 14:30-16:30',
         players: 18,
@@ -58,29 +60,29 @@ const youthTeams = computed(() => cd.value.youth_teams ?? [
 const values = computed(() => cd.value.values ?? [
     {
         icon: 'star',
-        title: 'Eccellenza Tecnica',
-        description: 'Formazione completa dei fondamentali con metodologie all\'avanguardia e allenatori qualificati.'
+        title: $t('youth.value_1_title'),
+        description: $t('youth.value_1_desc')
     },
     {
         icon: 'heart',
-        title: 'Crescita Personale',
-        description: 'Non solo sport: i nostri ragazzi imparano valori come rispetto, disciplina e lavoro di squadra.'
+        title: $t('youth.value_2_title'),
+        description: $t('youth.value_2_desc')
     },
     {
         icon: 'trophy',
-        title: 'Percorso Verso la Prima Squadra',
-        description: 'I migliori talenti del settore giovanile vengono inseriti nel programma di sviluppo verso la Serie A1.'
+        title: $t('youth.value_3_title'),
+        description: $t('youth.value_3_desc')
     },
     {
         icon: 'users',
-        title: 'Staff Dedicato',
-        description: 'Allenatori certificati, preparatori atletici e supporto psicologico per ogni categoria.'
+        title: $t('youth.value_4_title'),
+        description: $t('youth.value_4_desc')
     }
 ])
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Settore Giovanile',
-    description: cd.value.meta_description || 'Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16 e minivolley.',
+    title: props.page?.title ?? $t('youth.og_title'),
+    description: cd.value.meta_description || $t('youth.og_description'),
 })
 </script>
 
@@ -100,10 +102,10 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || 'Il Futuro in Campo' }}</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Settore Giovanile' }}</h1>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || $t('youth.hero_subtitle') }}</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('youth.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description || 'Costruiamo il futuro della pallavolo con passione, talento e dedizione.' }}</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description || $t('youth.hero_description') }}</p>
             </div>
         </section>
 
@@ -112,33 +114,33 @@ const ogMeta = useOgMeta({
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-wider">{{ cd.intro_label || 'La Nostra Filosofia' }}</span>
-                        <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-4">{{ cd.intro_title || 'Formare Campioni Dentro e Fuori dal Campo' }}</h2>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-wider">{{ cd.intro_label || $t('youth.intro_label') }}</span>
+                        <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-4">{{ cd.intro_title || $t('youth.intro_title') }}</h2>
                         <div class="w-12 h-1 bg-savino-gold mb-6"></div>
                         <p class="text-gray-600 leading-relaxed mb-4">
-                            {{ cd.intro_paragraph_1 || 'Il settore giovanile della Savino Del Bene rappresenta il cuore pulsante della nostra società. Crediamo che la formazione sportiva debba andare di pari passo con la crescita personale, accompagnando ogni giovane atleta in un percorso di eccellenza.' }}
+                            {{ cd.intro_paragraph_1 || $t('youth.intro_paragraph_1') }}
                         </p>
                         <p class="text-gray-600 leading-relaxed">
-                            {{ cd.intro_paragraph_2 || 'Con oltre 70 atlete distribuite nelle diverse categorie, il nostro vivaio è una fucina di talenti che si allenano quotidianamente con l\'obiettivo di raggiungere i massimi livelli.' }}
+                            {{ cd.intro_paragraph_2 || $t('youth.intro_paragraph_2') }}
                         </p>
                     </div>
                     <div class="bg-gradient-to-br from-savino-blue/5 to-savino-gold/5 rounded-2xl p-8 border border-gray-100">
                         <div class="grid grid-cols-2 gap-6">
                             <div class="text-center">
                                 <span class="text-4xl font-black text-savino-blue block">{{ cd.stat_athletes || '70+' }}</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_athletes_label || 'Giovani Atlete' }}</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_athletes_label || $t('youth.stat_athletes_label') }}</span>
                             </div>
                             <div class="text-center">
                                 <span class="text-4xl font-black text-savino-gold block">{{ cd.stat_categories || '4' }}</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_categories_label || 'Categorie' }}</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_categories_label || $t('youth.stat_categories_label') }}</span>
                             </div>
                             <div class="text-center">
                                 <span class="text-4xl font-black text-savino-red block">{{ cd.stat_coaches || '12' }}</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_coaches_label || 'Allenatori' }}</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_coaches_label || $t('youth.stat_coaches_label') }}</span>
                             </div>
                             <div class="text-center">
                                 <span class="text-4xl font-black text-savino-blue block">{{ cd.stat_years || '15+' }}</span>
-                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_years_label || 'Anni di Attività' }}</span>
+                                <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_years_label || $t('youth.stat_years_label') }}</span>
                             </div>
                         </div>
                     </div>
@@ -149,7 +151,7 @@ const ogMeta = useOgMeta({
         <!-- Values -->
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.values_title || 'I Nostri Valori' }}</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.values_title || $t('youth.values_title') }}</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-12"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -186,7 +188,7 @@ const ogMeta = useOgMeta({
         <!-- Youth Teams Grid -->
         <section class="py-16 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.teams_title || 'Le Nostre Squadre' }}</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.teams_title || $t('youth.teams_title') }}</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -231,7 +233,7 @@ const ogMeta = useOgMeta({
                                     <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    <span class="text-sm text-gray-600">{{ team.players }} atlete</span>
+                                    <span class="text-sm text-gray-600">{{ team.players }} {{ $t('youth.players_unit') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -244,13 +246,13 @@ const ogMeta = useOgMeta({
         <section class="py-16 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.scouting_label || 'Talent Scouting' }}</span>
-                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4">{{ cd.scouting_title || 'Cerchiamo Nuovi Talenti' }}</h2>
+                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4">{{ cd.scouting_title || $t('youth.scouting_title') }}</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-8"></div>
                 <p class="text-white/70 text-lg leading-relaxed max-w-2xl mx-auto mb-6">
-                    {{ cd.scouting_description || 'Sei una giovane atleta con la passione per la pallavolo? Il nostro programma di scouting è sempre alla ricerca di nuovi talenti. Partecipa alle giornate di prova e inizia il tuo percorso verso l\'eccellenza sportiva.' }}
+                    {{ cd.scouting_description || $t('youth.scouting_description') }}
                 </p>
                 <p class="text-white/50 text-sm mb-8">
-                    {{ cd.scouting_info || 'Per informazioni sulle prove e le iscrizioni, contattaci via email o telefono.' }}
+                    {{ cd.scouting_info || $t('youth.scouting_info') }}
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <a
@@ -258,7 +260,7 @@ const ogMeta = useOgMeta({
                         class="inline-flex items-center justify-center px-8 py-3.5 bg-savino-gold text-white font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-all duration-300 shadow-lg shadow-savino-gold/30 text-sm"
                        
                     >
-                        {{ cd.scouting_cta_primary || 'Contattaci' }}
+                        {{ cd.scouting_cta_primary || $t('youth.scouting_cta_primary') }}
                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
@@ -268,7 +270,7 @@ const ogMeta = useOgMeta({
                         class="inline-flex items-center justify-center px-8 py-3.5 border-2 border-white/30 text-white font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition-all duration-300 text-sm"
                        
                     >
-                        {{ cd.scouting_cta_secondary || 'Scrivi una Email' }}
+                        {{ cd.scouting_cta_secondary || $t('youth.scouting_cta_secondary') }}
                     </a>
                 </div>
             </div>

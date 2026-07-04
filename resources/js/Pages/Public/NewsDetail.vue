@@ -5,8 +5,12 @@ import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
+import { useLocale } from '@/Composables/useLocale.js';
 
 const { onImgError } = useImageFallback();
+const { formatDate } = useLocale();
+
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
 
 const { sanitize } = useSanitize();
 
@@ -19,9 +23,7 @@ const safeContent = computed(() => sanitize(props.post?.content));
 
 const formattedDate = computed(() => {
     if (!props.post?.published_at) return '';
-    return new Date(props.post.published_at).toLocaleDateString('it-IT', {
-        day: 'numeric', month: 'long', year: 'numeric'
-    });
+    return formatDate(props.post.published_at);
 });
 
 const ogMeta = useOgMeta({
@@ -72,7 +74,7 @@ const ogMeta = useOgMeta({
             <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                 <div class="mb-4">
                     <Link href="/news" class="inline-flex items-center min-h-[44px] text-savino-gold hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
-                        ← Torna alle News
+                        ← {{ $t('news_detail.back_to_news') }}
                     </Link>
                 </div>
                 <time v-if="formattedDate" class="text-savino-gold text-sm font-semibold uppercase tracking-wider">
@@ -83,7 +85,7 @@ const ogMeta = useOgMeta({
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mt-4"></div>
                 <p v-if="post?.author" class="text-gray-400 mt-4 text-sm">
-                    di <span class="text-white font-semibold">{{ post.author.name }}</span>
+                    {{ $t('news_detail.by_author') }} <span class="text-white font-semibold">{{ post.author.name }}</span>
                 </p>
             </div>
         </section>
@@ -125,7 +127,7 @@ const ogMeta = useOgMeta({
         <section v-if="relatedPosts?.length" class="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div class="max-w-7xl mx-auto">
                 <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-8">
-                    Articoli Correlati
+                    {{ $t('news_detail.related_posts') }}
                 </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
                     <article
@@ -135,7 +137,7 @@ const ogMeta = useOgMeta({
                     >
                         <div class="p-6">
                             <time v-if="related.published_at" class="text-xs font-semibold text-savino-gold uppercase tracking-wider">
-                                {{ new Date(related.published_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) }}
+                                {{ formatDate(related.published_at) }}
                             </time>
                             <h3 class="mt-2 text-lg font-bold text-savino-blue group-hover:text-savino-red transition-colors line-clamp-2">
                                 <Link :href="`/news/${related.slug}`">{{ related.title }}</Link>
@@ -147,3 +149,4 @@ const ogMeta = useOgMeta({
         </section>
     </PublicLayout>
 </template>
+

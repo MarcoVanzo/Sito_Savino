@@ -1,12 +1,14 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
 </script>
 
 <template>
     <Head>
-        <title>Sito in Costruzione — Savino Del Bene Volley</title>
-        <meta name="description" content="Pagina in costruzione." />
+        <title>{{ $t('under_construction.og_title') }}</title>
+        <meta name="description" :content="$t('under_construction.og_description')" />
     </Head>
 
     <PublicLayout>
@@ -19,18 +21,18 @@ import { Head, Link } from '@inertiajs/vue3';
                     </svg>
                 </div>
                 <h1 class="text-4xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mb-4">
-                    Pagina in costruzione
+                    {{ $t('under_construction.title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-8"></div>
                 <p class="text-lg text-gray-600 mb-10">
-                    Stiamo lavorando per aggiungere nuovi contenuti. Torna a trovarci presto!
+                    {{ $t('under_construction.description') }}
                 </p>
                 
                 <Link 
                     :href="route('home')" 
                     class="inline-block px-8 py-3 bg-savino-gold text-white font-bold tracking-wider hover:bg-savino-blue transition-colors duration-300 rounded-sm"
                 >
-                    TORNA ALLA HOMEPAGE
+                    {{ $t('under_construction.back_home') }}
                 </Link>
             </div>
         </section>

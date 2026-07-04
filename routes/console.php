@@ -18,3 +18,7 @@ Schedule::command('sitemap:generate')->daily()->at('04:00');
 // Pulizia periodica
 Schedule::command('activity-log:prune --days=180 --force')->weekly();
 Schedule::command('model:prune')->daily();
+
+// Controllo ordini bonifico non pagati (promemoria + cancellazione)
+Schedule::command('order:check-unpaid')->daily()->at('08:00');
+

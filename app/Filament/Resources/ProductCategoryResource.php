@@ -54,6 +54,20 @@ class ProductCategoryResource extends Resource
                     ->label('Descrizione')
                     ->maxLength(65535)
                     ->columnSpanFull(),
+                Forms\Components\Select::make('parent_id')
+                    ->label('Categoria Padre')
+                    ->relationship('parent', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
+                Forms\Components\TextInput::make('sort_order')
+                    ->label('Ordine')
+                    ->numeric()
+                    ->default(0),
+                Forms\Components\TextInput::make('image')
+                    ->label('URL Immagine')
+                    ->nullable()
+                    ->helperText('Percorso immagine categoria'),
             ]);
     }
 
@@ -67,8 +81,16 @@ class ProductCategoryResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('parent.name')
+                    ->label('Padre')
+                    ->placeholder('-')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Ordine')
+                    ->sortable(),
                 ...static::timestampColumns(),
             ])
+            ->defaultSort('sort_order', 'asc')
             ->filters([
                 // Nessun filtro applicabile: tabella di lookup semplice
             ])

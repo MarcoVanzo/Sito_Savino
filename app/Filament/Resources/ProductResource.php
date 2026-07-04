@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProductType;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
@@ -68,6 +69,16 @@ class ProductResource extends Resource
                             ->label('Visibile nello Shop')
                             ->required()
                             ->default(true),
+                        Forms\Components\Select::make('type')
+                            ->label('Tipo Prodotto')
+                            ->options(ProductType::class)
+                            ->required()
+                            ->default(ProductType::Simple),
+                        Forms\Components\Textarea::make('short_description')
+                            ->label('Descrizione Breve')
+                            ->rows(2)
+                            ->columnSpanFull()
+                            ->helperText('Mostrata nella lista prodotti e nella card'),
                         Forms\Components\Textarea::make('description')
                             ->label('Descrizione Prodotto')
                             ->columnSpanFull(),
@@ -94,7 +105,21 @@ class ProductResource extends Resource
                             ->label('Codice (SKU)')
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
-                    ])->columns(3),
+                        Forms\Components\TextInput::make('sale_price')
+                            ->label('Prezzo Scontato (€)')
+                            ->numeric()
+                            ->prefix('€')
+                            ->nullable(),
+                        Forms\Components\DateTimePicker::make('sale_start')
+                            ->label('Inizio Sconto'),
+                        Forms\Components\DateTimePicker::make('sale_end')
+                            ->label('Fine Sconto'),
+                        Forms\Components\TextInput::make('weight')
+                            ->label('Peso (kg)')
+                            ->numeric()
+                            ->nullable()
+                            ->suffix('kg'),
+                    ])->columns(2),
 
                 Forms\Components\Section::make('Galleria Immagini')
                     ->schema([
@@ -146,10 +171,20 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome Prodotto')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Tipo')
+                    ->badge()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Prezzo')
                     ->money('EUR')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('sale_price')
+                    ->label('Scontato')
+                    ->money('EUR')
+                    ->sortable()
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('stock')
                     ->label('Stock (Base)')
                     ->numeric()

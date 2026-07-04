@@ -5,6 +5,8 @@ import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 defineOptions({ layout: PublicLayout })
 
 const props = defineProps({
@@ -25,34 +27,34 @@ const cd = computed(() => props.page?.content_data ?? {})
 const pressKitItems = computed(() => [
     {
         icon: cd.value.press_kit_1_icon || '📸',
-        title: cd.value.press_kit_1_title || 'Foto Ufficiali',
-        description: cd.value.press_kit_1_description || 'Immagini ad alta risoluzione della squadra, dello staff e del palazzetto.',
+        title: cd.value.press_kit_1_title || $t('comunicazione.press_kit_1_title'),
+        description: cd.value.press_kit_1_description || $t('comunicazione.press_kit_1_desc'),
         format: cd.value.press_kit_1_format || 'ZIP — 45 MB'
     },
     {
         icon: cd.value.press_kit_2_icon || '🎨',
-        title: cd.value.press_kit_2_title || 'Logo e Brand Kit',
-        description: cd.value.press_kit_2_description || 'Loghi in tutti i formati, palette colori, font e linee guida del brand.',
+        title: cd.value.press_kit_2_title || $t('comunicazione.press_kit_2_title'),
+        description: cd.value.press_kit_2_description || $t('comunicazione.press_kit_2_desc'),
         format: cd.value.press_kit_2_format || 'ZIP — 12 MB'
     },
     {
         icon: cd.value.press_kit_3_icon || '📄',
-        title: cd.value.press_kit_3_title || 'Cartella Stampa',
-        description: cd.value.press_kit_3_description || 'Comunicati stampa, schede tecniche e profili delle atlete.',
+        title: cd.value.press_kit_3_title || $t('comunicazione.press_kit_3_title'),
+        description: cd.value.press_kit_3_description || $t('comunicazione.press_kit_3_desc'),
         format: cd.value.press_kit_3_format || 'PDF — 8 MB'
     },
     {
         icon: cd.value.press_kit_4_icon || '📊',
-        title: cd.value.press_kit_4_title || 'Statistiche Stagionali',
-        description: cd.value.press_kit_4_description || 'Dati e statistiche aggiornate della stagione in corso.',
+        title: cd.value.press_kit_4_title || $t('comunicazione.press_kit_4_title'),
+        description: cd.value.press_kit_4_description || $t('comunicazione.press_kit_4_desc'),
         format: cd.value.press_kit_4_format || 'PDF — 3 MB'
     }
 ])
 
 const contacts = computed(() => [
     {
-        role: cd.value.contact_1_role || 'Ufficio Stampa',
-        name: cd.value.contact_1_name || 'Responsabile Comunicazione',
+        role: cd.value.contact_1_role || $t('comunicazione.contact_role_press'),
+        name: cd.value.contact_1_name || $t('comunicazione.contact_name_press'),
         email: cd.value.contact_1_email || contact.value.press_email || 'stampa@savinodelbenevolley.it',
         phone: cd.value.contact_1_phone || contact.value.press_phone || '+39 055 000 0000'
     },
@@ -63,16 +65,16 @@ const contacts = computed(() => [
         phone: cd.value.contact_2_phone || contact.value.social_phone || '+39 055 000 0001'
     },
     {
-        role: cd.value.contact_3_role || 'Accrediti & Media',
-        name: cd.value.contact_3_name || 'Coordinatore Media',
+        role: cd.value.contact_3_role || $t('comunicazione.contact_role_media'),
+        name: cd.value.contact_3_name || $t('comunicazione.contact_name_media'),
         email: cd.value.contact_3_email || contact.value.media_email || 'media@savinodelbenevolley.it',
         phone: cd.value.contact_3_phone || contact.value.media_phone || '+39 055 000 0002'
     }
 ])
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Comunicazione',
-    description: cd.value?.meta_description || 'Area comunicazione della Savino Del Bene Volley. Comunicati stampa, media kit e contatti per la stampa.',
+    title: props.page?.title ?? $t('comunicazione.og_title'),
+    description: cd.value?.meta_description || $t('comunicazione.og_description'),
 })
 </script>
 
@@ -91,13 +93,13 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge || 'Area Stampa' }}</span>
+            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge || $t('comunicazione.hero_badge') }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
-                {{ page?.title ?? 'Comunicazione' }}
+                {{ page?.title ?? $t('comunicazione.og_title') }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
             <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                {{ cd.hero_subtitle || 'Risorse, contatti e materiali per giornalisti e operatori media.' }}
+                {{ cd.hero_subtitle || $t('comunicazione.hero_subtitle') }}
             </p>
         </div>
     </section>
@@ -107,31 +109,31 @@ const ogMeta = useOgMeta({
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.accreditation_badge || 'Accrediti' }}</span>
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.accreditation_badge || $t('comunicazione.accreditation_badge') }}</span>
                     <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                        {{ cd.accreditation_title || 'Accreditamento Stampa' }}
+                        {{ cd.accreditation_title || $t('comunicazione.accreditation_title') }}
                     </h2>
                     <div class="w-12 h-1 bg-savino-gold mt-4 mb-6"></div>
                     <p class="text-gray-600 leading-relaxed mb-4">
-                        {{ cd.accreditation_text_1 || 'Giornalisti, fotografi e operatori video possono richiedere l\'accreditamento per le partite casalinghe e gli eventi organizzati dalla Savino Del Bene Volley.' }}
+                        {{ cd.accreditation_text_1 || $t('comunicazione.accreditation_text_1') }}
                     </p>
                     <p class="text-gray-600 leading-relaxed mb-6">
-                        {{ cd.accreditation_text_2 || 'L\'accreditamento consente l\'accesso alla tribuna stampa, alla zona mista post-partita e alle conferenze stampa pre e post gara.' }}
+                        {{ cd.accreditation_text_2 || $t('comunicazione.accreditation_text_2') }}
                     </p>
                     <div class="bg-savino-blue/5 rounded-xl p-6 border border-savino-blue/10">
-                        <h4 class="font-bold text-gray-900 mb-3">{{ cd.accreditation_steps_title || 'Come richiedere l\'accredito:' }}</h4>
+                        <h4 class="font-bold text-gray-900 mb-3">{{ cd.accreditation_steps_title || $t('comunicazione.accreditation_steps_title') }}</h4>
                         <ol class="space-y-2 text-gray-600 text-sm">
                             <li class="flex items-start gap-2">
                                 <span class="text-savino-gold font-bold">1.</span>
-                                {{ cd.accreditation_step_1 || 'Inviare una mail a' }} <strong>{{ cd.accreditation_email || contact.media_email || 'media@savinodelbenevolley.it' }}</strong>
+                                {{ cd.accreditation_step_1 || $t('comunicazione.accreditation_step_1') }} <strong>{{ cd.accreditation_email || contact.media_email || 'media@savinodelbenevolley.it' }}</strong>
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-savino-gold font-bold">2.</span>
-                                {{ cd.accreditation_step_2 || 'Indicare testata, nome del giornalista e tipo di accredito richiesto' }}
+                                {{ cd.accreditation_step_2 || $t('comunicazione.accreditation_step_2') }}
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-savino-gold font-bold">3.</span>
-                                {{ cd.accreditation_step_3 || 'Inviare la richiesta almeno 48 ore prima dell\'evento' }}
+                                {{ cd.accreditation_step_3 || $t('comunicazione.accreditation_step_3') }}
                             </li>
                         </ol>
                     </div>
@@ -140,7 +142,7 @@ const ogMeta = useOgMeta({
                     <div class="text-center">
                         <span class="text-6xl">🎤</span>
                         <p class="text-savino-blue font-bold mt-4 text-lg">{{ cd.media_hub_title || 'Media Hub' }}</p>
-                        <p class="text-gray-500 text-sm mt-1">{{ cd.media_hub_subtitle || 'Tutto ciò di cui hai bisogno' }}</p>
+                        <p class="text-gray-500 text-sm mt-1">{{ cd.media_hub_subtitle || $t('comunicazione.media_hub_subtitle') }}</p>
                     </div>
                 </div>
             </div>
@@ -185,9 +187,9 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.contacts_badge || 'Contatti' }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.contacts_badge || $t('comunicazione.contacts_badge') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ cd.contacts_section_title || 'Ufficio Comunicazione' }}
+                    {{ cd.contacts_section_title || $t('comunicazione.contacts_section_title') }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>

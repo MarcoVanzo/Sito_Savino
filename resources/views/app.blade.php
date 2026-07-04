@@ -1,15 +1,24 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{{ app()->getLocale() }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="description" content="Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.">
         <link rel="canonical" href="{{ url()->current() }}">
+        @php
+            $currentLocale = app()->getLocale();
+            $currentPath = request()->getPathInfo();
+            $itUrl = $currentLocale === 'it' ? url()->current() : url(preg_replace('#^/en(/|$)#', '/', $currentPath));
+            $enUrl = $currentLocale === 'en' ? url()->current() : url('/en' . $currentPath);
+        @endphp
+        <link rel="alternate" hreflang="it" href="{{ $itUrl }}">
+        <link rel="alternate" hreflang="en" href="{{ $enUrl }}">
+        <link rel="alternate" hreflang="x-default" href="{{ $itUrl }}">
 
         <!-- Open Graph -->
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="Savino Del Bene Volley">
-        <meta property="og:locale" content="it_IT">
+        <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'it_IT' }}">
         <meta property="og:title" content="{{ config('app.name', 'Savino Del Bene Volley') }}">
         <meta property="og:url" content="{{ config('app.url') }}">
         <meta property="og:image" content="{{ config('app.url') }}/images/logo.png">
@@ -54,7 +63,7 @@
             "@@type": "WebSite",
             "name": "Savino Del Bene Volley",
             "url": "{{ config('app.url') }}",
-            "inLanguage": "it-IT",
+            "inLanguage": "{{ app()->getLocale() === 'en' ? 'en-US' : 'it-IT' }}",
             "publisher": {
                 "@@type": "Organization",
                 "name": "Savino Del Bene Volley",

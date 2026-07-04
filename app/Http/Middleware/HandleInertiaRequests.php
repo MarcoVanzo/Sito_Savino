@@ -37,12 +37,23 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
+            'alternateUrl' => function () use ($request) {
+                $locale = app()->getLocale();
+                $path = $request->getPathInfo();
+                if ($locale === 'it') {
+                    return url('/en' . $path);
+                }
+                $itPath = preg_replace('#^/en(/|$)#', '/', $path);
+                return url($itPath);
+            },
+            'locales' => ['it', 'en'],
             'auth' => [
                 'user' => $request->user()?->only('id', 'name', 'email', 'role'),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
+                'newsletter_info' => fn () => $request->session()->get('newsletter_info'),
             ],
             'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
             'footerMenu' => fn () => $isPublic ? MenuItem::getTree('footer') : [],

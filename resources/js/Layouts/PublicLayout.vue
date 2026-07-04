@@ -6,6 +6,7 @@ import MegaMenu from '@/Components/MegaMenu.vue';
 import SiteFooter from '@/Components/SiteFooter.vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import LOGOS from '@/Constants/logos.js';
+import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 
 const MobileDrawer = defineAsyncComponent(() => import('@/Components/MobileDrawer.vue'));
 const CookieConsent = defineAsyncComponent(() => import('@/Components/CookieConsent.vue'));
@@ -100,7 +101,7 @@ const corporateDomain = computed(() => {
                                             <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1 whitespace-nowrap">{{ corporateName }}</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">{{ corporateDescription }}</p>
                                             <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">
-                                                Visita il Sito Ufficiale
+                                                {{ $t('common.visit_official_site') }}
                                             </a>
                                         </div>
                                     </div>
@@ -117,6 +118,11 @@ const corporateDomain = computed(() => {
                     <!-- MEGA MENU (Desktop) -->
                     <MegaMenu :navigation="nav" />
 
+                    <!-- LANGUAGE SWITCHER (Desktop) -->
+                    <div class="hidden xl:flex items-center ml-3">
+                        <LanguageSwitcher />
+                    </div>
+
                     <!-- MOBILE MENU -->
                     <MobileDrawer
                         :navigation="nav"
@@ -124,7 +130,11 @@ const corporateDomain = computed(() => {
                         :active-index="activeMobileIndex"
                         @toggle="toggleMobileMenu"
                         @toggle-item="toggleMobileItem"
-                    />
+                    >
+                        <template #language-switcher>
+                            <LanguageSwitcher />
+                        </template>
+                    </MobileDrawer>
                 </div>
             </div>
         </header>

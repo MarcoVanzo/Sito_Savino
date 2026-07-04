@@ -7,6 +7,8 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 
 const { onImgError } = useImageFallback();
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const props = defineProps({
     page: Object,
     dirigenza: {
@@ -23,23 +25,23 @@ const contact = computed(() => settings.value.contact ?? {});
 const cd = computed(() => props.page?.content_data ?? {});
 
 // Hero
-const heroSubheading = computed(() => cd.value.hero_subheading || 'Dal 1982');
-const heroDescription = computed(() => cd.value.hero_description || "Oltre quarant'anni di passione, tradizione e successi nel panorama della pallavolo femminile italiana. Una storia costruita con determinazione e visione.");
+const heroSubheading = computed(() => cd.value.hero_subheading || $t('societa.hero_subheading'));
+const heroDescription = computed(() => cd.value.hero_description || $t('societa.hero_description'));
 
 // Storia
-const storiaTitle = computed(() => cd.value.storia_title || 'Una Tradizione di Eccellenza');
+const storiaTitle = computed(() => cd.value.storia_title || $t('societa.storia_title'));
 const storiaParagraphs = computed(() => {
     if (cd.value.storia_paragraphs && cd.value.storia_paragraphs.length > 0) return cd.value.storia_paragraphs;
     return [
-        'Fondata nel 1982 a Scandicci, la Savino Del Bene Volley è diventata una delle realtà più importanti della pallavolo femminile italiana. Dalle origini nel campionato regionale alla Serie A1, il percorso del club è stato segnato da una crescita costante.',
-        'Con la partnership strategica del Gruppo Savino Del Bene, il club ha raggiunto traguardi storici: la Finale Scudetto, la partecipazione alla CEV Champions League e la conquista di un posto stabile tra le migliori squadre d\'Europa.',
-        'Oggi la Savino Del Bene Volley rappresenta un modello di gestione sportiva, con un settore giovanile d\'eccellenza, un impegno sociale concreto e una visione proiettata verso il futuro.',
+        $t('societa.storia_p1'),
+        $t('societa.storia_p2'),
+        $t('societa.storia_p3'),
     ];
 });
 const storiaYears = computed(() => cd.value.storia_years || '40+');
 
 // Organigramma
-const orgTitle = computed(() => cd.value.org_title || 'Il Nostro Team Dirigenziale');
+const orgTitle = computed(() => cd.value.org_title || $t('societa.org_title'));
 
 function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase()
@@ -47,7 +49,7 @@ function getInitials(name) {
 
 // Palazzetto
 const palazzettoTitle = computed(() => cd.value.palazzetto_title || 'Palazzo Wanny');
-const palazzettoDescription = computed(() => cd.value.palazzetto_description || "Il Palazzo Wanny di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l'impianto offre un'esperienza unica per tifosi e appassionati di pallavolo.");
+const palazzettoDescription = computed(() => cd.value.palazzetto_description || $t('societa.palazzetto_description'));
 const palazzettoCapacity = computed(() => cd.value.palazzetto_capacity || '4.000+');
 const palazzettoHomologation = computed(() => cd.value.palazzetto_homologation || 'Serie A1');
 const palazzettoAddress = computed(() => cd.value.palazzetto_address || contact.value.address || 'Via del Tridente, 5 — 50127 Firenze (FI)');
@@ -58,8 +60,8 @@ const contactPhone = computed(() => contact.value.phone || '+39 055 XXX XXXX');
 const contactLocation = computed(() => contact.value.city || 'Scandicci (FI), Toscana');
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'La Società',
-    description: props.page?.meta_description || "Scopri la storia, l'organigramma e le strutture della Savino Del Bene Volley. Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.",
+    title: props.page?.title ?? $t('societa.og_title'),
+    description: props.page?.meta_description || $t('societa.og_description'),
 });
 </script>
 
@@ -86,7 +88,7 @@ const ogMeta = useOgMeta({
                     <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ heroSubheading }}</span>
                 </div>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mb-6">
-                    {{ page?.title ?? 'La Società' }}
+                    {{ page?.title ?? $t('societa.og_title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-8"></div>
                 <p class="text-white/80 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
@@ -100,7 +102,7 @@ const ogMeta = useOgMeta({
             <div class="max-w-7xl mx-auto">
                 <div class="grid md:grid-cols-2 gap-16 items-center">
                     <div>
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">La Nostra Storia</span>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('societa.storia_label') }}</span>
                         <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3 mb-6">
                             {{ storiaTitle }}
                         </h2>
@@ -114,7 +116,7 @@ const ogMeta = useOgMeta({
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <div class="text-center">
                                     <div class="text-savino-gold text-7xl font-black">{{ storiaYears }}</div>
-                                    <div class="text-white/80 text-sm font-bold uppercase tracking-[0.2em] mt-3">Anni di Storia</div>
+                                    <div class="text-white/80 text-sm font-bold uppercase tracking-[0.2em] mt-3">{{ $t('societa.storia_years_label') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -129,7 +131,7 @@ const ogMeta = useOgMeta({
         <section id="organigramma" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center mb-16">
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Organigramma</span>
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('societa.org_label') }}</span>
                     <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3">
                         {{ orgTitle }}
                     </h2>
@@ -162,7 +164,7 @@ const ogMeta = useOgMeta({
 
                 <!-- Empty state fallback -->
                 <div v-else class="text-center py-12">
-                    <p class="text-gray-500">Organigramma in aggiornamento.</p>
+                    <p class="text-gray-500">{{ $t('societa.org_empty') }}</p>
                 </div>
             </div>
         </section>
@@ -179,7 +181,7 @@ const ogMeta = useOgMeta({
                         </div>
                     </div>
                     <div class="order-1 md:order-2">
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">La Nostra Casa</span>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('societa.palazzetto_label') }}</span>
                         <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mt-3 mb-6">
                             {{ palazzettoTitle }}
                         </h2>
@@ -190,11 +192,11 @@ const ogMeta = useOgMeta({
                         <div class="grid grid-cols-2 gap-6 mt-8">
                             <div class="bg-gray-50 p-5 rounded-lg">
                                 <div class="text-savino-blue text-2xl font-black">{{ palazzettoCapacity }}</div>
-                                <div class="text-gray-500 text-sm font-medium mt-1">Posti a Sedere</div>
+                                <div class="text-gray-500 text-sm font-medium mt-1">{{ $t('societa.palazzetto_seats') }}</div>
                             </div>
                             <div class="bg-gray-50 p-5 rounded-lg">
                                 <div class="text-savino-blue text-2xl font-black">{{ palazzettoHomologation }}</div>
-                                <div class="text-gray-500 text-sm font-medium mt-1">Omologazione</div>
+                                <div class="text-gray-500 text-sm font-medium mt-1">{{ $t('societa.palazzetto_homologation') }}</div>
                             </div>
                         </div>
                         <div class="mt-8 flex items-start gap-3 text-gray-600">
@@ -209,9 +211,9 @@ const ogMeta = useOgMeta({
         <!-- CONTATTI -->
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-savino-blue">
             <div class="max-w-5xl mx-auto text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">Resta in Contatto</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('societa.contact_label') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mt-3">
-                    Contattaci
+                    {{ $t('societa.contact_title') }}
                 </h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-12"></div>
                 <div class="grid sm:grid-cols-3 gap-8">
@@ -222,12 +224,12 @@ const ogMeta = useOgMeta({
                     </div>
                     <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 hover:bg-white/10 transition-all duration-300">
                         <svg class="w-8 h-8 text-savino-gold mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                        <h3 class="text-white font-bold uppercase text-sm tracking-wider mb-2">Telefono</h3>
+                        <h3 class="text-white font-bold uppercase text-sm tracking-wider mb-2">{{ $t('societa.contact_phone') }}</h3>
                         <p class="text-white/70 text-sm">{{ contactPhone }}</p>
                     </div>
                     <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-8 hover:bg-white/10 transition-all duration-300">
                         <svg class="w-8 h-8 text-savino-gold mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        <h3 class="text-white font-bold uppercase text-sm tracking-wider mb-2">Sede</h3>
+                        <h3 class="text-white font-bold uppercase text-sm tracking-wider mb-2">{{ $t('societa.contact_location') }}</h3>
                         <p class="text-white/70 text-sm">{{ contactLocation }}</p>
                     </div>
                 </div>

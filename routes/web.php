@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
@@ -37,6 +38,9 @@ foreach ($locales as $loc) {
         Route::get('/shop/checkout', [PublicController::class, 'shopCheckout'])->name('shop.checkout');
         Route::get('/contatti', [PublicController::class, 'contatti'])->name('contatti');
         Route::post('/contatti', [ContactController::class, 'submit'])->name('contatti.submit');
+        Route::post('/newsletter', [NewsletterController::class, 'subscribe'])
+            ->middleware('throttle:5,1')
+            ->name('newsletter.subscribe');
         Route::get('/in-costruzione', [PublicController::class, 'underConstruction'])->name('in-costruzione');
 
         // Rotta dinamica per le pagine del CMS (CATCH-ALL)

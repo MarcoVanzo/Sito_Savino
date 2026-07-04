@@ -73,13 +73,12 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                 <!-- Banner principale -->
                 <div class="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div class="flex-1">
-                        <h4 class="text-sm font-bold mb-1">🍪 Gestione Cookie</h4>
+                        <h4 class="text-sm font-bold mb-1">{{ $t('cookie.title') }}</h4>
                         <p class="text-xs text-gray-400 leading-relaxed">
-                            Utilizziamo cookie tecnici necessari e, con il tuo consenso, cookie analitici e di marketing.
-                            Puoi personalizzare le tue preferenze o consultare la nostra
-                            <Link href="/privacy-policy" class="text-savino-gold hover:underline">Privacy Policy</Link>
-                            e la
-                            <Link href="/cookie-policy" class="text-savino-gold hover:underline">Cookie Policy</Link>.
+                            {{ $t('cookie.description') }}
+                            <Link href="/privacy-policy" class="text-savino-gold hover:underline">{{ $t('footer.privacy_policy') }}</Link>
+                            {{ $t('cookie.and_the') }}
+                            <Link href="/cookie-policy" class="text-savino-gold hover:underline">{{ $t('footer.cookie_policy') }}</Link>.
                         </p>
                     </div>
                     <div class="flex gap-2 flex-shrink-0 flex-wrap">
@@ -87,19 +86,19 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                             @click="openSettings"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white border border-gray-600 hover:border-white/30 rounded-lg transition-all duration-200"
                         >
-                            Personalizza
+                            {{ $t('cookie.customize') }}
                         </button>
                         <button
                             @click="rejectAll"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white border border-gray-600 hover:border-white/30 rounded-lg transition-all duration-200"
                         >
-                            Rifiuta tutti
+                            {{ $t('cookie.reject_all') }}
                         </button>
                         <button
                             @click="acceptAll"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-gold text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200 shadow-lg"
                         >
-                            Accetta tutti
+                            {{ $t('cookie.accept_all') }}
                         </button>
                     </div>
                 </div>
@@ -118,12 +117,12 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                             <!-- Cookie necessari -->
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-bold">Cookie Necessari</p>
-                                    <p class="text-xs text-gray-500">Indispensabili per il funzionamento del sito. Non disattivabili.</p>
+                                    <p class="text-sm font-bold">{{ $t('cookie.necessary_title') }}</p>
+                                    <p class="text-xs text-gray-500">{{ $t('cookie.necessary_desc') }}</p>
                                 </div>
                                 <div class="relative">
                                     <input id="cookie-necessary" type="checkbox" checked disabled
-                                        aria-label="Cookie Necessari"
+                                        :aria-label="$t('cookie.necessary_title')"
                                         class="w-10 h-5 rounded-full appearance-none bg-savino-gold/50 cursor-not-allowed checked:bg-savino-gold" />
                                 </div>
                             </div>
@@ -131,8 +130,8 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                             <!-- Cookie analitici -->
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-bold">Cookie Analitici</p>
-                                    <p class="text-xs text-gray-500">Ci aiutano a capire come usi il sito per migliorarlo.</p>
+                                    <p class="text-sm font-bold">{{ $t('cookie.analytics_title') }}</p>
+                                    <p class="text-xs text-gray-500">{{ $t('cookie.analytics_desc') }}</p>
                                 </div>
                                 <label for="cookie-analytics" class="relative inline-flex items-center cursor-pointer">
                                     <input id="cookie-analytics" type="checkbox" v-model="consent.analytics" class="sr-only peer" />
@@ -144,8 +143,8 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                             <!-- Cookie marketing -->
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm font-bold">Cookie di Marketing</p>
-                                    <p class="text-xs text-gray-500">Personalizzano la pubblicità in base ai tuoi interessi.</p>
+                                    <p class="text-sm font-bold">{{ $t('cookie.marketing_title') }}</p>
+                                    <p class="text-xs text-gray-500">{{ $t('cookie.marketing_desc') }}</p>
                                 </div>
                                 <label for="cookie-marketing" class="relative inline-flex items-center cursor-pointer">
                                     <input id="cookie-marketing" type="checkbox" v-model="consent.marketing" class="sr-only peer" />
@@ -159,7 +158,7 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     @click="saveConsent"
                                     class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-gold text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200"
                                 >
-                                    Salva preferenze
+                                    {{ $t('cookie.save_preferences') }}
                                 </button>
                             </div>
                         </div>

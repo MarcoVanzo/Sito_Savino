@@ -11,6 +11,7 @@ enum UserRole: string implements HasLabel
     case ShopManager = 'shop_manager';
     case SportCoordinator = 'sport_coordinator';
     case User = 'user';
+    case Customer = 'customer';
 
     public function getLabel(): string
     {
@@ -20,6 +21,7 @@ enum UserRole: string implements HasLabel
             self::ShopManager => 'Resp. Shop',
             self::SportCoordinator => 'Coord. Sportivo',
             self::User => 'Utente',
+            self::Customer => 'Cliente',
         };
     }
 
@@ -34,6 +36,7 @@ enum UserRole: string implements HasLabel
             self::ShopManager => 'success',
             self::SportCoordinator => 'info',
             self::User => 'gray',
+            self::Customer => 'primary',
         };
     }
 
@@ -48,6 +51,7 @@ enum UserRole: string implements HasLabel
             self::ShopManager => 'heroicon-o-shopping-bag',
             self::SportCoordinator => 'heroicon-o-trophy',
             self::User => 'heroicon-o-user',
+            self::Customer => 'heroicon-o-shopping-cart',
         };
     }
 
@@ -58,7 +62,7 @@ enum UserRole: string implements HasLabel
      */
     public function canAccessPanel(): bool
     {
-        return $this !== self::User;
+        return ! in_array($this, [self::User, self::Customer]);
     }
 
     // ─── Aree funzionali ───────────────────────────────────────

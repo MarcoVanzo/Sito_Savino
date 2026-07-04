@@ -6,6 +6,8 @@ import { useOgMeta } from '@/Composables/useOgMeta'
 
 const { onImgError } = useImageFallback()
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const props = defineProps({
     dirigenza: {
         type: Array,
@@ -22,8 +24,8 @@ function getInitials(name) {
 }
 
 const ogMeta = useOgMeta({
-    title: props.page?.title || 'Organigramma',
-    description: props.page?.meta_description || 'L\'organigramma e la dirigenza della Savino Del Bene Volley.',
+    title: props.page?.title || $t('organigramma.og_title'),
+    description: props.page?.meta_description || $t('organigramma.og_description'),
 })
 </script>
 
@@ -43,12 +45,12 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">La Società</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title || 'Organigramma' }}</h1>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('organigramma.hero_subtitle') }}</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title || $t('organigramma.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
                 
                 <div v-if="page?.content" class="prose prose-lg prose-invert max-w-3xl mx-auto" v-html="page.content"></div>
-                <p v-else class="text-white/70 text-lg max-w-2xl mx-auto">La struttura dirigenziale e organizzativa della nostra società.</p>
+                <p v-else class="text-white/70 text-lg max-w-2xl mx-auto">{{ $t('organigramma.hero_description') }}</p>
             </div>
         </section>
 
@@ -87,8 +89,8 @@ const ogMeta = useOgMeta({
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 uppercase mb-3">Organigramma in aggiornamento</h3>
-                    <p class="text-gray-500 max-w-md mx-auto">La struttura societaria sarà visibile a breve.</p>
+                    <h3 class="text-2xl font-black text-gray-900 uppercase mb-3">{{ $t('organigramma.empty_title') }}</h3>
+                    <p class="text-gray-500 max-w-md mx-auto">{{ $t('organigramma.empty_description') }}</p>
                 </div>
 
             </div>

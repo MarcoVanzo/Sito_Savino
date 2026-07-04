@@ -7,6 +7,8 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 
 const { sanitize } = useSanitize();
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const props = defineProps({
     page: Object,
 });
@@ -14,8 +16,8 @@ const props = defineProps({
 const safeContent = computed(() => sanitize(props.page?.content));
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Pagina',
-    description: props.page?.meta_description || 'Savino Del Bene Volley - Sito ufficiale.',
+    title: props.page?.title ?? $t('content_page.og_title'),
+    description: props.page?.meta_description || $t('content_page.og_description'),
 });
 </script>
 

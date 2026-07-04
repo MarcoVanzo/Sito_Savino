@@ -5,6 +5,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+import { createTranslations } from './i18n/index.js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
@@ -32,6 +33,11 @@ createInertiaApp({
             return originalRoute(name, params, absolute, config);
         };
         app.config.globalProperties.route = window.route;
+
+        // i18n: register $t as global translation function
+        const $t = createTranslations(props.initialPage.props.locale || 'it');
+        app.config.globalProperties.$t = $t;
+        if (typeof window !== 'undefined') window.$t = $t;
 
         return app.mount(el);
     },

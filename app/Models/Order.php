@@ -3,13 +3,16 @@
 namespace App\Models;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentGateway;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
@@ -18,13 +21,35 @@ class Order extends Model
     protected $fillable = [
         'user_id', 'status', 'total_price',
         'shipping_address', 'billing_address',
-        'stripe_payment_id',
+        'order_number', 'order_token', 'guest_email', 'guest_name',
+        'guest_phone', 'country', 'payment_gateway', 'payment_id',
+        'paid_at', 'shipped_at', 'tracking_number', 'tracking_url',
+        'shipping_cost', 'coupon_id', 'coupon_discount', 'notes',
+        'privacy_accepted_at',
     ];
 
     protected $casts = [
         'total_price' => 'decimal:2',
         'status' => OrderStatus::class,
+        'payment_gateway' => PaymentGateway::class,
+        'shipping_cost' => 'decimal:2',
+        'coupon_discount' => 'decimal:2',
+        'paid_at' => 'datetime',
+        'shipped_at' => 'datetime',
+        'privacy_accepted_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (Order $order) {
+            if (! $order->order_number) {
+                $order->updateQuietly([
+                    'order_number' => 'ORD-' . now()->format('Y') . '-' . str_pad($order->id, 5, '0', STR_PAD_LEFT),
+                    'order_token' => $order->order_token ?? Str::uuid()->toString(),
+                ]);
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {
@@ -41,14 +66,34 @@ class Order extends Model
         return $this->hasMany(StockMovement::class);
     }
 
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    public function couponUsage(): HasOne
+    {
+        return $this->hasOne(CouponUsage::class);
+    }
+
     public function scopePaid($query)
     {
         return $query->where('status', OrderStatus::Paid);
     }
 
+    public function scopeForGuest($query, string $email)
+    {
+        return $query->where('guest_email', $email);
+    }
+
+    public function isGuest(): bool
+    {
+        return $this->user_id === null;
+    }
+
     /**
-     * Ricalcola il totale ordine dalla somma degli items.
-     * Persiste il valore calcolato nel campo total_price.
+     * Ricalcola il totale ordine dalla somma degli items,
+     * includendo costo spedizione e sconto coupon.
      */
     public function recalculateTotal(): self
     {
@@ -56,8 +101,10 @@ class Order extends Model
             // Acquisisce lock FOR UPDATE correttamente
             $locked = static::lockForUpdate()->find($this->id);
 
-            $locked->total_price = $locked->items()
+            $itemsTotal = $locked->items()
                 ->sum(DB::raw('quantity * price_at_time_of_purchase'));
+
+            $locked->total_price = max(0, $itemsTotal + (float) $locked->shipping_cost - (float) $locked->coupon_discount);
             $locked->save();
 
             // Sincronizza l'istanza corrente con i valori aggiornati

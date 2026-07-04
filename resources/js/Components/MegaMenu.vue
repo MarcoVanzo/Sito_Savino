@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <nav ref="navRef" role="navigation" aria-label="Navigazione principale" class="hidden xl:flex flex-1 justify-end items-center h-full">
+    <nav ref="navRef" role="navigation" :aria-label="$t('nav.main_navigation')" class="hidden xl:flex flex-1 justify-end items-center h-full">
         <div class="flex items-center h-full">
             <template v-for="(item, index) in navigation" :key="item.label">
                 <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="item.children?.length > 0 ? openIndex = index : null" @mouseleave="closeDropdown">
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
                         :class="openIndex === index ? 'opacity-100 visible' : 'opacity-0 invisible'"
                         :style="dropdownStyles[index] || {}"
                         role="menu"
-                        :aria-label="item.label + ' sottomenu'"
+                        :aria-label="item.label + ' ' + $t('nav.submenu')"
                         @keydown="handleDropdownKeydown($event, index)"
                     >
                         <div class="flex bg-white/95 backdrop-blur-xl shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-white/20 rounded-2xl overflow-hidden transition-transform duration-300 ease-out w-[720px] min-h-[320px]" :class="openIndex === index ? 'translate-y-0' : 'translate-y-4 group-hover:translate-y-0'">
@@ -196,7 +196,7 @@ onBeforeUnmount(() => {
                                             {{ sub.label }}
                                             <svg class="w-5 h-5 text-savino-gold opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                         </span>
-                                        <span class="text-xs text-gray-500 font-medium">{{ sub.description || 'Esplora la sezione dedicata' }}</span>
+                                        <span class="text-xs text-gray-500 font-medium">{{ sub.description || $t('common.explore_section') }}</span>
                                     </Link>
                                 </div>
                             </div>
@@ -219,8 +219,8 @@ onBeforeUnmount(() => {
 
                                     <div>
                                         <div class="w-12 h-1 bg-savino-red mb-4"></div>
-                                        <p class="text-white text-3xl font-serif font-bold italic leading-tight mb-2"><template v-for="(line, i) in (item.mottoTitle || 'Eccellenza<br/>nello Sport.').split('<br/>')" :key="i">{{ line }}<br v-if="i < (item.mottoTitle || 'Eccellenza<br/>nello Sport.').split('<br/>').length - 1" /></template></p>
-                                        <p class="text-gray-300 text-sm font-medium">{{ item.mottoSubtitle || 'Passione, determinazione e orgoglio in ogni partita.' }}</p>
+                                        <p class="text-white text-3xl font-serif font-bold italic leading-tight mb-2"><template v-for="(line, i) in (item.mottoTitle || $t('common.excellence_sport')).split('<br/>')" :key="i">{{ line }}<br v-if="i < (item.mottoTitle || $t('common.excellence_sport')).split('<br/>').length - 1" /></template></p>
+                                        <p class="text-gray-300 text-sm font-medium">{{ item.mottoSubtitle || $t('common.passion_motto') }}</p>
                                     </div>
                                 </div>
                             </div>

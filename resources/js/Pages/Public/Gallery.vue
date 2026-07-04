@@ -5,6 +5,8 @@ import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useImageFallback } from '@/Composables/useImageFallback.js'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const { onImgError } = useImageFallback()
 
 const props = defineProps({
@@ -34,11 +36,12 @@ const props = defineProps({
 const displayMedia = computed(() => props.media)
 
 // ── Category filter ───────────────────────────────────────────
+const ALL_CATEGORY = '__all__'
 const categories = computed(() => {
     const cats = [...new Set(displayMedia.value.map(m => m.category).filter(Boolean))]
-    return ['Tutte', ...cats]
+    return [ALL_CATEGORY, ...cats]
 })
-const activeCategory = ref('Tutte')
+const activeCategory = ref(ALL_CATEGORY)
 
 // ── Tag search ────────────────────────────────────────────────
 const searchQuery = ref('')
@@ -47,7 +50,7 @@ const filteredMedia = computed(() => {
     let result = displayMedia.value
 
     // Category filter
-    if (activeCategory.value !== 'Tutte') {
+    if (activeCategory.value !== ALL_CATEGORY) {
         result = result.filter(m => m.category === activeCategory.value)
     }
 
@@ -180,8 +183,8 @@ const totalEvents = computed(() => props.totalEvents)
 const totalTaggedAthletes = computed(() => props.athletes?.length || 0)
 
 const ogMeta = useOgMeta({
-    title: props.currentAthlete ? 'Foto di ' + props.currentAthlete.name : (props.page?.title ?? 'Foto Gallery'),
-    description: 'La galleria fotografica ufficiale della Savino Del Bene Volley. Immagini dalle partite, eventi e dietro le quinte.',
+    title: props.currentAthlete ? $t('gallery.photos_of') + ' ' + props.currentAthlete.name : (props.page?.title ?? $t('gallery.title')),
+    description: $t('gallery.og_description'),
 })
 </script>
 
@@ -215,15 +218,15 @@ const ogMeta = useOgMeta({
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
                     </svg>
-                    <span>Foto Gallery</span>
+                    <span>{{ $t('gallery.title') }}</span>
                 </div>
 
                 <h1 class="gallery-hero__title">
                     <template v-if="currentAthlete">
-                        <span class="gallery-hero__title-small">Le foto di</span>
+                        <span class="gallery-hero__title-small">{{ $t('gallery.photos_of') }}</span>
                         {{ currentAthlete.name }}
                     </template>
-                    <template v-else>{{ page?.title ?? 'Foto Gallery' }}</template>
+                    <template v-else>{{ page?.title ?? $t('gallery.title') }}</template>
                 </h1>
 
                 <div class="gallery-hero__divider">
@@ -231,22 +234,22 @@ const ogMeta = useOgMeta({
                 </div>
 
                 <p class="gallery-hero__subtitle">
-                    Rivivi i momenti più emozionanti della nostra stagione attraverso le immagini.
+                    {{ $t('gallery.subtitle') }}
                 </p>
 
                 <!-- Stats pills -->
                 <div v-if="totalPhotos > 0" class="gallery-hero__stats">
                     <div class="gallery-hero__stat">
                         <span class="gallery-hero__stat-number">{{ totalPhotos }}</span>
-                        <span class="gallery-hero__stat-label">Foto</span>
+                        <span class="gallery-hero__stat-label">{{ $t('gallery.stat_photos') }}</span>
                     </div>
                     <div v-if="totalEvents > 0" class="gallery-hero__stat">
                         <span class="gallery-hero__stat-number">{{ totalEvents }}</span>
-                        <span class="gallery-hero__stat-label">Eventi</span>
+                        <span class="gallery-hero__stat-label">{{ $t('gallery.stat_events') }}</span>
                     </div>
                     <div v-if="totalTaggedAthletes > 0" class="gallery-hero__stat">
                         <span class="gallery-hero__stat-number">{{ totalTaggedAthletes }}</span>
-                        <span class="gallery-hero__stat-label">Atlete Taggate</span>
+                        <span class="gallery-hero__stat-label">{{ $t('gallery.stat_tagged_athletes') }}</span>
                     </div>
                 </div>
             </div>
@@ -271,7 +274,7 @@ const ogMeta = useOgMeta({
                         class="gallery-filters__chip"
                         :class="{ 'gallery-filters__chip--active': activeCategory === cat }"
                     >
-                        <svg v-if="cat === 'Tutte'" class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <svg v-if="cat === '__all__'" class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.5 3A2.5 2.5 0 003 5.5v2.879a2.5 2.5 0 00.732 1.767l6.5 6.5a2.5 2.5 0 003.536 0l2.878-2.878a2.5 2.5 0 000-3.536l-6.5-6.5A2.5 2.5 0 008.38 3H5.5zM6 7a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
                         </svg>
                         <svg v-else-if="cat === 'Partite'" class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -283,8 +286,8 @@ const ogMeta = useOgMeta({
                         <svg v-else class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-2.69l-2.22-2.219a.75.75 0 00-1.06 0l-1.91 1.909.47.47a.75.75 0 11-1.06 1.06L6.53 8.091a.75.75 0 00-1.06 0L2.5 11.06z"/>
                         </svg>
-                        {{ cat }}
-                        <span v-if="cat !== 'Tutte'" class="gallery-filters__chip-count">
+                        {{ cat === '__all__' ? $t('gallery.filter_all') : cat }}
+                        <span v-if="cat !== '__all__'" class="gallery-filters__chip-count">
                             {{ displayMedia.filter(m => m.category === cat).length }}
                         </span>
                     </button>
@@ -300,7 +303,7 @@ const ogMeta = useOgMeta({
                             </svg>
                         </div>
                         <span class="gallery-filters__current-athlete-name">{{ currentAthlete.name }}</span>
-                        <button @click="clearAthlete" class="gallery-filters__current-athlete-clear" aria-label="Mostra tutte le atlete">
+                        <button @click="clearAthlete" class="gallery-filters__current-athlete-clear" :aria-label="$t('gallery.show_all_athletes')">
                             <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
                             </svg>
@@ -316,7 +319,7 @@ const ogMeta = useOgMeta({
                         <svg class="gallery-filters__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
                         </svg>
-                        <span>Cerca per Atleta</span>
+                        <span>{{ $t('gallery.search_by_athlete') }}</span>
                         <svg class="gallery-filters__search-chevron" :class="{ 'gallery-filters__search-chevron--open': athleteSearchOpen }" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
                         </svg>
@@ -332,7 +335,7 @@ const ogMeta = useOgMeta({
                                 <input
                                     v-model="athleteQuery"
                                     type="text"
-                                    placeholder="Cerca atleta..."
+                                    :placeholder="$t('gallery.search_athlete_placeholder')"
                                     class="gallery-filters__dropdown-input"
                                     @click.stop
                                 />
@@ -355,7 +358,7 @@ const ogMeta = useOgMeta({
                                     </svg>
                                 </button>
                                 <p v-if="filteredAthletes.length === 0" class="gallery-filters__dropdown-empty">
-                                    Nessuna atleta trovata
+                                    {{ $t('gallery.no_athlete_found') }}
                                 </p>
                             </div>
                         </div>
@@ -371,14 +374,14 @@ const ogMeta = useOgMeta({
                         <input
                             v-model="searchQuery"
                             type="text"
-                            placeholder="Cerca per tag, giocatrice, evento..."
+                            :placeholder="$t('gallery.search_tag_placeholder')"
                             class="gallery-filters__tag-search-input"
                         />
                         <button
                             v-if="searchQuery"
                             @click="searchQuery = ''"
                             class="gallery-filters__tag-search-clear"
-                            aria-label="Pulisci ricerca"
+                            :aria-label="$t('gallery.clear_search')"
                         >
                             <svg viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
@@ -390,10 +393,10 @@ const ogMeta = useOgMeta({
 
             <!-- Photo count -->
             <div class="gallery-filters__count">
-                <span>{{ filteredMedia.length }}</span> foto{{ filteredMedia.length !== 1 ? '' : '' }}
-                <template v-if="activeCategory !== 'Tutte'"> in <strong>{{ activeCategory }}</strong></template>
+                <span>{{ filteredMedia.length }}</span> {{ $t('gallery.stat_photos').toLowerCase() }}
+                <template v-if="activeCategory !== '__all__'"> {{ $t('gallery.in_category') }} <strong>{{ activeCategory }}</strong></template>
                 <template v-if="currentAthlete"> · <strong>{{ currentAthlete.name }}</strong></template>
-                <template v-if="searchQuery.trim()"> · ricerca: <strong>"{{ searchQuery.trim() }}"</strong></template>
+                <template v-if="searchQuery.trim()"> · {{ $t('gallery.search_label') }}: <strong>"{{ searchQuery.trim() }}"</strong></template>
             </div>
         </section>
 
@@ -407,9 +410,8 @@ const ogMeta = useOgMeta({
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/>
                     </svg>
                 </div>
-                <h3 class="gallery-empty__title">Gallery in aggiornamento</h3>
-                <p class="gallery-empty__text">
-                    Stiamo preparando i migliori scatti della stagione.<br>Torna a trovarci presto!
+                <h3 class="gallery-empty__title">{{ $t('gallery.empty_title') }}</h3>
+                <p class="gallery-empty__text" v-html="$t('gallery.empty_text')">
                 </p>
             </div>
 
@@ -478,19 +480,19 @@ const ogMeta = useOgMeta({
                     @touchend.passive="onTouchEnd"
                 >
                     <!-- Close -->
-                    <button @click="closeLightbox" aria-label="Chiudi lightbox" class="gallery-lightbox__close">
+                    <button @click="closeLightbox" :aria-label="$t('common.close')" class="gallery-lightbox__close">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
 
                     <!-- Navigation -->
-                    <button @click.stop="prevImage" aria-label="Immagine precedente" class="gallery-lightbox__nav gallery-lightbox__nav--prev">
+                    <button @click.stop="prevImage" :aria-label="$t('gallery.prev_image')" class="gallery-lightbox__nav gallery-lightbox__nav--prev">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                         </svg>
                     </button>
-                    <button @click.stop="nextImage" aria-label="Immagine successiva" class="gallery-lightbox__nav gallery-lightbox__nav--next">
+                    <button @click.stop="nextImage" :aria-label="$t('gallery.next_image')" class="gallery-lightbox__nav gallery-lightbox__nav--next">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                         </svg>

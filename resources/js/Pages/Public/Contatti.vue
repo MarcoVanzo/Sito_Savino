@@ -4,6 +4,8 @@ import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const props = defineProps({
     page: {
         type: Object,
@@ -49,14 +51,14 @@ const contactInfo = computed(() => [
     },
     {
         icon: 'phone',
-        title: 'Telefono',
+        title: $t('contatti.phone'),
         value: contact.value.phone || '+39 055 123 4567',
         link: 'tel:' + (contact.value.phone_raw || contact.value.phone || '+390551234567').replace(/\s/g, ''),
         color: 'savino-gold'
     },
     {
         icon: 'location',
-        title: 'Sede',
+        title: $t('contatti.location'),
         value: contact.value.address || 'Palazzo Wanny, Via Allende 10, Firenze',
         link: null,
         color: 'savino-red'
@@ -64,8 +66,8 @@ const contactInfo = computed(() => [
 ])
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Contatti',
-    description: cd.value?.meta_description || 'Contatta la Savino Del Bene Volley. Sede, uffici, numeri utili e form di contatto.',
+    title: props.page?.title ?? $t('contatti.og_title'),
+    description: cd.value?.meta_description || $t('contatti.og_description'),
 })
 </script>
 
@@ -85,10 +87,10 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || 'Resta in Contatto' }}</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Contatti' }}</h1>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || $t('contatti.hero_subtitle') }}</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('contatti.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description || 'Scrivici, chiamaci o vieni a trovarci. Siamo qui per te.' }}</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description || $t('contatti.hero_description') }}</p>
             </div>
         </section>
 
@@ -138,7 +140,7 @@ const ogMeta = useOgMeta({
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <!-- Form -->
                     <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-                        <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.form_title || 'Scrivici' }}</h2>
+                        <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.form_title || $t('contatti.form_title') }}</h2>
                         <div class="w-10 h-1 bg-savino-gold mb-6"></div>
 
                         <!-- Success State -->
@@ -149,8 +151,8 @@ const ogMeta = useOgMeta({
                                 </svg>
                             </div>
                             <h3 class="text-xl font-bold text-gray-900 mb-2">{{ flashSuccess }}</h3>
-                            <p class="text-gray-500 mb-6">{{ cd.form_success_message || 'Ti risponderemo il prima possibile.' }}</p>
-                            <button @click="resetForm" class="text-savino-blue font-bold hover:underline">{{ cd.form_reset_label || 'Invia un altro messaggio' }}</button>
+                            <p class="text-gray-500 mb-6">{{ cd.form_success_message || $t('contatti.form_success_message') }}</p>
+                            <button @click="resetForm" class="text-savino-blue font-bold hover:underline">{{ cd.form_reset_label || $t('contatti.form_reset_label') }}</button>
                         </div>
 
                         <!-- Form -->
@@ -159,14 +161,14 @@ const ogMeta = useOgMeta({
                                 <p v-for="(error, field) in form.errors" :key="field">{{ error }}</p>
                             </div>
                             <div>
-                                <label for="contact-name" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_name || 'Nome e Cognome' }} *</label>
+                                <label for="contact-name" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_name || $t('contatti.form_label_name') }} *</label>
                                 <input
                                     id="contact-name"
                                     v-model="form.name"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
                                    
-                                    :placeholder="cd.form_placeholder_name || 'Il tuo nome'"
+                                    :placeholder="cd.form_placeholder_name || $t('contatti.form_placeholder_name')"
                                 />
                             </div>
                             <div>
@@ -177,29 +179,29 @@ const ogMeta = useOgMeta({
                                     type="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
                                    
-                                    :placeholder="cd.form_placeholder_email || 'La tua email'"
+                                    :placeholder="cd.form_placeholder_email || $t('contatti.form_placeholder_email')"
                                 />
                             </div>
                             <div>
-                                <label for="contact-subject" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_subject || 'Oggetto' }}</label>
+                                <label for="contact-subject" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_subject || $t('contatti.form_label_subject') }}</label>
                                 <input
                                     id="contact-subject"
                                     v-model="form.subject"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all"
                                    
-                                    :placeholder="cd.form_placeholder_subject || 'Oggetto del messaggio'"
+                                    :placeholder="cd.form_placeholder_subject || $t('contatti.form_placeholder_subject')"
                                 />
                             </div>
                             <div>
-                                <label for="contact-message" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_message || 'Messaggio' }} *</label>
+                                <label for="contact-message" class="block text-sm font-bold text-gray-700 mb-1.5">{{ cd.form_label_message || $t('contatti.form_label_message') }} *</label>
                                 <textarea
                                     id="contact-message"
                                     v-model="form.message"
                                     rows="5"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-all resize-none"
                                    
-                                    :placeholder="cd.form_placeholder_message || 'Scrivi il tuo messaggio...'"
+                                    :placeholder="cd.form_placeholder_message || $t('contatti.form_placeholder_message')"
                                 ></textarea>
                             </div>
                             <div class="hidden" aria-hidden="true">
@@ -210,8 +212,8 @@ const ogMeta = useOgMeta({
                                 :disabled="form.processing"
                                 class="w-full bg-savino-blue text-white py-3.5 rounded-lg font-bold uppercase tracking-wider hover:bg-savino-blue/90 transition-all duration-300 shadow-lg shadow-savino-blue/30 hover:shadow-xl hover:shadow-savino-blue/40 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <span v-if="form.processing">{{ cd.form_sending_label || 'Invio in corso...' }}</span>
-                                <span v-else>{{ cd.form_submit_label || 'Invia Messaggio' }}</span>
+                                <span v-if="form.processing">{{ cd.form_sending_label || $t('contatti.form_sending') }}</span>
+                                <span v-else>{{ cd.form_submit_label || $t('contatti.form_submit') }}</span>
                             </button>
                         </form>
                     </div>
@@ -225,7 +227,7 @@ const ogMeta = useOgMeta({
                                 allowfullscreen
                                 loading="lazy"
                                 referrerpolicy="no-referrer-when-downgrade"
-                                title="Mappa Palazzo Wanny - Savino Del Bene Volley"
+                                :title="$t('contatti.map_iframe_title')"
                             ></iframe>
                         </div>
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
@@ -246,7 +248,7 @@ const ogMeta = useOgMeta({
                                     rel="noopener noreferrer"
                                     class="ml-auto inline-flex items-center min-h-[44px] text-xs font-bold text-savino-blue hover:text-savino-blue/80 transition-colors uppercase tracking-wider"
                                 >
-                                    Indicazioni →
+                                    {{ $t('contatti.directions') }} →
                                 </a>
                             </div>
                         </div>

@@ -4,6 +4,8 @@ import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+
 const props = defineProps({
     page: {
         type: Object,
@@ -19,7 +21,7 @@ const props = defineProps({
     },
     seasonName: {
         type: String,
-        default: 'Stagione corrente',
+        default: '',
     }
 })
 
@@ -52,8 +54,8 @@ function isWin(game) {
 }
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Risultati e Classifica',
-    description: 'Risultati, calendario e classifica della Savino Del Bene Volley. Segui tutte le partite della stagione in corso.',
+    title: props.page?.title ?? $t('risultati.og_title'),
+    description: $t('risultati.og_description'),
 })
 </script>
 
@@ -73,17 +75,17 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName }}</span>
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? 'Risultati e Classifica' }}</h1>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('risultati.current_season') }}</span>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('risultati.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">Segui i risultati delle nostre partite e la classifica aggiornata del campionato.</p>
+                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ $t('risultati.hero_subtitle') }}</p>
             </div>
         </section>
 
         <!-- Ultime Partite -->
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">Ultime Partite</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ $t('risultati.latest_matches') }}</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
                 <div class="space-y-4">
@@ -124,7 +126,7 @@ const ogMeta = useOgMeta({
                                 <span
                                     class="px-3 py-1 rounded-full text-xs font-bold uppercase"
                                     :class="isWin(game) ? 'bg-green-100 text-green-700' : 'bg-savino-red/10 text-savino-red'"
-                                >{{ isWin(game) ? 'Vittoria' : 'Sconfitta' }}</span>
+                                >{{ isWin(game) ? $t('risultati.win') : $t('risultati.loss') }}</span>
                             </div>
                         </div>
 
@@ -139,7 +141,7 @@ const ogMeta = useOgMeta({
                                 <span
                                     class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase"
                                     :class="isWin(game) ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'"
-                                >{{ isWin(game) ? 'Vittoria' : 'Sconfitta' }}</span>
+                                >{{ isWin(game) ? $t('risultati.win') : $t('risultati.loss') }}</span>
                             </div>
                             <!-- Teams -->
                             <div class="px-4 py-3 space-y-1.5">
@@ -167,7 +169,7 @@ const ogMeta = useOgMeta({
         <!-- Classifica -->
         <section class="py-16 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">Classifica</h2>
+                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ $t('risultati.standings') }}</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
                 <div class="relative">
@@ -175,14 +177,14 @@ const ogMeta = useOgMeta({
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-savino-blue text-white">
-                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider">Pos</th>
-                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider">Squadra</th>
-                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">G</th>
-                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">V</th>
-                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">P</th>
-                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">SV</th>
-                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">SP</th>
-                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">Punti</th>
+                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider">{{ $t('risultati.col_pos') }}</th>
+                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider">{{ $t('risultati.col_team') }}</th>
+                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">{{ $t('risultati.col_played_short') }}</th>
+                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">{{ $t('risultati.col_won_short') }}</th>
+                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">{{ $t('risultati.col_lost_short') }}</th>
+                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">{{ $t('risultati.col_sets_won_short') }}</th>
+                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">{{ $t('risultati.col_sets_lost_short') }}</th>
+                                <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">{{ $t('risultati.col_points') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -215,8 +217,9 @@ const ogMeta = useOgMeta({
                     <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none rounded-r-xl md:hidden"></div>
                 </div>
 
-                <p class="text-xs text-gray-400 mt-4 text-center">G = Giocate · V = Vinte · P = Perse · SV = Set Vinti · SP = Set Persi</p>
+                <p class="text-xs text-gray-400 mt-4 text-center">{{ $t('risultati.legend') }}</p>
             </div>
         </section>
     </PublicLayout>
 </template>
+

@@ -21,8 +21,11 @@ const emit = defineEmits(['toggle', 'toggle-item']);
 
 <template>
     <!-- MOBILE MENU BUTTON -->
-    <div class="flex items-center xl:hidden z-50">
-        <button @click="emit('toggle')" type="button" aria-label="Apri menu" :aria-expanded="isOpen" class="text-white hover:text-savino-red focus:outline-none p-3 min-w-[44px] min-h-[44px] flex items-center justify-center">
+    <div class="flex items-center xl:hidden z-50 gap-2">
+        <!-- Language Switcher slot (mobile) -->
+        <slot name="language-switcher" />
+
+        <button @click="emit('toggle')" type="button" :aria-label="$t('common.open_menu')" :aria-expanded="isOpen" class="text-white hover:text-savino-red focus:outline-none p-3 min-w-[44px] min-h-[44px] flex items-center justify-center">
             <svg v-if="!isOpen" class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -42,7 +45,7 @@ const emit = defineEmits(['toggle', 'toggle-item']);
         leave-to-class="-translate-y-full opacity-0"
     >
         <div v-show="isOpen" class="xl:hidden absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-36 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
-            <nav role="navigation" aria-label="Menu mobile" class="flex flex-col space-y-2 text-center pb-10">
+            <nav role="navigation" :aria-label="$t('nav.mobile_menu')" class="flex flex-col space-y-2 text-center pb-10">
                 <div v-for="(item, index) in navigation" :key="item.label" class="border-b border-white/10 last:border-0">
                     <button 
                         @click="emit('toggle-item', index)"

@@ -3,9 +3,11 @@ import { ref, computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import PageHero from '@/Components/PageHero.vue';
 import { Head } from '@inertiajs/vue3';
-import { roleLabels, displayRole } from '@/data/playerRoles';
+import { roleLabels, displayRole, getRoleLabels } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
+
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
 
 const { onImgError } = useImageFallback();
 
@@ -28,11 +30,14 @@ const props = defineProps({
     },
 });
 
-const selectedRole = ref('Tutti');
-const roles = ['Tutti', ...Object.keys(roleLabels)];
+const ALL_ROLES = '__all__';
+const selectedRole = ref(ALL_ROLES);
+const roles = [ALL_ROLES, ...Object.keys(roleLabels)];
+
+const translatedRoleLabels = computed(() => getRoleLabels($t));
 
 const filteredRoster = computed(() => {
-    if (selectedRole.value === 'Tutti') {
+    if (selectedRole.value === ALL_ROLES) {
         return props.roster;
     }
     return props.roster.filter(item => item.role === selectedRole.value);
@@ -43,8 +48,8 @@ function getInitials(name) {
 }
 
 const ogMeta = useOgMeta({
-    title: 'Roster Serie A1' + (props.seasonName ? ' — ' + props.seasonName : ''),
-    description: 'La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1.',
+    title: $t('stagione.og_title') + (props.seasonName ? ' — ' + props.seasonName : ''),
+    description: $t('stagione.og_description'),
 });
 </script>
 
@@ -61,9 +66,9 @@ const ogMeta = useOgMeta({
     <PublicLayout>
         <!-- Hero -->
         <PageHero
-            subtitle="La Nostra Squadra"
-            :title="'Roster Serie A1' + (seasonName ? ' — ' + seasonName : '')"
-            description="Scopri le atlete della Savino Del Bene Volley per la stagione in corso."
+            :subtitle="$t('stagione.hero_subtitle')"
+            :title="$t('stagione.og_title') + (seasonName ? ' — ' + seasonName : '')"
+            :description="$t('stagione.hero_description')"
         />
 
         <!-- Roster Content -->
@@ -81,7 +86,7 @@ const ogMeta = useOgMeta({
                             ? 'bg-savino-blue text-white shadow-lg shadow-savino-blue/30'
                             : 'bg-white text-gray-600 hover:bg-savino-blue/10 hover:text-savino-blue border border-gray-200'"
                     >
-                        {{ role === 'Tutti' ? 'Tutti' : roleLabels[role] ?? role }}
+                        {{ role === '__all__' ? $t('stagione.filter_all') : translatedRoleLabels[role] ?? role }}
                     </button>
                 </div>
 
@@ -116,16 +121,16 @@ const ogMeta = useOgMeta({
                         <!-- Dati Atleta -->
                         <div class="p-5">
                             <div class="text-xs font-bold text-savino-gold uppercase tracking-wider mb-1">
-                                {{ displayRole(item.role) }}
+                                {{ displayRole(item.role, $t) }}
                             </div>
                             <h3 class="text-xl text-savino-blue font-black tracking-tight mb-3">
                                 {{ item.player.first_name }} {{ item.player.last_name }}
                             </h3>
 
                             <div class="flex gap-4 text-sm text-gray-500">
-                                <div v-if="item.player.nationality"><strong>Naz:</strong> {{ item.player.nationality }}</div>
-                                <div v-if="item.height_cm"><strong>Alt:</strong> {{ item.height_cm }} cm</div>
-                                <div v-if="item.player.date_of_birth"><strong>Anno:</strong> {{ new Date(item.player.date_of_birth).getFullYear() }}</div>
+                                <div v-if="item.player.nationality"><strong>{{ $t('stagione.nationality_short') }}:</strong> {{ item.player.nationality }}</div>
+                                <div v-if="item.height_cm"><strong>{{ $t('stagione.height_short') }}:</strong> {{ item.height_cm }} cm</div>
+                                <div v-if="item.player.date_of_birth"><strong>{{ $t('stagione.year_short') }}:</strong> {{ new Date(item.player.date_of_birth).getFullYear() }}</div>
                             </div>
                         </div>
                     </div>
@@ -136,9 +141,9 @@ const ogMeta = useOgMeta({
                     <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-savino-blue/10 flex items-center justify-center">
                         <svg class="w-12 h-12 text-savino-blue/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </div>
-                    <p class="text-gray-500 text-lg font-semibold">Nessuna atleta trovata per il ruolo selezionato.</p>
-                    <button @click="selectedRole = 'Tutti'" class="mt-4 px-6 py-2.5 bg-savino-gold text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors">
-                        Mostra tutte
+                    <p class="text-gray-500 text-lg font-semibold">{{ $t('stagione.empty_role') }}</p>
+                    <button @click="selectedRole = '__all__'" class="mt-4 px-6 py-2.5 bg-savino-gold text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors">
+                        {{ $t('stagione.show_all') }}
                     </button>
                 </div>
 
@@ -149,8 +154,8 @@ const ogMeta = useOgMeta({
         <section v-if="staffTecnico.length > 0" class="py-16 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Il Nostro Team</span>
-                    <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tight mt-3">Staff Tecnico</h2>
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('stagione.our_team') }}</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tight mt-3">{{ $t('stagione.coaching_staff') }}</h2>
                     <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -183,8 +188,8 @@ const ogMeta = useOgMeta({
         <section v-if="staffMedico.length > 0" class="py-16 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Supporto Alle Atlete</span>
-                    <h2 class="text-3xl md:text-4xl font-black text-savino-red uppercase tracking-tight mt-3">Staff Medico</h2>
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('stagione.athlete_support') }}</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-savino-red uppercase tracking-tight mt-3">{{ $t('stagione.medical_staff') }}</h2>
                     <div class="w-16 h-1 bg-savino-red mx-auto mt-4"></div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -214,3 +219,4 @@ const ogMeta = useOgMeta({
         </section>
     </PublicLayout>
 </template>
+

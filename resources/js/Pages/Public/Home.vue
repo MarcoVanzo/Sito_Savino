@@ -7,8 +7,12 @@ import { useIntersectionReveal } from '@/Composables/useIntersectionReveal';
 import { useCountUp } from '@/Composables/useCountUp';
 import { useTiltEffect } from '@/Composables/useTiltEffect';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import NewsletterForm from '@/Components/NewsletterForm.vue';
+import { useLocale } from '@/Composables/useLocale.js';
 
 const { onImgError } = useImageFallback();
+const { formatDate } = useLocale();
+const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
 
 const props = defineProps({
     nextGame: {
@@ -42,33 +46,33 @@ const slides = computed(() => {
 // Hero testi dal backend con fallback
 const heroTitle = computed(() => homeSettings.value.hero_title || 'SAVINO DEL BENE');
 const heroSubtitle = computed(() => homeSettings.value.hero_subtitle || 'VOLLEY');
-const heroTagline = computed(() => homeSettings.value.hero_tagline || 'Scatena la Potenza.');
-const heroCta1Label = computed(() => homeSettings.value.hero_cta1_label || 'Prossima Partita');
+const heroTagline = computed(() => homeSettings.value.hero_tagline || $t('home.hero_tagline'));
+const heroCta1Label = computed(() => homeSettings.value.hero_cta1_label || $t('home.hero_cta1'));
 const heroCta1Url = computed(() => homeSettings.value.hero_cta1_url || '/stagione');
-const heroCta2Label = computed(() => homeSettings.value.hero_cta2_label || 'Biglietteria');
+const heroCta2Label = computed(() => homeSettings.value.hero_cta2_label || $t('home.hero_cta2'));
 const heroCta2Url = computed(() => homeSettings.value.hero_cta2_url || '/ticketing');
 
 // Stats section dal backend con fallback
-const statsTitle = computed(() => homeSettings.value.stats_title || 'Il Club in Numeri');
-const statsSubtitle = computed(() => homeSettings.value.stats_subtitle || 'I Numeri');
+const statsTitle = computed(() => homeSettings.value.stats_title || $t('home.stats_title'));
+const statsSubtitle = computed(() => homeSettings.value.stats_subtitle || $t('home.stats_subtitle'));
 const stats = computed(() => {
     if (homeSettings.value.stats && homeSettings.value.stats.length > 0) {
         return homeSettings.value.stats;
     }
     return [
-        { value: '40+', label: 'Anni di Storia', icon: '🏆' },
-        { value: '4.000+', label: 'Posti al Palazzo Wanny', icon: '🏟️' },
-        { value: 'A1', label: 'Serie — Massima Divisione', icon: '🏐' },
-        { value: 'CEV', label: 'Champions League', icon: '🌍' },
+        { value: '40+', label: $t('home.stat_years'), icon: '🏆' },
+        { value: '4.000+', label: $t('home.stat_seats'), icon: '🏟️' },
+        { value: 'A1', label: $t('home.stat_league'), icon: '🏐' },
+        { value: 'CEV', label: $t('home.stat_champions'), icon: '🌍' },
     ];
 });
 
 // CTA Banner dal backend con fallback
-const ctaTicketingTitle = computed(() => homeSettings.value.cta_ticketing_title || 'Biglietteria');
-const ctaTicketingText = computed(() => homeSettings.value.cta_ticketing_text || 'Acquista i biglietti per la prossima partita');
+const ctaTicketingTitle = computed(() => homeSettings.value.cta_ticketing_title || $t('home.cta_ticketing_title'));
+const ctaTicketingText = computed(() => homeSettings.value.cta_ticketing_text || $t('home.cta_ticketing_text'));
 const ctaTicketingUrl = computed(() => homeSettings.value.cta_ticketing_url || '/ticketing');
-const ctaShopTitle = computed(() => homeSettings.value.cta_shop_title || 'Shop Ufficiale');
-const ctaShopText = computed(() => homeSettings.value.cta_shop_text || 'Maglie, merchandise e accessori della squadra');
+const ctaShopTitle = computed(() => homeSettings.value.cta_shop_title || $t('home.cta_shop_title'));
+const ctaShopText = computed(() => homeSettings.value.cta_shop_text || $t('home.cta_shop_text'));
 const ctaShopUrl = computed(() => homeSettings.value.cta_shop_url || '/shop');
 
 // === SLIDESHOW ===
@@ -342,7 +346,7 @@ onUnmounted(() => {
 // === UTILS ===
 const formattedMatchDate = computed(() => {
     if (!props.nextGame?.match_date) return null;
-    return new Date(props.nextGame.match_date).toLocaleDateString('it-IT', {
+    return formatDate(props.nextGame.match_date, {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -354,16 +358,12 @@ const formattedMatchDate = computed(() => {
 
 const formatNewsDate = (dateStr) => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('it-IT', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    });
+    return formatDate(dateStr);
 };
 
 const ogMeta = useOgMeta({
-    title: 'Sito Ufficiale',
-    description: 'Sito ufficiale della Savino Del Bene Volley. Scopri il roster, il calendario e i risultati della Serie A1 femminile.',
+    title: $t('home.og_title'),
+    description: $t('home.og_description'),
 });
 </script>
 
@@ -452,7 +452,7 @@ const ogMeta = useOgMeta({
                     >
                         <span class="badge-icon text-lg">🏆</span>
                         <span class="text-savino-gold text-xs sm:text-sm font-bold uppercase tracking-[0.2em]">
-                            Campioni del Mondo
+                            {{ $t('home.world_champions') }}
                         </span>
                         <span class="badge-glow"></span>
                     </div>
@@ -513,9 +513,9 @@ const ogMeta = useOgMeta({
             </div>
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-14" data-reveal>
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Prossimo Impegno</span>
+                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.next_match_subtitle') }}</span>
                     <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">
-                        Prossima Partita
+                        {{ $t('home.next_match_title') }}
                     </h2>
                     <div class="w-16 h-1 bg-savino-gold mx-auto mt-6"></div>
                 </div>
@@ -526,14 +526,14 @@ const ogMeta = useOgMeta({
                             <div class="text-center md:text-right flex-1">
                                 <img src="/images/logo.png" :alt="nextGame?.home_team?.name ?? 'Savino Del Bene'" class="w-36 h-28 rounded-xl object-contain bg-white mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" />
                                 <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
-                                <span class="text-savino-gold text-xs font-bold uppercase tracking-widest mt-1 inline-block">Casa</span>
+                                <span class="text-savino-gold text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.home_team') }}</span>
                             </div>
                             <!-- VS -->
                             <div class="text-center px-8">
                                 <div class="text-white/10 text-6xl md:text-8xl lg:text-9xl font-black leading-none select-none">VS</div>
                                 <div class="-mt-4 bg-savino-gold/15 backdrop-blur-sm rounded-lg px-6 py-3 relative">
                                     <div class="text-savino-gold text-xs font-bold uppercase tracking-widest">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
-                                    <div class="text-white text-sm font-bold mt-1">{{ formattedMatchDate ?? 'Data da definire' }}</div>
+                                    <div class="text-white text-sm font-bold mt-1">{{ formattedMatchDate ?? $t('common.tbd') }}</div>
                                 </div>
                             </div>
                             <!-- Away Team -->
@@ -542,14 +542,14 @@ const ogMeta = useOgMeta({
                                     <svg class="w-12 h-12 text-white/30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
                                 </div>
                                 <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>
-                                <span class="text-white/50 text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ nextGame?.location ?? 'Trasferta' }}</span>
+                                <span class="text-white/50 text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ nextGame?.location ?? $t('home.away_team') }}</span>
                             </div>
                         </div>
                         <!-- CTA -->
                         <div class="text-center mt-12">
                             <Link href="/ticketing" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-300 shadow-lg shadow-savino-gold/30">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
-                                Acquista Biglietti
+                                {{ $t('common.buy_tickets') }}
                             </Link>
                         </div>
                     </div>
@@ -600,12 +600,12 @@ const ogMeta = useOgMeta({
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-14" data-reveal>
                     <div>
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Ultime Notizie</span>
-                        <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">News</h2>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.latest_news_subtitle') }}</span>
+                        <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">{{ $t('home.latest_news_title') }}</h2>
                         <div class="w-16 h-1 bg-savino-gold mt-4"></div>
                     </div>
                     <Link href="/news" class="mt-6 sm:mt-0 inline-flex items-center gap-2 text-savino-blue font-bold text-sm uppercase tracking-wider hover:text-savino-gold transition-colors">
-                        Tutte le News
+                        {{ $t('common.all_news') }}
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                     </Link>
                 </div>
@@ -638,7 +638,7 @@ const ogMeta = useOgMeta({
                                     <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors line-clamp-2">{{ post.title }}</h3>
                                     <p v-if="post.excerpt" class="text-gray-500 text-sm mt-3 leading-relaxed line-clamp-3">{{ post.excerpt }}</p>
                                     <span class="inline-flex items-center gap-1 text-savino-blue text-xs font-bold uppercase tracking-wider mt-4 group-hover:text-savino-gold transition-colors">
-                                        Leggi di più
+                                        {{ $t('common.read_more_alt') }}
                                         <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                     </span>
                                 </div>
@@ -652,9 +652,9 @@ const ogMeta = useOgMeta({
                                 <svg class="w-12 h-12 text-savino-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
                             </div>
                             <div class="p-6">
-                                <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">In arrivo</span>
-                                <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors">Le ultime notizie saranno disponibili qui</h3>
-                                <p class="text-gray-500 text-sm mt-3 leading-relaxed">Segui il club per restare aggiornato su tutte le novità della stagione.</p>
+                                <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">{{ $t('common.coming_soon') }}</span>
+                                <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors">{{ $t('home.news_placeholder_title') }}</h3>
+                                <p class="text-gray-500 text-sm mt-3 leading-relaxed">{{ $t('home.news_placeholder_desc') }}</p>
                             </div>
                         </div>
                     </template>
@@ -665,8 +665,8 @@ const ogMeta = useOgMeta({
         <!-- GALLERY HIGHLIGHTS STRIP -->
         <section class="py-12 bg-gray-900 overflow-hidden">
             <div class="text-center mb-8">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">La Nostra Storia</span>
-                <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mt-2">Highlights</h2>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.gallery_subtitle') }}</span>
+                <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mt-2">{{ $t('home.gallery_title') }}</h2>
             </div>
             <div class="marquee-container">
                 <div class="marquee-track">
@@ -688,6 +688,9 @@ const ogMeta = useOgMeta({
             </div>
         </section>
 
+        <!-- NEWSLETTER SECTION -->
+        <NewsletterForm variant="hero" />
+
         <!-- CTA SPLIT BANNER -->
         <section ref="ctaSection" class="py-0 overflow-hidden">
             <div class="grid md:grid-cols-2">
@@ -698,7 +701,7 @@ const ogMeta = useOgMeta({
                         <h3 class="text-white text-2xl font-black uppercase tracking-tight">{{ ctaTicketingTitle }}</h3>
                         <p class="text-white/60 text-sm mt-2">{{ ctaTicketingText }}</p>
                         <span class="inline-flex items-center gap-1 text-savino-gold text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
-                            Scopri
+                            {{ $t('common.discover') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
                     </div>
@@ -710,7 +713,7 @@ const ogMeta = useOgMeta({
                         <h3 class="text-white text-2xl font-black uppercase tracking-tight">{{ ctaShopTitle }}</h3>
                         <p class="text-white/60 text-sm mt-2">{{ ctaShopText }}</p>
                         <span class="inline-flex items-center gap-1 text-savino-gold text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
-                            Vai allo Shop
+                            {{ $t('common.go_to_shop') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
                     </div>
