@@ -81,7 +81,7 @@ foreach ($locales as $loc) {
 
         // Rotta dinamica per le pagine del CMS (CATCH-ALL)
         Route::get('/{slug}', [PageController::class, 'show'])
-            ->where('slug', '^(?!admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|gallery|staff|societa/organigramma|sponsor|news|shop|contatti|in-costruzione).*$')
+            ->where('slug', '^(?!(?:admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|gallery|staff|societa/organigramma|sponsor|news|shop|contatti|in-costruzione|en)$).*$')
             ->name('pages.show');
     });
 }
