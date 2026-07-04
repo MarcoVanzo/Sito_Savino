@@ -317,7 +317,19 @@
     "hero_description": "Wear the colors of Savino Del Bene Volley. Official jerseys, apparel and accessories for true fans.",
     "product_details": "Details",
     "coming_soon_title": "Shop Coming Soon",
-    "coming_soon_description": "We're preparing something special for you. Our official shop will be online soon with jerseys, apparel and exclusive Savino Del Bene Volley merchandise."
+    "coming_soon_description": "We're preparing something special for you. Our official shop will be online soon with jerseys, apparel and exclusive Savino Del Bene Volley merchandise.",
+    "register_success": "Registration completed! Welcome to the shop.",
+    "register": "Register",
+    "register_description": "Create an account to manage your orders and speed up checkout.",
+    "full_name": "Full Name",
+    "email": "Email",
+    "password": "Password",
+    "password_confirmation": "Confirm Password",
+    "accept_privacy_1": "I accept the",
+    "accept_privacy_2": "Privacy Policy",
+    "create_account": "Create Account",
+    "already_have_account": "Already have an account?",
+    "login_now": "Login now"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Order submitted! (placeholder)",

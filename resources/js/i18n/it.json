@@ -317,7 +317,19 @@
     "hero_description": "Indossa i colori della Savino Del Bene Volley. Maglie ufficiali, abbigliamento e accessori per i veri tifosi.",
     "product_details": "Dettagli",
     "coming_soon_title": "Negozio in Arrivo",
-    "coming_soon_description": "Stiamo preparando qualcosa di speciale per te. Il nostro shop ufficiale sarà presto online con maglie, abbigliamento e merchandise esclusivo della Savino Del Bene Volley."
+    "coming_soon_description": "Stiamo preparando qualcosa di speciale per te. Il nostro shop ufficiale sarà presto online con maglie, abbigliamento e merchandise esclusivo della Savino Del Bene Volley.",
+    "register_success": "Registrazione completata! Benvenuto nello shop.",
+    "register": "Registrati",
+    "register_description": "Crea un account per gestire i tuoi ordini e accelerare il checkout.",
+    "full_name": "Nome Completo",
+    "email": "Email",
+    "password": "Password",
+    "password_confirmation": "Conferma Password",
+    "accept_privacy_1": "Accetto la",
+    "accept_privacy_2": "Privacy Policy",
+    "create_account": "Crea Account",
+    "already_have_account": "Hai già un account?",
+    "login_now": "Accedi ora"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Ordine inviato! (placeholder)",
