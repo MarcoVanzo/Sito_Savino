@@ -117,10 +117,10 @@ const socialLinks = computed(() => {
                             @error="onImgError"
                         />
                         <span class="h-14 w-px bg-white/20"></span>
-                        <img
-                            :src="LOGOS.CORPORATE"
-                            alt="Savino Del Bene"
-                            class="h-14 w-auto object-contain"
+                        <img 
+                            :src="LOGOS.CORPORATE_LEFT" 
+                            alt="Savino Del Bene Corporate" 
+                            class="h-[60px] w-auto object-contain mx-auto"
                             @error="onImgError"
                         />
                     </div>

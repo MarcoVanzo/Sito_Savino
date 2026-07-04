@@ -74,17 +74,24 @@ class StripePaymentService implements PaymentGatewayInterface
     }
 
     /**
-     * Issue a full refund via Stripe.
+     * Issue a full or partial refund via Stripe.
      */
-    public function refund(Order $order): bool
+    public function refund(Order $order, ?float $amount = null): bool
     {
-        Refund::create([
+        $payload = [
             'payment_intent' => $order->payment_id,
-        ]);
+        ];
+
+        if ($amount !== null && $amount > 0) {
+            $payload['amount'] = (int) round($amount * 100);
+        }
+
+        Refund::create($payload);
 
         Log::info('Stripe refund emesso', [
             'order_id' => $order->id,
             'payment_id' => $order->payment_id,
+            'amount' => $amount ?? 'total',
         ]);
 
         return true;

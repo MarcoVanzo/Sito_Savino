@@ -329,7 +329,23 @@
     "accept_privacy_2": "Privacy Policy",
     "create_account": "Create Account",
     "already_have_account": "Already have an account?",
-    "login_now": "Login now"
+    "login_now": "Login now",
+    "order_detail": {
+      "back_to_orders": "Back to orders",
+      "order_title": "Order {number}",
+      "order_status": "Order Status",
+      "download_receipt": "Download Receipt",
+      "purchased_items": "Purchased Items",
+      "qty": "Qty",
+      "cost_summary": "Cost Summary",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "discount": "Discount",
+      "total": "Total",
+      "shipping_info": "Shipping Information",
+      "tracking": "Tracking",
+      "track_shipping": "Track shipping"
+    }
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Order submitted! (placeholder)",

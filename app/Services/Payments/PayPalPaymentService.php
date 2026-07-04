@@ -125,18 +125,28 @@ class PayPalPaymentService implements PaymentGatewayInterface
     }
 
     /**
-     * Issue a full refund for a captured PayPal payment.
+     * Issue a full or partial refund for a captured PayPal payment.
      */
-    public function refund(Order $order): bool
+    public function refund(Order $order, ?float $amount = null): bool
     {
-        $response = $this->client()->post("/v2/payments/captures/{$order->payment_id}/refund", [
+        $payload = [
             'note_to_payer' => 'Rimborso ordine Savino Del Bene Volley',
-        ]);
+        ];
+
+        if ($amount !== null && $amount > 0) {
+            $payload['amount'] = [
+                'value' => number_format((float) $amount, 2, '.', ''),
+                'currency_code' => 'EUR',
+            ];
+        }
+
+        $response = $this->client()->post("/v2/payments/captures/{$order->payment_id}/refund", $payload);
 
         if ($response->failed()) {
             Log::error('PayPal refund failed', [
                 'order_id' => $order->id,
                 'capture_id' => $order->payment_id,
+                'amount' => $amount ?? 'total',
                 'body' => $response->json(),
             ]);
             throw new RuntimeException("Rimborso PayPal fallito per ordine {$order->order_number}");
@@ -145,6 +155,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
         Log::info('PayPal refund emesso', [
             'order_id' => $order->id,
             'capture_id' => $order->payment_id,
+            'amount' => $amount ?? 'total',
         ]);
 
         return true;

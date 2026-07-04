@@ -39,10 +39,10 @@ const formatDate = (dateString) => {
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12">
                 <Link v-if="$page.props.auth.user" :href="route('shop.my-orders')" class="inline-flex items-center text-sm text-gray-300 hover:text-white mb-4 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Torna agli ordini
+                    {{ $t('shop.order_detail.back_to_orders') }}
                 </Link>
                 <h1 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
-                    Ordine {{ order.order_number }}
+                    {{ $t('shop.order_detail.order_title').replace('{number}', order.order_number) }}
                 </h1>
                 <p class="text-gray-300 mt-2">{{ formatDate(order.created_at) }}</p>
             </div>
@@ -59,7 +59,7 @@ const formatDate = (dateString) => {
                         <!-- Status Banner -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div>
-                                <h3 class="text-sm text-gray-500 uppercase tracking-wider font-semibold mb-1">Stato Ordine</h3>
+                                <h3 class="text-sm text-gray-500 uppercase tracking-wider font-semibold mb-1">{{ $t('shop.order_detail.order_status') }}</h3>
                                 <span class="px-4 py-2 inline-flex text-sm leading-5 font-bold rounded-full" :class="{
                                     'bg-yellow-100 text-yellow-800': order.status_color === 'warning',
                                     'bg-green-100 text-green-800': order.status_color === 'success',
@@ -73,7 +73,7 @@ const formatDate = (dateString) => {
                             <div class="text-center sm:text-right">
                                 <a :href="route('shop.order.receipt', order.order_token)" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
                                     <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                    Scarica Ricevuta
+                                    {{ $t('shop.order_detail.download_receipt') }}
                                 </a>
                             </div>
                         </div>
@@ -81,7 +81,7 @@ const formatDate = (dateString) => {
                         <!-- Items List -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                             <div class="px-6 py-5 border-b border-gray-100">
-                                <h3 class="text-lg font-bold text-gray-900">Articoli Acquistati</h3>
+                                <h3 class="text-lg font-bold text-gray-900">{{ $t('shop.order_detail.purchased_items') }}</h3>
                             </div>
                             <ul class="divide-y divide-gray-100">
                                 <li v-for="item in order.items" :key="item.id" class="p-6 flex items-center gap-6">
@@ -92,7 +92,7 @@ const formatDate = (dateString) => {
                                         <h4 class="text-base font-bold text-gray-900">{{ item.name }}</h4>
                                         <p v-if="item.variant_name" class="text-sm text-gray-500 mt-1">{{ item.variant_name }}</p>
                                         <div class="text-sm text-gray-500 mt-2">
-                                            Qtà: <span class="font-medium text-gray-900">{{ item.quantity }}</span> x {{ formatPrice(item.price) }}
+                                            {{ $t('shop.order_detail.qty') }}: <span class="font-medium text-gray-900">{{ item.quantity }}</span> x {{ formatPrice(item.price) }}
                                         </div>
                                     </div>
                                     <div class="text-right font-bold text-gray-900">
@@ -108,22 +108,22 @@ const formatDate = (dateString) => {
                         
                         <!-- Cost Summary -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h3 class="text-lg font-bold text-gray-900 mb-6">Riepilogo Costi</h3>
+                            <h3 class="text-lg font-bold text-gray-900 mb-6">{{ $t('shop.order_detail.cost_summary') }}</h3>
                             <div class="space-y-4 text-sm">
                                 <div class="flex justify-between text-gray-600">
-                                    <span>Subtotale</span>
+                                    <span>{{ $t('shop.order_detail.subtotal') }}</span>
                                     <span>{{ formatPrice(order.subtotal || order.total_price - order.shipping_cost) }}</span>
                                 </div>
                                 <div class="flex justify-between text-gray-600">
-                                    <span>Spedizione</span>
+                                    <span>{{ $t('shop.order_detail.shipping') }}</span>
                                     <span>{{ formatPrice(order.shipping_cost || 0) }}</span>
                                 </div>
                                 <div v-if="order.coupon_discount > 0" class="flex justify-between text-savino-red">
-                                    <span>Sconto</span>
+                                    <span>{{ $t('shop.order_detail.discount') }}</span>
                                     <span>-{{ formatPrice(order.coupon_discount) }}</span>
                                 </div>
                                 <div class="border-t border-gray-100 pt-4 flex justify-between items-center">
-                                    <span class="text-base font-bold text-gray-900">Totale</span>
+                                    <span class="text-base font-bold text-gray-900">{{ $t('shop.order_detail.total') }}</span>
                                     <span class="text-xl font-black text-savino-blue">{{ formatPrice(order.total_price) }}</span>
                                 </div>
                             </div>
@@ -131,7 +131,7 @@ const formatDate = (dateString) => {
 
                         <!-- Info Cards -->
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Informazioni Spedizione</h3>
+                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">{{ $t('shop.order_detail.shipping_info') }}</h3>
                             <div class="text-sm text-gray-600 space-y-1 bg-gray-50 p-4 rounded-md">
                                 <p class="font-bold text-gray-900">{{ order.shipping_address?.first_name }} {{ order.shipping_address?.last_name }}</p>
                                 <p>{{ order.shipping_address?.address }}</p>
@@ -140,11 +140,11 @@ const formatDate = (dateString) => {
                             </div>
 
                             <template v-if="order.tracking_number">
-                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mt-6 mb-4">Tracking</h3>
+                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mt-6 mb-4">{{ $t('shop.order_detail.tracking') }}</h3>
                                 <div class="bg-blue-50 text-savino-blue p-4 rounded-md text-sm border border-blue-100">
                                     <p class="font-bold">{{ order.tracking_number }}</p>
                                     <a v-if="order.tracking_url" :href="order.tracking_url" target="_blank" class="mt-2 inline-flex items-center text-blue-700 hover:text-blue-900 font-medium">
-                                        Traccia spedizione
+                                        {{ $t('shop.order_detail.track_shipping') }}
                                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                                     </a>
                                 </div>

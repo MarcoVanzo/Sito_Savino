@@ -338,7 +338,73 @@ class OrderResource extends Resource
                             ->send();
                     }),
 
-                // 5. Scarica Ricevuta
+                // 5. Rimborso (Stripe/PayPal)
+                Tables\Actions\Action::make('refund_order')
+                    ->label('Rimborso')
+                    ->icon('heroicon-o-receipt-refund')
+                    ->color('warning')
+                    ->visible(fn (Order $record): bool =>
+                        $record->payment_id !== null &&
+                        in_array($record->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal]) &&
+                        $record->status !== OrderStatus::Refunded
+                    )
+                    ->form([
+                        Forms\Components\Radio::make('refund_type')
+                            ->label('Tipo di Rimborso')
+                            ->options([
+                                'full' => 'Rimborso Totale',
+                                'partial' => 'Rimborso Parziale',
+                            ])
+                            ->default('full')
+                            ->required()
+                            ->live(), // filament 3 uses live() instead of reactive()
+                        Forms\Components\TextInput::make('amount')
+                            ->label('Importo (EUR)')
+                            ->numeric()
+                            ->prefix('€')
+                            ->required()
+                            ->visible(fn (Forms\Get $get) => $get('refund_type') === 'partial')
+                            ->maxValue(fn (Order $record) => (float) $record->total_price)
+                            ->minValue(0.01)
+                            ->step(0.01),
+                    ])
+                    ->modalHeading('Emetti Rimborso')
+                    ->modalDescription('Il rimborso verrà emesso direttamente sul metodo di pagamento originale del cliente. Lo stock NON verrà modificato automaticamente.')
+                    ->modalSubmitActionLabel('Emetti Rimborso')
+                    ->action(function (Order $record, array $data): void {
+                        try {
+                            $service = match ($record->payment_gateway) {
+                                PaymentGateway::Stripe => new \App\Services\Payments\StripePaymentService(),
+                                PaymentGateway::PayPal => new \App\Services\Payments\PayPalPaymentService(),
+                                default => throw new \Exception('Gateway non supportato per il rimborso automatico.'),
+                            };
+
+                            $amount = $data['refund_type'] === 'partial' ? (float) $data['amount'] : null;
+
+                            $service->refund($record, $amount);
+
+                            if ($data['refund_type'] === 'full') {
+                                $record->update(['status' => OrderStatus::Refunded]);
+                            }
+
+                            $amountFormatted = $amount ? "di €" . number_format($amount, 2, ',', '.') : "totale";
+
+                            Notification::make()
+                                ->title('Rimborso emesso con successo')
+                                ->body("Il rimborso {$amountFormatted} è stato elaborato dal gateway.")
+                                ->success()
+                                ->send();
+
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Errore durante il rimborso')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
+
+                // 6. Scarica Ricevuta
                 Tables\Actions\Action::make('download_receipt')
                     ->label('Ricevuta')
                     ->icon('heroicon-o-document-arrow-down')

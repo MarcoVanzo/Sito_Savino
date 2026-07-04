@@ -329,7 +329,23 @@
     "accept_privacy_2": "Privacy Policy",
     "create_account": "Crea Account",
     "already_have_account": "Hai già un account?",
-    "login_now": "Accedi ora"
+    "login_now": "Accedi ora",
+    "order_detail": {
+      "back_to_orders": "Torna agli ordini",
+      "order_title": "Ordine {number}",
+      "order_status": "Stato Ordine",
+      "download_receipt": "Scarica Ricevuta",
+      "purchased_items": "Articoli Acquistati",
+      "qty": "Qtà",
+      "cost_summary": "Riepilogo Costi",
+      "subtotal": "Subtotale",
+      "shipping": "Spedizione",
+      "discount": "Sconto",
+      "total": "Totale",
+      "shipping_info": "Informazioni Spedizione",
+      "tracking": "Tracking",
+      "track_shipping": "Traccia spedizione"
+    }
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Ordine inviato! (placeholder)",

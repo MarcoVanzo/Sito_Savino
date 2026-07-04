@@ -52,18 +52,18 @@ class CartService
 
             // Validazione: prodotto attivo e non di tipo Auction
             if (! $product->is_active) {
-                throw new \InvalidArgumentException('Il prodotto non è disponibile.');
+                throw new \InvalidArgumentException(__('messages.cart.product_unavailable'));
             }
 
             if ($product->type === ProductType::Auction) {
-                throw new \InvalidArgumentException('I prodotti asta non possono essere aggiunti al carrello.');
+                throw new \InvalidArgumentException(__('messages.cart.auction_not_allowed'));
             }
 
             $variant = null;
             if ($variantId) {
                 $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
                 if ($variant->product_id !== $product->id) {
-                    throw new \InvalidArgumentException('La variante non appartiene a questo prodotto.');
+                    throw new \InvalidArgumentException(__('messages.cart.invalid_variant'));
                 }
             }
 
@@ -83,13 +83,13 @@ class CartService
             // Validazione quantità
             if ($newQty > $maxQty) {
                 throw new \OverflowException(
-                    "La quantità massima per prodotto è {$maxQty}."
+                    __('messages.cart.max_qty', ['qty' => $maxQty])
                 );
             }
 
             if ($newQty > $availableStock) {
                 throw new \OverflowException(
-                    "Disponibilità insufficiente. Stock disponibile: {$availableStock}."
+                    __('messages.cart.out_of_stock', ['stock' => $availableStock])
                 );
             }
 
@@ -118,7 +118,7 @@ class CartService
         return DB::transaction(function () use ($cartItemId, $quantity) {
             $cart = $this->findCurrentCart();
             if (! $cart) {
-                throw new \RuntimeException('Carrello non trovato.');
+                throw new \RuntimeException(__('messages.cart.not_found'));
             }
 
             $item = $cart->items()->with(['product', 'variant'])->findOrFail($cartItemId);
@@ -140,13 +140,13 @@ class CartService
 
             if ($quantity > $maxQty) {
                 throw new \OverflowException(
-                    "La quantità massima per prodotto è {$maxQty}."
+                    __('messages.cart.max_qty', ['qty' => $maxQty])
                 );
             }
 
             if ($quantity > $availableStock) {
                 throw new \OverflowException(
-                    "Disponibilità insufficiente. Stock disponibile: {$availableStock}."
+                    __('messages.cart.out_of_stock', ['stock' => $availableStock])
                 );
             }
 

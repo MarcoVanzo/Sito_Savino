@@ -19,6 +19,12 @@ return [
         'updated' => 'Quantity updated.',
         'removed' => 'Product removed from cart.',
         'empty' => 'Your cart is empty.',
+        'product_unavailable' => 'Product is not available.',
+        'auction_not_allowed' => 'Auction products cannot be added to the cart.',
+        'invalid_variant' => 'This variant does not belong to the selected product.',
+        'max_qty' => 'The maximum quantity per product is :qty.',
+        'out_of_stock' => 'Insufficient stock. Available stock: :stock.',
+        'not_found' => 'Cart not found.',
     ],
     'checkout' => [
         'error' => 'An error occurred during checkout. Please try again.',

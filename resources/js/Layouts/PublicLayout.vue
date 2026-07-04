@@ -59,7 +59,7 @@ const general = computed(() => settings.value.general ?? {});
 
 // Valori derivati con fallback
 const corporateUrl = computed(() => general.value.corporate_url || 'https://www.savinodelbene.com/it/home/');
-const corporateLogo = computed(() => general.value.corporate_logo || LOGOS.CORPORATE);
+const corporateLogo = computed(() => general.value.corporate_logo || LOGOS.CORPORATE_LEFT);
 const siteLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
 const corporateName = computed(() => general.value.corporate_name || 'Savino Del Bene');
 const corporateDescription = computed(() => general.value.corporate_description || 'Global Logistics and Forwarding Company');
@@ -79,14 +79,14 @@ const corporateDomain = computed(() => {
         >
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[85px] relative">
                 <div class="flex justify-between items-center h-full">
-                    <!-- LOGHI CHE SBORDANO -->
-                    <div class="flex-shrink-0 flex items-center z-[60] w-[360px] h-full relative">
+                    <!-- LOGHI CHE SBORDANO (Layout Originale) -->
+                    <div class="flex-shrink-0 flex items-center z-[60] w-[380px] h-full relative">
                         <div class="absolute top-2 left-0 z-[60] flex items-end">
                             
-                            <!-- Corporate Logo with Preview -->
-                            <div class="relative group overflow-hidden hover:overflow-visible">
-                                <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="block">
-                                    <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="h-[85px] w-[160px] object-contain rounded-xl shadow-xl z-0 transition-transform duration-300 group-hover:scale-105 bg-white mb-2" @error="(e) => onImgError(e, LOGOS.CORPORATE)" />
+                            <!-- Corporate Logo Block (Sfondo Bianco) -->
+                            <div class="relative group">
+                                <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 px-3 py-2 mb-2 h-[85px] w-[230px]">
+                                    <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="h-[65px] w-auto object-contain" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                 </a>
                                 
                                 <!-- Finestrella Preview Card -->
@@ -97,7 +97,7 @@ const corporateDomain = computed(() => {
                                             <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                         </div>
                                         <div class="p-4 flex flex-col items-center justify-center text-center bg-gradient-to-b from-white to-gray-50">
-                                            <img :src="corporateLogo" :alt="corporateName" class="w-40 h-16 object-contain rounded-lg shadow-sm mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE)" />
+                                            <img :src="corporateLogo" :alt="corporateName" class="w-48 h-16 object-contain rounded-lg shadow-sm mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                             <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1 whitespace-nowrap">{{ corporateName }}</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">{{ corporateDescription }}</p>
                                             <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">
@@ -109,7 +109,7 @@ const corporateDomain = computed(() => {
                             </div>
 
                             <!-- Volley Logo -->
-                            <Link :href="route('home')" class="block z-10 -ml-6 transition-transform duration-300 hover:scale-105">
+                            <Link :href="route('home')" class="block z-10 -ml-8 transition-transform duration-300 hover:scale-105 pb-1">
                                 <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[125px] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
                             </Link>
                         </div>

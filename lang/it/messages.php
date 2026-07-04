@@ -19,6 +19,12 @@ return [
         'updated' => 'Quantità aggiornata.',
         'removed' => 'Prodotto rimosso dal carrello.',
         'empty' => 'Il carrello è vuoto.',
+        'product_unavailable' => 'Il prodotto non è disponibile.',
+        'auction_not_allowed' => 'I prodotti asta non possono essere aggiunti al carrello.',
+        'invalid_variant' => 'La variante non appartiene a questo prodotto.',
+        'max_qty' => 'La quantità massima per prodotto è :qty.',
+        'out_of_stock' => 'Disponibilità insufficiente. Stock disponibile: :stock.',
+        'not_found' => 'Carrello non trovato.',
     ],
     'checkout' => [
         'error' => 'Si è verificato un errore durante il checkout. Riprova.',

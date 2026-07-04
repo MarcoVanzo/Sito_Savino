@@ -27,5 +27,5 @@ interface PaymentGatewayInterface
      *
      * @throws \Exception on failure
      */
-    public function refund(Order $order): bool;
+    public function refund(Order $order, ?float $amount = null): bool;
 }
