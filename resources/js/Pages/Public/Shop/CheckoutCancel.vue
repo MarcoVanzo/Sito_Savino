@@ -2,8 +2,9 @@
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
+import { useTranslations } from '@/Composables/useTranslations.js';
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 
 const props = defineProps({
     order: {
@@ -17,8 +18,8 @@ const props = defineProps({
 });
 
 const ogMeta = useOgMeta({
-    title: 'Pagamento Annullato - Savino Del Bene Volley',
-    description: 'Il pagamento dell\'ordine non è stato completato.',
+    title: $t('checkout_cancel.og_title'),
+    description: $t('checkout_cancel.og_description'),
 });
 </script>
 
@@ -38,7 +39,7 @@ const ogMeta = useOgMeta({
                     </svg>
                 </div>
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">
-                    Pagamento non completato
+                    {{ $t('checkout_cancel.title') }}
                 </h1>
             </div>
         </section>
@@ -49,26 +50,26 @@ const ogMeta = useOgMeta({
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-8 text-center">
                     
                     <p class="text-gray-700 text-lg mb-6">
-                        {{ message || "Il pagamento è stato annullato. L'ordine è ancora in sospeso." }}
+                        {{ message || $t('checkout_cancel.message') }}
                     </p>
 
                     <template v-if="order">
-                        <p class="text-gray-500 text-sm mb-2">Riferimento ordine:</p>
+                        <p class="text-gray-500 text-sm mb-2">{{ $t('checkout_cancel.order_ref') }}</p>
                         <p class="text-xl font-bold text-gray-900 mb-8">{{ order.order_number }}</p>
                         
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
                             <a v-if="order.order_token" :href="route('shop.order.receipt', order.order_token)" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
-                                Dettagli Ordine
+                                {{ $t('checkout_cancel.order_details') }}
                             </a>
                             <Link :href="route('shop.checkout')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
-                                Riprova il pagamento
+                                {{ $t('checkout_cancel.retry_payment') }}
                             </Link>
                         </div>
                     </template>
                     <template v-else>
                         <div class="flex justify-center mt-6">
                             <Link :href="route('shop')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
-                                Torna allo shop
+                                {{ $t('checkout_cancel.back_to_shop') }}
                             </Link>
                         </div>
                     </template>

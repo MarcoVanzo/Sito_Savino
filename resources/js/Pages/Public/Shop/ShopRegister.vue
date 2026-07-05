@@ -12,7 +12,7 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 const $t = useTranslations();
 
 const ogMeta = useOgMeta({
-    title: $t('shop.register_title') || 'Registrati allo Shop - Savino Del Bene Volley',
+    title: $t('shop.register_title'),
 });
 
 const form = useForm({
@@ -42,9 +42,9 @@ const submit = () => {
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">
-                    {{ $t('shop.register') || 'Registrati' }}
+                    {{ $t('shop.register') }}
                 </h1>
-                <p class="mt-4 text-gray-300 text-lg">{{ $t('shop.register_description') || 'Crea un account per gestire i tuoi ordini e accelerare il checkout.' }}</p>
+                <p class="mt-4 text-gray-300 text-lg">{{ $t('shop.register_description') }}</p>
             </div>
         </section>
 
@@ -54,7 +54,7 @@ const submit = () => {
                 
                 <form @submit.prevent="submit" class="space-y-6">
                     <div>
-                        <InputLabel for="name" :value="$t('shop.full_name') || 'Nome Completo'" />
+                        <InputLabel for="name" :value="$t('shop.full_name')" />
                         <TextInput
                             id="name"
                             type="text"
@@ -68,7 +68,7 @@ const submit = () => {
                     </div>
 
                     <div>
-                        <InputLabel for="email" :value="$t('shop.email') || 'Email'" />
+                        <InputLabel for="email" :value="$t('shop.email')" />
                         <TextInput
                             id="email"
                             type="email"
@@ -81,7 +81,7 @@ const submit = () => {
                     </div>
 
                     <div>
-                        <InputLabel for="password" :value="$t('shop.password') || 'Password'" />
+                        <InputLabel for="password" :value="$t('shop.password')" />
                         <TextInput
                             id="password"
                             type="password"
@@ -94,7 +94,7 @@ const submit = () => {
                     </div>
 
                     <div>
-                        <InputLabel for="password_confirmation" :value="$t('shop.password_confirmation') || 'Conferma Password'" />
+                        <InputLabel for="password_confirmation" :value="$t('shop.password_confirmation')" />
                         <TextInput
                             id="password_confirmation"
                             type="password"
@@ -110,7 +110,7 @@ const submit = () => {
                         <label class="flex items-center">
                             <Checkbox name="privacy_policy" v-model:checked="form.privacy_policy" required />
                             <span class="ml-2 text-sm text-gray-600">
-                                {{ $t('shop.accept_privacy_1') || 'Accetto la' }} <a :href="route('privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-savino-gold hover:underline">{{ $t('shop.accept_privacy_2') || 'Privacy Policy' }}</a>
+                                {{ $t('shop.accept_privacy_1') }} <a :href="route('privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-savino-gold hover:underline">{{ $t('shop.accept_privacy_2') }}</a>
                             </span>
                         </label>
                         <InputError class="mt-2" :message="form.errors.privacy_policy" />
@@ -123,14 +123,14 @@ const submit = () => {
                             :class="{ 'opacity-50 cursor-not-allowed': form.processing }"
                             :disabled="form.processing"
                         >
-                            {{ $t('shop.create_account') || 'Crea Account' }}
+                            {{ $t('shop.create_account') }}
                         </button>
                     </div>
 
                     <div class="text-center mt-6 text-sm text-gray-600">
-                        {{ $t('shop.already_have_account') || 'Hai già un account?' }} 
+                        {{ $t('shop.already_have_account') }} 
                         <Link :href="route('login')" class="font-medium text-savino-gold hover:text-savino-blue transition-colors">
-                            {{ $t('shop.login_now') || 'Accedi ora' }}
+                            {{ $t('shop.login_now') }}
                         </Link>
                     </div>
                 </form>

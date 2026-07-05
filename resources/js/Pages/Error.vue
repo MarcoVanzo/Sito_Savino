@@ -1,6 +1,9 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { useTranslations } from '@/Composables/useTranslations.js';
+
+const $t = useTranslations();
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 
 const props = defineProps({
@@ -9,22 +12,22 @@ const props = defineProps({
 
 const title = computed(() => {
     const titles = {
-        403: 'Accesso Negato',
-        404: 'Pagina non Trovata',
-        500: 'Errore del Server',
-        503: 'Manutenzione in Corso',
+        403: $t('error.403_title'),
+        404: $t('error.404_title'),
+        500: $t('error.500_title'),
+        503: $t('error.503_title'),
     };
-    return titles[props.status] || `Errore ${props.status}`;
+    return titles[props.status] || $t('error.generic_title') + ' ' + props.status;
 });
 
 const description = computed(() => {
     const descriptions = {
-        403: 'Non hai i permessi per accedere a questa pagina.',
-        404: 'La pagina che stai cercando non esiste o è stata spostata.',
-        500: 'Qualcosa è andato storto. Stiamo lavorando per risolvere il problema.',
-        503: 'Il sito è in manutenzione. Torneremo operativi a breve.',
+        403: $t('error.403_desc'),
+        404: $t('error.404_desc'),
+        500: $t('error.500_desc'),
+        503: $t('error.503_desc'),
     };
-    return descriptions[props.status] || 'Si è verificato un errore imprevisto.';
+    return descriptions[props.status] || $t('error.generic_desc');
 });
 </script>
 
@@ -63,7 +66,7 @@ const description = computed(() => {
                         class="inline-flex items-center justify-center px-8 py-4 border-2 border-savino-gold bg-savino-gold text-savino-blue text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:bg-transparent hover:text-white"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" /></svg>
-                        Torna alla Home
+                        {{ $t('error.back_home') }}
                     </Link>
                     <button
                         v-if="status >= 500"
@@ -71,7 +74,7 @@ const description = computed(() => {
                         class="inline-flex items-center justify-center px-8 py-4 border-2 border-white/20 text-white text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:border-white/50 hover:bg-white/5"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                        Riprova
+                        {{ $t('error.retry') }}
                     </button>
                 </div>
             </div>

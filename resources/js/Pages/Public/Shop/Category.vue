@@ -34,9 +34,9 @@ const ogMeta = useOgMeta({
 const selectedSort = ref(props.currentSort);
 
 const sortOptions = [
-    { value: 'newest', label: $t('shop.sort_newest') || 'Più recenti' },
-    { value: 'price_asc', label: $t('shop.sort_price_asc') || 'Prezzo crescente' },
-    { value: 'price_desc', label: $t('shop.sort_price_desc') || 'Prezzo decrescente' },
+    { value: 'newest', label: $t('shop.sort_newest') },
+    { value: 'price_asc', label: $t('shop.sort_price_asc') },
+    { value: 'price_desc', label: $t('shop.sort_price_desc') },
 ];
 
 watch(selectedSort, (newSort) => {
@@ -77,13 +77,13 @@ watch(selectedSort, (newSort) => {
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <!-- Breadcrumb -->
                 <nav class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
-                    <Link :href="route('home')" class="hover:text-savino-gold transition-colors">{{ $t('common.home') || 'Home' }}</Link>
+                    <Link :href="route('home')" class="hover:text-savino-gold transition-colors">{{ $t('common.home') }}</Link>
                     <span>/</span>
-                    <Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('common.shop') || 'Shop' }}</Link>
+                    <Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('common.shop') }}</Link>
                     <span>/</span>
                     <span class="text-savino-gold">{{ category?.name }}</span>
                 </nav>
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.category_label') || 'Categoria' }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.category_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ category?.name }}
                 </h1>
@@ -101,10 +101,10 @@ watch(selectedSort, (newSort) => {
                 <div class="flex items-center justify-between mb-10">
                     <p class="text-gray-500 text-sm">
                         <span class="font-semibold text-savino-blue">{{ products?.meta?.total ?? products?.data?.length ?? 0 }}</span>
-                        {{ $t('shop.products_found') || 'prodotti' }}
+                        {{ $t('shop.products_found') }}
                     </p>
                     <div class="flex items-center gap-3">
-                        <label for="sort-select" class="text-sm text-gray-500 hidden sm:block">{{ $t('shop.sort_by') || 'Ordina per' }}:</label>
+                        <label for="sort-select" class="text-sm text-gray-500 hidden sm:block">{{ $t('shop.sort_by') }}:</label>
                         <select
                             id="sort-select"
                             v-model="selectedSort"
@@ -127,15 +127,15 @@ watch(selectedSort, (newSort) => {
                             <svg class="w-10 h-10 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
                         </div>
                         <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-3">
-                            {{ $t('shop.no_products_title') || 'Nessun prodotto' }}
+                            {{ $t('shop.no_products_title') }}
                         </h2>
                         <div class="w-12 h-1 bg-savino-gold mx-auto mb-4"></div>
                         <p class="text-gray-600 leading-relaxed mb-6">
-                            {{ $t('shop.no_products_category') || 'Non ci sono ancora prodotti in questa categoria. Torna a trovarci presto!' }}
+                            {{ $t('shop.no_products_category') }}
                         </p>
                         <Link :href="route('shop')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                            {{ $t('shop.back_to_shop') || 'Torna allo shop' }}
+                            {{ $t('shop.back_to_shop') }}
                         </Link>
                     </div>
                 </div>

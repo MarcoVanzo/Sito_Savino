@@ -133,7 +133,7 @@ const socialLinks = computed(() => {
                             :href="social.href"
                             target="_blank"
                             rel="noopener noreferrer"
-                            :aria-label="social.name + ' di Savino Del Bene Volley'"
+                            :aria-label="social.name"
                             class="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-savino-gold hover:border-savino-gold transition-all duration-300 group"
                         >
                             <svg class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24">

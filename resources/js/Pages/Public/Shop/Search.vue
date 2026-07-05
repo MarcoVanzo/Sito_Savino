@@ -18,7 +18,7 @@ const props = defineProps({
 });
 
 const ogMeta = useOgMeta({
-    title: props.query ? `${$t('shop.search_results_for') || 'Risultati per'} "${props.query}"` : ($t('shop.search') || 'Cerca'),
+    title: props.query ? `${$t('shop.search_results_for')} "${props.query}"` : $t('shop.search'),
     description: $t('shop.og_description'),
 });
 
@@ -53,10 +53,10 @@ const submitSearch = () => {
                 <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
                     <svg class="w-9 h-9 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.search_label') || 'Ricerca' }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.search_label') }}</span>
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mt-4">
-                    <template v-if="query">{{ $t('shop.results_for') || 'Risultati per' }} "{{ query }}"</template>
-                    <template v-else>{{ $t('shop.search_products') || 'Cerca prodotti' }}</template>
+                    <template v-if="query">{{ $t('shop.results_for') }} "{{ query }}"</template>
+                    <template v-else>{{ $t('shop.search_products') }}</template>
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>
@@ -71,7 +71,7 @@ const submitSearch = () => {
                         <input
                             v-model="searchQuery"
                             type="text"
-                            :placeholder="$t('shop.search_placeholder') || 'Cerca nello shop...'"
+                            :placeholder="$t('shop.search_placeholder')"
                             class="w-full border-2 border-gray-200 rounded-xl pl-12 pr-32 py-4 text-lg text-savino-blue placeholder-gray-400 focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all"
                         />
                         <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -79,7 +79,7 @@ const submitSearch = () => {
                             type="submit"
                             class="absolute right-2 top-1/2 -translate-y-1/2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-6 py-2.5 rounded-lg hover:bg-savino-gold hover:text-savino-blue transition-all duration-300"
                         >
-                            {{ $t('shop.search_btn') || 'Cerca' }}
+                            {{ $t('shop.search_btn') }}
                         </button>
                     </form>
                 </div>
@@ -88,7 +88,7 @@ const submitSearch = () => {
                 <div v-if="query" class="mb-8">
                     <p class="text-gray-500 text-sm">
                         <span class="font-semibold text-savino-blue">{{ products?.meta?.total ?? products?.data?.length ?? 0 }}</span>
-                        {{ $t('shop.results_count') || 'risultati trovati' }}
+                        {{ $t('shop.results_count') }}
                     </p>
                 </div>
 
@@ -104,16 +104,16 @@ const submitSearch = () => {
                             <svg class="w-10 h-10 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </div>
                         <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-3">
-                            {{ $t('shop.no_results_title') || 'Nessun risultato' }}
+                            {{ $t('shop.no_results_title') }}
                         </h2>
                         <div class="w-12 h-1 bg-savino-gold mx-auto mb-4"></div>
                         <p class="text-gray-600 leading-relaxed mb-6">
-                            {{ $t('shop.no_results_for') || 'Nessun risultato per' }} "<span class="font-semibold text-savino-blue">{{ query }}</span>".
-                            {{ $t('shop.try_different_search') || 'Prova con un termine di ricerca diverso.' }}
+                            {{ $t('shop.no_results_for') }} "<span class="font-semibold text-savino-blue">{{ query }}</span>".
+                            {{ $t('shop.try_different_search') }}
                         </p>
                         <Link :href="route('shop')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                            {{ $t('shop.back_to_shop') || 'Torna allo shop' }}
+                            {{ $t('shop.back_to_shop') }}
                         </Link>
                     </div>
                 </div>

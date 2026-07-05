@@ -11,7 +11,7 @@ const { onImgError } = useImageFallback();
 
 <template>
     <Head>
-        <title>{{ $t('shop.maintenance_title') || 'Shop in manutenzione' }} — Savino Del Bene Volley</title>
+        <title>{{ $t('shop.maintenance_title') }} — Savino Del Bene Volley</title>
         <meta name="robots" content="noindex, nofollow" />
     </Head>
 
@@ -43,19 +43,19 @@ const { onImgError } = useImageFallback();
 
             <!-- Heading -->
             <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mb-4">
-                {{ $t('shop.maintenance_heading') || 'Shop in manutenzione' }}
+                {{ $t('shop.maintenance_heading') }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mb-6"></div>
 
             <!-- Description -->
             <p class="text-white/70 text-lg leading-relaxed mb-10">
-                {{ $t('shop.maintenance_description') || 'Stiamo lavorando per migliorare la tua esperienza di acquisto. Lo shop tornerà disponibile a breve. Grazie per la pazienza!' }}
+                {{ $t('shop.maintenance_description') }}
             </p>
 
             <!-- Status Indicator -->
             <div class="inline-flex items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-6 py-3 mb-10">
                 <div class="w-2 h-2 rounded-full bg-savino-gold animate-pulse"></div>
-                <span class="text-white/80 text-sm font-bold uppercase tracking-wider">{{ $t('shop.maintenance_status') || 'Manutenzione in corso' }}</span>
+                <span class="text-white/80 text-sm font-bold uppercase tracking-wider">{{ $t('shop.maintenance_status') }}</span>
             </div>
 
             <!-- CTA -->
@@ -65,7 +65,7 @@ const { onImgError } = useImageFallback();
                     class="inline-flex items-center gap-3 bg-white text-savino-blue font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                    {{ $t('shop.back_to_home') || 'Torna alla home' }}
+                    {{ $t('shop.back_to_home') }}
                 </Link>
             </div>
         </div>

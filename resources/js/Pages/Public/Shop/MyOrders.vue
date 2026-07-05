@@ -3,8 +3,9 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice';
+import { useTranslations } from '@/Composables/useTranslations.js';
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
 
 const props = defineProps({
@@ -15,12 +16,12 @@ const props = defineProps({
 });
 
 const ogMeta = useOgMeta({
-    title: 'I miei ordini - Savino Del Bene Volley',
+    title: $t('my_orders.og_title'),
 });
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('it-IT');
+    return date.toLocaleDateString(document.documentElement.lang === 'en' ? 'en-GB' : 'it-IT');
 };
 </script>
 
@@ -35,7 +36,7 @@ const formatDate = (dateString) => {
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">
-                    I Miei Ordini
+                    {{ $t('my_orders.title') }}
                 </h1>
             </div>
         </section>
@@ -50,10 +51,10 @@ const formatDate = (dateString) => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Non hai ancora effettuato ordini</h3>
-                    <p class="text-gray-500 mb-8">Scopri i nostri prodotti nel merchandising ufficiale.</p>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">{{ $t('my_orders.empty_title') }}</h3>
+                    <p class="text-gray-500 mb-8">{{ $t('my_orders.empty_description') }}</p>
                     <Link :href="route('shop')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
-                        Vai allo Shop
+                        {{ $t('my_orders.go_to_shop') }}
                     </Link>
                 </div>
 
@@ -62,12 +63,12 @@ const formatDate = (dateString) => {
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ordine</th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stato</th>
-                                    <th scope="col" class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Articoli</th>
-                                    <th scope="col" class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Totale</th>
-                                    <th scope="col" class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Azioni</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('my_orders.col_order') }}</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('my_orders.col_date') }}</th>
+                                    <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('my_orders.col_status') }}</th>
+                                    <th scope="col" class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('my_orders.col_items') }}</th>
+                                    <th scope="col" class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('my_orders.col_total') }}</th>
+                                    <th scope="col" class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $t('my_orders.col_actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -97,7 +98,7 @@ const formatDate = (dateString) => {
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <Link :href="route('shop.order.show', order.order_number)" class="text-savino-gold hover:text-savino-blue transition-colors">
-                                            Dettagli
+                                            {{ $t('my_orders.details') }}
                                         </Link>
                                     </td>
                                 </tr>
@@ -113,7 +114,7 @@ const formatDate = (dateString) => {
                         <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                             <div>
                                 <p class="text-sm text-gray-700">
-                                    Visualizzati da <span class="font-medium">{{ orders.from }}</span> a <span class="font-medium">{{ orders.to }}</span> di <span class="font-medium">{{ orders.total }}</span> risultati
+                                    {{ $t('my_orders.showing') }} <span class="font-medium">{{ orders.from }}</span> {{ $t('my_orders.to') }} <span class="font-medium">{{ orders.to }}</span> {{ $t('my_orders.of') }} <span class="font-medium">{{ orders.total }}</span> {{ $t('my_orders.results') }}
                                 </p>
                             </div>
                             <div>
