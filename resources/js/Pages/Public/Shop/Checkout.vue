@@ -23,14 +23,12 @@ const props = defineProps({
 })
 
 const form = useForm({
-    shipping_name: '',
+    guest_name: '',
+    guest_email: '',
+    guest_phone: '',
     shipping_address: '',
-    shipping_city: '',
-    shipping_zip: '',
-    shipping_country: 'IT',
     billing_address: '',
-    phone: '',
-    email: '',
+    country: 'IT',
     payment_gateway: 'stripe',
     coupon_code: '',
     notes: '',
@@ -107,7 +105,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-firstname" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_firstname') }}</label>
                                 <input
                                     id="checkout-firstname"
-                                    v-model="form.shipping_name"
+                                    v-model="form.guest_name"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -129,7 +127,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-email" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_email') }}</label>
                                 <input
                                     id="checkout-email"
-                                    v-model="form.email"
+                                    v-model="form.guest_email"
                                     type="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -140,7 +138,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }}</label>
                                 <input
                                     id="checkout-phone"
-                                    v-model="form.phone"
+                                    v-model="form.guest_phone"
                                     type="tel"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -172,21 +170,18 @@ const ogMeta = useOgMeta({
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label for="checkout-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }}</label>
-                                    <input
-                                        id="checkout-province"
-                                        v-model="form.shipping_country"
-                                        type="text"
+                                    <select
+                                        id="checkout-country"
+                                        v-model="form.country"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                       
-                                        placeholder="FI"
-                                        maxlength="2"
-                                    />
+                                    >
+                                        <option value="IT">Italia</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label for="checkout-cap" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_cap') }}</label>
                                     <input
                                         id="checkout-cap"
-                                        v-model="form.shipping_zip"
                                         type="text"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                        
@@ -207,6 +202,22 @@ const ogMeta = useOgMeta({
                                 ></textarea>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Privacy Checkbox -->
+                    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                v-model="form.privacy_accepted"
+                                class="mt-1 w-4 h-4 text-savino-blue border-gray-300 rounded focus:ring-savino-blue/20"
+                            />
+                            <span class="text-sm text-gray-600">
+                                {{ $t('shop.accept_privacy_1') }}
+                                <a :href="route('privacy')" target="_blank" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>
+                            </span>
+                        </label>
+                        <p v-if="form.errors.privacy_accepted" class="mt-1 text-sm text-red-500">{{ form.errors.privacy_accepted }}</p>
                     </div>
 
                     <!-- Payment Placeholder -->

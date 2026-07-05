@@ -118,6 +118,15 @@ class StockManagementTest extends TestCase
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 4);
 
+        // Simula decremento dal CheckoutService
+        StockMovement::create([
+            'product_id' => $product->id,
+            'order_id' => $order->id,
+            'quantity' => -4,
+            'type' => StockMovementType::Sale,
+            'notes' => 'Test — riservato al checkout',
+        ]);
+
         $this->changeOrderStatus($order, OrderStatus::Paid);
         $this->changeOrderStatus($order, OrderStatus::Cancelled);
 
@@ -127,8 +136,10 @@ class StockManagementTest extends TestCase
         $this->changeOrderStatus($order, OrderStatus::Cancelled);
 
         $product->refresh();
-        // Stock ripristinato solo una volta
+        // Stock ripristinato solo una volta (da 46 a 50, non da 42 a 50)
         $this->assertEquals(50, $product->stock);
+        // Solo un movimento Adjustment (idempotenza)
+        $this->assertEquals(1, StockMovement::where('order_id', $order->id)->where('type', StockMovementType::Adjustment)->count());
     }
 
     public function test_pending_order_cancellation_does_not_restore_stock(): void

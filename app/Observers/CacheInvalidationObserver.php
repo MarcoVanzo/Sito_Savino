@@ -33,7 +33,7 @@ class CacheInvalidationObserver
         Season::class => ['public:stagione', 'public:stagione:b1', 'public:risultati', 'public:home'],
         Team::class => ['public:stagione', 'public:stagione:b1', 'public:risultati', 'filament:dashboard:next_match'],
         Sponsor::class => ['public:sponsor'],
-        Product::class => ['public:shop'],
+        Product::class => ['public:shop:it', 'public:shop:en'],
         Post::class => ['public:home', 'filament:dashboard:stats'],
         Page::class => [],
         Game::class => ['public:risultati', 'public:home', 'filament:dashboard:stats', 'filament:dashboard:next_match'],
