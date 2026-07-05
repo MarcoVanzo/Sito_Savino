@@ -55,7 +55,13 @@ class MigrateWpProducts extends Command
                 $this->migrateProduct($wpProduct);
             }
             DB::commit();
-            $this->info("Migration completed successfully.");
+            $this->info("Migrazione completata. Prodotti importati/aggiornati: " . count($products));
+
+            $this->info("Aggiornamento fallback lingua inglese in corso...");
+            \Illuminate\Support\Facades\DB::update('UPDATE products SET name = JSON_SET(name, \'$.en\', JSON_UNQUOTE(JSON_EXTRACT(name, \'$.it\'))), description = JSON_SET(description, \'$.en\', JSON_UNQUOTE(JSON_EXTRACT(description, \'$.it\'))), short_description = JSON_SET(short_description, \'$.en\', JSON_UNQUOTE(JSON_EXTRACT(short_description, \'$.it\'))) WHERE JSON_EXTRACT(name, \'$.it\') IS NOT NULL');
+            \Illuminate\Support\Facades\DB::update('UPDATE product_categories SET name = JSON_SET(name, \'$.en\', JSON_UNQUOTE(JSON_EXTRACT(name, \'$.it\'))), description = JSON_SET(description, \'$.en\', JSON_UNQUOTE(JSON_EXTRACT(description, \'$.it\'))) WHERE JSON_EXTRACT(name, \'$.it\') IS NOT NULL');
+
+            return Command::SUCCESS;
         } catch (\Exception $e) {
             DB::rollBack();
             $this->error("Migration failed: " . $e->getMessage());
