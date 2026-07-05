@@ -13,6 +13,38 @@ use Inertia\Response;
 class ShopController extends Controller
 {
     /**
+     * Mappa un Product Eloquent model in un array con campi tradotti e image_url.
+     * Spatie HasTranslations serializza i campi translatable come oggetto JSON
+     * con tutte le lingue; accedendo via accessor ($p->name) otteniamo la traduzione
+     * per la locale corrente.
+     */
+    private function mapProduct(Product $p): array
+    {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'slug' => $p->slug,
+            'description' => $p->description,
+            'short_description' => $p->short_description,
+            'price' => $p->price,
+            'sale_price' => $p->sale_price,
+            'stock' => $p->stock,
+            'sku' => $p->sku,
+            'is_active' => $p->is_active,
+            'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
+            'type' => $p->type?->value ?? $p->type,
+            'category' => $p->category ? [
+                'id' => $p->category->id,
+                'name' => $p->category->name,
+                'slug' => $p->category->slug ?? null,
+            ] : null,
+            'image_url' => $p->getFirstMediaUrl('products', 'card') ?: $p->getFirstMediaUrl('products') ?: null,
+            'images' => $p->getMedia('products')->map(fn ($media) => $media->getUrl())->values()->all(),
+            'variants' => $p->relationLoaded('variants') ? $p->variants : [],
+        ];
+    }
+
+    /**
      * Shop homepage.
      * Se lo shop è disabilitato, mostra la pagina di manutenzione.
      */
@@ -26,13 +58,23 @@ class ShopController extends Controller
             ->with(['category', 'media'])
             ->latest()
             ->take(8)
-            ->get();
+            ->get()
+            ->map(fn ($p) => $this->mapProduct($p))
+            ->values();
 
         $categories = ProductCategory::withCount(['products' => function ($query) {
                 $query->shoppable();
             }])
             ->ordered()
-            ->get();
+            ->get()
+            ->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'slug' => $c->slug,
+                'description' => $c->description,
+                'products_count' => $c->products_count,
+            ])
+            ->values();
 
         return Inertia::render('Public/Shop/Index', [
             'featuredProducts' => $featuredProducts,
@@ -60,10 +102,12 @@ class ShopController extends Controller
             ->with(['media'])
             ->inRandomOrder()
             ->take(4)
-            ->get();
+            ->get()
+            ->map(fn ($p) => $this->mapProduct($p))
+            ->values();
 
         return Inertia::render('Public/Shop/ProductDetail', [
-            'product' => $product,
+            'product' => $this->mapProduct($product),
             'relatedProducts' => $relatedProducts,
         ]);
     }
@@ -86,16 +130,18 @@ class ShopController extends Controller
 
         [$sortColumn, $sortDirection] = $sortOptions[$sort];
 
-        $products = Product::shoppable()
+        $paginator = Product::shoppable()
             ->where('product_category_id', $category->id)
-            ->with(['media'])
+            ->with(['media', 'category'])
             ->orderBy($sortColumn, $sortDirection)
             ->paginate(12)
             ->withQueryString();
 
+        $paginator->through(fn ($p) => $this->mapProduct($p));
+
         return Inertia::render('Public/Shop/Category', [
             'category' => $category,
-            'products' => $products,
+            'products' => $paginator,
             'currentSort' => $sort,
             'sortOptions' => array_keys($sortOptions),
         ]);
@@ -113,7 +159,7 @@ class ShopController extends Controller
         if (strlen(trim($query)) >= 2) {
             $escapedQuery = str_replace(['%', '_'], ['\\%', '\\_'], $query);
 
-            $products = Product::shoppable()
+            $paginator = Product::shoppable()
                 ->where(function ($q) use ($escapedQuery) {
                     $q->where('name', 'LIKE', "%{$escapedQuery}%")
                       ->orWhere('description', 'LIKE', "%{$escapedQuery}%");
@@ -122,6 +168,9 @@ class ShopController extends Controller
                 ->latest()
                 ->paginate(12)
                 ->withQueryString();
+
+            $paginator->through(fn ($p) => $this->mapProduct($p));
+            $products = $paginator;
         }
 
         return Inertia::render('Public/Shop/Search', [

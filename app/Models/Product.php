@@ -115,14 +115,14 @@ class Product extends Model implements HasMedia
         $this->addMediaConversion('zoom')
             ->width(1200)
             ->quality(85)
-            ->performOnCollections('images')
+            ->performOnCollections('images', 'products')
             ->nonQueued();
 
         $this->addMediaConversion('og-image')
             ->width(1200)
             ->height(630)
             ->quality(80)
-            ->performOnCollections('images')
+            ->performOnCollections('images', 'products')
             ->nonQueued();
     }
 }
