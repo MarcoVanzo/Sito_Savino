@@ -127,7 +127,9 @@ class CartController extends Controller
                     'slug' => $item->product?->slug,
                     'price' => $item->variant?->getFinalPrice() ?? $item->product?->getCurrentPrice(),
                     'variant_name' => $item->variant?->size,
-                    'image_url' => $item->product?->getFirstMediaUrl('product-images', 'thumbnail'),
+                    'image_url' => $item->product?->getFirstMediaUrl('products', 'thumb')
+                        ?: $item->product?->getFirstMediaUrl('images', 'thumb')
+                        ?: $item->product?->getFirstMediaUrl('images'),
                 ];
             }) ?? [],
             'total' => $this->cartService->getCartTotal(),

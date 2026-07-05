@@ -393,7 +393,15 @@
     "size": "Taglia",
     "color": "Colore",
     "select_size": "Seleziona taglia",
-    "select_color": "Seleziona colore"
+    "select_color": "Seleziona colore",
+    "cart_title": "Carrello",
+    "cart_empty_title": "Il tuo carrello è vuoto",
+    "cart_empty_description": "Scopri i prodotti ufficiali della squadra",
+    "browse_products": "Vai allo shop",
+    "remove_item": "Rimuovi",
+    "proceed_checkout": "Procedi al checkout",
+    "view_cart": "Vedi carrello",
+    "badge_new": "Nuovo"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Ordine inviato! (placeholder)",

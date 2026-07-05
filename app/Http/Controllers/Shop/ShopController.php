@@ -20,6 +20,17 @@ class ShopController extends Controller
      */
     private function mapProduct(Product $p): array
     {
+        // Products may have media in 'images' (WooCommerce migration) or 'products' (Filament admin).
+        // Check both collections, preferring whichever has media.
+        $media = $p->getMedia('products');
+        if ($media->isEmpty()) {
+            $media = $p->getMedia('images');
+        }
+
+        $imageUrl = $media->isNotEmpty()
+            ? ($media->first()->getUrl('card') ?: $media->first()->getUrl())
+            : null;
+
         return [
             'id' => $p->id,
             'name' => $p->name,
@@ -38,8 +49,8 @@ class ShopController extends Controller
                 'name' => $p->category->name,
                 'slug' => $p->category->slug ?? null,
             ] : null,
-            'image_url' => $p->getFirstMediaUrl('products', 'card') ?: $p->getFirstMediaUrl('products') ?: null,
-            'images' => $p->getMedia('products')->map(fn ($media) => $media->getUrl())->values()->all(),
+            'image_url' => $imageUrl,
+            'images' => $media->map(fn ($m) => $m->getUrl())->values()->all(),
             'variants' => $p->relationLoaded('variants') ? $p->variants : [],
         ];
     }

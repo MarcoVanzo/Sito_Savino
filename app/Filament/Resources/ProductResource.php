@@ -125,7 +125,7 @@ class ProductResource extends Resource
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('images')
                             ->label('Foto Prodotto')
-                            ->collection('products')
+                            ->collection('images')
                             ->multiple()
                             ->image()
                             ->columnSpanFull(),

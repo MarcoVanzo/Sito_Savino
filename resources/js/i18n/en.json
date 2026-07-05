@@ -393,7 +393,15 @@
     "size": "Size",
     "color": "Color",
     "select_size": "Select size",
-    "select_color": "Select color"
+    "select_color": "Select color",
+    "cart_title": "Cart",
+    "cart_empty_title": "Your cart is empty",
+    "cart_empty_description": "Discover the official team products",
+    "browse_products": "Go to shop",
+    "remove_item": "Remove",
+    "proceed_checkout": "Proceed to checkout",
+    "view_cart": "View cart",
+    "badge_new": "New"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Order submitted! (placeholder)",

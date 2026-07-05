@@ -247,9 +247,7 @@ const structuredData = computed(() => {
                         </div>
 
                         <!-- Short Description -->
-                        <p v-if="product?.description" class="text-gray-600 leading-relaxed mb-8">
-                            {{ product.description }}
-                        </p>
+                        <div v-if="product?.description" class="text-gray-600 leading-relaxed mb-8 prose prose-sm max-w-none" v-html="sanitizeHtml(product.description)"></div>
 
                         <!-- Variant Selector -->
                         <div v-if="product?.variants?.length" class="mb-6">

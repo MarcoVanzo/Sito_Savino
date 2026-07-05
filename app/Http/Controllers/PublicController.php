@@ -371,7 +371,7 @@ class PublicController extends Controller
                     'description' => $p->description,
                     'price' => $p->price,
                     'stock' => $p->stock,
-                    'image_url' => $p->getFirstMediaUrl('products', 'card') ?: $p->getFirstMediaUrl('products'),
+                    'image_url' => $p->getFirstMediaUrl('products', 'card') ?: $p->getFirstMediaUrl('products') ?: $p->getFirstMediaUrl('images', 'card') ?: $p->getFirstMediaUrl('images'),
                 ])->toArray();
         });
 
