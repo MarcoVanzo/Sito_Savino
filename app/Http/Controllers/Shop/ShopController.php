@@ -73,9 +73,13 @@ class ShopController extends Controller
             $media = $p->getMedia('images');
         }
 
-        $imageUrl = $media->isNotEmpty()
-            ? ($media->first()->getUrl('card') ?: $media->first()->getUrl())
-            : null;
+        $firstMedia = $media->first();
+        $imageUrl = null;
+        if ($firstMedia) {
+            $imageUrl = $firstMedia->hasGeneratedConversion('card')
+                ? $firstMedia->getUrl('card')
+                : $firstMedia->getUrl();
+        }
 
         return [
             'id' => $p->id,
