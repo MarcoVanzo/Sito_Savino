@@ -127,11 +127,7 @@ class CartController extends Controller
                     'slug' => $item->product?->slug,
                     'price' => $item->variant?->getFinalPrice() ?? $item->product?->getCurrentPrice(),
                     'variant_name' => $item->variant?->size,
-                    'image_url' => (function() use ($item) {
-                        $m = $item->product?->getMedia('products')->first() ?: $item->product?->getMedia('images')->first();
-                        if (!$m) return null;
-                        return $m->hasGeneratedConversion('thumb') ? $m->getUrl('thumb') : $m->getUrl();
-                    })(),
+                    'image_url' => $item->product?->getImageUrl('card'),
                 ];
             }) ?? [],
             'total' => $this->cartService->getCartTotal(),

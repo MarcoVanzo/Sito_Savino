@@ -12,6 +12,7 @@ export function useFormatPrice() {
     const page = usePage();
 
     const formatPrice = (price) => {
+        if (price == null || isNaN(price)) return '—';
         const pageLocale = page?.props?.locale;
         const locale = pageLocale === 'en' ? 'en-GB' : 'it-IT';
         return new Intl.NumberFormat(locale, {

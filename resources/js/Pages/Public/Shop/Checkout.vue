@@ -4,10 +4,10 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
-import { useLocale } from '@/Composables/useLocale.js'
+import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 
 const $t = useTranslations();
-const { locale } = useLocale();
+const { formatPrice } = useFormatPrice();
 
 
 
@@ -45,10 +45,7 @@ const orderTotal = computed(() => {
     return (props.cart.total + shippingCost.value).toFixed(2);
 });
 
-const formatPrice = (price) => {
-    const loc = locale.value === 'en' ? 'en-GB' : 'it-IT';
-    return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR' }).format(price);
-};
+
 
 const submitOrder = () => {
     form.post(route('shop.checkout.store'), {

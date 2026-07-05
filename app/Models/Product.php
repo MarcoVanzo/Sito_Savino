@@ -108,6 +108,27 @@ class Product extends Model implements HasMedia
         return $this->isOnSale() ? (float) $this->sale_price : (float) $this->price;
     }
 
+    /**
+     * Restituisce l'URL dell'immagine principale del prodotto per la conversione richiesta.
+     * Cerca prima nella collection 'products' (Filament), poi 'images' (WooCommerce).
+     */
+    public function getImageUrl(string $conversion = 'card'): ?string
+    {
+        $media = $this->getMedia('products');
+        if ($media->isEmpty()) {
+            $media = $this->getMedia('images');
+        }
+
+        $firstMedia = $media->first();
+        if (!$firstMedia) {
+            return null;
+        }
+
+        return $firstMedia->hasGeneratedConversion($conversion)
+            ? $firstMedia->getUrl($conversion)
+            : $firstMedia->getUrl();
+    }
+
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->registerStandardConversions($media);

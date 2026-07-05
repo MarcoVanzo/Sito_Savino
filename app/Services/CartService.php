@@ -177,7 +177,7 @@ class CartService
         $cart = $this->findCurrentCart();
 
         if ($cart) {
-            $cart->load(['items.product', 'items.variant']);
+            $cart->load(['items.product.media', 'items.variant']);
         }
 
         return $cart;

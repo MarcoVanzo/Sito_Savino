@@ -1,11 +1,12 @@
 <script setup>
+import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice';
 import { useImageFallback } from '@/Composables/useImageFallback';
 
-const $t = (typeof window !== 'undefined' && window.$t) ? window.$t : ((key) => key);
+const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
 const { onImgError } = useImageFallback();
 
@@ -17,7 +18,7 @@ const props = defineProps({
 });
 
 const ogMeta = useOgMeta({
-    title: `Dettagli Ordine ${props.order.order_number} - Savino Del Bene Volley`,
+    title: $t('shop.order_detail.order_title').replace('{number}', props.order.order_number) + ' - Savino Del Bene Volley',
 });
 
 const formatDate = (dateString) => {

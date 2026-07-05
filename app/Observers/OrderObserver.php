@@ -25,8 +25,8 @@ class OrderObserver
     /**
      * Handle the Order "updated" event.
      *
-     * Quando un ordine passa a "paid", decrementa lo stock atomicamente.
-     * Quando un ordine viene cancellato, ripristina lo stock.
+     * Quando un ordine viene cancellato o rimborsato, ripristina lo stock.
+     * Nota: il decremento stock è gestito da CheckoutService al momento del pagamento.
      */
     public function updated(Order $order): void
     {
@@ -37,11 +37,6 @@ class OrderObserver
         // Invalida la cache dei widget dashboard quando lo status cambia
         Cache::forget('filament:dashboard:stats');
         Cache::forget('filament:dashboard:orders_chart');
-
-        // Ordine pagato → decrementa stock
-        if ($order->status === OrderStatus::Paid) {
-            $this->decrementStock($order);
-        }
 
         // Ordine cancellato o rimborsato → ripristina stock (solo se era stato pagato)
         if ($order->status === OrderStatus::Cancelled || $order->status === OrderStatus::Refunded) {
@@ -54,46 +49,6 @@ class OrderObserver
                 $this->restoreStock($order);
             }
         }
-    }
-
-    /**
-     * Decrementa lo stock per un ordine pagato.
-     * Usa order_id per idempotenza.
-     */
-    private function decrementStock(Order $order): void
-    {
-        DB::transaction(function () use ($order) {
-            // Check idempotenza DENTRO la transaction: controlla se esistono già movimenti per quest'ordine
-            $alreadyProcessed = StockMovement::where('order_id', $order->id)
-                ->where('type', StockMovementType::Sale)
-                ->lockForUpdate()
-                ->exists();
-
-            if ($alreadyProcessed) {
-                Log::warning("Stock già decrementato per Ordine #{$order->id} — operazione saltata");
-
-                return;
-            }
-
-            // Eager-load items CON relazioni per evitare N+1
-            $order->load('items.variant', 'items.product');
-
-            foreach ($order->items as $item) {
-                // Nota: la verifica stock è gestita atomicamente da StockMovementObserver
-                // che lancia RuntimeException se lo stock è insufficiente.
-
-                StockMovement::create([
-                    'product_id' => $item->product_id,
-                    'product_variant_id' => $item->product_variant_id,
-                    'order_id' => $order->id,
-                    'quantity' => -abs($item->quantity),
-                    'type' => StockMovementType::Sale,
-                    'notes' => "Ordine #{$order->id} — vendita",
-                ]);
-            }
-
-            Log::info("Stock decrementato per Ordine #{$order->id}");
-        });
     }
 
     /**

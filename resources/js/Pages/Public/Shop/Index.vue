@@ -107,25 +107,28 @@ const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || 
                         <input
                             v-model="searchQuery"
                             type="text"
+                            :aria-label="$t('shop.search_placeholder') || 'Search products'"
                             :placeholder="$t('shop.search_placeholder') || 'Cerca prodotti...'"
                             class="w-full border-2 border-gray-200 rounded-xl pl-12 pr-12 py-4 text-lg text-savino-blue placeholder-gray-400 focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all"
                         />
-                        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         <!-- Clear button -->
                         <button
                             v-if="searchQuery"
                             @click="searchQuery = ''"
+                            :aria-label="$t('shop.clear_search') || 'Clear search'"
                             class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-savino-blue transition-colors"
                         >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
                 </div>
 
                 <!-- Category Filter Pills -->
-                <div v-if="categories.length > 1" class="flex flex-wrap items-center justify-center gap-2 mb-10">
+                <div v-if="categories.length > 1" role="group" :aria-label="$t('shop.category_filter') || 'Category filter'" class="flex flex-wrap items-center justify-center gap-2 mb-10">
                     <button
                         @click="selectedCategory = null"
+                        :aria-pressed="selectedCategory === null"
                         class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border"
                         :class="selectedCategory === null
                             ? 'bg-savino-blue text-white border-savino-blue shadow-md'
@@ -138,6 +141,7 @@ const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || 
                         v-for="cat in categories"
                         :key="cat.id"
                         @click="selectedCategory = selectedCategory === cat.id ? null : cat.id"
+                        :aria-pressed="selectedCategory === cat.id"
                         class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border"
                         :class="selectedCategory === cat.id
                             ? 'bg-savino-blue text-white border-savino-blue shadow-md'
@@ -159,7 +163,7 @@ const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || 
                         @click="clearFilters"
                         class="text-sm text-savino-blue/70 hover:text-savino-blue font-medium flex items-center gap-1.5 transition-colors"
                     >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         {{ $t('shop.clear_filters') || 'Rimuovi filtri' }}
                     </button>
                 </div>

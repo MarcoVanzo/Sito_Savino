@@ -21,22 +21,10 @@ class ShopController extends Controller
      */
     private function mapProduct(Product $p): array
     {
-        // Products may have media in 'images' (WooCommerce migration) or 'products' (Filament admin).
-        // Check both collections, preferring whichever has media.
+        // Resolve media from both collections (products > images) via model helper
         $media = $p->getMedia('products');
         if ($media->isEmpty()) {
             $media = $p->getMedia('images');
-        }
-
-        $firstMedia = $media->first();
-        $imageUrl = null;
-        if ($firstMedia) {
-            // Only use conversion URL if the conversion file was actually generated
-            if ($firstMedia->hasGeneratedConversion('card')) {
-                $imageUrl = $firstMedia->getUrl('card');
-            } else {
-                $imageUrl = $firstMedia->getUrl();
-            }
         }
 
         return [
@@ -57,7 +45,7 @@ class ShopController extends Controller
                 'name' => $p->category->name,
                 'slug' => $p->category->slug ?? null,
             ] : null,
-            'image_url' => $imageUrl,
+            'image_url' => $p->getImageUrl('card'),
             'images' => $media->map(fn ($m) => $m->getUrl())->values()->all(),
             'variants' => $p->relationLoaded('variants') ? $p->variants : [],
         ];
@@ -69,19 +57,6 @@ class ShopController extends Controller
      */
     private function mapProductCard(Product $p): array
     {
-        $media = $p->getMedia('products');
-        if ($media->isEmpty()) {
-            $media = $p->getMedia('images');
-        }
-
-        $firstMedia = $media->first();
-        $imageUrl = null;
-        if ($firstMedia) {
-            $imageUrl = $firstMedia->hasGeneratedConversion('card')
-                ? $firstMedia->getUrl('card')
-                : $firstMedia->getUrl();
-        }
-
         return [
             'id' => $p->id,
             'name' => $p->name,
@@ -94,7 +69,7 @@ class ShopController extends Controller
                 'id' => $p->category->id,
                 'name' => $p->category->name,
             ] : null,
-            'image_url' => $imageUrl,
+            'image_url' => $p->getImageUrl('card'),
         ];
     }
 
@@ -155,13 +130,13 @@ class ShopController extends Controller
         $product->load(['variants', 'category', 'media']);
 
         $relatedProducts = Product::shoppable()
-            ->where('product_category_id', $product->product_category_id)
+            ->when($product->product_category_id, fn($q) => $q->where('product_category_id', $product->product_category_id))
             ->where('id', '!=', $product->id)
-            ->with(['media'])
+            ->with(['media', 'category'])
             ->inRandomOrder()
             ->take(4)
             ->get()
-            ->map(fn ($p) => $this->mapProduct($p))
+            ->map(fn ($p) => $this->mapProductCard($p))
             ->values();
 
         return Inertia::render('Public/Shop/ProductDetail', [
