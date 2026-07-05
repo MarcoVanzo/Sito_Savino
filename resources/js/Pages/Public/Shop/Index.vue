@@ -1,18 +1,15 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
+import { ref, computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { Head, usePage } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
-import { useFormatPrice } from '@/Composables/useFormatPrice.js';
+import ProductCard from '@/Components/Shop/ProductCard.vue';
 
 const $t = useTranslations();
 
-const { onImgError } = useImageFallback();
-const { formatPrice } = useFormatPrice();
-
 const props = defineProps({
-    featuredProducts: {
+    allProducts: {
         type: Array,
         default: () => [],
     },
@@ -30,6 +27,36 @@ const ogMeta = useOgMeta({
     title: $t('shop.og_title'),
     description: $t('shop.og_description'),
 });
+
+// --- Search & Filter ---
+const searchQuery = ref('');
+const selectedCategory = ref(null);
+
+const filteredProducts = computed(() => {
+    let products = props.allProducts;
+
+    // Filter by category
+    if (selectedCategory.value) {
+        products = products.filter(p => p.category?.id === selectedCategory.value);
+    }
+
+    // Filter by search query (name only — descriptions are not in the card payload)
+    const q = searchQuery.value.trim().toLowerCase();
+    if (q.length >= 2) {
+        products = products.filter(p =>
+            p.name?.toLowerCase().includes(q)
+        );
+    }
+
+    return products;
+});
+
+const clearFilters = () => {
+    searchQuery.value = '';
+    selectedCategory.value = null;
+};
+
+const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || selectedCategory.value !== null);
 </script>
 
 <template>
@@ -70,49 +97,107 @@ const ogMeta = useOgMeta({
             </div>
         </section>
 
-        <!-- PRODUCTS GRID or COMING SOON -->
-        <section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <!-- SEARCH & FILTERS + PRODUCTS GRID -->
+        <section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
             <div class="max-w-7xl mx-auto">
-                <!-- Products Available -->
-                <div v-if="featuredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    <Link
-                        v-for="product in featuredProducts"
-                        :key="product.id"
-                        :href="route('shop.product', product.slug)"
-                        class="group bg-white border border-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 block"
-                    >
-                        <!-- Product Image -->
-                        <div class="relative aspect-square bg-gray-50 overflow-hidden">
-                            <img
-                                v-if="product.image_url"
-                                :src="product.image_url"
-                                :alt="product.name"
-                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                loading="lazy"
-                                @error="onImgError"
-                            />
-                            <div v-else class="w-full h-full flex items-center justify-center">
-                                <svg class="w-16 h-16 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                            </div>
-                            <!-- Quick View Overlay (desktop hover only — on mobile the product info below serves as CTA) -->
-                            <div class="absolute inset-0 bg-savino-blue/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-center">
-                                <span class="text-white text-sm font-bold uppercase tracking-wider border-2 border-savino-gold px-6 py-3 hover:bg-savino-gold hover:text-savino-blue transition-colors">{{ $t('shop.product_details') }}</span>
-                            </div>
-                        </div>
 
-                        <!-- Product Info -->
-                        <div class="p-5">
-                            <h3 class="text-savino-blue font-bold text-lg mb-2 group-hover:text-savino-gold transition-colors">
-                                {{ product.name }}
-                            </h3>
-                            <p class="text-savino-red font-black text-xl">
-                                {{ formatPrice(product.price) }}
-                            </p>
-                        </div>
-                    </Link>
+                <!-- Search Bar -->
+                <div class="max-w-2xl mx-auto mb-10">
+                    <div class="relative">
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            :placeholder="$t('shop.search_placeholder') || 'Cerca prodotti...'"
+                            class="w-full border-2 border-gray-200 rounded-xl pl-12 pr-12 py-4 text-lg text-savino-blue placeholder-gray-400 focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all"
+                        />
+                        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <!-- Clear button -->
+                        <button
+                            v-if="searchQuery"
+                            @click="searchQuery = ''"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-savino-blue transition-colors"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Coming Soon State -->
+                <!-- Category Filter Pills -->
+                <div v-if="categories.length > 1" class="flex flex-wrap items-center justify-center gap-2 mb-10">
+                    <button
+                        @click="selectedCategory = null"
+                        class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border"
+                        :class="selectedCategory === null
+                            ? 'bg-savino-blue text-white border-savino-blue shadow-md'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-savino-blue/30 hover:text-savino-blue'"
+                    >
+                        {{ $t('shop.all_categories') || 'Tutti' }}
+                        <span class="ml-1.5 text-xs opacity-70">({{ allProducts.length }})</span>
+                    </button>
+                    <button
+                        v-for="cat in categories"
+                        :key="cat.id"
+                        @click="selectedCategory = selectedCategory === cat.id ? null : cat.id"
+                        class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border"
+                        :class="selectedCategory === cat.id
+                            ? 'bg-savino-blue text-white border-savino-blue shadow-md'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-savino-blue/30 hover:text-savino-blue'"
+                    >
+                        {{ cat.name }}
+                        <span v-if="cat.products_count" class="ml-1.5 text-xs opacity-70">({{ cat.products_count }})</span>
+                    </button>
+                </div>
+
+                <!-- Result count + Clear filters -->
+                <div class="flex items-center justify-between mb-8">
+                    <p class="text-gray-500 text-sm">
+                        <span class="font-semibold text-savino-blue">{{ filteredProducts.length }}</span>
+                        {{ filteredProducts.length === 1 ? ($t('shop.product_singular') || 'prodotto') : ($t('shop.products_found') || 'prodotti') }}
+                    </p>
+                    <button
+                        v-if="hasActiveFilters"
+                        @click="clearFilters"
+                        class="text-sm text-savino-blue/70 hover:text-savino-blue font-medium flex items-center gap-1.5 transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        {{ $t('shop.clear_filters') || 'Rimuovi filtri' }}
+                    </button>
+                </div>
+
+                <!-- Products Grid -->
+                <transition-group
+                    v-if="filteredProducts.length > 0"
+                    name="product-fade"
+                    tag="div"
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                >
+                    <ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
+                </transition-group>
+
+                <!-- Empty State: no results from filter/search -->
+                <div v-else-if="hasActiveFilters" class="text-center py-20">
+                    <div class="max-w-lg mx-auto">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-savino-blue to-gray-900 flex items-center justify-center shadow-xl">
+                            <svg class="w-10 h-10 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </div>
+                        <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-3">
+                            {{ $t('shop.no_results_title') || 'Nessun risultato' }}
+                        </h2>
+                        <div class="w-12 h-1 bg-savino-gold mx-auto mb-4"></div>
+                        <p class="text-gray-600 leading-relaxed mb-6">
+                            {{ $t('shop.try_different_search') || 'Prova con un altro termine di ricerca o categoria.' }}
+                        </p>
+                        <button
+                            @click="clearFilters"
+                            class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                            {{ $t('shop.clear_filters') || 'Rimuovi filtri' }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Coming Soon State (no products at all in the DB) -->
                 <div v-else class="text-center py-20">
                     <div class="max-w-lg mx-auto">
                         <!-- Animated Shopping Icon -->
@@ -136,3 +221,18 @@ const ogMeta = useOgMeta({
         </section>
     </PublicLayout>
 </template>
+
+<style scoped>
+.product-fade-enter-active,
+.product-fade-leave-active {
+    transition: all 0.3s ease;
+}
+.product-fade-enter-from {
+    opacity: 0;
+    transform: translateY(12px);
+}
+.product-fade-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+}
+</style>
