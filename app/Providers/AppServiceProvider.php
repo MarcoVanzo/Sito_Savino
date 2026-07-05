@@ -17,6 +17,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Observers\CacheInvalidationObserver;
 use App\Observers\OrderObserver;
+use App\Observers\ProductObserver;
 use App\Observers\StockMovementObserver;
 use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -55,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
         Team::observe(CacheInvalidationObserver::class);
         Sponsor::observe(CacheInvalidationObserver::class);
         Product::observe(CacheInvalidationObserver::class);
+        Product::observe(ProductObserver::class);
         Post::observe(CacheInvalidationObserver::class);
         Page::observe(CacheInvalidationObserver::class);
         Game::observe(CacheInvalidationObserver::class);
