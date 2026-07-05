@@ -52,7 +52,9 @@ class CachePublicResponse
             return $next($request);
         }
 
-        $cacheKey = self::CACHE_PREFIX.md5($request->fullUrl());
+        // Derive locale from URL prefix (this middleware runs before SetLocale)
+        $locale = str_starts_with($request->getPathInfo(), '/en') ? 'en' : 'it';
+        $cacheKey = self::CACHE_PREFIX.md5($request->fullUrl().'|'.$locale);
 
         $cached = Cache::get($cacheKey);
 
