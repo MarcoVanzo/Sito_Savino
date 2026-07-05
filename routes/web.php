@@ -14,18 +14,18 @@ use Inertia\Inertia;
 
 require __DIR__.'/auth.php';
 
+// Redirect 301 for the old WooCommerce subdomain
+Route::domain('shop.savinodelbenevolley.it')->group(function () {
+    Route::any('/{any?}', function ($any = null) {
+        return redirect()->to(url('/shop/' . $any), 301);
+    })->where('any', '.*');
+});
+
 $locales = ['it', 'en'];
 
 foreach ($locales as $loc) {
     $prefix = $loc === 'it' ? '' : $loc;
     $namePrefix = $loc === 'it' ? '' : "$loc.";
-
-    // Redirect 301 for the old WooCommerce subdomain
-    Route::domain('shop.savinodelbenevolley.it')->group(function () {
-        Route::any('/{any?}', function ($any = null) {
-            return redirect()->to(url('/shop/' . $any), 301);
-        })->where('any', '.*');
-    });
 
     Route::middleware([
         'throttle:web',
