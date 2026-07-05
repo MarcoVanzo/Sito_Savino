@@ -89,7 +89,8 @@ class PublicRoutesTest extends TestCase
         Product::factory()->create(['is_active' => false]);
 
         $this->get('/shop')->assertInertia(fn ($page) => $page->component('Public/Shop/Index')
-            ->has('featuredProducts', 1)
+            ->has('allProducts', 1)
+            ->has('categories')
         );
     }
 
