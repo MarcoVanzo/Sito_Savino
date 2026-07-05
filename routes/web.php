@@ -70,9 +70,9 @@ foreach ($locales as $loc) {
 
             // Cart (web routes with CSRF)
             Route::get('/'.$shopSlugs['carrello'], [\App\Http\Controllers\Shop\CartController::class, 'index'])->name('shop.cart');
-            Route::post('/'.$shopSlugs['carrello'], [\App\Http\Controllers\Shop\CartController::class, 'store'])->name('shop.cart.store');
-            Route::patch('/'.$shopSlugs['carrello'].'/{cartItem}', [\App\Http\Controllers\Shop\CartController::class, 'update'])->name('shop.cart.update');
-            Route::delete('/'.$shopSlugs['carrello'].'/{cartItem}', [\App\Http\Controllers\Shop\CartController::class, 'destroy'])->name('shop.cart.destroy');
+            Route::post('/'.$shopSlugs['carrello'], [\App\Http\Controllers\Shop\CartController::class, 'store'])->middleware('throttle:30,1')->name('shop.cart.store');
+            Route::patch('/'.$shopSlugs['carrello'].'/{cartItem}', [\App\Http\Controllers\Shop\CartController::class, 'update'])->middleware('throttle:30,1')->name('shop.cart.update');
+            Route::delete('/'.$shopSlugs['carrello'].'/{cartItem}', [\App\Http\Controllers\Shop\CartController::class, 'destroy'])->middleware('throttle:30,1')->name('shop.cart.destroy');
             Route::get('/'.$shopSlugs['carrello'].'/count', [\App\Http\Controllers\Shop\CartController::class, 'count'])->name('shop.cart.count');
             Route::get('/'.$shopSlugs['carrello'].'/data', [\App\Http\Controllers\Shop\CartController::class, 'data'])->name('shop.cart.data');
 

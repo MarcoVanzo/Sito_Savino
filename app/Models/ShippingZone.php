@@ -12,6 +12,11 @@ class ShippingZone extends Model
 {
     use HasFactory, HasTranslations, LogsActivity;
 
+    /**
+     * Note: 'name' is a JSON (translatable) column. MySQL 8.4 does not support
+     * unique indexes on JSON columns, so uniqueness is enforced at the
+     * application level via Filament validation (unique rule in ShippingZoneResource).
+     */
     public $translatable = ['name'];
 
     protected $fillable = [

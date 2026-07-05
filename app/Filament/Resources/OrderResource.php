@@ -20,6 +20,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 
 class OrderResource extends Resource
@@ -216,10 +217,9 @@ class OrderResource extends Resource
                     ->modalDescription('Confermi di aver ricevuto il pagamento tramite bonifico?')
                     ->modalSubmitActionLabel('Conferma ricevuto')
                     ->action(function (Order $record): void {
-                        $record->update([
-                            'status' => OrderStatus::Processing,
-                            'paid_at' => now(),
-                        ]);
+                        $record->status = OrderStatus::Processing;
+                        $record->paid_at = now();
+                        $record->save();
 
                         // Decrementa lo stock per ogni item (product o variant)
                         foreach ($record->items()->with(['product', 'variant'])->get() as $item) {
@@ -231,6 +231,8 @@ class OrderResource extends Resource
                         }
 
                         app(AdminNotificationService::class)->notifyPaymentReceived($record);
+
+                        Cache::forget('filament:dashboard:stats');
 
                         Notification::make()
                             ->title('Pagamento confermato')
@@ -261,18 +263,19 @@ class OrderResource extends Resource
                     ->modalHeading('Inserisci dati spedizione')
                     ->modalSubmitActionLabel('Conferma spedizione')
                     ->action(function (Order $record, array $data): void {
-                        $record->update([
-                            'tracking_number' => $data['tracking_number'],
-                            'tracking_url' => $data['tracking_url'] ?? null,
-                            'shipped_at' => now(),
-                            'status' => OrderStatus::Shipped,
-                        ]);
+                        $record->tracking_number = $data['tracking_number'];
+                        $record->tracking_url = $data['tracking_url'] ?? null;
+                        $record->shipped_at = now();
+                        $record->status = OrderStatus::Shipped;
+                        $record->save();
 
                         // Invia email di spedizione al cliente
                         $recipientEmail = $record->user?->email ?? $record->guest_email;
                         if ($recipientEmail) {
                             Mail::to($recipientEmail)->queue(new OrderShipped($record));
                         }
+
+                        Cache::forget('filament:dashboard:stats');
 
                         Notification::make()
                             ->title('Ordine spedito')
@@ -291,7 +294,10 @@ class OrderResource extends Resource
                     ->modalHeading('Conferma consegna')
                     ->modalDescription('Confermi che l\'ordine è stato consegnato?')
                     ->action(function (Order $record): void {
-                        $record->update(['status' => OrderStatus::Delivered]);
+                        $record->status = OrderStatus::Delivered;
+                        $record->save();
+
+                        Cache::forget('filament:dashboard:stats');
 
                         Notification::make()
                             ->title('Ordine consegnato')
@@ -324,7 +330,10 @@ class OrderResource extends Resource
                             }
                         }
 
-                        $record->update(['status' => OrderStatus::Cancelled]);
+                        $record->status = OrderStatus::Cancelled;
+                        $record->save();
+
+                        Cache::forget('filament:dashboard:stats');
 
                         $body = "Ordine #{$record->order_number} annullato. Stock ripristinato.";
                         if ($record->paid_at) {
@@ -384,8 +393,11 @@ class OrderResource extends Resource
                             $service->refund($record, $amount);
 
                             if ($data['refund_type'] === 'full') {
-                                $record->update(['status' => OrderStatus::Refunded]);
+                                $record->status = OrderStatus::Refunded;
+                                $record->save();
                             }
+
+                            Cache::forget('filament:dashboard:stats');
 
                             $amountFormatted = $amount ? "di €" . number_format($amount, 2, ',', '.') : "totale";
 

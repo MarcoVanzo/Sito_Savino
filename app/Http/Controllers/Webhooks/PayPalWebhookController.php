@@ -95,11 +95,10 @@ class PayPalWebhookController
                 }
 
                 // 1. Update order payment info
-                $order->update([
-                    'payment_id' => $result['payment_id'],
-                    'paid_at' => now(),
-                    'status' => OrderStatus::Paid,
-                ]);
+                $order->payment_id = $result['payment_id'];
+                $order->paid_at = now();
+                $order->status = OrderStatus::Paid;
+                $order->save();
 
                 // 2. Track purchase event for analytics
                 ShopEvent::create([
@@ -158,7 +157,8 @@ class PayPalWebhookController
         $order = Order::where('payment_id', $result['payment_id'])->first();
 
         if ($order && $order->status !== OrderStatus::Refunded) {
-            $order->update(['status' => OrderStatus::Refunded]);
+            $order->status = OrderStatus::Refunded;
+            $order->save();
 
             Log::info('PayPal webhook: rimborso registrato', [
                 'order_id' => $order->id,

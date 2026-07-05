@@ -43,7 +43,8 @@ class ShippingZoneResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Nome Zona')
-                            ->required(),
+                            ->required()
+                            ->unique(ignoreRecord: true),
                         Forms\Components\TagsInput::make('countries')
                             ->label('Codici Paese (ISO 3166-1)')
                             ->helperText('Es: IT, DE, FR. Usa * per catch-all'),

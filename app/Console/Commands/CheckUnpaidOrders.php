@@ -110,7 +110,8 @@ class CheckUnpaidOrders extends Command
         try {
             DB::transaction(function () use ($order) {
                 // Update status to cancelled
-                $order->update(['status' => OrderStatus::Cancelled]);
+                $order->status = OrderStatus::Cancelled;
+                $order->save();
             });
 
             // Send cancellation email
