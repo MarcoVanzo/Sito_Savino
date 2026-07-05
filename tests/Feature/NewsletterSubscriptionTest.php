@@ -43,6 +43,7 @@ class NewsletterSubscriptionTest extends TestCase
             'email' => 'existing@example.com',
             'source' => 'website',
             'subscribed_at' => now(),
+            'synced_to_ac' => true,
         ]);
 
         $response = $this->post(route('newsletter.subscribe'), [
@@ -158,12 +159,12 @@ class NewsletterSubscriptionTest extends TestCase
         ]);
     }
 
-    public function test_resubscribe_resets_ac_contact_id(): void
+    public function test_resubscribe_keeps_ac_contact_id(): void
     {
         Queue::fake();
 
         NewsletterSubscriber::create([
-            'email' => 'reset@example.com',
+            'email' => 'keep@example.com',
             'source' => 'website',
             'subscribed_at' => now()->subMonth(),
             'unsubscribed_at' => now()->subWeek(),
@@ -172,15 +173,36 @@ class NewsletterSubscriptionTest extends TestCase
         ]);
 
         $this->post(route('newsletter.subscribe'), [
-            'email' => 'reset@example.com',
+            'email' => 'keep@example.com',
             'honeypot' => '',
             'privacy_accepted' => true,
         ]);
 
         $this->assertDatabaseHas('newsletter_subscribers', [
-            'email' => 'reset@example.com',
-            'ac_contact_id' => null,
+            'email' => 'keep@example.com',
+            'ac_contact_id' => 12345,
             'synced_to_ac' => false,
         ]);
+    }
+
+    public function test_active_but_unsynced_user_resubscribing_triggers_sync_job(): void
+    {
+        Queue::fake();
+
+        NewsletterSubscriber::create([
+            'email' => 'unsynced@example.com',
+            'source' => 'website',
+            'subscribed_at' => now(),
+            'synced_to_ac' => false,
+        ]);
+
+        $response = $this->post(route('newsletter.subscribe'), [
+            'email' => 'unsynced@example.com',
+            'honeypot' => '',
+            'privacy_accepted' => true,
+        ]);
+
+        $response->assertSessionHas('newsletter_info');
+        Queue::assertPushed(SyncNewsletterToActiveCampaign::class);
     }
 }

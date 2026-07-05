@@ -1,5 +1,7 @@
 @extends('emails.layout')
 
+@section('title', 'Ordine #' . $order->order_number . ' annullato')
+
 @section('content')
 <h2 style="color: #003063; margin: 0 0 20px 0; font-size: 22px;">Ordine annullato</h2>
 

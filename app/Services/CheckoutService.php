@@ -221,7 +221,7 @@ class CheckoutService
      */
     public function applyCoupon(string $code, float $subtotal, ?int $userId = null, ?string $guestEmail = null): array
     {
-        $coupon = Coupon::byCode($code)->first();
+        $coupon = Coupon::byCode($code)->lockForUpdate()->first();
 
         if (! $coupon) {
             throw new \InvalidArgumentException('Codice coupon non valido.');

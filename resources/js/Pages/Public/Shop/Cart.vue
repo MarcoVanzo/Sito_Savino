@@ -7,7 +7,7 @@ import { useCart } from '@/Composables/useCart.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
-import CartDrawer from '@/Components/Shop/CartDrawer.vue';
+
 
 const $t = useTranslations();
 
@@ -16,10 +16,9 @@ const { formatPrice } = useFormatPrice();
 const { onImgError } = useImageFallback();
 
 const props = defineProps({
-    cart: {
-        type: Object,
-        default: () => ({ items: [], total: 0, itemCount: 0 }),
-    },
+    cart: { type: Object, default: () => ({ items: [] }) },
+    total: { type: Number, default: 0 },
+    itemCount: { type: Number, default: 0 },
 });
 
 const ogMeta = useOgMeta({
@@ -42,6 +41,7 @@ const handleRemoveItem = (itemId) => {
 <template>
     <Head>
         <title>{{ ogMeta.title }}</title>
+        <meta name="robots" content="noindex, nofollow" />
         <meta name="description" :content="ogMeta.description" />
         <meta property="og:title" :content="ogMeta.title" />
         <meta property="og:url" :content="ogMeta.url" />
@@ -124,7 +124,8 @@ const handleRemoveItem = (itemId) => {
                                     <button
                                         @click="handleUpdateQuantity(item.id, item.quantity - 1)"
                                         :disabled="item.quantity <= 1"
-                                        class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30"
+                                        :aria-label="$t('shop.decrease_quantity') || 'Diminuisci quantità'"
+                                        class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
                                     </button>
@@ -133,7 +134,9 @@ const handleRemoveItem = (itemId) => {
                                     </span>
                                     <button
                                         @click="handleUpdateQuantity(item.id, item.quantity + 1)"
-                                        class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+                                        :disabled="item.quantity >= (item.stock ?? 99)"
+                                        :aria-label="$t('shop.increase_quantity') || 'Aumenta quantità'"
+                                        class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                     </button>
@@ -156,7 +159,7 @@ const handleRemoveItem = (itemId) => {
 
                         <!-- Continue Shopping -->
                         <div class="mt-8">
-                            <Link :href="route('shop.index')" class="inline-flex items-center gap-2 text-sm text-savino-blue font-semibold hover:text-savino-gold transition-colors">
+                            <Link :href="route('shop')" class="inline-flex items-center gap-2 text-sm text-savino-blue font-semibold hover:text-savino-gold transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                                 {{ $t('shop.continue_shopping') || 'Continua lo shopping' }}
                             </Link>
@@ -170,8 +173,8 @@ const handleRemoveItem = (itemId) => {
 
                             <div class="space-y-4 mb-6">
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">{{ $t('shop.subtotal') || 'Subtotale' }} ({{ cart.itemCount }} {{ $t('shop.items') || 'articoli' }})</span>
-                                    <span class="font-semibold text-gray-700">{{ formatPrice(cart.total) }}</span>
+                                    <span class="text-gray-500">{{ $t('shop.subtotal') || 'Subtotale' }} ({{ itemCount }} {{ $t('shop.items') || 'articoli' }})</span>
+                                    <span class="font-semibold text-gray-700">{{ formatPrice(total) }}</span>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-500">{{ $t('shop.shipping') || 'Spedizione' }}</span>
@@ -182,7 +185,7 @@ const handleRemoveItem = (itemId) => {
                             <div class="border-t-2 border-gray-200 pt-4 mb-8">
                                 <div class="flex justify-between">
                                     <span class="text-lg font-black text-savino-blue uppercase">{{ $t('shop.total') || 'Totale' }}</span>
-                                    <span class="text-lg font-black text-savino-red">{{ formatPrice(cart.total) }}</span>
+                                    <span class="text-lg font-black text-savino-red">{{ formatPrice(total) }}</span>
                                 </div>
                             </div>
 
@@ -217,7 +220,7 @@ const handleRemoveItem = (itemId) => {
                         <p class="text-gray-600 text-lg leading-relaxed mb-8">
                             {{ $t('shop.empty_cart_description') || 'Esplora il nostro shop e scopri i prodotti ufficiali della Savino Del Bene Volley!' }}
                         </p>
-                        <Link :href="route('shop.index')" class="inline-flex items-center gap-3 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <Link :href="route('shop')" class="inline-flex items-center gap-3 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             {{ $t('shop.explore_shop') || 'Esplora lo shop' }}
                         </Link>
@@ -226,7 +229,5 @@ const handleRemoveItem = (itemId) => {
             </div>
         </section>
 
-        <!-- Cart Drawer -->
-        <CartDrawer />
     </PublicLayout>
 </template>

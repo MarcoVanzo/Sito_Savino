@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\ShopEvent;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -44,7 +43,7 @@ class ShopController extends Controller
 
     /**
      * Pagina dettaglio prodotto.
-     * Traccia l'evento "view" tramite ShopEvent (polimorfico).
+     * La view viene tracciata dal middleware TrackShopPageView.
      */
     public function productShow(Request $request, Product $product): Response
     {
@@ -54,16 +53,6 @@ class ShopController extends Controller
         }
 
         $product->load(['variants', 'category', 'media']);
-
-        // Track view event (polymorphic)
-        ShopEvent::create([
-            'event_type' => 'view',
-            'viewable_type' => Product::class,
-            'viewable_id' => $product->id,
-            'user_id' => auth()->id(),
-            'session_id' => session()->getId(),
-            'ip_address' => $request->ip(),
-        ]);
 
         $relatedProducts = Product::shoppable()
             ->where('product_category_id', $product->product_category_id)
@@ -122,10 +111,12 @@ class ShopController extends Controller
         $products = collect();
 
         if (strlen(trim($query)) >= 2) {
+            $escapedQuery = str_replace(['%', '_'], ['\\%', '\\_'], $query);
+
             $products = Product::shoppable()
-                ->where(function ($q) use ($query) {
-                    $q->where('name', 'LIKE', "%{$query}%")
-                      ->orWhere('description', 'LIKE', "%{$query}%");
+                ->where(function ($q) use ($escapedQuery) {
+                    $q->where('name', 'LIKE', "%{$escapedQuery}%")
+                      ->orWhere('description', 'LIKE', "%{$escapedQuery}%");
                 })
                 ->with(['media', 'category'])
                 ->latest()

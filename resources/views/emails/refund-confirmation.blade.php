@@ -28,7 +28,7 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                         <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Importo rimborsato</td>
-                        <td align="right" style="color: #2e7d32; font-size: 18px; font-weight: 700;">€{{ number_format($order->total_price, 2, ',', '.') }}</td>
+                        <td align="right" style="color: #2e7d32; font-size: 18px; font-weight: 700;">€{{ number_format($refundAmount, 2, ',', '.') }}</td>
                     </tr>
                 </table>
             </td>

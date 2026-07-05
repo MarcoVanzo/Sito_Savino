@@ -67,7 +67,7 @@ const ogMeta = useOgMeta({
                     </template>
                     <template v-else>
                         <div class="flex justify-center mt-6">
-                            <Link :href="route('shop.index')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
+                            <Link :href="route('shop')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
                                 Torna allo shop
                             </Link>
                         </div>

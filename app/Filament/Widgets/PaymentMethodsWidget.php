@@ -32,6 +32,9 @@ class PaymentMethodsWidget extends ChartWidget
 
     protected function getData(): array
     {
+        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $from = now()->subDays($days)->startOfDay();
+
         $gatewayColors = [
             PaymentGateway::Stripe->value => '#635bff',
             PaymentGateway::PayPal->value => '#003087',
@@ -39,6 +42,7 @@ class PaymentMethodsWidget extends ChartWidget
         ];
 
         $counts = Order::whereIn('status', self::PAID_STATUSES)
+            ->where('created_at', '>=', $from)
             ->whereNotNull('payment_gateway')
             ->selectRaw('payment_gateway, COUNT(*) as total')
             ->groupBy('payment_gateway')

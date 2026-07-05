@@ -12,8 +12,13 @@ class RetryFailedNewsletterSync extends Command
 
     protected $description = 'Ritenta la sincronizzazione con ActiveCampaign per gli iscritti non ancora sincronizzati';
 
-    public function handle(): int
+    public function handle(\App\Services\ActiveCampaignService $service): int
     {
+        if (! $service->isConfigured()) {
+            $this->error('ActiveCampaign non configurato. Impossibile avviare la sincronizzazione.');
+            return self::FAILURE;
+        }
+
         $limit = (int) $this->option('limit');
 
         $subscribers = NewsletterSubscriber::unsynced()

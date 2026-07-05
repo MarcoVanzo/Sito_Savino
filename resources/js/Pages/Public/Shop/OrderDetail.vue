@@ -37,7 +37,7 @@ const formatDate = (dateString) => {
         <section class="relative min-h-[25vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12">
-                <Link v-if="$page.props.auth.user" :href="route('shop.my-orders')" class="inline-flex items-center text-sm text-gray-300 hover:text-white mb-4 transition-colors">
+                <Link v-if="$page.props.auth.user" :href="route('shop.orders')" class="inline-flex items-center text-sm text-gray-300 hover:text-white mb-4 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     {{ $t('shop.order_detail.back_to_orders') }}
                 </Link>

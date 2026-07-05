@@ -16,7 +16,9 @@ class RefundConfirmation extends Mailable implements ShouldQueue
 
     public function __construct(
         public Order $order,
+        public ?float $refundAmount = null,
     ) {
+        $this->refundAmount = $refundAmount ?? (float) $order->total_price;
         $this->order->loadMissing('user');
     }
 

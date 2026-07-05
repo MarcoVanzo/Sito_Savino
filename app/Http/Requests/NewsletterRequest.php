@@ -28,6 +28,10 @@ class NewsletterRequest extends FormRequest
         return [
             'email' => ['required', 'email', 'max:255'],
             'first_name' => ['nullable', 'string', 'max:100'],
+            // L'honeypot in frontend è invisibile.
+            // Se lasciato vuoto da un utente reale, Laravel (ConvertEmptyStringsToNull) lo converte in `null`.
+            // La regola `max:0` ignora il campo se è null (poiché manca la regola `required`).
+            // Se un bot lo compila (es. con "test"), il valore ha lunghezza > 0 e la validazione fallisce.
             'honeypot' => ['present', 'max:0'],
             'privacy_accepted' => ['accepted'],
         ];

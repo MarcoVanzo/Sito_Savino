@@ -1,25 +1,34 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
+import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 
 const $t = useTranslations();
 
 const { onImgError } = useImageFallback();
+const { formatPrice } = useFormatPrice();
 
 const props = defineProps({
-    page: Object,
-    products: {
+    featuredProducts: {
         type: Array,
         default: () => [],
+    },
+    categories: {
+        type: Array,
+        default: () => [],
+    },
+    announcementBanner: {
+        type: String,
+        default: null,
     },
 });
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? $t('shop.og_title'),
-    description: props.page?.meta_description || $t('shop.og_description'),
+    title: $t('shop.og_title'),
+    description: $t('shop.og_description'),
 });
 </script>
 
@@ -52,7 +61,7 @@ const ogMeta = useOgMeta({
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.hero_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
-                    {{ page?.title ?? $t('shop.og_title') }}
+                    {{ $t('shop.og_title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">
@@ -65,11 +74,12 @@ const ogMeta = useOgMeta({
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
             <div class="max-w-7xl mx-auto">
                 <!-- Products Available -->
-                <div v-if="products.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    <div
-                        v-for="product in products"
+                <div v-if="featuredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <Link
+                        v-for="product in featuredProducts"
                         :key="product.id"
-                        class="group bg-white border border-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1"
+                        :href="route('shop.product', product.slug)"
+                        class="group bg-white border border-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1 block"
                     >
                         <!-- Product Image -->
                         <div class="relative aspect-square bg-gray-50 overflow-hidden">
@@ -96,10 +106,10 @@ const ogMeta = useOgMeta({
                                 {{ product.name }}
                             </h3>
                             <p class="text-savino-red font-black text-xl">
-                                € {{ typeof product.price === 'number' ? product.price.toFixed(2) : product.price }}
+                                {{ formatPrice(product.price) }}
                             </p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
 
                 <!-- Coming Soon State -->

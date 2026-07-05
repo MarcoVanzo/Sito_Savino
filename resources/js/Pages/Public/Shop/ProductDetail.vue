@@ -8,9 +8,21 @@ import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
-import CartDrawer from '@/Components/Shop/CartDrawer.vue';
+
 
 const $t = useTranslations();
+
+const sanitizeHtml = (html) => {
+    if (typeof document === 'undefined') return html; // SSR guard
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script, iframe, object, embed, form').forEach(el => el.remove());
+    doc.querySelectorAll('*').forEach(el => {
+        [...el.attributes].forEach(attr => {
+            if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
+        });
+    });
+    return doc.body.innerHTML;
+};
 
 const { addToCart } = useCart();
 const { formatPrice } = useFormatPrice();
@@ -152,9 +164,9 @@ const structuredData = computed(() => {
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
                 <!-- Breadcrumb -->
                 <nav class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
-                    <Link :href="route('home')" class="hover:text-savino-gold transition-colors">Home</Link>
+                    <Link :href="route('home')" class="hover:text-savino-gold transition-colors">{{ $t('common.home') || 'Home' }}</Link>
                     <span>/</span>
-                    <Link :href="route('shop.index')" class="hover:text-savino-gold transition-colors">Shop</Link>
+                    <Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('common.shop') || 'Shop' }}</Link>
                     <template v-if="product?.category">
                         <span>/</span>
                         <Link :href="route('shop.category', product.category.slug)" class="hover:text-savino-gold transition-colors">{{ product.category.name }}</Link>
@@ -266,6 +278,7 @@ const structuredData = computed(() => {
                                 <button
                                     @click="decrementQty"
                                     :disabled="quantity <= 1"
+                                    :aria-label="$t('shop.decrease_quantity') || 'Diminuisci quantità'"
                                     class="w-12 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
@@ -276,6 +289,7 @@ const structuredData = computed(() => {
                                 <button
                                     @click="incrementQty"
                                     :disabled="quantity >= currentStock"
+                                    :aria-label="$t('shop.increase_quantity') || 'Aumenta quantità'"
                                     class="w-12 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
@@ -309,7 +323,7 @@ const structuredData = computed(() => {
             <div class="max-w-4xl mx-auto">
                 <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-8">{{ $t('shop.description') }}</h3>
                 <div class="w-12 h-1 bg-savino-gold mb-8"></div>
-                <div class="prose prose-lg max-w-none text-gray-700 prose-headings:text-savino-blue prose-a:text-savino-blue" v-html="product.long_description"></div>
+                <div class="prose prose-lg max-w-none text-gray-700 prose-headings:text-savino-blue prose-a:text-savino-blue" v-html="sanitizeHtml(product.long_description)"></div>
             </div>
         </section>
 
@@ -327,7 +341,5 @@ const structuredData = computed(() => {
             </div>
         </section>
 
-        <!-- Cart Drawer -->
-        <CartDrawer />
     </PublicLayout>
 </template>

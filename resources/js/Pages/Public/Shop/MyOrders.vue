@@ -52,7 +52,7 @@ const formatDate = (dateString) => {
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Non hai ancora effettuato ordini</h3>
                     <p class="text-gray-500 mb-8">Scopri i nostri prodotti nel merchandising ufficiale.</p>
-                    <Link :href="route('shop.index')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
+                    <Link :href="route('shop')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
                         Vai allo Shop
                     </Link>
                 </div>
@@ -96,7 +96,7 @@ const formatDate = (dateString) => {
                                         {{ formatPrice(order.total_price) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link :href="route('shop.order.detail', order.order_token)" class="text-savino-gold hover:text-savino-blue transition-colors">
+                                        <Link :href="route('shop.order.show', order.order_number)" class="text-savino-gold hover:text-savino-blue transition-colors">
                                             Dettagli
                                         </Link>
                                     </td>

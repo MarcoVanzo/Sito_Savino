@@ -64,10 +64,15 @@ class ProductCategoryResource extends Resource
                     ->label('Ordine')
                     ->numeric()
                     ->default(0),
-                Forms\Components\TextInput::make('image')
-                    ->label('URL Immagine')
+                Forms\Components\FileUpload::make('image')
+                    ->label('Immagine Categoria')
+                    ->image()
+                    ->directory('categories')
                     ->nullable()
-                    ->helperText('Percorso immagine categoria'),
+                    ->imageResizeMode('cover')
+                    ->imageCropAspectRatio('16:9')
+                    ->imageResizeTargetWidth('800')
+                    ->imageResizeTargetHeight('450'),
             ]);
     }
 

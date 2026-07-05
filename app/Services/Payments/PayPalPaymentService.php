@@ -25,26 +25,38 @@ class PayPalPaymentService implements PaymentGatewayInterface
      */
     private function getAccessToken(): string
     {
-        return Cache::remember('paypal_access_token', now()->addHours(8), function () {
-            $response = Http::withBasicAuth(
-                config('services.paypal.client_id'),
-                config('services.paypal.client_secret'),
-            )
-                ->asForm()
-                ->post("{$this->getBaseUrl()}/v1/oauth2/token", [
-                    'grant_type' => 'client_credentials',
-                ]);
+        return Cache::get('paypal_access_token') ?? $this->refreshAccessToken();
+    }
 
-            if ($response->failed()) {
-                Log::error('PayPal OAuth token request failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-                throw new RuntimeException('Impossibile ottenere il token PayPal');
-            }
+    /**
+     * Request a fresh OAuth token and cache it respecting PayPal's expires_in.
+     */
+    private function refreshAccessToken(): string
+    {
+        $response = Http::withBasicAuth(
+            config('services.paypal.client_id'),
+            config('services.paypal.client_secret'),
+        )
+            ->asForm()
+            ->post("{$this->getBaseUrl()}/v1/oauth2/token", [
+                'grant_type' => 'client_credentials',
+            ]);
 
-            return $response->json('access_token');
-        });
+        if ($response->failed()) {
+            Log::error('PayPal OAuth token request failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            throw new RuntimeException('Impossibile ottenere il token PayPal');
+        }
+
+        $token = $response->json('access_token');
+        $expiresIn = $response->json('expires_in') ?? 3600; // seconds
+        $cacheFor = max(60, $expiresIn - 300); // 5 minutes buffer
+
+        Cache::put('paypal_access_token', $token, $cacheFor);
+
+        return $token;
     }
 
     /**

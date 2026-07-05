@@ -24,7 +24,7 @@ class StatsOverviewWidget extends BaseWidget
     protected function getStats(): array
     {
         // Cache aggregata: una sola lettura da Redis per tutti i conteggi
-        $stats = Cache::remember('filament:dashboard:stats', 300, function () {
+        $stats = Cache::remember('filament:dashboard:stats', 60, function () {
             return [
                 'players' => Player::count(),
                 'upcoming_games' => Game::where('match_date', '>=', now())->count(),

@@ -3,16 +3,10 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Enums\OrderStatus;
-use App\Enums\StockMovementType;
-use App\Enums\UserRole;
 use App\Models\Order;
-use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Models\ShopEvent;
-use App\Models\StockMovement;
-use App\Models\User;
+use App\Services\AdminNotificationService;
 use App\Services\Payments\StripePaymentService;
-use Filament\Notifications\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -81,7 +75,7 @@ class StripeWebhookController
         }
 
         try {
-            DB::transaction(function () use ($order, $result) {
+            $alreadyProcessed = DB::transaction(function () use ($order, $result) {
                 // Lock the order row to prevent concurrent webhook processing (TOCTOU)
                 $order = Order::lockForUpdate()->find($order->id);
 
@@ -92,7 +86,7 @@ class StripeWebhookController
                         'payment_id' => $order->payment_id,
                     ]);
 
-                    return; // Already processed — skip within transaction
+                    return true; // Already processed
                 }
 
                 // 1. Update order payment info
@@ -116,13 +110,22 @@ class StripeWebhookController
                         'gateway' => 'stripe',
                     ],
                 ]);
+
+                return false;
             });
+
+            if ($alreadyProcessed) {
+                return response()->json(['message' => 'Already processed'], 200);
+            }
+
+            // Refresh the order to get updated data from the transaction
+            $order->refresh();
 
             // 4. Send order confirmation email (queued)
             $this->sendOrderConfirmationEmail($order);
 
             // 5. Notify admin panel
-            $this->notifyAdmins($order);
+            app(AdminNotificationService::class)->notifyPaymentReceived($order);
 
             Log::info('Stripe webhook: pagamento completato', [
                 'order_id' => $order->id,
@@ -190,29 +193,4 @@ class StripeWebhookController
         }
     }
 
-    /**
-     * Send a Filament notification to admin users about the new order.
-     */
-    private function notifyAdmins(Order $order): void
-    {
-        try {
-            $admins = User::whereIn('role', [
-                UserRole::SuperAdmin,
-                UserRole::ShopManager,
-            ])->get();
-
-            Notification::make()
-                ->title('Nuovo ordine pagato')
-                ->body("Ordine {$order->order_number} — €" . number_format((float) $order->total_price, 2, ',', '.'))
-                ->icon('heroicon-o-shopping-bag')
-                ->success()
-                ->sendToDatabase($admins);
-        } catch (\Throwable $e) {
-            // Don't fail the webhook for notification errors
-            Log::error('Errore notifica admin nuovo ordine', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
 }

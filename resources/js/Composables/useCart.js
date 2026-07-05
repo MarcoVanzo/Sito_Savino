@@ -36,11 +36,21 @@ export function useCart() {
      * Aggiunge un prodotto al carrello via Inertia.
      * Dopo il successo, aggiorna il conteggio e apre il drawer.
      */
-    const addToCart = (productId, quantity = 1, variantId = null) => {
+    const addToCart = (productIdOrOptions, quantity = 1, variantId = null) => {
+        let productId, qty, variant;
+        if (typeof productIdOrOptions === 'object' && productIdOrOptions !== null) {
+            productId = productIdOrOptions.product_id;
+            qty = productIdOrOptions.quantity || 1;
+            variant = productIdOrOptions.variant_id || null;
+        } else {
+            productId = productIdOrOptions;
+            qty = quantity;
+            variant = variantId;
+        }
         router.post(route('shop.cart.store'), {
             product_id: productId,
-            quantity,
-            variant_id: variantId,
+            quantity: qty,
+            variant_id: variant,
         }, {
             preserveScroll: true,
             preserveState: true,

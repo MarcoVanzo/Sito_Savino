@@ -1,6 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useCart } from '@/Composables/useCart.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
@@ -13,25 +13,36 @@ const {
     closeCart,
     updateQuantity,
     removeItem,
+    fetchCartCount,
 } = useCart();
 const { formatPrice } = useFormatPrice();
 const { onImgError } = useImageFallback();
 
-const props = defineProps({
-    cart: {
-        type: Object,
-        default: () => ({ items: [], total: 0 }),
-    },
-});
+const cart = ref({ items: [], total: 0 });
 
-const items = computed(() => props.cart?.items ?? []);
-const total = computed(() => props.cart?.total ?? 0);
+const fetchCart = async () => {
+    try {
+        const response = await fetch(route('shop.cart.data'));
+        const data = await response.json();
+        cart.value = data;
+    } catch (e) {
+        // Silent fail
+    }
+};
+
+const items = computed(() => cart.value?.items ?? []);
+const total = computed(() => cart.value?.total ?? 0);
 const itemCount = computed(() => items.value.reduce((sum, item) => sum + (item.quantity || 1), 0));
 const isEmpty = computed(() => items.value.length === 0);
 
 // Blocca lo scroll del body quando il drawer è aperto
 watch(isCartOpen, (open) => {
-    document.body.style.overflow = open ? 'hidden' : '';
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = open ? 'hidden' : '';
+    }
+    if (open) {
+        fetchCart();
+    }
 });
 
 // Chiude il drawer con ESC
@@ -43,11 +54,14 @@ const handleKeydown = (e) => {
 
 onMounted(() => {
     document.addEventListener('keydown', handleKeydown);
+    fetchCart();
 });
 
 onUnmounted(() => {
     document.removeEventListener('keydown', handleKeydown);
-    document.body.style.overflow = '';
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+    }
 });
 </script>
 
@@ -193,7 +207,7 @@ onUnmounted(() => {
                         {{ $t('shop.cart_empty_description') || 'Scopri i prodotti ufficiali della squadra' }}
                     </p>
                     <Link
-                        :href="route('shop.index')"
+                        :href="route('shop')"
                         class="inline-flex items-center gap-2 bg-savino-gold text-gray-900 text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-gold/90 transition-colors"
                         @click="closeCart"
                     >
@@ -226,7 +240,7 @@ onUnmounted(() => {
                             {{ $t('shop.proceed_checkout') || 'Procedi al checkout' }}
                         </Link>
                         <Link
-                            :href="route('shop.cart.index')"
+                            :href="route('shop.cart')"
                             class="w-full bg-gray-800 text-gray-300 text-sm font-bold uppercase tracking-wider py-3 rounded-lg hover:bg-gray-700 hover:text-white transition-colors text-center"
                             @click="closeCart"
                         >

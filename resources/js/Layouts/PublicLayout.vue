@@ -7,6 +7,8 @@ import SiteFooter from '@/Components/SiteFooter.vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import LOGOS from '@/Constants/logos.js';
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
+import CartBadge from '@/Components/Shop/CartBadge.vue';
+import CartDrawer from '@/Components/Shop/CartDrawer.vue';
 
 const MobileDrawer = defineAsyncComponent(() => import('@/Components/MobileDrawer.vue'));
 const CookieConsent = defineAsyncComponent(() => import('@/Components/CookieConsent.vue'));
@@ -123,6 +125,11 @@ const corporateDomain = computed(() => {
                         <LanguageSwitcher />
                     </div>
 
+                    <!-- CART BADGE -->
+                    <div class="hidden xl:flex items-center ml-2">
+                        <CartBadge />
+                    </div>
+
                     <!-- MOBILE MENU -->
                     <MobileDrawer
                         :navigation="nav"
@@ -149,5 +156,8 @@ const corporateDomain = computed(() => {
 
         <!-- GDPR Cookie Consent -->
         <CookieConsent />
+
+        <!-- Cart Drawer -->
+        <CartDrawer />
     </div>
 </template>

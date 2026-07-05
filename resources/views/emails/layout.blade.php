@@ -43,9 +43,9 @@
 
                             <p style="color: #888888; font-size: 13px; margin: 0 0 8px; text-align: center; line-height: 1.5;">
                                 <strong>Savino Del Bene Volley</strong> | Firenze<br>
-                                @if(\App\Models\SiteSetting::get('general.contact_email'))
-                                    <a href="mailto:{{ \App\Models\SiteSetting::get('general.contact_email') }}" style="color: #003063; text-decoration: none;">
-                                        {{ \App\Models\SiteSetting::get('general.contact_email') }}
+                                @if(\App\Models\SiteSetting::get('shop.contact_email'))
+                                    <a href="mailto:{{ \App\Models\SiteSetting::get('shop.contact_email') }}" style="color: #003063; text-decoration: none;">
+                                        {{ \App\Models\SiteSetting::get('shop.contact_email') }}
                                     </a><br>
                                 @endif
                                 &copy; {{ date('Y') }} Savino Del Bene Volley

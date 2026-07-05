@@ -5,7 +5,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
-import CartDrawer from '@/Components/Shop/CartDrawer.vue';
+
 
 const $t = useTranslations();
 
@@ -111,7 +111,7 @@ const submitSearch = () => {
                             {{ $t('shop.no_results_for') || 'Nessun risultato per' }} "<span class="font-semibold text-savino-blue">{{ query }}</span>".
                             {{ $t('shop.try_different_search') || 'Prova con un termine di ricerca diverso.' }}
                         </p>
-                        <Link :href="route('shop.index')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300">
+                        <Link :href="route('shop')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                             {{ $t('shop.back_to_shop') || 'Torna allo shop' }}
                         </Link>
@@ -141,7 +141,5 @@ const submitSearch = () => {
             </div>
         </section>
 
-        <!-- Cart Drawer -->
-        <CartDrawer />
     </PublicLayout>
 </template>

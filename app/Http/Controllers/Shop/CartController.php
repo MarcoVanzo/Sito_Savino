@@ -108,4 +108,30 @@ class CartController extends Controller
             'total' => $this->cartService->getCartTotal(),
         ]);
     }
+
+    /**
+     * Restituisce i dati completi del carrello in JSON (per CartDrawer).
+     */
+    public function data(Request $request): JsonResponse
+    {
+        $cart = $this->cartService->getCart();
+
+        return response()->json([
+            'items' => $cart?->items?->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'variant_id' => $item->variant_id,
+                    'quantity' => $item->quantity,
+                    'name' => $item->product?->name,
+                    'slug' => $item->product?->slug,
+                    'price' => $item->variant?->getFinalPrice() ?? $item->product?->getCurrentPrice(),
+                    'variant_name' => $item->variant?->size,
+                    'image_url' => $item->product?->getFirstMediaUrl('product-images', 'thumbnail'),
+                ];
+            }) ?? [],
+            'total' => $this->cartService->getCartTotal(),
+            'count' => $this->cartService->getItemCount(),
+        ]);
+    }
 }

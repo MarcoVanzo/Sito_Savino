@@ -136,7 +136,7 @@
                 <strong>Causale:</strong> Ordine {{ $order->order_number }}
             </p>
             <p style="color: #888888; font-size: 13px; margin: 8px 0 0; font-style: italic;">
-                Ti preghiamo di effettuare il pagamento entro 5 giorni lavorativi dalla data dell'ordine. In caso contrario, l'ordine verrà automaticamente annullato.
+                Ti preghiamo di effettuare il pagamento entro {{ \App\Models\SiteSetting::get('shop.bank_transfer_expiry_days', 7) }} giorni lavorativi dalla data dell'ordine. In caso contrario, l'ordine verrà automaticamente annullato.
             </p>
         </div>
     @endif

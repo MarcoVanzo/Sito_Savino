@@ -1,15 +1,15 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head } from '@inertiajs/vue3'
-import { ref, computed } from 'vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import { computed } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useLocale } from '@/Composables/useLocale.js'
 
 const $t = useTranslations();
 const { locale } = useLocale();
 
-defineOptions({ layout: PublicLayout })
+
 
 const props = defineProps({
     page: {
@@ -22,35 +22,39 @@ const props = defineProps({
     }
 })
 
-const shippingForm = ref({
-    firstName: '',
-    lastName: '',
-    email: '',
+const form = useForm({
+    shipping_name: '',
+    shipping_address: '',
+    shipping_city: '',
+    shipping_zip: '',
+    shipping_country: 'IT',
+    billing_address: '',
     phone: '',
-    address: '',
-    city: '',
-    province: '',
-    cap: '',
-    notes: ''
-})
+    email: '',
+    payment_gateway: 'stripe',
+    coupon_code: '',
+    notes: '',
+    privacy_accepted: false,
+});
 
 const shippingCost = computed(() => {
-    return props.cart.total >= 50 ? 0 : 5.90
-})
+    return props.cart.total >= 50 ? 0 : 5.90;
+});
 
 const orderTotal = computed(() => {
-    return (props.cart.total + shippingCost.value).toFixed(2)
-})
+    return (props.cart.total + shippingCost.value).toFixed(2);
+});
 
 const formatPrice = (price) => {
     const loc = locale.value === 'en' ? 'en-GB' : 'it-IT';
-    return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR' }).format(price)
-}
+    return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR' }).format(price);
+};
 
 const submitOrder = () => {
-    // Placeholder per l'invio dell'ordine
-    alert($t('shop_checkout.order_submitted_placeholder'))
-}
+    form.post(route('shop.checkout.store'), {
+        preserveScroll: true,
+    });
+};
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('shop_checkout.og_title'),
@@ -61,6 +65,7 @@ const ogMeta = useOgMeta({
 <template>
     <Head>
       <title>{{ ogMeta.title }}</title>
+      <meta name="robots" content="noindex, nofollow" />
       <meta name="description" :content="ogMeta.description" />
       <meta property="og:title" :content="ogMeta.title" />
       <meta property="og:description" :content="ogMeta.description" />
@@ -68,6 +73,8 @@ const ogMeta = useOgMeta({
       <meta property="og:url" :content="ogMeta.url" />
       <meta property="og:type" :content="ogMeta.type" />
     </Head>
+
+    <PublicLayout>
 
     <!-- Hero -->
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
@@ -103,7 +110,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-firstname" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_firstname') }}</label>
                                 <input
                                     id="checkout-firstname"
-                                    v-model="shippingForm.firstName"
+                                    v-model="form.shipping_name"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -114,7 +121,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-lastname" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_lastname') }}</label>
                                 <input
                                     id="checkout-lastname"
-                                    v-model="shippingForm.lastName"
+                                    v-model="form.billing_address"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -125,7 +132,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-email" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_email') }}</label>
                                 <input
                                     id="checkout-email"
-                                    v-model="shippingForm.email"
+                                    v-model="form.email"
                                     type="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -136,7 +143,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }}</label>
                                 <input
                                     id="checkout-phone"
-                                    v-model="shippingForm.phone"
+                                    v-model="form.phone"
                                     type="tel"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -147,7 +154,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-address" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_address') }}</label>
                                 <input
                                     id="checkout-address"
-                                    v-model="shippingForm.address"
+                                    v-model="form.shipping_address"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -158,7 +165,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }}</label>
                                 <input
                                     id="checkout-city"
-                                    v-model="shippingForm.city"
+                                    v-model="form.shipping_city"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                    
@@ -170,7 +177,7 @@ const ogMeta = useOgMeta({
                                     <label for="checkout-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }}</label>
                                     <input
                                         id="checkout-province"
-                                        v-model="shippingForm.province"
+                                        v-model="form.shipping_country"
                                         type="text"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                        
@@ -182,7 +189,7 @@ const ogMeta = useOgMeta({
                                     <label for="checkout-cap" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_cap') }}</label>
                                     <input
                                         id="checkout-cap"
-                                        v-model="shippingForm.cap"
+                                        v-model="form.shipping_zip"
                                         type="text"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                        
@@ -195,7 +202,7 @@ const ogMeta = useOgMeta({
                                 <label for="checkout-notes" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_notes') }}</label>
                                 <textarea
                                     id="checkout-notes"
-                                    v-model="shippingForm.notes"
+                                    v-model="form.notes"
                                     rows="3"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
                                    
@@ -302,4 +309,5 @@ const ogMeta = useOgMeta({
             </div>
         </div>
     </section>
+    </PublicLayout>
 </template>

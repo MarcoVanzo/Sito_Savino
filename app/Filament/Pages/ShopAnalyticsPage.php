@@ -61,7 +61,7 @@ class ShopAnalyticsPage extends Page
         ];
     }
 
-    public function getWidgetData(): array
+    protected function getHeaderWidgetsData(): array
     {
         return [
             'period' => $this->period,

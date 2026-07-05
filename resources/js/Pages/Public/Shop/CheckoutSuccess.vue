@@ -75,13 +75,13 @@ const ogMeta = useOgMeta({
                         <a :href="route('shop.order.receipt', order.order_token)" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-savino-blue transition-colors duration-200">
                             Scarica Ricevuta
                         </a>
-                        <Link :href="route('shop.index')" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-savino-blue transition-colors duration-200">
+                        <Link :href="route('shop')" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-savino-blue transition-colors duration-200">
                             Continua lo shopping
                         </Link>
                     </div>
 
                     <div class="mt-8 text-sm" v-if="$page.props.auth.user">
-                        <Link :href="route('shop.my-orders')" class="text-savino-gold hover:underline font-medium">
+                        <Link :href="route('shop.orders')" class="text-savino-gold hover:underline font-medium">
                             Vedi i tuoi ordini
                         </Link>
                     </div>

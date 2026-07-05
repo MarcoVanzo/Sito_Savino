@@ -6,7 +6,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
-import CartDrawer from '@/Components/Shop/CartDrawer.vue';
+
 
 const $t = useTranslations();
 
@@ -15,9 +15,13 @@ const { onImgError } = useImageFallback();
 const props = defineProps({
     category: Object,
     products: Object,
-    sort: {
+    currentSort: {
         type: String,
         default: 'newest',
+    },
+    sortOptions: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -27,7 +31,7 @@ const ogMeta = useOgMeta({
 });
 
 // --- Sorting ---
-const currentSort = ref(props.sort);
+const selectedSort = ref(props.currentSort);
 
 const sortOptions = [
     { value: 'newest', label: $t('shop.sort_newest') || 'Più recenti' },
@@ -35,7 +39,7 @@ const sortOptions = [
     { value: 'price_desc', label: $t('shop.sort_price_desc') || 'Prezzo decrescente' },
 ];
 
-watch(currentSort, (newSort) => {
+watch(selectedSort, (newSort) => {
     router.get(route('shop.category', props.category.slug), { sort: newSort }, {
         preserveState: true,
         preserveScroll: true,
@@ -73,9 +77,9 @@ watch(currentSort, (newSort) => {
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <!-- Breadcrumb -->
                 <nav class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
-                    <Link :href="route('home')" class="hover:text-savino-gold transition-colors">Home</Link>
+                    <Link :href="route('home')" class="hover:text-savino-gold transition-colors">{{ $t('common.home') || 'Home' }}</Link>
                     <span>/</span>
-                    <Link :href="route('shop.index')" class="hover:text-savino-gold transition-colors">Shop</Link>
+                    <Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('common.shop') || 'Shop' }}</Link>
                     <span>/</span>
                     <span class="text-savino-gold">{{ category?.name }}</span>
                 </nav>
@@ -103,7 +107,7 @@ watch(currentSort, (newSort) => {
                         <label for="sort-select" class="text-sm text-gray-500 hidden sm:block">{{ $t('shop.sort_by') || 'Ordina per' }}:</label>
                         <select
                             id="sort-select"
-                            v-model="currentSort"
+                            v-model="selectedSort"
                             class="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-savino-blue font-semibold bg-white focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all"
                         >
                             <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
@@ -129,7 +133,7 @@ watch(currentSort, (newSort) => {
                         <p class="text-gray-600 leading-relaxed mb-6">
                             {{ $t('shop.no_products_category') || 'Non ci sono ancora prodotti in questa categoria. Torna a trovarci presto!' }}
                         </p>
-                        <Link :href="route('shop.index')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300">
+                        <Link :href="route('shop')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                             {{ $t('shop.back_to_shop') || 'Torna allo shop' }}
                         </Link>
@@ -159,7 +163,5 @@ watch(currentSort, (newSort) => {
             </div>
         </section>
 
-        <!-- Cart Drawer -->
-        <CartDrawer />
     </PublicLayout>
 </template>

@@ -21,6 +21,9 @@ class OrdersByStatusWidget extends ChartWidget
 
     protected function getData(): array
     {
+        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $from = now()->subDays($days)->startOfDay();
+
         $statusColors = [
             OrderStatus::Pending->value => '#f59e0b',
             OrderStatus::Processing->value => '#3b82f6',
@@ -32,6 +35,7 @@ class OrdersByStatusWidget extends ChartWidget
         ];
 
         $counts = Order::query()
+            ->where('created_at', '>=', $from)
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status')

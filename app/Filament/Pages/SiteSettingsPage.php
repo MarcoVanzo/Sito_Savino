@@ -179,9 +179,7 @@ class SiteSettingsPage extends Page implements HasForms
         $data = $this->form->getState();
         $flat = \Illuminate\Support\Arr::dot($data);
         foreach ($flat as $key => $value) {
-            if ($value !== null) {
-                SiteSetting::set($key, $value);
-            }
+            SiteSetting::set($key, $value ?? '');
         }
         Notification::make()->title('Impostazioni salvate con successo')->success()->send();
     }

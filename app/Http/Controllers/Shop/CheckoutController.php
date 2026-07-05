@@ -214,7 +214,7 @@ class CheckoutController extends Controller
         $recipientEmail = $order->user?->email ?? $order->guest_email;
 
         if ($recipientEmail) {
-            Mail::to($recipientEmail)->send(new OrderConfirmation($order));
+            Mail::to($recipientEmail)->queue(new OrderConfirmation($order));
         }
 
         return redirect()->route('shop.checkout.success', ['orderToken' => $order->order_token])

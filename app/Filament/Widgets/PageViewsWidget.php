@@ -22,8 +22,12 @@ class PageViewsWidget extends ChartWidget
 
     protected function getData(): array
     {
+        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $from = now()->subDays($days)->startOfDay();
+
         $topViews = ShopEvent::views()
             ->where('viewable_type', (new Product)->getMorphClass())
+            ->where('created_at', '>=', $from)
             ->selectRaw('viewable_id, COUNT(*) as view_count')
             ->groupBy('viewable_id')
             ->orderByDesc('view_count')

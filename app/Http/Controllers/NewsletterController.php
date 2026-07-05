@@ -20,6 +20,10 @@ class NewsletterController extends Controller
         if ($existing) {
             // Se è attivo → già iscritto
             if ($existing->unsubscribed_at === null) {
+                // Self-healing: se per qualche motivo era fallita la sincronizzazione, la riavviamo
+                if (! $existing->synced_to_ac) {
+                    SyncNewsletterToActiveCampaign::dispatch($existing);
+                }
                 return back()->with('newsletter_info', __('messages.newsletter.already_subscribed'));
             }
 
@@ -29,7 +33,7 @@ class NewsletterController extends Controller
                 'first_name' => $validated['first_name'] ?? $existing->first_name,
                 'ip_address' => $request->ip(),
                 'synced_to_ac' => false,
-                'ac_contact_id' => null,
+                // Manteniamo il vecchio ac_contact_id se presente
                 'subscribed_at' => now(),
             ]);
 

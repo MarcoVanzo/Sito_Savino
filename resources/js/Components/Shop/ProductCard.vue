@@ -1,5 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
+import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
@@ -18,8 +19,8 @@ const props = defineProps({
     },
 });
 
-const isOutOfStock = props.product.stock !== undefined && props.product.stock !== null && props.product.stock <= 0;
-const hasSalePrice = props.product.sale_price && props.product.sale_price !== props.product.price;
+const isOutOfStock = computed(() => props.product.stock !== undefined && props.product.stock !== null && props.product.stock <= 0);
+const hasSalePrice = computed(() => props.product.sale_price && props.product.sale_price < props.product.price);
 </script>
 
 <template>

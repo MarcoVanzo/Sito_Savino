@@ -110,7 +110,7 @@ const submit = () => {
                         <label class="flex items-center">
                             <Checkbox name="privacy_policy" v-model:checked="form.privacy_policy" required />
                             <span class="ml-2 text-sm text-gray-600">
-                                {{ $t('shop.accept_privacy_1') || 'Accetto la' }} <a href="/privacy-policy" target="_blank" class="text-savino-gold hover:underline">{{ $t('shop.accept_privacy_2') || 'Privacy Policy' }}</a>
+                                {{ $t('shop.accept_privacy_1') || 'Accetto la' }} <a :href="route('privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-savino-gold hover:underline">{{ $t('shop.accept_privacy_2') || 'Privacy Policy' }}</a>
                             </span>
                         </label>
                         <InputError class="mt-2" :message="form.errors.privacy_policy" />
@@ -129,7 +129,7 @@ const submit = () => {
 
                     <div class="text-center mt-6 text-sm text-gray-600">
                         {{ $t('shop.already_have_account') || 'Hai già un account?' }} 
-                        <Link :href="route('shop.login')" class="font-medium text-savino-gold hover:text-savino-blue transition-colors">
+                        <Link :href="route('login')" class="font-medium text-savino-gold hover:text-savino-blue transition-colors">
                             {{ $t('shop.login_now') || 'Accedi ora' }}
                         </Link>
                     </div>
