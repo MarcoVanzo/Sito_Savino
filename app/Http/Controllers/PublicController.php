@@ -371,7 +371,11 @@ class PublicController extends Controller
                     'description' => $p->description,
                     'price' => $p->price,
                     'stock' => $p->stock,
-                    'image_url' => $p->getFirstMediaUrl('products', 'card') ?: $p->getFirstMediaUrl('products') ?: $p->getFirstMediaUrl('images', 'card') ?: $p->getFirstMediaUrl('images'),
+                    'image_url' => (function() use ($p) {
+                        $m = $p->getMedia('products')->first() ?: $p->getMedia('images')->first();
+                        if (!$m) return null;
+                        return $m->hasGeneratedConversion('card') ? $m->getUrl('card') : $m->getUrl();
+                    })(),
                 ])->toArray();
         });
 

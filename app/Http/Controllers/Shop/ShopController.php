@@ -27,9 +27,16 @@ class ShopController extends Controller
             $media = $p->getMedia('images');
         }
 
-        $imageUrl = $media->isNotEmpty()
-            ? ($media->first()->getUrl('card') ?: $media->first()->getUrl())
-            : null;
+        $firstMedia = $media->first();
+        $imageUrl = null;
+        if ($firstMedia) {
+            // Only use conversion URL if the conversion file was actually generated
+            if ($firstMedia->hasGeneratedConversion('card')) {
+                $imageUrl = $firstMedia->getUrl('card');
+            } else {
+                $imageUrl = $firstMedia->getUrl();
+            }
+        }
 
         return [
             'id' => $p->id,
@@ -56,6 +63,37 @@ class ShopController extends Controller
     }
 
     /**
+     * Mapper leggero per la griglia prodotti (card).
+     * Evita di mandare description, images[], variants al client per ogni prodotto.
+     */
+    private function mapProductCard(Product $p): array
+    {
+        $media = $p->getMedia('products');
+        if ($media->isEmpty()) {
+            $media = $p->getMedia('images');
+        }
+
+        $imageUrl = $media->isNotEmpty()
+            ? ($media->first()->getUrl('card') ?: $media->first()->getUrl())
+            : null;
+
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'slug' => $p->slug,
+            'price' => $p->price,
+            'sale_price' => $p->sale_price,
+            'stock' => $p->stock,
+            'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
+            'category' => $p->category ? [
+                'id' => $p->category->id,
+                'name' => $p->category->name,
+            ] : null,
+            'image_url' => $imageUrl,
+        ];
+    }
+
+    /**
      * Shop homepage.
      * Se lo shop è disabilitato, mostra la pagina di manutenzione.
      */
@@ -65,12 +103,11 @@ class ShopController extends Controller
             return Inertia::render('Public/Shop/Maintenance');
         }
 
-        $featuredProducts = Product::shoppable()
+        $allProducts = Product::shoppable()
             ->with(['category', 'media'])
-            ->latest()
-            ->take(8)
+            ->orderBy('sort_order')
             ->get()
-            ->map(fn ($p) => $this->mapProduct($p))
+            ->map(fn ($p) => $this->mapProductCard($p))
             ->values();
 
         $categories = ProductCategory::withCount(['products' => function ($query) {
@@ -78,17 +115,17 @@ class ShopController extends Controller
             }])
             ->ordered()
             ->get()
+            ->filter(fn ($c) => $c->products_count > 0)
             ->map(fn ($c) => [
                 'id' => $c->id,
                 'name' => $c->name,
                 'slug' => $c->slug,
-                'description' => $c->description,
                 'products_count' => $c->products_count,
             ])
             ->values();
 
         return Inertia::render('Public/Shop/Index', [
-            'featuredProducts' => $featuredProducts,
+            'allProducts' => $allProducts,
             'categories' => $categories,
             'announcementBanner' => SiteSetting::get('shop.announcement_banner'),
         ]);
