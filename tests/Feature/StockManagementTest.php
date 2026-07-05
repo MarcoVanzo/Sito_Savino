@@ -18,7 +18,12 @@ class StockManagementTest extends TestCase
     private function createOrderWithProduct(int $stock = 50, int $quantity = 2): array
     {
         $product = Product::factory()->create(['stock' => $stock]);
-        $order = Order::factory()->create(['status' => OrderStatus::Pending]);
+
+        // status is intentionally excluded from $fillable — set it explicitly
+        $order = Order::factory()->create();
+        $order->status = OrderStatus::Pending;
+        $order->save();
+
         OrderItem::factory()->create([
             'order_id' => $order->id,
             'product_id' => $product->id,
@@ -26,14 +31,23 @@ class StockManagementTest extends TestCase
             'price_at_time_of_purchase' => $product->price,
         ]);
 
-        return [$order, $product];
+        return [$order->fresh(), $product];
+    }
+
+    /**
+     * Helper: cambia lo status di un ordine in modo sicuro (no mass-assignment).
+     */
+    private function changeOrderStatus(Order $order, OrderStatus $status): void
+    {
+        $order->status = $status;
+        $order->save();
     }
 
     public function test_stock_decrements_when_order_is_paid(): void
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 3);
 
-        $order->update(['status' => OrderStatus::Paid]);
+        $this->changeOrderStatus($order, OrderStatus::Paid);
 
         // Lo StockMovementObserver decrementa lo stock atomicamente
         $product->refresh();
@@ -53,12 +67,12 @@ class StockManagementTest extends TestCase
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 5);
 
         // Simula doppio pagamento (idempotenza)
-        $order->update(['status' => OrderStatus::Paid]);
+        $this->changeOrderStatus($order, OrderStatus::Paid);
 
         // Forza un secondo trigger: reimposta e ri-aggiorna
         $order->status = OrderStatus::Pending;
         $order->saveQuietly(); // saveQuietly per non triggerare observer
-        $order->update(['status' => OrderStatus::Paid]);
+        $this->changeOrderStatus($order, OrderStatus::Paid);
 
         $product->refresh();
         // Stock decrementato solo una volta
@@ -70,11 +84,11 @@ class StockManagementTest extends TestCase
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 4);
 
-        $order->update(['status' => OrderStatus::Paid]);
+        $this->changeOrderStatus($order, OrderStatus::Paid);
         $product->refresh();
         $this->assertEquals(46, $product->stock);
 
-        $order->update(['status' => OrderStatus::Cancelled]);
+        $this->changeOrderStatus($order, OrderStatus::Cancelled);
         $product->refresh();
         $this->assertEquals(50, $product->stock);
 
@@ -87,13 +101,13 @@ class StockManagementTest extends TestCase
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 4);
 
-        $order->update(['status' => OrderStatus::Paid]);
-        $order->update(['status' => OrderStatus::Cancelled]);
+        $this->changeOrderStatus($order, OrderStatus::Paid);
+        $this->changeOrderStatus($order, OrderStatus::Cancelled);
 
         // Simula doppio tentativo di cancellazione
         $order->status = OrderStatus::Paid;
         $order->saveQuietly();
-        $order->update(['status' => OrderStatus::Cancelled]);
+        $this->changeOrderStatus($order, OrderStatus::Cancelled);
 
         $product->refresh();
         // Stock ripristinato solo una volta
@@ -105,7 +119,7 @@ class StockManagementTest extends TestCase
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 3);
 
         // Cancella un ordine MAI pagato
-        $order->update(['status' => OrderStatus::Cancelled]);
+        $this->changeOrderStatus($order, OrderStatus::Cancelled);
 
         $product->refresh();
         $this->assertEquals(50, $product->stock);
