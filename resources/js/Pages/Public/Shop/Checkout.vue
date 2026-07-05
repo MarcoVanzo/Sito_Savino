@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, useForm } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 
@@ -33,6 +33,15 @@ const form = useForm({
     coupon_code: '',
     notes: '',
     privacy_accepted: false,
+});
+
+const billingSameAsShipping = ref(true);
+
+watch(billingSameAsShipping, (val) => {
+    if (val) form.billing_address = form.shipping_address;
+});
+watch(() => form.shipping_address, (val) => {
+    if (billingSameAsShipping.value) form.billing_address = val;
 });
 
 const shippingCost = computed(() => {
@@ -101,27 +110,16 @@ const ogMeta = useOgMeta({
                             <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.shipping_title') }}</h2>
                         </div>
                         <div class="grid sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="checkout-firstname" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_firstname') }}</label>
+                            <div class="sm:col-span-2">
+                                <label for="checkout-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_fullname') }}</label>
                                 <input
-                                    id="checkout-firstname"
+                                    id="checkout-name"
                                     v-model="form.guest_name"
                                     type="text"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                   
-                                    :placeholder="$t('shop_checkout.placeholder_firstname')"
+                                    :placeholder="$t('shop_checkout.placeholder_fullname')"
                                 />
-                            </div>
-                            <div>
-                                <label for="checkout-lastname" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_lastname') }}</label>
-                                <input
-                                    id="checkout-lastname"
-                                    v-model="form.billing_address"
-                                    type="text"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                   
-                                    :placeholder="$t('shop_checkout.placeholder_lastname')"
-                                />
+                                <p v-if="form.errors.guest_name" class="mt-1 text-sm text-red-500">{{ form.errors.guest_name }}</p>
                             </div>
                             <div>
                                 <label for="checkout-email" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_email') }}</label>
@@ -130,9 +128,9 @@ const ogMeta = useOgMeta({
                                     v-model="form.guest_email"
                                     type="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                   
                                     :placeholder="$t('shop_checkout.placeholder_email')"
                                 />
+                                <p v-if="form.errors.guest_email" class="mt-1 text-sm text-red-500">{{ form.errors.guest_email }}</p>
                             </div>
                             <div>
                                 <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }}</label>
@@ -141,54 +139,48 @@ const ogMeta = useOgMeta({
                                     v-model="form.guest_phone"
                                     type="tel"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                   
                                     placeholder="+39 333 000 0000"
                                 />
+                                <p v-if="form.errors.guest_phone" class="mt-1 text-sm text-red-500">{{ form.errors.guest_phone }}</p>
                             </div>
                             <div class="sm:col-span-2">
-                                <label for="checkout-address" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_address') }}</label>
-                                <input
+                                <label for="checkout-address" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_shipping_address') }}</label>
+                                <textarea
                                     id="checkout-address"
                                     v-model="form.shipping_address"
-                                    type="text"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                   
-                                    :placeholder="$t('shop_checkout.placeholder_address')"
-                                />
+                                    rows="2"
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
+                                    :placeholder="$t('shop_checkout.placeholder_shipping_address')"
+                                ></textarea>
+                                <p v-if="form.errors.shipping_address" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_address }}</p>
                             </div>
                             <div>
-                                <label for="checkout-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }}</label>
-                                <input
-                                    id="checkout-city"
-                                    v-model="form.shipping_city"
-                                    type="text"
+                                <label for="checkout-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_country') }}</label>
+                                <select
+                                    id="checkout-country"
+                                    v-model="form.country"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                   
-                                    :placeholder="$t('shop_checkout.placeholder_city')"
-                                />
+                                >
+                                    <option value="IT">Italia</option>
+                                </select>
+                                <p v-if="form.errors.country" class="mt-1 text-sm text-red-500">{{ form.errors.country }}</p>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="checkout-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }}</label>
-                                    <select
-                                        id="checkout-country"
-                                        v-model="form.country"
-                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                    >
-                                        <option value="IT">Italia</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="checkout-cap" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_cap') }}</label>
-                                    <input
-                                        id="checkout-cap"
-                                        type="text"
-                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                       
-                                        placeholder="50100"
-                                        maxlength="5"
-                                    />
-                                </div>
+                            <div class="flex items-end">
+                                <label class="flex items-center gap-2 pb-3 cursor-pointer">
+                                    <input type="checkbox" v-model="billingSameAsShipping" class="w-4 h-4 text-savino-blue border-gray-300 rounded" />
+                                    <span class="text-sm text-gray-600">{{ $t('shop_checkout.billing_same_as_shipping') }}</span>
+                                </label>
+                            </div>
+                            <div v-if="!billingSameAsShipping" class="sm:col-span-2">
+                                <label for="checkout-billing" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_billing_address') }}</label>
+                                <textarea
+                                    id="checkout-billing"
+                                    v-model="form.billing_address"
+                                    rows="2"
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
+                                    :placeholder="$t('shop_checkout.placeholder_billing_address')"
+                                ></textarea>
+                                <p v-if="form.errors.billing_address" class="mt-1 text-sm text-red-500">{{ form.errors.billing_address }}</p>
                             </div>
                             <div class="sm:col-span-2">
                                 <label for="checkout-notes" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_notes') }}</label>
@@ -197,7 +189,6 @@ const ogMeta = useOgMeta({
                                     v-model="form.notes"
                                     rows="3"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
-                                   
                                     :placeholder="$t('shop_checkout.placeholder_notes')"
                                 ></textarea>
                             </div>
@@ -214,7 +205,7 @@ const ogMeta = useOgMeta({
                             />
                             <span class="text-sm text-gray-600">
                                 {{ $t('shop.accept_privacy_1') }}
-                                <a :href="route('privacy')" target="_blank" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>
+                                <a :href="route('pages.show', 'privacy-policy')" target="_blank" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>
                             </span>
                         </label>
                         <p v-if="form.errors.privacy_accepted" class="mt-1 text-sm text-red-500">{{ form.errors.privacy_accepted }}</p>
