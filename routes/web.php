@@ -79,11 +79,6 @@ foreach ($locales as $loc) {
             Route::middleware('guest')->group(function () {
                 Route::get('/registrati', [\App\Http\Controllers\Shop\ShopAuthController::class, 'showRegister'])->name('shop.register');
                 Route::post('/registrati', [\App\Http\Controllers\Shop\ShopAuthController::class, 'register'])->name('shop.register.store');
-                Route::get('/admin/run-migration-secret', function () {
-                    \Illuminate\Support\Facades\Artisan::queue('wp:migrate-products');
-                    
-                    return "Migrazione messa in coda! Verrà elaborata dal worker in background. Controlla il CMS tra 5 minuti.";
-                });
             });
         });
         Route::get('/contatti', [PublicController::class, 'contatti'])->name('contatti');
