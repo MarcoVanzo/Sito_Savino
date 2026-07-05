@@ -90,7 +90,8 @@ class ShopController extends Controller
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($p) => $this->mapProductCard($p))
-                ->values();
+                ->values()
+                ->all();
 
             $categories = ProductCategory::withCount(['products' => function ($query) {
                     $query->shoppable();
@@ -104,7 +105,8 @@ class ShopController extends Controller
                     'slug' => $c->slug,
                     'products_count' => $c->products_count,
                 ])
-                ->values();
+                ->values()
+                ->all();
 
             return compact('allProducts', 'categories');
         });
