@@ -103,18 +103,16 @@ const incrementQty = () => {
 
 // --- Add to Cart ---
 const isAdding = ref(false);
-const handleAddToCart = async () => {
+const handleAddToCart = () => {
     if (isOutOfStock.value || isAdding.value) return;
     isAdding.value = true;
-    try {
-        await addToCart({
-            product_id: props.product.id,
-            variant_id: selectedVariant.value,
-            quantity: quantity.value,
-        });
-    } finally {
-        isAdding.value = false;
-    }
+    addToCart({
+        product_id: props.product.id,
+        variant_id: selectedVariant.value,
+        quantity: quantity.value,
+    }, {
+        onFinish: () => { isAdding.value = false; },
+    });
 };
 
 // --- JSON-LD ---

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -107,30 +108,35 @@ class ShopController extends Controller
             return Inertia::render('Public/Shop/Maintenance');
         }
 
-        $allProducts = Product::shoppable()
-            ->with(['category', 'media'])
-            ->orderBy('sort_order')
-            ->get()
-            ->map(fn ($p) => $this->mapProductCard($p))
-            ->values();
+        $locale = app()->getLocale();
+        $data = Cache::remember("public:shop:{$locale}", now()->addMinutes(10), function () {
+            $allProducts = Product::shoppable()
+                ->with(['category', 'media'])
+                ->orderBy('sort_order')
+                ->get()
+                ->map(fn ($p) => $this->mapProductCard($p))
+                ->values();
 
-        $categories = ProductCategory::withCount(['products' => function ($query) {
-                $query->shoppable();
-            }])
-            ->ordered()
-            ->get()
-            ->filter(fn ($c) => $c->products_count > 0)
-            ->map(fn ($c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-                'slug' => $c->slug,
-                'products_count' => $c->products_count,
-            ])
-            ->values();
+            $categories = ProductCategory::withCount(['products' => function ($query) {
+                    $query->shoppable();
+                }])
+                ->ordered()
+                ->get()
+                ->filter(fn ($c) => $c->products_count > 0)
+                ->map(fn ($c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'slug' => $c->slug,
+                    'products_count' => $c->products_count,
+                ])
+                ->values();
+
+            return compact('allProducts', 'categories');
+        });
 
         return Inertia::render('Public/Shop/Index', [
-            'allProducts' => $allProducts,
-            'categories' => $categories,
+            'allProducts' => $data['allProducts'],
+            'categories' => $data['categories'],
             'announcementBanner' => SiteSetting::get('shop.announcement_banner'),
         ]);
     }

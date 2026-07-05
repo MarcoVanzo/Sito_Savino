@@ -43,8 +43,8 @@ class OrderObserver
             $this->decrementStock($order);
         }
 
-        // Ordine cancellato → ripristina stock (solo se era stato pagato)
-        if ($order->status === OrderStatus::Cancelled) {
+        // Ordine cancellato o rimborsato → ripristina stock (solo se era stato pagato)
+        if ($order->status === OrderStatus::Cancelled || $order->status === OrderStatus::Refunded) {
             $originalStatus = $order->getOriginal('status');
             // getOriginal() può tornare stringa o enum in base alla versione Laravel
             $wasPaid = $originalStatus === OrderStatus::Paid

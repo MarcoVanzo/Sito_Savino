@@ -12,7 +12,7 @@ use App\Models\HeroSlide;
 use App\Models\Page;
 use App\Models\Player;
 use App\Models\Post;
-use App\Models\Product;
+
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Sponsor;
@@ -356,42 +356,7 @@ class PublicController extends Controller
         ]);
     }
 
-    public function shop()
-    {
-        $locale = app()->getLocale();
-        $products = Cache::remember("public:shop:{$locale}", now()->addMinutes(10), function () {
-            return Product::with('media')
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->get()
-                ->map(fn ($p) => [
-                    'id' => $p->id,
-                    'name' => $p->name,
-                    'slug' => $p->slug ?? null,
-                    'description' => $p->description,
-                    'price' => $p->price,
-                    'stock' => $p->stock,
-                    'image_url' => (function() use ($p) {
-                        $m = $p->getMedia('products')->first() ?: $p->getMedia('images')->first();
-                        if (!$m) return null;
-                        return $m->hasGeneratedConversion('card') ? $m->getUrl('card') : $m->getUrl();
-                    })(),
-                ])->toArray();
-        });
 
-        return Inertia::render('Public/Shop', [
-            'products' => $products,
-        ]);
-    }
-
-    public function shopCheckout()
-    {
-        $cart = ['items' => [], 'total' => 0];
-
-        return Inertia::render('Public/ShopCheckout', [
-            'cart' => $cart,
-        ]);
-    }
 
     public function underConstruction()
     {

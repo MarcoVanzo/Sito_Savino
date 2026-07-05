@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 
 /**
  * Composable per gestire lo stato del carrello in modo reattivo
@@ -24,6 +24,7 @@ export function useCart() {
     const fetchCartCount = async () => {
         try {
             const response = await fetch(route('shop.cart.count'));
+            if (!response.ok) return;
             const data = await response.json();
             cartCount.value = data.count;
             cartTotal.value = data.total;
@@ -36,17 +37,24 @@ export function useCart() {
      * Aggiunge un prodotto al carrello via Inertia.
      * Dopo il successo, aggiorna il conteggio e apre il drawer.
      */
-    const addToCart = (productIdOrOptions, quantity = 1, variantId = null) => {
+    const addToCart = (productIdOrOptions, quantity = 1, variantId = null, callbacks = {}) => {
         let productId, qty, variant;
         if (typeof productIdOrOptions === 'object' && productIdOrOptions !== null) {
             productId = productIdOrOptions.product_id;
             qty = productIdOrOptions.quantity || 1;
             variant = productIdOrOptions.variant_id || null;
+            // When called with a single options object, the second arg is callbacks
+            if (typeof quantity === 'object' && quantity !== null) {
+                callbacks = quantity;
+            }
         } else {
             productId = productIdOrOptions;
             qty = quantity;
             variant = variantId;
         }
+
+        const { onStart, onFinish, onSuccess, onError } = callbacks;
+
         router.post(route('shop.cart.store'), {
             product_id: productId,
             quantity: qty,
@@ -54,9 +62,19 @@ export function useCart() {
         }, {
             preserveScroll: true,
             preserveState: true,
-            onSuccess: () => {
+            onStart: (visit) => {
+                onStart?.(visit);
+            },
+            onSuccess: (page) => {
                 fetchCartCount();
                 isCartOpen.value = true;
+                onSuccess?.(page);
+            },
+            onError: (errors) => {
+                onError?.(errors);
+            },
+            onFinish: (visit) => {
+                onFinish?.(visit);
             },
         });
     };
@@ -91,7 +109,9 @@ export function useCart() {
      * Totale formattato in EUR con locale italiano.
      */
     const formattedTotal = computed(() => {
-        return new Intl.NumberFormat('it-IT', {
+        const pageLocale = usePage()?.props?.locale;
+        const locale = pageLocale === 'en' ? 'en-GB' : 'it-IT';
+        return new Intl.NumberFormat(locale, {
             style: 'currency',
             currency: 'EUR',
         }).format(cartTotal.value);

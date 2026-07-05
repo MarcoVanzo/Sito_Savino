@@ -15,7 +15,9 @@
     "go_to_shop": "Vai allo Shop",
     "all_news": "Tutte le News",
     "coming_soon": "In arrivo",
-    "tbd": "Data da definire"
+    "tbd": "Data da definire",
+    "home": "Home",
+    "shop": "Shop"
   },
   "nav": {
     "main_navigation": "Navigazione principale",
@@ -401,7 +403,28 @@
     "remove_item": "Rimuovi",
     "proceed_checkout": "Procedi al checkout",
     "view_cart": "Vedi carrello",
-    "badge_new": "Nuovo"
+    "badge_new": "Nuovo",
+    "all_categories": "Tutte le categorie",
+    "product_singular": "prodotto",
+    "products_found": "prodotti trovati",
+    "no_results_title": "Nessun risultato",
+    "try_different_search": "Prova con un altro termine di ricerca o categoria.",
+    "clear_filters": "Rimuovi filtri",
+    "select_variant": "Seleziona variante",
+    "description": "Descrizione",
+    "discover": "Scopri",
+    "related_products": "Prodotti Correlati",
+    "sale": "In Offerta",
+    "low_stock": "Ultimi pezzi disponibili",
+    "product_detail": "Dettaglio Prodotto",
+    "search_label": "Ricerca",
+    "results_for": "Risultati per",
+    "search_btn": "Cerca",
+    "results_count": "risultati",
+    "register_title": "Registrazione Shop",
+    "no_products_title": "Nessun prodotto disponibile",
+    "no_products_category": "Non ci sono prodotti in questa categoria.",
+    "category_label": "Categoria"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Ordine inviato! (placeholder)",
