@@ -118,7 +118,7 @@ const socialLinks = computed(() => {
                         />
                         <span class="h-14 w-px bg-white/20"></span>
                         <img 
-                            :src="LOGOS.CORPORATE_LEFT" 
+                            :src="LOGOS.CORPORATE_LEFT_WHITE" 
                             alt="Savino Del Bene Corporate" 
                             class="h-[60px] w-auto object-contain mx-auto"
                             @error="onImgError"

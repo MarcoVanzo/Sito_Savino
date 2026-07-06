@@ -11,6 +11,8 @@ export const LOGOS = {
     CORPORATE: '/images/logo-corporate.png',
     /** Logo corporate Savino Del Bene con payoff e cubo a sinistra (corretto) */
     CORPORATE_LEFT: '/images/logo-corporate-left.png',
+    /** Logo corporate Savino Del Bene bianco per sfondi scuri (cubo a sinistra) */
+    CORPORATE_LEFT_WHITE: '/images/logo-corporate-left-white.png',
     /** Icona corporate Savino Del Bene — solo simbolo cubo, senza testo */
     CORPORATE_ICON: '/images/logo-corporate-icon.png',
     /** Logo Lega Volley Femminile (LVF) ufficiale (>= 25mm) */
