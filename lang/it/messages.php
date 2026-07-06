@@ -29,6 +29,14 @@ return [
     'checkout' => [
         'error' => 'Si è verificato un errore durante il checkout. Riprova.',
         'success_bank' => 'Ordine creato con successo! Ti abbiamo inviato le istruzioni per il bonifico.',
+        'cart_empty' => 'Il carrello è vuoto.',
+        'stock_issue' => ':product: disponibili :available, richiesti :requested.',
+        'country_not_served' => 'Spedizione non disponibile per il paese selezionato.',
+        'country_required' => 'Il paese di spedizione è obbligatorio.',
+        'privacy_required' => 'Devi accettare l\'informativa sulla privacy.',
+        'invalid_coupon' => 'Codice coupon non valido.',
+        'coupon_not_applicable' => 'Il coupon non è applicabile a questo ordine.',
+        'coupon_applied' => 'Coupon applicato! Sconto di € :discount.',
     ],
     'shop' => [
         'register_success' => 'Registrazione completata! Benvenuto nello shop.',

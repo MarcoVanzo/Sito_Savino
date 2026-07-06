@@ -1,12 +1,22 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, usePage, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
+import ProductCardSkeleton from '@/Components/Shop/ProductCardSkeleton.vue';
 
 const $t = useTranslations();
+
+// --- Skeleton loading state ---
+const isNavigating = ref(false);
+const removeStartListener = router.on('start', () => { isNavigating.value = true; });
+const removeFinishListener = router.on('finish', () => { isNavigating.value = false; });
+onUnmounted(() => {
+    removeStartListener();
+    removeFinishListener();
+});
 
 const props = defineProps({
     allProducts: {
@@ -81,6 +91,11 @@ const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || 
     </Head>
 
     <PublicLayout>
+        <!-- ANNOUNCEMENT BANNER -->
+        <div v-if="announcementBanner" class="bg-savino-gold text-gray-900 text-center py-3 px-4 font-bold text-sm">
+            {{ announcementBanner }}
+        </div>
+
         <!-- HERO SECTION -->
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
@@ -168,14 +183,21 @@ const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || 
                     </button>
                 </div>
 
+                <!-- Skeleton Loading -->
+                <div v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" role="list" aria-label="Caricamento prodotti">
+                    <ProductCardSkeleton v-for="n in 8" :key="'skeleton-' + n" role="listitem" />
+                </div>
+
                 <!-- Products Grid -->
                 <transition-group
-                    v-if="filteredProducts.length > 0"
+                    v-else-if="filteredProducts.length > 0"
                     name="product-fade"
                     tag="div"
                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+                    role="list"
+                    :aria-label="$t('shop.products_list') || 'Elenco prodotti'"
                 >
-                    <ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
+                    <ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" role="listitem" />
                 </transition-group>
 
                 <!-- Empty State: no results from filter/search -->

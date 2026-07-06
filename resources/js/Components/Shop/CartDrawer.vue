@@ -20,12 +20,14 @@ const { formatPrice } = useFormatPrice();
 const { onImgError } = useImageFallback();
 
 const cart = ref({ items: [], total: 0 });
+const hasFetched = ref(false);
 
 const fetchCart = async () => {
     try {
         const response = await fetch(route('shop.cart.data'));
         const data = await response.json();
         cart.value = data;
+        hasFetched.value = true;
     } catch (e) {
         console.error('[CartDrawer] Failed to fetch cart data:', e);
     }
@@ -62,7 +64,9 @@ const handleKeydown = (e) => {
 
 onMounted(() => {
     document.addEventListener('keydown', handleKeydown);
-    fetchCart();
+    if (!hasFetched.value) {
+        fetchCart();
+    }
 });
 
 onUnmounted(() => {
@@ -181,7 +185,8 @@ onUnmounted(() => {
                                 </span>
                                 <button
                                     @click="updateQuantity(item.id, (item.quantity || 1) + 1)"
-                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-gold hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold"
+                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-gold hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
+                                    :disabled="item.quantity >= (item.product?.stock ?? Infinity)"
                                 >
                                     +
                                 </button>

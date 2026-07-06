@@ -29,6 +29,14 @@ return [
     'checkout' => [
         'error' => 'An error occurred during checkout. Please try again.',
         'success_bank' => 'Order created successfully! We have sent you the bank transfer instructions.',
+        'cart_empty' => 'Your cart is empty.',
+        'stock_issue' => ':product: :available available, :requested requested.',
+        'country_not_served' => 'Shipping is not available for the selected country.',
+        'country_required' => 'Shipping country is required.',
+        'privacy_required' => 'You must accept the privacy policy.',
+        'invalid_coupon' => 'Invalid coupon code.',
+        'coupon_not_applicable' => 'This coupon is not applicable to this order.',
+        'coupon_applied' => 'Coupon applied! Discount of € :discount.',
     ],
     'shop' => [
         'register_success' => 'Registration completed! Welcome to the shop.',

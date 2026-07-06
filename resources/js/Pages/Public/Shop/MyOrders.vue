@@ -1,6 +1,6 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice';
 import { useTranslations } from '@/Composables/useTranslations.js';
@@ -21,7 +21,8 @@ const ogMeta = useOgMeta({
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(document.documentElement.lang === 'en' ? 'en-GB' : 'it-IT');
+    const pageLocale = usePage().props.locale;
+    return date.toLocaleDateString(pageLocale === 'en' ? 'en-GB' : 'it-IT');
 };
 </script>
 

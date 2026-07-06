@@ -82,5 +82,18 @@ class StockMovementObserver
         } else {
             $modelClass::where('id', $id)->increment('stock', $quantity);
         }
+
+        // Low stock / out-of-stock notification (only for Product, not variants)
+        if ($modelClass === Product::class) {
+            $product = Product::find($id);
+            if ($product) {
+                $newStock = (int) $product->stock;
+                if ($newStock <= 0) {
+                    app(\App\Services\AdminNotificationService::class)->notifyOutOfStock($product);
+                } elseif ($newStock <= 5) {
+                    app(\App\Services\AdminNotificationService::class)->notifyLowStock($product);
+                }
+            }
+        }
     }
 }

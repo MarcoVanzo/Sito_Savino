@@ -29,4 +29,20 @@ class ProductVariant extends Model
     {
         return $this->hasMany(StockMovement::class);
     }
+
+    /**
+     * Items nel carrello con questa variante.
+     */
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class, 'product_variant_id');
+    }
+
+    /**
+     * Items d'ordine con questa variante.
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class, 'product_variant_id');
+    }
 }

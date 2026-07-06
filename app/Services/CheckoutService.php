@@ -35,7 +35,7 @@ class CheckoutService
         // 1. Carrello vuoto
         $cart->loadMissing('items.product', 'items.variant');
         if ($cart->items->isEmpty()) {
-            $errors['cart'] = ['Il carrello è vuoto.'];
+            $errors['cart'] = [__('messages.checkout.cart_empty')];
         }
 
         // 2. Controllo stock
@@ -45,7 +45,7 @@ class CheckoutService
                 $messages = [];
                 foreach ($stockIssues as $issue) {
                     $productName = $issue['item']->product->name;
-                    $messages[] = "{$productName}: disponibili {$issue['available']}, richiesti {$issue['requested']}.";
+                    $messages[] = __('messages.checkout.stock_issue', ['product' => $productName, 'available' => $issue['available'], 'requested' => $issue['requested']]);
                 }
                 $errors['stock'] = $messages;
             }
@@ -55,10 +55,10 @@ class CheckoutService
         if (! empty($data['country'])) {
             $zone = ShippingZone::findByCountry($data['country']);
             if (! $zone) {
-                $errors['country'] = ['Spedizione non disponibile per il paese selezionato.'];
+                $errors['country'] = [__('messages.checkout.country_not_served')];
             }
         } else {
-            $errors['country'] = ['Il paese di spedizione è obbligatorio.'];
+            $errors['country'] = [__('messages.checkout.country_required')];
         }
 
         // 4. Coupon valido (se fornito)
@@ -78,7 +78,7 @@ class CheckoutService
 
         // 5. Privacy accettata
         if (empty($data['privacy_accepted_at'])) {
-            $errors['privacy_accepted_at'] = ['Devi accettare l\'informativa sulla privacy.'];
+            $errors['privacy_accepted_at'] = [__('messages.checkout.privacy_required')];
         }
 
         if (! empty($errors)) {
@@ -205,7 +205,7 @@ class CheckoutService
 
         if (! $zone) {
             throw new \RuntimeException(
-                'Spedizione non disponibile per il paese selezionato.'
+                __('messages.checkout.country_not_served')
             );
         }
 
@@ -224,11 +224,11 @@ class CheckoutService
         $coupon = Coupon::byCode($code)->lockForUpdate()->first();
 
         if (! $coupon) {
-            throw new \InvalidArgumentException('Codice coupon non valido.');
+            throw new \InvalidArgumentException(__('messages.checkout.invalid_coupon'));
         }
 
         if (! $coupon->isValidForOrder($subtotal, $userId, $guestEmail)) {
-            throw new \InvalidArgumentException('Il coupon non è applicabile a questo ordine.');
+            throw new \InvalidArgumentException(__('messages.checkout.coupon_not_applicable'));
         }
 
         $discount = $coupon->calculateDiscount($subtotal);

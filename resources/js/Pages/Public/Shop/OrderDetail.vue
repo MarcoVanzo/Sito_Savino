@@ -21,10 +21,12 @@ const ogMeta = useOgMeta({
     title: $t('shop.order_detail.order_title').replace('{number}', props.order.order_number) + ' - Savino Del Bene Volley',
 });
 
+const page = usePage();
 const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return date.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+    const locale = page.props.locale || 'it-IT';
+    return date.toLocaleString(locale, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
 };
 </script>
 
@@ -87,7 +89,7 @@ const formatDate = (dateString) => {
                             <ul class="divide-y divide-gray-100">
                                 <li v-for="item in order.items" :key="item.id" class="p-6 flex items-center gap-6">
                                     <div class="w-20 h-20 flex-shrink-0 bg-gray-50 rounded-md overflow-hidden border border-gray-100">
-                                        <img :src="item.image_url || '/images/placeholder.jpg'" :alt="item.name" @error="onImgError" class="w-full h-full object-cover object-center" />
+                                        <img :src="item.image_url" :alt="item.name" @error="onImgError" class="w-full h-full object-cover object-center" />
                                     </div>
                                     <div class="flex-1 flex flex-col justify-center">
                                         <h4 class="text-base font-bold text-gray-900">{{ item.name }}</h4>

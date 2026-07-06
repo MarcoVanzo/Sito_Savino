@@ -16,10 +16,18 @@ class OrderFactory extends Factory
         return [
             'user_id' => User::factory(),
             'status' => OrderStatus::Pending,
-            'total_price' => fake()->randomFloat(2, 10, 500),
             'shipping_address' => fake()->address(),
             'billing_address' => fake()->address(),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (\App\Models\Order $order) {
+            if (!$order->total_price) {
+                $order->forceFill(['total_price' => fake()->randomFloat(2, 10, 500)])->save();
+            }
+        });
     }
 
     public function paid(): static

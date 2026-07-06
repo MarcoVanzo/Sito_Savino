@@ -388,6 +388,8 @@
     "maintenance_title": "Shop Under Maintenance",
     "maintenance_description": "We're working to improve your shopping experience. Please check back soon!",
     "maintenance_badge": "Maintenance in progress",
+    "maintenance_heading": "Shop under maintenance",
+    "maintenance_status": "Our shop is under maintenance. We'll be back soon!",
     "back_to_home": "Back to home",
     "add_to_cart": "Add to Cart",
     "added_to_cart": "Added to cart!",
@@ -424,7 +426,18 @@
     "register_title": "Shop Registration",
     "no_products_title": "No products available",
     "no_products_category": "There are no products in this category.",
-    "category_label": "Category"
+    "category_label": "Category",
+    "login": "Log in",
+    "register_link": "Register",
+    "my_orders": "My Orders",
+    "logout": "Log out",
+    "welcome_user": "Hi, {name}",
+    "my_account": "My Account",
+    "no_account": "Don't have an account?",
+    "forgot_password": "Forgot password?",
+    "remember_me": "Remember me",
+    "login_title": "Shop Login",
+    "login_subtitle": "Log in to manage your orders"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Order submitted! (placeholder)",
@@ -458,7 +471,17 @@
     "free_shipping_threshold": "Free shipping on orders over €50",
     "total": "Total",
     "confirm_order": "Confirm Order",
-    "payment_secure_note": "Secure and protected payment. Your data is safe."
+    "payment_secure_note": "Secure and protected payment. Your data is safe.",
+    "select_country": "Select country",
+    "processing": "Processing...",
+    "no_gateways": "No payment methods available",
+    "placeholder_phone": "+39 333 000 0000",
+    "coupon_label": "Coupon Code",
+    "coupon_placeholder": "Enter code...",
+    "coupon_apply": "Apply",
+    "coupon_remove": "Remove",
+    "coupon_error": "Error validating coupon.",
+    "discount": "Discount"
   },
   "summer_camp": {
     "activity_volleyball": "Volleyball",
@@ -644,5 +667,35 @@
     "initiatives_title": "Our Projects",
     "results_badge": "Results",
     "impact_title": "Our Impact"
+  },
+  "shop_contacts": {
+    "og_title": "Shop Support Contacts",
+    "og_description": "Contact the support team of the Official Savino Del Bene Volley Shop.",
+    "email": "Email",
+    "phone": "Phone",
+    "hours": "Hours",
+    "hero_label": "Official Shop",
+    "hero_title": "Support Contacts",
+    "hero_subtitle": "Need help with your order? Get in touch!",
+    "breadcrumb_shop": "Shop",
+    "breadcrumb_current": "Support Contacts",
+    "additional_info": "Additional Information",
+    "updating_title": "Contacts being updated",
+    "updating_description": "Contact details will be available soon.",
+    "back_to_shop": "Back to Shop"
+  },
+  "shop_size_guide": {
+    "og_title": "Size Guide",
+    "og_description": "Check the official size guide to find the perfect fit.",
+    "hero_label": "Official Shop",
+    "hero_title": "Size Guide",
+    "hero_subtitle": "Browse our official guides to find the perfect size for you.",
+    "breadcrumb_shop": "Shop",
+    "breadcrumb_current": "Size Guide",
+    "pdf_download": "PDF — Download",
+    "empty_title": "Size guide coming soon",
+    "empty_description": "Documents will be available soon.",
+    "need_help": "Need help with sizing?",
+    "back_to_shop": "Back to Shop"
   }
 }

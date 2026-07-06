@@ -388,6 +388,8 @@
     "maintenance_title": "Shop in manutenzione",
     "maintenance_description": "Stiamo lavorando per migliorare la tua esperienza di acquisto. Torna a trovarci presto!",
     "maintenance_badge": "Manutenzione in corso",
+    "maintenance_heading": "Shop in manutenzione",
+    "maintenance_status": "Il nostro shop è in manutenzione. Torneremo presto!",
     "back_to_home": "Torna alla home",
     "add_to_cart": "Aggiungi al Carrello",
     "added_to_cart": "Aggiunto al carrello!",
@@ -424,7 +426,18 @@
     "register_title": "Registrazione Shop",
     "no_products_title": "Nessun prodotto disponibile",
     "no_products_category": "Non ci sono prodotti in questa categoria.",
-    "category_label": "Categoria"
+    "category_label": "Categoria",
+    "login": "Accedi",
+    "register_link": "Registrati",
+    "my_orders": "I Miei Ordini",
+    "logout": "Esci",
+    "welcome_user": "Ciao, {name}",
+    "my_account": "Il Mio Account",
+    "no_account": "Non hai un account?",
+    "forgot_password": "Password dimenticata?",
+    "remember_me": "Ricordami",
+    "login_title": "Accedi allo Shop",
+    "login_subtitle": "Accedi per gestire i tuoi ordini"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Ordine inviato! (placeholder)",
@@ -458,7 +471,17 @@
     "free_shipping_threshold": "Spedizione gratuita per ordini sopra i €50",
     "total": "Totale",
     "confirm_order": "Conferma Ordine",
-    "payment_secure_note": "Pagamento sicuro e protetto. I tuoi dati sono al sicuro."
+    "payment_secure_note": "Pagamento sicuro e protetto. I tuoi dati sono al sicuro.",
+    "select_country": "Seleziona il paese",
+    "processing": "Elaborazione...",
+    "no_gateways": "Nessun metodo di pagamento disponibile",
+    "placeholder_phone": "+39 333 000 0000",
+    "coupon_label": "Codice Coupon",
+    "coupon_placeholder": "Inserisci il codice...",
+    "coupon_apply": "Applica",
+    "coupon_remove": "Rimuovi",
+    "coupon_error": "Errore nella verifica del coupon.",
+    "discount": "Sconto"
   },
   "summer_camp": {
     "activity_volleyball": "Pallavolo",
@@ -644,5 +667,35 @@
     "initiatives_title": "I Nostri Progetti",
     "results_badge": "Risultati",
     "impact_title": "Il Nostro Impatto"
+  },
+  "shop_contacts": {
+    "og_title": "Contatti Assistenza Shop",
+    "og_description": "Contatta il servizio assistenza dello Shop Ufficiale Savino Del Bene Volley.",
+    "email": "Email",
+    "phone": "Telefono",
+    "hours": "Orari",
+    "hero_label": "Shop Ufficiale",
+    "hero_title": "Contatti Assistenza",
+    "hero_subtitle": "Hai bisogno di assistenza per il tuo ordine? Contattaci!",
+    "breadcrumb_shop": "Shop",
+    "breadcrumb_current": "Contatti Assistenza",
+    "additional_info": "Informazioni Aggiuntive",
+    "updating_title": "Contatti in aggiornamento",
+    "updating_description": "Le informazioni di contatto saranno disponibili a breve.",
+    "back_to_shop": "Torna allo Shop"
+  },
+  "shop_size_guide": {
+    "og_title": "Guida Taglie",
+    "og_description": "Consulta la guida taglie ufficiale per trovare la taglia perfetta.",
+    "hero_label": "Shop Ufficiale",
+    "hero_title": "Guida Taglie",
+    "hero_subtitle": "Consulta i documenti ufficiali per trovare la taglia perfetta per te.",
+    "breadcrumb_shop": "Shop",
+    "breadcrumb_current": "Guida Taglie",
+    "pdf_download": "PDF — Scarica",
+    "empty_title": "Guida taglie in arrivo",
+    "empty_description": "I documenti saranno disponibili a breve.",
+    "need_help": "Hai bisogno di aiuto con le taglie?",
+    "back_to_shop": "Torna allo Shop"
   }
 }

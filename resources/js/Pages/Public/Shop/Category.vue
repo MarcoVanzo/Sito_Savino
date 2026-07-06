@@ -1,11 +1,12 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
+import ProductCardSkeleton from '@/Components/Shop/ProductCardSkeleton.vue';
 
 
 const $t = useTranslations();
@@ -18,10 +19,6 @@ const props = defineProps({
     currentSort: {
         type: String,
         default: 'newest',
-    },
-    sortOptions: {
-        type: Array,
-        default: () => [],
     },
 });
 
@@ -44,6 +41,15 @@ watch(selectedSort, (newSort) => {
         preserveState: true,
         preserveScroll: true,
     });
+});
+
+// --- Skeleton loading state ---
+const isNavigating = ref(false);
+const removeStartListener = router.on('start', () => { isNavigating.value = true; });
+const removeFinishListener = router.on('finish', () => { isNavigating.value = false; });
+onUnmounted(() => {
+    removeStartListener();
+    removeFinishListener();
 });
 </script>
 
@@ -76,12 +82,12 @@ watch(selectedSort, (newSort) => {
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <!-- Breadcrumb -->
-                <nav class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
+                <nav aria-label="Breadcrumb" class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
                     <Link :href="route('home')" class="hover:text-savino-gold transition-colors">{{ $t('common.home') }}</Link>
-                    <span>/</span>
+                    <span aria-hidden="true">/</span>
                     <Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('common.shop') }}</Link>
-                    <span>/</span>
-                    <span class="text-savino-gold">{{ category?.name }}</span>
+                    <span aria-hidden="true">/</span>
+                    <span class="text-savino-gold" aria-current="page">{{ category?.name }}</span>
                 </nav>
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.category_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
@@ -108,6 +114,7 @@ watch(selectedSort, (newSort) => {
                         <select
                             id="sort-select"
                             v-model="selectedSort"
+                            :aria-label="$t('shop.sort_by') || 'Ordina per'"
                             class="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-savino-blue font-semibold bg-white focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all"
                         >
                             <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
@@ -115,9 +122,14 @@ watch(selectedSort, (newSort) => {
                     </div>
                 </div>
 
+                <!-- Skeleton Loading -->
+                <div v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Caricamento prodotti">
+                    <ProductCardSkeleton v-for="n in 6" :key="'skeleton-' + n" role="listitem" />
+                </div>
+
                 <!-- Products Grid -->
-                <div v-if="products?.data?.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <ProductCard v-for="product in products.data" :key="product.id" :product="product" />
+                <div v-else-if="products?.data?.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list" :aria-label="$t('shop.products_list') || 'Elenco prodotti'">
+                    <ProductCard v-for="product in products.data" :key="product.id" :product="product" role="listitem" />
                 </div>
 
                 <!-- Empty State -->
@@ -141,7 +153,7 @@ watch(selectedSort, (newSort) => {
                 </div>
 
                 <!-- Pagination -->
-                <nav v-if="products?.links?.length > 3" class="flex items-center justify-center gap-1 mt-12">
+                <nav v-if="products?.links?.length > 3" role="navigation" :aria-label="$t('shop.pagination') || 'Paginazione prodotti'" class="flex items-center justify-center gap-1 mt-12">
                     <template v-for="link in products.links" :key="link.label">
                         <Link
                             v-if="link.url"

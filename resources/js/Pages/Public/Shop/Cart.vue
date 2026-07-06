@@ -1,6 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { useCart } from '@/Composables/useCart.js';
@@ -28,13 +28,25 @@ const ogMeta = useOgMeta({
 
 const isEmpty = computed(() => !props.cart?.items?.length);
 
+// --- Loading indicators for cart item operations ---
+const loadingItems = ref(new Set());
+
 const handleUpdateQuantity = (itemId, newQty) => {
     if (newQty < 1) return;
+    loadingItems.value.add(itemId);
     updateQuantity(itemId, newQty);
+    // Clear loading state after Inertia finishes
+    setTimeout(() => {
+        loadingItems.value = new Set([...loadingItems.value].filter(id => id !== itemId));
+    }, 600);
 };
 
 const handleRemoveItem = (itemId) => {
+    loadingItems.value.add(itemId);
     removeItem(itemId);
+    setTimeout(() => {
+        loadingItems.value = new Set([...loadingItems.value].filter(id => id !== itemId));
+    }, 600);
 };
 </script>
 
@@ -104,7 +116,9 @@ const handleRemoveItem = (itemId) => {
                                     <!-- Mobile: Remove button inline -->
                                     <button
                                         @click="handleRemoveItem(item.id)"
-                                        class="md:hidden text-xs text-red-400 hover:text-red-600 mt-1 transition-colors"
+                                        :disabled="loadingItems.has(item.id)"
+                                        :aria-label="$t('shop.remove_from_cart') || 'Rimuovi dal carrello'"
+                                        class="md:hidden text-xs text-red-400 hover:text-red-600 mt-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {{ $t('shop.remove') }}
                                     </button>
@@ -123,22 +137,24 @@ const handleRemoveItem = (itemId) => {
                                 <div class="inline-flex items-center border border-gray-200 rounded-lg overflow-hidden">
                                     <button
                                         @click="handleUpdateQuantity(item.id, item.quantity - 1)"
-                                        :disabled="item.quantity <= 1"
-                                        :aria-label="$t('shop.decrease_quantity')"
+                                        :disabled="item.quantity <= 1 || loadingItems.has(item.id)"
+                                        :aria-label="$t('shop.decrease_quantity') || 'Diminuisci quantità'"
                                         class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                                        <div v-if="loadingItems.has(item.id)" class="animate-spin w-3.5 h-3.5 border-2 border-gray-300 border-t-savino-blue rounded-full"></div>
+                                        <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
                                     </button>
                                     <span class="w-10 h-8 flex items-center justify-center text-sm font-bold text-savino-blue border-x border-gray-200">
                                         {{ item.quantity }}
                                     </span>
                                     <button
                                         @click="handleUpdateQuantity(item.id, item.quantity + 1)"
-                                        :disabled="item.quantity >= (item.stock ?? 99)"
-                                        :aria-label="$t('shop.increase_quantity')"
+                                        :disabled="item.quantity >= (item.stock ?? 99) || loadingItems.has(item.id)"
+                                        :aria-label="$t('shop.increase_quantity') || 'Aumenta quantità'"
                                         class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                        <div v-if="loadingItems.has(item.id)" class="animate-spin w-3.5 h-3.5 border-2 border-gray-300 border-t-savino-blue rounded-full"></div>
+                                        <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                     </button>
                                 </div>
                             </div>
@@ -149,10 +165,13 @@ const handleRemoveItem = (itemId) => {
                                 <!-- Desktop: Remove button -->
                                 <button
                                     @click="handleRemoveItem(item.id)"
-                                    class="hidden md:flex w-8 h-8 items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                                    :disabled="loadingItems.has(item.id)"
+                                    class="hidden md:flex w-8 h-8 items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     :title="$t('shop.remove')"
+                                    :aria-label="$t('shop.remove_from_cart') || 'Rimuovi dal carrello'"
                                 >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    <div v-if="loadingItems.has(item.id)" class="animate-spin w-4 h-4 border-2 border-gray-300 border-t-red-500 rounded-full"></div>
+                                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                 </button>
                             </div>
                         </div>

@@ -64,6 +64,9 @@ class CartController extends Controller
      */
     public function update(Request $request, CartItem $cartItem): RedirectResponse
     {
+        $cart = $this->cartService->getOrCreateCart();
+        abort_unless($cartItem->cart_id === $cart->id, 403);
+
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:0'],
         ]);
@@ -87,6 +90,9 @@ class CartController extends Controller
      */
     public function destroy(CartItem $cartItem): RedirectResponse
     {
+        $cart = $this->cartService->getOrCreateCart();
+        abort_unless($cartItem->cart_id === $cart->id, 403);
+
         try {
             $this->cartService->removeItem($cartItem->id);
 

@@ -90,6 +90,10 @@ const currentStock = computed(() => {
 
 const isOutOfStock = computed(() => currentStock.value <= 0);
 
+const needsVariantSelection = computed(() => {
+    return props.product?.variants?.length > 0 && !selectedVariant.value;
+});
+
 // --- Quantity ---
 const quantity = ref(1);
 
@@ -105,6 +109,7 @@ const incrementQty = () => {
 const isAdding = ref(false);
 const handleAddToCart = () => {
     if (isOutOfStock.value || isAdding.value) return;
+    if (props.product?.variants?.length > 0 && !selectedVariant.value) return;
     isAdding.value = true;
     addToCart({
         product_id: props.product.id,

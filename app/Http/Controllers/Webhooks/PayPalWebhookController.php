@@ -160,6 +160,15 @@ class PayPalWebhookController
             $order->status = OrderStatus::Refunded;
             $order->save();
 
+            $recipientEmail = $order->user?->email ?? $order->guest_email;
+            if ($recipientEmail) {
+                try {
+                    Mail::to($recipientEmail)->queue(new \App\Mail\RefundConfirmation($order));
+                } catch (\Throwable $e) {
+                    Log::error('Errore invio email rimborso', ['order_id' => $order->id, 'error' => $e->getMessage()]);
+                }
+            }
+
             Log::info('PayPal webhook: rimborso registrato', [
                 'order_id' => $order->id,
                 'payment_id' => $result['payment_id'],

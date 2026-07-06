@@ -1,10 +1,11 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
+import ProductCardSkeleton from '@/Components/Shop/ProductCardSkeleton.vue';
 
 
 const $t = useTranslations();
@@ -31,6 +32,15 @@ const submitSearch = () => {
         preserveState: true,
     });
 };
+
+// --- Skeleton loading state ---
+const isNavigating = ref(false);
+const removeStartListener = router.on('start', () => { isNavigating.value = true; });
+const removeFinishListener = router.on('finish', () => { isNavigating.value = false; });
+onUnmounted(() => {
+    removeStartListener();
+    removeFinishListener();
+});
 </script>
 
 <template>
@@ -71,6 +81,7 @@ const submitSearch = () => {
                         <input
                             v-model="searchQuery"
                             type="text"
+                            :aria-label="$t('shop.search_placeholder') || 'Cerca prodotti'"
                             :placeholder="$t('shop.search_placeholder')"
                             class="w-full border-2 border-gray-200 rounded-xl pl-12 pr-32 py-4 text-lg text-savino-blue placeholder-gray-400 focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all"
                         />
@@ -92,9 +103,14 @@ const submitSearch = () => {
                     </p>
                 </div>
 
+                <!-- Skeleton Loading -->
+                <div v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" role="list" aria-label="Caricamento prodotti">
+                    <ProductCardSkeleton v-for="n in 8" :key="'skeleton-' + n" role="listitem" />
+                </div>
+
                 <!-- Products Grid -->
-                <div v-if="products?.data?.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    <ProductCard v-for="product in products.data" :key="product.id" :product="product" />
+                <div v-else-if="products?.data?.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" role="list" :aria-label="$t('shop.products_list') || 'Elenco prodotti'">
+                    <ProductCard v-for="product in products.data" :key="product.id" :product="product" role="listitem" />
                 </div>
 
                 <!-- Empty State -->
@@ -119,7 +135,7 @@ const submitSearch = () => {
                 </div>
 
                 <!-- Pagination -->
-                <nav v-if="products?.links?.length > 3" class="flex items-center justify-center gap-1 mt-12">
+                <nav v-if="products?.links?.length > 3" role="navigation" :aria-label="$t('shop.pagination') || 'Paginazione risultati'" class="flex items-center justify-center gap-1 mt-12">
                     <template v-for="link in products.links" :key="link.label">
                         <Link
                             v-if="link.url"

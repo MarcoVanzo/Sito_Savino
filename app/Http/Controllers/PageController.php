@@ -25,8 +25,7 @@ class PageController extends Controller
         'Public/Home',
         'Public/Societa',
         'Public/Roster',
-        'Public/Shop',
-        'Public/ShopCheckout',
+
         'Public/Ticketing',
         'Public/Sponsor',
         'Public/Youth',

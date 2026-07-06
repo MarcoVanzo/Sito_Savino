@@ -1,7 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useCart } from '@/Composables/useCart.js';
@@ -110,7 +110,7 @@ const hasSalePrice = computed(() => props.product.sale_price && props.product.sa
         <!-- Add to Cart Button -->
         <div class="px-5 pb-5" v-if="!isOutOfStock">
             <button
-                @click.prevent="addToCart(product.id)"
+                @click.prevent="product.type === 'variable' ? router.visit(route('shop.product', product.slug)) : addToCart(product.id)"
                 class="w-full bg-savino-gold/10 border border-savino-gold/30 text-savino-gold text-xs font-bold uppercase tracking-wider py-3 rounded-lg hover:bg-savino-gold hover:text-gray-900 transition-all duration-300 flex items-center justify-center gap-2"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -12,14 +12,26 @@ const { formatPrice } = useFormatPrice();
 
 
 const props = defineProps({
-    page: {
-        type: Object,
-        default: () => ({})
-    },
     cart: {
         type: Object,
         default: () => ({ items: [], total: 0 })
-    }
+    },
+    cartTotal: {
+        type: Number,
+        default: 0
+    },
+    itemCount: {
+        type: Number,
+        default: 0
+    },
+    shippingZones: {
+        type: Array,
+        default: () => []
+    },
+    paymentGateways: {
+        type: Array,
+        default: () => []
+    },
 })
 
 const form = useForm({
@@ -29,7 +41,7 @@ const form = useForm({
     shipping_address: '',
     billing_address: '',
     country: 'IT',
-    payment_gateway: 'stripe',
+    payment_gateway: '',
     coupon_code: '',
     notes: '',
     privacy_accepted: false,
@@ -44,12 +56,63 @@ watch(() => form.shipping_address, (val) => {
     if (billingSameAsShipping.value) form.billing_address = val;
 });
 
-const shippingCost = computed(() => {
-    return props.cart.total >= 50 ? 0 : 5.90;
+const selectedZone = computed(() => {
+    return props.shippingZones.find(z => {
+        const countries = z.countries || [];
+        return countries.includes(form.country) || countries.includes('*');
+    });
 });
 
+const shippingCost = computed(() => {
+    if (!selectedZone.value) return 0;
+    if (selectedZone.value.free_threshold && props.cartTotal >= selectedZone.value.free_threshold) return 0;
+    return selectedZone.value.flat_rate || 0;
+});
+
+const couponStatus = ref(null); // null, 'loading', 'valid', 'invalid'
+const couponMessage = ref('');
+const couponDiscount = ref(0);
+
+const validateCoupon = async () => {
+    if (!form.coupon_code) return;
+    couponStatus.value = 'loading';
+    try {
+        const response = await fetch(route('shop.checkout.validate-coupon'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            },
+            body: JSON.stringify({
+                coupon_code: form.coupon_code,
+                guest_email: form.guest_email,
+            }),
+        });
+        const data = await response.json();
+        if (data.valid) {
+            couponStatus.value = 'valid';
+            couponDiscount.value = data.discount;
+            couponMessage.value = data.message;
+        } else {
+            couponStatus.value = 'invalid';
+            couponDiscount.value = 0;
+            couponMessage.value = data.message;
+        }
+    } catch (e) {
+        couponStatus.value = 'invalid';
+        couponMessage.value = $t('shop_checkout.coupon_error');
+    }
+};
+
+const removeCoupon = () => {
+    form.coupon_code = '';
+    couponStatus.value = null;
+    couponMessage.value = '';
+    couponDiscount.value = 0;
+};
+
 const orderTotal = computed(() => {
-    return (props.cart.total + shippingCost.value).toFixed(2);
+    return Math.max(0, props.cartTotal + shippingCost.value - couponDiscount.value).toFixed(2);
 });
 
 
@@ -61,7 +124,7 @@ const submitOrder = () => {
 };
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? $t('shop_checkout.og_title'),
+    title: $t('shop_checkout.og_title'),
     description: $t('shop_checkout.og_description'),
 })
 </script>
@@ -86,7 +149,7 @@ const ogMeta = useOgMeta({
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
             <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_checkout.hero_label') }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
-                {{ page?.title ?? $t('shop_checkout.og_title') }}
+                {{ $t('shop_checkout.og_title') }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
             <p class="text-white/70 text-lg max-w-2xl mx-auto">
@@ -139,7 +202,7 @@ const ogMeta = useOgMeta({
                                     v-model="form.guest_phone"
                                     type="tel"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                    placeholder="+39 333 000 0000"
+                                    :placeholder="$t('shop_checkout.placeholder_phone')"
                                 />
                                 <p v-if="form.errors.guest_phone" class="mt-1 text-sm text-red-500">{{ form.errors.guest_phone }}</p>
                             </div>
@@ -156,12 +219,13 @@ const ogMeta = useOgMeta({
                             </div>
                             <div>
                                 <label for="checkout-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_country') }}</label>
-                                <select
-                                    id="checkout-country"
-                                    v-model="form.country"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                >
-                                    <option value="IT">Italia</option>
+                                <select id="checkout-country" v-model="form.country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
+                                    <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
+                                    <template v-for="zone in shippingZones" :key="zone.id">
+                                        <option v-for="country in (zone.countries || [])" :key="country" :value="country">
+                                            {{ country === 'IT' ? 'Italia' : country }}
+                                        </option>
+                                    </template>
                                 </select>
                                 <p v-if="form.errors.country" class="mt-1 text-sm text-red-500">{{ form.errors.country }}</p>
                             </div>
@@ -211,22 +275,75 @@ const ogMeta = useOgMeta({
                         <p v-if="form.errors.privacy_accepted" class="mt-1 text-sm text-red-500">{{ form.errors.privacy_accepted }}</p>
                     </div>
 
-                    <!-- Payment Placeholder -->
+                    <!-- Coupon Code -->
+                    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg class="w-5 h-5 text-savino-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.coupon_label') }}</h3>
+                        </div>
+                        <div v-if="couponStatus !== 'valid'" class="flex gap-2">
+                            <input
+                                type="text"
+                                v-model="form.coupon_code"
+                                class="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm uppercase"
+                                :placeholder="$t('shop_checkout.coupon_placeholder')"
+                                @keyup.enter="validateCoupon"
+                            />
+                            <button
+                                type="button"
+                                @click="validateCoupon"
+                                :disabled="!form.coupon_code || couponStatus === 'loading'"
+                                class="px-6 py-3 bg-savino-blue text-white text-sm font-bold uppercase rounded-lg hover:bg-savino-blue/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                <svg v-if="couponStatus === 'loading'" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                </svg>
+                                {{ $t('shop_checkout.coupon_apply') }}
+                            </button>
+                        </div>
+                        <div v-else class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span class="text-sm font-medium text-green-800">{{ couponMessage }}</span>
+                            </div>
+                            <button type="button" @click="removeCoupon" class="text-sm text-red-500 hover:text-red-700 font-medium">
+                                {{ $t('shop_checkout.coupon_remove') }}
+                            </button>
+                        </div>
+                        <p v-if="couponStatus === 'invalid'" class="mt-2 text-sm text-red-500">{{ couponMessage }}</p>
+                    </div>
+
+                    <!-- Payment Gateway Selector -->
                     <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                         <div class="flex items-center gap-3 mb-6">
                             <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">2</span>
                             <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.payment_title') }}</h2>
                         </div>
-                        <div class="bg-gray-50 rounded-xl p-8 border border-dashed border-gray-300 text-center">
-                            <span class="text-4xl block mb-3">💳</span>
-                            <p class="text-gray-500 font-medium">{{ $t('shop_checkout.payment_integration') }}</p>
-                            <p class="text-gray-400 text-sm mt-1">{{ $t('shop_checkout.payment_coming_soon') }}</p>
-                            <div class="flex items-center justify-center gap-4 mt-6">
-                                <div class="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm text-gray-500">Visa</div>
-                                <div class="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm text-gray-500">Mastercard</div>
-                                <div class="px-4 py-2 bg-white rounded-lg border border-gray-200 text-sm text-gray-500">PayPal</div>
-                            </div>
+                        <div class="space-y-3">
+                            <label
+                                v-for="gateway in paymentGateways"
+                                :key="gateway.value"
+                                class="flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200"
+                                :class="form.payment_gateway === gateway.value ? 'border-savino-blue bg-savino-blue/5' : 'border-gray-200 hover:border-gray-300'"
+                            >
+                                <input
+                                    type="radio"
+                                    :value="gateway.value"
+                                    v-model="form.payment_gateway"
+                                    class="w-5 h-5 text-savino-blue border-gray-300 focus:ring-savino-blue/20"
+                                />
+                                <div class="flex-1">
+                                    <span class="font-bold text-gray-900">{{ gateway.label }}</span>
+                                </div>
+                            </label>
                         </div>
+                        <p v-if="!paymentGateways.length" class="text-gray-400 text-sm text-center py-4">{{ $t('shop_checkout.no_gateways') }}</p>
+                        <p v-if="form.errors.payment_gateway" class="mt-2 text-sm text-red-500">{{ form.errors.payment_gateway }}</p>
                     </div>
                 </div>
 
@@ -244,8 +361,13 @@ const ogMeta = useOgMeta({
                                 :key="index"
                                 class="flex items-center gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0"
                             >
-                                <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <span class="text-2xl">🛍️</span>
+                                <div class="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                    <img v-if="item.product?.image_url" :src="item.product.image_url" :alt="item.name" class="w-full h-full object-cover" />
+                                    <div v-else class="w-full h-full flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                        </svg>
+                                    </div>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
@@ -267,7 +389,7 @@ const ogMeta = useOgMeta({
                         <div class="space-y-3 pt-4 border-t border-gray-100">
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">{{ $t('shop_checkout.subtotal') }}</span>
-                                <span class="text-gray-900 font-medium">{{ formatPrice(cart.total) }}</span>
+                                <span class="text-gray-900 font-medium">{{ formatPrice(cartTotal) }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">{{ $t('shop_checkout.shipping') }}</span>
@@ -275,8 +397,12 @@ const ogMeta = useOgMeta({
                                     {{ shippingCost === 0 ? $t('shop_checkout.free_shipping') : formatPrice(shippingCost) }}
                                 </span>
                             </div>
-                            <div v-if="cart.total < 50 && cart.items.length > 0" class="text-xs text-savino-gold">
+                            <div v-if="shippingCost > 0 && selectedZone?.free_threshold" class="text-xs text-savino-gold">
                                 {{ $t('shop_checkout.free_shipping_threshold') }}
+                            </div>
+                            <div v-if="couponDiscount > 0" class="flex justify-between text-sm">
+                                <span class="text-green-600">{{ $t('shop_checkout.discount') }}</span>
+                                <span class="text-green-600 font-medium">-{{ formatPrice(couponDiscount) }}</span>
                             </div>
                             <div class="flex justify-between pt-3 border-t border-gray-200">
                                 <span class="font-bold text-gray-900">{{ $t('shop_checkout.total') }}</span>
@@ -289,14 +415,17 @@ const ogMeta = useOgMeta({
                         <!-- CTA -->
                         <button
                             @click="submitOrder"
-                            :disabled="cart.items.length === 0"
+                            :disabled="form.processing || cart.items.length === 0 || !form.payment_gateway"
                             class="w-full mt-8 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                           
                         >
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <svg v-if="form.processing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            {{ $t('shop_checkout.confirm_order') }}
+                            {{ form.processing ? $t('shop_checkout.processing') : $t('shop_checkout.confirm_order') }}
                         </button>
 
                         <p class="text-xs text-gray-400 text-center mt-4">

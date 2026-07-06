@@ -64,6 +64,7 @@ class ShopController extends Controller
             'price' => $p->price,
             'sale_price' => $p->sale_price,
             'stock' => $p->stock,
+            'type' => $p->type?->value ?? $p->type,
             'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
             'category' => $p->category ? [
                 'id' => $p->category->id,
@@ -193,11 +194,12 @@ class ShopController extends Controller
 
         if (strlen(trim($query)) >= 2) {
             $escapedQuery = str_replace(['%', '_'], ['\\%', '\\_'], $query);
+            $locale = app()->getLocale();
 
             $paginator = Product::shoppable()
-                ->where(function ($q) use ($escapedQuery) {
-                    $q->where('name', 'LIKE', "%{$escapedQuery}%")
-                      ->orWhere('description', 'LIKE', "%{$escapedQuery}%");
+                ->where(function ($q) use ($escapedQuery, $locale) {
+                    $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(name, '$.{$locale}')) LIKE ?", ["%{$escapedQuery}%"])
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(description, '$.{$locale}')) LIKE ?", ["%{$escapedQuery}%"]);
                 })
                 ->with(['media', 'category'])
                 ->latest()

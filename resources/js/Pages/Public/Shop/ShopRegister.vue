@@ -110,7 +110,7 @@ const submit = () => {
                         <label class="flex items-center">
                             <Checkbox name="privacy_policy" v-model:checked="form.privacy_policy" required />
                             <span class="ml-2 text-sm text-gray-600">
-                                {{ $t('shop.accept_privacy_1') }} <a :href="route('privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-savino-gold hover:underline">{{ $t('shop.accept_privacy_2') }}</a>
+                                {{ $t('shop.accept_privacy_1') }} <a :href="route('pages.show', 'privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-savino-gold hover:underline">{{ $t('shop.accept_privacy_2') }}</a>
                             </span>
                         </label>
                         <InputError class="mt-2" :message="form.errors.privacy_policy" />

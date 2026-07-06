@@ -186,10 +186,12 @@ class CartService
     /**
      * Calcola il totale del carrello usando i prezzi effettivi.
      */
-    public function getCartTotal(): float
+    public function getCartTotal(?Cart $cart = null): float
     {
-        $cart = $this->getCart();
-        if (! $cart) {
+        if (!$cart) {
+            $cart = $this->getCart();
+        }
+        if (!$cart) {
             return 0.0;
         }
 

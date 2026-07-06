@@ -14,29 +14,29 @@ const props = defineProps({
 });
 
 const ogMeta = useOgMeta({
-    title: 'Contatti Assistenza Shop',
-    description: 'Contatta il servizio assistenza dello Shop Ufficiale Savino Del Bene Volley.',
+    title: $t('shop_contacts.og_title'),
+    description: $t('shop_contacts.og_description'),
 });
 
 const contactCards = [
     {
         show: () => props.supportEmail,
         icon: 'M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75',
-        label: 'Email',
+        label: $t('shop_contacts.email'),
         value: () => props.supportEmail,
         href: () => 'mailto:' + props.supportEmail,
     },
     {
         show: () => props.supportPhone,
         icon: 'M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25',
-        label: 'Telefono',
+        label: $t('shop_contacts.phone'),
         value: () => props.supportPhone,
         href: () => 'tel:' + props.supportPhone,
     },
     {
         show: () => props.supportHours,
         icon: 'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z',
-        label: 'Orari',
+        label: $t('shop_contacts.hours'),
         value: () => props.supportHours,
         href: () => null,
     },
@@ -58,12 +58,12 @@ const contactCards = [
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Shop Ufficiale</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_contacts.hero_label') }}</span>
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mt-4">
-                    Contatti Assistenza
+                    {{ $t('shop_contacts.hero_title') }}
                 </h1>
                 <p class="text-gray-400 mt-4 max-w-2xl mx-auto">
-                    Hai bisogno di assistenza per il tuo ordine? Contattaci!
+                    {{ $t('shop_contacts.hero_subtitle') }}
                 </p>
             </div>
         </section>
@@ -74,9 +74,9 @@ const contactCards = [
                 <!-- Breadcrumbs -->
                 <nav class="mb-8 text-sm">
                     <ol class="flex items-center gap-2 text-gray-500">
-                        <li><Link :href="route('shop')" class="hover:text-savino-gold transition-colors">Shop</Link></li>
+                        <li><Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('shop_contacts.breadcrumb_shop') }}</Link></li>
                         <li>/</li>
-                        <li class="text-white">Contatti Assistenza</li>
+                        <li class="text-white">{{ $t('shop_contacts.breadcrumb_current') }}</li>
                     </ol>
                 </nav>
 
@@ -107,7 +107,7 @@ const contactCards = [
 
                 <!-- Notes -->
                 <div v-if="supportNotes" class="mt-8 bg-gray-800/30 border border-gray-800 rounded-xl p-6">
-                    <h3 class="text-savino-gold text-xs font-bold uppercase tracking-[0.2em] mb-3">Informazioni Aggiuntive</h3>
+                    <h3 class="text-savino-gold text-xs font-bold uppercase tracking-[0.2em] mb-3">{{ $t('shop_contacts.additional_info') }}</h3>
                     <p class="text-gray-400 text-sm leading-relaxed whitespace-pre-line">{{ supportNotes }}</p>
                 </div>
 
@@ -121,8 +121,8 @@ const contactCards = [
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25" />
                         </svg>
                     </div>
-                    <p class="text-gray-400 text-lg font-bold">Contatti in aggiornamento</p>
-                    <p class="text-gray-500 text-sm mt-2">Le informazioni di contatto saranno disponibili a breve.</p>
+                    <p class="text-gray-400 text-lg font-bold">{{ $t('shop_contacts.updating_title') }}</p>
+                    <p class="text-gray-500 text-sm mt-2">{{ $t('shop_contacts.updating_description') }}</p>
                 </div>
 
                 <!-- Back to Shop -->
@@ -134,7 +134,7 @@ const contactCards = [
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                         </svg>
-                        Torna allo Shop
+                        {{ $t('shop_contacts.back_to_shop') }}
                     </Link>
                 </div>
             </div>

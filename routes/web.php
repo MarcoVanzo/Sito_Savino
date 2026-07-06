@@ -84,6 +84,7 @@ foreach ($locales as $loc) {
             // Checkout
             Route::get('/checkout', [\App\Http\Controllers\Shop\CheckoutController::class, 'show'])->name('shop.checkout');
             Route::post('/checkout', [\App\Http\Controllers\Shop\CheckoutController::class, 'store'])->middleware('throttle:5,1')->name('shop.checkout.store');
+            Route::post('/checkout/validate-coupon', \App\Http\Controllers\Shop\ValidateCouponController::class)->middleware('throttle:10,1')->name('shop.checkout.validate-coupon');
             Route::get('/checkout/'.$shopSlugs['conferma'].'/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'success'])->name('shop.checkout.success');
             Route::get('/checkout/'.$shopSlugs['annullato'].'/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'cancel'])->name('shop.checkout.cancel');
 
