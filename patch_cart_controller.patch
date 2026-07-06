@@ -1,0 +1,40 @@
+--- app/Http/Controllers/Shop/CartController.php
++++ app/Http/Controllers/Shop/CartController.php
+@@ -24,14 +24,16 @@
+             $availableStock = $item->variant
+                 ? (int) $item->variant->stock
+                 : (int) ($item->product?->stock ?? 0);
++            
++            $variantStr = $item->variant ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color]))) : null;
+ 
+             return [
+                 'id' => $item->id,
+                 'product_id' => $item->product_id,
+                 'variant_id' => $item->product_variant_id,
+                 'quantity' => $item->quantity,
+                 'name' => $item->product?->name,
+                 'slug' => $item->product?->slug,
+                 'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
+-                'variant' => $item->variant?->size,
++                'variant' => $variantStr,
+                 'image' => $item->product?->getImageUrl('card'),
+                 'stock' => $availableStock,
+@@ -82,14 +84,16 @@
+             $availableStock = $item->variant
+                 ? (int) $item->variant->stock
+                 : (int) ($item->product?->stock ?? 0);
++            
++            $variantStr = $item->variant ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color]))) : null;
+ 
+             return [
+                 'id' => $item->id,
+                 'product_id' => $item->product_id,
+                 'variant_id' => $item->product_variant_id,
+                 'quantity' => $item->quantity,
+                 'name' => $item->product?->name,
+                 'slug' => $item->product?->slug,
+                 'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
+-                'variant_name' => $item->variant?->size,
++                'variant_name' => $variantStr,
+                 'image_url' => $item->product?->getImageUrl('card'),
+                 'stock' => $availableStock,

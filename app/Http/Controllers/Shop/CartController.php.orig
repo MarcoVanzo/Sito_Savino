@@ -31,8 +31,6 @@ class CartController extends Controller
             $availableStock = $item->variant
                 ? (int) $item->variant->stock
                 : (int) ($item->product?->stock ?? 0);
-            
-            $variantStr = $item->variant ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color]))) : null;
 
             return [
                 'id' => $item->id,
@@ -42,7 +40,7 @@ class CartController extends Controller
                 'name' => $item->product?->name,
                 'slug' => $item->product?->slug,
                 'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
-                'variant' => $variantStr,
+                'variant' => $item->variant?->size,
                 'image' => $item->product?->getImageUrl('card'),
                 'stock' => $availableStock,
             ];
@@ -152,8 +150,6 @@ class CartController extends Controller
             $availableStock = $item->variant
                 ? (int) $item->variant->stock
                 : (int) ($item->product?->stock ?? 0);
-                
-            $variantStr = $item->variant ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color]))) : null;
 
             return [
                 'id' => $item->id,
@@ -163,7 +159,7 @@ class CartController extends Controller
                 'name' => $item->product?->name,
                 'slug' => $item->product?->slug,
                 'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
-                'variant_name' => $variantStr,
+                'variant_name' => $item->variant?->size,
                 'image_url' => $item->product?->getImageUrl('card'),
                 'stock' => $availableStock,
                 'stock_warning' => $item->quantity > $availableStock,

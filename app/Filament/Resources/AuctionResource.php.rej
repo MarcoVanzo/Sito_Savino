@@ -1,0 +1,9 @@
+@@ -29,6 +29,8 @@
+                                 Forms\Components\Select::make('product_id')
+                                     ->relationship('product', 'name')
+                                     ->required(),
++                                Forms\Components\TextInput::make('size')
++                                    ->label('Taglia (opzionale)'),
+                                 Forms\Components\TextInput::make('title')
+                                     ->required()
+                                     ->maxLength(255),

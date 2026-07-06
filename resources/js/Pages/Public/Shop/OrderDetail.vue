@@ -89,17 +89,19 @@ const formatDate = (dateString) => {
                             <ul class="divide-y divide-gray-100">
                                 <li v-for="item in order.items" :key="item.id" class="p-6 flex items-center gap-6">
                                     <div class="w-20 h-20 flex-shrink-0 bg-gray-50 rounded-md overflow-hidden border border-gray-100">
-                                        <img :src="item.image_url" :alt="item.name" @error="onImgError" class="w-full h-full object-cover object-center" />
+                                        <img :src="item.product?.image_url" :alt="item.product?.name" @error="onImgError" class="w-full h-full object-cover object-center" />
                                     </div>
                                     <div class="flex-1 flex flex-col justify-center">
-                                        <h4 class="text-base font-bold text-gray-900">{{ item.name }}</h4>
-                                        <p v-if="item.variant_name" class="text-sm text-gray-500 mt-1">{{ item.variant_name }}</p>
+                                        <h4 class="text-base font-bold text-gray-900">{{ item.product?.name }}</h4>
+                                        <p v-if="item.variant" class="text-sm text-gray-500 mt-1">
+                                            {{ item.variant.size }}{{ item.variant.color ? ` - ${item.variant.color}` : '' }}
+                                        </p>
                                         <div class="text-sm text-gray-500 mt-2">
-                                            {{ $t('shop.order_detail.qty') }}: <span class="font-medium text-gray-900">{{ item.quantity }}</span> x {{ formatPrice(item.price) }}
+                                            {{ $t('shop.order_detail.qty') }}: <span class="font-medium text-gray-900">{{ item.quantity }}</span> x {{ formatPrice(item.price_at_time_of_purchase) }}
                                         </div>
                                     </div>
                                     <div class="text-right font-bold text-gray-900">
-                                        {{ formatPrice(item.price * item.quantity) }}
+                                        {{ formatPrice(item.price_at_time_of_purchase * item.quantity) }}
                                     </div>
                                 </li>
                             </ul>

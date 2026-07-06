@@ -1,0 +1,10 @@
+--- resources/js/Pages/Public/Shop/Checkout.vue
++++ resources/js/Pages/Public/Shop/Checkout.vue
+@@ -737,6 +737,7 @@
+                                 </div>
+                                 <div class="flex-1 min-w-0">
+                                     <p class="text-sm font-medium text-gray-900 truncate">{{ item.name || item.product?.name }}</p>
++                                    <p v-if="item.variant" class="text-xs text-gray-500 mb-0.5">{{ item.variant.size }}{{ item.variant.color ? ` - ${item.variant.color}` : '' }}</p>
+                                     <p class="text-xs text-gray-500">{{ item.quantity ?? 1 }} × {{ formatPrice(item.price || item.product?.price) }}</p>
+                                 </div>
+ 
