@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { computed, ref } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useCart } from '@/Composables/useCart.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
@@ -11,7 +11,7 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 
 const $t = useTranslations();
 
-const { updateQuantity, removeItem } = useCart();
+const { updateQuantity, removeItem, fetchCartCount } = useCart();
 const { formatPrice } = useFormatPrice();
 const { onImgError } = useImageFallback();
 
@@ -34,19 +34,28 @@ const loadingItems = ref(new Set());
 const handleUpdateQuantity = (itemId, newQty) => {
     if (newQty < 1) return;
     loadingItems.value.add(itemId);
-    updateQuantity(itemId, newQty);
-    // Clear loading state after Inertia finishes
-    setTimeout(() => {
-        loadingItems.value = new Set([...loadingItems.value].filter(id => id !== itemId));
-    }, 600);
+    router.patch(route('shop.cart.update', itemId), { quantity: newQty }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            fetchCartCount();
+        },
+        onFinish: () => {
+            loadingItems.value = new Set([...loadingItems.value].filter(id => id !== itemId));
+        },
+    });
 };
 
 const handleRemoveItem = (itemId) => {
     loadingItems.value.add(itemId);
-    removeItem(itemId);
-    setTimeout(() => {
-        loadingItems.value = new Set([...loadingItems.value].filter(id => id !== itemId));
-    }, 600);
+    router.delete(route('shop.cart.destroy', itemId), {
+        preserveScroll: true,
+        onSuccess: () => {
+            fetchCartCount();
+        },
+        onFinish: () => {
+            loadingItems.value = new Set([...loadingItems.value].filter(id => id !== itemId));
+        },
+    });
 };
 </script>
 

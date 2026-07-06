@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\CartService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +35,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Merge carrello guest nel carrello utente (come nella registrazione shop)
+        app(CartService::class)->mergeOnLogin($request->user());
+
+        // Customer → shop, Staff/Admin → dashboard
+        $default = $request->user()->role === UserRole::Customer
+            ? route('shop', absolute: false)
+            : route('dashboard', absolute: false);
+
+        return redirect()->intended($default);
     }
 
     /**
@@ -41,12 +51,15 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $isCustomer = $request->user()?->role === UserRole::Customer;
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Customer torna allo shop, altri alla home
+        return redirect($isCustomer ? route('shop') : '/');
     }
 }

@@ -21,8 +21,9 @@ class ValidateCouponController extends Controller
      */
     public function __invoke(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'coupon_code' => ['required', 'string', 'max:50'],
+            'guest_email' => ['nullable', 'email', 'max:255'],
         ]);
 
         $cart = $this->cartService->getCart();
@@ -38,10 +39,10 @@ class ValidateCouponController extends Controller
             $subtotal = $this->cartService->getCartTotal($cart);
 
             $result = $this->checkoutService->applyCoupon(
-                $request->input('coupon_code'),
+                $validated['coupon_code'],
                 $subtotal,
                 auth()->id(),
-                $request->input('guest_email'),
+                $validated['guest_email'] ?? null,
             );
 
             return response()->json([

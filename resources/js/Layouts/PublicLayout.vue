@@ -9,6 +9,7 @@ import LOGOS from '@/Constants/logos.js';
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 import CartBadge from '@/Components/Shop/CartBadge.vue';
 import CartDrawer from '@/Components/Shop/CartDrawer.vue';
+import UserMenu from '@/Components/Shop/UserMenu.vue';
 
 const MobileDrawer = defineAsyncComponent(() => import('@/Components/MobileDrawer.vue'));
 const CookieConsent = defineAsyncComponent(() => import('@/Components/CookieConsent.vue'));
@@ -123,6 +124,11 @@ const corporateDomain = computed(() => {
                     <!-- LANGUAGE SWITCHER (Desktop) -->
                     <div class="hidden xl:flex items-center ml-3">
                         <LanguageSwitcher />
+                    </div>
+
+                    <!-- USER MENU (Desktop) -->
+                    <div class="hidden xl:flex items-center ml-2">
+                        <UserMenu />
                     </div>
 
                     <!-- CART BADGE -->

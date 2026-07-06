@@ -392,6 +392,11 @@
     "maintenance_status": "Our shop is under maintenance. We'll be back soon!",
     "back_to_home": "Back to home",
     "add_to_cart": "Add to Cart",
+    "clear_search": "Clear search",
+    "category_filter": "Filter by category",
+    "products_list": "Products list",
+    "pagination": "Page navigation",
+    "remove_from_cart": "Remove from cart",
     "added_to_cart": "Added to cart!",
     "out_of_stock": "Out of stock",
     "size": "Size",
@@ -481,7 +486,13 @@
     "coupon_apply": "Apply",
     "coupon_remove": "Remove",
     "coupon_error": "Error validating coupon.",
-    "discount": "Discount"
+    "discount": "Discount",
+    "guest_banner_title": "Already have an account?",
+    "guest_banner_login": "Log in",
+    "guest_banner_or": "or",
+    "guest_banner_register": "Create an account",
+    "guest_banner_benefits": "to track your orders and speed up future purchases.",
+    "guest_banner_continue": "Or continue as a guest by filling in the details below."
   },
   "summer_camp": {
     "activity_volleyball": "Volleyball",

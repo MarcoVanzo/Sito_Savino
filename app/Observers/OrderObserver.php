@@ -5,6 +5,8 @@ namespace App\Observers;
 use App\Enums\OrderStatus;
 use App\Enums\StockMovementType;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -87,6 +89,15 @@ class OrderObserver
                     'type' => StockMovementType::Adjustment,
                     'notes' => "Ripristino Ordine #{$order->id} — cancellazione",
                 ]);
+
+                // Ripristina lo stock effettivo sul prodotto o sulla variante
+                if ($movement->product_variant_id) {
+                    ProductVariant::where('id', $movement->product_variant_id)
+                        ->increment('stock', abs($movement->quantity));
+                } else {
+                    Product::where('id', $movement->product_id)
+                        ->increment('stock', abs($movement->quantity));
+                }
             }
 
             Log::info("Stock ripristinato per Ordine #{$order->id} (cancellazione)");

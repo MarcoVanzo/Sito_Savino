@@ -20,7 +20,7 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
-    privacy_policy: false,
+    privacy_accepted: false,
 });
 
 const submit = () => {
@@ -108,12 +108,12 @@ const submit = () => {
 
                     <div class="block mt-4">
                         <label class="flex items-center">
-                            <Checkbox name="privacy_policy" v-model:checked="form.privacy_policy" required />
+                            <Checkbox name="privacy_accepted" v-model:checked="form.privacy_accepted" required />
                             <span class="ml-2 text-sm text-gray-600">
                                 {{ $t('shop.accept_privacy_1') }} <a :href="route('pages.show', 'privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-savino-gold hover:underline">{{ $t('shop.accept_privacy_2') }}</a>
                             </span>
                         </label>
-                        <InputError class="mt-2" :message="form.errors.privacy_policy" />
+                        <InputError class="mt-2" :message="form.errors.privacy_accepted" />
                     </div>
 
                     <div class="pt-4">

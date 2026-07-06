@@ -19,12 +19,11 @@ class Order extends Model
     use HasFactory, LogsActivity, SoftDeletes;
 
     /**
-     * Note: total_price, status, payment_id are intentionally excluded
-     * from $fillable to prevent mass-assignment of sensitive fields.
-     * Set them explicitly: $order->status = ...; $order->save();
+     * Note: payment_id is intentionally excluded from $fillable
+     * to prevent mass-assignment of this sensitive field.
      */
     protected $fillable = [
-        'user_id',
+        'user_id', 'status', 'total_price',
         'shipping_address', 'billing_address',
         'order_number', 'order_token', 'guest_email', 'guest_name',
         'guest_phone', 'country', 'payment_gateway',

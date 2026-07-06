@@ -392,6 +392,11 @@
     "maintenance_status": "Il nostro shop è in manutenzione. Torneremo presto!",
     "back_to_home": "Torna alla home",
     "add_to_cart": "Aggiungi al Carrello",
+    "clear_search": "Cancella ricerca",
+    "category_filter": "Filtra per categoria",
+    "products_list": "Lista prodotti",
+    "pagination": "Navigazione pagine",
+    "remove_from_cart": "Rimuovi dal carrello",
     "added_to_cart": "Aggiunto al carrello!",
     "out_of_stock": "Esaurito",
     "size": "Taglia",
@@ -481,7 +486,13 @@
     "coupon_apply": "Applica",
     "coupon_remove": "Rimuovi",
     "coupon_error": "Errore nella verifica del coupon.",
-    "discount": "Sconto"
+    "discount": "Sconto",
+    "guest_banner_title": "Hai già un account?",
+    "guest_banner_login": "Accedi",
+    "guest_banner_or": "oppure",
+    "guest_banner_register": "Crea un account",
+    "guest_banner_benefits": "per tracciare i tuoi ordini e velocizzare i prossimi acquisti.",
+    "guest_banner_continue": "Oppure continua come ospite compilando i dati qui sotto."
   },
   "summer_camp": {
     "activity_volleyball": "Pallavolo",

@@ -4,11 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
+use App\Enums\StockMovementType;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Mail\OrderShipped;
 use App\Models\Order;
+use App\Models\StockMovement;
 use App\Services\AdminNotificationService;
 use App\Services\ReceiptService;
 use Filament\Forms;
@@ -221,14 +223,6 @@ class OrderResource extends Resource
                         $record->paid_at = now();
                         $record->save();
 
-                        // Decrementa lo stock per ogni item (product o variant)
-                        foreach ($record->items()->with(['product', 'variant'])->get() as $item) {
-                            if ($item->product_variant_id && $item->variant) {
-                                $item->variant->decrement('stock', $item->quantity);
-                            } elseif ($item->product) {
-                                $item->product->decrement('stock', $item->quantity);
-                            }
-                        }
 
                         app(AdminNotificationService::class)->notifyPaymentReceived($record);
 
@@ -321,13 +315,23 @@ class OrderResource extends Resource
                     ->modalDescription('Sei sicuro? Lo stock verrà ripristinato.')
                     ->modalSubmitActionLabel('Annulla ordine')
                     ->action(function (Order $record): void {
-                        // Ripristina lo stock (product o variant)
+                        // Ripristina lo stock con audit trail
                         foreach ($record->items()->with(['product', 'variant'])->get() as $item) {
                             if ($item->product_variant_id && $item->variant) {
                                 $item->variant->increment('stock', $item->quantity);
                             } elseif ($item->product) {
                                 $item->product->increment('stock', $item->quantity);
                             }
+
+                            // Crea record di movimento stock per audit trail
+                            StockMovement::create([
+                                'product_id' => $item->product_id,
+                                'product_variant_id' => $item->product_variant_id,
+                                'order_id' => $record->id,
+                                'quantity' => abs($item->quantity),
+                                'type' => StockMovementType::Adjustment,
+                                'notes' => "Ripristino Ordine #{$record->order_number} — annullamento da admin",
+                            ]);
                         }
 
                         $record->status = OrderStatus::Cancelled;

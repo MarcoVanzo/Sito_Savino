@@ -1,7 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
@@ -9,6 +9,19 @@ import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
 
+const page = usePage();
+const user = () => page.props.auth?.user;
+
+const countryNames = {
+    IT: 'Italia', DE: 'Germania', FR: 'Francia', ES: 'Spagna',
+    AT: 'Austria', BE: 'Belgio', NL: 'Paesi Bassi', PT: 'Portogallo',
+    GR: 'Grecia', IE: 'Irlanda', FI: 'Finlandia', SE: 'Svezia',
+    DK: 'Danimarca', PL: 'Polonia', CZ: 'Repubblica Ceca', RO: 'Romania',
+    HU: 'Ungheria', BG: 'Bulgaria', HR: 'Croazia', SK: 'Slovacchia',
+    SI: 'Slovenia', LT: 'Lituania', LV: 'Lettonia', EE: 'Estonia',
+    CY: 'Cipro', LU: 'Lussemburgo', MT: 'Malta',
+    GB: 'Regno Unito', CH: 'Svizzera', US: 'Stati Uniti',
+};
 
 
 const props = defineProps({
@@ -34,9 +47,10 @@ const props = defineProps({
     },
 })
 
+const authUser = user();
 const form = useForm({
-    guest_name: '',
-    guest_email: '',
+    guest_name: authUser?.name || '',
+    guest_email: authUser?.email || '',
     guest_phone: '',
     shipping_address: '',
     billing_address: '',
@@ -161,6 +175,38 @@ const ogMeta = useOgMeta({
     <!-- Checkout Content -->
     <section class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Guest Banner: Login / Register -->
+            <div v-if="!user()" class="mb-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 px-6 py-5 sm:px-8">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-savino-blue/10 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 text-center sm:text-left">
+                        <p class="text-gray-900 font-bold text-base">
+                            {{ $t('shop_checkout.guest_banner_title') }}
+                        </p>
+                        <p class="text-gray-500 text-sm mt-1">
+                            <Link :href="route('login')" class="font-bold text-savino-blue hover:text-savino-blue/80 underline underline-offset-2 transition-colors">
+                                {{ $t('shop_checkout.guest_banner_login') }}
+                            </Link>
+                            {{ $t('shop_checkout.guest_banner_or') }}
+                            <Link :href="route('shop.register')" class="font-bold text-savino-gold hover:text-savino-gold/80 underline underline-offset-2 transition-colors">
+                                {{ $t('shop_checkout.guest_banner_register') }}
+                            </Link>
+                            {{ $t('shop_checkout.guest_banner_benefits') }}
+                        </p>
+                    </div>
+                </div>
+                <div class="border-t border-gray-100 px-6 py-3 sm:px-8 bg-gray-50/50">
+                    <p class="text-xs text-gray-400 text-center sm:text-left">
+                        {{ $t('shop_checkout.guest_banner_continue') }}
+                    </p>
+                </div>
+            </div>
+
             <div class="grid lg:grid-cols-3 gap-8">
 
                 <!-- Shipping Form (2 cols) -->
@@ -223,7 +269,7 @@ const ogMeta = useOgMeta({
                                     <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
                                     <template v-for="zone in shippingZones" :key="zone.id">
                                         <option v-for="country in (zone.countries || [])" :key="country" :value="country">
-                                            {{ country === 'IT' ? 'Italia' : country }}
+                                            {{ countryNames[country] || country }}
                                         </option>
                                     </template>
                                 </select>

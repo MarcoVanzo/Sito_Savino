@@ -25,6 +25,7 @@ const ogMeta = useOgMeta({
     <Head>
         <title>{{ ogMeta.title }}</title>
         <meta name="description" :content="ogMeta.description" />
+        <meta name="robots" content="noindex, nofollow" />
     </Head>
 
     <PublicLayout>

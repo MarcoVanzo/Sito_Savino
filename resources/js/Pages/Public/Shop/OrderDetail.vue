@@ -1,7 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice';
 import { useImageFallback } from '@/Composables/useImageFallback';

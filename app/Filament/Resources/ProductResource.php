@@ -173,7 +173,7 @@ class ProductResource extends Resource
                     ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('')
-                    ->collection('products')
+                    ->collection('images')
                     ->square(),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome Prodotto')

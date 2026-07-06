@@ -21,6 +21,9 @@ class StockMovementResource extends Resource
 
     protected static bool $isGloballySearchable = false;
 
+    // Nascosto dalla nav: il Magazzino è gestito dalla custom page MagazzinoPage
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
     protected static ?string $navigationGroup = 'Shop Ufficiale';
@@ -76,50 +79,66 @@ class StockMovementResource extends Resource
             ]);
     }
 
+    /**
+     * Colonne della tabella movimenti, estratte per riuso nel widget Magazzino.
+     */
+    public static function getMovementColumns(): array
+    {
+        return [
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('Data')
+                ->dateTime('d/m/Y H:i')
+                ->sortable(),
+            Tables\Columns\TextColumn::make('product.name')
+                ->label('Prodotto')
+                ->searchable()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('variant.sku')
+                ->label('SKU Variante')
+                ->searchable()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('type')
+                ->label('Tipo')
+                ->badge()
+                ->formatStateUsing(fn (StockMovementType $state): string => $state->label())
+                ->color(fn (StockMovementType $state): string => match ($state) {
+                    StockMovementType::Purchase => 'success',
+                    StockMovementType::Sale => 'danger',
+                    StockMovementType::Adjustment => 'warning',
+                }),
+            Tables\Columns\TextColumn::make('quantity')
+                ->label('Q.tà')
+                ->numeric()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('order.id')
+                ->label('Ordine #')
+                ->placeholder('Manuale')
+                ->sortable(),
+            Tables\Columns\TextColumn::make('notes')
+                ->label('Note')
+                ->limit(30)
+                ->searchable(),
+        ];
+    }
+
+    /**
+     * Filtri della tabella movimenti, estratti per riuso nel widget Magazzino.
+     */
+    public static function getMovementFilters(): array
+    {
+        return [
+            Tables\Filters\SelectFilter::make('type')
+                ->label('Tipo Movimento')
+                ->options(StockMovementType::class),
+        ];
+    }
+
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Data')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('product.name')
-                    ->label('Prodotto')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('variant.sku')
-                    ->label('SKU Variante')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('type')
-                    ->label('Tipo')
-                    ->badge()
-                    ->formatStateUsing(fn (StockMovementType $state): string => $state->label())
-                    ->color(fn (StockMovementType $state): string => match ($state) {
-                        StockMovementType::Purchase => 'success',
-                        StockMovementType::Sale => 'danger',
-                        StockMovementType::Adjustment => 'warning',
-                    }),
-                Tables\Columns\TextColumn::make('quantity')
-                    ->label('Q.tà')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('order.id')
-                    ->label('Ordine #')
-                    ->placeholder('Manuale')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('notes')
-                    ->label('Note')
-                    ->limit(30)
-                    ->searchable(),
-            ])
+            ->columns(static::getMovementColumns())
             ->defaultSort('created_at', 'desc')
-            ->filters([
-                Tables\Filters\SelectFilter::make('type')
-                    ->label('Tipo Movimento')
-                    ->options(StockMovementType::class),
-            ])
+            ->filters(static::getMovementFilters())
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 // Nessun EditAction: i movimenti di magazzino sono record di audit immutabili
@@ -148,9 +167,6 @@ class StockMovementResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
             ->with(['product', 'variant', 'order']);
     }
 }
