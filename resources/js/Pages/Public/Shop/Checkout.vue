@@ -1,8 +1,8 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
-import { computed, ref, watch } from 'vue'
+import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 
@@ -47,6 +47,12 @@ const props = defineProps({
     },
 })
 
+onMounted(() => {
+    if (props.cart.items.length === 0) {
+        router.visit(route('shop'));
+    }
+});
+
 const authUser = user();
 const form = useForm({
     guest_name: authUser?.name || '',
@@ -68,6 +74,20 @@ watch(billingSameAsShipping, (val) => {
 });
 watch(() => form.shipping_address, (val) => {
     if (billingSameAsShipping.value) form.billing_address = val;
+});
+
+const availableCountries = computed(() => {
+    const seen = new Set();
+    const countries = [];
+    for (const zone of props.shippingZones) {
+        for (const code of (zone.countries || [])) {
+            if (code !== '*' && !seen.has(code)) {
+                seen.add(code);
+                countries.push({ code, name: countryNames[code] || code });
+            }
+        }
+    }
+    return countries.sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const selectedZone = computed(() => {
@@ -225,6 +245,7 @@ const ogMeta = useOgMeta({
                                     id="checkout-name"
                                     v-model="form.guest_name"
                                     type="text"
+                                    autocomplete="name"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                     :placeholder="$t('shop_checkout.placeholder_fullname')"
                                 />
@@ -236,6 +257,7 @@ const ogMeta = useOgMeta({
                                     id="checkout-email"
                                     v-model="form.guest_email"
                                     type="email"
+                                    autocomplete="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                     :placeholder="$t('shop_checkout.placeholder_email')"
                                 />
@@ -247,6 +269,7 @@ const ogMeta = useOgMeta({
                                     id="checkout-phone"
                                     v-model="form.guest_phone"
                                     type="tel"
+                                    autocomplete="tel"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                     :placeholder="$t('shop_checkout.placeholder_phone')"
                                 />
@@ -258,6 +281,7 @@ const ogMeta = useOgMeta({
                                     id="checkout-address"
                                     v-model="form.shipping_address"
                                     rows="2"
+                                    autocomplete="street-address"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
                                     :placeholder="$t('shop_checkout.placeholder_shipping_address')"
                                 ></textarea>
@@ -265,13 +289,11 @@ const ogMeta = useOgMeta({
                             </div>
                             <div>
                                 <label for="checkout-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_country') }}</label>
-                                <select id="checkout-country" v-model="form.country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
+                                <select id="checkout-country" v-model="form.country" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
                                     <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
-                                    <template v-for="zone in shippingZones" :key="zone.id">
-                                        <option v-for="country in (zone.countries || [])" :key="country" :value="country">
-                                            {{ countryNames[country] || country }}
-                                        </option>
-                                    </template>
+                                    <option v-for="c in availableCountries" :key="c.code" :value="c.code">
+                                        {{ c.name }}
+                                    </option>
                                 </select>
                                 <p v-if="form.errors.country" class="mt-1 text-sm text-red-500">{{ form.errors.country }}</p>
                             </div>
@@ -287,6 +309,7 @@ const ogMeta = useOgMeta({
                                     id="checkout-billing"
                                     v-model="form.billing_address"
                                     rows="2"
+                                    autocomplete="street-address"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
                                     :placeholder="$t('shop_checkout.placeholder_billing_address')"
                                 ></textarea>
@@ -461,7 +484,7 @@ const ogMeta = useOgMeta({
                         <!-- CTA -->
                         <button
                             @click="submitOrder"
-                            :disabled="form.processing || cart.items.length === 0 || !form.payment_gateway"
+                            :disabled="form.processing || cart.items.length === 0 || !form.payment_gateway || !form.privacy_accepted"
                             class="w-full mt-8 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             <svg v-if="form.processing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">

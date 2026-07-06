@@ -185,13 +185,6 @@ class CheckoutService
                     'type' => StockMovementType::Sale,
                     'notes' => "Ordine #{$order->id} — vendita (riservato al checkout)",
                 ]);
-
-                // Decrementa lo stock effettivo sul prodotto o sulla variante
-                if ($cartItem->product_variant_id && $cartItem->variant) {
-                    $cartItem->variant->decrement('stock', $cartItem->quantity);
-                } elseif ($cartItem->product) {
-                    $cartItem->product->decrement('stock', $cartItem->quantity);
-                }
             }
 
             // 11. Svuota il carrello

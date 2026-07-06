@@ -38,16 +38,12 @@ class OrderObserver
         Cache::forget('filament:dashboard:stats');
         Cache::forget('filament:dashboard:orders_chart');
 
-        // Ordine cancellato o rimborsato → ripristina stock (solo se era stato pagato)
+        // Ordine cancellato o rimborsato → ripristina stock riservato al checkout
+        // Lo stock viene riservato al momento del checkout (Pending), quindi va
+        // ripristinato indipendentemente dallo status precedente.
+        // Il guard $alreadyRestored in restoreStock() previene la doppia esecuzione.
         if ($order->status === OrderStatus::Cancelled || $order->status === OrderStatus::Refunded) {
-            $originalStatus = $order->getOriginal('status');
-            // getOriginal() può tornare stringa o enum in base alla versione Laravel
-            $wasPaid = $originalStatus === OrderStatus::Paid
-                || $originalStatus === OrderStatus::Paid->value;
-
-            if ($wasPaid) {
-                $this->restoreStock($order);
-            }
+            $this->restoreStock($order);
         }
     }
 

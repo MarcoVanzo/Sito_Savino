@@ -1,4 +1,5 @@
 <script setup>
+import { watch, onBeforeUnmount } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import CartBadge from '@/Components/Shop/CartBadge.vue';
@@ -29,6 +30,25 @@ const user = () => page.props.auth?.user;
 const handleLogout = () => {
     router.post(route('logout'));
 };
+
+// Body scroll lock when drawer is open
+watch(() => props.isOpen, (val) => {
+    document.body.style.overflow = val ? 'hidden' : '';
+});
+
+// Escape key to close drawer
+const handleEscape = (e) => {
+    if (e.key === 'Escape') emit('toggle');
+};
+watch(() => props.isOpen, (val) => {
+    if (val) document.addEventListener('keydown', handleEscape);
+    else document.removeEventListener('keydown', handleEscape);
+});
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', handleEscape);
+});
 </script>
 
 <template>

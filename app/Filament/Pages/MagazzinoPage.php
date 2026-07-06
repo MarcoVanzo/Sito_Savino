@@ -176,6 +176,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                             ->numeric()
                             ->required()
                             ->minValue(1)
+                            ->maxValue(10000)
                             ->default(1)
                             ->helperText('Inserisci la quantità di pezzi da aggiungere al magazzino.');
 
@@ -189,7 +190,8 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                         $qty = (int) $data['quantity'];
                         $variantId = $data['product_variant_id'] ?? null;
 
-                        // Crea il movimento di magazzino (audit trail)
+                        // Il StockMovementObserver aggiorna lo stock automaticamente
+                        // quando il movimento viene creato — non fare increment manuale
                         StockMovement::create([
                             'product_id' => $record->id,
                             'product_variant_id' => $variantId,
@@ -197,13 +199,6 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                             'type' => StockMovementType::Purchase,
                             'notes' => $data['notes'] ?? "Carico manuale da inventario",
                         ]);
-
-                        // Incrementa lo stock effettivo
-                        if ($variantId) {
-                            $record->variants()->where('id', $variantId)->increment('stock', $qty);
-                        } else {
-                            $record->increment('stock', $qty);
-                        }
 
                         Notification::make()
                             ->title('Stock aggiornato')

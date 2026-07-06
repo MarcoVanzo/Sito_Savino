@@ -30,6 +30,12 @@ const isEmpty = computed(() => !props.cart?.items?.length);
 
 // --- Loading indicators for cart item operations ---
 const loadingItems = ref(new Set());
+const errorMessage = ref(null);
+
+const showError = (msg) => {
+    errorMessage.value = msg || 'Si è verificato un errore. Riprova.';
+    setTimeout(() => errorMessage.value = null, 5000);
+};
 
 const handleUpdateQuantity = (itemId, newQty) => {
     if (newQty < 1) return;
@@ -38,6 +44,9 @@ const handleUpdateQuantity = (itemId, newQty) => {
         preserveScroll: true,
         onSuccess: () => {
             fetchCartCount();
+        },
+        onError: () => {
+            showError();
         },
         onFinish: () => {
             loadingItems.value = new Set([...loadingItems.value].filter(id => id !== itemId));
@@ -51,6 +60,9 @@ const handleRemoveItem = (itemId) => {
         preserveScroll: true,
         onSuccess: () => {
             fetchCartCount();
+        },
+        onError: () => {
+            showError();
         },
         onFinish: () => {
             loadingItems.value = new Set([...loadingItems.value].filter(id => id !== itemId));
@@ -86,6 +98,11 @@ const handleRemoveItem = (itemId) => {
         <!-- CART CONTENT -->
         <section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
             <div class="max-w-7xl mx-auto">
+                <!-- Error Message -->
+                <div v-if="errorMessage" class="bg-red-50 text-red-600 p-4 rounded-lg mb-4 flex items-center gap-3">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                    <span class="text-sm font-medium">{{ errorMessage }}</span>
+                </div>
                 <!-- Cart with Items -->
                 <div v-if="!isEmpty" class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                     <!-- Cart Items (2/3 width) -->
