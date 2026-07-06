@@ -8,6 +8,7 @@ import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
+import AddressAutocomplete from '@/Components/Shop/AddressAutocomplete.vue';
 
 const page = usePage();
 const user = () => page.props.auth?.user;
@@ -64,6 +65,8 @@ const form = useForm({
     guest_name: authUser?.name || '',
     guest_email: authUser?.email || '',
     guest_phone: '',
+    codice_fiscale: '',
+    phone: authUser?.phone || '',
 });
 
 // Step logic
@@ -79,6 +82,14 @@ const validateStep1 = () => {
         { field: 'shipping_zip_code', value: form.shipping_zip_code },
         { field: 'shipping_province', value: form.shipping_province },
     ];
+    // Codice Fiscale obbligatorio per Italia
+    if (form.country === 'IT') {
+        required.push({ field: 'codice_fiscale', value: form.codice_fiscale });
+    }
+    // Telefono obbligatorio per utenti registrati
+    if (authUser) {
+        required.push({ field: 'phone', value: form.phone });
+    }
     // Guest fields required if not auth
     if (!authUser) {
         required.push(
@@ -195,7 +206,8 @@ const submitOrder = () => {
 // Fix #9: Riporta allo Step 1 se il backend ritorna errori su campi dello Step 1
 const step1Fields = ['shipping_first_name', 'shipping_last_name', 'shipping_street',
     'shipping_city', 'shipping_zip_code', 'shipping_province',
-    'guest_name', 'guest_email', 'guest_phone', 'country'];
+    'guest_name', 'guest_email', 'guest_phone', 'country',
+    'codice_fiscale', 'phone'];
 
 watch(() => form.errors, (errors) => {
     if (currentStep.value === 2 && step1Fields.some(f => errors[f])) {
@@ -381,6 +393,31 @@ const ogMeta = useOgMeta({
                             </div>
                         </div>
 
+                        <!-- Phone for authenticated users -->
+                        <div v-if="user()" class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3 mb-6">
+                                <span class="w-8 h-8 rounded-full bg-savino-blue/10 text-savino-blue flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                                    </svg>
+                                </span>
+                                <h2 class="text-lg font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.label_contact_phone') }}</h2>
+                            </div>
+                            <div>
+                                <label for="checkout-auth-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }} *</label>
+                                <input
+                                    id="checkout-auth-phone"
+                                    v-model="form.phone"
+                                    type="tel"
+                                    autocomplete="tel"
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                    :placeholder="$t('shop_checkout.placeholder_phone')"
+                                />
+                                <p v-if="form.errors.phone" class="mt-1 text-sm text-red-500">{{ form.errors.phone }}</p>
+                                <p class="mt-1 text-xs text-gray-400">{{ $t('shop_checkout.phone_shipping_note') }}</p>
+                            </div>
+                        </div>
+
                         <!-- Shipping Address -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <div class="flex items-center gap-3 mb-6">
@@ -414,16 +451,20 @@ const ogMeta = useOgMeta({
                                     />
                                     <p v-if="form.errors.shipping_last_name" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_last_name }}</p>
                                 </div>
-                                <!-- Street Address (full width) -->
+                                <!-- Street Address with Autocomplete (full width) -->
                                 <div class="sm:col-span-2">
                                     <label for="checkout-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
-                                    <input
+                                    <AddressAutocomplete
                                         id="checkout-street"
                                         v-model="form.shipping_street"
-                                        type="text"
-                                        autocomplete="street-address"
-                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_street')"
+                                        :country="form.country"
+                                        @address-selected="(addr) => {
+                                            form.shipping_street = addr.street;
+                                            form.shipping_city = addr.city;
+                                            form.shipping_zip_code = addr.zip_code;
+                                            form.shipping_province = addr.province;
+                                        }"
                                     />
                                     <p v-if="form.errors.shipping_street" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_street }}</p>
                                 </div>
@@ -476,6 +517,21 @@ const ogMeta = useOgMeta({
                                         </option>
                                     </select>
                                     <p v-if="form.errors.country" class="mt-1 text-sm text-red-500">{{ form.errors.country }}</p>
+                                </div>
+
+                                <!-- Codice Fiscale (obbligatorio per Italia) -->
+                                <div class="sm:col-span-2" v-if="form.country === 'IT'">
+                                    <label for="checkout-cf" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_codice_fiscale') }} *</label>
+                                    <input
+                                        id="checkout-cf"
+                                        v-model="form.codice_fiscale"
+                                        type="text"
+                                        maxlength="16"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm uppercase"
+                                        :placeholder="$t('shop_checkout.placeholder_codice_fiscale')"
+                                        @input="form.codice_fiscale = form.codice_fiscale.toUpperCase()"
+                                    />
+                                    <p v-if="form.errors.codice_fiscale" class="mt-1 text-sm text-red-500">{{ form.errors.codice_fiscale }}</p>
                                 </div>
                             </div>
 

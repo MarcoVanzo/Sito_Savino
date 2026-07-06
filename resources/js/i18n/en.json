@@ -513,7 +513,11 @@
     "estimated_delivery": "Estimated delivery",
     "business_days": "business days",
     "gateway_not_available": "Payment method not available",
-    "step_validation_required": "Please fill in all required fields before proceeding"
+    "step_validation_required": "Please fill in all required fields before proceeding",
+    "label_codice_fiscale": "Tax ID (Codice Fiscale)",
+    "placeholder_codice_fiscale": "RSSMRA85T10A562S",
+    "label_contact_phone": "Phone Contact",
+    "phone_shipping_note": "Required to contact you in case of delivery issues."
   },
   "countries": {
     "IT": "Italy", "DE": "Germany", "FR": "France", "ES": "Spain",

@@ -26,7 +26,7 @@ class Order extends Model
         'user_id', 'status', 'total_price',
         'shipping_address', 'billing_address',
         'order_number', 'order_token', 'guest_email', 'guest_name',
-        'guest_phone', 'country', 'payment_gateway',
+        'guest_phone', 'phone', 'country', 'codice_fiscale', 'payment_gateway',
         'paid_at', 'shipped_at', 'tracking_number', 'tracking_url',
         'shipping_cost', 'coupon_id', 'coupon_discount', 'notes',
         'privacy_accepted_at',

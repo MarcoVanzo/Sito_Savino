@@ -25,6 +25,12 @@ class StoreCheckoutRequest extends FormRequest
                 'notes' => strip_tags($this->notes),
             ]);
         }
+        // Normalizza il codice fiscale a maiuscole
+        if ($this->has('codice_fiscale') && $this->codice_fiscale !== null) {
+            $this->merge([
+                'codice_fiscale' => strtoupper(trim($this->codice_fiscale)),
+            ]);
+        }
     }
 
     /**
@@ -57,6 +63,8 @@ class StoreCheckoutRequest extends FormRequest
             'coupon_code' => ['nullable', 'string', 'max:50'],
             'privacy_accepted' => ['required', 'accepted'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'codice_fiscale' => ['nullable', 'string', 'size:16', 'regex:/^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i'],
+            'phone' => ['nullable', 'string', 'max:30'],
         ];
 
         // Billing address fields required if not same as shipping
@@ -76,6 +84,11 @@ class StoreCheckoutRequest extends FormRequest
             $rules['guest_phone'] = ['required', 'string', 'max:30'];
         }
 
+        // Telefono obbligatorio per utenti autenticati
+        if (auth()->check()) {
+            $rules['phone'] = ['required', 'string', 'max:30'];
+        }
+
         return $rules;
     }
 
@@ -92,6 +105,13 @@ class StoreCheckoutRequest extends FormRequest
                         __('validation.zip_code_it')
                     );
                 }
+            }
+            // Codice Fiscale obbligatorio per ordini in Italia
+            if ($this->country === 'IT' && empty($this->codice_fiscale)) {
+                $validator->errors()->add(
+                    'codice_fiscale',
+                    'Il Codice Fiscale è obbligatorio per ordini in Italia.'
+                );
             }
         });
     }
@@ -134,6 +154,8 @@ class StoreCheckoutRequest extends FormRequest
             'guest_name' => $this->guest_name ?? null,
             'guest_email' => $this->guest_email ?? (auth()->user()?->email),
             'guest_phone' => $this->guest_phone ?? null,
+            'codice_fiscale' => $this->codice_fiscale ?? null,
+            'phone' => $this->phone ?? null,
             'user_id' => auth()->id(),
         ];
     }

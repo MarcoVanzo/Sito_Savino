@@ -91,8 +91,11 @@ const activeVariant = computed(() => {
 
 // --- Price ---
 const displayPrice = computed(() => {
-    if (activeVariant.value?.price) return activeVariant.value.price;
-    return props.product?.sale_price ?? props.product?.price ?? 0;
+    const basePrice = props.product?.sale_price ?? props.product?.price ?? 0;
+    if (activeVariant.value) {
+        return parseFloat(basePrice) + parseFloat(activeVariant.value.price_modifier || 0);
+    }
+    return basePrice;
 });
 
 const originalPrice = computed(() => {
@@ -296,7 +299,7 @@ const structuredData = computed(() => {
                                         : 'border-gray-200 text-gray-600 hover:border-savino-blue/30'"
                                     :disabled="variant.stock <= 0"
                                 >
-                                    {{ variant.name }}
+                                    {{ variant.size }}{{ variant.color ? ` — ${variant.color}` : '' }}
                                     <span v-if="variant.stock <= 0" class="ml-1 text-xs text-gray-400">({{ $t('shop.out_of_stock') }})</span>
                                 </button>
                             </div>

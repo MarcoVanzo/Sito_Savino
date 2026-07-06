@@ -152,6 +152,8 @@ class CheckoutService
                 'coupon_id' => $couponId,
                 'coupon_discount' => round($couponDiscount, 2),
                 'notes' => $data['notes'] ?? null,
+                'codice_fiscale' => $data['codice_fiscale'] ?? null,
+                'phone' => $data['phone'] ?? null,
                 'privacy_accepted_at' => $data['privacy_accepted_at'],
             ]);
 
@@ -197,6 +199,11 @@ class CheckoutService
 
             // 11. Svuota il carrello
             $this->cartService->clearCart();
+
+            // Aggiorna il telefono nel profilo utente se fornito
+            if ($user && !empty($data['phone'])) {
+                $user->update(['phone' => $data['phone']]);
+            }
 
             return $order->load('items.product');
         });

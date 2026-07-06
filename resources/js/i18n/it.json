@@ -513,7 +513,11 @@
     "estimated_delivery": "Consegna stimata",
     "business_days": "giorni lavorativi",
     "gateway_not_available": "Metodo di pagamento non disponibile",
-    "step_validation_required": "Compila tutti i campi obbligatori prima di procedere"
+    "step_validation_required": "Compila tutti i campi obbligatori prima di procedere",
+    "label_codice_fiscale": "Codice Fiscale",
+    "placeholder_codice_fiscale": "RSSMRA85T10A562S",
+    "label_contact_phone": "Contatto Telefonico",
+    "phone_shipping_note": "Necessario per contattarti in caso di problemi con la spedizione."
   },
   "countries": {
     "IT": "Italia", "DE": "Germania", "FR": "Francia", "ES": "Spagna",

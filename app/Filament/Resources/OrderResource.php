@@ -84,6 +84,9 @@ class OrderResource extends Resource
                                     ->label('Pagato il')
                                     ->disabled()
                                     ->dehydrated(false),
+                                Forms\Components\TextInput::make('codice_fiscale')
+                                    ->label('Codice Fiscale')
+                                    ->disabled(),
                             ])->columns(2),
 
                         Forms\Components\Tabs\Tab::make('Cliente Guest')
@@ -97,6 +100,9 @@ class OrderResource extends Resource
                                     ->disabled(),
                                 Forms\Components\TextInput::make('guest_phone')
                                     ->label('Telefono Guest')
+                                    ->disabled(),
+                                Forms\Components\TextInput::make('phone')
+                                    ->label('Telefono (Utente registrato)')
                                     ->disabled(),
                             ])->columns(3),
 
@@ -216,6 +222,10 @@ class OrderResource extends Resource
                                 ->orWhere('guest_email', 'like', "%{$search}%");
                         });
                     }),
+                Tables\Columns\TextColumn::make('contact_phone')
+                    ->label('Telefono')
+                    ->getStateUsing(fn ($record) => $record->phone ?? $record->guest_phone ?? '-')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Stato Ordine')
                     ->badge()
