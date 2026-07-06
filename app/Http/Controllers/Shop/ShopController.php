@@ -213,4 +213,40 @@ class ShopController extends Controller
             'products' => $products,
         ]);
     }
+
+    /**
+     * Pagina Guida Taglie con documenti PDF scaricabili.
+     */
+    public function sizeGuide(): Response
+    {
+        $sizeGuides = SiteSetting::get('shop.size_guides');
+        if (is_string($sizeGuides)) {
+            $sizeGuides = json_decode($sizeGuides, true) ?? [];
+        }
+
+        // Convert file paths to full URLs
+        $guides = collect($sizeGuides ?? [])->map(fn ($path) => [
+            'path' => $path,
+            'url' => asset('storage/' . $path),
+            'name' => pathinfo($path, PATHINFO_FILENAME),
+        ])->values()->all();
+
+        return Inertia::render('Public/Shop/SizeGuide', [
+            'sizeGuides' => $guides,
+            'supportEmail' => SiteSetting::get('shop.support_email'),
+        ]);
+    }
+
+    /**
+     * Pagina Contatti Shop con informazioni assistenza.
+     */
+    public function shopContacts(): Response
+    {
+        return Inertia::render('Public/Shop/ShopContacts', [
+            'supportEmail' => SiteSetting::get('shop.support_email'),
+            'supportPhone' => SiteSetting::get('shop.support_phone'),
+            'supportHours' => SiteSetting::get('shop.support_hours'),
+            'supportNotes' => SiteSetting::get('shop.support_notes'),
+        ]);
+    }
 }

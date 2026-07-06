@@ -19,4 +19,10 @@ class EditProductCategory extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget('public:shop:it');
+        \Illuminate\Support\Facades\Cache::forget('public:shop:en');
+    }
 }

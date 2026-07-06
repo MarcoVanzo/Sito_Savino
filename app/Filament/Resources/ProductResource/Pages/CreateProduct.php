@@ -11,4 +11,10 @@ class CreateProduct extends CreateRecord
     use Translatable;
 
     protected static string $resource = ProductResource::class;
+
+    protected function afterCreate(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget('public:shop:it');
+        \Illuminate\Support\Facades\Cache::forget('public:shop:en');
+    }
 }

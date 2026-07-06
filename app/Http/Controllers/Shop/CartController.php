@@ -116,22 +116,32 @@ class CartController extends Controller
     {
         $cart = $this->cartService->getCart();
 
+        $items = $cart?->items?->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'variant_id' => $item->product_variant_id,
+                'quantity' => $item->quantity,
+                'name' => $item->product?->name,
+                'slug' => $item->product?->slug,
+                'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
+                'variant_name' => $item->variant?->size,
+                'image_url' => $item->product?->getImageUrl('card'),
+            ];
+        }) ?? collect();
+
+        // Calcola totale e conteggio in-memory invece di ri-fetchare il cart
+        $total = $cart?->items?->sum(function ($item) {
+            if (! $item->product) return 0;
+            return ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) * $item->quantity;
+        }) ?? 0;
+
+        $count = $cart?->items?->sum('quantity') ?? 0;
+
         return response()->json([
-            'items' => $cart?->items?->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'product_id' => $item->product_id,
-                    'variant_id' => $item->variant_id,
-                    'quantity' => $item->quantity,
-                    'name' => $item->product?->name,
-                    'slug' => $item->product?->slug,
-                    'price' => $item->variant?->getFinalPrice() ?? $item->product?->getCurrentPrice(),
-                    'variant_name' => $item->variant?->size,
-                    'image_url' => $item->product?->getImageUrl('card'),
-                ];
-            }) ?? [],
-            'total' => $this->cartService->getCartTotal(),
-            'count' => $this->cartService->getItemCount(),
+            'items' => $items,
+            'total' => round($total, 2),
+            'count' => $count,
         ]);
     }
 }

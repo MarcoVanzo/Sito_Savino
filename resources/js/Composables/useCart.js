@@ -15,6 +15,7 @@ import { router, usePage } from '@inertiajs/vue3';
 const cartCount = ref(0);
 const cartTotal = ref(0);
 const isCartOpen = ref(false);
+const cartVersion = ref(0);
 
 export function useCart() {
     /**
@@ -67,6 +68,7 @@ export function useCart() {
             },
             onSuccess: (page) => {
                 fetchCartCount();
+                cartVersion.value++;
                 isCartOpen.value = true;
                 onSuccess?.(page);
             },
@@ -87,7 +89,10 @@ export function useCart() {
             quantity,
         }, {
             preserveScroll: true,
-            onSuccess: () => fetchCartCount(),
+            onSuccess: () => {
+                fetchCartCount();
+                cartVersion.value++;
+            },
         });
     };
 
@@ -97,7 +102,10 @@ export function useCart() {
     const removeItem = (cartItemId) => {
         router.delete(route('shop.cart.destroy', cartItemId), {
             preserveScroll: true,
-            onSuccess: () => fetchCartCount(),
+            onSuccess: () => {
+                fetchCartCount();
+                cartVersion.value++;
+            },
         });
     };
 
@@ -121,6 +129,7 @@ export function useCart() {
         cartCount,
         cartTotal,
         isCartOpen,
+        cartVersion,
         formattedTotal,
         fetchCartCount,
         addToCart,

@@ -146,11 +146,7 @@ class AdminPanelProvider extends PanelProvider
             ['Cartelle Stampa', 'Comunicazione', 2],
             ['Magazine', 'Comunicazione', 3],
             ['Double Face', 'Comunicazione', 4],
-            // Shop Ufficiale
-            ['Kit Gara', 'Shop Ufficiale', 1],
-            ['Abbigliamento & Accessori', 'Shop Ufficiale', 2],
-            ['Aste & Outlet', 'Shop Ufficiale', 3],
-            ['Guida Taglie & Contatti', 'Shop Ufficiale', 4],
+
         ];
 
         return array_map(

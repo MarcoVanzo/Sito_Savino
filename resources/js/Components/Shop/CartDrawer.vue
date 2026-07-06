@@ -14,6 +14,7 @@ const {
     updateQuantity,
     removeItem,
     fetchCartCount,
+    cartVersion,
 } = useCart();
 const { formatPrice } = useFormatPrice();
 const { onImgError } = useImageFallback();
@@ -26,7 +27,7 @@ const fetchCart = async () => {
         const data = await response.json();
         cart.value = data;
     } catch (e) {
-        // Silent fail
+        console.error('[CartDrawer] Failed to fetch cart data:', e);
     }
 };
 
@@ -41,6 +42,13 @@ watch(isCartOpen, (open) => {
         document.body.style.overflow = open ? 'hidden' : '';
     }
     if (open) {
+        fetchCart();
+    }
+});
+
+// Re-fetch cart data when cart mutations occur (add/update/remove)
+watch(cartVersion, () => {
+    if (isCartOpen.value) {
         fetchCart();
     }
 });

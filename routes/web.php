@@ -48,17 +48,18 @@ foreach ($locales as $loc) {
         // Shop Routes — slugs localizzati
         // =============================================
         $shopSlugs = [
-            'cerca'     => $loc === 'en' ? 'search' : 'cerca',
-            'categoria' => $loc === 'en' ? 'category' : 'categoria',
-            'prodotto'  => $loc === 'en' ? 'product' : 'prodotto',
-            'carrello'  => $loc === 'en' ? 'cart' : 'carrello',
-            'conferma'  => $loc === 'en' ? 'confirmed' : 'conferma',
-            'annullato' => $loc === 'en' ? 'cancelled' : 'annullato',
-            'ordine'    => $loc === 'en' ? 'order' : 'ordine',
-            'ricevuta'  => $loc === 'en' ? 'receipt' : 'ricevuta',
-            'ordini'    => $loc === 'en' ? 'orders' : 'ordini',
-            'registrati'=> $loc === 'en' ? 'register' : 'registrati',
-            'contatti'  => $loc === 'en' ? 'contacts' : 'contatti',
+            'cerca'        => $loc === 'en' ? 'search' : 'cerca',
+            'categoria'    => $loc === 'en' ? 'category' : 'categoria',
+            'prodotto'     => $loc === 'en' ? 'product' : 'prodotto',
+            'carrello'     => $loc === 'en' ? 'cart' : 'carrello',
+            'conferma'     => $loc === 'en' ? 'confirmed' : 'conferma',
+            'annullato'    => $loc === 'en' ? 'cancelled' : 'annullato',
+            'ordine'       => $loc === 'en' ? 'order' : 'ordine',
+            'ricevuta'     => $loc === 'en' ? 'receipt' : 'ricevuta',
+            'ordini'       => $loc === 'en' ? 'orders' : 'ordini',
+            'registrati'   => $loc === 'en' ? 'register' : 'registrati',
+            'contatti'     => $loc === 'en' ? 'contacts' : 'contatti',
+            'guida-taglie' => $loc === 'en' ? 'size-guide' : 'guida-taglie',
         ];
 
         Route::prefix('shop')->middleware([\App\Http\Middleware\TrackShopPageView::class])->group(function () use ($shopSlugs) {
@@ -67,6 +68,10 @@ foreach ($locales as $loc) {
             Route::get('/'.$shopSlugs['cerca'], [\App\Http\Controllers\Shop\ShopController::class, 'search'])->name('shop.search');
             Route::get('/'.$shopSlugs['categoria'].'/{category:slug}', [\App\Http\Controllers\Shop\ShopController::class, 'categoryShow'])->name('shop.category');
             Route::get('/'.$shopSlugs['prodotto'].'/{product:slug}', [\App\Http\Controllers\Shop\ShopController::class, 'productShow'])->name('shop.product');
+
+            // Size Guide & Shop Contacts
+            Route::get('/'.$shopSlugs['guida-taglie'], [\App\Http\Controllers\Shop\ShopController::class, 'sizeGuide'])->name('shop.size-guide');
+            Route::get('/'.$shopSlugs['contatti'], [\App\Http\Controllers\Shop\ShopController::class, 'shopContacts'])->name('shop.contacts');
 
             // Cart (web routes with CSRF)
             Route::get('/'.$shopSlugs['carrello'], [\App\Http\Controllers\Shop\CartController::class, 'index'])->name('shop.cart');

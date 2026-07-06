@@ -15,8 +15,11 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Filament\Notifications\Notification;
 
 class ProductResource extends Resource
 {
@@ -34,11 +37,11 @@ class ProductResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static ?string $navigationLabel = 'Gestione Catalogo';
+    protected static ?string $navigationLabel = 'Catalogo Prodotti';
 
     protected static ?string $navigationGroup = 'Shop Ufficiale';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'shop/products';
 
@@ -64,14 +67,18 @@ class ProductResource extends Resource
                             ->relationship('category', 'name')
                             ->searchable()
                             ->preload()
-                            ->nullable(),
+                            ->required()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')->label('Nome Categoria')->required(),
+                                Forms\Components\TextInput::make('slug')->label('Slug')->required(),
+                            ]),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Visibile nello Shop')
                             ->required()
                             ->default(true),
                         Forms\Components\Select::make('type')
                             ->label('Tipo Prodotto')
-                            ->options(ProductType::class)
+                            ->options(collect(ProductType::cases())->filter(fn ($t) => $t !== ProductType::Auction)->mapWithKeys(fn ($t) => [$t->value => $t->getLabel()]))
                             ->required()
                             ->default(ProductType::Simple),
                         Forms\Components\Textarea::make('short_description')
@@ -171,6 +178,11 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome Prodotto')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label('Categoria')
+                    ->sortable()
+                    ->searchable()
+                    ->placeholder('-'),
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
@@ -196,6 +208,12 @@ class ProductResource extends Resource
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Attivo'),
+                Tables\Filters\SelectFilter::make('product_category_id')
+                    ->label('Categoria')
+                    ->relationship('category', 'name'),
+                Tables\Filters\Filter::make('on_sale')
+                    ->label('In Saldo')
+                    ->query(fn (Builder $query) => $query->whereNotNull('sale_price')->where('sale_price', '>', 0)),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
@@ -205,7 +223,33 @@ class ProductResource extends Resource
                     ->icon('heroicon-o-eye'),
                 Tables\Actions\EditAction::make(),
             ])
-            ->bulkActions(static::softDeleteBulkActions());
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                ]),
+                Tables\Actions\BulkAction::make('apply_discount')
+                    ->label('Applica Sconto')
+                    ->icon('heroicon-o-tag')
+                    ->color('warning')
+                    ->form([
+                        Forms\Components\TextInput::make('sale_price')->label('Prezzo Scontato (€)')->numeric()->required()->prefix('€'),
+                        Forms\Components\DateTimePicker::make('sale_start')->label('Inizio Sconto'),
+                        Forms\Components\DateTimePicker::make('sale_end')->label('Fine Sconto'),
+                    ])
+                    ->action(function (Collection $records, array $data): void {
+                        $records->each(fn ($product) => $product->update([
+                            'sale_price' => $data['sale_price'],
+                            'sale_start' => $data['sale_start'] ?? null,
+                            'sale_end' => $data['sale_end'] ?? null,
+                        ]));
+                        Notification::make()->title('Sconto applicato a ' . $records->count() . ' prodotti')->success()->send();
+                        Cache::forget('public:shop:it');
+                        Cache::forget('public:shop:en');
+                    })
+                    ->deselectRecordsAfterCompletion()
+                    ->requiresConfirmation(),
+            ]);
     }
 
     public static function getRelations(): array
