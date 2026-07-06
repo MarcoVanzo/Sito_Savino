@@ -14,10 +14,13 @@ use Illuminate\Support\Facades\Mail;
 trait HandlesPaymentWebhooks
 {
     /**
-     * The gateway name used in log messages (e.g. 'Stripe', 'PayPal').
-     * Must be set by the class using this trait.
+     * Get the gateway name used in log messages (e.g. 'Stripe', 'PayPal').
+     * Override in the class using this trait.
      */
-    protected string $gatewayName = 'Payment';
+    protected function getGatewayName(): string
+    {
+        return $this->gatewayName ?? 'Payment';
+    }
 
     /**
      * Process a successful payment: update order, decrement stock, send notifications.
@@ -27,7 +30,7 @@ trait HandlesPaymentWebhooks
         $order = Order::find($result['order_id']);
 
         if (! $order) {
-            Log::error("{$this->gatewayName} webhook: ordine non trovato", [
+            Log::error("{$this->getGatewayName()} webhook: ordine non trovato", [
                 'order_id' => $result['order_id'],
             ]);
 
@@ -41,7 +44,7 @@ trait HandlesPaymentWebhooks
 
                 // Idempotency check: if already paid, skip processing
                 if ($order->payment_id !== null) {
-                    Log::info("{$this->gatewayName} webhook: ordine già processato (idempotenza)", [
+                    Log::info("{$this->getGatewayName()} webhook: ordine già processato (idempotenza)", [
                         'order_id' => $order->id,
                         'payment_id' => $order->payment_id,
                     ]);
@@ -66,7 +69,7 @@ trait HandlesPaymentWebhooks
                     'metadata' => [
                         'order_number' => $order->order_number,
                         'total' => $order->total_price,
-                        'gateway' => strtolower($this->gatewayName),
+                        'gateway' => strtolower($this->getGatewayName()),
                     ],
                 ]);
 
@@ -86,7 +89,7 @@ trait HandlesPaymentWebhooks
             // 5. Notify admin panel
             app(AdminNotificationService::class)->notifyPaymentReceived($order);
 
-            Log::info("{$this->gatewayName} webhook: pagamento completato", [
+            Log::info("{$this->getGatewayName()} webhook: pagamento completato", [
                 'order_id' => $order->id,
                 'payment_id' => $result['payment_id'],
             ]);
@@ -94,7 +97,7 @@ trait HandlesPaymentWebhooks
             return response()->json(['message' => 'Pagamento processato'], 200);
 
         } catch (\Throwable $e) {
-            Log::error("{$this->gatewayName} webhook: errore processamento pagamento", [
+            Log::error("{$this->getGatewayName()} webhook: errore processamento pagamento", [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -124,7 +127,7 @@ trait HandlesPaymentWebhooks
                 }
             }
 
-            Log::info("{$this->gatewayName} webhook: rimborso registrato", [
+            Log::info("{$this->getGatewayName()} webhook: rimborso registrato", [
                 'order_id' => $order->id,
                 'payment_id' => $result['payment_id'],
             ]);
@@ -142,7 +145,7 @@ trait HandlesPaymentWebhooks
         $recipientName = $order->user?->name ?? $order->guest_name;
 
         if (! $recipientEmail) {
-            Log::warning("{$this->gatewayName} webhook: nessuna email per conferma ordine", [
+            Log::warning("{$this->getGatewayName()} webhook: nessuna email per conferma ordine", [
                 'order_id' => $order->id,
             ]);
 
