@@ -146,4 +146,19 @@ class Product extends Model implements HasMedia
             ->performOnCollections('images', 'products')
             ->nonQueued();
     }
+
+    /**
+     * Override toArray per risolvere i campi translatable
+     * alla locale corrente quando serializzato per Inertia/JSON.
+     */
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        foreach ($this->translatable as $field) {
+            $array[$field] = $this->getTranslation($field, app()->getLocale());
+        }
+
+        return $array;
+    }
 }
