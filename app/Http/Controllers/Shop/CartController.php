@@ -27,8 +27,30 @@ class CartController extends Controller
         $total = $this->cartService->getCartTotal();
         $itemCount = $this->cartService->getItemCount();
 
+        $mappedItems = $cart?->items?->map(function ($item) {
+            $availableStock = $item->variant
+                ? (int) $item->variant->stock
+                : (int) ($item->product?->stock ?? 0);
+
+            return [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'variant_id' => $item->product_variant_id,
+                'quantity' => $item->quantity,
+                'name' => $item->product?->name,
+                'slug' => $item->product?->slug,
+                'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
+                'variant' => $item->variant?->size,
+                'image' => $item->product?->getImageUrl('card'),
+                'stock' => $availableStock,
+            ];
+        }) ?? collect();
+
         return Inertia::render('Public/Shop/Cart', [
-            'cart' => $cart,
+            'cart' => [
+                'id' => $cart?->id,
+                'items' => $mappedItems,
+            ],
             'total' => $total,
             'itemCount' => $itemCount,
             'freeShippingThreshold' => (float) SiteSetting::get('shop.free_shipping_threshold', 50),
