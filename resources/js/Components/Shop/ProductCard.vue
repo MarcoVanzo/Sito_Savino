@@ -1,6 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
@@ -21,6 +21,20 @@ const props = defineProps({
 
 const isOutOfStock = computed(() => props.product.stock !== undefined && props.product.stock !== null && props.product.stock <= 0);
 const hasSalePrice = computed(() => props.product.sale_price && props.product.sale_price < props.product.price);
+
+const isAdding = ref(false);
+
+const handleAddToCart = () => {
+    if (isAdding.value) return;
+    if (props.product.type === 'variable') {
+        router.visit(route('shop.product', props.product.slug));
+        return;
+    }
+    isAdding.value = true;
+    addToCart(props.product.id, {
+        onFinish: () => { isAdding.value = false; },
+    });
+};
 </script>
 
 <template>
@@ -54,6 +68,14 @@ const hasSalePrice = computed(() => props.product.sale_price && props.product.sa
                     class="absolute top-3 left-3 bg-savino-gold text-gray-900 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-lg"
                 >
                     {{ $t('shop.badge_new') || 'Nuovo' }}
+                </div>
+
+                <!-- Sale Badge -->
+                <div
+                    v-if="hasSalePrice && !isOutOfStock"
+                    class="absolute top-3 right-3 bg-savino-red text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-lg"
+                >
+                    {{ $t('shop.sale') || 'Saldi' }}
                 </div>
 
                 <!-- "Esaurito" Overlay -->
@@ -110,10 +132,15 @@ const hasSalePrice = computed(() => props.product.sale_price && props.product.sa
         <!-- Add to Cart Button -->
         <div class="px-5 pb-5" v-if="!isOutOfStock">
             <button
-                @click.prevent="product.type === 'variable' ? router.visit(route('shop.product', product.slug)) : addToCart(product.id)"
-                class="w-full bg-savino-gold/10 border border-savino-gold/30 text-savino-gold text-xs font-bold uppercase tracking-wider py-3 rounded-lg hover:bg-savino-gold hover:text-gray-900 transition-all duration-300 flex items-center justify-center gap-2"
+                @click.prevent="handleAddToCart"
+                :disabled="isAdding"
+                class="w-full bg-savino-gold/10 border border-savino-gold/30 text-savino-gold text-xs font-bold uppercase tracking-wider py-3 rounded-lg hover:bg-savino-gold hover:text-gray-900 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg v-if="isAdding" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 {{ $t('shop.add_to_cart') || 'Aggiungi al carrello' }}

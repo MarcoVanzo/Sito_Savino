@@ -41,6 +41,7 @@ const ogMeta = useOgMeta({
 // --- Search & Filter ---
 const searchQuery = ref('');
 const selectedCategory = ref(null);
+const selectedSort = ref('');
 
 const filteredProducts = computed(() => {
     let products = props.allProducts;
@@ -58,15 +59,32 @@ const filteredProducts = computed(() => {
         );
     }
 
+    // Sort
+    if (selectedSort.value) {
+        products = [...products];
+        switch (selectedSort.value) {
+            case 'price_asc':
+                products.sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
+                break;
+            case 'price_desc':
+                products.sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
+                break;
+            case 'newest':
+                products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                break;
+        }
+    }
+
     return products;
 });
 
 const clearFilters = () => {
     searchQuery.value = '';
     selectedCategory.value = null;
+    selectedSort.value = '';
 };
 
-const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || selectedCategory.value !== null);
+const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || selectedCategory.value !== null || selectedSort.value !== '');
 </script>
 
 <template>
@@ -167,20 +185,32 @@ const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || 
                     </button>
                 </div>
 
-                <!-- Result count + Clear filters -->
-                <div class="flex items-center justify-between mb-8">
+                <!-- Result count + Sort + Clear filters -->
+                <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
                     <p class="text-gray-500 text-sm">
                         <span class="font-semibold text-savino-blue">{{ filteredProducts.length }}</span>
                         {{ filteredProducts.length === 1 ? ($t('shop.product_singular') || 'prodotto') : ($t('shop.products_found') || 'prodotti') }}
                     </p>
-                    <button
-                        v-if="hasActiveFilters"
-                        @click="clearFilters"
-                        class="text-sm text-savino-blue/70 hover:text-savino-blue font-medium flex items-center gap-1.5 transition-colors"
-                    >
-                        <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        {{ $t('shop.clear_filters') || 'Rimuovi filtri' }}
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <select
+                            v-model="selectedSort"
+                            :aria-label="$t('shop.sort_by') || 'Ordina per'"
+                            class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-700 bg-white focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all cursor-pointer"
+                        >
+                            <option value="">{{ $t('shop.sort_default') || 'Ordina per' }}</option>
+                            <option value="price_asc">{{ $t('shop.sort_price_asc') || 'Prezzo: basso → alto' }}</option>
+                            <option value="price_desc">{{ $t('shop.sort_price_desc') || 'Prezzo: alto → basso' }}</option>
+                            <option value="newest">{{ $t('shop.sort_newest') || 'Più recenti' }}</option>
+                        </select>
+                        <button
+                            v-if="hasActiveFilters"
+                            @click="clearFilters"
+                            class="text-sm text-savino-blue/70 hover:text-savino-blue font-medium flex items-center gap-1.5 transition-colors"
+                        >
+                            <svg class="w-4 h-4" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            {{ $t('shop.clear_filters') || 'Rimuovi filtri' }}
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Skeleton Loading -->

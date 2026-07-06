@@ -136,10 +136,23 @@ const formatDate = (dateString) => {
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                             <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">{{ $t('shop.order_detail.shipping_info') }}</h3>
                             <div class="text-sm text-gray-600 space-y-1 bg-gray-50 p-4 rounded-md">
-                                <p class="font-bold text-gray-900">{{ order.shipping_address?.first_name }} {{ order.shipping_address?.last_name }}</p>
-                                <p>{{ order.shipping_address?.address }}</p>
-                                <p>{{ order.shipping_address?.zip_code }} {{ order.shipping_address?.city }}</p>
-                                <p>{{ order.shipping_address?.country }}</p>
+                                <!-- New structured format -->
+                                <template v-if="order.shipping_address?.first_name">
+                                    <p class="font-bold text-gray-900">{{ order.shipping_address.first_name }} {{ order.shipping_address.last_name }}</p>
+                                    <p>{{ order.shipping_address.street }}</p>
+                                    <p>{{ order.shipping_address.zip_code }} {{ order.shipping_address.city }} <span v-if="order.shipping_address.province">({{ order.shipping_address.province }})</span></p>
+                                </template>
+                                <!-- Old raw_address format -->
+                                <template v-else-if="order.shipping_address?.raw_address">
+                                    <p class="whitespace-pre-line">{{ order.shipping_address.raw_address }}</p>
+                                </template>
+                                <!-- Old plain string format -->
+                                <template v-else-if="typeof order.shipping_address === 'string'">
+                                    <p class="whitespace-pre-line">{{ order.shipping_address }}</p>
+                                </template>
+                                <template v-else>
+                                    <p class="text-gray-400 italic">{{ $t('shop.order_detail.no_address') || 'Indirizzo non disponibile' }}</p>
+                                </template>
                             </div>
 
                             <template v-if="order.tracking_number">

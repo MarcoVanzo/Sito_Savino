@@ -55,6 +55,30 @@ const selectImage = (index) => {
     selectedImageIndex.value = index;
 };
 
+// --- Image Zoom on Hover ---
+const isZoomed = ref(false);
+const zoomStyle = ref({});
+
+const handleMouseMove = (e) => {
+    if (!isZoomed.value) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    zoomStyle.value = {
+        transformOrigin: `${x}% ${y}%`,
+        transform: 'scale(2)',
+    };
+};
+
+const handleMouseEnter = () => {
+    isZoomed.value = true;
+};
+
+const handleMouseLeave = () => {
+    isZoomed.value = false;
+    zoomStyle.value = {};
+};
+
 // --- Variant Selector ---
 const selectedVariant = ref(null);
 
@@ -192,12 +216,18 @@ const structuredData = computed(() => {
                     <!-- LEFT: Image Gallery -->
                     <div>
                         <!-- Main Image -->
-                        <div class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden shadow-lg mb-4">
+                        <div
+                            class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden shadow-lg mb-4 cursor-zoom-in"
+                            @mouseenter="handleMouseEnter"
+                            @mouseleave="handleMouseLeave"
+                            @mousemove="handleMouseMove"
+                        >
                             <img
                                 v-if="mainImage"
                                 :src="mainImage"
                                 :alt="product?.name"
-                                class="w-full h-full object-cover transition-opacity duration-300"
+                                class="w-full h-full object-cover transition-all duration-300"
+                                :style="zoomStyle"
                                 @error="onImgError"
                             />
                             <div v-else class="w-full h-full flex items-center justify-center">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCheckoutRequest;
 use App\Mail\OrderConfirmation;
 use App\Models\Order;
 use App\Models\ShippingZone;
@@ -17,6 +18,7 @@ use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -69,48 +71,24 @@ class CheckoutController extends Controller
     /**
      * Processa il checkout e gestisce il pagamento.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCheckoutRequest $request): RedirectResponse
     {
-        $rules = [
-            'shipping_address' => ['required', 'string', 'max:500'],
-            'billing_address' => ['required', 'string', 'max:500'],
-            'country' => ['required', 'string', 'size:2'],
-            'payment_gateway' => ['required', 'string', 'in:stripe,paypal,bank_transfer'],
-            'coupon_code' => ['nullable', 'string', 'max:50'],
-            'privacy_accepted' => ['required', 'accepted'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-        ];
-
-        // Campi guest obbligatori se non autenticato
-        if (! auth()->check()) {
-            $rules['guest_name'] = ['required', 'string', 'max:255'];
-            $rules['guest_email'] = ['required', 'email', 'max:255'];
-            $rules['guest_phone'] = ['required', 'string', 'max:30'];
-        }
-
-        $validated = $request->validate($rules);
-
         $cart = $this->cartService->getCart();
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('shop.cart')
                 ->with('error', __('messages.cart.empty'));
         }
 
+        $lockKey = 'checkout_lock:' . session()->getId();
+        $lock = Cache::lock($lockKey, 30);
+
+        if (! $lock->get()) {
+            return back()->with('error', __('messages.checkout.already_processing'));
+        }
+
         try {
-            // Prepara i dati per il CheckoutService
-            $orderData = [
-                'shipping_address' => $validated['shipping_address'],
-                'billing_address' => $validated['billing_address'],
-                'country' => $validated['country'],
-                'payment_gateway' => $validated['payment_gateway'],
-                'coupon_code' => $validated['coupon_code'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-                'privacy_accepted_at' => now(),
-                'guest_name' => $validated['guest_name'] ?? null,
-                'guest_email' => $validated['guest_email'] ?? (auth()->user()?->email),
-                'guest_phone' => $validated['guest_phone'] ?? null,
-                'user_id' => auth()->id(),
-            ];
+            // Prepara i dati per il CheckoutService dalla FormRequest
+            $orderData = $request->toOrderData();
 
             $order = $this->checkoutService->createOrder(
                 $cart,
@@ -129,7 +107,7 @@ class CheckoutController extends Controller
             ]);
 
             // Gestisci il pagamento in base al gateway selezionato
-            $gateway = PaymentGateway::from($validated['payment_gateway']);
+            $gateway = PaymentGateway::from($orderData['payment_gateway']);
 
             // Notifica admin solo per bonifico (pagamento differito) —
             // per Stripe/PayPal la notifica arriva dal webhook dopo il pagamento effettivo
@@ -151,6 +129,8 @@ class CheckoutController extends Controller
             ]);
 
             return back()->with('error', __('messages.checkout.error'));
+        } finally {
+            $lock->forceRelease();
         }
     }
 

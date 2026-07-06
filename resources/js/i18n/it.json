@@ -346,7 +346,8 @@
       "total": "Totale",
       "shipping_info": "Informazioni Spedizione",
       "tracking": "Tracking",
-      "track_shipping": "Traccia spedizione"
+      "track_shipping": "Traccia spedizione",
+      "no_address": "Indirizzo non disponibile"
     },
     "your_cart": "Il tuo carrello",
     "cart_description": "Gestisci il tuo carrello",
@@ -492,7 +493,37 @@
     "guest_banner_or": "oppure",
     "guest_banner_register": "Crea un account",
     "guest_banner_benefits": "per tracciare i tuoi ordini e velocizzare i prossimi acquisti.",
-    "guest_banner_continue": "Oppure continua come ospite compilando i dati qui sotto."
+    "guest_banner_continue": "Oppure continua come ospite compilando i dati qui sotto.",
+    "step_shipping": "Dati Spedizione",
+    "step_payment": "Pagamento",
+    "next_step": "Avanti",
+    "prev_step": "Indietro",
+    "label_first_name": "Nome",
+    "label_last_name": "Cognome",
+    "label_street": "Via / Indirizzo",
+    "label_city": "Città",
+    "label_zip_code": "CAP",
+    "label_province": "Provincia",
+    "placeholder_first_name": "Il tuo nome",
+    "placeholder_last_name": "Il tuo cognome",
+    "placeholder_street": "Via Roma, 123",
+    "placeholder_city": "Firenze",
+    "placeholder_zip_code": "50123",
+    "placeholder_province": "FI",
+    "estimated_delivery": "Consegna stimata",
+    "business_days": "giorni lavorativi",
+    "gateway_not_available": "Metodo di pagamento non disponibile",
+    "step_validation_required": "Compila tutti i campi obbligatori prima di procedere"
+  },
+  "countries": {
+    "IT": "Italia", "DE": "Germania", "FR": "Francia", "ES": "Spagna",
+    "AT": "Austria", "BE": "Belgio", "NL": "Paesi Bassi", "PT": "Portogallo",
+    "GR": "Grecia", "IE": "Irlanda", "FI": "Finlandia", "SE": "Svezia",
+    "DK": "Danimarca", "PL": "Polonia", "CZ": "Repubblica Ceca", "RO": "Romania",
+    "HU": "Ungheria", "BG": "Bulgaria", "HR": "Croazia", "SK": "Slovacchia",
+    "SI": "Slovenia", "LT": "Lituania", "LV": "Lettonia", "EE": "Estonia",
+    "CY": "Cipro", "LU": "Lussemburgo", "MT": "Malta",
+    "GB": "Regno Unito", "CH": "Svizzera", "US": "Stati Uniti"
   },
   "summer_camp": {
     "activity_volleyball": "Pallavolo",
@@ -621,7 +652,8 @@
     "payment_method": "Metodo di pagamento:",
     "download_receipt": "Scarica Ricevuta",
     "continue_shopping": "Continua lo shopping",
-    "view_orders": "Vedi i tuoi ordini"
+    "view_orders": "Vedi i tuoi ordini",
+    "shipping_to": "Spedizione a"
   },
   "checkout_cancel": {
     "og_title": "Pagamento Annullato - Savino Del Bene Volley",

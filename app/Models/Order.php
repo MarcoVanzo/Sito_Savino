@@ -36,6 +36,8 @@ class Order extends Model
         'total_price' => 'decimal:2',
         'status' => OrderStatus::class,
         'payment_gateway' => PaymentGateway::class,
+        'shipping_address' => 'array',
+        'billing_address' => 'array',
         'shipping_cost' => 'decimal:2',
         'coupon_discount' => 'decimal:2',
         'paid_at' => 'datetime',
@@ -116,5 +118,37 @@ class Order extends Model
 
             return $this;
         });
+    }
+
+    /**
+     * Accessor: returns a normalized shipping address array,
+     * handling both old (raw text / raw_address) and new (structured) formats.
+     */
+    public function getFormattedShippingAddressAttribute(): array
+    {
+        $addr = $this->shipping_address;
+        if (is_string($addr)) {
+            return ['raw_address' => $addr];
+        }
+        if (is_array($addr) && isset($addr['raw_address'])) {
+            return $addr;
+        }
+        return $addr ?? [];
+    }
+
+    /**
+     * Accessor: returns a normalized billing address array,
+     * handling both old (raw text / raw_address) and new (structured) formats.
+     */
+    public function getFormattedBillingAddressAttribute(): array
+    {
+        $addr = $this->billing_address;
+        if (is_string($addr)) {
+            return ['raw_address' => $addr];
+        }
+        if (is_array($addr) && isset($addr['raw_address'])) {
+            return $addr;
+        }
+        return $addr ?? [];
     }
 }

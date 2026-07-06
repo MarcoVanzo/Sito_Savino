@@ -53,6 +53,19 @@ const ogMeta = useOgMeta({
                     <p class="text-gray-500 mb-2">{{ $t('checkout_success.order_number_label') }}</p>
                     <h2 class="text-3xl font-bold text-savino-blue mb-6">{{ order.order_number }}</h2>
 
+                    <!-- Shipping Address -->
+                    <div v-if="order.shipping_address" class="text-left bg-gray-50 rounded-lg p-4 mb-6">
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">{{ $t('checkout_success.shipping_to') }}</h4>
+                        <template v-if="order.shipping_address?.first_name">
+                            <p class="font-medium text-gray-900">{{ order.shipping_address.first_name }} {{ order.shipping_address.last_name }}</p>
+                            <p class="text-gray-600">{{ order.shipping_address.street }}</p>
+                            <p class="text-gray-600">{{ order.shipping_address.zip_code }} {{ order.shipping_address.city }} <span v-if="order.shipping_address.province">({{ order.shipping_address.province }})</span></p>
+                        </template>
+                        <template v-else-if="order.shipping_address?.raw_address">
+                            <p class="text-gray-600 whitespace-pre-line">{{ order.shipping_address.raw_address }}</p>
+                        </template>
+                    </div>
+
                     <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-8 text-savino-blue">
                         <template v-if="order.payment_gateway === 'bank_transfer'">
                             <p class="font-medium">{{ $t('checkout_success.bank_transfer_pending') }}</p>

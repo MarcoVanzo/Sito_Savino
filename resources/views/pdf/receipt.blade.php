@@ -275,15 +275,31 @@
                 $customerEmail = $order->user?->email ?? $order->guest_email ?? '-';
                 $customerPhone = $order->user?->phone ?? $order->guest_phone ?? null;
                 $shippingAddress = $order->shipping_address;
+
+                // Gestisce formato strutturato (nuovo), raw_address (migrato), e stringa plain (legacy)
+                if (is_array($shippingAddress)) {
+                    if (isset($shippingAddress['first_name'])) {
+                        $addressString = $shippingAddress['first_name'] . ' ' . ($shippingAddress['last_name'] ?? '') . "\n"
+                            . ($shippingAddress['street'] ?? '') . "\n"
+                            . ($shippingAddress['zip_code'] ?? '') . ' ' . ($shippingAddress['city'] ?? '')
+                            . (isset($shippingAddress['province']) ? ' (' . $shippingAddress['province'] . ')' : '');
+                    } elseif (isset($shippingAddress['raw_address'])) {
+                        $addressString = $shippingAddress['raw_address'];
+                    } else {
+                        $addressString = collect($shippingAddress)->filter()->implode(', ');
+                    }
+                } else {
+                    $addressString = $shippingAddress ?? '';
+                }
             @endphp
             <strong>{{ $customerName }}</strong><br>
             {{ $customerEmail }}
             @if($customerPhone)
                 <br>{{ $customerPhone }}
             @endif
-            @if($shippingAddress)
+            @if($addressString)
                 <br><br><strong>Indirizzo:</strong><br>
-                {!! nl2br(e($shippingAddress)) !!}
+                {!! nl2br(e($addressString)) !!}
             @endif
         </div>
     </div>

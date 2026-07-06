@@ -6,6 +6,8 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Cart;
 use App\Models\Coupon;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -26,9 +28,14 @@ class CheckoutService
     /**
      * Valida tutti i prerequisiti per il checkout.
      *
+     * Returns the pre-validated coupon result to avoid a second lookup
+     * during order creation.
+     *
+     * @return array{coupon_result: array|null}
+     *
      * @throws ValidationException
      */
-    public function validateCheckout(Cart $cart, array $data): void
+    public function validateCheckout(Cart $cart, array $data): array
     {
         $errors = [];
 
@@ -61,11 +68,12 @@ class CheckoutService
             $errors['country'] = [__('messages.checkout.country_required')];
         }
 
-        // 4. Coupon valido (se fornito)
+        // 4. Coupon valido (se fornito) — pre-validate and cache result
+        $couponResult = null;
         if (! empty($data['coupon_code'])) {
             try {
                 $subtotal = $this->calculateSubtotal($cart);
-                $this->applyCoupon(
+                $couponResult = $this->applyCoupon(
                     $data['coupon_code'],
                     $subtotal,
                     $data['user_id'] ?? null,
@@ -84,6 +92,8 @@ class CheckoutService
         if (! empty($errors)) {
             throw ValidationException::withMessages($errors);
         }
+
+        return ['coupon_result' => $couponResult];
     }
 
     /**
@@ -95,11 +105,14 @@ class CheckoutService
     public function createOrder(Cart $cart, array $data, ?User $user = null): Order
     {
         return DB::transaction(function () use ($cart, $data, $user) {
-            // 1. Valida il checkout
-            $this->validateCheckout($cart, $data);
+            // 1. Valida il checkout and get pre-validated coupon
+            $validationResult = $this->validateCheckout($cart, $data);
 
             // 2. Carica items con relazioni
             $cart->load(['items.product', 'items.variant']);
+
+            // 2b. Lock prodotti/varianti e ri-valida stock (previene race condition)
+            $this->validateStockWithLock($cart);
 
             // 3. Calcola subtotale da DB
             $subtotal = $this->calculateSubtotal($cart);
@@ -107,18 +120,13 @@ class CheckoutService
             // 4. Calcola spedizione
             $shippingCost = $this->calculateShipping($data['country'], $subtotal);
 
-            // 5. Applica coupon se presente
+            // 5. Reuse coupon result from validation (no double-lookup)
             $couponId = null;
             $couponDiscount = 0.0;
             $coupon = null;
 
-            if (! empty($data['coupon_code'])) {
-                $couponResult = $this->applyCoupon(
-                    $data['coupon_code'],
-                    $subtotal,
-                    $user?->id,
-                    $data['guest_email'] ?? null
-                );
+            if ($validationResult['coupon_result'] !== null) {
+                $couponResult = $validationResult['coupon_result'];
                 $couponDiscount = $couponResult['discount'];
                 $coupon = $couponResult['coupon'];
                 $couponId = $coupon->id;
@@ -254,5 +262,66 @@ class CheckoutService
         }
 
         return round($subtotal, 2);
+    }
+
+    /**
+     * Blocca i prodotti/varianti con lockForUpdate() e ri-valida lo stock
+     * all'interno della transazione per prevenire overselling da checkout concorrenti.
+     *
+     * @throws ValidationException
+     */
+    private function validateStockWithLock(Cart $cart): void
+    {
+        $items = $cart->items;
+
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        // Raccogli tutti gli ID unici
+        $productIds = $items->pluck('product_id')->unique()->filter()->values()->all();
+        $variantIds = $items->pluck('product_variant_id')->unique()->filter()->values()->all();
+
+        // Lock con SELECT ... FOR UPDATE
+        $lockedProducts = Product::whereIn('id', $productIds)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('id');
+
+        $lockedVariants = collect();
+        if (! empty($variantIds)) {
+            $lockedVariants = ProductVariant::whereIn('id', $variantIds)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+        }
+
+        // Valida stock per ogni item del carrello
+        $errors = [];
+        foreach ($items as $item) {
+            $product = $lockedProducts->get($item->product_id);
+            $variant = $item->product_variant_id
+                ? $lockedVariants->get($item->product_variant_id)
+                : null;
+
+            $availableStock = $variant
+                ? (int) $variant->stock
+                : (int) ($product?->stock ?? 0);
+
+            if ($item->quantity > $availableStock) {
+                $productName = $product?->name ?? 'Unknown';
+                $errors["stock.{$item->id}"] = [
+                    __('messages.checkout.stock_issue', [
+                        'product' => $productName,
+                        'available' => $availableStock,
+                        'requested' => $item->quantity,
+                    ]),
+                ];
+            }
+        }
+
+        if (! empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
     }
 }

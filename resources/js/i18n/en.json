@@ -346,7 +346,8 @@
       "total": "Total",
       "shipping_info": "Shipping Information",
       "tracking": "Tracking",
-      "track_shipping": "Track shipping"
+      "track_shipping": "Track shipping",
+      "no_address": "Address not available"
     },
     "your_cart": "Your cart",
     "cart_description": "Manage your cart",
@@ -492,7 +493,37 @@
     "guest_banner_or": "or",
     "guest_banner_register": "Create an account",
     "guest_banner_benefits": "to track your orders and speed up future purchases.",
-    "guest_banner_continue": "Or continue as a guest by filling in the details below."
+    "guest_banner_continue": "Or continue as a guest by filling in the details below.",
+    "step_shipping": "Shipping Info",
+    "step_payment": "Payment",
+    "next_step": "Next",
+    "prev_step": "Back",
+    "label_first_name": "First Name",
+    "label_last_name": "Last Name",
+    "label_street": "Street Address",
+    "label_city": "City",
+    "label_zip_code": "ZIP Code",
+    "label_province": "Province / State",
+    "placeholder_first_name": "Your first name",
+    "placeholder_last_name": "Your last name",
+    "placeholder_street": "123 Main Street",
+    "placeholder_city": "Florence",
+    "placeholder_zip_code": "50123",
+    "placeholder_province": "FI",
+    "estimated_delivery": "Estimated delivery",
+    "business_days": "business days",
+    "gateway_not_available": "Payment method not available",
+    "step_validation_required": "Please fill in all required fields before proceeding"
+  },
+  "countries": {
+    "IT": "Italy", "DE": "Germany", "FR": "France", "ES": "Spain",
+    "AT": "Austria", "BE": "Belgium", "NL": "Netherlands", "PT": "Portugal",
+    "GR": "Greece", "IE": "Ireland", "FI": "Finland", "SE": "Sweden",
+    "DK": "Denmark", "PL": "Poland", "CZ": "Czech Republic", "RO": "Romania",
+    "HU": "Hungary", "BG": "Bulgaria", "HR": "Croatia", "SK": "Slovakia",
+    "SI": "Slovenia", "LT": "Lithuania", "LV": "Latvia", "EE": "Estonia",
+    "CY": "Cyprus", "LU": "Luxembourg", "MT": "Malta",
+    "GB": "United Kingdom", "CH": "Switzerland", "US": "United States"
   },
   "summer_camp": {
     "activity_volleyball": "Volleyball",
@@ -621,7 +652,8 @@
     "payment_method": "Payment method:",
     "download_receipt": "Download Receipt",
     "continue_shopping": "Continue shopping",
-    "view_orders": "View your orders"
+    "view_orders": "View your orders",
+    "shipping_to": "Shipping to"
   },
   "checkout_cancel": {
     "og_title": "Payment Cancelled - Savino Del Bene Volley",

@@ -19,6 +19,21 @@ const props = defineProps({
     cart: { type: Object, default: () => ({ items: [] }) },
     total: { type: Number, default: 0 },
     itemCount: { type: Number, default: 0 },
+    freeShippingThreshold: { type: Number, default: 0 },
+});
+
+const shippingProgress = computed(() => {
+    if (!props.freeShippingThreshold || props.freeShippingThreshold <= 0) return 0;
+    return Math.min(100, (props.total / props.freeShippingThreshold) * 100);
+});
+
+const amountToFreeShipping = computed(() => {
+    if (!props.freeShippingThreshold || props.freeShippingThreshold <= 0) return 0;
+    return Math.max(0, props.freeShippingThreshold - props.total);
+});
+
+const hasFreeShipping = computed(() => {
+    return props.freeShippingThreshold > 0 && props.total >= props.freeShippingThreshold;
 });
 
 const ogMeta = useOgMeta({
@@ -215,6 +230,29 @@ const handleRemoveItem = (itemId) => {
                     <div class="lg:col-span-1">
                         <div class="bg-gray-50 rounded-2xl p-8 sticky top-32">
                             <h3 class="text-lg font-black text-savino-blue uppercase tracking-tight mb-6">{{ $t('shop.order_summary') }}</h3>
+
+                            <!-- Free Shipping Progress Bar -->
+                            <div v-if="freeShippingThreshold > 0" class="mb-6">
+                                <div v-if="hasFreeShipping" class="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                                    <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-sm font-bold text-green-700">{{ $t('shop.free_shipping_unlocked') || 'Spedizione gratuita sbloccata!' }}</span>
+                                </div>
+                                <div v-else>
+                                    <p class="text-xs text-gray-500 mb-2">
+                                        {{ $t('shop.free_shipping_remaining') || 'Mancano' }}
+                                        <span class="font-bold text-savino-blue">{{ formatPrice(amountToFreeShipping) }}</span>
+                                        {{ $t('shop.free_shipping_goal') || 'per la spedizione gratuita' }}
+                                    </p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                        <div
+                                            class="bg-gradient-to-r from-savino-blue to-savino-gold h-2.5 rounded-full transition-all duration-500 ease-out"
+                                            :style="{ width: shippingProgress + '%' }"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="space-y-4 mb-6">
                                 <div class="flex justify-between text-sm">

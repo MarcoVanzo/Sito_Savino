@@ -103,12 +103,53 @@ class OrderResource extends Resource
                         Forms\Components\Tabs\Tab::make('Spedizione')
                             ->icon('heroicon-o-truck')
                             ->schema([
-                                Forms\Components\Textarea::make('shipping_address')
-                                    ->label('Indirizzo di Spedizione')
-                                    ->rows(3),
-                                Forms\Components\Textarea::make('billing_address')
-                                    ->label('Indirizzo di Fatturazione')
-                                    ->rows(3),
+                                // Indirizzo strutturato (nuovi ordini)
+                                Forms\Components\Fieldset::make('Indirizzo di Spedizione')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('shipping_address.first_name')
+                                            ->label('Nome'),
+                                        Forms\Components\TextInput::make('shipping_address.last_name')
+                                            ->label('Cognome'),
+                                        Forms\Components\TextInput::make('shipping_address.street')
+                                            ->label('Via')
+                                            ->columnSpanFull(),
+                                        Forms\Components\TextInput::make('shipping_address.city')
+                                            ->label('Città'),
+                                        Forms\Components\TextInput::make('shipping_address.zip_code')
+                                            ->label('CAP'),
+                                        Forms\Components\TextInput::make('shipping_address.province')
+                                            ->label('Provincia'),
+                                        // Fallback per vecchi ordini con indirizzo in testo libero
+                                        Forms\Components\Textarea::make('shipping_address.raw_address')
+                                            ->label('Indirizzo (vecchio formato)')
+                                            ->rows(2)
+                                            ->visible(fn ($record) => isset($record?->shipping_address['raw_address']))
+                                            ->columnSpanFull(),
+                                    ])->columns(2),
+
+                                // Indirizzo fatturazione strutturato
+                                Forms\Components\Fieldset::make('Indirizzo di Fatturazione')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('billing_address.first_name')
+                                            ->label('Nome'),
+                                        Forms\Components\TextInput::make('billing_address.last_name')
+                                            ->label('Cognome'),
+                                        Forms\Components\TextInput::make('billing_address.street')
+                                            ->label('Via')
+                                            ->columnSpanFull(),
+                                        Forms\Components\TextInput::make('billing_address.city')
+                                            ->label('Città'),
+                                        Forms\Components\TextInput::make('billing_address.zip_code')
+                                            ->label('CAP'),
+                                        Forms\Components\TextInput::make('billing_address.province')
+                                            ->label('Provincia'),
+                                        Forms\Components\Textarea::make('billing_address.raw_address')
+                                            ->label('Indirizzo (vecchio formato)')
+                                            ->rows(2)
+                                            ->visible(fn ($record) => isset($record?->billing_address['raw_address']))
+                                            ->columnSpanFull(),
+                                    ])->columns(2),
+
                                 Forms\Components\TextInput::make('country')
                                     ->label('Paese')
                                     ->maxLength(2),

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
+use App\Models\SiteSetting;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -30,6 +31,7 @@ class CartController extends Controller
             'cart' => $cart,
             'total' => $total,
             'itemCount' => $itemCount,
+            'freeShippingThreshold' => (float) SiteSetting::get('shop.free_shipping_threshold', 50),
         ]);
     }
 
@@ -123,6 +125,10 @@ class CartController extends Controller
         $cart = $this->cartService->getCart();
 
         $items = $cart?->items?->map(function ($item) {
+            $availableStock = $item->variant
+                ? (int) $item->variant->stock
+                : (int) ($item->product?->stock ?? 0);
+
             return [
                 'id' => $item->id,
                 'product_id' => $item->product_id,
@@ -133,6 +139,8 @@ class CartController extends Controller
                 'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
                 'variant_name' => $item->variant?->size,
                 'image_url' => $item->product?->getImageUrl('card'),
+                'stock' => $availableStock,
+                'stock_warning' => $item->quantity > $availableStock,
             ];
         }) ?? collect();
 

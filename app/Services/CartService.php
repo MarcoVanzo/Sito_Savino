@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class CartService
 {
+    private ?Cart $resolvedCart = null;
+
+    private bool $cartResolved = false;
+
     /**
      * Ottiene o crea un carrello per l'utente/sessione corrente.
      */
@@ -99,11 +103,15 @@ class CartService
                 return $existingItem->fresh();
             }
 
-            return $cart->items()->create([
+            $cartItem = $cart->items()->create([
                 'product_id' => $productId,
                 'product_variant_id' => $variantId,
                 'quantity' => $quantity,
             ]);
+
+            $this->invalidateCache();
+
+            return $cartItem;
         });
     }
 
@@ -152,6 +160,8 @@ class CartService
 
             $item->update(['quantity' => $quantity]);
 
+            $this->invalidateCache();
+
             return $item->fresh();
         });
     }
@@ -167,6 +177,7 @@ class CartService
         }
 
         $cart->items()->where('id', $cartItemId)->delete();
+        $this->invalidateCache();
     }
 
     /**
@@ -177,6 +188,7 @@ class CartService
         $cart = $this->findCurrentCart();
 
         if ($cart) {
+            $this->removeInactiveItems($cart);
             $cart->load(['items.product.media', 'items.variant']);
         }
 
@@ -230,6 +242,7 @@ class CartService
         }
 
         $cart->items()->delete();
+        $this->invalidateCache();
     }
 
     /**
@@ -298,6 +311,8 @@ class CartService
             // Elimina il carrello sessione e i suoi items
             $sessionCart->items()->delete();
             $sessionCart->delete();
+
+            $this->invalidateCache();
         });
     }
 
@@ -336,19 +351,63 @@ class CartService
      */
     private function findCurrentCart(): ?Cart
     {
+        if ($this->cartResolved) {
+            return $this->resolvedCart;
+        }
+
+        $cart = null;
+
         if (auth()->check()) {
             $cart = Cart::where('user_id', auth()->id())->first();
-            if ($cart) {
-                return $cart;
+        }
+
+        if (! $cart) {
+            $cart = Cart::where('session_id', session()->getId())
+                ->where(function ($query) {
+                    $query->where('expires_at', '>', now())
+                        ->orWhereNull('expires_at');
+                })
+                ->first();
+        }
+
+        $this->resolvedCart = $cart;
+        $this->cartResolved = true;
+
+        return $cart;
+    }
+
+    /**
+     * Invalida la cache in-process del carrello.
+     * Chiamata dopo ogni operazione di mutazione.
+     */
+    public function invalidateCache(): void
+    {
+        $this->resolvedCart = null;
+        $this->cartResolved = false;
+    }
+
+    /**
+     * Rimuove dal carrello gli items il cui prodotto è inattivo o soft-deleted.
+     * Restituisce il numero di items rimossi.
+     */
+    private function removeInactiveItems(Cart $cart): int
+    {
+        $items = $cart->items()->with('product')->get();
+        $removedCount = 0;
+
+        foreach ($items as $item) {
+            if (! $item->product || ! $item->product->is_active || $item->product->trashed()) {
+                $item->delete();
+                $removedCount++;
             }
         }
 
-        return Cart::where('session_id', session()->getId())
-            ->where(function ($query) {
-                $query->where('expires_at', '>', now())
-                    ->orWhereNull('expires_at');
-            })
-            ->first();
+        if ($removedCount > 0) {
+            // Ricarica items dopo la pulizia
+            $cart->unsetRelation('items');
+        }
+
+        return $removedCount;
     }
 
     /**

@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch, watchEffect } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 
@@ -11,18 +11,6 @@ const { formatPrice } = useFormatPrice();
 
 const page = usePage();
 const user = () => page.props.auth?.user;
-
-const countryNames = {
-    IT: 'Italia', DE: 'Germania', FR: 'Francia', ES: 'Spagna',
-    AT: 'Austria', BE: 'Belgio', NL: 'Paesi Bassi', PT: 'Portogallo',
-    GR: 'Grecia', IE: 'Irlanda', FI: 'Finlandia', SE: 'Svezia',
-    DK: 'Danimarca', PL: 'Polonia', CZ: 'Repubblica Ceca', RO: 'Romania',
-    HU: 'Ungheria', BG: 'Bulgaria', HR: 'Croazia', SK: 'Slovacchia',
-    SI: 'Slovenia', LT: 'Lituania', LV: 'Lettonia', EE: 'Estonia',
-    CY: 'Cipro', LU: 'Lussemburgo', MT: 'Malta',
-    GB: 'Regno Unito', CH: 'Svizzera', US: 'Stati Uniti',
-};
-
 
 const props = defineProps({
     cart: {
@@ -55,26 +43,75 @@ onMounted(() => {
 
 const authUser = user();
 const form = useForm({
-    guest_name: authUser?.name || '',
-    guest_email: authUser?.email || '',
-    guest_phone: '',
-    shipping_address: '',
-    billing_address: '',
+    shipping_first_name: authUser?.name?.split(' ')[0] || '',
+    shipping_last_name: authUser?.name?.split(' ').slice(1).join(' ') || '',
+    shipping_street: '',
+    shipping_city: '',
+    shipping_zip_code: '',
+    shipping_province: '',
     country: 'IT',
+    billing_same_as_shipping: true,
+    billing_first_name: '',
+    billing_last_name: '',
+    billing_street: '',
+    billing_city: '',
+    billing_zip_code: '',
+    billing_province: '',
     payment_gateway: '',
     coupon_code: '',
     notes: '',
     privacy_accepted: false,
+    guest_name: authUser?.name || '',
+    guest_email: authUser?.email || '',
+    guest_phone: '',
 });
 
-const billingSameAsShipping = ref(true);
+// Step logic
+const currentStep = ref(1);
+const stepValidationError = ref('');
 
-watch(billingSameAsShipping, (val) => {
-    if (val) form.billing_address = form.shipping_address;
-});
-watch(() => form.shipping_address, (val) => {
-    if (billingSameAsShipping.value) form.billing_address = val;
-});
+const validateStep1 = () => {
+    const required = [
+        { field: 'shipping_first_name', value: form.shipping_first_name },
+        { field: 'shipping_last_name', value: form.shipping_last_name },
+        { field: 'shipping_street', value: form.shipping_street },
+        { field: 'shipping_city', value: form.shipping_city },
+        { field: 'shipping_zip_code', value: form.shipping_zip_code },
+        { field: 'shipping_province', value: form.shipping_province },
+    ];
+    // Guest fields required if not auth
+    if (!authUser) {
+        required.push(
+            { field: 'guest_name', value: form.guest_name },
+            { field: 'guest_email', value: form.guest_email },
+        );
+    }
+    const missing = required.filter(r => !r.value?.trim());
+    if (missing.length > 0) {
+        stepValidationError.value = $t('shop_checkout.step_validation_required');
+        return false;
+    }
+    stepValidationError.value = '';
+    return true;
+};
+
+const goToStep2 = () => {
+    if (validateStep1()) {
+        currentStep.value = 2;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+};
+
+const goToStep1 = () => {
+    currentStep.value = 1;
+    stepValidationError.value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const getCountryName = (code) => {
+    const translated = $t(`countries.${code}`);
+    return (translated && translated !== `countries.${code}`) ? translated : code;
+};
 
 const availableCountries = computed(() => {
     const seen = new Set();
@@ -83,7 +120,7 @@ const availableCountries = computed(() => {
         for (const code of (zone.countries || [])) {
             if (code !== '*' && !seen.has(code)) {
                 seen.add(code);
-                countries.push({ code, name: countryNames[code] || code });
+                countries.push({ code, name: getCountryName(code) });
             }
         }
     }
@@ -103,7 +140,7 @@ const shippingCost = computed(() => {
     return selectedZone.value.flat_rate || 0;
 });
 
-const couponStatus = ref(null); // null, 'loading', 'valid', 'invalid'
+const couponStatus = ref(null);
 const couponMessage = ref('');
 const couponDiscount = ref(0);
 
@@ -149,13 +186,33 @@ const orderTotal = computed(() => {
     return Math.max(0, props.cartTotal + shippingCost.value - couponDiscount.value).toFixed(2);
 });
 
-
-
 const submitOrder = () => {
     form.post(route('shop.checkout.store'), {
         preserveScroll: true,
     });
 };
+
+// Fix #9: Riporta allo Step 1 se il backend ritorna errori su campi dello Step 1
+const step1Fields = ['shipping_first_name', 'shipping_last_name', 'shipping_street',
+    'shipping_city', 'shipping_zip_code', 'shipping_province',
+    'guest_name', 'guest_email', 'guest_phone', 'country'];
+
+watch(() => form.errors, (errors) => {
+    if (currentStep.value === 2 && step1Fields.some(f => errors[f])) {
+        currentStep.value = 1;
+    }
+    // Scroll to first error field
+    nextTick(() => {
+        const errorKeys = Object.keys(errors);
+        if (errorKeys.length > 0) {
+            const firstErrorEl = document.querySelector(`[id*="${errorKeys[0].replace(/_/g, '-')}"]`)
+                || document.querySelector(`.text-red-500`);
+            if (firstErrorEl) {
+                firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+}, { deep: true });
 
 const ogMeta = useOgMeta({
     title: $t('shop_checkout.og_title'),
@@ -227,193 +284,379 @@ const ogMeta = useOgMeta({
                 </div>
             </div>
 
+            <!-- Step Progress Indicator -->
+            <div class="mb-10">
+                <div class="flex items-center justify-center">
+                    <!-- Step 1 -->
+                    <div class="flex items-center">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all duration-300"
+                             :class="currentStep >= 1 ? (currentStep > 1 ? 'bg-savino-gold text-white' : 'bg-savino-blue text-white') : 'bg-gray-200 text-gray-500'">
+                            <svg v-if="currentStep > 1" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span v-else>1</span>
+                        </div>
+                        <span class="ml-3 text-sm font-bold hidden sm:inline" :class="currentStep >= 1 ? 'text-gray-900' : 'text-gray-400'">
+                            📦 {{ $t('shop_checkout.step_shipping') }}
+                        </span>
+                    </div>
+                    <!-- Line -->
+                    <div class="w-16 sm:w-24 h-0.5 mx-4 transition-all duration-300" :class="currentStep > 1 ? 'bg-savino-gold' : 'bg-gray-200'"></div>
+                    <!-- Step 2 -->
+                    <div class="flex items-center">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all duration-300"
+                             :class="currentStep >= 2 ? 'bg-savino-blue text-white' : 'bg-gray-200 text-gray-500'">
+                            <span>2</span>
+                        </div>
+                        <span class="ml-3 text-sm font-bold hidden sm:inline" :class="currentStep >= 2 ? 'text-gray-900' : 'text-gray-400'">
+                            💳 {{ $t('shop_checkout.step_payment') }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Error -->
+            <div v-if="stepValidationError" class="mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <p class="text-sm text-red-700 font-medium">{{ stepValidationError }}</p>
+            </div>
+
             <div class="grid lg:grid-cols-3 gap-8">
 
-                <!-- Shipping Form (2 cols) -->
+                <!-- Form Section (2 cols) -->
                 <div class="lg:col-span-2 space-y-8">
 
-                    <!-- Shipping Info -->
-                    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                        <div class="flex items-center gap-3 mb-6">
-                            <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">1</span>
-                            <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.shipping_title') }}</h2>
+                    <!-- STEP 1: Shipping Info -->
+                    <template v-if="currentStep === 1">
+
+                        <!-- Guest Info (only when NOT authenticated) -->
+                        <div v-if="!user()" class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3 mb-6">
+                                <span class="w-8 h-8 rounded-full bg-savino-blue/10 text-savino-blue flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                    </svg>
+                                </span>
+                                <h2 class="text-lg font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.label_fullname') }}</h2>
+                            </div>
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <div class="sm:col-span-2">
+                                    <label for="checkout-guest-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_fullname') }}</label>
+                                    <input
+                                        id="checkout-guest-name"
+                                        v-model="form.guest_name"
+                                        type="text"
+                                        autocomplete="name"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_fullname')"
+                                    />
+                                    <p v-if="form.errors.guest_name" class="mt-1 text-sm text-red-500">{{ form.errors.guest_name }}</p>
+                                </div>
+                                <div>
+                                    <label for="checkout-email" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_email') }}</label>
+                                    <input
+                                        id="checkout-email"
+                                        v-model="form.guest_email"
+                                        type="email"
+                                        autocomplete="email"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_email')"
+                                    />
+                                    <p v-if="form.errors.guest_email" class="mt-1 text-sm text-red-500">{{ form.errors.guest_email }}</p>
+                                </div>
+                                <div>
+                                    <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }}</label>
+                                    <input
+                                        id="checkout-phone"
+                                        v-model="form.guest_phone"
+                                        type="tel"
+                                        autocomplete="tel"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_phone')"
+                                    />
+                                    <p v-if="form.errors.guest_phone" class="mt-1 text-sm text-red-500">{{ form.errors.guest_phone }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="grid sm:grid-cols-2 gap-4">
-                            <div class="sm:col-span-2">
-                                <label for="checkout-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_fullname') }}</label>
-                                <input
-                                    id="checkout-name"
-                                    v-model="form.guest_name"
-                                    type="text"
-                                    autocomplete="name"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                    :placeholder="$t('shop_checkout.placeholder_fullname')"
-                                />
-                                <p v-if="form.errors.guest_name" class="mt-1 text-sm text-red-500">{{ form.errors.guest_name }}</p>
+
+                        <!-- Shipping Address -->
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3 mb-6">
+                                <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">1</span>
+                                <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.shipping_title') }}</h2>
                             </div>
-                            <div>
-                                <label for="checkout-email" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_email') }}</label>
-                                <input
-                                    id="checkout-email"
-                                    v-model="form.guest_email"
-                                    type="email"
-                                    autocomplete="email"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                    :placeholder="$t('shop_checkout.placeholder_email')"
-                                />
-                                <p v-if="form.errors.guest_email" class="mt-1 text-sm text-red-500">{{ form.errors.guest_email }}</p>
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <!-- First Name -->
+                                <div>
+                                    <label for="checkout-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_first_name') }} *</label>
+                                    <input
+                                        id="checkout-first-name"
+                                        v-model="form.shipping_first_name"
+                                        type="text"
+                                        autocomplete="given-name"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_first_name')"
+                                    />
+                                    <p v-if="form.errors.shipping_first_name" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_first_name }}</p>
+                                </div>
+                                <!-- Last Name -->
+                                <div>
+                                    <label for="checkout-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_last_name') }} *</label>
+                                    <input
+                                        id="checkout-last-name"
+                                        v-model="form.shipping_last_name"
+                                        type="text"
+                                        autocomplete="family-name"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_last_name')"
+                                    />
+                                    <p v-if="form.errors.shipping_last_name" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_last_name }}</p>
+                                </div>
+                                <!-- Street Address (full width) -->
+                                <div class="sm:col-span-2">
+                                    <label for="checkout-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
+                                    <input
+                                        id="checkout-street"
+                                        v-model="form.shipping_street"
+                                        type="text"
+                                        autocomplete="street-address"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_street')"
+                                    />
+                                    <p v-if="form.errors.shipping_street" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_street }}</p>
+                                </div>
+                                <!-- City -->
+                                <div>
+                                    <label for="checkout-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }} *</label>
+                                    <input
+                                        id="checkout-city"
+                                        v-model="form.shipping_city"
+                                        type="text"
+                                        autocomplete="address-level2"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_city')"
+                                    />
+                                    <p v-if="form.errors.shipping_city" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_city }}</p>
+                                </div>
+                                <!-- ZIP Code -->
+                                <div>
+                                    <label for="checkout-zip" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_zip_code') }} *</label>
+                                    <input
+                                        id="checkout-zip"
+                                        v-model="form.shipping_zip_code"
+                                        type="text"
+                                        autocomplete="postal-code"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_zip_code')"
+                                    />
+                                    <p v-if="form.errors.shipping_zip_code" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_zip_code }}</p>
+                                </div>
+                                <!-- Province -->
+                                <div>
+                                    <label for="checkout-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }} *</label>
+                                    <input
+                                        id="checkout-province"
+                                        v-model="form.shipping_province"
+                                        type="text"
+                                        autocomplete="address-level1"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
+                                        :placeholder="$t('shop_checkout.placeholder_province')"
+                                    />
+                                    <p v-if="form.errors.shipping_province" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_province }}</p>
+                                </div>
+                                <!-- Country -->
+                                <div>
+                                    <label for="checkout-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_country') }}</label>
+                                    <select id="checkout-country" v-model="form.country" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
+                                        <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
+                                        <option v-for="c in availableCountries" :key="c.code" :value="c.code">
+                                            {{ c.name }}
+                                        </option>
+                                    </select>
+                                    <p v-if="form.errors.country" class="mt-1 text-sm text-red-500">{{ form.errors.country }}</p>
+                                </div>
                             </div>
-                            <div>
-                                <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }}</label>
-                                <input
-                                    id="checkout-phone"
-                                    v-model="form.guest_phone"
-                                    type="tel"
-                                    autocomplete="tel"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
-                                    :placeholder="$t('shop_checkout.placeholder_phone')"
-                                />
-                                <p v-if="form.errors.guest_phone" class="mt-1 text-sm text-red-500">{{ form.errors.guest_phone }}</p>
-                            </div>
-                            <div class="sm:col-span-2">
-                                <label for="checkout-address" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_shipping_address') }}</label>
-                                <textarea
-                                    id="checkout-address"
-                                    v-model="form.shipping_address"
-                                    rows="2"
-                                    autocomplete="street-address"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
-                                    :placeholder="$t('shop_checkout.placeholder_shipping_address')"
-                                ></textarea>
-                                <p v-if="form.errors.shipping_address" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_address }}</p>
-                            </div>
-                            <div>
-                                <label for="checkout-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_country') }}</label>
-                                <select id="checkout-country" v-model="form.country" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
-                                    <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
-                                    <option v-for="c in availableCountries" :key="c.code" :value="c.code">
-                                        {{ c.name }}
-                                    </option>
-                                </select>
-                                <p v-if="form.errors.country" class="mt-1 text-sm text-red-500">{{ form.errors.country }}</p>
-                            </div>
-                            <div class="flex items-end">
-                                <label class="flex items-center gap-2 pb-3 cursor-pointer">
-                                    <input type="checkbox" v-model="billingSameAsShipping" class="w-4 h-4 text-savino-blue border-gray-300 rounded" />
+
+                            <!-- Billing Same as Shipping -->
+                            <div class="mt-6 pt-6 border-t border-gray-100">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" v-model="form.billing_same_as_shipping" class="w-4 h-4 text-savino-blue border-gray-300 rounded" />
                                     <span class="text-sm text-gray-600">{{ $t('shop_checkout.billing_same_as_shipping') }}</span>
                                 </label>
                             </div>
-                            <div v-if="!billingSameAsShipping" class="sm:col-span-2">
-                                <label for="checkout-billing" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_billing_address') }}</label>
-                                <textarea
-                                    id="checkout-billing"
-                                    v-model="form.billing_address"
-                                    rows="2"
-                                    autocomplete="street-address"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
-                                    :placeholder="$t('shop_checkout.placeholder_billing_address')"
-                                ></textarea>
-                                <p v-if="form.errors.billing_address" class="mt-1 text-sm text-red-500">{{ form.errors.billing_address }}</p>
-                            </div>
-                            <div class="sm:col-span-2">
-                                <label for="checkout-notes" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_notes') }}</label>
-                                <textarea
-                                    id="checkout-notes"
-                                    v-model="form.notes"
-                                    rows="3"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
-                                    :placeholder="$t('shop_checkout.placeholder_notes')"
-                                ></textarea>
+
+                            <!-- Billing Address (if different) -->
+                            <div v-if="!form.billing_same_as_shipping" class="mt-6 pt-6 border-t border-gray-100">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">{{ $t('shop_checkout.label_billing_address') }}</h3>
+                                <div class="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="billing-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_first_name') }} *</label>
+                                        <input id="billing-first-name" v-model="form.billing_first_name" type="text" autocomplete="given-name" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_first_name')" />
+                                        <p v-if="form.errors.billing_first_name" class="mt-1 text-sm text-red-500">{{ form.errors.billing_first_name }}</p>
+                                    </div>
+                                    <div>
+                                        <label for="billing-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_last_name') }} *</label>
+                                        <input id="billing-last-name" v-model="form.billing_last_name" type="text" autocomplete="family-name" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_last_name')" />
+                                        <p v-if="form.errors.billing_last_name" class="mt-1 text-sm text-red-500">{{ form.errors.billing_last_name }}</p>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label for="billing-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
+                                        <input id="billing-street" v-model="form.billing_street" type="text" autocomplete="street-address" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_street')" />
+                                        <p v-if="form.errors.billing_street" class="mt-1 text-sm text-red-500">{{ form.errors.billing_street }}</p>
+                                    </div>
+                                    <div>
+                                        <label for="billing-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }} *</label>
+                                        <input id="billing-city" v-model="form.billing_city" type="text" autocomplete="address-level2" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_city')" />
+                                        <p v-if="form.errors.billing_city" class="mt-1 text-sm text-red-500">{{ form.errors.billing_city }}</p>
+                                    </div>
+                                    <div>
+                                        <label for="billing-zip" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_zip_code') }} *</label>
+                                        <input id="billing-zip" v-model="form.billing_zip_code" type="text" autocomplete="postal-code" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
+                                        <p v-if="form.errors.billing_zip_code" class="mt-1 text-sm text-red-500">{{ form.errors.billing_zip_code }}</p>
+                                    </div>
+                                    <div>
+                                        <label for="billing-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }}</label>
+                                        <input id="billing-province" v-model="form.billing_province" type="text" autocomplete="address-level1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_province')" />
+                                        <p v-if="form.errors.billing_province" class="mt-1 text-sm text-red-500">{{ form.errors.billing_province }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Privacy Checkbox -->
-                    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                        <label class="flex items-start gap-3 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                v-model="form.privacy_accepted"
-                                class="mt-1 w-4 h-4 text-savino-blue border-gray-300 rounded focus:ring-savino-blue/20"
-                            />
-                            <span class="text-sm text-gray-600">
-                                {{ $t('shop.accept_privacy_1') }}
-                                <a :href="route('pages.show', 'privacy-policy')" target="_blank" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>
-                            </span>
-                        </label>
-                        <p v-if="form.errors.privacy_accepted" class="mt-1 text-sm text-red-500">{{ form.errors.privacy_accepted }}</p>
-                    </div>
-
-                    <!-- Coupon Code -->
-                    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                        <div class="flex items-center gap-3 mb-4">
-                            <svg class="w-5 h-5 text-savino-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.coupon_label') }}</h3>
-                        </div>
-                        <div v-if="couponStatus !== 'valid'" class="flex gap-2">
-                            <input
-                                type="text"
-                                v-model="form.coupon_code"
-                                class="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm uppercase"
-                                :placeholder="$t('shop_checkout.coupon_placeholder')"
-                                @keyup.enter="validateCoupon"
-                            />
+                        <!-- Next Step Button -->
+                        <div class="flex justify-end">
                             <button
                                 type="button"
-                                @click="validateCoupon"
-                                :disabled="!form.coupon_code || couponStatus === 'loading'"
-                                class="px-6 py-3 bg-savino-blue text-white text-sm font-bold uppercase rounded-lg hover:bg-savino-blue/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                                @click="goToStep2"
+                                class="px-8 py-3 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm rounded-lg hover:bg-savino-blue/90 transition-all duration-200 flex items-center gap-2"
                             >
-                                <svg v-if="couponStatus === 'loading'" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                {{ $t('shop_checkout.next_step') }}
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                 </svg>
-                                {{ $t('shop_checkout.coupon_apply') }}
                             </button>
                         </div>
-                        <div v-else class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-sm font-medium text-green-800">{{ couponMessage }}</span>
-                            </div>
-                            <button type="button" @click="removeCoupon" class="text-sm text-red-500 hover:text-red-700 font-medium">
-                                {{ $t('shop_checkout.coupon_remove') }}
-                            </button>
-                        </div>
-                        <p v-if="couponStatus === 'invalid'" class="mt-2 text-sm text-red-500">{{ couponMessage }}</p>
-                    </div>
+                    </template>
 
-                    <!-- Payment Gateway Selector -->
-                    <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                        <div class="flex items-center gap-3 mb-6">
-                            <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">2</span>
-                            <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.payment_title') }}</h2>
+                    <!-- STEP 2: Payment -->
+                    <template v-if="currentStep === 2">
+
+                        <!-- Payment Gateway Selector -->
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3 mb-6">
+                                <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">2</span>
+                                <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.payment_title') }}</h2>
+                            </div>
+                            <div class="space-y-3">
+                                <label
+                                    v-for="gateway in paymentGateways"
+                                    :key="gateway.value"
+                                    class="flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200"
+                                    :class="form.payment_gateway === gateway.value ? 'border-savino-blue bg-savino-blue/5' : 'border-gray-200 hover:border-gray-300'"
+                                >
+                                    <input
+                                        type="radio"
+                                        :value="gateway.value"
+                                        v-model="form.payment_gateway"
+                                        class="w-5 h-5 text-savino-blue border-gray-300 focus:ring-savino-blue/20"
+                                    />
+                                    <div class="flex-1">
+                                        <span class="font-bold text-gray-900">{{ gateway.label }}</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <p v-if="!paymentGateways.length" class="text-gray-400 text-sm text-center py-4">{{ $t('shop_checkout.no_gateways') }}</p>
+                            <p v-if="form.errors.payment_gateway" class="mt-2 text-sm text-red-500">{{ form.errors.payment_gateway }}</p>
                         </div>
-                        <div class="space-y-3">
-                            <label
-                                v-for="gateway in paymentGateways"
-                                :key="gateway.value"
-                                class="flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200"
-                                :class="form.payment_gateway === gateway.value ? 'border-savino-blue bg-savino-blue/5' : 'border-gray-200 hover:border-gray-300'"
-                            >
+
+                        <!-- Coupon Code -->
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <div class="flex items-center gap-3 mb-4">
+                                <svg class="w-5 h-5 text-savino-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.coupon_label') }}</h3>
+                            </div>
+                            <div v-if="couponStatus !== 'valid'" class="flex gap-2">
                                 <input
-                                    type="radio"
-                                    :value="gateway.value"
-                                    v-model="form.payment_gateway"
-                                    class="w-5 h-5 text-savino-blue border-gray-300 focus:ring-savino-blue/20"
+                                    type="text"
+                                    v-model="form.coupon_code"
+                                    class="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm uppercase"
+                                    :placeholder="$t('shop_checkout.coupon_placeholder')"
+                                    @keyup.enter="validateCoupon"
                                 />
-                                <div class="flex-1">
-                                    <span class="font-bold text-gray-900">{{ gateway.label }}</span>
+                                <button
+                                    type="button"
+                                    @click="validateCoupon"
+                                    :disabled="!form.coupon_code || couponStatus === 'loading'"
+                                    class="px-6 py-3 bg-savino-blue text-white text-sm font-bold uppercase rounded-lg hover:bg-savino-blue/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    <svg v-if="couponStatus === 'loading'" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    {{ $t('shop_checkout.coupon_apply') }}
+                                </button>
+                            </div>
+                            <div v-else class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span class="text-sm font-medium text-green-800">{{ couponMessage }}</span>
                                 </div>
-                            </label>
+                                <button type="button" @click="removeCoupon" class="text-sm text-red-500 hover:text-red-700 font-medium">
+                                    {{ $t('shop_checkout.coupon_remove') }}
+                                </button>
+                            </div>
+                            <p v-if="couponStatus === 'invalid'" class="mt-2 text-sm text-red-500">{{ couponMessage }}</p>
                         </div>
-                        <p v-if="!paymentGateways.length" class="text-gray-400 text-sm text-center py-4">{{ $t('shop_checkout.no_gateways') }}</p>
-                        <p v-if="form.errors.payment_gateway" class="mt-2 text-sm text-red-500">{{ form.errors.payment_gateway }}</p>
-                    </div>
+
+                        <!-- Notes -->
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <label for="checkout-notes" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_notes') }}</label>
+                            <textarea
+                                id="checkout-notes"
+                                v-model="form.notes"
+                                rows="3"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm resize-none"
+                                :placeholder="$t('shop_checkout.placeholder_notes')"
+                            ></textarea>
+                        </div>
+
+                        <!-- Privacy Checkbox -->
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    v-model="form.privacy_accepted"
+                                    class="mt-1 w-4 h-4 text-savino-blue border-gray-300 rounded focus:ring-savino-blue/20"
+                                />
+                                <span class="text-sm text-gray-600">
+                                    {{ $t('shop.accept_privacy_1') }}
+                                    <a :href="route('pages.show', 'privacy-policy')" target="_blank" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>
+                                </span>
+                            </label>
+                            <p v-if="form.errors.privacy_accepted" class="mt-1 text-sm text-red-500">{{ form.errors.privacy_accepted }}</p>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex justify-between">
+                            <button
+                                type="button"
+                                @click="goToStep1"
+                                class="px-6 py-3 bg-gray-100 text-gray-700 font-bold uppercase tracking-wider text-sm rounded-lg hover:bg-gray-200 transition-all duration-200 flex items-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                                {{ $t('shop_checkout.prev_step') }}
+                            </button>
+                        </div>
+                    </template>
+
                 </div>
 
                 <!-- Order Summary Sidebar -->
@@ -440,10 +683,10 @@ const ogMeta = useOgMeta({
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-gray-900 truncate">{{ item.name }}</p>
-                                    <p class="text-xs text-gray-500">{{ $t('shop_checkout.quantity_label') }} {{ item.quantity ?? 1 }}</p>
+                                    <p class="text-xs text-gray-500">{{ item.quantity ?? 1 }} × {{ formatPrice(item.price) }}</p>
                                 </div>
                                 <span class="text-sm font-bold text-gray-900 flex-shrink-0">
-                                    {{ formatPrice(item.price) }}
+                                    {{ formatPrice(item.price * (item.quantity ?? 1)) }}
                                 </span>
                             </div>
                         </div>
@@ -462,9 +705,14 @@ const ogMeta = useOgMeta({
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">{{ $t('shop_checkout.shipping') }}</span>
-                                <span class="text-gray-900 font-medium" :class="{ 'text-green-600': shippingCost === 0 }">
-                                    {{ shippingCost === 0 ? $t('shop_checkout.free_shipping') : formatPrice(shippingCost) }}
-                                </span>
+                                <div class="text-right">
+                                    <span class="text-gray-900 font-medium" :class="{ 'text-green-600': shippingCost === 0 }">
+                                        {{ shippingCost === 0 ? $t('shop_checkout.free_shipping') : formatPrice(shippingCost) }}
+                                    </span>
+                                    <div v-if="selectedZone?.estimated_days_min" class="text-xs text-gray-500 mt-1">
+                                        📦 {{ $t('shop_checkout.estimated_delivery') }}: {{ selectedZone.estimated_days_min }}-{{ selectedZone.estimated_days_max }} {{ $t('shop_checkout.business_days') }}
+                                    </div>
+                                </div>
                             </div>
                             <div v-if="shippingCost > 0 && selectedZone?.free_threshold" class="text-xs text-savino-gold">
                                 {{ $t('shop_checkout.free_shipping_threshold') }}
@@ -481,8 +729,9 @@ const ogMeta = useOgMeta({
                             </div>
                         </div>
 
-                        <!-- CTA -->
+                        <!-- CTA (only on step 2) -->
                         <button
+                            v-if="currentStep === 2"
                             @click="submitOrder"
                             :disabled="form.processing || cart.items.length === 0 || !form.payment_gateway || !form.privacy_accepted"
                             class="w-full mt-8 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"

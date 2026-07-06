@@ -132,15 +132,18 @@ class ShopController extends Controller
 
         $product->load(['variants', 'category', 'media']);
 
-        $relatedProducts = Product::shoppable()
-            ->when($product->product_category_id, fn($q) => $q->where('product_category_id', $product->product_category_id))
-            ->where('id', '!=', $product->id)
-            ->with(['media', 'category'])
-            ->inRandomOrder()
-            ->take(4)
-            ->get()
-            ->map(fn ($p) => $this->mapProductCard($p))
-            ->values();
+        $relatedCacheKey = 'product:' . $product->id . ':related:' . app()->getLocale();
+        $relatedProducts = Cache::remember($relatedCacheKey, now()->addMinutes(30), function () use ($product) {
+            return Product::shoppable()
+                ->when($product->product_category_id, fn($q) => $q->where('product_category_id', $product->product_category_id))
+                ->where('id', '!=', $product->id)
+                ->with(['media', 'category'])
+                ->orderByRaw('RAND(?)', [$product->id])
+                ->take(4)
+                ->get()
+                ->map(fn ($p) => $this->mapProductCard($p))
+                ->values();
+        });
 
         return Inertia::render('Public/Shop/ProductDetail', [
             'product' => $this->mapProduct($product),

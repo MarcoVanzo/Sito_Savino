@@ -161,7 +161,15 @@ onUnmounted(() => {
 
                         <!-- Item Details -->
                         <div class="flex-grow min-w-0">
-                            <h4 class="text-white text-sm font-bold leading-tight truncate">
+                            <Link
+                                v-if="item.slug || item.product?.slug"
+                                :href="route('shop.product', item.slug || item.product?.slug)"
+                                @click="closeCart"
+                                class="text-white text-sm font-bold leading-tight truncate block hover:text-savino-gold transition-colors"
+                            >
+                                {{ item.product?.name || item.name }}
+                            </Link>
+                            <h4 v-else class="text-white text-sm font-bold leading-tight truncate">
                                 {{ item.product?.name || item.name }}
                             </h4>
                             <p v-if="item.variant_name || item.variant" class="text-gray-400 text-xs mt-0.5">

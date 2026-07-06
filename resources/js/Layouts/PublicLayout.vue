@@ -9,6 +9,7 @@ import LOGOS from '@/Constants/logos.js';
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 import CartBadge from '@/Components/Shop/CartBadge.vue';
 import CartDrawer from '@/Components/Shop/CartDrawer.vue';
+import FlashMessages from '@/Components/FlashMessages.vue';
 import UserMenu from '@/Components/Shop/UserMenu.vue';
 
 const MobileDrawer = defineAsyncComponent(() => import('@/Components/MobileDrawer.vue'));
@@ -162,6 +163,9 @@ const corporateDomain = computed(() => {
 
         <!-- GDPR Cookie Consent -->
         <CookieConsent />
+
+        <!-- Flash Messages -->
+        <FlashMessages />
 
         <!-- Cart Drawer -->
         <CartDrawer />
