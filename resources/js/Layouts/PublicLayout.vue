@@ -87,8 +87,8 @@ const corporateDomain = computed(() => {
                             
                             <!-- Corporate Logo Block (Sfondo Bianco) -->
                             <div class="relative group">
-                                <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 px-3 py-2 mb-2 h-[85px] w-[230px]">
-                                    <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="h-[65px] w-auto object-contain" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
+                                <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 px-3 py-1.5 mb-2 w-[230px] overflow-hidden">
+                                    <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                 </a>
                                 
                                 <!-- Finestrella Preview Card -->
