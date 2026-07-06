@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Webhooks\Traits\HandlesPaymentWebhooks;
+use App\Models\User;
+use App\Services\Payments\StripeCustomerService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,6 +47,11 @@ class StripeWebhookController
             return response()->json(['message' => 'Evento ignorato'], 200);
         }
 
+        // Handle setup session completed (payment method verification)
+        if ($result['status'] === 'setup_completed') {
+            return $this->handleSetupCompleted($result);
+        }
+
         // Handle completed payment
         if ($result['status'] === 'completed') {
             return $this->handlePaymentCompleted($result);
@@ -56,5 +63,32 @@ class StripeWebhookController
         }
 
         return response()->json(['message' => 'OK'], 200);
+    }
+
+    /**
+     * Handle setup session completed — verifica metodo di pagamento per aste.
+     */
+    private function handleSetupCompleted(array $result): JsonResponse
+    {
+        $userId = $result['user_id'] ?? null;
+
+        if (! $userId) {
+            Log::warning('Stripe webhook setup_completed: user_id mancante nei metadata');
+
+            return response()->json(['message' => 'user_id mancante'], 200);
+        }
+
+        $user = User::find($userId);
+
+        if (! $user) {
+            Log::warning("Stripe webhook setup_completed: User #{$userId} non trovato");
+
+            return response()->json(['message' => 'Utente non trovato'], 200);
+        }
+
+        $stripeCustomerService = app(StripeCustomerService::class);
+        $stripeCustomerService->handleSetupComplete($user);
+
+        return response()->json(['message' => 'Metodo di pagamento verificato'], 200);
     }
 }

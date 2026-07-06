@@ -109,6 +109,21 @@ class Auction extends Model
     }
 
     /**
+     * Verifica se il prezzo di riserva è stato raggiunto.
+     * Se non è impostato un reserve_price, il risultato è sempre true.
+     */
+    public function isReserveMet(): bool
+    {
+        if (! $this->reserve_price) {
+            return true;
+        }
+
+        $currentAmount = $this->current_bid ?? 0;
+
+        return (float) $currentAmount >= (float) $this->reserve_price;
+    }
+
+    /**
      * Prezzo minimo per la prossima offerta.
      */
     public function minimumBidAmount(): float

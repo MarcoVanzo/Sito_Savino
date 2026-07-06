@@ -744,5 +744,29 @@
     "empty_description": "Documents will be available soon.",
     "need_help": "Need help with sizing?",
     "back_to_shop": "Back to Shop"
+  },
+  "auction": {
+    "bid_placed": "Bid placed successfully! You are the highest bidder.",
+    "bid_error": "Unable to place bid. Please try again.",
+    "not_active": "This auction is not active.",
+    "already_highest": "You are already the highest bidder.",
+    "ended": "Auction ended",
+    "reserve_not_met": "Reserve price not met",
+    "payment_verified": "Payment method verified!",
+    "ending_soon": "Ending soon",
+    "time_extended": "Time extended!",
+    "you_are_winning": "You are winning!",
+    "you_were_outbid": "You were outbid!",
+    "login_to_bid": "Log in to place a bid",
+    "verify_to_bid": "Verify your payment method to participate",
+    "current_bid": "Current bid",
+    "starting_price": "Starting price",
+    "place_bid": "Place a bid",
+    "your_bid": "Your bid",
+    "bid_history": "Bid history",
+    "no_bids_yet": "No bids yet.",
+    "rules": "Auction rules",
+    "charity_label": "Charity auction",
+    "share": "Share"
   }
 }

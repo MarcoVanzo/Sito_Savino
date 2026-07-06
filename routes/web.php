@@ -6,6 +6,9 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\Shop\AuctionCheckoutController;
+use App\Http\Controllers\Shop\AuctionController;
+use App\Http\Controllers\Shop\PaymentVerificationController;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\SetLocale;
@@ -60,6 +63,7 @@ foreach ($locales as $loc) {
             'registrati'   => $loc === 'en' ? 'register' : 'registrati',
             'contatti'     => $loc === 'en' ? 'contacts' : 'contatti',
             'guida-taglie' => $loc === 'en' ? 'size-guide' : 'guida-taglie',
+            'aste'         => $loc === 'en' ? 'auctions' : 'aste',
         ];
 
         Route::prefix('shop')->middleware([\App\Http\Middleware\TrackShopPageView::class])->group(function () use ($shopSlugs) {
@@ -102,6 +106,29 @@ foreach ($locales as $loc) {
                 Route::get('/'.$shopSlugs['registrati'], [\App\Http\Controllers\Shop\ShopAuthController::class, 'showRegister'])->name('shop.register');
                 Route::post('/'.$shopSlugs['registrati'], [\App\Http\Controllers\Shop\ShopAuthController::class, 'register'])->name('shop.register.store');
             });
+
+            // Aste (public)
+            Route::prefix($shopSlugs['aste'])->middleware('auctions.enabled')->group(function () {
+                Route::get('/', [AuctionController::class, 'index'])->name('shop.auctions.index');
+                Route::get('/{auction}', [AuctionController::class, 'show'])->name('shop.auctions.show');
+
+                // Bidding (auth + carta verificata)
+                Route::middleware(['auth', 'verified.payment'])->group(function () {
+                    Route::post('/{auction}/bid', [AuctionController::class, 'bid'])
+                        ->middleware('throttle:12,1')
+                        ->name('shop.auctions.bid');
+                });
+            });
+
+            // Checkout asta vincitore
+            Route::middleware(['auth', 'auctions.enabled'])->group(function () {
+                Route::get('/checkout/asta/{token}', [AuctionCheckoutController::class, 'show'])->name('shop.auction-checkout.show');
+                Route::post('/checkout/asta/{token}', [AuctionCheckoutController::class, 'store'])
+                    ->middleware('throttle:3,1')
+                    ->name('shop.auction-checkout.store');
+                Route::get('/checkout/asta/{token}/conferma', [AuctionCheckoutController::class, 'success'])->name('shop.auction-checkout.success');
+                Route::get('/checkout/asta/{token}/annullato', [AuctionCheckoutController::class, 'cancel'])->name('shop.auction-checkout.cancel');
+            });
         });
         Route::get('/'.$shopSlugs['contatti'], [PublicController::class, 'contatti'])->name('contatti');
         Route::post('/'.$shopSlugs['contatti'], [ContactController::class, 'submit'])->name('contatti.submit');
@@ -125,5 +152,10 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Verifica metodo di pagamento (per aste)
+    Route::get('/account/verifica-pagamento', [PaymentVerificationController::class, 'show'])->name('account.payment-verification');
+    Route::post('/account/verifica-pagamento', [PaymentVerificationController::class, 'store'])->name('account.payment-verification.store');
+    Route::get('/account/verifica-pagamento/completata', [PaymentVerificationController::class, 'success'])->name('account.payment-verification.success');
 });
 

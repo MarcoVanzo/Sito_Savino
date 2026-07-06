@@ -45,7 +45,7 @@ class AuctionService
 
                 $winnerBid = $auction->validBids()->first();
 
-                if ($winnerBid) {
+                if ($winnerBid && $auction->isReserveMet()) {
                     $paymentDeadlineHours = (int) SiteSetting::get('auctions.payment_deadline_hours', 48);
 
                     $auction->update([
@@ -63,6 +63,12 @@ class AuctionService
                     }
 
                     Log::info("Asta #{$auction->id} chiusa. Vincitore: User #{$winnerBid->user_id} con offerta di €{$winnerBid->amount}.");
+                } elseif ($winnerBid && ! $auction->isReserveMet()) {
+                    $auction->update([
+                        'status' => AuctionStatus::Ended,
+                    ]);
+
+                    Log::info("Asta #{$auction->id} chiusa senza vincitore: prezzo di riserva non raggiunto (riserva: €{$auction->reserve_price}, offerta massima: €{$winnerBid->amount}).");
                 } else {
                     $auction->update([
                         'status' => AuctionStatus::Ended,

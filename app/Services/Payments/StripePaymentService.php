@@ -99,11 +99,21 @@ class StripePaymentService implements PaymentGatewayInterface
 
     /**
      * Handle checkout.session.completed event.
+     * Differenzia tra sessioni di pagamento e sessioni di setup (verifica carta).
      */
     private function handleSessionCompleted(\Stripe\Event $event): array
     {
         $session = $event->data->object;
 
+        // Setup session (verifica metodo di pagamento per aste)
+        if ($session->mode === 'setup') {
+            return [
+                'status' => 'setup_completed',
+                'user_id' => (int) ($session->metadata->user_id ?? 0),
+            ];
+        }
+
+        // Payment session (ordine e-commerce)
         return [
             'payment_id' => $session->payment_intent,
             'status' => 'completed',

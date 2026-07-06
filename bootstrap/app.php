@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Middleware\CachePublicResponse;
+use App\Http\Middleware\EnsureAuctionsEnabled;
+use App\Http\Middleware\EnsureVerifiedPayment;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PreviewBasicAuth;
 use App\Http\Middleware\SecurityHeadersMiddleware;
@@ -35,6 +37,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'api/webhooks/*',
+        ]);
+
+        $middleware->alias([
+            'auctions.enabled' => EnsureAuctionsEnabled::class,
+            'verified.payment' => EnsureVerifiedPayment::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

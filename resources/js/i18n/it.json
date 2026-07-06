@@ -744,5 +744,29 @@
     "empty_description": "I documenti saranno disponibili a breve.",
     "need_help": "Hai bisogno di aiuto con le taglie?",
     "back_to_shop": "Torna allo Shop"
+  },
+  "auction": {
+    "bid_placed": "Offerta piazzata con successo! Sei il miglior offerente.",
+    "bid_error": "Impossibile piazzare l'offerta. Riprova.",
+    "not_active": "Questa asta non è attiva.",
+    "already_highest": "Sei già il miglior offerente.",
+    "ended": "Asta terminata",
+    "reserve_not_met": "Prezzo di riserva non raggiunto",
+    "payment_verified": "Metodo di pagamento verificato!",
+    "ending_soon": "In scadenza",
+    "time_extended": "Tempo esteso!",
+    "you_are_winning": "Stai vincendo!",
+    "you_were_outbid": "Sei stato superato!",
+    "login_to_bid": "Accedi per fare un'offerta",
+    "verify_to_bid": "Verifica il metodo di pagamento per partecipare",
+    "current_bid": "Offerta attuale",
+    "starting_price": "Prezzo di partenza",
+    "place_bid": "Fai un'offerta",
+    "your_bid": "La tua offerta",
+    "bid_history": "Storico offerte",
+    "no_bids_yet": "Nessuna offerta ancora.",
+    "rules": "Regolamento asta",
+    "charity_label": "Asta benefica",
+    "share": "Condividi"
   }
 }
