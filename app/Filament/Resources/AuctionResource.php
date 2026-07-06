@@ -53,6 +53,9 @@ class AuctionResource extends Resource
                                     ->required()
                                     ->searchable()
                                     ->preload(),
+                                Forms\Components\TextInput::make('size')
+                                    ->label('Taglia (opzionale)')
+                                    ->maxLength(50),
                                 Forms\Components\TextInput::make('title')
                                     ->label('Titolo')
                                     ->required(),

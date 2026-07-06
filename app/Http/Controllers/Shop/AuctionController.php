@@ -41,7 +41,7 @@ class AuctionController extends Controller
      */
     public function show(Auction $auction)
     {
-        $auction->load(['product.media', 'bids' => fn ($q) => $q->valid()->highestFirst()->with('user:id,name')->take(20)]);
+        $auction->load(['product.media', 'product.variants', 'bids' => fn ($q) => $q->valid()->highestFirst()->with('user:id,name')->take(20)]);
         $auction->loadCount(['bids' => fn ($q) => $q->valid()]);
 
         $user = auth()->user();
@@ -162,6 +162,9 @@ class AuctionController extends Controller
     private function formatAuctionForDetail(Auction $auction): array
     {
         $product = $auction->product;
+        
+        $sizes = $product?->variants->pluck('size')->filter()->unique()->values()->all() ?? [];
+        $productSize = $auction->size ?: (count($sizes) > 0 ? implode(', ', $sizes) : null);
 
         return [
             ...$this->formatAuctionForList($auction),
@@ -179,6 +182,7 @@ class AuctionController extends Controller
             ]) ?? [],
             'product_name' => $product?->name,
             'product_description' => $product?->description,
+            'product_size' => $productSize,
         ];
     }
 }

@@ -231,6 +231,9 @@ const showRules = ref(false);
                         <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white uppercase tracking-tighter mb-4">
                             {{ currentAuction.title }}
                         </h1>
+                        <p v-if="currentAuction.product_size" class="text-gray-400 mb-4 text-sm">
+                            {{ $t('shop.size') || 'Taglia' }}: <span class="text-white font-bold">{{ currentAuction.product_size }}</span>
+                        </p>
 
                         <!-- Price -->
                         <div class="bg-gray-800/50 rounded-xl p-5 mb-5 border border-gray-700/50">

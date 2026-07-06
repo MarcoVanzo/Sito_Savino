@@ -16,7 +16,7 @@ class Auction extends Model
     use HasFactory, HasTranslations, LogsActivity, SoftDeletes;
 
     protected $fillable = [
-        'product_id', 'title', 'description',
+        'product_id', 'title', 'description', 'size',
         'starting_price', 'current_bid', 'reserve_price',
         'bid_increment', 'max_bid_jump',
         'start_date', 'end_date', 'status',
