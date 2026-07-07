@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\Models;
 
-use App\Enums\AuctionStatus;
 use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\Product;

@@ -102,11 +102,11 @@ class ShopController extends Controller
                 ->get()
                 ->filter(fn ($c) => $c->products_count > 0)
                 ->map(fn ($c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-                'slug' => $c->slug,
-                'products_count' => $c->products_count,
-            ])
+                    'id' => $c->id,
+                    'name' => $c->name,
+                    'slug' => $c->slug,
+                    'products_count' => $c->products_count,
+                ])
                 ->values()
                 ->all();
 
