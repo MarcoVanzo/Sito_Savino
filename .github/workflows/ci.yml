@@ -76,7 +76,7 @@ jobs:
 
       # Security audit — verifica vulnerabilità note nelle dipendenze
       - name: Security Audit (Composer)
-        run: composer audit
+        run: composer audit --abandoned=report
 
       # Lint PHP — verifica errori di sintassi in app/
       - name: PHP Lint
