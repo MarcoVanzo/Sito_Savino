@@ -116,7 +116,9 @@ class ProductResource extends Resource
                             ->label('Prezzo Scontato (€)')
                             ->numeric()
                             ->prefix('€')
-                            ->nullable(),
+                            ->nullable()
+                            ->rule('lte:price')
+                            ->helperText('Per codici promozionali al checkout, vai a Codici Promozionali nel menu Shop.'),
                         Forms\Components\DateTimePicker::make('sale_start')
                             ->label('Inizio Sconto'),
                         Forms\Components\DateTimePicker::make('sale_end')

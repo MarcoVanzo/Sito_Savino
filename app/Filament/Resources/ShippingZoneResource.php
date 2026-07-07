@@ -31,7 +31,7 @@ class ShippingZoneResource extends Resource
 
     protected static ?string $navigationGroup = 'Shop Ufficiale';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 8;
 
     protected static ?string $slug = 'shop/zone-spedizione';
 

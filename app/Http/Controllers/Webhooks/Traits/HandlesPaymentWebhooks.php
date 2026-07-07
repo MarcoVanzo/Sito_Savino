@@ -114,10 +114,42 @@ trait HandlesPaymentWebhooks
     {
         $order = Order::where('payment_id', $result['payment_id'])->first();
 
-        if ($order && $order->status !== OrderStatus::Refunded) {
-            $order->status = OrderStatus::Refunded;
-            $order->save();
+        if (! $order) {
+            Log::warning("{$this->getGatewayName()} webhook: ordine non trovato per rimborso", [
+                'payment_id' => $result['payment_id'],
+            ]);
 
+            return response()->json(['message' => 'Ordine non trovato'], 404);
+        }
+
+        try {
+            $alreadyRefunded = DB::transaction(function () use ($order) {
+                // Lock the order row to prevent concurrent webhook processing
+                $order = Order::lockForUpdate()->find($order->id);
+
+                // Idempotency check: if already refunded, skip processing
+                if ($order->status === OrderStatus::Refunded) {
+                    Log::info("{$this->getGatewayName()} webhook: rimborso già processato (idempotenza)", [
+                        'order_id' => $order->id,
+                    ]);
+
+                    return true;
+                }
+
+                $order->status = OrderStatus::Refunded;
+                $order->save();
+
+                return false;
+            });
+
+            if ($alreadyRefunded) {
+                return response()->json(['message' => 'Already refunded'], 200);
+            }
+
+            // Refresh the order to get updated data from the transaction
+            $order->refresh();
+
+            // Send refund confirmation email (outside transaction)
             $recipientEmail = $order->user?->email ?? $order->guest_email;
             if ($recipientEmail) {
                 try {
@@ -131,9 +163,18 @@ trait HandlesPaymentWebhooks
                 'order_id' => $order->id,
                 'payment_id' => $result['payment_id'],
             ]);
-        }
 
-        return response()->json(['message' => 'Rimborso processato'], 200);
+            return response()->json(['message' => 'Rimborso processato'], 200);
+
+        } catch (\Throwable $e) {
+            Log::error("{$this->getGatewayName()} webhook: errore processamento rimborso", [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(['error' => 'Errore interno'], 500);
+        }
     }
 
     /**

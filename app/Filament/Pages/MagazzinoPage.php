@@ -28,7 +28,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
     protected static ?string $navigationGroup = 'Shop Ufficiale';
     protected static ?string $navigationLabel = 'Magazzino';
     protected static ?string $title = 'Magazzino';
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
     protected static ?string $slug = 'shop/magazzino';
     protected static string $view = 'filament.pages.magazzino-page';
 

@@ -19,7 +19,7 @@ class SizeGuideContactsPage extends Page implements HasForms
     protected static ?string $navigationLabel = 'Guida Taglie & Contatti';
     protected static ?string $title = 'Guida Taglie & Contatti Shop';
     protected static ?string $navigationGroup = 'Shop Ufficiale';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 9;
     protected static ?string $slug = 'shop/guida-taglie-contatti';
     protected static string $view = 'filament.pages.size-guide-contacts';
 

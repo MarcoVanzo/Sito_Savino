@@ -29,7 +29,7 @@ class AuctionResource extends Resource
 
     protected static ?string $navigationGroup = 'Shop Ufficiale';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $slug = 'shop/aste';
 
@@ -86,7 +86,8 @@ class AuctionResource extends Resource
                                 Forms\Components\TextInput::make('reserve_price')
                                     ->label('Prezzo di Riserva')
                                     ->numeric()
-                                    ->prefix('€'),
+                                    ->prefix('€')
+                                    ->rule('gte:starting_price'),
                                 Forms\Components\TextInput::make('bid_increment')
                                     ->label('Incremento Offerta')
                                     ->numeric()
@@ -112,7 +113,8 @@ class AuctionResource extends Resource
                                     ->required(),
                                 Forms\Components\DateTimePicker::make('end_date')
                                     ->label('Data Fine')
-                                    ->required(),
+                                    ->required()
+                                    ->rule('after:start_date'),
                             ])->columns(2),
 
                         Forms\Components\Tabs\Tab::make('Vincitore')

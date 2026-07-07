@@ -56,7 +56,7 @@ class OrderController extends Controller
 
         // Verifica accesso: utente autenticato può scaricare solo i propri ordini
         if (auth()->check()) {
-            if ($order->user_id !== null && $order->user_id !== auth()->id()) {
+            if ($order->user_id !== auth()->id()) {
                 abort(403);
             }
         }

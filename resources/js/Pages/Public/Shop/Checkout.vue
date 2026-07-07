@@ -782,7 +782,7 @@ const ogMeta = useOgMeta({
                             </div>
                             <div class="flex justify-between pt-3 border-t border-gray-200">
                                 <span class="font-bold text-gray-900">{{ $t('shop_checkout.total') }}</span>
-                                <span class="text-xl font-black text-savino-blue">
+                                <span class="text-xl font-black text-savino-red">
                                     {{ formatPrice(orderTotal) }}
                                 </span>
                             </div>
@@ -793,7 +793,7 @@ const ogMeta = useOgMeta({
                             v-if="currentStep === 2"
                             @click="submitOrder"
                             :disabled="form.processing || cart.items.length === 0 || !form.payment_gateway || !form.privacy_accepted"
-                            class="w-full mt-8 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            class="w-full mt-8 bg-savino-gold text-savino-blue font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             <svg v-if="form.processing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

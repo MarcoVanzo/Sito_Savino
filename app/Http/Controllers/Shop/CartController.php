@@ -27,26 +27,7 @@ class CartController extends Controller
         $total = $this->cartService->getCartTotal();
         $itemCount = $this->cartService->getItemCount();
 
-        $mappedItems = $cart?->items?->map(function ($item) {
-            $availableStock = $item->variant
-                ? (int) $item->variant->stock
-                : (int) ($item->product?->stock ?? 0);
-            
-            $variantStr = $item->variant ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color]))) : null;
-
-            return [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'variant_id' => $item->product_variant_id,
-                'quantity' => $item->quantity,
-                'name' => $item->product?->name,
-                'slug' => $item->product?->slug,
-                'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
-                'variant' => $variantStr,
-                'image' => $item->product?->getImageUrl('card'),
-                'stock' => $availableStock,
-            ];
-        }) ?? collect();
+        $mappedItems = $cart?->items?->map(fn ($item) => $this->mapCartItem($item)) ?? collect();
 
         return Inertia::render('Public/Shop/Cart', [
             'cart' => [
@@ -148,27 +129,7 @@ class CartController extends Controller
     {
         $cart = $this->cartService->getCart();
 
-        $items = $cart?->items?->map(function ($item) {
-            $availableStock = $item->variant
-                ? (int) $item->variant->stock
-                : (int) ($item->product?->stock ?? 0);
-                
-            $variantStr = $item->variant ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color]))) : null;
-
-            return [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'variant_id' => $item->product_variant_id,
-                'quantity' => $item->quantity,
-                'name' => $item->product?->name,
-                'slug' => $item->product?->slug,
-                'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
-                'variant_name' => $variantStr,
-                'image_url' => $item->product?->getImageUrl('card'),
-                'stock' => $availableStock,
-                'stock_warning' => $item->quantity > $availableStock,
-            ];
-        }) ?? collect();
+        $items = $cart?->items?->map(fn ($item) => $this->mapCartItem($item)) ?? collect();
 
         // Calcola totale e conteggio in-memory invece di ri-fetchare il cart
         $total = $cart?->items?->sum(function ($item) {
@@ -183,5 +144,36 @@ class CartController extends Controller
             'total' => round($total, 2),
             'count' => $count,
         ]);
+    }
+
+    /**
+     * Mappa un CartItem in un array normalizzato.
+     * Usato sia da index() (Inertia) che da data() (JSON).
+     */
+    private function mapCartItem($item): array
+    {
+        $availableStock = $item->variant
+            ? (int) $item->variant->stock
+            : (int) ($item->product?->stock ?? 0);
+
+        $variantStr = $item->variant
+            ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color])))
+            : null;
+
+        return [
+            'id' => $item->id,
+            'product_id' => $item->product_id,
+            'variant_id' => $item->product_variant_id,
+            'quantity' => $item->quantity,
+            'name' => $item->product?->name,
+            'slug' => $item->product?->slug,
+            'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
+            'variant' => $variantStr,
+            'variant_name' => $variantStr,
+            'image' => $item->product?->getImageUrl('card'),
+            'image_url' => $item->product?->getImageUrl('card'),
+            'stock' => $availableStock,
+            'stock_warning' => $item->quantity > $availableStock,
+        ];
     }
 }

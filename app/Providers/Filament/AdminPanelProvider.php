@@ -55,6 +55,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()->label('Sociale')->icon('heroicon-o-heart'),
                 NavigationGroup::make()->label('Comunicazione')->icon('heroicon-o-megaphone'),
                 NavigationGroup::make()->label('Shop Ufficiale')->icon('heroicon-o-shopping-bag'),
+                NavigationGroup::make()->label('Marketing')->icon('heroicon-o-envelope'),
                 NavigationGroup::make()->label('Pagine & Extra')->icon('heroicon-o-document-duplicate')->collapsed(),
                 NavigationGroup::make()->label('Amministrazione')->icon('heroicon-o-cog-8-tooth')->collapsed(),
             ])

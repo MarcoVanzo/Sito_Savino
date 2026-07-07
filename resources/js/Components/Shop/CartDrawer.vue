@@ -175,7 +175,7 @@ onUnmounted(() => {
                             <p v-if="item.variant_name || item.variant" class="text-gray-400 text-xs mt-0.5">
                                 {{ item.variant_name || item.variant }}
                             </p>
-                            <p class="text-savino-gold font-bold text-sm mt-1">
+                            <p class="text-savino-red font-bold text-sm mt-1">
                                 {{ formatPrice(item.price) }}
                             </p>
 
@@ -255,7 +255,7 @@ onUnmounted(() => {
                     <div class="flex flex-col gap-3">
                         <Link
                             :href="route('shop.checkout')"
-                            class="w-full bg-savino-gold text-gray-900 text-sm font-black uppercase tracking-wider py-3.5 rounded-lg hover:bg-savino-gold/90 transition-colors text-center"
+                            class="w-full bg-savino-gold text-savino-blue text-sm font-black uppercase tracking-wider py-3.5 rounded-lg hover:bg-savino-gold/90 transition-colors text-center"
                             @click="closeCart"
                         >
                             {{ $t('shop.proceed_checkout') || 'Procedi al checkout' }}

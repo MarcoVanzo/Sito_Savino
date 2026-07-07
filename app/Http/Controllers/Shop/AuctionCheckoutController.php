@@ -13,6 +13,7 @@ use App\Services\AuctionService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -127,6 +128,11 @@ class AuctionCheckoutController extends Controller
             }
         }
 
+        $lock = Cache::lock('auction_checkout_lock:' . auth()->id(), 30);
+        if (!$lock->get()) {
+            return back()->withErrors(['general' => 'Operazione in corso, riprova tra qualche secondo.']);
+        }
+
         try {
             $order = DB::transaction(function () use ($auction, $validated, $token) {
                 $user = auth()->user();
@@ -206,6 +212,8 @@ class AuctionCheckoutController extends Controller
             ]);
 
             return back()->with('error', __('messages.checkout.error'));
+        } finally {
+            $lock->release();
         }
     }
 

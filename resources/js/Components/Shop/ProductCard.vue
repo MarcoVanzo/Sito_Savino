@@ -1,6 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
@@ -23,6 +23,13 @@ const isOutOfStock = computed(() => props.product.stock !== undefined && props.p
 const hasSalePrice = computed(() => props.product.sale_price && props.product.sale_price < props.product.price);
 
 const isAdding = ref(false);
+const cartError = ref('');
+let cartErrorTimer = null;
+
+const clearCartError = () => {
+    if (cartErrorTimer) clearTimeout(cartErrorTimer);
+    cartErrorTimer = setTimeout(() => { cartError.value = ''; }, 5000);
+};
 
 const handleAddToCart = () => {
     if (isAdding.value) return;
@@ -31,8 +38,13 @@ const handleAddToCart = () => {
         return;
     }
     isAdding.value = true;
+    cartError.value = '';
     addToCart(props.product.id, {
         onFinish: () => { isAdding.value = false; },
+        onError: (errors) => {
+            cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || 'Errore durante l\'aggiunta al carrello';
+            clearCartError();
+        },
     });
 };
 </script>
@@ -122,7 +134,7 @@ const handleAddToCart = () => {
                     >
                         {{ formatPrice(product.price) }}
                     </span>
-                    <span class="text-savino-gold font-black text-xl">
+                    <span class="text-savino-red font-black text-xl">
                         {{ formatPrice(hasSalePrice ? product.sale_price : product.price) }}
                     </span>
                 </div>
@@ -145,6 +157,9 @@ const handleAddToCart = () => {
                 </svg>
                 {{ $t('shop.add_to_cart') || 'Aggiungi al carrello' }}
             </button>
+            <p v-if="cartError" class="text-red-500 text-xs mt-2 text-center">
+                {{ cartError }}
+            </p>
         </div>
     </div>
 </template>

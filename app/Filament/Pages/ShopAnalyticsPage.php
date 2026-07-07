@@ -11,7 +11,7 @@ class ShopAnalyticsPage extends Page
     protected static ?string $navigationLabel = 'Analytics Shop';
     protected static ?string $title = 'Analytics Shop';
     protected static ?string $navigationGroup = 'Shop Ufficiale';
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 10;
     protected static ?string $slug = 'shop/analytics';
     protected static string $view = 'filament.pages.shop-analytics';
 

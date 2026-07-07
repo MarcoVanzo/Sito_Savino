@@ -28,11 +28,11 @@ class CouponResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
-    protected static ?string $navigationLabel = 'Coupon & Sconti';
+    protected static ?string $navigationLabel = 'Codici Promozionali';
 
     protected static ?string $navigationGroup = 'Shop Ufficiale';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 7;
 
     protected static ?string $slug = 'shop/coupon';
 
@@ -40,6 +40,10 @@ class CouponResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Placeholder::make('info_banner')
+                    ->label('')
+                    ->content('Qui gestisci i codici promozionali che i clienti inseriscono al checkout. Per sconti diretti sui prodotti, modifica il prezzo scontato nel Catalogo Prodotti.')
+                    ->columnSpanFull(),
                 Forms\Components\Section::make('Codice e Tipo')
                     ->schema([
                         Forms\Components\TextInput::make('code')

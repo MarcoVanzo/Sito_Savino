@@ -22,7 +22,7 @@ class CustomerResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $navigationLabel = 'Clienti';
     protected static ?string $navigationGroup = 'Shop Ufficiale';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
     protected static ?string $slug = 'shop/clienti';
     protected static bool $isGloballySearchable = false;
 

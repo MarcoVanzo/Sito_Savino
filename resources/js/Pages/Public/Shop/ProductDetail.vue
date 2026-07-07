@@ -134,16 +134,29 @@ const incrementQty = () => {
 
 // --- Add to Cart ---
 const isAdding = ref(false);
+const cartError = ref('');
+let cartErrorTimer = null;
+
+const clearCartError = () => {
+    if (cartErrorTimer) clearTimeout(cartErrorTimer);
+    cartErrorTimer = setTimeout(() => { cartError.value = ''; }, 5000);
+};
+
 const handleAddToCart = () => {
     if (isOutOfStock.value || isAdding.value) return;
     if (props.product?.variants?.length > 0 && !selectedVariant.value) return;
     isAdding.value = true;
+    cartError.value = '';
     addToCart({
         product_id: props.product.id,
         variant_id: selectedVariant.value,
         quantity: quantity.value,
     }, {
         onFinish: () => { isAdding.value = false; },
+        onError: (errors) => {
+            cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || 'Errore durante l\'aggiunta al carrello';
+            clearCartError();
+        },
     });
 };
 
@@ -347,6 +360,9 @@ const structuredData = computed(() => {
                             <svg v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                             {{ isOutOfStock ? $t('shop.out_of_stock') : $t('shop.add_to_cart') }}
                         </button>
+                        <p v-if="cartError" class="text-red-500 text-sm mt-3 font-medium">
+                            {{ cartError }}
+                        </p>
                     </div>
                 </div>
             </div>
