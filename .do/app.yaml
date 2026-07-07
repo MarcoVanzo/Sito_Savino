@@ -127,6 +127,7 @@ services:
     value: "2"
   github:
     branch: main
+    deploy_on_push: true
     repo: MarcoVanzo/sito_savino
   http_port: 8080
   instance_count: 1
@@ -217,6 +218,7 @@ workers:
     value: "2"
   github:
     branch: main
+    deploy_on_push: true
     repo: MarcoVanzo/sito_savino
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
