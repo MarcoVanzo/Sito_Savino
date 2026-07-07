@@ -36,14 +36,16 @@ jobs:
       # Checkout del codice sorgente
       - name: Checkout codice
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Full history for SonarCloud
 
-      # Configurazione PHP 8.4
+      # Configurazione PHP 8.4 con Xdebug per coverage
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, json, bcmath, curl, pdo, pdo_mysql
-          coverage: none
+          coverage: xdebug
 
       # Configurazione Node.js 20
       - name: Setup Node.js
@@ -72,19 +74,43 @@ jobs:
       - name: NPM build
         run: npm run build
 
+      # Security audit — verifica vulnerabilità note nelle dipendenze
+      - name: Security Audit (Composer)
+        run: composer audit
+
       # Lint PHP — verifica errori di sintassi in app/
       - name: PHP Lint
         run: find app/ -name "*.php" -print0 | xargs -0 -n1 php -l
 
+      # Code style — verifica conformità con Laravel Pint
+      - name: Check code style (Pint)
+        run: vendor/bin/pint --test
+
+      # Static Analysis — PHPStan/Larastan livello 5
+      - name: Static Analysis (PHPStan)
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=512M
+
       # Preparazione ambiente per i test
       - name: Prepara .env per test
         run: |
-          cp .env.example .env
+          cp .env.testing .env
           php artisan key:generate
 
-      # Test PHPUnit con MySQL 8.4 (allineato a produzione)
+      # Test PHPUnit con MySQL 8.4 + code coverage
       - name: Esegui test PHPUnit
-        run: php artisan test
+        run: php artisan test --coverage-clover=coverage.xml
+
+      # Upload coverage per SonarCloud (opzionale)
+      - name: SonarCloud Scan
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=MarcoVanzo_Sito_Savino
+            -Dsonar.organization=marcovanzo
+            -Dsonar.php.coverage.reportPaths=coverage.xml
 
   # Deploy gated: esegue SOLO su push a main, DOPO che i test passano
   deploy:
@@ -103,4 +129,3 @@ jobs:
         uses: digitalocean/app_action/deploy@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-

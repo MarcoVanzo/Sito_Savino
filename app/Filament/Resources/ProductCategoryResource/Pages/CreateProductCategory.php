@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ProductCategoryResource\Pages;
 use App\Filament\Resources\ProductCategoryResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+use Illuminate\Support\Facades\Cache;
 
 class CreateProductCategory extends CreateRecord
 {
@@ -14,7 +15,7 @@ class CreateProductCategory extends CreateRecord
 
     protected function afterCreate(): void
     {
-        \Illuminate\Support\Facades\Cache::forget('public:shop:it');
-        \Illuminate\Support\Facades\Cache::forget('public:shop:en');
+        Cache::forget('public:shop:it');
+        Cache::forget('public:shop:en');
     }
 }

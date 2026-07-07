@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\StockMovement;
+use App\Services\AdminNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -89,9 +90,9 @@ class StockMovementObserver
             if ($product) {
                 $newStock = (int) $product->stock;
                 if ($newStock <= 0) {
-                    app(\App\Services\AdminNotificationService::class)->notifyOutOfStock($product);
+                    app(AdminNotificationService::class)->notifyOutOfStock($product);
                 } elseif ($newStock <= 5) {
-                    app(\App\Services\AdminNotificationService::class)->notifyLowStock($product);
+                    app(AdminNotificationService::class)->notifyLowStock($product);
                 }
             }
         }

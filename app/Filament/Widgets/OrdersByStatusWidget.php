@@ -9,9 +9,13 @@ use Filament\Widgets\ChartWidget;
 class OrdersByStatusWidget extends ChartWidget
 {
     protected static ?string $heading = 'Ordini per Stato';
+
     protected static ?string $pollingInterval = null;
+
     protected static ?int $sort = 4;
+
     protected static bool $isDiscovered = false;
+
     protected static ?string $maxHeight = '300px';
 
     protected function getType(): string

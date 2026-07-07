@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Category;
+use App\Models\GalleryEvent;
+use App\Models\GalleryImage;
 use App\Models\Post;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -158,17 +160,26 @@ class FixDoubleEncodedTranslations extends Command
     private function fixGalleryTitles(): void
     {
         $decodeTitle = function ($title) {
-            if (! $title || ! str_starts_with($title, '{"it":')) return null;
+            if (! $title || ! str_starts_with($title, '{"it":')) {
+                return null;
+            }
             $decoded = json_decode($title, true);
-            if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
-            $decoded = json_decode($title . '"}', true);
-            if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
-            $decoded = json_decode($title . '}', true);
-            if (is_array($decoded) && isset($decoded['it'])) return $decoded['it'];
+            if (is_array($decoded) && isset($decoded['it'])) {
+                return $decoded['it'];
+            }
+            $decoded = json_decode($title.'"}', true);
+            if (is_array($decoded) && isset($decoded['it'])) {
+                return $decoded['it'];
+            }
+            $decoded = json_decode($title.'}', true);
+            if (is_array($decoded) && isset($decoded['it'])) {
+                return $decoded['it'];
+            }
+
             return null;
         };
 
-        $events = \App\Models\GalleryEvent::all();
+        $events = GalleryEvent::all();
         $eventFixed = 0;
 
         foreach ($events as $event) {
@@ -186,7 +197,7 @@ class FixDoubleEncodedTranslations extends Command
         $this->info("   ✅ GalleryEvent: {$eventFixed} corretti");
 
         $imagesFixed = 0;
-        \App\Models\GalleryImage::query()->chunk(200, function ($images) use (&$imagesFixed, $decodeTitle) {
+        GalleryImage::query()->chunk(200, function ($images) use (&$imagesFixed, $decodeTitle) {
             foreach ($images as $image) {
                 if ($plainTitle = $decodeTitle($image->title)) {
                     if ($this->option('dry-run')) {

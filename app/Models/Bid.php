@@ -11,8 +11,12 @@ class Bid extends Model
 {
     use HasFactory, LogsActivity;
 
+    /**
+     * Note: is_valid and invalidated_at are intentionally excluded from $fillable.
+     * Use the invalidate() method to change bid validity.
+     */
     protected $fillable = [
-        'auction_id', 'user_id', 'amount', 'is_valid', 'invalidated_at', 'placed_at',
+        'auction_id', 'user_id', 'amount', 'placed_at',
     ];
 
     protected $casts = [
@@ -57,9 +61,9 @@ class Bid extends Model
      */
     public function invalidate(): void
     {
-        $this->update([
+        $this->forceFill([
             'is_valid' => false,
             'invalidated_at' => now(),
-        ]);
+        ])->save();
     }
 }

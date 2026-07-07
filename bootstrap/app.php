@@ -33,7 +33,15 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        $middleware->trustProxies(at: '*');
+        // DigitalOcean App Platform: trust all proxies but only forwarded headers
+        // (DO doesn't publish proxy IP ranges, so we must trust '*' but restrict headers)
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_FOR |
+                     Request::HEADER_X_FORWARDED_HOST |
+                     Request::HEADER_X_FORWARDED_PROTO |
+                     Request::HEADER_X_FORWARDED_PORT,
+        );
 
         $middleware->validateCsrfTokens(except: [
             'api/webhooks/*',

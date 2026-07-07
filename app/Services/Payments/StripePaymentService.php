@@ -5,6 +5,7 @@ namespace App\Services\Payments;
 use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 use Stripe\Checkout\Session;
+use Stripe\Event;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\Refund;
 use Stripe\Stripe;
@@ -42,7 +43,7 @@ class StripePaymentService implements PaymentGatewayInterface
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
             ],
-            'success_url' => route('shop.checkout.success', ['order' => $order->order_token]) . '?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => route('shop.checkout.success', ['order' => $order->order_token]).'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('shop.checkout.cancel', ['order' => $order->order_token]),
         ]);
 
@@ -101,7 +102,7 @@ class StripePaymentService implements PaymentGatewayInterface
      * Handle checkout.session.completed event.
      * Differenzia tra sessioni di pagamento e sessioni di setup (verifica carta).
      */
-    private function handleSessionCompleted(\Stripe\Event $event): array
+    private function handleSessionCompleted(Event $event): array
     {
         $session = $event->data->object;
 
@@ -124,7 +125,7 @@ class StripePaymentService implements PaymentGatewayInterface
     /**
      * Handle charge.refunded event.
      */
-    private function handleChargeRefunded(\Stripe\Event $event): array
+    private function handleChargeRefunded(Event $event): array
     {
         $charge = $event->data->object;
 

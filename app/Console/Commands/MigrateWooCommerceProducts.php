@@ -19,7 +19,9 @@ class MigrateWooCommerceProducts extends Command
     protected $description = 'Importa categorie, prodotti e varianti da WooCommerce (via REST API)';
 
     private string $baseUrl;
+
     private string $consumerKey;
+
     private string $consumerSecret;
 
     public function handle(): int
@@ -30,6 +32,7 @@ class MigrateWooCommerceProducts extends Command
 
         if (! $this->baseUrl || ! $this->consumerKey || ! $this->consumerSecret) {
             $this->error('Credenziali WooCommerce mancanti. Controlla il file .env.');
+
             return self::FAILURE;
         }
 
@@ -38,12 +41,14 @@ class MigrateWooCommerceProducts extends Command
         try {
             $this->migrateCategories();
             $this->migrateProducts();
-            
+
             $this->info('Migrazione WooCommerce completata con successo!');
+
             return self::SUCCESS;
         } catch (Throwable $e) {
-            $this->error('Errore durante la migrazione: ' . $e->getMessage());
+            $this->error('Errore durante la migrazione: '.$e->getMessage());
             Log::error('Errore migrazione WooCommerce', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+
             return self::FAILURE;
         }
     }
@@ -57,7 +62,7 @@ class MigrateWooCommerceProducts extends Command
     private function migrateCategories(): void
     {
         $this->info('Importazione Categorie...');
-        
+
         $page = 1;
         $categoryMap = [];
 
@@ -68,11 +73,11 @@ class MigrateWooCommerceProducts extends Command
             ]);
 
             if ($response->failed()) {
-                throw new \Exception("Impossibile scaricare le categorie da WooCommerce. HTTP " . $response->status());
+                throw new \Exception('Impossibile scaricare le categorie da WooCommerce. HTTP '.$response->status());
             }
 
             $categories = $response->json();
-            
+
             if (empty($categories)) {
                 break;
             }
@@ -93,13 +98,13 @@ class MigrateWooCommerceProducts extends Command
             $page++;
         }
 
-        $this->info("Importate/Aggiornate " . count($categoryMap) . " categorie.");
+        $this->info('Importate/Aggiornate '.count($categoryMap).' categorie.');
     }
 
     private function migrateProducts(): void
     {
         $this->info('Importazione Prodotti...');
-        
+
         $page = 1;
         $count = 0;
 
@@ -111,11 +116,11 @@ class MigrateWooCommerceProducts extends Command
             ]);
 
             if ($response->failed()) {
-                throw new \Exception("Impossibile scaricare i prodotti. HTTP " . $response->status());
+                throw new \Exception('Impossibile scaricare i prodotti. HTTP '.$response->status());
             }
 
             $products = $response->json();
-            
+
             if (empty($products)) {
                 break;
             }
@@ -134,7 +139,7 @@ class MigrateWooCommerceProducts extends Command
     private function importProduct(array $wcProduct): void
     {
         $categoryId = null;
-        if (!empty($wcProduct['categories'])) {
+        if (! empty($wcProduct['categories'])) {
             $catSlug = $wcProduct['categories'][0]['slug'] ?? null;
             if ($catSlug) {
                 $categoryId = ProductCategory::where('slug', $catSlug)->value('id');
@@ -186,7 +191,7 @@ class MigrateWooCommerceProducts extends Command
             }
 
             $variations = $response->json();
-            
+
             if (empty($variations)) {
                 break;
             }
@@ -205,15 +210,15 @@ class MigrateWooCommerceProducts extends Command
                     }
                 }
 
-                if (!$size && !$color && !empty($wcVar['attributes'])) {
+                if (! $size && ! $color && ! empty($wcVar['attributes'])) {
                     $size = $wcVar['attributes'][0]['option'] ?? null;
                 }
 
                 $variantPrice = floatval($wcVar['price'] ?: 0);
                 $basePrice = $product->price;
                 $priceModifier = $variantPrice - $basePrice;
-                
-                $sku = $wcVar['sku'] ?: substr($product->slug . '-' . Str::slug($size . '-' . $color), 0, 255);
+
+                $sku = $wcVar['sku'] ?: substr($product->slug.'-'.Str::slug($size.'-'.$color), 0, 255);
 
                 ProductVariant::updateOrCreate(
                     [
@@ -246,10 +251,10 @@ class MigrateWooCommerceProducts extends Command
         foreach ($images as $img) {
             try {
                 $product->addMediaFromUrl($img['src'])
-                        ->usingName($img['name'] ?: $product->name)
-                        ->toMediaCollection('images');
+                    ->usingName($img['name'] ?: $product->name)
+                    ->toMediaCollection('images');
             } catch (Throwable $e) {
-                $this->warn("Errore download immagine per prodotto {$product->id}: " . $e->getMessage());
+                $this->warn("Errore download immagine per prodotto {$product->id}: ".$e->getMessage());
             }
         }
     }

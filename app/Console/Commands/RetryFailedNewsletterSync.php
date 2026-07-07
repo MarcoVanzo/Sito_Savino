@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Jobs\SyncNewsletterToActiveCampaign;
 use App\Models\NewsletterSubscriber;
+use App\Services\ActiveCampaignService;
 use Illuminate\Console\Command;
 
 class RetryFailedNewsletterSync extends Command
@@ -12,10 +13,11 @@ class RetryFailedNewsletterSync extends Command
 
     protected $description = 'Ritenta la sincronizzazione con ActiveCampaign per gli iscritti non ancora sincronizzati';
 
-    public function handle(\App\Services\ActiveCampaignService $service): int
+    public function handle(ActiveCampaignService $service): int
     {
         if (! $service->isConfigured()) {
             $this->error('ActiveCampaign non configurato. Impossibile avviare la sincronizzazione.');
+
             return self::FAILURE;
         }
 

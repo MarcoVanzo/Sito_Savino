@@ -101,7 +101,7 @@ class MenuItem extends Model implements HasMedia
                 ->get()
                 ->map(function ($item) use ($prefix) {
                     $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
-                    $itLabel = is_array($item->getTranslations('label')) 
+                    $itLabel = is_array($item->getTranslations('label'))
                         ? ($item->getTranslation('label', 'it', false) ?: $item->label)
                         : $item->label;
                     $normalizedLabel = mb_strtolower(trim($itLabel));

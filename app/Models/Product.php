@@ -120,7 +120,7 @@ class Product extends Model implements HasMedia
         }
 
         $firstMedia = $media->first();
-        if (!$firstMedia) {
+        if (! $firstMedia) {
             return null;
         }
 

@@ -27,9 +27,9 @@ return new class extends Migration
             // Categoria padre per struttura ad albero
             $table->unsignedBigInteger('parent_id')->nullable()->after('id');
             $table->foreign('parent_id')
-                  ->references('id')
-                  ->on('product_categories')
-                  ->onDelete('set null');
+                ->references('id')
+                ->on('product_categories')
+                ->onDelete('set null');
 
             // Ordinamento personalizzato
             $table->integer('sort_order')->default(0)->after('description');

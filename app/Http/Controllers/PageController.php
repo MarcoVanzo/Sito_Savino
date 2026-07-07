@@ -78,6 +78,7 @@ class PageController extends Controller
     private function getSocietaData(): array
     {
         $locale = app()->getLocale();
+
         return [
             'dirigenza' => Cache::remember("public:organigramma:page:{$locale}", now()->addMinutes(30), function () {
                 return StaffMember::where('type', StaffType::Dirigenza)
@@ -97,6 +98,7 @@ class PageController extends Controller
     private function getRosterData(): array
     {
         $locale = app()->getLocale();
+
         return Cache::remember("public:roster_page:{$locale}", now()->addMinutes(10), function () {
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 

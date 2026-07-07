@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Shop;
 
+use App\Enums\ProductType;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -95,17 +96,17 @@ class ShopController extends Controller
                 ->all();
 
             $categories = ProductCategory::withCount(['products' => function ($query) {
-                    $query->shoppable();
-                }])
+                $query->shoppable();
+            }])
                 ->ordered()
                 ->get()
                 ->filter(fn ($c) => $c->products_count > 0)
                 ->map(fn ($c) => [
-                    'id' => $c->id,
-                    'name' => $c->name,
-                    'slug' => $c->slug,
-                    'products_count' => $c->products_count,
-                ])
+                'id' => $c->id,
+                'name' => $c->name,
+                'slug' => $c->slug,
+                'products_count' => $c->products_count,
+            ])
                 ->values()
                 ->all();
 
@@ -126,16 +127,16 @@ class ShopController extends Controller
     public function productShow(Request $request, Product $product): Response
     {
         // Solo prodotti attivi e non di tipo Auction
-        if (! $product->is_active || $product->type === \App\Enums\ProductType::Auction) {
+        if (! $product->is_active || $product->type === ProductType::Auction) {
             abort(404);
         }
 
         $product->load(['variants', 'category', 'media']);
 
-        $relatedCacheKey = 'product:' . $product->id . ':related:' . app()->getLocale();
+        $relatedCacheKey = 'product:'.$product->id.':related:'.app()->getLocale();
         $relatedProducts = Cache::remember($relatedCacheKey, now()->addMinutes(30), function () use ($product) {
             return Product::shoppable()
-                ->when($product->product_category_id, fn($q) => $q->where('product_category_id', $product->product_category_id))
+                ->when($product->product_category_id, fn ($q) => $q->where('product_category_id', $product->product_category_id))
                 ->where('id', '!=', $product->id)
                 ->with(['media', 'category'])
                 ->orderByRaw('RAND(?)', [$product->id])
@@ -202,7 +203,7 @@ class ShopController extends Controller
             $paginator = Product::shoppable()
                 ->where(function ($q) use ($escapedQuery, $locale) {
                     $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(name, '$.{$locale}')) LIKE ?", ["%{$escapedQuery}%"])
-                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(description, '$.{$locale}')) LIKE ?", ["%{$escapedQuery}%"]);
+                        ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(description, '$.{$locale}')) LIKE ?", ["%{$escapedQuery}%"]);
                 })
                 ->with(['media', 'category'])
                 ->latest()
@@ -232,7 +233,7 @@ class ShopController extends Controller
         // Convert file paths to full URLs
         $guides = collect($sizeGuides ?? [])->map(fn ($path) => [
             'path' => $path,
-            'url' => asset('storage/' . $path),
+            'url' => asset('storage/'.$path),
             'name' => pathinfo($path, PATHINFO_FILENAME),
         ])->values()->all();
 

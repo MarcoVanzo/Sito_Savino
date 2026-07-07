@@ -25,7 +25,7 @@ class BidPlaced implements ShouldBroadcast
      */
     public function broadcastOn(): Channel
     {
-        return new Channel('auction.' . $this->auction_id);
+        return new Channel('auction.'.$this->auction_id);
     }
 
     /**

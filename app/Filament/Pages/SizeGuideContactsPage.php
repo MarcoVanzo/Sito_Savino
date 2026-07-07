@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\SiteSetting;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -16,11 +17,17 @@ class SizeGuideContactsPage extends Page implements HasForms
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
     protected static ?string $navigationLabel = 'Guida Taglie & Contatti';
+
     protected static ?string $title = 'Guida Taglie & Contatti Shop';
+
     protected static ?string $navigationGroup = 'Shop Ufficiale';
+
     protected static ?int $navigationSort = 9;
+
     protected static ?string $slug = 'shop/guida-taglie-contatti';
+
     protected static string $view = 'filament.pages.size-guide-contacts';
 
     public ?array $data = [];
@@ -109,7 +116,7 @@ class SizeGuideContactsPage extends Page implements HasForms
     protected function getFormActions(): array
     {
         return [
-            \Filament\Actions\Action::make('save')
+            Action::make('save')
                 ->label('Salva Impostazioni')
                 ->submit('save'),
         ];

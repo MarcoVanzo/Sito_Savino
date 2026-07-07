@@ -1,5 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
+import { useSanitize } from '@/Composables/useSanitize.js';
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
@@ -12,17 +13,7 @@ import ProductCard from '@/Components/Shop/ProductCard.vue';
 
 const $t = useTranslations();
 
-const sanitizeHtml = (html) => {
-    if (typeof document === 'undefined') return html; // SSR guard
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    doc.querySelectorAll('script, iframe, object, embed, form').forEach(el => el.remove());
-    doc.querySelectorAll('*').forEach(el => {
-        [...el.attributes].forEach(attr => {
-            if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
-        });
-    });
-    return doc.body.innerHTML;
-};
+const { sanitize: sanitizeHtml } = useSanitize();
 
 const { addToCart } = useCart();
 const { formatPrice } = useFormatPrice();
@@ -144,6 +135,7 @@ const isAdding = ref(false);
 const cartError = ref('');
 const variantError = ref(false);
 let cartErrorTimer = null;
+let variantErrorTimer = null;
 
 const clearCartError = () => {
     if (cartErrorTimer) clearTimeout(cartErrorTimer);
@@ -170,6 +162,7 @@ watch(showSizeGuide, (open) => {
 // Cleanup on unmount
 onUnmounted(() => {
     if (cartErrorTimer) clearTimeout(cartErrorTimer);
+    if (variantErrorTimer) clearTimeout(variantErrorTimer);
     document.removeEventListener('keydown', handleEscape);
     document.body.style.overflow = '';
 });
@@ -178,7 +171,7 @@ const handleAddToCart = () => {
     if (isOutOfStock.value || isAdding.value) return;
     if (props.product?.variants?.length > 0 && !selectedVariant.value) {
         variantError.value = true;
-        setTimeout(() => { variantError.value = false; }, 3000);
+        variantErrorTimer = setTimeout(() => { variantError.value = false; }, 3000);
         return;
     }
     variantError.value = false;

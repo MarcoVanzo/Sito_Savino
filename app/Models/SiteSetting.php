@@ -48,7 +48,7 @@ class SiteSetting extends Model
      */
     public static function getAllCached(): array
     {
-        return Cache::remember(self::CACHE_KEY . '_' . app()->getLocale(), self::CACHE_TTL, function () {
+        return Cache::remember(self::CACHE_KEY.'_'.app()->getLocale(), self::CACHE_TTL, function () {
             return static::pluck('value', 'key')
                 ->map(fn ($value) => static::resolveForLocale($value))
                 ->toArray();
@@ -60,7 +60,7 @@ class SiteSetting extends Model
      */
     public static function getAllGrouped(): array
     {
-        return Cache::remember(self::CACHE_KEY . '_grouped_' . app()->getLocale(), self::CACHE_TTL, function () {
+        return Cache::remember(self::CACHE_KEY.'_grouped_'.app()->getLocale(), self::CACHE_TTL, function () {
             $settings = static::orderBy('group')->orderBy('sort_order')->get();
             $grouped = [];
 
@@ -98,13 +98,27 @@ class SiteSetting extends Model
     }
 
     /**
+     * Get only public-safe settings groups for frontend exposure.
+     * Prevents internal configuration from leaking to the client.
+     */
+    public static function getPublicGrouped(): array
+    {
+        $all = static::getAllGrouped();
+
+        // Only expose groups that are safe for public frontend
+        $publicGroups = ['general', 'brand', 'footer', 'shop', 'social', 'seo', 'auctions', 'hero'];
+
+        return array_intersect_key($all, array_flip($publicGroups));
+    }
+
+    /**
      * Clear all settings cache.
      */
     public static function clearCache(): void
     {
         foreach (['it', 'en'] as $locale) {
-            Cache::forget(self::CACHE_KEY . '_' . $locale);
-            Cache::forget(self::CACHE_KEY . '_grouped_' . $locale);
+            Cache::forget(self::CACHE_KEY.'_'.$locale);
+            Cache::forget(self::CACHE_KEY.'_grouped_'.$locale);
         }
     }
 
@@ -116,8 +130,10 @@ class SiteSetting extends Model
         $decoded = json_decode($value, true);
         if (is_array($decoded) && (isset($decoded['it']) || isset($decoded['en']))) {
             $locale = app()->getLocale();
+
             return $decoded[$locale] ?? $decoded['it'] ?? $value;
         }
+
         return $value;
     }
 

@@ -31,9 +31,21 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'role' => UserRole::User,
-            'is_active' => true,
         ];
+    }
+
+    /**
+     * Configure the model factory.
+     * role and is_active are not mass-assignable, so we forceFill them after creation.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->forceFill([
+                'role' => UserRole::User,
+                'is_active' => true,
+            ])->save();
+        });
     }
 
     /**

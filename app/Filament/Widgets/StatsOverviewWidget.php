@@ -55,7 +55,7 @@ class StatsOverviewWidget extends BaseWidget
                 ->color('warning'),
 
             Stat::make('Ordini Oggi', $stats['orders_today'])
-                ->description('€' . number_format($stats['revenue_month'], 2, ',', '.') . ' questo mese')
+                ->description('€'.number_format($stats['revenue_month'], 2, ',', '.').' questo mese')
                 ->descriptionIcon('heroicon-m-shopping-bag')
                 ->color('success'),
 

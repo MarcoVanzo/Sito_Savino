@@ -9,6 +9,7 @@ use App\Models\Coupon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -117,7 +118,7 @@ class CouponResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->copyable()
-                    ->weight(\Filament\Support\Enums\FontWeight::Bold),
+                    ->weight(FontWeight::Bold),
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
@@ -127,7 +128,7 @@ class CouponResource extends Resource
                     ->formatStateUsing(fn ($state, $record): string => $record->type === CouponType::Percentage ? "{$state}%" : "€{$state}"),
                 Tables\Columns\TextColumn::make('used_count')
                     ->label('Utilizzi')
-                    ->suffix(fn ($record): string => '/ ' . ($record->max_uses ?? '∞')),
+                    ->suffix(fn ($record): string => '/ '.($record->max_uses ?? '∞')),
                 Tables\Columns\TextColumn::make('valid_until')
                     ->label('Scadenza')
                     ->date('d/m/Y')

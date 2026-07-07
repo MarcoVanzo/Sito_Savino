@@ -43,7 +43,7 @@ class FixMediaVisibility extends Command
             }
 
             // Also fix conversions
-            $conversionsPath = $item->getPath() ? dirname($item->getPath()) . '/conversions/' : null;
+            $conversionsPath = $item->getPath() ? dirname($item->getPath()).'/conversions/' : null;
             if ($conversionsPath) {
                 try {
                     $conversionFiles = $disk->files($conversionsPath);

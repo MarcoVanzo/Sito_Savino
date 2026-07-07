@@ -196,7 +196,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Admin Savino',
                 'password' => bcrypt('password'),
-                'role' => 'admin',
+                'role' => 'super_admin',
                 'is_active' => true,
             ]
         );

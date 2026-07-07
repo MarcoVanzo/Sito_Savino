@@ -6,12 +6,14 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
-use App\Filament\Resources\UserResource;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Mail\OrderShipped;
 use App\Models\Order;
 use App\Services\AdminNotificationService;
+use App\Services\Payments\PayPalPaymentService;
+use App\Services\Payments\StripePaymentService;
 use App\Services\ReceiptService;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -279,13 +281,14 @@ class OrderResource extends Resource
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['from'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('Da: ' . \Carbon\Carbon::parse($data['from'])->format('d/m/Y'))
+                            $indicators[] = Tables\Filters\Indicator::make('Da: '.Carbon::parse($data['from'])->format('d/m/Y'))
                                 ->removeField('from');
                         }
                         if ($data['until'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('A: ' . \Carbon\Carbon::parse($data['until'])->format('d/m/Y'))
+                            $indicators[] = Tables\Filters\Indicator::make('A: '.Carbon::parse($data['until'])->format('d/m/Y'))
                                 ->removeField('until');
                         }
+
                         return $indicators;
                     }),
                 Tables\Filters\TrashedFilter::make(),
@@ -296,8 +299,7 @@ class OrderResource extends Resource
                     ->label('Conferma Pagamento')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn (Order $record): bool =>
-                        $record->status === OrderStatus::Pending
+                    ->visible(fn (Order $record): bool => $record->status === OrderStatus::Pending
                         && $record->payment_gateway === PaymentGateway::BankTransfer
                     )
                     ->requiresConfirmation()
@@ -308,7 +310,6 @@ class OrderResource extends Resource
                         $record->status = OrderStatus::Processing;
                         $record->paid_at = now();
                         $record->save();
-
 
                         app(AdminNotificationService::class)->notifyPaymentReceived($record);
 
@@ -427,8 +428,7 @@ class OrderResource extends Resource
                     ->label('Rimborso')
                     ->icon('heroicon-o-receipt-refund')
                     ->color('warning')
-                    ->visible(fn (Order $record): bool =>
-                        $record->payment_id !== null &&
+                    ->visible(fn (Order $record): bool => $record->payment_id !== null &&
                         in_array($record->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal]) &&
                         $record->status !== OrderStatus::Refunded
                     )
@@ -458,8 +458,8 @@ class OrderResource extends Resource
                     ->action(function (Order $record, array $data): void {
                         try {
                             $service = match ($record->payment_gateway) {
-                                PaymentGateway::Stripe => new \App\Services\Payments\StripePaymentService(),
-                                PaymentGateway::PayPal => new \App\Services\Payments\PayPalPaymentService(),
+                                PaymentGateway::Stripe => new StripePaymentService,
+                                PaymentGateway::PayPal => new PayPalPaymentService,
                                 default => throw new \Exception('Gateway non supportato per il rimborso automatico.'),
                             };
 
@@ -474,7 +474,7 @@ class OrderResource extends Resource
 
                             Cache::forget('filament:dashboard:stats');
 
-                            $amountFormatted = $amount ? "di €" . number_format($amount, 2, ',', '.') : "totale";
+                            $amountFormatted = $amount ? 'di €'.number_format($amount, 2, ',', '.') : 'totale';
 
                             Notification::make()
                                 ->title('Rimborso emesso con successo')
@@ -501,7 +501,7 @@ class OrderResource extends Resource
                             function () use ($record) {
                                 echo app(ReceiptService::class)->generate($record);
                             },
-                            'ricevuta-' . $record->order_number . '.pdf',
+                            'ricevuta-'.$record->order_number.'.pdf',
                             ['Content-Type' => 'application/pdf']
                         );
                     })

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\PlayerPosition;
 use App\Filament\Actions\SyncFaceAction;
 use App\Filament\Clusters\SdbYouth;
+use App\Filament\Columns\AiScoreColumn;
 use App\Filament\Resources\YouthRosterResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Roster;
@@ -173,7 +174,7 @@ class YouthRosterResource extends Resource
                 Tables\Columns\IconColumn::make('is_captain')
                     ->label('Capitano')
                     ->boolean(),
-                \App\Filament\Columns\AiScoreColumn::make(),
+                AiScoreColumn::make(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('season_id')

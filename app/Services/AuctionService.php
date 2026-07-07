@@ -23,7 +23,7 @@ class AuctionService
         $auctions = Auction::readyToActivate()->get();
 
         foreach ($auctions as $auction) {
-            $auction->update(['status' => AuctionStatus::Active]);
+            $auction->forceFill(['status' => AuctionStatus::Active])->save();
 
             Log::info("Asta #{$auction->id} '{$auction->title}' attivata.");
         }
@@ -48,13 +48,13 @@ class AuctionService
                 if ($winnerBid && $auction->isReserveMet()) {
                     $paymentDeadlineHours = (int) SiteSetting::get('auctions.payment_deadline_hours', 48);
 
-                    $auction->update([
+                    $auction->forceFill([
                         'status' => AuctionStatus::Ended,
                         'winner_user_id' => $winnerBid->user_id,
                         'winner_checkout_token' => Str::uuid()->toString(),
                         'winner_checkout_deadline' => now()->addHours($paymentDeadlineHours),
                         'current_winner_attempt' => 1,
-                    ]);
+                    ])->save();
 
                     $winner = User::find($winnerBid->user_id);
 
@@ -64,15 +64,15 @@ class AuctionService
 
                     Log::info("Asta #{$auction->id} chiusa. Vincitore: User #{$winnerBid->user_id} con offerta di €{$winnerBid->amount}.");
                 } elseif ($winnerBid && ! $auction->isReserveMet()) {
-                    $auction->update([
+                    $auction->forceFill([
                         'status' => AuctionStatus::Ended,
-                    ]);
+                    ])->save();
 
                     Log::info("Asta #{$auction->id} chiusa senza vincitore: prezzo di riserva non raggiunto (riserva: €{$auction->reserve_price}, offerta massima: €{$winnerBid->amount}).");
                 } else {
-                    $auction->update([
+                    $auction->forceFill([
                         'status' => AuctionStatus::Ended,
-                    ]);
+                    ])->save();
 
                     Log::info("Asta #{$auction->id} chiusa senza offerte valide.");
                 }
@@ -118,12 +118,12 @@ class AuctionService
                 if ($nextBid) {
                     $paymentDeadlineHours = (int) SiteSetting::get('auctions.payment_deadline_hours', 48);
 
-                    $auction->update([
+                    $auction->forceFill([
                         'winner_user_id' => $nextBid->user_id,
                         'winner_checkout_token' => Str::uuid()->toString(),
                         'winner_checkout_deadline' => now()->addHours($paymentDeadlineHours),
                         'current_winner_attempt' => $currentAttempt + 1,
-                    ]);
+                    ])->save();
 
                     $newWinner = User::find($nextBid->user_id);
 
@@ -134,11 +134,11 @@ class AuctionService
                     Log::info("Asta #{$auction->id}: vincitore precedente non ha pagato. Nuovo vincitore: User #{$nextBid->user_id} (tentativo #{$auction->current_winner_attempt}).");
                 } else {
                     // Nessun altro offerente disponibile
-                    $auction->update([
+                    $auction->forceFill([
                         'winner_user_id' => null,
                         'winner_checkout_token' => null,
                         'winner_checkout_deadline' => null,
-                    ]);
+                    ])->save();
 
                     Log::warning("Asta #{$auction->id}: nessun altro offerente disponibile dopo {$currentAttempt} tentativi. Asta senza vincitore.");
                 }
@@ -169,9 +169,9 @@ class AuctionService
     public static function maskUsername(string $name): string
     {
         if (mb_strlen($name) <= 2) {
-            return $name . '***';
+            return $name.'***';
         }
 
-        return mb_substr($name, 0, 2) . '***';
+        return mb_substr($name, 0, 2).'***';
     }
 }

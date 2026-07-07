@@ -32,4 +32,3 @@ Schedule::command('auction:close')->everyMinute()->withoutOverlapping();
 
 // Aste: verifica pagamenti vincitori (ogni ora)
 Schedule::command('auction:check-payments')->hourly()->withoutOverlapping();
-

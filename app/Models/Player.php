@@ -26,6 +26,7 @@ class Player extends Model implements HasMedia
 
     protected $casts = [
         'date_of_birth' => 'date',
+        'ai_face_examples' => 'array',
     ];
 
     protected $appends = ['full_name'];

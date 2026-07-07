@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Shop;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
+use App\Enums\StockMovementType;
+use App\Models\StockMovement;
 use App\Http\Controllers\Controller;
 use App\Models\Auction;
 use App\Models\Order;
@@ -16,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -124,13 +127,13 @@ class AuctionCheckoutController extends Controller
                 return back()->withErrors(['shipping_zip_code' => __('validation.zip_code_it')]);
             }
             if (empty($validated['codice_fiscale'])) {
-                return back()->withErrors(['codice_fiscale' => 'Il Codice Fiscale è obbligatorio per ordini in Italia.']);
+                return back()->withErrors(['codice_fiscale' => __('messages.auction_checkout.codice_fiscale_required')]);
             }
         }
 
-        $lock = Cache::lock('auction_checkout_lock:' . auth()->id(), 30);
-        if (!$lock->get()) {
-            return back()->withErrors(['general' => 'Operazione in corso, riprova tra qualche secondo.']);
+        $lock = Cache::lock('auction_checkout_lock:'.auth()->id(), 30);
+        if (! $lock->get()) {
+            return back()->withErrors(['general' => __('messages.auction_checkout.already_processing')]);
         }
 
         try {
@@ -162,9 +165,12 @@ class AuctionCheckoutController extends Controller
 
                 // Calcola spedizione
                 $shippingZone = ShippingZone::findByCountry($validated['country']);
-                $shippingCost = $shippingZone
-                    ? $shippingZone->calculateShippingCost($winningBid)
-                    : 0.00;
+                if (! $shippingZone) {
+                    throw ValidationException::withMessages([
+                        'country' => [__('messages.checkout.country_not_served')],
+                    ]);
+                }
+                $shippingCost = $shippingZone->calculateShippingCost($winningBid);
 
                 $totalPrice = round($winningBid + $shippingCost, 2);
 
@@ -172,7 +178,6 @@ class AuctionCheckoutController extends Controller
                 $order = Order::create([
                     'user_id' => $user->id,
                     'order_token' => $token,
-                    'status' => OrderStatus::Pending,
                     'total_price' => $totalPrice,
                     'shipping_address' => $shippingAddress,
                     'billing_address' => $billingAddress,
@@ -185,12 +190,25 @@ class AuctionCheckoutController extends Controller
                     'privacy_accepted_at' => now(),
                 ]);
 
+                // status is not mass-assignable (security), set it explicitly
+                $order->forceFill(['status' => OrderStatus::Pending])->save();
+
                 // Crea l'item dell'ordine (un solo prodotto d'asta)
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $auction->product_id,
                     'quantity' => 1,
                     'price_at_time_of_purchase' => $winningBid,
+                ]);
+
+                // Riserva lo stock del prodotto d'asta
+                StockMovement::create([
+                    'product_id' => $auction->product_id,
+                    'product_variant_id' => null,
+                    'order_id' => $order->id,
+                    'quantity' => -1,
+                    'type' => StockMovementType::Sale,
+                    'notes' => "Ordine #{$order->id} — asta #{$auction->id}",
                 ]);
 
                 return $order;
@@ -201,7 +219,7 @@ class AuctionCheckoutController extends Controller
             $url = $stripeService->createSession($order);
 
             return redirect()->away($url);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
             Log::error('Errore durante il checkout asta', [

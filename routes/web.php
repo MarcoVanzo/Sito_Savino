@@ -8,10 +8,17 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Shop\AuctionCheckoutController;
 use App\Http\Controllers\Shop\AuctionController;
+use App\Http\Controllers\Shop\CartController;
+use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\OrderController;
 use App\Http\Controllers\Shop\PaymentVerificationController;
+use App\Http\Controllers\Shop\ShopAuthController;
+use App\Http\Controllers\Shop\ShopController;
+use App\Http\Controllers\Shop\ValidateCouponController;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TrackShopPageView;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -20,7 +27,7 @@ require __DIR__.'/auth.php';
 // Redirect 301 for the old WooCommerce subdomain
 Route::domain('shop.savinodelbenevolley.it')->group(function () {
     Route::any('/{any?}', function ($any = null) {
-        return redirect()->to(url('/shop/' . $any), 301);
+        return redirect()->to(url('/shop/'.$any), 301);
     })->where('any', '.*');
 });
 
@@ -51,61 +58,61 @@ foreach ($locales as $loc) {
         // Shop Routes — slugs localizzati
         // =============================================
         $shopSlugs = [
-            'cerca'        => $loc === 'en' ? 'search' : 'cerca',
-            'categoria'    => $loc === 'en' ? 'category' : 'categoria',
-            'prodotto'     => $loc === 'en' ? 'product' : 'prodotto',
-            'carrello'     => $loc === 'en' ? 'cart' : 'carrello',
-            'conferma'     => $loc === 'en' ? 'confirmed' : 'conferma',
-            'annullato'    => $loc === 'en' ? 'cancelled' : 'annullato',
-            'ordine'       => $loc === 'en' ? 'order' : 'ordine',
-            'ricevuta'     => $loc === 'en' ? 'receipt' : 'ricevuta',
-            'ordini'       => $loc === 'en' ? 'orders' : 'ordini',
-            'registrati'   => $loc === 'en' ? 'register' : 'registrati',
-            'contatti'     => $loc === 'en' ? 'contacts' : 'contatti',
+            'cerca' => $loc === 'en' ? 'search' : 'cerca',
+            'categoria' => $loc === 'en' ? 'category' : 'categoria',
+            'prodotto' => $loc === 'en' ? 'product' : 'prodotto',
+            'carrello' => $loc === 'en' ? 'cart' : 'carrello',
+            'conferma' => $loc === 'en' ? 'confirmed' : 'conferma',
+            'annullato' => $loc === 'en' ? 'cancelled' : 'annullato',
+            'ordine' => $loc === 'en' ? 'order' : 'ordine',
+            'ricevuta' => $loc === 'en' ? 'receipt' : 'ricevuta',
+            'ordini' => $loc === 'en' ? 'orders' : 'ordini',
+            'registrati' => $loc === 'en' ? 'register' : 'registrati',
+            'contatti' => $loc === 'en' ? 'contacts' : 'contatti',
             'guida-taglie' => $loc === 'en' ? 'size-guide' : 'guida-taglie',
-            'aste'         => $loc === 'en' ? 'auctions' : 'aste',
+            'aste' => $loc === 'en' ? 'auctions' : 'aste',
         ];
 
-        Route::prefix('shop')->middleware([\App\Http\Middleware\TrackShopPageView::class])->group(function () use ($shopSlugs) {
+        Route::prefix('shop')->middleware([TrackShopPageView::class])->group(function () use ($shopSlugs) {
             // Public shop pages
-            Route::get('/', [\App\Http\Controllers\Shop\ShopController::class, 'index'])->name('shop');
-            Route::get('/'.$shopSlugs['cerca'], [\App\Http\Controllers\Shop\ShopController::class, 'search'])->name('shop.search');
-            Route::get('/'.$shopSlugs['categoria'].'/{category:slug}', [\App\Http\Controllers\Shop\ShopController::class, 'categoryShow'])->name('shop.category');
-            Route::get('/'.$shopSlugs['prodotto'].'/{product:slug}', [\App\Http\Controllers\Shop\ShopController::class, 'productShow'])->name('shop.product');
+            Route::get('/', [ShopController::class, 'index'])->name('shop');
+            Route::get('/'.$shopSlugs['cerca'], [ShopController::class, 'search'])->name('shop.search');
+            Route::get('/'.$shopSlugs['categoria'].'/{category:slug}', [ShopController::class, 'categoryShow'])->name('shop.category');
+            Route::get('/'.$shopSlugs['prodotto'].'/{product:slug}', [ShopController::class, 'productShow'])->name('shop.product');
 
             // Size Guide & Shop Contacts
-            Route::get('/'.$shopSlugs['guida-taglie'], [\App\Http\Controllers\Shop\ShopController::class, 'sizeGuide'])->name('shop.size-guide');
-            Route::get('/'.$shopSlugs['contatti'], [\App\Http\Controllers\Shop\ShopController::class, 'shopContacts'])->name('shop.contacts');
+            Route::get('/'.$shopSlugs['guida-taglie'], [ShopController::class, 'sizeGuide'])->name('shop.size-guide');
+            Route::get('/'.$shopSlugs['contatti'], [ShopController::class, 'shopContacts'])->name('shop.contacts');
 
             // Cart (web routes with CSRF)
-            Route::get('/'.$shopSlugs['carrello'], [\App\Http\Controllers\Shop\CartController::class, 'index'])->name('shop.cart');
-            Route::post('/'.$shopSlugs['carrello'], [\App\Http\Controllers\Shop\CartController::class, 'store'])->middleware('throttle:30,1')->name('shop.cart.store');
-            Route::patch('/'.$shopSlugs['carrello'].'/{cartItem}', [\App\Http\Controllers\Shop\CartController::class, 'update'])->middleware('throttle:30,1')->name('shop.cart.update');
-            Route::delete('/'.$shopSlugs['carrello'].'/{cartItem}', [\App\Http\Controllers\Shop\CartController::class, 'destroy'])->middleware('throttle:30,1')->name('shop.cart.destroy');
-            Route::get('/'.$shopSlugs['carrello'].'/count', [\App\Http\Controllers\Shop\CartController::class, 'count'])->name('shop.cart.count');
-            Route::get('/'.$shopSlugs['carrello'].'/data', [\App\Http\Controllers\Shop\CartController::class, 'data'])->name('shop.cart.data');
+            Route::get('/'.$shopSlugs['carrello'], [CartController::class, 'index'])->name('shop.cart');
+            Route::post('/'.$shopSlugs['carrello'], [CartController::class, 'store'])->middleware('throttle:30,1')->name('shop.cart.store');
+            Route::patch('/'.$shopSlugs['carrello'].'/{cartItem}', [CartController::class, 'update'])->middleware('throttle:30,1')->name('shop.cart.update');
+            Route::delete('/'.$shopSlugs['carrello'].'/{cartItem}', [CartController::class, 'destroy'])->middleware('throttle:30,1')->name('shop.cart.destroy');
+            Route::get('/'.$shopSlugs['carrello'].'/count', [CartController::class, 'count'])->name('shop.cart.count');
+            Route::get('/'.$shopSlugs['carrello'].'/data', [CartController::class, 'data'])->name('shop.cart.data');
 
             // Checkout
-            Route::get('/checkout', [\App\Http\Controllers\Shop\CheckoutController::class, 'show'])->name('shop.checkout');
-            Route::post('/checkout', [\App\Http\Controllers\Shop\CheckoutController::class, 'store'])->middleware('throttle:5,1')->name('shop.checkout.store');
-            Route::post('/checkout/validate-coupon', \App\Http\Controllers\Shop\ValidateCouponController::class)->middleware('throttle:10,1')->name('shop.checkout.validate-coupon');
-            Route::get('/checkout/'.$shopSlugs['conferma'].'/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'success'])->name('shop.checkout.success');
-            Route::get('/checkout/'.$shopSlugs['annullato'].'/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'cancel'])->name('shop.checkout.cancel');
-            Route::post('/checkout/retry/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'retryPayment'])->middleware('throttle:5,1')->name('shop.checkout.retry');
+            Route::get('/checkout', [CheckoutController::class, 'show'])->name('shop.checkout');
+            Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:5,1')->name('shop.checkout.store');
+            Route::post('/checkout/validate-coupon', ValidateCouponController::class)->middleware('throttle:10,1')->name('shop.checkout.validate-coupon');
+            Route::get('/checkout/'.$shopSlugs['conferma'].'/{orderToken}', [CheckoutController::class, 'success'])->name('shop.checkout.success');
+            Route::get('/checkout/'.$shopSlugs['annullato'].'/{orderToken}', [CheckoutController::class, 'cancel'])->name('shop.checkout.cancel');
+            Route::post('/checkout/retry/{orderToken}', [CheckoutController::class, 'retryPayment'])->middleware('throttle:5,1')->name('shop.checkout.retry');
 
             // Order tracking (guest via token)
-            Route::get('/'.$shopSlugs['ordine'].'/{orderNumber}', [\App\Http\Controllers\Shop\OrderController::class, 'show'])->name('shop.order.show');
-            Route::get('/'.$shopSlugs['ordine'].'/{orderToken}/'.$shopSlugs['ricevuta'], [\App\Http\Controllers\Shop\OrderController::class, 'downloadReceipt'])->name('shop.order.receipt');
+            Route::get('/'.$shopSlugs['ordine'].'/{orderNumber}', [OrderController::class, 'show'])->name('shop.order.show');
+            Route::get('/'.$shopSlugs['ordine'].'/{orderToken}/'.$shopSlugs['ricevuta'], [OrderController::class, 'downloadReceipt'])->name('shop.order.receipt');
 
             // Auth-only shop routes
             Route::middleware('auth')->group(function () use ($shopSlugs) {
-                Route::get('/'.$shopSlugs['ordini'], [\App\Http\Controllers\Shop\OrderController::class, 'index'])->name('shop.orders');
+                Route::get('/'.$shopSlugs['ordini'], [OrderController::class, 'index'])->name('shop.orders');
             });
 
             // Shop registration
             Route::middleware('guest')->group(function () use ($shopSlugs) {
-                Route::get('/'.$shopSlugs['registrati'], [\App\Http\Controllers\Shop\ShopAuthController::class, 'showRegister'])->name('shop.register');
-                Route::post('/'.$shopSlugs['registrati'], [\App\Http\Controllers\Shop\ShopAuthController::class, 'register'])->name('shop.register.store');
+                Route::get('/'.$shopSlugs['registrati'], [ShopAuthController::class, 'showRegister'])->name('shop.register');
+                Route::post('/'.$shopSlugs['registrati'], [ShopAuthController::class, 'register'])->middleware('throttle:5,1')->name('shop.register.store');
             });
 
             // Aste (public)
@@ -132,7 +139,7 @@ foreach ($locales as $loc) {
             });
         });
         Route::get('/'.$shopSlugs['contatti'], [PublicController::class, 'contatti'])->name('contatti');
-        Route::post('/'.$shopSlugs['contatti'], [ContactController::class, 'submit'])->name('contatti.submit');
+        Route::post('/'.$shopSlugs['contatti'], [ContactController::class, 'submit'])->middleware('throttle:5,1')->name('contatti.submit');
         Route::post('/newsletter', [NewsletterController::class, 'subscribe'])
             ->middleware('throttle:5,1')
             ->name('newsletter.subscribe');
@@ -159,4 +166,3 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::post('/account/verifica-pagamento', [PaymentVerificationController::class, 'store'])->name('account.payment-verification.store');
     Route::get('/account/verifica-pagamento/completata', [PaymentVerificationController::class, 'success'])->name('account.payment-verification.success');
 });
-

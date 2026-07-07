@@ -27,19 +27,19 @@ return new class extends Migration
 
             // Riferimento al coupon utilizzato
             $table->foreignId('coupon_id')
-                  ->constrained('coupons')
-                  ->onDelete('cascade');
+                ->constrained('coupons')
+                ->onDelete('cascade');
 
             // Riferimento all'ordine in cui è stato usato
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->onDelete('cascade');
+                ->constrained('orders')
+                ->onDelete('cascade');
 
             // Utente che ha usato il coupon (null se ospite)
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->onDelete('set null');
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null');
 
             // Email ospite (se non registrato)
             $table->string('guest_email', 255)->nullable();

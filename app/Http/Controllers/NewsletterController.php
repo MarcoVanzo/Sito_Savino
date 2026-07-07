@@ -24,6 +24,7 @@ class NewsletterController extends Controller
                 if (! $existing->synced_to_ac) {
                     SyncNewsletterToActiveCampaign::dispatch($existing);
                 }
+
                 return back()->with('newsletter_info', __('messages.newsletter.already_subscribed'));
             }
 

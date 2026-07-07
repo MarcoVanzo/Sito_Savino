@@ -3,14 +3,12 @@
 namespace App\Filament\Pages;
 
 use App\Enums\StockMovementType;
-use App\Filament\Resources\StockMovementResource;
 use App\Filament\Widgets\StockMovementTableWidget;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Tables;
@@ -25,11 +23,17 @@ class MagazzinoPage extends Page implements HasForms, HasTable
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
+
     protected static ?string $navigationGroup = 'Shop Ufficiale';
+
     protected static ?string $navigationLabel = 'Magazzino';
+
     protected static ?string $title = 'Magazzino';
+
     protected static ?int $navigationSort = 6;
+
     protected static ?string $slug = 'shop/magazzino';
+
     protected static string $view = 'filament.pages.magazzino-page';
 
     /**
@@ -79,9 +83,10 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                         if ($record->variants->isEmpty()) {
                             return null;
                         }
+
                         // Mostra breakdown varianti come descrizione
                         return $record->variants
-                            ->map(fn ($v) => ($v->size ?: $v->color ?: $v->sku) . ': ' . $v->stock)
+                            ->map(fn ($v) => ($v->size ?: $v->color ?: $v->sku).': '.$v->stock)
                             ->join(' | ');
                     }),
 
@@ -165,7 +170,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                                     $record->variants->mapWithKeys(fn ($v) => [
                                         $v->id => collect([$v->size, $v->color, $v->sku])
                                             ->filter()
-                                            ->join(' — ') . " (stock: {$v->stock})",
+                                            ->join(' — ')." (stock: {$v->stock})",
                                     ])
                                 )
                                 ->required();
@@ -197,7 +202,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                             'product_variant_id' => $variantId,
                             'quantity' => $qty,
                             'type' => StockMovementType::Purchase,
-                            'notes' => $data['notes'] ?? "Carico manuale da inventario",
+                            'notes' => $data['notes'] ?? 'Carico manuale da inventario',
                         ]);
 
                         Notification::make()

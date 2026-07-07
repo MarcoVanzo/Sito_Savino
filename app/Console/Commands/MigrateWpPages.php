@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Enums\PostStatus;
+use App\Enums\UserRole;
 use App\Models\Page;
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 
@@ -28,7 +30,7 @@ class MigrateWpPages extends Command
      */
     public function handle()
     {
-        $this->info("Fetching pages from WP API...");
+        $this->info('Fetching pages from WP API...');
 
         // Define which pages to migrate by their slug
         $legalPagesSlugs = [
@@ -36,15 +38,16 @@ class MigrateWpPages extends Command
             'informativa-sui-rimborsi',
             'condizioni-di-vendita-del-negozio-online',
             'privacy-e-cookies-policy',
-            'condizioni-generali-di-vendita'
+            'condizioni-generali-di-vendita',
         ];
 
         $response = Http::get('https://shop.savinodelbenevolley.it/wp-json/wp/v2/pages', [
-            'per_page' => 100
+            'per_page' => 100,
         ]);
 
-        if (!$response->successful()) {
-            $this->error("Failed to fetch pages API.");
+        if (! $response->successful()) {
+            $this->error('Failed to fetch pages API.');
+
             return Command::FAILURE;
         }
 
@@ -53,7 +56,7 @@ class MigrateWpPages extends Command
 
         foreach ($pages as $wpPage) {
             $slug = $wpPage['slug'];
-            
+
             if (in_array($slug, $legalPagesSlugs)) {
                 $this->line("Migrating page: {$slug}");
 
@@ -65,7 +68,7 @@ class MigrateWpPages extends Command
                         'content' => ['it' => $wpPage['content']['rendered']],
                         'excerpt' => ['it' => $wpPage['excerpt']['rendered'] ?? ''],
                         'status' => PostStatus::Published,
-                        'author_id' => \App\Models\User::where('role', \App\Enums\UserRole::SuperAdmin)->first()?->id ?? 1,
+                        'author_id' => User::where('role', UserRole::SuperAdmin)->first()?->id ?? 1,
                     ]
                 );
                 $migrated++;
@@ -73,6 +76,7 @@ class MigrateWpPages extends Command
         }
 
         $this->info("Migrated $migrated legal pages successfully.");
+
         return Command::SUCCESS;
     }
 }

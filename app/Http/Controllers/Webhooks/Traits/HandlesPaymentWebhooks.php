@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Webhooks\Traits;
 
 use App\Enums\OrderStatus;
+use App\Mail\OrderConfirmation;
+use App\Mail\RefundConfirmation;
 use App\Models\Order;
 use App\Models\ShopEvent;
 use App\Services\AdminNotificationService;
@@ -153,7 +155,7 @@ trait HandlesPaymentWebhooks
             $recipientEmail = $order->user?->email ?? $order->guest_email;
             if ($recipientEmail) {
                 try {
-                    Mail::to($recipientEmail)->queue(new \App\Mail\RefundConfirmation($order));
+                    Mail::to($recipientEmail)->queue(new RefundConfirmation($order));
                 } catch (\Throwable $e) {
                     Log::error('Errore invio email rimborso', ['order_id' => $order->id, 'error' => $e->getMessage()]);
                 }
@@ -195,7 +197,7 @@ trait HandlesPaymentWebhooks
 
         try {
             Mail::to($recipientEmail, $recipientName)
-                ->queue(new \App\Mail\OrderConfirmation($order));
+                ->queue(new OrderConfirmation($order));
         } catch (\Throwable $e) {
             // Don't fail the webhook for email errors — log and continue
             Log::error('Errore invio email conferma ordine', [

@@ -10,6 +10,7 @@ use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -19,7 +20,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Filament\Notifications\Notification;
 
 class ProductResource extends Resource
 {
@@ -258,8 +258,8 @@ class ProductResource extends Resource
                     ->modalDescription('Verrà creata una copia del prodotto con stock azzerato e slug modificato.')
                     ->action(function (Product $record): void {
                         $newProduct = $record->replicate(['stock']);
-                        $newProduct->name = $record->name . ' (Copia)';
-                        $newProduct->slug = $record->slug . '-copia-' . now()->timestamp;
+                        $newProduct->name = $record->name.' (Copia)';
+                        $newProduct->slug = $record->slug.'-copia-'.now()->timestamp;
                         $newProduct->stock = 0;
                         $newProduct->is_active = false;
                         $newProduct->save();
@@ -270,11 +270,11 @@ class ProductResource extends Resource
                         }
 
                         // Copy variants (with unique SKU suffix)
-                        $suffix = '-copia-' . now()->timestamp;
+                        $suffix = '-copia-'.now()->timestamp;
                         foreach ($record->variants as $variant) {
                             $newVariant = $variant->replicate();
                             $newVariant->product_id = $newProduct->id;
-                            $newVariant->sku = $variant->sku ? $variant->sku . $suffix : null;
+                            $newVariant->sku = $variant->sku ? $variant->sku.$suffix : null;
                             $newVariant->stock = 0;
                             $newVariant->save();
                         }
@@ -306,7 +306,7 @@ class ProductResource extends Resource
                             'sale_start' => $data['sale_start'] ?? null,
                             'sale_end' => $data['sale_end'] ?? null,
                         ]));
-                        Notification::make()->title('Sconto applicato a ' . $records->count() . ' prodotti')->success()->send();
+                        Notification::make()->title('Sconto applicato a '.$records->count().' prodotti')->success()->send();
                         Cache::forget('public:shop:it');
                         Cache::forget('public:shop:en');
                     })

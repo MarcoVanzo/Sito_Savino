@@ -17,6 +17,7 @@ export function useCountUp(options = {}) {
 
     const displayValues = ref({});
     let animationFrameIds = {};
+    let timeoutIds = [];
 
     /**
      * Parsa un valore stringa e restituisce il numero, il prefisso e il suffisso.
@@ -70,9 +71,11 @@ export function useCountUp(options = {}) {
      * @param {Array} stats - Array di oggetti { value, label }
      */
     const startCountUp = (stats) => {
-        // Cancella animazioni precedenti
+        // Cancella animazioni e timer precedenti
         Object.values(animationFrameIds).forEach(id => cancelAnimationFrame(id));
         animationFrameIds = {};
+        timeoutIds.forEach(id => clearTimeout(id));
+        timeoutIds = [];
 
         const result = {};
 
@@ -82,9 +85,9 @@ export function useCountUp(options = {}) {
             if (parsed.isText) {
                 // Per valori non numerici, mostra direttamente con un fade
                 result[index] = '';
-                setTimeout(() => {
+                timeoutIds.push(setTimeout(() => {
                     displayValues.value = { ...displayValues.value, [index]: parsed.text };
-                }, index * 200 + 300);
+                }, index * 200 + 300));
                 return;
             }
 
@@ -94,7 +97,7 @@ export function useCountUp(options = {}) {
             // Anima con ritardo stagger
             const delay = index * 150;
 
-            setTimeout(() => {
+            timeoutIds.push(setTimeout(() => {
                 const startTime = performance.now();
 
                 const animate = (currentTime) => {
@@ -118,7 +121,7 @@ export function useCountUp(options = {}) {
                 };
 
                 animationFrameIds[index] = requestAnimationFrame(animate);
-            }, delay);
+            }, delay));
         });
 
         displayValues.value = result;
@@ -126,6 +129,8 @@ export function useCountUp(options = {}) {
 
     onUnmounted(() => {
         Object.values(animationFrameIds).forEach(id => cancelAnimationFrame(id));
+        timeoutIds.forEach(id => clearTimeout(id));
+        timeoutIds = [];
     });
 
     return { displayValues, startCountUp };

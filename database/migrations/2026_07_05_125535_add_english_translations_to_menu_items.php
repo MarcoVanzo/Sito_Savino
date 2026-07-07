@@ -131,6 +131,7 @@ return new class extends Migration
         foreach ($menuTranslations as $italianLabel => $translations) {
             $items = MenuItem::all()->filter(function ($item) use ($italianLabel) {
                 $label = $item->getTranslation('label', 'it', false);
+
                 return $label === $italianLabel;
             });
 
@@ -146,6 +147,7 @@ return new class extends Migration
         foreach ($childTranslations as $italianLabel => $translations) {
             $items = MenuItem::all()->filter(function ($item) use ($italianLabel) {
                 $label = $item->getTranslation('label', 'it', false);
+
                 return $label === $italianLabel;
             });
 

@@ -19,15 +19,16 @@ class Order extends Model
     use HasFactory, LogsActivity, SoftDeletes;
 
     /**
-     * Note: payment_id is intentionally excluded from $fillable
-     * to prevent mass-assignment of this sensitive field.
+     * Note: payment_id, status, and paid_at are intentionally excluded
+     * from $fillable to prevent mass-assignment of sensitive fields.
+     * Set status via service code, paid_at via webhook handlers.
      */
     protected $fillable = [
-        'user_id', 'status', 'total_price',
+        'user_id', 'total_price',
         'shipping_address', 'billing_address',
         'order_number', 'order_token', 'guest_email', 'guest_name',
         'guest_phone', 'phone', 'country', 'billing_country', 'codice_fiscale', 'payment_gateway',
-        'paid_at', 'shipped_at', 'tracking_number', 'tracking_url',
+        'shipped_at', 'tracking_number', 'tracking_url',
         'shipping_cost', 'coupon_id', 'coupon_discount', 'notes',
         'privacy_accepted_at',
     ];
@@ -50,7 +51,7 @@ class Order extends Model
         static::created(function (Order $order) {
             if (! $order->order_number) {
                 $order->updateQuietly([
-                    'order_number' => 'ORD-' . now()->format('Y') . '-' . str_pad($order->id, 5, '0', STR_PAD_LEFT),
+                    'order_number' => 'ORD-'.now()->format('Y').'-'.str_pad($order->id, 5, '0', STR_PAD_LEFT),
                     'order_token' => $order->order_token ?? Str::uuid()->toString(),
                 ]);
             }

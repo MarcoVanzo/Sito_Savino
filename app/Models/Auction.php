@@ -15,13 +15,16 @@ class Auction extends Model
 {
     use HasFactory, HasTranslations, LogsActivity, SoftDeletes;
 
+    /**
+     * Note: status, winner_user_id, winner_checkout_token, winner_checkout_deadline,
+     * current_winner_attempt are intentionally excluded from $fillable to prevent
+     * auction manipulation via mass assignment. Set them only via service code.
+     */
     protected $fillable = [
         'product_id', 'title', 'description', 'size',
         'starting_price', 'current_bid', 'reserve_price',
         'bid_increment', 'max_bid_jump',
-        'start_date', 'end_date', 'status',
-        'winner_user_id', 'current_winner_attempt',
-        'winner_checkout_token', 'winner_checkout_deadline',
+        'start_date', 'end_date',
         'is_charity', 'charity_description',
     ];
 

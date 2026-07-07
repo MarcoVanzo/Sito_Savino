@@ -133,7 +133,10 @@ class CartController extends Controller
 
         // Calcola totale e conteggio in-memory invece di ri-fetchare il cart
         $total = $cart?->items?->sum(function ($item) {
-            if (! $item->product) return 0;
+            if (! $item->product) {
+                return 0;
+            }
+
             return ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) * $item->quantity;
         }) ?? 0;
 

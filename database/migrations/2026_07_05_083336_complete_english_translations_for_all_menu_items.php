@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use App\Models\MenuItem;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -16,8 +16,8 @@ return new class extends Migration
         $translations = [
             // ===== MAIN MENU =====
             // Top-level
-            1  => 'Season',
-            9  => 'Club',
+            1 => 'Season',
+            9 => 'Club',
             15 => 'Ticketing',
             20 => 'Sponsors',
             25 => 'SDB Youth',
@@ -27,13 +27,13 @@ return new class extends Migration
             45 => 'Official Shop',
 
             // Stagione children (parent_id=1)
-            2  => 'Serie A1',
-            3  => 'Official Photos',
-            4  => 'Standings & Results',
-            5  => 'CEV Champions League',
-            6  => 'Coppa Italia & Playoffs',
-            7  => 'News & Press Releases',
-            8  => 'Photo Gallery',
+            2 => 'Serie A1',
+            3 => 'Official Photos',
+            4 => 'Standings & Results',
+            5 => 'CEV Champions League',
+            6 => 'Coppa Italia & Playoffs',
+            7 => 'News & Press Releases',
+            8 => 'Photo Gallery',
 
             // Società children (parent_id=9)
             10 => 'Organisation Chart',

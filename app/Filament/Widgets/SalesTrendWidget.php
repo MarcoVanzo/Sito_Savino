@@ -6,14 +6,17 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use Carbon\CarbonPeriod;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Carbon;
 
 class SalesTrendWidget extends ChartWidget
 {
     protected static ?string $heading = 'Trend Vendite';
+
     protected static ?string $pollingInterval = null;
+
     protected static bool $isDiscovered = false;
+
     protected static ?int $sort = 2;
+
     protected int|string|array $columnSpan = 'full';
 
     protected static ?string $maxHeight = '350px';

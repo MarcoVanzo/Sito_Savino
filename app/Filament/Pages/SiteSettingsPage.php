@@ -15,6 +15,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Arr;
 
 class SiteSettingsPage extends Page implements HasForms
 {
@@ -35,6 +36,7 @@ class SiteSettingsPage extends Page implements HasForms
     public static function canAccess(): bool
     {
         $user = auth()->user();
+
         return $user && $user->role === UserRole::SuperAdmin;
     }
 
@@ -135,41 +137,41 @@ class SiteSettingsPage extends Page implements HasForms
                                 TextInput::make('cta_shop_url')->label('Shop URL'),
                             ])->columns(2),
                         ]),
-                    Tab::make('Shop')->icon('heroicon-o-shopping-bag')->schema([
-                        Section::make('Configurazione Generale')->schema([
-                            Toggle::make('shop.enabled')->label('Shop Attivo'),
-                            Textarea::make('shop.maintenance_message')->label('Messaggio Manutenzione')->rows(2),
-                            Textarea::make('shop.announcement_banner')->label('Banner Promozionale')->rows(2),
-                            TextInput::make('shop.contact_email')->label('Email Contatto Shop')->email(),
-                            TextInput::make('shop.max_qty_per_product')->label('Quantità Max per Prodotto')->numeric(),
-                            TextInput::make('shop.cart_expiry_days')->label('Scadenza Carrello (giorni)')->numeric(),
-                            TextInput::make('shop.free_shipping_threshold')->label('Soglia Spedizione Gratuita (€)')->numeric()->prefix('€'),
-                        ])->columns(2),
-                        Section::make('Metodi di Pagamento')->schema([
-                            Toggle::make('shop.stripe_enabled')->label('Stripe (Carta di Credito)'),
-                            Toggle::make('shop.paypal_enabled')->label('PayPal'),
-                            Toggle::make('shop.bank_transfer_enabled')->label('Bonifico Bancario'),
-                            TextInput::make('shop.bank_transfer_iban')->label('IBAN'),
-                            TextInput::make('shop.bank_transfer_beneficiary')->label('Intestatario Conto'),
-                            TextInput::make('shop.bank_transfer_expiry_days')->label('Scadenza Bonifico (giorni)')->numeric(),
-                        ])->columns(2),
-                        Section::make('Documentazione')->schema([
-                            Textarea::make('shop.return_policy_text')->label('Policy Resi')->rows(3),
-                            TextInput::make('shop.receipt_footer_text')->label('Footer Ricevuta PDF'),
+                        Tab::make('Shop')->icon('heroicon-o-shopping-bag')->schema([
+                            Section::make('Configurazione Generale')->schema([
+                                Toggle::make('shop.enabled')->label('Shop Attivo'),
+                                Textarea::make('shop.maintenance_message')->label('Messaggio Manutenzione')->rows(2),
+                                Textarea::make('shop.announcement_banner')->label('Banner Promozionale')->rows(2),
+                                TextInput::make('shop.contact_email')->label('Email Contatto Shop')->email(),
+                                TextInput::make('shop.max_qty_per_product')->label('Quantità Max per Prodotto')->numeric(),
+                                TextInput::make('shop.cart_expiry_days')->label('Scadenza Carrello (giorni)')->numeric(),
+                                TextInput::make('shop.free_shipping_threshold')->label('Soglia Spedizione Gratuita (€)')->numeric()->prefix('€'),
+                            ])->columns(2),
+                            Section::make('Metodi di Pagamento')->schema([
+                                Toggle::make('shop.stripe_enabled')->label('Stripe (Carta di Credito)'),
+                                Toggle::make('shop.paypal_enabled')->label('PayPal'),
+                                Toggle::make('shop.bank_transfer_enabled')->label('Bonifico Bancario'),
+                                TextInput::make('shop.bank_transfer_iban')->label('IBAN'),
+                                TextInput::make('shop.bank_transfer_beneficiary')->label('Intestatario Conto'),
+                                TextInput::make('shop.bank_transfer_expiry_days')->label('Scadenza Bonifico (giorni)')->numeric(),
+                            ])->columns(2),
+                            Section::make('Documentazione')->schema([
+                                Textarea::make('shop.return_policy_text')->label('Policy Resi')->rows(3),
+                                TextInput::make('shop.receipt_footer_text')->label('Footer Ricevuta PDF'),
+                            ]),
                         ]),
-                    ]),
-                    Tab::make('Aste')->icon('heroicon-o-fire')->schema([
-                        Section::make('Configurazione Aste')->schema([
-                            Toggle::make('auctions.enabled')->label('Aste Attive'),
-                            TextInput::make('auctions.min_bid_increment')->label('Incremento Minimo (€)')->numeric()->prefix('€'),
-                            TextInput::make('auctions.max_bid_jump')->label('Salto Massimo (€)')->numeric()->prefix('€'),
-                            TextInput::make('auctions.payment_deadline_hours')->label('Scadenza Pagamento Vincitore (ore)')->numeric(),
-                            TextInput::make('auctions.anti_snipe_minutes')->label('Anti-Sniping (minuti)')->numeric(),
-                        ])->columns(2),
-                        Section::make('Regolamento')->schema([
-                            Textarea::make('auctions.rules_text')->label('Testo Regolamento Aste')->rows(5),
+                        Tab::make('Aste')->icon('heroicon-o-fire')->schema([
+                            Section::make('Configurazione Aste')->schema([
+                                Toggle::make('auctions.enabled')->label('Aste Attive'),
+                                TextInput::make('auctions.min_bid_increment')->label('Incremento Minimo (€)')->numeric()->prefix('€'),
+                                TextInput::make('auctions.max_bid_jump')->label('Salto Massimo (€)')->numeric()->prefix('€'),
+                                TextInput::make('auctions.payment_deadline_hours')->label('Scadenza Pagamento Vincitore (ore)')->numeric(),
+                                TextInput::make('auctions.anti_snipe_minutes')->label('Anti-Sniping (minuti)')->numeric(),
+                            ])->columns(2),
+                            Section::make('Regolamento')->schema([
+                                Textarea::make('auctions.rules_text')->label('Testo Regolamento Aste')->rows(5),
+                            ]),
                         ]),
-                    ]),
                     ])->persistTabInQueryString()->columnSpanFull(),
             ])->statePath('data');
     }
@@ -177,7 +179,7 @@ class SiteSettingsPage extends Page implements HasForms
     public function save(): void
     {
         $data = $this->form->getState();
-        $flat = \Illuminate\Support\Arr::dot($data);
+        $flat = Arr::dot($data);
         foreach ($flat as $key => $value) {
             SiteSetting::set($key, $value ?? '');
         }

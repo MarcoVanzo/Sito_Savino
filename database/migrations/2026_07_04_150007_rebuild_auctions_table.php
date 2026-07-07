@@ -34,9 +34,9 @@ return new class extends Migration
 
             // Prodotto all'asta (relazione 1:1)
             $table->foreignId('product_id')
-                  ->unique()
-                  ->constrained('products')
-                  ->onDelete('cascade');
+                ->unique()
+                ->constrained('products')
+                ->onDelete('cascade');
 
             // Titolo e descrizione dell'asta
             $table->string('title', 255);
@@ -58,9 +58,9 @@ return new class extends Migration
 
             // Vincitore dell'asta
             $table->foreignId('winner_user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->onDelete('set null');
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null');
 
             // Tentativo corrente del vincitore (per gestione mancato pagamento)
             $table->tinyInteger('current_winner_attempt')->unsigned()->default(1);

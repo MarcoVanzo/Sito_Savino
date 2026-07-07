@@ -200,10 +200,10 @@ class CartService
      */
     public function getCartTotal(?Cart $cart = null): float
     {
-        if (!$cart) {
+        if (! $cart) {
             $cart = $this->getCart();
         }
-        if (!$cart) {
+        if (! $cart) {
             return 0.0;
         }
 

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Actions;
 
+use App\Models\Player;
+use App\Models\StaffMember;
 use App\Services\FacialRecognitionService;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
@@ -120,8 +122,8 @@ class TrainAiFacesAction
     protected static function getMediaCollection(Model $record): string
     {
         return match (get_class($record)) {
-            \App\Models\Player::class => 'players',
-            \App\Models\StaffMember::class => 'staff',
+            Player::class => 'players',
+            StaffMember::class => 'staff',
             default => 'default',
         };
     }

@@ -3,16 +3,24 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
 
 class ShopAnalyticsPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
+
     protected static ?string $navigationLabel = 'Analytics Shop';
+
     protected static ?string $title = 'Analytics Shop';
+
     protected static ?string $navigationGroup = 'Shop Ufficiale';
+
     protected static ?int $navigationSort = 10;
+
     protected static ?string $slug = 'shop/analytics';
+
     protected static string $view = 'filament.pages.shop-analytics';
 
     // Periodo di default: ultimi 30 giorni
@@ -39,11 +47,11 @@ class ShopAnalyticsPage extends Page
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('period')
+            Action::make('period')
                 ->label('Periodo')
                 ->icon('heroicon-m-calendar-days')
                 ->form([
-                    \Filament\Forms\Components\Select::make('period')
+                    Select::make('period')
                         ->label('Periodo')
                         ->options([
                             '7' => 'Ultimi 7 giorni',

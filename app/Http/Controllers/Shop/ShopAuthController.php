@@ -44,8 +44,10 @@ class ShopAuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => UserRole::Customer,
         ]);
+
+        // role is not mass-assignable (security), set it explicitly
+        $user->forceFill(['role' => UserRole::Customer, 'is_active' => true])->save();
 
         Auth::login($user);
 

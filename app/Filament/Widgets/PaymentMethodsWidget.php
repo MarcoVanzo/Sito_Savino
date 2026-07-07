@@ -10,9 +10,13 @@ use Filament\Widgets\ChartWidget;
 class PaymentMethodsWidget extends ChartWidget
 {
     protected static ?string $heading = 'Metodi di Pagamento';
+
     protected static ?string $pollingInterval = null;
+
     protected static ?int $sort = 6;
+
     protected static bool $isDiscovered = false;
+
     protected static ?string $maxHeight = '300px';
 
     /**

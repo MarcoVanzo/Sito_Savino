@@ -109,6 +109,53 @@ services:
   - key: INERTIA_SSR_ENABLED
     scope: RUN_AND_BUILD_TIME
     value: "false"
+  # --- Mail (Resend) ---
+  - key: MAIL_MAILER
+    scope: RUN_AND_BUILD_TIME
+    value: resend
+  - key: RESEND_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: REPLACE_WITH_ENCRYPTED_RESEND_KEY
+  - key: MAIL_FROM_ADDRESS
+    scope: RUN_AND_BUILD_TIME
+    value: shop@savinodelbenevolley.it
+  - key: MAIL_FROM_NAME
+    scope: RUN_AND_BUILD_TIME
+    value: "Savino Del Bene Volley"
+  # --- Stripe ---
+  - key: STRIPE_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: REPLACE_WITH_ENCRYPTED_STRIPE_KEY
+  - key: STRIPE_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: REPLACE_WITH_ENCRYPTED_STRIPE_SECRET
+  - key: STRIPE_WEBHOOK_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: REPLACE_WITH_ENCRYPTED_STRIPE_WEBHOOK_SECRET
+  # --- PayPal ---
+  - key: PAYPAL_MODE
+    scope: RUN_AND_BUILD_TIME
+    value: live
+  - key: PAYPAL_CLIENT_ID
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: REPLACE_WITH_ENCRYPTED_PAYPAL_CLIENT_ID
+  - key: PAYPAL_CLIENT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: REPLACE_WITH_ENCRYPTED_PAYPAL_SECRET
+  - key: PAYPAL_WEBHOOK_ID
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: REPLACE_WITH_ENCRYPTED_PAYPAL_WEBHOOK_ID
+  # --- MySQL SSL (DigitalOcean Managed DB) ---
+  - key: MYSQL_ATTR_SSL_CA
+    scope: RUN_AND_BUILD_TIME
+    value: /etc/ssl/certs/ca-certificates.crt
   - key: COMPREFACE_HOST
     scope: RUN_AND_BUILD_TIME
     value: http://157.230.98.6:8000
@@ -118,6 +165,8 @@ services:
   - key: ACTIVECAMPAIGN_URL
     scope: RUN_AND_BUILD_TIME
     value: https://savinodelbenevolley.api-us1.com
+  # ⚠️  ATTENZIONE: questa API key va RUOTATA e CIFRATA con doctl.
+  # Eseguire: doctl apps update <app-id> dopo aver cifrato il nuovo valore.
   - key: ACTIVECAMPAIGN_API_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET

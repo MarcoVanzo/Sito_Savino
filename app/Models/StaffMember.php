@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\StaffType;
-use App\Models\GalleryImage;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

@@ -10,9 +10,13 @@ use Illuminate\Support\Str;
 class PageViewsWidget extends ChartWidget
 {
     protected static ?string $heading = 'Prodotti Più Visti';
+
     protected static ?string $pollingInterval = null;
+
     protected static ?int $sort = 5;
+
     protected static bool $isDiscovered = false;
+
     protected static ?string $maxHeight = '300px';
 
     protected function getType(): string
@@ -42,7 +46,7 @@ class PageViewsWidget extends ChartWidget
         $data = [];
 
         foreach ($topViews as $event) {
-            $name = $products[$event->viewable_id] ?? 'Prodotto #' . $event->viewable_id;
+            $name = $products[$event->viewable_id] ?? 'Prodotto #'.$event->viewable_id;
             $labels[] = Str::limit($name, 20);
             $data[] = $event->view_count;
         }

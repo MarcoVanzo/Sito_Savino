@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources\ProductResource\RelationManagers;
 
+use App\Enums\StockMovementType;
+use App\Models\StockMovement;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -51,7 +54,7 @@ class VariantsRelationManager extends RelationManager
                     ->label('SKU')
                     ->searchable()
                     ->copyable()
-                    ->weight(\Filament\Support\Enums\FontWeight::Bold),
+                    ->weight(FontWeight::Bold),
                 Tables\Columns\TextColumn::make('size')
                     ->label('Taglia')
                     ->placeholder('-'),
@@ -89,14 +92,15 @@ class VariantsRelationManager extends RelationManager
                         $diff = (int) $data['stock'] - $record->stock;
                         if ($diff === 0) {
                             Notification::make()->title('Stock invariato')->info()->send();
+
                             return;
                         }
 
-                        \App\Models\StockMovement::create([
+                        StockMovement::create([
                             'product_id' => $record->product_id,
                             'product_variant_id' => $record->id,
                             'quantity' => $diff,
-                            'type' => \App\Enums\StockMovementType::Adjustment,
+                            'type' => StockMovementType::Adjustment,
                             'notes' => "Aggiustamento manuale CMS: {$record->stock} → {$data['stock']}",
                         ]);
 

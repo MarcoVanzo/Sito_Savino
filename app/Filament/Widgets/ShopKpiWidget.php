@@ -5,7 +5,6 @@ namespace App\Filament\Widgets;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\ShopEvent;
-use Carbon\CarbonPeriod;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
@@ -13,7 +12,9 @@ use Illuminate\Support\Carbon;
 class ShopKpiWidget extends BaseWidget
 {
     protected static ?string $pollingInterval = null;
+
     protected static bool $isDiscovered = false;
+
     protected static ?int $sort = 1;
 
     /**
@@ -59,25 +60,25 @@ class ShopKpiWidget extends BaseWidget
         $conversionRate = $views > 0 ? round(($purchases / $views) * 100, 2) : 0;
 
         return [
-            Stat::make('Fatturato', '€' . number_format($revenue, 2, ',', '.'))
-                ->description($days . ' giorni')
+            Stat::make('Fatturato', '€'.number_format($revenue, 2, ',', '.'))
+                ->description($days.' giorni')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success')
                 ->chart($revenueChart),
 
             Stat::make('N° Ordini', number_format($ordersCount))
-                ->description($days . ' giorni')
+                ->description($days.' giorni')
                 ->descriptionIcon('heroicon-m-shopping-bag')
                 ->color('primary')
                 ->chart($ordersChart),
 
-            Stat::make('Valore Medio', '€' . number_format($avgOrder, 2, ',', '.'))
+            Stat::make('Valore Medio', '€'.number_format($avgOrder, 2, ',', '.'))
                 ->description('Per ordine')
                 ->descriptionIcon('heroicon-m-calculator')
                 ->color('warning'),
 
-            Stat::make('Tasso Conversione', $conversionRate . '%')
-                ->description($purchases . ' acquisti / ' . $views . ' visite')
+            Stat::make('Tasso Conversione', $conversionRate.'%')
+                ->description($purchases.' acquisti / '.$views.' visite')
                 ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->color($conversionRate > 2 ? 'success' : 'danger'),
         ];

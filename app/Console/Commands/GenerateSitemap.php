@@ -23,8 +23,8 @@ class GenerateSitemap extends Command
 
         $addLocalizedUrls = function ($path, $config = [], $lastMod = null) use ($sitemap) {
             $basePath = ltrim($path, '/');
-            $itPath = '/' . $basePath;
-            $enPath = '/en' . ($basePath ? '/' . $basePath : '');
+            $itPath = '/'.$basePath;
+            $enPath = '/en'.($basePath ? '/'.$basePath : '');
 
             $itUrl = Url::create($itPath)
                 ->addAlternate(url($itPath), 'it')
@@ -54,7 +54,7 @@ class GenerateSitemap extends Command
         // Home page (priorità massima)
         $addLocalizedUrls('/', [
             'freq' => Url::CHANGE_FREQUENCY_DAILY,
-            'priority' => 1.0
+            'priority' => 1.0,
         ]);
 
         // Rotte statiche principali
@@ -77,7 +77,7 @@ class GenerateSitemap extends Command
         Page::where('status', PostStatus::Published)->each(function (Page $page) use ($addLocalizedUrls) {
             $addLocalizedUrls("/{$page->slug}", [
                 'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
-                'priority' => 0.7
+                'priority' => 0.7,
             ], $page->updated_at);
         });
 
@@ -85,7 +85,7 @@ class GenerateSitemap extends Command
         Post::published()->orderByDesc('published_at')->each(function (Post $post) use ($addLocalizedUrls) {
             $addLocalizedUrls("/news/{$post->slug}", [
                 'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
-                'priority' => 0.6
+                'priority' => 0.6,
             ], $post->updated_at);
         });
 

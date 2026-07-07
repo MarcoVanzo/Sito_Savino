@@ -4,17 +4,17 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
+use App\Enums\StockMovementType;
 use App\Models\Cart;
 use App\Models\Coupon;
-use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\ShippingZone;
 use App\Models\StockMovement;
 use App\Models\User;
-use App\Enums\StockMovementType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -139,7 +139,6 @@ class CheckoutService
             $order = Order::create([
                 'user_id' => $user?->id,
                 'order_token' => Str::uuid()->toString(),
-                'status' => OrderStatus::Pending,
                 'guest_name' => $data['guest_name'] ?? null,
                 'guest_email' => $data['guest_email'] ?? null,
                 'guest_phone' => $data['guest_phone'] ?? null,
@@ -157,6 +156,9 @@ class CheckoutService
                 'phone' => $data['phone'] ?? null,
                 'privacy_accepted_at' => $data['privacy_accepted_at'],
             ]);
+
+            // status is not mass-assignable (security), set it explicitly
+            $order->forceFill(['status' => OrderStatus::Pending])->save();
 
             // 8. Crea OrderItems con snapshot dei prezzi
             foreach ($cart->items as $cartItem) {
@@ -202,7 +204,7 @@ class CheckoutService
             $this->cartService->clearCart();
 
             // Aggiorna il telefono nel profilo utente se fornito
-            if ($user && !empty($data['phone'])) {
+            if ($user && ! empty($data['phone'])) {
                 $user->update(['phone' => $data['phone']]);
             }
 

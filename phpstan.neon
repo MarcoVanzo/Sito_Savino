@@ -1,0 +1,17 @@
+# Larastan (PHPStan for Laravel) — Level 5 configuration
+# Balanced between strictness and pragmatism for a Laravel + Filament project
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+    level: 5
+    ignoreErrors:
+        # Filament's dynamic resource resolution
+        - '#Call to an undefined method Filament\\.*#'
+        # Spatie Translatable dynamic attributes
+        - '#Access to an undefined property App\\Models\\.*::\$translatable#'
+    excludePaths:
+        - app/Console/Commands
+    checkMissingIterableValueType: false

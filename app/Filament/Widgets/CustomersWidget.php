@@ -5,12 +5,13 @@ namespace App\Filament\Widgets;
 use App\Models\Order;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\DB;
 
 class CustomersWidget extends BaseWidget
 {
     protected static ?string $pollingInterval = null;
+
     protected static ?int $sort = 7;
+
     protected static bool $isDiscovered = false;
 
     protected function getStats(): array
@@ -48,7 +49,7 @@ class CustomersWidget extends BaseWidget
 
         return [
             Stat::make('Clienti Totali', number_format($totalCustomers))
-                ->description($registered . ' registrati, ' . $guests . ' guest')
+                ->description($registered.' registrati, '.$guests.' guest')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('primary'),
 

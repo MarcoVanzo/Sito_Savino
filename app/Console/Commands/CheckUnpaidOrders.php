@@ -4,11 +4,9 @@ namespace App\Console\Commands;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
-use App\Enums\StockMovementType;
+use App\Mail\OrderCancelled;
+use App\Mail\OrderPaymentReminder;
 use App\Models\Order;
-use App\Models\Product;
-use App\Models\ProductVariant;
-use App\Models\StockMovement;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -43,11 +41,11 @@ class CheckUnpaidOrders extends Command
                 // Bonifico: cancella dopo 7 giorni
                 $query->where(function ($q) {
                     $q->where('payment_gateway', PaymentGateway::BankTransfer)
-                      ->where('created_at', '<=', now()->subDays(7));
+                        ->where('created_at', '<=', now()->subDays(7));
                 })->orWhere(function ($q) {
                     // Stripe/PayPal: cancella dopo 1 ora (checkout abbandonato)
                     $q->whereIn('payment_gateway', [PaymentGateway::Stripe, PaymentGateway::PayPal])
-                      ->where('created_at', '<=', now()->subHours(1));
+                        ->where('created_at', '<=', now()->subHours(1));
                 });
             })
             ->get();
@@ -87,7 +85,7 @@ class CheckUnpaidOrders extends Command
 
         try {
             Mail::to($recipientEmail, $recipientName)
-                ->queue(new \App\Mail\OrderPaymentReminder($order));
+                ->queue(new OrderPaymentReminder($order));
 
             Log::info('Promemoria pagamento inviato', [
                 'order_id' => $order->id,
@@ -144,7 +142,7 @@ class CheckUnpaidOrders extends Command
 
         try {
             Mail::to($recipientEmail, $recipientName)
-                ->queue(new \App\Mail\OrderCancelled($order));
+                ->queue(new OrderCancelled($order));
         } catch (\Throwable $e) {
             Log::error('Errore invio email cancellazione ordine', [
                 'order_id' => $order->id,

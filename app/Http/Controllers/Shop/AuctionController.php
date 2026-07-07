@@ -162,7 +162,7 @@ class AuctionController extends Controller
     private function formatAuctionForDetail(Auction $auction): array
     {
         $product = $auction->product;
-        
+
         $sizes = $product?->variants->pluck('size')->filter()->unique()->values()->all() ?? [];
         $productSize = $auction->size ?: (count($sizes) > 0 ? implode(', ', $sizes) : null);
 

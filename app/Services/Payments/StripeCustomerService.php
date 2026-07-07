@@ -53,7 +53,7 @@ class StripeCustomerService
             'mode' => 'setup',
             'customer' => $customerId,
             'payment_method_types' => ['card'],
-            'success_url' => route('account.payment-verification.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => route('account.payment-verification.success').'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('account.payment-verification'),
             'metadata' => [
                 'user_id' => $user->id,

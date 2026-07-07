@@ -12,7 +12,6 @@ use App\Models\HeroSlide;
 use App\Models\Page;
 use App\Models\Player;
 use App\Models\Post;
-
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Sponsor;
@@ -204,14 +203,15 @@ class PublicController extends Controller
                             return $decoded[$locale] ?? $decoded['it'];
                         }
                         // Attempt to fix truncated JSON
-                        $decoded = json_decode($text . '"}', true);
+                        $decoded = json_decode($text.'"}', true);
                         if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
                             return $decoded[$locale] ?? $decoded['it'];
                         }
-                        $decoded = json_decode($text . '}', true);
+                        $decoded = json_decode($text.'}', true);
                         if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
                             return $decoded[$locale] ?? $decoded['it'];
                         }
+
                         return $text;
                     };
 
@@ -355,8 +355,6 @@ class PublicController extends Controller
             'page' => $page,
         ]);
     }
-
-
 
     public function underConstruction()
     {

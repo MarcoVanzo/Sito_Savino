@@ -26,9 +26,9 @@ return new class extends Migration
 
             if (! $exists) {
                 DB::table('product_categories')->insert([
-                    'slug'       => $cat['slug'],
+                    'slug' => $cat['slug'],
                     'sort_order' => $cat['sort_order'],
-                    'name'       => $cat['name'],
+                    'name' => $cat['name'],
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);

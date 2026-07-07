@@ -6,6 +6,7 @@ use App\Filament\Resources\ProductResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use Illuminate\Support\Facades\Cache;
 
 class EditProduct extends EditRecord
 {
@@ -22,7 +23,7 @@ class EditProduct extends EditRecord
 
     protected function afterSave(): void
     {
-        \Illuminate\Support\Facades\Cache::forget('public:shop:it');
-        \Illuminate\Support\Facades\Cache::forget('public:shop:en');
+        Cache::forget('public:shop:it');
+        Cache::forget('public:shop:en');
     }
 }

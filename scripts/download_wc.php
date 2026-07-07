@@ -1,13 +1,14 @@
 <?php
+
 /**
  * Script to download products from WooCommerce Store API
  */
-
 $baseUrl = 'https://shop.savinodelbenevolley.it/wp-json/wc/store/products';
 $allProducts = [];
 $page = 1;
 
-function fetchUrlWithRetry($url, $retries = 3) {
+function fetchUrlWithRetry($url, $retries = 3)
+{
     for ($i = 0; $i < $retries; $i++) {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -22,9 +23,10 @@ function fetchUrlWithRetry($url, $retries = 3) {
         if ($httpCode === 200 && $response) {
             return $response;
         }
-        echo "    Attempt " . ($i + 1) . " failed (HTTP $httpCode). Retrying...\n";
+        echo '    Attempt '.($i + 1)." failed (HTTP $httpCode). Retrying...\n";
         sleep(1);
     }
+
     return false;
 }
 
@@ -32,10 +34,10 @@ echo "Downloading WooCommerce products...\n";
 
 do {
     echo "Fetching page $page...\n";
-    $url = $baseUrl . '?per_page=10&page=' . $page;
+    $url = $baseUrl.'?per_page=10&page='.$page;
     $response = fetchUrlWithRetry($url);
 
-    if (!$response) {
+    if (! $response) {
         echo "Error fetching page $page after retries.\n";
         break;
     }
@@ -46,13 +48,13 @@ do {
     }
 
     foreach ($products as &$product) {
-        if ($product['type'] === 'variable' && !empty($product['variations'])) {
+        if ($product['type'] === 'variable' && ! empty($product['variations'])) {
             $detailedVariations = [];
             foreach ($product['variations'] as $variationBasic) {
                 $varId = $variationBasic['id'];
                 echo "  Fetching variation $varId for product {$product['id']}...\n";
-                $varUrl = $baseUrl . '/' . $varId;
-                
+                $varUrl = $baseUrl.'/'.$varId;
+
                 $vResponse = fetchUrlWithRetry($varUrl);
                 if ($vResponse) {
                     $detailedVariations[] = json_decode($vResponse, true);
@@ -66,14 +68,14 @@ do {
     }
 
     $page++;
-} while (!empty($products));
+} while (! empty($products));
 
-$exportDir = __DIR__ . '/../database/data';
-if (!is_dir($exportDir)) {
+$exportDir = __DIR__.'/../database/data';
+if (! is_dir($exportDir)) {
     mkdir($exportDir, 0755, true);
 }
 
-$outFile = $exportDir . '/woocommerce_export.json';
+$outFile = $exportDir.'/woocommerce_export.json';
 file_put_contents($outFile, json_encode($allProducts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
-echo "Downloaded " . count($allProducts) . " products. Saved to $outFile.\n";
+echo 'Downloaded '.count($allProducts)." products. Saved to $outFile.\n";

@@ -119,7 +119,7 @@ class MigrateMediaToS3 extends Command
                     'conversions_disk' => 's3',
                 ]);
 
-                $this->info("    ✅ Migrato con successo.");
+                $this->info('    ✅ Migrato con successo.');
                 $migrated++;
 
             } catch (\Throwable $e) {

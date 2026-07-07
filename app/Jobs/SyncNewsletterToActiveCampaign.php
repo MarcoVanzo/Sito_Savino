@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 
-class SyncNewsletterToActiveCampaign implements ShouldQueue, ShouldBeUnique
+class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 

@@ -3,6 +3,7 @@
 namespace App\Services\Payments;
 
 use App\Models\Order;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -62,7 +63,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
     /**
      * Make an authenticated HTTP client instance.
      */
-    private function client(): \Illuminate\Http\Client\PendingRequest
+    private function client(): PendingRequest
     {
         return Http::withToken($this->getAccessToken())
             ->baseUrl($this->getBaseUrl())

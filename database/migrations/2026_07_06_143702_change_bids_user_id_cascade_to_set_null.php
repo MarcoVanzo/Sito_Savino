@@ -28,9 +28,9 @@ return new class extends Migration
 
             // Riaggiungi con SET NULL on delete
             $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('set null');
+                ->references('id')
+                ->on('users')
+                ->onDelete('set null');
         });
     }
 
@@ -45,9 +45,9 @@ return new class extends Migration
 
             // Riaggiungi la FK originale con CASCADE
             $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
         });
     }
 };

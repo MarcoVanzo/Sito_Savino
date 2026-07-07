@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use App\Models\SiteSetting;
-use App\Models\MenuItem;
 use App\Models\HeroSlide;
+use App\Models\MenuItem;
+use App\Models\SiteSetting;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -37,20 +37,20 @@ return new class extends Migration
         $statsSetting = SiteSetting::where('key', 'stats')->first();
         if ($statsSetting && is_string($statsSetting->value)) {
             $stats = json_decode($statsSetting->value, true);
-            if ($stats && isset($stats[0]['label']) && !isset($stats['it'])) {
+            if ($stats && isset($stats[0]['label']) && ! isset($stats['it'])) {
                 $translatedStats = [
                     'it' => [
                         ['value' => '40+', 'label' => 'Anni di Storia', 'icon' => '🏆'],
                         ['value' => '4.000+', 'label' => 'Posti al Palazzo Wanny', 'icon' => '🏟️'],
                         ['value' => 'A1', 'label' => 'Serie — Massima Divisione', 'icon' => '🏐'],
-                        ['value' => 'CEV', 'label' => 'Champions League', 'icon' => '🌍']
+                        ['value' => 'CEV', 'label' => 'Champions League', 'icon' => '🌍'],
                     ],
                     'en' => [
                         ['value' => '40+', 'label' => 'Years of History', 'icon' => '🏆'],
                         ['value' => '4.000+', 'label' => 'Seats at Palazzo Wanny', 'icon' => '🏟️'],
                         ['value' => 'A1', 'label' => 'Serie — Top Division', 'icon' => '🏐'],
-                        ['value' => 'CEV', 'label' => 'Champions League', 'icon' => '🌍']
-                    ]
+                        ['value' => 'CEV', 'label' => 'Champions League', 'icon' => '🌍'],
+                    ],
                 ];
                 $statsSetting->value = json_encode($translatedStats, JSON_UNESCAPED_UNICODE);
                 $statsSetting->save();
@@ -106,9 +106,12 @@ return new class extends Migration
             $itTitle = $slide->getTranslation('title', 'it', false);
             if ($itTitle && isset($heroSlides[$itTitle])) {
                 $trans = $heroSlides[$itTitle];
-                if (isset($trans['title'])) $slide->setTranslation('title', 'en', $trans['title']['en']);
-                else $slide->setTranslation('title', 'en', $itTitle);
-                
+                if (isset($trans['title'])) {
+                    $slide->setTranslation('title', 'en', $trans['title']['en']);
+                } else {
+                    $slide->setTranslation('title', 'en', $itTitle);
+                }
+
                 $slide->setTranslation('subtitle', 'en', $trans['subtitle']['en']);
                 $slide->setTranslation('cta_text', 'en', $trans['cta_text']['en']);
                 $slide->save();

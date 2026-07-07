@@ -4,13 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Enums\UserRole;
 use App\Filament\Resources\CustomerResource\Pages;
+use App\Filament\Resources\UserResource\RelationManagers\OrdersRelationManager;
+use App\Models\Order;
 use App\Models\User;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
+use Filament\Resources\Resource;
 use Filament\Support\Enums\FontWeight;
+use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class CustomerResource extends Resource
@@ -18,12 +20,19 @@ class CustomerResource extends Resource
     protected static ?string $model = User::class;
 
     protected static ?string $modelLabel = 'Cliente';
+
     protected static ?string $pluralModelLabel = 'Clienti';
+
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
     protected static ?string $navigationLabel = 'Clienti';
+
     protected static ?string $navigationGroup = 'Shop Ufficiale';
+
     protected static ?int $navigationSort = 5;
+
     protected static ?string $slug = 'shop/clienti';
+
     protected static bool $isGloballySearchable = false;
 
     public static function canCreate(): bool
@@ -66,7 +75,7 @@ class CustomerResource extends Resource
                     ->dateTime('d/m/Y')
                     ->sortable(query: function (Builder $query, string $direction) {
                         return $query->orderBy(
-                            \App\Models\Order::select('created_at')
+                            Order::select('created_at')
                                 ->whereColumn('orders.user_id', 'users.id')
                                 ->latest()
                                 ->limit(1),
@@ -115,7 +124,7 @@ class CustomerResource extends Resource
                             ->getStateUsing(fn (User $record) => $record->orders()->count()),
                         Infolists\Components\TextEntry::make('total_spent')
                             ->label('Totale Speso')
-                            ->getStateUsing(fn (User $record) => '€ ' . number_format($record->orders()->sum('total_price'), 2, ',', '.')),
+                            ->getStateUsing(fn (User $record) => '€ '.number_format($record->orders()->sum('total_price'), 2, ',', '.')),
                     ])->columns(2),
             ]);
     }
@@ -123,7 +132,7 @@ class CustomerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            \App\Filament\Resources\UserResource\RelationManagers\OrdersRelationManager::class,
+            OrdersRelationManager::class,
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AuctionResource\Pages;
 
+use App\Enums\ProductType;
 use App\Filament\Resources\AuctionResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
@@ -14,6 +15,6 @@ class CreateAuction extends CreateRecord
 
     protected function afterCreate(): void
     {
-        $this->record->product->update(['type' => \App\Enums\ProductType::Auction]);
+        $this->record->product->update(['type' => ProductType::Auction]);
     }
 }

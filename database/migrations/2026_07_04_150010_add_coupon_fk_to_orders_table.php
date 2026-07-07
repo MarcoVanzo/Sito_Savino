@@ -28,9 +28,9 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             // Aggiunge il vincolo FK su coupon_id → coupons(id)
             $table->foreign('coupon_id')
-                  ->references('id')
-                  ->on('coupons')
-                  ->onDelete('set null');
+                ->references('id')
+                ->on('coupons')
+                ->onDelete('set null');
         });
     }
 

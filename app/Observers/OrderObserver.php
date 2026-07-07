@@ -4,11 +4,13 @@ namespace App\Observers;
 
 use App\Enums\OrderStatus;
 use App\Enums\StockMovementType;
+use App\Mail\OrderStatusChanged;
 use App\Models\Order;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OrderObserver
 {
@@ -52,8 +54,8 @@ class OrderObserver
         if (in_array($order->status, $statusesThatNotify)) {
             $recipientEmail = $order->user?->email ?? $order->guest_email;
             if ($recipientEmail) {
-                \Illuminate\Support\Facades\Mail::to($recipientEmail)
-                    ->queue(new \App\Mail\OrderStatusChanged($order, $order->getOriginal('status')?->value, $order->status->value));
+                Mail::to($recipientEmail)
+                    ->queue(new OrderStatusChanged($order, $order->getOriginal('status')?->value, $order->status->value));
             }
         }
     }

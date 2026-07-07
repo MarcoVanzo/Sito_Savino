@@ -22,7 +22,7 @@ php artisan fix:double-encoded-translations || true
 # 4. Config cache — solo se le credenziali S3 sono disponibili
 echo "[4/6] Config cache..."
 if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
-    echo "  ✅ AWS credentials found (key: ${AWS_ACCESS_KEY_ID:0:8}...)"
+    echo "  ✅ AWS credentials found"
     php artisan config:cache
     echo "  ✅ Config cached successfully"
 else
@@ -41,6 +41,10 @@ php artisan event:cache
 # 6. Filament optimize
 echo "[6/6] Filament optimize..."
 php artisan filament:optimize
+
+# 7. Avvia il scheduler in background (aste, pulizia ordini, sitemap, ecc.)
+echo "[7/7] Starting scheduler daemon..."
+php artisan schedule:work --no-interaction >> /dev/stderr 2>&1 &
 
 echo "=== Starting Apache server (with OPcache tuning) ==="
 exec heroku-php-apache2 -i php-config/opcache.ini public/

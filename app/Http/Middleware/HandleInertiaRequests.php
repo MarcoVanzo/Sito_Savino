@@ -40,15 +40,17 @@ class HandleInertiaRequests extends Middleware
             'alternateUrl' => function () use ($request) {
                 $locale = app()->getLocale();
                 $path = $request->getPathInfo();
-                $query = $request->getQueryString() ? '?' . $request->getQueryString() : '';
+                $query = $request->getQueryString() ? '?'.$request->getQueryString() : '';
 
                 if ($locale === 'it') {
-                    $enPath = $path === '/' ? '/en' : '/en' . $path;
-                    return url($enPath . $query);
+                    $enPath = $path === '/' ? '/en' : '/en'.$path;
+
+                    return url($enPath.$query);
                 }
-                
+
                 $itPath = preg_replace('#^/en(/|$)#', '/', $path);
-                return url($itPath . $query);
+
+                return url($itPath.$query);
             },
             'locales' => ['it', 'en'],
             'auth' => [
@@ -63,7 +65,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
             'footerMenu' => fn () => $isPublic ? MenuItem::getTree('footer') : [],
-            'siteSettings' => fn () => $isPublic ? SiteSetting::getAllGrouped() : [],
+            'siteSettings' => fn () => $isPublic ? SiteSetting::getPublicGrouped() : [],
         ];
     }
 }

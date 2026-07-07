@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\SiteSetting;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCheckoutRequest extends FormRequest
@@ -36,7 +37,7 @@ class StoreCheckoutRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -116,9 +117,9 @@ class StoreCheckoutRequest extends FormRequest
             }
 
             // Validate Italian billing ZIP code
-            if (!$this->billing_same_as_shipping && $this->billing_country === 'IT') {
+            if (! $this->billing_same_as_shipping && $this->billing_country === 'IT') {
                 $billingZip = $this->billing_zip_code;
-                if ($billingZip && !preg_match('/^\d{5}$/', $billingZip)) {
+                if ($billingZip && ! preg_match('/^\d{5}$/', $billingZip)) {
                     $validator->errors()->add('billing_zip_code', 'Il CAP di fatturazione deve essere di 5 cifre per indirizzi italiani.');
                 }
             }

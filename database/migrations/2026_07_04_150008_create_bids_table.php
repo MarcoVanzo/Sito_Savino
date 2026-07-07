@@ -33,13 +33,13 @@ return new class extends Migration
 
             // Riferimento all'asta
             $table->foreignId('auction_id')
-                  ->constrained('auctions')
-                  ->onDelete('cascade');
+                ->constrained('auctions')
+                ->onDelete('cascade');
 
             // Utente che ha piazzato l'offerta
             $table->foreignId('user_id')
-                  ->constrained('users')
-                  ->onDelete('cascade');
+                ->constrained('users')
+                ->onDelete('cascade');
 
             // Importo dell'offerta
             $table->decimal('amount', 10, 2);

@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -79,7 +80,7 @@ class CheckoutController extends Controller
                 ->with('error', __('messages.cart.empty'));
         }
 
-        $lockKey = 'checkout_lock:' . session()->getId();
+        $lockKey = 'checkout_lock:'.session()->getId();
         $lock = Cache::lock($lockKey, 30);
 
         if (! $lock->get()) {
@@ -120,7 +121,7 @@ class CheckoutController extends Controller
                 PaymentGateway::PayPal => $this->handlePayPal($order),
                 PaymentGateway::BankTransfer => $this->handleBankTransfer($order),
             };
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
             Log::error('Errore durante il checkout', [

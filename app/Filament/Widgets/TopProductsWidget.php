@@ -10,8 +10,11 @@ use Illuminate\Support\Facades\DB;
 class TopProductsWidget extends Widget
 {
     protected static string $view = 'filament.widgets.top-products';
+
     protected static ?int $sort = 3;
+
     protected static bool $isDiscovered = false;
+
     protected int|string|array $columnSpan = 'full';
 
     /**
@@ -35,7 +38,7 @@ class TopProductsWidget extends Widget
                     OrderStatus::Shipped,
                     OrderStatus::Delivered,
                 ])
-                ->where('created_at', '>=', $from);
+                    ->where('created_at', '>=', $from);
             })
             ->groupBy('product_id')
             ->orderByDesc('total_revenue')

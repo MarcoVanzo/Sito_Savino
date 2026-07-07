@@ -53,7 +53,7 @@ class BidService
             // 5. Validazione importo minimo
             if ($amount < $minimumBid) {
                 throw new \InvalidArgumentException(
-                    "L'offerta minima è di €" . number_format($minimumBid, 2, ',', '.') . '.'
+                    "L'offerta minima è di €".number_format($minimumBid, 2, ',', '.').'.'
                 );
             }
 
@@ -64,7 +64,7 @@ class BidService
 
             if ($amount > $maximumBid) {
                 throw new \InvalidArgumentException(
-                    "L'offerta massima consentita è di €" . number_format($maximumBid, 2, ',', '.') . '.'
+                    "L'offerta massima consentita è di €".number_format($maximumBid, 2, ',', '.').'.'
                 );
             }
 
@@ -73,9 +73,11 @@ class BidService
                 'auction_id' => $auction->id,
                 'user_id' => $user->id,
                 'amount' => $amount,
-                'is_valid' => true,
                 'placed_at' => now(),
             ]);
+
+            // is_valid is not mass-assignable (security), set it explicitly
+            $bid->forceFill(['is_valid' => true])->save();
 
             // 8. Aggiornamento offerta corrente sull'asta
             $auction->update(['current_bid' => $amount]);

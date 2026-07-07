@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ReceiptService
@@ -35,7 +34,7 @@ class ReceiptService
             'order' => $order,
         ]);
 
-        $filename = 'ricevuta-' . $order->order_number . '.pdf';
+        $filename = 'ricevuta-'.$order->order_number.'.pdf';
 
         return $pdf->download($filename);
     }
@@ -51,7 +50,7 @@ class ReceiptService
             'order' => $order,
         ]);
 
-        $filename = 'ricevuta-' . $order->order_number . '.pdf';
+        $filename = 'ricevuta-'.$order->order_number.'.pdf';
 
         return $pdf->stream($filename);
     }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 
 const props = defineProps({
     modelValue: { type: String, default: '' },
@@ -74,6 +74,10 @@ const onBlur = () => {
         showDropdown.value = false;
     }, 200);
 };
+
+onUnmounted(() => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+});
 </script>
 
 <template>

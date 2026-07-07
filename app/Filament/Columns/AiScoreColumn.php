@@ -45,11 +45,11 @@ class AiScoreColumn
                 };
 
                 return new HtmlString(
-                    '<div style="min-width:80px">' .
-                    '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">' .
-                    '<span>' . $label . '</span><span style="font-weight:600">' . $score . '/100</span></div>' .
-                    '<div style="background:#374151;border-radius:9999px;height:6px;overflow:hidden">' .
-                    '<div style="width:' . $score . '%;height:100%;background:' . $color . ';border-radius:9999px;transition:width 0.3s"></div>' .
+                    '<div style="min-width:80px">'.
+                    '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">'.
+                    '<span>'.$label.'</span><span style="font-weight:600">'.$score.'/100</span></div>'.
+                    '<div style="background:#374151;border-radius:9999px;height:6px;overflow:hidden">'.
+                    '<div style="width:'.$score.'%;height:100%;background:'.$color.';border-radius:9999px;transition:width 0.3s"></div>'.
                     '</div></div>'
                 );
             })
@@ -57,7 +57,7 @@ class AiScoreColumn
             ->tooltip(fn ($record) => match ((int) $record->player->ai_face_examples) {
                 0 => 'Nessuna foto analizzata. Clicca "Addestra AI".',
                 1 => '1 foto analizzata. Carica più foto per migliorare.',
-                default => $record->player->ai_face_examples . ' foto analizzate.',
+                default => $record->player->ai_face_examples.' foto analizzate.',
             })
             ->sortable();
     }

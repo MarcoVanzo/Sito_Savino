@@ -143,7 +143,7 @@ class ShippingZonesSeeder extends Seeder
         ShippingZone::query()->delete();
 
         foreach ($zones as $zoneData) {
-            $zone = new ShippingZone();
+            $zone = new ShippingZone;
             // HasTranslations gestisce automaticamente l'array name -> JSON
             $zone->setTranslations('name', $zoneData['name']);
             $zone->countries = $zoneData['countries'];

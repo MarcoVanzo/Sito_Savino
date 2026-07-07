@@ -4,9 +4,9 @@ namespace App\Models;
 
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
-use App\Models\StaffMember;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -75,7 +75,7 @@ class GalleryImage extends Model implements HasMedia
     /**
      * Ritorna tutte le persone (Player + StaffMember) associate a questa foto.
      */
-    public function getAllPersonsAttribute(): \Illuminate\Support\Collection
+    public function getAllPersonsAttribute(): Collection
     {
         return $this->players->concat($this->staffMembers);
     }

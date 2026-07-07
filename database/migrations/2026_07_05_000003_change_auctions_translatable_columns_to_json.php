@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -15,12 +15,16 @@ return new class extends Migration
 
             foreach (['title', 'description', 'charity_description'] as $column) {
                 $current = $auction->{$column};
-                if ($current === null) continue;
-                if (json_decode($current) !== null) continue;
+                if ($current === null) {
+                    continue;
+                }
+                if (json_decode($current) !== null) {
+                    continue;
+                }
                 $updates[$column] = json_encode(['it' => $current]);
             }
 
-            if (!empty($updates)) {
+            if (! empty($updates)) {
                 DB::table('auctions')
                     ->where('id', $auction->id)
                     ->update($updates);

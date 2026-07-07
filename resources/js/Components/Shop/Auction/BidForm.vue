@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { usePage } from '@inertiajs/vue3';
@@ -23,6 +23,7 @@ const bidAmount = ref(props.auction.minimum_bid);
 const isSubmitting = ref(false);
 const error = ref(null);
 const success = ref(false);
+let successTimer = null;
 
 const quickBids = [5, 10, 20];
 
@@ -52,7 +53,7 @@ const submitBid = async () => {
             emit('bid-placed', response.data.bid);
 
             // Reset success after 5 seconds
-            setTimeout(() => { success.value = false; }, 5000);
+            successTimer = setTimeout(() => { success.value = false; }, 5000);
         }
     } catch (err) {
         if (err.response?.status === 422) {
@@ -75,6 +76,10 @@ const updateMinBid = (newMin) => {
 };
 
 defineExpose({ updateMinBid });
+
+onUnmounted(() => {
+    if (successTimer) clearTimeout(successTimer);
+});
 </script>
 
 <template>

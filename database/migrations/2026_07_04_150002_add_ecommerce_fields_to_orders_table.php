@@ -70,7 +70,7 @@ return new class extends Migration
             DB::table('orders')
                 ->whereNotNull('stripe_payment_id')
                 ->update([
-                    'payment_id'      => DB::raw('stripe_payment_id'),
+                    'payment_id' => DB::raw('stripe_payment_id'),
                     'payment_gateway' => 'stripe',
                 ]);
 
