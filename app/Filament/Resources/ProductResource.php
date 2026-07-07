@@ -245,7 +245,7 @@ class ProductResource extends Resource
             ])
             ->actions([
                 Tables\Actions\Action::make('Anteprima')
-                    ->url(fn ($record) => url('shop/'.($record->slug ?? '')))
+                    ->url(fn ($record) => route('shop.product', ['product' => $record->slug]))
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-eye'),
                 Tables\Actions\EditAction::make(),
