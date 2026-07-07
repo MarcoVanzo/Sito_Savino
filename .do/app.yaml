@@ -109,49 +109,6 @@ services:
   - key: INERTIA_SSR_ENABLED
     scope: RUN_AND_BUILD_TIME
     value: "false"
-  # --- Mail (Resend) ---
-  - key: MAIL_MAILER
-    scope: RUN_AND_BUILD_TIME
-    value: resend
-  - key: RESEND_API_KEY
-    scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: ""
-  - key: MAIL_FROM_ADDRESS
-    scope: RUN_AND_BUILD_TIME
-    value: shop@savinodelbenevolley.it
-  - key: MAIL_FROM_NAME
-    scope: RUN_AND_BUILD_TIME
-    value: "Savino Del Bene Volley"
-  # --- Stripe ---
-  - key: STRIPE_KEY
-    scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: ""
-  - key: STRIPE_SECRET
-    scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: ""
-  - key: STRIPE_WEBHOOK_SECRET
-    scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: ""
-  # --- PayPal ---
-  - key: PAYPAL_MODE
-    scope: RUN_AND_BUILD_TIME
-    value: live
-  - key: PAYPAL_CLIENT_ID
-    scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: ""
-  - key: PAYPAL_CLIENT_SECRET
-    scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: ""
-  - key: PAYPAL_WEBHOOK_ID
-    scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: ""
   # --- MySQL SSL (DigitalOcean Managed DB) ---
   - key: MYSQL_ATTR_SSL_CA
     scope: RUN_AND_BUILD_TIME
