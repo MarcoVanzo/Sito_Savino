@@ -37,6 +37,7 @@ return [
         'invalid_coupon' => 'Invalid coupon code.',
         'coupon_not_applicable' => 'This coupon is not applicable to this order.',
         'coupon_applied' => 'Coupon applied! Discount of € :discount.',
+        'already_processing' => 'A payment is already being processed. Please wait.',
     ],
     'shop' => [
         'register_success' => 'Registration completed! Welcome to the shop.',
@@ -88,5 +89,7 @@ return [
         'rules' => 'Auction rules',
         'charity_label' => 'Charity auction',
         'share' => 'Share',
+        'codice_fiscale_required' => 'Codice Fiscale is required for orders in Italy.',
+        'already_processing' => 'Operation in progress, please try again in a few seconds.',
     ],
 ];

@@ -90,5 +90,7 @@ return [
         'rules' => 'Regolamento asta',
         'charity_label' => 'Asta benefica',
         'share' => 'Condividi',
+        'codice_fiscale_required' => 'Il Codice Fiscale è obbligatorio per ordini in Italia.',
+        'already_processing' => 'Operazione in corso, riprova tra qualche secondo.',
     ],
 ];

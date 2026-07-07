@@ -127,17 +127,25 @@ class AuctionCheckoutController extends Controller
                 return back()->withErrors(['shipping_zip_code' => __('validation.zip_code_it')]);
             }
             if (empty($validated['codice_fiscale'])) {
-                return back()->withErrors(['codice_fiscale' => __('messages.auction_checkout.codice_fiscale_required')]);
+                return back()->withErrors(['codice_fiscale' => __('messages.auction.codice_fiscale_required')]);
             }
         }
 
         $lock = Cache::lock('auction_checkout_lock:'.auth()->id(), 30);
         if (! $lock->get()) {
-            return back()->withErrors(['general' => __('messages.auction_checkout.already_processing')]);
+            return back()->withErrors(['general' => __('messages.auction.already_processing')]);
+        }
+
+        // Valida zona spedizione PRIMA della transazione (non è logica transazionale)
+        $shippingZone = ShippingZone::findByCountry($validated['country']);
+        if (! $shippingZone) {
+            $lock->release();
+
+            return back()->withErrors(['country' => __('messages.checkout.country_not_served')]);
         }
 
         try {
-            $order = DB::transaction(function () use ($auction, $validated, $token) {
+            $order = DB::transaction(function () use ($auction, $validated, $token, $shippingZone) {
                 $user = auth()->user();
                 $winningBid = (float) $auction->current_bid;
 
@@ -163,13 +171,6 @@ class AuctionCheckoutController extends Controller
                         'province' => $validated['billing_province'],
                     ];
 
-                // Calcola spedizione
-                $shippingZone = ShippingZone::findByCountry($validated['country']);
-                if (! $shippingZone) {
-                    throw ValidationException::withMessages([
-                        'country' => [__('messages.checkout.country_not_served')],
-                    ]);
-                }
                 $shippingCost = $shippingZone->calculateShippingCost($winningBid);
 
                 $totalPrice = round($winningBid + $shippingCost, 2);
