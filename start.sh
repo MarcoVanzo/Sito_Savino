@@ -42,5 +42,9 @@ php artisan event:cache
 echo "[6/6] Filament optimize..."
 php artisan filament:optimize
 
+# 7. Avvia il scheduler in background (aste, pulizia ordini, sitemap)
+echo "[7/7] Starting scheduler daemon..."
+php artisan schedule:work --no-interaction >> /dev/stderr 2>&1 &
+
 echo "=== Starting Apache server (with OPcache tuning) ==="
 exec heroku-php-apache2 -i php-config/opcache.ini public/
