@@ -53,7 +53,7 @@ class OrderObserver
             $recipientEmail = $order->user?->email ?? $order->guest_email;
             if ($recipientEmail) {
                 \Illuminate\Support\Facades\Mail::to($recipientEmail)
-                    ->queue(new \App\Mail\OrderStatusChanged($order, $order->getOriginal('status'), $order->status->value));
+                    ->queue(new \App\Mail\OrderStatusChanged($order, $order->getOriginal('status')?->value, $order->status->value));
             }
         }
     }
