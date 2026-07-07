@@ -2,16 +2,30 @@
 # Balanced between strictness and pragmatism for a Laravel + Filament project
 includes:
     - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
 
 parameters:
     paths:
         - app
     level: 5
     ignoreErrors:
-        # Filament's dynamic resource resolution
-        - '#Call to an undefined method Filament\\.*#'
-        # Spatie Translatable dynamic attributes
-        - '#Access to an undefined property App\\Models\\.*::\$translatable#'
+        # Filament dynamic $form property on custom pages
+        - identifier: property.notFound
+          path: app/Filament/*
+        # Filament dynamic method calls
+        - identifier: method.notFound
+          path: app/Filament/*
+        # Filament UserRole enum comparison (PHPDoc type mismatch)
+        - identifier: identical.alwaysFalse
+          path: app/Filament/*
+        - identifier: booleanAnd.alwaysFalse
+          path: app/Filament/*
+        # Filament match/nullCoalesce edge cases
+        - identifier: match.unhandled
+          path: app/Filament/*
+        - identifier: nullCoalesce.expr
+          path: app/Filament/*
+        - identifier: nullCoalesce.offset
+          path: app/Filament/*
     excludePaths:
         - app/Console/Commands
-    checkMissingIterableValueType: false

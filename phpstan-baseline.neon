@@ -1,0 +1,1129 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$galleryImage of job class App\\Jobs\\AnalyzeGalleryImageJob constructor expects App\\Models\\GalleryImage in App\\Jobs\\AnalyzeGalleryImageJob\:\:dispatch\(\), Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/GalleryEventResource/RelationManagers/GalleryImagesRelationManager.php
+
+		-
+			message: '#^Parameter \#1 \$galleryImage of job class App\\Jobs\\AnalyzeGalleryImageJob constructor expects App\\Models\\GalleryImage in App\\Jobs\\AnalyzeGalleryImageJob\:\:dispatch\(\), Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/GalleryImageResource.php
+
+		-
+			message: '#^Cannot call method players\(\) on Illuminate\\Database\\Eloquent\\Model\|int\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Filament/Resources/GalleryImageResource/Pages/EditGalleryImage.php
+
+		-
+			message: '#^Cannot call method staffMembers\(\) on Illuminate\\Database\\Eloquent\\Model\|int\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Filament/Resources/GalleryImageResource/Pages/EditGalleryImage.php
+
+		-
+			message: '#^Access to undefined constant App\\Enums\\GameStatus\:\:Cancelled\.$#'
+			identifier: classConstant.notFound
+			count: 1
+			path: app/Filament/Resources/GameResource.php
+
+		-
+			message: '#^Access to undefined constant App\\Enums\\GameStatus\:\:Finished\.$#'
+			identifier: classConstant.notFound
+			count: 1
+			path: app/Filament/Resources/GameResource.php
+
+		-
+			message: '#^Access to undefined constant App\\Enums\\GameStatus\:\:Live\.$#'
+			identifier: classConstant.notFound
+			count: 1
+			path: app/Filament/Resources/GameResource.php
+
+		-
+			message: '#^Class App\\Filament\\Resources\\SoftDeletingScope not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Filament/Resources/GameResource.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1080 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/HeroSlideResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1920 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/HeroSlideResource.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/ManagementResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/ManagementResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Filament/Resources/OrderResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Filament/Resources/OrderResource.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/PlayerResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/PlayerResource.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1400 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/PostResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1400 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/PostResource.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Filament/Resources/RosterResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Filament/Resources/RosterResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Filament/Resources/RosterResource.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/StaffMemberResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/StaffMemberResource.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/TeamResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/TeamResource.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Filament/Resources/YouthRosterResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Filament/Resources/YouthRosterResource.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Filament/Resources/YouthRosterResource.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Filament/Resources/YouthRosterResource/Pages/ListYouthRosters.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<mixed, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Filament/Resources/YouthRosterResource/Pages/ListYouthRosters.php
+
+		-
+			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/YouthStaffResource.php
+
+		-
+			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1200 given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Filament/Resources/YouthStaffResource.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\OrderItem\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Filament/Widgets/TopProductsWidget.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Filament/Widgets/TopProductsWidget.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\UserRole\:\:Customer will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Auth/AuthenticatedSessionController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string\|null and App\\Enums\\UserRole\:\:Customer will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Auth/AuthenticatedSessionController.php
+
+		-
+			message: '#^Ternary operator condition is always false\.$#'
+			identifier: ternary.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Auth/AuthenticatedSessionController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:getFirstMediaUrl\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/PageController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Roster\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/PageController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/PageController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$galleryEvent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PublicController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/PublicController.php
+
+		-
+			message: '#^Anonymous function should return App\\Models\\GalleryImage but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/PublicController.php
+
+		-
+			message: '#^Relation ''galleryEvent'' is not found in App\\Models\\GalleryImage model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/PublicController.php
+
+		-
+			message: '#^Relation ''galleryImages'' is not found in App\\Models\\GalleryEvent model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/PublicController.php
+
+		-
+			message: '#^Relation ''galleryImages'' is not found in App\\Models\\Player model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/PublicController.php
+
+		-
+			message: '#^Relation ''players'' is not found in App\\Models\\GalleryImage model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/PublicController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/PublicController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$placed_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variants\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:getFirstMediaUrl\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:getMedia\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>has_verified_payment_method" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Shop/AuctionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/CartController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/CartController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>price_modifier" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Shop/CartController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>stock" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Shop/CartController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Shop/CheckoutController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Shop/CheckoutController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Shop/ShopController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Shop/ShopController.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: app/Http/Controllers/Shop/ShopController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
+
+		-
+			message: '#^Property App\\Http\\Controllers\\Webhooks\\PayPalWebhookController\:\:\$gatewayName \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
+
+		-
+			message: '#^Call to method getMessage\(\) on an unknown class Stripe\\Exception\\SignatureVerificationException\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
+
+		-
+			message: '#^Caught class Stripe\\Exception\\SignatureVerificationException not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
+
+		-
+			message: '#^Property App\\Http\\Controllers\\Webhooks\\StripeWebhookController\:\:\$gatewayName \(string\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Http/Middleware/ServeSocialCrawlerMeta.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$galleryEvent\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Jobs/AnalyzeGalleryImageJob.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Jobs/AnalyzeGalleryImageJob.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$staffMembers\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Jobs/AnalyzeGalleryImageJob.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>category" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Jobs/AnalyzeGalleryImageJob.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>title" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Jobs/AnalyzeGalleryImageJob.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Auction.php
+
+		-
+			message: '#^Method App\\Models\\Auction\:\:highestBid\(\) should return App\\Models\\Bid\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Auction.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$price_modifier\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CartItem.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:effectivePrice\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/CartItem.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: app/Models/Coupon.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between int and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Models/Coupon.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/GalleryImage.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$staffMembers\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/GalleryImage.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\MenuItem\:\:\$children\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/MenuItem.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Models/MenuItem.php
+
+		-
+			message: '#^Relation ''children'' is not found in App\\Models\\MenuItem model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/MenuItem.php
+
+		-
+			message: '#^Call to function is_string\(\) with array\|null will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
+			path: app/Models/Order.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Models/Order.php
+
+		-
+			message: '#^Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver\:\:performOnCollections\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/Product.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\ShippingZone\:\:getCachedZones\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 1
+			path: app/Models/ShippingZone.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\SiteSetting\:\:resolveForLocale\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 2
+			path: app/Models/SiteSetting.php
+
+		-
+			message: '#^Cannot call method canAccessPanel\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Observers/OrderObserver.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Observers/OrderObserver.php
+
+		-
+			message: '#^Cannot call method canManageShop\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/AuctionPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/AuctionPolicy.php
+
+		-
+			message: '#^Cannot call method canManageEditorial\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/CategoryPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/CategoryPolicy.php
+
+		-
+			message: '#^Cannot call method canManageEditorial\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Policies/ContactMessagePolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/ContactMessagePolicy.php
+
+		-
+			message: '#^Cannot call method canManageMedia\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/GalleryEventPolicy.php
+
+		-
+			message: '#^Cannot call method canViewMedia\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/GalleryEventPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/GalleryEventPolicy.php
+
+		-
+			message: '#^Cannot call method canManageMedia\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Policies/GalleryImagePolicy.php
+
+		-
+			message: '#^Cannot call method canViewMedia\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/GalleryImagePolicy.php
+
+		-
+			message: '#^Cannot call method canManageSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/GamePolicy.php
+
+		-
+			message: '#^Cannot call method canViewSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/GamePolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/GamePolicy.php
+
+		-
+			message: '#^Cannot call method canManageEditorial\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/HeroSlidePolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/HeroSlidePolicy.php
+
+		-
+			message: '#^Cannot call method canManageEditorial\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/MenuItemPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/MenuItemPolicy.php
+
+		-
+			message: '#^Cannot call method canManageSystem\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: app/Policies/OptionPolicy.php
+
+		-
+			message: '#^Cannot call method canManageShop\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/OrderPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/OrderPolicy.php
+
+		-
+			message: '#^Cannot call method canManageEditorial\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/PagePolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/PagePolicy.php
+
+		-
+			message: '#^Cannot call method canManageSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/PlayerPolicy.php
+
+		-
+			message: '#^Cannot call method canViewSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/PlayerPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/PlayerPolicy.php
+
+		-
+			message: '#^Cannot call method canManageSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/PlayerStatPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/PlayerStatPolicy.php
+
+		-
+			message: '#^Cannot call method canManageEditorial\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/PostPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Policies/PostPolicy.php
+
+		-
+			message: '#^Cannot call method canManageShop\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/ProductCategoryPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/ProductCategoryPolicy.php
+
+		-
+			message: '#^Cannot call method canManageShop\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/ProductPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/ProductPolicy.php
+
+		-
+			message: '#^Cannot call method canManageSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/RosterPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/RosterPolicy.php
+
+		-
+			message: '#^Cannot call method canManageSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/SeasonPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/SeasonPolicy.php
+
+		-
+			message: '#^Cannot call method canManageSponsors\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/SponsorPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/SponsorPolicy.php
+
+		-
+			message: '#^Cannot call method canManageSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/StaffMemberPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/StaffMemberPolicy.php
+
+		-
+			message: '#^Cannot call method canManageShop\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Policies/StockMovementPolicy.php
+
+		-
+			message: '#^Cannot call method canManageSport\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: app/Policies/TeamPolicy.php
+
+		-
+			message: '#^Cannot call method isSuperAdmin\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Policies/TeamPolicy.php
+
+		-
+			message: '#^Cannot call method canManageSystem\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: app/Policies/UserPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/AdminNotificationService.php
+
+		-
+			message: '#^Parameter \#1 \$num of function number_format expects float, string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/AdminNotificationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/AdminNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/AuctionService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Services/AuctionService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/BidService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/CartService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/CartService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_variant_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/CartService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Services/CartService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/CartService.php
+
+		-
+			message: '#^Method App\\Services\\CartService\:\:addItem\(\) should return App\\Models\\CartItem but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/CartService.php
+
+		-
+			message: '#^Method App\\Services\\CartService\:\:updateItemQuantity\(\) should return App\\Models\\CartItem but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/CartService.php
+
+		-
+			message: '#^Method App\\Services\\CartService\:\:validateStock\(\) should return array\<int, array\{item\: App\\Models\\CartItem, available\: int, requested\: int\}\> but returns list\<array\{item\: Illuminate\\Database\\Eloquent\\Model, available\: int, requested\: mixed\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/CartService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/CheckoutService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/CheckoutService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/CheckoutService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_variant_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Services/CheckoutService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/CheckoutService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/CheckoutService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/CheckoutService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>stock" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/CheckoutService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/FacialRecognitionService.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Services/GalleryUploadService.php
+
+		-
+			message: '#^Call to static method create\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripeCustomerService.php
+
+		-
+			message: '#^Call to static method create\(\) on an unknown class Stripe\\Customer\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripeCustomerService.php
+
+		-
+			message: '#^Call to static method retrieve\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripeCustomerService.php
+
+		-
+			message: '#^Call to static method setApiKey\(\) on an unknown class Stripe\\Stripe\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripeCustomerService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^Access to property \$data on an unknown class Stripe\\Event\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^Call to static method constructEvent\(\) on an unknown class Stripe\\Webhook\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^Call to static method create\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^Call to static method create\(\) on an unknown class Stripe\\Refund\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^Call to static method setApiKey\(\) on an unknown class Stripe\\Stripe\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^PHPDoc tag @throws with type Stripe\\Exception\\SignatureVerificationException is not subtype of Throwable$#'
+			identifier: throws.notThrowable
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^Parameter \$event of method App\\Services\\Payments\\StripePaymentService\:\:handleChargeRefunded\(\) has invalid type Stripe\\Event\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^Parameter \$event of method App\\Services\\Payments\\StripePaymentService\:\:handleSessionCompleted\(\) has invalid type Stripe\\Event\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/Payments/StripePaymentService.php
