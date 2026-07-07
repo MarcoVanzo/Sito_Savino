@@ -109,10 +109,6 @@ services:
   - key: INERTIA_SSR_ENABLED
     scope: RUN_AND_BUILD_TIME
     value: "false"
-  # --- MySQL SSL (DigitalOcean Managed DB) ---
-  - key: MYSQL_ATTR_SSL_CA
-    scope: RUN_AND_BUILD_TIME
-    value: /etc/ssl/certs/ca-certificates.crt
   - key: COMPREFACE_HOST
     scope: RUN_AND_BUILD_TIME
     value: http://157.230.98.6:8000
