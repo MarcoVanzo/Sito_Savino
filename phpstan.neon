@@ -27,5 +27,9 @@ parameters:
           path: app/Filament/*
         - identifier: nullCoalesce.offset
           path: app/Filament/*
+        # Filament defensive is_array() checks on PHPDoc-typed arrays
+        - identifier: function.alreadyNarrowedType
+          path: app/Filament/*
     excludePaths:
         - app/Console/Commands
+    reportUnmatchedIgnoredErrors: false
