@@ -55,18 +55,22 @@ class CouponResource extends Resource
                             ->label('Tipo Sconto')
                             ->options(CouponType::class)
                             ->required()
-                            ->default(CouponType::Percentage),
+                            ->default(CouponType::Percentage)
+                            ->live(),
                         Forms\Components\TextInput::make('value')
                             ->label('Valore')
                             ->required()
                             ->numeric()
-                            ->minValue(0),
+                            ->minValue(0)
+                            ->maxValue(fn (Forms\Get $get) => $get('type') === CouponType::Percentage->value ? 100 : null)
+                            ->suffix(fn (Forms\Get $get) => $get('type') === CouponType::Percentage->value ? '%' : '€'),
                         Forms\Components\TextInput::make('max_discount')
                             ->label('Sconto Massimo (€)')
                             ->numeric()
                             ->nullable()
                             ->prefix('€')
-                            ->helperText('Solo per coupon percentuali'),
+                            ->helperText('Solo per coupon percentuali')
+                            ->visible(fn (Forms\Get $get) => $get('type') === CouponType::Percentage->value),
                     ])->columns(2),
                 Forms\Components\Section::make('Condizioni')
                     ->schema([

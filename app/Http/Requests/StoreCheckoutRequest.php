@@ -75,6 +75,7 @@ class StoreCheckoutRequest extends FormRequest
             $rules['billing_city'] = ['required', 'string', 'max:100'];
             $rules['billing_zip_code'] = ['required', 'string', 'max:20'];
             $rules['billing_province'] = ['required', 'string', 'max:100'];
+            $rules['billing_country'] = ['required', 'string', 'size:2'];
         }
 
         // Campi guest obbligatori se non autenticato
@@ -113,6 +114,14 @@ class StoreCheckoutRequest extends FormRequest
                     'Il Codice Fiscale è obbligatorio per ordini in Italia.'
                 );
             }
+
+            // Validate Italian billing ZIP code
+            if (!$this->billing_same_as_shipping && $this->billing_country === 'IT') {
+                $billingZip = $this->billing_zip_code;
+                if ($billingZip && !preg_match('/^\d{5}$/', $billingZip)) {
+                    $validator->errors()->add('billing_zip_code', 'Il CAP di fatturazione deve essere di 5 cifre per indirizzi italiani.');
+                }
+            }
         });
     }
 
@@ -147,6 +156,9 @@ class StoreCheckoutRequest extends FormRequest
             'shipping_address' => $shippingAddress,
             'billing_address' => $billingAddress,
             'country' => $this->country,
+            'billing_country' => $this->billing_same_as_shipping
+                ? $this->country
+                : $this->billing_country,
             'payment_gateway' => $this->payment_gateway,
             'coupon_code' => $this->coupon_code,
             'notes' => $this->notes,

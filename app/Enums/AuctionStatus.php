@@ -15,11 +15,11 @@ enum AuctionStatus: string implements HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Draft => 'Bozza',
-            self::Scheduled => 'Programmata',
-            self::Active => 'Attiva',
-            self::Ended => 'Conclusa',
-            self::Cancelled => 'Annullata',
+            self::Draft => __('enums.auction_status.draft'),
+            self::Scheduled => __('enums.auction_status.scheduled'),
+            self::Active => __('enums.auction_status.active'),
+            self::Ended => __('enums.auction_status.ended'),
+            self::Cancelled => __('enums.auction_status.cancelled'),
         };
     }
 

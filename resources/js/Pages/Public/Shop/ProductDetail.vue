@@ -1,6 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { useCart } from '@/Composables/useCart.js';
@@ -79,6 +79,12 @@ const handleMouseLeave = () => {
     zoomStyle.value = {};
 };
 
+// --- Touch Device Detection ---
+const isTouchDevice = ref(false);
+onMounted(() => {
+    isTouchDevice.value = window.matchMedia('(hover: none)').matches;
+});
+
 // --- Variant Selector ---
 const selectedVariant = ref(null);
 
@@ -133,8 +139,10 @@ const incrementQty = () => {
 };
 
 // --- Add to Cart ---
+const showSizeGuide = ref(false);
 const isAdding = ref(false);
 const cartError = ref('');
+const variantError = ref(false);
 let cartErrorTimer = null;
 
 const clearCartError = () => {
@@ -142,9 +150,38 @@ const clearCartError = () => {
     cartErrorTimer = setTimeout(() => { cartError.value = ''; }, 5000);
 };
 
+// Escape key handler for Size Guide modal
+const handleEscape = (e) => {
+    if (e.key === 'Escape' && showSizeGuide.value) {
+        showSizeGuide.value = false;
+    }
+};
+
+// Body scroll lock when modal is open
+watch(showSizeGuide, (open) => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) {
+        document.addEventListener('keydown', handleEscape);
+    } else {
+        document.removeEventListener('keydown', handleEscape);
+    }
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+    if (cartErrorTimer) clearTimeout(cartErrorTimer);
+    document.removeEventListener('keydown', handleEscape);
+    document.body.style.overflow = '';
+});
+
 const handleAddToCart = () => {
     if (isOutOfStock.value || isAdding.value) return;
-    if (props.product?.variants?.length > 0 && !selectedVariant.value) return;
+    if (props.product?.variants?.length > 0 && !selectedVariant.value) {
+        variantError.value = true;
+        setTimeout(() => { variantError.value = false; }, 3000);
+        return;
+    }
+    variantError.value = false;
     isAdding.value = true;
     cartError.value = '';
     addToCart({
@@ -233,10 +270,11 @@ const structuredData = computed(() => {
                     <div>
                         <!-- Main Image -->
                         <div
-                            class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden shadow-lg mb-4 cursor-zoom-in"
-                            @mouseenter="handleMouseEnter"
-                            @mouseleave="handleMouseLeave"
-                            @mousemove="handleMouseMove"
+                            class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden shadow-lg mb-4"
+                            :class="{ 'cursor-zoom-in': !isTouchDevice }"
+                            @mouseenter="!isTouchDevice && handleMouseEnter()"
+                            @mouseleave="!isTouchDevice && handleMouseLeave()"
+                            @mousemove="!isTouchDevice && handleMouseMove($event)"
                         >
                             <img
                                 v-if="mainImage"
@@ -299,7 +337,7 @@ const structuredData = computed(() => {
                         <div v-if="product?.description" class="text-gray-600 leading-relaxed mb-8 prose prose-sm max-w-none" v-html="sanitizeHtml(product.description)"></div>
 
                         <!-- Variant Selector -->
-                        <div v-if="product?.variants?.length" class="mb-6">
+                        <div v-if="product?.variants?.length" :class="['mb-6 transition-all duration-300', variantError ? 'ring-2 ring-red-400 rounded-xl p-3 bg-red-50/50' : '']">
                             <label class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.select_variant') }}</label>
                             <div class="flex flex-wrap gap-2">
                                 <button
@@ -316,7 +354,17 @@ const structuredData = computed(() => {
                                     <span v-if="variant.stock <= 0" class="ml-1 text-xs text-gray-400">({{ $t('shop.out_of_stock') }})</span>
                                 </button>
                             </div>
+                            <p v-if="variantError" class="text-sm text-red-500 font-medium mt-2 flex items-center gap-1.5 animate-pulse">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                {{ $t('shop.select_variant_required') }}
+                            </p>
                         </div>
+
+                        <!-- Size Guide Link -->
+                        <a v-if="product?.variants?.some(v => v.size)" href="#" @click.prevent="showSizeGuide = true" class="inline-flex items-center gap-1.5 text-sm text-savino-blue hover:text-savino-gold transition-colors mt-3">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                            {{ $t('shop.size_guide') }}
+                        </a>
 
                         <!-- Quantity Selector -->
                         <div class="mb-8">
@@ -363,6 +411,24 @@ const structuredData = computed(() => {
                         <p v-if="cartError" class="text-red-500 text-sm mt-3 font-medium">
                             {{ cartError }}
                         </p>
+
+                        <!-- Trust Badges -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                    <span class="text-xs font-medium text-gray-600">{{ $t('shop.trust_secure') }}</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                                    <span class="text-xs font-medium text-gray-600">{{ $t('shop.trust_shipping') }}</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                    <span class="text-xs font-medium text-gray-600">{{ $t('shop.trust_returns') }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -390,6 +456,38 @@ const structuredData = computed(() => {
                 </div>
             </div>
         </section>
+
+        <!-- Size Guide Modal -->
+        <Teleport to="body">
+            <Transition name="fade">
+                <div v-if="showSizeGuide" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showSizeGuide = false"></div>
+                    <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 z-10">
+                        <button @click="showSizeGuide = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">{{ $t('shop.size_guide') }}</h3>
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="py-2 text-left font-semibold text-gray-700">{{ $t('shop.size') }}</th>
+                                    <th class="py-2 text-center font-semibold text-gray-700">{{ $t('shop.size_guide_chest') }}</th>
+                                    <th class="py-2 text-center font-semibold text-gray-700">{{ $t('shop.size_guide_length') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="row in [{ size: 'XS', chest: '86-91', length: '65' }, { size: 'S', chest: '91-96', length: '68' }, { size: 'M', chest: '96-101', length: '71' }, { size: 'L', chest: '101-106', length: '74' }, { size: 'XL', chest: '106-111', length: '77' }, { size: 'XXL', chest: '111-116', length: '80' }]" :key="row.size" class="border-b border-gray-100">
+                                    <td class="py-2 font-medium">{{ row.size }}</td>
+                                    <td class="py-2 text-center text-gray-600">{{ row.chest }} cm</td>
+                                    <td class="py-2 text-center text-gray-600">{{ row.length }} cm</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="text-xs text-gray-500 mt-4">{{ $t('shop.size_guide_note') }}</p>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
 
     </PublicLayout>
 </template>

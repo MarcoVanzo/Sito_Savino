@@ -91,6 +91,7 @@ foreach ($locales as $loc) {
             Route::post('/checkout/validate-coupon', \App\Http\Controllers\Shop\ValidateCouponController::class)->middleware('throttle:10,1')->name('shop.checkout.validate-coupon');
             Route::get('/checkout/'.$shopSlugs['conferma'].'/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'success'])->name('shop.checkout.success');
             Route::get('/checkout/'.$shopSlugs['annullato'].'/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'cancel'])->name('shop.checkout.cancel');
+            Route::post('/checkout/retry/{orderToken}', [\App\Http\Controllers\Shop\CheckoutController::class, 'retryPayment'])->middleware('throttle:5,1')->name('shop.checkout.retry');
 
             // Order tracking (guest via token)
             Route::get('/'.$shopSlugs['ordine'].'/{orderNumber}', [\App\Http\Controllers\Shop\OrderController::class, 'show'])->name('shop.order.show');

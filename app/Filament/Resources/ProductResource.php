@@ -86,8 +86,22 @@ class ProductResource extends Resource
                             ->rows(2)
                             ->columnSpanFull()
                             ->helperText('Mostrata nella lista prodotti e nella card'),
-                        Forms\Components\Textarea::make('description')
+                        Forms\Components\RichEditor::make('description')
                             ->label('Descrizione Prodotto')
+                            ->toolbarButtons([
+                                'bold',
+                                'italic',
+                                'underline',
+                                'strike',
+                                'link',
+                                'orderedList',
+                                'bulletList',
+                                'h2',
+                                'h3',
+                                'blockquote',
+                                'redo',
+                                'undo',
+                            ])
                             ->columnSpanFull(),
                     ])->columns(2),
 
@@ -106,7 +120,7 @@ class ProductResource extends Resource
                             ->minValue(0)
                             ->default(0)
                             ->disabled(fn (string $context): bool => $context === 'edit')
-                            ->dehydrated()
+                            ->dehydrated(fn (string $context): bool => $context !== 'edit')
                             ->helperText(fn (string $context): ?string => $context === 'edit' ? 'Gestito dai Movimenti Magazzino. Modifica tramite la sezione dedicata.' : null),
                         Forms\Components\TextInput::make('sku')
                             ->label('Codice (SKU)')
@@ -142,6 +156,7 @@ class ProductResource extends Resource
 
                 Forms\Components\Section::make('Varianti (Opzionale)')
                     ->schema([
+                        // In creazione: Repeater inline per setup iniziale (stock disabilitato, verrà gestito dai Movimenti Magazzino)
                         Forms\Components\Repeater::make('variants')
                             ->label('Aggiungi Varianti')
                             ->relationship()
@@ -151,18 +166,28 @@ class ProductResource extends Resource
                                 Forms\Components\TextInput::make('color')
                                     ->label('Colore'),
                                 Forms\Components\TextInput::make('sku')
-                                    ->label('SKU Variante'),
+                                    ->label('SKU Variante')
+                                    ->required()
+                                    ->unique(table: 'product_variants', column: 'sku'),
                                 Forms\Components\TextInput::make('stock')
-                                    ->label('Stock')
+                                    ->label('Stock Iniziale')
                                     ->numeric()
-                                    ->default(0),
+                                    ->default(0)
+                                    ->helperText('Imposta lo stock iniziale. Dopo la creazione, usa la tab "Varianti" per gestirlo.'),
                                 Forms\Components\TextInput::make('price_modifier')
                                     ->numeric()
                                     ->default(0)
                                     ->label('Variazione Prezzo (€)'),
                             ])
                             ->columns(5)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->visible(fn (string $operation): bool => $operation === 'create'),
+
+                        // In modifica: messaggio che indica di usare il RelationManager
+                        Forms\Components\Placeholder::make('variants_info')
+                            ->label('')
+                            ->content('Le varianti di questo prodotto sono gestite dalla tab "Varianti" in fondo alla pagina. Da lì puoi aggiungere, modificare ed eliminare varianti e gestire lo stock.')
+                            ->visible(fn (string $operation): bool => $operation === 'edit'),
                     ]),
             ]);
     }
@@ -224,6 +249,42 @@ class ProductResource extends Resource
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-eye'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('duplicate')
+                    ->label('Duplica')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('gray')
+                    ->requiresConfirmation()
+                    ->modalHeading('Duplica prodotto')
+                    ->modalDescription('Verrà creata una copia del prodotto con stock azzerato e slug modificato.')
+                    ->action(function (Product $record): void {
+                        $newProduct = $record->replicate(['stock']);
+                        $newProduct->name = $record->name . ' (Copia)';
+                        $newProduct->slug = $record->slug . '-copia-' . now()->timestamp;
+                        $newProduct->stock = 0;
+                        $newProduct->is_active = false;
+                        $newProduct->save();
+
+                        // Copy media
+                        foreach ($record->getMedia('images') as $media) {
+                            $media->copy($newProduct, 'images');
+                        }
+
+                        // Copy variants (with unique SKU suffix)
+                        $suffix = '-copia-' . now()->timestamp;
+                        foreach ($record->variants as $variant) {
+                            $newVariant = $variant->replicate();
+                            $newVariant->product_id = $newProduct->id;
+                            $newVariant->sku = $variant->sku ? $variant->sku . $suffix : null;
+                            $newVariant->stock = 0;
+                            $newVariant->save();
+                        }
+
+                        Notification::make()
+                            ->title('Prodotto duplicato')
+                            ->body("Creata copia: {$newProduct->name}")
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

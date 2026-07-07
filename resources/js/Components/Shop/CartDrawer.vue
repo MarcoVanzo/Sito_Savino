@@ -21,6 +21,7 @@ const { onImgError } = useImageFallback();
 
 const cart = ref({ items: [], total: 0 });
 const hasFetched = ref(false);
+const loadingItems = ref(new Set());
 
 const fetchCart = async () => {
     try {
@@ -37,6 +38,7 @@ const items = computed(() => cart.value?.items ?? []);
 const total = computed(() => cart.value?.total ?? 0);
 const itemCount = computed(() => items.value.reduce((sum, item) => sum + (item.quantity || 1), 0));
 const isEmpty = computed(() => items.value.length === 0);
+const hasStockWarnings = computed(() => cart.value?.items?.some(item => item.stock_warning) ?? false);
 
 // Blocca lo scroll del body quando il drawer è aperto
 watch(isCartOpen, (open) => {
@@ -140,7 +142,8 @@ onUnmounted(() => {
                     <div
                         v-for="item in items"
                         :key="item.id"
-                        class="flex gap-4 bg-gray-800/50 rounded-lg p-3 border border-gray-800"
+                        class="flex gap-4 bg-gray-800/50 rounded-lg p-3 border border-gray-800 transition-opacity duration-200"
+                        :class="{ 'opacity-50 pointer-events-none': loadingItems.has(item.id) }"
                     >
                         <!-- Product Image -->
                         <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
@@ -182,9 +185,9 @@ onUnmounted(() => {
                             <!-- Quantity Controls -->
                             <div class="flex items-center gap-2 mt-2">
                                 <button
-                                    @click="updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1))"
+                                    @click="() => { loadingItems.add(item.id); updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1), { onFinish: () => { loadingItems.delete(item.id); } }); }"
                                     class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-gold hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold"
-                                    :disabled="item.quantity <= 1"
+                                    :disabled="item.quantity <= 1 || loadingItems.has(item.id)"
                                 >
                                     −
                                 </button>
@@ -192,18 +195,19 @@ onUnmounted(() => {
                                     {{ item.quantity || 1 }}
                                 </span>
                                 <button
-                                    @click="updateQuantity(item.id, (item.quantity || 1) + 1)"
+                                    @click="() => { loadingItems.add(item.id); updateQuantity(item.id, (item.quantity || 1) + 1, { onFinish: () => { loadingItems.delete(item.id); } }); }"
                                     class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-gold hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
-                                    :disabled="item.quantity >= (item.product?.stock ?? Infinity)"
+                                    :disabled="item.quantity >= (item.stock ?? item.product?.stock ?? 99) || loadingItems.has(item.id)"
                                 >
                                     +
                                 </button>
 
                                 <!-- Remove Button -->
                                 <button
-                                    @click="removeItem(item.id)"
+                                    @click="() => { loadingItems.add(item.id); removeItem(item.id, { onFinish: () => { loadingItems.delete(item.id); } }); }"
                                     class="ml-auto text-gray-500 hover:text-red-400 transition-colors p-1"
                                     :aria-label="$t('shop.remove_item') || 'Rimuovi'"
+                                    :disabled="loadingItems.has(item.id)"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -254,12 +258,21 @@ onUnmounted(() => {
                     <!-- Action Buttons -->
                     <div class="flex flex-col gap-3">
                         <Link
+                            v-if="!hasStockWarnings"
                             :href="route('shop.checkout')"
                             class="w-full bg-savino-gold text-savino-blue text-sm font-black uppercase tracking-wider py-3.5 rounded-lg hover:bg-savino-gold/90 transition-colors text-center"
                             @click="closeCart"
                         >
                             {{ $t('shop.proceed_checkout') || 'Procedi al checkout' }}
                         </Link>
+                        <button
+                            v-else
+                            disabled
+                            aria-disabled="true"
+                            class="w-full bg-gray-600 text-gray-400 text-sm font-black uppercase tracking-wider py-3.5 rounded-lg cursor-not-allowed text-center"
+                        >
+                            {{ $t('shop.fix_cart_issues') || 'Correggi i problemi nel carrello' }}
+                        </button>
                         <Link
                             :href="route('shop.cart')"
                             class="w-full bg-gray-800 text-gray-300 text-sm font-bold uppercase tracking-wider py-3 rounded-lg hover:bg-gray-700 hover:text-white transition-colors text-center"

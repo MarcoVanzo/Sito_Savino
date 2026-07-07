@@ -1,9 +1,10 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice';
 import { useTranslations } from '@/Composables/useTranslations.js';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -18,6 +19,37 @@ const props = defineProps({
 const ogMeta = useOgMeta({
     title: $t('checkout_success.og_title'),
     description: $t('checkout_success.og_description'),
+});
+
+// H4: Determine the payment status message based on actual order status + gateway
+const isBankTransfer = computed(() => props.order.payment_gateway === 'bank_transfer');
+const isPaymentConfirmed = computed(() =>
+    ['paid', 'processing', 'shipped', 'delivered'].includes(props.order.status)
+);
+const isAwaitingWebhook = computed(() =>
+    !isBankTransfer.value && props.order.status === 'pending'
+);
+
+// Auto-refresh the page every 5s while awaiting webhook, up to 60s max
+let pollInterval = null;
+let pollCount = ref(0);
+const maxPolls = 12; // 12 × 5s = 60s
+
+onMounted(() => {
+    if (isAwaitingWebhook.value) {
+        pollInterval = setInterval(() => {
+            pollCount.value++;
+            if (pollCount.value >= maxPolls) {
+                clearInterval(pollInterval);
+                return;
+            }
+            router.reload({ only: ['order'], preserveScroll: true });
+        }, 5000);
+    }
+});
+
+onUnmounted(() => {
+    if (pollInterval) clearInterval(pollInterval);
 });
 </script>
 
@@ -66,12 +98,29 @@ const ogMeta = useOgMeta({
                         </template>
                     </div>
 
-                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-8 text-savino-blue">
-                        <template v-if="order.payment_gateway === 'bank_transfer'">
+                    <!-- Payment Status Banner -->
+                    <div class="rounded-lg p-4 mb-8" :class="{
+                        'bg-blue-50 border border-blue-100 text-savino-blue': isBankTransfer,
+                        'bg-green-50 border border-green-200 text-green-700': isPaymentConfirmed,
+                        'bg-amber-50 border border-amber-200 text-amber-700': isAwaitingWebhook,
+                    }">
+                        <template v-if="isBankTransfer">
                             <p class="font-medium">{{ $t('checkout_success.bank_transfer_pending') }}</p>
                         </template>
+                        <template v-else-if="isPaymentConfirmed">
+                            <p class="font-medium flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                {{ $t('checkout_success.payment_received') }}
+                            </p>
+                        </template>
                         <template v-else>
-                            <p class="font-medium">{{ $t('checkout_success.payment_received') }}</p>
+                            <p class="font-medium flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                {{ $t('checkout_success.payment_processing') }}
+                            </p>
                         </template>
                     </div>
 
@@ -105,3 +154,4 @@ const ogMeta = useOgMeta({
         </section>
     </PublicLayout>
 </template>
+

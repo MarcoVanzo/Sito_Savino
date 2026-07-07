@@ -65,7 +65,46 @@ class AuctionResource extends Resource
                                     ->columnSpanFull(),
                                 Forms\Components\Select::make('status')
                                     ->label('Stato')
-                                    ->options(AuctionStatus::class)
+                                    ->options(function (Forms\Get $get, ?Auction $record): array {
+                                        // During creation, only Draft is allowed
+                                        if (! $record) {
+                                            return [AuctionStatus::Draft->value => AuctionStatus::Draft->getLabel()];
+                                        }
+
+                                        // Define allowed transitions per status
+                                        $allowedTransitions = [
+                                            AuctionStatus::Draft->value => [
+                                                AuctionStatus::Draft,
+                                                AuctionStatus::Scheduled,
+                                                AuctionStatus::Active,
+                                                AuctionStatus::Cancelled,
+                                            ],
+                                            AuctionStatus::Scheduled->value => [
+                                                AuctionStatus::Scheduled,
+                                                AuctionStatus::Active,
+                                                AuctionStatus::Cancelled,
+                                            ],
+                                            AuctionStatus::Active->value => [
+                                                AuctionStatus::Active,
+                                                AuctionStatus::Ended,
+                                                AuctionStatus::Cancelled,
+                                            ],
+                                            AuctionStatus::Ended->value => [
+                                                AuctionStatus::Ended,
+                                            ],
+                                            AuctionStatus::Cancelled->value => [
+                                                AuctionStatus::Cancelled,
+                                                AuctionStatus::Draft,
+                                            ],
+                                        ];
+
+                                        $currentStatus = $record->status?->value ?? AuctionStatus::Draft->value;
+                                        $allowed = $allowedTransitions[$currentStatus] ?? AuctionStatus::cases();
+
+                                        return collect($allowed)
+                                            ->mapWithKeys(fn (AuctionStatus $s) => [$s->value => $s->getLabel()])
+                                            ->all();
+                                    })
                                     ->required()
                                     ->default(AuctionStatus::Draft),
                                 Forms\Components\Toggle::make('is_charity')

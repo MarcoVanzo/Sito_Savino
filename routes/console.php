@@ -20,8 +20,9 @@ Schedule::command('activity-log:prune --days=180 --force')->weekly();
 Schedule::command('model:prune')->daily();
 Schedule::command('carts:prune-expired')->daily()->at('03:00');
 
-// Controllo ordini bonifico non pagati (promemoria + cancellazione)
-Schedule::command('order:check-unpaid')->daily()->at('08:00');
+// Controllo ordini non pagati: cancella Stripe/PayPal abbandonati (1h) e bonifici scaduti (7gg)
+// Frequenza alta per rilasciare stock bloccato da checkout abbandonati il prima possibile
+Schedule::command('order:check-unpaid')->everyTenMinutes()->withoutOverlapping();
 
 // Aste: attivazione aste programmate (ogni minuto)
 Schedule::command('auction:activate')->everyMinute()->withoutOverlapping();

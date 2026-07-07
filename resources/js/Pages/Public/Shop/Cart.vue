@@ -42,13 +42,14 @@ const ogMeta = useOgMeta({
 });
 
 const isEmpty = computed(() => !props.cart?.items?.length);
+const hasStockWarnings = computed(() => props.cart?.items?.some(item => item.stock_warning) ?? false);
 
 // --- Loading indicators for cart item operations ---
 const loadingItems = ref(new Set());
 const errorMessage = ref(null);
 
 const showError = (msg) => {
-    errorMessage.value = msg || 'Si è verificato un errore. Riprova.';
+    errorMessage.value = msg || $t('shop.generic_error');
     setTimeout(() => errorMessage.value = null, 5000);
 };
 
@@ -154,6 +155,10 @@ const handleRemoveItem = (itemId) => {
                                 <div>
                                     <h3 class="text-savino-blue font-bold text-sm">{{ item.name }}</h3>
                                     <p v-if="item.variant" class="text-xs text-gray-500 mt-0.5">{{ item.variant }}</p>
+                                    <p v-if="item.stock_warning" class="text-xs text-amber-600 font-medium mt-1 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                        {{ $t('shop.stock_exceeded') }}
+                                    </p>
                                     <!-- Mobile: Remove button inline -->
                                     <button
                                         @click="handleRemoveItem(item.id)"
@@ -273,11 +278,15 @@ const handleRemoveItem = (itemId) => {
                             </div>
 
                             <Link
+                                v-if="!hasStockWarnings"
                                 :href="route('shop.checkout')"
                                 class="block w-full text-center bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                             >
                                 {{ $t('shop.proceed_to_checkout') }}
                             </Link>
+                            <button v-else disabled aria-disabled="true" class="block w-full text-center bg-gray-300 text-gray-500 font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-xl cursor-not-allowed">
+                                {{ $t('shop.fix_cart_issues') }}
+                            </button>
 
                             <!-- Security Badges -->
                             <div class="mt-6 flex items-center justify-center gap-4 text-xs text-gray-400">

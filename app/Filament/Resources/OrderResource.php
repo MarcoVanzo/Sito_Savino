@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
+use App\Filament\Resources\UserResource;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Mail\OrderShipped;
 use App\Models\Order;
@@ -85,8 +86,7 @@ class OrderResource extends Resource
                                     ->disabled()
                                     ->dehydrated(false),
                                 Forms\Components\TextInput::make('codice_fiscale')
-                                    ->label('Codice Fiscale')
-                                    ->disabled(),
+                                    ->label('Codice Fiscale'),
                             ])->columns(2),
 
                         Forms\Components\Tabs\Tab::make('Cliente Guest')
@@ -157,7 +157,10 @@ class OrderResource extends Resource
                                     ])->columns(2),
 
                                 Forms\Components\TextInput::make('country')
-                                    ->label('Paese')
+                                    ->label('Paese (Spedizione)')
+                                    ->maxLength(2),
+                                Forms\Components\TextInput::make('billing_country')
+                                    ->label('Paese (Fatturazione)')
                                     ->maxLength(2),
                                 Forms\Components\TextInput::make('tracking_number')
                                     ->label('Numero Tracking'),
@@ -215,6 +218,8 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Cliente')
                     ->getStateUsing(fn ($record) => $record->user?->name ?? $record->guest_name ?? '-')
+                    ->url(fn ($record) => $record->user_id ? UserResource::getUrl('edit', ['record' => $record->user_id]) : null)
+                    ->color(fn ($record) => $record->user_id ? 'primary' : null)
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->where(function (Builder $query) use ($search) {
                             $query->whereHas('user', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
@@ -252,6 +257,37 @@ class OrderResource extends Resource
                 Tables\Filters\SelectFilter::make('payment_gateway')
                     ->label('Gateway Pagamento')
                     ->options(PaymentGateway::class),
+                Tables\Filters\Filter::make('created_at')
+                    ->label('Periodo')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')
+                            ->label('Da'),
+                        Forms\Components\DatePicker::make('until')
+                            ->label('A'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['from'] ?? null) {
+                            $indicators[] = Tables\Filters\Indicator::make('Da: ' . \Carbon\Carbon::parse($data['from'])->format('d/m/Y'))
+                                ->removeField('from');
+                        }
+                        if ($data['until'] ?? null) {
+                            $indicators[] = Tables\Filters\Indicator::make('A: ' . \Carbon\Carbon::parse($data['until'])->format('d/m/Y'))
+                                ->removeField('until');
+                        }
+                        return $indicators;
+                    }),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([

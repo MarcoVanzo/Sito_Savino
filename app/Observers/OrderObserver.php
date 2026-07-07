@@ -45,6 +45,17 @@ class OrderObserver
         if ($order->status === OrderStatus::Cancelled || $order->status === OrderStatus::Refunded) {
             $this->restoreStock($order);
         }
+
+        // Send status change notification to customer
+        // Non invia per: Pending (stato iniziale), Paid (webhook gestisce), Shipped (admin invia email con tracking separata)
+        $statusesThatNotify = [OrderStatus::Processing, OrderStatus::Delivered, OrderStatus::Cancelled, OrderStatus::Refunded];
+        if (in_array($order->status, $statusesThatNotify)) {
+            $recipientEmail = $order->user?->email ?? $order->guest_email;
+            if ($recipientEmail) {
+                \Illuminate\Support\Facades\Mail::to($recipientEmail)
+                    ->queue(new \App\Mail\OrderStatusChanged($order, $order->getOriginal('status'), $order->status->value));
+            }
+        }
     }
 
     /**
@@ -83,7 +94,7 @@ class OrderObserver
                     'order_id' => $order->id,
                     'quantity' => abs($movement->quantity),
                     'type' => StockMovementType::Adjustment,
-                    'notes' => "Ripristino Ordine #{$order->id} — cancellazione",
+                    'notes' => "Ripristino Ordine #{$order->id} — {$order->status->getLabel()}",
                 ]);
             }
 

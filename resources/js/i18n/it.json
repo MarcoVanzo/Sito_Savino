@@ -426,7 +426,7 @@
     "discover": "Scopri",
     "related_products": "Prodotti Correlati",
     "sale": "In Offerta",
-    "low_stock": "Ultimi pezzi disponibili",
+    "low_stock": "Ultimi {count} pezzi disponibili!",
     "product_detail": "Dettaglio Prodotto",
     "search_label": "Ricerca",
     "results_for": "Risultati per",
@@ -446,7 +446,24 @@
     "forgot_password": "Password dimenticata?",
     "remember_me": "Ricordami",
     "login_title": "Accedi allo Shop",
-    "login_subtitle": "Accedi per gestire i tuoi ordini"
+    "login_subtitle": "Accedi per gestire i tuoi ordini",
+    "stock_exceeded": "Quantità richiesta superiore alla disponibilità. Riduci la quantità.",
+    "fix_cart_issues": "Correggi i problemi nel carrello prima di procedere",
+    "generic_error": "Si è verificato un errore. Riprova.",
+    "select_variant_required": "Seleziona una variante prima di aggiungere al carrello",
+    "auctions_cta_title": "Scopri le Aste Esclusive",
+    "auctions_cta_description": "Maglie autografate, esperienze VIP e pezzi unici. Partecipa alle aste!",
+    "auctions_cta_button": "Vai alle Aste",
+    "size_guide": "Guida alle taglie",
+    "size_guide_chest": "Petto (cm)",
+    "size_guide_length": "Lunghezza (cm)",
+    "size_guide_note": "Le misure sono indicative e possono variare leggermente.",
+    "trust_secure": "Pagamento Sicuro",
+    "trust_shipping": "Spedizione Tracciata",
+    "trust_returns": "Reso Facile",
+    "load_more": "Mostra altri prodotti",
+    "remaining": "rimanenti",
+    "sort_default": "Ordina per"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Ordine inviato! (placeholder)",
@@ -463,6 +480,7 @@
     "label_shipping_address": "Indirizzo di Spedizione *",
     "placeholder_shipping_address": "Via Roma 1, 50100 Firenze (FI)",
     "label_country": "Paese *",
+    "label_billing_country": "Paese (fatturazione) *",
     "billing_same_as_shipping": "Indirizzo di fatturazione uguale a quello di spedizione",
     "label_billing_address": "Indirizzo di Fatturazione *",
     "placeholder_billing_address": "Via..., CAP, Città (Prov.)",
@@ -655,6 +673,7 @@
     "order_number_label": "Il tuo numero d'ordine è:",
     "bank_transfer_pending": "In attesa del bonifico. Dettagli bancari inviati via email.",
     "payment_received": "Pagamento ricevuto con successo.",
+    "payment_processing": "Verifica del pagamento in corso...",
     "order_total": "Totale Ordine:",
     "payment_method": "Metodo di pagamento:",
     "download_receipt": "Scarica Ricevuta",
@@ -670,6 +689,7 @@
     "order_ref": "Riferimento ordine:",
     "order_details": "Dettagli Ordine",
     "retry_payment": "Riprova il pagamento",
+    "processing": "Elaborazione...",
     "back_to_shop": "Torna allo shop"
   },
   "my_orders": {
@@ -771,5 +791,21 @@
     "rules": "Regolamento asta",
     "charity_label": "Asta benefica",
     "share": "Condividi"
+  },
+  "auctions": {
+    "og_title": "Aste — Savino Del Bene Volley",
+    "og_description": "Partecipa alle aste esclusive della Savino Del Bene Volley. Maglie autografate, esperienze uniche e tanto altro per una buona causa.",
+    "hero_subtitle": "Shop",
+    "hero_title": "Aste",
+    "hero_description": "Partecipa alle nostre aste esclusive. Maglie autografate, esperienze uniche e oggetti da collezione per sostenere la squadra.",
+    "filter_all": "Tutte",
+    "filter_active": "Attive",
+    "filter_scheduled": "In arrivo",
+    "filter_ended": "Concluse",
+    "empty_title": "Nessuna asta disponibile",
+    "empty_description": "Al momento non ci sono aste. Torna presto per nuove opportunità!",
+    "shop_cta_title": "Merchandising Ufficiale",
+    "shop_cta_description": "Scopri la collezione completa dei prodotti ufficiali Savino Del Bene Volley.",
+    "shop_cta_button": "Vai allo Shop"
   }
 }

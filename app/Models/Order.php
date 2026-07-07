@@ -26,7 +26,7 @@ class Order extends Model
         'user_id', 'status', 'total_price',
         'shipping_address', 'billing_address',
         'order_number', 'order_token', 'guest_email', 'guest_name',
-        'guest_phone', 'phone', 'country', 'codice_fiscale', 'payment_gateway',
+        'guest_phone', 'phone', 'country', 'billing_country', 'codice_fiscale', 'payment_gateway',
         'paid_at', 'shipped_at', 'tracking_number', 'tracking_url',
         'shipping_cost', 'coupon_id', 'coupon_discount', 'notes',
         'privacy_accepted_at',
@@ -128,12 +128,18 @@ class Order extends Model
     {
         $addr = $this->shipping_address;
         if (is_string($addr)) {
-            return ['raw_address' => $addr];
+            $addr = ['raw_address' => $addr];
+        } elseif (is_array($addr) && isset($addr['raw_address'])) {
+            // keep as-is
+        } else {
+            $addr = $addr ?? [];
         }
-        if (is_array($addr) && isset($addr['raw_address'])) {
-            return $addr;
+
+        if ($this->country) {
+            $addr['country'] = $this->country;
         }
-        return $addr ?? [];
+
+        return $addr;
     }
 
     /**
@@ -144,11 +150,17 @@ class Order extends Model
     {
         $addr = $this->billing_address;
         if (is_string($addr)) {
-            return ['raw_address' => $addr];
+            $addr = ['raw_address' => $addr];
+        } elseif (is_array($addr) && isset($addr['raw_address'])) {
+            // keep as-is
+        } else {
+            $addr = $addr ?? [];
         }
-        if (is_array($addr) && isset($addr['raw_address'])) {
-            return $addr;
+
+        if ($this->billing_country) {
+            $addr['country'] = $this->billing_country;
         }
-        return $addr ?? [];
+
+        return $addr;
     }
 }

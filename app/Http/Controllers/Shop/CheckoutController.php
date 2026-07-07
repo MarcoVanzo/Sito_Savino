@@ -155,12 +155,51 @@ class CheckoutController extends Controller
     {
         $order = Order::where('order_token', $orderToken)->firstOrFail();
 
-        $canRetry = $order->status === OrderStatus::Pending;
+        $canRetry = $order->status === OrderStatus::Pending
+            && in_array($order->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal]);
 
         return Inertia::render('Public/Shop/CheckoutCancel', [
             'order' => $order,
             'canRetry' => $canRetry,
         ]);
+    }
+
+    /**
+     * Riprova il pagamento per un ordine Pending.
+     * Crea una nuova sessione Stripe/PayPal per l'ordine esistente
+     * senza richiedere un nuovo checkout (il carrello è già stato svuotato).
+     */
+    public function retryPayment(Request $request, string $orderToken): RedirectResponse
+    {
+        $order = Order::where('order_token', $orderToken)->firstOrFail();
+
+        // Solo ordini Pending con gateway digitale possono fare retry
+        if ($order->status !== OrderStatus::Pending) {
+            return redirect()->route('shop.checkout.cancel', ['orderToken' => $orderToken])
+                ->with('error', __('messages.checkout.retry_not_available'));
+        }
+
+        // Verifica proprietà ordine (se autenticato deve essere il proprietario)
+        if (auth()->check() && $order->user_id && $order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        try {
+            return match ($order->payment_gateway) {
+                PaymentGateway::Stripe => $this->handleStripe($order),
+                PaymentGateway::PayPal => $this->handlePayPal($order),
+                default => redirect()->route('shop.checkout.cancel', ['orderToken' => $orderToken])
+                    ->with('error', __('messages.checkout.retry_not_available')),
+            };
+        } catch (\Exception $e) {
+            Log::error('Errore retry pagamento', [
+                'order_id' => $order->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('shop.checkout.cancel', ['orderToken' => $orderToken])
+                ->with('error', __('messages.checkout.error'));
+        }
     }
 
     /**

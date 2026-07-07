@@ -58,6 +58,7 @@ const form = useForm({
     billing_city: '',
     billing_zip_code: '',
     billing_province: '',
+    billing_country: 'IT',
     payment_gateway: '',
     coupon_code: '',
     notes: '',
@@ -101,6 +102,15 @@ const validateStep1 = () => {
     if (missing.length > 0) {
         stepValidationError.value = $t('shop_checkout.step_validation_required');
         return false;
+    }
+    // Validate billing fields when billing address differs from shipping
+    if (!form.billing_same_as_shipping) {
+        const billingRequired = ['billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code'];
+        const missingBilling = billingRequired.filter(f => !form[f]?.toString().trim());
+        if (missingBilling.length > 0) {
+            stepValidationError.value = $t('shop_checkout.step_validation_required');
+            return false;
+        }
     }
     stepValidationError.value = '';
     return true;
@@ -207,7 +217,22 @@ const submitOrder = () => {
 const step1Fields = ['shipping_first_name', 'shipping_last_name', 'shipping_street',
     'shipping_city', 'shipping_zip_code', 'shipping_province',
     'guest_name', 'guest_email', 'guest_phone', 'country',
-    'codice_fiscale', 'phone'];
+    'billing_first_name', 'billing_last_name', 'billing_street',
+    'billing_city', 'billing_zip_code', 'billing_province',
+    'billing_country', 'codice_fiscale', 'phone'];
+
+// Reset billing fields when billing_same_as_shipping is toggled back to true
+watch(() => form.billing_same_as_shipping, (isSame) => {
+    if (isSame) {
+        form.billing_country = form.country;
+        form.billing_first_name = '';
+        form.billing_last_name = '';
+        form.billing_street = '';
+        form.billing_city = '';
+        form.billing_zip_code = '';
+        form.billing_province = '';
+    }
+});
 
 watch(() => form.errors, (errors) => {
     if (currentStep.value === 2 && step1Fields.some(f => errors[f])) {
@@ -576,6 +601,16 @@ const ogMeta = useOgMeta({
                                         <label for="billing-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }}</label>
                                         <input id="billing-province" v-model="form.billing_province" type="text" autocomplete="address-level1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_province')" />
                                         <p v-if="form.errors.billing_province" class="mt-1 text-sm text-red-500">{{ form.errors.billing_province }}</p>
+                                    </div>
+                                    <div>
+                                        <label for="billing-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_billing_country') }}</label>
+                                        <select id="billing-country" v-model="form.billing_country" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
+                                            <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
+                                            <option v-for="c in availableCountries" :key="c.code" :value="c.code">
+                                                {{ c.name }}
+                                            </option>
+                                        </select>
+                                        <p v-if="form.errors.billing_country" class="mt-1 text-sm text-red-500">{{ form.errors.billing_country }}</p>
                                     </div>
                                 </div>
                             </div>

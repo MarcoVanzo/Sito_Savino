@@ -17,13 +17,13 @@ enum OrderStatus: string implements HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Pending => 'In attesa',
-            self::Processing => 'In Lavorazione',
-            self::Paid => 'Pagato',
-            self::Shipped => 'Spedito',
-            self::Delivered => 'Consegnato',
-            self::Cancelled => 'Annullato',
-            self::Refunded => 'Rimborsato',
+            self::Pending => __('enums.order_status.pending'),
+            self::Processing => __('enums.order_status.processing'),
+            self::Paid => __('enums.order_status.paid'),
+            self::Shipped => __('enums.order_status.shipped'),
+            self::Delivered => __('enums.order_status.delivered'),
+            self::Cancelled => __('enums.order_status.cancelled'),
+            self::Refunded => __('enums.order_status.refunded'),
         };
     }
 

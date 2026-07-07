@@ -426,7 +426,7 @@
     "discover": "Discover",
     "related_products": "Related Products",
     "sale": "On Sale",
-    "low_stock": "Only a few left",
+    "low_stock": "Only {count} left in stock!",
     "product_detail": "Product Detail",
     "search_label": "Search",
     "results_for": "Results for",
@@ -446,7 +446,24 @@
     "forgot_password": "Forgot password?",
     "remember_me": "Remember me",
     "login_title": "Shop Login",
-    "login_subtitle": "Log in to manage your orders"
+    "login_subtitle": "Log in to manage your orders",
+    "stock_exceeded": "Requested quantity exceeds available stock. Please reduce the quantity.",
+    "fix_cart_issues": "Fix cart issues before proceeding",
+    "generic_error": "An error occurred. Please try again.",
+    "select_variant_required": "Select a variant before adding to cart",
+    "auctions_cta_title": "Discover Exclusive Auctions",
+    "auctions_cta_description": "Signed jerseys, VIP experiences and unique items. Join the auctions!",
+    "auctions_cta_button": "Go to Auctions",
+    "size_guide": "Size Guide",
+    "size_guide_chest": "Chest (cm)",
+    "size_guide_length": "Length (cm)",
+    "size_guide_note": "Measurements are approximate and may vary slightly.",
+    "trust_secure": "Secure Payment",
+    "trust_shipping": "Tracked Shipping",
+    "trust_returns": "Easy Returns",
+    "load_more": "Load more products",
+    "remaining": "remaining",
+    "sort_default": "Sort by"
   },
   "shop_checkout": {
     "order_submitted_placeholder": "Order submitted! (placeholder)",
@@ -463,6 +480,7 @@
     "label_shipping_address": "Shipping Address *",
     "placeholder_shipping_address": "123 Main Street, 50100 Florence",
     "label_country": "Country *",
+    "label_billing_country": "Country (billing) *",
     "billing_same_as_shipping": "Billing address is the same as shipping",
     "label_billing_address": "Billing Address *",
     "placeholder_billing_address": "Street, Postcode, City",
@@ -655,6 +673,7 @@
     "order_number_label": "Your order number is:",
     "bank_transfer_pending": "Awaiting bank transfer. Bank details sent via email.",
     "payment_received": "Payment received successfully.",
+    "payment_processing": "Verifying payment...",
     "order_total": "Order Total:",
     "payment_method": "Payment method:",
     "download_receipt": "Download Receipt",
@@ -670,6 +689,7 @@
     "order_ref": "Order reference:",
     "order_details": "Order Details",
     "retry_payment": "Retry payment",
+    "processing": "Processing...",
     "back_to_shop": "Back to shop"
   },
   "my_orders": {
@@ -771,5 +791,21 @@
     "rules": "Auction rules",
     "charity_label": "Charity auction",
     "share": "Share"
+  },
+  "auctions": {
+    "og_title": "Auctions — Savino Del Bene Volley",
+    "og_description": "Join the exclusive Savino Del Bene Volley auctions. Signed jerseys, unique experiences and more for a good cause.",
+    "hero_subtitle": "Shop",
+    "hero_title": "Auctions",
+    "hero_description": "Join our exclusive auctions. Signed jerseys, unique experiences and collectibles to support the team.",
+    "filter_all": "All",
+    "filter_active": "Active",
+    "filter_scheduled": "Upcoming",
+    "filter_ended": "Ended",
+    "empty_title": "No auctions available",
+    "empty_description": "There are no auctions at the moment. Check back soon for new opportunities!",
+    "shop_cta_title": "Official Merchandise",
+    "shop_cta_description": "Discover the full collection of official Savino Del Bene Volley products.",
+    "shop_cta_button": "Go to Shop"
   }
 }

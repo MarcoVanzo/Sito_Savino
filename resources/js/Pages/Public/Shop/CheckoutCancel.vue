@@ -1,6 +1,6 @@
 <script setup>
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useTranslations } from '@/Composables/useTranslations.js';
 
@@ -10,6 +10,10 @@ const props = defineProps({
     order: {
         type: Object,
         default: null,
+    },
+    canRetry: {
+        type: Boolean,
+        default: false,
     },
     message: {
         type: String,
@@ -21,6 +25,13 @@ const ogMeta = useOgMeta({
     title: $t('checkout_cancel.og_title'),
     description: $t('checkout_cancel.og_description'),
 });
+
+const retryForm = useForm({});
+
+const handleRetryPayment = () => {
+    if (!props.order?.order_token) return;
+    retryForm.post(route('shop.checkout.retry', props.order.order_token));
+};
 </script>
 
 <template>
@@ -59,11 +70,23 @@ const ogMeta = useOgMeta({
                         <p class="text-xl font-bold text-gray-900 mb-8">{{ order.order_number }}</p>
                         
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a v-if="order.order_token" :href="route('shop.order.receipt', order.order_token)" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                            <Link :href="route('shop.order.show', order.order_number)" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
                                 {{ $t('checkout_cancel.order_details') }}
-                            </a>
-                            <Link :href="route('shop.checkout')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
-                                {{ $t('checkout_cancel.retry_payment') }}
+                            </Link>
+                            <button
+                                v-if="canRetry"
+                                @click="handleRetryPayment"
+                                :disabled="retryForm.processing"
+                                class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg v-if="retryForm.processing" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                {{ retryForm.processing ? $t('checkout_cancel.processing') : $t('checkout_cancel.retry_payment') }}
+                            </button>
+                            <Link v-else :href="route('shop')" class="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-savino-blue hover:bg-savino-blue/90 transition-colors duration-200">
+                                {{ $t('checkout_cancel.back_to_shop') }}
                             </Link>
                         </div>
                     </template>
@@ -79,3 +102,4 @@ const ogMeta = useOgMeta({
         </section>
     </PublicLayout>
 </template>
+

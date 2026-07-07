@@ -1,8 +1,8 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, usePage, router } from '@inertiajs/vue3';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 import ProductCardSkeleton from '@/Components/Shop/ProductCardSkeleton.vue';
@@ -82,9 +82,26 @@ const clearFilters = () => {
     searchQuery.value = '';
     selectedCategory.value = null;
     selectedSort.value = '';
+    visibleCount.value = itemsPerPage;
 };
 
 const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || selectedCategory.value !== null || selectedSort.value !== '');
+
+// --- Client-side pagination ---
+const itemsPerPage = 12;
+const visibleCount = ref(itemsPerPage);
+
+// Reset visible count when filters change
+watch([searchQuery, selectedCategory, selectedSort], () => {
+    visibleCount.value = itemsPerPage;
+});
+
+const visibleProducts = computed(() => filteredProducts.value.slice(0, visibleCount.value));
+const hasMoreProducts = computed(() => visibleCount.value < filteredProducts.value.length);
+
+const loadMore = () => {
+    visibleCount.value += itemsPerPage;
+};
 </script>
 
 <template>
@@ -227,8 +244,20 @@ const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || 
                     role="list"
                     :aria-label="$t('shop.products_list') || 'Elenco prodotti'"
                 >
-                    <ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" role="listitem" />
+                    <ProductCard v-for="product in visibleProducts" :key="product.id" :product="product" role="listitem" />
                 </transition-group>
+
+                <!-- Load More Button -->
+                <div v-if="hasMoreProducts && !isNavigating" class="text-center mt-12">
+                    <button
+                        @click="loadMore"
+                        class="inline-flex items-center gap-2 bg-white text-savino-blue font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-xl border-2 border-savino-blue hover:bg-savino-blue hover:text-white transition-all duration-300 shadow-md hover:shadow-xl"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        {{ $t('shop.load_more') }}
+                        <span class="text-xs opacity-70">({{ filteredProducts.length - visibleCount }} {{ $t('shop.remaining') }})</span>
+                    </button>
+                </div>
 
                 <!-- Empty State: no results from filter/search -->
                 <div v-else-if="hasActiveFilters" class="text-center py-20">
@@ -273,6 +302,18 @@ const hasActiveFilters = computed(() => searchQuery.value.trim().length >= 2 || 
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+        <!-- Cross-link: Auctions -->
+        <section class="bg-gradient-to-r from-savino-blue to-savino-blue/80 py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h3 class="text-2xl font-black text-white uppercase tracking-tight">🔥 {{ $t('shop.auctions_cta_title') }}</h3>
+                    <p class="text-white/80 mt-1">{{ $t('shop.auctions_cta_description') }}</p>
+                </div>
+                <Link :href="route('shop.auctions')" class="inline-flex items-center px-8 py-3 bg-savino-gold text-savino-blue font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
+                    {{ $t('shop.auctions_cta_button') }}
+                </Link>
             </div>
         </section>
     </PublicLayout>

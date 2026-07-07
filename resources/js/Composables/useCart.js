@@ -84,7 +84,7 @@ export function useCart() {
     /**
      * Aggiorna la quantità di un item già nel carrello.
      */
-    const updateQuantity = (cartItemId, quantity) => {
+    const updateQuantity = (cartItemId, quantity, callbacks = {}) => {
         router.patch(route('shop.cart.update', cartItemId), {
             quantity,
         }, {
@@ -92,6 +92,13 @@ export function useCart() {
             onSuccess: () => {
                 fetchCartCount();
                 cartVersion.value++;
+                callbacks.onSuccess?.();
+            },
+            onError: (errors) => {
+                callbacks.onError?.(errors);
+            },
+            onFinish: () => {
+                callbacks.onFinish?.();
             },
         });
     };
@@ -99,12 +106,19 @@ export function useCart() {
     /**
      * Rimuove un item dal carrello.
      */
-    const removeItem = (cartItemId) => {
+    const removeItem = (cartItemId, callbacks = {}) => {
         router.delete(route('shop.cart.destroy', cartItemId), {
             preserveScroll: true,
             onSuccess: () => {
                 fetchCartCount();
                 cartVersion.value++;
+                callbacks.onSuccess?.();
+            },
+            onError: (errors) => {
+                callbacks.onError?.(errors);
+            },
+            onFinish: () => {
+                callbacks.onFinish?.();
             },
         });
     };

@@ -144,6 +144,7 @@ class CheckoutService
                 'guest_email' => $data['guest_email'] ?? null,
                 'guest_phone' => $data['guest_phone'] ?? null,
                 'country' => $data['country'],
+                'billing_country' => $data['billing_country'] ?? $data['country'],
                 'shipping_address' => $data['shipping_address'],
                 'billing_address' => $data['billing_address'],
                 'payment_gateway' => PaymentGateway::from($data['payment_gateway']),
@@ -317,18 +318,18 @@ class CheckoutService
 
             if ($item->quantity > $availableStock) {
                 $productName = $product?->name ?? 'Unknown';
-                $errors["stock.{$item->id}"] = [
-                    __('messages.checkout.stock_issue', [
-                        'product' => $productName,
-                        'available' => $availableStock,
-                        'requested' => $item->quantity,
-                    ]),
-                ];
+                $errors[] = __('messages.checkout.stock_issue', [
+                    'product' => $productName,
+                    'available' => $availableStock,
+                    'requested' => $item->quantity,
+                ]);
             }
         }
 
         if (! empty($errors)) {
-            throw ValidationException::withMessages($errors);
+            throw ValidationException::withMessages([
+                'stock' => $errors,
+            ]);
         }
     }
 }
