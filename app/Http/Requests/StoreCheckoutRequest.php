@@ -48,7 +48,7 @@ class StoreCheckoutRequest extends FormRequest
             'shipping_city' => ['required', 'string', 'max:100'],
             'shipping_zip_code' => ['required', 'string', 'max:20'],
             'shipping_province' => ['required', 'string', 'max:100'],
-            'country' => ['required', 'string', 'size:2'],
+            'country' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
             'billing_same_as_shipping' => ['required', 'boolean'],
             'payment_gateway' => [
                 'required',
@@ -76,7 +76,7 @@ class StoreCheckoutRequest extends FormRequest
             $rules['billing_city'] = ['required', 'string', 'max:100'];
             $rules['billing_zip_code'] = ['required', 'string', 'max:20'];
             $rules['billing_province'] = ['required', 'string', 'max:100'];
-            $rules['billing_country'] = ['required', 'string', 'size:2'];
+            $rules['billing_country'] = ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'];
         }
 
         // Campi guest obbligatori se non autenticato

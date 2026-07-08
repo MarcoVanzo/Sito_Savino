@@ -100,6 +100,14 @@ class AuctionCheckoutController extends Controller
             return redirect()->route('shop.auction-checkout.success', ['token' => $token]);
         }
 
+        // Sanitizza input prima della validazione (allineato a StoreCheckoutRequest)
+        if ($request->has('notes') && $request->notes !== null) {
+            $request->merge(['notes' => strip_tags($request->notes)]);
+        }
+        if ($request->has('codice_fiscale') && $request->codice_fiscale !== null) {
+            $request->merge(['codice_fiscale' => strtoupper(trim($request->codice_fiscale))]);
+        }
+
         $validated = $request->validate([
             'shipping_first_name' => ['required', 'string', 'max:100'],
             'shipping_last_name' => ['required', 'string', 'max:100'],
@@ -107,7 +115,7 @@ class AuctionCheckoutController extends Controller
             'shipping_city' => ['required', 'string', 'max:100'],
             'shipping_zip_code' => ['required', 'string', 'max:20'],
             'shipping_province' => ['required', 'string', 'max:100'],
-            'country' => ['required', 'string', 'size:2'],
+            'country' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
             'phone' => ['required', 'string', 'max:30'],
             'codice_fiscale' => ['nullable', 'string', 'size:16', 'regex:/^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i'],
             'billing_same_as_shipping' => ['required', 'boolean'],
