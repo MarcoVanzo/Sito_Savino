@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | Non protette da CSRF (gestito via firma del payload).
 */
 
-Route::prefix('webhooks')->group(function () {
+Route::prefix('webhooks')->middleware('throttle:60,1')->group(function () {
     Route::post('/stripe', [StripeWebhookController::class, 'handle']);
     Route::post('/paypal', [PayPalWebhookController::class, 'handle']);
 });

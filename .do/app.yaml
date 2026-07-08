@@ -96,7 +96,7 @@ services:
     value: "true"
   - key: CACHE_STORE
     scope: RUN_AND_BUILD_TIME
-    value: file
+    value: database
   - key: QUEUE_CONNECTION
     scope: RUN_AND_BUILD_TIME
     value: database
@@ -176,6 +176,9 @@ workers:
   - key: QUEUE_CONNECTION
     scope: RUN_AND_BUILD_TIME
     value: database
+  - key: CACHE_STORE
+    scope: RUN_AND_BUILD_TIME
+    value: database
   - key: FILESYSTEM_DISK
     scope: RUN_AND_BUILD_TIME
     value: s3
@@ -225,5 +228,5 @@ workers:
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
   name: worker
-  run_command: php artisan queue:work --queue=ai,default --sleep=3 --tries=3 --max-time=3600
+  run_command: php artisan queue:work --queue=default,ai --sleep=3 --tries=3 --max-time=3600
     --max-jobs=100 --memory=384
