@@ -6,6 +6,8 @@ use App\Enums\OrderStatus;
 use App\Mail\OrderConfirmation;
 use App\Mail\RefundConfirmation;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\ShopEvent;
 use App\Services\AdminNotificationService;
 use Illuminate\Http\JsonResponse;
@@ -47,7 +49,7 @@ trait HandlesPaymentWebhooks
                 // Idempotency check: if already paid, skip processing
                 if ($order->payment_id !== null) {
                     Log::info("{$this->getGatewayName()} webhook: ordine già processato (idempotenza)", [
-                        'order_id' => $order->id,
+                        'order_id'   => $order->id,
                         'payment_id' => $order->payment_id,
                     ]);
 
@@ -56,22 +58,34 @@ trait HandlesPaymentWebhooks
 
                 // 1. Update order payment info
                 $order->payment_id = $result['payment_id'];
-                $order->paid_at = now();
-                $order->status = OrderStatus::Paid;
+                $order->paid_at    = now();
+                $order->status     = OrderStatus::Paid;
                 $order->save();
 
-                // 2. Track purchase event for analytics
+                // 2. Decrement stock atomically for each order item
+                $order->load('items');
+                foreach ($order->items as $item) {
+                    if ($item->product_variant_id) {
+                        ProductVariant::where('id', $item->product_variant_id)
+                            ->decrement('stock', $item->quantity);
+                    } else {
+                        Product::where('id', $item->product_id)
+                            ->decrement('stock', $item->quantity);
+                    }
+                }
+
+                // 3. Track purchase event for analytics
                 ShopEvent::create([
-                    'event_type' => 'purchase',
+                    'event_type'    => 'purchase',
                     'viewable_type' => Order::class,
-                    'viewable_id' => $order->id,
-                    'user_id' => $order->user_id,
-                    'session_id' => null,
-                    'ip_address' => null,
-                    'metadata' => [
+                    'viewable_id'   => $order->id,
+                    'user_id'       => $order->user_id,
+                    'session_id'    => null,
+                    'ip_address'    => null,
+                    'metadata'      => [
                         'order_number' => $order->order_number,
-                        'total' => $order->total_price,
-                        'gateway' => strtolower($this->getGatewayName()),
+                        'total'        => $order->total_price,
+                        'gateway'      => strtolower($this->getGatewayName()),
                     ],
                 ]);
 

@@ -45,7 +45,22 @@ foreach ($locales as $loc) {
         Route::get('/', [PublicController::class, 'home'])->name('home');
         Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
         Route::get('/stagione/b1', [PublicController::class, 'stagioneB1'])->name('stagione.b1');
-        Route::get('/risultati', [PublicController::class, 'risultati'])->name('risultati');
+        
+        // Risultati e Competizioni
+        Route::get('/stagione/risultati', [PublicController::class, 'risultatiCampionato'])->name('stagione.risultati');
+        Route::get('/stagione/cev', [PublicController::class, 'risultatiCev'])->name('stagione.cev');
+        Route::get('/stagione/coppa-italia', [PublicController::class, 'risultatiCoppaItalia'])->name('stagione.coppa-italia');
+        
+        // Foto Ufficiale e News Redirect
+        Route::get('/stagione/foto-ufficiale', [PublicController::class, 'fotoUfficiale'])->name('stagione.foto-ufficiale');
+        Route::get('/stagione/news', function () {
+            return redirect()->route('news.index');
+        })->name('stagione.news');
+        
+        // Redirect legacy per compatibilità
+        Route::get('/risultati', function () {
+            return redirect()->route('stagione.risultati');
+        })->name('risultati');
         Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
         Route::get('/gallery/atleta/{slug}', [PublicController::class, 'galleryAtleta'])->name('gallery.atleta');
         Route::get('/staff', [PublicController::class, 'staff'])->name('staff');

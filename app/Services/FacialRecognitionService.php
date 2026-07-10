@@ -141,7 +141,7 @@ class FacialRecognitionService
      * Recognize faces in an image.
      * Returns an array of detected persons (Player or StaffMember) with confidence >= threshold.
      */
-    public function recognizeFaces(string $imagePath, float $minConfidence = 0.85): array
+    public function recognizeFaces(string $imagePath, float $minConfidence = 0.97): array
     {
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping recognition.');
@@ -181,8 +181,10 @@ class FacialRecognitionService
                                 'person_id' => $resolved['id'],
                                 'confidence' => $topMatch['similarity'] * 100,
                             ];
+                            Log::info("CompreFace Recognized: {$topMatch['subject']} (similarity: {$topMatch['similarity']})");
                         }
                     } else {
+                        Log::info("CompreFace Ignored: {$topMatch['subject']} (similarity: {$topMatch['similarity']} < {$minConfidence})");
                         $hasUnrecognizedFaces = true;
                     }
                 } else {

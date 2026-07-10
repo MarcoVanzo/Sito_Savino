@@ -144,15 +144,13 @@ class AuctionCheckoutController extends Controller
             return back()->withErrors(['general' => __('messages.auction.already_processing')]);
         }
 
-        // Valida zona spedizione PRIMA della transazione (non è logica transazionale)
-        $shippingZone = ShippingZone::findByCountry($validated['country']);
-        if (! $shippingZone) {
-            $lock->release();
-
-            return back()->withErrors(['country' => __('messages.checkout.country_not_served')]);
-        }
-
         try {
+            // Valida zona spedizione
+            $shippingZone = ShippingZone::findByCountry($validated['country']);
+            if (! $shippingZone) {
+                return back()->withErrors(['country' => __('messages.checkout.country_not_served')]);
+            }
+
             $order = DB::transaction(function () use ($auction, $validated, $token, $shippingZone) {
                 $user = auth()->user();
                 $winningBid = (float) $auction->current_bid;
@@ -185,17 +183,18 @@ class AuctionCheckoutController extends Controller
 
                 // Crea l'ordine — order_token === winner_checkout_token
                 $order = Order::create([
-                    'user_id' => $user->id,
-                    'order_token' => $token,
-                    'total_price' => $totalPrice,
+                    'user_id'          => $user->id,
+                    'order_token'      => $token,
+                    'total_price'      => $totalPrice,
                     'shipping_address' => $shippingAddress,
-                    'billing_address' => $billingAddress,
-                    'country' => $validated['country'],
-                    'phone' => $validated['phone'],
-                    'codice_fiscale' => $validated['codice_fiscale'] ?? null,
-                    'payment_gateway' => PaymentGateway::Stripe,
-                    'shipping_cost' => $shippingCost,
-                    'notes' => $validated['notes'] ?? null,
+                    'billing_address'  => $billingAddress,
+                    'country'          => $validated['country'],
+                    'billing_country'  => $validated['country'],
+                    'phone'            => $validated['phone'],
+                    'codice_fiscale'   => $validated['codice_fiscale'] ?? null,
+                    'payment_gateway'  => PaymentGateway::Stripe,
+                    'shipping_cost'    => $shippingCost,
+                    'notes'            => $validated['notes'] ?? null,
                     'privacy_accepted_at' => now(),
                 ]);
 

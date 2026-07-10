@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
 use App\Enums\PostStatus;
 use App\Enums\StaffType;
@@ -135,10 +136,27 @@ class PublicController extends Controller
         return Inertia::render('Public/Stagione', $teamLabel ? array_merge($data, ['teamLabel' => $teamLabel]) : $data);
     }
 
-    public function risultati()
+    public function risultatiCampionato()
+    {
+        return $this->getRisultatiData(CompetitionType::Championship, __('Campionato Serie A1'), true);
+    }
+
+    public function risultatiCev()
+    {
+        return $this->getRisultatiData(CompetitionType::ChampionsLeague, 'CEV Champions League', false);
+    }
+
+    public function risultatiCoppaItalia()
+    {
+        return $this->getRisultatiData(CompetitionType::CoppaItalia, 'Coppa Italia & Playoff', false);
+    }
+
+    private function getRisultatiData(CompetitionType $competitionType, string $pageTitle, bool $showStandings)
     {
         $locale = app()->getLocale();
-        $data = Cache::remember("public:risultati:{$locale}", now()->addMinutes(5), function () {
+        $cacheKey = "public:risultati:{$competitionType->value}:{$locale}";
+
+        $data = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($competitionType) {
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
             $games = [];
@@ -146,6 +164,8 @@ class PublicController extends Controller
             if ($currentSeason) {
                 $games = Game::with(['homeTeam', 'awayTeam'])
                     ->where('season_id', $currentSeason->id)
+                    ->where('competition_type', $competitionType)
+                    ->orderBy('match_date')
                     ->get()
                     ->toArray();
             }
@@ -155,7 +175,21 @@ class PublicController extends Controller
             return compact('games', 'seasonName');
         });
 
+        $data['pageTitle'] = $pageTitle;
+        $data['showStandings'] = $showStandings;
+
         return Inertia::render('Public/Risultati', $data);
+    }
+
+    public function fotoUfficiale()
+    {
+        $pdfUrl = \App\Models\SiteSetting::get('official_photo_pdf');
+
+        if ($pdfUrl) {
+            return redirect(\Illuminate\Support\Facades\Storage::url($pdfUrl));
+        }
+
+        return redirect()->back()->with('error', __('Foto ufficiale non ancora caricata.'));
     }
 
     public function gallery()

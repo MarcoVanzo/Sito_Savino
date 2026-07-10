@@ -29,10 +29,11 @@ trait HasFaceSyncMethods
             $allMedia->push($officialPhoto);
         }
 
-        $actionPhotos = $roster->getMedia('rosters_action');
-        if ($actionPhotos->isNotEmpty()) {
-            $allMedia = $allMedia->merge($actionPhotos);
-        }
+        // RIMOSSO: Le foto in azione inquinano l'addestramento (ci sono avversarie, altre giocatrici in primo piano, ecc.)
+        // $actionPhotos = $roster->getMedia('rosters_action');
+        // if ($actionPhotos->isNotEmpty()) {
+        //     $allMedia = $allMedia->merge($actionPhotos);
+        // }
 
         // Fallback: avatar del player
         if ($allMedia->isEmpty()) {

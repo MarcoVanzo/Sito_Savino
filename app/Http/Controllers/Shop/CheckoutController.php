@@ -144,6 +144,11 @@ class CheckoutController extends Controller
             ->with(['items.product', 'user'])
             ->firstOrFail();
 
+        // Se autenticato, verifica che l'ordine appartenga all'utente corrente
+        if (auth()->check() && $order->user_id !== null && $order->user_id !== auth()->id()) {
+            abort(403);
+        }
+
         return Inertia::render('Public/Shop/CheckoutSuccess', [
             'order' => $order,
         ]);
@@ -155,6 +160,11 @@ class CheckoutController extends Controller
     public function cancel(Request $request, string $orderToken): Response
     {
         $order = Order::where('order_token', $orderToken)->firstOrFail();
+
+        // Se autenticato, verifica che l'ordine appartenga all'utente corrente
+        if (auth()->check() && $order->user_id !== null && $order->user_id !== auth()->id()) {
+            abort(403);
+        }
 
         $canRetry = $order->status === OrderStatus::Pending
             && in_array($order->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal]);
@@ -180,8 +190,14 @@ class CheckoutController extends Controller
                 ->with('error', __('messages.checkout.retry_not_available'));
         }
 
-        // Verifica proprietà ordine (se autenticato deve essere il proprietario)
-        if (auth()->check() && $order->user_id && $order->user_id !== auth()->id()) {
+        // Verifica proprietà ordine
+        if (auth()->check()) {
+            // Utente loggato: può fare retry solo sui propri ordini registrati
+            if ($order->user_id === null || $order->user_id !== auth()->id()) {
+                abort(403);
+            }
+        } elseif ($order->user_id !== null) {
+            // Guest: non può fare retry su ordini di utenti registrati
             abort(403);
         }
 

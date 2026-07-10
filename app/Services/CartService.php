@@ -99,6 +99,7 @@ class CartService
 
             if ($existingItem) {
                 $existingItem->update(['quantity' => $newQty]);
+                $this->invalidateCache();
 
                 return $existingItem->fresh();
             }
