@@ -31,6 +31,20 @@ Route::domain('shop.savinodelbenevolley.it')->group(function () {
     })->where('any', '.*');
 });
 
+Route::get('/debug-db', function() {
+    return [
+        'pages' => \App\Models\Page::select('id', 'slug', 'status', 'title')->get()
+    ];
+});
+
+Route::get('/debug-db-seed', function() {
+    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'CmsPagesSeeder']);
+    return [
+        'output' => \Illuminate\Support\Facades\Artisan::output(),
+        'pages' => \App\Models\Page::select('id', 'slug', 'status', 'title')->get()
+    ];
+});
+
 $locales = ['it', 'en'];
 
 foreach ($locales as $loc) {
