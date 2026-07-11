@@ -42,6 +42,47 @@ class PageController extends Controller
         'Public/Contatti',
     ];
 
+    /**
+     * Mappatura dei singoli slug di pagina alle rispettive sezioni (per URL canonici SEO).
+     */
+    private const SLUG_SECTION_MAP = [
+        // Società
+        'organigramma' => 'societa',
+        'storia' => 'societa',
+        'safeguarding' => 'societa',
+        'palazzetto' => 'societa',
+
+        // Ticketing
+        'abbonamenti' => 'ticketing',
+        'biglietteria' => 'ticketing',
+        'convenzioni' => 'ticketing',
+        'accessibilita' => 'ticketing',
+
+        // Sponsor
+        'diventa-sponsor' => 'sponsor',
+        'title-sponsor' => 'sponsor',
+        'hospitality' => 'sponsor',
+
+        // Youth
+        'settore-giovanile' => 'youth',
+        'talent-day' => 'youth',
+        'affiliazioni' => 'youth',
+
+        // Summer Camp
+        'summer-camp' => 'summer-camp',
+
+        // Sociale
+        'volley-4-all' => 'sociale',
+        'progetti-sociali' => 'sociale',
+        'sostenibilita' => 'sociale',
+        'progetto-scuola' => 'sociale',
+
+        // Comunicazione
+        'accrediti-stampa' => 'comunicazione',
+        'cartelle-stampa' => 'comunicazione',
+        'double-face' => 'comunicazione',
+    ];
+
     public function show($slug)
     {
         $page = Page::where('slug', $slug)
@@ -52,12 +93,13 @@ class PageController extends Controller
             abort(404);
         }
 
-        // Evita contenuti duplicati (SEO): se la pagina appartiene alla sezione Società
+        // Evita contenuti duplicati (SEO): se la pagina appartiene a una sezione specifica
         // ma è stata chiamata tramite la rotta catch-all, fai un redirect 301 alla rotta corretta.
-        if (str_starts_with($page->template ?? '', 'Public/Societa/') && request()->routeIs('*pages.show')) {
+        if (request()->routeIs('*pages.show') && isset(self::SLUG_SECTION_MAP[$page->slug])) {
+            $section = self::SLUG_SECTION_MAP[$page->slug];
             $routePrefix = app()->getLocale() === 'it' ? '' : app()->getLocale().'.';
 
-            return redirect()->route($routePrefix.'societa.page', ['slug' => $page->slug], 301);
+            return redirect()->route($routePrefix . $section . '.page', ['slug' => $page->slug], 301);
         }
 
         // Se il template è nella whitelist, usalo. Altrimenti renderizza

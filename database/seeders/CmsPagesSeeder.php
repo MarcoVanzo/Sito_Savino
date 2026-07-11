@@ -267,10 +267,10 @@ class CmsPagesSeeder extends Seeder
                 '<h2>Progetto Scuola</h2><p>La Savino Del Bene Volley porta la pallavolo e i valori dello sport nelle scuole del territorio. Attraverso lezioni, dimostrazioni e tornei interscolastici, avviciniamo i giovani alla pratica sportiva.</p>'),
 
             // === SPONSOR / B2B ===
-            $this->page('title-sponsor', 'Title Sponsor', 'Public/Sponsor',
+            $this->page('title-sponsor', 'Title Sponsor', 'Public/ContentPage',
                 'Savino Del Bene S.p.A., title sponsor della Savino Del Bene Volley. Scopri la partnership.',
                 '<h2>Savino Del Bene S.p.A.</h2><p>Il Gruppo Savino Del Bene, leader mondiale nella logistica e nelle spedizioni internazionali, è il title sponsor del club sin dalla sua fondazione. Una partnership che unisce eccellenza imprenditoriale e passione sportiva.</p>'),
-            $this->page('diventa-sponsor', 'Diventa Sponsor', 'Public/Sponsor',
+            $this->page('diventa-sponsor', 'Diventa Sponsor', 'Public/ContentPage',
                 'Diventa sponsor della Savino Del Bene Volley. Scopri i pacchetti di sponsorizzazione e i vantaggi per la tua azienda.',
                 '<h2>Perché Sponsorizzare la Savino Del Bene Volley?</h2><p>Visibilità nazionale e internazionale, accesso a un network B2B esclusivo, hospitality premium e attivazioni di marketing dedicate. Contattaci per un preventivo personalizzato.</p>'),
             $this->page('hospitality', 'Hospitality', 'Public/ContentPage',

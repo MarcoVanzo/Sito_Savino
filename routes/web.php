@@ -69,6 +69,60 @@ foreach ($locales as $loc) {
         })->name('societa');
         Route::get('/societa/{slug}', [PageController::class, 'show'])->name('societa.page');
         Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');
+
+        // Sponsor routes
+        Route::get('/sponsor/nostri-sponsor', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'sponsor', [], 301);
+        })->name('sponsor.nostri-sponsor');
+        Route::get('/sponsor/{slug}', [PageController::class, 'show'])->name('sponsor.page');
+
+        // Ticketing routes
+        Route::get('/ticketing/{slug}', [PageController::class, 'show'])->name('ticketing.page');
+
+        // Youth routes
+        Route::get('/youth/b1-u19', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'stagione.b1', [], 301);
+        })->name('youth.b1-u19');
+        Route::get('/youth/u17-u15', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'in-costruzione', [], 301);
+        })->name('youth.u17-u15');
+        Route::get('/youth/{slug}', [PageController::class, 'show'])->name('youth.page');
+
+        // Summer Camp routes
+        Route::get('/summer-camp/info', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'pages.show', ['slug' => 'summer-camp'], 301);
+        })->name('summer-camp.info');
+        Route::get('/summer-camp/iscrizione', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'in-costruzione', [], 301);
+        })->name('summer-camp.iscrizione');
+        Route::get('/summer-camp/{slug}', [PageController::class, 'show'])->name('summer-camp.page');
+
+        // Sociale routes
+        Route::get('/sociale/progetti', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'sociale.page', ['slug' => 'progetti-sociali'], 301);
+        })->name('sociale.progetti');
+        Route::get('/sociale/aste', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'shop.auctions.index', [], 301);
+        })->name('sociale.aste');
+        Route::get('/sociale', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'sociale.page', ['slug' => 'volley-4-all'], 301);
+        })->name('sociale');
+        Route::get('/sociale/{slug}', [PageController::class, 'show'])->name('sociale.page');
+
+        // Comunicazione routes
+        Route::get('/comunicazione/accrediti', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'accrediti-stampa'], 301);
+        })->name('comunicazione.accrediti');
+        Route::get('/comunicazione/cartelle', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'cartelle-stampa'], 301);
+        })->name('comunicazione.cartelle');
+        Route::get('/comunicazione/magazine', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'double-face'], 301);
+        })->name('comunicazione.magazine');
+        Route::get('/comunicazione', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'accrediti-stampa'], 301);
+        })->name('comunicazione');
+        Route::get('/comunicazione/{slug}', [PageController::class, 'show'])->name('comunicazione.page');
         Route::get('/news', [NewsController::class, 'index'])->name('news.index');
         Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
 
