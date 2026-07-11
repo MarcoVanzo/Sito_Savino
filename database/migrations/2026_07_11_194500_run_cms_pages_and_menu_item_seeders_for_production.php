@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\MenuItem;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Artisan;
-use App\Models\MenuItem;
 
 return new class extends Migration
 {
@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (app()->environment('testing')) {
+            return;
+        }
+
         // 1. Run CmsPagesSeeder to populate the pages and their contents
         Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\CmsPagesSeeder', '--force' => true]);
 
