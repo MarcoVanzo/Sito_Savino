@@ -38,6 +38,7 @@ return [
         'coupon_not_applicable' => 'This coupon is not applicable to this order.',
         'coupon_applied' => 'Coupon applied! Discount of € :discount.',
         'already_processing' => 'A payment is already being processed. Please wait.',
+        'retry_not_available' => 'Payment retry is not available for this order.',
     ],
     'shop' => [
         'register_success' => 'Registration completed! Welcome to the shop.',

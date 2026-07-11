@@ -173,19 +173,19 @@ const ogMeta = useOgMeta({
                     </h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
-                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Partita IVA</span>
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_piva_label') || 'Partita IVA' }}</span>
                             <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_piva || '06271460484' }}</span>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
-                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Codice Fiscale</span>
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_cf_label') || 'Codice Fiscale' }}</span>
                             <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_cf || '94217750481' }}</span>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
-                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Codice FIPAV</span>
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_fipav_label') || 'Codice FIPAV' }}</span>
                             <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_fipav || '100470331' }}</span>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
-                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Codice SDI</span>
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_sdi_label') || 'Codice SDI' }}</span>
                             <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_sdi || 'KRRH6B9' }}</span>
                         </div>
                     </div>
@@ -197,7 +197,7 @@ const ogMeta = useOgMeta({
                                 </svg>
                             </div>
                             <div>
-                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">PEC Ufficiale</span>
+                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_pec_label') || 'PEC Ufficiale' }}</span>
                                 <a :href="'mailto:' + (cd.legal_pec || 'pallavoloscandicci@legalmail.it')" class="block text-sm font-extrabold text-savino-blue hover:underline">{{ cd.legal_pec || 'pallavoloscandicci@legalmail.it' }}</a>
                             </div>
                         </div>
@@ -208,7 +208,7 @@ const ogMeta = useOgMeta({
                                 </svg>
                             </div>
                             <div>
-                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Orari Ufficio</span>
+                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.office_hours_label') || 'Orari Ufficio' }}</span>
                                 <span class="block text-sm font-extrabold text-gray-800">{{ settings.contact?.office_hours || 'Lun-Ven: 09:00 - 13:00 / 14:00 - 18:00' }}</span>
                             </div>
                         </div>

@@ -23,8 +23,8 @@ const ogMeta = useOgMeta({
 
 const cd = computed(() => props.page?.content_data ?? {});
 
-const reportTitle = computed(() => cd.value?.report_title || 'Segnalazioni');
-const reportDescription = computed(() => cd.value?.report_description || 'Per segnalare comportamenti non conformi al Codice di Condotta o presunti abusi, è possibile contattare il Responsabile Safeguarding in totale riservatezza.');
+const reportTitle = computed(() => cd.value?.report_title || $t('societa.safeguarding_reporting_title') || 'Segnalazioni');
+const reportDescription = computed(() => cd.value?.report_description || $t('societa.safeguarding_reporting_desc') || 'Per segnalare comportamenti non conformi al Codice di Condotta o presunti abusi, è possibile contattare il Responsabile Safeguarding in totale riservatezza.');
 const reportEmail = computed(() => cd.value?.report_email || 'safeguarding@savinodelbenevolley.it');
 
 const documents = computed(() => {
@@ -32,8 +32,8 @@ const documents = computed(() => {
         return cd.value.documents;
     }
     return [
-        { title: 'Modello Organizzativo e di Controllo', description: 'Documento che stabilisce i principi di comportamento e le misure di prevenzione.', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', file: '#' },
-        { title: 'Codice di Condotta a Tutela dei Minori', description: 'Linee guida specifiche per garantire un ambiente sportivo sicuro per i più giovani.', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', file: '#' }
+        { title: $t('societa.safeguarding_fallback_doc1_title') || 'Modello Organizzativo e di Controllo', description: $t('societa.safeguarding_fallback_doc1_desc') || 'Documento che stabilisce i principi di comportamento e le misure di prevenzione.', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', file: '#' },
+        { title: $t('societa.safeguarding_fallback_doc2_title') || 'Codice di Condotta a Tutela dei Minori', description: $t('societa.safeguarding_fallback_doc2_desc') || 'Linee guida specifiche per garantire un ambiente sportivo sicuro per i più giovani.', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', file: '#' }
     ];
 });
 </script>
@@ -81,7 +81,7 @@ const documents = computed(() => {
                 </div>
 
                 <!-- Documents Section -->
-                <h3 class="text-2xl font-black text-savino-blue mb-6 uppercase tracking-tight">Documenti Ufficiali</h3>
+                <h3 class="text-2xl font-black text-savino-blue mb-6 uppercase tracking-tight">{{ $t('societa.safeguarding_documents_header') || 'Documenti Ufficiali' }}</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
                     <div v-for="(doc, idx) in documents" :key="idx" class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-savino-blue/30 hover:shadow-md transition-all group flex flex-col h-full">
                         <div class="flex items-start mb-4">
@@ -95,7 +95,7 @@ const documents = computed(() => {
                         <p class="text-gray-500 text-sm flex-grow mb-6">{{ doc.description }}</p>
                         <a :href="doc.file" class="inline-flex items-center text-sm font-bold text-savino-blue hover:text-savino-red transition-colors w-max">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                            Scarica PDF
+                            {{ $t('societa.safeguarding_download_pdf') || 'Scarica PDF' }}
                         </a>
                     </div>
                 </div>
@@ -111,7 +111,7 @@ const documents = computed(() => {
                             </p>
                         </div>
                         <a :href="'mailto:' + reportEmail" class="flex-shrink-0 bg-savino-gold hover:bg-white hover:text-savino-blue text-white text-lg font-bold px-8 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl w-full md:w-auto text-center">
-                            Invia Segnalazione
+                            {{ $t('societa.safeguarding_send_report') || 'Invia Segnalazione' }}
                         </a>
                     </div>
                 </div>

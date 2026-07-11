@@ -29,6 +29,36 @@ const settings = computed(() => inertiaPage.props.siteSettings ?? {});
 const contact = computed(() => settings.value.contact ?? {});
 const cd = computed(() => props.page?.content_data ?? {});
 
+const groupedSponsors = computed(() => {
+    if (Array.isArray(props.sponsors)) {
+        const groups = {
+            main: [],
+            gold: [],
+            silver: [],
+            technical: [],
+            standard: [],
+        };
+        props.sponsors.forEach(s => {
+            const t = s.tier;
+            if (groups[t]) {
+                groups[t].push(s);
+            } else {
+                groups.standard.push(s);
+            }
+        });
+        return groups;
+    }
+    const base = props.sponsors ?? {};
+    return {
+        main: base.main ?? [],
+        gold: base.gold ?? [],
+        silver: base.silver ?? [],
+        technical: base.technical ?? [],
+        standard: base.standard ?? [],
+    };
+});
+
+
 const tierConfig = {
     main: { label: 'Title Sponsor', bg: 'bg-gradient-to-br from-savino-gold/20 to-savino-gold/5', border: 'border-savino-gold/30', size: 'h-32 md:h-40', cols: 'grid-cols-1 sm:grid-cols-2', gap: 'gap-8' },
     gold: { label: 'Gold Partner', bg: 'bg-gradient-to-br from-yellow-50 to-amber-50', border: 'border-amber-200', size: 'h-24 md:h-32', cols: 'grid-cols-2 sm:grid-cols-3', gap: 'gap-6' },
@@ -89,12 +119,12 @@ const ogMeta = useOgMeta({
 
                     <!-- Sponsor Logos Grid -->
                     <div
-                        v-if="sponsors[tier] && sponsors[tier].length > 0"
+                        v-if="groupedSponsors[tier] && groupedSponsors[tier].length > 0"
                         class="grid items-center justify-items-center"
                         :class="[tierConfig[tier].cols, tierConfig[tier].gap]"
                     >
                         <div
-                            v-for="(sponsor, index) in sponsors[tier]"
+                            v-for="(sponsor, index) in groupedSponsors[tier]"
                             :key="index"
                             class="w-full rounded-xl p-6 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border"
                             :class="[tierConfig[tier].bg, tierConfig[tier].border]"

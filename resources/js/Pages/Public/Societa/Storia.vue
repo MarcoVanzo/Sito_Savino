@@ -29,13 +29,13 @@ const timeline = computed(() => {
     }
     // Fallback to our stunning hardcoded mock timeline if not configured
     return [
-        { year: '1982', title: 'Le Origini', description: 'La Pallavolo Scandicci nasce nel cuore del territorio toscano. I primi passi nei campionati locali pongono le basi per un progetto ambizioso.' },
-        { year: '2012', title: 'La Svolta Savino Del Bene', description: 'L\'ingresso del Gruppo Savino Del Bene come title sponsor trasforma le ambizioni del club. Inizia la scalata verso l\'élite del volley nazionale.' },
-        { year: '2014', title: 'Promozione in Serie A1', description: 'Un traguardo storico: la squadra conquista l\'accesso alla massima serie italiana, portando Scandicci nel panorama nazionale.' },
-        { year: '2018', title: 'Debutto Europeo', description: 'Prima qualificazione in CEV Champions League. La Savino Del Bene Volley si affaccia sul palcoscenico internazionale sfidando le big europee.' },
-        { year: '2022', title: 'CEV Challenge Cup', description: 'Il primo storico trofeo europeo. Una cavalcata trionfale che arricchisce la bacheca del club e consacra il progetto a livello internazionale.' },
-        { year: '2023', title: 'CEV Cup', description: 'Ancora un successo continentale. La Savino Del Bene solleva la CEV Cup, dimostrando continuità di risultati e mentalità vincente.' },
-        { year: '2024', title: 'Finale Scudetto', description: 'Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il Palazzo Wanny.' }
+        { year: '1982', title: $t('societa.storia_fallback_1982_title') || 'Le Origini', description: $t('societa.storia_fallback_1982_desc') || 'La Pallavolo Scandicci nasce nel cuore del territorio toscano. I primi passi nei campionati locali pongono le basi per un progetto ambizioso.' },
+        { year: '2012', title: $t('societa.storia_fallback_2012_title') || 'La Svolta Savino Del Bene', description: $t('societa.storia_fallback_2012_desc') || 'L\'ingresso del Gruppo Savino Del Bene come title sponsor trasforma le ambizioni del club. Inizia la scalata verso l\'élite del volley nazionale.' },
+        { year: '2014', title: $t('societa.storia_fallback_2014_title') || 'Promozione in Serie A1', description: $t('societa.storia_fallback_2014_desc') || 'Un traguardo storico: la squadra conquista l\'accesso alla massima serie italiana, portando Scandicci nel panorama nazionale.' },
+        { year: '2018', title: $t('societa.storia_fallback_2018_title') || 'Debutto Europeo', description: $t('societa.storia_fallback_2018_desc') || 'Prima qualificazione in CEV Champions League. La Savino Del Bene Volley si affaccia sul palcoscenico internazionale sfidando le big europee.' },
+        { year: '2022', title: $t('societa.storia_fallback_2022_title') || 'CEV Challenge Cup', description: $t('societa.storia_fallback_2022_desc') || 'Il primo storico trofeo europeo. Una cavalcata trionfale che arricchisce la bacheca del club e consacra il progetto a livello internazionale.' },
+        { year: '2023', title: $t('societa.storia_fallback_2023_title') || 'CEV Cup', description: $t('societa.storia_fallback_2023_desc') || 'Ancora un successo continentale. La Savino Del Bene solleva la CEV Cup, dimostrando continuità di risultati e mentalità vincente.' },
+        { year: '2024', title: $t('societa.storia_fallback_2024_title') || 'Finale Scudetto', description: $t('societa.storia_fallback_2024_desc') || 'Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il Palazzo Wanny.' }
     ];
 });
 </script>
@@ -79,7 +79,7 @@ const timeline = computed(() => {
                 <!-- Interactive Timeline -->
                 <div class="mt-20">
                     <div class="text-center mb-20">
-                        <h2 class="text-4xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mb-4 drop-shadow-sm">Le Tappe Fondamentali</h2>
+                        <h2 class="text-4xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mb-4 drop-shadow-sm">{{ $t('societa.storia_timeline_title') || 'Le Tappe Fondamentali' }}</h2>
                         <div class="w-24 h-1.5 bg-gradient-to-r from-savino-red to-savino-pink mx-auto rounded-full"></div>
                     </div>
 

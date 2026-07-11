@@ -116,7 +116,9 @@ class PublicController extends Controller
                 $seasonName = $currentSeason->name;
             }
 
-            // Staff tecnico e medico
+            // Staff tecnico e medico filtrati per sezione (A1 vs Youth)
+            $section = $teamSlug === 'savino-del-bene-volley' ? 'a1' : 'youth';
+
             $mapStaff = fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->full_name,
@@ -126,10 +128,24 @@ class PublicController extends Controller
 
             $staffTecnico = StaffMember::with('media')
                 ->where('type', StaffType::Tecnico)
+                ->where(function ($q) use ($section) {
+                    if ($section === 'a1') {
+                        $q->where('section', 'a1')->orWhereNull('section');
+                    } else {
+                        $q->where('section', $section);
+                    }
+                })
                 ->orderBy('sort_order')->get()->map($mapStaff)->toArray();
 
             $staffMedico = StaffMember::with('media')
                 ->where('type', StaffType::Medico)
+                ->where(function ($q) use ($section) {
+                    if ($section === 'a1') {
+                        $q->where('section', 'a1')->orWhereNull('section');
+                    } else {
+                        $q->where('section', $section);
+                    }
+                })
                 ->orderBy('sort_order')->get()->map($mapStaff)->toArray();
 
             return compact('roster', 'seasonName', 'staffTecnico', 'staffMedico');

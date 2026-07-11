@@ -255,7 +255,7 @@ const showRules = ref(false);
                                     {{ formatPrice(displayPrice) }}
                                 </span>
                                 <span v-if="currentAuction.bids_count > 0" class="text-gray-400 text-sm pb-1">
-                                    {{ currentAuction.bids_count }} {{ currentAuction.bids_count === 1 ? 'offerta' : 'offerte' }}
+                                    {{ currentAuction.bids_count }} {{ currentAuction.bids_count === 1 ? $t('auction.bid_singular') : $t('auction.bid_plural') }}
                                 </span>
                             </div>
 
@@ -308,7 +308,7 @@ const showRules = ref(false);
                             v-if="!currentAuction.is_active && currentAuction.status === 'ended' && auction.winner_checkout_token"
                             class="bg-savino-gold/10 border border-savino-gold/30 rounded-xl p-5 text-center"
                         >
-                            <p class="text-savino-gold font-bold text-lg mb-3">🎉 Asta conclusa!</p>
+                            <p class="text-savino-gold font-bold text-lg mb-3">🎉 {{ $t('auction.ended_badge') || 'Asta conclusa!' }}</p>
                         </div>
 
                         <!-- Social Share -->
@@ -334,7 +334,7 @@ const showRules = ref(false);
                                 <svg class="w-4 h-4 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Descrizione
+                                {{ $t('auction.description') || 'Descrizione' }}
                             </h3>
                             <div class="text-gray-300 text-sm leading-relaxed prose prose-invert prose-sm max-w-none" v-html="sanitizeHtml(currentAuction.description)" />
                         </div>
@@ -361,25 +361,25 @@ const showRules = ref(false);
                         <!-- Bid Increment Info -->
                         <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
                             <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-3">
-                                📊 Dettagli asta
+                                📊 {{ $t('auction.details') || 'Dettagli asta' }}
                             </h3>
                             <dl class="space-y-2">
                                 <div class="flex justify-between text-sm">
-                                    <dt class="text-gray-400">Prezzo di partenza</dt>
+                                    <dt class="text-gray-400">{{ $t('auction.starting_price_label') || 'Prezzo di partenza' }}</dt>
                                     <dd class="text-white font-bold">{{ formatPrice(currentAuction.starting_price) }}</dd>
                                 </div>
                                 <div class="flex justify-between text-sm">
-                                    <dt class="text-gray-400">Rilancio minimo</dt>
+                                    <dt class="text-gray-400">{{ $t('auction.min_increment') || 'Rilancio minimo' }}</dt>
                                     <dd class="text-white font-bold">{{ formatPrice(currentAuction.bid_increment) }}</dd>
                                 </div>
                                 <div class="flex justify-between text-sm">
-                                    <dt class="text-gray-400">Rilancio massimo</dt>
+                                    <dt class="text-gray-400">{{ $t('auction.max_increment') || 'Rilancio massimo' }}</dt>
                                     <dd class="text-white font-bold">{{ formatPrice(currentAuction.max_bid_jump) }}</dd>
                                 </div>
                                 <div v-if="currentAuction.has_reserve" class="flex justify-between text-sm">
-                                    <dt class="text-gray-400">Prezzo di riserva</dt>
+                                    <dt class="text-gray-400">{{ $t('auction.reserve_price') || 'Prezzo di riserva' }}</dt>
                                     <dd :class="currentAuction.reserve_met ? 'text-emerald-400' : 'text-amber-400'" class="font-bold">
-                                        {{ currentAuction.reserve_met ? '✅ Raggiunto' : '⚠️ Non raggiunto' }}
+                                        {{ currentAuction.reserve_met ? '✅ ' + ($t('auction.reached') || 'Raggiunto') : '⚠️ ' + ($t('auction.not_reached') || 'Non raggiunto') }}
                                     </dd>
                                 </div>
                             </dl>

@@ -35,11 +35,11 @@ const passwordStrength = computed(() => {
     if (/[0-9]/.test(p)) score++;
     if (/[^A-Za-z0-9]/.test(p)) score++;
 
-    if (score <= 1) return { score: 1, label: 'Debole', color: 'bg-red-500' };
-    if (score <= 2) return { score: 2, label: 'Discreta', color: 'bg-orange-500' };
-    if (score <= 3) return { score: 3, label: 'Buona', color: 'bg-yellow-500' };
-    if (score <= 4) return { score: 4, label: 'Forte', color: 'bg-emerald-500' };
-    return { score: 5, label: 'Eccellente', color: 'bg-emerald-400' };
+    if (score <= 1) return { score: 1, label: $t('shop.password_strength_weak') || 'Debole', color: 'bg-red-500' };
+    if (score <= 2) return { score: 2, label: $t('shop.password_strength_fair') || 'Discreta', color: 'bg-orange-500' };
+    if (score <= 3) return { score: 3, label: $t('shop.password_strength_good') || 'Buona', color: 'bg-yellow-500' };
+    if (score <= 4) return { score: 4, label: $t('shop.password_strength_strong') || 'Forte', color: 'bg-emerald-500' };
+    return { score: 5, label: $t('shop.password_strength_excellent') || 'Eccellente', color: 'bg-emerald-400' };
 });
 
 const submit = () => {
@@ -234,7 +234,7 @@ const submit = () => {
                                 class="text-xs mt-1.5"
                                 :class="form.password === form.password_confirmation ? 'text-emerald-400' : 'text-red-400'"
                             >
-                                {{ form.password === form.password_confirmation ? '✓ Le password coincidono' : '✗ Le password non coincidono' }}
+                                {{ form.password === form.password_confirmation ? $t('shop.password_match') || '✓ Le password coincidono' : $t('shop.password_mismatch') || '✗ Le password non coincidono' }}
                             </p>
                             <InputError class="mt-2" :message="form.errors.password_confirmation" />
                         </div>
@@ -276,7 +276,7 @@ const submit = () => {
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Creazione in corso...
+                                    {{ $t('shop.creating_account') || 'Creazione in corso...' }}
                                 </span>
                                 <span v-else>{{ $t('shop.create_account') }}</span>
                             </button>
@@ -302,7 +302,7 @@ const submit = () => {
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
-                    <span>Connessione sicura · I tuoi dati sono protetti</span>
+                    <span>{{ $t('shop.secure_connection_note') || 'Connessione sicura · I tuoi dati sono protetti' }}</span>
                 </div>
             </div>
         </section>

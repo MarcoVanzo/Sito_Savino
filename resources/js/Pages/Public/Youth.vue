@@ -26,33 +26,33 @@ const cd = computed(() => props.page?.content_data ?? {})
 const youthTeams = computed(() => cd.value.youth_teams ?? [
     {
         name: 'Under 18',
-        category: 'Serie C',
+        category: $t('youth.serie_c') || 'Serie C',
         coach: 'Alessandro Tozzi',
-        training: 'Lun-Mer-Ven 16:00-18:00',
+        training: $t('youth.training_u18') || 'Lun-Mer-Ven 16:00-18:00',
         players: 14,
         color: 'savino-blue'
     },
     {
         name: 'Under 16',
-        category: $t('youth.category_regional'),
+        category: $t('youth.category_regional') || 'Regionale',
         coach: 'Francesca Galli',
-        training: 'Mar-Gio-Sab 15:00-17:00',
+        training: $t('youth.training_u16') || 'Mar-Gio-Sab 15:00-17:00',
         players: 16,
         color: 'savino-gold'
     },
     {
         name: 'Under 14',
-        category: $t('youth.category_provincial'),
+        category: $t('youth.category_provincial') || 'Provinciale',
         coach: 'Simone Marchetti',
-        training: 'Lun-Mer-Ven 14:30-16:30',
+        training: $t('youth.training_u14') || 'Lun-Mer-Ven 14:30-16:30',
         players: 18,
         color: 'savino-red'
     },
     {
         name: 'Under 12',
-        category: 'Minivolley',
+        category: $t('youth.minivolley') || 'Minivolley',
         coach: 'Laura Rinaldi',
-        training: 'Mar-Gio 14:00-15:30',
+        training: $t('youth.training_u12') || 'Mar-Gio 14:00-15:30',
         players: 20,
         color: 'savino-blue'
     }
