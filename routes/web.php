@@ -31,8 +31,6 @@ Route::domain('shop.savinodelbenevolley.it')->group(function () {
     })->where('any', '.*');
 });
 
-
-
 $locales = ['it', 'en'];
 
 foreach ($locales as $loc) {
