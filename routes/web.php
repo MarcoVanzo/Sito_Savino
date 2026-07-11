@@ -182,4 +182,3 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::post('/account/verifica-pagamento', [PaymentVerificationController::class, 'store'])->name('account.payment-verification.store');
     Route::get('/account/verifica-pagamento/completata', [PaymentVerificationController::class, 'success'])->name('account.payment-verification.success');
 });
-
