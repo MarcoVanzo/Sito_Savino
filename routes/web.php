@@ -181,3 +181,15 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::post('/account/verifica-pagamento', [PaymentVerificationController::class, 'store'])->name('account.payment-verification.store');
     Route::get('/account/verifica-pagamento/completata', [PaymentVerificationController::class, 'success'])->name('account.payment-verification.success');
 });
+
+// Rotta temporanea per lanciare la scansione AI in produzione
+Route::get('/run-reanalyze-secret-xyz', function () {
+    if (request('secret') !== 'savino-secret-ai-2026') {
+        abort(403);
+    }
+    \Illuminate\Support\Facades\Artisan::call('gallery:reanalyze', ['--force' => true]);
+    return response()->json([
+        'status' => 'success',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});
