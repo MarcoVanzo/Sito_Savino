@@ -31,6 +31,10 @@ const props = defineProps({
     showStandings: {
         type: Boolean,
         default: true,
+    },
+    competition: {
+        type: String,
+        default: 'championship',
     }
 })
 
@@ -62,6 +66,30 @@ function isWin(game) {
     return game.scoreAway > game.scoreHome
 }
 
+const theme = computed(() => {
+    switch (props.competition) {
+        case 'champions_league':
+            return {
+                bgGradient: 'from-green-900 via-yellow-600 to-green-900',
+                dateBg: 'bg-green-700',
+                headerBg: 'bg-green-700',
+            };
+        case 'coppa_italia':
+            return {
+                bgGradient: 'from-savino-red via-red-900 to-savino-pink',
+                dateBg: 'bg-savino-red',
+                headerBg: 'bg-savino-red',
+            };
+        case 'championship':
+        default:
+            return {
+                bgGradient: 'from-gray-900 via-savino-blue to-gray-900',
+                dateBg: 'bg-savino-blue',
+                headerBg: 'bg-savino-blue',
+            };
+    }
+});
+
 const ogMeta = useOgMeta({
     title: props.pageTitle || props.page?.title || $t('risultati.og_title'),
     description: $t('risultati.og_description'),
@@ -82,7 +110,7 @@ const ogMeta = useOgMeta({
     <PublicLayout>
         <!-- Hero -->
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
+            <div class="absolute inset-0 bg-gradient-to-br" :class="theme.bgGradient"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('risultati.current_season') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ pageTitle || page?.title || $t('risultati.og_title') }}</h1>
@@ -106,7 +134,7 @@ const ogMeta = useOgMeta({
                         <!-- Desktop layout (sm+) -->
                         <div class="hidden sm:flex items-center">
                             <!-- Date -->
-                            <div class="w-32 flex-shrink-0 bg-savino-blue text-white text-center py-5 px-3">
+                            <div class="w-32 flex-shrink-0 text-white text-center py-5 px-3" :class="theme.dateBg">
                                 <span class="text-xs font-bold uppercase tracking-wider block">{{ game.date }}</span>
                                 <span class="text-[10px] text-white/60 mt-1 block">{{ game.status }}</span>
                             </div>
@@ -142,7 +170,7 @@ const ogMeta = useOgMeta({
                         <!-- Mobile layout (<sm) -->
                         <div class="sm:hidden">
                             <!-- Header: date + status + badge -->
-                            <div class="flex items-center justify-between bg-savino-blue text-white px-4 py-2.5">
+                            <div class="flex items-center justify-between text-white px-4 py-2.5" :class="theme.dateBg">
                                 <div>
                                     <span class="text-xs font-bold uppercase tracking-wider">{{ game.date }}</span>
                                     <span class="text-[10px] text-white/50 ml-2">{{ game.status }}</span>
@@ -185,7 +213,7 @@ const ogMeta = useOgMeta({
                     <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
                     <table class="w-full text-left">
                         <thead>
-                            <tr class="bg-savino-blue text-white">
+                            <tr class="text-white" :class="theme.headerBg">
                                 <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider">{{ $t('risultati.col_pos') }}</th>
                                 <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider">{{ $t('risultati.col_team') }}</th>
                                 <th class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-center">{{ $t('risultati.col_played_short') }}</th>

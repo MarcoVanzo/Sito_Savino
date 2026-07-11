@@ -179,6 +179,7 @@ class PublicController extends Controller
 
         $data['pageTitle'] = $pageTitle;
         $data['showStandings'] = $showStandings;
+        $data['competition'] = $competitionType->value;
 
         return Inertia::render('Public/Risultati', $data);
     }

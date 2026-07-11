@@ -17,6 +17,7 @@ const page = usePage();
 
 // --- Keyboard accessibility ---
 const openIndex = ref(-1);
+let closeTimer = null;
 
 function toggleDropdown(index) {
     if (props.navigation[index]?.children?.length > 0) {
@@ -26,6 +27,19 @@ function toggleDropdown(index) {
 
 function closeDropdown() {
     openIndex.value = -1;
+}
+
+function handleMouseEnter(index) {
+    clearTimeout(closeTimer);
+    if (props.navigation[index]?.children?.length > 0) {
+        openIndex.value = index;
+    }
+}
+
+function handleMouseLeave() {
+    closeTimer = setTimeout(() => {
+        closeDropdown();
+    }, 150);
 }
 
 function handleKeydown(event, index) {
@@ -149,7 +163,7 @@ onBeforeUnmount(() => {
     <nav ref="navRef" role="navigation" :aria-label="$t('nav.main_navigation')" class="hidden xl:flex flex-1 justify-end items-center h-full">
         <div class="flex items-center h-full">
             <template v-for="(item, index) in navigation" :key="item.label">
-                <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="item.children?.length > 0 ? openIndex = index : null" @mouseleave="closeDropdown">
+                <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="handleMouseEnter(index)" @mouseleave="handleMouseLeave">
                     <Link 
                         :href="item.href" 
                         prefetch
