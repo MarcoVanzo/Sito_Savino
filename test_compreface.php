@@ -1,12 +1,17 @@
 <?php
+
+use App\Models\GalleryImage;
+use App\Services\FacialRecognitionService;
+use Illuminate\Contracts\Console\Kernel;
+
 require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
-$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$app->make(Kernel::class)->bootstrap();
 
-$service = app(App\Services\FacialRecognitionService::class);
+$service = app(FacialRecognitionService::class);
 // Troviamo una gallery image
-$image = App\Models\GalleryImage::with('media')->has('media')->first();
-if (!$image) {
+$image = GalleryImage::with('media')->has('media')->first();
+if (! $image) {
     echo "Nessuna immagine\n";
     exit;
 }

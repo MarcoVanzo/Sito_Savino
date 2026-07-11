@@ -15,10 +15,12 @@ use App\Models\Player;
 use App\Models\Post;
 use App\Models\Roster;
 use App\Models\Season;
+use App\Models\SiteSetting;
 use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Team;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -183,10 +185,10 @@ class PublicController extends Controller
 
     public function fotoUfficiale()
     {
-        $pdfUrl = \App\Models\SiteSetting::get('official_photo_pdf');
+        $pdfUrl = SiteSetting::get('official_photo_pdf');
 
         if ($pdfUrl) {
-            return redirect(\Illuminate\Support\Facades\Storage::url($pdfUrl));
+            return redirect(Storage::url($pdfUrl));
         }
 
         return redirect()->back()->with('error', __('Foto ufficiale non ancora caricata.'));

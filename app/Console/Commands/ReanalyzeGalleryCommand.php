@@ -2,20 +2,21 @@
 
 namespace App\Console\Commands;
 
-use App\Models\GalleryImage;
 use App\Jobs\AnalyzeGalleryImageJob;
+use App\Models\GalleryImage;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 
 class ReanalyzeGalleryCommand extends Command
 {
     protected $signature = 'gallery:reanalyze {--chunk=100} {--force}';
+
     protected $description = 'Rianalizza tutte le foto della galleria tramite AI azzerando le associazioni precedenti';
 
     public function handle()
     {
-        if (!$this->option('force') && !$this->confirm('Vuoi davvero rianalizzare tutte le foto della galleria? Questa operazione cancellerà tutte le associazioni facciali attuali.')) {
+        if (! $this->option('force') && ! $this->confirm('Vuoi davvero rianalizzare tutte le foto della galleria? Questa operazione cancellerà tutte le associazioni facciali attuali.')) {
             return;
         }
 
@@ -29,13 +30,14 @@ class ReanalyzeGalleryCommand extends Command
         ]);
 
         $this->info('3. Creazione jobs per l\'analisi...');
-        
+
         $images = GalleryImage::has('media')->get();
         $total = $images->count();
         $this->info("Trovate {$total} foto da analizzare.");
 
         if ($total === 0) {
             $this->info('Nessuna foto da analizzare.');
+
             return;
         }
 

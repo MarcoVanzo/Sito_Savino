@@ -36,9 +36,14 @@ class PublicRoutesTest extends TestCase
         $this->get('/stagione/b1')->assertStatus(200);
     }
 
-    public function test_risultati_returns_200(): void
+    public function test_risultati_redirects_to_stagione_risultati(): void
     {
-        $this->get('/risultati')->assertStatus(200);
+        $this->get('/risultati')->assertRedirect(route('stagione.risultati'));
+    }
+
+    public function test_stagione_risultati_returns_200(): void
+    {
+        $this->get('/stagione/risultati')->assertStatus(200);
     }
 
     public function test_gallery_returns_200(): void

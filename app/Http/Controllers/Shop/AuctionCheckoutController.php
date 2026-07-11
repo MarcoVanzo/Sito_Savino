@@ -183,18 +183,18 @@ class AuctionCheckoutController extends Controller
 
                 // Crea l'ordine — order_token === winner_checkout_token
                 $order = Order::create([
-                    'user_id'          => $user->id,
-                    'order_token'      => $token,
-                    'total_price'      => $totalPrice,
+                    'user_id' => $user->id,
+                    'order_token' => $token,
+                    'total_price' => $totalPrice,
                     'shipping_address' => $shippingAddress,
-                    'billing_address'  => $billingAddress,
-                    'country'          => $validated['country'],
-                    'billing_country'  => $validated['country'],
-                    'phone'            => $validated['phone'],
-                    'codice_fiscale'   => $validated['codice_fiscale'] ?? null,
-                    'payment_gateway'  => PaymentGateway::Stripe,
-                    'shipping_cost'    => $shippingCost,
-                    'notes'            => $validated['notes'] ?? null,
+                    'billing_address' => $billingAddress,
+                    'country' => $validated['country'],
+                    'billing_country' => $validated['country'],
+                    'phone' => $validated['phone'],
+                    'codice_fiscale' => $validated['codice_fiscale'] ?? null,
+                    'payment_gateway' => PaymentGateway::Stripe,
+                    'shipping_cost' => $shippingCost,
+                    'notes' => $validated['notes'] ?? null,
                     'privacy_accepted_at' => now(),
                 ]);
 
