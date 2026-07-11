@@ -51,6 +51,12 @@ class PageController extends Controller
             abort(404);
         }
 
+        // Evita contenuti duplicati (SEO): se la pagina appartiene alla sezione Società
+        // ma è stata chiamata tramite la rotta catch-all, fai un redirect 301 alla rotta corretta.
+        if (str_starts_with($page->template ?? '', 'Public/Societa/') && request()->routeIs('pages.show')) {
+            return redirect()->route('societa.page', ['slug' => $page->slug], 301);
+        }
+
         // Se il template è nella whitelist, usalo. Altrimenti renderizza
         // la pagina generica con un layout che mostra il contenuto della page.
         $template = $page->template && in_array($page->template, self::ALLOWED_TEMPLATES)
@@ -74,6 +80,7 @@ class PageController extends Controller
         return match ($template) {
             'Public/Societa/Organigramma' => $this->getSocietaData(),
             'Public/Roster' => $this->getRosterData(),
+            'Public/Sponsor' => $this->getSponsorData(),
             default => [],
         };
     }
@@ -132,5 +139,27 @@ class PageController extends Controller
                 'seasonName' => $currentSeason?->name ?? __('Stagione corrente'),
             ];
         });
+    }
+
+    private function getSponsorData(): array
+    {
+        $locale = app()->getLocale();
+
+        return [
+            'sponsors' => Cache::remember("public:sponsor:{$locale}", now()->addMinutes(30), function () {
+                return \App\Models\Sponsor::with('media')
+                    ->orderBy('tier')
+                    ->orderBy('sort_order')
+                    ->get()
+                    ->map(fn ($s) => [
+                        'id' => $s->id,
+                        'name' => $s->name,
+                        'tier' => $s->tier,
+                        'website_url' => $s->url,
+                        'logo_url' => $s->getFirstMediaUrl('sponsors', 'card') ?: $s->getFirstMediaUrl('sponsors'),
+                        'sort_order' => $s->sort_order,
+                    ])->toArray();
+            }),
+        ];
     }
 }
