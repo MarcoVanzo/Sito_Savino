@@ -18,6 +18,8 @@
                 return;
             }
 
+            await $wire.prepareForSync(this.recordId);
+
             this.photos = mediaList.map(m => ({
                 ...m,
                 status: 'pending',

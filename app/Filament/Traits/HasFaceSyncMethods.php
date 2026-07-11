@@ -19,9 +19,6 @@ trait HasFaceSyncMethods
             return [];
         }
 
-        // Reset contatore AI prima di ri-addestrare (evita counter drift)
-        $roster->player->update(['ai_face_examples' => 0]);
-
         $allMedia = collect();
 
         $officialPhoto = $roster->getFirstMedia('rosters_official');
@@ -88,5 +85,18 @@ trait HasFaceSyncMethods
             'error' => $error,
             'newScore' => $roster->player->fresh()->ai_face_examples,
         ];
+    }
+
+    /**
+     * Prepara la sincronizzazione azzerando gli esempi su CompreFace e nel database.
+     */
+    public function prepareForSync(int $rosterId): void
+    {
+        $roster = Roster::with('player')->find($rosterId);
+        if ($roster && $roster->player) {
+            $service = app(FacialRecognitionService::class);
+            $service->deleteAllSubjectExamples($roster->player);
+            $roster->player->update(['ai_face_examples' => 0]);
+        }
     }
 }
