@@ -154,7 +154,7 @@ class PageResource extends Resource
                                     'Public/Societa/Palazzetto',
                                     'Public/Societa/Safeguarding',
                                     'Public/Contatti',
-                                    'Public/Ticketing'
+                                    'Public/Ticketing',
                                 ])),
                         ])->columnSpanFull(),
                     ])->columns(2),
