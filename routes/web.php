@@ -24,18 +24,6 @@ use Inertia\Inertia;
 
 require __DIR__.'/auth.php';
 
-// Rotta temporanea per lanciare la scansione AI in produzione
-Route::get('/run-reanalyze-secret-xyz', function () {
-    if (request('secret') !== 'savino-secret-ai-2026') {
-        abort(403);
-    }
-    \Illuminate\Support\Facades\Artisan::call('gallery:reanalyze', ['--force' => true]);
-    return response()->json([
-        'status' => 'success',
-        'output' => \Illuminate\Support\Facades\Artisan::output()
-    ]);
-});
-
 // Redirect 301 for the old WooCommerce subdomain
 Route::domain('shop.savinodelbenevolley.it')->group(function () {
     Route::any('/{any?}', function ($any = null) {
