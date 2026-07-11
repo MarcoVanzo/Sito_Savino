@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Mail\OrderConfirmation;
 use App\Mail\RefundConfirmation;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ShopEvent;
@@ -65,7 +66,7 @@ trait HandlesPaymentWebhooks
                 // 2. Decrement stock atomically for each order item
                 $order->load('items');
                 foreach ($order->items as $item) {
-                    /** @var \App\Models\OrderItem $item */
+                    /** @var OrderItem $item */
                     if ($item->product_variant_id) {
                         ProductVariant::where('id', $item->product_variant_id)
                             ->decrement('stock', $item->quantity);
