@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Shop;
 
-use App\Models\ProductCategory;
+use App\Models\MenuItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
 class ShopMenuUrlsTest extends TestCase
@@ -66,10 +68,10 @@ class ShopMenuUrlsTest extends TestCase
     public function test_menu_item_url_localization_in_get_tree(): void
     {
         // Pulisci cache prima di iniziare
-        \App\Models\MenuItem::clearCache();
+        MenuItem::clearCache();
 
         // Creamo una voce di menu finta
-        $parent = \App\Models\MenuItem::create([
+        $parent = MenuItem::create([
             'location' => 'main',
             'label' => ['it' => 'Shop Test', 'en' => 'Shop Test'],
             'url' => '/shop',
@@ -77,7 +79,7 @@ class ShopMenuUrlsTest extends TestCase
             'sort_order' => 999, // molto alto per non rompere
         ]);
 
-        $child = \App\Models\MenuItem::create([
+        $child = MenuItem::create([
             'location' => 'main',
             'parent_id' => $parent->id,
             'label' => ['it' => 'Kit Gara Test', 'en' => 'Match Kit Test'],
@@ -88,8 +90,8 @@ class ShopMenuUrlsTest extends TestCase
 
         // 1. Testa in Italiano
         app()->setLocale('it');
-        \App\Models\MenuItem::clearCache();
-        $treeIt = \App\Models\MenuItem::getTree('main');
+        MenuItem::clearCache();
+        $treeIt = MenuItem::getTree('main');
 
         $parentIt = collect($treeIt)->firstWhere('id', $parent->id);
         $this->assertNotNull($parentIt);
@@ -98,8 +100,8 @@ class ShopMenuUrlsTest extends TestCase
 
         // 2. Testa in Inglese
         app()->setLocale('en');
-        \App\Models\MenuItem::clearCache();
-        $treeEn = \App\Models\MenuItem::getTree('main');
+        MenuItem::clearCache();
+        $treeEn = MenuItem::getTree('main');
 
         $parentEn = collect($treeEn)->firstWhere('id', $parent->id);
         $this->assertNotNull($parentEn);
@@ -111,23 +113,23 @@ class ShopMenuUrlsTest extends TestCase
     public function test_laravel_route_matching_experiment(): void
     {
         $url = '/shop/categoria/kit-gara-25-26';
-        
-        $request = \Illuminate\Http\Request::create($url, 'GET');
-        
+
+        $request = Request::create($url, 'GET');
+
         try {
             $route = app('router')->getRoutes()->match($request);
             $routeName = $route->getName();
             $parameters = $route->parameters();
-            
+
             $this->assertEquals('shop.category', $routeName);
             $this->assertArrayHasKey('category', $parameters);
-            
+
             // Proviamo a rigenerare l'URL in inglese
-            $targetRouteName = 'en.' . $routeName;
+            $targetRouteName = 'en.'.$routeName;
             $newUrl = route($targetRouteName, $parameters, false);
-            
+
             $this->assertEquals('/en/shop/category/kit-gara-25-26', $newUrl);
-        } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
+        } catch (NotFoundHttpException $e) {
             $this->fail('La rotta non è stata trovata dal router di Laravel.');
         }
     }
@@ -136,22 +138,22 @@ class ShopMenuUrlsTest extends TestCase
     {
         // 1. URL con query string
         $urlWithQuery = '/shop/categoria/kit-gara-25-26?q=search&size=M';
-        $localizedQuery = \App\Models\MenuItem::localizeUrl($urlWithQuery, 'en');
+        $localizedQuery = MenuItem::localizeUrl($urlWithQuery, 'en');
         $this->assertEquals('/en/shop/category/kit-gara-25-26?q=search&size=M', $localizedQuery);
 
         // 2. URL con frammento/ancora
         $urlWithFragment = '/shop/categoria/abbigliamento#guida';
-        $localizedFragment = \App\Models\MenuItem::localizeUrl($urlWithFragment, 'en');
+        $localizedFragment = MenuItem::localizeUrl($urlWithFragment, 'en');
         $this->assertEquals('/en/shop/category/abbigliamento#guida', $localizedFragment);
 
         // 3. URL con entrambi
         $urlBoth = '/shop/categoria/kit-gara-25-26?color=blue#tab-size';
-        $localizedBoth = \App\Models\MenuItem::localizeUrl($urlBoth, 'en');
+        $localizedBoth = MenuItem::localizeUrl($urlBoth, 'en');
         $this->assertEquals('/en/shop/category/kit-gara-25-26?color=blue#tab-size', $localizedBoth);
 
         // 4. URL esterno (non deve essere alterato)
         $urlExternal = 'https://errea.com/size-guide?lang=it#table';
-        $localizedExternal = \App\Models\MenuItem::localizeUrl($urlExternal, 'en');
+        $localizedExternal = MenuItem::localizeUrl($urlExternal, 'en');
         $this->assertEquals('https://errea.com/size-guide?lang=it#table', $localizedExternal);
     }
 }

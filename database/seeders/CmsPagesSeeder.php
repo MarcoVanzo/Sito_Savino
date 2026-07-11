@@ -251,7 +251,7 @@ class CmsPagesSeeder extends Seeder
                                 'email' => '',
                                 'phone' => '333 88 24 951',
                             ],
-                        ]
+                        ],
                     ],
                     'en' => [
                         'hero_subtitle' => 'Contacts & Head Office',
@@ -318,8 +318,8 @@ class CmsPagesSeeder extends Seeder
                                 'email' => '',
                                 'phone' => '333 88 24 951',
                             ],
-                        ]
-                    ]
+                        ],
+                    ],
                 ]),
             $this->page('palazzetto', 'Il Palazzetto', 'Public/Societa/Palazzetto',
                 'Palazzo Wanny, la casa della Savino Del Bene Volley a Firenze. Capienza, come arrivare e servizi dell\'impianto.',

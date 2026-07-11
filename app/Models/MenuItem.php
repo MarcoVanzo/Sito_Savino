@@ -6,6 +6,7 @@ use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -141,15 +142,15 @@ class MenuItem extends Model implements HasMedia
 
     public static function localizeUrl(string $url, string $locale): string
     {
-        if (!str_starts_with($url, '/')) {
+        if (! str_starts_with($url, '/')) {
             return $url;
         }
 
         // Parse the URL to preserve any query string (?...) and fragment (#...)
         $parsed = parse_url($url);
         $path = $parsed['path'] ?? '/';
-        $queryString = isset($parsed['query']) ? '?' . $parsed['query'] : '';
-        $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
+        $queryString = isset($parsed['query']) ? '?'.$parsed['query'] : '';
+        $fragment = isset($parsed['fragment']) ? '#'.$parsed['fragment'] : '';
 
         $cleanUrl = rtrim($path, '/');
         if ($cleanUrl === '') {
@@ -157,14 +158,13 @@ class MenuItem extends Model implements HasMedia
         }
 
         // Remove language prefix if present (e.g. /en/) to normalize before matching
-        $cleanUrl = preg_replace('/^\/(en)(\/|$)/', '/', $cleanUrl);
-        $cleanUrl = $cleanUrl === '' ? '/' : $cleanUrl;
+        $cleanUrl = preg_replace('/^\/(en)(\/|$)/', '/', $cleanUrl) ?? '/';
 
         $localizedPath = null;
 
         try {
             // Match the request against Laravel's routing system to find the matching route
-            $request = \Illuminate\Http\Request::create($cleanUrl, 'GET');
+            $request = Request::create($cleanUrl, 'GET');
             $route = app('router')->getRoutes()->match($request);
             $routeName = $route->getName();
 
@@ -173,11 +173,11 @@ class MenuItem extends Model implements HasMedia
                 $baseRouteName = preg_replace('/^(en)\./', '', $routeName);
 
                 // Get target localized route name
-                $targetRouteName = $locale === 'it' ? $baseRouteName : $locale . '.' . $baseRouteName;
+                $targetRouteName = $locale === 'it' ? $baseRouteName : $locale.'.'.$baseRouteName;
 
                 if (app('router')->getRoutes()->hasNamedRoute($targetRouteName)) {
                     $parameters = $route->parameters();
-                    
+
                     // Generate relative URL using Laravel's route generator (this automatically handles prefixes and parameters)
                     $localizedPath = route($targetRouteName, $parameters, false);
                 }
@@ -189,11 +189,11 @@ class MenuItem extends Model implements HasMedia
         if ($localizedPath === null) {
             // Manually prepend the language prefix for fallbacks on non-default languages
             $prefix = $locale === 'it' ? '' : '/'.$locale;
-            $localizedPath = $prefix . $cleanUrl;
+            $localizedPath = $prefix.$cleanUrl;
         }
 
         // Re-append the preserved query string and fragment
-        return $localizedPath . $queryString . $fragment;
+        return $localizedPath.$queryString.$fragment;
     }
 
     /**
