@@ -7,6 +7,7 @@ use App\Enums\StaffType;
 use App\Models\Page;
 use App\Models\Roster;
 use App\Models\Season;
+use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Team;
 use Illuminate\Support\Facades\Cache;
@@ -147,7 +148,7 @@ class PageController extends Controller
 
         return [
             'sponsors' => Cache::remember("public:sponsor:{$locale}", now()->addMinutes(30), function () {
-                return \App\Models\Sponsor::with('media')
+                return Sponsor::with('media')
                     ->orderBy('tier')
                     ->orderBy('sort_order')
                     ->get()
