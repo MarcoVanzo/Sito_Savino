@@ -99,7 +99,7 @@ class PageController extends Controller
             $section = self::SLUG_SECTION_MAP[$page->slug];
             $routePrefix = app()->getLocale() === 'it' ? '' : app()->getLocale().'.';
 
-            return redirect()->route($routePrefix . $section . '.page', ['slug' => $page->slug], 301);
+            return redirect()->route($routePrefix.$section.'.page', ['slug' => $page->slug], 301);
         }
 
         // Se il template è nella whitelist, usalo. Altrimenti renderizza

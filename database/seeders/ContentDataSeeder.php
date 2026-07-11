@@ -44,7 +44,7 @@ class ContentDataSeeder extends Seeder
                     ['value' => '4.000+', 'label' => 'Posti a Sedere'],
                     ['value' => 'Serie A1', 'label' => 'Omologazione'],
                 ],
-                'address' => 'Via del Tridente, 5 — 50127 Firenze (FI)',
+                'address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',
             ],
             'contatti' => [
                 'badge' => 'Resta in Contatto',

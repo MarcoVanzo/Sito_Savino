@@ -186,12 +186,12 @@ class CmsPagesSeeder extends Seeder
                 'Contatta la Savino Del Bene Volley. Trova i nostri recapiti, l\'indirizzo della sede e il form di contatto.'),
             $this->page('palazzetto', 'Il Palazzetto', 'Public/Societa/Palazzetto',
                 'Palazzo Wanny, la casa della Savino Del Bene Volley a Firenze. Capienza, come arrivare e servizi dell\'impianto.',
-                '<h2>Palazzo Wanny</h2><p>Il Palazzo Wanny di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.</p><h2>Come Arrivare</h2><p>Via del Tridente, 5 — 50127 Firenze (FI). Facilmente raggiungibile con i mezzi pubblici e con ampio parcheggio disponibile.</p><h2>Servizi</h2><p>Bar, area hospitality, accesso disabili, parcheggio custodito.</p>',
+                '<h2>Palazzo Wanny</h2><p>Il Palazzo Wanny di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.</p><h2>Come Arrivare</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI). Facilmente raggiungibile con i mezzi pubblici e con ampio parcheggio disponibile.</p><h2>Servizi</h2><p>Bar, area hospitality, accesso disabili, parcheggio custodito.</p>',
                 [
                     'it' => [
                         'venue_name' => 'Palazzo Wanny',
-                        'venue_address' => 'Via del Tridente, 5 — 50127 Firenze (FI)',
-                        'maps_link' => 'https://maps.app.goo.gl/BXZz1R6Z3sX3Y3e97',
+                        'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',
+                        'maps_link' => 'https://www.google.com/maps/place/Palazzo+Wanny/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
                         'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalazzo%20Wanny!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
                         'services' => [
                             [
@@ -214,8 +214,8 @@ class CmsPagesSeeder extends Seeder
                     ],
                     'en' => [
                         'venue_name' => 'Palazzo Wanny',
-                        'venue_address' => 'Via del Tridente, 5 — 50127 Florence (FI)',
-                        'maps_link' => 'https://maps.app.goo.gl/BXZz1R6Z3sX3Y3e97',
+                        'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI)',
+                        'maps_link' => 'https://www.google.com/maps/place/Palazzo+Wanny/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
                         'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalazzo%20Wanny!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
                         'services' => [
                             [
