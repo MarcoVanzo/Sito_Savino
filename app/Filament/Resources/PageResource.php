@@ -89,7 +89,10 @@ class PageResource extends Resource
                             ->options([
                                 'Default' => 'Template Predefinito',
                                 'Public/Home' => 'Home Page',
-                                'Public/Societa' => 'Società',
+                                'Public/Societa' => 'Società (Organigramma)',
+                                'Public/Societa/Storia' => 'Società - Storia',
+                                'Public/Societa/Palazzetto' => 'Società - Palazzetto',
+                                'Public/Societa/Safeguarding' => 'Società - Safeguarding',
                                 'Public/Roster' => 'Roster',
                                 'Public/Shop' => 'Shop',
                                 'Public/Ticketing' => 'Biglietteria',

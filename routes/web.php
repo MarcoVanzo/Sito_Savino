@@ -24,6 +24,18 @@ use Inertia\Inertia;
 
 require __DIR__.'/auth.php';
 
+// Rotta temporanea per lanciare la scansione AI in produzione
+Route::get('/run-reanalyze-secret-xyz', function () {
+    if (request('secret') !== 'savino-secret-ai-2026') {
+        abort(403);
+    }
+    \Illuminate\Support\Facades\Artisan::call('gallery:reanalyze', ['--force' => true]);
+    return response()->json([
+        'status' => 'success',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});
+
 // Redirect 301 for the old WooCommerce subdomain
 Route::domain('shop.savinodelbenevolley.it')->group(function () {
     Route::any('/{any?}', function ($any = null) {
@@ -65,6 +77,7 @@ foreach ($locales as $loc) {
         Route::get('/gallery/atleta/{slug}', [PublicController::class, 'galleryAtleta'])->name('gallery.atleta');
         Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
         Route::get('/societa/organigramma', [PublicController::class, 'organigramma'])->name('organigramma');
+        Route::get('/societa/{slug}', [PageController::class, 'show'])->name('societa.page');
         Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');
         Route::get('/news', [NewsController::class, 'index'])->name('news.index');
         Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
@@ -182,14 +195,3 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::get('/account/verifica-pagamento/completata', [PaymentVerificationController::class, 'success'])->name('account.payment-verification.success');
 });
 
-// Rotta temporanea per lanciare la scansione AI in produzione
-Route::get('/run-reanalyze-secret-xyz', function () {
-    if (request('secret') !== 'savino-secret-ai-2026') {
-        abort(403);
-    }
-    \Illuminate\Support\Facades\Artisan::call('gallery:reanalyze', ['--force' => true]);
-    return response()->json([
-        'status' => 'success',
-        'output' => \Illuminate\Support\Facades\Artisan::output()
-    ]);
-});

@@ -24,6 +24,9 @@ class PageController extends Controller
         'Public/Stagione',
         'Public/Home',
         'Public/Societa',
+        'Public/Societa/Storia',
+        'Public/Societa/Palazzetto',
+        'Public/Societa/Safeguarding',
         'Public/Roster',
 
         'Public/Ticketing',
