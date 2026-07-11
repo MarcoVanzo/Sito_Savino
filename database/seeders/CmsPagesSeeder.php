@@ -52,7 +52,7 @@ class CmsPagesSeeder extends Seeder
     {
         return [
             // === SOCIETÀ ===
-            $this->page('organigramma', 'Organigramma', 'Public/Societa',
+            $this->page('organigramma', 'Organigramma', 'Public/Societa/Organigramma',
                 'L\'organigramma ufficiale della Savino Del Bene Volley. Scopri il team dirigenziale e lo staff del club.',
                 '<p>L\'organigramma della Savino Del Bene Volley. Questa pagina è gestita dal CMS.</p>'),
             $this->page('storia', 'Storia del Club', 'Public/Societa/Storia',

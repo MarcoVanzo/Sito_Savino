@@ -23,7 +23,7 @@ class PageController extends Controller
         'Public/ContentPage',
         'Public/Stagione',
         'Public/Home',
-        'Public/Societa',
+        'Public/Societa/Organigramma',
         'Public/Societa/Storia',
         'Public/Societa/Palazzetto',
         'Public/Societa/Safeguarding',
@@ -72,7 +72,7 @@ class PageController extends Controller
     private function getTemplateData(string $template): array
     {
         return match ($template) {
-            'Public/Societa' => $this->getSocietaData(),
+            'Public/Societa/Organigramma' => $this->getSocietaData(),
             'Public/Roster' => $this->getRosterData(),
             default => [],
         };

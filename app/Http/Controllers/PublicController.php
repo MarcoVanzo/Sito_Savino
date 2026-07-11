@@ -332,31 +332,6 @@ class PublicController extends Controller
         ]);
     }
 
-    public function organigramma()
-    {
-        $locale = app()->getLocale();
-        $dirigenza = Cache::remember("public:organigramma:{$locale}", now()->addMinutes(30), function () {
-            return StaffMember::with('media')
-                ->where('type', StaffType::Dirigenza)
-                ->orderBy('sort_order')
-                ->get()
-                ->map(fn ($p) => [
-                    'id' => $p->id,
-                    'name' => $p->full_name,
-                    'role' => $p->role,
-                    'photo_url' => $p->getFirstMediaUrl('staff', 'card') ?: $p->getFirstMediaUrl('staff'),
-                ])
-                ->toArray();
-        });
-
-        $page = Page::where('slug', 'organigramma')->first();
-
-        return Inertia::render('Public/Organigramma', [
-            'dirigenza' => $dirigenza,
-            'page' => $page,
-        ]);
-    }
-
     public function sponsor()
     {
         $locale = app()->getLocale();

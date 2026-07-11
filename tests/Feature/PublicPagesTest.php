@@ -42,6 +42,20 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_societa_page_returns_200_for_published_page(): void
+    {
+        Page::factory()->create([
+            'slug' => 'storia',
+            'title' => 'Storia',
+            'status' => PostStatus::Published,
+            'template' => 'Public/Societa/Storia',
+            'content' => '<p>Test content</p>',
+        ]);
+
+        $response = $this->get('/societa/storia');
+        $response->assertStatus(200);
+    }
+
     public function test_cms_page_returns_404_for_draft_page(): void
     {
         Page::factory()->create([

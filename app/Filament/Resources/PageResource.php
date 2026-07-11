@@ -89,7 +89,7 @@ class PageResource extends Resource
                             ->options([
                                 'Default' => 'Template Predefinito',
                                 'Public/Home' => 'Home Page',
-                                'Public/Societa' => 'Società (Organigramma)',
+                                'Public/Societa/Organigramma' => 'Società (Organigramma)',
                                 'Public/Societa/Storia' => 'Società - Storia',
                                 'Public/Societa/Palazzetto' => 'Società - Palazzetto',
                                 'Public/Societa/Safeguarding' => 'Società - Safeguarding',
@@ -116,8 +116,9 @@ class PageResource extends Resource
                         Forms\Components\Group::make([
                             // FORM: SOCIETA
                             Forms\Components\Section::make('Impostazioni Pagina Società')
+                                ->label('Dati Società / Organigramma')
                                 ->schema(PageTemplateForms::getSocietaSchema())
-                                ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa'),
+                                ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Organigramma'),
 
                             // FORM: TICKETING
                             Forms\Components\Section::make('Impostazioni Pagina Biglietteria')
@@ -127,7 +128,7 @@ class PageResource extends Resource
                             // GENERIC JSON per altre pagine
                             Forms\Components\Section::make('Dati Contenuto (Altre Pagine)')
                                 ->schema(PageTemplateForms::getGenericJsonSchema())
-                                ->visible(fn (Forms\Get $get) => ! in_array($get('template'), ['Public/Societa', 'Public/Ticketing'])),
+                                ->visible(fn (Forms\Get $get) => ! in_array($get('template'), ['Public/Societa/Organigramma', 'Public/Ticketing'])),
                         ])->columnSpanFull(),
                     ])->columns(2),
             ]);
