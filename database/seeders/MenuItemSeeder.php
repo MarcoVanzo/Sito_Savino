@@ -167,20 +167,41 @@ class MenuItemSeeder extends Seeder
 
         // 9. Shop
         $shop = MenuItem::create([
-            'label' => 'Shop Ufficiale',
+            'label' => ['it' => 'Shop Ufficiale', 'en' => 'Official Shop'],
             'url' => '/shop/',
             'location' => 'main',
             'sort_order' => 8,
             'is_active' => true,
             'is_highlight' => false,
-            'motto_title' => 'Shop Ufficiale',
-            'motto_subtitle' => 'Maglie, merchandise e accessori della squadra',
+            'motto_title' => ['it' => 'Shop Ufficiale', 'en' => 'Official Shop'],
+            'motto_subtitle' => ['it' => 'Maglie, merchandise e accessori della squadra', 'en' => 'Team shirts, merchandise and accessories'],
         ]);
         $this->createChildren($shop, [
-            ['label' => 'Kit Gara', 'url' => '/shop/kit-gara/', 'description' => 'Home, Away, Champions'],
-            ['label' => 'Abbigliamento & Accessori', 'url' => '/shop/abbigliamento/', 'description' => 'Catalogo'],
-            ['label' => 'Aste & Outlet', 'url' => '/shop/outlet/', 'description' => 'Scadenze e Rilanci'],
-            ['label' => 'Guida Taglie & Contatti', 'url' => '/shop/guida-taglie/', 'description' => 'File Errea'],
+            [
+                'label' => ['it' => 'Kit Gara', 'en' => 'Match Kits'],
+                'url' => '/shop/categoria/kit-gara-25-26',
+                'description' => ['it' => 'Home, Away, Champions', 'en' => 'Home, Away, Champions'],
+            ],
+            [
+                'label' => ['it' => 'Abbigliamento & Accessori', 'en' => 'Apparel & Accessories'],
+                'url' => '/shop/categoria/abbigliamento',
+                'description' => ['it' => 'Catalogo', 'en' => 'Catalogue'],
+            ],
+            [
+                'label' => ['it' => 'Aste & Outlet', 'en' => 'Auctions & Outlet'],
+                'url' => '/shop/aste',
+                'description' => ['it' => 'Scadenze e Rilanci', 'en' => 'Deadlines and Bids'],
+            ],
+            [
+                'label' => ['it' => 'Guida Taglie', 'en' => 'Size Guide'],
+                'url' => '/shop/guida-taglie',
+                'description' => ['it' => 'File Errea', 'en' => 'Errea File'],
+            ],
+            [
+                'label' => ['it' => 'Contatti Shop', 'en' => 'Shop Contacts'],
+                'url' => '/shop/contatti',
+                'description' => ['it' => 'Assistenza Clienti', 'en' => 'Customer Support'],
+            ],
         ]);
 
         // ── FOOTER MENU ──────────────────────────────────────────────

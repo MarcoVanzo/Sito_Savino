@@ -183,21 +183,91 @@ class PageTemplateForms
     public static function getContattiSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.hero_subtitle')
-                ->label('Sottotitolo Hero')
-                ->placeholder('es. Dal 1982'),
-            Forms\Components\Textarea::make('content_data.hero_description')
-                ->label('Descrizione Hero'),
-            Forms\Components\TextInput::make('content_data.form_title')
-                ->label('Titolo Modulo di Contatto')
-                ->placeholder('es. Scrivici'),
-            Forms\Components\TextInput::make('content_data.form_success_message')
-                ->label('Messaggio di Successo Modulo'),
-            Forms\Components\TextInput::make('content_data.map_title')
-                ->label('Titolo Mappa (es. Sede Legale)')
-                ->placeholder('es. Palazzo Wanny'),
-            Forms\Components\TextInput::make('content_data.map_address')
-                ->label('Indirizzo Mappa'),
+            Forms\Components\Section::make('Hero e Presentazione')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.hero_subtitle')
+                        ->label('Sottotitolo Hero')
+                        ->placeholder('es. Dal 1982'),
+                    Forms\Components\Textarea::make('content_data.hero_description')
+                        ->label('Descrizione Hero'),
+                ])->columns(2),
+
+            Forms\Components\Section::make('Modulo di Contatto')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.form_title')
+                        ->label('Titolo Modulo di Contatto')
+                        ->placeholder('es. Scrivici'),
+                    Forms\Components\TextInput::make('content_data.form_success_message')
+                        ->label('Messaggio di Successo Modulo'),
+                ])->columns(2),
+
+            Forms\Components\Section::make('Sede Legale & Dati Societari')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.legal_address')
+                        ->label('Indirizzo Sede Legale')
+                        ->placeholder('es. Via Benozzo Gozzoli, 5/6 50018 Scandicci – Firenze')
+                        ->columnSpan(2),
+                    Forms\Components\TextInput::make('content_data.legal_phone')
+                        ->label('Telefono Sede')
+                        ->placeholder('es. 055 721503'),
+                    Forms\Components\TextInput::make('content_data.legal_email')
+                        ->label('Email Sede')
+                        ->placeholder('es. info@savinodelbenevolley.it'),
+                    Forms\Components\TextInput::make('content_data.legal_pec')
+                        ->label('PEC Sede')
+                        ->placeholder('es. pallavoloscandicci@legalmail.it'),
+                    Forms\Components\TextInput::make('content_data.legal_sdi')
+                        ->label('Codice SDI')
+                        ->placeholder('es. KRRH6B9'),
+                    Forms\Components\TextInput::make('content_data.legal_piva')
+                        ->label('Partita IVA')
+                        ->placeholder('es. 06271460484'),
+                    Forms\Components\TextInput::make('content_data.legal_cf')
+                        ->label('Codice Fiscale')
+                        ->placeholder('es. 94217750481'),
+                    Forms\Components\TextInput::make('content_data.legal_fipav')
+                        ->label('Codice FIPAV')
+                        ->placeholder('es. 100470331'),
+                ])->columns(2),
+
+            Forms\Components\Section::make('Mappa Sede Legale (Google Maps)')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.map_title')
+                        ->label('Titolo Mappa (es. Sede Legale)')
+                        ->placeholder('es. Palazzo Wanny'),
+                    Forms\Components\TextInput::make('content_data.map_address')
+                        ->label('Indirizzo per la ricerca Mappa')
+                        ->placeholder('es. Via Benozzo Gozzoli, 5/6, Scandicci'),
+                ])->columns(2),
+
+            Forms\Components\Section::make('Rubrica Contatti e Dipartimenti')
+                ->schema([
+                    Forms\Components\Repeater::make('content_data.contacts_list')
+                        ->label('Lista Contatti / Dipartimenti')
+                        ->schema([
+                            Forms\Components\TextInput::make('category')
+                                ->label('Categoria / Sezione (es. SERIE A1, SDB VOLLEY YOUTH, ecc.)')
+                                ->placeholder('es. SERIE A1'),
+                            Forms\Components\TextInput::make('role')
+                                ->label('Ruolo / Dipartimento')
+                                ->required()
+                                ->placeholder('es. DIRETTORE GENERALE'),
+                            Forms\Components\TextInput::make('name')
+                                ->label('Nome Referente (Opzionale)')
+                                ->placeholder('es. Francesco Paoletti'),
+                            Forms\Components\TextInput::make('email')
+                                ->label('Email (Opzionale)')
+                                ->email()
+                                ->placeholder('es. press@savinodelbenevolley.it'),
+                            Forms\Components\TextInput::make('phone')
+                                ->label('Telefono / Cellulare (Opzionale)')
+                                ->placeholder('es. 333 88 24 951'),
+                        ])
+                        ->columns(2)
+                        ->columnSpanFull()
+                        ->createItemButtonLabel('Aggiungi Contatto / Ruolo')
+                        ->grid(2),
+                ]),
         ];
     }
 

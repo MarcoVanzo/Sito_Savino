@@ -46,25 +46,51 @@ const contactInfo = computed(() => [
     {
         icon: 'email',
         title: 'Email',
-        value: contact.value.email || 'info@savinodelbenescandicci.it',
-        link: 'mailto:' + (contact.value.email || 'info@savinodelbenescandicci.it'),
+        value: cd.value.legal_email || contact.value.email || 'info@savinodelbenevolley.it',
+        link: 'mailto:' + (cd.value.legal_email || contact.value.email || 'info@savinodelbenevolley.it'),
         color: 'savino-blue'
     },
     {
         icon: 'phone',
         title: $t('contatti.phone'),
-        value: contact.value.phone || '+39 055 123 4567',
-        link: 'tel:' + (contact.value.phone_raw || contact.value.phone || '+390551234567').replace(/\s/g, ''),
+        value: cd.value.legal_phone || contact.value.phone || '055 721503',
+        link: 'tel:' + (cd.value.legal_phone || contact.value.phone_raw || contact.value.phone || '055721503').replace(/\s/g, ''),
         color: 'savino-gold'
     },
     {
         icon: 'location',
         title: $t('contatti.location'),
-        value: contact.value.address || 'Palazzo Wanny, Via Allende 10, Firenze',
+        value: cd.value.legal_address || contact.value.address || 'Via Benozzo Gozzoli, 5/6 50018 Scandicci – Firenze',
         link: null,
         color: 'savino-red'
     }
 ])
+
+const contactsByCategory = computed(() => {
+    const list = cd.value.contacts_list || [];
+    const grouped = {};
+    list.forEach(c => {
+        const cat = c.category || 'Altri Contatti';
+        if (!grouped[cat]) {
+            grouped[cat] = [];
+        }
+        grouped[cat].push(c);
+    });
+    return grouped;
+});
+
+const categoriesOrder = computed(() => {
+    const keys = Object.keys(contactsByCategory.value);
+    return keys.sort((a, b) => {
+        const standardA = a.toUpperCase();
+        const standardB = b.toUpperCase();
+        if (standardA === 'SERIE A1') return -1;
+        if (standardB === 'SERIE A1') return 1;
+        if (standardA === 'SDB VOLLEY YOUTH') return -1;
+        if (standardB === 'SDB VOLLEY YOUTH') return 1;
+        return a.localeCompare(b);
+    });
+});
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('contatti.og_title'),
@@ -134,6 +160,113 @@ const ogMeta = useOgMeta({
                            
                         >{{ info.value }}</a>
                         <p v-else class="text-gray-700 font-semibold">{{ info.value }}</p>
+                    </div>
+                </div>
+
+                <!-- Sede Legale & Dati Societari -->
+                <div class="mb-16 bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <h3 class="text-lg font-black text-gray-900 uppercase tracking-wider mb-6 flex items-center gap-2.5">
+                        <svg class="w-5 h-5 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        {{ $t('contatti.corporate_title') }}
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Partita IVA</span>
+                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_piva || '06271460484' }}</span>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Codice Fiscale</span>
+                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_cf || '94217750481' }}</span>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Codice FIPAV</span>
+                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_fipav || '100470331' }}</span>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
+                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Codice SDI</span>
+                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_sdi || 'KRRH6B9' }}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 border-t border-gray-100 pt-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-savino-blue/10 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">PEC Ufficiale</span>
+                                <a :href="'mailto:' + (cd.legal_pec || 'pallavoloscandicci@legalmail.it')" class="block text-sm font-extrabold text-savino-blue hover:underline">{{ cd.legal_pec || 'pallavoloscandicci@legalmail.it' }}</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-savino-gold/10 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-12 0 9 9 0 0112 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Orari Ufficio</span>
+                                <span class="block text-sm font-extrabold text-gray-800">{{ settings.contact?.office_hours || 'Lun-Ven: 09:00 - 13:00 / 14:00 - 18:00' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Directory / Rubrica Contatti -->
+                <div v-if="cd.contacts_list && cd.contacts_list.length > 0" class="mb-16">
+                    <div class="text-center mb-10">
+                        <span class="text-savino-pink text-xs font-black uppercase tracking-[0.2em] bg-savino-pink/10 px-3.5 py-1.5 rounded-full">{{ $t('contatti.directory_badge') }}</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight mt-4">{{ $t('contatti.directory_title') }}</h2>
+                        <div class="w-10 h-1 bg-savino-pink mx-auto mt-3.5"></div>
+                    </div>
+
+                    <div class="space-y-10">
+                        <div v-for="category in categoriesOrder" :key="category" class="space-y-5">
+                            <!-- Category Header -->
+                            <div class="flex items-center gap-4">
+                                <h3 class="text-sm font-black text-savino-blue tracking-wider uppercase bg-savino-blue/5 px-4 py-2 rounded-lg border-l-4 border-savino-blue">
+                                    {{ category }}
+                                </h3>
+                                <div class="flex-grow h-px bg-gray-200"></div>
+                            </div>
+
+                            <!-- Contacts Grid -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div
+                                    v-for="(item, index) in contactsByCategory[category]"
+                                    :key="index"
+                                    class="bg-white rounded-xl p-5 border border-gray-100 hover:border-savino-blue/20 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex flex-col justify-between"
+                                >
+                                    <div>
+                                        <span class="block text-[11px] font-black text-savino-gold uppercase tracking-wider mb-1">{{ item.role }}</span>
+                                        <h4 v-if="item.name" class="text-sm font-black text-gray-900 uppercase tracking-tight mb-3">
+                                            {{ item.name }}
+                                        </h4>
+                                        <div v-else class="h-3"></div>
+                                    </div>
+                                    
+                                    <div class="space-y-2 pt-2 border-t border-gray-100 text-xs">
+                                        <!-- Email -->
+                                        <div v-if="item.email" class="flex items-center gap-2 text-gray-600 hover:text-savino-blue transition-colors">
+                                            <svg class="w-3.5 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                            <a :href="'mailto:' + item.email" class="font-bold break-all">{{ item.email }}</a>
+                                        </div>
+                                        <!-- Phone -->
+                                        <div v-if="item.phone" class="flex items-center gap-2 text-gray-600 hover:text-savino-gold transition-colors">
+                                            <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                            </svg>
+                                            <a :href="'tel:' + item.phone.replace(/\s/g, '')" class="font-bold">{{ item.phone }}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -223,7 +356,7 @@ const ogMeta = useOgMeta({
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
                         <div class="relative h-full min-h-[400px]">
                             <iframe
-                                src="https://maps.google.com/maps?q=Palazzo+Wanny,+Via+Salvador+Allende,+Scandicci,+Firenze&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                :src="'https://maps.google.com/maps?q=' + encodeURIComponent(cd.map_address || 'Palazzo Wanny, Via Salvador Allende, Scandicci, Firenze') + '&t=&z=15&ie=UTF8&iwloc=&output=embed'"
                                 class="absolute inset-0 w-full h-full border-0"
                                 allowfullscreen
                                 loading="lazy"
@@ -244,7 +377,7 @@ const ogMeta = useOgMeta({
                                     <p class="text-gray-500 text-xs">{{ cd.map_address || contact.short_address || 'Via Allende 10, Firenze' }}</p>
                                 </div>
                                 <a
-                                    href="https://www.google.com/maps/dir//Palazzo+Wanny,+Via+Salvador+Allende,+Firenze"
+                                    :href="'https://www.google.com/maps/dir//' + encodeURIComponent(cd.map_address || 'Palazzo Wanny, Via Salvador Allende, Firenze')"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="ml-auto inline-flex items-center min-h-[44px] text-xs font-bold text-savino-blue hover:text-savino-blue/80 transition-colors uppercase tracking-wider"

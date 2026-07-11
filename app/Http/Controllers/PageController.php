@@ -93,6 +93,14 @@ class PageController extends Controller
             abort(404);
         }
 
+        // Evita contenuti duplicati (SEO): se l'utente accede alla pagina tramite la rotta generica 
+        // o di sezione (es. /societa/contatti), reindirizza con un redirect 301 permanente 
+        // alla rotta canonical principale (/contatti o /en/contacts).
+        if ($page->slug === 'contatti') {
+            $routePrefix = app()->getLocale() === 'it' ? '' : app()->getLocale().'.';
+            return redirect()->route($routePrefix.'contatti', [], 301);
+        }
+
         // Evita contenuti duplicati (SEO): se la pagina appartiene a una sezione specifica
         // ma è stata chiamata tramite la rotta catch-all, fai un redirect 301 alla rotta corretta.
         if (request()->routeIs('*pages.show') && isset(self::SLUG_SECTION_MAP[$page->slug])) {

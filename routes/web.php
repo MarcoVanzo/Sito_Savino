@@ -145,7 +145,18 @@ foreach ($locales as $loc) {
             'aste' => $loc === 'en' ? 'auctions' : 'aste',
         ];
 
-        Route::prefix('shop')->middleware([TrackShopPageView::class])->group(function () use ($shopSlugs) {
+        Route::prefix('shop')->middleware([TrackShopPageView::class])->group(function () use ($shopSlugs, $namePrefix) {
+            // Redirect legacy per le sotto-voci dello shop (evita 404 per vecchi menu o segnalibri)
+            Route::get('/kit-gara', function () use ($namePrefix) {
+                return redirect()->route($namePrefix.'shop.category', ['category' => 'kit-gara-25-26'], 301);
+            });
+            Route::get('/abbigliamento', function () use ($namePrefix) {
+                return redirect()->route($namePrefix.'shop.category', ['category' => 'abbigliamento'], 301);
+            });
+            Route::get('/outlet', function () use ($namePrefix) {
+                return redirect()->route($namePrefix.'shop.auctions.index', [], 301);
+            });
+
             // Public shop pages
             Route::get('/', [ShopController::class, 'index'])->name('shop');
             Route::get('/'.$shopSlugs['cerca'], [ShopController::class, 'search'])->name('shop.search');

@@ -91,15 +91,13 @@ class MenuItem extends Model implements HasMedia
         $locale = app()->getLocale();
 
         return Cache::remember(self::CACHE_KEY.'_'.$location.'_'.$locale, self::CACHE_TTL, function () use ($location, $locale) {
-            $prefix = $locale === 'it' ? '' : '/'.$locale;
-
             return static::where('location', $location)
                 ->where('is_active', true)
                 ->whereNull('parent_id')
                 ->with(['children'])
                 ->orderBy('sort_order')
                 ->get()
-                ->map(function ($item) use ($prefix) {
+                ->map(function ($item) use ($locale) {
                     $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
                     $itLabel = is_array($item->getTranslations('label'))
                         ? ($item->getTranslation('label', 'it', false) ?: $item->label)
@@ -111,7 +109,7 @@ class MenuItem extends Model implements HasMedia
 
                     $url = rtrim($item->url ?: '/in-costruzione', '/');
                     $url = $url === '' ? '/' : $url;
-                    $href = str_starts_with($url, '/') ? $prefix.$url : $url;
+                    $href = static::localizeUrl($url, $locale);
 
                     return [
                         'id' => $item->id,
@@ -122,14 +120,15 @@ class MenuItem extends Model implements HasMedia
                         'mottoSubtitle' => $item->motto_subtitle,
                         'menuImage' => $menuImage,
                         'isHighlight' => $item->is_highlight,
-                        'children' => $item->children->map(function ($child) use ($prefix) {
+                        'children' => $item->children->map(function ($child) use ($locale) {
                             $childUrl = rtrim($child->url ?: '/in-costruzione', '/');
                             $childUrl = $childUrl === '' ? '/' : $childUrl;
+                            $childHref = MenuItem::localizeUrl($childUrl, $locale);
 
                             return [
                                 'id' => $child->id,
                                 'label' => $child->label,
-                                'href' => str_starts_with($childUrl, '/') ? $prefix.$childUrl : $childUrl,
+                                'href' => $childHref,
                                 'description' => $child->description,
                                 'isHighlight' => $child->is_highlight,
                             ];
@@ -138,6 +137,63 @@ class MenuItem extends Model implements HasMedia
                 })
                 ->toArray();
         });
+    }
+
+    public static function localizeUrl(string $url, string $locale): string
+    {
+        if (!str_starts_with($url, '/')) {
+            return $url;
+        }
+
+        // Parse the URL to preserve any query string (?...) and fragment (#...)
+        $parsed = parse_url($url);
+        $path = $parsed['path'] ?? '/';
+        $queryString = isset($parsed['query']) ? '?' . $parsed['query'] : '';
+        $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
+
+        $cleanUrl = rtrim($path, '/');
+        if ($cleanUrl === '') {
+            $cleanUrl = '/';
+        }
+
+        // Remove language prefix if present (e.g. /en/) to normalize before matching
+        $cleanUrl = preg_replace('/^\/(en)(\/|$)/', '/', $cleanUrl);
+        $cleanUrl = $cleanUrl === '' ? '/' : $cleanUrl;
+
+        $localizedPath = null;
+
+        try {
+            // Match the request against Laravel's routing system to find the matching route
+            $request = \Illuminate\Http\Request::create($cleanUrl, 'GET');
+            $route = app('router')->getRoutes()->match($request);
+            $routeName = $route->getName();
+
+            if ($routeName) {
+                // Strip existing locale prefix from route name (e.g. "en.shop.category" -> "shop.category")
+                $baseRouteName = preg_replace('/^(en)\./', '', $routeName);
+
+                // Get target localized route name
+                $targetRouteName = $locale === 'it' ? $baseRouteName : $locale . '.' . $baseRouteName;
+
+                if (app('router')->getRoutes()->hasNamedRoute($targetRouteName)) {
+                    $parameters = $route->parameters();
+                    
+                    // Generate relative URL using Laravel's route generator (this automatically handles prefixes and parameters)
+                    $localizedPath = route($targetRouteName, $parameters, false);
+                }
+            }
+        } catch (\Exception $e) {
+            // Fallback for non-matching URLs (e.g. pages still in development or raw custom paths)
+        }
+
+        if ($localizedPath === null) {
+            // Manually prepend the language prefix for fallbacks on non-default languages
+            $prefix = $locale === 'it' ? '' : '/'.$locale;
+            $localizedPath = $prefix . $cleanUrl;
+        }
+
+        // Re-append the preserved query string and fragment
+        return $localizedPath . $queryString . $fragment;
     }
 
     /**
