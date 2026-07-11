@@ -68,18 +68,21 @@ function isWin(game) {
 
 const theme = computed(() => {
     switch (props.competition) {
+        case 'Champions League':
         case 'champions_league':
             return {
                 bgGradient: 'from-green-900 via-yellow-600 to-green-900',
                 dateBg: 'bg-green-700',
                 headerBg: 'bg-green-700',
             };
+        case 'Coppa Italia':
         case 'coppa_italia':
             return {
                 bgGradient: 'from-savino-red via-red-900 to-savino-pink',
                 dateBg: 'bg-savino-red',
                 headerBg: 'bg-savino-red',
             };
+        case 'Campionato':
         case 'championship':
         default:
             return {

@@ -33,6 +33,8 @@ function handleMouseEnter(index) {
     clearTimeout(closeTimer);
     if (props.navigation[index]?.children?.length > 0) {
         openIndex.value = index;
+    } else {
+        openIndex.value = -1;
     }
 }
 

@@ -64,6 +64,9 @@ foreach ($locales as $loc) {
         Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
         Route::get('/gallery/atleta/{slug}', [PublicController::class, 'galleryAtleta'])->name('gallery.atleta');
         Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
+        Route::get('/societa', function () {
+            return redirect()->route('societa.page', ['slug' => 'storia']);
+        })->name('societa');
         Route::get('/societa/{slug}', [PageController::class, 'show'])->name('societa.page');
         Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');
         Route::get('/news', [NewsController::class, 'index'])->name('news.index');
