@@ -41,7 +41,7 @@ foreach ($locales as $loc) {
         'throttle:web',
         ServeSocialCrawlerMeta::class,
         SetLocale::class.':'.$loc,
-    ])->prefix($prefix)->name($namePrefix)->group(function () use ($loc) {
+    ])->prefix($prefix)->name($namePrefix)->group(function () use ($loc, $namePrefix) {
         Route::get('/', [PublicController::class, 'home'])->name('home');
         Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
         Route::get('/stagione/b1', [PublicController::class, 'stagioneB1'])->name('stagione.b1');
@@ -53,19 +53,19 @@ foreach ($locales as $loc) {
 
         // Foto Ufficiale e News Redirect
         Route::get('/stagione/foto-ufficiale', [PublicController::class, 'fotoUfficiale'])->name('stagione.foto-ufficiale');
-        Route::get('/stagione/news', function () {
-            return redirect()->route('news.index');
+        Route::get('/stagione/news', function () use ($namePrefix) {
+            return redirect()->route($namePrefix . 'news.index');
         })->name('stagione.news');
 
         // Redirect legacy per compatibilità
-        Route::get('/risultati', function () {
-            return redirect()->route('stagione.risultati');
+        Route::get('/risultati', function () use ($namePrefix) {
+            return redirect()->route($namePrefix . 'stagione.risultati');
         })->name('risultati');
         Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
         Route::get('/gallery/atleta/{slug}', [PublicController::class, 'galleryAtleta'])->name('gallery.atleta');
         Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
-        Route::get('/societa', function () {
-            return redirect()->route('societa.page', ['slug' => 'storia']);
+        Route::get('/societa', function () use ($namePrefix) {
+            return redirect()->route($namePrefix . 'societa.page', ['slug' => 'storia']);
         })->name('societa');
         Route::get('/societa/{slug}', [PageController::class, 'show'])->name('societa.page');
         Route::get('/sponsor', [PublicController::class, 'sponsor'])->name('sponsor');

@@ -56,6 +56,39 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_societa_root_redirects_to_storia(): void
+    {
+        $response = $this->get('/societa');
+        $response->assertRedirect('/societa/storia');
+    }
+
+    public function test_en_societa_root_redirects_to_en_storia(): void
+    {
+        $response = $this->get('/en/societa');
+        $response->assertRedirect('/en/societa/storia');
+    }
+
+    public function test_seo_catch_all_redirects_societa_pages_to_canonical_route(): void
+    {
+        Page::factory()->create([
+            'slug' => 'storia',
+            'title' => 'Storia',
+            'status' => PostStatus::Published,
+            'template' => 'Public/Societa/Storia',
+            'content' => '<p>Test content</p>',
+        ]);
+
+        // Italian catch-all redirect
+        $response = $this->get('/storia');
+        $response->assertRedirect('/societa/storia');
+        $response->assertStatus(301);
+
+        // English catch-all redirect
+        $responseEn = $this->get('/en/storia');
+        $responseEn->assertRedirect('/en/societa/storia');
+        $responseEn->assertStatus(301);
+    }
+
     public function test_cms_page_returns_404_for_draft_page(): void
     {
         Page::factory()->create([

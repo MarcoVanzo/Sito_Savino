@@ -111,7 +111,31 @@ class AdminPanelProvider extends PanelProvider
      */
     private static function wipNavigationItems(): array
     {
-        $url = '/admin/under-construction';
+        $underConstructionUrl = '/admin/under-construction';
+
+        $slugMap = [
+            'Storia' => 'storia',
+            'Safeguarding' => 'safeguarding',
+            'Contatti' => 'contatti',
+            'Palazzetto & Google Maps' => 'palazzetto',
+            'Biglietteria' => 'biglietteria',
+            'Campagna Abbonamenti' => 'abbonamenti',
+            'Accessibilità & Info' => 'accessibilita',
+            'Convenzioni' => 'convenzioni',
+            'Diventa Sponsor' => 'diventa-sponsor',
+            'Title Sponsor (SDB)' => 'title-sponsor',
+            'Hospitality' => 'hospitality',
+            'Settore Giovanile' => 'settore-giovanile',
+            'Talent Day & Recruiting' => 'talent-day',
+            'Progetto Affiliazioni' => 'affiliazioni',
+            'Tutte le Info' => 'summer-camp',
+            'Progetti Sociali' => 'progetti-sociali',
+            'Volley 4 All' => 'volley-4-all',
+            'Bilancio Sostenibilità' => 'sostenibilita',
+            'Progetto Scuola' => 'progetto-scuola',
+            'Cartelle Stampa' => 'cartelle-stampa',
+            'Double Face' => 'double-face',
+        ];
 
         $items = [
             // Stagione
@@ -147,14 +171,35 @@ class AdminPanelProvider extends PanelProvider
             ['Cartelle Stampa', 'Comunicazione', 2],
             ['Magazine', 'Comunicazione', 3],
             ['Double Face', 'Comunicazione', 4],
-
         ];
 
         return array_map(
-            fn (array $item) => NavigationItem::make($item[0])
-                ->group($item[1])
-                ->url($url)
-                ->sort($item[2]),
+            function (array $item) use ($slugMap, $underConstructionUrl) {
+                $label = $item[0];
+                $group = $item[1];
+                $sort = $item[2];
+
+                $urlClosure = function () use ($label, $slugMap, $underConstructionUrl) {
+                    try {
+                        if (isset($slugMap[$label])) {
+                            $slug = $slugMap[$label];
+                            $page = \App\Models\Page::where('slug', $slug)->first();
+                            if ($page) {
+                                return "/admin/pages/{$page->id}/edit";
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        // Safe fallback in case database is not accessible/migrated yet
+                    }
+
+                    return $underConstructionUrl;
+                };
+
+                return NavigationItem::make($label)
+                    ->group($group)
+                    ->url($urlClosure)
+                    ->sort($sort);
+            },
             $items
         );
     }
