@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
+use App\Models\Page;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -183,7 +184,7 @@ class AdminPanelProvider extends PanelProvider
                     try {
                         if (isset($slugMap[$label])) {
                             $slug = $slugMap[$label];
-                            $page = \App\Models\Page::where('slug', $slug)->first();
+                            $page = Page::where('slug', $slug)->first();
                             if ($page) {
                                 return "/admin/pages/{$page->id}/edit";
                             }

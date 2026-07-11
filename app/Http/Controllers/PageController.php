@@ -56,6 +56,7 @@ class PageController extends Controller
         // ma è stata chiamata tramite la rotta catch-all, fai un redirect 301 alla rotta corretta.
         if (str_starts_with($page->template ?? '', 'Public/Societa/') && request()->routeIs('*pages.show')) {
             $routePrefix = app()->getLocale() === 'it' ? '' : app()->getLocale().'.';
+
             return redirect()->route($routePrefix.'societa.page', ['slug' => $page->slug], 301);
         }
 
