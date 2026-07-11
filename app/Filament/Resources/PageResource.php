@@ -114,11 +114,31 @@ class PageResource extends Resource
                             ->maxLength(255)
                             ->columnSpanFull(),
                         Forms\Components\Group::make([
-                            // FORM: SOCIETA
+                            // FORM: SOCIETA / ORGANIGRAMMA
                             Forms\Components\Section::make('Impostazioni Pagina Società')
                                 ->label('Dati Società / Organigramma')
                                 ->schema(PageTemplateForms::getSocietaSchema())
                                 ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Organigramma'),
+
+                            // FORM: STORIA
+                            Forms\Components\Section::make('Impostazioni Pagina Storia')
+                                ->schema(PageTemplateForms::getStoriaSchema())
+                                ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Storia'),
+
+                            // FORM: PALAZZETTO
+                            Forms\Components\Section::make('Impostazioni Pagina Palazzetto')
+                                ->schema(PageTemplateForms::getPalazzettoSchema())
+                                ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Palazzetto'),
+
+                            // FORM: SAFEGUARDING
+                            Forms\Components\Section::make('Impostazioni Pagina Safeguarding')
+                                ->schema(PageTemplateForms::getSafeguardingSchema())
+                                ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Safeguarding'),
+
+                            // FORM: CONTATTI
+                            Forms\Components\Section::make('Impostazioni Pagina Contatti')
+                                ->schema(PageTemplateForms::getContattiSchema())
+                                ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Contatti'),
 
                             // FORM: TICKETING
                             Forms\Components\Section::make('Impostazioni Pagina Biglietteria')
@@ -128,7 +148,14 @@ class PageResource extends Resource
                             // GENERIC JSON per altre pagine
                             Forms\Components\Section::make('Dati Contenuto (Altre Pagine)')
                                 ->schema(PageTemplateForms::getGenericJsonSchema())
-                                ->visible(fn (Forms\Get $get) => ! in_array($get('template'), ['Public/Societa/Organigramma', 'Public/Ticketing'])),
+                                ->visible(fn (Forms\Get $get) => ! in_array($get('template'), [
+                                    'Public/Societa/Organigramma',
+                                    'Public/Societa/Storia',
+                                    'Public/Societa/Palazzetto',
+                                    'Public/Societa/Safeguarding',
+                                    'Public/Contatti',
+                                    'Public/Ticketing'
+                                ])),
                         ])->columnSpanFull(),
                     ])->columns(2),
             ]);

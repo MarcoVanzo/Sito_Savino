@@ -21,10 +21,21 @@ const ogMeta = useOgMeta({
     description: props.page?.meta_description || 'Policy di Safeguarding della Savino Del Bene Volley',
 });
 
-const documents = [
-    { title: 'Modello Organizzativo e di Controllo', description: 'Documento che stabilisce i principi di comportamento e le misure di prevenzione.', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', file: '#' },
-    { title: 'Codice di Condotta a Tutela dei Minori', description: 'Linee guida specifiche per garantire un ambiente sportivo sicuro per i più giovani.', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', file: '#' }
-];
+const cd = computed(() => props.page?.content_data ?? {});
+
+const reportTitle = computed(() => cd.value?.report_title || 'Segnalazioni');
+const reportDescription = computed(() => cd.value?.report_description || 'Per segnalare comportamenti non conformi al Codice di Condotta o presunti abusi, è possibile contattare il Responsabile Safeguarding in totale riservatezza.');
+const reportEmail = computed(() => cd.value?.report_email || 'safeguarding@savinodelbenevolley.it');
+
+const documents = computed(() => {
+    if (cd.value?.documents && Array.isArray(cd.value.documents) && cd.value.documents.length > 0) {
+        return cd.value.documents;
+    }
+    return [
+        { title: 'Modello Organizzativo e di Controllo', description: 'Documento che stabilisce i principi di comportamento e le misure di prevenzione.', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', file: '#' },
+        { title: 'Codice di Condotta a Tutela dei Minori', description: 'Linee guida specifiche per garantire un ambiente sportivo sicuro per i più giovani.', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z', file: '#' }
+    ];
+});
 </script>
 
 <template>
@@ -94,12 +105,12 @@ const documents = [
                     <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                     <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                         <div>
-                            <h3 class="text-2xl font-black mb-3">Segnalazioni</h3>
+                            <h3 class="text-2xl font-black mb-3">{{ reportTitle }}</h3>
                             <p class="text-blue-100 font-medium max-w-lg leading-relaxed">
-                                Per segnalare comportamenti non conformi al Codice di Condotta o presunti abusi, è possibile contattare il Responsabile Safeguarding in totale riservatezza.
+                                {{ reportDescription }}
                             </p>
                         </div>
-                        <a href="mailto:safeguarding@savinodelbenevolley.it" class="flex-shrink-0 bg-savino-gold hover:bg-white hover:text-savino-blue text-white text-lg font-bold px-8 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl w-full md:w-auto text-center">
+                        <a :href="'mailto:' + reportEmail" class="flex-shrink-0 bg-savino-gold hover:bg-white hover:text-savino-blue text-white text-lg font-bold px-8 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl w-full md:w-auto text-center">
                             Invia Segnalazione
                         </a>
                     </div>

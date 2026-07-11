@@ -21,16 +21,23 @@ const ogMeta = useOgMeta({
     description: props.page?.meta_description || 'La Storia del Club',
 });
 
-// Mock timeline data for the premium UI since CMS only provides generic text
-const timeline = [
-    { year: '1982', title: 'Le Origini', description: 'La Pallavolo Scandicci nasce nel cuore del territorio toscano. I primi passi nei campionati locali pongono le basi per un progetto ambizioso.' },
-    { year: '2012', title: 'La Svolta Savino Del Bene', description: 'L\'ingresso del Gruppo Savino Del Bene come title sponsor trasforma le ambizioni del club. Inizia la scalata verso l\'élite del volley nazionale.' },
-    { year: '2014', title: 'Promozione in Serie A1', description: 'Un traguardo storico: la squadra conquista l\'accesso alla massima serie italiana, portando Scandicci nel panorama nazionale.' },
-    { year: '2018', title: 'Debutto Europeo', description: 'Prima qualificazione in CEV Champions League. La Savino Del Bene Volley si affaccia sul palcoscenico internazionale sfidando le big europee.' },
-    { year: '2022', title: 'CEV Challenge Cup', description: 'Il primo storico trofeo europeo. Una cavalcata trionfale che arricchisce la bacheca del club e consacra il progetto a livello internazionale.' },
-    { year: '2023', title: 'CEV Cup', description: 'Ancora un successo continentale. La Savino Del Bene solleva la CEV Cup, dimostrando continuità di risultati e mentalità vincente.' },
-    { year: '2024', title: 'Finale Scudetto', description: 'Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il Palazzo Wanny.' }
-];
+const cd = computed(() => props.page?.content_data ?? {});
+
+const timeline = computed(() => {
+    if (cd.value?.timeline && Array.isArray(cd.value.timeline) && cd.value.timeline.length > 0) {
+        return cd.value.timeline;
+    }
+    // Fallback to our stunning hardcoded mock timeline if not configured
+    return [
+        { year: '1982', title: 'Le Origini', description: 'La Pallavolo Scandicci nasce nel cuore del territorio toscano. I primi passi nei campionati locali pongono le basi per un progetto ambizioso.' },
+        { year: '2012', title: 'La Svolta Savino Del Bene', description: 'L\'ingresso del Gruppo Savino Del Bene come title sponsor trasforma le ambizioni del club. Inizia la scalata verso l\'élite del volley nazionale.' },
+        { year: '2014', title: 'Promozione in Serie A1', description: 'Un traguardo storico: la squadra conquista l\'accesso alla massima serie italiana, portando Scandicci nel panorama nazionale.' },
+        { year: '2018', title: 'Debutto Europeo', description: 'Prima qualificazione in CEV Champions League. La Savino Del Bene Volley si affaccia sul palcoscenico internazionale sfidando le big europee.' },
+        { year: '2022', title: 'CEV Challenge Cup', description: 'Il primo storico trofeo europeo. Una cavalcata trionfale che arricchisce la bacheca del club e consacra il progetto a livello internazionale.' },
+        { year: '2023', title: 'CEV Cup', description: 'Ancora un successo continentale. La Savino Del Bene solleva la CEV Cup, dimostrando continuità di risultati e mentalità vincente.' },
+        { year: '2024', title: 'Finale Scudetto', description: 'Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il Palazzo Wanny.' }
+    ];
+});
 </script>
 
 <template>
