@@ -38,7 +38,10 @@ Route::get('/debug-db', function() {
 });
 
 Route::get('/debug-db-seed', function() {
-    \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'CmsPagesSeeder']);
+    \Illuminate\Support\Facades\Artisan::call('db:seed', [
+        '--class' => 'CmsPagesSeeder',
+        '--force' => true
+    ]);
     return [
         'output' => \Illuminate\Support\Facades\Artisan::output(),
         'pages' => \App\Models\Page::select('id', 'slug', 'status', 'title')->get()
