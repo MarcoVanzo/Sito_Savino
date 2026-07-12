@@ -6,6 +6,7 @@ echo "=== Savino Del Bene Volley — Container Start ==="
 # 1. Migrations
 echo "[1/6] Running migrations..."
 php artisan migrate --force
+php artisan db:seed --class=CorporateGovernanceSeeder --force || true
 
 # 2. Storage link
 echo "[2/6] Creating storage link..."
