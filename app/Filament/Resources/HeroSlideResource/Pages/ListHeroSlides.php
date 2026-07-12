@@ -13,6 +13,11 @@ class ListHeroSlides extends ListRecords
 
     protected static string $resource = HeroSlideResource::class;
 
+    public function mount(): void
+    {
+        redirect(\App\Filament\Pages\Settings\HomepageSettingsPage::getUrl(['tab' => 'slides']));
+    }
+
     protected function getHeaderActions(): array
     {
         return [

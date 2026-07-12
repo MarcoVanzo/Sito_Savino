@@ -105,7 +105,7 @@ class SiteSetting extends Model
     {
         $all = static::getAllGrouped();
 
-        $publicGroups = ['general', 'brand', 'footer', 'shop', 'social', 'auctions', 'hero', 'legal'];
+        $publicGroups = ['general', 'brand', 'footer', 'shop', 'social', 'auctions', 'hero', 'legal', 'contact', 'home'];
 
         return array_intersect_key($all, array_flip($publicGroups));
     }

@@ -125,6 +125,38 @@ class SiteSettingSeeder extends Seeder
                 'label' => 'Email Settore Giovanile',
                 'sort_order' => 9,
             ],
+            [
+                'key' => 'legal_piva',
+                'value' => '06271460484',
+                'type' => 'text',
+                'group' => 'contact',
+                'label' => 'Partita IVA',
+                'sort_order' => 10,
+            ],
+            [
+                'key' => 'legal_cf',
+                'value' => '94217750481',
+                'type' => 'text',
+                'group' => 'contact',
+                'label' => 'Codice Fiscale',
+                'sort_order' => 11,
+            ],
+            [
+                'key' => 'legal_fipav',
+                'value' => '100470331',
+                'type' => 'text',
+                'group' => 'contact',
+                'label' => 'Codice FIPAV',
+                'sort_order' => 12,
+            ],
+            [
+                'key' => 'legal_sdi',
+                'value' => 'KRRH6B9',
+                'type' => 'text',
+                'group' => 'contact',
+                'label' => 'Codice SDI',
+                'sort_order' => 13,
+            ],
 
             // ── SOCIAL ───────────────────────────────────────────────────
             [

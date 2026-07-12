@@ -11,4 +11,9 @@ class CreateHeroSlide extends CreateRecord
     use Translatable;
 
     protected static string $resource = HeroSlideResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return \App\Filament\Pages\Settings\HomepageSettingsPage::getUrl(['tab' => 'slides']);
+    }
 }

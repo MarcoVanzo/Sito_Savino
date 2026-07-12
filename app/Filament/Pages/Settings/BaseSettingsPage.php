@@ -43,6 +43,12 @@ abstract class BaseSettingsPage extends Page implements HasForms
         foreach ($flat as $key => $value) {
             SiteSetting::set($key, $value ?? '');
         }
+        
+        // Invalidate full page cache for public responses instantly
+        if (class_exists(\App\Http\Middleware\CachePublicResponse::class)) {
+            \App\Http\Middleware\CachePublicResponse::flush();
+        }
+        
         Notification::make()->title('Impostazioni salvate con successo')->success()->send();
     }
 }

@@ -13,6 +13,11 @@ class EditHeroSlide extends EditRecord
 
     protected static string $resource = HeroSlideResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return \App\Filament\Pages\Settings\HomepageSettingsPage::getUrl(['tab' => 'slides']);
+    }
+
     protected function getHeaderActions(): array
     {
         return [

@@ -46,21 +46,21 @@ const contactInfo = computed(() => [
     {
         icon: 'email',
         title: 'Email',
-        value: cd.value.legal_email || contact.value.email || 'info@savinodelbenevolley.it',
-        link: 'mailto:' + (cd.value.legal_email || contact.value.email || 'info@savinodelbenevolley.it'),
+        value: contact.value.email || 'info@savinodelbenevolley.it',
+        link: 'mailto:' + (contact.value.email || 'info@savinodelbenevolley.it'),
         color: 'savino-blue'
     },
     {
         icon: 'phone',
         title: $t('contatti.phone'),
-        value: cd.value.legal_phone || contact.value.phone || '055 721503',
-        link: 'tel:' + (cd.value.legal_phone || contact.value.phone_raw || contact.value.phone || '055721503').replace(/\s/g, ''),
+        value: contact.value.phone || '055 721503',
+        link: 'tel:' + (contact.value.phone || '055721503').replace(/\s/g, ''),
         color: 'savino-gold'
     },
     {
         icon: 'location',
         title: $t('contatti.location'),
-        value: cd.value.legal_address || contact.value.address || 'Via Benozzo Gozzoli, 5/6 50018 Scandicci – Firenze',
+        value: contact.value.address || 'Via Benozzo Gozzoli, 5/6 50018 Scandicci – Firenze',
         link: null,
         color: 'savino-red'
     }
@@ -174,19 +174,19 @@ const ogMeta = useOgMeta({
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
                             <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_piva_label') || 'Partita IVA' }}</span>
-                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_piva || '06271460484' }}</span>
+                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ contact.legal_piva || '06271460484' }}</span>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
                             <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_cf_label') || 'Codice Fiscale' }}</span>
-                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_cf || '94217750481' }}</span>
+                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ contact.legal_cf || '94217750481' }}</span>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
                             <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_fipav_label') || 'Codice FIPAV' }}</span>
-                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_fipav || '100470331' }}</span>
+                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ contact.legal_fipav || '100470331' }}</span>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-100/50 hover:bg-savino-blue/5 transition-colors duration-300">
                             <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_sdi_label') || 'Codice SDI' }}</span>
-                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ cd.legal_sdi || 'KRRH6B9' }}</span>
+                            <span class="block text-sm font-extrabold text-gray-800 mt-1 select-all">{{ contact.legal_sdi || 'KRRH6B9' }}</span>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 border-t border-gray-100 pt-6">
@@ -198,7 +198,7 @@ const ogMeta = useOgMeta({
                             </div>
                             <div>
                                 <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">{{ $t('contatti.legal_pec_label') || 'PEC Ufficiale' }}</span>
-                                <a :href="'mailto:' + (cd.legal_pec || 'pallavoloscandicci@legalmail.it')" class="block text-sm font-extrabold text-savino-blue hover:underline">{{ cd.legal_pec || 'pallavoloscandicci@legalmail.it' }}</a>
+                                <a :href="'mailto:' + (contact.pec || 'pallavoloscandicci@legalmail.it')" class="block text-sm font-extrabold text-savino-blue hover:underline">{{ contact.pec || 'pallavoloscandicci@legalmail.it' }}</a>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">

@@ -201,35 +201,6 @@ class PageTemplateForms
                         ->label('Messaggio di Successo Modulo'),
                 ])->columns(2),
 
-            Forms\Components\Section::make('Sede Legale & Dati Societari')
-                ->schema([
-                    Forms\Components\TextInput::make('content_data.legal_address')
-                        ->label('Indirizzo Sede Legale')
-                        ->placeholder('es. Via Benozzo Gozzoli, 5/6 50018 Scandicci – Firenze')
-                        ->columnSpan(2),
-                    Forms\Components\TextInput::make('content_data.legal_phone')
-                        ->label('Telefono Sede')
-                        ->placeholder('es. 055 721503'),
-                    Forms\Components\TextInput::make('content_data.legal_email')
-                        ->label('Email Sede')
-                        ->placeholder('es. info@savinodelbenevolley.it'),
-                    Forms\Components\TextInput::make('content_data.legal_pec')
-                        ->label('PEC Sede')
-                        ->placeholder('es. pallavoloscandicci@legalmail.it'),
-                    Forms\Components\TextInput::make('content_data.legal_sdi')
-                        ->label('Codice SDI')
-                        ->placeholder('es. KRRH6B9'),
-                    Forms\Components\TextInput::make('content_data.legal_piva')
-                        ->label('Partita IVA')
-                        ->placeholder('es. 06271460484'),
-                    Forms\Components\TextInput::make('content_data.legal_cf')
-                        ->label('Codice Fiscale')
-                        ->placeholder('es. 94217750481'),
-                    Forms\Components\TextInput::make('content_data.legal_fipav')
-                        ->label('Codice FIPAV')
-                        ->placeholder('es. 100470331'),
-                ])->columns(2),
-
             Forms\Components\Section::make('Mappa Sede Legale (Google Maps)')
                 ->schema([
                     Forms\Components\TextInput::make('content_data.map_title')

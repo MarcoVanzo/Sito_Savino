@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages\Settings;
 
-use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 
@@ -22,20 +22,35 @@ class ContattiSettingsPage extends BaseSettingsPage
     {
         return $form
             ->schema([
-                Section::make('Principali')->schema([
-                    TextInput::make('email')->label('Email')->email(),
-                    TextInput::make('phone')->label('Telefono'),
-                    TextInput::make('pec')->label('PEC')->email(),
-                    TextInput::make('address')->label('Indirizzo'),
-                    TextInput::make('city')->label('Città'),
-                    TextInput::make('office_hours')->label('Orari'),
-                ])->columns(2),
-                Section::make('Dipartimenti')->schema([
-                    TextInput::make('press_email')->label('Stampa')->email(),
-                    TextInput::make('social_email')->label('Social')->email(),
-                    TextInput::make('media_email')->label('Media')->email(),
-                    TextInput::make('youth_email')->label('Giovanili')->email(),
-                ])->columns(2),
+                Tabs::make('ContactTabs')
+                    ->tabs([
+                        Tabs\Tab::make('Contatti Principali')
+                            ->icon('heroicon-o-phone')
+                            ->schema([
+                                TextInput::make('email')->label('Email Principale')->email(),
+                                TextInput::make('phone')->label('Telefono Sede'),
+                                TextInput::make('pec')->label('PEC Principale')->email(),
+                                TextInput::make('address')->label('Indirizzo'),
+                                TextInput::make('city')->label('Città'),
+                                TextInput::make('office_hours')->label('Orari di Apertura'),
+                            ])->columns(2),
+                        Tabs\Tab::make('Dati Societari / Legali')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
+                                TextInput::make('legal_piva')->label('Partita IVA'),
+                                TextInput::make('legal_cf')->label('Codice Fiscale'),
+                                TextInput::make('legal_fipav')->label('Codice FIPAV'),
+                                TextInput::make('legal_sdi')->label('Codice SDI'),
+                            ])->columns(2),
+                        Tabs\Tab::make('Dipartimenti (Email)')
+                            ->icon('heroicon-o-envelope')
+                            ->schema([
+                                TextInput::make('press_email')->label('Ufficio Stampa')->email(),
+                                TextInput::make('social_email')->label('Social Media')->email(),
+                                TextInput::make('media_email')->label('Media & Accrediti')->email(),
+                                TextInput::make('youth_email')->label('Settore Giovanile')->email(),
+                            ])->columns(2),
+                    ])->columnSpanFull()
             ])->statePath('data');
     }
 }
