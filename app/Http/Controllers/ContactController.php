@@ -58,4 +58,3 @@ class ContactController extends Controller
         return back()->with('success', __('messages.contact.success_human'));
     }
 }
-
