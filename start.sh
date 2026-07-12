@@ -3,9 +3,10 @@ set -e
 
 echo "=== Savino Del Bene Volley — Container Start ==="
 
-# 1. Migrations
-echo "[1/6] Running migrations..."
+# 1. Migrations & Seeders
+echo "[1/6] Running migrations & seeders..."
 php artisan migrate --force
+php artisan db:seed --class=SiteSettingSeeder --force || true
 php artisan db:seed --class=CorporateGovernanceSeeder --force || true
 
 # 2. Storage link

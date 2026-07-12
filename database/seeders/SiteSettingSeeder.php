@@ -363,16 +363,18 @@ class SiteSettingSeeder extends Seeder
         ];
 
         foreach ($settings as $setting) {
-            SiteSetting::updateOrCreate(
-                ['key' => $setting['key']],
-                [
-                    'value' => $setting['value'],
+            $existing = SiteSetting::where('key', $setting['key'])->first();
+            if ($existing) {
+                // Preserviamo il valore modificato dall'utente, aggiorniamo solo i metadati strutturali
+                $existing->update([
                     'type' => $setting['type'],
                     'group' => $setting['group'],
                     'label' => $setting['label'],
                     'sort_order' => $setting['sort_order'],
-                ]
-            );
+                ]);
+            } else {
+                SiteSetting::create($setting);
+            }
         }
     }
 }
