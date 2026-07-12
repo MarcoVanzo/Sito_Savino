@@ -46,4 +46,3 @@ abstract class BaseSettingsPage extends Page implements HasForms
         Notification::make()->title('Impostazioni salvate con successo')->success()->send();
     }
 }
-
