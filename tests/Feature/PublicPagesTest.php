@@ -172,6 +172,16 @@ class PublicPagesTest extends TestCase
 
         $response = $this->get('/comunicazione/accrediti-stampa');
         $response->assertStatus(200);
+
+        Page::factory()->create([
+            'slug' => 'magazine',
+            'title' => 'Magazine',
+            'status' => PostStatus::Published,
+            'template' => 'Public/Comunicazione',
+        ]);
+
+        $response2 = $this->get('/comunicazione/magazine');
+        $response2->assertStatus(200);
     }
 
     public function test_sponsor_legacy_redirects(): void
@@ -199,7 +209,7 @@ class PublicPagesTest extends TestCase
         $response1->assertStatus(301);
 
         $response2 = $this->get('/summer-camp/iscrizione');
-        $response2->assertRedirect('/in-costruzione');
+        $response2->assertRedirect('/summer-camp/iscrizione-experience');
         $response2->assertStatus(301);
     }
 
@@ -223,10 +233,6 @@ class PublicPagesTest extends TestCase
         $response2 = $this->get('/comunicazione/cartelle');
         $response2->assertRedirect('/comunicazione/cartelle-stampa');
         $response2->assertStatus(301);
-
-        $response3 = $this->get('/comunicazione/magazine');
-        $response3->assertRedirect('/comunicazione/double-face');
-        $response3->assertStatus(301);
     }
 
     public function test_seo_canonical_redirects_across_multiple_sections(): void

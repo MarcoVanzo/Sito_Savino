@@ -134,9 +134,6 @@ foreach ($locales as $loc) {
         Route::get('/comunicazione/cartelle', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'cartelle-stampa'], 301);
         })->name('comunicazione.cartelle');
-        Route::get('/comunicazione/magazine', function () use ($namePrefix) {
-            return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'magazine'], 301);
-        })->name('comunicazione.magazine');
         Route::get('/comunicazione', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'accrediti-stampa'], 301);
         })->name('comunicazione');
