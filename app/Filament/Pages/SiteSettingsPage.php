@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Enums\UserRole;
 use App\Models\SiteSetting;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Tabs;
@@ -138,7 +139,7 @@ class SiteSettingsPage extends Page implements HasForms
                                 TextInput::make('shop.free_shipping_threshold')->label('Soglia Spedizione Gratuita (€)')->numeric()->prefix('€'),
                             ])->columns(2),
                             Section::make('Metodi di Pagamento')->schema([
-                                \Filament\Forms\Components\CheckboxList::make('shop.active_payment_gateways')
+                                CheckboxList::make('shop.active_payment_gateways')
                                     ->label('Gateway di Pagamento Attivi')
                                     ->options([
                                         'stripe' => 'Carta di Credito (Stripe)',
