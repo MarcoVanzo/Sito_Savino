@@ -41,78 +41,36 @@ class PageResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Contenuto Principale')
-                    ->schema([
-                        Forms\Components\TextInput::make('title')
-                            ->label('Titolo')
-                            ->required()
-                            ->maxLength(255)
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
-                        Forms\Components\TextInput::make('slug')
-                            ->label('URL Slug')
-                            ->required()
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255),
-                        Forms\Components\RichEditor::make('content')
-                            ->label('Contenuto')
-                            ->columnSpanFull(),
-                        Forms\Components\Textarea::make('excerpt')
-                            ->label('Riassunto (Excerpt)')
-                            ->columnSpanFull(),
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Impostazioni e SEO')
-                    ->schema([
-                        SpatieMediaLibraryFileUpload::make('cover')
-                            ->label('Immagine di Copertina')
-                            ->collection('cover')
-                            ->image()
-                            ->maxSize(5120),
-                        Forms\Components\Select::make('parent_id')
-                            ->relationship('parent', 'title', fn (Builder $query, $record) => $record ? $query->where('id', '!=', $record->id) : $query
-                            )
-                            ->label('Pagina Genitore')
-                            ->searchable(),
-                        Forms\Components\Select::make('status')
-                            ->label('Stato Pubblicazione')
-                            ->options(PostStatus::class)
-                            ->default(PostStatus::Published)
-                            ->required(),
-                        Forms\Components\Select::make('author_id')
-                            ->label('Autore')
-                            ->relationship('author', 'name')
-                            ->searchable()
-                            ->default(fn () => auth()->id()),
-                        Forms\Components\Select::make('template')
-                            ->label('Template Pagina')
-                            ->options([
-                                'Default' => 'Template Predefinito',
-                                'Public/Home' => 'Home Page',
-                                'Public/Societa/Organigramma' => 'Società (Organigramma)',
-                                'Public/Societa/Storia' => 'Società - Storia',
-                                'Public/Societa/Palazzetto' => 'Società - Palazzetto',
-                                'Public/Societa/Safeguarding' => 'Società - Safeguarding',
-                                'Public/Roster' => 'Roster',
-                                'Public/Shop' => 'Shop',
-                                'Public/Ticketing' => 'Biglietteria',
-                                'Public/Sponsor' => 'Sponsor',
-                                'Public/Youth' => 'Settore Giovanile',
-                                'Public/SummerCamp' => 'Summer Camp',
-                                'Public/Sociale' => 'Progetti Sociali',
-                                'Public/Comunicazione' => 'Comunicazione',
-                                'Public/Stagione' => 'Stagione',
-                                'Public/ContentPage' => 'Pagina Contenuto',
+                Forms\Components\Grid::make([
+                    'default' => 1,
+                    'lg' => 3,
+                ])
+                ->schema([
+                    // Colonna Principale (Sinistra, 2/3)
+                    Forms\Components\Group::make([
+                        Forms\Components\Section::make('Contenuto Principale')
+                            ->schema([
+                                Forms\Components\TextInput::make('title')
+                                    ->label('Titolo')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+                                Forms\Components\TextInput::make('slug')
+                                    ->label('URL Slug')
+                                    ->required()
+                                    ->unique(ignoreRecord: true)
+                                    ->maxLength(255),
+                                Forms\Components\RichEditor::make('content')
+                                    ->label('Contenuto')
+                                    ->columnSpanFull(),
+                                Forms\Components\Textarea::make('excerpt')
+                                    ->label('Riassunto (Excerpt)')
+                                    ->columnSpanFull(),
                             ])
-                            ->live()
-                            ->nullable(),
-                        Forms\Components\TextInput::make('meta_title')
-                            ->label('Meta Titolo (SEO)')
-                            ->maxLength(255),
-                        Forms\Components\Textarea::make('meta_description')
-                            ->label('Meta Descrizione (SEO)')
-                            ->maxLength(255)
-                            ->columnSpanFull(),
+                            ->columns(2)
+                            ->collapsible(),
+
                         Forms\Components\Group::make([
                             // FORM: SOCIETA / ORGANIGRAMMA
                             Forms\Components\Section::make('Impostazioni Pagina Società')
@@ -135,9 +93,8 @@ class PageResource extends Resource
                                 ->schema(PageTemplateForms::getSafeguardingSchema())
                                 ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Safeguarding'),
 
-                            // FORM: CONTATTI
-                            Forms\Components\Section::make('Impostazioni Pagina Contatti')
-                                ->schema(PageTemplateForms::getContattiSchema())
+                            // FORM: CONTATTI (No outer Section/Card to prevent nested borders!)
+                            Forms\Components\Group::make(PageTemplateForms::getContattiSchema())
                                 ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Contatti'),
 
                             // FORM: TICKETING
@@ -157,7 +114,71 @@ class PageResource extends Resource
                                     'Public/Ticketing',
                                 ])),
                         ])->columnSpanFull(),
-                    ])->columns(2),
+                    ])->columnSpan(['lg' => 2]),
+
+                    // Colonna Laterale (Destra, 1/3)
+                    Forms\Components\Group::make([
+                        Forms\Components\Section::make('Stato & Associazione')
+                            ->schema([
+                                Forms\Components\Select::make('status')
+                                    ->label('Stato Pubblicazione')
+                                    ->options(PostStatus::class)
+                                    ->default(PostStatus::Published)
+                                    ->required(),
+                                Forms\Components\Select::make('template')
+                                    ->label('Template Pagina')
+                                    ->options([
+                                        'Default' => 'Template Predefinito',
+                                        'Public/Home' => 'Home Page',
+                                        'Public/Societa/Organigramma' => 'Società (Organigramma)',
+                                        'Public/Societa/Storia' => 'Società - Storia',
+                                        'Public/Societa/Palazzetto' => 'Società - Palazzetto',
+                                        'Public/Societa/Safeguarding' => 'Società - Safeguarding',
+                                        'Public/Roster' => 'Roster',
+                                        'Public/Shop' => 'Shop',
+                                        'Public/Ticketing' => 'Biglietteria',
+                                        'Public/Sponsor' => 'Sponsor',
+                                        'Public/Youth' => 'Settore Giovanile',
+                                        'Public/SummerCamp' => 'Summer Camp',
+                                        'Public/Sociale' => 'Progetti Sociali',
+                                        'Public/Comunicazione' => 'Comunicazione',
+                                        'Public/Stagione' => 'Stagione',
+                                        'Public/ContentPage' => 'Pagina Contenuto',
+                                    ])
+                                    ->live()
+                                    ->nullable(),
+                                Forms\Components\Select::make('parent_id')
+                                    ->relationship('parent', 'title', fn (Builder $query, $record) => $record ? $query->where('id', '!=', $record->id) : $query)
+                                    ->label('Pagina Genitore')
+                                    ->searchable(),
+                                Forms\Components\Select::make('author_id')
+                                    ->label('Autore')
+                                    ->relationship('author', 'name')
+                                    ->searchable()
+                                    ->default(fn () => auth()->id()),
+                            ]),
+
+                        Forms\Components\Section::make('Immagine di Copertina')
+                            ->schema([
+                                SpatieMediaLibraryFileUpload::make('cover')
+                                    ->label('Copertina')
+                                    ->collection('cover')
+                                    ->image()
+                                    ->maxSize(5120),
+                            ]),
+
+                        Forms\Components\Section::make('Impostazioni SEO')
+                            ->schema([
+                                Forms\Components\TextInput::make('meta_title')
+                                    ->label('Meta Titolo (SEO)')
+                                    ->maxLength(255),
+                                Forms\Components\Textarea::make('meta_description')
+                                    ->label('Meta Descrizione (SEO)')
+                                    ->maxLength(255)
+                                    ->rows(3),
+                            ])->collapsible(),
+                    ])->columnSpan(['lg' => 1]),
+                ])->columnSpanFull(),
             ]);
     }
 

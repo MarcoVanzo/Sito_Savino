@@ -188,19 +188,18 @@ class PageTemplateForms
                     Forms\Components\Tabs\Tab::make('Testi della Pagina')
                         ->icon('heroicon-o-document-text')
                         ->schema([
-                            Forms\Components\Section::make('Intestazione (Hero)')
-                                ->description('Testi visualizzati nella parte superiore della pagina Contatti.')
+                            Forms\Components\Fieldset::make('Intestazione (Hero)')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.hero_subtitle')
                                         ->label('Sottotitolo')
                                         ->placeholder('es. Dal 1982'),
                                     Forms\Components\Textarea::make('content_data.hero_description')
                                         ->label('Descrizione Introduttiva')
-                                        ->rows(3),
+                                        ->rows(3)
+                                        ->columnSpanFull(),
                                 ])->columns(2),
 
-                            Forms\Components\Section::make('Modulo di Contatto')
-                                ->description('Configurazione del blocco con il form per inviare messaggi.')
+                            Forms\Components\Fieldset::make('Modulo di Contatto')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.form_title')
                                         ->label('Titolo del Modulo')
@@ -210,8 +209,7 @@ class PageTemplateForms
                                         ->placeholder('es. Messaggio inviato con successo!'),
                                 ])->columns(2),
 
-                            Forms\Components\Section::make('Titoli Mappa')
-                                ->description('Testi associati alla mappa geografica (Google Maps).')
+                            Forms\Components\Fieldset::make('Titoli Mappa')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.map_title')
                                         ->label('Titolo Sezione Mappa')
@@ -225,8 +223,7 @@ class PageTemplateForms
                     Forms\Components\Tabs\Tab::make('Sede & Dati Societari')
                         ->icon('heroicon-o-building-office-2')
                         ->schema([
-                            Forms\Components\Section::make('Recapiti Generali')
-                                ->description('Le informazioni di contatto principali della società.')
+                            Forms\Components\Fieldset::make('Recapiti Generali')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.email')
                                         ->label('Email Principale')
@@ -244,8 +241,7 @@ class PageTemplateForms
                                         ->placeholder('es. Lun-Ven: 09:00-18:00'),
                                 ])->columns(2),
 
-                            Forms\Components\Section::make('Ubicazione Sede')
-                                ->description('Indirizzo fisico della sede principale.')
+                            Forms\Components\Fieldset::make('Ubicazione Sede')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.address')
                                         ->label('Indirizzo')
@@ -255,8 +251,7 @@ class PageTemplateForms
                                         ->placeholder('es. Firenze'),
                                 ])->columns(2),
 
-                            Forms\Components\Section::make('Dati Fiscali e Sportivi')
-                                ->description('Informazioni legali della società.')
+                            Forms\Components\Fieldset::make('Dati Fiscali e Sportivi')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.legal_piva')
                                         ->label('Partita IVA')
@@ -276,8 +271,7 @@ class PageTemplateForms
                     Forms\Components\Tabs\Tab::make('Email Dipartimenti')
                         ->icon('heroicon-o-envelope-open')
                         ->schema([
-                            Forms\Components\Section::make('Indirizzi Email Specifici')
-                                ->description('Caselle di posta dedicate ai vari settori operativi. Queste email saranno mostrate in una sezione dedicata.')
+                            Forms\Components\Fieldset::make('Indirizzi Email Specifici')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.press_email')
                                         ->label('Ufficio Stampa')
@@ -301,8 +295,7 @@ class PageTemplateForms
                     Forms\Components\Tabs\Tab::make('Rubrica Referenti')
                         ->icon('heroicon-o-users')
                         ->schema([
-                            Forms\Components\Section::make('Elenco Dinamico Contatti')
-                                ->description('Aggiungi qui i singoli referenti o i dipartimenti aggiuntivi. Verranno raggruppati per "Categoria" (es. Serie A1, Giovanili).')
+                            Forms\Components\Fieldset::make('Elenco Dinamico Contatti')
                                 ->schema([
                                     Forms\Components\Repeater::make('content_data.contacts_list')
                                         ->label('Contatti in Rubrica')
@@ -333,7 +326,8 @@ class PageTemplateForms
                                         ->collapsible()
                                         ->defaultItems(0)
                                         ->columnSpanFull(),
-                                ]),
+                                ])
+                                ->columnSpanFull(),
                         ]),
                 ])
                 ->columnSpanFull(),
