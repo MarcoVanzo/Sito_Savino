@@ -127,8 +127,7 @@ jobs:
             --stats 30s \
             --stats-one-line \
             --log-level INFO \
-            --log-file rclone-sync.log \
-            -v; then
+            --log-file rclone-sync.log; then
             echo "❌ Errore durante la sincronizzazione con rclone!"
             if [ -f rclone-sync.log ]; then
               echo "📝 --- CONTENUTO LOG RCLONE ---"
