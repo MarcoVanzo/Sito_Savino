@@ -52,6 +52,7 @@ const heroCta1Label = computed(() => homeSettings.value.hero_cta1_label || $t('h
 const heroCta1Url = computed(() => homeSettings.value.hero_cta1_url || '/stagione');
 const heroCta2Label = computed(() => homeSettings.value.hero_cta2_label || $t('home.hero_cta2'));
 const heroCta2Url = computed(() => homeSettings.value.hero_cta2_url || '/ticketing');
+const heroVideoUrl = computed(() => homeSettings.value.hero_video_url || null);
 
 // Stats section dal backend con fallback
 const statsTitle = computed(() => homeSettings.value.stats_title || $t('home.stats_title'));
@@ -293,10 +294,12 @@ const getCachedTiltHandlers = (index) => {
 // === LIFECYCLE ===
 onMounted(async () => {
     // Slideshow — transitionend per cleanup senza scatti
-    if (slidesContainer.value) {
-        slidesContainer.value.addEventListener('transitionend', onSlideTransitionEnd);
+    if (!heroVideoUrl.value) {
+        if (slidesContainer.value) {
+            slidesContainer.value.addEventListener('transitionend', onSlideTransitionEnd);
+        }
+        slideInterval = setInterval(nextSlideAuto, 6000);
     }
-    slideInterval = setInterval(nextSlideAuto, 6000);
 
     // Parallax
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -384,29 +387,45 @@ const ogMeta = useOgMeta({
         <div class="hero-wrapper relative w-full min-h-screen flex items-center bg-gray-900 overflow-hidden">
             <!-- Background Images (Cinematic Ken Burns Crossfade) with Parallax -->
             <div ref="slidesContainer" class="absolute inset-0 w-full h-full will-change-transform" :style="parallaxBgStyle">
-                <div 
-                    v-for="(slide, index) in slides"
-                    :key="'slide-' + index"
-                    class="hero-slide absolute inset-0 w-full h-full"
-                    :class="getSlideClass(index)"
-                >
-                    <img 
-                        v-if="index === 0"
-                        :src="slide"
-                        :alt="'Savino Del Bene Volley — slide ' + (index + 1)"
-                        fetchpriority="high"
-                        decoding="sync"
-                        class="absolute inset-0 w-full h-full object-cover object-center hero-slide-inner"
-                        :class="{ 'ken-burns-active': currentSlide === index || previousSlide === index }"
-                        @error="onImgError"
-                    />
-                    <div 
-                        v-else
-                        class="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat hero-slide-inner"
-                        :class="{ 'ken-burns-active': currentSlide === index || previousSlide === index }"
-                        :style="`background-image: url('${slide}');`"
-                    ></div>
+                <!-- Video Background Fallback se heroVideoUrl è presente -->
+                <div v-if="heroVideoUrl" class="absolute inset-0 w-full h-full z-[1]">
+                    <video 
+                        autoplay 
+                        loop 
+                        muted 
+                        playsinline 
+                        :poster="slides[0]"
+                        class="absolute inset-0 w-full h-full object-cover object-center"
+                    >
+                        <source :src="heroVideoUrl" type="video/mp4" />
+                    </video>
                 </div>
+                <!-- Altrimenti Slideshow -->
+                <template v-else>
+                    <div 
+                        v-for="(slide, index) in slides"
+                        :key="'slide-' + index"
+                        class="hero-slide absolute inset-0 w-full h-full"
+                        :class="getSlideClass(index)"
+                    >
+                        <img 
+                            v-if="index === 0"
+                            :src="slide"
+                            :alt="'Savino Del Bene Volley — slide ' + (index + 1)"
+                            fetchpriority="high"
+                            decoding="sync"
+                            class="absolute inset-0 w-full h-full object-cover object-center hero-slide-inner"
+                            :class="{ 'ken-burns-active': currentSlide === index || previousSlide === index }"
+                            @error="onImgError"
+                        />
+                        <div 
+                            v-else
+                            class="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat hero-slide-inner"
+                            :class="{ 'ken-burns-active': currentSlide === index || previousSlide === index }"
+                            :style="`background-image: url('${slide}');`"
+                        ></div>
+                    </div>
+                </template>
             </div>
             
             <!-- Gold Particles Canvas -->
@@ -427,7 +446,7 @@ const ogMeta = useOgMeta({
             </div>
             
             <!-- Slide Indicators -->
-            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
+            <div v-if="!heroVideoUrl" class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
                 <button 
                     v-for="(slide, index) in slides"
                     :key="'indicator-' + index"

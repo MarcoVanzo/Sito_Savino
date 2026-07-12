@@ -50,6 +50,9 @@ class SiteSettingsPage extends Page implements HasForms
         $flat = SiteSetting::getAllCached();
         $this->data = [];
         foreach ($flat as $key => $value) {
+            if ($key === 'shop.active_payment_gateways' && is_string($value)) {
+                $value = array_filter(array_map('trim', explode(',', $value)));
+            }
             data_set($this->data, $key, $value);
         }
     }
@@ -61,11 +64,6 @@ class SiteSettingsPage extends Page implements HasForms
                 Tabs::make('Impostazioni')
                     ->tabs([
                         Tab::make('Generali')->icon('heroicon-o-globe-alt')->schema([
-                            Section::make('Identità Sito')->schema([
-                                TextInput::make('site_name')->label('Nome Sito'),
-                                Textarea::make('site_description')->label('Descrizione Sito')->rows(3),
-                                TextInput::make('site_logo')->label('Logo Sito')->helperText('Percorso immagine'),
-                            ])->columns(1),
                             Section::make('Corporate')->schema([
                                 TextInput::make('corporate_logo')->label('Logo Corporate'),
                                 TextInput::make('corporate_url')->label('URL Corporate')->url(),
@@ -103,20 +101,12 @@ class SiteSettingsPage extends Page implements HasForms
                             TextInput::make('footer_copyright')->label('Copyright')->helperText('{year} = anno dinamico'),
                             TextInput::make('footer_piva')->label('P.IVA'),
                         ]),
-                        Tab::make('SEO')->icon('heroicon-o-magnifying-glass')->schema([
-                            TextInput::make('seo_default_title')->label('Titolo Default'),
-                            Textarea::make('seo_default_description')->label('Descrizione Default')->rows(3),
-                            TextInput::make('seo_og_image')->label('OG Image'),
-                        ]),
-                        Tab::make('Aspetto')->icon('heroicon-o-swatch')->schema([
-                            TextInput::make('primary_color')->label('Colore Primario')->helperText('HEX es: #C5A55A'),
-                            TextInput::make('secondary_color')->label('Colore Secondario')->helperText('HEX es: #0B1521'),
-                        ]),
                         Tab::make('Homepage')->icon('heroicon-o-home')->schema([
                             Section::make('Hero')->schema([
                                 TextInput::make('hero_title')->label('Titolo'),
                                 TextInput::make('hero_subtitle')->label('Accento'),
                                 TextInput::make('hero_tagline')->label('Claim'),
+                                TextInput::make('hero_video_url')->label('Video Background URL')->url()->helperText('Inserisci il link diretto a un file .mp4. Lascia vuoto per usare le immagini.'),
                             ]),
                             Section::make('CTA Hero')->schema([
                                 TextInput::make('hero_cta1_label')->label('CTA Primario'),
@@ -143,21 +133,23 @@ class SiteSettingsPage extends Page implements HasForms
                                 Toggle::make('shop.enabled')->label('Shop Attivo'),
                                 Textarea::make('shop.maintenance_message')->label('Messaggio Manutenzione')->rows(2),
                                 Textarea::make('shop.announcement_banner')->label('Banner Promozionale')->rows(2),
-                                TextInput::make('shop.contact_email')->label('Email Contatto Shop')->email(),
                                 TextInput::make('shop.max_qty_per_product')->label('Quantità Max per Prodotto')->numeric(),
                                 TextInput::make('shop.cart_expiry_days')->label('Scadenza Carrello (giorni)')->numeric(),
                                 TextInput::make('shop.free_shipping_threshold')->label('Soglia Spedizione Gratuita (€)')->numeric()->prefix('€'),
                             ])->columns(2),
                             Section::make('Metodi di Pagamento')->schema([
-                                Toggle::make('shop.stripe_enabled')->label('Stripe (Carta di Credito)'),
-                                Toggle::make('shop.paypal_enabled')->label('PayPal'),
-                                Toggle::make('shop.bank_transfer_enabled')->label('Bonifico Bancario'),
+                                \Filament\Forms\Components\CheckboxList::make('shop.active_payment_gateways')
+                                    ->label('Gateway di Pagamento Attivi')
+                                    ->options([
+                                        'stripe' => 'Carta di Credito (Stripe)',
+                                        'paypal' => 'PayPal',
+                                        'bank_transfer' => 'Bonifico Bancario',
+                                    ])->columns(3)->columnSpanFull(),
                                 TextInput::make('shop.bank_transfer_iban')->label('IBAN'),
                                 TextInput::make('shop.bank_transfer_beneficiary')->label('Intestatario Conto'),
                                 TextInput::make('shop.bank_transfer_expiry_days')->label('Scadenza Bonifico (giorni)')->numeric(),
                             ])->columns(2),
                             Section::make('Documentazione')->schema([
-                                Textarea::make('shop.return_policy_text')->label('Policy Resi')->rows(3),
                                 TextInput::make('shop.receipt_footer_text')->label('Footer Ricevuta PDF'),
                             ]),
                         ]),
@@ -193,6 +185,9 @@ class SiteSettingsPage extends Page implements HasForms
     public function save(): void
     {
         $data = $this->form->getState();
+        if (isset($data['shop']['active_payment_gateways']) && is_array($data['shop']['active_payment_gateways'])) {
+            $data['shop']['active_payment_gateways'] = implode(',', $data['shop']['active_payment_gateways']);
+        }
         $flat = Arr::dot($data);
         foreach ($flat as $key => $value) {
             SiteSetting::set($key, $value ?? '');
