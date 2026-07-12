@@ -146,7 +146,7 @@ class AdminPanelProvider extends PanelProvider
             ['Storia', 'Società', 2],
             ['Safeguarding', 'Società', 3],
             ['Contatti', 'Società', 4],
-            ['Palazzetto & Google Maps', 'Società', 5],
+            ['Palazzetto & Google Maps', 'Società', 6],
             // Ticketing
             ['Biglietteria', 'Ticketing', 1],
             ['Campagna Abbonamenti', 'Ticketing', 2],

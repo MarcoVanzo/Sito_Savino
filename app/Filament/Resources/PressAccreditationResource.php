@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ContactMessageResource\Pages;
+use App\Filament\Resources\PressAccreditationResource\Pages;
 use App\Models\ContactMessage;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,19 +11,23 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-class ContactMessageResource extends Resource
+class PressAccreditationResource extends Resource
 {
     protected static ?string $model = ContactMessage::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-envelope';
+    protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
-    protected static ?string $navigationLabel = 'Messaggi Contatti';
+    protected static ?string $navigationLabel = 'Accrediti Stampa';
 
-    protected static ?string $navigationGroup = 'Società';
+    protected static ?string $pluralLabel = 'Accrediti Stampa';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?string $modelLabel = 'Accredito Stampa';
 
-    protected static ?string $slug = 'messaggi-contatti';
+    protected static ?string $navigationGroup = 'Comunicazione';
+
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $slug = 'forms';
 
     public static function canCreate(): bool
     {
@@ -34,25 +38,25 @@ class ContactMessageResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Dettagli Messaggio')
-                    ->description('Visualizza i dettagli del messaggio inviato dall\'utente dal modulo contatti.')
-                    ->icon('heroicon-o-envelope')
+                Forms\Components\Section::make('Dettagli Accredito')
+                    ->description('Visualizza i dettagli della richiesta di accredito stampa.')
+                    ->icon('heroicon-o-ticket')
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
                                 Forms\Components\TextInput::make('name')
-                                    ->label('Nome Mittente')
+                                    ->label('Richiedente')
                                     ->readOnly(),
                                 Forms\Components\TextInput::make('email')
-                                    ->label('Email Mittente')
+                                    ->label('Email')
                                     ->email()
                                     ->readOnly(),
                             ]),
                         Forms\Components\TextInput::make('subject')
-                            ->label('Oggetto')
+                            ->label('Oggetto/Tipo Richiesta')
                             ->readOnly(),
                         Forms\Components\Textarea::make('message')
-                            ->label('Messaggio')
+                            ->label('Dettagli/Testata Giornalistica')
                             ->rows(5)
                             ->readOnly()
                             ->columnSpanFull(),
@@ -60,22 +64,22 @@ class ContactMessageResource extends Resource
                     ->columnSpan(2),
 
                 Forms\Components\Section::make('Stato & Gestione')
-                    ->description('Aggiorna lo stato del messaggio per tenere traccia delle letture e risposte.')
+                    ->description('Gestisci l\'approvazione e lo stato dell\'accredito.')
                     ->icon('heroicon-o-cog-6-tooth')
                     ->schema([
                         Forms\Components\Select::make('status')
-                            ->label('Stato Messaggio')
+                            ->label('Stato')
                             ->options([
-                                'unread' => 'Non Letto',
+                                'unread' => 'In Attesa',
                                 'read' => 'Letto',
-                                'replied' => 'Risposto',
+                                'replied' => 'Accreditato / Risposto',
                             ])
                             ->default('unread')
                             ->required(),
                         Forms\Components\Textarea::make('extra_data.admin_notes')
                             ->label('Note Amministratore')
                             ->rows(3)
-                            ->placeholder('Es: Telefonato al cliente per dettagli...'),
+                            ->placeholder('Es: Confermato pass tribuna stampa...'),
                         Forms\Components\Placeholder::make('created_at')
                             ->label('Ricevuto il')
                             ->content(fn ($record): string => $record && $record->created_at ? $record->created_at->format('d/m/Y H:i:s') : '-'),
@@ -90,7 +94,7 @@ class ContactMessageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nome Mittente')
+                    ->label('Richiedente')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
@@ -105,9 +109,9 @@ class ContactMessageResource extends Resource
                     ->label('Stato')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'unread' => 'Non Letto',
+                        'unread' => 'In Attesa',
                         'read' => 'Letto',
-                        'replied' => 'Risposto',
+                        'replied' => 'Accreditato / Risposto',
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
@@ -126,9 +130,9 @@ class ContactMessageResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Stato')
                     ->options([
-                        'unread' => 'Non Letto',
+                        'unread' => 'In Attesa',
                         'read' => 'Letto',
-                        'replied' => 'Risposto',
+                        'replied' => 'Accreditato / Risposto',
                     ]),
             ])
             ->actions([
@@ -141,8 +145,8 @@ class ContactMessageResource extends Resource
                         ->visible(fn ($record) => $record->status === 'unread')
                         ->action(fn ($record) => $record->update(['status' => 'read'])),
                     Tables\Actions\Action::make('markAsReplied')
-                        ->label('Segna come Risposto')
-                        ->icon('heroicon-o-chat-bubble-left-right')
+                        ->label('Accredita / Rispondi')
+                        ->icon('heroicon-o-check')
                         ->color('success')
                         ->visible(fn ($record) => $record->status !== 'replied')
                         ->action(fn ($record) => $record->update(['status' => 'replied'])),
@@ -159,16 +163,13 @@ class ContactMessageResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where(function (Builder $query) {
-                $query->where('subject', '!=', 'Stampa / Media')
-                    ->orWhereNull('subject');
-            });
+            ->where('subject', 'Stampa / Media');
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageContactMessages::route('/'),
+            'index' => Pages\ManagePressAccreditations::route('/'),
         ];
     }
 }

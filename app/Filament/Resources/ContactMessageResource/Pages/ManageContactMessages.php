@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\ContactMessageResource\Pages;
 
 use App\Filament\Resources\ContactMessageResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
 
 class ManageContactMessages extends ManageRecords
@@ -12,8 +11,6 @@ class ManageContactMessages extends ManageRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\CreateAction::make(),
-        ];
+        return [];
     }
 }
