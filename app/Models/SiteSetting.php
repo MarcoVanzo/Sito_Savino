@@ -106,7 +106,7 @@ class SiteSetting extends Model
         $all = static::getAllGrouped();
 
         // Only expose groups that are safe for public frontend
-        $publicGroups = ['general', 'brand', 'footer', 'shop', 'social', 'seo', 'auctions', 'hero'];
+        $publicGroups = ['general', 'brand', 'footer', 'shop', 'social', 'seo', 'auctions', 'hero', 'legal'];
 
         return array_intersect_key($all, array_flip($publicGroups));
     }

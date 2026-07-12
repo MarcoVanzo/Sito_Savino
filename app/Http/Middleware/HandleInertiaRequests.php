@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\MenuItem;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -65,7 +66,21 @@ class HandleInertiaRequests extends Middleware
             ],
             'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
             'footerMenu' => fn () => $isPublic ? MenuItem::getTree('footer') : [],
-            'siteSettings' => fn () => $isPublic ? SiteSetting::getPublicGrouped() : [],
+            'siteSettings' => function () use ($isPublic) {
+                if (! $isPublic) {
+                    return [];
+                }
+                $settings = SiteSetting::getPublicGrouped();
+                if (isset($settings['legal'])) {
+                    foreach ($settings['legal'] as $key => $path) {
+                        if ($path) {
+                            $settings['legal'][$key] = Storage::url($path);
+                        }
+                    }
+                }
+
+                return $settings;
+            },
         ];
     }
 }

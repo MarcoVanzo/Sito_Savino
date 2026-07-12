@@ -18,6 +18,7 @@ const settings = computed(() => page.props.siteSettings ?? {});
 const general = computed(() => settings.value.general ?? {});
 const social = computed(() => settings.value.social ?? {});
 const footerSettings = computed(() => settings.value.footer ?? {});
+const legalDocs = computed(() => settings.value.legal ?? {});
 
 // Footer menu dal backend (struttura gerarchica: parent → children)
 const footerMenuItems = computed(() => page.props.footerMenu ?? []);
@@ -28,10 +29,29 @@ const displayedLinks = computed(() => {
     if (footerMenuItems.value.length > 0) {
         const groups = {};
         footerMenuItems.value.forEach(parent => {
-            groups[parent.label] = (parent.children || []).map(child => ({
-                label: child.label,
-                url: child.href,
-            }));
+            groups[parent.label] = (parent.children || []).map(child => {
+                let finalUrl = child.href;
+                let target = '_self';
+                
+                const legalMapping = {
+                    'Modello Organizzativo': 'modello_organizzativo',
+                    'Codice Tutela Minori': 'codice_tutela_minori',
+                    'Protocollo Bullismo': 'protocollo_bullismo',
+                    'Protocollo Razzismo': 'protocollo_razzismo',
+                    'Safeguarding': 'safeguarding'
+                };
+                
+                if (legalMapping[child.label] && legalDocs.value[legalMapping[child.label]]) {
+                    finalUrl = legalDocs.value[legalMapping[child.label]];
+                    target = '_blank';
+                }
+
+                return {
+                    label: child.label,
+                    url: finalUrl,
+                    target: target,
+                };
+            });
         });
         return groups;
     }
@@ -159,9 +179,15 @@ const socialLinks = computed(() => {
                     <h3 class="text-white text-xs font-bold uppercase tracking-[0.2em] mb-5">{{ groupName }}</h3>
                     <ul class="space-y-3">
                         <li v-for="link in links" :key="link.url || link.href">
-                            <Link :href="link.url || link.href" class="text-gray-400 text-sm hover:text-savino-gold transition-colors duration-200">
+                            <component 
+                                :is="link.target === '_blank' ? 'a' : Link"
+                                :href="link.url || link.href" 
+                                :target="link.target"
+                                :rel="link.target === '_blank' ? 'noopener noreferrer' : null"
+                                class="text-gray-400 text-sm hover:text-savino-gold transition-colors duration-200"
+                            >
                                 {{ link.label }}
-                            </Link>
+                            </component>
                         </li>
                     </ul>
                 </div>
@@ -175,9 +201,9 @@ const socialLinks = computed(() => {
                 <div class="text-gray-400 text-xs" v-html="copyrightText">
                 </div>
                 <div class="flex items-center gap-6">
-                    <Link href="/privacy-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.privacy_policy') }}</Link>
-                    <Link href="/cookie-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.cookie_policy') }}</Link>
-                    <Link href="/informativa-fornitori" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">Informativa Fornitori</Link>
+                    <a :href="legalDocs.privacy_policy || '/privacy-policy'" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.privacy_policy') }}</a>
+                    <a :href="legalDocs.cookie_policy || '/cookie-policy'" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.cookie_policy') }}</a>
+                    <a :href="legalDocs.informativa_fornitori || '/informativa-fornitori'" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">Informativa Fornitori</a>
                 </div>
             </div>
         </div>
