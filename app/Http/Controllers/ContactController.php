@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ContactRequest;
+use App\Models\ContactMessage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -25,6 +26,20 @@ class ContactController extends Controller
             'subject' => $validated['subject'] ?? '(nessun oggetto)',
         ]);
 
+        // Salvataggio nel database
+        try {
+            ContactMessage::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'subject' => $validated['subject'] ?? null,
+                'message' => $validated['message'],
+                'status' => 'unread',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Errore salvataggio messaggio contatti nel database', ['error' => $e->getMessage()]);
+            // Non blocchiamo l'utente se il salvataggio fallisce, procediamo con l'invio email
+        }
+
         // Invio email
         try {
             Mail::raw(
@@ -37,9 +52,10 @@ class ContactController extends Controller
             );
         } catch (\Throwable $e) {
             Log::error('Errore invio email contatti', ['error' => $e->getMessage()]);
-            // Non blocchiamo l'utente se la mail fallisce, il log c'è
+            // Non blocchiamo l'utente se la mail fallisce, il log e il DB ci sono
         }
 
         return back()->with('success', __('messages.contact.success_human'));
     }
 }
+

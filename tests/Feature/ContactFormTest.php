@@ -35,6 +35,14 @@ class ContactFormTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
+
+        // Verifica la persistenza nel database
+        $this->assertDatabaseHas('contact_messages', [
+            'name' => 'Marco Rossi',
+            'email' => 'marco@example.com',
+            'message' => 'Vorrei informazioni sulla prossima partita.',
+            'status' => 'unread',
+        ]);
     }
 
     public function test_contact_form_validates_required_fields(): void

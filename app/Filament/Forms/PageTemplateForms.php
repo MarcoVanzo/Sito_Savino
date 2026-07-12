@@ -185,66 +185,78 @@ class PageTemplateForms
         return [
             Forms\Components\Tabs::make('ContattiPageTabs')
                 ->tabs([
-                    Forms\Components\Tabs\Tab::make('Struttura Pagina')
+                    Forms\Components\Tabs\Tab::make('Testi della Pagina')
                         ->icon('heroicon-o-document-text')
                         ->schema([
-                            Forms\Components\Section::make('Hero e Presentazione')
+                            Forms\Components\Section::make('Intestazione (Hero)')
+                                ->description('Testi visualizzati nella parte superiore della pagina Contatti.')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.hero_subtitle')
-                                        ->label('Sottotitolo Hero')
+                                        ->label('Sottotitolo')
                                         ->placeholder('es. Dal 1982'),
                                     Forms\Components\Textarea::make('content_data.hero_description')
-                                        ->label('Descrizione Hero'),
+                                        ->label('Descrizione Introduttiva')
+                                        ->rows(3),
                                 ])->columns(2),
 
                             Forms\Components\Section::make('Modulo di Contatto')
+                                ->description('Configurazione del blocco con il form per inviare messaggi.')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.form_title')
-                                        ->label('Titolo Modulo di Contatto')
+                                        ->label('Titolo del Modulo')
                                         ->placeholder('es. Scrivici'),
                                     Forms\Components\TextInput::make('content_data.form_success_message')
-                                        ->label('Messaggio di Successo Modulo'),
+                                        ->label('Messaggio di Conferma Invio')
+                                        ->placeholder('es. Messaggio inviato con successo!'),
                                 ])->columns(2),
 
-                            Forms\Components\Section::make('Mappa Sede Legale (Google Maps)')
+                            Forms\Components\Section::make('Titoli Mappa')
+                                ->description('Testi associati alla mappa geografica (Google Maps).')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.map_title')
-                                        ->label('Titolo Mappa (es. Sede Legale)')
-                                        ->placeholder('es. Palazzo Wanny'),
+                                        ->label('Titolo Sezione Mappa')
+                                        ->placeholder('es. Sede Legale'),
                                     Forms\Components\TextInput::make('content_data.map_address')
-                                        ->label('Indirizzo per la ricerca Mappa')
+                                        ->label('Testo Indirizzo (Sotto al titolo)')
                                         ->placeholder('es. Via Benozzo Gozzoli, 5/6, Scandicci'),
                                 ])->columns(2),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Contatti Generali & Sede')
-                        ->icon('heroicon-o-phone')
+                    Forms\Components\Tabs\Tab::make('Sede & Dati Societari')
+                        ->icon('heroicon-o-building-office-2')
                         ->schema([
-                            Forms\Components\Section::make('Recapiti Principali')
+                            Forms\Components\Section::make('Recapiti Generali')
+                                ->description('Le informazioni di contatto principali della società.')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.email')
                                         ->label('Email Principale')
                                         ->email()
                                         ->placeholder('es. info@savinodelbenevolley.it'),
+                                    Forms\Components\TextInput::make('content_data.pec')
+                                        ->label('Indirizzo PEC')
+                                        ->email()
+                                        ->placeholder('es. savinodelbenevolley@pec.it'),
                                     Forms\Components\TextInput::make('content_data.phone')
                                         ->label('Telefono Sede')
                                         ->placeholder('es. 055 721503'),
-                                    Forms\Components\TextInput::make('content_data.pec')
-                                        ->label('PEC Principale')
-                                        ->email()
-                                        ->placeholder('es. savinodelbenevolley@pec.it'),
                                     Forms\Components\TextInput::make('content_data.office_hours')
                                         ->label('Orari di Apertura')
                                         ->placeholder('es. Lun-Ven: 09:00-18:00'),
+                                ])->columns(2),
+
+                            Forms\Components\Section::make('Ubicazione Sede')
+                                ->description('Indirizzo fisico della sede principale.')
+                                ->schema([
                                     Forms\Components\TextInput::make('content_data.address')
-                                        ->label('Indirizzo Sede')
+                                        ->label('Indirizzo')
                                         ->placeholder('es. Palazzo Wanny, Via Allende 10'),
                                     Forms\Components\TextInput::make('content_data.city')
-                                        ->label('Città')
+                                        ->label('Città / Località')
                                         ->placeholder('es. Firenze'),
                                 ])->columns(2),
 
-                            Forms\Components\Section::make('Dati Societari / Legali')
+                            Forms\Components\Section::make('Dati Fiscali e Sportivi')
+                                ->description('Informazioni legali della società.')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.legal_piva')
                                         ->label('Partita IVA')
@@ -253,18 +265,19 @@ class PageTemplateForms
                                         ->label('Codice Fiscale')
                                         ->placeholder('es. 94217750481'),
                                     Forms\Components\TextInput::make('content_data.legal_fipav')
-                                        ->label('Codice FIPAV')
+                                        ->label('Codice Affiliazione FIPAV')
                                         ->placeholder('es. 100470331'),
                                     Forms\Components\TextInput::make('content_data.legal_sdi')
-                                        ->label('Codice SDI')
+                                        ->label('Codice Univoco (SDI)')
                                         ->placeholder('es. KRRH6B9'),
                                 ])->columns(2),
                         ]),
 
                     Forms\Components\Tabs\Tab::make('Email Dipartimenti')
-                        ->icon('heroicon-o-envelope')
+                        ->icon('heroicon-o-envelope-open')
                         ->schema([
-                            Forms\Components\Section::make('Contatti Dipartimenti')
+                            Forms\Components\Section::make('Indirizzi Email Specifici')
+                                ->description('Caselle di posta dedicate ai vari settori operativi. Queste email saranno mostrate in una sezione dedicata.')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.press_email')
                                         ->label('Ufficio Stampa')
@@ -285,34 +298,42 @@ class PageTemplateForms
                                 ])->columns(2),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Rubrica (Sito)')
+                    Forms\Components\Tabs\Tab::make('Rubrica Referenti')
                         ->icon('heroicon-o-users')
                         ->schema([
-                            Forms\Components\Repeater::make('content_data.contacts_list')
-                                ->label('Lista Contatti / Dipartimenti in Rubrica')
+                            Forms\Components\Section::make('Elenco Dinamico Contatti')
+                                ->description('Aggiungi qui i singoli referenti o i dipartimenti aggiuntivi. Verranno raggruppati per "Categoria" (es. Serie A1, Giovanili).')
                                 ->schema([
-                                    Forms\Components\TextInput::make('category')
-                                        ->label('Categoria / Sezione (es. SERIE A1, SDB VOLLEY YOUTH, ecc.)')
-                                        ->placeholder('es. SERIE A1'),
-                                    Forms\Components\TextInput::make('role')
-                                        ->label('Ruolo / Dipartimento')
-                                        ->required()
-                                        ->placeholder('es. DIRETTORE GENERALE'),
-                                    Forms\Components\TextInput::make('name')
-                                        ->label('Nome Referente (Opzionale)')
-                                        ->placeholder('es. Francesco Paoletti'),
-                                    Forms\Components\TextInput::make('email')
-                                        ->label('Email (Opzionale)')
-                                        ->email()
-                                        ->placeholder('es. press@savinodelbenevolley.it'),
-                                    Forms\Components\TextInput::make('phone')
-                                        ->label('Telefono / Cellulare (Opzionale)')
-                                        ->placeholder('es. 333 88 24 951'),
-                                ])
-                                ->columns(2)
-                                ->columnSpanFull()
-                                ->createItemButtonLabel('Aggiungi Contatto / Ruolo')
-                                ->grid(2),
+                                    Forms\Components\Repeater::make('content_data.contacts_list')
+                                        ->label('Contatti in Rubrica')
+                                        ->addActionLabel('Aggiungi Referente / Dipartimento')
+                                        ->itemLabel(fn (array $state): ?string => $state['role'] ?? null)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('category')
+                                                ->label('Categoria Raggruppamento')
+                                                ->helperText('Es. SERIE A1, SDB VOLLEY YOUTH')
+                                                ->required(),
+                                            Forms\Components\TextInput::make('role')
+                                                ->label('Ruolo o Nome Dipartimento')
+                                                ->required()
+                                                ->placeholder('es. DIRETTORE GENERALE'),
+                                            Forms\Components\TextInput::make('name')
+                                                ->label('Nome del Referente')
+                                                ->placeholder('es. Francesco Paoletti (Opzionale)'),
+                                            Forms\Components\TextInput::make('email')
+                                                ->label('Indirizzo Email')
+                                                ->email()
+                                                ->placeholder('es. info@... (Opzionale)'),
+                                            Forms\Components\TextInput::make('phone')
+                                                ->label('Telefono')
+                                                ->placeholder('es. 333 88 24 951 (Opzionale)'),
+                                        ])
+                                        ->columns(2)
+                                        ->grid(2)
+                                        ->collapsible()
+                                        ->defaultItems(0)
+                                        ->columnSpanFull(),
+                                ]),
                         ]),
                 ])
                 ->columnSpanFull(),
