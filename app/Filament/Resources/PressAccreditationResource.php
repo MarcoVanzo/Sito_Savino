@@ -17,15 +17,15 @@ class PressAccreditationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
-    protected static ?string $navigationLabel = 'Accrediti Stampa';
+    protected static ?string $navigationLabel = 'Richieste Accrediti';
 
-    protected static ?string $pluralLabel = 'Accrediti Stampa';
+    protected static ?string $pluralLabel = 'Richieste Accrediti';
 
     protected static ?string $modelLabel = 'Accredito Stampa';
 
     protected static ?string $navigationGroup = 'Comunicazione';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $slug = 'forms';
 

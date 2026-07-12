@@ -102,6 +102,21 @@ class PageResource extends Resource
                                     ->schema(PageTemplateForms::getTicketingSchema())
                                     ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Ticketing'),
 
+                                // FORM: ISCRIZIONE EXPERIENCE (SUMMER CAMP)
+                                Forms\Components\Section::make('Pulsante Grafico Iscrizione (Experience)')
+                                    ->schema(PageTemplateForms::getCampEnrollmentSchema())
+                                    ->visible(fn (Forms\Get $get) => $get('slug') === 'iscrizione-experience'),
+
+                                // FORM: DOUBLE FACE YOUTUBE EMBED
+                                Forms\Components\Section::make('Video YouTube Double Face')
+                                    ->schema(PageTemplateForms::getDoubleFaceSchema())
+                                    ->visible(fn (Forms\Get $get) => $get('slug') === 'double-face'),
+
+                                // FORM: MAGAZINE PDF UPLOAD
+                                Forms\Components\Section::make('Archivio Edizioni Magazine')
+                                    ->schema(PageTemplateForms::getMagazineSchema())
+                                    ->visible(fn (Forms\Get $get) => $get('slug') === 'magazine'),
+
                                 // GENERIC JSON per altre pagine
                                 Forms\Components\Section::make('Dati Contenuto (Altre Pagine)')
                                     ->schema(PageTemplateForms::getGenericJsonSchema())
@@ -112,6 +127,10 @@ class PageResource extends Resource
                                         'Public/Societa/Safeguarding',
                                         'Public/Contatti',
                                         'Public/Ticketing',
+                                    ]) && ! in_array($get('slug'), [
+                                        'iscrizione-experience',
+                                        'double-face',
+                                        'magazine',
                                     ])),
                             ])->columnSpanFull(),
                         ])->columnSpan(['lg' => 2]),

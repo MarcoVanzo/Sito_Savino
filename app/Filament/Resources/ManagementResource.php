@@ -22,17 +22,17 @@ class ManagementResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'last_name';
 
-    protected static ?string $modelLabel = 'Dirigente';
+    protected static ?string $modelLabel = 'Membro Organigramma';
 
-    protected static ?string $pluralModelLabel = 'Dirigenza';
+    protected static ?string $pluralModelLabel = 'Membri Organigramma';
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $navigationGroup = 'Società';
 
-    protected static ?string $navigationLabel = 'Organigramma';
+    protected static ?string $navigationLabel = 'Membri Organigramma';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function getEloquentQuery(): Builder
     {

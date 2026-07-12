@@ -70,6 +70,7 @@ class PageController extends Controller
 
         // Summer Camp
         'summer-camp' => 'summer-camp',
+        'iscrizione-experience' => 'summer-camp',
 
         // Sociale
         'volley-4-all' => 'sociale',
@@ -81,6 +82,7 @@ class PageController extends Controller
         'accrediti-stampa' => 'comunicazione',
         'cartelle-stampa' => 'comunicazione',
         'double-face' => 'comunicazione',
+        'magazine' => 'comunicazione',
     ];
 
     public function show($slug)

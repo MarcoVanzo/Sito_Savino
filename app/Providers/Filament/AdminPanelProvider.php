@@ -115,6 +115,7 @@ class AdminPanelProvider extends PanelProvider
         $underConstructionUrl = '/admin/under-construction';
 
         $slugMap = [
+            'Organigramma' => 'organigramma',
             'Storia' => 'storia',
             'Safeguarding' => 'safeguarding',
             'Contatti' => 'contatti',
@@ -130,12 +131,15 @@ class AdminPanelProvider extends PanelProvider
             'Talent Day & Recruiting' => 'talent-day',
             'Progetto Affiliazioni' => 'affiliazioni',
             'Tutte le Info' => 'summer-camp',
+            'Iscrizione (Experience)' => 'iscrizione-experience',
             'Progetti Sociali' => 'progetti-sociali',
             'Volley 4 All' => 'volley-4-all',
             'Bilancio Sostenibilità' => 'sostenibilita',
             'Progetto Scuola' => 'progetto-scuola',
             'Cartelle Stampa' => 'cartelle-stampa',
+            'Magazine' => 'magazine',
             'Double Face' => 'double-face',
+            'Accrediti Stampa' => 'accrediti-stampa',
         ];
 
         $items = [
@@ -143,6 +147,7 @@ class AdminPanelProvider extends PanelProvider
             ['CEV Champions League', 'Stagione', 4],
             ['Coppa Italia & Playoff', 'Stagione', 5],
             // Società
+            ['Organigramma', 'Società', 1],
             ['Storia', 'Società', 2],
             ['Safeguarding', 'Società', 3],
             ['Contatti', 'Società', 4],
@@ -169,6 +174,7 @@ class AdminPanelProvider extends PanelProvider
             ['Bilancio Sostenibilità', 'Sociale', 3],
             ['Progetto Scuola', 'Sociale', 4],
             // Comunicazione
+            ['Accrediti Stampa', 'Comunicazione', 1],
             ['Cartelle Stampa', 'Comunicazione', 2],
             ['Magazine', 'Comunicazione', 3],
             ['Double Face', 'Comunicazione', 4],

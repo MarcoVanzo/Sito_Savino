@@ -437,7 +437,33 @@ class CmsPagesSeeder extends Seeder
                 '<h2>Materiale Stampa</h2><p>In questa sezione sono disponibili i materiali ufficiali per la stampa: logo del club in vari formati, foto ufficiali delle atlete, cartelle stampa pre-partita e comunicati ufficiali.</p>'),
             $this->page('double-face', 'Double Face — Il Magazine', 'Public/ContentPage',
                 'Double Face, il magazine ufficiale della Savino Del Bene Volley. Interviste, approfondimenti e dietro le quinte.',
-                '<h2>Double Face</h2><p>Il magazine ufficiale della Savino Del Bene Volley. Interviste esclusive con le atlete, approfondimenti tattici, dietro le quinte e storie dal settore giovanile. Disponibile in formato digitale.</p>'),
+                '<h2>Double Face</h2><p>Il magazine ufficiale della Savino Del Bene Volley. Interviste esclusive con le atlete, approfondimenti tattici, dietro le quinte e storie dal settore giovanile. Disponibile in formato digitale.</p>', [
+                    'youtube_videos' => [
+                        [
+                            'title' => 'Video di Presentazione Double Face',
+                            'youtube_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                            'description' => 'Un video speciale sul dietro le quinte del magazine.',
+                        ],
+                    ],
+                ]),
+            $this->page('magazine', 'Magazine', 'Public/ContentPage',
+                'Sfoglia l\'archivio del magazine ufficiale della Savino Del Bene Volley. Scarica le edizioni in formato PDF.',
+                '<h2>Archivio Magazine</h2><p>In questa sezione puoi consultare e scaricare in formato PDF tutti i numeri di "Double Face", il magazine ufficiale della Savino Del Bene Volley.</p>', [
+                    'magazines' => [
+                        [
+                            'title' => 'Double Face — Numero 1',
+                            'publish_date' => 'Ottobre 2026',
+                            'file_url' => '',
+                            'cover_image_url' => '',
+                        ],
+                    ],
+                ]),
+            $this->page('iscrizione-experience', 'Iscrizione (Experience)', 'Public/ContentPage',
+                'Iscrizione al Summer Camp Savino Del Bene Volley. Accedi al portale iscrizioni del partner organizzativo.',
+                '<h2>Iscrizione Online</h2><p>Le iscrizioni per l\'edizione 2026 del Summer Camp sono gestite direttamente dal nostro partner organizzativo. Clicca sul pulsante sottostante per accedere al portale di iscrizione esterno.</p>', [
+                    'button_text' => 'Accedi al portale iscrizioni',
+                    'button_url' => 'https://www.example.com/iscrizione-camp',
+                ]),
         ];
     }
 }

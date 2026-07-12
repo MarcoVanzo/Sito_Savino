@@ -111,7 +111,7 @@ foreach ($locales as $loc) {
             return redirect()->route($namePrefix.'pages.show', ['slug' => 'summer-camp'], 301);
         })->name('summer-camp.info');
         Route::get('/summer-camp/iscrizione', function () use ($namePrefix) {
-            return redirect()->route($namePrefix.'in-costruzione', [], 301);
+            return redirect()->route($namePrefix.'summer-camp.page', ['slug' => 'iscrizione-experience'], 301);
         })->name('summer-camp.iscrizione');
         Route::get('/summer-camp/{slug}', [PageController::class, 'show'])->name('summer-camp.page');
 
@@ -135,7 +135,7 @@ foreach ($locales as $loc) {
             return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'cartelle-stampa'], 301);
         })->name('comunicazione.cartelle');
         Route::get('/comunicazione/magazine', function () use ($namePrefix) {
-            return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'double-face'], 301);
+            return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'magazine'], 301);
         })->name('comunicazione.magazine');
         Route::get('/comunicazione', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'accrediti-stampa'], 301);

@@ -335,6 +335,93 @@ class PageTemplateForms
     }
 
     /**
+     * Restituisce i campi per la pagina Iscrizione (Experience) del Summer Camp
+     */
+    public static function getCampEnrollmentSchema(): array
+    {
+        return [
+            Forms\Components\TextInput::make('content_data.button_text')
+                ->label('Testo del Pulsante')
+                ->placeholder('es. Accedi al Portale Iscrizioni')
+                ->required(),
+            Forms\Components\TextInput::make('content_data.button_url')
+                ->label('URL di Destinazione Esterna')
+                ->placeholder('es. https://partner-organizzatore.it/iscrizioni')
+                ->url()
+                ->required(),
+            Forms\Components\FileUpload::make('content_data.button_image')
+                ->label('Pulsante Grafico (Immagine/Banner)')
+                ->helperText('Se caricata, l\'immagine verrà usata come banner grafico cliccabile al posto del pulsante testuale standard.')
+                ->image()
+                ->directory('camp-enrollment')
+                ->preserveFilenames(),
+        ];
+    }
+
+    /**
+     * Restituisce lo schema per la gestione del Magazine PDF
+     */
+    public static function getMagazineSchema(): array
+    {
+        return [
+            Forms\Components\Repeater::make('content_data.magazines')
+                ->label('Edizioni del Magazine (PDF)')
+                ->schema([
+                    Forms\Components\TextInput::make('title')
+                        ->label('Titolo Edizione')
+                        ->required()
+                        ->placeholder('es. Numero 1 — Ottobre 2026'),
+                    Forms\Components\TextInput::make('publish_date')
+                        ->label('Data / Periodo di Pubblicazione')
+                        ->placeholder('es. Ottobre 2026'),
+                    Forms\Components\FileUpload::make('file_url')
+                        ->label('File PDF del Magazine')
+                        ->acceptedFileTypes(['application/pdf'])
+                        ->directory('magazines/pdfs')
+                        ->required()
+                        ->preserveFilenames(),
+                    Forms\Components\FileUpload::make('cover_image_url')
+                        ->label('Immagine di Copertina')
+                        ->image()
+                        ->directory('magazines/covers')
+                        ->preserveFilenames(),
+                ])
+                ->columns(2)
+                ->columnSpanFull()
+                ->createItemButtonLabel('Aggiungi Edizione Magazine')
+                ->collapsible(),
+        ];
+    }
+
+    /**
+     * Restituisce lo schema per la gestione dei video di Double Face
+     */
+    public static function getDoubleFaceSchema(): array
+    {
+        return [
+            Forms\Components\Repeater::make('content_data.youtube_videos')
+                ->label('Video YouTube (Double Face)')
+                ->schema([
+                    Forms\Components\TextInput::make('title')
+                        ->label('Titolo Video')
+                        ->required()
+                        ->placeholder('es. Intervista a Ekaterina Antropova'),
+                    Forms\Components\TextInput::make('youtube_url')
+                        ->label('URL / Link Video YouTube')
+                        ->required()
+                        ->placeholder('es. https://www.youtube.com/watch?v=... o https://youtu.be/...'),
+                    Forms\Components\Textarea::make('description')
+                        ->label('Descrizione (Opzionale)')
+                        ->rows(2),
+                ])
+                ->columns(1)
+                ->columnSpanFull()
+                ->createItemButtonLabel('Aggiungi Video YouTube')
+                ->collapsible(),
+        ];
+    }
+
+    /**
      * Restituisce il campo JSON generico per le altre pagine
      */
     public static function getGenericJsonSchema(): array
