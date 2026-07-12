@@ -448,11 +448,11 @@ const ogMeta = useOgMeta({
                     </div>
                 </div>
 
-                <!-- Contact Form & Palazzo Wanny Map Layout -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                <!-- Contact Form Layout -->
+                <div class="max-w-4xl mx-auto">
                     
-                    <!-- Smart Form (Left Side) -->
-                    <div class="lg:col-span-7 bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100">
+                    <!-- Smart Form -->
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100">
                         <div class="mb-8">
                             <span class="text-savino-blue text-xs font-black uppercase tracking-[0.2em] block mb-2">{{ cd.form_subtitle || 'Scrivici direttamente' }}</span>
                             <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-4">{{ cd.form_title || $t('contatti.form_title') || 'Compila il Modulo' }}</h2>
@@ -558,7 +558,7 @@ const ogMeta = useOgMeta({
                                 <input type="text" v-model="form.honeypot" tabindex="-1" autocomplete="off" />
                             </div>
                             
-                            <div class="pt-4">
+                            <div class="pt-4 flex justify-center">
                                 <button
                                     type="submit"
                                     :disabled="form.processing"
@@ -574,43 +574,6 @@ const ogMeta = useOgMeta({
                         </form>
                     </div>
 
-                    <!-- Map (Right Side) Palazzo Wanny -->
-                    <div class="lg:col-span-5 flex flex-col">
-                        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex-grow flex flex-col relative group">
-                            <div class="px-8 py-8 bg-gray-900 text-white relative overflow-hidden">
-                                <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000"></div>
-                                <span class="text-savino-gold text-xs font-black uppercase tracking-[0.2em] mb-2 block relative z-10">{{ $t('contatti.playing_venue') || 'Campo di Gioco' }}</span>
-                                <h3 class="text-2xl font-black uppercase tracking-wider relative z-10">{{ cd.map_title || contact.venue_name || 'Palazzo Wanny' }}</h3>
-                                <p class="text-gray-300 text-sm mt-2 relative z-10 font-medium">{{ cd.map_address || contact.short_address || 'Via Salvador Allende, 10 - Firenze' }}</p>
-                            </div>
-                            
-                            <div class="relative flex-grow min-h-[400px]">
-                                <iframe
-                                    :src="'https://maps.google.com/maps?q=' + encodeURIComponent(cd.map_address || 'Palazzo Wanny, Via Salvador Allende, 10 Firenze') + '&t=&z=15&ie=UTF8&iwloc=&output=embed'"
-                                    class="absolute inset-0 w-full h-full border-0 grayscale-[20%] contrast-[1.1] hover:grayscale-0 transition-all duration-700"
-                                    allowfullscreen
-                                    loading="lazy"
-                                    referrerpolicy="no-referrer-when-downgrade"
-                                    :title="$t('contatti.map_iframe_title') || 'Mappa Palazzo Wanny'"
-                                ></iframe>
-                            </div>
-                            
-                            <div class="p-6 bg-white flex justify-center border-t border-gray-100">
-                                <a
-                                    :href="'https://www.google.com/maps/dir//' + encodeURIComponent(cd.map_address || 'Palazzo Wanny, Via Salvador Allende, Firenze')"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-3 px-8 py-3.5 bg-savino-gold text-white rounded-xl font-black uppercase tracking-widest hover:bg-yellow-500 transition-colors shadow-lg shadow-savino-gold/30 hover:-translate-y-1 hover:shadow-xl hover:shadow-savino-gold/40"
-                                >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    {{ $t('contatti.directions') || 'Ottieni Indicazioni' }}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
