@@ -117,7 +117,7 @@ jobs:
         run: |
           echo "🔄 Avvio copia incrementale media..."
 
-          rclone copy \
+          if ! rclone copy \
             "do-prod:${PROD_BUCKET}/" \
             "do-backup:${BACKUP_BUCKET}/media/" \
             --checksum \
@@ -128,7 +128,15 @@ jobs:
             --stats-one-line \
             --log-level INFO \
             --log-file rclone-sync.log \
-            -v
+            -v; then
+            echo "❌ Errore durante la sincronizzazione con rclone!"
+            if [ -f rclone-sync.log ]; then
+              echo "📝 --- CONTENUTO LOG RCLONE ---"
+              cat rclone-sync.log
+              echo "📝 --- FINE LOG RCLONE ---"
+            fi
+            exit 1
+          fi
 
           echo "✅ Copia completata."
 
