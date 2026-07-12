@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\HeroSlideResource\Pages;
 
+use App\Filament\Pages\Settings\HomepageSettingsPage;
 use App\Filament\Resources\HeroSlideResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -15,7 +16,7 @@ class ListHeroSlides extends ListRecords
 
     public function mount(): void
     {
-        redirect(\App\Filament\Pages\Settings\HomepageSettingsPage::getUrl(['tab' => 'slides']));
+        redirect(HomepageSettingsPage::getUrl(['tab' => 'slides']));
     }
 
     protected function getHeaderActions(): array

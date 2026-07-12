@@ -2,14 +2,15 @@
 
 namespace App\Filament\Pages\Settings;
 
+use App\Filament\Resources\HeroSlideResource;
 use App\Models\HeroSlide;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Tables;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 
 class HomepageSettingsPage extends BaseSettingsPage implements HasTable
@@ -101,7 +102,7 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->url(fn (HeroSlide $record): string => \App\Filament\Resources\HeroSlideResource::getUrl('edit', ['record' => $record])),
+                    ->url(fn (HeroSlide $record): string => HeroSlideResource::getUrl('edit', ['record' => $record])),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
@@ -113,7 +114,7 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
                 Tables\Actions\Action::make('create')
                     ->label('Nuova Slide Hero')
                     ->icon('heroicon-o-plus')
-                    ->url(\App\Filament\Resources\HeroSlideResource::getUrl('create')),
+                    ->url(HeroSlideResource::getUrl('create')),
             ]);
     }
 }

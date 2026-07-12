@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Settings;
 
 use App\Enums\UserRole;
+use App\Http\Middleware\CachePublicResponse;
 use App\Models\SiteSetting;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -43,12 +44,12 @@ abstract class BaseSettingsPage extends Page implements HasForms
         foreach ($flat as $key => $value) {
             SiteSetting::set($key, $value ?? '');
         }
-        
+
         // Invalidate full page cache for public responses instantly
-        if (class_exists(\App\Http\Middleware\CachePublicResponse::class)) {
-            \App\Http\Middleware\CachePublicResponse::flush();
+        if (class_exists(CachePublicResponse::class)) {
+            CachePublicResponse::flush();
         }
-        
+
         Notification::make()->title('Impostazioni salvate con successo')->success()->send();
     }
 }

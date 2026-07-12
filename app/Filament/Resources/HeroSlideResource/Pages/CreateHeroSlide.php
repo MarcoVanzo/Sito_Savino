@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\HeroSlideResource\Pages;
 
+use App\Filament\Pages\Settings\HomepageSettingsPage;
 use App\Filament\Resources\HeroSlideResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
@@ -14,6 +15,6 @@ class CreateHeroSlide extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return \App\Filament\Pages\Settings\HomepageSettingsPage::getUrl(['tab' => 'slides']);
+        return HomepageSettingsPage::getUrl(['tab' => 'slides']);
     }
 }

@@ -50,7 +50,7 @@ class ContattiSettingsPage extends BaseSettingsPage
                                 TextInput::make('media_email')->label('Media & Accrediti')->email(),
                                 TextInput::make('youth_email')->label('Settore Giovanile')->email(),
                             ])->columns(2),
-                    ])->columnSpanFull()
+                    ])->columnSpanFull(),
             ])->statePath('data');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\HeroSlideResource\Pages;
 
+use App\Filament\Pages\Settings\HomepageSettingsPage;
 use App\Filament\Resources\HeroSlideResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -15,7 +16,7 @@ class EditHeroSlide extends EditRecord
 
     protected function getRedirectUrl(): string
     {
-        return \App\Filament\Pages\Settings\HomepageSettingsPage::getUrl(['tab' => 'slides']);
+        return HomepageSettingsPage::getUrl(['tab' => 'slides']);
     }
 
     protected function getHeaderActions(): array
