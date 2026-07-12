@@ -71,6 +71,22 @@ class HandleInertiaRequests extends Middleware
                     return [];
                 }
                 $settings = SiteSetting::getPublicGrouped();
+
+                try {
+                    $contactPage = \App\Models\Page::where('slug', 'contatti')->first();
+                    if ($contactPage) {
+                        $contentData = $contactPage->getTranslation('content_data', app()->getLocale());
+                        if (is_string($contentData)) {
+                            $contentData = json_decode($contentData, true);
+                        }
+                        if (is_array($contentData)) {
+                            $settings['contact'] = array_merge($settings['contact'] ?? [], $contentData);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // Safe fallback in case table/page doesn't exist
+                }
+
                 if (isset($settings['legal'])) {
                     foreach ($settings['legal'] as $key => $path) {
                         if ($path) {
