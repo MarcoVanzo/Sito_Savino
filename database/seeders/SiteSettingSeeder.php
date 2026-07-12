@@ -12,30 +12,6 @@ class SiteSettingSeeder extends Seeder
         $settings = [
             // ── GENERAL ──────────────────────────────────────────────────
             [
-                'key' => 'site_name',
-                'value' => 'Savino Del Bene Volley',
-                'type' => 'text',
-                'group' => 'general',
-                'label' => 'Nome del Sito',
-                'sort_order' => 0,
-            ],
-            [
-                'key' => 'site_description',
-                'value' => 'Sito ufficiale della Savino Del Bene Volley — Serie A1 femminile. Pallavolo, passione e tradizione dal 1982.',
-                'type' => 'textarea',
-                'group' => 'general',
-                'label' => 'Descrizione del Sito',
-                'sort_order' => 1,
-            ],
-            [
-                'key' => 'site_logo',
-                'value' => '/images/logo.png',
-                'type' => 'image',
-                'group' => 'general',
-                'label' => 'Logo del Sito',
-                'sort_order' => 2,
-            ],
-            [
                 'key' => 'corporate_logo',
                 'value' => '/images/logo-corporate-left.png',
                 'type' => 'image',
@@ -216,50 +192,6 @@ class SiteSettingSeeder extends Seeder
                 'group' => 'footer',
                 'label' => 'Partita IVA',
                 'sort_order' => 2,
-            ],
-
-            // ── SEO ──────────────────────────────────────────────────────
-            [
-                'key' => 'seo_default_title',
-                'value' => 'Savino Del Bene Volley — Sito Ufficiale',
-                'type' => 'text',
-                'group' => 'seo',
-                'label' => 'Titolo SEO Predefinito',
-                'sort_order' => 0,
-            ],
-            [
-                'key' => 'seo_default_description',
-                'value' => 'Sito ufficiale della Savino Del Bene Volley, squadra di Serie A1 femminile di pallavolo. Scopri roster, risultati, ticketing e news dal Palazzo Wanny di Firenze.',
-                'type' => 'textarea',
-                'group' => 'seo',
-                'label' => 'Descrizione SEO Predefinita',
-                'sort_order' => 1,
-            ],
-            [
-                'key' => 'seo_og_image',
-                'value' => '/images/logo.png',
-                'type' => 'image',
-                'group' => 'seo',
-                'label' => 'Immagine OG Predefinita',
-                'sort_order' => 2,
-            ],
-
-            // ── APPEARANCE ───────────────────────────────────────────────
-            [
-                'key' => 'primary_color',
-                'value' => '#C5A55A',
-                'type' => 'color',
-                'group' => 'appearance',
-                'label' => 'Colore Primario',
-                'sort_order' => 0,
-            ],
-            [
-                'key' => 'secondary_color',
-                'value' => '#0B1521',
-                'type' => 'color',
-                'group' => 'appearance',
-                'label' => 'Colore Secondario',
-                'sort_order' => 1,
             ],
 
             // ── HOME ─────────────────────────────────────────────────────
