@@ -88,7 +88,7 @@ return new class extends Migration
         $slugs = [
             'sostenibilita', 'progetto-scuola', 'double-face', 'volley-4-all',
             'progetti-sociali', 'convenzioni', 'accessibilita', 'title-sponsor',
-            'diventa-sponsor', 'hospitality', 'affiliazioni'
+            'diventa-sponsor', 'hospitality', 'affiliazioni',
         ];
 
         foreach ($slugs as $slug) {
