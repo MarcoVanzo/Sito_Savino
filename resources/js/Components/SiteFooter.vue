@@ -55,6 +55,13 @@ const displayedLinks = computed(() => {
             { label: $t('footer.contacts'), url: '/contatti' },
             { label: $t('footer.communication'), url: '/comunicazione' },
         ],
+        'Corporate Governance': [
+            { label: 'Safeguarding', url: '/societa/safeguarding' },
+            { label: 'Protocollo Razzismo', url: '/protocollo-razzismo' },
+            { label: 'Protocollo Bullismo', url: '/protocollo-bullismo' },
+            { label: 'Codice Tutela Minori', url: '/codice-tutela-minori' },
+            { label: 'Modello Organizzativo', url: '/modello-organizzativo' },
+        ],
     };
 });
 
@@ -105,7 +112,7 @@ const socialLinks = computed(() => {
     <footer role="contentinfo" class="bg-gray-900 mt-auto">
         <!-- Main Footer -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 lg:gap-8">
 
                 <!-- Brand Column -->
                 <div class="lg:col-span-2">
@@ -170,6 +177,7 @@ const socialLinks = computed(() => {
                 <div class="flex items-center gap-6">
                     <Link href="/privacy-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.privacy_policy') }}</Link>
                     <Link href="/cookie-policy" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.cookie_policy') }}</Link>
+                    <Link href="/informativa-fornitori" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">Informativa Fornitori</Link>
                 </div>
             </div>
         </div>
