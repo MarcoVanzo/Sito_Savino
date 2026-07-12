@@ -315,7 +315,7 @@ class PageTemplateForms
                                 ->grid(2),
                         ]),
                 ])
-                ->columnSpanFull()
+                ->columnSpanFull(),
         ];
     }
 

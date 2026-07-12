@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\MenuItem;
+use App\Models\Page;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -73,7 +74,7 @@ class HandleInertiaRequests extends Middleware
                 $settings = SiteSetting::getPublicGrouped();
 
                 try {
-                    $contactPage = \App\Models\Page::where('slug', 'contatti')->first();
+                    $contactPage = Page::where('slug', 'contatti')->first();
                     if ($contactPage) {
                         $contentData = $contactPage->getTranslation('content_data', app()->getLocale());
                         if (is_string($contentData)) {
