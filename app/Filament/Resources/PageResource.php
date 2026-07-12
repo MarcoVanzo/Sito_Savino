@@ -225,6 +225,13 @@ class PageResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Stato')
                     ->options(PostStatus::class),
+                Tables\Filters\SelectFilter::make('template')
+                    ->label('Sezione (Template)')
+                    ->options([
+                        'Public/Ticketing' => 'Biglietteria',
+                        'Public/SummerCamp' => 'Summer Camp',
+                        'Public/Sociale' => 'Progetti Sociali',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\Action::make('Anteprima')

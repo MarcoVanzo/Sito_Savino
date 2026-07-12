@@ -13,12 +13,12 @@
                 $cards = [
                     ['title' => 'Stagione', 'url' => '/admin/serie-a1/roster', 'icon' => 'heroicon-s-trophy', 'color' => '#ec4899', 'bg' => 'rgba(236, 72, 153, 0.1)'],
                     ['title' => 'Società', 'url' => '/admin/management', 'icon' => 'heroicon-s-building-office-2', 'color' => '#3b82f6', 'bg' => 'rgba(59, 130, 246, 0.1)'],
-                    ['title' => 'Ticketing', 'url' => '/admin/under-construction', 'icon' => 'heroicon-s-ticket', 'color' => '#10b981', 'bg' => 'rgba(16, 185, 129, 0.1)'],
+                    ['title' => 'Ticketing', 'url' => '/admin/pages?tableFilters[template][value]=Public/Ticketing', 'icon' => 'heroicon-s-ticket', 'color' => '#10b981', 'bg' => 'rgba(16, 185, 129, 0.1)'],
                     ['title' => 'Sponsor', 'url' => '/admin/sponsor', 'icon' => 'heroicon-s-briefcase', 'color' => '#f59e0b', 'bg' => 'rgba(245, 158, 11, 0.1)'],
                     ['title' => 'SDB Youth', 'url' => '/admin/teams', 'icon' => 'heroicon-s-academic-cap', 'color' => '#06b6d4', 'bg' => 'rgba(6, 182, 212, 0.1)'],
                     
-                    ['title' => 'Camp', 'url' => '/admin/under-construction', 'icon' => 'heroicon-s-sun', 'color' => '#ef4444', 'bg' => 'rgba(239, 68, 68, 0.1)'],
-                    ['title' => 'Sociale', 'url' => '/admin/under-construction', 'icon' => 'heroicon-s-heart', 'color' => '#a855f7', 'bg' => 'rgba(168, 85, 247, 0.1)'],
+                    ['title' => 'Camp', 'url' => '/admin/pages?tableFilters[template][value]=Public/SummerCamp', 'icon' => 'heroicon-s-sun', 'color' => '#ef4444', 'bg' => 'rgba(239, 68, 68, 0.1)'],
+                    ['title' => 'Sociale', 'url' => '/admin/pages?tableFilters[template][value]=Public/Sociale', 'icon' => 'heroicon-s-heart', 'color' => '#a855f7', 'bg' => 'rgba(168, 85, 247, 0.1)'],
                     ['title' => 'Media', 'url' => '/admin/news', 'icon' => 'heroicon-s-megaphone', 'color' => '#6366f1', 'bg' => 'rgba(99, 102, 241, 0.1)'],
                     ['title' => 'Shop', 'url' => '/admin/shop/products', 'icon' => 'heroicon-s-shopping-bag', 'color' => '#d946ef', 'bg' => 'rgba(217, 70, 239, 0.1)'],
                     ['title' => 'Sistema', 'url' => '/admin/settings', 'icon' => 'heroicon-s-cog-6-tooth', 'color' => '#64748b', 'bg' => 'rgba(100, 116, 139, 0.15)'],
