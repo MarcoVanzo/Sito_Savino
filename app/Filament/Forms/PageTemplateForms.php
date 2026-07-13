@@ -564,7 +564,7 @@ class PageTemplateForms
                                 ])->columns(1),
                         ]),
                 ])
-                ->columnSpanFull()
+                ->columnSpanFull(),
         ];
     }
 
@@ -659,7 +659,7 @@ class PageTemplateForms
                                 ->collapsible(),
                         ]),
                 ])
-                ->columnSpanFull()
+                ->columnSpanFull(),
         ];
     }
 }

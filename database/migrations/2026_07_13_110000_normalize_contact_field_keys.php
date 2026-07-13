@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use App\Models\Page;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -27,7 +27,7 @@ return new class extends Migration
                                 'legal_address' => 'address',
                             ];
                             foreach ($renameMap as $old => $new) {
-                                if (isset($data[$old]) && !isset($data[$new])) {
+                                if (isset($data[$old]) && ! isset($data[$new])) {
                                     $data[$new] = $data[$old];
                                     unset($data[$old]);
                                 }
@@ -65,7 +65,7 @@ return new class extends Migration
                                 'address' => 'legal_address',
                             ];
                             foreach ($renameMap as $old => $new) {
-                                if (isset($data[$old]) && !isset($data[$new])) {
+                                if (isset($data[$old]) && ! isset($data[$new])) {
                                     $data[$new] = $data[$old];
                                     unset($data[$old]);
                                 }
