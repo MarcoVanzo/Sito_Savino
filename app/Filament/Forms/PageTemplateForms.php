@@ -662,4 +662,490 @@ class PageTemplateForms
                 ->columnSpanFull(),
         ];
     }
+
+    /**
+     * Schema del form per la pagina Sponsor
+     */
+    public static function getSponsorSchema(): array
+    {
+        return [
+            Forms\Components\Tabs::make('Sponsor')
+                ->tabs([
+                    Forms\Components\Tabs\Tab::make('Testi Hero')
+                        ->icon('heroicon-o-presentation-chart-bar')
+                        ->schema([
+                            Forms\Components\TextInput::make('content_data.hero_subtitle')
+                                ->label('Sottotitolo Hero')
+                                ->placeholder('es. I NOSTRI PARTNER'),
+                            Forms\Components\Textarea::make('content_data.hero_description')
+                                ->label('Descrizione Hero')
+                                ->placeholder('es. Grazie al sostegno dei nostri sponsor continuiamo a crescere...'),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Call to Action & Statistiche')
+                        ->icon('heroicon-o-hand-raised')
+                        ->schema([
+                            Forms\Components\Fieldset::make('Testi Call to Action ("Diventa Partner")')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.cta_subtitle')
+                                        ->label('Sottotitolo CTA')
+                                        ->placeholder('es. UNISCITI A NOI'),
+                                    Forms\Components\TextInput::make('content_data.cta_title')
+                                        ->label('Titolo CTA')
+                                        ->placeholder('es. Diventa Partner'),
+                                    Forms\Components\Textarea::make('content_data.cta_description')
+                                        ->label('Descrizione CTA')
+                                        ->placeholder('es. Unisciti alla famiglia della Savino Del Bene Volley...'),
+                                    Forms\Components\TextInput::make('content_data.cta_button_text')
+                                        ->label('Testo Pulsante CTA')
+                                        ->placeholder('es. Diventa Partner'),
+                                ]),
+
+                            Forms\Components\Fieldset::make('Statistiche d\'Impatto')
+                                ->schema([
+                                    Forms\Components\Grid::make(3)
+                                        ->schema([
+                                            Forms\Components\Group::make([
+                                                Forms\Components\TextInput::make('content_data.stat1_value')
+                                                    ->label('Valore Stat 1')
+                                                    ->placeholder('es. 2M+'),
+                                                Forms\Components\TextInput::make('content_data.stat1_label')
+                                                    ->label('Etichetta Stat 1')
+                                                    ->placeholder('es. Social Reach'),
+                                            ]),
+                                            Forms\Components\Group::make([
+                                                Forms\Components\TextInput::make('content_data.stat2_value')
+                                                    ->label('Valore Stat 2')
+                                                    ->placeholder('es. 50K+'),
+                                                Forms\Components\TextInput::make('content_data.stat2_label')
+                                                    ->label('Etichetta Stat 2')
+                                                    ->placeholder('es. Spettatori'),
+                                            ]),
+                                            Forms\Components\Group::make([
+                                                Forms\Components\TextInput::make('content_data.stat3_value')
+                                                    ->label('Valore Stat 3')
+                                                    ->placeholder('es. 100+'),
+                                                Forms\Components\TextInput::make('content_data.stat3_label')
+                                                    ->label('Etichetta Stat 3')
+                                                    ->placeholder('es. Eventi Societari'),
+                                            ]),
+                                        ]),
+                                ]),
+                        ]),
+                ])
+                ->columnSpanFull(),
+        ];
+    }
+
+    /**
+     * Schema del form per il Settore Giovanile
+     */
+    public static function getYouthSchema(): array
+    {
+        return [
+            Forms\Components\Tabs::make('Settore Giovanile')
+                ->tabs([
+                    Forms\Components\Tabs\Tab::make('Info & Statistiche')
+                        ->icon('heroicon-o-information-circle')
+                        ->schema([
+                            Forms\Components\Fieldset::make('Hero')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.hero_subtitle')
+                                        ->label('Sottotitolo Hero')
+                                        ->placeholder('es. LINEA VERDE'),
+                                    Forms\Components\Textarea::make('content_data.hero_description')
+                                        ->label('Descrizione Hero')
+                                        ->placeholder('es. Il futuro della pallavolo nasce dalle nostre giovani atlete...'),
+                                ]),
+
+                            Forms\Components\Fieldset::make('Introduzione')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.intro_label')
+                                        ->label('Etichetta Intro')
+                                        ->placeholder('es. IL NOSTRO IMPEGNO'),
+                                    Forms\Components\TextInput::make('content_data.intro_title')
+                                        ->label('Titolo Intro')
+                                        ->placeholder('es. Coltiviamo Talenti, Cresciamo Persone'),
+                                    Forms\Components\Textarea::make('content_data.intro_paragraph_1')
+                                        ->label('Paragrafo Intro 1')
+                                        ->rows(3),
+                                    Forms\Components\Textarea::make('content_data.intro_paragraph_2')
+                                        ->label('Paragrafo Intro 2')
+                                        ->rows(3),
+                                ])->columns(1),
+
+                            Forms\Components\Fieldset::make('Numeri del Settore Giovanile')
+                                ->schema([
+                                    Forms\Components\Grid::make(4)
+                                        ->schema([
+                                            Forms\Components\Group::make([
+                                                Forms\Components\TextInput::make('content_data.stat_athletes')
+                                                    ->label('Valore Atlete')
+                                                    ->placeholder('es. 70+'),
+                                                Forms\Components\TextInput::make('content_data.stat_athletes_label')
+                                                    ->label('Etichetta Atlete')
+                                                    ->placeholder('es. Atlete Tesserate'),
+                                            ]),
+                                            Forms\Components\Group::make([
+                                                Forms\Components\TextInput::make('content_data.stat_categories')
+                                                    ->label('Valore Categorie')
+                                                    ->placeholder('es. 4'),
+                                                Forms\Components\TextInput::make('content_data.stat_categories_label')
+                                                    ->label('Etichetta Categorie')
+                                                    ->placeholder('es. Categorie d\'Età'),
+                                            ]),
+                                            Forms\Components\Group::make([
+                                                Forms\Components\TextInput::make('content_data.stat_coaches')
+                                                    ->label('Valore Allenatori')
+                                                    ->placeholder('es. 12'),
+                                                Forms\Components\TextInput::make('content_data.stat_coaches_label')
+                                                    ->label('Etichetta Allenatori')
+                                                    ->placeholder('es. Tecnici Qualificati'),
+                                            ]),
+                                            Forms\Components\Group::make([
+                                                Forms\Components\TextInput::make('content_data.stat_years')
+                                                    ->label('Valore Anni')
+                                                    ->placeholder('es. 15+'),
+                                                Forms\Components\TextInput::make('content_data.stat_years_label')
+                                                    ->label('Etichetta Anni')
+                                                    ->placeholder('es. Anni di Attività'),
+                                            ]),
+                                        ]),
+                                ]),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Valori & Squadre')
+                        ->icon('heroicon-o-academic-cap')
+                        ->schema([
+                            Forms\Components\TextInput::make('content_data.values_title')
+                                ->label('Titolo Sezione Valori')
+                                ->placeholder('es. I Nostri Capisaldi'),
+
+                            Forms\Components\Repeater::make('content_data.values')
+                                ->label('Valori del Settore Giovanile')
+                                ->schema([
+                                    Forms\Components\Select::make('icon')
+                                        ->label('Icona')
+                                        ->options([
+                                            'star' => 'Stella ⭐',
+                                            'heart' => 'Cuore ❤️',
+                                            'trophy' => 'Trofeo 🏆',
+                                            'users' => 'Utenti 👥',
+                                            'shield-check' => 'Scudo 🛡️',
+                                        ])
+                                        ->required(),
+                                    Forms\Components\TextInput::make('title')
+                                        ->label('Titolo Valore')
+                                        ->required(),
+                                    Forms\Components\Textarea::make('description')
+                                        ->label('Descrizione Valore')
+                                        ->required()
+                                        ->rows(2)
+                                        ->columnSpanFull(),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull()
+                                ->createItemButtonLabel('Aggiungi Valore')
+                                ->collapsible(),
+
+                            Forms\Components\TextInput::make('content_data.teams_title')
+                                ->label('Titolo Sezione Squadre')
+                                ->placeholder('es. Le Nostre Selezioni'),
+
+                            Forms\Components\Repeater::make('content_data.youth_teams')
+                                ->label('Squadre Giovanili')
+                                ->schema([
+                                    Forms\Components\TextInput::make('name')
+                                        ->label('Nome Squadra (es. Under 18)')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('category')
+                                        ->label('Categoria (es. Serie C / Regionale)')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('coach')
+                                        ->label('Primo Allenatore')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('training')
+                                        ->label('Orari Allenamenti')
+                                        ->required()
+                                        ->placeholder('es. Lun-Mer-Ven 16:00-18:00'),
+                                    Forms\Components\TextInput::make('players')
+                                        ->label('Numero Atlete')
+                                        ->placeholder('es. 14'),
+                                    Forms\Components\Select::make('color')
+                                        ->label('Colore Tema Card')
+                                        ->options([
+                                            'savino-blue' => 'Blu Savino',
+                                            'savino-gold' => 'Oro Savino',
+                                            'savino-red' => 'Rosso Savino',
+                                            'savino-pink' => 'Rosa Savino',
+                                        ])
+                                        ->required(),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull()
+                                ->createItemButtonLabel('Aggiungi Squadra')
+                                ->collapsible(),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Scouting Giovanile')
+                        ->icon('heroicon-o-magnifying-glass')
+                        ->schema([
+                            Forms\Components\TextInput::make('content_data.scouting_label')
+                                ->label('Etichetta Scouting')
+                                ->placeholder('es. TALENT SCOUTING'),
+                            Forms\Components\TextInput::make('content_data.scouting_title')
+                                ->label('Titolo Sezione Scouting')
+                                ->placeholder('es. Diventa una di Noi'),
+                            Forms\Components\Textarea::make('content_data.scouting_description')
+                                ->label('Descrizione Scouting')
+                                ->rows(3),
+                            Forms\Components\Textarea::make('content_data.scouting_info')
+                                ->label('Informazioni di Contatto Scouting')
+                                ->rows(2),
+                            Forms\Components\TextInput::make('content_data.scouting_cta_primary')
+                                ->label('Testo Pulsante Primario')
+                                ->placeholder('es. Scrivici'),
+                            Forms\Components\TextInput::make('content_data.scouting_email')
+                                ->label('Email Scouting')
+                                ->placeholder('es. giovanili@savinodelbenevolley.it'),
+                            Forms\Components\TextInput::make('content_data.scouting_cta_secondary')
+                                ->label('Testo Pulsante Secondario')
+                                ->placeholder('es. Regolamento Prove'),
+                        ]),
+                ])
+                ->columnSpanFull(),
+        ];
+    }
+
+    /**
+     * Schema del form per la pagina Comunicazione
+     */
+    public static function getComunicazioneSchema(): array
+    {
+        return [
+            Forms\Components\Tabs::make('Comunicazione')
+                ->tabs([
+                    Forms\Components\Tabs\Tab::make('Hero & Accrediti')
+                        ->icon('heroicon-o-newspaper')
+                        ->schema([
+                            Forms\Components\Fieldset::make('Hero')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.hero_badge')
+                                        ->label('Etichetta Hero')
+                                        ->placeholder('es. AREA COMUNICAZIONE'),
+                                    Forms\Components\TextInput::make('content_data.hero_subtitle')
+                                        ->label('Sottotitolo Hero')
+                                        ->placeholder('es. Ufficio Stampa & Media Hub'),
+                                ]),
+
+                            Forms\Components\Fieldset::make('Procedura Accrediti Stampa')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.accreditation_badge')
+                                        ->label('Badge Sezione Accrediti')
+                                        ->placeholder('es. ACCREDITI'),
+                                    Forms\Components\TextInput::make('content_data.accreditation_title')
+                                        ->label('Titolo Sezione Accrediti')
+                                        ->placeholder('es. Richiesta di Accredito Stampa'),
+                                    Forms\Components\Textarea::make('content_data.accreditation_text_1')
+                                        ->label('Testo Accrediti 1')
+                                        ->rows(3),
+                                    Forms\Components\Textarea::make('content_data.accreditation_text_2')
+                                        ->label('Testo Accrediti 2')
+                                        ->rows(3),
+                                    Forms\Components\TextInput::make('content_data.accreditation_email')
+                                        ->label('Email Invio Richieste Accredito')
+                                        ->placeholder('es. stampa@savinodelbenevolley.it'),
+                                ])->columns(1),
+
+                            Forms\Components\Fieldset::make('Fasi della Procedura')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.accreditation_steps_title')
+                                        ->label('Titolo Fasi Procedura')
+                                        ->placeholder('es. Come Richiedere l\'Accredito'),
+                                    Forms\Components\Textarea::make('content_data.accreditation_step_1')
+                                        ->label('Fase 1: Invio Domanda')
+                                        ->rows(2),
+                                    Forms\Components\Textarea::make('content_data.accreditation_step_2')
+                                        ->label('Fase 2: Valutazione')
+                                        ->rows(2),
+                                    Forms\Components\Textarea::make('content_data.accreditation_step_3')
+                                        ->label('Fase 3: Conferma')
+                                        ->rows(2),
+                                ])->columns(1),
+
+                            Forms\Components\Fieldset::make('Area Media Hub')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.media_hub_title')
+                                        ->label('Titolo Media Hub')
+                                        ->placeholder('es. Media Hub'),
+                                    Forms\Components\TextInput::make('content_data.media_hub_subtitle')
+                                        ->label('Sottotitolo Media Hub')
+                                        ->placeholder('es. Accedi alla galleria multimediale ufficiale'),
+                                ]),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Press Kits')
+                        ->icon('heroicon-o-folder-arrow-down')
+                        ->schema([
+                            Forms\Components\Fieldset::make('Intestazioni Press Kit')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.press_kit_badge')
+                                        ->label('Badge Sezione')
+                                        ->placeholder('es. DOWNLOAD'),
+                                    Forms\Components\TextInput::make('content_data.press_kit_section_title')
+                                        ->label('Titolo Sezione Press Kit')
+                                        ->placeholder('es. Press Kit Ufficiali'),
+                                ]),
+
+                            Forms\Components\Fieldset::make('Press Kit 1 (Foto SDB Volley)')
+                                ->schema([
+                                    Forms\Components\Grid::make(3)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('content_data.press_kit_1_icon')
+                                                ->label('Icona/Emoji')
+                                                ->placeholder('es. 📸'),
+                                            Forms\Components\TextInput::make('content_data.press_kit_1_title')
+                                                ->label('Titolo')
+                                                ->placeholder('es. Foto Ufficiali'),
+                                            Forms\Components\TextInput::make('content_data.press_kit_1_format')
+                                                ->label('Formato/Peso')
+                                                ->placeholder('es. ZIP — 45 MB'),
+                                        ]),
+                                    Forms\Components\Textarea::make('content_data.press_kit_1_description')
+                                        ->label('Descrizione Press Kit 1')
+                                        ->rows(2),
+                                ])->columns(1),
+
+                            Forms\Components\Fieldset::make('Press Kit 2 (Loghi e Brand Assets)')
+                                ->schema([
+                                    Forms\Components\Grid::make(3)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('content_data.press_kit_2_icon')
+                                                ->label('Icona/Emoji')
+                                                ->placeholder('es. 🎨'),
+                                            Forms\Components\TextInput::make('content_data.press_kit_2_title')
+                                                ->label('Titolo')
+                                                ->placeholder('es. Loghi e Brand Assets'),
+                                            Forms\Components\TextInput::make('content_data.press_kit_2_format')
+                                                ->label('Formato/Peso')
+                                                ->placeholder('es. ZIP — 12 MB'),
+                                        ]),
+                                    Forms\Components\Textarea::make('content_data.press_kit_2_description')
+                                        ->label('Descrizione Press Kit 2')
+                                        ->rows(2),
+                                ])->columns(1),
+
+                            Forms\Components\Fieldset::make('Press Kit 3 (Cartella Stampa)')
+                                ->schema([
+                                    Forms\Components\Grid::make(3)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('content_data.press_kit_3_icon')
+                                                ->label('Icona/Emoji')
+                                                ->placeholder('es. 📄'),
+                                            Forms\Components\TextInput::make('content_data.press_kit_3_title')
+                                                ->label('Titolo')
+                                                ->placeholder('es. Cartella Stampa Ufficiale'),
+                                            Forms\Components\TextInput::make('content_data.press_kit_3_format')
+                                                ->label('Formato/Peso')
+                                                ->placeholder('es. PDF — 8 MB'),
+                                        ]),
+                                    Forms\Components\Textarea::make('content_data.press_kit_3_description')
+                                        ->label('Descrizione Press Kit 3')
+                                        ->rows(2),
+                                ])->columns(1),
+
+                            Forms\Components\Fieldset::make('Press Kit 4 (Guida Media LVF)')
+                                ->schema([
+                                    Forms\Components\Grid::make(3)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('content_data.press_kit_4_icon')
+                                                ->label('Icona/Emoji')
+                                                ->placeholder('es. 📊'),
+                                            Forms\Components\TextInput::make('content_data.press_kit_4_title')
+                                                ->label('Titolo')
+                                                ->placeholder('es. Guida Media LVF'),
+                                            Forms\Components\TextInput::make('content_data.press_kit_4_format')
+                                                ->label('Formato/Peso')
+                                                ->placeholder('es. PDF — 3 MB'),
+                                        ]),
+                                    Forms\Components\Textarea::make('content_data.press_kit_4_description')
+                                        ->label('Descrizione Press Kit 4')
+                                        ->rows(2),
+                                ])->columns(1),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Contatti Media')
+                        ->icon('heroicon-o-users')
+                        ->schema([
+                            Forms\Components\Fieldset::make('Intestazioni Contatti')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.contacts_badge')
+                                        ->label('Badge Sezione Contatti')
+                                        ->placeholder('es. CONTATTI'),
+                                    Forms\Components\TextInput::make('content_data.contacts_section_title')
+                                        ->label('Titolo Sezione Contatti')
+                                        ->placeholder('es. Ufficio Stampa & Media Relations'),
+                                ]),
+
+                            Forms\Components\Fieldset::make('Contatto 1 (Ufficio Stampa)')
+                                ->schema([
+                                    Forms\Components\Grid::make(2)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('content_data.contact_1_role')
+                                                ->label('Ruolo')
+                                                ->placeholder('es. Responsabile Ufficio Stampa'),
+                                            Forms\Components\TextInput::make('content_data.contact_1_name')
+                                                ->label('Nome Completo')
+                                                ->placeholder('es. Stefano Rossi'),
+                                            Forms\Components\TextInput::make('content_data.contact_1_email')
+                                                ->label('Email')
+                                                ->placeholder('es. stampa@savinodelbenevolley.it'),
+                                            Forms\Components\TextInput::make('content_data.contact_1_phone')
+                                                ->label('Telefono')
+                                                ->placeholder('es. +39 055 000 0000'),
+                                        ]),
+                                ]),
+
+                            Forms\Components\Fieldset::make('Contatto 2 (Social Media)')
+                                ->schema([
+                                    Forms\Components\Grid::make(2)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('content_data.contact_2_role')
+                                                ->label('Ruolo')
+                                                ->placeholder('es. Social Media Specialist'),
+                                            Forms\Components\TextInput::make('content_data.contact_2_name')
+                                                ->label('Nome Completo')
+                                                ->placeholder('es. Giulia Bianchi'),
+                                            Forms\Components\TextInput::make('content_data.contact_2_email')
+                                                ->label('Email')
+                                                ->placeholder('es. social@savinodelbenevolley.it'),
+                                            Forms\Components\TextInput::make('content_data.contact_2_phone')
+                                                ->label('Telefono')
+                                                ->placeholder('es. +39 055 000 0001'),
+                                        ]),
+                                ]),
+
+                            Forms\Components\Fieldset::make('Contatto 3 (Fotografo Ufficiale)')
+                                ->schema([
+                                    Forms\Components\Grid::make(2)
+                                        ->schema([
+                                            Forms\Components\TextInput::make('content_data.contact_3_role')
+                                                ->label('Ruolo')
+                                                ->placeholder('es. Fotografo Ufficiale'),
+                                            Forms\Components\TextInput::make('content_data.contact_3_name')
+                                                ->label('Nome Completo')
+                                                ->placeholder('es. Marco Neri'),
+                                            Forms\Components\TextInput::make('content_data.contact_3_email')
+                                                ->label('Email')
+                                                ->placeholder('es. media@savinodelbenevolley.it'),
+                                            Forms\Components\TextInput::make('content_data.contact_3_phone')
+                                                ->label('Telefono')
+                                                ->placeholder('es. +39 055 000 0002'),
+                                        ]),
+                                ]),
+                        ]),
+                ])
+                ->columnSpanFull(),
+        ];
+    }
 }

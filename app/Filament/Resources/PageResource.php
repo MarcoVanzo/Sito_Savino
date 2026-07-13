@@ -112,6 +112,21 @@ class PageResource extends Resource
                                     ->schema(PageTemplateForms::getSocialeSchema())
                                     ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sociale'),
 
+                                // FORM: SPONSOR
+                                Forms\Components\Section::make('Impostazioni Pagina Sponsor')
+                                    ->schema(PageTemplateForms::getSponsorSchema())
+                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sponsor'),
+
+                                // FORM: SETTORE GIOVANILE
+                                Forms\Components\Section::make('Impostazioni Pagina Settore Giovanile')
+                                    ->schema(PageTemplateForms::getYouthSchema())
+                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Youth'),
+
+                                // FORM: COMUNICAZIONE
+                                Forms\Components\Section::make('Impostazioni Pagina Comunicazione')
+                                    ->schema(PageTemplateForms::getComunicazioneSchema())
+                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Comunicazione'),
+
                                 // FORM: ISCRIZIONE EXPERIENCE (SUMMER CAMP)
                                 Forms\Components\Section::make('Pulsante Grafico Iscrizione (Experience)')
                                     ->schema(PageTemplateForms::getCampEnrollmentSchema())
@@ -139,6 +154,12 @@ class PageResource extends Resource
                                         'Public/Ticketing',
                                         'Public/SummerCamp',
                                         'Public/Sociale',
+                                        'Public/Sponsor',
+                                        'Public/Youth',
+                                        'Public/Comunicazione',
+                                        'Public/Roster',
+                                        'Public/Stagione',
+                                        'Public/Shop',
                                     ]) && ! in_array($get('slug'), [
                                         'iscrizione-experience',
                                         'double-face',
