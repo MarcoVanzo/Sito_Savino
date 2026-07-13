@@ -433,4 +433,233 @@ class PageTemplateForms
                 ->valueLabel('Valore testuale'),
         ];
     }
+
+    /**
+     * Schema del form per il Summer Camp
+     */
+    public static function getSummerCampSchema(): array
+    {
+        return [
+            Forms\Components\Tabs::make('Summer Camp')
+                ->tabs([
+                    Forms\Components\Tabs\Tab::make('Informazioni Generali')
+                        ->icon('heroicon-o-information-circle')
+                        ->schema([
+                            Forms\Components\Fieldset::make('Intestazioni e Copertina')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.hero_label')
+                                        ->label('Etichetta Hero')
+                                        ->placeholder('es. SUMMER CAMP & EXPERIENCE'),
+                                    Forms\Components\TextInput::make('content_data.hero_subtitle')
+                                        ->label('Sottotitolo Hero')
+                                        ->placeholder('es. Entra nel Mondo del Volley Professionistico'),
+                                    Forms\Components\TextInput::make('content_data.camp_section_label')
+                                        ->label('Etichetta Sezione Camp')
+                                        ->placeholder('es. IL CAMP'),
+                                    Forms\Components\TextInput::make('content_data.camp_title')
+                                        ->label('Titolo Sezione Camp')
+                                        ->placeholder('es. Un\'Esperienza Unica'),
+                                ]),
+                            Forms\Components\Fieldset::make('Descrizione del Camp')
+                                ->schema([
+                                    Forms\Components\Textarea::make('content_data.camp_description_1')
+                                        ->label('Descrizione Paragrafo 1')
+                                        ->rows(3),
+                                    Forms\Components\Textarea::make('content_data.camp_description_2')
+                                        ->label('Descrizione Paragrafo 2')
+                                        ->rows(3),
+                                ])->columns(1),
+                            Forms\Components\Fieldset::make('Badge Camp (Volley Experience)')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.camp_badge_title')
+                                        ->label('Titolo Badge')
+                                        ->placeholder('es. Summer Camp 2026'),
+                                    Forms\Components\TextInput::make('content_data.camp_badge_subtitle')
+                                        ->label('Sottotitolo Badge')
+                                        ->placeholder('es. Scandicci & Firenze'),
+                                ])->columns(2),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Attività')
+                        ->icon('heroicon-o-sparkles')
+                        ->schema([
+                            Forms\Components\TextInput::make('content_data.activities_section_label')
+                                ->label('Etichetta Sezione Attività')
+                                ->placeholder('es. LE NOSTRE ATTIVITÀ'),
+                            Forms\Components\TextInput::make('content_data.activities_title')
+                                ->label('Titolo Sezione Attività')
+                                ->placeholder('es. Non Solo Pallavolo'),
+                            Forms\Components\Repeater::make('content_data.activities')
+                                ->label('Elenco Attività')
+                                ->schema([
+                                    Forms\Components\TextInput::make('title')
+                                        ->label('Titolo Attività')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('icon')
+                                        ->label('Emoji / Icona')
+                                        ->placeholder('es. 🏐')
+                                        ->required(),
+                                    Forms\Components\Textarea::make('description')
+                                        ->label('Descrizione Attività')
+                                        ->required()
+                                        ->rows(2),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull()
+                                ->createItemButtonLabel('Aggiungi Attività')
+                                ->collapsible(),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Date e Turni')
+                        ->icon('heroicon-o-calendar')
+                        ->schema([
+                            Forms\Components\TextInput::make('content_data.dates_section_label')
+                                ->label('Etichetta Sezione Date')
+                                ->placeholder('es. TURNI & DATE'),
+                            Forms\Components\TextInput::make('content_data.dates_title')
+                                ->label('Titolo Sezione Date')
+                                ->placeholder('es. Scegli la Tua Settimana'),
+                            Forms\Components\Repeater::make('content_data.dates')
+                                ->label('Elenco Turni')
+                                ->schema([
+                                    Forms\Components\TextInput::make('period')
+                                        ->label('Periodo (es. Settimana 1)')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('dates')
+                                        ->label('Date Effettive (es. 15 - 20 Giugno)')
+                                        ->required(),
+                                    Forms\Components\Select::make('status')
+                                        ->label('Stato Turno')
+                                        ->options([
+                                            'Iscrizioni Aperte' => 'Iscrizioni Aperte',
+                                            'Ultimi Posti' => 'Ultimi Posti',
+                                            'Sold Out' => 'Sold Out',
+                                            'In Arrivo' => 'In Arrivo',
+                                        ])
+                                        ->required(),
+                                ])
+                                ->columns(3)
+                                ->columnSpanFull()
+                                ->createItemButtonLabel('Aggiungi Turno')
+                                ->collapsible(),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('In Evidenza')
+                        ->icon('heroicon-o-list-bullet')
+                        ->schema([
+                            Forms\Components\TagsInput::make('content_data.highlights')
+                                ->label('Punti di Forza (Highlights)')
+                                ->placeholder('Scrivi e premi Invio per aggiungere (es. Staff Tecnico Qualificato)'),
+                            Forms\Components\Fieldset::make('Call to Action (Iscrizione)')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.cta_text')
+                                        ->label('Testo Pulsante CTA')
+                                        ->placeholder('es. Iscriviti Ora'),
+                                    Forms\Components\TextInput::make('content_data.cta_url')
+                                        ->label('URL Pulsante CTA (Se vuoto, usa email di contatto)')
+                                        ->placeholder('es. https://...'),
+                                    Forms\Components\TextInput::make('content_data.meta_description')
+                                        ->label('Meta Description SEO')
+                                        ->placeholder('es. Partecipa al Summer Camp della Savino Del Bene Volley...'),
+                                ])->columns(1),
+                        ]),
+                ])
+                ->columnSpanFull()
+        ];
+    }
+
+    /**
+     * Schema del form per i Progetti Sociali
+     */
+    public static function getSocialeSchema(): array
+    {
+        return [
+            Forms\Components\Tabs::make('Progetti Sociali')
+                ->tabs([
+                    Forms\Components\Tabs\Tab::make('Informazioni Generali')
+                        ->icon('heroicon-o-information-circle')
+                        ->schema([
+                            Forms\Components\Fieldset::make('Intestazioni e Mission')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.hero_badge')
+                                        ->label('Etichetta Hero')
+                                        ->placeholder('es. PROGETTI SOCIALI'),
+                                    Forms\Components\TextInput::make('content_data.hero_description')
+                                        ->label('Descrizione Hero')
+                                        ->placeholder('es. Più di uno sport: un impegno costante verso il territorio...'),
+                                    Forms\Components\TextInput::make('content_data.mission_title')
+                                        ->label('Titolo Missione')
+                                        ->placeholder('es. I Nostri Valori in Campo'),
+                                ]),
+                            Forms\Components\Fieldset::make('Testi della Missione')
+                                ->schema([
+                                    Forms\Components\Textarea::make('content_data.mission_text_1')
+                                        ->label('Testo Paragrafo 1')
+                                        ->rows(3),
+                                    Forms\Components\Textarea::make('content_data.mission_text_2')
+                                        ->label('Testo Paragrafo 2')
+                                        ->rows(3),
+                                ])->columns(1),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Progetti')
+                        ->icon('heroicon-o-folder-open')
+                        ->schema([
+                            Forms\Components\Repeater::make('content_data.projects')
+                                ->label('Elenco Progetti')
+                                ->schema([
+                                    Forms\Components\TextInput::make('title')
+                                        ->label('Titolo Progetto')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('tag')
+                                        ->label('Tag / Categoria')
+                                        ->required()
+                                        ->placeholder('es. INCLUSIONE'),
+                                    Forms\Components\TextInput::make('icon')
+                                        ->label('Emoji / Icona')
+                                        ->placeholder('es. 🏐')
+                                        ->required(),
+                                    Forms\Components\Select::make('color')
+                                        ->label('Colore Tema')
+                                        ->options([
+                                            'savino-blue' => 'Blu Savino',
+                                            'savino-red' => 'Rosso Savino',
+                                            'savino-pink' => 'Rosa Savino',
+                                            'savino-gold' => 'Oro Savino',
+                                        ])
+                                        ->required(),
+                                    Forms\Components\Textarea::make('description')
+                                        ->label('Descrizione Progetto')
+                                        ->required()
+                                        ->rows(3)
+                                        ->columnSpanFull(),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull()
+                                ->createItemButtonLabel('Aggiungi Progetto')
+                                ->collapsible(),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Impatto e Numeri')
+                        ->icon('heroicon-o-chart-bar')
+                        ->schema([
+                            Forms\Components\Repeater::make('content_data.impact_stats')
+                                ->label('Statistiche d\'Impatto')
+                                ->schema([
+                                    Forms\Components\TextInput::make('value')
+                                        ->label('Valore (es. 500+ o €50K)')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('label')
+                                        ->label('Etichetta / Descrizione (es. Ragazzi Coinvolti)')
+                                        ->required(),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull()
+                                ->createItemButtonLabel('Aggiungi Statistica')
+                                ->collapsible(),
+                        ]),
+                ])
+                ->columnSpanFull()
+        ];
+    }
 }

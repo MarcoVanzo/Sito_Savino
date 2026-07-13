@@ -102,6 +102,16 @@ class PageResource extends Resource
                                     ->schema(PageTemplateForms::getTicketingSchema())
                                     ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Ticketing'),
 
+                                // FORM: SUMMER CAMP
+                                Forms\Components\Section::make('Impostazioni Pagina Summer Camp')
+                                    ->schema(PageTemplateForms::getSummerCampSchema())
+                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/SummerCamp'),
+
+                                // FORM: PROGETTI SOCIALI
+                                Forms\Components\Section::make('Impostazioni Pagina Progetti Sociali')
+                                    ->schema(PageTemplateForms::getSocialeSchema())
+                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sociale'),
+
                                 // FORM: ISCRIZIONE EXPERIENCE (SUMMER CAMP)
                                 Forms\Components\Section::make('Pulsante Grafico Iscrizione (Experience)')
                                     ->schema(PageTemplateForms::getCampEnrollmentSchema())
@@ -127,6 +137,8 @@ class PageResource extends Resource
                                         'Public/Societa/Safeguarding',
                                         'Public/Contatti',
                                         'Public/Ticketing',
+                                        'Public/SummerCamp',
+                                        'Public/Sociale',
                                     ]) && ! in_array($get('slug'), [
                                         'iscrizione-experience',
                                         'double-face',
@@ -148,7 +160,6 @@ class PageResource extends Resource
                                         ->label('Template Pagina')
                                         ->options([
                                             'Default' => 'Template Predefinito',
-                                            'Public/Home' => 'Home Page',
                                             'Public/Societa/Organigramma' => 'Società (Organigramma)',
                                             'Public/Societa/Storia' => 'Società - Storia',
                                             'Public/Societa/Palazzetto' => 'Società - Palazzetto',
