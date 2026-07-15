@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             PreviewBasicAuth::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            \App\Http\Middleware\EnsurePasswordIsChanged::class,
         ]);
 
         // DigitalOcean App Platform: trust all proxies but only forwarded headers

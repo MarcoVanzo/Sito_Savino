@@ -1,0 +1,138 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Enums\UserRole;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
+
+class EnsurePasswordIsChangedTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutVite();
+    }
+
+    public function test_user_without_password_change_force_can_access_dashboard(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['must_change_password' => false])->save();
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_user_with_password_change_force_is_redirected_to_change_password_page(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response->assertRedirect(route('password.change'));
+    }
+
+    public function test_user_with_password_change_force_can_access_change_password_page(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)->get(route('password.change'));
+
+        $response->assertStatus(200);
+    }
+
+    public function test_user_with_password_change_force_can_logout(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)->post(route('logout'));
+
+        $response->assertRedirect('/');
+        $this->assertGuest();
+    }
+
+    public function test_user_cannot_change_password_with_incorrect_current_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('temp_password'),
+        ]);
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)->post(route('password.change.update'), [
+            'current_password' => 'wrong_password',
+            'password' => 'new_password123',
+            'password_confirmation' => 'new_password123',
+        ]);
+
+        $response->assertSessionHasErrors('current_password');
+        $this->assertTrue($user->fresh()->must_change_password);
+    }
+
+    public function test_user_cannot_change_password_to_the_same_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'temp_password123', // Model hashashed cast, but let's test
+        ]);
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)->post(route('password.change.update'), [
+            'current_password' => 'temp_password123',
+            'password' => 'temp_password123',
+            'password_confirmation' => 'temp_password123',
+        ]);
+
+        $response->assertSessionHasErrors('password');
+        $this->assertTrue($user->fresh()->must_change_password);
+    }
+
+    public function test_user_can_successfully_change_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'temp_password123',
+            'role' => UserRole::User,
+        ]);
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)->post(route('password.change.update'), [
+            'current_password' => 'temp_password123',
+            'password' => 'NewSecurePassword123!',
+            'password_confirmation' => 'NewSecurePassword123!',
+        ]);
+
+        $response->assertRedirect('/dashboard');
+        
+        $user->refresh();
+        $this->assertFalse($user->must_change_password);
+        $this->assertTrue(Hash::check('NewSecurePassword123!', $user->password));
+    }
+
+    public function test_admin_user_is_redirected_to_admin_after_password_change(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'temp_password123',
+        ]);
+        $user->forceFill([
+            'role' => UserRole::SuperAdmin,
+            'must_change_password' => true,
+        ])->save();
+
+        $response = $this->actingAs($user)->post(route('password.change.update'), [
+            'current_password' => 'temp_password123',
+            'password' => 'NewSecurePassword123!',
+            'password_confirmation' => 'NewSecurePassword123!',
+        ]);
+
+        $response->assertRedirect('/admin');
+        
+        $user->refresh();
+        $this->assertFalse($user->must_change_password);
+    }
+}

@@ -68,7 +68,11 @@ class UserResource extends Resource
                             ->label('Attivo (Abilitato all\'accesso)')
                             ->default(false)
                             ->disabled(fn ($record) => $record && $record->id === auth()->id()),
-                    ])->columns(2),
+                        Forms\Components\Toggle::make('must_change_password')
+                            ->label('Forza cambio password al primo login')
+                            ->default(fn (string $context): bool => $context === 'create')
+                            ->disabled(fn ($record) => $record && $record->id === auth()->id()),
+                    ])->columns(3),
             ]);
     }
 
