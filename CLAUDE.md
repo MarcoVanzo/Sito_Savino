@@ -34,22 +34,42 @@ ricorda all'utente di eseguirla via Claude Code o via il connettore MCP configur
 
 ---
 
-## 3. Parametri di connessione (sostituire i segnaposto)
+## 3. Parametri di connessione
+
+### Produzione — MySQL gestito DigitalOcean
 
 ```
-HOST      = db-xxxxxxxx.ondigitalocean.com      # <-- inserire host reale
+CLUSTER   = sito-savino-db          # region fra1
 PORT      = 25060
-DATABASE  = savino                               # <-- inserire nome DB reale
-USER      = readonly_savino                       # utente DEDICATO in sola lettura
 SSL       = obbligatorio (certificato CA di DigitalOcean)
+HOST      = <dal pannello DO>       # NON è nel repo
+DATABASE  = <dal pannello DO>       # default DO tipico: defaultdb
+USER      = readonly_savino         # utente DEDICATO in sola lettura (da creare, §5)
 ```
 
-Prerequisiti lato DigitalOcean:
+> ⚠️ HOST, DATABASE, USERNAME e PASSWORD di produzione **non sono nel repository**:
+> DigitalOcean li inietta a runtime (`${sito-savino-db.HOSTNAME}` ecc. in `.do/app.yaml`).
+> Si recuperano da **DO → Databases → `sito-savino-db` → Connection Details**.
+> **Non hardcodarli qui**: il repository è pubblico. Tenerli in un file locale non
+> tracciato o come variabili d'ambiente del connettore MCP.
+> L'utente admin del cluster è `doadmin` — **non usarlo** per le query (vedi §5).
+
+### Sviluppo locale
+
+```
+MySQL Homebrew   : host 127.0.0.1  porta 3306
+Docker (alt.)    : host 127.0.0.1  porta 3307   # container MySQL 8.4 di docker-compose.yml
+DATABASE = sito_savino     USER = sito_savino     PASSWORD = secret
+Test PHPUnit: DATABASE = sito_savino_test
+```
+
+Prerequisiti lato DigitalOcean (per connettersi alla produzione):
 - L'IP pubblico della macchina che si connette deve essere nelle **Trusted Sources** del DB.
 - Scaricare il **certificato CA** dal pannello DO e usarlo (`--ssl-ca=ca-certificate.crt`
   da terminale, oppure `MYSQL_SSL=true` nel connettore MCP).
-- Creare l'utente con permesso minimo, solo sul database di progetto:
-  `GRANT SELECT ON savino.* TO 'readonly_savino'@'%';`
+- Creare l'utente con permesso minimo, solo sul database di produzione (sostituire il nome
+  reso da Connection Details, tipicamente `defaultdb`):
+  `GRANT SELECT ON defaultdb.* TO 'readonly_savino'@'%';`
 
 ---
 
@@ -65,11 +85,11 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
       "command": "npx",
       "args": ["-y", "@benborla29/mcp-server-mysql"],
       "env": {
-        "MYSQL_HOST": "db-xxxxxxxx.ondigitalocean.com",
+        "MYSQL_HOST": "<host da DO Connection Details>",
         "MYSQL_PORT": "25060",
         "MYSQL_USER": "readonly_savino",
         "MYSQL_PASS": "***USARE_VARIABILE_AMBIENTE***",
-        "MYSQL_DB": "savino",
+        "MYSQL_DB": "defaultdb",
         "MYSQL_SSL": "true"
       }
     }
