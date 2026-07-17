@@ -17,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 
 /**
  * @property UserRole $role
-  */
+ */
 #[Fillable(['name', 'email', 'password', 'phone', 'address', 'is_active', 'role', 'must_change_password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
