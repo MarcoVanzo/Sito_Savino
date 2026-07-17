@@ -62,8 +62,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
             // Renderizza errori HTTP come pagine Inertia con il design del sito
             if (in_array($response->getStatusCode(), [403, 404, 500, 503])
-                && !$request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
-                && !app()->environment('local')
+                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
+                && ! app()->environment('local')
             ) {
                 return Inertia::render('Error', [
                     'status' => $response->getStatusCode(),
