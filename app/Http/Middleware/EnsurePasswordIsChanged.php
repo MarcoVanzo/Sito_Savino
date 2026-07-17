@@ -35,8 +35,8 @@ class EnsurePasswordIsChanged
                 // per evitare redirect loop infiniti. Escludiamo anche asset e chiamate di debug.
                 if ($routeName !== 'password.change' &&
                     $routeName !== 'password.change.update' &&
-                    !Str::contains($path, 'logout') &&
-                    !Str::startsWith($path, ['_debugbar', '_ignition', 'storage', 'livewire', 'vendor'])
+                    ! Str::contains($path, 'logout') &&
+                    ! Str::startsWith($path, ['_debugbar', '_ignition', 'storage', 'livewire', 'vendor'])
                 ) {
                     return redirect()->route('password.change');
                 }
