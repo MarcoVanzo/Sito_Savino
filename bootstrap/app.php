@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CachePublicResponse;
 use App\Http\Middleware\EnsureAuctionsEnabled;
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureVerifiedPayment;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PreviewBasicAuth;
@@ -31,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             PreviewBasicAuth::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
-            \App\Http\Middleware\EnsurePasswordIsChanged::class,
+            EnsurePasswordIsChanged::class,
         ]);
 
         // DigitalOcean App Platform: trust all proxies but only forwarded headers
@@ -61,8 +62,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
             // Renderizza errori HTTP come pagine Inertia con il design del sito
             if (in_array($response->getStatusCode(), [403, 404, 500, 503])
-                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
-                && ! app()->environment('local')
+                && !$request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
+                && !app()->environment('local')
             ) {
                 return Inertia::render('Error', [
                     'status' => $response->getStatusCode(),
