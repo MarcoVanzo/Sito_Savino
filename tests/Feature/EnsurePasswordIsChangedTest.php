@@ -108,7 +108,7 @@ class EnsurePasswordIsChangedTest extends TestCase
         ]);
 
         $response->assertRedirect('/dashboard');
-        
+
         $user->refresh();
         $this->assertFalse($user->must_change_password);
         $this->assertTrue(Hash::check('NewSecurePassword123!', $user->password));
@@ -131,7 +131,7 @@ class EnsurePasswordIsChangedTest extends TestCase
         ]);
 
         $response->assertRedirect('/admin');
-        
+
         $user->refresh();
         $this->assertFalse($user->must_change_password);
     }
