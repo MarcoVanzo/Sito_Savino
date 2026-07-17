@@ -20,6 +20,7 @@ class ForceChangePasswordController extends Controller
         // Se l'utente ha già cambiato la password, reindirizzalo alla sua destinazione corretta
         if ($request->user()->must_change_password === false) {
             $default = $request->user()->role->canAccessPanel() ? '/admin' : '/dashboard';
+
             return redirect()->to($default);
         }
 
