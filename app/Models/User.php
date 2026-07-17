@@ -33,7 +33,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, string|class-string>
      */
     protected function casts(): array
     {
