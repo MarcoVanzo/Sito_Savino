@@ -13,7 +13,7 @@ class EnsurePasswordIsChanged
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -35,8 +35,8 @@ class EnsurePasswordIsChanged
                 // per evitare redirect loop infiniti. Escludiamo anche asset e chiamate di debug.
                 if ($routeName !== 'password.change' &&
                     $routeName !== 'password.change.update' &&
-                    ! Str::contains($path, 'logout') &&
-                    ! Str::startsWith($path, ['_debugbar', '_ignition', 'storage', 'livewire', 'vendor'])
+                    !Str::contains($path, 'logout') &&
+                    !Str::startsWith($path, ['_debugbar', '_ignition', 'storage', 'livewire', 'vendor'])
                 ) {
                     return redirect()->route('password.change');
                 }
