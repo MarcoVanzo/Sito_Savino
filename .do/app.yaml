@@ -111,7 +111,7 @@ services:
     value: "false"
   - key: COMPREFACE_HOST
     scope: RUN_AND_BUILD_TIME
-    value: http://157.230.98.6:8000
+    value: http://10.114.0.3:8000
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
     value: 00000000-0000-0000-0000-000000000001
@@ -207,7 +207,7 @@ workers:
     value: https://sito-savino-assets-2026.fra1.digitaloceanspaces.com
   - key: COMPREFACE_HOST
     scope: RUN_AND_BUILD_TIME
-    value: http://157.230.98.6:8000
+    value: http://10.114.0.3:8000
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
     value: 00000000-0000-0000-0000-000000000001
