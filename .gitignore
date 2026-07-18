@@ -65,3 +65,7 @@ docs/RUNBOOK_REMEDIATION_DO.md
 # Config MCP locale (puo' referenziare segreti via env)
 .mcp.json
 .env.mcp
+
+# File temporanei del SessionStart hook (backup composer durante install)
+.composer.json.hookbak
+.composer.lock.hookbak
