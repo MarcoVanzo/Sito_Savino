@@ -49,6 +49,9 @@ test_media.php
 current_do_spec.yaml
 data-page.json
 prod_home.html
+routes.json
+_to_delete/
+*.patch
 
 # Merge conflict artifacts
 *.orig
