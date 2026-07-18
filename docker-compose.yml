@@ -6,11 +6,14 @@ services:
     environment:
       MYSQL_DATABASE: sito_savino
       MYSQL_USER: sito_savino
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: secret
+      # Override in un .env locale (non committato) con DOCKER_MYSQL_PASSWORD / DOCKER_MYSQL_ROOT_PASSWORD
+      # per non lasciare "secret" come password anche fuori da questo container isolato.
+      MYSQL_PASSWORD: ${DOCKER_MYSQL_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DOCKER_MYSQL_ROOT_PASSWORD:-secret}
     ports:
       # Porta 3307 per evitare conflitto con MySQL locale (Homebrew) sulla 3306
-      - "3307:3306"
+      # Bind solo su localhost: non raggiungibile da altri dispositivi sulla stessa rete (es. wifi condivisa)
+      - "127.0.0.1:3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d
@@ -24,8 +27,10 @@ services:
     image: redis:7-alpine
     container_name: sito-savino-redis
     restart: unless-stopped
+    command: redis-server --requirepass ${DOCKER_REDIS_PASSWORD:-secret}
     ports:
-      - "6379:6379"
+      # Bind solo su localhost, come sopra
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
 

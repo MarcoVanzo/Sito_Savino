@@ -8,17 +8,38 @@ packages:
   - gnupg-agent
   - software-properties-common
   - unzip
+  - ufw
+  - fail2ban
 
 runcmd:
+  # --- Docker ---
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
   - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   - apt-get update -y
   - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
   - systemctl enable docker
   - systemctl start docker
+
+  # --- CompreFace ---
   - mkdir -p /opt/compreface
   - cd /opt/compreface
   - wget -q -O tmp.zip 'https://github.com/exadel-inc/CompreFace/releases/download/v1.2.0/CompreFace_1.2.0.zip'
   - unzip tmp.zip
   - rm tmp.zip
   - docker-compose up -d
+
+  # --- Firewall (ufw) ---
+  # ATTENZIONE: questo cloud-init gira solo alla PRIMA creazione del droplet.
+  # Su un droplet già esistente queste regole vanno applicate manualmente via SSH
+  # (vedi docs/RUNBOOK_REMEDIATION_DO.md).
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow OpenSSH
+  # Porta 8000 (CompreFace) raggiungibile SOLO dalla rete privata DO (VPC, interfaccia eth1),
+  # mai dalla rete pubblica: il Worker deve chiamare l'IP privato del droplet, non quello pubblico.
+  - ufw allow in on eth1 to any port 8000 proto tcp
+  - ufw --force enable
+
+  # --- Fail2ban (protezione brute-force SSH) ---
+  - systemctl enable fail2ban
+  - systemctl start fail2ban

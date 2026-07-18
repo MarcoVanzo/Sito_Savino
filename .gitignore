@@ -56,3 +56,12 @@ _to_delete/
 # Merge conflict artifacts
 *.orig
 *.rej
+
+# Documenti di sicurezza interni — contengono IP e dettagli su vulnerabilita' NON risolte.
+# NON pubblicare su repo pubblico.
+docs/AUDIT_SICUREZZA_DIGITALOCEAN.md
+docs/RUNBOOK_REMEDIATION_DO.md
+
+# Config MCP locale (puo' referenziare segreti via env)
+.mcp.json
+.env.mcp
