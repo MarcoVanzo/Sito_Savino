@@ -24,14 +24,8 @@
         "spatie/laravel-medialibrary": "^11.0",
         "spatie/laravel-sitemap": "^8.2",
         "spatie/laravel-translatable": "^6.14",
-        "tightenco/ziggy": "^2.0",
-        "mvc/audit-laravel": "^1.0"
+        "tightenco/ziggy": "^2.0"
     },
-    "repositories": [
-        { "type": "path", "url": "../../mvc-libs/mvc-contracts" },
-        { "type": "path", "url": "../../mvc-libs/mvc-audit" },
-        { "type": "path", "url": "../../mvc-libs/mvc-audit-laravel" }
-    ],
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.4",
