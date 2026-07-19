@@ -7,6 +7,18 @@ use Filament\Forms;
 class PageTemplateForms
 {
     /**
+     * Campo di upload (PDF/ZIP) per un Press Kit della pagina Comunicazione.
+     */
+    private static function pressKitFileField(int $n): Forms\Components\FileUpload
+    {
+        return Forms\Components\FileUpload::make("content_data.press_kit_{$n}_file")
+            ->label('File da scaricare (PDF/ZIP)')
+            ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
+            ->directory('press-kit')
+            ->preserveFilenames();
+    }
+
+    /**
      * Restituisce i campi specifici per il template "Società"
      */
     public static function getSocietaSchema(): array
@@ -1017,11 +1029,7 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.press_kit_1_description')
                                         ->label('Descrizione Press Kit 1')
                                         ->rows(2),
-                                    Forms\Components\FileUpload::make('content_data.press_kit_1_file')
-                                        ->label('File da scaricare (PDF/ZIP)')
-                                        ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
-                                        ->directory('press-kit')
-                                        ->preserveFilenames(),
+                                    self::pressKitFileField(1),
                                 ])->columns(1),
 
                             Forms\Components\Fieldset::make('Press Kit 2 (Loghi e Brand Assets)')
@@ -1041,11 +1049,7 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.press_kit_2_description')
                                         ->label('Descrizione Press Kit 2')
                                         ->rows(2),
-                                    Forms\Components\FileUpload::make('content_data.press_kit_2_file')
-                                        ->label('File da scaricare (PDF/ZIP)')
-                                        ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
-                                        ->directory('press-kit')
-                                        ->preserveFilenames(),
+                                    self::pressKitFileField(2),
                                 ])->columns(1),
 
                             Forms\Components\Fieldset::make('Press Kit 3 (Cartella Stampa)')
@@ -1065,11 +1069,7 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.press_kit_3_description')
                                         ->label('Descrizione Press Kit 3')
                                         ->rows(2),
-                                    Forms\Components\FileUpload::make('content_data.press_kit_3_file')
-                                        ->label('File da scaricare (PDF/ZIP)')
-                                        ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
-                                        ->directory('press-kit')
-                                        ->preserveFilenames(),
+                                    self::pressKitFileField(3),
                                 ])->columns(1),
 
                             Forms\Components\Fieldset::make('Press Kit 4 (Guida Media LVF)')
@@ -1089,11 +1089,7 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.press_kit_4_description')
                                         ->label('Descrizione Press Kit 4')
                                         ->rows(2),
-                                    Forms\Components\FileUpload::make('content_data.press_kit_4_file')
-                                        ->label('File da scaricare (PDF/ZIP)')
-                                        ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
-                                        ->directory('press-kit')
-                                        ->preserveFilenames(),
+                                    self::pressKitFileField(4),
                                 ])->columns(1),
                         ]),
 

@@ -160,22 +160,18 @@ const ogMeta = useOgMeta({
                                 </li>
                             </ul>
 
-                            <!-- CTA Button -->
-                            <a v-if="plan.cta_url"
-                                :href="plan.cta_url"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <!-- CTA Button/Link -->
+                            <component
+                                :is="plan.cta_url ? 'a' : 'button'"
+                                :href="plan.cta_url || undefined"
+                                :target="plan.cta_url ? '_blank' : undefined"
+                                :rel="plan.cta_url ? 'noopener noreferrer' : undefined"
+                                :type="plan.cta_url ? undefined : 'button'"
                                 class="block text-center w-full py-3.5 rounded-lg font-bold uppercase tracking-wider text-sm transition-all duration-300"
                                 :class="plan.highlight
                                     ? 'bg-savino-gold text-white hover:bg-savino-gold/90 shadow-lg shadow-savino-gold/30'
                                     : 'bg-savino-blue text-white hover:bg-savino-blue/90 shadow-lg shadow-savino-blue/20'"
-                            >{{ plan.cta }}</a>
-                            <button v-else type="button"
-                                class="w-full py-3.5 rounded-lg font-bold uppercase tracking-wider text-sm transition-all duration-300"
-                                :class="plan.highlight
-                                    ? 'bg-savino-gold text-white hover:bg-savino-gold/90 shadow-lg shadow-savino-gold/30'
-                                    : 'bg-savino-blue text-white hover:bg-savino-blue/90 shadow-lg shadow-savino-blue/20'"
-                            >{{ plan.cta }}</button>
+                            >{{ plan.cta }}</component>
                         </div>
                     </div>
                 </div>
