@@ -35,7 +35,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         // model (non solo nella UI Filament) così vale per qualsiasi canale di
         // creazione: pannello admin, seeder, tinker, ecc.
         static::creating(function (User $user): void {
-            if ($user->role instanceof UserRole && $user->role->canAccessPanel()) {
+            // Leggiamo il valore grezzo dell'attributo (stringa) per evitare che
+            // il PHPDoc @property UserRole $role induca ad assumere il tipo certo.
+            $role = UserRole::tryFrom((string) ($user->getAttributes()['role'] ?? ''));
+
+            if ($role?->canAccessPanel()) {
                 $user->must_change_password = true;
             }
         });
