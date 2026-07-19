@@ -68,3 +68,7 @@ docs/RUNBOOK_REMEDIATION_DO.md
 
 # Certificato CA DigitalOcean per connessione MySQL prod (non segreto, ma locale)
 storage/do-ca-certificate.crt
+
+# File temporanei del SessionStart hook (backup composer durante install)
+.composer.json.hookbak
+.composer.lock.hookbak
