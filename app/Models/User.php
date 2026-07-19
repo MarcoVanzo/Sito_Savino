@@ -28,6 +28,19 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /** Campi esclusi dal log (dati sensibili). */
     protected array $logExclude = ['password', 'remember_token'];
 
+    protected static function booted(): void
+    {
+        // Ogni utente con accesso al pannello di amministrazione deve cambiare
+        // la password al primo accesso. La regola è imposta qui a livello di
+        // model (non solo nella UI Filament) così vale per qualsiasi canale di
+        // creazione: pannello admin, seeder, tinker, ecc.
+        static::creating(function (User $user): void {
+            if ($user->role instanceof UserRole && $user->role->canAccessPanel()) {
+                $user->must_change_password = true;
+            }
+        });
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->is_active && $this->role->canAccessPanel();

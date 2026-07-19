@@ -38,6 +38,32 @@ class EnsurePasswordIsChangedTest extends TestCase
         $response->assertRedirect(route('password.change'));
     }
 
+    public function test_new_admin_user_is_forced_to_change_password(): void
+    {
+        $admin = User::create([
+            'name' => 'Nuovo Admin',
+            'email' => 'nuovo.admin@savinodelbene.it',
+            'password' => 'temp_password123',
+            'role' => UserRole::CommunicationManager,
+            'is_active' => true,
+        ]);
+
+        $this->assertTrue($admin->must_change_password);
+    }
+
+    public function test_new_non_admin_user_is_not_forced_to_change_password(): void
+    {
+        $customer = User::create([
+            'name' => 'Cliente',
+            'email' => 'cliente@example.com',
+            'password' => 'temp_password123',
+            'role' => UserRole::Customer,
+            'is_active' => true,
+        ]);
+
+        $this->assertFalse((bool) $customer->fresh()->must_change_password);
+    }
+
     public function test_admin_with_password_change_force_is_redirected_from_admin_panel(): void
     {
         $user = User::factory()->create();
