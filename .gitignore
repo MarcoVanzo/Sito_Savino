@@ -65,3 +65,6 @@ docs/RUNBOOK_REMEDIATION_DO.md
 # Config MCP locale (puo' referenziare segreti via env)
 .mcp.json
 .env.mcp
+
+# Certificato CA DigitalOcean per connessione MySQL prod (non segreto, ma locale)
+storage/do-ca-certificate.crt

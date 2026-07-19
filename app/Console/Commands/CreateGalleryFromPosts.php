@@ -105,7 +105,9 @@ class CreateGalleryFromPosts extends Command
                     continue;
                 }
 
-                // Deduplicazione: controlla se esiste già per questo file
+                // Deduplicazione: hash NON crittografico usato come chiave di confronto,
+                // non è un contesto di sicurezza. md5 mantenuto per compatibilità con i
+                // file_hash già salvati in DB. (Sonar php:S4790 falso positivo qui.)
                 $fileHash = md5($coverMedia->file_name.$coverMedia->size);
                 $existing = GalleryImage::where('file_hash', $fileHash)
                     ->where('gallery_event_id', $event->id)

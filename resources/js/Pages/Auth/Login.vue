@@ -91,8 +91,8 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center justify-between">
-                        <label class="flex items-center">
-                            <Checkbox name="remember" v-model:checked="form.remember" />
+                        <label for="remember" class="flex items-center">
+                            <Checkbox id="remember" name="remember" v-model:checked="form.remember" />
                             <span class="ml-2 text-sm text-gray-600">{{ $t('shop.remember_me') }}</span>
                         </label>
 

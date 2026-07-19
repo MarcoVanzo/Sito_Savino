@@ -78,7 +78,7 @@ const ogMeta = useOgMeta({
 
                 <!-- Filtri Ruolo -->
                 <div class="flex flex-wrap justify-center gap-3 mb-12">
-                    <button
+                    <button type="button"
                         v-for="role in roles"
                         :key="role"
                         @click="selectedRole = role"
@@ -143,7 +143,7 @@ const ogMeta = useOgMeta({
                         <svg class="w-12 h-12 text-savino-blue/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </div>
                     <p class="text-gray-500 text-lg font-semibold">{{ $t('stagione.empty_role') }}</p>
-                    <button @click="selectedRole = '__all__'" class="mt-4 px-6 py-2.5 bg-savino-gold text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors">
+                    <button type="button" @click="selectedRole = '__all__'" class="mt-4 px-6 py-2.5 bg-savino-gold text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors">
                         {{ $t('stagione.show_all') }}
                     </button>
                 </div>

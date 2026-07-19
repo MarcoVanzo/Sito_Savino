@@ -89,11 +89,15 @@ class PageController extends Controller
     {
         $page = Page::where('slug', $slug)
             ->where('status', PostStatus::Published)
+            ->with('media')
             ->first();
 
         if (! $page) {
             abort(404);
         }
+
+        // Espone l'URL della copertina ai template pubblici (usata come hero).
+        $page->append('cover_url');
 
         // Evita contenuti duplicati (SEO): se l'utente accede alla pagina tramite la rotta generica
         // o di sezione (es. /societa/contatti), reindirizza con un redirect 301 permanente

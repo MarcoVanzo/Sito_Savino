@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e537b5df886131d8271fd9cbe8619556",
+    "content-hash": "1d41731fd46018bd5e3eb04720ccf4fb",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -4213,6 +4213,108 @@
                 "source": "https://github.com/jmespath/jmespath.php/tree/2.9.1"
             },
             "time": "2026-06-11T10:43:56+00:00"
+        },
+        {
+            "name": "mvc/audit",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "../../mvc-libs/mvc-audit",
+                "reference": "595c7de8a6e032daccab379cfebb8ef73fb6ba92"
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-pdo": "*",
+                "mvc/contracts": "^1.0",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.0 || ^12.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Mvc\\Audit\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Mvc\\Audit\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ]
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Audit log framework-agnostic (PDO) per i progetti MV Consulting",
+            "transport-options": {
+                "relative": true
+            }
+        },
+        {
+            "name": "mvc/audit-laravel",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "../../mvc-libs/mvc-audit-laravel",
+                "reference": "d540a6ecf9a6eb9d3ac61d7b7e30d5c056c8bdc3"
+            },
+            "require": {
+                "illuminate/console": "^11.0 || ^12.0 || ^13.0",
+                "illuminate/database": "^11.0 || ^12.0 || ^13.0",
+                "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+                "mvc/audit": "^1.0",
+                "php": ">=8.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mvc\\Audit\\Laravel\\AuditServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mvc\\Audit\\Laravel\\": "src/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Bridge Laravel per mvc/audit (trait LogsActivity, service provider, comando retention)",
+            "transport-options": {
+                "relative": true
+            }
+        },
+        {
+            "name": "mvc/contracts",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "../../mvc-libs/mvc-contracts",
+                "reference": "36c1d30669e675c79ec2cb490e0037060093b025"
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Mvc\\Contracts\\": "src/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Interfacce kernel condivise per le librerie MV Consulting",
+            "transport-options": {
+                "relative": true
+            }
         },
         {
             "name": "nesbot/carbon",

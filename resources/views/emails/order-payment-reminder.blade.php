@@ -7,7 +7,7 @@
 
 <p>Ti ricordiamo di effettuare il bonifico entro <strong>{{ \App\Models\SiteSetting::get('shop.bank_transfer_expiry_days', 7) }} giorni</strong> dalla data dell'ordine, altrimenti verrà automaticamente annullato.</p>
 
-<table style="width: 100%; border-collapse: collapse; margin: 20px 0; background: #f8f9fa; border-radius: 8px;">
+<table role="presentation" style="width: 100%; border-collapse: collapse; margin: 20px 0; background: #f8f9fa; border-radius: 8px;">
     <tr>
         <td style="padding: 12px 16px; border-bottom: 1px solid #e9ecef; font-weight: bold; color: #666;">IBAN</td>
         <td style="padding: 12px 16px; border-bottom: 1px solid #e9ecef;">{{ \App\Models\SiteSetting::get('shop.bank_transfer_iban') }}</td>

@@ -74,7 +74,7 @@ const startVerification = () => {
                     </div>
 
                     <!-- CTA Button -->
-                    <button
+                    <button type="button"
                         @click="startVerification"
                         :disabled="isLoading"
                         class="w-full bg-savino-gold text-gray-900 font-black text-sm uppercase tracking-wider py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"

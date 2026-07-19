@@ -268,7 +268,7 @@ const ogMeta = useOgMeta({
             <div class="gallery-filters__inner">
                 <!-- Category filter chips -->
                 <div class="gallery-filters__categories">
-                    <button
+                    <button type="button"
                         v-for="cat in categories"
                         :key="cat"
                         @click="filterByCategory(cat)"
@@ -304,7 +304,7 @@ const ogMeta = useOgMeta({
                             </svg>
                         </div>
                         <span class="gallery-filters__current-athlete-name">{{ currentAthlete.name }}</span>
-                        <button @click="clearAthlete" class="gallery-filters__current-athlete-clear" :aria-label="$t('gallery.show_all_athletes')">
+                        <button type="button" @click="clearAthlete" class="gallery-filters__current-athlete-clear" :aria-label="$t('gallery.show_all_athletes')">
                             <svg viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
                             </svg>
@@ -312,7 +312,7 @@ const ogMeta = useOgMeta({
                     </div>
 
                     <!-- Search trigger -->
-                    <button
+                    <button type="button"
                         v-else
                         @click.stop="athleteSearchOpen = !athleteSearchOpen"
                         class="gallery-filters__search-btn"
@@ -337,12 +337,13 @@ const ogMeta = useOgMeta({
                                     v-model="athleteQuery"
                                     type="text"
                                     :placeholder="$t('gallery.search_athlete_placeholder')"
+                                    :aria-label="$t('gallery.search_athlete_placeholder')"
                                     class="gallery-filters__dropdown-input"
                                     @click.stop
                                 />
                             </div>
                             <div class="gallery-filters__dropdown-list">
-                                <button
+                                <button type="button"
                                     v-for="athlete in filteredAthletes"
                                     :key="athlete.id"
                                     @click="selectAthlete(athlete)"
@@ -376,9 +377,10 @@ const ogMeta = useOgMeta({
                             v-model="searchQuery"
                             type="text"
                             :placeholder="$t('gallery.search_tag_placeholder')"
+                            :aria-label="$t('gallery.search_tag_placeholder')"
                             class="gallery-filters__tag-search-input"
                         />
-                        <button
+                        <button type="button"
                             v-if="searchQuery"
                             @click="searchQuery = ''"
                             class="gallery-filters__tag-search-clear"
@@ -473,6 +475,9 @@ const ogMeta = useOgMeta({
                     class="gallery-lightbox"
                     :class="{ 'gallery-lightbox--visible': lightboxTransition }"
                     tabindex="0"
+                    role="dialog"
+                    aria-modal="true"
+                    :aria-label="$t('gallery.lightbox_label') || 'Immagine ingrandita'"
                     @click.self="closeLightbox"
                     @keydown.escape="closeLightbox"
                     @keydown.arrow-left="prevImage"
@@ -481,19 +486,19 @@ const ogMeta = useOgMeta({
                     @touchend.passive="onTouchEnd"
                 >
                     <!-- Close -->
-                    <button @click="closeLightbox" :aria-label="$t('common.close')" class="gallery-lightbox__close">
+                    <button type="button" @click="closeLightbox" :aria-label="$t('common.close')" class="gallery-lightbox__close">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
 
                     <!-- Navigation -->
-                    <button @click.stop="prevImage" :aria-label="$t('gallery.prev_image')" class="gallery-lightbox__nav gallery-lightbox__nav--prev">
+                    <button type="button" @click.stop="prevImage" :aria-label="$t('gallery.prev_image')" class="gallery-lightbox__nav gallery-lightbox__nav--prev">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                         </svg>
                     </button>
-                    <button @click.stop="nextImage" :aria-label="$t('gallery.next_image')" class="gallery-lightbox__nav gallery-lightbox__nav--next">
+                    <button type="button" @click.stop="nextImage" :aria-label="$t('gallery.next_image')" class="gallery-lightbox__nav gallery-lightbox__nav--next">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -523,7 +528,7 @@ const ogMeta = useOgMeta({
 
                     <!-- Thumbnail strip -->
                     <div class="gallery-lightbox__thumbs">
-                        <button
+                        <button type="button"
                             v-for="(item, i) in filteredMedia.slice(Math.max(0, lightboxIndex - 4), lightboxIndex + 5)"
                             :key="item.id"
                             @click.stop="lightboxIndex = Math.max(0, lightboxIndex - 4) + i"
@@ -588,7 +593,7 @@ const ogMeta = useOgMeta({
 }
 
 @keyframes particleFloat {
-    0%, 100% { transform: translateY(0) scale(0); opacity: 0; }
+    0% { transform: translateY(0) scale(0); opacity: 0; }
     10% { opacity: 1; transform: scale(1); }
     90% { opacity: 0.6; }
     100% { transform: translateY(-55vh) scale(0); opacity: 0; }

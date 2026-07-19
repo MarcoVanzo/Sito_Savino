@@ -27,7 +27,7 @@ export function useCountUp(options = {}) {
         const str = String(value);
 
         // Trova la parte numerica (con punti come separatore migliaia)
-        const match = str.match(/^([^\d]*?)([\d.]+)([^\d]*?)$/);
+        const match = str.match(/^(\D*)(\d[\d.]*\d|\d)(\D*)$/);
 
         if (match) {
             const prefix = match[1] || '';
@@ -36,9 +36,9 @@ export function useCountUp(options = {}) {
 
             // Rimuovi punti separatori migliaia per ottenere il numero
             const cleanNum = numStr.replace(/\./g, '');
-            const num = parseInt(cleanNum, 10);
+            const num = Number.parseInt(cleanNum, 10);
 
-            if (!isNaN(num)) {
+            if (!Number.isNaN(num)) {
                 return {
                     prefix,
                     number: num,

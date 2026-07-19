@@ -30,27 +30,31 @@ const pressKitItems = computed(() => [
         icon: cd.value.press_kit_1_icon || '📸',
         title: cd.value.press_kit_1_title || $t('comunicazione.press_kit_1_title'),
         description: cd.value.press_kit_1_description || $t('comunicazione.press_kit_1_desc'),
-        format: cd.value.press_kit_1_format || 'ZIP — 45 MB'
+        format: cd.value.press_kit_1_format || 'ZIP — 45 MB',
+        file: cd.value.press_kit_1_file || null
     },
     {
         icon: cd.value.press_kit_2_icon || '🎨',
         title: cd.value.press_kit_2_title || $t('comunicazione.press_kit_2_title'),
         description: cd.value.press_kit_2_description || $t('comunicazione.press_kit_2_desc'),
-        format: cd.value.press_kit_2_format || 'ZIP — 12 MB'
+        format: cd.value.press_kit_2_format || 'ZIP — 12 MB',
+        file: cd.value.press_kit_2_file || null
     },
     {
         icon: cd.value.press_kit_3_icon || '📄',
         title: cd.value.press_kit_3_title || $t('comunicazione.press_kit_3_title'),
         description: cd.value.press_kit_3_description || $t('comunicazione.press_kit_3_desc'),
-        format: cd.value.press_kit_3_format || 'PDF — 8 MB'
+        format: cd.value.press_kit_3_format || 'PDF — 8 MB',
+        file: cd.value.press_kit_3_file || null
     },
     {
         icon: cd.value.press_kit_4_icon || '📊',
         title: cd.value.press_kit_4_title || $t('comunicazione.press_kit_4_title'),
         description: cd.value.press_kit_4_description || $t('comunicazione.press_kit_4_desc'),
-        format: cd.value.press_kit_4_format || 'PDF — 3 MB'
+        format: cd.value.press_kit_4_format || 'PDF — 3 MB',
+        file: cd.value.press_kit_4_file || null
     }
-])
+].filter(item => item.file))
 
 const contacts = computed(() => [
     {
@@ -151,7 +155,7 @@ const ogMeta = useOgMeta({
     </section>
 
     <!-- Press Kit Downloads -->
-    <section class="py-20 bg-gray-50">
+    <section v-if="pressKitItems.length > 0" class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.press_kit_badge || 'Download' }}</span>
@@ -161,10 +165,13 @@ const ogMeta = useOgMeta({
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div
+                <a
                     v-for="(item, index) in pressKitItems"
                     :key="index"
-                    class="bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100 group cursor-pointer"
+                    :href="`/storage/${item.file}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="block bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100 group cursor-pointer"
                 >
                     <span class="text-4xl block mb-4">{{ item.icon }}</span>
                     <h3 class="text-base font-bold text-gray-900 mb-2 group-hover:text-savino-blue transition-colors">
@@ -179,7 +186,7 @@ const ogMeta = useOgMeta({
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
     </section>

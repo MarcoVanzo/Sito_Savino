@@ -447,7 +447,7 @@ const ogMeta = useOgMeta({
             
             <!-- Slide Indicators -->
             <div v-if="!heroVideoUrl" class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
-                <button 
+                <button type="button" 
                     v-for="(slide, index) in slides"
                     :key="'indicator-' + index"
                     @click="goToSlide(index)"

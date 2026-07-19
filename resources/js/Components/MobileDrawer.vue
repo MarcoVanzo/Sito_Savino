@@ -85,7 +85,7 @@ onBeforeUnmount(() => {
         <div v-show="isOpen" class="xl:hidden absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-36 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
             <nav role="navigation" :aria-label="$t('nav.mobile_menu')" class="flex flex-col space-y-2 text-center pb-10">
                 <div v-for="(item, index) in navigation" :key="item.label" class="border-b border-white/10 last:border-0">
-                    <button 
+                    <button type="button" 
                         @click="emit('toggle-item', index)"
                         aria-haspopup="true"
                         :aria-expanded="activeIndex === index"
@@ -148,7 +148,7 @@ onBeforeUnmount(() => {
                         </svg>
                         {{ $t('shop.my_orders') }}
                     </Link>
-                    <button
+                    <button type="button"
                         @click="handleLogout"
                         class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors min-h-[44px]"
                     >

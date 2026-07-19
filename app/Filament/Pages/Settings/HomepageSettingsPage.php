@@ -4,8 +4,8 @@ namespace App\Filament\Pages\Settings;
 
 use App\Filament\Resources\HeroSlideResource;
 use App\Models\HeroSlide;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Tables;
@@ -54,7 +54,17 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
                     TextInput::make('hero_cta2_url')->label('URL Secondario'),
                 ])->columns(2),
                 Section::make('Stats')->schema([
-                    Textarea::make('stats')->label('Statistiche (JSON)')->rows(5),
+                    Repeater::make('stats')
+                        ->label('Statistiche')
+                        ->schema([
+                            TextInput::make('value')->label('Valore')->required()->placeholder('es. 40+'),
+                            TextInput::make('label')->label('Etichetta')->required()->placeholder('es. Anni di Storia'),
+                            TextInput::make('icon')->label('Icona (emoji)')->placeholder('es. 🏆'),
+                        ])
+                        ->columns(3)
+                        ->collapsible()
+                        ->formatStateUsing(fn ($state) => is_array($state) ? $state : (json_decode($state ?? '[]', true) ?: []))
+                        ->dehydrateStateUsing(fn ($state) => json_encode(array_values($state ?? []))),
                     TextInput::make('stats_title')->label('Titolo Sezione'),
                     TextInput::make('stats_subtitle')->label('Sottotitolo Sezione'),
                 ]),

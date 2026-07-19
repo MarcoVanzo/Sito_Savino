@@ -143,7 +143,7 @@ const handleAddToCart = () => {
 
         <!-- Add to Cart Button -->
         <div class="px-5 pb-5" v-if="!isOutOfStock">
-            <button
+            <button type="button"
                 @click.prevent="handleAddToCart"
                 :disabled="isAdding"
                 class="w-full bg-savino-gold/10 border border-savino-gold/30 text-savino-gold text-xs font-bold uppercase tracking-wider py-3 rounded-lg hover:bg-savino-gold hover:text-gray-900 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"

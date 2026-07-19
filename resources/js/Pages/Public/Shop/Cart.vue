@@ -160,7 +160,7 @@ const handleRemoveItem = (itemId) => {
                                         {{ $t('shop.stock_exceeded') }}
                                     </p>
                                     <!-- Mobile: Remove button inline -->
-                                    <button
+                                    <button type="button"
                                         @click="handleRemoveItem(item.id)"
                                         :disabled="loadingItems.has(item.id)"
                                         :aria-label="$t('shop.remove_from_cart') || 'Rimuovi dal carrello'"
@@ -181,7 +181,7 @@ const handleRemoveItem = (itemId) => {
                             <div class="md:col-span-2 flex items-center justify-center">
                                 <span class="md:hidden text-xs text-gray-400 mr-2">{{ $t('shop.quantity') }}:</span>
                                 <div class="inline-flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                                    <button
+                                    <button type="button"
                                         @click="handleUpdateQuantity(item.id, item.quantity - 1)"
                                         :disabled="item.quantity <= 1 || loadingItems.has(item.id)"
                                         :aria-label="$t('shop.decrease_quantity') || 'Diminuisci quantità'"
@@ -193,7 +193,7 @@ const handleRemoveItem = (itemId) => {
                                     <span class="w-10 h-8 flex items-center justify-center text-sm font-bold text-savino-blue border-x border-gray-200">
                                         {{ item.quantity }}
                                     </span>
-                                    <button
+                                    <button type="button"
                                         @click="handleUpdateQuantity(item.id, item.quantity + 1)"
                                         :disabled="item.quantity >= (item.stock ?? 99) || loadingItems.has(item.id)"
                                         :aria-label="$t('shop.increase_quantity') || 'Aumenta quantità'"
@@ -209,7 +209,7 @@ const handleRemoveItem = (itemId) => {
                             <div class="md:col-span-2 flex items-center justify-end gap-3">
                                 <span class="text-sm font-black text-savino-blue">{{ formatPrice(item.price * item.quantity) }}</span>
                                 <!-- Desktop: Remove button -->
-                                <button
+                                <button type="button"
                                     @click="handleRemoveItem(item.id)"
                                     :disabled="loadingItems.has(item.id)"
                                     class="hidden md:flex w-8 h-8 items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -284,7 +284,7 @@ const handleRemoveItem = (itemId) => {
                             >
                                 {{ $t('shop.proceed_to_checkout') }}
                             </Link>
-                            <button v-else disabled aria-disabled="true" class="block w-full text-center bg-gray-300 text-gray-500 font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-xl cursor-not-allowed">
+                            <button type="button" v-else disabled aria-disabled="true" class="block w-full text-center bg-gray-300 text-gray-500 font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-xl cursor-not-allowed">
                                 {{ $t('shop.fix_cart_issues') }}
                             </button>
 

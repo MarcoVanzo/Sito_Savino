@@ -95,7 +95,7 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-white">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl mx-auto text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('sociale.mission_badge') }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.mission_badge || $t('sociale.mission_badge') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
                     {{ cd.mission_title || $t('sociale.mission_title') }}
                 </h2>
@@ -114,9 +114,9 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('sociale.initiatives_badge') }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.initiatives_badge || $t('sociale.initiatives_badge') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ $t('sociale.initiatives_title') }}
+                    {{ cd.initiatives_title || $t('sociale.initiatives_title') }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>
@@ -146,8 +146,8 @@ const ogMeta = useOgMeta({
                     <p class="text-gray-600 leading-relaxed">
                         {{ project.description }}
                     </p>
-                    <div class="mt-6 pt-6 border-t border-gray-100">
-                        <a href="#" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-gold transition-colors">
+                    <div v-if="project.link" class="mt-6 pt-6 border-t border-gray-100">
+                        <a :href="project.link" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-gold transition-colors">
                             {{ $t('common.discover') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -163,9 +163,9 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ $t('sociale.results_badge') }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.results_badge || $t('sociale.results_badge') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-2">
-                    {{ $t('sociale.impact_title') }}
+                    {{ cd.impact_title || $t('sociale.impact_title') }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>

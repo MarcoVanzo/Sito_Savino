@@ -161,12 +161,20 @@ const ogMeta = useOgMeta({
                             </ul>
 
                             <!-- CTA Button -->
-                            <button
+                            <a v-if="plan.cta_url"
+                                :href="plan.cta_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="block text-center w-full py-3.5 rounded-lg font-bold uppercase tracking-wider text-sm transition-all duration-300"
+                                :class="plan.highlight
+                                    ? 'bg-savino-gold text-white hover:bg-savino-gold/90 shadow-lg shadow-savino-gold/30'
+                                    : 'bg-savino-blue text-white hover:bg-savino-blue/90 shadow-lg shadow-savino-blue/20'"
+                            >{{ plan.cta }}</a>
+                            <button v-else type="button"
                                 class="w-full py-3.5 rounded-lg font-bold uppercase tracking-wider text-sm transition-all duration-300"
                                 :class="plan.highlight
                                     ? 'bg-savino-gold text-white hover:bg-savino-gold/90 shadow-lg shadow-savino-gold/30'
                                     : 'bg-savino-blue text-white hover:bg-savino-blue/90 shadow-lg shadow-savino-blue/20'"
-                               
                             >{{ plan.cta }}</button>
                         </div>
                     </div>

@@ -219,7 +219,7 @@ const showRules = ref(false);
 
                         <!-- Thumbnails -->
                         <div v-if="currentAuction.images && currentAuction.images.length > 1" class="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                            <button
+                            <button type="button"
                                 v-for="(img, index) in currentAuction.images"
                                 :key="index"
                                 @click="selectImage(index)"

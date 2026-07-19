@@ -86,14 +86,14 @@ BACKUPS=$(aws_cmd s3 ls "s3://${BUCKET_NAME}/db/" --recursive \
     | grep '\.sql\.gz\.gpg$' \
     | sort)
 
-if [ -z "$BACKUPS" ]; then
+if [[ -z "$BACKUPS" ]]; then
     error "Nessun backup trovato nel bucket!"
     exit 1
 fi
 
 BACKUP_COUNT=$(echo "$BACKUPS" | wc -l | tr -d ' ')
 
-if [ -z "$MODE" ]; then
+if [[ -z "$MODE" ]]; then
     echo ""
     echo -e "${BOLD}Backup disponibili ($BACKUP_COUNT):${NC}"
     echo "-------------------------------------------"
@@ -102,9 +102,9 @@ if [ -z "$MODE" ]; then
         FILE=$(echo "$line" | awk '{print $4}')
         DATE=$(echo "$line" | awk '{print $1}')
         # Converti bytes in formato leggibile
-        if [ "$SIZE" -gt 1048576 ]; then
+        if [[ "$SIZE" -gt 1048576 ]]; then
             SIZE_H="$(echo "scale=1; $SIZE/1048576" | bc)MB"
-        elif [ "$SIZE" -gt 1024 ]; then
+        elif [[ "$SIZE" -gt 1024 ]]; then
             SIZE_H="$(echo "scale=1; $SIZE/1024" | bc)KB"
         else
             SIZE_H="${SIZE}B"
@@ -120,13 +120,13 @@ if [ -z "$MODE" ]; then
 fi
 
 # --- Seleziona backup ---
-if [ "$MODE" = "latest" ]; then
+if [[ "$MODE" = "latest" ]]; then
     BACKUP_FILE=$(echo "$BACKUPS" | tail -1 | awk '{print $4}')
-elif [ "$MODE" = "date" ]; then
+elif [[ "$MODE" = "date" ]]; then
     BACKUP_FILE=$(echo "$BACKUPS" | grep "$TARGET_DATE" | tail -1 | awk '{print $4}')
 fi
 
-if [ -z "$BACKUP_FILE" ]; then
+if [[ -z "$BACKUP_FILE" ]]; then
     error "Nessun backup trovato per la selezione specificata!"
     exit 1
 fi
@@ -154,7 +154,7 @@ echo ""
 echo -e "${YELLOW}Stai per sovrascrivere il database '${DB_NAME}' su '${DB_HOST}:${DB_PORT}'.${NC}"
 read -p "Sei sicuro? Digita 'SI-RESTORE' per confermare: " CONFIRM
 
-if [ "$CONFIRM" != "SI-RESTORE" ]; then
+if [[ "$CONFIRM" != "SI-RESTORE" ]]; then
     info "Restore annullato dall'utente."
     exit 0
 fi
@@ -194,7 +194,7 @@ mysql \
     --password="$DB_PASSWORD" \
     "$DB_NAME" < "$SQL_FILE"
 
-if [ $? -eq 0 ]; then
+if [[ $? -eq 0 ]]; then
     echo ""
     echo "============================================="
     echo -e "${GREEN}  ✅ RESTORE COMPLETATO CON SUCCESSO${NC}"

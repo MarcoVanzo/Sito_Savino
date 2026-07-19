@@ -53,7 +53,7 @@ onBeforeUnmount(() => {
 <template>
     <div ref="menuRef" class="relative">
         <!-- Trigger Button -->
-        <button
+        <button type="button"
             @click="toggleMenu"
             class="relative p-2 text-gray-300 hover:text-savino-gold transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-savino-gold/50 rounded-lg"
             :aria-label="user() ? $t('shop.my_account') : $t('shop.login')"
@@ -138,7 +138,7 @@ onBeforeUnmount(() => {
                         <!-- Divider -->
                         <div class="my-1 border-t border-gray-100"></div>
 
-                        <button
+                        <button type="button"
                             @click="handleLogout"
                             role="menuitem"
                             class="flex items-center gap-3 w-full px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors"

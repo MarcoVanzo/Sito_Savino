@@ -53,10 +53,10 @@ const services = computed(() => {
     </Head>
 
     <PublicLayout>
-        <PageHero 
-            :title="page?.title" 
-            :subtitle="page?.meta_description" 
-            image="/images/palazzetto-hero.jpg" 
+        <PageHero
+            :title="page?.title"
+            :subtitle="page?.meta_description"
+            :image="page?.cover_url || '/images/palazzetto-hero.jpg'"
         />
 
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-white relative">
@@ -95,7 +95,7 @@ const services = computed(() => {
                     <div class="order-1 lg:order-2">
                         <div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl group border-8 border-white">
                             <div class="absolute inset-0 bg-savino-blue/10 group-hover:bg-transparent transition-colors duration-500 z-10 pointer-events-none"></div>
-                            <img src="/images/palazzetto-hero.jpg" alt="Palazzo Wanny" class="w-full h-[500px] object-cover transform group-hover:scale-105 transition-transform duration-700" onerror="this.src='https://placehold.co/800x600/ED028C/FFF?text=Palazzo+Wanny'" />
+                            <img :src="page?.cover_url || '/images/palazzetto-hero.jpg'" alt="Palazzo Wanny" class="w-full h-[500px] object-cover transform group-hover:scale-105 transition-transform duration-700" onerror="this.src='https://placehold.co/800x600/ED028C/FFF?text=Palazzo+Wanny'" />
                             
                             <!-- Address Card overlay -->
                             <div class="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-xl p-6 rounded-3xl shadow-xl z-20 border border-white/50">

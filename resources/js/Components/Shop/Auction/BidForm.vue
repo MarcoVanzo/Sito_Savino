@@ -28,12 +28,12 @@ let successTimer = null;
 const quickBids = [5, 10, 20];
 
 const setQuickBid = (extra) => {
-    bidAmount.value = parseFloat((props.auction.minimum_bid + extra).toFixed(2));
+    bidAmount.value = Number.parseFloat((props.auction.minimum_bid + extra).toFixed(2));
 };
 
 const isValidBid = computed(() => {
-    const val = parseFloat(bidAmount.value);
-    return !isNaN(val) && val >= props.auction.minimum_bid && val <= props.auction.maximum_bid;
+    const val = Number.parseFloat(bidAmount.value);
+    return !Number.isNaN(val) && val >= props.auction.minimum_bid && val <= props.auction.maximum_bid;
 });
 
 const submitBid = async () => {
@@ -45,7 +45,7 @@ const submitBid = async () => {
 
     try {
         const response = await axios.post(route('shop.auctions.bid', props.auction.id), {
-            amount: parseFloat(bidAmount.value),
+            amount: Number.parseFloat(bidAmount.value),
         });
 
         if (response.data.success) {
@@ -158,7 +158,7 @@ onUnmounted(() => {
 
             <!-- Quick bid buttons -->
             <div class="grid grid-cols-3 gap-2 mb-3">
-                <button
+                <button type="button"
                     v-for="extra in quickBids"
                     :key="extra"
                     @click="setQuickBid(extra)"
@@ -186,6 +186,7 @@ onUnmounted(() => {
                         :disabled="isSubmitting"
                         class="w-full bg-gray-900 border border-gray-600 text-white text-lg font-bold rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-savino-gold focus:border-savino-gold transition-all disabled:opacity-50"
                         :placeholder="formatPrice(auction.minimum_bid)"
+                        :aria-label="$t('shop.your_bid') || 'La tua offerta'"
                     />
                 </div>
 

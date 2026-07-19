@@ -584,7 +584,7 @@ const ogMeta = useOgMeta({
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label for="billing-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
-                                        <input id="billing-street" v-model="form.billing_street" type="text" autocomplete="street-address" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_street')" />
+                                        <input id="billing-street" v-model="form.billing_street" type="text" autocomplete="address-line1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_street')" />
                                         <p v-if="form.errors.billing_street" class="mt-1 text-sm text-red-500">{{ form.errors.billing_street }}</p>
                                     </div>
                                     <div>
@@ -676,6 +676,7 @@ const ogMeta = useOgMeta({
                                     v-model="form.coupon_code"
                                     class="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm uppercase"
                                     :placeholder="$t('shop_checkout.coupon_placeholder')"
+                                    :aria-label="$t('shop_checkout.coupon_label')"
                                     @keyup.enter="validateCoupon"
                                 />
                                 <button
@@ -824,7 +825,7 @@ const ogMeta = useOgMeta({
                         </div>
 
                         <!-- CTA (only on step 2) -->
-                        <button
+                        <button type="button"
                             v-if="currentStep === 2"
                             @click="submitOrder"
                             :disabled="form.processing || cart.items.length === 0 || !form.payment_gateway || !form.privacy_accepted"
