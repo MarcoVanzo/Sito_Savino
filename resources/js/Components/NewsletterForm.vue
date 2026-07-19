@@ -92,7 +92,7 @@ function handleSubmit() {
             <form v-else @submit.prevent="handleSubmit" class="max-w-2xl mx-auto">
                 <!-- Honeypot -->
                 <div class="hidden" aria-hidden="true">
-                    <input type="text" v-model="form.honeypot" name="honeypot" autocomplete="off" tabindex="-1" />
+                    <input type="text" v-model="form.honeypot" name="honeypot" autocomplete="off" tabindex="-1" aria-label="Lascia vuoto" />
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3 mb-4">
@@ -171,7 +171,7 @@ function handleSubmit() {
         <form v-else @submit.prevent="handleSubmit">
             <!-- Honeypot -->
             <div class="hidden" aria-hidden="true">
-                <input type="text" v-model="form.honeypot" name="honeypot" autocomplete="off" tabindex="-1" />
+                <input type="text" v-model="form.honeypot" name="honeypot" autocomplete="off" tabindex="-1" aria-label="Lascia vuoto" />
             </div>
 
             <div class="flex gap-2 mb-3">

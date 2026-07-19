@@ -163,7 +163,7 @@ const loadMore = () => {
                         />
                         <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         <!-- Clear button -->
-                        <button
+                        <button type="button"
                             v-if="searchQuery"
                             @click="searchQuery = ''"
                             :aria-label="$t('shop.clear_search') || 'Clear search'"
@@ -176,7 +176,7 @@ const loadMore = () => {
 
                 <!-- Category Filter Pills -->
                 <div v-if="categories.length > 1" role="group" :aria-label="$t('shop.category_filter') || 'Category filter'" class="flex flex-wrap items-center justify-center gap-2 mb-10">
-                    <button
+                    <button type="button"
                         @click="selectedCategory = null"
                         :aria-pressed="selectedCategory === null"
                         class="px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border"
@@ -187,7 +187,7 @@ const loadMore = () => {
                         {{ $t('shop.all_categories') || 'Tutti' }}
                         <span class="ml-1.5 text-xs opacity-70">({{ allProducts.length }})</span>
                     </button>
-                    <button
+                    <button type="button"
                         v-for="cat in categories"
                         :key="cat.id"
                         @click="selectedCategory = selectedCategory === cat.id ? null : cat.id"
@@ -219,7 +219,7 @@ const loadMore = () => {
                             <option value="price_desc">{{ $t('shop.sort_price_desc') || 'Prezzo: alto → basso' }}</option>
                             <option value="newest">{{ $t('shop.sort_newest') || 'Più recenti' }}</option>
                         </select>
-                        <button
+                        <button type="button"
                             v-if="hasActiveFilters"
                             @click="clearFilters"
                             class="text-sm text-savino-blue/70 hover:text-savino-blue font-medium flex items-center gap-1.5 transition-colors"
@@ -249,7 +249,7 @@ const loadMore = () => {
 
                 <!-- Load More Button -->
                 <div v-if="hasMoreProducts && !isNavigating" class="text-center mt-12">
-                    <button
+                    <button type="button"
                         @click="loadMore"
                         class="inline-flex items-center gap-2 bg-white text-savino-blue font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-xl border-2 border-savino-blue hover:bg-savino-blue hover:text-white transition-all duration-300 shadow-md hover:shadow-xl"
                     >
@@ -272,7 +272,7 @@ const loadMore = () => {
                         <p class="text-gray-600 leading-relaxed mb-6">
                             {{ $t('shop.try_different_search') || 'Prova con un altro termine di ricerca o categoria.' }}
                         </p>
-                        <button
+                        <button type="button"
                             @click="clearFilters"
                             class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300"
                         >

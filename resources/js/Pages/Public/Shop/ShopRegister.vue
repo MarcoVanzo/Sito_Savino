@@ -244,9 +244,9 @@ const submit = () => {
 
                         <!-- Privacy Policy -->
                         <div>
-                            <label class="flex items-start gap-3 cursor-pointer group">
+                            <label for="privacy_accepted" class="flex items-start gap-3 cursor-pointer group">
                                 <div class="mt-0.5">
-                                    <Checkbox name="privacy_accepted" v-model:checked="form.privacy_accepted" required />
+                                    <Checkbox id="privacy_accepted" name="privacy_accepted" v-model:checked="form.privacy_accepted" required />
                                 </div>
                                 <span class="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors">
                                     {{ $t('shop.accept_privacy_1') }}

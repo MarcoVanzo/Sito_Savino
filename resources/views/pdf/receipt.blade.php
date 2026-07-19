@@ -239,7 +239,7 @@
 
     {{-- Header --}}
     <div class="header">
-        <table class="header-table" cellpadding="0" cellspacing="0">
+        <table role="presentation" class="header-table" cellpadding="0" cellspacing="0">
             <tr>
                 <td class="logo-cell">
                     @php
@@ -338,7 +338,7 @@
         $subtotal = $order->items->sum(fn($item) => $item->quantity * $item->price_at_time_of_purchase);
     @endphp
     <div class="totals-wrapper clearfix">
-        <table class="totals-table">
+        <table role="presentation" class="totals-table">
             <tr>
                 <td class="label">Subtotale</td>
                 <td class="value">€{{ number_format($subtotal, 2, ',', '.') }}</td>

@@ -90,7 +90,7 @@ const activeVariant = computed(() => {
 const displayPrice = computed(() => {
     const basePrice = props.product?.sale_price ?? props.product?.price ?? 0;
     if (activeVariant.value) {
-        return parseFloat(basePrice) + parseFloat(activeVariant.value.price_modifier || 0);
+        return Number.parseFloat(basePrice) + Number.parseFloat(activeVariant.value.price_modifier || 0);
     }
     return basePrice;
 });
@@ -291,7 +291,7 @@ const structuredData = computed(() => {
                         </div>
                         <!-- Thumbnail Strip -->
                         <div v-if="product?.images?.length > 1" class="flex gap-3 overflow-x-auto pb-2">
-                            <button
+                            <button type="button"
                                 v-for="(img, index) in product.images"
                                 :key="index"
                                 @click="selectImage(index)"
@@ -331,9 +331,9 @@ const structuredData = computed(() => {
 
                         <!-- Variant Selector -->
                         <div v-if="product?.variants?.length" :class="['mb-6 transition-all duration-300', variantError ? 'ring-2 ring-red-400 rounded-xl p-3 bg-red-50/50' : '']">
-                            <label class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.select_variant') }}</label>
+                            <span class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.select_variant') }}</span>
                             <div class="flex flex-wrap gap-2">
-                                <button
+                                <button type="button"
                                     v-for="variant in product.variants"
                                     :key="variant.id"
                                     @click="selectedVariant = variant.id"
@@ -361,9 +361,9 @@ const structuredData = computed(() => {
 
                         <!-- Quantity Selector -->
                         <div class="mb-8">
-                            <label class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.quantity') }}</label>
+                            <span class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.quantity') }}</span>
                             <div class="inline-flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
-                                <button
+                                <button type="button"
                                     @click="decrementQty"
                                     :disabled="quantity <= 1"
                                     :aria-label="$t('shop.decrease_quantity')"
@@ -374,7 +374,7 @@ const structuredData = computed(() => {
                                 <span class="w-16 h-12 flex items-center justify-center text-lg font-bold text-savino-blue border-x-2 border-gray-200">
                                     {{ quantity }}
                                 </span>
-                                <button
+                                <button type="button"
                                     @click="incrementQty"
                                     :disabled="quantity >= currentStock"
                                     :aria-label="$t('shop.increase_quantity')"
@@ -389,7 +389,7 @@ const structuredData = computed(() => {
                         </div>
 
                         <!-- Add to Cart Button -->
-                        <button
+                        <button type="button"
                             @click="handleAddToCart"
                             :disabled="isOutOfStock || isAdding"
                             class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl text-white font-bold uppercase tracking-wider text-sm transition-all duration-300 shadow-lg"
@@ -456,7 +456,7 @@ const structuredData = computed(() => {
                 <div v-if="showSizeGuide" class="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showSizeGuide = false"></div>
                     <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 z-10">
-                        <button @click="showSizeGuide = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                        <button type="button" @click="showSizeGuide = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                         <h3 class="text-xl font-bold text-gray-900 mb-4">{{ $t('shop.size_guide') }}</h3>

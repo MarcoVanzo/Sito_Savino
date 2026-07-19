@@ -126,7 +126,7 @@ onUnmounted(() => {
                             {{ itemCount }}
                         </span>
                     </div>
-                    <button
+                    <button type="button"
                         @click="closeCart"
                         class="text-gray-400 hover:text-white transition-colors p-1"
                         :aria-label="$t('common.close') || 'Chiudi'"
@@ -184,7 +184,7 @@ onUnmounted(() => {
 
                             <!-- Quantity Controls -->
                             <div class="flex items-center gap-2 mt-2">
-                                <button
+                                <button type="button"
                                     @click="() => { loadingItems.add(item.id); updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1), { onFinish: () => { loadingItems.delete(item.id); } }); }"
                                     class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-gold hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold"
                                     :disabled="item.quantity <= 1 || loadingItems.has(item.id)"
@@ -194,7 +194,7 @@ onUnmounted(() => {
                                 <span class="text-white text-sm font-bold w-8 text-center">
                                     {{ item.quantity || 1 }}
                                 </span>
-                                <button
+                                <button type="button"
                                     @click="() => { loadingItems.add(item.id); updateQuantity(item.id, (item.quantity || 1) + 1, { onFinish: () => { loadingItems.delete(item.id); } }); }"
                                     class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-gold hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
                                     :disabled="item.quantity >= (item.stock ?? item.product?.stock ?? 99) || loadingItems.has(item.id)"
@@ -203,7 +203,7 @@ onUnmounted(() => {
                                 </button>
 
                                 <!-- Remove Button -->
-                                <button
+                                <button type="button"
                                     @click="() => { loadingItems.add(item.id); removeItem(item.id, { onFinish: () => { loadingItems.delete(item.id); } }); }"
                                     class="ml-auto text-gray-500 hover:text-red-400 transition-colors p-1"
                                     :aria-label="$t('shop.remove_item') || 'Rimuovi'"
@@ -265,7 +265,7 @@ onUnmounted(() => {
                         >
                             {{ $t('shop.proceed_checkout') || 'Procedi al checkout' }}
                         </Link>
-                        <button
+                        <button type="button"
                             v-else
                             disabled
                             aria-disabled="true"

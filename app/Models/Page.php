@@ -71,4 +71,15 @@ class Page extends Model implements HasMedia
     {
         $this->registerStandardConversions($media);
     }
+
+    /**
+     * URL dell'immagine di copertina (collection `cover`), usata come hero
+     * dai template pubblici. Restituisce null se non è stata caricata.
+     */
+    public function getCoverUrlAttribute(): ?string
+    {
+        $url = $this->getFirstMediaUrl('cover', 'card') ?: $this->getFirstMediaUrl('cover');
+
+        return $url !== '' ? $url : null;
+    }
 }

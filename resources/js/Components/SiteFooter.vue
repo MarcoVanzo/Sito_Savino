@@ -90,6 +90,7 @@ const footerLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
 const footerBrandName = computed(() => general.value.corporate_name || 'Savino Del Bene');
 const footerTagline = computed(() => footerSettings.value.footer_tagline || $t('footer.tagline_default'));
 const copyrightText = computed(() => (footerSettings.value.footer_copyright || `© ${currentYear} <span class="whitespace-nowrap">Savino Del Bene</span> Volley — ${$t('footer.all_rights_reserved')}.`).replace('{year}', currentYear).replace('Savino Del Bene', '<span class="whitespace-nowrap">Savino Del Bene</span>'));
+const footerPiva = computed(() => footerSettings.value.footer_piva || '');
 
 // Mappa icone SVG per i social (mantenute le stesse SVG originali)
 const socialIconPaths = {
@@ -198,7 +199,9 @@ const socialLinks = computed(() => {
         <!-- Bottom Bar -->
         <div class="border-t border-white/10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="text-gray-400 text-xs" v-html="copyrightText">
+                <div class="text-gray-400 text-xs">
+                    <span v-html="copyrightText"></span>
+                    <span v-if="footerPiva" class="block sm:inline sm:ml-2">P.IVA {{ footerPiva }}</span>
                 </div>
                 <div class="flex items-center gap-6">
                     <a :href="legalDocs.privacy_policy || '/privacy-policy'" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.privacy_policy') }}</a>

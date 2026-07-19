@@ -53,10 +53,10 @@ const timeline = computed(() => {
 
     <PublicLayout>
         <!-- Premium Hero Section -->
-        <PageHero 
-            :title="page?.title" 
-            :subtitle="page?.meta_description" 
-            image="/images/hero-1.jpg" 
+        <PageHero
+            :title="page?.title"
+            :subtitle="page?.meta_description"
+            :image="page?.cover_url || '/images/hero-1.jpg'"
         />
 
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 relative overflow-hidden">

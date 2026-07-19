@@ -7,6 +7,18 @@ use Filament\Forms;
 class PageTemplateForms
 {
     /**
+     * Campo di upload (PDF/ZIP) per un Press Kit della pagina Comunicazione.
+     */
+    private static function pressKitFileField(int $n): Forms\Components\FileUpload
+    {
+        return Forms\Components\FileUpload::make("content_data.press_kit_{$n}_file")
+            ->label('File da scaricare (PDF/ZIP)')
+            ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
+            ->directory('press-kit')
+            ->preserveFilenames();
+    }
+
+    /**
      * Restituisce i campi specifici per il template "Società"
      */
     public static function getSocietaSchema(): array
@@ -14,27 +26,11 @@ class PageTemplateForms
         return [
             Forms\Components\TextInput::make('content_data.hero_subheading')
                 ->label('Sottotitolo Hero')
-                ->default('Dal 1982'),
+                ->placeholder('es. Dal 1982'),
             Forms\Components\Textarea::make('content_data.hero_description')
-                ->label('Descrizione Hero'),
-            Forms\Components\TextInput::make('content_data.storia_title')
-                ->label('Titolo Storia'),
-            Forms\Components\TagsInput::make('content_data.storia_paragraphs')
-                ->label('Paragrafi Storia (Premi Invio per separare)'),
-            Forms\Components\TextInput::make('content_data.storia_years')
-                ->label('Anni di Storia'),
-            Forms\Components\TextInput::make('content_data.org_title')
-                ->label('Titolo Organigramma'),
-            Forms\Components\TextInput::make('content_data.palazzetto_title')
-                ->label('Nome Palazzetto'),
-            Forms\Components\Textarea::make('content_data.palazzetto_description')
-                ->label('Descrizione Palazzetto'),
-            Forms\Components\TextInput::make('content_data.palazzetto_capacity')
-                ->label('Capienza Palazzetto'),
-            Forms\Components\TextInput::make('content_data.palazzetto_homologation')
-                ->label('Omologazione Palazzetto'),
-            Forms\Components\TextInput::make('content_data.palazzetto_address')
-                ->label('Indirizzo Palazzetto'),
+                ->label('Descrizione Hero')
+                ->helperText('Mostrata sotto al titolo quando la pagina non ha un contenuto testuale.')
+                ->rows(3),
         ];
     }
 
@@ -61,6 +57,10 @@ class PageTemplateForms
                     Forms\Components\TagsInput::make('features')->label('Vantaggi (Premi invio)'),
                     Forms\Components\Toggle::make('highlight')->label('Evidenziato (Più Popolare)'),
                     Forms\Components\TextInput::make('cta')->label('Testo Pulsante (es. Acquista)'),
+                    Forms\Components\TextInput::make('cta_url')
+                        ->label('Link Pulsante (URL acquisto/abbonamento)')
+                        ->url()
+                        ->placeholder('es. https://www.vivaticket.com/...'),
                 ])->columns(2)->columnSpanFull(),
             Forms\Components\TextInput::make('content_data.info_heading')
                 ->label('Titolo Sezione Info'),
@@ -201,22 +201,15 @@ class PageTemplateForms
 
                             Forms\Components\Fieldset::make('Modulo di Contatto')
                                 ->schema([
+                                    Forms\Components\TextInput::make('content_data.form_subtitle')
+                                        ->label('Sopratitolo del Modulo')
+                                        ->placeholder('es. Scrivici direttamente'),
                                     Forms\Components\TextInput::make('content_data.form_title')
                                         ->label('Titolo del Modulo')
                                         ->placeholder('es. Scrivici'),
                                     Forms\Components\TextInput::make('content_data.form_success_message')
                                         ->label('Messaggio di Conferma Invio')
                                         ->placeholder('es. Messaggio inviato con successo!'),
-                                ])->columns(2),
-
-                            Forms\Components\Fieldset::make('Titoli Mappa')
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.map_title')
-                                        ->label('Titolo Sezione Mappa')
-                                        ->placeholder('es. Sede Legale'),
-                                    Forms\Components\TextInput::make('content_data.map_address')
-                                        ->label('Testo Indirizzo (Sotto al titolo)')
-                                        ->placeholder('es. Via Benozzo Gozzoli, 5/6, Scandicci'),
                                 ])->columns(2),
                         ]),
 
@@ -587,9 +580,27 @@ class PageTemplateForms
                                     Forms\Components\TextInput::make('content_data.hero_description')
                                         ->label('Descrizione Hero')
                                         ->placeholder('es. Più di uno sport: un impegno costante verso il territorio...'),
+                                    Forms\Components\TextInput::make('content_data.mission_badge')
+                                        ->label('Etichetta Sezione Missione')
+                                        ->placeholder('es. LA NOSTRA MISSIONE'),
                                     Forms\Components\TextInput::make('content_data.mission_title')
                                         ->label('Titolo Missione')
                                         ->placeholder('es. I Nostri Valori in Campo'),
+                                ]),
+                            Forms\Components\Fieldset::make('Titoli Sezioni')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.initiatives_badge')
+                                        ->label('Etichetta Sezione Iniziative')
+                                        ->placeholder('es. COSA FACCIAMO'),
+                                    Forms\Components\TextInput::make('content_data.initiatives_title')
+                                        ->label('Titolo Sezione Iniziative')
+                                        ->placeholder('es. Le Nostre Iniziative'),
+                                    Forms\Components\TextInput::make('content_data.results_badge')
+                                        ->label('Etichetta Sezione Impatto')
+                                        ->placeholder('es. I RISULTATI'),
+                                    Forms\Components\TextInput::make('content_data.impact_title')
+                                        ->label('Titolo Sezione Impatto')
+                                        ->placeholder('es. Il Nostro Impatto'),
                                 ]),
                             Forms\Components\Fieldset::make('Testi della Missione')
                                 ->schema([
@@ -632,6 +643,10 @@ class PageTemplateForms
                                         ->label('Descrizione Progetto')
                                         ->required()
                                         ->rows(3)
+                                        ->columnSpanFull(),
+                                    Forms\Components\TextInput::make('link')
+                                        ->label('Link "Scopri" (opzionale)')
+                                        ->placeholder('es. /sociale/volley-4-all oppure https://...')
                                         ->columnSpanFull(),
                                 ])
                                 ->columns(2)
@@ -1014,6 +1029,7 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.press_kit_1_description')
                                         ->label('Descrizione Press Kit 1')
                                         ->rows(2),
+                                    self::pressKitFileField(1),
                                 ])->columns(1),
 
                             Forms\Components\Fieldset::make('Press Kit 2 (Loghi e Brand Assets)')
@@ -1033,6 +1049,7 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.press_kit_2_description')
                                         ->label('Descrizione Press Kit 2')
                                         ->rows(2),
+                                    self::pressKitFileField(2),
                                 ])->columns(1),
 
                             Forms\Components\Fieldset::make('Press Kit 3 (Cartella Stampa)')
@@ -1052,6 +1069,7 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.press_kit_3_description')
                                         ->label('Descrizione Press Kit 3')
                                         ->rows(2),
+                                    self::pressKitFileField(3),
                                 ])->columns(1),
 
                             Forms\Components\Fieldset::make('Press Kit 4 (Guida Media LVF)')
@@ -1071,6 +1089,7 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.press_kit_4_description')
                                         ->label('Descrizione Press Kit 4')
                                         ->rows(2),
+                                    self::pressKitFileField(4),
                                 ])->columns(1),
                         ]),
 

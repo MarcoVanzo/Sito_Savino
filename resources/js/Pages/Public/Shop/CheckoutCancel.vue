@@ -73,7 +73,7 @@ const handleRetryPayment = () => {
                             <Link :href="route('shop.order.show', order.order_number)" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
                                 {{ $t('checkout_cancel.order_details') }}
                             </Link>
-                            <button
+                            <button type="button"
                                 v-if="canRetry"
                                 @click="handleRetryPayment"
                                 :disabled="retryForm.processing"

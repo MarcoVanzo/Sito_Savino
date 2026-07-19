@@ -64,7 +64,7 @@ const countByStatus = (status) => {
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Filter Tabs -->
                 <div class="flex flex-wrap gap-2 mb-10 justify-center">
-                    <button
+                    <button type="button"
                         v-for="filter in filters"
                         :key="filter.key"
                         @click="activeFilter = filter.key"

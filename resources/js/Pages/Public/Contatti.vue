@@ -368,11 +368,12 @@ const ogMeta = useOgMeta({
                                     type="text" 
                                     class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-savino-blue/20 focus:border-savino-blue focus:bg-white transition-all font-medium text-gray-900 placeholder-gray-400"
                                     :placeholder="$t('contatti.search_placeholder') || 'Cerca per nome, ruolo o email...'"
+                                    :aria-label="$t('contatti.search_placeholder') || 'Cerca per nome, ruolo o email...'"
                                 >
                             </div>
                             <!-- Chips / Filter -->
                             <div class="flex flex-wrap gap-2 items-center">
-                                <button
+                                <button type="button"
                                     v-for="cat in allCategories"
                                     :key="cat"
                                     @click="selectedCategory = cat"
@@ -394,7 +395,7 @@ const ogMeta = useOgMeta({
                             </svg>
                         </div>
                         <p class="text-gray-500 font-medium text-lg">Nessun contatto trovato per questa ricerca.</p>
-                        <button @click="searchQuery = ''; selectedCategory = 'Tutti'" class="mt-4 text-savino-blue font-bold hover:underline">Resetta filtri</button>
+                        <button type="button" @click="searchQuery = ''; selectedCategory = 'Tutti'" class="mt-4 text-savino-blue font-bold hover:underline">Resetta filtri</button>
                     </div>
 
                     <div v-else class="space-y-12">
@@ -468,7 +469,7 @@ const ogMeta = useOgMeta({
                             </div>
                             <h3 class="text-2xl font-black text-gray-900 mb-3">{{ flashSuccess }}</h3>
                             <p class="text-gray-500 font-medium mb-8 text-lg">{{ cd.form_success_message || $t('contatti.form_success_message') || 'Il tuo messaggio è stato inviato con successo.' }}</p>
-                            <button @click="resetForm" class="inline-block px-8 py-3.5 bg-gray-100 text-gray-900 rounded-xl font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">{{ cd.form_reset_label || $t('contatti.form_reset_label') || 'Invia un altro messaggio' }}</button>
+                            <button type="button" @click="resetForm" class="inline-block px-8 py-3.5 bg-gray-100 text-gray-900 rounded-xl font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">{{ cd.form_reset_label || $t('contatti.form_reset_label') || 'Invia un altro messaggio' }}</button>
                         </div>
 
                         <!-- Form -->
@@ -555,7 +556,7 @@ const ogMeta = useOgMeta({
                             </div>
                             
                             <div class="hidden" aria-hidden="true">
-                                <input type="text" v-model="form.honeypot" tabindex="-1" autocomplete="off" />
+                                <input type="text" v-model="form.honeypot" tabindex="-1" autocomplete="off" aria-label="Lascia vuoto" />
                             </div>
                             
                             <div class="pt-4 flex justify-center">

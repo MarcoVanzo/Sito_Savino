@@ -82,19 +82,19 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                         </p>
                     </div>
                     <div class="flex gap-2 flex-shrink-0 flex-wrap">
-                        <button
+                        <button type="button"
                             @click="openSettings"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white border border-gray-600 hover:border-white/30 rounded-lg transition-all duration-200"
                         >
                             {{ $t('cookie.customize') }}
                         </button>
-                        <button
+                        <button type="button"
                             @click="rejectAll"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white border border-gray-600 hover:border-white/30 rounded-lg transition-all duration-200"
                         >
                             {{ $t('cookie.reject_all') }}
                         </button>
-                        <button
+                        <button type="button"
                             @click="acceptAll"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-gold text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200 shadow-lg"
                         >
@@ -134,7 +134,7 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     <p class="text-xs text-gray-500">{{ $t('cookie.analytics_desc') }}</p>
                                 </div>
                                 <label for="cookie-analytics" class="relative inline-flex items-center cursor-pointer">
-                                    <input id="cookie-analytics" type="checkbox" v-model="consent.analytics" class="sr-only peer" />
+                                    <input id="cookie-analytics" type="checkbox" v-model="consent.analytics" class="sr-only peer" :aria-label="$t('cookie.analytics_title')" />
                                     <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-gold transition-colors"></div>
                                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
                                 </label>
@@ -147,14 +147,14 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     <p class="text-xs text-gray-500">{{ $t('cookie.marketing_desc') }}</p>
                                 </div>
                                 <label for="cookie-marketing" class="relative inline-flex items-center cursor-pointer">
-                                    <input id="cookie-marketing" type="checkbox" v-model="consent.marketing" class="sr-only peer" />
+                                    <input id="cookie-marketing" type="checkbox" v-model="consent.marketing" class="sr-only peer" :aria-label="$t('cookie.marketing_title')" />
                                     <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-gold transition-colors"></div>
                                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
                                 </label>
                             </div>
 
                             <div class="pt-2 flex justify-end">
-                                <button
+                                <button type="button"
                                     @click="saveConsent"
                                     class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-gold text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200"
                                 >
