@@ -31,6 +31,17 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    /**
+     * Il ruolo (enum o valore stringa proveniente dallo stato del form)
+     * ha accesso al pannello di amministrazione?
+     */
+    protected static function roleCanAccessPanel(UserRole|string|null $role): bool
+    {
+        $role = $role instanceof UserRole ? $role : UserRole::tryFrom((string) $role);
+
+        return $role?->canAccessPanel() ?? false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -63,6 +74,14 @@ class UserResource extends Resource
                             ->options(UserRole::class)
                             ->required()
                             ->default(UserRole::User)
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set): void {
+                                // Selezionando un ruolo con accesso al pannello, il cambio
+                                // password al primo accesso è obbligatorio: forza il toggle.
+                                if (self::roleCanAccessPanel($state)) {
+                                    $set('must_change_password', true);
+                                }
+                            })
                             ->disabled(fn ($record) => $record && $record->id === auth()->id()),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Attivo (Abilitato all\'accesso)')
@@ -70,8 +89,17 @@ class UserResource extends Resource
                             ->disabled(fn ($record) => $record && $record->id === auth()->id()),
                         Forms\Components\Toggle::make('must_change_password')
                             ->label('Forza cambio password al primo login')
+                            ->helperText('Obbligatorio per gli account con accesso al pannello (admin).')
                             ->default(fn (string $context): bool => $context === 'create')
-                            ->disabled(fn ($record) => $record && $record->id === auth()->id()),
+                            ->dehydrated()
+                            ->disabled(function (Forms\Get $get, $record): bool {
+                                if ($record && $record->id === auth()->id()) {
+                                    return true;
+                                }
+
+                                // Per i ruoli admin è forzato (non disattivabile).
+                                return self::roleCanAccessPanel($get('role'));
+                            }),
                     ])->columns(3),
             ]);
     }
