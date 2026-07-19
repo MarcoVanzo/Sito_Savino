@@ -38,10 +38,18 @@ class AuthenticatedSessionController extends Controller
         // Merge carrello guest nel carrello utente (come nella registrazione shop)
         app(CartService::class)->mergeOnLogin($request->user());
 
-        // Customer → shop, Staff/Admin → dashboard
-        $default = $request->user()->role === UserRole::Customer
-            ? route('shop', absolute: false)
-            : route('dashboard', absolute: false);
+        // Customer → shop, utenti con accesso al pannello → CMS, altri → dashboard.
+        // In questo modo lo staff usa un'unica pagina di login (questa) e viene
+        // portato direttamente nel pannello Filament.
+        $role = $request->user()->role;
+
+        if ($role === UserRole::Customer) {
+            $default = route('shop', absolute: false);
+        } elseif ($role->canAccessPanel()) {
+            $default = '/admin';
+        } else {
+            $default = route('dashboard', absolute: false);
+        }
 
         return redirect()->intended($default);
     }
