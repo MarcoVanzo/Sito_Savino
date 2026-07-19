@@ -38,6 +38,19 @@ class EnsurePasswordIsChangedTest extends TestCase
         $response->assertRedirect(route('password.change'));
     }
 
+    public function test_admin_with_password_change_force_is_redirected_from_admin_panel(): void
+    {
+        $user = User::factory()->create();
+        $user->forceFill([
+            'role' => UserRole::SuperAdmin,
+            'must_change_password' => true,
+        ])->save();
+
+        $response = $this->actingAs($user)->get('/admin');
+
+        $response->assertRedirect(route('password.change'));
+    }
+
     public function test_user_with_password_change_force_can_access_change_password_page(): void
     {
         $user = User::factory()->create();
