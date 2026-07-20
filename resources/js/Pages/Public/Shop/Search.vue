@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, onUnmounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 import ProductCardSkeleton from '@/Components/Shop/ProductCardSkeleton.vue';

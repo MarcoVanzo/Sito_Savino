@@ -100,13 +100,12 @@ class StoreCheckoutRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            if ($this->country === 'IT' && $this->shipping_zip_code) {
-                if (! preg_match('/^\d{5}$/', $this->shipping_zip_code)) {
-                    $validator->errors()->add(
-                        'shipping_zip_code',
-                        __('validation.zip_code_it')
-                    );
-                }
+            if ($this->country === 'IT' && $this->shipping_zip_code
+                && ! preg_match('/^\d{5}$/', $this->shipping_zip_code)) {
+                $validator->errors()->add(
+                    'shipping_zip_code',
+                    __('validation.zip_code_it')
+                );
             }
             // Codice Fiscale obbligatorio per ordini in Italia
             if ($this->country === 'IT' && empty($this->codice_fiscale)) {

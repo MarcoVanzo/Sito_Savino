@@ -120,9 +120,10 @@ class CreateGalleryFromPosts extends Command
                 }
 
                 // Titolo dalla news
-                $imageTitle = is_array($post->getTranslations('title'))
-                    ? ($post->getTranslation('title', 'it', false) ?: $post->title)
-                    : $post->title;
+                $imageTitle = $post->title;
+                if (is_array($post->getTranslations('title'))) {
+                    $imageTitle = $post->getTranslation('title', 'it', false) ?: $post->title;
+                }
 
                 // Crea il record GalleryImage
                 $galleryImage = GalleryImage::create([

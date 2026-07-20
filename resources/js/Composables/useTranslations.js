@@ -1,5 +1,5 @@
 import { getCurrentInstance } from 'vue';
-import { createTranslations, messages, resolve } from '@/i18n/index.js';
+import { messages, resolve } from '@/i18n/index.js';
 import { usePage } from '@inertiajs/vue3';
 
 /**
@@ -26,11 +26,11 @@ export function useTranslations() {
 
     return function t(key, params = {}) {
         let locale = 'it';
-        if (page && page.props && page.props.locale) {
+        if (page?.props?.locale) {
             locale = page.props.locale;
         } else {
             const instance = getCurrentInstance();
-            if (instance && instance.proxy && instance.proxy.$page && instance.proxy.$page.props) {
+            if (instance?.proxy?.$page?.props) {
                 locale = instance.proxy.$page.props.locale;
             }
         }
@@ -38,7 +38,7 @@ export function useTranslations() {
         let value = resolve(messages[locale], key) ?? resolve(messages.it, key) ?? key;
         if (typeof value === 'string' && params) {
             Object.entries(params).forEach(([k, v]) => {
-                value = value.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+                value = value.replace(new RegExp(String.raw`\{${k}\}`, 'g'), v);
             });
         }
         return value;

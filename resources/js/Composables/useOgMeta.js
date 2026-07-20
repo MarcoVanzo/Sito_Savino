@@ -34,9 +34,10 @@ export function useOgMeta({
         ? $t('home.og_description')
         : 'Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.';
 
-    const fullTitle = title
-        ? (suffix ? `${title} — ${siteName}` : title)
-        : siteName;
+    let fullTitle = siteName;
+    if (title) {
+        fullTitle = suffix ? `${title} — ${siteName}` : title;
+    }
 
     return {
         title: fullTitle,

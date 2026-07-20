@@ -1,6 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';

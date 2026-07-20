@@ -164,7 +164,10 @@ class AuctionController extends Controller
         $product = $auction->product;
 
         $sizes = $product?->variants->pluck('size')->filter()->unique()->values()->all() ?? [];
-        $productSize = $auction->size ?: (count($sizes) > 0 ? implode(', ', $sizes) : null);
+        $productSize = $auction->size;
+        if (! $productSize) {
+            $productSize = count($sizes) > 0 ? implode(', ', $sizes) : null;
+        }
 
         return [
             ...$this->formatAuctionForList($auction),

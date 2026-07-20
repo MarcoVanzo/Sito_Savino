@@ -1,7 +1,6 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { defineAsyncComponent } from 'vue';
 import MegaMenu from '@/Components/MegaMenu.vue';
 import SiteFooter from '@/Components/SiteFooter.vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';

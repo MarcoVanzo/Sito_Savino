@@ -70,9 +70,9 @@ class WordPressContentCleaner
         $excerpt = preg_replace('/<!--.*?-->/s', '', $excerpt);
 
         // Rimuovi [&hellip;] e varianti
-        $excerpt = preg_replace('/\[&hellip;\]/', '…', $excerpt);
-        $excerpt = preg_replace('/\[&#8230;\]/', '…', $excerpt);
-        $excerpt = preg_replace('/\[\x{2026}\]/u', '…', $excerpt);
+        $excerpt = str_replace('[&hellip;]', '…', $excerpt);
+        $excerpt = str_replace('[&#8230;]', '…', $excerpt);
+        $excerpt = str_replace("[\u{2026}]", '…', $excerpt);
 
         // Decodifica entità e strip tag
         $excerpt = html_entity_decode($excerpt, ENT_QUOTES | ENT_HTML5, 'UTF-8');
