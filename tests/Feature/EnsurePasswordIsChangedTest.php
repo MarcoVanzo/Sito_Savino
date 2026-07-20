@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -173,5 +174,44 @@ class EnsurePasswordIsChangedTest extends TestCase
 
         $user->refresh();
         $this->assertFalse($user->must_change_password);
+    }
+
+    public function test_admin_stays_authenticated_on_filament_panel_after_password_change(): void
+    {
+        // Riproduce il bug: dopo il cambio password forzato il pannello Filament
+        // (middleware AuthenticateSession) non deve slogare l'utente per hash
+        // password non aggiornato in sessione.
+        $user = User::factory()->create([
+            'password' => 'temp_password123',
+        ]);
+        $user->forceFill([
+            'role' => UserRole::SuperAdmin,
+            'must_change_password' => true,
+        ])->save();
+
+        // Il session hash viene inizializzato dal middleware AuthenticateSession
+        // al primo passaggio nel pannello (come avviene dopo un login reale).
+        $this->actingAs($user)->get('/admin');
+
+        $changeResponse = $this->actingAs($user)->post(route('password.change.update'), [
+            'current_password' => 'temp_password123',
+            'password' => 'NewSecurePassword123!',
+            'password_confirmation' => 'NewSecurePassword123!',
+        ]);
+
+        $changeResponse->assertRedirect('/admin');
+
+        // La sessione deve contenere l'hash aggiornato, così AuthenticateSession
+        // non forza il logout al successivo accesso al pannello.
+        $this->assertSame(
+            $user->fresh()->getAuthPassword(),
+            session('password_hash_'.Auth::getDefaultDriver()),
+        );
+
+        // Seguendo il redirect l'utente resta autenticato sul pannello e non
+        // viene rimbalzato alla pagina di login di Filament.
+        $panelResponse = $this->get('/admin');
+        $panelResponse->assertStatus(200);
+        $this->assertAuthenticatedAs($user->fresh());
     }
 }
