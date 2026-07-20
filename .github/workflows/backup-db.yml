@@ -229,9 +229,11 @@ jobs:
             exit 0
           fi
 
-          RULE_UUID=$(doctl databases firewalls list "$CLUSTER_ID" \
-            --format UUID,Type,Value --no-header \
-            | awk -v ip="${RUNNER_IP}" '$2=="ip_addr" && $3==ip {print $1}')
+          # NB: `doctl databases firewalls list` NON supporta --format:
+          # usare l'output JSON e filtrare con jq.
+          RULE_UUID=$(doctl databases firewalls list "$CLUSTER_ID" -o json \
+            | jq -r --arg ip "${RUNNER_IP}" \
+                '.[] | select(.type=="ip_addr" and .value==$ip) | .uuid')
 
           if [ -z "$RULE_UUID" ]; then
             echo "⚠️ Regola per ${RUNNER_IP} non trovata (già rimossa?)."
