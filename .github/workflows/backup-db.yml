@@ -64,11 +64,13 @@ jobs:
 
       # ---------------------------------------------------------------
       # 2b. Autentica doctl (per gestire il firewall del DB)
+      #     Token dedicato least-privilege (scope: database read+update),
+      #     distinto dal DIGITALOCEAN_ACCESS_TOKEN usato per il deploy.
       # ---------------------------------------------------------------
       - name: Autentica doctl
         uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2.5.2
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          token: ${{ secrets.BACKUP_DO_DB_TOKEN }}
 
       # ---------------------------------------------------------------
       # 2c. Whitelist temporaneo dell'IP del runner nelle Trusted Sources
