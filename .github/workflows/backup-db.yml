@@ -223,7 +223,7 @@ jobs:
       - name: Rimuovi IP runner dal firewall del DB
         if: always()
         run: |
-          set +e
+          set -eo pipefail
           if [ -z "${CLUSTER_ID}" ] || [ -z "${RUNNER_IP}" ]; then
             echo "ℹ️ Nessun IP da rimuovere (whitelist non eseguita)."
             exit 0
@@ -240,7 +240,10 @@ jobs:
             exit 0
           fi
 
-          doctl databases firewalls remove "$CLUSTER_ID" "$RULE_UUID"
+          # La rimozione richiede l'UUID via flag --uuid (non posizionale).
+          # Niente masking dell'errore: se fallisce, lo step deve fallire —
+          # un IP rimasto whitelistato è un rischio da far emergere.
+          doctl databases firewalls remove "$CLUSTER_ID" --uuid "$RULE_UUID"
           echo "🔒 IP ${RUNNER_IP} rimosso dalle Trusted Sources."
 
       # ---------------------------------------------------------------
