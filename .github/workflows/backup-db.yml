@@ -63,6 +63,46 @@ jobs:
           echo "📁 Destinazione: s3://${BUCKET_NAME}/${S3_PATH}"
 
       # ---------------------------------------------------------------
+      # 2b. Autentica doctl (per gestire il firewall del DB)
+      # ---------------------------------------------------------------
+      - name: Autentica doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      # ---------------------------------------------------------------
+      # 2c. Whitelist temporaneo dell'IP del runner nelle Trusted Sources
+      #     Il cluster è chiuso al mondo (hardening): apriamo solo l'IP
+      #     effimero di questo run, che verrà rimosso a fine job (step 9).
+      # ---------------------------------------------------------------
+      - name: Whitelist IP runner nel firewall del DB
+        run: |
+          set -eo pipefail
+
+          RUNNER_IP=$(curl -sf --retry 3 --retry-delay 2 https://checkip.amazonaws.com | tr -d '[:space:]')
+          if [ -z "$RUNNER_IP" ]; then
+            echo "❌ Impossibile determinare l'IP pubblico del runner"; exit 1
+          fi
+          echo "🌐 IP runner: ${RUNNER_IP}"
+
+          CLUSTER_ID=$(doctl databases list --format ID,Name --no-header \
+            | awk -v n="sito-savino-db" '$2==n {print $1}')
+          if [ -z "$CLUSTER_ID" ]; then
+            echo "❌ Cluster DB 'sito-savino-db' non trovato"; exit 1
+          fi
+
+          # Salva per lo step di cleanup (step 9)
+          echo "RUNNER_IP=${RUNNER_IP}" >> "$GITHUB_ENV"
+          echo "CLUSTER_ID=${CLUSTER_ID}" >> "$GITHUB_ENV"
+
+          echo "🔓 Aggiungo ${RUNNER_IP} alle Trusted Sources del cluster..."
+          doctl databases firewalls append "$CLUSTER_ID" --rule "ip_addr:${RUNNER_IP}"
+
+          # Attesa propagazione della regola prima di connettersi
+          sleep 20
+          echo "✅ IP whitelisted."
+
+      # ---------------------------------------------------------------
       # 3. Dump MySQL → Compress → Encrypt
       #    Fix #1: usa set -o pipefail per catturare errori di mysqldump
       #    Fix #3: usa --passphrase-fd per evitare leak della passphrase
@@ -175,6 +215,31 @@ jobs:
         run: |
           rm -f *.sql.gz.gpg *.sha256
           echo "🧹 File locali rimossi."
+
+      # ---------------------------------------------------------------
+      # 9. Rimozione IP runner dal firewall del DB (sempre, anche su errore)
+      #    Ripristina il lockdown del cluster rimuovendo la regola effimera.
+      # ---------------------------------------------------------------
+      - name: Rimuovi IP runner dal firewall del DB
+        if: always()
+        run: |
+          set +e
+          if [ -z "${CLUSTER_ID}" ] || [ -z "${RUNNER_IP}" ]; then
+            echo "ℹ️ Nessun IP da rimuovere (whitelist non eseguita)."
+            exit 0
+          fi
+
+          RULE_UUID=$(doctl databases firewalls list "$CLUSTER_ID" \
+            --format UUID,Type,Value --no-header \
+            | awk -v ip="${RUNNER_IP}" '$2=="ip_addr" && $3==ip {print $1}')
+
+          if [ -z "$RULE_UUID" ]; then
+            echo "⚠️ Regola per ${RUNNER_IP} non trovata (già rimossa?)."
+            exit 0
+          fi
+
+          doctl databases firewalls remove "$CLUSTER_ID" "$RULE_UUID"
+          echo "🔒 IP ${RUNNER_IP} rimosso dalle Trusted Sources."
 
       # ---------------------------------------------------------------
       # 8. Riepilogo
