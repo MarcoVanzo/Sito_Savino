@@ -115,9 +115,10 @@ const services = computed(() => {
         
         <!-- Interactive Map Section -->
         <section class="h-[400px] w-full bg-gray-200 grayscale hover:grayscale-0 transition-all duration-700">
-            <iframe 
-                :src="mapsIframeSrc" 
-                width="100%" 
+            <iframe
+                :src="mapsIframeSrc"
+                :title="$t('societa.palazzetto_map_title') || 'Mappa Palazzo Wanny'"
+                width="100%"
                 height="100%" 
                 style="border:0;" 
                 allowfullscreen="" 
