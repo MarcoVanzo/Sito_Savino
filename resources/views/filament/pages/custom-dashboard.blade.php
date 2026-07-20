@@ -27,7 +27,7 @@
 
             @foreach($cards as $card)
                 @php $isWip = str_contains($card['url'], 'under-construction'); @endphp
-                <a href="{{ url($card['url']) }}" 
+                <a href="{{ url($card['url']) }}"
                    class="group relative flex flex-col items-center justify-center p-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-800/50 rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 ease-out hover:-translate-y-1.5 overflow-hidden ring-1 ring-gray-900/5 dark:ring-white/10 hover:ring-gray-500/50 {{ $isWip ? 'opacity-60 hover:opacity-90' : '' }}">
                     
                     @if($isWip)

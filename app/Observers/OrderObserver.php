@@ -20,6 +20,14 @@ class OrderObserver
      */
     public function created(Order $order): void
     {
+        $this->invalidateDashboardCache();
+    }
+
+    /**
+     * Invalida la cache dei widget della dashboard.
+     */
+    private function invalidateDashboardCache(): void
+    {
         Cache::forget('filament:dashboard:stats');
         Cache::forget('filament:dashboard:orders_chart');
     }
@@ -37,8 +45,7 @@ class OrderObserver
         }
 
         // Invalida la cache dei widget dashboard quando lo status cambia
-        Cache::forget('filament:dashboard:stats');
-        Cache::forget('filament:dashboard:orders_chart');
+        $this->invalidateDashboardCache();
 
         // Ordine cancellato o rimborsato → ripristina stock riservato al checkout
         // Lo stock viene riservato al momento del checkout (Pending), quindi va
@@ -110,7 +117,6 @@ class OrderObserver
      */
     public function deleted(Order $order): void
     {
-        Cache::forget('filament:dashboard:stats');
-        Cache::forget('filament:dashboard:orders_chart');
+        $this->invalidateDashboardCache();
     }
 }

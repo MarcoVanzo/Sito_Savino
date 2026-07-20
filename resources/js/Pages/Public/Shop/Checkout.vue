@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
-import { computed, nextTick, onMounted, ref, watch, watchEffect } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 
@@ -242,7 +242,7 @@ watch(() => form.errors, (errors) => {
     nextTick(() => {
         const errorKeys = Object.keys(errors);
         if (errorKeys.length > 0) {
-            const firstErrorEl = document.querySelector(`[id*="${errorKeys[0].replace(/_/g, '-')}"]`)
+            const firstErrorEl = document.querySelector(`[id*="${errorKeys[0].replaceAll('_', '-')}"]`)
                 || document.querySelector(`.text-red-500`);
             if (firstErrorEl) {
                 firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });

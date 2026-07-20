@@ -72,10 +72,8 @@ class CacheInvalidationObserver
         }
 
         // Page: invalida la cache per slug
-        if ($model instanceof Page) {
-            if ($model->slug) {
-                Cache::forget('public:page:'.$model->slug);
-            }
+        if ($model instanceof Page && $model->slug) {
+            Cache::forget('public:page:'.$model->slug);
         }
     }
 

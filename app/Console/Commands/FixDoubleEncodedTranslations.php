@@ -60,8 +60,6 @@ class FixDoubleEncodedTranslations extends Command
      */
     private function fixModel(string $modelClass, array $fields): void
     {
-        $model = new $modelClass;
-
         $modelClass::query()->chunk(100, function ($records) use ($fields) {
             foreach ($records as $record) {
                 $changed = false;

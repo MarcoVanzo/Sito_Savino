@@ -8,7 +8,10 @@ const shareLinks = [
     {
         name: 'WhatsApp',
         icon: 'whatsapp',
-        getUrl: () => `https://wa.me/?text=${encodeURIComponent(`${props.title} ${props.url}`)}`,
+        getUrl: () => {
+            const shareText = `${props.title} ${props.url}`;
+            return `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+        },
         color: 'hover:bg-green-600',
     },
     {

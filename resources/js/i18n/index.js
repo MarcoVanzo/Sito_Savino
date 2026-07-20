@@ -10,7 +10,7 @@ const messages = { it, en };
  * @returns {*}
  */
 export function resolve(obj, key) {
-    return key.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
+    return key.split('.').reduce((o, k) => (o?.[k] !== undefined ? o[k] : undefined), obj);
 }
 
 /**
@@ -26,7 +26,7 @@ export function createTranslations(locale = 'it') {
         // Simple interpolation: replace {param} with value
         if (typeof value === 'string' && params) {
             Object.entries(params).forEach(([k, v]) => {
-                value = value.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+                value = value.replace(new RegExp(String.raw`\{${k}\}`, 'g'), v);
             });
         }
         return value;

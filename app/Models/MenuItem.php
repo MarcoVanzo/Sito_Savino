@@ -100,9 +100,10 @@ class MenuItem extends Model implements HasMedia
                 ->get()
                 ->map(function ($item) use ($locale) {
                     $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
-                    $itLabel = is_array($item->getTranslations('label'))
-                        ? ($item->getTranslation('label', 'it', false) ?: $item->label)
-                        : $item->label;
+                    $itLabel = $item->label;
+                    if (is_array($item->getTranslations('label'))) {
+                        $itLabel = $item->getTranslation('label', 'it', false) ?: $item->label;
+                    }
                     $normalizedLabel = mb_strtolower(trim($itLabel));
                     if (! $menuImage && isset(self::$staticMenuImages[$normalizedLabel])) {
                         $menuImage = '/images/menu/'.self::$staticMenuImages[$normalizedLabel];

@@ -55,10 +55,8 @@ class OrderController extends Controller
         $order = Order::where('order_token', $orderToken)->firstOrFail();
 
         // Verifica accesso: utente autenticato può scaricare solo i propri ordini
-        if (auth()->check()) {
-            if ($order->user_id !== auth()->id()) {
-                abort(403);
-            }
+        if (auth()->check() && $order->user_id !== auth()->id()) {
+            abort(403);
         }
         // Guest: l'unica protezione è il token UUID nell'URL (alta entropia)
 
@@ -87,10 +85,8 @@ class OrderController extends Controller
             abort(404);
         }
 
-        $order = Order::where('order_number', $orderNumber)
+        return Order::where('order_number', $orderNumber)
             ->where('order_token', $token)
             ->firstOrFail();
-
-        return $order;
     }
 }

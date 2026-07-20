@@ -64,11 +64,23 @@ class VariantsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('price_modifier')
                     ->label('Mod. Prezzo')
                     ->money('EUR')
-                    ->color(fn ($state) => $state > 0 ? 'success' : ($state < 0 ? 'danger' : null)),
+                    ->color(function ($state) {
+                        if ($state > 0) {
+                            return 'success';
+                        }
+
+                        return $state < 0 ? 'danger' : null;
+                    }),
                 Tables\Columns\TextColumn::make('stock')
                     ->label('Stock')
                     ->badge()
-                    ->color(fn (int $state): string => $state > 5 ? 'success' : ($state > 0 ? 'warning' : 'danger')),
+                    ->color(function (int $state): string {
+                        if ($state > 5) {
+                            return 'success';
+                        }
+
+                        return $state > 0 ? 'warning' : 'danger';
+                    }),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()

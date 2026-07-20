@@ -23,9 +23,6 @@ trait LogsActivity
      */
     public static function bootLogsActivity(): void
     {
-        // Campi sempre esclusi dal diff (cambiano ad ogni salvataggio)
-        $alwaysExclude = ['updated_at', 'created_at', 'remember_token'];
-
         static::created(function ($model) {
             static::logAction($model, 'created');
         });

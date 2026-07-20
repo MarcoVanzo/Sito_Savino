@@ -3,7 +3,7 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { roleLabels, roleColors, displayRole } from '@/data/playerRoles';
+import { roleColors, displayRole } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 

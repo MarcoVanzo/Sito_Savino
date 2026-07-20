@@ -1,7 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useImageFallback } from '@/Composables/useImageFallback.js'
 import { useOgMeta } from '@/Composables/useOgMeta'

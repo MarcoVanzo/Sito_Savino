@@ -63,7 +63,13 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
                         ])
                         ->columns(3)
                         ->collapsible()
-                        ->formatStateUsing(fn ($state) => is_array($state) ? $state : (json_decode($state ?? '[]', true) ?: []))
+                        ->formatStateUsing(function ($state) {
+                            if (is_array($state)) {
+                                return $state;
+                            }
+
+                            return json_decode($state ?? '[]', true) ?: [];
+                        })
                         ->dehydrateStateUsing(fn ($state) => json_encode(array_values($state ?? []))),
                     TextInput::make('stats_title')->label('Titolo Sezione'),
                     TextInput::make('stats_subtitle')->label('Sottotitolo Sezione'),

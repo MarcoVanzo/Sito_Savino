@@ -5,7 +5,6 @@ import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
-import PageHero from '@/Components/PageHero.vue';
 
 const { sanitize } = useSanitize();
 const $t = useTranslations();
