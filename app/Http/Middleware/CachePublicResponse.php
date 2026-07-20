@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -46,6 +47,8 @@ class CachePublicResponse
         if (
             ! $request->isMethod('GET') ||
             $request->is('admin*', 'filament*', 'livewire*', 'api*', '_debugbar*', '_ignition*') ||
+            $this->needsFreshCsrfCookie($request) ||
+            $this->mightBeAuthenticated($request) ||
             $request->user() ||
             $request->hasHeader('X-Inertia') // Inertia partial reloads need fresh data
         ) {
@@ -98,6 +101,44 @@ class CachePublicResponse
         }
 
         return $response;
+    }
+
+    /**
+     * Questo middleware gira in "prepend", cioè PRIMA di StartSession: a questo
+     * punto $request->user() è sempre null e non è affidabile per distinguere
+     * gli utenti autenticati. Senza questo controllo le pagine autenticate (es.
+     * /profile) verrebbero messe in cache e servite a chiunque.
+     *
+     * Un utente autenticato ha sempre il cookie di sessione: se il cookie è
+     * presente la richiesta è potenzialmente autenticata e la saltiamo, lasciando
+     * girare l'intera pipeline (che gestisce correttamente auth e dati per-utente).
+     * Il traffico realmente anonimo (bot, primo accesso senza cookie) continua a
+     * beneficiare della cache full-page.
+     */
+    private function mightBeAuthenticated(Request $request): bool
+    {
+        return $request->cookies->has(Config::get('session.cookie'));
+    }
+
+    /**
+     * Le pagine con form per ospiti (login, registrazione, recupero password)
+     * devono NON essere messe in cache: la cache full-page rimuove gli header
+     * Set-Cookie e X-XSRF-TOKEN, quindi un visitatore che le apre per primo non
+     * riceverebbe il cookie XSRF-TOKEN e l'invio del form fallirebbe con 419.
+     * Il frontend Inertia si affida esclusivamente a quel cookie per il CSRF.
+     */
+    private function needsFreshCsrfCookie(Request $request): bool
+    {
+        return $request->is(
+            'login',
+            'register',
+            'forgot-password',
+            'reset-password',
+            'reset-password/*',
+            // Registrazione shop (slug localizzati)
+            '*/registrati',
+            'en/shop/register',
+        );
     }
 
     /**
