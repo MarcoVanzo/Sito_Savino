@@ -73,8 +73,11 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
 
       # Installazione dipendenze Node.js
+      # --ignore-scripts: blocca i lifecycle script dei pacchetti in fase di
+      # install (hardening supply-chain, SonarCloud S6505). Le dipendenze sono
+      # pure JS (vite/vue/tailwind), nessuna richiede build nativa post-install.
       - name: NPM install
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       # Build degli asset frontend (Vite)
       - name: NPM build

@@ -46,8 +46,12 @@ jobs:
       # 1. Installazione rclone
       # ---------------------------------------------------------------
       - name: Installa rclone
+        # Installazione dai repository APT firmati di Ubuntu invece di
+        # `curl … | sudo bash` (SonarCloud S8482/S6506): niente esecuzione di
+        # artefatti scaricati non verificati e nessun rischio di redirect.
         run: |
-          curl -sSfL https://rclone.org/install.sh | sudo bash
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rclone
           rclone version
 
       # ---------------------------------------------------------------
