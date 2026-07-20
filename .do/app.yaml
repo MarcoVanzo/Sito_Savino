@@ -14,7 +14,7 @@ ingress:
 name: sito-savino
 region: fra
 services:
-- build_command: composer install --optimize-autoloader --no-dev && npm install &&
+- build_command: composer install --optimize-autoloader --no-dev && npm ci --include=dev &&
     npm run build
   envs:
   - key: APP_ENV
@@ -129,7 +129,10 @@ services:
     value: "2"
   github:
     branch: main
-    deploy_on_push: true
+    # Deploy gestito dal job "deploy" gated in .github/workflows/ci.yml
+    # (solo dopo che i test passano). Evita il doppio deploy e i rilasci
+    # non gated che avvenivano con deploy_on_push: true.
+    deploy_on_push: false
     repo: MarcoVanzo/sito_savino
   http_port: 8080
   instance_count: 1
@@ -223,7 +226,10 @@ workers:
     value: "2"
   github:
     branch: main
-    deploy_on_push: true
+    # Deploy gestito dal job "deploy" gated in .github/workflows/ci.yml
+    # (solo dopo che i test passano). Evita il doppio deploy e i rilasci
+    # non gated che avvenivano con deploy_on_push: true.
+    deploy_on_push: false
     repo: MarcoVanzo/sito_savino
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
