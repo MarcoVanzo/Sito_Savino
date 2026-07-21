@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Models\Page;
@@ -36,7 +37,7 @@ class AdminPanelProvider extends PanelProvider
             // brandizzata dai colori e dal logo impostati qui sotto. Il reset
             // password dello staff segue lo stesso percorso (/admin/password-reset).
             ->login()
-            ->passwordReset()
+            ->passwordReset(ResetPassword::class)
             ->colors([
                 'primary' => Color::Hex('#003063'), // Savino Blue
                 'danger' => Color::Hex('#DF338F'), // Savino Red
@@ -90,6 +91,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::FOOTER,
                 fn (): string => view('filament.hooks.footer')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_BEFORE,
+                fn (): string => view('filament.hooks.password-expiry-banner')->render()
             )
             ->databaseNotifications()
             ->databaseNotificationsPolling('120s')

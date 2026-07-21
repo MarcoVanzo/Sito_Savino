@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\SiteSetting;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
@@ -49,6 +50,21 @@ class HandleInertiaRequests extends Middleware
             'locales' => ['it', 'en'],
             'auth' => [
                 'user' => $request->user()?->only('id', 'name', 'email', 'role'),
+                // Preavviso di scadenza password: il banner sul sito è l'unico
+                // canale che raggiunge anche i clienti dello shop, che il
+                // pannello CMS non lo vedono mai.
+                'passwordExpiry' => function () use ($request) {
+                    $user = $request->user();
+
+                    if (! $user instanceof User || ! $user->passwordIsExpiringSoon()) {
+                        return null;
+                    }
+
+                    return [
+                        'days' => $user->daysUntilPasswordExpires(),
+                        'expiresOn' => $user->passwordExpiresAt()?->toDateString(),
+                    ];
+                },
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

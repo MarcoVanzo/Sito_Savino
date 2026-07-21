@@ -10,6 +10,7 @@ import CartBadge from '@/Components/Shop/CartBadge.vue';
 import CartDrawer from '@/Components/Shop/CartDrawer.vue';
 import FlashMessages from '@/Components/FlashMessages.vue';
 import UserMenu from '@/Components/Shop/UserMenu.vue';
+import PasswordExpiryBanner from '@/Components/PasswordExpiryBanner.vue';
 
 const MobileDrawer = defineAsyncComponent(() => import('@/Components/MobileDrawer.vue'));
 const CookieConsent = defineAsyncComponent(() => import('@/Components/CookieConsent.vue'));
@@ -73,6 +74,8 @@ const corporateDomain = computed(() => {
 
 <template>
     <div class="min-h-screen bg-gray-900 flex flex-col font-sans overflow-x-hidden">
+        <PasswordExpiryBanner />
+
         <!-- HEADER STICKY -->
         <header 
             class="sticky top-0 z-50 text-gray-200 transition-all duration-500 ease-out"

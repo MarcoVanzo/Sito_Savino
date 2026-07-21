@@ -26,6 +26,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,6 +46,17 @@ class AppServiceProvider extends ServiceProvider
         // In sviluppo: segnala lazy loading, mass assignment silenzioso,
         // e accesso ad attributi inesistenti
         Model::shouldBeStrict(! app()->isProduction());
+
+        // Requisiti minimi di robustezza, applicati ovunque si usi
+        // Rules\Password::defaults(). `uncompromised()` interroga l'API di
+        // HaveIBeenPwned (k-anonymity: viene inviato solo il prefisso dell'hash,
+        // mai la password): la attiviamo solo in produzione per non rendere
+        // i test dipendenti dalla rete.
+        Password::defaults(function () {
+            $rule = Password::min(12)->mixedCase()->numbers()->symbols();
+
+            return app()->isProduction() ? $rule->uncompromised() : $rule;
+        });
 
         User::observe(UserObserver::class);
         Order::observe(OrderObserver::class);
