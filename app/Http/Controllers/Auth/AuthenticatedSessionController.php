@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -29,7 +30,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): SymfonyResponse
     {
         $request->authenticate();
 
@@ -51,7 +52,18 @@ class AuthenticatedSessionController extends Controller
             $default = route('dashboard', absolute: false);
         }
 
-        return redirect()->intended($default);
+        $target = $request->session()->pull('url.intended', $default);
+
+        // Il pannello Filament non è una pagina Inertia: con un redirect normale
+        // il client Inertia lo seguirebbe via XHR, riceverebbe HTML dove attende
+        // JSON e mostrerebbe il modale d'errore con il pannello sovrapposto alla
+        // pagina di login. Inertia::location forza una navigazione full-page e
+        // resta un redirect normale per le richieste non-Inertia.
+        if (str_starts_with(parse_url($target, PHP_URL_PATH) ?: '/', '/admin')) {
+            return Inertia::location($target);
+        }
+
+        return redirect()->to($target);
     }
 
     /**
