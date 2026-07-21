@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Rules\NotAPreviousPassword;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 
 class PasswordController extends Controller
@@ -33,13 +32,10 @@ class PasswordController extends Controller
             'password' => $validated['password'],
         ]);
 
-        // Mantiene viva la sessione corrente dopo il cambio password: il
-        // middleware AuthenticateSession del pannello Filament forzerebbe il
-        // logout se l'hash salvato in sessione non fosse aggiornato.
-        $request->session()->put(
-            'password_hash_'.Auth::getDefaultDriver(),
-            $request->user()->getAuthPassword()
-        );
+        // L'hash in sessione non va aggiornato a mano: AuthenticateSession, ora
+        // attivo sull'intero gruppo web oltre che sul pannello, lo riscrive al
+        // termine della richiesta nel proprio formato (hashPasswordForCookie),
+        // così la sessione corrente resta valida mentre le altre decadono.
 
         return back();
     }

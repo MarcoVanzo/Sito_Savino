@@ -75,4 +75,9 @@ class ShopAnalyticsPage extends Page
             'period' => $this->period,
         ];
     }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->role->canManageShop() ?? false;
+    }
 }

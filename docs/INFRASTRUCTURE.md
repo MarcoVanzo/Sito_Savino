@@ -56,7 +56,7 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 | **PHP** | 8.5.5 | Linguaggio backend |
 | **Laravel** | 13.17.0 | Framework MVC |
 | **Filament** | 3.3.54 | Pannello admin (CMS) |
-| **Inertia.js** | 2.x | Bridge server↔client (SSR) |
+| **Inertia.js** | 2.x | Bridge server↔client (SSR non attivo, vedi §6) |
 | **MySQL** | 8.4 LTS | Database relazionale |
 | **Apache** | (heroku buildpack) | Web server |
 | **OPcache + JIT** | tracing 1255 | Compilazione PHP → codice nativo |
@@ -76,7 +76,7 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 |-----------|-------|
 | **Spatie Media Library** | Gestione media con conversioni automatiche |
 | **CompreFace** | Riconoscimento facciale (self-hosted) |
-| **Resend** | Invio email transazionali |
+| **Resend** | Invio email transazionali (pacchetto installato, ⚠️ **non ancora configurato in produzione**: senza `MAIL_MAILER=resend` + `RESEND_API_KEY` il mailer di default è `log`) |
 | **Ziggy** | Routing Laravel → JavaScript |
 | **Predis** | Client Redis (pronto per futuro uso) |
 | **Spatie Translatable** | Contenuti multilingua |
@@ -88,7 +88,7 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 |----------|--------|
 | GitHub | [MarcoVanzo/Sito_Savino](https://github.com/MarcoVanzo/Sito_Savino) |
 | Branch produzione | `main` |
-| Deploy | Automatico su push a `main` |
+| Deploy | Gated: push a `main` → workflow CI → job `deploy` solo se i test passano (`deploy_on_push: false` nello spec) |
 
 ---
 
@@ -127,8 +127,15 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 6. php artisan view:cache               → Compila Blade templates
 7. php artisan event:cache              → Cachea event listeners
 8. php artisan filament:optimize        → Cachea componenti Filament
-9. heroku-php-apache2 -i opcache.ini    → Avvia Apache con OPcache tuning
+9. php artisan schedule:work &          → Scheduler in background (vedi §9)
+10. heroku-php-apache2 -i opcache.ini   → Avvia Apache con OPcache tuning
 ```
+
+> ⚠️ Lo scheduler gira **dentro il container web** come processo in background
+> (`schedule:work`), non come componente `jobs` di App Platform. Funziona solo
+> con `instance_count: 1`: aumentando le istanze i task pianificati verrebbero
+> eseguiti in parallelo su ognuna. Se il processo muore, il container resta up
+> e i task smettono silenziosamente di girare.
 
 ---
 
@@ -142,9 +149,10 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 | CPU | 1 shared vCPU |
 | RAM | 512 MB |
 | Region | `fra` (Frankfurt) |
-| Run command | `php artisan queue:work --sleep=3 --tries=3 --max-time=3600` |
+| Run command | `php artisan queue:work --queue=default,ai --sleep=3 --tries=3 --max-time=3600 --max-jobs=100 --memory=384` |
 
 **Comportamento:**
+- Processa le code `default` e `ai` (in quest'ordine di priorità)
 - Controlla la tabella `jobs` ogni **3 secondi**
 - Se un job fallisce, **riprova fino a 3 volte** (con backoff di 30s, 60s)
 - Si riavvia ogni **3600 secondi** (1 ora) per prevenire memory leak
@@ -154,7 +162,9 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 
 | Job | Trigger | Cosa fa |
 |-----|---------|---------|
-| `AnalyzeGalleryImageJob` | Upload foto nel CMS (Galleria) | Scarica l'immagine da S3, la invia a CompreFace per riconoscimento facciale, salva i risultati nel DB |
+| `AnalyzeGalleryImageJob` | Upload foto nel CMS (Galleria) | Scarica l'immagine da S3, la invia a CompreFace per riconoscimento facciale, salva i risultati nel DB (coda `ai`) |
+| `SyncNewsletterToActiveCampaign` | Iscrizione newsletter | Sincronizza il contatto su ActiveCampaign (coda `default`) |
+| Mail transazionali | Ordini, aste, rimborsi | `Mail::to(...)->queue(...)` — richiedono un mailer configurato (vedi §5) |
 
 **Flusso:**
 
@@ -329,7 +339,7 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 | `DB_DATABASE` | `${sito-savino-db.DATABASE}` | Nome database |
 | `DB_USERNAME` | `${sito-savino-db.USERNAME}` | Utente DB |
 | `DB_PASSWORD` | 🔒 `${sito-savino-db.PASSWORD}` | Password DB |
-| `CACHE_STORE` | `file` | Driver cache (filesystem locale) |
+| `CACHE_STORE` | `database` | Driver cache (tabella MySQL `cache`) |
 | `SESSION_DRIVER` | `database` | Sessioni salvate in MySQL |
 | `SESSION_ENCRYPT` | (attivo) | Sessioni cifrate |
 | `SESSION_SECURE_COOKIE` | (attivo) | Cookie solo HTTPS |
@@ -342,16 +352,22 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 | `AWS_BUCKET` | `sito-savino-assets-2026` | Nome bucket |
 | `AWS_ENDPOINT` | `https://fra1.digitaloceanspaces.com` | Endpoint S3 API |
 | `AWS_URL` | `https://sito-savino-assets-2026.fra1.digitaloceanspaces.com` | URL pubblico |
-| `INERTIA_SSR_ENABLED` | (attivo) | Server-Side Rendering |
+| `INERTIA_SSR_ENABLED` | `false` | SSR **disattivato** (non esiste `resources/js/ssr.js` né bundle SSR) |
 | `LOG_CHANNEL` | `stderr` | Log su stderr (visibili in DO dashboard) |
 | `LOG_LEVEL` | `warning` | Solo warning ed errori |
+| `PREVIEW_AUTH_USER` / `PREVIEW_AUTH_PASS` | 🔒 secret | Basic auth su tutto il sito (fase di pre-lancio) |
+
+> ⚠️ **Variabili mancanti nello spec** (`.do/app.yaml`): nessuna variabile
+> `MAIL_*` / `RESEND_API_KEY`, `STRIPE_*`, `PAYPAL_*`. Poiché il deploy applica
+> lo spec del repository, eventuali valori aggiunti a mano dal pannello DO
+> vengono sovrascritti ad ogni rilascio. Vanno aggiunti allo spec come `SECRET`.
 
 ### Worker (variabili aggiuntive)
 
 | Variabile | Valore | Descrizione |
 |----------|--------|-------------|
-| `COMPREFACE_HOST` | `http://157.230.98.6:8000` | URL server CompreFace |
-| `COMPREFACE_KEY` | 🔒 secret | API key CompreFace |
+| `COMPREFACE_HOST` | `http://10.114.0.3:8000` | URL server CompreFace (rete privata VPC) |
+| `COMPREFACE_KEY` | in chiaro nello spec | API key CompreFace — attualmente il valore di default `0000…0001`, da rigenerare e cifrare |
 
 ---
 
@@ -360,18 +376,24 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 ### Pipeline di deploy
 
 ```
-git push main → GitHub webhook → DO App Platform → Build Web + Worker → Deploy → ACTIVE
+git push main → GitHub Actions (CI: lint, PHPStan, test) → job "deploy"
+              → digitalocean/app_action con lo spec .do/app.yaml → Build Web + Worker → ACTIVE
 ```
+
+Lo spec `.do/app.yaml` del repository **sovrascrive** la configurazione dell'app
+ad ogni deploy: ogni variabile d'ambiente deve stare lì.
 
 ### Build Web
 
 ```bash
-composer install --optimize-autoloader --no-dev && npm install && npm run build
+composer install --optimize-autoloader --no-dev && npm ci --include=dev && npm run build
 ```
 
 1. **Composer**: installa dipendenze PHP (autoloader ottimizzato, no dev-dependencies)
-2. **NPM install**: installa dipendenze frontend (Vue, Vite, Tailwind...)
-3. **NPM build**: compila assets + SSR bundle (`bootstrap/ssr/ssr.mjs`)
+2. **NPM ci**: installa dipendenze frontend (Vue, Vite, Tailwind...)
+3. **NPM build**: compila gli assets client (`vite build`). Nessun bundle SSR:
+   lo script `build:ssr` esiste in `package.json` ma non è usato e manca
+   l'entrypoint `resources/js/ssr.js`.
 
 ### Build Worker
 
@@ -395,10 +417,11 @@ Solo dipendenze PHP (il worker non serve frontend).
 ### Avvio Worker
 
 ```bash
-php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+php artisan queue:work --queue=default,ai --sleep=3 --tries=3 --max-time=3600 --max-jobs=100 --memory=384
 ```
 
-Polling sulla tabella `jobs` ogni 3 secondi, max 3 tentativi per job, riavvio ogni ora.
+Polling sulla tabella `jobs` ogni 3 secondi, code `default` e `ai`, max 3 tentativi
+per job, riavvio dopo 100 job / 1 ora / 384 MB.
 
 ---
 
@@ -487,15 +510,24 @@ Polling sulla tabella `jobs` ogni 3 secondi, max 3 tentativi per job, riavvio og
 | Sessioni cifrate | ✅ `SESSION_ENCRYPT` attivo |
 | Cookie sicuri | ✅ `SESSION_SECURE_COOKIE` attivo |
 | Debug disattivato | ✅ `APP_DEBUG=false` |
-| Secret in env vars | ✅ Encrypted in app.yaml |
+| Secret in env vars | ⚠️ Quasi tutti cifrati (`EV[1:…]`) in `.do/app.yaml`, ma `ACTIVECAMPAIGN_API_KEY` è in chiaro nel repository pubblico: va **ruotata** e ricifrata |
 | Trust proxies | ✅ Configurato per App Platform |
 | Log level | ✅ `warning` (niente info/debug in prod) |
 | OPcache validate_timestamps | ✅ Disabilitato (previene code injection) |
 
 ### Task schedulati
 
+Definiti in `routes/console.php`, eseguiti dal `schedule:work` avviato da `start.sh`
+nel container web.
+
 | Comando | Frequenza | Scopo |
 |---------|-----------|-------|
 | `sitemap:generate` | Giornaliero (04:00) | Genera sitemap XML per SEO |
 | `activity-log:prune --days=180` | Settimanale | Pulisce log attività > 6 mesi |
 | `model:prune` | Giornaliero | Pulisce modelli scaduti |
+| `carts:prune-expired` | Giornaliero (03:00) | Elimina i carrelli scaduti |
+| `order:check-unpaid` | Ogni 10 minuti | Annulla ordini non pagati e rilascia lo stock |
+| `auction:activate` | Ogni minuto | Attiva le aste programmate |
+| `auction:close` | Ogni minuto | Chiude le aste scadute e notifica i vincitori |
+| `auction:check-payments` | Oraria | Verifica i pagamenti dei vincitori d'asta |
+| `sync:legavolley` | Giornaliero | Solo in ambienti **non** di produzione |

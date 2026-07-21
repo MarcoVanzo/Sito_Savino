@@ -36,6 +36,19 @@ const props = defineProps({
 // ── Display data ──────────────────────────────────────────────
 const displayMedia = computed(() => props.media)
 
+// ── Particelle hero ───────────────────────────────────────────
+// Valori deterministici: Math.random() nel template verrebbe rieseguito ad
+// ogni render e produrrebbe markup diverso fra server e client (hydration).
+const heroParticles = Array.from({ length: 20 }, (_, i) => {
+    const r = (n) => (Math.sin((i + 1) * n) + 1) / 2
+    return {
+        delay: (r(12.9898) * 5).toFixed(2) + 's',
+        x: (r(78.233) * 100).toFixed(2) + '%',
+        size: (r(43.758) * 3 + 1).toFixed(2) + 'px',
+        duration: (r(93.989) * 8 + 6).toFixed(2) + 's',
+    }
+})
+
 // ── Category filter ───────────────────────────────────────────
 const ALL_CATEGORY = '__all__'
 const categories = computed(() => {
@@ -79,7 +92,7 @@ const athleteQuery = ref('')
 const filteredAthletes = computed(() => {
     if (!athleteQuery.value) return props.athletes
     const q = athleteQuery.value.toLowerCase()
-    return props.athletes.filter(a => a.name.toLowerCase().includes(q))
+    return props.athletes.filter(a => a.name?.toLowerCase().includes(q))
 })
 
 function selectAthlete(athlete) {
@@ -113,6 +126,7 @@ const lightboxTransition = ref(false)
 function openLightbox(index) {
     lightboxIndex.value = index
     lightboxOpen.value = true
+    document.body.style.overflow = 'hidden'
     nextTick(() => {
         lightboxEl.value?.focus()
         requestAnimationFrame(() => { lightboxTransition.value = true })
@@ -121,6 +135,7 @@ function openLightbox(index) {
 
 function closeLightbox() {
     lightboxTransition.value = false
+    document.body.style.overflow = ''
     setTimeout(() => { lightboxOpen.value = false }, 300)
 }
 
@@ -143,6 +158,7 @@ function onTouchEnd(e) {
 // ── Scroll reveal animation ──────────────────────────────────
 const galleryGridRef = ref(null)
 const revealedItems = ref(new Set())
+let revealObserver = null
 
 onMounted(() => {
     const observer = new IntersectionObserver(
@@ -156,6 +172,7 @@ onMounted(() => {
         },
         { threshold: 0.1, rootMargin: '60px' }
     )
+    revealObserver = observer
 
     nextTick(() => {
         galleryGridRef.value?.querySelectorAll('[data-idx]').forEach(el => {
@@ -172,6 +189,12 @@ onMounted(() => {
             })
         })
     })
+})
+
+onUnmounted(() => {
+    revealObserver?.disconnect()
+    revealObserver = null
+    document.body.style.overflow = ''
 })
 
 // ── Image loading ─────────────────────────────────────────────
@@ -205,11 +228,11 @@ const ogMeta = useOgMeta({
         <section class="gallery-hero">
             <div class="gallery-hero__bg"></div>
             <div class="gallery-hero__particles">
-                <span v-for="n in 20" :key="n" class="gallery-hero__particle" :style="{
-                    '--delay': Math.random() * 5 + 's',
-                    '--x': Math.random() * 100 + '%',
-                    '--size': (Math.random() * 3 + 1) + 'px',
-                    '--duration': (Math.random() * 8 + 6) + 's',
+                <span v-for="(p, n) in heroParticles" :key="n" class="gallery-hero__particle" :style="{
+                    '--delay': p.delay,
+                    '--x': p.x,
+                    '--size': p.size,
+                    '--duration': p.duration,
                 }"></span>
             </div>
 

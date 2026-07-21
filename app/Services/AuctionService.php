@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Enums\AuctionStatus;
+use App\Enums\OrderStatus;
 use App\Mail\AuctionWon;
 use App\Models\Auction;
+use App\Models\Bid;
 use App\Models\Order;
 use App\Models\SiteSetting;
 use App\Models\User;
@@ -99,11 +101,21 @@ class AuctionService
             DB::transaction(function () use ($auction, &$processed) {
                 $auction = Auction::lockForUpdate()->find($auction->id);
 
-                // Verifica se il vincitore ha già pagato (dentro la transazione per evitare TOCTOU)
+                // Verifica se il vincitore ha già pagato (dentro la transazione per evitare TOCTOU).
+                // Va controllato il PAGAMENTO, non la semplice esistenza dell'ordine:
+                // il vincitore che apre il checkout senza completarlo lascia un
+                // ordine Pending, che faceva considerare l'asta come pagata e ne
+                // impediva per sempre la riassegnazione all'offerente successivo.
                 $existingOrder = $this->getWinnerOrder($auction);
 
-                if ($existingOrder) {
+                if ($existingOrder?->paid_at !== null) {
                     return; // Pagamento già effettuato
+                }
+
+                // L'ordine rimasto in sospeso oltre la deadline non è più pagabile:
+                // annullarlo restituisce lo stock tramite OrderObserver.
+                if ($existingOrder && $existingOrder->status === OrderStatus::Pending) {
+                    $existingOrder->forceFill(['status' => OrderStatus::Cancelled])->save();
                 }
 
                 $currentAttempt = $auction->current_winner_attempt;
@@ -160,6 +172,31 @@ class AuctionService
         }
 
         return Order::where('order_token', $auction->winner_checkout_token)->first();
+    }
+
+    /**
+     * Importo che il vincitore corrente deve pagare.
+     *
+     * Non coincide necessariamente con `current_bid`: se il primo vincitore non
+     * paga entro la deadline, l'asta viene riassegnata all'offerente successivo
+     * (checkWinnerPayments), che deve pagare la PROPRIA offerta, non quella più
+     * alta in assoluto.
+     */
+    public function winningAmountFor(Auction $auction): float
+    {
+        if ($auction->winner_user_id) {
+            $winnerBid = Bid::where('auction_id', $auction->id)
+                ->where('user_id', $auction->winner_user_id)
+                ->valid()
+                ->highestFirst()
+                ->first();
+
+            if ($winnerBid) {
+                return (float) $winnerBid->amount;
+            }
+        }
+
+        return (float) ($auction->current_bid ?? 0);
     }
 
     /**

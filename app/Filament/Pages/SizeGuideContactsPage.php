@@ -121,4 +121,9 @@ class SizeGuideContactsPage extends Page implements HasForms
                 ->submit('save'),
         ];
     }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->role->canManageShop() ?? false;
+    }
 }

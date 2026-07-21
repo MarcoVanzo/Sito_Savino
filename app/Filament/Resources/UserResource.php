@@ -6,11 +6,13 @@ use App\Enums\UserRole;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
+use App\Rules\NotAPreviousPassword;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class UserResource extends Resource
 {
@@ -65,6 +67,11 @@ class UserResource extends Resource
                             ->required(fn (string $context): bool => $context === 'create')
                             ->maxLength(255)
                             ->dehydrated(fn ($state) => filled($state))
+                            // Anche le password impostate dal pannello devono
+                            // rispettare la policy: robustezza minima e divieto
+                            // di riuso delle ultime N già utilizzate.
+                            ->rule(PasswordRule::defaults())
+                            ->rule(fn (?User $record): NotAPreviousPassword => new NotAPreviousPassword($record))
                             ->helperText('Lascia vuoto per non modificare la password attuale.'),
                     ])->columns(2),
                 Forms\Components\Section::make('Permessi')

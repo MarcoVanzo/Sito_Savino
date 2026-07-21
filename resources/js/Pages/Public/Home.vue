@@ -8,6 +8,7 @@ import { useIntersectionReveal } from '@/Composables/useIntersectionReveal';
 import { useCountUp } from '@/Composables/useCountUp';
 import { useTiltEffect } from '@/Composables/useTiltEffect';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import LOGOS from '@/Constants/logos.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 import { useLocale } from '@/Composables/useLocale.js';
 
@@ -544,7 +545,7 @@ const ogMeta = useOgMeta({
                         <div class="flex flex-col md:flex-row items-center justify-between gap-10">
                             <!-- Home Team -->
                             <div class="text-center md:text-right flex-1">
-                                <img src="/images/logo.png" :alt="nextGame?.home_team?.name ?? 'Savino Del Bene'" class="w-36 h-28 rounded-xl object-contain bg-white mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" />
+                                <img :src="LOGOS.VOLLEY" :alt="nextGame?.home_team?.name ?? 'Savino Del Bene'" class="w-36 h-28 rounded-xl object-contain bg-white mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" @error="onImgError" />
                                 <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
                                 <span class="text-savino-gold text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.home_team') }}</span>
                             </div>

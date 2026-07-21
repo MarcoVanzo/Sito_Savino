@@ -36,7 +36,7 @@ class ShopAuthController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::defaults()],
             'privacy_accepted' => ['required', 'accepted'],
         ]);
 
@@ -50,6 +50,10 @@ class ShopAuthController extends Controller
         $user->forceFill(['role' => UserRole::Customer, 'is_active' => true])->save();
 
         Auth::login($user);
+
+        // Rigenera l'ID di sessione: senza, un ID noto prima della
+        // registrazione resterebbe valido dopo l'autenticazione.
+        $request->session()->regenerate();
 
         // Merge carrello guest nel carrello utente
         $this->cartService->mergeOnLogin($user);

@@ -54,10 +54,16 @@ class AiScoreColumn
                 );
             })
             ->html()
-            ->tooltip(fn ($record) => match ((int) $record->player->ai_face_examples) {
-                0 => 'Nessuna foto analizzata. Clicca "Addestra AI".',
-                1 => '1 foto analizzata. Carica più foto per migliorare.',
-                default => $record->player->ai_face_examples.' foto analizzate.',
+            // data_get evita il fatal quando il player collegato è soft-deleted
+            // (la relazione torna null e l'intera tabella andrebbe in errore).
+            ->tooltip(function ($record): string {
+                $examples = (int) data_get($record, 'player.ai_face_examples', 0);
+
+                return match ($examples) {
+                    0 => 'Nessuna foto analizzata. Clicca "Addestra AI".',
+                    1 => '1 foto analizzata. Carica più foto per migliorare.',
+                    default => $examples.' foto analizzate.',
+                };
             })
             ->sortable();
     }

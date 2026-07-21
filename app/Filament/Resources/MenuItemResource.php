@@ -7,6 +7,7 @@ use App\Models\MenuItem;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
+use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class MenuItemResource extends Resource
 {
+    use Translatable;
+
     protected static ?string $model = MenuItem::class;
 
     protected static ?string $recordTitleAttribute = 'label';
@@ -45,6 +48,7 @@ class MenuItemResource extends Resource
                         Forms\Components\Textarea::make('description')
                             ->label('Descrizione')
                             ->rows(3)
+                            ->maxLength(255)
                             ->columnSpanFull(),
                         Forms\Components\TextInput::make('motto_title')
                             ->label('Titolo Motto')

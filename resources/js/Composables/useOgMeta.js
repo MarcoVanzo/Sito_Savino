@@ -23,8 +23,11 @@ export function useOgMeta({
     suffix = true,
 } = {}) {
     const page = usePage();
-    const baseUrl = page.props.ziggy?.url || '';
-    const currentUrl = page.props.ziggy?.location || '';
+    // `ziggy` non è condiviso da Inertia: senza fallback su window og:image
+    // resterebbe un path relativo (non valido per Open Graph) e og:url vuoto.
+    const hasWindow = typeof window !== 'undefined';
+    const baseUrl = page.props.ziggy?.url || (hasWindow ? window.location.origin : '');
+    const currentUrl = page.props.ziggy?.location || (hasWindow ? window.location.href : '');
     const siteName = 'Savino Del Bene Volley';
     const defaultImage = `${baseUrl}${LOGOS.VOLLEY}`;
 

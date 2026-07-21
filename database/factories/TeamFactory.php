@@ -16,7 +16,9 @@ class TeamFactory extends Factory
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name),
+            // `teams.slug` è UNIQUE e fake()->city() può ripetersi: aggiungiamo
+            // un suffisso univoco per evitare collisioni nei test/seed.
+            'slug' => Str::slug($name).'-'.fake()->unique()->randomNumber(5),
             'category' => 'A1',
             'is_internal' => false,
         ];

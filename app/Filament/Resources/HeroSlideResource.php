@@ -63,9 +63,11 @@ class HeroSlideResource extends Resource
                         Forms\Components\TextInput::make('cta_text')
                             ->label('Testo CTA')
                             ->maxLength(255),
+                        // Niente ->url(): le CTA puntano quasi sempre a percorsi
+                        // interni (es. /biglietteria), che la regola url() scarta.
                         Forms\Components\TextInput::make('cta_url')
                             ->label('URL CTA')
-                            ->url()
+                            ->helperText('Percorso interno (es. /biglietteria) o URL completo.')
                             ->maxLength(255),
                     ])->columns(2),
 

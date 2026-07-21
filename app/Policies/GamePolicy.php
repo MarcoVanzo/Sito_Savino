@@ -31,4 +31,13 @@ class GamePolicy
     {
         return $user->role->isSuperAdmin();
     }
+
+    /**
+     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
+     * Filament considera l'azione permessa a chiunque veda la lista.
+     */
+    public function deleteAny(User $user): bool
+    {
+        return $user->role->isSuperAdmin();
+    }
 }

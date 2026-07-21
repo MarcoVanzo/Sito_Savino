@@ -48,6 +48,13 @@ class HandleInertiaRequests extends Middleware
                 return url($itPath.$query);
             },
             'locales' => ['it', 'en'],
+            // Le pagine usano `ziggy.url`/`ziggy.location` per i dati strutturati
+            // e i meta Open Graph, che richiedono URL assoluti. La direttiva
+            // @routes espone solo l'helper JS, non questa prop.
+            'ziggy' => fn () => [
+                'url' => $request->getSchemeAndHttpHost(),
+                'location' => $request->url(),
+            ],
             'auth' => [
                 'user' => $request->user()?->only('id', 'name', 'email', 'role'),
                 // Preavviso di scadenza password: il banner sul sito è l'unico

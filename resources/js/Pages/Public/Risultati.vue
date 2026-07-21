@@ -4,8 +4,10 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
+import { useLocale } from '@/Composables/useLocale.js'
 
 const $t = useTranslations();
+const { formatDate } = useLocale();
 
 const props = defineProps({
     page: {
@@ -57,12 +59,36 @@ const placeholderStandings = [
     { pos: 8, team: 'Squadra G', pts: 10, played: 18, won: 3, lost: 15, setWon: 14, setLost: 46 },
 ]
 
-const displayGames = computed(() => props.games.length > 0 ? props.games : placeholderGames)
+// I game arrivano dal backend come record Game grezzi (home_team/away_team,
+// home_score/away_score, match_date...). Il template usa la forma "piatta"
+// dei placeholder: normalizziamo qui per evitare accessi a proprietà assenti.
+function normalizeGame(game, index) {
+    if (typeof game?.home === 'string' || typeof game?.away === 'string') {
+        return game
+    }
+
+    return {
+        id: game?.id ?? index,
+        date: game?.match_date ? formatDate(game.match_date, { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+        home: game?.home_team?.name ?? '',
+        away: game?.away_team?.name ?? '',
+        scoreHome: game?.home_score ?? '-',
+        scoreAway: game?.away_score ?? '-',
+        status: game?.status ?? '',
+    }
+}
+
+const displayGames = computed(() => props.games.length > 0
+    ? props.games.map(normalizeGame)
+    : placeholderGames)
 const displayStandings = computed(() => props.standings.length > 0 ? props.standings : placeholderStandings)
 
+function isSavino(name) {
+    return typeof name === 'string' && name.includes('Savino')
+}
+
 function isWin(game) {
-    const isSavinoHome = game.home.includes('Savino')
-    if (isSavinoHome) return game.scoreHome > game.scoreAway
+    if (isSavino(game.home)) return game.scoreHome > game.scoreAway
     return game.scoreAway > game.scoreHome
 }
 
@@ -146,7 +172,7 @@ const ogMeta = useOgMeta({
                                 <div class="flex-1 text-right pr-4">
                                     <span
                                         class="text-base font-bold whitespace-nowrap"
-                                        :class="game.home.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
+                                        :class="isSavino(game.home) ? 'text-savino-blue' : 'text-gray-700'"
                                     >{{ game.home }}</span>
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
@@ -157,7 +183,7 @@ const ogMeta = useOgMeta({
                                 <div class="flex-1 text-left pl-4">
                                     <span
                                         class="text-base font-bold whitespace-nowrap"
-                                        :class="game.away.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
+                                        :class="isSavino(game.away) ? 'text-savino-blue' : 'text-gray-700'"
                                     >{{ game.away }}</span>
                                 </div>
                             </div>
@@ -188,14 +214,14 @@ const ogMeta = useOgMeta({
                                 <div class="flex items-center justify-between">
                                     <span
                                         class="text-sm font-bold truncate mr-3"
-                                        :class="game.home.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
+                                        :class="isSavino(game.home) ? 'text-savino-blue' : 'text-gray-700'"
                                     >{{ game.home }}</span>
                                     <span class="text-xl font-black text-gray-900 flex-shrink-0">{{ game.scoreHome }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span
                                         class="text-sm font-bold truncate mr-3"
-                                        :class="game.away.includes('Savino') ? 'text-savino-blue' : 'text-gray-700'"
+                                        :class="isSavino(game.away) ? 'text-savino-blue' : 'text-gray-700'"
                                     >{{ game.away }}</span>
                                     <span class="text-xl font-black text-gray-900 flex-shrink-0">{{ game.scoreAway }}</span>
                                 </div>
@@ -232,7 +258,7 @@ const ogMeta = useOgMeta({
                                 v-for="row in displayStandings"
                                 :key="row.pos"
                                 class="border-b border-gray-100 transition-colors duration-200"
-                                :class="row.team.includes('Savino') ? 'bg-savino-gold/10 font-bold' : 'hover:bg-gray-50'"
+                                :class="isSavino(row.team) ? 'bg-savino-gold/10 font-bold' : 'hover:bg-gray-50'"
                             >
                                 <td class="px-4 py-3 text-sm">
                                     <span
@@ -240,7 +266,7 @@ const ogMeta = useOgMeta({
                                         :class="row.pos <= 3 ? 'bg-savino-gold text-white' : 'bg-gray-200 text-gray-600'"
                                     >{{ row.pos }}</span>
                                 </td>
-                                <td class="px-4 py-3 text-sm font-bold whitespace-nowrap" :class="row.team.includes('Savino') ? 'text-savino-blue' : 'text-gray-900'">{{ row.team }}</td>
+                                <td class="px-4 py-3 text-sm font-bold whitespace-nowrap" :class="isSavino(row.team) ? 'text-savino-blue' : 'text-gray-900'">{{ row.team }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.played }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-green-600 font-semibold">{{ row.won }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-savino-red font-semibold">{{ row.lost }}</td>

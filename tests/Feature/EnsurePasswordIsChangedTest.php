@@ -201,18 +201,44 @@ class EnsurePasswordIsChangedTest extends TestCase
 
         $changeResponse->assertRedirect('/admin');
 
-        // La sessione deve contenere l'hash aggiornato, così AuthenticateSession
-        // non forza il logout al successivo accesso al pannello.
-        $this->assertSame(
-            $user->fresh()->getAuthPassword(),
-            session('password_hash_'.Auth::getDefaultDriver()),
-        );
+        // La sessione deve portare l'hash aggiornato, così AuthenticateSession
+        // non forza il logout al successivo accesso al pannello. Si verifica il
+        // comportamento e non il valore: il formato è interno al middleware
+        // (hashPasswordForCookie) e non coincide con l'hash bcrypt dell'utente.
+        $this->assertNotNull(session('password_hash_'.Auth::getDefaultDriver()));
 
         // Seguendo il redirect l'utente resta autenticato sul pannello e non
         // viene rimbalzato alla pagina di login di Filament.
         $panelResponse = $this->get('/admin');
         $panelResponse->assertStatus(200);
         $this->assertAuthenticatedAs($user->fresh());
+    }
+
+    public function test_json_accept_header_does_not_bypass_forced_password_change(): void
+    {
+        // Regressione: il middleware saltava il controllo su expectsJson(), che
+        // dipende solo dall'header Accept inviato dal client. Bastava quindi
+        // chiedere JSON per navigare il sito senza cambiare la password.
+        $user = User::factory()->create();
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)
+            ->withHeaders(['Accept' => 'application/json'])
+            ->get('/dashboard');
+
+        $response->assertRedirect(route('password.change'));
+    }
+
+    public function test_a_path_containing_logout_does_not_bypass_forced_password_change(): void
+    {
+        // `Str::contains($path, 'logout')` lasciava passare qualsiasi URL con
+        // "logout" al suo interno (per esempio uno slug di pagina o prodotto).
+        $user = User::factory()->create();
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)->get('/logout-pagina-inesistente');
+
+        $response->assertRedirect(route('password.change'));
     }
 
     public function test_force_change_password_from_inertia_forces_full_page_visit_to_panel(): void

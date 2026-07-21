@@ -39,15 +39,12 @@ class SeasonResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required(),
+                // Le altre stagioni vengono disattivate DOPO il salvataggio
+                // (vedi CreateSeason/EditSeason): farlo al cambio di stato lasciava
+                // il sito senza stagione corrente se poi si annullava la modifica.
                 Forms\Components\Toggle::make('is_current')
-                    ->required()
-                    ->afterStateUpdated(function ($state) {
-                        if ($state) {
-                            // Disattiva tutte le altre stagioni
-                            Season::where('is_current', true)->update(['is_current' => false]);
-                        }
-                    })
-                    ->live(),
+                    ->label('Stagione Corrente')
+                    ->helperText('Attivandola, le altre stagioni verranno disattivate al salvataggio.'),
             ]);
     }
 

@@ -25,30 +25,6 @@ parameters:
 			path: app/Filament/Resources/GalleryImageResource/Pages/EditGalleryImage.php
 
 		-
-			message: '#^Access to undefined constant App\\Enums\\GameStatus\:\:Cancelled\.$#'
-			identifier: classConstant.notFound
-			count: 1
-			path: app/Filament/Resources/GameResource.php
-
-		-
-			message: '#^Access to undefined constant App\\Enums\\GameStatus\:\:Finished\.$#'
-			identifier: classConstant.notFound
-			count: 1
-			path: app/Filament/Resources/GameResource.php
-
-		-
-			message: '#^Access to undefined constant App\\Enums\\GameStatus\:\:Live\.$#'
-			identifier: classConstant.notFound
-			count: 1
-			path: app/Filament/Resources/GameResource.php
-
-		-
-			message: '#^Class App\\Filament\\Resources\\SoftDeletingScope not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Filament/Resources/GameResource.php
-
-		-
 			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1080 given\.$#'
 			identifier: argument.type
 			count: 1

@@ -20,7 +20,8 @@ class Sponsor extends Model implements HasMedia
         'name', 'url', 'tier', 'sort_order',
     ];
 
-    public $translatable = ['description'];
+    // La tabella `sponsors` non ha una colonna `description`.
+    public $translatable = [];
 
     protected $casts = [
         'tier' => SponsorTier::class,

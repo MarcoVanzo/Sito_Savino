@@ -27,6 +27,14 @@ const formattedDate = computed(() => {
     return formatDate(props.post.published_at);
 });
 
+// `ziggy` non è fra le props condivise da Inertia: senza optional chaining
+// l'accesso a .url faceva crashare il render dell'intera pagina.
+const canonicalUrl = computed(() => {
+    const base = usePage().props.ziggy?.url
+        || (typeof window !== 'undefined' ? window.location.origin : '');
+    return `${base}/news/${props.post?.slug ?? ''}`;
+});
+
 const ogMeta = useOgMeta({
     title: props.post?.title,
     description: props.post?.meta_description || props.post?.excerpt,
@@ -63,7 +71,7 @@ const ogMeta = useOgMeta({
                 'image': post.media?.length ? post.media[0].original_url : undefined,
                 'mainEntityOfPage': {
                     '@type': 'WebPage',
-                    '@id': `${usePage().props.ziggy.url}/news/${post.slug}`,
+                    '@id': canonicalUrl,
                 },
             }) }}
         </component>

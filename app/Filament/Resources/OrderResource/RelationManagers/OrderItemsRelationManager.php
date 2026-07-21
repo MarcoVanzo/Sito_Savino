@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\OrderResource\RelationManagers;
 
+use App\Models\Order;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -47,6 +48,19 @@ class OrderItemsRelationManager extends RelationManager
             ]);
     }
 
+    /**
+     * Riallinea il totale dell'ordine dopo ogni modifica agli articoli:
+     * altrimenti total_price resterebbe quello calcolato al checkout.
+     */
+    protected function recalculateOrderTotal(): void
+    {
+        $order = $this->getOwnerRecord();
+
+        if ($order instanceof Order) {
+            $order->recalculateTotal();
+        }
+    }
+
     public function table(Table $table): Table
     {
         return $table
@@ -70,15 +84,19 @@ class OrderItemsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->after(fn () => $this->recalculateOrderTotal()),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->after(fn () => $this->recalculateOrderTotal()),
+                Tables\Actions\DeleteAction::make()
+                    ->after(fn () => $this->recalculateOrderTotal()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->after(fn () => $this->recalculateOrderTotal()),
                 ]),
             ]);
     }

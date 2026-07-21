@@ -3,10 +3,12 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { useSanitize } from '@/Composables/useSanitize.js';
 import LOGOS from '@/Constants/logos.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 
 const $t = useTranslations();
+const { sanitize } = useSanitize();
 
 const { onImgError } = useImageFallback();
 
@@ -89,7 +91,12 @@ const displayedLinks = computed(() => {
 const footerLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
 const footerBrandName = computed(() => general.value.corporate_name || 'Savino Del Bene');
 const footerTagline = computed(() => footerSettings.value.footer_tagline || $t('footer.tagline_default'));
-const copyrightText = computed(() => (footerSettings.value.footer_copyright || `© ${currentYear} <span class="whitespace-nowrap">Savino Del Bene</span> Volley — ${$t('footer.all_rights_reserved')}.`).replace('{year}', currentYear).replace('Savino Del Bene', '<span class="whitespace-nowrap">Savino Del Bene</span>'));
+// Il testo può arrivare dal CMS e finisce in v-html: va sanificato.
+const copyrightText = computed(() => sanitize(
+    (footerSettings.value.footer_copyright || `© ${currentYear} <span class="whitespace-nowrap">Savino Del Bene</span> Volley — ${$t('footer.all_rights_reserved')}.`)
+        .replace('{year}', currentYear)
+        .replace('Savino Del Bene', '<span class="whitespace-nowrap">Savino Del Bene</span>')
+));
 const footerPiva = computed(() => footerSettings.value.footer_piva || '');
 
 // Mappa icone SVG per i social (mantenute le stesse SVG originali)
