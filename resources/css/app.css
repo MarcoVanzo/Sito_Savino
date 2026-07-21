@@ -25,3 +25,15 @@ html {
         scroll-behavior: auto;
     }
 }
+
+/* Safelist: classi usate solo da resources/js/data/playerRoles.js, che non è
+   fra i path scansionati da Tailwind (content include solo i file .vue).
+   Senza queste regole i badge ruolo "Opposto" e "Libero" resterebbero senza
+   colore di sfondo. */
+.bg-purple-600 {
+    background-color: #9333ea;
+}
+
+.bg-emerald-600 {
+    background-color: #059669;
+}

@@ -45,7 +45,8 @@ const filteredRoster = computed(() => {
 });
 
 function getInitials(name) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    if (typeof name !== 'string') return '';
+    return name.trim().split(/\s+/).map(n => n[0]).join('').toUpperCase();
 }
 
 const ogMeta = useOgMeta({

@@ -1,5 +1,5 @@
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import LOGOS from '@/Constants/logos.js';
@@ -12,8 +12,6 @@ const props = defineProps({
         required: true,
     },
 });
-
-const page = usePage();
 
 // --- Keyboard accessibility ---
 const openIndex = ref(-1);
@@ -55,14 +53,15 @@ function handleKeydown(event, index) {
                 toggleDropdown(index);
             }
             break;
-        case 'Escape':
+        case 'Escape': {
             event.preventDefault();
             closeDropdown();
             // Return focus to the trigger
             const trigger = navRef.value?.querySelector(`[data-menu-index="${index}"] a`);
             trigger?.focus();
             break;
-        case 'ArrowDown':
+        }
+        case 'ArrowDown': {
             if (hasSubmenu && openIndex.value === index) {
                 event.preventDefault();
                 // Focus first link in dropdown
@@ -70,6 +69,7 @@ function handleKeydown(event, index) {
                 firstLink?.focus();
             }
             break;
+        }
     }
 }
 

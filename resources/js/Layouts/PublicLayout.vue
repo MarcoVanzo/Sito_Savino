@@ -31,8 +31,10 @@ const handleHeaderScroll = () => {
     }
 };
 
-// Chiude il menu quando si cambia pagina
-router.on('navigate', () => {
+// Chiude il menu quando si cambia pagina.
+// router.on() restituisce la funzione di rimozione: va chiamata allo unmount,
+// altrimenti ogni istanza del layout lascia un listener attivo per sempre.
+const removeNavigateListener = router.on('navigate', () => {
     isMobileMenuOpen.value = false;
     activeMobileIndex.value = null;
 });
@@ -44,6 +46,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('scroll', handleHeaderScroll);
+    removeNavigateListener?.();
 });
 
 const toggleMobileMenu = () => {

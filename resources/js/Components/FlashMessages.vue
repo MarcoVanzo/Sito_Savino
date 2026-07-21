@@ -4,7 +4,9 @@ import { usePage, router } from '@inertiajs/vue3';
 
 const messages = ref([]);
 let nextId = 0;
-const activeIntervals = [];
+// Set (non array): gli id vanno rimossi quando l'interval finisce, altrimenti
+// la lista cresce senza limiti a ogni flash message della sessione.
+const activeIntervals = new Set();
 
 const typeConfig = {
     success: { bg: 'bg-green-900/90', border: 'border-l-green-500', text: 'text-green-400', progress: 'bg-green-500', icon: 'check' },
@@ -17,19 +19,23 @@ const addMessage = (type, text) => {
     if (!text) return;
     const id = nextId++;
     messages.value.push({ id, type, text, progress: 100 });
+    const stop = () => {
+        clearInterval(interval);
+        activeIntervals.delete(interval);
+    };
     const interval = setInterval(() => {
         const msg = messages.value.find(m => m.id === id);
         if (msg) {
             msg.progress -= 2;
             if (msg.progress <= 0) {
-                clearInterval(interval);
+                stop();
                 dismiss(id);
             }
         } else {
-            clearInterval(interval);
+            stop();
         }
     }, 100);
-    activeIntervals.push(interval);
+    activeIntervals.add(interval);
 };
 
 const dismiss = (id) => {
@@ -51,6 +57,7 @@ const removeListener = router.on('finish', () => {
 
 onUnmounted(() => {
     activeIntervals.forEach(clearInterval);
+    activeIntervals.clear();
     if (removeListener) removeListener();
 });
 </script>
