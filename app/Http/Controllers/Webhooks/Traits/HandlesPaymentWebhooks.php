@@ -6,9 +6,6 @@ use App\Enums\OrderStatus;
 use App\Mail\OrderConfirmation;
 use App\Mail\RefundConfirmation;
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
-use App\Models\ProductVariant;
 use App\Models\ShopEvent;
 use App\Services\AdminNotificationService;
 use Illuminate\Http\JsonResponse;
@@ -57,24 +54,26 @@ trait HandlesPaymentWebhooks
                     return true; // Already processed
                 }
 
+                // Se l'ordine era già stato annullato/rimborsato lo stock è stato
+                // ripristinato: il pagamento va comunque registrato, ma serve una
+                // verifica manuale del magazzino.
+                if (in_array($order->status, [OrderStatus::Cancelled, OrderStatus::Refunded], true)) {
+                    Log::warning("{$this->getGatewayName()} webhook: pagamento ricevuto per un ordine annullato — verificare lo stock manualmente", [
+                        'order_id' => $order->id,
+                        'previous_status' => $order->status->value,
+                    ]);
+                }
+
                 // 1. Update order payment info
                 $order->payment_id = $result['payment_id'];
                 $order->paid_at = now();
                 $order->status = OrderStatus::Paid;
                 $order->save();
 
-                // 2. Decrement stock atomically for each order item
-                $order->load('items');
-                foreach ($order->items as $item) {
-                    /** @var OrderItem $item */
-                    if ($item->product_variant_id) {
-                        ProductVariant::where('id', $item->product_variant_id)
-                            ->decrement('stock', $item->quantity);
-                    } else {
-                        Product::where('id', $item->product_id)
-                            ->decrement('stock', $item->quantity);
-                    }
-                }
+                // 2. Lo stock NON va decrementato qui: è già stato riservato al
+                // momento del checkout tramite gli StockMovement di tipo Sale
+                // (CheckoutService::createOrder / AuctionCheckoutController::store).
+                // Decrementarlo di nuovo causerebbe un doppio scarico di magazzino.
 
                 // 3. Track purchase event for analytics
                 ShopEvent::create([

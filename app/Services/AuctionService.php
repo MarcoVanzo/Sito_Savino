@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\AuctionStatus;
 use App\Mail\AuctionWon;
 use App\Models\Auction;
+use App\Models\Bid;
 use App\Models\Order;
 use App\Models\SiteSetting;
 use App\Models\User;
@@ -160,6 +161,31 @@ class AuctionService
         }
 
         return Order::where('order_token', $auction->winner_checkout_token)->first();
+    }
+
+    /**
+     * Importo che il vincitore corrente deve pagare.
+     *
+     * Non coincide necessariamente con `current_bid`: se il primo vincitore non
+     * paga entro la deadline, l'asta viene riassegnata all'offerente successivo
+     * (checkWinnerPayments), che deve pagare la PROPRIA offerta, non quella più
+     * alta in assoluto.
+     */
+    public function winningAmountFor(Auction $auction): float
+    {
+        if ($auction->winner_user_id) {
+            $winnerBid = Bid::where('auction_id', $auction->id)
+                ->where('user_id', $auction->winner_user_id)
+                ->valid()
+                ->highestFirst()
+                ->first();
+
+            if ($winnerBid) {
+                return (float) $winnerBid->amount;
+            }
+        }
+
+        return (float) ($auction->current_bid ?? 0);
     }
 
     /**

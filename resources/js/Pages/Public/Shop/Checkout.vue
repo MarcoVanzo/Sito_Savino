@@ -149,10 +149,12 @@ const availableCountries = computed(() => {
 });
 
 const selectedZone = computed(() => {
-    return props.shippingZones.find(z => {
-        const countries = z.countries || [];
-        return countries.includes(form.country) || countries.includes('*');
-    });
+    // Stessa precedenza del server (ShippingZone::findByCountry):
+    // prima la corrispondenza esatta del paese, poi la zona wildcard.
+    const exact = props.shippingZones.find(z => (z.countries || []).includes(form.country));
+    if (exact) return exact;
+
+    return props.shippingZones.find(z => (z.countries || []).includes('*'));
 });
 
 const shippingCost = computed(() => {

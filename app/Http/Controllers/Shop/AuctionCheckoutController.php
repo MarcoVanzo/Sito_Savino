@@ -69,7 +69,7 @@ class AuctionCheckoutController extends Controller
             'product' => $auction->product,
             'shippingZones' => $shippingZones,
             'checkoutDeadline' => $auction->winner_checkout_deadline?->toIso8601String(),
-            'winningBid' => (float) $auction->current_bid,
+            'winningBid' => $this->auctionService->winningAmountFor($auction),
         ]);
     }
 
@@ -153,7 +153,9 @@ class AuctionCheckoutController extends Controller
 
             $order = DB::transaction(function () use ($auction, $validated, $token, $shippingZone) {
                 $user = auth()->user();
-                $winningBid = (float) $auction->current_bid;
+                // L'importo dovuto è l'offerta del vincitore corrente, che può
+                // non coincidere con current_bid in caso di riassegnazione.
+                $winningBid = $this->auctionService->winningAmountFor($auction);
 
                 // Struttura indirizzo spedizione
                 $shippingAddress = [

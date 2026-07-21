@@ -39,7 +39,14 @@ class CartService
             $attributes['user_id'] = auth()->id();
         }
 
-        return Cart::create($attributes);
+        $cart = Cart::create($attributes);
+
+        // Aggiorna la cache in-process: altrimenti findCurrentCart() continuerebbe
+        // a restituire il null memorizzato poco sopra per il resto della richiesta.
+        $this->resolvedCart = $cart;
+        $this->cartResolved = true;
+
+        return $cart;
     }
 
     /**
@@ -274,6 +281,8 @@ class CartService
                     'user_id' => $user->id,
                 ]);
 
+                $this->invalidateCache();
+
                 return;
             }
 
@@ -297,15 +306,24 @@ class CartService
                         max($existingItem->quantity, $sessionItem->quantity),
                         $availableStock
                     );
-                    $existingItem->update(['quantity' => $mergedQty]);
+
+                    // Stock esaurito: rimuovi l'item invece di lasciarlo a quantità 0
+                    if ($mergedQty <= 0) {
+                        $existingItem->delete();
+                    } else {
+                        $existingItem->update(['quantity' => $mergedQty]);
+                    }
                 } else {
                     // Sposta l'item nel carrello utente
                     $qty = min($sessionItem->quantity, $availableStock);
-                    $userCart->items()->create([
-                        'product_id' => $sessionItem->product_id,
-                        'product_variant_id' => $sessionItem->product_variant_id,
-                        'quantity' => $qty,
-                    ]);
+
+                    if ($qty > 0) {
+                        $userCart->items()->create([
+                            'product_id' => $sessionItem->product_id,
+                            'product_variant_id' => $sessionItem->product_variant_id,
+                            'quantity' => $qty,
+                        ]);
+                    }
                 }
             }
 
