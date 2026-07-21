@@ -43,9 +43,21 @@ class CheckUnpaidOrders extends Command
                     $q->where('payment_gateway', PaymentGateway::BankTransfer)
                         ->where('created_at', '<=', now()->subDays(7));
                 })->orWhere(function ($q) {
-                    // Stripe/PayPal: cancella dopo 1 ora (checkout abbandonato)
+                    // Stripe/PayPal: cancella dopo 1 ora (checkout abbandonato).
+                    // Gli ordini d'asta sono esclusi: hanno una finestra di
+                    // pagamento propria (auctions.payment_deadline_hours, 48h di
+                    // default) e la loro scadenza è gestita da
+                    // AuctionService::checkWinnerPayments(). Annullarli dopo
+                    // un'ora lasciava il vincitore senza modo di pagare, perché
+                    // AuctionCheckoutController::show lo rimanda alla pagina
+                    // "ordine già effettuato".
                     $q->whereIn('payment_gateway', [PaymentGateway::Stripe, PaymentGateway::PayPal])
-                        ->where('created_at', '<=', now()->subHours(1));
+                        ->where('created_at', '<=', now()->subHours(1))
+                        ->whereNotExists(function ($sub) {
+                            $sub->select(DB::raw(1))
+                                ->from('auctions')
+                                ->whereColumn('auctions.winner_checkout_token', 'orders.order_token');
+                        });
                 });
             })
             ->get();

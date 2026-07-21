@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\AuctionStatus;
+use App\Enums\OrderStatus;
 use App\Mail\AuctionWon;
 use App\Models\Auction;
 use App\Models\Bid;
@@ -100,11 +101,21 @@ class AuctionService
             DB::transaction(function () use ($auction, &$processed) {
                 $auction = Auction::lockForUpdate()->find($auction->id);
 
-                // Verifica se il vincitore ha già pagato (dentro la transazione per evitare TOCTOU)
+                // Verifica se il vincitore ha già pagato (dentro la transazione per evitare TOCTOU).
+                // Va controllato il PAGAMENTO, non la semplice esistenza dell'ordine:
+                // il vincitore che apre il checkout senza completarlo lascia un
+                // ordine Pending, che faceva considerare l'asta come pagata e ne
+                // impediva per sempre la riassegnazione all'offerente successivo.
                 $existingOrder = $this->getWinnerOrder($auction);
 
-                if ($existingOrder) {
+                if ($existingOrder?->paid_at !== null) {
                     return; // Pagamento già effettuato
+                }
+
+                // L'ordine rimasto in sospeso oltre la deadline non è più pagabile:
+                // annullarlo restituisce lo stock tramite OrderObserver.
+                if ($existingOrder && $existingOrder->status === OrderStatus::Pending) {
+                    $existingOrder->forceFill(['status' => OrderStatus::Cancelled])->save();
                 }
 
                 $currentAttempt = $auction->current_winner_attempt;
