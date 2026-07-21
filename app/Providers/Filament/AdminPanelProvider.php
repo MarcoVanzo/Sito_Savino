@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Dashboard;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Models\Page;
@@ -33,7 +32,11 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login(Login::class)
+            // Lo staff accede al CMS dalla login nativa di Filament (/admin/login),
+            // brandizzata dai colori e dal logo impostati qui sotto. Il reset
+            // password dello staff segue lo stesso percorso (/admin/password-reset).
+            ->login()
+            ->passwordReset()
             ->colors([
                 'primary' => Color::Hex('#003063'), // Savino Blue
                 'danger' => Color::Hex('#DF338F'), // Savino Red
