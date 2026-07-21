@@ -21,6 +21,7 @@ class NewsController extends Controller
             $paginator = Post::published()
                 ->with(['author', 'categories', 'media'])
                 ->orderByDesc('published_at')
+                ->orderByDesc('id')
                 ->paginate(12, ['*'], 'page', $page);
 
             // Trasformiamo ogni post per estrarre la traduzione nella locale corrente prima di cacharlo.
@@ -54,6 +55,7 @@ class NewsController extends Controller
                 })
                 ->where('id', '!=', $post->id)
                 ->orderByDesc('published_at')
+                ->orderByDesc('id')
                 ->take(3)
                 ->get()
                 ->map(fn ($p) => $this->postToArray($p))

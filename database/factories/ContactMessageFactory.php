@@ -16,7 +16,7 @@ class ContactMessageFactory extends Factory
             'email' => fake()->safeEmail(),
             'subject' => fake()->sentence(),
             'message' => fake()->paragraph(),
-            'status' => 'new',
+            'status' => 'unread',
             'extra_data' => null,
         ];
     }

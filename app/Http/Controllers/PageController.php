@@ -151,8 +151,10 @@ class PageController extends Controller
 
         return [
             'dirigenza' => Cache::remember("public:organigramma:page:{$locale}", now()->addMinutes(30), function () {
-                return StaffMember::where('type', StaffType::Dirigenza)
+                return StaffMember::with('media')
+                    ->where('type', StaffType::Dirigenza)
                     ->orderBy('sort_order')
+                    ->orderBy('id')
                     ->get()
                     ->map(fn ($p) => [
                         'id' => $p->id,
@@ -179,15 +181,18 @@ class PageController extends Controller
 
                 if ($team) {
                     $players = Roster::with(['player', 'media'])
+                        ->whereHas('player')
                         ->where('team_id', $team->id)
                         ->where('season_id', $currentSeason->id)
+                        ->orderByRaw('jersey_number IS NULL, jersey_number')
+                        ->orderBy('id')
                         ->get()
                         ->map(fn ($r) => [
                             'id' => $r->player->id ?? $r->id,
                             'first_name' => $r->player->first_name ?? '',
                             'last_name' => $r->player->last_name ?? '',
-                            'number' => $r->shirt_number ?? $r->player->shirt_number ?? null,
-                            'role' => $r->player->role ?? null,
+                            'number' => $r->jersey_number,
+                            'role' => $r->role?->value,
                             'photo_url' => $r->getFirstMediaUrl('rosters_official', 'card') ?: ($r->player?->getFirstMediaUrl('players', 'card') ?: $r->player?->getFirstMediaUrl('players') ?: null),
                         ])
                         ->toArray();
@@ -210,6 +215,7 @@ class PageController extends Controller
                 return Sponsor::with('media')
                     ->orderBy('tier')
                     ->orderBy('sort_order')
+                    ->orderBy('id')
                     ->get()
                     ->map(fn ($s) => [
                         'id' => $s->id,

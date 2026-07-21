@@ -22,7 +22,9 @@ class Player extends Model implements HasMedia
         'ai_face_examples',
     ];
 
-    public $translatable = ['role', 'biography'];
+    // Nessun campo traducibile sulla tabella `players`: `role` e `biography`
+    // vivono rispettivamente su `rosters` e `staff_members`.
+    public $translatable = [];
 
     protected $casts = [
         'date_of_birth' => 'date',

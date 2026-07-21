@@ -55,7 +55,9 @@ class GalleryImage extends Model implements HasMedia
 
     public function scopeOrdered($query)
     {
-        return $query->orderBy('sort_order');
+        // `id` come tiebreaker: sort_order non è univoco e senza di esso
+        // l'ordine delle foto cambia a ogni query.
+        return $query->orderBy('sort_order')->orderBy('id');
     }
 
     public function players()

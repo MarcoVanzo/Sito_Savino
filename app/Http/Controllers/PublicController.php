@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
-use App\Enums\PostStatus;
 use App\Enums\StaffType;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
@@ -39,9 +38,10 @@ class PublicController extends Controller
                 ->first()?->toArray();
 
             // Ultime 3 news pubblicate
-            $latestNews = Post::where('status', PostStatus::Published)
+            $latestNews = Post::published()
                 ->with('media')
                 ->orderByDesc('published_at')
+                ->orderByDesc('id')
                 ->take(3)
                 ->get()
                 ->map(fn ($post) => [
@@ -108,8 +108,11 @@ class PublicController extends Controller
                     'media',
                     'player.stats' => fn ($query) => $query->where('season_id', $currentSeason->id),
                 ])
+                    ->whereHas('player')
                     ->where('team_id', $team->id)
                     ->where('season_id', $currentSeason->id)
+                    ->orderByRaw('jersey_number IS NULL, jersey_number')
+                    ->orderBy('id')
                     ->get()
                     ->toArray();
 
@@ -135,7 +138,7 @@ class PublicController extends Controller
                         $q->where('section', $section);
                     }
                 })
-                ->orderBy('sort_order')->get()->map($mapStaff)->toArray();
+                ->orderBy('sort_order')->orderBy('id')->get()->map($mapStaff)->toArray();
 
             $staffMedico = StaffMember::with('media')
                 ->where('type', StaffType::Medico)
@@ -146,7 +149,7 @@ class PublicController extends Controller
                         $q->where('section', $section);
                     }
                 })
-                ->orderBy('sort_order')->get()->map($mapStaff)->toArray();
+                ->orderBy('sort_order')->orderBy('id')->get()->map($mapStaff)->toArray();
 
             return compact('roster', 'seasonName', 'staffTecnico', 'staffMedico');
         });
@@ -228,7 +231,7 @@ class PublicController extends Controller
     {
         $locale = app()->getLocale();
         $page = Cache::remember("public:page:gallery:{$locale}", now()->addMinutes(30), function () {
-            return Page::where('slug', 'gallery')->first();
+            return Page::where('slug', 'gallery')->published()->first();
         });
 
         $cacheKey = $playerFilter
@@ -237,7 +240,7 @@ class PublicController extends Controller
 
         $media = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter, $locale) {
             $query = GalleryImage::active()->ordered()
-                ->with(['players:id,first_name,last_name', 'galleryEvent:id,title']);
+                ->with(['media', 'players:id,first_name,last_name', 'galleryEvent:id,title']);
 
             if ($playerFilter) {
                 $query->whereHas('players', function ($q) use ($playerFilter) {
@@ -286,11 +289,15 @@ class PublicController extends Controller
 
         // Get all players that have at least one gallery image for the filter dropdown
         $athletes = Cache::remember("public:gallery_athletes:{$locale}", now()->addMinutes(30), function () {
-            return Player::whereHas('galleryImages')->get()->map(fn ($p) => [
-                'id' => $p->id,
-                'name' => $p->full_name,
-                'slug' => $p->id.'-'.Str::slug($p->full_name),
-            ])->toArray();
+            return Player::whereHas('galleryImages', fn ($q) => $q->where('gallery_images.is_active', true))
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->orderBy('id')
+                ->get()->map(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->full_name,
+                    'slug' => $p->id.'-'.Str::slug($p->full_name),
+                ])->toArray();
         });
 
         $totalEvents = Cache::remember('public:gallery_total_events', now()->addMinutes(30), function () {
@@ -319,6 +326,7 @@ class PublicController extends Controller
             return StaffMember::with('media')
                 ->where('type', StaffType::Tecnico)
                 ->orderBy('sort_order')
+                ->orderBy('id')
                 ->get()
                 ->map(fn ($p) => [
                     'id' => $p->id,
@@ -333,6 +341,7 @@ class PublicController extends Controller
             return StaffMember::with('media')
                 ->where('type', StaffType::Medico)
                 ->orderBy('sort_order')
+                ->orderBy('id')
                 ->get()
                 ->map(fn ($p) => [
                     'id' => $p->id,
@@ -356,6 +365,7 @@ class PublicController extends Controller
             return Sponsor::with('media')
                 ->orderBy('tier')
                 ->orderBy('sort_order')
+                ->orderBy('id')
                 ->get()
                 ->map(fn ($s) => [
                     'id' => $s->id,
@@ -367,7 +377,7 @@ class PublicController extends Controller
                 ])->toArray();
         });
 
-        $page = Page::where('slug', 'sponsor')->first();
+        $page = Page::where('slug', 'sponsor')->published()->first();
 
         return Inertia::render('Public/Sponsor', [
             'sponsors' => $sponsors,
@@ -377,7 +387,7 @@ class PublicController extends Controller
 
     public function contatti()
     {
-        $page = Page::where('slug', 'contatti')->first();
+        $page = Page::where('slug', 'contatti')->published()->first();
 
         return Inertia::render('Public/Contatti', [
             'page' => $page,

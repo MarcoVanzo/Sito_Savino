@@ -25,7 +25,7 @@ class StaffMember extends Model implements HasMedia
         'sort_order',
     ];
 
-    public $translatable = ['role', 'biography'];
+    public $translatable = ['role'];
 
     protected $casts = [
         'type' => StaffType::class,
