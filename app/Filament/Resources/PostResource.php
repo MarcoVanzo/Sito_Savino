@@ -138,9 +138,8 @@ class PostResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
-                    ->color(fn ($state): string => match ($state) {
-                        'draft' => 'gray',
-                        'publish' => 'success',
+                    ->color(fn ($state): string => match ($state instanceof PostStatus ? $state : PostStatus::tryFrom((string) $state)) {
+                        PostStatus::Published => 'success',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('published_at')

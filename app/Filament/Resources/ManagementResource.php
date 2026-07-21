@@ -9,6 +9,7 @@ use App\Models\StaffMember;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
+use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 class ManagementResource extends Resource
 {
     use HasStandardTableActions;
+    use Translatable;
 
     protected static ?string $model = StaffMember::class;
 

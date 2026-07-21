@@ -107,11 +107,11 @@ class GameResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        GameStatus::Scheduled->value => 'gray',
-                        GameStatus::Live->value => 'danger',
-                        GameStatus::Finished->value => 'success',
-                        GameStatus::Cancelled->value => 'warning',
+                    ->color(fn ($state): string => match ($state instanceof GameStatus ? $state : GameStatus::tryFrom((string) $state)) {
+                        GameStatus::Scheduled => 'gray',
+                        GameStatus::InProgress => 'danger',
+                        GameStatus::Completed => 'success',
+                        GameStatus::Postponed => 'warning',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('homeTeam.name')
@@ -161,9 +161,6 @@ class GameResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
             ->with(['homeTeam', 'awayTeam', 'season']);
     }
 }
