@@ -17,23 +17,22 @@ class UnifiedLoginTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_filament_login_page_redirects_to_site_login(): void
+    public function test_filament_login_page_is_served_by_the_panel(): void
     {
-        // Il pannello non mostra una pagina di login separata: rimanda a quella
-        // brandizzata del sito.
-        $response = $this->get('/admin/login');
-
-        $response->assertRedirect(route('login'));
+        // Lo staff accede al CMS dalla login nativa di Filament, non dalla
+        // pagina shop del sito.
+        $this->get('/admin/login')->assertOk();
     }
 
-    public function test_guest_visiting_admin_is_redirected_to_site_login(): void
+    public function test_guest_visiting_admin_is_sent_to_filament_login(): void
     {
-        // Filament rimanda il guest a /admin/login, che a sua volta reindirizza
-        // alla pagina di login del sito: seguendo i redirect si arriva lì.
-        $response = $this->get('/admin');
-        $response->assertRedirect('/admin/login');
+        $this->get('/admin')->assertRedirect('/admin/login');
+    }
 
-        $this->get('/admin/login')->assertRedirect(route('login'));
+    public function test_filament_password_reset_is_available(): void
+    {
+        // Il reset password dello staff segue lo stesso percorso del login CMS.
+        $this->get('/admin/password-reset/request')->assertOk();
     }
 
     public function test_staff_login_lands_on_admin_panel(): void
