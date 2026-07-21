@@ -232,4 +232,9 @@ class MagazzinoPage extends Page implements HasForms, HasTable
     {
         return 1;
     }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->role->canManageShop() ?? false;
+    }
 }

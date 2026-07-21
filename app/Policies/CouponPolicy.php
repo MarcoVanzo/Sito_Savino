@@ -2,17 +2,17 @@
 
 namespace App\Policies;
 
-use App\Models\Order;
+use App\Models\Coupon;
 use App\Models\User;
 
-class OrderPolicy
+class CouponPolicy
 {
     public function viewAny(User $user): bool
     {
         return $user->role->canManageShop();
     }
 
-    public function view(User $user, Order $order): bool
+    public function view(User $user, Coupon $coupon): bool
     {
         return $user->role->canManageShop();
     }
@@ -22,26 +22,22 @@ class OrderPolicy
         return $user->role->canManageShop();
     }
 
-    public function update(User $user, Order $order): bool
+    public function update(User $user, Coupon $coupon): bool
     {
         return $user->role->canManageShop();
     }
 
-    public function delete(User $user, Order $order): bool
+    public function delete(User $user, Coupon $coupon): bool
     {
-        return false;
+        return $user->role->canManageShop();
     }
 
-    /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
-     */
     public function deleteAny(User $user): bool
     {
-        return false;
+        return $user->role->canManageShop();
     }
 
-    public function restore(User $user, Order $order): bool
+    public function restore(User $user, Coupon $coupon): bool
     {
         return $user->role->isSuperAdmin();
     }
@@ -51,12 +47,7 @@ class OrderPolicy
         return $user->role->isSuperAdmin();
     }
 
-    public function forceDelete(User $user, Order $order): bool
-    {
-        return false;
-    }
-
-    public function forceDeleteAny(User $user): bool
+    public function forceDelete(User $user, Coupon $coupon): bool
     {
         return false;
     }

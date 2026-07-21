@@ -30,4 +30,13 @@ class UserPolicy
     {
         return $user->role->canManageSystem() && $user->id !== $model->id;
     }
+
+    /**
+     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
+     * Filament considera l'azione permessa a chiunque veda la lista.
+     */
+    public function deleteAny(User $user): bool
+    {
+        return $user->role->canManageSystem();
+    }
 }

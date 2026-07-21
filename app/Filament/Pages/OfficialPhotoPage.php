@@ -69,4 +69,9 @@ class OfficialPhotoPage extends Page implements HasForms
 
         Notification::make()->title('Documento salvato con successo')->success()->send();
     }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->role->canManageSport() ?? false;
+    }
 }
