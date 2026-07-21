@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Game;
 use App\Models\Player;
+use App\Models\Post;
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Team;
@@ -36,13 +38,60 @@ class CacheInvalidationTest extends TestCase
         // altrimenti la create() svuota la cache e il test è un falso positivo
         $player = Player::factory()->create();
 
-        Cache::put('public:staff', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:roster_page', 'cached_data', now()->addMinutes(30));
         Cache::put('public:stagione', 'cached_data', now()->addMinutes(30));
 
         $player->update(['first_name' => 'Nuova']);
 
-        $this->assertNull(Cache::get('public:staff'));
+        $this->assertNull(Cache::get('public:roster_page'));
         $this->assertNull(Cache::get('public:stagione'));
+    }
+
+    /**
+     * I controller pubblici suffissano sempre la locale nelle chiavi di cache
+     * (es. "public:stagione:it"): l'observer deve invalidare anche quelle varianti.
+     */
+    public function test_cache_is_cleared_for_locale_suffixed_keys(): void
+    {
+        $roster = Roster::factory()->create();
+
+        Cache::put('public:stagione:it', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:stagione:en', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:roster_page:it', 'cached_data', now()->addMinutes(30));
+
+        $roster->update(['jersey_number' => 99]);
+
+        $this->assertNull(Cache::get('public:stagione:it'));
+        $this->assertNull(Cache::get('public:stagione:en'));
+        $this->assertNull(Cache::get('public:roster_page:it'));
+    }
+
+    public function test_post_cache_is_cleared_for_locale_suffixed_keys(): void
+    {
+        $post = Post::factory()->create(['slug' => 'una-notizia']);
+
+        Cache::put('public:home:it', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:news:it:page:1', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:news:it:una-notizia', 'cached_data', now()->addMinutes(30));
+
+        $post->update(['title' => 'Nuovo titolo']);
+
+        $this->assertNull(Cache::get('public:home:it'));
+        $this->assertNull(Cache::get('public:news:it:page:1'));
+        $this->assertNull(Cache::get('public:news:it:una-notizia'));
+    }
+
+    public function test_game_cache_is_cleared_for_each_competition(): void
+    {
+        $game = Game::factory()->create();
+
+        Cache::put('public:risultati:Campionato:it', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:risultati:Champions League:en', 'cached_data', now()->addMinutes(30));
+
+        $game->update(['location' => 'PalaEstra']);
+
+        $this->assertNull(Cache::get('public:risultati:Campionato:it'));
+        $this->assertNull(Cache::get('public:risultati:Champions League:en'));
     }
 
     public function test_cache_is_cleared_when_season_is_deleted(): void
