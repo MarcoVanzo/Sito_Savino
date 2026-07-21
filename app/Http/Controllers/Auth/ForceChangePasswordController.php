@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Rules\NotAPreviousPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
@@ -18,14 +19,18 @@ class ForceChangePasswordController extends Controller
      */
     public function show(Request $request)
     {
-        // Se l'utente ha già cambiato la password, reindirizzalo alla sua destinazione corretta
-        if ($request->user()->must_change_password === false) {
-            $default = $request->user()->role->canAccessPanel() ? '/admin' : '/dashboard';
+        $user = $request->user();
 
-            return $this->redirectAfterChange($default);
+        // Nulla da fare se la password non è né da cambiare al primo accesso né scaduta.
+        if ($user->must_change_password === false && ! $user->passwordHasExpired()) {
+            return $this->redirectAfterChange($this->defaultDestination($user));
         }
 
-        return Inertia::render('Auth/ForceChangePassword');
+        return Inertia::render('Auth/ForceChangePassword', [
+            // Distingue i due casi nel testo della pagina: primo accesso vs scadenza.
+            'reason' => $user->must_change_password ? 'first_login' : 'expired',
+            'expiredOn' => $user->passwordExpiresAt()?->toDateString(),
+        ]);
     }
 
     /**
@@ -35,18 +40,12 @@ class ForceChangePasswordController extends Controller
     {
         $user = $request->user();
 
-        // Validiamo la password corrente, la nuova password e la sua conferma
+        // Validiamo la password corrente, la nuova password e la sua conferma.
+        // NotAPreviousPassword copre anche il caso "uguale a quella attuale".
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
+            'password' => ['required', Password::defaults(), 'confirmed', new NotAPreviousPassword($user)],
         ]);
-
-        // Verifica di sicurezza aggiuntiva: la nuova password deve essere diversa da quella attuale
-        if (Hash::check($validated['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'password' => 'La nuova password deve essere diversa da quella attuale.',
-            ]);
-        }
 
         // Il Model User ha il cast 'hashed' sul campo password,
         // quindi l'assegnazione semplice attiva l'hashing automatico
@@ -66,11 +65,22 @@ class ForceChangePasswordController extends Controller
             $user->getAuthPassword()
         );
 
-        $default = $user->role->canAccessPanel() ? '/admin' : '/dashboard';
-
         return $this->redirectAfterChange(
-            $request->session()->pull('url.intended', $default)
+            $request->session()->pull('url.intended', $this->defaultDestination($user))
         );
+    }
+
+    /**
+     * Dove mandare l'utente dopo il cambio: pannello per lo staff, shop per i
+     * clienti, dashboard per gli altri.
+     */
+    private function defaultDestination(User $user): string
+    {
+        if ($user->role === UserRole::Customer) {
+            return route('shop', absolute: false);
+        }
+
+        return $user->role->canAccessPanel() ? '/admin' : '/dashboard';
     }
 
     /**

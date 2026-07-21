@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,12 @@ class EnsurePasswordIsChanged
         if (Auth::check()) {
             $user = $request->user();
             $mustChange = array_key_exists('must_change_password', $user->getAttributes()) && $user->must_change_password;
+
+            // Password scaduta (policy: ogni N mesi) ⇒ stesso trattamento del
+            // cambio obbligatorio al primo accesso: si passa da /change-password.
+            if (! $mustChange && $user instanceof User && $user->passwordHasExpired()) {
+                $mustChange = true;
+            }
 
             if ($mustChange) {
                 // Evita di bloccare chiamate API o richieste asincrone JSON

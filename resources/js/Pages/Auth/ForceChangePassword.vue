@@ -22,6 +22,8 @@ const locales = {
         warning_title: 'Attenzione',
         warning_desc: 'Questo account è stato creato da un amministratore. Devi impostare una nuova password personalizzata e privata per poter sbloccare l\'accesso alle funzionalità del sito e del pannello gestionale.',
         saving: 'Salvataggio in corso...',
+        expired_subtitle: 'La tua password è scaduta. Impostane una nuova per continuare.',
+        expired_warning_desc: 'Per motivi di sicurezza la password va rinnovata periodicamente. Scegline una che non hai già usato di recente.',
     },
     en: {
         title: 'Password Change Required',
@@ -34,10 +36,26 @@ const locales = {
         warning_title: 'Attention',
         warning_desc: 'This account was created by an administrator. You must set a new personal and private password to unlock access to the website and administrative panel.',
         saving: 'Saving...',
+        expired_subtitle: 'Your password has expired. Set a new one to continue.',
+        expired_warning_desc: 'For security reasons passwords must be renewed periodically. Choose one you have not used recently.',
     }
 };
 
-const t = computed(() => locales[locale.value] || locales.it);
+const props = defineProps({
+    // 'first_login' (password provvisoria) oppure 'expired' (scadenza periodica)
+    reason: { type: String, default: 'first_login' },
+    expiredOn: { type: String, default: null },
+});
+
+const base = computed(() => locales[locale.value] || locales.it);
+const isExpired = computed(() => props.reason === 'expired');
+
+// Stessa pagina, due motivi diversi: il testo deve dirlo chiaramente.
+const t = computed(() => ({
+    ...base.value,
+    subtitle: isExpired.value ? base.value.expired_subtitle : base.value.subtitle,
+    warning_desc: isExpired.value ? base.value.expired_warning_desc : base.value.warning_desc,
+}));
 
 const form = useForm({
     current_password: '',

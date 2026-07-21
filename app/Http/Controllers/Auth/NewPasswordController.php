@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Rules\NotAPreviousPassword;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,10 +35,25 @@ class NewPasswordController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Il divieto di riuso si applica solo se il token di reset è già valido:
+        // la validazione gira PRIMA che Password::reset verifichi il token, quindi
+        // applicarla incondizionatamente permetterebbe a un estraneo, senza token,
+        // di scoprire se una certa password è fra le ultime usate da quell'indirizzo.
+        $user = User::where('email', $request->string('email'))->first();
+
+        $tokenIsValid = $user !== null && Password::getRepository()->exists(
+            $user, (string) $request->string('token')
+        );
+
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::defaults(),
+                new NotAPreviousPassword($tokenIsValid ? $user : null),
+            ],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we
