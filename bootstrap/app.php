@@ -12,6 +12,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,6 +34,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->web(append: [
             SecurityHeadersMiddleware::class,
+            // Lega la sessione all'hash della password, come già fa il pannello
+            // Filament: senza, un cambio password o un reset non invalidava le
+            // altre sessioni del sito pubblico e una sessione rubata restava
+            // valida a tempo indeterminato. Le sessioni già attive non vengono
+            // interrotte: al primo passaggio l'hash viene semplicemente salvato.
+            AuthenticateSession::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsurePasswordIsChanged::class,

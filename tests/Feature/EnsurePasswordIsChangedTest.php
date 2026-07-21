@@ -201,12 +201,11 @@ class EnsurePasswordIsChangedTest extends TestCase
 
         $changeResponse->assertRedirect('/admin');
 
-        // La sessione deve contenere l'hash aggiornato, così AuthenticateSession
-        // non forza il logout al successivo accesso al pannello.
-        $this->assertSame(
-            $user->fresh()->getAuthPassword(),
-            session('password_hash_'.Auth::getDefaultDriver()),
-        );
+        // La sessione deve portare l'hash aggiornato, così AuthenticateSession
+        // non forza il logout al successivo accesso al pannello. Si verifica il
+        // comportamento e non il valore: il formato è interno al middleware
+        // (hashPasswordForCookie) e non coincide con l'hash bcrypt dell'utente.
+        $this->assertNotNull(session('password_hash_'.Auth::getDefaultDriver()));
 
         // Seguendo il redirect l'utente resta autenticato sul pannello e non
         // viene rimbalzato alla pagina di login di Filament.
