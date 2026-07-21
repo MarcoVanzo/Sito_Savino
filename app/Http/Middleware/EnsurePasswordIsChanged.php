@@ -29,8 +29,12 @@ class EnsurePasswordIsChanged
             }
 
             if ($mustChange) {
-                // Evita di bloccare chiamate API o richieste asincrone JSON
-                if ($request->expectsJson() || $request->is('api/*')) {
+                // Evita di bloccare le chiamate API (che non possono seguire un
+                // redirect verso una pagina). NON si guarda `expectsJson()`: è
+                // pilotato dall'header Accept del client, quindi basterebbe
+                // inviare `Accept: application/json` per navigare tutto il sito
+                // senza mai cambiare la password scaduta.
+                if ($request->is('api/*')) {
                     return $next($request);
                 }
 
@@ -42,7 +46,9 @@ class EnsurePasswordIsChanged
                 // per evitare redirect loop infiniti. Escludiamo anche asset e chiamate di debug.
                 if ($routeName !== 'password.change' &&
                     $routeName !== 'password.change.update' &&
-                    ! Str::contains($path, 'logout') &&
+                    // `contains` lascerebbe passare qualsiasi URL con "logout"
+                    // dentro (es. uno slug di prodotto): serve il segmento finale.
+                    ! Str::endsWith($path, 'logout') &&
                     ! Str::startsWith($path, ['_debugbar', '_ignition', 'storage', 'livewire', 'vendor'])
                 ) {
                     return redirect()->route('password.change');

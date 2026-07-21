@@ -24,12 +24,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // PreviewBasicAuth deve precedere CachePublicResponse: altrimenti una
+        // risposta in cache viene servita prima del controllo credenziali,
+        // rendendo pubbliche le pagine del sito ancora in preview.
         $middleware->web(prepend: [
+            PreviewBasicAuth::class,
             CachePublicResponse::class,
         ]);
         $middleware->web(append: [
             SecurityHeadersMiddleware::class,
-            PreviewBasicAuth::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsurePasswordIsChanged::class,

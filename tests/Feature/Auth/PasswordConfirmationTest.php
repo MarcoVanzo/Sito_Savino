@@ -41,4 +41,25 @@ class PasswordConfirmationTest extends TestCase
 
         $response->assertSessionHasErrors();
     }
+
+    public function test_password_confirmation_is_rate_limited(): void
+    {
+        // Senza limite la rotta è un oracolo per il brute force della password
+        // sull'account già autenticato.
+        $user = User::factory()->create();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->actingAs($user)->post('/confirm-password', [
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        $response = $this->actingAs($user)->post('/confirm-password', [
+            // Anche con la password giusta il tetto di tentativi è già esaurito.
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors('password');
+        $this->assertNull(session('auth.password_confirmed_at'));
+    }
 }

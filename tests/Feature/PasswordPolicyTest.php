@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Filament\Resources\UserResource\Pages\CreateUser;
+use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Models\User;
 use App\Notifications\PasswordExpiringSoon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PasswordPolicyTest extends TestCase
@@ -230,5 +233,41 @@ class PasswordPolicyTest extends TestCase
         $this->post('/login', ['email' => $user->email, 'password' => 'password']);
 
         Notification::assertNotSentTo($user, PasswordExpiringSoon::class);
+    }
+
+    // --- Creazione/modifica utenti dal pannello ---
+
+    public function test_il_pannello_rifiuta_una_password_debole_alla_creazione(): void
+    {
+        $admin = $this->staff();
+
+        Livewire::actingAs($admin)
+            ->test(CreateUser::class)
+            ->fillForm([
+                'name' => 'Nuovo Staff',
+                'email' => 'nuovo.staff@savinodelbene.it',
+                'role' => UserRole::CommunicationManager->value,
+                'password' => 'debole',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['password']);
+
+        $this->assertDatabaseMissing('users', ['email' => 'nuovo.staff@savinodelbene.it']);
+    }
+
+    public function test_il_pannello_rifiuta_il_riuso_di_una_password_gia_usata(): void
+    {
+        $admin = $this->staff();
+        $target = $this->staff(['role' => UserRole::ShopManager]);
+
+        // Password robusta (supera Password::defaults) ma già presente nello
+        // storico: deve essere respinta lo stesso.
+        $target->update(['password' => 'Vecchia!Password2026']);
+
+        Livewire::actingAs($admin)
+            ->test(EditUser::class, ['record' => $target->getKey()])
+            ->fillForm(['password' => 'Vecchia!Password2026'])
+            ->call('save')
+            ->assertHasFormErrors(['password']);
     }
 }

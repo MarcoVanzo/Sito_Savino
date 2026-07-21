@@ -261,6 +261,10 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
 
     // Verifica metodo di pagamento (per aste)
     Route::get('/account/verifica-pagamento', [PaymentVerificationController::class, 'show'])->name('account.payment-verification');
-    Route::post('/account/verifica-pagamento', [PaymentVerificationController::class, 'store'])->name('account.payment-verification.store');
+    // Throttle stretto: la POST apre una sessione di pagamento verso Stripe,
+    // senza limite sarebbe sfruttabile per card testing.
+    Route::post('/account/verifica-pagamento', [PaymentVerificationController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('account.payment-verification.store');
     Route::get('/account/verifica-pagamento/completata', [PaymentVerificationController::class, 'success'])->name('account.payment-verification.success');
 });

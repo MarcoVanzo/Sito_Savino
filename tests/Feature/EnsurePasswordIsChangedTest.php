@@ -215,6 +215,33 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertAuthenticatedAs($user->fresh());
     }
 
+    public function test_json_accept_header_does_not_bypass_forced_password_change(): void
+    {
+        // Regressione: il middleware saltava il controllo su expectsJson(), che
+        // dipende solo dall'header Accept inviato dal client. Bastava quindi
+        // chiedere JSON per navigare il sito senza cambiare la password.
+        $user = User::factory()->create();
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)
+            ->withHeaders(['Accept' => 'application/json'])
+            ->get('/dashboard');
+
+        $response->assertRedirect(route('password.change'));
+    }
+
+    public function test_a_path_containing_logout_does_not_bypass_forced_password_change(): void
+    {
+        // `Str::contains($path, 'logout')` lasciava passare qualsiasi URL con
+        // "logout" al suo interno (per esempio uno slug di pagina o prodotto).
+        $user = User::factory()->create();
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $response = $this->actingAs($user)->get('/logout-pagina-inesistente');
+
+        $response->assertRedirect(route('password.change'));
+    }
+
     public function test_force_change_password_from_inertia_forces_full_page_visit_to_panel(): void
     {
         // Regressione: il redirect finale punta al pannello Filament, che non è
