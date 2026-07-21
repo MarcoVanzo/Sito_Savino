@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ForceChangePasswordController extends Controller
 {
@@ -22,7 +22,7 @@ class ForceChangePasswordController extends Controller
         if ($request->user()->must_change_password === false) {
             $default = $request->user()->role->canAccessPanel() ? '/admin' : '/dashboard';
 
-            return redirect()->to($default);
+            return $this->redirectAfterChange($default);
         }
 
         return Inertia::render('Auth/ForceChangePassword');
@@ -31,7 +31,7 @@ class ForceChangePasswordController extends Controller
     /**
      * Update the user's password.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): SymfonyResponse
     {
         $user = $request->user();
 
@@ -68,6 +68,29 @@ class ForceChangePasswordController extends Controller
 
         $default = $user->role->canAccessPanel() ? '/admin' : '/dashboard';
 
-        return redirect()->intended($default);
+        return $this->redirectAfterChange(
+            $request->session()->pull('url.intended', $default)
+        );
+    }
+
+    /**
+     * Reindirizza l'utente dopo il cambio password.
+     *
+     * Il pannello Filament NON è una pagina Inertia. Con un redirect normale il
+     * client Inertia seguirebbe la destinazione via XHR, riceverebbe HTML dove
+     * attende JSON e mostrerebbe il proprio modale d'errore con il pannello
+     * incastrato sopra la pagina di cambio password (schermata "doppia").
+     *
+     * Inertia::location risponde invece 409 + X-Inertia-Location, che il client
+     * traduce in una navigazione full-page; per le richieste non-Inertia resta
+     * un normale redirect, quindi è sicuro usarlo in entrambi i casi.
+     */
+    private function redirectAfterChange(string $target): SymfonyResponse
+    {
+        $path = parse_url($target, PHP_URL_PATH) ?: '/';
+
+        return str_starts_with($path, '/admin')
+            ? Inertia::location($target)
+            : redirect()->to($target);
     }
 }

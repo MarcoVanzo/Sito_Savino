@@ -214,4 +214,28 @@ class EnsurePasswordIsChangedTest extends TestCase
         $panelResponse->assertStatus(200);
         $this->assertAuthenticatedAs($user->fresh());
     }
+
+    public function test_force_change_password_from_inertia_forces_full_page_visit_to_panel(): void
+    {
+        // Regressione: il redirect finale punta al pannello Filament, che non è
+        // una pagina Inertia. Senza Inertia::location il client mostrava il
+        // modale d'errore con la dashboard sovrapposta al form di cambio password.
+        $user = User::factory()->create();
+        $user->forceFill([
+            'role' => UserRole::SuperAdmin,
+            'must_change_password' => true,
+        ])->save();
+
+        $response = $this->actingAs($user)
+            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->post('/change-password', [
+                'current_password' => 'password',
+                'password' => 'NuovaPassword!2026',
+                'password_confirmation' => 'NuovaPassword!2026',
+            ]);
+
+        $response->assertStatus(409);
+        $response->assertHeader('X-Inertia-Location', '/admin');
+        $this->assertFalse((bool) $user->fresh()->must_change_password);
+    }
 }

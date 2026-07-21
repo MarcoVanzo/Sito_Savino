@@ -52,6 +52,28 @@ class UnifiedLoginTest extends TestCase
         $response->assertRedirect('/admin');
     }
 
+    public function test_staff_login_from_inertia_forces_a_full_page_visit_to_the_panel(): void
+    {
+        // Il pannello Filament non è una pagina Inertia: la risposta deve essere
+        // 409 + X-Inertia-Location, altrimenti il client Inertia riceverebbe HTML
+        // dove attende JSON e mostrerebbe il modale d'errore con il pannello
+        // sovrapposto alla pagina di login.
+        $user = User::factory()->create();
+        $user->forceFill([
+            'role' => UserRole::SuperAdmin,
+            'must_change_password' => false,
+        ])->save();
+
+        $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->post('/login', [
+                'email' => $user->email,
+                'password' => 'password',
+            ]);
+
+        $response->assertStatus(409);
+        $response->assertHeader('X-Inertia-Location', '/admin');
+    }
+
     public function test_customer_login_lands_on_shop(): void
     {
         $user = User::factory()->create();
