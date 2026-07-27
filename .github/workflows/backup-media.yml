@@ -88,7 +88,7 @@ jobs:
           sed -i 's/^          //' ~/.config/rclone/rclone.conf
 
           # Verifica che i remote funzionino
-          rclone lsd do-prod: > /dev/null 2>&1 && echo "✅ Remote do-prod OK" || { echo "❌ Remote do-prod fallito"; exit 1; }
+          rclone lsd "do-prod:${PROD_BUCKET}" > /dev/null 2>&1 && echo "✅ Remote do-prod OK" || { echo "❌ Remote do-prod fallito"; exit 1; }
           rclone lsd do-backup: > /dev/null 2>&1 && echo "✅ Remote do-backup OK" || { echo "❌ Remote do-backup fallito"; exit 1; }
 
       # ---------------------------------------------------------------
