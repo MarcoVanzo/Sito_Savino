@@ -1,14 +1,26 @@
 # Pipeline CI/CD per Sito Savino
 # Esegue controlli di qualità su push a main e pull request
 # Deploya su DigitalOcean App Platform solo se i test passano (push a main)
+#
+# Economia minuti Actions: i push su main girano in modalità "veloce"
+# (niente coverage né SonarCloud, ~2 min in meno a run); l'analisi completa
+# gira sulle PR, sulla run schedulata del lunedì (baseline SonarCloud di main)
+# e su lancio manuale. Il deploy resta gated e parte solo sui push a main.
 
 name: CI
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'Loghi/**'
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 5 * * 1'  # lunedì 05:00 UTC — run completa per la baseline SonarCloud
+  workflow_dispatch:
 
 jobs:
   build-and-test:
@@ -39,19 +51,19 @@ jobs:
           --health-retries=5
 
     steps:
-      # Checkout del codice sorgente
+      # Checkout del codice sorgente (history completa solo quando serve a Sonar)
       - name: Checkout codice
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # Full history for SonarCloud
+          fetch-depth: ${{ github.event_name != 'push' && 0 || 1 }}
 
-      # Configurazione PHP 8.4 con Xdebug per coverage
+      # Configurazione PHP 8.4 — Xdebug (lento) solo nelle run con coverage
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, json, bcmath, curl, pdo, pdo_mysql
-          coverage: xdebug
+          coverage: ${{ github.event_name != 'push' && 'xdebug' || 'none' }}
 
       # Configurazione Node.js 20
       - name: Setup Node.js
@@ -105,15 +117,17 @@ jobs:
           cp .env.testing .env
           php artisan key:generate
 
-      # Test PHPUnit con MySQL 8.4 + code coverage
+      # Test PHPUnit con MySQL 8.4 (coverage solo nelle run complete)
       - name: Esegui test PHPUnit
-        run: php artisan test --coverage-clover=coverage.xml
+        run: php artisan test ${{ github.event_name != 'push' && '--coverage-clover=coverage.xml' || '' }}
 
       # SonarCloud — analisi qualità/sicurezza + upload coverage.
+      # Solo run complete (PR, schedule, manuale): sui push a main è la parte
+      # più costosa della pipeline e non cambia l'esito del deploy.
       # Saltato automaticamente finché il secret SONAR_TOKEN non è impostato
       # (env.SONAR_TOKEN ereditato dal job, vedi sopra).
       - name: SonarCloud Scan
-        if: env.SONAR_TOKEN != ''
+        if: env.SONAR_TOKEN != '' && github.event_name != 'push'
         uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         with:
           args: >
