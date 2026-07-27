@@ -10,13 +10,12 @@ class SecurityHeadersMiddleware
 {
     /**
      * Aggiunge header di sicurezza a tutte le risposte HTTP.
-     * CSP in modalità Report-Only per evitare rotture in produzione.
+     * CSP in modalità enforcing.
      */
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
 
-        // Content-Security-Policy in modalità report-only (non bloccante)
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
@@ -24,13 +23,14 @@ class SecurityHeadersMiddleware
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data: https:",
             "connect-src 'self'",
+            "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
             "media-src 'self' https:",
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
         ]);
 
-        $response->headers->set('Content-Security-Policy-Report-Only', $csp);
+        $response->headers->set('Content-Security-Policy', $csp);
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');

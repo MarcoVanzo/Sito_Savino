@@ -39,13 +39,14 @@ class SecurityHeadersTest extends TestCase
         $response->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     }
 
-    public function test_response_has_csp_report_only_header(): void
+    public function test_response_has_csp_header(): void
     {
         $response = $this->get('/');
-        $response->assertHeader('Content-Security-Policy-Report-Only');
+        $response->assertHeader('Content-Security-Policy');
 
-        $csp = $response->headers->get('Content-Security-Policy-Report-Only');
+        $csp = $response->headers->get('Content-Security-Policy');
         $this->assertStringContainsString("default-src 'self'", $csp);
         $this->assertStringContainsString("frame-ancestors 'none'", $csp);
+        $this->assertStringContainsString("frame-src 'self' https://www.youtube.com", $csp);
     }
 }
