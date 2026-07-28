@@ -55,4 +55,16 @@ class HeroSlidePolicy
     {
         return $user->role->isSuperAdmin();
     }
+
+    /**
+     * Riordino della tabella (HeroSlideResource e la tabella slide della
+     * HomepageSettingsPage usano `reorderable('sort_order')`). Senza questo
+     * metodo Filament considera il riordino permesso a chiunque veda la lista:
+     * la sequenza dello slider è contenuto pubblicato in homepage, quindi va
+     * legata al permesso di modifica, non a quello di lettura.
+     */
+    public function reorder(User $user): bool
+    {
+        return $user->role->canManageEditorial();
+    }
 }

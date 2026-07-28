@@ -47,12 +47,52 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // DigitalOcean App Platform: trust all proxies but only forwarded headers
         // (DO doesn't publish proxy IP ranges, so we must trust '*' but restrict headers)
+        //
+        // X-Forwarded-Host è volutamente ESCLUSO: fidandosene, chiunque poteva
+        // forgiare quell'header e far generare a Laravel URL assoluti verso un
+        // dominio arbitrario (in primis i link di reset password, che finivano
+        // così su un host controllato dall'attaccante). DigitalOcean inoltra
+        // già l'Host originale, quindi non serve.
         $middleware->trustProxies(
             at: '*',
             headers: Request::HEADER_X_FORWARDED_FOR |
-                     Request::HEADER_X_FORWARDED_HOST |
                      Request::HEADER_X_FORWARDED_PROTO |
                      Request::HEADER_X_FORWARDED_PORT,
+        );
+
+        // Seconda linea di difesa contro l'host header injection: si accettano
+        // solo richieste il cui Host corrisponde ad APP_URL o a un suo
+        // sottodominio. Il valore è risolto a runtime (una closure) perché a
+        // questo punto della configurazione la config non è ancora caricata.
+        // Il middleware TrustHosts di Laravel si auto-disattiva in ambiente
+        // `local` e durante i test, dove l'host varia (localhost, *.test, ...).
+        // Attenzione: una lista vuota per Symfony significa "nessuna
+        // restrizione", quindi un valore non interpretabile disattiva la difesa
+        // in silenzio invece di segnalarlo. Su App Platform APP_URL vale
+        // `${APP_DOMAIN}`, cioè un dominio SENZA schema, su cui parse_url()
+        // restituisce null: va normalizzato, altrimenti questa protezione non
+        // entra mai in funzione in produzione.
+        $middleware->trustHosts(
+            at: static function (): array {
+                /** @var list<string> $configured */
+                $configured = (array) config('app.trusted_hosts', []);
+
+                if ($configured !== []) {
+                    return $configured;
+                }
+
+                $url = trim((string) config('app.url'));
+
+                if ($url === '') {
+                    return [];
+                }
+
+                $host = parse_url($url, PHP_URL_HOST)
+                    ?: parse_url('https://'.ltrim($url, '/'), PHP_URL_HOST);
+
+                return is_string($host) && $host !== '' ? [$host] : [];
+            },
+            subdomains: true,
         );
 
         $middleware->validateCsrfTokens(except: [

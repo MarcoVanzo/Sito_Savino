@@ -86,6 +86,40 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | Lingue effettivamente pubblicate dal sito: prefissi di rotta, locali del
+    | plugin translatable di Filament, suffissi delle chiavi di cache pubbliche.
+    | UNICA fonte di verità: non ripetere ['it', 'en'] altrove nel codice, usare
+    | sempre config('app.supported_locales').
+    |
+    */
+
+    'supported_locales' => ['it', 'en'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Host attendibili
+    |--------------------------------------------------------------------------
+    |
+    | Difesa contro l'host header injection: si accettano solo richieste il cui
+    | Host compare in questa lista (i sottodomini sono inclusi). Se resta vuota
+    | l'host viene dedotto da APP_URL.
+    |
+    | Va valorizzata quando il sito risponde su più domini — per esempio durante
+    | la migrazione dal dominio di App Platform a quello definitivo, quando
+    | entrambi devono restare raggiungibili. Elencare gli host senza schema,
+    | separati da virgola.
+    |
+    */
+
+    'trusted_hosts' => array_values(array_filter(
+        array_map('trim', explode(',', (string) env('TRUSTED_HOSTS', '')))
+    )),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

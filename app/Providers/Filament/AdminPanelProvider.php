@@ -86,7 +86,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugin(
                 SpatieLaravelTranslatablePlugin::make()
-                    ->defaultLocales(['it', 'en'])
+                    ->defaultLocales(config('app.supported_locales'))
             )
             ->renderHook(
                 PanelsRenderHook::FOOTER,

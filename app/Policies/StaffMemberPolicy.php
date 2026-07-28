@@ -33,6 +33,18 @@ class StaffMemberPolicy
     }
 
     /**
+     * Riordino della tabella (StaffMemberResource, ManagementResource e
+     * YouthStaffResource usano `reorderable('sort_order')`). Senza questo
+     * metodo Filament dà il riordino per permesso a chiunque veda la lista:
+     * l'ordine di visualizzazione è contenuto pubblicato, quindi va legato al
+     * permesso di modifica, non a quello di lettura.
+     */
+    public function reorder(User $user): bool
+    {
+        return $user->role->canManageSport();
+    }
+
+    /**
      * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
      * Filament considera l'azione permessa a chiunque veda la lista.
      */

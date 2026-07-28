@@ -108,9 +108,12 @@ class SizeGuideContactsPage extends Page implements HasForms
             ->success()
             ->send();
 
-        // Invalida cache shop per forzare il refresh delle pagine pubbliche
-        Cache::forget('public:shop:it');
-        Cache::forget('public:shop:en');
+        // Invalida la cache shop per forzare il refresh delle pagine pubbliche.
+        // Qui l'invalidazione resta esplicita: la guida taglie è salvata su
+        // SiteSetting, che CacheInvalidationObserver non osserva.
+        foreach (config('app.supported_locales', ['it', 'en']) as $locale) {
+            Cache::forget("public:shop:{$locale}");
+        }
     }
 
     protected function getFormActions(): array

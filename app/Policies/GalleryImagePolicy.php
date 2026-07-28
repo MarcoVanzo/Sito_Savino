@@ -58,4 +58,16 @@ class GalleryImagePolicy
     {
         return $user->role->canManageMedia();
     }
+
+    /**
+     * Riordino della tabella (GalleryImageResource e GalleryImagesRelationManager
+     * usano `reorderable('sort_order')`). Senza questo metodo Filament dà il
+     * riordino per permesso a chiunque veda la lista: qui è determinante,
+     * perché viewAny() è aperto a canViewMedia() (Coord. Sportivo incluso) che
+     * NON deve poter cambiare l'ordine delle foto pubblicate.
+     */
+    public function reorder(User $user): bool
+    {
+        return $user->role->canManageMedia();
+    }
 }

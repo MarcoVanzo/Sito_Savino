@@ -44,11 +44,19 @@ class EnsurePasswordIsChanged
 
                 // Consentiamo l'accesso solo alle rotte di cambio password e alle rotte di logout
                 // per evitare redirect loop infiniti. Escludiamo anche asset e chiamate di debug.
+                //
+                // Il confronto è ESATTO sulle due sole rotte di logout esistenti
+                // (sito pubblico e pannello Filament). Un `endsWith($path, 'logout')`
+                // lasciava passare qualunque URL il cui ultimo segmento finisse
+                // per "logout": bastava uno slug CMS o di prodotto tipo
+                // `/shop/prodotto/kit-logout` per navigare il sito senza mai
+                // cambiare la password scaduta.
+                $isLogoutRoute = in_array($routeName, ['logout', 'filament.admin.auth.logout'], true)
+                    || in_array($path, ['logout', 'admin/logout'], true);
+
                 if ($routeName !== 'password.change' &&
                     $routeName !== 'password.change.update' &&
-                    // `contains` lascerebbe passare qualsiasi URL con "logout"
-                    // dentro (es. uno slug di prodotto): serve il segmento finale.
-                    ! Str::endsWith($path, 'logout') &&
+                    ! $isLogoutRoute &&
                     ! Str::startsWith($path, ['_debugbar', '_ignition', 'storage', 'livewire', 'vendor'])
                 ) {
                     return redirect()->route('password.change');

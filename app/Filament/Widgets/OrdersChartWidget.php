@@ -19,6 +19,17 @@ class OrdersChartWidget extends ChartWidget
     // Disabilita il polling automatico
     protected static ?string $pollingInterval = null;
 
+    /**
+     * Il widget è auto-discovered e finiva quindi nella dashboard di TUTTI i
+     * ruoli con accesso al pannello, esponendo il fatturato mensile a chi
+     * OrderPolicy::viewAny() esclude dallo shop (Resp. Comunicazione e Coord.
+     * Sportivo). Si allinea al permesso shop.
+     */
+    public static function canView(): bool
+    {
+        return auth()->user()?->role?->canManageShop() ?? false;
+    }
+
     protected function getData(): array
     {
         $data = Cache::remember('filament:dashboard:orders_chart', 600, function () {

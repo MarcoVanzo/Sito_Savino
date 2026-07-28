@@ -55,4 +55,15 @@ class MenuItemPolicy
     {
         return $user->role->isSuperAdmin();
     }
+
+    /**
+     * Riordino della tabella (MenuItemResource usa `reorderable('sort_order')`).
+     * Senza questo metodo Filament considera il riordino permesso a chiunque
+     * veda la lista: l'ordine delle voci di menu è contenuto pubblicato, quindi
+     * va legato al permesso di modifica, non a quello di lettura.
+     */
+    public function reorder(User $user): bool
+    {
+        return $user->role->canManageEditorial();
+    }
 }
