@@ -1,13 +1,15 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head } from '@inertiajs/vue3'
+import SeasonNav from '@/Components/SeasonNav.vue'
+import TeamLogo from '@/Components/TeamLogo.vue'
+import { Head, Link } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useLocale } from '@/Composables/useLocale.js'
 
 const $t = useTranslations();
-const { formatDate } = useLocale();
+const { formatDate, formatTime } = useLocale();
 
 const props = defineProps({
     page: {
@@ -40,56 +42,56 @@ const props = defineProps({
     }
 })
 
-const placeholderGames = [
-    { id: 1, date: '22 Giu 2025', home: 'Savino Del Bene', away: 'Squadra A', scoreHome: 3, scoreAway: 1, status: 'Conclusa' },
-    { id: 2, date: '15 Giu 2025', home: 'Squadra B', away: 'Savino Del Bene', scoreHome: 0, scoreAway: 3, status: 'Conclusa' },
-    { id: 3, date: '08 Giu 2025', home: 'Savino Del Bene', away: 'Squadra C', scoreHome: 3, scoreAway: 2, status: 'Conclusa' },
-    { id: 4, date: '01 Giu 2025', home: 'Squadra D', away: 'Savino Del Bene', scoreHome: 1, scoreAway: 3, status: 'Conclusa' },
-    { id: 5, date: '25 Mag 2025', home: 'Savino Del Bene', away: 'Squadra E', scoreHome: 3, scoreAway: 0, status: 'Conclusa' },
-]
+// Gare e classifica arrivano già normalizzate dal backend (PublicController),
+// che conosce quali squadre sono del club e se una gara è stata giocata. Qui non
+// si inventano dati: se la sincronizzazione con la Lega non ha ancora popolato
+// nulla, si mostra uno stato vuoto esplicito.
+const displayGames = computed(() => props.games)
 
-const placeholderStandings = [
-    { pos: 1, team: 'Savino Del Bene', pts: 48, played: 18, won: 16, lost: 2, setWon: 50, setLost: 12 },
-    { pos: 2, team: 'Squadra A', pts: 42, played: 18, won: 14, lost: 4, setWon: 45, setLost: 18 },
-    { pos: 3, team: 'Squadra B', pts: 38, played: 18, won: 13, lost: 5, setWon: 42, setLost: 22 },
-    { pos: 4, team: 'Squadra C', pts: 33, played: 18, won: 11, lost: 7, setWon: 38, setLost: 28 },
-    { pos: 5, team: 'Squadra D', pts: 28, played: 18, won: 9, lost: 9, setWon: 32, setLost: 30 },
-    { pos: 6, team: 'Squadra E', pts: 22, played: 18, won: 7, lost: 11, setWon: 26, setLost: 36 },
-    { pos: 7, team: 'Squadra F', pts: 18, played: 18, won: 6, lost: 12, setWon: 22, setLost: 40 },
-    { pos: 8, team: 'Squadra G', pts: 10, played: 18, won: 3, lost: 15, setWon: 14, setLost: 46 },
-]
+// Estratto di classifica: la tabella completa (quozienti e ripartizione dei
+// set) vive nella pagina dedicata, qui bastano le prime posizioni. Se la nostra
+// squadra è fuori dal taglio viene aggiunta comunque, altrimenti la sezione
+// perderebbe l'unica riga che interessa davvero al tifoso.
+const PREVIEW_ROWS = 6
 
-// I game arrivano dal backend come record Game grezzi (home_team/away_team,
-// home_score/away_score, match_date...). Il template usa la forma "piatta"
-// dei placeholder: normalizziamo qui per evitare accessi a proprietà assenti.
-function normalizeGame(game, index) {
-    if (typeof game?.home === 'string' || typeof game?.away === 'string') {
-        return game
+const displayStandings = computed(() => {
+    const top = props.standings.slice(0, PREVIEW_ROWS)
+    const own = props.standings.find((row) => row.isOwn)
+
+    if (own && !top.includes(own)) {
+        top.push(own)
     }
 
-    return {
-        id: game?.id ?? index,
-        date: game?.match_date ? formatDate(game.match_date, { day: '2-digit', month: 'short', year: 'numeric' }) : '',
-        home: game?.home_team?.name ?? '',
-        away: game?.away_team?.name ?? '',
-        scoreHome: game?.home_score ?? '-',
-        scoreAway: game?.away_score ?? '-',
-        status: game?.status ?? '',
+    return top
+})
+
+const hasHiddenStandings = computed(() => props.standings.length > displayStandings.value.length)
+
+// Il tab attivo della barra di sezione: il componente è condiviso con la
+// pagina Classifica e con le pagine di coppa.
+const activeTab = computed(() => {
+    switch (props.competition) {
+        case 'Champions League':
+        case 'champions_league':
+            return 'cev'
+        case 'Coppa Italia':
+        case 'coppa_italia':
+            return 'coppa-italia'
+        default:
+            return 'risultati'
     }
+})
+
+function gameDate(game) {
+    return game.matchDate
+        ? formatDate(game.matchDate, { day: '2-digit', month: 'short', year: 'numeric' })
+        : ''
 }
 
-const displayGames = computed(() => props.games.length > 0
-    ? props.games.map(normalizeGame)
-    : placeholderGames)
-const displayStandings = computed(() => props.standings.length > 0 ? props.standings : placeholderStandings)
-
-function isSavino(name) {
-    return typeof name === 'string' && name.includes('Savino')
-}
-
-function isWin(game) {
-    if (isSavino(game.home)) return game.scoreHome > game.scoreAway
-    return game.scoreAway > game.scoreHome
+function gameTime(game) {
+    // Solo l'ora: la data è già nella colonna a fianco, e formatDate la
+    // ripeterebbe ("04/10/2026, 17:00" al posto di "17:00").
+    return game.matchDate ? formatTime(game.matchDate) : ''
 }
 
 const theme = computed(() => {
@@ -148,51 +150,73 @@ const ogMeta = useOgMeta({
             </div>
         </section>
 
+        <SeasonNav :active="activeTab" />
+
         <!-- Ultime Partite -->
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ $t('risultati.latest_matches') }}</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
-                <div class="space-y-4">
-                    <div
+                <p
+                    v-if="displayGames.length === 0"
+                    class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-10 text-center text-gray-500"
+                >{{ $t('risultati.no_matches') }}</p>
+
+                <div v-else class="space-y-4">
+                    <!-- La card diventa un link solo se la Lega ha già sincronizzato
+                         il tabellino: la rotta della scheda risponde 404 altrimenti. -->
+                    <component
+                        :is="game.hasStats ? Link : 'div'"
                         v-for="game in displayGames"
                         :key="game.id"
-                        class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100"
+                        :href="game.hasStats ? route('stagione.partita', { game: game.id }) : undefined"
+                        class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100"
                     >
                         <!-- Desktop layout (sm+) -->
                         <div class="hidden sm:flex items-center">
                             <!-- Date -->
                             <div class="w-32 flex-shrink-0 text-white text-center py-5 px-3" :class="theme.dateBg">
-                                <span class="text-xs font-bold uppercase tracking-wider block">{{ game.date }}</span>
-                                <span class="text-[10px] text-white/60 mt-1 block">{{ game.status }}</span>
+                                <span class="text-xs font-bold uppercase tracking-wider block">{{ gameDate(game) }}</span>
+                                <span class="text-[10px] text-white/60 mt-1 block">{{ game.matchdayLabel }}</span>
                             </div>
                             <!-- Match -->
                             <div class="flex-1 flex items-center justify-between px-8 py-4">
-                                <div class="flex-1 text-right pr-4">
+                                <div class="flex-1 flex items-center justify-end gap-3 pr-4">
                                     <span
                                         class="text-base font-bold whitespace-nowrap"
-                                        :class="isSavino(game.home) ? 'text-savino-blue' : 'text-gray-700'"
+                                        :class="game.homeIsOwn ? 'text-savino-blue' : 'text-gray-700'"
                                     >{{ game.home }}</span>
+                                    <TeamLogo :src="game.homeLogo" :name="game.home" size="md" />
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
-                                    <span class="text-2xl font-black text-gray-900">{{ game.scoreHome }}</span>
-                                    <span class="text-gray-400 text-lg">-</span>
-                                    <span class="text-2xl font-black text-gray-900">{{ game.scoreAway }}</span>
+                                    <!-- Le gare non ancora disputate mostrano l'orario, non un punteggio -->
+                                    <template v-if="game.played">
+                                        <span class="text-2xl font-black text-gray-900">{{ game.scoreHome }}</span>
+                                        <span class="text-gray-400 text-lg">-</span>
+                                        <span class="text-2xl font-black text-gray-900">{{ game.scoreAway }}</span>
+                                    </template>
+                                    <span v-else class="text-base font-bold text-gray-500 tabular-nums">{{ gameTime(game) }}</span>
                                 </div>
-                                <div class="flex-1 text-left pl-4">
+                                <div class="flex-1 flex items-center gap-3 pl-4">
+                                    <TeamLogo :src="game.awayLogo" :name="game.away" size="md" />
                                     <span
                                         class="text-base font-bold whitespace-nowrap"
-                                        :class="isSavino(game.away) ? 'text-savino-blue' : 'text-gray-700'"
+                                        :class="game.awayIsOwn ? 'text-savino-blue' : 'text-gray-700'"
                                     >{{ game.away }}</span>
                                 </div>
                             </div>
-                            <!-- Result Badge -->
-                            <div class="w-20 flex-shrink-0 flex justify-center pr-4">
+                            <!-- Result Badge: assente finché la gara non è stata giocata -->
+                            <div class="w-32 flex-shrink-0 flex flex-col items-center gap-1 pr-4">
                                 <span
+                                    v-if="game.result"
                                     class="px-3 py-1 rounded-full text-xs font-bold uppercase"
-                                    :class="isWin(game) ? 'bg-green-100 text-green-700' : 'bg-savino-red/10 text-savino-red'"
-                                >{{ isWin(game) ? $t('risultati.win') : $t('risultati.loss') }}</span>
+                                    :class="game.result === 'win' ? 'bg-green-100 text-green-700' : 'bg-savino-red/10 text-savino-red'"
+                                >{{ game.result === 'win' ? $t('risultati.win') : $t('risultati.loss') }}</span>
+                                <span
+                                    v-if="game.hasStats"
+                                    class="text-[10px] font-bold uppercase tracking-wider text-savino-blue"
+                                >{{ $t('risultati.view_box_score') }} &rarr;</span>
                             </div>
                         </div>
 
@@ -201,33 +225,45 @@ const ogMeta = useOgMeta({
                             <!-- Header: date + status + badge -->
                             <div class="flex items-center justify-between text-white px-4 py-2.5" :class="theme.dateBg">
                                 <div>
-                                    <span class="text-xs font-bold uppercase tracking-wider">{{ game.date }}</span>
-                                    <span class="text-[10px] text-white/50 ml-2">{{ game.status }}</span>
+                                    <span class="text-xs font-bold uppercase tracking-wider">{{ gameDate(game) }}</span>
+                                    <span class="text-[10px] text-white/50 ml-2">{{ game.matchdayLabel }}</span>
                                 </div>
                                 <span
+                                    v-if="game.result"
                                     class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase"
-                                    :class="isWin(game) ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'"
-                                >{{ isWin(game) ? $t('risultati.win') : $t('risultati.loss') }}</span>
+                                    :class="game.result === 'win' ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'"
+                                >{{ game.result === 'win' ? $t('risultati.win') : $t('risultati.loss') }}</span>
+                                <span v-else class="text-[10px] font-bold uppercase text-white/70 tabular-nums">{{ gameTime(game) }}</span>
                             </div>
                             <!-- Teams -->
                             <div class="px-4 py-3 space-y-1.5">
                                 <div class="flex items-center justify-between">
-                                    <span
-                                        class="text-sm font-bold truncate mr-3"
-                                        :class="isSavino(game.home) ? 'text-savino-blue' : 'text-gray-700'"
-                                    >{{ game.home }}</span>
-                                    <span class="text-xl font-black text-gray-900 flex-shrink-0">{{ game.scoreHome }}</span>
+                                    <span class="flex items-center gap-2 min-w-0 mr-3">
+                                        <TeamLogo :src="game.homeLogo" :name="game.home" size="sm" />
+                                        <span
+                                            class="text-sm font-bold truncate"
+                                            :class="game.homeIsOwn ? 'text-savino-blue' : 'text-gray-700'"
+                                        >{{ game.home }}</span>
+                                    </span>
+                                    <span v-if="game.played" class="text-xl font-black text-gray-900 flex-shrink-0">{{ game.scoreHome }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span
-                                        class="text-sm font-bold truncate mr-3"
-                                        :class="isSavino(game.away) ? 'text-savino-blue' : 'text-gray-700'"
-                                    >{{ game.away }}</span>
-                                    <span class="text-xl font-black text-gray-900 flex-shrink-0">{{ game.scoreAway }}</span>
+                                    <span class="flex items-center gap-2 min-w-0 mr-3">
+                                        <TeamLogo :src="game.awayLogo" :name="game.away" size="sm" />
+                                        <span
+                                            class="text-sm font-bold truncate"
+                                            :class="game.awayIsOwn ? 'text-savino-blue' : 'text-gray-700'"
+                                        >{{ game.away }}</span>
+                                    </span>
+                                    <span v-if="game.played" class="text-xl font-black text-gray-900 flex-shrink-0">{{ game.scoreAway }}</span>
                                 </div>
+                                <p
+                                    v-if="game.hasStats"
+                                    class="text-[10px] font-bold uppercase tracking-wider text-savino-blue pt-1"
+                                >{{ $t('risultati.view_box_score') }} &rarr;</p>
                             </div>
                         </div>
-                    </div>
+                    </component>
                 </div>
             </div>
         </section>
@@ -235,10 +271,21 @@ const ogMeta = useOgMeta({
         <!-- Classifica -->
         <section v-if="showStandings" class="py-16 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ $t('risultati.standings') }}</h2>
+                <div class="flex flex-wrap items-end justify-between gap-4 mb-2">
+                    <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight">{{ $t('risultati.standings') }}</h2>
+                    <Link
+                        :href="route('stagione.classifica')"
+                        class="text-sm font-bold text-savino-blue hover:text-savino-gold transition-colors"
+                    >{{ $t('risultati.full_standings') }} &rarr;</Link>
+                </div>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>
 
-                <div class="relative">
+                <p
+                    v-if="displayStandings.length === 0"
+                    class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-10 text-center text-gray-500"
+                >{{ $t('risultati.no_standings') }}</p>
+
+                <div v-else class="relative">
                     <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
                     <table class="w-full text-left">
                         <thead>
@@ -258,7 +305,7 @@ const ogMeta = useOgMeta({
                                 v-for="row in displayStandings"
                                 :key="row.pos"
                                 class="border-b border-gray-100 transition-colors duration-200"
-                                :class="isSavino(row.team) ? 'bg-savino-gold/10 font-bold' : 'hover:bg-gray-50'"
+                                :class="row.isOwn ? 'bg-savino-gold/10 font-bold' : 'hover:bg-gray-50'"
                             >
                                 <td class="px-4 py-3 text-sm">
                                     <span
@@ -266,7 +313,12 @@ const ogMeta = useOgMeta({
                                         :class="row.pos <= 3 ? 'bg-savino-gold text-white' : 'bg-gray-200 text-gray-600'"
                                     >{{ row.pos }}</span>
                                 </td>
-                                <td class="px-4 py-3 text-sm font-bold whitespace-nowrap" :class="isSavino(row.team) ? 'text-savino-blue' : 'text-gray-900'">{{ row.team }}</td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <TeamLogo :src="row.logo" :name="row.team" size="md" />
+                                        <span class="text-sm font-bold whitespace-nowrap" :class="row.isOwn ? 'text-savino-blue' : 'text-gray-900'">{{ row.team }}</span>
+                                    </div>
+                                </td>
                                 <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.played }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-green-600 font-semibold">{{ row.won }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-savino-red font-semibold">{{ row.lost }}</td>
@@ -282,6 +334,13 @@ const ogMeta = useOgMeta({
                     <!-- Mobile scroll hint gradient -->
                     <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none rounded-r-xl md:hidden"></div>
                 </div>
+
+                <p v-if="hasHiddenStandings" class="text-center mt-6">
+                    <Link
+                        :href="route('stagione.classifica')"
+                        class="inline-block px-6 py-3 rounded-full bg-savino-blue text-white text-xs font-bold uppercase tracking-wider hover:bg-savino-gold transition-colors"
+                    >{{ $t('risultati.full_standings') }}</Link>
+                </p>
 
                 <p class="text-xs text-gray-400 mt-4 text-center">{{ $t('risultati.legend') }}</p>
             </div>

@@ -18,4 +18,15 @@ return [
         'ended' => 'Conclusa',
         'cancelled' => 'Annullata',
     ],
+
+    'game_status' => [
+        'scheduled' => 'Da giocare',
+        'in_progress' => 'In corso',
+        'completed' => 'Conclusa',
+        'postponed' => 'Rinviata',
+    ],
+
+    'game' => [
+        'matchday' => ':numberª Giornata',
+    ],
 ];

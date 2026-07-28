@@ -48,6 +48,12 @@ foreach ($locales as $loc) {
 
         // Risultati e Competizioni
         Route::get('/stagione/risultati', [PublicController::class, 'risultatiCampionato'])->name('stagione.risultati');
+        // Deve stare prima della rotta con parametro, altrimenti "classifica"
+        // verrebbe interpretato come identificativo di gara.
+        Route::get('/stagione/classifica', [PublicController::class, 'classifica'])->name('stagione.classifica');
+        Route::get('/stagione/risultati/{game}', [PublicController::class, 'partita'])
+            ->whereNumber('game')
+            ->name('stagione.partita');
         Route::get('/stagione/cev', [PublicController::class, 'risultatiCev'])->name('stagione.cev');
         Route::get('/stagione/coppa-italia', [PublicController::class, 'risultatiCoppaItalia'])->name('stagione.coppa-italia');
 
@@ -61,6 +67,9 @@ foreach ($locales as $loc) {
         Route::get('/risultati', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'stagione.risultati');
         })->name('risultati');
+        Route::get('/classifica', function () use ($namePrefix) {
+            return redirect()->route($namePrefix.'stagione.classifica');
+        })->name('classifica');
 
         // --- Redirect SEO Legacy (Dal Vecchio Sito) ---
         Route::get('/campionato-{year}-andata', function () use ($namePrefix) {
@@ -70,7 +79,7 @@ foreach ($locales as $loc) {
             return redirect()->route($namePrefix.'stagione.risultati', [], 301);
         })->where('year', '.*');
         Route::get('/classifica-{year}', function () use ($namePrefix) {
-            return redirect()->route($namePrefix.'stagione.risultati', [], 301);
+            return redirect()->route($namePrefix.'stagione.classifica', [], 301);
         })->where('year', '.*');
         Route::get('/cev-champions-league-{year}', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'stagione.cev', [], 301);
@@ -245,7 +254,7 @@ foreach ($locales as $loc) {
 
         // Rotta dinamica per le pagine del CMS (CATCH-ALL)
         Route::get('/{slug}', [PageController::class, 'show'])
-            ->where('slug', '^(?!(?:admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|gallery|staff|societa|sponsor|news|shop|contatti|contacts|in-costruzione|en)$)[^/]+$')
+            ->where('slug', '^(?!(?:admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|classifica|gallery|staff|societa|sponsor|news|shop|contatti|contacts|in-costruzione|en)$)[^/]+$')
             ->name('pages.show');
     });
 }

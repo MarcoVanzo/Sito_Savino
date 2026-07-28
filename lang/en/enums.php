@@ -18,4 +18,15 @@ return [
         'ended' => 'Ended',
         'cancelled' => 'Cancelled',
     ],
+
+    'game_status' => [
+        'scheduled' => 'Upcoming',
+        'in_progress' => 'Live',
+        'completed' => 'Final',
+        'postponed' => 'Postponed',
+    ],
+
+    'game' => [
+        'matchday' => 'Round :number',
+    ],
 ];
