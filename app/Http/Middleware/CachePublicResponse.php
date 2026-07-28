@@ -50,7 +50,14 @@ class CachePublicResponse
             $this->needsFreshCsrfCookie($request) ||
             $this->mightBeAuthenticated($request) ||
             $request->user() ||
-            $request->hasHeader('X-Inertia') // Inertia partial reloads need fresh data
+            $request->hasHeader('X-Inertia') || // Inertia partial reloads need fresh data
+            // I crawler social ricevono da ServeSocialCrawlerMeta un HTML
+            // minimale con i soli meta og:. La chiave di cache non contiene lo
+            // User-Agent, quindi senza questa esclusione quella risposta ridotta
+            // veniva memorizzata e poi servita a TUTTI i visitatori anonimi
+            // (cache poisoning). Le richieste dei crawler non vanno né lette
+            // né scritte in cache.
+            ServeSocialCrawlerMeta::isSocialCrawler($request)
         ) {
             return $next($request);
         }

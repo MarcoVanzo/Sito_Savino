@@ -27,10 +27,14 @@ const formattedDate = computed(() => {
     return formatDate(props.post.published_at);
 });
 
-// `ziggy` non è fra le props condivise da Inertia: senza optional chaining
-// l'accesso a .url faceva crashare il render dell'intera pagina.
+// `ziggy` è fra le props condivise da HandleInertiaRequests, ma un reload
+// parziale non lo rispedisce: l'optional chaining e il fallback su window
+// evitano che l'accesso a .url faccia crashare il render della pagina.
+// usePage() va chiamato in setup: dentro il getter del computed ricostruirebbe
+// un oggetto reattivo nuovo a ogni rivalutazione.
+const page = usePage();
 const canonicalUrl = computed(() => {
-    const base = usePage().props.ziggy?.url
+    const base = page.props.ziggy?.url
         || (typeof window !== 'undefined' ? window.location.origin : '');
     return `${base}/news/${props.post?.slug ?? ''}`;
 });

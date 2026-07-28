@@ -202,7 +202,7 @@ class MenuItem extends Model implements HasMedia
      */
     public static function clearCache(): void
     {
-        foreach (['it', 'en'] as $locale) {
+        foreach (config('app.supported_locales', ['it', 'en']) as $locale) {
             Cache::forget(self::CACHE_KEY.'_main_'.$locale);
             Cache::forget(self::CACHE_KEY.'_footer_'.$locale);
         }

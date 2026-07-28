@@ -82,7 +82,7 @@ class ServeSocialCrawlerMeta
     public function handle(Request $request, Closure $next): Response
     {
         // Passa oltre se non è un crawler social
-        if (! $this->isSocialCrawler($request)) {
+        if (! self::isSocialCrawler($request)) {
             return $next($request);
         }
 
@@ -92,7 +92,13 @@ class ServeSocialCrawlerMeta
             ->header('Content-Type', 'text/html; charset=utf-8');
     }
 
-    private function isSocialCrawler(Request $request): bool
+    /**
+     * Pubblico e statico perché serve anche a CachePublicResponse: la risposta
+     * ridotta servita ai crawler non deve MAI finire nella cache full-page
+     * (né esserne servita), altrimenti tutti gli utenti anonimi vedrebbero
+     * l'HTML minimale al posto della pagina vera.
+     */
+    public static function isSocialCrawler(Request $request): bool
     {
         $userAgent = $request->userAgent() ?? '';
 
@@ -135,7 +141,11 @@ class ServeSocialCrawlerMeta
 
     private function resolveNewsMeta(string $slug): array
     {
-        $post = Post::where('slug', $slug)->first();
+        // `published()` è obbligatorio: senza, un `curl -A "WhatsApp"` sullo slug
+        // di una bozza ne restituiva titolo ed estratto. Stesso scope usato da
+        // NewsController::show, così il crawler vede esattamente ciò che vede
+        // il pubblico.
+        $post = Post::published()->where('slug', $slug)->first();
 
         if (! $post) {
             return self::PAGE_META['news'];

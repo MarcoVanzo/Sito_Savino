@@ -21,6 +21,17 @@ class StatsOverviewWidget extends BaseWidget
     // Disabilita il polling automatico — i dati statistici non richiedono aggiornamento in tempo reale
     protected static ?string $pollingInterval = null;
 
+    /**
+     * Il widget è auto-discovered e finiva quindi nella dashboard di TUTTI i
+     * ruoli con accesso al pannello, mostrando ordini di oggi e fatturato del
+     * mese a chi OrderPolicy::viewAny() esclude dallo shop (Resp. Comunicazione
+     * e Coord. Sportivo). Si allinea al permesso shop.
+     */
+    public static function canView(): bool
+    {
+        return auth()->user()?->role?->canManageShop() ?? false;
+    }
+
     protected function getStats(): array
     {
         // Cache aggregata: una sola lettura da Redis per tutti i conteggi

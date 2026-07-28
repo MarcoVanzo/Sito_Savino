@@ -8,6 +8,7 @@ use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Game extends Model
 {
@@ -17,13 +18,34 @@ class Game extends Model
         'season_id', 'home_team_id', 'away_team_id',
         'match_date', 'status', 'home_score', 'away_score',
         'location', 'competition_type',
+        'lvf_match_id', 'matchday', 'phase', 'lvf_synced_at',
+        'spectators', 'referees', 'set_scores', 'stats_synced_at',
     ];
 
     protected $casts = [
         'match_date' => 'datetime',
         'status' => GameStatus::class,
         'competition_type' => CompetitionType::class,
+        'lvf_synced_at' => 'datetime',
+        'stats_synced_at' => 'datetime',
+        'lvf_match_id' => 'integer',
+        'matchday' => 'integer',
+        'set_scores' => 'array',
     ];
+
+    public function playerStats(): HasMany
+    {
+        return $this->hasMany(GamePlayerStat::class);
+    }
+
+    /**
+     * Le gare importate dalla Lega non vanno modificate a mano dal CMS:
+     * la sincronizzazione successiva sovrascriverebbe le modifiche.
+     */
+    public function isImported(): bool
+    {
+        return $this->lvf_match_id !== null;
+    }
 
     public function season(): BelongsTo
     {

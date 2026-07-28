@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Filament\Widgets;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -9,6 +10,8 @@ use Filament\Pages\Page;
 
 class ShopAnalyticsPage extends Page
 {
+    use RestrictsAccessByRole;
+
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
 
     protected static ?string $navigationLabel = 'Analytics Shop';
@@ -76,8 +79,8 @@ class ShopAnalyticsPage extends Page
         ];
     }
 
-    public static function canAccess(): bool
+    protected static function requiredAbility(): string
     {
-        return auth()->user()?->role->canManageShop() ?? false;
+        return 'canManageShop';
     }
 }

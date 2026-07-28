@@ -23,8 +23,10 @@ export function useOgMeta({
     suffix = true,
 } = {}) {
     const page = usePage();
-    // `ziggy` non è condiviso da Inertia: senza fallback su window og:image
-    // resterebbe un path relativo (non valido per Open Graph) e og:url vuoto.
+    // `ziggy` è fra le props condivise da HandleInertiaRequests, ma un reload
+    // parziale (`router.reload({ only: [...] })`) non lo rispedisce: il fallback
+    // su window evita che og:image diventi un path relativo (non valido per
+    // Open Graph) e og:url resti vuoto.
     const hasWindow = typeof window !== 'undefined';
     const baseUrl = page.props.ziggy?.url || (hasWindow ? window.location.origin : '');
     const currentUrl = page.props.ziggy?.location || (hasWindow ? window.location.href : '');

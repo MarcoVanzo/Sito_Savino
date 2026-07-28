@@ -15,14 +15,7 @@ parameters:
         # Filament dynamic method calls
         - identifier: method.notFound
           path: app/Filament/*
-        # Filament UserRole enum comparison (PHPDoc type mismatch)
-        - identifier: identical.alwaysFalse
-          path: app/Filament/*
-        - identifier: booleanAnd.alwaysFalse
-          path: app/Filament/*
-        # Filament match/nullCoalesce edge cases
-        - identifier: match.unhandled
-          path: app/Filament/*
+        # Filament nullCoalesce edge cases
         - identifier: nullCoalesce.expr
           path: app/Filament/*
         - identifier: nullCoalesce.offset
@@ -30,6 +23,14 @@ parameters:
         # Filament defensive is_array() checks on PHPDoc-typed arrays
         - identifier: function.alreadyNarrowedType
           path: app/Filament/*
-    excludePaths:
-        - app/Console/Commands
-    reportUnmatchedIgnoredErrors: false
+    # Nessuna excludePaths: i comandi schedulati (ordini, aste, magazzino) toccano
+    # denaro e stock e devono restare sotto analisi statica.
+    #
+    # reportUnmatchedIgnoredErrors: true è deliberato. Con false la baseline era
+    # monodirezionale: le voci restavano valide anche dopo che l'errore era stato
+    # corretto, e continuavano a coprire codice nuovo scritto nello stesso punto.
+    # Con true, una voce che non corrisponde più a nulla fa fallire l'analisi e va
+    # rimossa: la baseline si svuota da sola man mano che il debito viene ripagato.
+    # Conseguenza operativa: dopo un refactoring va rigenerata con
+    #   vendor/bin/phpstan analyse --generate-baseline --memory-limit=512M
+    reportUnmatchedIgnoredErrors: true

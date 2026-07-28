@@ -2,57 +2,14 @@
 
 namespace App\Policies;
 
-use App\Models\Category;
-use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 class CategoryPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canManageEditorial();
-    }
+    use AuthorizesByRole;
 
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Category $model): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canManageEditorial();
-    }
-
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
-    {
-        return $user->role->canManageEditorial();
-    }
-
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Category $model): bool
-    {
-        return $user->role->canManageEditorial();
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Category $model): bool
-    {
-        return $user->role->isSuperAdmin();
-    }
-
-    /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
-     */
-    public function deleteAny(User $user): bool
-    {
-        return $user->role->isSuperAdmin();
+        return 'canManageEditorial';
     }
 }

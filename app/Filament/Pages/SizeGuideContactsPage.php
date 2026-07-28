@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Models\SiteSetting;
 use Filament\Actions\Action;
 use Filament\Forms;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 class SizeGuideContactsPage extends Page implements HasForms
 {
     use InteractsWithForms;
+    use RestrictsAccessByRole;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
@@ -108,9 +110,12 @@ class SizeGuideContactsPage extends Page implements HasForms
             ->success()
             ->send();
 
-        // Invalida cache shop per forzare il refresh delle pagine pubbliche
-        Cache::forget('public:shop:it');
-        Cache::forget('public:shop:en');
+        // Invalida la cache shop per forzare il refresh delle pagine pubbliche.
+        // Qui l'invalidazione resta esplicita: la guida taglie è salvata su
+        // SiteSetting, che CacheInvalidationObserver non osserva.
+        foreach (config('app.supported_locales', ['it', 'en']) as $locale) {
+            Cache::forget("public:shop:{$locale}");
+        }
     }
 
     protected function getFormActions(): array
@@ -122,8 +127,8 @@ class SizeGuideContactsPage extends Page implements HasForms
         ];
     }
 
-    public static function canAccess(): bool
+    protected static function requiredAbility(): string
     {
-        return auth()->user()?->role->canManageShop() ?? false;
+        return 'canManageShop';
     }
 }

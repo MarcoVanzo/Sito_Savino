@@ -71,11 +71,38 @@ class AdminNotificationService
     }
 
     /**
-     * Invia una notifica Filament a tutti gli utenti con ruolo SuperAdmin o ShopManager.
+     * Notifica gli amministratori che la sincronizzazione con la Lega continua
+     * a fallire.
+     *
+     * Va solo ai Super Admin: è un guasto di integrazione, non una questione di
+     * shop. Resta una notifica del pannello, come tutte le altre di questo
+     * servizio, e non una mail: l'invio SMTP non è ancora configurato in
+     * produzione, quindi una mail sarebbe un avviso che non arriva a nessuno.
+     *
+     * @param  int  $consecutiveFailures  giri a vuoto consecutivi
+     * @param  string  $reason  ultimo errore incontrato
      */
-    private function sendToAdmins(Notification $notification): void
+    public function notifyLvfSyncFailing(int $consecutiveFailures, string $reason): void
     {
-        $admins = User::whereIn('role', [
+        $this->sendToAdmins(
+            Notification::make()
+                ->title('Sincronizzazione Lega non riuscita')
+                ->body("Il calendario della Lega non si aggiorna da {$consecutiveFailures} tentativi consecutivi. Ultimo errore: {$reason}")
+                ->icon('heroicon-o-exclamation-triangle')
+                ->iconColor('danger'),
+            [UserRole::SuperAdmin->value],
+        );
+    }
+
+    /**
+     * Invia una notifica Filament agli utenti dei ruoli indicati; per
+     * impostazione predefinita SuperAdmin e ShopManager.
+     *
+     * @param  list<string>|null  $roles
+     */
+    private function sendToAdmins(Notification $notification, ?array $roles = null): void
+    {
+        $admins = User::whereIn('role', $roles ?? [
             UserRole::SuperAdmin->value,
             UserRole::ShopManager->value,
         ])->get();

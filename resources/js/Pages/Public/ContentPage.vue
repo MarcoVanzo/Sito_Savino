@@ -5,8 +5,10 @@ import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
+import { useSafeUrl } from '@/Composables/useSafeUrl';
 
 const { sanitize } = useSanitize();
+const { safeUrl } = useSafeUrl();
 
 const $t = useTranslations();
 
@@ -15,6 +17,9 @@ const props = defineProps({
 });
 
 const safeContent = computed(() => sanitize(props.page?.content));
+
+// URL del bottone/banner: arriva dal CMS, va validato prima di finire in href.
+const buttonUrl = computed(() => safeUrl(props.page?.content_data?.button_url));
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('content_page.og_title'),
@@ -69,8 +74,8 @@ const getEmbedUrl = (url) => {
                         <template v-if="page?.content_data?.button_image">
                             <!-- Clickable Premium Banner -->
                             <a 
-                                :href="page.content_data.button_url" 
-                                target="_blank" 
+                                :href="buttonUrl"
+                                target="_blank"
                                 rel="noopener noreferrer" 
                                 class="group relative block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                             >
@@ -90,8 +95,8 @@ const getEmbedUrl = (url) => {
                         <template v-else>
                             <!-- Premium CTA Button -->
                             <a 
-                                :href="page?.content_data?.button_url" 
-                                target="_blank" 
+                                :href="buttonUrl"
+                                target="_blank"
                                 rel="noopener noreferrer" 
                                 class="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-savino-blue to-savino-pink text-white font-bold text-lg rounded-full shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 uppercase tracking-wider hover:brightness-110 group"
                             >

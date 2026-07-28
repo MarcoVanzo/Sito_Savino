@@ -18,7 +18,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class ProductResource extends Resource
@@ -307,8 +306,8 @@ class ProductResource extends Resource
                             'sale_end' => $data['sale_end'] ?? null,
                         ]));
                         Notification::make()->title('Sconto applicato a '.$records->count().' prodotti')->success()->send();
-                        Cache::forget('public:shop:it');
-                        Cache::forget('public:shop:en');
+                        // La cache pubblica dello shop la invalida CacheInvalidationObserver
+                        // (registrato su Product): non duplicare qui le chiavi per lingua.
                     })
                     ->deselectRecordsAfterCompletion()
                     ->requiresConfirmation(),

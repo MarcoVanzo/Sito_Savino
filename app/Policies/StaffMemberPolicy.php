@@ -2,42 +2,19 @@
 
 namespace App\Policies;
 
-use App\Models\StaffMember;
-use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
+/**
+ * StaffMemberResource, ManagementResource e YouthStaffResource usano
+ * `reorderable('sort_order')`: l'ordine di visualizzazione è contenuto
+ * pubblicato e segue il permesso di modifica (default del trait).
+ */
 class StaffMemberPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canManageSport();
-    }
+    use AuthorizesByRole;
 
-    public function view(User $user, StaffMember $staffMember): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canManageSport();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageSport();
-    }
-
-    public function update(User $user, StaffMember $staffMember): bool
-    {
-        return $user->role->canManageSport();
-    }
-
-    public function delete(User $user, StaffMember $staffMember): bool
-    {
-        return $user->role->isSuperAdmin();
-    }
-
-    /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
-     */
-    public function deleteAny(User $user): bool
-    {
-        return $user->role->isSuperAdmin();
+        return 'canManageSport';
     }
 }

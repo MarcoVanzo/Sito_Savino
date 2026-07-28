@@ -2,38 +2,23 @@
 
 namespace App\Policies;
 
-use App\Models\ShippingZone;
-use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
+/**
+ * Le zone di spedizione sono configurazione ordinaria dello shop: anche la
+ * cancellazione resta al Resp. Shop.
+ */
 class ShippingZonePolicy
 {
-    public function viewAny(User $user): bool
+    use AuthorizesByRole;
+
+    protected function manageAbility(): string
     {
-        return $user->role->canManageShop();
+        return 'canManageShop';
     }
 
-    public function view(User $user, ShippingZone $shippingZone): bool
+    protected function deleteAbility(): string
     {
-        return $user->role->canManageShop();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function update(User $user, ShippingZone $shippingZone): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function delete(User $user, ShippingZone $shippingZone): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function deleteAny(User $user): bool
-    {
-        return $user->role->canManageShop();
+        return 'canManageShop';
     }
 }

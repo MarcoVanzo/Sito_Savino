@@ -746,7 +746,7 @@
         <tr><td><strong>PHP</strong></td><td><code>8.5.5</code></td><td>Linguaggio backend</td></tr>
         <tr><td><strong>Laravel</strong></td><td><code>13.17.0</code></td><td>Framework MVC</td></tr>
         <tr><td><strong>Filament</strong></td><td><code>3.3.54</code></td><td>Pannello admin (CMS)</td></tr>
-        <tr><td><strong>Inertia.js</strong></td><td><code>2.x</code></td><td>Bridge server↔client (SSR)</td></tr>
+        <tr><td><strong>Inertia.js</strong></td><td><code>2.x</code></td><td>Bridge server↔client (SSR non attivo)</td></tr>
         <tr><td><strong>MySQL</strong></td><td><code>8.4 LTS</code></td><td>Database relazionale</td></tr>
         <tr><td><strong>Apache</strong></td><td>Heroku buildpack</td><td>Web server</td></tr>
         <tr><td><strong>OPcache + JIT</strong></td><td>tracing 1255</td><td>Compilazione PHP → codice nativo</td></tr>
@@ -759,7 +759,7 @@
     <tbody>
         <tr><td><strong>Vue.js</strong></td><td><code>3.x</code></td><td>Framework UI (via Inertia)</td></tr>
         <tr><td><strong>Vite</strong></td><td>latest</td><td>Bundler assets</td></tr>
-        <tr><td><strong>Node.js</strong></td><td><code>24.14.0</code></td><td>Build-time (SSR + compilazione)</td></tr>
+        <tr><td><strong>Node.js</strong></td><td><code>24.14.0</code></td><td>Build-time (compilazione assets client)</td></tr>
         <tr><td><strong>Tailwind CSS</strong></td><td>latest</td><td>Utility-first CSS framework</td></tr>
     </tbody>
 </table>
@@ -824,7 +824,7 @@
 <table>
     <thead><tr><th>URL</th><th>Applicazione</th><th>Framework</th></tr></thead>
     <tbody>
-        <tr><td><code>/</code></td><td>Sito pubblico (home, news, stagione, squadra, shop...)</td><td>Inertia + Vue.js (SSR)</td></tr>
+        <tr><td><code>/</code></td><td>Sito pubblico (home, news, stagione, squadra, shop...)</td><td>Inertia + Vue.js (render client-side)</td></tr>
         <tr><td><code>/admin</code></td><td>CMS pannello amministrativo</td><td>Filament 3 (Livewire)</td></tr>
     </tbody>
 </table>
@@ -1027,9 +1027,9 @@
         <line x1="408" y1="172" x2="247" y2="172" stroke="#003063" stroke-width="1.5" marker-end="url(#arr2)" stroke-dasharray="5,3"/>
         <text x="327" y="166" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#003063">dati</text>
 
-        <!-- 5. Web: SSR render -->
+        <!-- 5. Web: render Inertia (no SSR) -->
         <rect x="205" y="186" width="80" height="22" rx="4" fill="#eef1f6" stroke="#003063" stroke-width="1"/>
-        <text x="245" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#003063">SSR render</text>
+        <text x="245" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#003063">render Inertia</text>
 
         <!-- 6. Web → User: HTML -->
         <line x1="243" y1="218" x2="82" y2="218" stroke="#1a7a1a" stroke-width="1.5" marker-end="url(#arr2ok)"/>
@@ -1050,7 +1050,7 @@
     <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc">Controlla la cache (<code>CachePublicResponse</code> middleware)</span></div>
     <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc"><strong>Cache HIT →</strong> restituisce HTML in &lt;5ms. <strong>Cache MISS →</strong> continua al passo 4</span></div>
     <div class="flow-step"><span class="step-actor">MySQL</span><span class="step-desc">Query per recuperare post, categorie, media</span></div>
-    <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc">Render SSR con Inertia/Vue.js, salva in cache per richieste future</span></div>
+    <div class="flow-step"><span class="step-actor">App Web</span><span class="step-desc">Render Inertia (Blade + payload JSON, no SSR), salva in cache per richieste future</span></div>
     <div class="flow-step"><span class="step-actor">CDN Spaces</span><span class="step-desc">Serve le immagini (hero, thumbnail) dal nodo più vicino all'utente</span></div>
 </div>
 
@@ -1188,7 +1188,7 @@
         <tr><td><code>AWS_DEFAULT_REGION</code></td><td>fra1</td><td>Region Spaces</td></tr>
         <tr><td><code>AWS_BUCKET</code></td><td>sito-savino-assets-2026</td><td>Nome bucket</td></tr>
         <tr><td><code>AWS_ENDPOINT</code></td><td>https://fra1.digitaloceanspaces.com</td><td>Endpoint S3 API</td></tr>
-        <tr><td><code>INERTIA_SSR_ENABLED</code></td><td>true</td><td>Server-Side Rendering attivo</td></tr>
+        <tr><td><code>INERTIA_SSR_ENABLED</code></td><td>false</td><td>SSR <strong>disattivato</strong>: non esiste <code>resources/js/ssr.js</code> né alcun bundle SSR</td></tr>
         <tr><td><code>LOG_CHANNEL</code></td><td>stderr</td><td>Log su stderr (visibili in DO)</td></tr>
         <tr><td><code>LOG_LEVEL</code></td><td>warning</td><td>Solo warning ed errori</td></tr>
     </tbody>
@@ -1220,7 +1220,7 @@
     <tbody>
         <tr><td><strong>Composer</strong></td><td>Installa dipendenze PHP (autoloader ottimizzato, no dev-dependencies)</td></tr>
         <tr><td><strong>NPM install</strong></td><td>Installa dipendenze frontend (Vue, Vite, Tailwind...)</td></tr>
-        <tr><td><strong>NPM build</strong></td><td>Compila assets + SSR bundle (<code>bootstrap/ssr/ssr.mjs</code>)</td></tr>
+        <tr><td><strong>NPM build</strong></td><td>Compila gli assets client (<code>vite build</code>). Nessun bundle SSR: <code>build:ssr</code> esiste in package.json ma non viene invocato</td></tr>
     </tbody>
 </table>
 

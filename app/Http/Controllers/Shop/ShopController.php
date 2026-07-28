@@ -198,7 +198,8 @@ class ShopController extends Controller
 
         if (strlen(trim($query)) >= 2) {
             $escapedQuery = str_replace(['%', '_'], ['\\%', '\\_'], $query);
-            $locale = in_array(app()->getLocale(), ['it', 'en']) ? app()->getLocale() : 'it';
+            $supportedLocales = config('app.supported_locales', ['it', 'en']);
+            $locale = in_array(app()->getLocale(), $supportedLocales, true) ? app()->getLocale() : 'it';
 
             $paginator = Product::shoppable()
                 ->where(function ($q) use ($escapedQuery, $locale) {

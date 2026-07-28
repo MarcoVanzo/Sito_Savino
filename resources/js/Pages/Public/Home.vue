@@ -11,7 +11,9 @@ import { useImageFallback } from '@/Composables/useImageFallback.js';
 import LOGOS from '@/Constants/logos.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 import { useLocale } from '@/Composables/useLocale.js';
+import { useSafeUrl } from '@/Composables/useSafeUrl.js';
 
+const { safeUrl } = useSafeUrl();
 const { onImgError } = useImageFallback();
 const { formatDate } = useLocale();
 const $t = useTranslations();
@@ -50,10 +52,22 @@ const heroTitle = computed(() => homeSettings.value.hero_title || 'SAVINO DEL BE
 const heroSubtitle = computed(() => homeSettings.value.hero_subtitle || 'VOLLEY');
 const heroTagline = computed(() => homeSettings.value.hero_tagline || $t('home.hero_tagline'));
 const heroCta1Label = computed(() => homeSettings.value.hero_cta1_label || $t('home.hero_cta1'));
-const heroCta1Url = computed(() => homeSettings.value.hero_cta1_url || '/stagione');
+const heroCta1Url = computed(() => safeUrl(homeSettings.value.hero_cta1_url, '/stagione'));
 const heroCta2Label = computed(() => homeSettings.value.hero_cta2_label || $t('home.hero_cta2'));
-const heroCta2Url = computed(() => homeSettings.value.hero_cta2_url || '/ticketing');
+const heroCta2Url = computed(() => safeUrl(homeSettings.value.hero_cta2_url, '/ticketing'));
 const heroVideoUrl = computed(() => homeSettings.value.hero_video_url || null);
+
+// Le slide arrivano dal CMS: interpolarle in una stringa `style` permetterebbe
+// di chiudere l'apice e iniettare altre dichiarazioni CSS. La forma a oggetto
+// assegna la sola proprietà background-image, e il valore va comunque quotato
+// (apici, backslash e parentesi escapati) perché resti un url() valido.
+const slideBackground = (slide) => {
+    if (typeof slide !== 'string' || slide.trim() === '') return {};
+    const escaped = slide
+        .replace(/[\\"]/g, '\\$&')   // backslash e doppi apici
+        .replace(/[\n\r]/g, '');      // niente a capo dentro url()
+    return { backgroundImage: `url("${escaped}")` };
+};
 
 // Stats section dal backend con fallback
 const statsTitle = computed(() => homeSettings.value.stats_title || $t('home.stats_title'));
@@ -73,10 +87,10 @@ const stats = computed(() => {
 // CTA Banner dal backend con fallback
 const ctaTicketingTitle = computed(() => homeSettings.value.cta_ticketing_title || $t('home.cta_ticketing_title'));
 const ctaTicketingText = computed(() => homeSettings.value.cta_ticketing_text || $t('home.cta_ticketing_text'));
-const ctaTicketingUrl = computed(() => homeSettings.value.cta_ticketing_url || '/ticketing');
+const ctaTicketingUrl = computed(() => safeUrl(homeSettings.value.cta_ticketing_url, '/ticketing'));
 const ctaShopTitle = computed(() => homeSettings.value.cta_shop_title || $t('home.cta_shop_title'));
 const ctaShopText = computed(() => homeSettings.value.cta_shop_text || $t('home.cta_shop_text'));
-const ctaShopUrl = computed(() => homeSettings.value.cta_shop_url || '/shop');
+const ctaShopUrl = computed(() => safeUrl(homeSettings.value.cta_shop_url, '/shop'));
 
 // === SLIDESHOW ===
 const currentSlide = ref(0);
@@ -423,7 +437,7 @@ const ogMeta = useOgMeta({
                             v-else
                             class="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat hero-slide-inner"
                             :class="{ 'ken-burns-active': currentSlide === index || previousSlide === index }"
-                            :style="`background-image: url('${slide}');`"
+                            :style="slideBackground(slide)"
                         ></div>
                     </div>
                 </template>

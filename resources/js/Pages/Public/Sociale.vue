@@ -5,8 +5,10 @@ import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
+import { useSafeUrl } from '@/Composables/useSafeUrl'
 
 const $t = useTranslations();
+const { safeUrl } = useSafeUrl();
 
 defineOptions({ layout: PublicLayout })
 
@@ -146,8 +148,8 @@ const ogMeta = useOgMeta({
                     <p class="text-gray-600 leading-relaxed">
                         {{ project.description }}
                     </p>
-                    <div v-if="project.link" class="mt-6 pt-6 border-t border-gray-100">
-                        <a :href="project.link" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-gold transition-colors">
+                    <div v-if="safeUrl(project.link)" class="mt-6 pt-6 border-t border-gray-100">
+                        <a :href="safeUrl(project.link)" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-gold transition-colors">
                             {{ $t('common.discover') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />

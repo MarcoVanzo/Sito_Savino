@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class Order extends Model
@@ -99,8 +100,21 @@ class Order extends Model
     }
 
     /**
+     * Stati in cui il totale non va più toccato: l'importo è già stato incassato
+     * e il ricalcolo lo disallineerebbe dal pagamento registrato.
+     */
+    private const LOCKED_TOTAL_STATUSES = [
+        OrderStatus::Paid,
+        OrderStatus::Shipped,
+        OrderStatus::Delivered,
+        OrderStatus::Refunded,
+    ];
+
+    /**
      * Ricalcola il totale ordine dalla somma degli items,
      * includendo costo spedizione e sconto coupon.
+     *
+     * Non fa nulla su un ordine già pagato.
      */
     public function recalculateTotal(): self
     {
@@ -108,10 +122,30 @@ class Order extends Model
             // Acquisisce lock FOR UPDATE correttamente
             $locked = static::lockForUpdate()->find($this->id);
 
-            $itemsTotal = $locked->items()
+            // L'ordine può essere stato eliminato nel frattempo (o non esistere
+            // ancora a DB): senza questa guardia si andava in fatal su ->items().
+            if (! $locked) {
+                return $this;
+            }
+
+            if ($locked->paid_at !== null || in_array($locked->status, self::LOCKED_TOTAL_STATUSES, true)) {
+                Log::warning(
+                    "Ricalcolo totale ignorato per l'ordine #{$locked->id}: già pagato/incassato."
+                );
+
+                $this->setRawAttributes($locked->getAttributes());
+
+                return $this;
+            }
+
+            $itemsTotal = (float) $locked->items()
                 ->sum(DB::raw('quantity * price_at_time_of_purchase'));
 
-            $locked->total_price = max(0, $itemsTotal + (float) $locked->shipping_cost - (float) $locked->coupon_discount);
+            // Stesso arrotondamento applicato da CheckoutService alla creazione
+            $locked->total_price = round(
+                max(0, $itemsTotal + (float) $locked->shipping_cost - (float) $locked->coupon_discount),
+                2
+            );
             $locked->save();
 
             // Sincronizza l'istanza corrente con i valori aggiornati
@@ -127,14 +161,7 @@ class Order extends Model
      */
     public function getFormattedShippingAddressAttribute(): array
     {
-        $addr = $this->shipping_address;
-        if (is_string($addr)) {
-            $addr = ['raw_address' => $addr];
-        } elseif (is_array($addr) && isset($addr['raw_address'])) {
-            // keep as-is
-        } else {
-            $addr = $addr ?? [];
-        }
+        $addr = $this->normalizeAddress($this->shipping_address, 'shipping_address');
 
         if ($this->country) {
             $addr['country'] = $this->country;
@@ -149,19 +176,36 @@ class Order extends Model
      */
     public function getFormattedBillingAddressAttribute(): array
     {
-        $addr = $this->billing_address;
-        if (is_string($addr)) {
-            $addr = ['raw_address' => $addr];
-        } elseif (is_array($addr) && isset($addr['raw_address'])) {
-            // keep as-is
-        } else {
-            $addr = $addr ?? [];
-        }
+        $addr = $this->normalizeAddress($this->billing_address, 'billing_address');
 
         if ($this->billing_country) {
             $addr['country'] = $this->billing_country;
         }
 
         return $addr;
+    }
+
+    /**
+     * Normalizza un indirizzo in array, recuperando anche le righe legacy
+     * salvate come testo semplice.
+     *
+     * Il ramo `is_string($addr)` sull'attributo castato non scattava mai: con il
+     * cast `array` un valore legacy non-JSON viene decodificato a null, quindi la
+     * retrocompatibilità restituiva un indirizzo vuoto. Il testo grezzo va letto
+     * dal valore originale della colonna.
+     */
+    private function normalizeAddress(mixed $addr, string $column): array
+    {
+        if (is_array($addr)) {
+            return $addr;
+        }
+
+        $raw = $this->getRawOriginal($column);
+
+        if (is_string($raw) && trim($raw) !== '') {
+            return ['raw_address' => $raw];
+        }
+
+        return [];
     }
 }

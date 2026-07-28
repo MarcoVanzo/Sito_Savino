@@ -133,18 +133,29 @@ function openLightbox(index) {
     })
 }
 
+// Il timer va tracciato: se il componente si smonta durante il fade-out il
+// callback girerebbe su un'istanza già distrutta.
+let closeTimeout = null
+
 function closeLightbox() {
     lightboxTransition.value = false
     document.body.style.overflow = ''
-    setTimeout(() => { lightboxOpen.value = false }, 300)
+    clearTimeout(closeTimeout)
+    closeTimeout = setTimeout(() => { lightboxOpen.value = false }, 300)
 }
 
+// Guardia sulla lista vuota: il modulo su length 0 produrrebbe NaN e il
+// contatore del lightbox mostrerebbe "NaN / 0".
 function prevImage() {
-    lightboxIndex.value = (lightboxIndex.value - 1 + filteredMedia.value.length) % filteredMedia.value.length
+    const total = filteredMedia.value.length
+    if (total === 0) return
+    lightboxIndex.value = (lightboxIndex.value - 1 + total) % total
 }
 
 function nextImage() {
-    lightboxIndex.value = (lightboxIndex.value + 1) % filteredMedia.value.length
+    const total = filteredMedia.value.length
+    if (total === 0) return
+    lightboxIndex.value = (lightboxIndex.value + 1) % total
 }
 
 // Touch / swipe support for lightbox
@@ -180,8 +191,12 @@ onMounted(() => {
         })
     })
 
-    // Re-observe when filteredMedia changes
+    // Re-observe when filteredMedia changes.
+    // `disconnect()` prima di ri-osservare: senza, l'observer continua a
+    // referenziare i nodi della lista precedente, che restano vivi anche dopo
+    // essere stati rimossi dal DOM.
     watch(filteredMedia, () => {
+        observer.disconnect()
         revealedItems.value = new Set()
         nextTick(() => {
             galleryGridRef.value?.querySelectorAll('[data-idx]').forEach(el => {
@@ -194,6 +209,7 @@ onMounted(() => {
 onUnmounted(() => {
     revealObserver?.disconnect()
     revealObserver = null
+    clearTimeout(closeTimeout)
     document.body.style.overflow = ''
 })
 
@@ -447,7 +463,12 @@ const ogMeta = useOgMeta({
                     v-for="(item, index) in filteredMedia"
                     :key="item.id"
                     :data-idx="index"
+                    role="button"
+                    tabindex="0"
+                    :aria-label="item.alt || $t('gallery.open_image')"
                     @click="openLightbox(index)"
+                    @keydown.enter.prevent="openLightbox(index)"
+                    @keydown.space.prevent="openLightbox(index)"
                     class="gallery-masonry__item"
                     :class="{
                         'gallery-masonry__item--revealed': revealedItems.has(String(index)),
@@ -500,7 +521,7 @@ const ogMeta = useOgMeta({
                     tabindex="-1"
                     role="dialog"
                     aria-modal="true"
-                    :aria-label="$t('gallery.lightbox_label') || 'Immagine ingrandita'"
+                    :aria-label="$t('gallery.lightbox_label')"
                     @click.self="closeLightbox"
                     @keydown.escape="closeLightbox"
                     @keydown.arrow-left="prevImage"
@@ -1189,6 +1210,11 @@ const ogMeta = useOgMeta({
     transform: translateY(30px) scale(0.96);
     transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1) var(--stagger),
                 transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) var(--stagger);
+}
+
+.gallery-masonry__item:focus-visible {
+    outline: 3px solid #C9A84C;
+    outline-offset: 3px;
 }
 
 .gallery-masonry__item--revealed {

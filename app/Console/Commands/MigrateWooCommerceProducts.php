@@ -26,9 +26,9 @@ class MigrateWooCommerceProducts extends Command
 
     public function handle(): int
     {
-        $this->baseUrl = config('services.woocommerce.url') ?? env('WOOCOMMERCE_URL', '');
-        $this->consumerKey = config('services.woocommerce.consumer_key') ?? env('WOOCOMMERCE_CONSUMER_KEY', '');
-        $this->consumerSecret = config('services.woocommerce.consumer_secret') ?? env('WOOCOMMERCE_CONSUMER_SECRET', '');
+        $this->baseUrl = (string) config('services.woocommerce.url', '');
+        $this->consumerKey = (string) config('services.woocommerce.consumer_key', '');
+        $this->consumerSecret = (string) config('services.woocommerce.consumer_secret', '');
 
         if (! $this->baseUrl || ! $this->consumerKey || ! $this->consumerSecret) {
             $this->error('Credenziali WooCommerce mancanti. Controlla il file .env.');
@@ -147,7 +147,7 @@ class MigrateWooCommerceProducts extends Command
         }
 
         $type = match ($wcProduct['type']) {
-            'variable' => ProductType::Configurable,
+            'variable' => ProductType::Variable,
             'simple' => ProductType::Simple,
             default => ProductType::Simple,
         };

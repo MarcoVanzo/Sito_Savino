@@ -48,10 +48,12 @@ class ForceChangePasswordController extends Controller
 
         // Il Model User ha il cast 'hashed' sul campo password,
         // quindi l'assegnazione semplice attiva l'hashing automatico
-        $user->update([
-            'password' => $validated['password'],
-            'must_change_password' => false,
-        ]);
+        // `must_change_password` non è assegnabile in massa: senza forceFill il
+        // flag non verrebbe mai azzerato e l'utente resterebbe bloccato su
+        // questa pagina a ogni richiesta.
+        $user->fill(['password' => $validated['password']])
+            ->forceFill(['must_change_password' => false])
+            ->save();
 
         // L'hash in sessione non va aggiornato a mano: AuthenticateSession, ora
         // attivo sull'intero gruppo web oltre che sul pannello, lo riscrive al

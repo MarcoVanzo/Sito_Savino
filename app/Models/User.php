@@ -22,7 +22,15 @@ use Illuminate\Support\Collection;
  * @property ?Carbon $password_changed_at
  * @property ?Carbon $password_expiry_notified_at
  */
-#[Fillable(['name', 'email', 'password', 'phone', 'address', 'is_active', 'role', 'must_change_password'])]
+/*
+ * `role`, `is_active` e `must_change_password` NON sono mass-assignable: sono
+ * i tre campi che decidono privilegi e accesso al pannello, e lasciarli nel
+ * fillable significava che un qualsiasi `User::create($request->all())` o
+ * `$user->update($request->validated())` con un campo di troppo poteva
+ * promuovere un utente a super admin. Vanno impostati esplicitamente
+ * (`forceFill([...])->save()` o assegnazione diretta della proprietà).
+ */
+#[Fillable(['name', 'email', 'password', 'phone', 'address'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {

@@ -5,8 +5,10 @@ import { Head, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
+import { useSafeUrl } from '@/Composables/useSafeUrl'
 
 const $t = useTranslations();
+const { safeUrl } = useSafeUrl();
 
 const props = defineProps({
     page: {
@@ -162,11 +164,11 @@ const ogMeta = useOgMeta({
 
                             <!-- CTA Button/Link -->
                             <component
-                                :is="plan.cta_url ? 'a' : 'button'"
-                                :href="plan.cta_url || undefined"
-                                :target="plan.cta_url ? '_blank' : undefined"
-                                :rel="plan.cta_url ? 'noopener noreferrer' : undefined"
-                                :type="plan.cta_url ? undefined : 'button'"
+                                :is="safeUrl(plan.cta_url) ? 'a' : 'button'"
+                                :href="safeUrl(plan.cta_url)"
+                                :target="safeUrl(plan.cta_url) ? '_blank' : undefined"
+                                :rel="safeUrl(plan.cta_url) ? 'noopener noreferrer' : undefined"
+                                :type="safeUrl(plan.cta_url) ? undefined : 'button'"
                                 class="block text-center w-full py-3.5 rounded-lg font-bold uppercase tracking-wider text-sm transition-all duration-300"
                                 :class="plan.highlight
                                     ? 'bg-savino-gold text-white hover:bg-savino-gold/90 shadow-lg shadow-savino-gold/30'

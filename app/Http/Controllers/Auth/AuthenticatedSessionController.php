@@ -34,10 +34,14 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        // L'ID di sessione va catturato PRIMA del regenerate: il carrello ospite
+        // è legato al vecchio ID e con quello nuovo non si troverebbe più.
+        $guestSessionId = $request->session()->getId();
+
         $request->session()->regenerate();
 
         // Merge carrello guest nel carrello utente (come nella registrazione shop)
-        app(CartService::class)->mergeOnLogin($request->user());
+        app(CartService::class)->mergeOnLogin($request->user(), $guestSessionId);
 
         // Customer → shop, utenti con accesso al pannello → CMS, altri → dashboard.
         // In questo modo lo staff usa un'unica pagina di login (questa) e viene

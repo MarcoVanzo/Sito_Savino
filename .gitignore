@@ -72,3 +72,6 @@ storage/do-ca-certificate.crt
 # File temporanei del SessionStart hook (backup composer durante install)
 .composer.json.hookbak
 .composer.lock.hookbak
+
+# Cartella temporanea di spatie/media-library (conversioni in lavorazione)
+/storage/media-library

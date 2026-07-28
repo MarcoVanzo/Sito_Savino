@@ -76,8 +76,11 @@ class ShippingZone extends Model
     /**
      * Zone attive cachate per 1 ora. Salva come array di attributi
      * per evitare problemi di serializzazione con il file cache driver.
+     *
+     * Protected e non private: è invocata via `static::`, quindi da una
+     * sottoclasse il metodo privato non sarebbe accessibile (fatal error).
      */
-    private static function getCachedZones()
+    protected static function getCachedZones()
     {
         $rawZones = Cache::remember('shipping_zones_active', 3600, function () {
             return static::active()->ordered()->get()->map->getAttributes()->toArray();

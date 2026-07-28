@@ -41,26 +41,35 @@ class EnsurePasswordIsChangedTest extends TestCase
 
     public function test_new_admin_user_is_forced_to_change_password(): void
     {
-        $admin = User::create([
+        // `role` e `is_active` non sono assegnabili in massa: vanno impostati
+        // prima del salvataggio, perché è il ruolo a decidere se il cambio
+        // password al primo accesso è obbligatorio.
+        $admin = new User([
             'name' => 'Nuovo Admin',
             'email' => 'nuovo.admin@savinodelbene.it',
             'password' => 'temp_password123',
+        ]);
+
+        $admin->forceFill([
             'role' => UserRole::CommunicationManager,
             'is_active' => true,
-        ]);
+        ])->save();
 
         $this->assertTrue($admin->must_change_password);
     }
 
     public function test_new_non_admin_user_is_not_forced_to_change_password(): void
     {
-        $customer = User::create([
+        $customer = new User([
             'name' => 'Cliente',
             'email' => 'cliente@example.com',
             'password' => 'temp_password123',
+        ]);
+
+        $customer->forceFill([
             'role' => UserRole::Customer,
             'is_active' => true,
-        ]);
+        ])->save();
 
         $this->assertFalse((bool) $customer->fresh()->must_change_password);
     }
@@ -205,7 +214,17 @@ class EnsurePasswordIsChangedTest extends TestCase
         // non forza il logout al successivo accesso al pannello. Si verifica il
         // comportamento e non il valore: il formato è interno al middleware
         // (hashPasswordForCookie) e non coincide con l'hash bcrypt dell'utente.
-        $this->assertNotNull(session('password_hash_'.Auth::getDefaultDriver()));
+        $sessionHash = session('password_hash_'.Auth::getDefaultDriver());
+        $this->assertNotNull($sessionHash);
+
+        // Il difetto corretto era proprio scrivere qui l'hash bcrypt grezzo:
+        // AuthenticateSession non lo riconosce e al passaggio successivo
+        // sloggava l'utente. Asserire solo "non nullo" non lo intercetterebbe.
+        $this->assertNotSame(
+            $user->fresh()->getAuthPassword(),
+            $sessionHash,
+            "In sessione è finito l'hash bcrypt grezzo invece del formato di AuthenticateSession."
+        );
 
         // Seguendo il redirect l'utente resta autenticato sul pannello e non
         // viene rimbalzato alla pagina di login di Filament.

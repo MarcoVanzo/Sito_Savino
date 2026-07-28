@@ -42,22 +42,47 @@ const dismiss = (id) => {
     messages.value = messages.value.filter(m => m.id !== id);
 };
 
-const checkFlash = () => {
-    const flash = usePage().props.flash || {};
-    ['success', 'error', 'warning', 'info'].forEach(type => {
-        if (flash[type]) addMessage(type, flash[type]);
+const page = usePage();
+
+const TYPES = ['success', 'error', 'warning', 'info'];
+
+// Ultimo messaggio mostrato per tipo. Serve per i reload parziali:
+// `router.reload({ only: [...] })` fa il merge delle props e lascia in piedi il
+// vecchio `flash`, quindi senza memo lo stesso toast verrebbe ripresentato a
+// ogni giro di polling (es. CheckoutSuccess: 1 ogni 5s per 60s).
+const lastShown = Object.fromEntries(TYPES.map(type => [type, null]));
+
+const checkFlash = (isPartial = false) => {
+    const flash = page.props.flash || {};
+    TYPES.forEach(type => {
+        const text = flash[type];
+        if (!text) {
+            lastShown[type] = null;
+            return;
+        }
+        if (isPartial && lastShown[type] === text) return;
+        lastShown[type] = text;
+        addMessage(type, text);
     });
 };
 
 checkFlash();
 
-const removeListener = router.on('finish', () => {
-    setTimeout(checkFlash, 50);
+// Il setTimeout va tracciato: senza clear, uno smontaggio subito dopo un
+// `finish` lascerebbe il callback a girare su un componente già distrutto.
+let flashTimeout = null;
+
+const removeListener = router.on('finish', (event) => {
+    // Su un reload parziale `visit.only` non è vuoto.
+    const isPartial = (event?.detail?.visit?.only?.length ?? 0) > 0;
+    clearTimeout(flashTimeout);
+    flashTimeout = setTimeout(() => checkFlash(isPartial), 50);
 });
 
 onUnmounted(() => {
     activeIntervals.forEach(clearInterval);
     activeIntervals.clear();
+    clearTimeout(flashTimeout);
     if (removeListener) removeListener();
 });
 </script>

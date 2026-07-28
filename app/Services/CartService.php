@@ -53,10 +53,13 @@ class CartService
      * Aggiunge un prodotto al carrello.
      * Se l'item esiste già (stesso prodotto+variante), aggiorna la quantità.
      *
+     * Restituisce l'item aggiornato, o null se nel frattempo è sparito
+     * (la firma dichiarava CartItem ma fresh() può restituire null).
+     *
      * @throws \InvalidArgumentException
      * @throws \OverflowException
      */
-    public function addItem(int $productId, int $quantity = 1, ?int $variantId = null): CartItem
+    public function addItem(int $productId, int $quantity = 1, ?int $variantId = null): ?CartItem
     {
         return DB::transaction(function () use ($productId, $quantity, $variantId) {
             $product = Product::lockForUpdate()->findOrFail($productId);
@@ -125,11 +128,11 @@ class CartService
 
     /**
      * Aggiorna la quantità di un item nel carrello.
-     * Se la quantità è 0, rimuove l'item.
+     * Se la quantità è 0, rimuove l'item e restituisce null.
      *
      * @throws \OverflowException
      */
-    public function updateItemQuantity(int $cartItemId, int $quantity): CartItem
+    public function updateItemQuantity(int $cartItemId, int $quantity): ?CartItem
     {
         return DB::transaction(function () use ($cartItemId, $quantity) {
             $cart = $this->findCurrentCart();
@@ -139,11 +142,12 @@ class CartService
 
             $item = $cart->items()->with(['product', 'variant'])->findOrFail($cartItemId);
 
-            // Se quantità 0, rimuovi l'item
+            // Se quantità 0, rimuovi l'item: non c'è più nessun item da restituire
             if ($quantity <= 0) {
                 $item->delete();
+                $this->invalidateCache();
 
-                return $item;
+                return null;
             }
 
             $product = Product::lockForUpdate()->findOrFail($item->product_id);
@@ -256,12 +260,18 @@ class CartService
     /**
      * Al login, unisce il carrello sessione con quello utente.
      * Se lo stesso prodotto+variante esiste in entrambi, prende la quantità
-     * maggiore (capped allo stock disponibile). Elimina il carrello sessione.
+     * maggiore (capped allo stock disponibile e al limite per prodotto).
+     * Elimina il carrello sessione.
+     *
+     * @param  string|null  $sessionId  ID di sessione del carrello guest. Va passato
+     *                                  esplicitamente quando il chiamante ha già
+     *                                  rigenerato la sessione dopo il login: con il
+     *                                  nuovo ID il carrello ospite non si troverebbe più.
      */
-    public function mergeOnLogin(User $user): void
+    public function mergeOnLogin(User $user, ?string $sessionId = null): void
     {
-        DB::transaction(function () use ($user) {
-            $sessionId = session()->getId();
+        DB::transaction(function () use ($user, $sessionId) {
+            $sessionId ??= session()->getId();
 
             // Carrello sessione (guest)
             $sessionCart = Cart::where('session_id', $sessionId)
@@ -289,22 +299,26 @@ class CartService
             // Merge degli items
             $sessionItems = $sessionCart->items()->with(['product', 'variant'])->get();
 
+            // Stesso limite per prodotto applicato da addItem/updateItemQuantity:
+            // il merge non deve essere una scorciatoia per superarlo.
+            $maxQty = (int) SiteSetting::get('shop.max_qty_per_product', 10);
+
             foreach ($sessionItems as $sessionItem) {
                 $existingItem = $userCart->items()
                     ->where('product_id', $sessionItem->product_id)
                     ->where('product_variant_id', $sessionItem->product_variant_id)
                     ->first();
 
-                $availableStock = $this->getAvailableStock(
-                    $sessionItem->product,
-                    $sessionItem->variant
+                $maxAllowed = min(
+                    $this->getAvailableStock($sessionItem->product, $sessionItem->variant),
+                    $maxQty
                 );
 
                 if ($existingItem) {
-                    // Prendi la quantità maggiore, capped allo stock
+                    // Prendi la quantità maggiore, capped a stock e limite per prodotto
                     $mergedQty = min(
                         max($existingItem->quantity, $sessionItem->quantity),
-                        $availableStock
+                        $maxAllowed
                     );
 
                     // Stock esaurito: rimuovi l'item invece di lasciarlo a quantità 0
@@ -315,7 +329,7 @@ class CartService
                     }
                 } else {
                     // Sposta l'item nel carrello utente
-                    $qty = min($sessionItem->quantity, $availableStock);
+                    $qty = min($sessionItem->quantity, $maxAllowed);
 
                     if ($qty > 0) {
                         $userCart->items()->create([
