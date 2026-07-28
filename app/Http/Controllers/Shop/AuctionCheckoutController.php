@@ -51,12 +51,31 @@ class AuctionCheckoutController extends Controller
             ]);
         }
 
-        // Se l'ordine esiste già, redirect alla pagina di successo
+        // Solo un ordine EFFETTIVAMENTE PAGATO chiude il checkout: prima bastava
+        // l'esistenza dell'ordine, così chi tornava indietro da Stripe restava
+        // bloccato per sempre sulla pagina "ordine già effettuato".
         $existingOrder = $this->auctionService->getWinnerOrder($auction);
 
-        if ($existingOrder) {
+        if ($existingOrder && $existingOrder->paid_at !== null) {
             return redirect()->route('shop.auction-checkout.success', ['token' => $token])
                 ->with('info', __('messages.auction_checkout.already_ordered'));
+        }
+
+        // Ordine ancora da pagare e deadline aperta: riapri una sessione di
+        // pagamento sull'ordine esistente (stesso order_token), senza crearne
+        // uno nuovo né duplicare la riserva di stock.
+        if ($existingOrder && $existingOrder->status === OrderStatus::Pending) {
+            $retryUrl = $this->openPaymentSession($existingOrder);
+
+            if ($retryUrl) {
+                return redirect()->away($retryUrl);
+            }
+        } elseif ($existingOrder) {
+            // Ordine annullato/rimborsato o già in lavorazione: non è pagabile e
+            // non se ne può creare un altro (order_token è unico su questo token).
+            return Inertia::render('Public/Shop/Auctions/CheckoutExpired', [
+                'auction' => $auction->only(['id', 'title', 'winner_checkout_deadline']),
+            ]);
         }
 
         // Carica l'asta con product e media
@@ -71,6 +90,25 @@ class AuctionCheckoutController extends Controller
             'checkoutDeadline' => $auction->winner_checkout_deadline?->toIso8601String(),
             'winningBid' => $this->auctionService->winningAmountFor($auction),
         ]);
+    }
+
+    /**
+     * Apre una nuova sessione Stripe su un ordine già esistente e non pagato.
+     * Restituisce l'URL di pagamento, oppure null se Stripe non risponde
+     * (in quel caso il chiamante mostra di nuovo il form di checkout).
+     */
+    protected function openPaymentSession(Order $order): ?string
+    {
+        try {
+            return app(StripePaymentService::class)->createSession($order);
+        } catch (\Throwable $e) {
+            Log::error('Errore riapertura sessione di pagamento asta', [
+                'order_id' => $order->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     /**
@@ -93,12 +131,9 @@ class AuctionCheckoutController extends Controller
                 ->with('error', __('messages.auction_checkout.deadline_expired'));
         }
 
-        // Se l'ordine esiste già, redirect alla pagina di successo
-        $existingOrder = $this->auctionService->getWinnerOrder($auction);
-
-        if ($existingOrder) {
-            return redirect()->route('shop.auction-checkout.success', ['token' => $token]);
-        }
+        // NB: la verifica dell'ordine esistente è dentro la transazione (vedi sotto),
+        // non qui: farla prima del lock lasciava passare due submit ravvicinati fino
+        // alla INSERT, che falliva sull'indice unico di order_token.
 
         // Sanitizza input prima della validazione (allineato a StoreCheckoutRequest)
         if ($request->has('notes') && $request->notes !== null) {
@@ -151,11 +186,27 @@ class AuctionCheckoutController extends Controller
                 return back()->withErrors(['country' => __('messages.checkout.country_not_served')]);
             }
 
-            $order = DB::transaction(function () use ($auction, $validated, $token, $shippingZone) {
+            $result = DB::transaction(function () use ($auction, $validated, $token, $shippingZone) {
+                // Lock sull'asta: serializza i submit concorrenti sullo stesso token,
+                // così il secondo trova l'ordine appena creato invece di andare in
+                // errore sull'indice unico di order_token.
+                $lockedAuction = Auction::lockForUpdate()->find($auction->id);
+
+                $existingOrder = $this->auctionService->getWinnerOrder($lockedAuction);
+
+                if ($existingOrder && $existingOrder->paid_at !== null) {
+                    return ['order' => $existingOrder, 'paid' => true];
+                }
+
+                if ($existingOrder && $existingOrder->status !== OrderStatus::Pending) {
+                    // Annullato/rimborsato/in lavorazione: non ricreabile su questo token.
+                    return ['order' => null, 'paid' => false];
+                }
+
                 $user = auth()->user();
                 // L'importo dovuto è l'offerta del vincitore corrente, che può
                 // non coincidere con current_bid in caso di riassegnazione.
-                $winningBid = $this->auctionService->winningAmountFor($auction);
+                $winningBid = $this->auctionService->winningAmountFor($lockedAuction);
 
                 // Struttura indirizzo spedizione
                 $shippingAddress = [
@@ -182,6 +233,25 @@ class AuctionCheckoutController extends Controller
                 $shippingCost = $shippingZone->calculateShippingCost($winningBid);
 
                 $totalPrice = round($winningBid + $shippingCost, 2);
+
+                // Ordine già aperto e non pagato (checkout abbandonato su Stripe):
+                // si riusa, aggiornando i dati appena inviati. Lo stock è già
+                // riservato dal primo tentativo, non va riservato di nuovo.
+                if ($existingOrder) {
+                    $existingOrder->update([
+                        'total_price' => $totalPrice,
+                        'shipping_address' => $shippingAddress,
+                        'billing_address' => $billingAddress,
+                        'country' => $validated['country'],
+                        'billing_country' => $validated['country'],
+                        'phone' => $validated['phone'],
+                        'codice_fiscale' => $validated['codice_fiscale'] ?? null,
+                        'shipping_cost' => $shippingCost,
+                        'notes' => $validated['notes'] ?? null,
+                    ]);
+
+                    return ['order' => $existingOrder->fresh(), 'paid' => false];
+                }
 
                 // Crea l'ordine — order_token === winner_checkout_token
                 $order = Order::create([
@@ -221,12 +291,20 @@ class AuctionCheckoutController extends Controller
                     'notes' => "Ordine #{$order->id} — asta #{$auction->id}",
                 ]);
 
-                return $order;
+                return ['order' => $order, 'paid' => false];
             });
+
+            if ($result['paid']) {
+                return redirect()->route('shop.auction-checkout.success', ['token' => $token]);
+            }
+
+            if (! $result['order']) {
+                return back()->with('error', __('messages.checkout.error'));
+            }
 
             // Pagamento forzato su Stripe
             $stripeService = app(StripePaymentService::class);
-            $url = $stripeService->createSession($order);
+            $url = $stripeService->createSession($result['order']);
 
             return redirect()->away($url);
         } catch (ValidationException $e) {
@@ -280,7 +358,12 @@ class AuctionCheckoutController extends Controller
         }
 
         $order = Order::where('order_token', $token)->firstOrFail();
-        $canRetry = $order->status === OrderStatus::Pending;
+
+        // Il retry ha senso solo su un ordine ancora pagabile e con la finestra
+        // di pagamento dell'asta ancora aperta.
+        $canRetry = $order->status === OrderStatus::Pending
+            && $order->paid_at === null
+            && ! ($auction->winner_checkout_deadline?->isPast() ?? false);
 
         return Inertia::render('Public/Shop/Auctions/CheckoutCancel', [
             'auction' => $auction,

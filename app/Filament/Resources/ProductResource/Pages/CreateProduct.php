@@ -5,7 +5,6 @@ namespace App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
-use Illuminate\Support\Facades\Cache;
 
 class CreateProduct extends CreateRecord
 {
@@ -13,9 +12,7 @@ class CreateProduct extends CreateRecord
 
     protected static string $resource = ProductResource::class;
 
-    protected function afterCreate(): void
-    {
-        Cache::forget('public:shop:it');
-        Cache::forget('public:shop:en');
-    }
+    // L'invalidazione della cache shop è a carico di CacheInvalidationObserver,
+    // che osserva Product: farla anche qui creava una seconda sorgente di verità
+    // sulle chiavi, già divergente rispetto ai suffissi di lingua.
 }

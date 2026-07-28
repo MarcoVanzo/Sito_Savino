@@ -115,13 +115,17 @@ class SiteSetting extends Model
      */
     public static function clearCache(): void
     {
-        foreach (['it', 'en'] as $locale) {
+        foreach (config('app.supported_locales', ['it', 'en']) as $locale) {
             Cache::forget(self::CACHE_KEY.'_'.$locale);
             Cache::forget(self::CACHE_KEY.'_grouped_'.$locale);
         }
     }
 
-    private static function resolveForLocale(mixed $value): mixed
+    /**
+     * Protected e non private: è invocata via `static::`, quindi da una
+     * sottoclasse il metodo privato non sarebbe accessibile (fatal error).
+     */
+    protected static function resolveForLocale(mixed $value): mixed
     {
         if (! is_string($value) || $value === '') {
             return $value;

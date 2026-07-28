@@ -51,12 +51,16 @@ class ShopAuthController extends Controller
 
         Auth::login($user);
 
+        // L'ID di sessione va catturato PRIMA del regenerate: il carrello ospite
+        // è legato al vecchio ID e con quello nuovo non si troverebbe più.
+        $guestSessionId = $request->session()->getId();
+
         // Rigenera l'ID di sessione: senza, un ID noto prima della
         // registrazione resterebbe valido dopo l'autenticazione.
         $request->session()->regenerate();
 
         // Merge carrello guest nel carrello utente
-        $this->cartService->mergeOnLogin($user);
+        $this->cartService->mergeOnLogin($user, $guestSessionId);
 
         return redirect()->route('shop')
             ->with('success', __('messages.shop.register_success'));

@@ -100,14 +100,19 @@ class Coupon extends Model
             return false;
         }
 
-        // Limite utilizzi per utente
-        if ($this->max_uses_per_user !== null && ($userId || $guestEmail)) {
+        // Limite utilizzi per utente.
+        // La colonna è NOT NULL default 1, quindi il vecchio `!== null` era sempre
+        // vero e un valore 0 rendeva il coupon inutilizzabile da chiunque.
+        // Semantica esplicita: 0 (o null) = nessun limite per utente.
+        $maxPerUser = $this->max_uses_per_user === null ? 0 : (int) $this->max_uses_per_user;
+
+        if ($maxPerUser > 0 && ($userId || $guestEmail)) {
             $usageCount = $this->usages()
                 ->when($userId, fn ($q) => $q->where('user_id', $userId))
                 ->when(! $userId && $guestEmail, fn ($q) => $q->where('guest_email', $guestEmail))
                 ->count();
 
-            if ($usageCount >= $this->max_uses_per_user) {
+            if ($usageCount >= $maxPerUser) {
                 return false;
             }
         }

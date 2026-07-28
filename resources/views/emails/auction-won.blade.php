@@ -28,7 +28,10 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                         <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Importo vincente</td>
-                        <td style="color: #003063; font-size: 18px; font-weight: 700; text-align: right;">€{{ number_format($auction->current_bid, 2, ',', '.') }}</td>
+                        {{-- $winningAmount è l'offerta del vincitore corrente (AuctionService::winningAmountFor):
+                             current_bid non viene aggiornato alla riassegnazione ed è solo un fallback
+                             per i job già in coda prima di questa modifica. --}}
+                        <td style="color: #003063; font-size: 18px; font-weight: 700; text-align: right;">€{{ number_format($winningAmount ?? $auction->current_bid, 2, ',', '.') }}</td>
                     </tr>
                 </table>
             </td>

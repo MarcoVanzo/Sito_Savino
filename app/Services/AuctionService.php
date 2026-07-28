@@ -61,7 +61,7 @@ class AuctionService
                     $winner = User::find($winnerBid->user_id);
 
                     if ($winner) {
-                        Mail::to($winner->email)->queue(new AuctionWon($auction->fresh(), $winner));
+                        $this->sendAuctionWonMail($auction->fresh(), $winner);
                     }
 
                     Log::info("Asta #{$auction->id} chiusa. Vincitore: User #{$winnerBid->user_id} con offerta di €{$winnerBid->amount}.");
@@ -112,20 +112,43 @@ class AuctionService
                     return; // Pagamento già effettuato
                 }
 
-                // L'ordine rimasto in sospeso oltre la deadline non è più pagabile:
+                // L'ordine rimasto aperto oltre la deadline non è più pagabile:
                 // annullarlo restituisce lo stock tramite OrderObserver.
-                if ($existingOrder && $existingOrder->status === OrderStatus::Pending) {
+                // Vanno annullati anche gli stati diversi da Pending (es. Processing):
+                // ignorarli riassegnava comunque l'asta lasciando lo stock riservato
+                // per sempre.
+                if ($existingOrder && in_array($existingOrder->status, [OrderStatus::Pending, OrderStatus::Processing], true)) {
                     $existingOrder->forceFill(['status' => OrderStatus::Cancelled])->save();
+                } elseif ($existingOrder && ! in_array($existingOrder->status, [OrderStatus::Cancelled, OrderStatus::Refunded], true)) {
+                    // Spedito/consegnato senza paid_at: situazione anomala che non va
+                    // risolta automaticamente (la merce è già partita). Nessuna
+                    // riassegnazione: richiede intervento manuale.
+                    Log::error("Asta #{$auction->id}: ordine #{$existingOrder->id} in stato {$existingOrder->status->value} senza pagamento registrato — riassegnazione sospesa, verificare manualmente.");
+
+                    return;
                 }
 
-                $currentAttempt = $auction->current_winner_attempt;
+                $currentAttempt = (int) $auction->current_winner_attempt;
 
-                // Prendi tutte le offerte valide ordinate per importo decrescente
-                $validBids = $auction->validBids()->get();
+                // Offerte valide ordinate per importo decrescente, una sola per utente
+                // (la più alta): lo stesso utente può aver rilanciato più volte e con
+                // rilanci alternati fra due utenti l'asta rimbalzava fra gli stessi
+                // due nomi, riassegnandola a chi aveva già mancato il pagamento.
+                $rankedBids = $auction->validBids()->get()->unique('user_id')->values();
 
-                // Il prossimo offerente è quello all'indice current_winner_attempt
-                // (indice 0 = primo vincitore, indice 1 = secondo, ecc.)
-                $nextBid = $validBids->get($currentAttempt);
+                // Gli utenti che hanno già perso il turno sono tutti quelli in
+                // classifica fino al vincitore corrente incluso: il prossimo è quello
+                // immediatamente sotto. Se l'offerta del vincitore corrente non è più
+                // valida (invalidata a mano) si ricade sul contatore dei tentativi.
+                $currentIndex = $rankedBids->search(
+                    fn (Bid $bid) => $bid->user_id === $auction->winner_user_id
+                );
+
+                $nextIndex = $currentIndex === false
+                    ? max(0, $currentAttempt)
+                    : $currentIndex + 1;
+
+                $nextBid = $rankedBids->get($nextIndex);
 
                 if ($nextBid) {
                     $paymentDeadlineHours = (int) SiteSetting::get('auctions.payment_deadline_hours', 48);
@@ -134,13 +157,14 @@ class AuctionService
                         'winner_user_id' => $nextBid->user_id,
                         'winner_checkout_token' => Str::uuid()->toString(),
                         'winner_checkout_deadline' => now()->addHours($paymentDeadlineHours),
-                        'current_winner_attempt' => $currentAttempt + 1,
+                        // Posizione 1-based del nuovo vincitore in classifica
+                        'current_winner_attempt' => $nextIndex + 1,
                     ])->save();
 
                     $newWinner = User::find($nextBid->user_id);
 
                     if ($newWinner) {
-                        Mail::to($newWinner->email)->queue(new AuctionWon($auction->fresh(), $newWinner));
+                        $this->sendAuctionWonMail($auction->fresh(), $newWinner);
                     }
 
                     Log::info("Asta #{$auction->id}: vincitore precedente non ha pagato. Nuovo vincitore: User #{$nextBid->user_id} (tentativo #{$auction->current_winner_attempt}).");
@@ -160,6 +184,22 @@ class AuctionService
         }
 
         return $processed;
+    }
+
+    /**
+     * Invia la mail di vittoria passando l'importo realmente dovuto.
+     *
+     * `current_bid` non viene aggiornato alla riassegnazione: usarlo nel template
+     * faceva arrivare al secondo vincitore l'importo del primo. L'importo viene
+     * passato come view data (Mailable::with) per non dover modificare la
+     * firma della Mailable.
+     */
+    protected function sendAuctionWonMail(Auction $auction, User $winner): void
+    {
+        $mailable = (new AuctionWon($auction, $winner))
+            ->with(['winningAmount' => $this->winningAmountFor($auction)]);
+
+        Mail::to($winner->email)->queue($mailable);
     }
 
     /**

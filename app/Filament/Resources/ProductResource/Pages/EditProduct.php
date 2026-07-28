@@ -6,7 +6,6 @@ use App\Filament\Resources\ProductResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
-use Illuminate\Support\Facades\Cache;
 
 class EditProduct extends EditRecord
 {
@@ -21,9 +20,7 @@ class EditProduct extends EditRecord
         ];
     }
 
-    protected function afterSave(): void
-    {
-        Cache::forget('public:shop:it');
-        Cache::forget('public:shop:en');
-    }
+    // L'invalidazione della cache shop è a carico di CacheInvalidationObserver,
+    // che osserva Product: farla anche qui creava una seconda sorgente di verità
+    // sulle chiavi, già divergente rispetto ai suffissi di lingua.
 }

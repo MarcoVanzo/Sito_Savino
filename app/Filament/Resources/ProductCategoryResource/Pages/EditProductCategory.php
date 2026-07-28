@@ -6,7 +6,6 @@ use App\Filament\Resources\ProductCategoryResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
-use Illuminate\Support\Facades\Cache;
 
 class EditProductCategory extends EditRecord
 {
@@ -21,9 +20,7 @@ class EditProductCategory extends EditRecord
         ];
     }
 
-    protected function afterSave(): void
-    {
-        Cache::forget('public:shop:it');
-        Cache::forget('public:shop:en');
-    }
+    // L'invalidazione di public:shop:<locale> è a carico di
+    // CacheInvalidationObserver, registrato su ProductCategory in
+    // AppServiceProvider: unico punto di verità per le chiavi di cache.
 }

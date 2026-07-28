@@ -54,9 +54,13 @@ class CheckUnpaidOrders extends Command
                     $q->whereIn('payment_gateway', [PaymentGateway::Stripe, PaymentGateway::PayPal])
                         ->where('created_at', '<=', now()->subHours(1))
                         ->whereNotExists(function ($sub) {
+                            // Solo le aste vive proteggono il loro ordine: senza il
+                            // filtro su deleted_at un'asta soft-deleted teneva in vita
+                            // per sempre un ordine Pending, bloccandone lo stock.
                             $sub->select(DB::raw(1))
                                 ->from('auctions')
-                                ->whereColumn('auctions.winner_checkout_token', 'orders.order_token');
+                                ->whereColumn('auctions.winner_checkout_token', 'orders.order_token')
+                                ->whereNull('auctions.deleted_at');
                         });
                 });
             })
