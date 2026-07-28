@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Models\SiteSetting;
 use Filament\Actions\Action;
 use Filament\Forms;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 class SizeGuideContactsPage extends Page implements HasForms
 {
     use InteractsWithForms;
+    use RestrictsAccessByRole;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
@@ -125,8 +127,8 @@ class SizeGuideContactsPage extends Page implements HasForms
         ];
     }
 
-    public static function canAccess(): bool
+    protected static function requiredAbility(): string
     {
-        return auth()->user()?->role->canManageShop() ?? false;
+        return 'canManageShop';
     }
 }

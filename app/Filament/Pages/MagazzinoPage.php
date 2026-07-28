@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Enums\StockMovementType;
+use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Filament\Widgets\StockMovementTableWidget;
 use App\Models\Product;
 use App\Models\StockMovement;
@@ -21,6 +22,7 @@ class MagazzinoPage extends Page implements HasForms, HasTable
 {
     use InteractsWithForms;
     use InteractsWithTable;
+    use RestrictsAccessByRole;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
 
@@ -233,8 +235,8 @@ class MagazzinoPage extends Page implements HasForms, HasTable
         return 1;
     }
 
-    public static function canAccess(): bool
+    protected static function requiredAbility(): string
     {
-        return auth()->user()?->role->canManageShop() ?? false;
+        return 'canManageShop';
     }
 }

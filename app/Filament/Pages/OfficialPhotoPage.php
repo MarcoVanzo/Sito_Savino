@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Models\SiteSetting;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
@@ -14,6 +15,7 @@ use Filament\Pages\Page;
 class OfficialPhotoPage extends Page implements HasForms
 {
     use InteractsWithForms;
+    use RestrictsAccessByRole;
 
     protected static ?string $navigationIcon = 'heroicon-o-camera';
 
@@ -70,8 +72,8 @@ class OfficialPhotoPage extends Page implements HasForms
         Notification::make()->title('Documento salvato con successo')->success()->send();
     }
 
-    public static function canAccess(): bool
+    protected static function requiredAbility(): string
     {
-        return auth()->user()?->role->canManageSport() ?? false;
+        return 'canManageSport';
     }
 }
