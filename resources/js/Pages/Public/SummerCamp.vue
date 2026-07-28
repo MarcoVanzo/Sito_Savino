@@ -5,8 +5,10 @@ import { Head, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
+import { useSafeUrl } from '@/Composables/useSafeUrl'
 
 const $t = useTranslations();
+const { safeUrl } = useSafeUrl();
 
 defineOptions({ layout: PublicLayout })
 
@@ -214,7 +216,7 @@ const ogMeta = useOgMeta({
             </div>
             <div class="text-center mt-12">
                 <a
-                    :href="cd.cta_url || (contact.email ? 'mailto:' + contact.email : '#')"
+                    :href="safeUrl(cd.cta_url) || (contact.email ? 'mailto:' + contact.email : '#')"
                     class="inline-flex items-center gap-2 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-colors"
                 >
                     {{ cd.cta_text || $t('summer_camp.cta_enroll') }}

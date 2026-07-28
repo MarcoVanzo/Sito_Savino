@@ -31,16 +31,15 @@ const handleLogout = () => {
     router.post(route('logout'));
 };
 
-// Body scroll lock when drawer is open
-watch(() => props.isOpen, (val) => {
-    document.body.style.overflow = val ? 'hidden' : '';
-});
-
 // Escape key to close drawer
 const handleEscape = (e) => {
     if (e.key === 'Escape') emit('toggle');
 };
+
+// Un solo watch sulla sorgente: blocco dello scroll del body e listener Escape
+// vanno attivati/disattivati insieme all'apertura del drawer.
 watch(() => props.isOpen, (val) => {
+    document.body.style.overflow = val ? 'hidden' : '';
     if (val) document.addEventListener('keydown', handleEscape);
     else document.removeEventListener('keydown', handleEscape);
 });

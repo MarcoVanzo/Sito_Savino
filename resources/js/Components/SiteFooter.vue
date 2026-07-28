@@ -4,11 +4,13 @@ import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useSanitize } from '@/Composables/useSanitize.js';
+import { useSafeUrl } from '@/Composables/useSafeUrl.js';
 import LOGOS from '@/Constants/logos.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 
 const $t = useTranslations();
 const { sanitize } = useSanitize();
+const { safeUrl } = useSafeUrl();
 
 const { onImgError } = useImageFallback();
 
@@ -50,7 +52,8 @@ const displayedLinks = computed(() => {
 
                 return {
                     label: child.label,
-                    url: finalUrl,
+                    // Gli URL arrivano dal CMS: validare lo schema prima dell'href.
+                    url: safeUrl(finalUrl, '#'),
                     target: target,
                 };
             });
@@ -62,6 +65,7 @@ const displayedLinks = computed(() => {
         [$t('footer.season')]: [
             { label: $t('footer.roster_a1'), url: '/stagione' },
             { label: $t('footer.results'), url: '/risultati' },
+            { label: $t('footer.standings'), url: '/classifica' },
             { label: $t('footer.gallery'), url: '/gallery' },
             { label: $t('footer.staff'), url: '/staff' },
         ],
@@ -118,12 +122,12 @@ const socialLinks = computed(() => {
         { key: 'social_x', name: 'X' },
     ];
     const links = platforms
-        .filter(p => social.value[p.key])
         .map(p => ({
             name: p.name,
-            href: social.value[p.key],
+            href: safeUrl(social.value[p.key]),
             icon: socialIconPaths[p.name.toLowerCase()] || '',
-        }));
+        }))
+        .filter(p => p.href);
     // Fallback se backend non fornisce social
     if (links.length === 0) {
         return [
@@ -189,7 +193,7 @@ const socialLinks = computed(() => {
                         <li v-for="link in links" :key="link.url || link.href">
                             <component 
                                 :is="link.target === '_blank' ? 'a' : Link"
-                                :href="link.url || link.href" 
+                                :href="safeUrl(link.url || link.href, '#')"
                                 :target="link.target"
                                 :rel="link.target === '_blank' ? 'noopener noreferrer' : null"
                                 class="text-gray-400 text-sm hover:text-savino-gold transition-colors duration-200"
@@ -211,9 +215,9 @@ const socialLinks = computed(() => {
                     <span v-if="footerPiva" class="block sm:inline sm:ml-2">P.IVA {{ footerPiva }}</span>
                 </div>
                 <div class="flex items-center gap-6">
-                    <a :href="legalDocs.privacy_policy || '/privacy-policy'" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.privacy_policy') }}</a>
-                    <a :href="legalDocs.cookie_policy || '/cookie-policy'" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.cookie_policy') }}</a>
-                    <a :href="legalDocs.informativa_fornitori || '/informativa-fornitori'" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">Informativa Fornitori</a>
+                    <a :href="safeUrl(legalDocs.privacy_policy, '/privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.privacy_policy') }}</a>
+                    <a :href="safeUrl(legalDocs.cookie_policy, '/cookie-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.cookie_policy') }}</a>
+                    <a :href="safeUrl(legalDocs.informativa_fornitori, '/informativa-fornitori')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">Informativa Fornitori</a>
                 </div>
             </div>
         </div>

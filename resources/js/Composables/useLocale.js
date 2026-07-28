@@ -42,6 +42,23 @@ export function useLocale() {
     }
 
     /**
+     * Format only the time part of a date, according to the current locale.
+     *
+     * `formatDate` si appoggia a toLocaleDateString, che stampa comunque la
+     * data: dove serve il solo orario (accanto a una data già visibile) va
+     * usata questa.
+     *
+     * @param {string} dateStr
+     * @param {Intl.DateTimeFormatOptions} options
+     * @returns {string}
+     */
+    function formatTime(dateStr, options = {}) {
+        if (!dateStr) return '';
+        const localeStr = locale.value === 'en' ? 'en-GB' : 'it-IT';
+        return new Date(dateStr).toLocaleTimeString(localeStr, { hour: '2-digit', minute: '2-digit', ...options });
+    }
+
+    /**
      * Format a number according to the current locale.
      * @param {number} num
      * @returns {string}
@@ -58,6 +75,7 @@ export function useLocale() {
         alternateUrl,
         switchLocale,
         formatDate,
+        formatTime,
         formatNumber,
     };
 }

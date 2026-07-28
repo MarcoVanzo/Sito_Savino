@@ -47,7 +47,7 @@ class HandleInertiaRequests extends Middleware
 
                 return url($itPath.$query);
             },
-            'locales' => ['it', 'en'],
+            'locales' => config('app.supported_locales', ['it', 'en']),
             // Le pagine usano `ziggy.url`/`ziggy.location` per i dati strutturati
             // e i meta Open Graph, che richiedono URL assoluti. La direttiva
             // @routes espone solo l'helper JS, non questa prop.
