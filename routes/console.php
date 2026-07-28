@@ -8,10 +8,16 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Sync Lega Volley solo in ambienti non-production
+// Statistiche giocatrici: il comando genera dati SIMULATI e si rifiuta di girare
+// in produzione. La Lega non pubblica le statistiche individuali in una forma
+// estraibile, quindi resta un aiuto per popolare gli ambienti di sviluppo.
 if (! app()->isProduction()) {
     Schedule::command('sync:legavolley')->daily();
 }
+
+// Calendario, risultati e classifica dal sito della Lega. Ogni ora: i referti
+// arrivano a fine gara e la classifica si aggiorna subito dopo.
+Schedule::command('lvf:sync')->hourly()->withoutOverlapping();
 
 Schedule::command('sitemap:generate')->daily()->at('04:00');
 

@@ -12,11 +12,17 @@ class Season extends Model
 {
     use HasFactory, LogsActivity, SoftDeletes;
 
-    protected $fillable = ['name', 'is_current'];
+    protected $fillable = ['name', 'is_current', 'lvf_season_year'];
 
     protected $casts = [
         'is_current' => 'boolean',
+        'lvf_season_year' => 'integer',
     ];
+
+    public function standings(): HasMany
+    {
+        return $this->hasMany(Standing::class);
+    }
 
     /**
      * Scope: stagione corrente.
