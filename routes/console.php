@@ -16,7 +16,9 @@ if (! app()->isProduction()) {
 }
 
 // Calendario, risultati e classifica dal sito della Lega. Ogni ora: i referti
-// arrivano a fine gara e la classifica si aggiorna subito dopo.
+// arrivano a fine gara e la classifica si aggiorna subito dopo. I fallimenti
+// sono contati da LvfSyncHealth, che avvisa i Super Admin quando il guasto
+// dura (soglia in `services.lvf.failure_alert_threshold`).
 Schedule::command('lvf:sync')->hourly()->withoutOverlapping();
 
 Schedule::command('sitemap:generate')->daily()->at('04:00');
