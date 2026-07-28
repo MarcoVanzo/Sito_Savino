@@ -19,6 +19,7 @@ use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Standing;
 use App\Models\Team;
+use App\Services\Lvf\LvfPhaseLabel;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -337,7 +338,11 @@ class PublicController extends Controller
 
         $label = __('enums.game.matchday', ['number' => $game->matchday]);
 
-        return $game->phase !== null ? "{$label} · {$game->phase}" : $label;
+        // `games.phase` è la stringa grezza della Lega, sempre italiana: qui si
+        // traduce per la lingua in cui si sta rendendo la pagina.
+        $phase = LvfPhaseLabel::translate($game->phase);
+
+        return $phase !== null ? "{$label} · {$phase}" : $label;
     }
 
     /**

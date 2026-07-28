@@ -4,6 +4,7 @@ namespace Tests\Feature\Lvf;
 
 use App\Enums\GameStatus;
 use App\Models\Game;
+use App\Models\GamePlayerStat;
 use App\Models\Season;
 use App\Models\Standing;
 use App\Models\Team;
@@ -252,6 +253,115 @@ class LvfSyncServiceTest extends TestCase
 
         $game = Game::firstWhere('lvf_match_id', 747982);
         $this->assertSame(2, $game->away_score);
+        $this->assertDatabaseCount('games', 1);
+    }
+
+    #[Test]
+    public function una_gara_tolta_dal_calendario_sparisce_dallarchivio(): void
+    {
+        // Una gara rinviata viene tolta dal calendario della Lega: se restasse
+        // in archivio il sito continuerebbe a pubblicarla con data e avversaria
+        // ormai false.
+        $this->fakeSite($this->matchHtml(747982));
+        LvfSyncService::make()->sync(2026);
+        $this->assertDatabaseHas('games', ['lvf_match_id' => 747982]);
+
+        $this->fakeSite($this->matchHtml(747983, date: '11/10/2026'));
+        $stats = LvfSyncService::make()->sync(2026);
+
+        $this->assertSame(1, $stats['matches_removed']);
+        $this->assertDatabaseMissing('games', ['lvf_match_id' => 747982]);
+        $this->assertDatabaseHas('games', ['lvf_match_id' => 747983]);
+    }
+
+    #[Test]
+    public function la_potatura_non_tocca_le_gare_inserite_a_mano(): void
+    {
+        // Le gare del CMS non hanno `lvf_match_id`: non appartengono alla Lega
+        // e non possono sparire perché la Lega non le elenca.
+        $this->fakeSite($this->matchHtml(747982));
+        LvfSyncService::make()->sync(2026);
+
+        $season = Season::firstWhere('lvf_season_year', 2026);
+        $manual = Game::create([
+            'season_id' => $season->id,
+            'home_team_id' => Team::first()->id,
+            'away_team_id' => Team::orderByDesc('id')->first()->id,
+            'match_date' => now()->addWeek(),
+            'status' => GameStatus::Scheduled,
+            'location' => 'Palestra comunale',
+        ]);
+
+        $this->fakeSite($this->matchHtml(747983, date: '11/10/2026'));
+        LvfSyncService::make()->sync(2026);
+
+        $this->assertDatabaseHas('games', ['id' => $manual->id, 'location' => 'Palestra comunale']);
+    }
+
+    #[Test]
+    public function una_gara_gia_conclusa_non_viene_cancellata_dalla_potatura(): void
+    {
+        // A fine stagione le gare giocate possono sparire dalle pagine della
+        // Lega: cancellarle porterebbe via con sé il tabellino, che è l'unica
+        // copia di quel referto.
+        $this->fakeSite($this->matchHtml(747982, ['home' => 3, 'away' => 1]));
+        LvfSyncService::make()->sync(2026);
+
+        $played = Game::firstWhere('lvf_match_id', 747982);
+        GamePlayerStat::create([
+            'game_id' => $played->id,
+            'team_id' => $played->home_team_id,
+            'player_name' => 'Atleta Uno',
+        ]);
+
+        $this->fakeSite($this->matchHtml(747983, date: '11/10/2026'));
+        $stats = LvfSyncService::make()->sync(2026);
+
+        $this->assertSame(0, $stats['matches_removed']);
+        $this->assertDatabaseHas('games', ['lvf_match_id' => 747982]);
+        $this->assertDatabaseHas('game_player_stats', ['game_id' => $played->id]);
+    }
+
+    #[Test]
+    public function una_gara_non_conclusa_ma_con_tabellino_non_viene_cancellata(): void
+    {
+        // Caso anomalo (referto arrivato prima che il risultato fosse
+        // pubblicato) ma possibile: conta il tabellino, non solo lo stato.
+        $this->fakeSite($this->matchHtml(747982));
+        LvfSyncService::make()->sync(2026);
+
+        $game = Game::firstWhere('lvf_match_id', 747982);
+        $this->assertSame(GameStatus::Scheduled, $game->status);
+
+        GamePlayerStat::create([
+            'game_id' => $game->id,
+            'team_id' => $game->home_team_id,
+            'player_name' => 'Atleta Uno',
+        ]);
+
+        $this->fakeSite($this->matchHtml(747983, date: '11/10/2026'));
+        $stats = LvfSyncService::make()->sync(2026);
+
+        $this->assertSame(0, $stats['matches_removed']);
+        $this->assertDatabaseHas('games', ['lvf_match_id' => 747982]);
+    }
+
+    #[Test]
+    public function un_calendario_senza_gare_non_svuota_larchivio(): void
+    {
+        // Stessa cautela della classifica: una pagina in manutenzione che
+        // risponde 200 ma senza tabelle non deve cancellare la stagione.
+        $this->fakeSite($this->matchHtml(747982));
+        LvfSyncService::make()->sync(2026);
+        $this->assertDatabaseCount('games', 1);
+
+        $this->fakeSite(
+            calendar: '<html><body><p>Manutenzione</p></body></html>',
+            results: '<html><body><p>Manutenzione</p></body></html>',
+        );
+        $stats = LvfSyncService::make()->sync(2026);
+
+        $this->assertSame(0, $stats['matches_removed']);
         $this->assertDatabaseCount('games', 1);
     }
 

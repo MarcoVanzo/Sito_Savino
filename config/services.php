@@ -108,6 +108,13 @@ return [
             explode(',', (string) env('LVF_CLUB_IDS', '710955,710918'))
         ))),
         'timeout' => env('LVF_TIMEOUT', 30),
+        // Il comando gira ogni ora e il sito della Lega ha cali temporanei: si
+        // avvisa dopo tre giri a vuoto di fila (circa tre ore di buco), non al
+        // primo errore, altrimenti l'avviso diventa rumore da ignorare.
+        'failure_alert_threshold' => (int) env('LVF_FAILURE_ALERT_THRESHOLD', 3),
+        // Finché il guasto dura il comando continua a fallire: dopo il primo
+        // avviso si ripete una volta al giorno (24 fallimenti orari).
+        'failure_alert_repeat_every' => (int) env('LVF_FAILURE_ALERT_REPEAT_EVERY', 24),
         'user_agent' => env(
             'LVF_USER_AGENT',
             'SavinoDelBeneVolleyBot/1.0 (+https://www.savinodelbenevolley.it; sincronizzazione calendario)'

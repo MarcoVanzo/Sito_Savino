@@ -51,14 +51,14 @@ class LvfSyncService
     /**
      * Sincronizza gare e classifica di una stagione.
      *
-     * @return array{matches_created: int, matches_updated: int, teams_created: int, standings: int}
+     * @return array{matches_created: int, matches_updated: int, matches_removed: int, teams_created: int, standings: int}
      */
     public function sync(int $seasonYear): array
     {
         $this->seasonYear = $seasonYear;
         $season = $this->resolveSeason($seasonYear);
 
-        $stats = ['matches_created' => 0, 'matches_updated' => 0, 'teams_created' => 0, 'standings' => 0];
+        $stats = ['matches_created' => 0, 'matches_updated' => 0, 'matches_removed' => 0, 'teams_created' => 0, 'standings' => 0];
 
         // Il calendario porta giornata, fase e impianto; la pagina risultati
         // porta i set. Le gare compaiono su entrambe, quindi si fondono per
@@ -70,10 +70,15 @@ class LvfSyncService
 
         $teamsBefore = Team::count();
 
+        $seenMatchIds = [];
+
         foreach ($matches as $match) {
             $created = $this->upsertMatch($season, $match);
+            $seenMatchIds[] = $match->lvfMatchId;
             $stats[$created ? 'matches_created' : 'matches_updated']++;
         }
+
+        $stats['matches_removed'] = $this->removeVanishedMatches($season, $seenMatchIds);
 
         $rows = $this->standingsParser->parse($this->client->standings($seasonYear));
         $stats['standings'] = $this->upsertStandings($season, $rows);
@@ -174,6 +179,61 @@ class LvfSyncService
 
             return $created;
         });
+    }
+
+    /**
+     * Toglie dall'archivio le gare importate che non compaiono più sulle
+     * pagine della Lega.
+     *
+     * È il gemello della potatura già fatta sulla classifica: quando una gara
+     * viene rinviata o annullata la Lega la toglie dal calendario, e senza
+     * questo passaggio resterebbe pubblicata sul sito con data e avversaria
+     * ormai false.
+     *
+     * Tre cautele, in ordine di gravità del danno che evitano:
+     *
+     * 1. Se il remoto non ha restituito nessuna gara non si cancella niente:
+     *    una pagina in manutenzione svuoterebbe l'intera stagione.
+     * 2. Si guardano solo le gare con `lvf_match_id`. Quelle inserite dal CMS
+     *    non appartengono alla Lega e non si toccano mai.
+     * 3. Una gara conclusa o con il tabellino già importato non si cancella:
+     *    la cancellazione porterebbe con sé le statistiche individuali
+     *    (`game_player_stats`), che sono l'unica copia di quel referto. Sparire
+     *    dal calendario remoto è normale a fine stagione; perdere lo storico no.
+     *    Il caso resta a log perché merita un occhio umano.
+     *
+     * @param  list<int>  $seenMatchIds
+     */
+    private function removeVanishedMatches(Season $season, array $seenMatchIds): int
+    {
+        if ($seenMatchIds === []) {
+            return 0;
+        }
+
+        $vanished = Game::query()
+            ->where('season_id', $season->id)
+            ->whereNotNull('lvf_match_id')
+            ->whereNotIn('lvf_match_id', $seenMatchIds)
+            ->withCount('playerStats')
+            ->get();
+
+        $removed = 0;
+
+        foreach ($vanished as $game) {
+            if ($game->status === GameStatus::Completed || $game->player_stats_count > 0) {
+                Log::warning(
+                    "Sync Lega: la gara {$game->lvf_match_id} non è più sulle pagine della Lega ma ha "
+                    .'un risultato o un tabellino: lasciata in archivio.'
+                );
+
+                continue;
+            }
+
+            $game->delete();
+            $removed++;
+        }
+
+        return $removed;
     }
 
     /**

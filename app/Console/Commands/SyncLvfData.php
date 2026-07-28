@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Season;
 use App\Services\Lvf\LvfStatsSyncService;
+use App\Services\Lvf\LvfSyncHealth;
 use App\Services\Lvf\LvfSyncService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +22,7 @@ class SyncLvfData extends Command
 
     protected $description = 'Importa calendario, risultati e classifica dal sito della Lega Volley Femminile';
 
-    public function handle(): int
+    public function handle(LvfSyncHealth $health): int
     {
         $seasonYear = $this->resolveSeasonYear();
 
@@ -32,17 +33,26 @@ class SyncLvfData extends Command
         } catch (Throwable $e) {
             // Il comando gira schedulato: l'errore va nei log, non solo a video.
             Log::error('Sync Lega fallita: '.$e->getMessage(), ['exception' => $e]);
+            $this->reportFailure($health, $e);
             $this->error('Sincronizzazione fallita: '.$e->getMessage());
 
             return self::FAILURE;
         }
 
         $this->table(
-            ['Gare create', 'Gare aggiornate', 'Squadre create', 'Righe di classifica'],
-            [[$stats['matches_created'], $stats['matches_updated'], $stats['teams_created'], $stats['standings']]],
+            ['Gare create', 'Gare aggiornate', 'Gare rimosse', 'Squadre create', 'Righe di classifica'],
+            [[
+                $stats['matches_created'],
+                $stats['matches_updated'],
+                $stats['matches_removed'],
+                $stats['teams_created'],
+                $stats['standings'],
+            ]],
         );
 
         if ($this->option('skip-stats')) {
+            $health->recordSuccess();
+
             return self::SUCCESS;
         }
 
@@ -54,6 +64,7 @@ class SyncLvfData extends Command
             $statsResult = LvfStatsSyncService::make()->sync($season?->id, (bool) $this->option('force-stats'));
         } catch (Throwable $e) {
             Log::error('Import tabellini fallito: '.$e->getMessage(), ['exception' => $e]);
+            $this->reportFailure($health, $e);
             $this->error('Import dei tabellini fallito: '.$e->getMessage());
 
             return self::FAILURE;
@@ -64,7 +75,29 @@ class SyncLvfData extends Command
             [[$statsResult['games'], $statsResult['rows'], $statsResult['matched'], $statsResult['skipped']]],
         );
 
+        $health->recordSuccess();
+
         return self::SUCCESS;
+    }
+
+    /**
+     * Registra il fallimento perché qualcuno se ne accorga.
+     *
+     * Il conteggio e l'eventuale notifica non devono mai coprire l'errore
+     * originale: se anche questo passaggio va storto resta solo una riga di log
+     * in più, e il comando esce comunque in errore.
+     */
+    private function reportFailure(LvfSyncHealth $health, Throwable $original): void
+    {
+        try {
+            $failures = $health->recordFailure($original->getMessage());
+
+            if ($failures > 1) {
+                $this->warn("Fallimenti consecutivi: {$failures}.");
+            }
+        } catch (Throwable $e) {
+            Log::error('Registrazione del fallimento del sync Lega non riuscita: '.$e->getMessage());
+        }
     }
 
     /**
