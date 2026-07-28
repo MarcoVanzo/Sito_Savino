@@ -2,42 +2,14 @@
 
 namespace App\Policies;
 
-use App\Models\ProductCategory;
-use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 class ProductCategoryPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canManageShop();
-    }
+    use AuthorizesByRole;
 
-    public function view(User $user, ProductCategory $productCategory): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canManageShop();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function update(User $user, ProductCategory $productCategory): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function delete(User $user, ProductCategory $productCategory): bool
-    {
-        return $user->role->isSuperAdmin();
-    }
-
-    /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
-     */
-    public function deleteAny(User $user): bool
-    {
-        return $user->role->isSuperAdmin();
+        return 'canManageShop';
     }
 }

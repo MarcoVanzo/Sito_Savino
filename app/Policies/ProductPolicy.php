@@ -4,45 +4,20 @@ namespace App\Policies;
 
 use App\Models\Product;
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 class ProductPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canManageShop();
-    }
+    use AuthorizesByRole;
 
-    public function view(User $user, Product $product): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canManageShop();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function update(User $user, Product $product): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function delete(User $user, Product $product): bool
-    {
-        return $user->role->isSuperAdmin();
+        return 'canManageShop';
     }
 
     /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
-     */
-    public function deleteAny(User $user): bool
-    {
-        return $user->role->isSuperAdmin();
-    }
-
-    /**
-     * Ripristino da soft-delete (RestoreBulkAction).
+     * Il ripristino da soft-delete resta al Resp. Shop: è il rimedio a una
+     * cancellazione, non una cancellazione.
      */
     public function restore(User $user, Product $product): bool
     {

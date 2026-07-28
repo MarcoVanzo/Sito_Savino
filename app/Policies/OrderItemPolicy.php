@@ -4,32 +4,25 @@ namespace App\Policies;
 
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 /**
  * Le righe d'ordine sono esposte nel CMS dall'OrderItemsRelationManager di
- * OrderResource. Senza questa policy Filament autorizzava ogni azione a
- * chiunque riuscisse ad aprire la scheda dell'ordine.
+ * OrderResource: senza policy Filament autorizzerebbe ogni azione a chiunque
+ * riesca ad aprire la scheda dell'ordine.
  *
  * Vincolo aggiuntivo: su un ordine GIÀ PAGATO le righe diventano immutabili.
- * Prima un Resp. Shop poteva cambiare quantità o prezzo di un ordine incassato,
- * disallineando il totale dall'importo realmente riscosso dal gateway di
- * pagamento (e falsando la contabilità) senza alcun controllo.
+ * Altrimenti un Resp. Shop potrebbe cambiare quantità o prezzo di un ordine
+ * incassato, disallineando il totale dall'importo realmente riscosso dal
+ * gateway di pagamento (e falsando la contabilità) senza alcun controllo.
  */
 class OrderItemPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canManageShop();
-    }
+    use AuthorizesByRole;
 
-    public function view(User $user, OrderItem $orderItem): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canManageShop();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageShop();
+        return 'canManageShop';
     }
 
     public function update(User $user, OrderItem $orderItem): bool
@@ -43,13 +36,10 @@ class OrderItemPolicy
     }
 
     /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
-     *
-     * Qui non abbiamo il singolo record, quindi non possiamo verificare che
-     * l'ordine non sia pagato: la cancellazione massiva resta negata a tutti,
+     * Sulla cancellazione in blocco non abbiamo il singolo record, quindi non
+     * possiamo verificare che l'ordine non sia pagato: resta negata a tutti,
      * coerentemente con OrderPolicy::deleteAny(). Le righe di un ordine non
-     * ancora pagato si eliminano una alla volta con delete().
+     * ancora pagato si eliminano una alla volta.
      */
     public function deleteAny(User $user): bool
     {

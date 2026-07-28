@@ -2,52 +2,29 @@
 
 namespace App\Policies;
 
-use App\Models\ProductVariant;
-use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 /**
- * Le varianti di prodotto sono esposte nel CMS dal VariantsRelationManager di
- * ProductResource. Senza questa policy Filament autorizzava creazione, modifica
+ * Le varianti sono esposte nel CMS dal VariantsRelationManager di
+ * ProductResource: senza policy Filament autorizzerebbe creazione, modifica
  * (prezzo e giacenza incluse) e cancellazione a qualsiasi ruolo con accesso al
- * pannello, anche a chi ProductPolicy::viewAny() tiene fuori dallo shop.
+ * pannello, anche a chi lo shop non lo vede nemmeno.
  *
- * A differenza di ProductPolicy, la cancellazione non è riservata al super
+ * A differenza di ProductPolicy la cancellazione non è riservata al super
  * admin: aggiungere e togliere taglie o colori è lavoro ordinario di catalogo
  * del Resp. Shop. Resta superadmin-only l'eliminazione del prodotto padre.
  */
 class ProductVariantPolicy
 {
-    public function viewAny(User $user): bool
+    use AuthorizesByRole;
+
+    protected function manageAbility(): string
     {
-        return $user->role->canManageShop();
+        return 'canManageShop';
     }
 
-    public function view(User $user, ProductVariant $productVariant): bool
+    protected function deleteAbility(): string
     {
-        return $user->role->canManageShop();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function update(User $user, ProductVariant $productVariant): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    public function delete(User $user, ProductVariant $productVariant): bool
-    {
-        return $user->role->canManageShop();
-    }
-
-    /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
-     */
-    public function deleteAny(User $user): bool
-    {
-        return $user->role->canManageShop();
+        return 'canManageShop';
     }
 }

@@ -2,42 +2,14 @@
 
 namespace App\Policies;
 
-use App\Models\Sponsor;
-use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 class SponsorPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canManageSponsors();
-    }
+    use AuthorizesByRole;
 
-    public function view(User $user, Sponsor $sponsor): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canManageSponsors();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageSponsors();
-    }
-
-    public function update(User $user, Sponsor $sponsor): bool
-    {
-        return $user->role->canManageSponsors();
-    }
-
-    public function delete(User $user, Sponsor $sponsor): bool
-    {
-        return $user->role->isSuperAdmin();
-    }
-
-    /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
-     */
-    public function deleteAny(User $user): bool
-    {
-        return $user->role->isSuperAdmin();
+        return 'canManageSponsors';
     }
 }

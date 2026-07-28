@@ -3,40 +3,32 @@
 namespace App\Policies;
 
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 class UserPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canManageSystem();
-    }
+    use AuthorizesByRole;
 
-    public function view(User $user, User $model): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canManageSystem();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageSystem();
-    }
-
-    public function update(User $user, User $model): bool
-    {
-        return $user->role->canManageSystem();
-    }
-
-    public function delete(User $user, User $model): bool
-    {
-        return $user->role->canManageSystem() && $user->id !== $model->id;
+        return 'canManageSystem';
     }
 
     /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
+     * Gestire gli utenti include cancellarli: non ha senso riservarlo a un
+     * permesso più alto, visto che canManageSystem() è già il super admin.
      */
-    public function deleteAny(User $user): bool
+    protected function deleteAbility(): string
     {
-        return $user->role->canManageSystem();
+        return 'canManageSystem';
+    }
+
+    /**
+     * Nessuno può cancellare sé stesso: è la difesa contro il pannello che
+     * resta senza amministratori.
+     */
+    public function delete(User $user, User $model): bool
+    {
+        return $user->role->canManageSystem() && $user->id !== $model->id;
     }
 }

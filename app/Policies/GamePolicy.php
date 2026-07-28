@@ -2,42 +2,23 @@
 
 namespace App\Policies;
 
-use App\Models\Game;
-use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 class GamePolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canViewSport();
-    }
+    use AuthorizesByRole;
 
-    public function view(User $user, Game $game): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canViewSport();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageSport();
-    }
-
-    public function update(User $user, Game $game): bool
-    {
-        return $user->role->canManageSport();
-    }
-
-    public function delete(User $user, Game $game): bool
-    {
-        return $user->role->isSuperAdmin();
+        return 'canManageSport';
     }
 
     /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
+     * Il calendario si consulta anche da fuori l'area sportiva (es. Resp.
+     * Comunicazione che scrive la news della partita).
      */
-    public function deleteAny(User $user): bool
+    protected function viewAbility(): string
     {
-        return $user->role->isSuperAdmin();
+        return 'canViewSport';
     }
 }

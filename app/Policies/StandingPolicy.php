@@ -53,6 +53,11 @@ class StandingPolicy
         return false;
     }
 
+    public function restoreAny(User $user): bool
+    {
+        return false;
+    }
+
     public function forceDelete(User $user, Standing $standing): bool
     {
         return false;

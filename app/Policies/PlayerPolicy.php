@@ -4,45 +4,29 @@ namespace App\Policies;
 
 use App\Models\Player;
 use App\Models\User;
+use App\Policies\Concerns\AuthorizesByRole;
 
 class PlayerPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->role->canViewSport();
-    }
+    use AuthorizesByRole;
 
-    public function view(User $user, Player $player): bool
+    protected function manageAbility(): string
     {
-        return $user->role->canViewSport();
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->role->canManageSport();
-    }
-
-    public function update(User $user, Player $player): bool
-    {
-        return $user->role->canManageSport();
-    }
-
-    public function delete(User $user, Player $player): bool
-    {
-        return $user->role->isSuperAdmin();
+        return 'canManageSport';
     }
 
     /**
-     * Cancellazione in blocco (DeleteBulkAction): senza questo metodo
-     * Filament considera l'azione permessa a chiunque veda la lista.
+     * Le giocatrici si consultano anche da fuori l'area sportiva (es. Resp.
+     * Comunicazione che scrive le news).
      */
-    public function deleteAny(User $user): bool
+    protected function viewAbility(): string
     {
-        return $user->role->isSuperAdmin();
+        return 'canViewSport';
     }
 
     /**
-     * Ripristino da soft-delete (RestoreBulkAction).
+     * Ripristinare una scheda cancellata per errore è rimedio ordinario del
+     * Coord. Sportivo, non un'operazione distruttiva.
      */
     public function restore(User $user, Player $player): bool
     {

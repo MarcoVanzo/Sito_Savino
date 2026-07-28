@@ -53,6 +53,11 @@ class GamePlayerStatPolicy
         return false;
     }
 
+    public function restoreAny(User $user): bool
+    {
+        return false;
+    }
+
     public function forceDelete(User $user, GamePlayerStat $gamePlayerStat): bool
     {
         return false;
