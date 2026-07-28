@@ -31,11 +31,25 @@ class ShopCorrectnessAuditTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Le scadenze delle aste sono confronti fra istanti: con l'orologio
+        // reale una deadline fissata "un minuto fa" dipende da quanto impiega
+        // la suite ad arrivare all'asserzione. Congelato il tempo, il salto
+        // oltre la scadenza si fa con travel().
+        $this->freezeTime();
+
         Mail::fake();
         config()->set('services.paypal.mode', 'sandbox');
         config()->set('services.paypal.client_id', 'test-id');
         config()->set('services.paypal.client_secret', 'test-secret');
         config()->set('services.paypal.webhook_id', 'test-webhook');
+    }
+
+    protected function tearDown(): void
+    {
+        $this->travelBack();
+
+        parent::tearDown();
     }
 
     private function fakePayPal(int $orderId, string $captureId = 'CAPTURE-1'): void
@@ -75,20 +89,22 @@ class ShopCorrectnessAuditTest extends TestCase
         $auction->forceFill([
             'winner_user_id' => $b->id,
             'winner_checkout_token' => Str::uuid()->toString(),
-            'winner_checkout_deadline' => now()->subMinute(),
+            'winner_checkout_deadline' => now()->addHours(48),
             'current_winner_attempt' => 1,
         ])->save();
 
         $service = app(AuctionService::class);
 
-        // B non paga → tocca ad A (non di nuovo a B)
+        // B non paga entro la finestra → tocca ad A (non di nuovo a B)
+        $this->travel(49)->hours();
         $service->checkWinnerPayments();
         $auction->refresh();
         $this->assertSame($a->id, $auction->winner_user_id);
         $this->assertEquals(120.0, $service->winningAmountFor($auction));
 
-        // A non paga → nessun altro offerente, non si torna a B
-        $auction->forceFill(['winner_checkout_deadline' => now()->subMinute()])->save();
+        // Nemmeno A paga entro la sua finestra → nessun altro offerente,
+        // non si torna a B.
+        $this->travel(49)->hours();
         $service->checkWinnerPayments();
         $auction->refresh();
         $this->assertNull($auction->winner_user_id);
@@ -106,9 +122,12 @@ class ShopCorrectnessAuditTest extends TestCase
         $auction->forceFill([
             'winner_user_id' => $first->id,
             'winner_checkout_token' => Str::uuid()->toString(),
-            'winner_checkout_deadline' => now()->subMinute(),
+            'winner_checkout_deadline' => now()->addHours(48),
             'current_winner_attempt' => 1,
         ])->save();
+
+        // Scaduta la finestra di pagamento del primo vincitore.
+        $this->travel(49)->hours();
 
         app(AuctionService::class)->checkWinnerPayments();
 
