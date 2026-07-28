@@ -66,36 +66,22 @@ return new class extends Migration
         }
     }
 
+    /**
+     * No-op deliberato.
+     *
+     * `up()` allarga solo le colonne che trova ancora `varchar`: alcune voci di
+     * self::COLUMNS erano già `text` da prima di questa migrazione. Un `down()`
+     * che riportasse a varchar(255) l'intera mappa porterebbe lo schema in uno
+     * stato in cui non è mai stato, e in più troncherebbe le traduzioni lunghe —
+     * cioè esattamente il dato che questa migrazione esiste per salvare.
+     *
+     * Una migrazione allargante non è reversibile in modo sicuro: il rollback,
+     * se davvero necessario, va fatto a mano colonna per colonna dopo aver
+     * verificato la lunghezza dei contenuti.
+     */
     public function down(): void
     {
-        foreach (self::COLUMNS as $table => $columns) {
-            if (! Schema::hasTable($table)) {
-                continue;
-            }
-
-            foreach ($columns as $column => $nullable) {
-                if ($this->dataType($table, $column) !== 'text') {
-                    continue;
-                }
-
-                // Tornare a varchar(255) tronca silenziosamente i valori più
-                // lunghi: è esattamente il dato che questa migrazione esiste per
-                // salvare. Meglio fallire in modo esplicito che perdere le
-                // traduzioni.
-                $longest = DB::table($table)->max(DB::raw("CHAR_LENGTH(`{$column}`)"));
-
-                if ($longest > 255) {
-                    throw new RuntimeException(
-                        "Rollback annullato: {$table}.{$column} contiene valori da {$longest} "
-                        .'caratteri, che varchar(255) troncherebbe. Ridurre i contenuti prima di procedere.'
-                    );
-                }
-
-                Schema::table($table, function (Blueprint $blueprint) use ($column, $nullable) {
-                    $blueprint->string($column, 255)->nullable($nullable)->change();
-                });
-            }
-        }
+        // Intenzionalmente vuoto: vedi il PHPDoc sopra.
     }
 
     /**

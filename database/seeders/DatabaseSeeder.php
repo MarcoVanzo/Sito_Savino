@@ -35,9 +35,11 @@ class DatabaseSeeder extends Seeder
         );
 
         // Creazione Squadra
+        // `is_internal` distingue le squadre del club dagli avversari importati
+        // dalla Lega: senza il flag la sincronizzazione creerebbe un doppione.
         $team = Team::firstOrCreate(
             ['slug' => 'savino-del-bene-volley'],
-            ['name' => 'Savino Del Bene Volley', 'category' => 'A1']
+            ['name' => 'Savino Del Bene Volley', 'category' => 'A1', 'is_internal' => true]
         );
 
         // ── PALLEGGIATRICI ──────────────────────────────────────────────
@@ -190,16 +192,20 @@ class DatabaseSeeder extends Seeder
             ['jersey_number' => 15, 'role' => 'libero', 'height_cm' => 175, 'is_captain' => false]
         );
 
-        // Utente Admin per accesso
-        $this->restoreOrCreate(User::class,
+        // Utente Admin per accesso. `role` e `is_active` non sono assegnabili in
+        // massa (decidono l'accesso al pannello), quindi vanno scritti a parte.
+        $admin = $this->restoreOrCreate(User::class,
             ['email' => 'admin@savinodelbene.it'],
             [
                 'name' => 'Admin Savino',
                 'password' => bcrypt('password'),
-                'role' => 'super_admin',
-                'is_active' => true,
             ]
         );
+
+        $admin->forceFill([
+            'role' => 'super_admin',
+            'is_active' => true,
+        ])->save();
 
         $this->call([
             PageSeeder::class,

@@ -67,7 +67,7 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 |-----------|---------|-------|
 | **Vue.js** | 3.x | Framework UI (via Inertia) |
 | **Vite** | (build tool) | Bundler assets |
-| **Node.js** | 24.14.0 | Build-time (SSR + compilazione) |
+| **Node.js** | 24.14.0 | Build-time (compilazione assets client) |
 | **Tailwind CSS** | (via config) | Styling |
 
 ### Servizi e Librerie
@@ -113,7 +113,7 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 
 | URL | Applicazione | Framework |
 |-----|-------------|-----------|
-| `/` | Sito pubblico (home, news, stagione, squadra, shop...) | Inertia + Vue.js (SSR) |
+| `/` | Sito pubblico (home, news, stagione, squadra, shop...) | Inertia + Vue.js (render client-side) |
 | `/admin` | CMS pannello amministrativo | Filament 3 (Livewire) |
 
 **Processo di avvio** (`start.sh`):
@@ -295,7 +295,7 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
               Cache HIT             Cache MISS
               (< 5ms)                   │
                     │              Query MySQL
-                    │              Render SSR (Inertia/Vue)
+                    │              Render Inertia (no SSR)
                     │              Salva in cache
                     │                    │
                     ▼                    ▼

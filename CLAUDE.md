@@ -9,7 +9,8 @@
 
 ## 1. Contesto del progetto
 
-- Stack: sito Savino su **Laravel 13** (Filament CMS, Inertia + Vue, SSR) con database
+- Stack: sito Savino su **Laravel 13** (Filament CMS, Inertia + Vue, rendering solo
+  client-side: **SSR non attivo**) con database
   **MySQL 8.4 gestito su DigitalOcean** (App Platform: servizio web + worker, region `fra1`).
 - File chiave: `docker-compose.yml` (ambiente locale), `.do/app.yaml` (spec App Platform),
   `docs/INFRASTRUCTURE.md`, `tailwind.config.js`, questo `CLAUDE.md`.
@@ -154,6 +155,16 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   al MySQL locale). Usare solo se il MySQL Homebrew non è disponibile.
 - Redis è usato per sessioni, cache e code in locale; in produzione DigitalOcean il driver
   di sessioni/cache/code è `database`.
+- **Colonne translatable di spatie: sempre `text`, mai `varchar` né `json`.** Contengono un
+  JSON `{"it":"…","en":"…"}` che sfonda i 255 caratteri (errore MySQL 1406 "Data too long"),
+  e con tipo `json` una singola riga legacy in testo semplice fa fallire l'ALTER bloccando
+  l'avvio del container (le migrazioni girano a ogni deploy via `start.sh → migrate --force`).
+  Il codebase contiene ancora colonne `json` storiche per lo stesso scopo: nuove colonne
+  translatable vanno create `text`, e le `json` esistenti si convertono quando si tocca la
+  tabella. Le migrazioni allarganti (varchar/json → text) hanno `down()` no-op documentato:
+  non sono reversibili in modo sicuro.
+- **Lingue del sito**: unica fonte di verità `config('app.supported_locales')` (`['it','en']`).
+  Non riscrivere l'array a mano in rotte, observer, provider o middleware.
 
 ---
 
@@ -162,7 +173,9 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
 - Hosting: **DigitalOcean App Platform**; config deploy in `.do/app.yaml`.
 - Branch di produzione: `main` (deploy automatico su push, gated dai test CI).
 - Storage file: **DigitalOcean Spaces (S3-compatible)**, regione `fra1`.
-- SSR attivo con `bootstrap/ssr/ssr.mjs`.
+- **SSR non attivo**: `INERTIA_SSR_ENABLED=false` nello spec, non esiste l'entrypoint
+  `resources/js/ssr.js` e lo script `build:ssr` non viene mai invocato dalla pipeline.
+  Non esiste nessun bundle `bootstrap/ssr/ssr.mjs`. Vedi `docs/INFRASTRUCTURE.md` §6.
 
 ---
 
@@ -185,3 +198,76 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   è `#ED028C` — discrepanza nota da valutare.
 - **Font**: Montserrat (sans, primario) e Playfair Display (serif, secondario) — scelte
   progettuali, non imposte dai brand book.
+
+---
+
+## 12. Sincronizzazione con la Lega Volley Femminile
+
+Calendario, risultati e classifica **non si inseriscono a mano**: arrivano dal sito
+ufficiale della Lega (`legavolleyfemminile.it`), che non espone API. Si scaricano le
+pagine pubbliche e si parsano (`robots.txt` consente l'accesso, nessun `Disallow`
+sui percorsi usati).
+
+- Comando: `php artisan lvf:sync [--season=2026]`, schedulato ogni ora
+  (`routes/console.php`). L'anno è quello di **apertura**: `2026` = stagione 2026/2027.
+- Codice in `app/Services/Lvf/`: `LvfClient` (HTTP), `LvfMatchParser` e
+  `LvfStandingsParser` (parsing), `LvfSyncService` (upsert). Configurazione in
+  `config/services.php` → `services.lvf`.
+- Pagine sorgente: `/calendario/` (giornata, fase, impianto), `/risultati/` (set vinti,
+  in `th.num`), `/classifica/`.
+
+**Due invarianti da non rompere:**
+
+1. **Idempotenza.** Ogni entità remota ha un identificativo stabile
+   (`games.lvf_match_id` = id del Match Center, `teams.lvf_club_id`). Il sync fa upsert
+   su quelli: rilanciarlo non duplica nulla.
+2. **Il lavoro manuale non si tocca.** Le gare inserite dal CMS non hanno
+   `lvf_match_id` e non vengono mai modificate né cancellate.
+
+**Attenzione a `teams`**: contiene sia le squadre della società (`is_internal = true`)
+sia gli avversari importati. Una squadra interna senza il flag verrebbe **duplicata** al
+primo sync, spezzando il legame con rose e statistiche. Il seeder e la migrazione
+`add_lvf_sync_support` impostano il flag.
+
+**La Lega NON usa un identificativo stabile per società: lo rinumera ogni stagione.**
+Il Savino Del Bene è `710955` nel 2026/2027 e `710918` nel 2025/2026. Per questo esiste
+`team_lvf_club_ids`, che tiene tutti gli identificativi noti di ciascuna squadra:
+senza, importare una stagione passata duplicherebbe l'intero campionato. La
+risoluzione prova nell'ordine gli alias, gli identificativi della società
+(`services.lvf.club_ids`, da tenere aggiornato a ogni stagione) e infine il nome
+esatto già in archivio.
+
+**Loghi**: due collezioni media distinte su `Team`. `logo` (LOGO_CUSTOM) è quella del
+CMS, `logo-lvf` (LOGO_IMPORTED) quella della sincronizzazione. L'import scrive solo
+sulla seconda, quindi non può sovrascrivere una scelta fatta in redazione. Usare sempre
+`Team::logoUrl()`, mai `logo_url` direttamente.
+
+La pagina pubblica mostra **solo le gare che coinvolgono una squadra interna**, mentre la
+classifica resta completa.
+
+### Tabellini e statistiche per gara
+
+Le statistiche individuali **esistono e si importano**. Non stanno nella pagina del
+Match Center — che le carica in un iframe — ma su un host separato:
+`ww5.legavolleyfemminile.it/TabellinoGara_i.asp?IdGara=<lvf_match_id>`, dove `IdGara`
+coincide con l'identificativo del Match Center già salvato su `games.lvf_match_id`.
+
+- Import: `App\Services\Lvf\LvfStatsSyncService`, parser `LvfBoxScoreParser`,
+  tabella `game_player_stats`. Si scaricano SOLO i tabellini delle gare che coinvolgono
+  una squadra interna: 26 su 182, non tutto il campionato.
+- Si importano le righe di **entrambe** le squadre, perché servono nella scheda della
+  partita. `player_id` è valorizzato solo per le nostre atlete (match sul nome
+  normalizzato, insensibile ad accenti e ordine); per le avversarie resta null.
+- `player_stats` (storico stagionale) viene **ricostruito** dai tabellini, non
+  incrementato: un referto corretto a posteriori non lascia totali gonfiati.
+- Attenzione al markup: la pagina è un ASP con tabelle annidate e ogni tabella delle
+  giocatrici è avvolta da contenitori che ripetono la stessa intestazione. Il parser
+  riconosce quella vera dalla presenza delle sotto-intestazioni (`Tot`, `BP`), non dal
+  numero di righe. Sbagliare qui attribuisce le atlete alla squadra avversaria.
+- La pagina è servita in **Windows-1252**: `LvfClient::boxScore()` la riconverte.
+
+`sync:legavolley` è un comando diverso e più vecchio: genera dati **simulati** e si
+rifiuta di girare in produzione. Non è una fonte reale.
+
+I parser sono coperti da test su fixture HTML reali in `tests/Fixtures/Lvf/`. Se la Lega
+cambia il markup, aggiornare le fixture e poi i parser.
