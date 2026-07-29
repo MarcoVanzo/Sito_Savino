@@ -4,7 +4,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import SeasonNav from '@/Components/SeasonNav.vue'
 import TeamLogo from '@/Components/TeamLogo.vue'
 import { Head, Link } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useLocale } from '@/Composables/useLocale.js'
 
@@ -46,7 +46,55 @@ const props = defineProps({
 // che conosce quali squadre sono del club e se una gara è stata giocata. Qui non
 // si inventano dati: se la sincronizzazione con la Lega non ha ancora popolato
 // nulla, si mostra uno stato vuoto esplicito.
-const displayGames = computed(() => props.games)
+// Il calendario mostra l'intero campionato: i risultati delle avversarie
+// determinano la classifica e interessano al tifoso quanto i nostri. Chi vuole
+// il solo Savino ha il filtro qui sotto.
+const onlyOwn = ref(false)
+
+const displayGames = computed(() =>
+    onlyOwn.value ? props.games.filter((game) => game.isOwn) : props.games
+)
+
+const ownGamesCount = computed(() => props.games.filter((game) => game.isOwn).length)
+
+// Con centottantadue gare un elenco piatto è illeggibile: si raggruppa per
+// giornata, che è come la Lega organizza il calendario.
+const gamesByMatchday = computed(() => {
+    const groups = []
+
+    for (const game of displayGames.value) {
+        const last = groups[groups.length - 1]
+
+        // La giornata da sola non identifica il gruppo: la Lega numera 1..13
+        // sia l'andata sia il ritorno, quindi serve anche la fase.
+        const sameGroup = last
+            && last.matchday === (game.matchday ?? null)
+            && last.phase === (game.phase ?? null)
+
+        if (sameGroup) {
+            last.games.push(game)
+        } else {
+            groups.push({
+                matchday: game.matchday ?? null,
+                phase: game.phase ?? null,
+                phaseLabel: game.phaseLabel,
+                games: [game],
+            })
+        }
+    }
+
+    return groups
+})
+
+function matchdayHeading(group) {
+    if (group.matchday === null) {
+        return $t('risultati.other_matches')
+    }
+
+    const giornata = $t('risultati.matchday', { number: group.matchday })
+
+    return group.phaseLabel ? `${giornata} · ${group.phaseLabel}` : giornata
+}
 
 // Estratto di classifica: la tabella completa (quozienti e ripartizione dei
 // set) vive nella pagina dedicata, qui bastano le prime posizioni. Se la nostra
@@ -156,22 +204,47 @@ const ogMeta = useOgMeta({
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ $t('risultati.latest_matches') }}</h2>
-                <div class="w-12 h-1 bg-savino-gold mb-10"></div>
+                <div class="w-12 h-1 bg-savino-gold mb-6"></div>
+
+                <div v-if="games.length > 0" class="flex flex-wrap items-center gap-3 mb-10">
+                    <button
+                        type="button"
+                        class="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide transition-colors border"
+                        :class="!onlyOwn
+                            ? 'bg-savino-blue text-white border-savino-blue'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-savino-blue'"
+                        :aria-pressed="!onlyOwn"
+                        @click="onlyOwn = false"
+                    >{{ $t('risultati.filter_all', { count: games.length }) }}</button>
+                    <button
+                        type="button"
+                        class="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide transition-colors border"
+                        :class="onlyOwn
+                            ? 'bg-savino-blue text-white border-savino-blue'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-savino-blue'"
+                        :aria-pressed="onlyOwn"
+                        @click="onlyOwn = true"
+                    >{{ $t('risultati.filter_own', { count: ownGamesCount }) }}</button>
+                </div>
 
                 <p
                     v-if="displayGames.length === 0"
                     class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-10 text-center text-gray-500"
                 >{{ $t('risultati.no_matches') }}</p>
 
-                <div v-else class="space-y-4">
+                <div v-else class="space-y-10">
+                  <div v-for="group in gamesByMatchday" :key="`${group.phase ?? '-'}-${group.matchday ?? 'altre'}`" class="space-y-4">
+                    <h3 class="text-sm font-bold uppercase tracking-[0.2em] text-gray-500">{{ matchdayHeading(group) }}</h3>
+
                     <!-- La card diventa un link solo se la Lega ha già sincronizzato
                          il tabellino: la rotta della scheda risponde 404 altrimenti. -->
                     <component
                         :is="game.hasStats ? Link : 'div'"
-                        v-for="game in displayGames"
+                        v-for="game in group.games"
                         :key="game.id"
                         :href="game.hasStats ? route('stagione.partita', { game: game.id }) : undefined"
-                        class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100"
+                        class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border"
+                        :class="game.isOwn ? 'border-savino-gold ring-1 ring-savino-gold/40' : 'border-gray-100'"
                     >
                         <!-- Desktop layout (sm+) -->
                         <div class="hidden sm:flex items-center">
@@ -264,6 +337,7 @@ const ogMeta = useOgMeta({
                             </div>
                         </div>
                     </component>
+                  </div>
                 </div>
             </div>
         </section>

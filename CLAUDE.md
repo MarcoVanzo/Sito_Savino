@@ -242,8 +242,16 @@ CMS, `logo-lvf` (LOGO_IMPORTED) quella della sincronizzazione. L'import scrive s
 sulla seconda, quindi non può sovrascrivere una scelta fatta in redazione. Usare sempre
 `Team::logoUrl()`, mai `logo_url` direttamente.
 
-La pagina pubblica mostra **solo le gare che coinvolgono una squadra interna**, mentre la
-classifica resta completa.
+La pagina pubblica mostra **l'intero campionato**, non solo le gare della società: i
+risultati delle avversarie decidono la classifica e interessano al tifoso. Le gare del
+Savino sono marcate `isOwn`, che alimenta sia l'evidenza grafica sia il filtro "Solo
+Savino". Le gare sono ordinate **per data** e raggruppate per giornata **e fase**: la
+Lega numera le giornate da 1 a 13 sia per l'andata sia per il ritorno, quindi ordinare o
+raggruppare per sola giornata accosta la 1ª di ritorno (dicembre) alla 1ª di andata
+(ottobre).
+
+I **tabellini** restano invece limitati alle gare della società: sono 26 su 182, e
+scaricarli tutti significherebbe centinaia di richieste inutili al sito della Lega.
 
 ### Tabellini e statistiche per gara
 

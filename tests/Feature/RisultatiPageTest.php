@@ -194,19 +194,26 @@ class RisultatiPageTest extends TestCase
     }
 
     #[Test]
-    public function mostra_solo_le_gare_della_societa_non_tutto_il_campionato(): void
+    public function mostra_tutto_il_campionato_segnalando_le_gare_della_societa(): void
     {
-        // La sincronizzazione con la Lega importa l'intero campionato: senza
-        // filtro la pagina elencherebbe tutte le gare di Serie A1.
+        // Il tifoso segue anche i risultati delle avversarie, che decidono la
+        // classifica: si pubblica il campionato per intero e si marcano le
+        // nostre gare con `isOwn`, che alimenta evidenza e filtro.
         $other = Team::create(['name' => 'Numia Vero Volley Milano', 'slug' => 'numia', 'is_internal' => false]);
 
-        $this->game();
-        $this->game(['home_team_id' => $other->id, 'away_team_id' => $this->rival->id]);
+        $this->game(['matchday' => 1]);
+        $this->game(['home_team_id' => $other->id, 'away_team_id' => $this->rival->id, 'matchday' => 2]);
 
         $response = $this->get(route('stagione.risultati'));
 
-        $response->assertInertia(fn (AssertableInertia $page) => $page->has('games', 1));
-        $response->assertDontSee('Numia Vero Volley Milano');
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('games', 2)
+            // Ordine di calendario: prima la giornata 1, poi la 2.
+            ->where('games.0.isOwn', true)
+            ->where('games.1.isOwn', false)
+        );
+
+        $response->assertSee('Numia Vero Volley Milano');
     }
 
     #[Test]

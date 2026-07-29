@@ -391,18 +391,6 @@ parameters:
 			path: app/Http/Controllers/PublicController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:sortByDesc\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Parameter \#1 \$source of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:concat\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
 			message: '#^Parameter \#1 \$team of method App\\Http\\Controllers\\PublicController\:\:teamLogo\(\) expects App\\Models\\Team\|null, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
 			identifier: argument.type
 			count: 5

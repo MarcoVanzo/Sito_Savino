@@ -281,13 +281,12 @@ class PublicController extends Controller
             ->withCount('playerStats')
             ->where('season_id', $season->id)
             ->where('competition_type', $competitionType)
-            // La sincronizzazione con la Lega importa l'intero campionato, ma
-            // questa è la pagina della società: si mostrano solo le gare che la
-            // riguardano, non tutte quelle della Serie A1.
-            ->where(function ($query) {
-                $query->whereHas('homeTeam', fn ($team) => $team->where('is_internal', true))
-                    ->orWhereHas('awayTeam', fn ($team) => $team->where('is_internal', true));
-            })
+            // Si mostra il campionato per intero, non solo le gare della
+            // società: il tifoso segue anche i risultati delle avversarie,
+            // che determinano la classifica. Quelle del Savino restano
+            // riconoscibili a colpo d'occhio grazie a `isOwn`.
+            ->orderBy('matchday')
+            ->orderBy('match_date')
             ->get()
             ->map(function (Game $game): array {
                 $homeIsOwn = (bool) $game->homeTeam?->is_internal;
@@ -316,14 +315,22 @@ class PublicController extends Controller
                     'matchdayLabel' => $this->matchdayLabel($game),
                     'matchday' => $game->matchday,
                     'phase' => $game->phase,
+                    'phaseLabel' => LvfPhaseLabel::translate($game->phase),
                     'location' => $game->location,
+                    // Vero quando la gara riguarda una squadra della società:
+                    // serve a evidenziarla e a filtrare il calendario.
+                    'isOwn' => $homeIsOwn || $awayIsOwn,
                 ];
             });
 
-        $played = $games->where('played', true)->sortByDesc('matchDate')->values();
-        $upcoming = $games->where('played', false)->sortBy('matchDate')->values();
-
-        return $played->concat($upcoming)->all();
+        // Ordine cronologico, non per numero di giornata: la Lega numera le
+        // giornate da 1 a 13 sia per l'andata sia per il ritorno, quindi
+        // ordinando per giornata la 1ª di ritorno (dicembre) finirebbe subito
+        // dopo la 1ª di andata (ottobre), spezzando il calendario.
+        return $games
+            ->sortBy(fn (array $game) => $game['matchDate'])
+            ->values()
+            ->all();
     }
 
     /**
