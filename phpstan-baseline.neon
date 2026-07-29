@@ -943,42 +943,6 @@ parameters:
 			path: app/Services/Lvf/LvfStandingsParser.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\GamePlayerStat\:\:\$aces\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Lvf/LvfStatsSyncService.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\GamePlayerStat\:\:\$attacks\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Lvf/LvfStatsSyncService.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\GamePlayerStat\:\:\$blocks\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Lvf/LvfStatsSyncService.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\GamePlayerStat\:\:\$points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Lvf/LvfStatsSyncService.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\GamePlayerStat\:\:\$receptions\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Lvf/LvfStatsSyncService.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\GamePlayerStat\:\:\$season_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Lvf/LvfStatsSyncService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lvf_club_id\.$#'
 			identifier: property.notFound
 			count: 2

@@ -3,6 +3,8 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import PageHero from '@/Components/PageHero.vue';
+import SeasonStatsTable from '@/Components/SeasonStatsTable.vue';
+import TeamLogo from '@/Components/TeamLogo.vue';
 import { Head } from '@inertiajs/vue3';
 import { roleLabels, displayRole, getRoleLabels } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
@@ -28,6 +30,16 @@ const props = defineProps({
     staffMedico: {
         type: Array,
         default: () => [],
+    },
+    // Totali di stagione già filtrati dal backend: vuoto quando la squadra non
+    // ha tabellini (giovanili) o quando la stagione è appena iniziata.
+    seasonStats: {
+        type: Array,
+        default: () => [],
+    },
+    teamInfo: {
+        type: Object,
+        default: null,
     },
 });
 
@@ -152,8 +164,38 @@ const ogMeta = useOgMeta({
             </div>
         </section>
 
+        <!-- Statistiche di stagione della rosa -->
+        <section v-if="roster.length > 0" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-3 mb-2">
+                    <TeamLogo v-if="teamInfo" :src="teamInfo.logo" :name="teamInfo.name" size="md" />
+                    <div>
+                        <span class="text-savino-gold text-xs font-bold uppercase tracking-[0.3em]">{{ $t('stagione.stats_eyebrow') }}</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-savino-blue uppercase tracking-tight">
+                            {{ $t('stagione.stats_title') }}<span v-if="seasonName"> — {{ seasonName }}</span>
+                        </h2>
+                    </div>
+                </div>
+                <div class="w-12 h-1 bg-savino-gold mb-8"></div>
+
+                <!-- Le giovanili non hanno tabellini della Lega: si dice, non si
+                     riempie la pagina di zeri. -->
+                <p
+                    v-if="seasonStats.length === 0"
+                    class="bg-gray-50 rounded-xl border border-gray-100 px-6 py-10 text-center text-gray-500"
+                >{{ $t('stagione.stats_empty') }}</p>
+
+                <template v-else>
+                    <p class="text-sm text-gray-500 mb-4">{{ $t('stagione.stats_sort_hint') }}</p>
+                    <SeasonStatsTable :rows="seasonStats" />
+                    <p class="text-xs text-gray-400 mt-4">{{ $t('stagione.stats_legend') }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ $t('stagione.stats_note') }}</p>
+                </template>
+            </div>
+        </section>
+
         <!-- Staff Tecnico -->
-        <section v-if="staffTecnico.length > 0" class="py-16 bg-white">
+        <section v-if="staffTecnico.length > 0" class="py-16 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('stagione.our_team') }}</span>
@@ -187,7 +229,7 @@ const ogMeta = useOgMeta({
         </section>
 
         <!-- Staff Medico -->
-        <section v-if="staffMedico.length > 0" class="py-16 bg-gray-50">
+        <section v-if="staffMedico.length > 0" class="py-16 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('stagione.athlete_support') }}</span>

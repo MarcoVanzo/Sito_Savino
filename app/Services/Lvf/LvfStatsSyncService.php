@@ -240,30 +240,94 @@ class LvfStatsSyncService
      * intero dai tabellini invece di incrementarla, così un tabellino corretto a
      * posteriori dalla Lega non lascia totali gonfiati.
      */
+    /**
+     * Ricalcola i totali di stagione dai tabellini già in archivio, senza
+     * ripassare dal sito della Lega.
+     *
+     * Serve quando cambia il modo di aggregare — o quando si corregge un
+     * errore di calcolo — senza dover riscaricare centinaia di referti.
+     */
+    public function rebuildTotals(?int $seasonId = null): int
+    {
+        $this->rebuildSeasonTotals($seasonId);
+
+        return PlayerStat::query()
+            ->when($seasonId !== null, fn ($query) => $query->where('season_id', $seasonId))
+            ->count();
+    }
+
     private function rebuildSeasonTotals(?int $seasonId): void
     {
-        $totals = GamePlayerStat::query()
-            ->ofOwnPlayers()
+        // Query builder e non Eloquent: qui si aggrega, non si recuperano
+        // modelli, e le colonne calcolate non sono attributi di GamePlayerStat.
+        $totals = DB::table('game_player_stats')
+            ->whereNotNull('game_player_stats.player_id')
             ->join('games', 'games.id', '=', 'game_player_stats.game_id')
             ->when($seasonId !== null, fn ($query) => $query->where('games.season_id', $seasonId))
-            ->groupBy('game_player_stats.player_id', 'games.season_id')
-            ->selectRaw('game_player_stats.player_id, games.season_id')
+            // Per squadra oltre che per stagione: un'atleta schierata sia in A1
+            // sia in B1 ha due bilanci distinti, non uno sommato.
+            ->groupBy('game_player_stats.player_id', 'games.season_id', 'game_player_stats.team_id')
+            ->selectRaw('game_player_stats.player_id, games.season_id, game_player_stats.team_id')
+            // Presenze: solo le gare in cui è scesa in campo, non quelle a referto.
+            ->selectRaw('COUNT(DISTINCT CASE WHEN sets_played > 0 THEN game_id END) as matches_played')
+            ->selectRaw('SUM(sets_played) as sets_played')
             ->selectRaw('SUM(points_total) as points')
+            ->selectRaw('SUM(points_break) as points_break')
             ->selectRaw('SUM(block_points) as blocks')
             ->selectRaw('SUM(serve_points) as aces')
-            ->selectRaw('SUM(attack_points) as attacks')
+            ->selectRaw('SUM(serve_total) as serve_total')
+            ->selectRaw('SUM(serve_errors) as serve_errors')
+            ->selectRaw('SUM(attack_total) as attack_total')
+            ->selectRaw('SUM(attack_errors) as attack_errors')
+            ->selectRaw('SUM(attack_blocked) as attack_blocked')
+            ->selectRaw('SUM(attack_points) as attack_points')
             ->selectRaw('SUM(reception_total) as receptions')
+            ->selectRaw('SUM(reception_errors) as reception_errors')
+            // Le percentuali di ricezione non sono sommabili: la Lega pubblica
+            // solo la percentuale per gara, mai il conteggio assoluto delle
+            // positive. Si pesa ciascuna sul volume di ricezione di quella gara,
+            // che è la migliore ricostruzione possibile del dato di stagione.
+            ->selectRaw('SUM(reception_positive_pct * reception_total) as weighted_positive')
+            ->selectRaw('SUM(reception_perfect_pct * reception_total) as weighted_perfect')
             ->get();
 
         foreach ($totals as $row) {
+            $attackTotal = (int) $row->attack_total;
+            $receptionTotal = (int) $row->receptions;
+
             PlayerStat::updateOrCreate(
-                ['player_id' => $row->player_id, 'season_id' => $row->season_id],
                 [
+                    'player_id' => $row->player_id,
+                    'season_id' => $row->season_id,
+                    'team_id' => $row->team_id,
+                ],
+                [
+                    'matches_played' => (int) $row->matches_played,
+                    'sets_played' => (int) $row->sets_played,
                     'points' => (int) $row->points,
+                    'points_break' => (int) $row->points_break,
                     'blocks' => (int) $row->blocks,
                     'aces' => (int) $row->aces,
-                    'attacks' => (int) $row->attacks,
-                    'receptions' => (int) $row->receptions,
+                    'serve_total' => (int) $row->serve_total,
+                    'serve_errors' => (int) $row->serve_errors,
+                    // `attacks` resta il totale degli attacchi tentati, come
+                    // altrove nel progetto; i punti realizzati sono a parte.
+                    'attacks' => $attackTotal,
+                    'attack_errors' => (int) $row->attack_errors,
+                    'attack_blocked' => (int) $row->attack_blocked,
+                    'attack_points' => (int) $row->attack_points,
+                    // Questa invece è esatta: entrambi i termini sono assoluti.
+                    'attack_pct' => $attackTotal > 0
+                        ? (int) round((int) $row->attack_points * 100 / $attackTotal)
+                        : null,
+                    'receptions' => $receptionTotal,
+                    'reception_errors' => (int) $row->reception_errors,
+                    'reception_positive_pct' => $receptionTotal > 0
+                        ? (int) round((float) $row->weighted_positive / $receptionTotal)
+                        : null,
+                    'reception_perfect_pct' => $receptionTotal > 0
+                        ? (int) round((float) $row->weighted_perfect / $receptionTotal)
+                        : null,
                     'last_synced_at' => now(),
                 ]
             );

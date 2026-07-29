@@ -220,6 +220,9 @@ class TeamResource extends Resource
     {
         return [
             RelationManagers\RostersRelationManager::class,
+            // Solo per le squadre della società: si nasconde da sola sulle
+            // avversarie importate (canViewForRecord).
+            RelationManagers\SeasonStatsRelationManager::class,
         ];
     }
 

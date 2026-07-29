@@ -11,6 +11,7 @@ use App\Models\Game;
 use App\Models\HeroSlide;
 use App\Models\Page;
 use App\Models\Player;
+use App\Models\PlayerStat;
 use App\Models\Post;
 use App\Models\Roster;
 use App\Models\Season;
@@ -20,6 +21,7 @@ use App\Models\StaffMember;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Services\Lvf\LvfPhaseLabel;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -95,7 +97,8 @@ class PublicController extends Controller
     private function stagioneForTeam(string $teamSlug, string $cacheKey, ?string $teamLabel = null): Response
     {
         $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug) {
-            $team = Team::where('slug', $teamSlug)
+            $team = Team::with('media')
+                ->where('slug', $teamSlug)
                 ->orWhere('category', $teamSlug === 'savino-del-bene-volley' ? 'A1' : 'B1')
                 ->first();
 
@@ -103,22 +106,37 @@ class PublicController extends Controller
 
             $roster = [];
             $seasonName = null;
+            $seasonStats = [];
+            $teamInfo = null;
 
             if ($team && $currentSeason) {
-                $roster = Roster::with([
+                $rosterEntries = Roster::with([
                     'player',
                     'media',
-                    'player.stats' => fn ($query) => $query->where('season_id', $currentSeason->id),
+                    // I totali sono per stagione E per squadra: senza il secondo
+                    // filtro un'atleta schierata anche in un'altra squadra della
+                    // società porterebbe qui il bilancio sbagliato. Le righe
+                    // storiche senza squadra restano incluse, altrimenti la
+                    // pagina perderebbe i dati importati prima del campo.
+                    'player.stats' => fn ($query) => $query
+                        ->where('season_id', $currentSeason->id)
+                        ->where(fn ($scoped) => $scoped->whereNull('team_id')->orWhere('team_id', $team->id)),
                 ])
                     ->whereHas('player')
                     ->where('team_id', $team->id)
                     ->where('season_id', $currentSeason->id)
                     ->orderByRaw('jersey_number IS NULL, jersey_number')
                     ->orderBy('id')
-                    ->get()
-                    ->toArray();
+                    ->get();
 
+                $roster = $rosterEntries->toArray();
+                $seasonStats = $this->presentSeasonStats($rosterEntries, $team->id);
                 $seasonName = $currentSeason->name;
+
+                $teamInfo = [
+                    'name' => $team->name,
+                    'logo' => $this->teamLogo($team),
+                ];
             }
 
             // Staff tecnico e medico filtrati per sezione (A1 vs Youth)
@@ -153,10 +171,88 @@ class PublicController extends Controller
                 })
                 ->orderBy('sort_order')->orderBy('id')->get()->map($mapStaff)->toArray();
 
-            return compact('roster', 'seasonName', 'staffTecnico', 'staffMedico');
+            return compact('roster', 'seasonName', 'seasonStats', 'teamInfo', 'staffTecnico', 'staffMedico');
         });
 
         return Inertia::render('Public/Stagione', $teamLabel ? array_merge($data, ['teamLabel' => $teamLabel]) : $data);
+    }
+
+    /**
+     * Totali di stagione della rosa, pronti per la tabella comparativa.
+     *
+     * Le righe arrivano dalle relazioni già caricate con la rosa: nessuna query
+     * aggiuntiva, la pagina resta cachabile com'è.
+     *
+     * Compaiono solo le atlete che hanno un bilancio in archivio, e la tabella
+     * intera sparisce se nessuna ha numeri diversi da zero: le giovanili non
+     * hanno tabellini della Lega e una griglia di zeri direbbe il falso.
+     *
+     * @param  Collection<int, Roster>  $rosterEntries
+     * @return list<array<string, mixed>>
+     */
+    private function presentSeasonStats(Collection $rosterEntries, int $teamId): array
+    {
+        $rows = [];
+
+        foreach ($rosterEntries as $entry) {
+            $player = $entry->player;
+
+            if (! $player instanceof Player) {
+                continue;
+            }
+
+            // Solo la relazione già caricata: leggerla dal modello scatenerebbe
+            // una query per atleta su una pagina che ne mostra quattordici.
+            $stats = $player->relationLoaded('stats') ? $player->getRelation('stats') : null;
+
+            if (! $stats instanceof Collection) {
+                continue;
+            }
+
+            // Con più righe disponibili vince quella della squadra di questa
+            // pagina; la riga storica senza squadra è solo un ripiego.
+            $stat = $stats->firstWhere('team_id', $teamId) ?? $stats->first();
+
+            if (! $stat instanceof PlayerStat) {
+                continue;
+            }
+
+            $rows[] = [
+                'id' => $entry->id,
+                'jersey' => $entry->jersey_number,
+                'name' => $player->full_name,
+                'role' => $entry->role,
+                'playerSlug' => $player->id.'-'.Str::slug($player->full_name),
+                'matchesPlayed' => (int) $stat->matches_played,
+                'setsPlayed' => (int) $stat->sets_played,
+                'points' => (int) $stat->points,
+                'pointsPerSet' => $stat->pointsPerSet(),
+                // `attacks` sono gli attacchi tentati: i punti realizzati sono
+                // `attack_points`, ed è quello che la tabella chiama "Attacco".
+                'attackPoints' => (int) $stat->attack_points,
+                'attackPct' => $stat->attack_pct,
+                'blocks' => (int) $stat->blocks,
+                'aces' => (int) $stat->aces,
+                'receptions' => (int) $stat->receptions,
+                'receptionPositivePct' => $stat->reception_positive_pct,
+                'receptionPerfectPct' => $stat->reception_perfect_pct,
+            ];
+        }
+
+        foreach ($rows as $row) {
+            if ($row['matchesPlayed'] > 0
+                || $row['setsPlayed'] > 0
+                || $row['points'] > 0
+                || $row['attackPoints'] > 0
+                || $row['blocks'] > 0
+                || $row['aces'] > 0
+                || $row['receptions'] > 0
+            ) {
+                return $rows;
+            }
+        }
+
+        return [];
     }
 
     public function risultatiCampionato()

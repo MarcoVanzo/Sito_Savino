@@ -191,10 +191,62 @@ class LvfStatsSyncServiceTest extends TestCase
         $this->assertSame(9, $total->points);
         $this->assertSame(3, $total->blocks);
         $this->assertSame(2, $total->aces);
-        $this->assertSame(8, $total->attacks);
+
+        // `attacks` è il totale degli attacchi tentati; i punti realizzati
+        // stanno in `attack_points`, così la percentuale è ricostruibile.
+        $this->assertSame(20, $total->attacks);
+        $this->assertSame(8, $total->attack_points);
+        $this->assertSame(2, $total->attack_errors);
+        $this->assertSame(1, $total->attack_blocked);
+        $this->assertSame(40, $total->attack_pct, 'La percentuale di attacco si ricalcola dai totali, non si media.');
+
+        // Presenze e set: la giocatrice è entrata in 3 set di 1 sola gara.
+        $this->assertSame(1, $total->matches_played);
+        $this->assertSame(3, $total->sets_played);
+        $this->assertSame(60, $total->reception_positive_pct);
 
         // Le avversarie non entrano nello storico individuale.
         $this->assertSame(1, PlayerStat::count());
+    }
+
+    #[Test]
+    public function le_percentuali_di_stagione_pesano_le_gare_sul_volume_non_sulla_media(): void
+    {
+        // Due gare con volumi molto diversi: una ricezione perfetta su 2 palloni
+        // non vale quanto un 50% su 40. La media aritmetica darebbe 75%, quella
+        // pesata — l'unica corretta — molto meno.
+        $bosetti = Player::create(['first_name' => 'Caterina', 'last_name' => 'Bosetti']);
+
+        $prima = $this->game();
+        $seconda = $this->game(['lvf_match_id' => 747609]);
+
+        foreach ([[$prima, 2, 100, 20, 20], [$seconda, 40, 50, 60, 30]] as [$game, $ricezioni, $positive, $attacchi, $punti]) {
+            GamePlayerStat::create([
+                'game_id' => $game->id,
+                'team_id' => $this->own->id,
+                'player_id' => $bosetti->id,
+                'player_name' => 'Bosetti Caterina',
+                'sets_played' => 3,
+                'points_total' => $punti,
+                'reception_total' => $ricezioni,
+                'reception_positive_pct' => $positive,
+                'attack_total' => $attacchi,
+                'attack_points' => $punti,
+            ]);
+        }
+
+        // Si ricalcola dai referti già in archivio: un `sync()` li riscaricherebbe
+        // dal fake, sovrascrivendo le righe costruite qui.
+        LvfStatsSyncService::make()->rebuildTotals($this->season->id);
+
+        $total = PlayerStat::where('player_id', $bosetti->id)->first();
+
+        // (100×2 + 50×40) / 42 = 52,4 → 52. La media semplice darebbe 75.
+        $this->assertSame(52, $total->reception_positive_pct);
+        // Percentuale d'attacco esatta: 50 punti su 80 tentativi.
+        $this->assertSame(63, $total->attack_pct);
+        $this->assertSame(2, $total->matches_played);
+        $this->assertSame(6, $total->sets_played);
     }
 
     #[Test]
