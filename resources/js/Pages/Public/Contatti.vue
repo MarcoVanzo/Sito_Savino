@@ -68,8 +68,12 @@ const contactInfo = computed(() => [
 ])
 
 // --- DIRECTORY DYNAMICS ---
+// Valore sentinella del filtro "nessuna categoria selezionata": è una chiave
+// interna, non un'etichetta — quella la mette il template da i18n.
+const ALL_CATEGORIES = 'Tutti';
+
 const searchQuery = ref('');
-const selectedCategory = ref('Tutti');
+const selectedCategory = ref(ALL_CATEGORIES);
 
 const contactsByCategory = computed(() => {
     const list = cd.value.contacts_list || [];
@@ -95,13 +99,13 @@ const allCategories = computed(() => {
         if (standardB === 'SDB VOLLEY YOUTH') return 1;
         return a.localeCompare(b);
     });
-    return ['Tutti', ...sorted];
+    return [ALL_CATEGORIES, ...sorted];
 });
 
 const filteredContactsByCategory = computed(() => {
     const list = cd.value.contacts_list || [];
     const filteredList = list.filter(c => {
-        const matchesCategory = selectedCategory.value === 'Tutti' || (c.category || 'Altri Contatti') === selectedCategory.value;
+        const matchesCategory = selectedCategory.value === ALL_CATEGORIES || (c.category || 'Altri Contatti') === selectedCategory.value;
         const searchLower = searchQuery.value.toLowerCase();
         const matchesSearch = !searchQuery.value || 
                               (c.name && c.name.toLowerCase().includes(searchLower)) || 
@@ -297,7 +301,7 @@ const ogMeta = useOgMeta({
                                 <div 
                                     @click="copyToClipboard(field.val, field.id)"
                                     class="group p-5 bg-gray-50 rounded-2xl border border-gray-200 hover:border-savino-blue/50 hover:bg-savino-blue/5 transition-all duration-300 cursor-pointer relative"
-                                    title="Clicca per copiare"
+                                    :title="$t('contatti.click_to_copy')"
                                 >
                                     <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ field.label }}</span>
                                     <span class="block text-lg font-black text-gray-900 mt-2">{{ field.val }}</span>
@@ -382,7 +386,7 @@ const ogMeta = useOgMeta({
                                         ? 'bg-gray-900 text-white shadow-md' 
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'"
                                 >
-                                    {{ cat }}
+                                    {{ cat === ALL_CATEGORIES ? $t('contatti.filter_all') : cat }}
                                 </button>
                             </div>
                         </div>
@@ -394,8 +398,8 @@ const ogMeta = useOgMeta({
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
-                        <p class="text-gray-500 font-medium text-lg">Nessun contatto trovato per questa ricerca.</p>
-                        <button type="button" @click="searchQuery = ''; selectedCategory = 'Tutti'" class="mt-4 text-savino-blue font-bold hover:underline">Resetta filtri</button>
+                        <p class="text-gray-500 font-medium text-lg">{{ $t('contatti.no_results') }}</p>
+                        <button type="button" @click="searchQuery = ''; selectedCategory = ALL_CATEGORIES" class="mt-4 text-savino-blue font-bold hover:underline">{{ $t('contatti.reset_filters') }}</button>
                     </div>
 
                     <div v-else class="space-y-12">
@@ -512,9 +516,9 @@ const ogMeta = useOgMeta({
                                         v-model="form.subject"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium appearance-none cursor-pointer"
                                     >
-                                        <option value="" disabled selected>Seleziona l'argomento della richiesta...</option>
+                                        <option value="" disabled selected>{{ $t('contatti.select_subject') }}</option>
                                         <option v-for="topic in subjectTopics" :key="topic.value" :value="topic.value">{{ topic.label }}</option>
-                                        <option value="Altro">Altro</option>
+                                        <option value="Altro">{{ $t('contatti.subject_other') }}</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-500">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

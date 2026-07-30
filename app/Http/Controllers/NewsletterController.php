@@ -6,7 +6,11 @@ use App\Http\Requests\NewsletterRequest;
 use App\Jobs\SyncNewsletterToActiveCampaign;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class NewsletterController extends Controller
 {
@@ -70,5 +74,35 @@ class NewsletterController extends Controller
         SyncNewsletterToActiveCampaign::dispatch($subscriber);
 
         return back()->with('success', __('messages.newsletter.success'));
+    }
+
+    /**
+     * Pagina di conferma della disiscrizione.
+     *
+     * La disiscrizione vera avviene in POST: un GET la eseguirebbe anche
+     * quando il link viene aperto dai prefetcher dei client di posta, che
+     * toglierebbero dalla lista chi non ha cliccato nulla.
+     */
+    public function showUnsubscribe(NewsletterSubscriber $subscriber): Response
+    {
+        return Inertia::render('Public/NewsletterUnsubscribe', [
+            'email' => $subscriber->email,
+            'alreadyUnsubscribed' => ! $subscriber->isSubscribed(),
+            // L'URL firmato va ripassato alla vista: la firma vale per un URL
+            // preciso e il form deve inviare esattamente quello.
+            'confirmUrl' => URL::signedRoute('newsletter.unsubscribe', ['subscriber' => $subscriber->id]),
+        ]);
+    }
+
+    /**
+     * Esegue la disiscrizione richiesta dal link firmato.
+     */
+    public function unsubscribe(NewsletterSubscriber $subscriber): RedirectResponse
+    {
+        $subscriber->unsubscribe();
+
+        return redirect()
+            ->to($subscriber->unsubscribeUrl())
+            ->with('success', __('messages.newsletter.unsubscribed'));
     }
 }

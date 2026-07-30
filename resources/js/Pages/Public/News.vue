@@ -1,20 +1,42 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useLocale } from '@/Composables/useLocale.js';
 
 const { onImgError } = useImageFallback();
-const { formatDate } = useLocale();
+const { formatDate, locale } = useLocale();
 
 const $t = useTranslations();
 
 const props = defineProps({
     posts: Object,
+    categories: {
+        type: Array,
+        default: () => [],
+    },
+    activeCategory: {
+        type: String,
+        default: null,
+    },
 });
+
+// Lo slug del filtro sta nell'URL, non nello stato del componente: così il
+// link è condivisibile e la paginazione lo conserva. Il path si ricava da
+// quello corrente per non perdere il prefisso di lingua.
+const basePath = computed(() => usePage().url.split('?')[0]);
+
+function categoryUrl(slug) {
+    if (!slug) return basePath.value;
+
+    const param = locale.value === 'en' ? 'category' : 'categoria';
+
+    return `${basePath.value}?${param}=${encodeURIComponent(slug)}`;
+}
 const { sanitize } = useSanitize();
 
 const ogMeta = useOgMeta({
@@ -52,6 +74,33 @@ const ogMeta = useOgMeta({
         <!-- NEWS GRID -->
         <section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
             <div class="max-w-7xl mx-auto">
+                <!-- Filtro per categoria -->
+                <nav v-if="categories.length" class="mb-12 flex flex-wrap gap-2.5" :aria-label="$t('news.filter_label')">
+                    <Link
+                        :href="categoryUrl(null)"
+                        class="px-4 py-2.5 min-h-[44px] flex items-center rounded-full text-xs font-black uppercase tracking-widest transition-colors"
+                        :class="!activeCategory
+                            ? 'bg-savino-blue text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-savino-blue'"
+                        :aria-current="!activeCategory ? 'page' : undefined"
+                    >
+                        {{ $t('news.filter_all') }}
+                    </Link>
+                    <Link
+                        v-for="category in categories"
+                        :key="category.slug"
+                        :href="categoryUrl(category.slug)"
+                        class="px-4 py-2.5 min-h-[44px] flex items-center rounded-full text-xs font-black uppercase tracking-widest transition-colors"
+                        :class="activeCategory === category.slug
+                            ? 'bg-savino-blue text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-savino-blue'"
+                        :aria-current="activeCategory === category.slug ? 'page' : undefined"
+                    >
+                        {{ category.name }}
+                        <span class="ml-2 text-[10px] opacity-60">{{ category.count }}</span>
+                    </Link>
+                </nav>
+
                 <div v-if="posts?.data?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <article
                         v-for="post in posts.data"
@@ -97,7 +146,10 @@ const ogMeta = useOgMeta({
                 <div v-else class="text-center py-20">
                     <div class="text-6xl mb-4">📰</div>
                     <h2 class="text-2xl font-bold text-savino-blue mb-2">{{ $t('news.empty_title') }}</h2>
-                    <p class="text-gray-500">{{ $t('news.empty_text') }}</p>
+                    <p class="text-gray-500">{{ activeCategory ? $t('news.empty_category_text') : $t('news.empty_text') }}</p>
+                    <Link v-if="activeCategory" :href="categoryUrl(null)" class="inline-block mt-6 font-bold text-savino-blue hover:underline">
+                        {{ $t('news.filter_reset') }}
+                    </Link>
                 </div>
 
                 <!-- Pagination -->

@@ -86,6 +86,36 @@ class NewsletterSubscriberResource extends Resource
                         SyncNewsletterToActiveCampaign::dispatch($record);
                         Notification::make()->success()->title('Sincronizzazione avviata')->send();
                     }),
+                Tables\Actions\Action::make('unsubscribe')
+                    ->label('Disiscrivi')
+                    ->icon('heroicon-o-no-symbol')
+                    ->color('danger')
+                    ->visible(fn (NewsletterSubscriber $record) => $record->isSubscribed())
+                    ->requiresConfirmation()
+                    ->modalDescription('Il contatto resta in archivio ma non riceverà più la newsletter. Viene disiscritto anche da ActiveCampaign.')
+                    ->action(function (NewsletterSubscriber $record) {
+                        $record->unsubscribe('cms');
+                        Notification::make()->success()->title('Contatto disiscritto')->send();
+                    }),
+                Tables\Actions\Action::make('resubscribe')
+                    ->label('Riattiva')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('success')
+                    ->visible(fn (NewsletterSubscriber $record) => ! $record->isSubscribed())
+                    ->requiresConfirmation()
+                    ->modalDescription('Riattiva l\'iscrizione solo se il contatto ha chiesto di tornare in lista: rimetterlo di sua iniziativa viola il consenso revocato.')
+                    ->action(function (NewsletterSubscriber $record) {
+                        $record->update([
+                            'unsubscribed_at' => null,
+                            'subscribed_at' => now(),
+                            'synced_to_ac' => false,
+                        ]);
+                        SyncNewsletterToActiveCampaign::dispatch($record);
+                        Notification::make()->success()->title('Iscrizione riattivata')->send();
+                    }),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Elimina')
+                    ->modalDescription('Cancella definitivamente il contatto, qui e su ActiveCampaign. Usare per le richieste di cancellazione dei dati; per la sola uscita dalla lista serve "Disiscrivi".'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('retry_sync_bulk')
@@ -103,6 +133,24 @@ class NewsletterSubscriberResource extends Resource
                         }
                         Notification::make()->success()->title("{$count} sincronizzazioni avviate")->send();
                     }),
+                Tables\Actions\BulkAction::make('unsubscribe_bulk')
+                    ->label('Disiscrivi selezionati')
+                    ->icon('heroicon-o-no-symbol')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->deselectRecordsAfterCompletion()
+                    ->action(function ($records) {
+                        $count = 0;
+                        foreach ($records as $record) {
+                            if ($record->unsubscribe('cms')) {
+                                $count++;
+                            }
+                        }
+                        Notification::make()->success()->title("{$count} contatti disiscritti")->send();
+                    }),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->label('Elimina selezionati')
+                    ->modalDescription('Cancella definitivamente i contatti, qui e su ActiveCampaign.'),
             ]);
     }
 

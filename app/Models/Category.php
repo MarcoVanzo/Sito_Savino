@@ -23,6 +23,8 @@ class Category extends Model
 
     /**
      * Post appartenenti a questa categoria.
+     *
+     * @return BelongsToMany<Post, $this>
      */
     public function posts(): BelongsToMany
     {

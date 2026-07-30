@@ -123,7 +123,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Skeleton Loading -->
-                <div v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list" aria-label="Caricamento prodotti">
+                <div v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list" :aria-label="$t('shop.loading_products')">
                     <ProductCardSkeleton v-for="n in 6" :key="'skeleton-' + n" role="listitem" />
                 </div>
 

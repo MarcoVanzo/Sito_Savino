@@ -61,6 +61,16 @@ class Auction extends Model
     }
 
     /**
+     * Ordini generati dall'asta. Ce n'è al massimo uno per utente: se il
+     * vincitore non paga entro la deadline l'asta passa all'offerente
+     * successivo, che apre il proprio ordine.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
      * Offerte valide ordinate per importo decrescente.
      */
     public function validBids(): HasMany

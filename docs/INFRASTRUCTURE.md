@@ -164,6 +164,7 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 |-----|---------|---------|
 | `AnalyzeGalleryImageJob` | Upload foto nel CMS (Galleria) | Scarica l'immagine da S3, la invia a CompreFace per riconoscimento facciale, salva i risultati nel DB (coda `ai`) |
 | `SyncNewsletterToActiveCampaign` | Iscrizione newsletter | Sincronizza il contatto su ActiveCampaign (coda `default`) |
+| `UnsubscribeNewsletterFromActiveCampaign` | Disiscrizione o cancellazione di un iscritto | Porta la revoca su ActiveCampaign: status 2 sulla lista, oppure cancellazione del contatto se la richiesta è di cancellazione dati (coda `default`) |
 | Mail transazionali | Ordini, aste, rimborsi | `Mail::to(...)->queue(...)` — richiedono un mailer configurato (vedi §5) |
 
 **Flusso:**

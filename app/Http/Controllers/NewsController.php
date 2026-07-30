@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Post;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,12 +19,26 @@ class NewsController extends Controller
         $page = max(1, min((int) request('page', 1), 100));
         $locale = app()->getLocale();
 
-        $posts = Cache::remember('public:news:'.$locale.':page:'.$page, now()->addMinutes(5), function () use ($page) {
+        $categorySlug = request('categoria') ?: request('category');
+        $category = $categorySlug
+            ? Category::where('slug', $categorySlug)->firstOrFail()
+            : null;
+
+        $categoryKey = $category !== null ? $category->slug : 'all';
+        $cacheKey = 'public:news:'.$locale.':cat:'.$categoryKey.':page:'.$page;
+
+        $posts = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($page, $category) {
             $paginator = Post::published()
                 ->with(['author', 'categories', 'media'])
+                ->when($category, fn ($query) => $query->whereHas(
+                    'categories',
+                    fn ($q) => $q->where('categories.id', $category->id)
+                ))
                 ->orderByDesc('published_at')
                 ->orderByDesc('id')
-                ->paginate(12, ['*'], 'page', $page);
+                ->paginate(12, ['*'], 'page', $page)
+                // Il filtro deve sopravvivere ai link di paginazione.
+                ->withQueryString();
 
             // Trasformiamo ogni post per estrarre la traduzione nella locale corrente prima di cacharlo.
             // ->through() restituisce un NUOVO paginator, non modifica l'originale.
@@ -33,7 +49,45 @@ class NewsController extends Controller
 
         return Inertia::render('Public/News', [
             'posts' => $posts,
+            'categories' => $this->publishedCategories($locale),
+            'activeCategory' => $category?->slug,
         ]);
+    }
+
+    /**
+     * Categorie da mostrare nei filtri: solo quelle che hanno almeno una
+     * notizia pubblicata, altrimenti il lettore trova filtri che portano a
+     * una pagina vuota.
+     */
+    private function publishedCategories(string $locale): array
+    {
+        return Cache::remember('public:news_categories:'.$locale, now()->addMinutes(30), function () {
+            return Category::query()
+                ->whereHas('posts', $this->onlyPublished(...))
+                ->withCount(['posts' => $this->onlyPublished(...)])
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug'])
+                ->map(fn (Category $category) => [
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                    'count' => $category->posts_count,
+                ])
+                ->all();
+        });
+    }
+
+    /**
+     * Restringe una query sui post a quelli pubblicati.
+     *
+     * Metodo separato invece di una closure anonima perché così il tipo della
+     * relazione resta noto all'analisi statica.
+     *
+     * @param  Builder<Post>  $query
+     * @return Builder<Post>
+     */
+    private function onlyPublished(Builder $query): Builder
+    {
+        return $query->published();
     }
 
     /**

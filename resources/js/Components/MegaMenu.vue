@@ -17,6 +17,18 @@ const props = defineProps({
 const openIndex = ref(-1);
 let closeTimer = null;
 
+// I dropdown sono nascosti con opacity/visibility, non con display:none, e
+// stanno geometricamente dentro il viewport: `loading="lazy"` non basta a
+// rimandarne le immagini, che partirebbero tutte al caricamento della pagina.
+// Qui l'src viene assegnato solo dopo la prima apertura del rispettivo menu.
+const revealedImages = ref(new Set());
+
+function revealImage(index) {
+    if (!revealedImages.value.has(index)) {
+        revealedImages.value = new Set(revealedImages.value).add(index);
+    }
+}
+
 function toggleDropdown(index) {
     if (props.navigation[index]?.children?.length > 0) {
         openIndex.value = openIndex.value === index ? -1 : index;

@@ -72,7 +72,8 @@
         "official_shop": "Shop Ufficiale",
         "contacts": "Contatti",
         "communication": "Comunicazione",
-        "standings": "Classifica"
+        "standings": "Classifica",
+        "supplier_policy": "Informativa Fornitori"
     },
     "cookie": {
         "title": "🍪 Gestione Cookie",
@@ -100,7 +101,14 @@
         "success": "Iscrizione completata! Controlla la tua email.",
         "already_subscribed": "Questa email è già iscritta alla newsletter.",
         "error": "Si è verificato un errore. Riprova più tardi.",
-        "footer_title": "Newsletter"
+        "footer_title": "Newsletter",
+        "unsubscribe_title": "Annulla iscrizione",
+        "unsubscribe_intro": "Stai per essere rimosso dalla newsletter del Savino Del Bene Volley. Non riceverai più le nostre comunicazioni all'indirizzo:",
+        "unsubscribe_confirm": "Conferma la disiscrizione",
+        "unsubscribe_cancel": "Resta iscritto",
+        "unsubscribe_done_title": "Iscrizione annullata",
+        "unsubscribe_done_text": "Non invieremo più la newsletter a questo indirizzo:",
+        "unsubscribe_link": "Annulla iscrizione"
     },
     "lang": {
         "switch_to": "Passa a {lang}",
@@ -144,7 +152,13 @@
         "sdi_code": "Codice SDI",
         "official_pec": "PEC Ufficiale",
         "office_hours": "Orari Ufficio",
-        "other_contacts": "Altri Contatti"
+        "other_contacts": "Altri Contatti",
+        "no_results": "Nessun contatto trovato per questa ricerca.",
+        "reset_filters": "Resetta filtri",
+        "select_subject": "Seleziona l'argomento della richiesta...",
+        "subject_other": "Altro",
+        "click_to_copy": "Clicca per copiare",
+        "filter_all": "Tutti"
     },
     "societa": {
         "og_title": "La Società",
@@ -221,7 +235,10 @@
     },
     "content_page": {
         "og_title": "Pagina",
-        "og_description": "Savino Del Bene Volley - Sito ufficiale."
+        "og_description": "Savino Del Bene Volley - Sito ufficiale.",
+        "download_pdf": "Scarica PDF",
+        "no_magazines": "Nessuna edizione disponibile al momento.",
+        "no_videos": "Nessun video disponibile al momento."
     },
     "sponsor": {
         "og_title": "Sponsor & Partner",
@@ -276,7 +293,11 @@
         "hero_title": "News & Comunicati",
         "hero_subtitle": "Tutte le ultime notizie dal mondo Savino Del Bene Volley.",
         "empty_title": "Nessuna notizia pubblicata",
-        "empty_text": "Le notizie saranno disponibili a breve."
+        "empty_text": "Le notizie saranno disponibili a breve.",
+        "empty_category_text": "Non ci sono notizie in questa categoria.",
+        "filter_label": "Filtra per categoria",
+        "filter_all": "Tutte",
+        "filter_reset": "Mostra tutte le notizie"
     },
     "news_detail": {
         "back_to_news": "Torna alle News",
@@ -593,7 +614,8 @@
         "trust_returns": "Reso Facile",
         "load_more": "Mostra altri prodotti",
         "remaining": "rimanenti",
-        "sort_default": "Ordina per"
+        "sort_default": "Ordina per",
+        "loading_products": "Caricamento prodotti"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Ordine inviato! (placeholder)",
@@ -978,7 +1000,9 @@
         "empty_description": "Al momento non ci sono aste. Torna presto per nuove opportunità!",
         "shop_cta_title": "Merchandising Ufficiale",
         "shop_cta_description": "Scopri la collezione completa dei prodotti ufficiali Savino Del Bene Volley.",
-        "shop_cta_button": "Vai allo Shop"
+        "shop_cta_button": "Vai allo Shop",
+        "min_short": "Min:",
+        "max_short": "Max:"
     },
     "auction_checkout": {
         "og_title": "Checkout Asta",
@@ -1010,5 +1034,16 @@
         "expired_lot": "Lotto",
         "expired_deadline_was": "Il termine era:",
         "expired_contact": "Se pensi si tratti di un errore, scrivici: verificheremo la tua posizione."
+    },
+    "payment_verification": {
+        "og_title": "Verifica Metodo di Pagamento — Savino Del Bene Volley",
+        "og_description": "Verifica il tuo metodo di pagamento per partecipare alle aste della Savino Del Bene Volley.",
+        "title": "Verifica Metodo di Pagamento",
+        "intro": "Per partecipare alle aste devi verificare un metodo di pagamento. Verrai reindirizzato a Stripe per una verifica sicura della tua carta.",
+        "no_charge_emphasis": "Non ti verrà addebitato nulla.",
+        "point_no_charge": "Nessun addebito — solo verifica della carta",
+        "point_secure": "Pagamento sicuro tramite Stripe",
+        "point_once": "La verifica è necessaria una sola volta",
+        "cta": "Verifica la tua carta"
     }
 }

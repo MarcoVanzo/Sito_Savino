@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Enums\CompetitionType;
 use App\Http\Middleware\CachePublicResponse;
+use App\Models\Category;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
@@ -43,6 +44,7 @@ class CacheInvalidationObserver
         Product::class => ['public:shop'],
         ProductCategory::class => ['public:shop'],
         Post::class => ['public:home', 'filament:dashboard:stats'],
+        Category::class => ['public:news_categories'],
         Page::class => [],
         Game::class => ['public:risultati', 'public:home', 'filament:dashboard:stats', 'filament:dashboard:next_match'],
         Standing::class => ['public:risultati'],
@@ -111,7 +113,7 @@ class CacheInvalidationObserver
         // Flush full-page response cache so visitors see fresh content
         $this->flushPageCache();
 
-        // Post: invalida anche la cache per slug e le prime 5 pagine di listing
+        // Post: invalida anche la cache per slug e le prime 5 pagine di listing.
         if ($model instanceof Post) {
             $slugs = array_filter([$model->slug, $model->getOriginal('slug')]);
 
@@ -119,16 +121,42 @@ class CacheInvalidationObserver
                 foreach ($slugs as $slug) {
                     Cache::forget('public:news:'.$locale.':'.$slug);
                 }
-                for ($i = 1; $i <= 5; $i++) {
-                    Cache::forget('public:news:'.$locale.':page:'.$i);
-                }
+
+                Cache::forget('public:news_categories:'.$locale);
             }
+
+            $this->forgetNewsListings($locales);
+        }
+
+        // Categoria: cambia l'elenco dei filtri e, se ne cambia lo slug, anche
+        // le chiavi delle liste filtrate.
+        if ($model instanceof Category) {
+            $this->forgetNewsListings($locales);
         }
 
         // Page: invalida la cache per slug
         if ($model instanceof Page && $model->slug) {
             foreach ($locales as $locale) {
                 Cache::forget('public:page:'.$model->slug.':'.$locale);
+            }
+        }
+    }
+
+    /**
+     * Svuota le prime 5 pagine del listing news, sia quello completo sia
+     * quelli filtrati per categoria.
+     *
+     * @param  array<int, string>  $locales
+     */
+    private function forgetNewsListings(array $locales): void
+    {
+        $categorySlugs = Category::query()->pluck('slug')->push('all');
+
+        foreach ($locales as $locale) {
+            foreach ($categorySlugs as $categorySlug) {
+                for ($i = 1; $i <= 5; $i++) {
+                    Cache::forget('public:news:'.$locale.':cat:'.$categorySlug.':page:'.$i);
+                }
             }
         }
     }
