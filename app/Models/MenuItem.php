@@ -76,7 +76,7 @@ class MenuItem extends Model implements HasMedia
      * zoom in hover non supera i 720 nemmeno su schermi retina. In JPEG a
      * piena risoluzione le nove immagini pesavano 1,1 MB.
      */
-    private static array $staticMenuImages = [
+    public static array $staticMenuImages = [
         'stagione' => 'stagione.webp',
         'società' => 'societa.webp',
         'ticketing' => 'ticketing.webp',

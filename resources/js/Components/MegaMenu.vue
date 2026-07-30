@@ -32,6 +32,9 @@ function revealImage(index) {
 function toggleDropdown(index) {
     if (props.navigation[index]?.children?.length > 0) {
         openIndex.value = openIndex.value === index ? -1 : index;
+        if (openIndex.value === index) {
+            revealImage(index);
+        }
     }
 }
 
@@ -43,6 +46,7 @@ function handleMouseEnter(index) {
     clearTimeout(closeTimer);
     if (props.navigation[index]?.children?.length > 0) {
         openIndex.value = index;
+        revealImage(index);
     } else {
         openIndex.value = -1;
     }
@@ -229,10 +233,11 @@ onBeforeUnmount(() => {
                                 </div>
                             </div>
                             <!-- Right side — per-topic image with blue overlay -->
-                            <div class="w-2/5 relative overflow-hidden">
-                                <!-- Topic image (lazy-loaded) -->
-                                <img 
-                                    :src="item.menuImage || LOGOS.VOLLEY" 
+                            <div class="w-2/5 relative overflow-hidden bg-savino-blue">
+                                <!-- Immagine del tema: scaricata alla prima apertura del menu -->
+                                <img
+                                    v-if="revealedImages.has(index)"
+                                    :src="item.menuImage || LOGOS.VOLLEY"
                                     :alt="item.label"
                                     loading="lazy"
                                     class="absolute inset-0 w-full h-full object-cover scale-110 transition-transform duration-[6s] ease-out group-hover:scale-125"
