@@ -595,18 +595,6 @@ parameters:
 			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
 
 		-
-			message: '#^Call to method getMessage\(\) on an unknown class Stripe\\Exception\\SignatureVerificationException\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
-			message: '#^Caught class Stripe\\Exception\\SignatureVerificationException not found\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
 			message: '#^Property App\\Http\\Controllers\\Webhooks\\StripeWebhookController\:\:\$gatewayName \(string\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1
@@ -931,80 +919,8 @@ parameters:
 			path: app/Services/Lvf/LvfStandingsParser.php
 
 		-
-			message: '#^Call to static method create\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripeCustomerService.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class Stripe\\Customer\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripeCustomerService.php
-
-		-
-			message: '#^Call to static method retrieve\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripeCustomerService.php
-
-		-
-			message: '#^Call to static method setApiKey\(\) on an unknown class Stripe\\Stripe\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripeCustomerService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Access to property \$data on an unknown class Stripe\\Event\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Call to static method constructEvent\(\) on an unknown class Stripe\\Webhook\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class Stripe\\Refund\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Call to static method setApiKey\(\) on an unknown class Stripe\\Stripe\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^PHPDoc tag @throws with type Stripe\\Exception\\SignatureVerificationException is not subtype of Throwable$#'
-			identifier: throws.notThrowable
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Parameter \$event of method App\\Services\\Payments\\StripePaymentService\:\:handleChargeRefunded\(\) has invalid type Stripe\\Event\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Parameter \$event of method App\\Services\\Payments\\StripePaymentService\:\:handleSessionCompleted\(\) has invalid type Stripe\\Event\.$#'
-			identifier: class.notFound
 			count: 1
 			path: app/Services/Payments/StripePaymentService.php
 

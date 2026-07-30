@@ -39,9 +39,11 @@ class StripePaymentService implements PaymentGatewayInterface
                 ],
             ],
             'customer_email' => $order->user?->email ?? $order->guest_email,
+            // Stripe accetta solo stringhe nei metadata: passare interi fa
+            // rifiutare la chiamata.
             'metadata' => [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
+                'order_id' => (string) $order->id,
+                'order_number' => (string) $order->order_number,
             ],
             'success_url' => route('shop.checkout.success', ['order' => $order->order_token]).'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('shop.checkout.cancel', ['order' => $order->order_token]),
@@ -104,21 +106,23 @@ class StripePaymentService implements PaymentGatewayInterface
      */
     private function handleSessionCompleted(Event $event): array
     {
+        // StripeObject espone i campi anche come array: l'accesso a proprietà
+        // dinamiche non è verificabile staticamente, questo sì.
         $session = $event->data->object;
 
         // Setup session (verifica metodo di pagamento per aste)
-        if ($session->mode === 'setup') {
+        if ($session['mode'] === 'setup') {
             return [
                 'status' => 'setup_completed',
-                'user_id' => (int) ($session->metadata->user_id ?? 0),
+                'user_id' => (int) ($session['metadata']['user_id'] ?? 0),
             ];
         }
 
         // Payment session (ordine e-commerce)
         return [
-            'payment_id' => $session->payment_intent,
+            'payment_id' => $session['payment_intent'],
             'status' => 'completed',
-            'order_id' => (int) $session->metadata->order_id,
+            'order_id' => (int) $session['metadata']['order_id'],
         ];
     }
 
@@ -130,7 +134,7 @@ class StripePaymentService implements PaymentGatewayInterface
         $charge = $event->data->object;
 
         return [
-            'payment_id' => $charge->payment_intent,
+            'payment_id' => $charge['payment_intent'],
             'status' => 'refunded',
         ];
     }
