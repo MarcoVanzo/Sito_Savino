@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Filament\Support\TranslatableContentDriver;
+use App\Models\Category;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
@@ -25,6 +27,7 @@ use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
 use App\Observers\StockMovementObserver;
 use App\Observers\UserObserver;
+use Filament\SpatieLaravelTranslatableContentDriver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -41,7 +44,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Il plugin translatable istanzia il proprio content driver dal container
+        // (`app($driver, ['activeLocale' => …])`) e ne ha il nome cablato nel trait
+        // HasActiveLocaleSwitcher: rimpiazzarlo qui è l'unico punto d'aggancio che
+        // non richieda di sovrascrivere ogni pagina di ogni risorsa.
+        $this->app->bind(SpatieLaravelTranslatableContentDriver::class, TranslatableContentDriver::class);
     }
 
     /**
@@ -86,6 +93,7 @@ class AppServiceProvider extends ServiceProvider
         Product::observe(ProductObserver::class);
         ProductCategory::observe(CacheInvalidationObserver::class);
         Post::observe(CacheInvalidationObserver::class);
+        Category::observe(CacheInvalidationObserver::class);
         Page::observe(CacheInvalidationObserver::class);
         Game::observe(CacheInvalidationObserver::class);
         StaffMember::observe(CacheInvalidationObserver::class);
