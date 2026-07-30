@@ -13,8 +13,8 @@ const props = defineProps({
 });
 
 const ogMeta = useOgMeta({
-    title: 'Verifica Metodo di Pagamento — Savino Del Bene Volley',
-    description: 'Verifica il tuo metodo di pagamento per partecipare alle aste della Savino Del Bene Volley.',
+    title: $t('payment_verification.og_title'),
+    description: $t('payment_verification.og_description'),
 });
 
 const isLoading = ref(false);
@@ -42,13 +42,12 @@ const startVerification = () => {
                     </div>
 
                     <h1 class="text-2xl font-black text-white uppercase tracking-tight mb-3">
-                        Verifica Metodo di Pagamento
+                        {{ $t('payment_verification.title') }}
                     </h1>
 
                     <p class="text-gray-400 text-sm leading-relaxed mb-6">
-                        Per partecipare alle aste devi verificare un metodo di pagamento.
-                        Verrai reindirizzato a Stripe per una verifica sicura della tua carta.
-                        <strong class="text-white">Non ti verrà addebitato nulla.</strong>
+                        {{ $t('payment_verification.intro') }}
+                        <strong class="text-white">{{ $t('payment_verification.no_charge_emphasis') }}</strong>
                     </p>
 
                     <!-- Info boxes -->
@@ -57,19 +56,19 @@ const startVerification = () => {
                             <svg class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                             </svg>
-                            <span class="text-gray-300 text-sm">Nessun addebito — solo verifica della carta</span>
+                            <span class="text-gray-300 text-sm">{{ $t('payment_verification.point_no_charge') }}</span>
                         </div>
                         <div class="flex items-start gap-3 bg-gray-800/50 rounded-lg p-3">
                             <svg class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
                             </svg>
-                            <span class="text-gray-300 text-sm">Pagamento sicuro tramite Stripe</span>
+                            <span class="text-gray-300 text-sm">{{ $t('payment_verification.point_secure') }}</span>
                         </div>
                         <div class="flex items-start gap-3 bg-gray-800/50 rounded-lg p-3">
                             <svg class="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                             </svg>
-                            <span class="text-gray-300 text-sm">La verifica è necessaria una sola volta</span>
+                            <span class="text-gray-300 text-sm">{{ $t('payment_verification.point_once') }}</span>
                         </div>
                     </div>
 
@@ -86,7 +85,7 @@ const startVerification = () => {
                         <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
-                        Verifica la tua carta
+                        {{ $t('payment_verification.cta') }}
                     </button>
 
                     <!-- Flash messages -->

@@ -57,6 +57,7 @@ return [
     'newsletter' => [
         'already_subscribed' => 'Questa email è già iscritta alla newsletter.',
         'success' => 'Iscrizione completata! Grazie per esserti iscritto.',
+        'unsubscribed' => 'Iscrizione annullata. Non riceverai più la newsletter.',
     ],
     'auction' => [
         'bid_placed' => 'Offerta piazzata con successo! Sei il miglior offerente.',

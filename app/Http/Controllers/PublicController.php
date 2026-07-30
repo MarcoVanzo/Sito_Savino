@@ -34,12 +34,29 @@ class PublicController extends Controller
     {
         $locale = app()->getLocale();
         $data = Cache::remember("public:home:{$locale}", now()->addMinutes(5), function () {
-            // Prossima partita programmata
-            $nextGame = Game::with(['homeTeam', 'awayTeam'])
+            // Prossima partita programmata **della società**: il calendario
+            // importato contiene tutto il campionato, quindi senza il vincolo
+            // sulla squadra interna la home mostrava la prossima gara di due
+            // avversarie.
+            $nextGameModel = Game::with(['homeTeam', 'awayTeam'])
                 ->where('status', GameStatus::Scheduled)
                 ->where('match_date', '>=', now())
+                ->where(function ($query) {
+                    $query->whereHas('homeTeam', fn ($team) => $team->where('is_internal', true))
+                        ->orWhereHas('awayTeam', fn ($team) => $team->where('is_internal', true));
+                })
                 ->orderBy('match_date')
-                ->first()?->toArray();
+                ->first();
+
+            $nextGame = $nextGameModel?->toArray();
+
+            if ($nextGame !== null) {
+                // I loghi vanno letti da Team::logoUrl(), non scelti nel
+                // template: la home mostrava lo stemma del Savino su qualunque
+                // squadra di casa.
+                $nextGame['home_team']['logo_url'] = $nextGameModel->homeTeam?->logoUrl();
+                $nextGame['away_team']['logo_url'] = $nextGameModel->awayTeam?->logoUrl();
+            }
 
             // Ultime 3 news pubblicate
             $latestNews = Post::published()
@@ -681,7 +698,13 @@ class PublicController extends Controller
             return redirect(Storage::url($pdfUrl));
         }
 
-        return redirect()->back()->with('error', __('Foto ufficiale non ancora caricata.'));
+        // `back()` seguiva l'URL precedente in sessione e poteva scaricare il
+        // visitatore su una rotta interna qualunque (un endpoint JSON, una
+        // pagina del pannello). Si torna sempre alla stagione, dove il link
+        // vive, e il messaggio resta visibile.
+        return redirect()
+            ->route(app()->getLocale() === 'it' ? 'stagione' : app()->getLocale().'.stagione')
+            ->with('error', __('Foto ufficiale non ancora caricata.'));
     }
 
     public function gallery()

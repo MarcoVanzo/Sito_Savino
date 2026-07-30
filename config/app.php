@@ -52,7 +52,19 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    // Se l'ambiente fornisce il solo dominio (DigitalOcean espande ${APP_DOMAIN}
+    // senza schema), Laravel lo interpreterebbe come path e genererebbe URL
+    // "https://localhost/<dominio>/…" in tutto ciò che nasce da CLI: sitemap,
+    // email in coda, JSON-LD. Qui lo schema viene normalizzato una volta sola.
+    'url' => (function (): string {
+        $url = trim((string) env('APP_URL', 'http://localhost'));
+
+        if ($url === '') {
+            return 'http://localhost';
+        }
+
+        return preg_match('#^[a-z][a-z0-9+.-]*://#i', $url) === 1 ? $url : 'https://'.$url;
+    })(),
 
     /*
     |--------------------------------------------------------------------------

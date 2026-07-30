@@ -3,6 +3,7 @@
 namespace App\Filament\Forms;
 
 use Filament\Forms;
+use Illuminate\Database\Eloquent\Model;
 
 class PageTemplateForms
 {
@@ -423,8 +424,61 @@ class PageTemplateForms
             Forms\Components\KeyValue::make('content_data')
                 ->label('Variabili Template (Chiave-Valore)')
                 ->keyLabel('Chiave (es. hero_title)')
-                ->valueLabel('Valore testuale'),
+                ->valueLabel('Valore testuale')
+                // La chiusura predefinita di KeyValue tipizza i valori come
+                // ?string: con un contenuto annidato (o con lo stato per lingua
+                // del plugin translatable) il salvataggio andava in errore e il
+                // form della pagina non si salvava affatto.
+                ->dehydrateStateUsing(fn (?array $state) => collect($state ?? [])
+                    ->filter(fn ($value, $key) => filled($key))
+                    ->all())
+                // Le pagine con struttura annidata (hero, plans, timeline…) sono
+                // gestite dallo schema del loro template: mostrarle come coppie
+                // chiave-valore le appiattirebbe.
+                ->visible(fn (?Model $record) => self::hasFlatContentData($record)),
+
+            Forms\Components\Placeholder::make('content_data_structured')
+                ->label('Variabili Template')
+                ->content('Questa pagina usa contenuti strutturati gestiti dal proprio template: non sono modificabili come coppie chiave-valore.')
+                ->visible(fn (?Model $record) => $record !== null && ! self::hasFlatContentData($record)),
         ];
+    }
+
+    /**
+     * Vero se `content_data` è una mappa piatta di valori testuali, l'unica
+     * forma che il campo chiave-valore sa rappresentare senza perdere dati.
+     */
+    private static function hasFlatContentData(?Model $record): bool
+    {
+        $data = $record?->getAttributes()['content_data'] ?? null;
+
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        if (! is_array($data) || $data === []) {
+            return true;
+        }
+
+        // La colonna è translatable: si guarda dentro al livello della lingua,
+        // altrimenti qualunque pagina risulterebbe "annidata".
+        $locales = config('app.supported_locales', ['it', 'en']);
+
+        if (array_diff(array_keys($data), $locales) === []) {
+            $data = reset($data);
+
+            if (! is_array($data) || $data === []) {
+                return true;
+            }
+        }
+
+        foreach ($data as $value) {
+            if (is_array($value)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

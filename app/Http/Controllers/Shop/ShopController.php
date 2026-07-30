@@ -36,7 +36,7 @@ class ShopController extends Controller
             'short_description' => $p->short_description,
             'price' => $p->price,
             'sale_price' => $p->sale_price,
-            'stock' => $p->stock,
+            'stock' => $p->availableStock(),
             'sku' => $p->sku,
             'is_active' => $p->is_active,
             'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
@@ -64,7 +64,7 @@ class ShopController extends Controller
             'slug' => $p->slug,
             'price' => $p->price,
             'sale_price' => $p->sale_price,
-            'stock' => $p->stock,
+            'stock' => $p->availableStock(),
             'type' => $p->type?->value ?? $p->type,
             'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
             'category' => $p->category ? [
@@ -89,6 +89,7 @@ class ShopController extends Controller
         $data = Cache::remember("public:shop:{$locale}", now()->addMinutes(10), function () {
             $allProducts = Product::shoppable()
                 ->with(['category', 'media'])
+                ->withSum('variants', 'stock')
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($p) => $this->mapProductCard($p))
@@ -139,6 +140,7 @@ class ShopController extends Controller
                 ->when($product->product_category_id, fn ($q) => $q->where('product_category_id', $product->product_category_id))
                 ->where('id', '!=', $product->id)
                 ->with(['media', 'category'])
+                ->withSum('variants', 'stock')
                 ->orderByRaw('RAND(?)', [$product->id])
                 ->take(4)
                 ->get()
@@ -173,6 +175,7 @@ class ShopController extends Controller
         $paginator = Product::shoppable()
             ->where('product_category_id', $category->id)
             ->with(['media', 'category'])
+            ->withSum('variants', 'stock')
             ->orderBy($sortColumn, $sortDirection)
             ->paginate(12)
             ->withQueryString();
@@ -203,10 +206,14 @@ class ShopController extends Controller
 
             $paginator = Product::shoppable()
                 ->where(function ($q) use ($escapedQuery, $locale) {
-                    $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(name, '$.{$locale}')) LIKE ?", ["%{$escapedQuery}%"])
-                        ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(description, '$.{$locale}')) LIKE ?", ["%{$escapedQuery}%"]);
+                    // JSON_UNQUOTE restituisce utf8mb4_bin: senza COLLATE esplicito
+                    // la LIKE distingue maiuscole e accenti ("Maglia" e "maglia"
+                    // davano risultati diversi).
+                    $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(name, '$.{$locale}')) COLLATE utf8mb4_unicode_ci LIKE ?", ["%{$escapedQuery}%"])
+                        ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(description, '$.{$locale}')) COLLATE utf8mb4_unicode_ci LIKE ?", ["%{$escapedQuery}%"]);
                 })
                 ->with(['media', 'category'])
+                ->withSum('variants', 'stock')
                 ->latest()
                 ->paginate(12)
                 ->withQueryString();

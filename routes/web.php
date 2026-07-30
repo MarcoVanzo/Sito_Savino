@@ -250,6 +250,16 @@ foreach ($locales as $loc) {
         Route::post('/newsletter', [NewsletterController::class, 'subscribe'])
             ->middleware('throttle:5,1')
             ->name('newsletter.subscribe');
+
+        // Disiscrizione: l'URL è firmato, non serve autenticazione. Il GET
+        // mostra solo la conferma, la POST esegue (vedi NewsletterController).
+        $disiscriviti = $loc === 'en' ? 'unsubscribe' : 'disiscriviti';
+        Route::get('/newsletter/'.$disiscriviti.'/{subscriber}', [NewsletterController::class, 'showUnsubscribe'])
+            ->middleware('signed')
+            ->name('newsletter.unsubscribe.show');
+        Route::post('/newsletter/'.$disiscriviti.'/{subscriber}', [NewsletterController::class, 'unsubscribe'])
+            ->middleware(['signed', 'throttle:10,1'])
+            ->name('newsletter.unsubscribe');
         Route::get('/in-costruzione', [PublicController::class, 'underConstruction'])->name('in-costruzione');
 
         // Rotta dinamica per le pagine del CMS (CATCH-ALL)

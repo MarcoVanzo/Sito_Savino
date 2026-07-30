@@ -157,10 +157,16 @@ const selectedZone = computed(() => {
     return props.shippingZones.find(z => (z.countries || []).includes('*'));
 });
 
+// `flat_rate` e `free_threshold` hanno il cast `decimal:2` sul model: in JSON
+// arrivano come stringhe. Senza conversione esplicita la somma nel totale
+// diventa una concatenazione (4 + "7.90" = "47.90").
 const shippingCost = computed(() => {
     if (!selectedZone.value) return 0;
-    if (selectedZone.value.free_threshold && props.cartTotal >= selectedZone.value.free_threshold) return 0;
-    return selectedZone.value.flat_rate || 0;
+
+    const threshold = Number(selectedZone.value.free_threshold ?? 0);
+    if (threshold > 0 && Number(props.cartTotal) >= threshold) return 0;
+
+    return Number(selectedZone.value.flat_rate ?? 0) || 0;
 });
 
 const couponStatus = ref(null);
@@ -206,7 +212,10 @@ const removeCoupon = () => {
 };
 
 const orderTotal = computed(() => {
-    return Math.max(0, props.cartTotal + shippingCost.value - couponDiscount.value).toFixed(2);
+    const subtotal = Number(props.cartTotal) || 0;
+    const discount = Number(couponDiscount.value) || 0;
+
+    return Math.max(0, subtotal + shippingCost.value - discount).toFixed(2);
 });
 
 const submitOrder = () => {

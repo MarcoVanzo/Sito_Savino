@@ -203,15 +203,23 @@ class AuctionService
     }
 
     /**
-     * Trova l'ordine del vincitore tramite il checkout token dell'asta.
+     * Trova l'ordine del vincitore corrente dell'asta.
+     *
+     * Il legame passa dalla foreign key, non più dall'uguaglianza fra
+     * `order_token` e `winner_checkout_token`: quei due token hanno scopi
+     * diversi e non devono coincidere. Il filtro sull'utente serve perché
+     * dopo una riassegnazione l'asta conserva l'ordine annullato del
+     * vincitore precedente.
      */
     public function getWinnerOrder(Auction $auction): ?Order
     {
-        if (! $auction->winner_checkout_token) {
+        if (! $auction->winner_user_id) {
             return null;
         }
 
-        return Order::where('order_token', $auction->winner_checkout_token)->first();
+        return Order::where('auction_id', $auction->id)
+            ->where('user_id', $auction->winner_user_id)
+            ->first();
     }
 
     /**

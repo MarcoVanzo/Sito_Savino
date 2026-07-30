@@ -72,7 +72,8 @@
         "official_shop": "Official Shop",
         "contacts": "Contacts",
         "communication": "Media",
-        "standings": "Standings"
+        "standings": "Standings",
+        "supplier_policy": "Supplier Policy"
     },
     "cookie": {
         "title": "🍪 Cookie Settings",
@@ -100,7 +101,14 @@
         "success": "Subscription complete! Check your email.",
         "already_subscribed": "This email is already subscribed.",
         "error": "An error occurred. Please try again later.",
-        "footer_title": "Newsletter"
+        "footer_title": "Newsletter",
+        "unsubscribe_title": "Unsubscribe",
+        "unsubscribe_intro": "You are about to be removed from the Savino Del Bene Volley newsletter. We will stop sending our updates to:",
+        "unsubscribe_confirm": "Confirm unsubscribe",
+        "unsubscribe_cancel": "Stay subscribed",
+        "unsubscribe_done_title": "Unsubscribed",
+        "unsubscribe_done_text": "We will no longer send the newsletter to this address:",
+        "unsubscribe_link": "Unsubscribe"
     },
     "lang": {
         "switch_to": "Switch to {lang}",
@@ -144,7 +152,13 @@
         "sdi_code": "SDI Code",
         "official_pec": "Official PEC",
         "office_hours": "Office Hours",
-        "other_contacts": "Other Contacts"
+        "other_contacts": "Other Contacts",
+        "no_results": "No contacts found for this search.",
+        "reset_filters": "Reset filters",
+        "select_subject": "Select the topic of your request...",
+        "subject_other": "Other",
+        "click_to_copy": "Click to copy",
+        "filter_all": "All"
     },
     "societa": {
         "og_title": "About the Club",
@@ -221,7 +235,10 @@
     },
     "content_page": {
         "og_title": "Page",
-        "og_description": "Savino Del Bene Volley - Official website."
+        "og_description": "Savino Del Bene Volley - Official website.",
+        "download_pdf": "Download PDF",
+        "no_magazines": "No issues available at the moment.",
+        "no_videos": "No videos available at the moment."
     },
     "sponsor": {
         "og_title": "Sponsors & Partners",
@@ -276,7 +293,11 @@
         "hero_title": "News & Press Releases",
         "hero_subtitle": "All the latest news from the world of Savino Del Bene Volley.",
         "empty_title": "No news published",
-        "empty_text": "News will be available soon."
+        "empty_text": "News will be available soon.",
+        "empty_category_text": "There are no articles in this category.",
+        "filter_label": "Filter by category",
+        "filter_all": "All",
+        "filter_reset": "Show all news"
     },
     "news_detail": {
         "back_to_news": "Back to News",
@@ -593,7 +614,8 @@
         "trust_returns": "Easy Returns",
         "load_more": "Load more products",
         "remaining": "remaining",
-        "sort_default": "Sort by"
+        "sort_default": "Sort by",
+        "loading_products": "Loading products"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Order submitted! (placeholder)",
@@ -978,7 +1000,9 @@
         "empty_description": "There are no auctions at the moment. Check back soon for new opportunities!",
         "shop_cta_title": "Official Merchandise",
         "shop_cta_description": "Discover the full collection of official Savino Del Bene Volley products.",
-        "shop_cta_button": "Go to Shop"
+        "shop_cta_button": "Go to Shop",
+        "min_short": "Min:",
+        "max_short": "Max:"
     },
     "auction_checkout": {
         "og_title": "Auction Checkout",
@@ -1010,5 +1034,16 @@
         "expired_lot": "Lot",
         "expired_deadline_was": "The deadline was:",
         "expired_contact": "If you think this is a mistake, get in touch and we will check your case."
+    },
+    "payment_verification": {
+        "og_title": "Payment Method Verification — Savino Del Bene Volley",
+        "og_description": "Verify your payment method to take part in Savino Del Bene Volley auctions.",
+        "title": "Payment Method Verification",
+        "intro": "To take part in auctions you need to verify a payment method. You will be redirected to Stripe for a secure card check.",
+        "no_charge_emphasis": "You will not be charged.",
+        "point_no_charge": "No charge — card verification only",
+        "point_secure": "Secure payment through Stripe",
+        "point_once": "Verification is required only once",
+        "cta": "Verify your card"
     }
 }

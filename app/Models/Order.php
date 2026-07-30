@@ -20,9 +20,9 @@ class Order extends Model
     use HasFactory, LogsActivity, SoftDeletes;
 
     /**
-     * Note: payment_id, status, and paid_at are intentionally excluded
-     * from $fillable to prevent mass-assignment of sensitive fields.
-     * Set status via service code, paid_at via webhook handlers.
+     * Note: payment_id, status, paid_at and auction_id are intentionally
+     * excluded from $fillable to prevent mass-assignment of sensitive fields.
+     * Set status and auction_id via service code, paid_at via webhook handlers.
      */
     protected $fillable = [
         'user_id', 'total_price',
@@ -62,6 +62,14 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Asta di provenienza, per gli ordini nati dalla vincita di un'asta.
+     */
+    public function auction(): BelongsTo
+    {
+        return $this->belongsTo(Auction::class);
     }
 
     public function items(): HasMany

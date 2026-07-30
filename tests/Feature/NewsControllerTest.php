@@ -68,6 +68,76 @@ class NewsControllerTest extends TestCase
         $response->assertStatus(404);
     }
 
+    public function test_news_index_filters_by_category(): void
+    {
+        $comunicati = Category::factory()->create(['slug' => 'comunicati', 'name' => 'Comunicati']);
+        $mercato = Category::factory()->create(['slug' => 'mercato', 'name' => 'Mercato']);
+
+        Post::factory()->create(['status' => PostStatus::Published, 'title' => 'Comunicato'])
+            ->categories()->attach($comunicati);
+        Post::factory()->create(['status' => PostStatus::Published, 'title' => 'Trasferimento'])
+            ->categories()->attach($mercato);
+
+        $this->get('/news?categoria=comunicati')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('Public/News')
+                ->has('posts.data', 1)
+                ->where('posts.data.0.title', 'Comunicato')
+                ->where('activeCategory', 'comunicati')
+            );
+    }
+
+    public function test_news_index_only_offers_categories_that_have_published_posts(): void
+    {
+        $conNotizie = Category::factory()->create(['slug' => 'comunicati', 'name' => 'Comunicati']);
+        $soloBozze = Category::factory()->create(['slug' => 'vuota', 'name' => 'Vuota']);
+
+        Post::factory()->create(['status' => PostStatus::Published])->categories()->attach($conNotizie);
+        Post::factory()->create(['status' => PostStatus::Draft])->categories()->attach($soloBozze);
+
+        $this->get('/news')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('categories', 1)
+                ->where('categories.0.slug', 'comunicati')
+                ->where('categories.0.count', 1)
+            );
+    }
+
+    public function test_news_index_returns_404_for_unknown_category(): void
+    {
+        $this->get('/news?categoria=categoria-inesistente')->assertNotFound();
+    }
+
+    public function test_english_news_index_accepts_the_english_query_parameter(): void
+    {
+        $category = Category::factory()->create(['slug' => 'press', 'name' => 'Press']);
+        Post::factory()->create(['status' => PostStatus::Published])->categories()->attach($category);
+        Post::factory()->create(['status' => PostStatus::Published]);
+
+        $this->get('/en/news?category=press')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->has('posts.data', 1)
+                ->where('activeCategory', 'press')
+            );
+    }
+
+    public function test_category_filter_does_not_leak_across_cached_pages(): void
+    {
+        $comunicati = Category::factory()->create(['slug' => 'comunicati', 'name' => 'Comunicati']);
+
+        Post::factory()->create(['status' => PostStatus::Published, 'title' => 'Comunicato'])
+            ->categories()->attach($comunicati);
+        Post::factory()->create(['status' => PostStatus::Published, 'title' => 'Senza categoria']);
+
+        // La lista completa viene messa in cache per prima: la chiave della
+        // lista filtrata deve restare distinta, altrimenti il filtro
+        // restituisce i risultati già cachati di "tutte".
+        $this->get('/news')->assertInertia(fn ($page) => $page->has('posts.data', 2));
+
+        $this->get('/news?categoria=comunicati')
+            ->assertInertia(fn ($page) => $page->has('posts.data', 1));
+    }
+
     public function test_news_show_includes_related_posts(): void
     {
         $category = Category::factory()->create();

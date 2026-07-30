@@ -7,7 +7,6 @@ use App\Models\Game;
 use App\Models\GamePlayerStat;
 use App\Models\Player;
 use App\Models\PlayerStat;
-use App\Models\Team;
 use App\Services\Lvf\Data\LvfPlayerStat;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -127,11 +126,9 @@ class LvfStatsSyncService
             $keep = [];
 
             foreach ($box->players as $player) {
+                // Le chiavi squadra della gara sono NOT NULL con vincolo di
+                // integrità: la relazione è sempre valorizzata.
                 $team = $player->clubId === $homeClubId ? $game->homeTeam : $game->awayTeam;
-
-                if (! $team instanceof Team) {
-                    continue;
-                }
 
                 // Solo per le nostre squadre si tenta l'aggancio all'anagrafica.
                 $playerId = $team->is_internal

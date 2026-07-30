@@ -59,7 +59,7 @@ class CheckUnpaidOrders extends Command
                             // per sempre un ordine Pending, bloccandone lo stock.
                             $sub->select(DB::raw(1))
                                 ->from('auctions')
-                                ->whereColumn('auctions.winner_checkout_token', 'orders.order_token')
+                                ->whereColumn('auctions.id', 'orders.auction_id')
                                 ->whereNull('auctions.deleted_at');
                         });
                 });

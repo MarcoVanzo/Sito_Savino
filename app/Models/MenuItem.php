@@ -71,17 +71,21 @@ class MenuItem extends Model implements HasMedia
     /**
      * Mappa label → file immagine statica in public/images/menu/.
      * Usata come fonte primaria; fallback alla media library Spatie.
+     *
+     * Sono WebP a 720px: il riquadro nel mega-menu è largo ~290px e con lo
+     * zoom in hover non supera i 720 nemmeno su schermi retina. In JPEG a
+     * piena risoluzione le nove immagini pesavano 1,1 MB.
      */
-    private static array $staticMenuImages = [
-        'stagione' => 'stagione.jpg',
-        'società' => 'societa.jpg',
-        'ticketing' => 'ticketing.jpg',
-        'sponsor' => 'sponsor.jpg',
-        'sdb youth' => 'youth.jpg',
-        'summer camp' => 'camp.jpg',
-        'sociale' => 'sociale.jpg',
-        'comunicazione' => 'media.jpg',
-        'shop ufficiale' => 'shop.jpg',
+    public static array $staticMenuImages = [
+        'stagione' => 'stagione.webp',
+        'società' => 'societa.webp',
+        'ticketing' => 'ticketing.webp',
+        'sponsor' => 'sponsor.webp',
+        'sdb youth' => 'youth.webp',
+        'summer camp' => 'camp.webp',
+        'sociale' => 'sociale.webp',
+        'comunicazione' => 'media.webp',
+        'shop ufficiale' => 'shop.webp',
     ];
 
     /**

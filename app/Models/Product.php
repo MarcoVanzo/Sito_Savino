@@ -48,6 +48,35 @@ class Product extends Model implements HasMedia
         return $this->hasMany(ProductVariant::class);
     }
 
+    /**
+     * Giacenza realmente disponibile.
+     *
+     * Per i prodotti con varianti la colonna `stock` del prodotto resta a zero:
+     * le quantità stanno sulle taglie. Leggere solo `stock` faceva apparire
+     * "esaurito" in vetrina un prodotto pieno di magazzino.
+     *
+     * Usa `withSum('variants', 'stock')` quando la query lo ha già caricato,
+     * per non innescare una query per ogni card della griglia.
+     */
+    public function availableStock(): int
+    {
+        if ($this->type !== ProductType::Variable) {
+            return (int) $this->stock;
+        }
+
+        $aggregated = $this->getAttribute('variants_sum_stock');
+
+        if ($aggregated !== null) {
+            return (int) $aggregated;
+        }
+
+        if ($this->relationLoaded('variants')) {
+            return (int) $this->variants->sum('stock');
+        }
+
+        return (int) $this->variants()->sum('stock');
+    }
+
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);

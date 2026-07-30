@@ -28,7 +28,7 @@ class StripeCustomerService
             'email' => $user->email,
             'name' => $user->name,
             'metadata' => [
-                'user_id' => $user->id,
+                'user_id' => (string) $user->id,
             ],
         ]);
 
@@ -56,7 +56,7 @@ class StripeCustomerService
             'success_url' => route('account.payment-verification.success').'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('account.payment-verification'),
             'metadata' => [
-                'user_id' => $user->id,
+                'user_id' => (string) $user->id,
                 'purpose' => 'auction_payment_verification',
             ],
         ]);
@@ -91,7 +91,7 @@ class StripeCustomerService
             return false;
         }
 
-        if ((int) $session->metadata->user_id !== $user->id) {
+        if ((int) $session->metadata['user_id'] !== $user->id) {
             Log::warning("Setup session {$sessionId} non corrisponde a User #{$user->id}");
 
             return false;

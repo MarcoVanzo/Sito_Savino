@@ -53,10 +53,9 @@ class AuctionPaymentDeadlineTest extends TestCase
 
         $order = Order::factory()->create([
             'user_id' => $winner->id,
-            'order_token' => $token,
             'payment_gateway' => PaymentGateway::Stripe,
         ]);
-        $order->forceFill(['status' => OrderStatus::Pending])->save();
+        $order->forceFill(['auction_id' => $auction->id, 'status' => OrderStatus::Pending])->save();
 
         // Tre ore dopo: la soglia dell'ora per i checkout abbandonati è passata
         // da un pezzo, ma la finestra dell'asta è ancora aperta.
@@ -127,11 +126,10 @@ class AuctionPaymentDeadlineTest extends TestCase
 
         $order = Order::factory()->create([
             'user_id' => $first->id,
-            'order_token' => $token,
             'payment_gateway' => PaymentGateway::Stripe,
             'paid_at' => null,
         ]);
-        $order->forceFill(['status' => OrderStatus::Pending])->save();
+        $order->forceFill(['auction_id' => $auction->id, 'status' => OrderStatus::Pending])->save();
 
         // Un minuto prima della scadenza: il vincitore è ancora in tempo.
         $this->travel(47)->hours();
@@ -166,11 +164,10 @@ class AuctionPaymentDeadlineTest extends TestCase
 
         $order = Order::factory()->create([
             'user_id' => $first->id,
-            'order_token' => $token,
             'payment_gateway' => PaymentGateway::Stripe,
             'paid_at' => null,
         ]);
-        $order->forceFill(['status' => OrderStatus::Pending])->save();
+        $order->forceFill(['auction_id' => $auction->id, 'status' => OrderStatus::Pending])->save();
 
         // La finestra di pagamento è scaduta.
         $this->travel(49)->hours();
@@ -207,10 +204,9 @@ class AuctionPaymentDeadlineTest extends TestCase
 
         $order = Order::factory()->create([
             'user_id' => $first->id,
-            'order_token' => $token,
             'payment_gateway' => PaymentGateway::Stripe,
         ]);
-        $order->forceFill(['status' => OrderStatus::Paid, 'paid_at' => now()])->save();
+        $order->forceFill(['auction_id' => $auction->id, 'status' => OrderStatus::Paid, 'paid_at' => now()])->save();
 
         // Anche a deadline scaduta, un ordine già pagato non si tocca.
         $this->travel(49)->hours();

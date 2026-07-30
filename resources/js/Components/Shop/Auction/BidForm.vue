@@ -152,8 +152,8 @@ onUnmounted(() => {
 
             <!-- Bid info -->
             <div class="flex items-center justify-between text-xs text-gray-400 mb-3">
-                <span>Min: <strong class="text-white">{{ formatPrice(auction.minimum_bid) }}</strong></span>
-                <span>Max: <strong class="text-white">{{ formatPrice(auction.maximum_bid) }}</strong></span>
+                <span>{{ $t('auctions.min_short') }} <strong class="text-white">{{ formatPrice(auction.minimum_bid) }}</strong></span>
+                <span>{{ $t('auctions.max_short') }} <strong class="text-white">{{ formatPrice(auction.maximum_bid) }}</strong></span>
             </div>
 
             <!-- Quick bid buttons -->

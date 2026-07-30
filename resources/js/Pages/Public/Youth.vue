@@ -23,40 +23,15 @@ const settings = computed(() => inertiaPage.props.siteSettings ?? {})
 const contact = computed(() => settings.value.contact ?? {})
 const cd = computed(() => props.page?.content_data ?? {})
 
-const youthTeams = computed(() => cd.value.youth_teams ?? [
-    {
-        name: 'Under 18',
-        category: $t('youth.serie_c') || 'Serie C',
-        coach: 'Alessandro Tozzi',
-        training: $t('youth.training_u18') || 'Lun-Mer-Ven 16:00-18:00',
-        players: 14,
-        color: 'savino-blue'
-    },
-    {
-        name: 'Under 16',
-        category: $t('youth.category_regional') || 'Regionale',
-        coach: 'Francesca Galli',
-        training: $t('youth.training_u16') || 'Mar-Gio-Sab 15:00-17:00',
-        players: 16,
-        color: 'savino-gold'
-    },
-    {
-        name: 'Under 14',
-        category: $t('youth.category_provincial') || 'Provinciale',
-        coach: 'Simone Marchetti',
-        training: $t('youth.training_u14') || 'Lun-Mer-Ven 14:30-16:30',
-        players: 18,
-        color: 'savino-red'
-    },
-    {
-        name: 'Under 12',
-        category: $t('youth.minivolley') || 'Minivolley',
-        coach: 'Laura Rinaldi',
-        training: $t('youth.training_u12') || 'Mar-Gio 14:00-15:30',
-        players: 20,
-        color: 'savino-blue'
-    }
-])
+// Nessun dato di ripiego: i nomi degli allenatori, gli orari di allenamento e
+// il numero di atlete sono informazioni su persone reali. I segnaposto del
+// seeder di sviluppo erano finiti online come se fossero veri. Se il CMS non
+// ha ancora le squadre, la sezione semplicemente non si mostra.
+const youthTeams = computed(() => {
+    const teams = cd.value.youth_teams
+
+    return Array.isArray(teams) ? teams : []
+})
 
 const values = computed(() => cd.value.values ?? [
     {
@@ -186,8 +161,8 @@ const ogMeta = useOgMeta({
             </div>
         </section>
 
-        <!-- Youth Teams Grid -->
-        <section class="py-16 bg-white">
+        <!-- Youth Teams Grid: mostrata solo se il CMS ha davvero le squadre -->
+        <section v-if="youthTeams.length" class="py-16 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.teams_title || $t('youth.teams_title') }}</h2>
                 <div class="w-12 h-1 bg-savino-gold mb-10"></div>

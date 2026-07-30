@@ -72,7 +72,7 @@ class AuctionCheckoutController extends Controller
             }
         } elseif ($existingOrder) {
             // Ordine annullato/rimborsato o già in lavorazione: non è pagabile e
-            // non se ne può creare un altro (order_token è unico su questo token).
+            // non se ne può creare un altro (un solo ordine per asta e utente).
             return Inertia::render('Public/Shop/Auctions/CheckoutExpired', [
                 'auction' => $auction->only(['id', 'title', 'winner_checkout_deadline']),
             ]);
@@ -133,7 +133,7 @@ class AuctionCheckoutController extends Controller
 
         // NB: la verifica dell'ordine esistente è dentro la transazione (vedi sotto),
         // non qui: farla prima del lock lasciava passare due submit ravvicinati fino
-        // alla INSERT, che falliva sull'indice unico di order_token.
+        // alla INSERT, che falliva sull'indice unico (auction_id, user_id).
 
         // Sanitizza input prima della validazione (allineato a StoreCheckoutRequest)
         if ($request->has('notes') && $request->notes !== null) {
@@ -186,10 +186,10 @@ class AuctionCheckoutController extends Controller
                 return back()->withErrors(['country' => __('messages.checkout.country_not_served')]);
             }
 
-            $result = DB::transaction(function () use ($auction, $validated, $token, $shippingZone) {
+            $result = DB::transaction(function () use ($auction, $validated, $shippingZone) {
                 // Lock sull'asta: serializza i submit concorrenti sullo stesso token,
                 // così il secondo trova l'ordine appena creato invece di andare in
-                // errore sull'indice unico di order_token.
+                // errore sull'indice unico (auction_id, user_id).
                 $lockedAuction = Auction::lockForUpdate()->find($auction->id);
 
                 $existingOrder = $this->auctionService->getWinnerOrder($lockedAuction);
@@ -253,10 +253,11 @@ class AuctionCheckoutController extends Controller
                     return ['order' => $existingOrder->fresh(), 'paid' => false];
                 }
 
-                // Crea l'ordine — order_token === winner_checkout_token
-                $order = Order::create([
+                // Crea l'ordine. L'order_token lo genera il model (UUID casuale):
+                // non deve coincidere con il token di checkout dell'asta, che
+                // circola via mail ed è un segreto diverso.
+                $order = new Order([
                     'user_id' => $user->id,
-                    'order_token' => $token,
                     'total_price' => $totalPrice,
                     'shipping_address' => $shippingAddress,
                     'billing_address' => $billingAddress,
@@ -270,8 +271,13 @@ class AuctionCheckoutController extends Controller
                     'privacy_accepted_at' => now(),
                 ]);
 
-                // status is not mass-assignable (security), set it explicitly
-                $order->forceFill(['status' => OrderStatus::Pending])->save();
+                // status e auction_id non sono mass-assignable (sicurezza): vanno
+                // valorizzati esplicitamente, e prima della INSERT perché è
+                // l'indice unico (auction_id, user_id) a impedire il doppio ordine.
+                $order->forceFill([
+                    'auction_id' => $lockedAuction->id,
+                    'status' => OrderStatus::Pending,
+                ])->save();
 
                 // Crea l'item dell'ordine (un solo prodotto d'asta)
                 OrderItem::create([
@@ -336,9 +342,11 @@ class AuctionCheckoutController extends Controller
             abort(403);
         }
 
-        $order = Order::where('order_token', $token)
-            ->with(['items.product'])
-            ->firstOrFail();
+        $order = $this->auctionService->getWinnerOrder($auction)?->load(['items.product']);
+
+        if (! $order) {
+            abort(404);
+        }
 
         return Inertia::render('Public/Shop/Auctions/CheckoutSuccess', [
             'auction' => $auction,
@@ -357,7 +365,11 @@ class AuctionCheckoutController extends Controller
             abort(403);
         }
 
-        $order = Order::where('order_token', $token)->firstOrFail();
+        $order = $this->auctionService->getWinnerOrder($auction);
+
+        if (! $order) {
+            abort(404);
+        }
 
         // Il retry ha senso solo su un ordine ancora pagabile e con la finestra
         // di pagamento dell'asta ancora aperta.

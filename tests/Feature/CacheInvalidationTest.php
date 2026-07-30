@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Game;
 use App\Models\Player;
 use App\Models\Post;
@@ -68,17 +69,25 @@ class CacheInvalidationTest extends TestCase
 
     public function test_post_cache_is_cleared_for_locale_suffixed_keys(): void
     {
+        $categoria = Category::factory()->create(['slug' => 'comunicati']);
         $post = Post::factory()->create(['slug' => 'una-notizia']);
+        $post->categories()->attach($categoria);
 
         Cache::put('public:home:it', 'cached_data', now()->addMinutes(30));
-        Cache::put('public:news:it:page:1', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:news:it:cat:all:page:1', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:news:it:cat:comunicati:page:1', 'cached_data', now()->addMinutes(30));
         Cache::put('public:news:it:una-notizia', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:news_categories:it', 'cached_data', now()->addMinutes(30));
 
         $post->update(['title' => 'Nuovo titolo']);
 
         $this->assertNull(Cache::get('public:home:it'));
-        $this->assertNull(Cache::get('public:news:it:page:1'));
+        $this->assertNull(Cache::get('public:news:it:cat:all:page:1'));
+        // Anche le liste filtrate per categoria: una notizia modificata può
+        // comparire o sparire da una di quelle.
+        $this->assertNull(Cache::get('public:news:it:cat:comunicati:page:1'));
         $this->assertNull(Cache::get('public:news:it:una-notizia'));
+        $this->assertNull(Cache::get('public:news_categories:it'));
     }
 
     public function test_game_cache_is_cleared_for_each_competition(): void

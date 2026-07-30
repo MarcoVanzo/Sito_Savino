@@ -233,7 +233,11 @@ const ogMeta = useOgMeta({
                 >{{ $t('risultati.no_matches') }}</p>
 
                 <div v-else class="space-y-10">
-                  <div v-for="group in gamesByMatchday" :key="`${group.phase ?? '-'}-${group.matchday ?? 'altre'}`" class="space-y-4">
+                  <!-- La chiave include l'indice: una gara rinviata può far
+                       riaprire più avanti un gruppo con la stessa coppia
+                       giornata/fase, e due gruppi con la stessa chiave
+                       manderebbero in confusione il patching di Vue. -->
+                  <div v-for="(group, groupIndex) in gamesByMatchday" :key="`${group.phase ?? '-'}-${group.matchday ?? 'altre'}-${groupIndex}`" class="space-y-4">
                     <h3 class="text-sm font-bold uppercase tracking-[0.2em] text-gray-500">{{ matchdayHeading(group) }}</h3>
 
                     <!-- La card diventa un link solo se la Lega ha già sincronizzato

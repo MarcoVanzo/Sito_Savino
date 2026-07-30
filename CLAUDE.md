@@ -165,6 +165,15 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   non sono reversibili in modo sicuro.
 - **Lingue del sito**: unica fonte di verità `config('app.supported_locales')` (`['it','en']`).
   Non riscrivere l'array a mano in rotte, observer, provider o middleware.
+- **Ricerca del CMS sulle colonne tradotte**: il content driver del plugin
+  `filament/spatie-laravel-translatable` è rimpiazzato da
+  `App\Filament\Support\TranslatableContentDriver`, agganciato con un `bind()` nel
+  container in `AppServiceProvider::register()` (il nome della classe è cablato nel
+  trait `HasActiveLocaleSwitcher` del plugin, quindi non c'è un'API di configurazione).
+  Quello originale confronta una colonna in `lower()` con il termine non normalizzato
+  — qualunque ricerca con una maiuscola dà zero risultati — e manda in errore MySQL
+  (3141) appena una riga contiene testo semplice invece del JSON per lingua. Non
+  rimuovere il bind senza rifare i test in `tests/Feature/Filament/TranslatableSearchTest.php`.
 
 ---
 

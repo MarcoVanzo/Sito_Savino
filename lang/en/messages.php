@@ -57,6 +57,7 @@ return [
     'newsletter' => [
         'already_subscribed' => 'This email is already subscribed to the newsletter.',
         'success' => 'Subscription completed! Thank you for subscribing.',
+        'unsubscribed' => 'You have been unsubscribed. You will no longer receive the newsletter.',
     ],
     'auction' => [
         'bid_placed' => 'Bid placed successfully! You are the highest bidder.',

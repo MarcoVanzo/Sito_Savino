@@ -23,7 +23,9 @@ class SecurityHeadersMiddleware
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data: https:",
             "connect-src 'self'",
-            "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+            // La pagina Palazzetto incorpora Google Maps: senza questi due host
+            // l'iframe non partiva affatto e restava un riquadro bianco.
+            "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://maps.google.com",
             "media-src 'self' https:",
             "frame-ancestors 'none'",
             "base-uri 'self'",

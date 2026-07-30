@@ -297,7 +297,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_internal\.$#'
 			identifier: property.notFound
-			count: 5
+			count: 1
 			path: app/Http/Controllers/PublicController.php
 
 		-
@@ -315,7 +315,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 5
+			count: 1
 			path: app/Http/Controllers/PublicController.php
 
 		-
@@ -367,12 +367,6 @@ parameters:
 			path: app/Http/Controllers/PublicController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Game\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Standing\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -385,15 +379,9 @@ parameters:
 			path: app/Http/Controllers/PublicController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:sortBy\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
 			message: '#^Parameter \#1 \$team of method App\\Http\\Controllers\\PublicController\:\:teamLogo\(\) expects App\\Models\\Team\|null, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
 			identifier: argument.type
-			count: 5
+			count: 1
 			path: app/Http/Controllers/PublicController.php
 
 		-
@@ -603,18 +591,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
-			message: '#^Call to method getMessage\(\) on an unknown class Stripe\\Exception\\SignatureVerificationException\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
-			message: '#^Caught class Stripe\\Exception\\SignatureVerificationException not found\.$#'
-			identifier: class.notFound
 			count: 1
 			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
 
@@ -943,86 +919,8 @@ parameters:
 			path: app/Services/Lvf/LvfStandingsParser.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lvf_club_id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/Lvf/LvfStatsSyncService.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripeCustomerService.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class Stripe\\Customer\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripeCustomerService.php
-
-		-
-			message: '#^Call to static method retrieve\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripeCustomerService.php
-
-		-
-			message: '#^Call to static method setApiKey\(\) on an unknown class Stripe\\Stripe\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripeCustomerService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Access to property \$data on an unknown class Stripe\\Event\.$#'
-			identifier: class.notFound
-			count: 2
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Call to static method constructEvent\(\) on an unknown class Stripe\\Webhook\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class Stripe\\Checkout\\Session\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Call to static method create\(\) on an unknown class Stripe\\Refund\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Call to static method setApiKey\(\) on an unknown class Stripe\\Stripe\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^PHPDoc tag @throws with type Stripe\\Exception\\SignatureVerificationException is not subtype of Throwable$#'
-			identifier: throws.notThrowable
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Parameter \$event of method App\\Services\\Payments\\StripePaymentService\:\:handleChargeRefunded\(\) has invalid type Stripe\\Event\.$#'
-			identifier: class.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Parameter \$event of method App\\Services\\Payments\\StripePaymentService\:\:handleSessionCompleted\(\) has invalid type Stripe\\Event\.$#'
-			identifier: class.notFound
 			count: 1
 			path: app/Services/Payments/StripePaymentService.php
 

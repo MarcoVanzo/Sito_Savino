@@ -16,24 +16,26 @@ class SeedMenuImages extends Command
         $disk = config('media-library.disk_name', 'public');
         $this->info("Using disk: {$disk}");
 
-        $map = [
-            'Stagione' => 'stagione.jpg',
-            'Società' => 'societa.jpg',
-            'Ticketing' => 'ticketing.jpg',
-            'Sponsor' => 'sponsor.jpg',
-            'SDB Youth' => 'youth.jpg',
-            'Camp' => 'camp.jpg',
-            'Sociale' => 'sociale.jpg',
-            'Media' => 'media.jpg',
-            'Shop' => 'shop.jpg',
-        ];
+        // Stessa mappa del fallback statico, per non doverne tenere allineate
+        // due: le chiavi precedenti ("Camp", "Media", "Shop") non
+        // corrispondevano più a nessuna voce, e quelle tre restavano senza
+        // immagine in media library.
+        //
+        // Sono i WebP a 720px, non i JPEG originali: finiscono nel riquadro da
+        // ~290px del mega-menu, e a piena risoluzione erano 26 MB complessivi —
+        // con ticketing.jpg da solo a 9,5 MB — scaricati dal visitatore.
+        $map = MenuItem::$staticMenuImages;
 
-        $items = MenuItem::whereNull('parent_id')->get();
+        // Solo il menu principale: è l'unico che mostra le immagini. Il footer
+        // ha voci con le stesse label e caricarcele sopra è lavoro sprecato.
+        $items = MenuItem::where('location', 'main')->whereNull('parent_id')->get();
         $this->info("Found {$items->count()} parent menu items");
 
         foreach ($items as $item) {
-            if (isset($map[$item->label])) {
-                $path = base_path('database/seeders/menu_images/'.$map[$item->label]);
+            $label = mb_strtolower(trim($item->getTranslation('label', 'it', false) ?: $item->label));
+
+            if (isset($map[$label])) {
+                $path = base_path('database/seeders/menu_images/'.$map[$label]);
                 if (file_exists($path)) {
                     try {
                         $item->clearMediaCollection('menu-images');

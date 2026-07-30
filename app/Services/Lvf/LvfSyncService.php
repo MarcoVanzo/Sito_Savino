@@ -68,6 +68,16 @@ class LvfSyncService
             $this->matchParser->parse($this->client->results($seasonYear)),
         );
 
+        // Le pagine della Lega elencano A1 e A2 insieme: senza questo filtro il
+        // campionato pubblicato conteneva 454 gare e 31 squadre, con giornate
+        // fino alla 17ª, mentre la classifica restava (correttamente) di sole 14
+        // righe. Le gare scartate spariscono da sole al giro successivo, perché
+        // removeVanishedMatches pota quelle non più viste.
+        $matches = array_values(array_filter(
+            $matches,
+            fn (LvfMatch $match) => $this->belongsToTrackedDivision($match->competition)
+        ));
+
         $teamsBefore = Team::count();
 
         $seenMatchIds = [];
@@ -390,6 +400,43 @@ class LvfSyncService
         }
 
         return $slug;
+    }
+
+    /**
+     * Vero se la gara appartiene a una delle divisioni che il sito segue.
+     *
+     * Il confronto è sulla stringa di competizione della Lega ("LVF A1 Fineco",
+     * "LVF A2 …"), normalizzata togliendo spazi e maiuscole: "a1" intercetta
+     * sia "A1" sia "Serie A1".
+     *
+     * Una competizione sconosciuta o assente viene tenuta: la pagina risultati
+     * accoglie anche Coppa Italia e Champions, e scartare per un'etichetta non
+     * riconosciuta significherebbe cancellare gare valide al giro di potatura.
+     */
+    private function belongsToTrackedDivision(?string $competition): bool
+    {
+        if ($competition === null || trim($competition) === '') {
+            return true;
+        }
+
+        $normalized = preg_replace('/\s+/u', '', mb_strtolower($competition)) ?? '';
+
+        $tracked = config('services.lvf.divisions', ['a1']);
+        $excluded = config('services.lvf.excluded_divisions', ['a2', 'a3', 'b1', 'b2']);
+
+        foreach ($tracked as $division) {
+            if (str_contains($normalized, mb_strtolower((string) $division))) {
+                return true;
+            }
+        }
+
+        foreach ($excluded as $division) {
+            if (str_contains($normalized, mb_strtolower((string) $division))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

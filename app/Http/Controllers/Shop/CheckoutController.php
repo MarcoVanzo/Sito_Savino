@@ -46,7 +46,20 @@ class CheckoutController extends Controller
                 ->with('error', __('messages.cart.empty'));
         }
 
-        $shippingZones = ShippingZone::active()->ordered()->get();
+        // Il cast `decimal:2` serializza gli importi come stringhe: nel client
+        // la somma col totale carrello diventava una concatenazione
+        // (4 + "7.90" = "47.90"). Si consegnano già come numeri.
+        $shippingZones = ShippingZone::active()->ordered()->get()
+            ->map(fn (ShippingZone $zone) => [
+                'id' => $zone->id,
+                'name' => $zone->name,
+                'countries' => $zone->countries,
+                'flat_rate' => (float) $zone->flat_rate,
+                'free_threshold' => $zone->free_threshold !== null ? (float) $zone->free_threshold : null,
+                'estimated_days_min' => $zone->estimated_days_min,
+                'estimated_days_max' => $zone->estimated_days_max,
+            ])
+            ->values();
 
         // Payment gateways attivi dalla configurazione
         $activeGateways = SiteSetting::get('shop.active_payment_gateways', 'stripe,paypal,bank_transfer');
