@@ -15,7 +15,7 @@
                 
                 @if($nextMatch)
                     <div class="bg-[#DF338F] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-pink-900/50 uppercase tracking-widest border border-pink-400/30">
-                        {{ $nextMatch->competition_type }}
+                        {{ $nextMatch->competition_type?->getLabel() }}
                     </div>
                 @endif
             </div>
@@ -24,7 +24,7 @@
                 <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 py-4">
                     <!-- Home Team -->
                     <div class="flex flex-col items-center w-32">
-                        @php $homeLogo = $nextMatch->homeTeam->getFirstMediaUrl('teams'); @endphp
+                        @php $homeLogo = $nextMatch->homeTeam->logoUrl(); @endphp
                         @if($homeLogo)
                             <div class="w-24 h-24 bg-white rounded-full p-2 shadow-[0_0_20px_rgba(255,255,255,0.1)] mb-4 hover:scale-105 transition-transform">
                                 <img src="{{ $homeLogo }}" alt="Logo Casa" class="w-full h-full object-contain">
@@ -56,7 +56,7 @@
                     
                     <!-- Away Team -->
                     <div class="flex flex-col items-center w-32">
-                        @php $awayLogo = $nextMatch->awayTeam->getFirstMediaUrl('teams'); @endphp
+                        @php $awayLogo = $nextMatch->awayTeam->logoUrl(); @endphp
                         @if($awayLogo)
                             <div class="w-24 h-24 bg-white rounded-full p-2 shadow-[0_0_20px_rgba(255,255,255,0.1)] mb-4 hover:scale-105 transition-transform">
                                 <img src="{{ $awayLogo }}" alt="Logo Trasferta" class="w-full h-full object-contain">

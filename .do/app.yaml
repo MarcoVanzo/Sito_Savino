@@ -23,9 +23,12 @@ services:
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"
+  # Lo schema va scritto per esteso: ${APP_DOMAIN} è il solo dominio, e Laravel
+  # trattava il valore come path anteponendo "https://localhost" a ogni URL
+  # generato da CLI (sitemap, email in coda, JSON-LD).
   - key: APP_URL
     scope: RUN_AND_BUILD_TIME
-    value: ${APP_DOMAIN}
+    value: https://${APP_DOMAIN}
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
@@ -145,6 +148,11 @@ workers:
   - key: APP_ENV
     scope: RUN_AND_BUILD_TIME
     value: production
+  # Il worker non aveva APP_URL: le email in coda (fra cui il link di checkout
+  # inviato al vincitore d'asta) uscivano con host http://localhost.
+  - key: APP_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://${APP_DOMAIN}
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET

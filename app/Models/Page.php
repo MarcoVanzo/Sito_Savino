@@ -16,7 +16,40 @@ use Spatie\Translatable\HasTranslations;
 
 class Page extends Model implements HasMedia
 {
-    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity;
+    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity {
+        HasTranslations::getTranslation as protected spatieGetTranslation;
+    }
+
+    /**
+     * Recupera le colonne translatable rimaste in testo semplice.
+     *
+     * Le pagine importate da WordPress possono avere `title`, `content` o
+     * `excerpt` salvati come testo e non come JSON `{"it":…,"en":…}`. Spatie non
+     * riconosce quel formato e restituisce stringa vuota: nel CMS il campo
+     * appare vuoto e un salvataggio cancellerebbe il testo che il sito sta
+     * pubblicando. Restituendo il valore grezzo l'editor mostra ciò che c'è
+     * davvero, e al primo salvataggio la colonna passa da sola al formato JSON.
+     */
+    public function getTranslation(string $key, string $locale, bool $useFallbackLocale = true): mixed
+    {
+        $value = $this->spatieGetTranslation($key, $locale, $useFallbackLocale);
+
+        if ($value !== '' && $value !== null && $value !== []) {
+            return $value;
+        }
+
+        $raw = $this->getAttributes()[$key] ?? null;
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return $value;
+        }
+
+        json_decode($raw, true);
+
+        // Un JSON valido è già gestito da spatie: qui interessa solo il testo
+        // semplice rimasto dalle importazioni.
+        return json_last_error() === JSON_ERROR_NONE ? $value : $raw;
+    }
 
     protected $fillable = [
         'wp_id', 'title', 'slug', 'template', 'content', 'content_data', 'excerpt',

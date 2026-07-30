@@ -559,7 +559,10 @@ const ogMeta = useOgMeta({
                         <div class="flex flex-col md:flex-row items-center justify-between gap-10">
                             <!-- Home Team -->
                             <div class="text-center md:text-right flex-1">
-                                <img :src="LOGOS.VOLLEY" :alt="nextGame?.home_team?.name ?? 'Savino Del Bene'" class="w-36 h-28 rounded-xl object-contain bg-white mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" @error="onImgError" />
+                                <img v-if="nextGame?.home_team?.logo_url" :src="nextGame.home_team.logo_url" :alt="nextGame?.home_team?.name" class="w-36 h-28 rounded-xl object-contain bg-white mx-auto md:ml-auto md:mr-0 mb-4 shadow-lg" @error="onImgError" />
+                                <div v-else class="w-24 h-24 rounded-xl bg-white/10 mx-auto md:ml-auto md:mr-0 mb-4 flex items-center justify-center">
+                                    <svg class="w-12 h-12 text-white/30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                </div>
                                 <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
                                 <span class="text-savino-gold text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.home_team') }}</span>
                             </div>
@@ -573,7 +576,8 @@ const ogMeta = useOgMeta({
                             </div>
                             <!-- Away Team -->
                             <div class="text-center md:text-left flex-1">
-                                <div class="w-24 h-24 rounded-xl bg-white/10 mx-auto md:mr-auto md:ml-0 mb-4 flex items-center justify-center">
+                                <img v-if="nextGame?.away_team?.logo_url" :src="nextGame.away_team.logo_url" :alt="nextGame?.away_team?.name" class="w-36 h-28 rounded-xl object-contain bg-white mx-auto md:mr-auto md:ml-0 mb-4 shadow-lg" @error="onImgError" />
+                                <div v-else class="w-24 h-24 rounded-xl bg-white/10 mx-auto md:mr-auto md:ml-0 mb-4 flex items-center justify-center">
                                     <svg class="w-12 h-12 text-white/30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
                                 </div>
                                 <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>

@@ -107,6 +107,17 @@ return [
             'intval',
             explode(',', (string) env('LVF_CLUB_IDS', '710955,710918'))
         ))),
+        // Le pagine pubbliche della Lega elencano tutte le divisioni insieme.
+        // Qui si dichiara quale campionato appartiene alla società: le gare
+        // delle altre divisioni non vengono importate.
+        'divisions' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('LVF_DIVISIONS', 'a1'))
+        ))),
+        'excluded_divisions' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('LVF_EXCLUDED_DIVISIONS', 'a2,a3,b1,b2'))
+        ))),
         'timeout' => env('LVF_TIMEOUT', 30),
         // Il comando gira ogni ora e il sito della Lega ha cali temporanei: si
         // avvisa dopo tre giri a vuoto di fila (circa tre ore di buco), non al

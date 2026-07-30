@@ -22,6 +22,14 @@ class Game extends Model
         'spectators', 'referees', 'set_scores', 'stats_synced_at',
     ];
 
+    /**
+     * Il sync della Lega gira ogni ora e riscrive questi due timestamp anche
+     * quando nulla è cambiato: senza escluderli il registro attività si
+     * riempiva di una riga per gara a ogni giro (16.285 righe in produzione,
+     * tutte di sistema), seppellendo le azioni della redazione.
+     */
+    protected array $logExclude = ['lvf_synced_at', 'stats_synced_at'];
+
     protected $casts = [
         'match_date' => 'datetime',
         'status' => GameStatus::class,
@@ -52,11 +60,17 @@ class Game extends Model
         return $this->belongsTo(Season::class);
     }
 
+    /**
+     * @return BelongsTo<Team, $this>
+     */
     public function homeTeam(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'home_team_id');
     }
 
+    /**
+     * @return BelongsTo<Team, $this>
+     */
     public function awayTeam(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'away_team_id');
