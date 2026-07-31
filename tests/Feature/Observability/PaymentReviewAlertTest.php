@@ -7,10 +7,9 @@ use App\Enums\UserRole;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\FakesPayPalWebhooks;
 use Tests\TestCase;
 
 /**
@@ -23,39 +22,14 @@ use Tests\TestCase;
  */
 class PaymentReviewAlertTest extends TestCase
 {
-    use RefreshDatabase;
+    use FakesPayPalWebhooks, RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         Mail::fake();
-        config()->set('services.paypal.mode', 'sandbox');
-        config()->set('services.paypal.client_id', 'test-id');
-        config()->set('services.paypal.client_secret', 'test-secret');
-        config()->set('services.paypal.webhook_id', 'test-webhook');
-    }
-
-    private function fakePayPal(int $orderId, string $captureId): void
-    {
-        Http::fake([
-            '*/v1/oauth2/token' => Http::response(['access_token' => 'test-token', 'expires_in' => 3600]),
-            '*/v1/notifications/verify-webhook-signature' => Http::response(['verification_status' => 'SUCCESS']),
-            '*/v2/checkout/orders/*/capture' => Http::response([
-                'purchase_units' => [[
-                    'custom_id' => (string) $orderId,
-                    'payments' => ['captures' => [['id' => $captureId]]],
-                ]],
-            ]),
-        ]);
-    }
-
-    private function postWebhook(): TestResponse
-    {
-        return $this->postJson('/api/webhooks/paypal', [
-            'event_type' => 'CHECKOUT.ORDER.APPROVED',
-            'resource' => ['id' => 'PAYPAL-ORDER-1'],
-        ]);
+        $this->configureFakePayPal();
     }
 
     private function userWithRole(UserRole $role): User

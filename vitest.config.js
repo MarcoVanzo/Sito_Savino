@@ -16,5 +16,19 @@ export default defineConfig({
         environment: 'jsdom',
         include: ['resources/js/**/*.test.js'],
         globals: true,
+        coverage: {
+            provider: 'v8',
+            // lcov per SonarCloud, text per leggere il risultato in locale.
+            // Senza questo report tutto il codice JS contava come non coperto
+            // nel quality gate: la CI caricava solo la copertura PHP, mentre
+            // `sonar.sources` include `resources`.
+            reporter: ['text-summary', 'lcov'],
+            reportsDirectory: 'coverage-js',
+            include: ['resources/js/**/*.js'],
+            // I componenti .vue restano fuori: non hanno test propri e
+            // includerli darebbe una percentuale che parla di codice che
+            // nessuno ha scelto di coprire, invece che dei composable.
+            exclude: ['resources/js/**/*.test.js', 'resources/js/bootstrap.js'],
+        },
     },
 });

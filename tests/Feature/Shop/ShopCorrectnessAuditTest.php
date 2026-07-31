@@ -21,12 +21,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use Illuminate\Testing\TestResponse;
+use Tests\Concerns\FakesPayPalWebhooks;
 use Tests\TestCase;
 
 class ShopCorrectnessAuditTest extends TestCase
 {
-    use RefreshDatabase;
+    use FakesPayPalWebhooks, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -39,10 +39,7 @@ class ShopCorrectnessAuditTest extends TestCase
         $this->freezeTime();
 
         Mail::fake();
-        config()->set('services.paypal.mode', 'sandbox');
-        config()->set('services.paypal.client_id', 'test-id');
-        config()->set('services.paypal.client_secret', 'test-secret');
-        config()->set('services.paypal.webhook_id', 'test-webhook');
+        $this->configureFakePayPal();
     }
 
     protected function tearDown(): void
@@ -50,28 +47,6 @@ class ShopCorrectnessAuditTest extends TestCase
         $this->travelBack();
 
         parent::tearDown();
-    }
-
-    private function fakePayPal(int $orderId, string $captureId = 'CAPTURE-1'): void
-    {
-        Http::fake([
-            '*/v1/oauth2/token' => Http::response(['access_token' => 'test-token', 'expires_in' => 3600]),
-            '*/v1/notifications/verify-webhook-signature' => Http::response(['verification_status' => 'SUCCESS']),
-            '*/v2/checkout/orders/*/capture' => Http::response([
-                'purchase_units' => [[
-                    'custom_id' => (string) $orderId,
-                    'payments' => ['captures' => [['id' => $captureId]]],
-                ]],
-            ]),
-        ]);
-    }
-
-    private function postWebhook(): TestResponse
-    {
-        return $this->postJson('/api/webhooks/paypal', [
-            'event_type' => 'CHECKOUT.ORDER.APPROVED',
-            'resource' => ['id' => 'PAYPAL-ORDER-1'],
-        ]);
     }
 
     public function test_alternating_bids_do_not_bounce_between_the_same_two_users(): void

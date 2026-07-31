@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Services\AdminNotificationService;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 /**
  * Avvisa quando un job in coda esaurisce i tentativi.
@@ -37,14 +38,17 @@ class AlertOnFailedJob
     {
         $jobName = $event->job->resolveName();
 
+        // Il nome della classe si normalizza, non si sottopone a hash: una
+        // chiave leggibile si ritrova ispezionando la cache durante un guasto,
+        // e non c'è niente da nascondere in un nome di classe. (Con md5 qui
+        // Sonar segnalava un algoritmo debole — giustamente, perché da fuori
+        // non si distingue un hash usato per chiavi da uno usato per sicurezza.)
+        $key = 'job-failed-alert:'.Str::slug(str_replace('\\', '-', $jobName));
+
         // `add()` è atomico: se la chiave esiste già ritorna false senza
         // sovrascriverla. Con get()+put() due worker paralleli passerebbero
         // entrambi il controllo prima che l'altro scriva.
-        $isFirstOfWindow = Cache::add(
-            'job-failed-alert:'.md5($jobName),
-            true,
-            self::THROTTLE_SECONDS,
-        );
+        $isFirstOfWindow = Cache::add($key, true, self::THROTTLE_SECONDS);
 
         if (! $isFirstOfWindow) {
             return;

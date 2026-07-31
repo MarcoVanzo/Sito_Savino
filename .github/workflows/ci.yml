@@ -104,8 +104,11 @@ jobs:
       # Test frontend. Coprono i composable con logica vera — normalizzazione
       # degli URL dal CMS e sanificazione dell'HTML — cioè le due cose fra il
       # contenuto redazionale e il DOM del visitatore.
+      # Con copertura nelle run complete: il report lcov alimenta SonarCloud
+      # (vedi sonar.javascript.lcov.reportPaths). Sui push a main si salta,
+      # come già si fa per la copertura PHP.
       - name: Esegui test frontend (Vitest)
-        run: npm test
+        run: npm run ${{ github.event_name != 'push' && 'test:coverage' || 'test' }}
 
       # Security audit — verifica vulnerabilità note nelle dipendenze
       - name: Security Audit (Composer)
