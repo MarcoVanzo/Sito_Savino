@@ -88,8 +88,8 @@ class CheckUnpaidOrders extends Command
      */
     private function sendReminder(Order $order): void
     {
-        $recipientEmail = $order->user?->email ?? $order->guest_email;
-        $recipientName = $order->user?->name ?? $order->guest_name;
+        $recipientEmail = $order->user->email ?? $order->guest_email;
+        $recipientName = $order->user->name ?? $order->guest_name;
 
         if (! $recipientEmail) {
             Log::warning('CheckUnpaidOrders: nessuna email per promemoria', [
@@ -149,8 +149,8 @@ class CheckUnpaidOrders extends Command
      */
     private function sendCancellationEmail(Order $order): void
     {
-        $recipientEmail = $order->user?->email ?? $order->guest_email;
-        $recipientName = $order->user?->name ?? $order->guest_name;
+        $recipientEmail = $order->user->email ?? $order->guest_email;
+        $recipientName = $order->user->name ?? $order->guest_name;
 
         if (! $recipientEmail) {
             return;

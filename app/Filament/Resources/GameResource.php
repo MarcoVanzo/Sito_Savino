@@ -57,7 +57,7 @@ class GameResource extends Resource
             return null;
         }
 
-        return ($record->homeTeam?->name ?? '?').' - '.($record->awayTeam?->name ?? '?');
+        return ($record->homeTeam->name ?? '?').' - '.($record->awayTeam->name ?? '?');
     }
 
     public static function form(Form $form): Form

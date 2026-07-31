@@ -30,7 +30,7 @@ class YouthRosterResource extends Resource
 
     public static function getRecordTitle(?Model $record): Htmlable|string|null
     {
-        return $record?->player?->last_name ?? "Roster #{$record?->id}";
+        return $record?->player->last_name ?? "Roster #{$record?->id}";
     }
 
     protected static bool $isGloballySearchable = false;

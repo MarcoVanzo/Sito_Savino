@@ -15,6 +15,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
+/**
+ * Relazioni che possono davvero mancare a runtime:
+ *
+ * - `user` è assente sugli ordini da ospite (`orders.user_id` è nullable);
+ * - `auction` e `coupon` sono opzionali per costruzione;
+ * - `Auction` e `Coupon` usano SoftDeletes, quindi la relazione torna null
+ *   anche quando la riga esiste ancora e la chiave esterna regge.
+ *
+ * Senza queste annotazioni PHPStan vedeva un generico Model e segnalava come
+ * inesistenti le proprietà lette su queste relazioni.
+ *
+ * @property-read User|null $user
+ * @property-read Auction|null $auction
+ * @property-read Coupon|null $coupon
+ */
 class Order extends Model
 {
     use HasFactory, LogsActivity, SoftDeletes;

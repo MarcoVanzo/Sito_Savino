@@ -239,7 +239,7 @@ trait HandlesPaymentWebhooks
             $order->refresh();
 
             // Send refund confirmation email (outside transaction)
-            $recipientEmail = $order->user?->email ?? $order->guest_email;
+            $recipientEmail = $order->user->email ?? $order->guest_email;
             if ($recipientEmail) {
                 try {
                     Mail::to($recipientEmail)->queue(new RefundConfirmation($order));
@@ -343,7 +343,7 @@ trait HandlesPaymentWebhooks
         // Verifica la disponibilità PRIMA di creare i movimenti: lo
         // StockMovementObserver lancerebbe un'eccezione a scarico già inserito.
         foreach ($productNeed as $productId => $need) {
-            $stock = (int) (Product::lockForUpdate()->find($productId)?->stock ?? 0);
+            $stock = (int) (Product::lockForUpdate()->find($productId)->stock ?? 0);
 
             if ($stock < $need) {
                 return false;
@@ -355,7 +355,7 @@ trait HandlesPaymentWebhooks
                 continue;
             }
 
-            $variantStock = (int) (ProductVariant::lockForUpdate()->find($row['product_variant_id'])?->stock ?? 0);
+            $variantStock = (int) (ProductVariant::lockForUpdate()->find($row['product_variant_id'])->stock ?? 0);
 
             if ($variantStock < $row['missing']) {
                 return false;
@@ -442,8 +442,8 @@ trait HandlesPaymentWebhooks
      */
     protected function sendOrderConfirmationEmail(Order $order): void
     {
-        $recipientEmail = $order->user?->email ?? $order->guest_email;
-        $recipientName = $order->user?->name ?? $order->guest_name;
+        $recipientEmail = $order->user->email ?? $order->guest_email;
+        $recipientName = $order->user->name ?? $order->guest_name;
 
         if (! $recipientEmail) {
             Log::warning("{$this->getGatewayName()} webhook: nessuna email per conferma ordine", [

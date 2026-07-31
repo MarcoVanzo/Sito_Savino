@@ -7,6 +7,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * `product` è null quando il prodotto è stato archiviato: Product usa
+ * SoftDeletes, e la scope predefinita lo esclude dalla relazione anche se
+ * `order_items.product_id` è NOT NULL con `on_delete=restrict` e la riga nel
+ * database c'è ancora. È il modo normale in cui un prodotto esce di catalogo,
+ * quindi capita su ogni ordine vecchio.
+ *
+ * `variant` è opzionale: i prodotti senza varianti non ne hanno.
+ *
+ * @property-read Product|null $product
+ * @property-read ProductVariant|null $variant
+ */
 class OrderItem extends Model
 {
     use HasFactory, LogsActivity;

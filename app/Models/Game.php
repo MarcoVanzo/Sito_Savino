@@ -10,6 +10,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Le due squadre sono null quando la squadra è archiviata: Team usa
+ * SoftDeletes. Le chiavi esterne sono NOT NULL, quindi senza annotazione
+ * PHPStan concluderebbe che la relazione c'è sempre.
+ *
+ * @property-read Team|null $homeTeam
+ * @property-read Team|null $awayTeam
+ */
 class Game extends Model
 {
     use HasFactory, LogsActivity;

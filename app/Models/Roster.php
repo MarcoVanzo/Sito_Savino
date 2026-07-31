@@ -12,6 +12,12 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * `player` è null per le atlete archiviate: Player usa SoftDeletes e la scope
+ * predefinita le esclude, pur restando `rosters.player_id` NOT NULL.
+ *
+ * @property-read Player|null $player
+ */
 class Roster extends Model implements HasMedia
 {
     use HasFactory, HasOptimizedMedia, InteractsWithMedia, LogsActivity;

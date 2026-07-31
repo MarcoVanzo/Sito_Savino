@@ -17,7 +17,7 @@ class AdminNotificationService
      */
     public function notifyNewOrder(Order $order): void
     {
-        $customerName = $order->user?->name ?? $order->guest_name ?? 'Guest';
+        $customerName = $order->user->name ?? $order->guest_name ?? 'Guest';
 
         $this->sendToAdmins(
             Notification::make()

@@ -68,7 +68,7 @@ class MigrateWpPages extends Command
                         'content' => ['it' => $wpPage['content']['rendered']],
                         'excerpt' => ['it' => $wpPage['excerpt']['rendered'] ?? ''],
                         'status' => PostStatus::Published,
-                        'author_id' => User::where('role', UserRole::SuperAdmin)->first()?->id ?? 1,
+                        'author_id' => User::where('role', UserRole::SuperAdmin)->first()->id ?? 1,
                     ]
                 );
                 $migrated++;

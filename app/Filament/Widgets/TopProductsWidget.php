@@ -46,7 +46,7 @@ class TopProductsWidget extends Widget
             ->with('product:id,name')
             ->get()
             ->map(fn ($item) => [
-                'name' => $item->product?->name ?? 'Prodotto rimosso',
+                'name' => $item->product->name ?? 'Prodotto rimosso',
                 'qty' => (int) $item->total_qty,
                 'revenue' => number_format($item->total_revenue, 2, ',', '.'),
             ])

@@ -137,7 +137,7 @@ class CartController extends Controller
                 return 0;
             }
 
-            return ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) * $item->quantity;
+            return ($item->product->effectivePrice() + ($item->variant->price_modifier ?? 0)) * $item->quantity;
         }) ?? 0;
 
         $count = $cart?->items?->sum('quantity') ?? 0;
@@ -157,7 +157,7 @@ class CartController extends Controller
     {
         $availableStock = $item->variant
             ? (int) $item->variant->stock
-            : (int) ($item->product?->stock ?? 0);
+            : (int) ($item->product->stock ?? 0);
 
         $variantStr = $item->variant
             ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color])))
@@ -170,7 +170,7 @@ class CartController extends Controller
             'quantity' => $item->quantity,
             'name' => $item->product?->name,
             'slug' => $item->product?->slug,
-            'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant?->price_modifier ?? 0)) : null,
+            'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant->price_modifier ?? 0)) : null,
             'variant' => $variantStr,
             'variant_name' => $variantStr,
             'image' => $item->product?->getImageUrl('card'),

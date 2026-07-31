@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * `user` può mancare se l'account che ha rilanciato è stato rimosso.
+ *
+ * @property-read User|null $user
+ */
 class Bid extends Model
 {
     use HasFactory, LogsActivity;

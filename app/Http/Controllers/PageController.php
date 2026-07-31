@@ -201,7 +201,7 @@ class PageController extends Controller
 
             return [
                 'players' => $players,
-                'seasonName' => $currentSeason?->name ?? __('Stagione corrente'),
+                'seasonName' => $currentSeason->name ?? __('Stagione corrente'),
             ];
         });
     }

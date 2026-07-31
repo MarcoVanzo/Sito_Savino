@@ -98,7 +98,7 @@ class AuctionResource extends Resource
                                             ],
                                         ];
 
-                                        $currentStatus = $record->status?->value ?? AuctionStatus::Draft->value;
+                                        $currentStatus = $record->status->value ?? AuctionStatus::Draft->value;
                                         $allowed = $allowedTransitions[$currentStatus] ?? AuctionStatus::cases();
 
                                         return collect($allowed)
