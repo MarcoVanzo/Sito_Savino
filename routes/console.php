@@ -12,7 +12,7 @@ Artisan::command('inspire', function () {
 // in produzione. La Lega non pubblica le statistiche individuali in una forma
 // estraibile, quindi resta un aiuto per popolare gli ambienti di sviluppo.
 if (! app()->isProduction()) {
-    Schedule::command('sync:legavolley')->daily();
+    Schedule::command('sync:legavolley')->daily()->withoutOverlapping();
 }
 
 // Battito del pianificatore, letto dall'health check `/up`. Se questo processo
@@ -27,12 +27,19 @@ Schedule::command('scheduler:beat')->everyMinute();
 // dura (soglia in `services.lvf.failure_alert_threshold`).
 Schedule::command('lvf:sync')->hourly()->withoutOverlapping();
 
-Schedule::command('sitemap:generate')->daily()->at('04:00');
+// Da qui in giù tutto ha withoutOverlapping(). Non è una precauzione contro la
+// lentezza dei singoli comandi — la sitemap e le potature girano una volta al
+// giorno — ma contro l'esecuzione doppia: il lock è condiviso via cache, quindi
+// vale anche fra istanze diverse. Oggi il componente `scheduler` ha
+// instance_count 1 e il caso non si presenta; senza il lock, alzarlo a 2 farebbe
+// potare i log e rigenerare la sitemap due volte in parallelo, e chi lo alzasse
+// non avrebbe modo di accorgersene.
+Schedule::command('sitemap:generate')->daily()->at('04:00')->withoutOverlapping();
 
 // Pulizia periodica
-Schedule::command('activity-log:prune --days=180 --force')->weekly();
-Schedule::command('model:prune')->daily();
-Schedule::command('carts:prune-expired')->daily()->at('03:00');
+Schedule::command('activity-log:prune --days=180 --force')->weekly()->withoutOverlapping();
+Schedule::command('model:prune')->daily()->withoutOverlapping();
+Schedule::command('carts:prune-expired')->daily()->at('03:00')->withoutOverlapping();
 
 // Controllo ordini non pagati: cancella Stripe/PayPal abbandonati (1h) e bonifici scaduti (7gg)
 // Frequenza alta per rilasciare stock bloccato da checkout abbandonati il prima possibile

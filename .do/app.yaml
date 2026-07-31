@@ -159,10 +159,13 @@ services:
   # App\Listeners\VerifyApplicationHealth).
   health_check:
     http_path: /up
-    # Il primo battito del pianificatore arriva entro un minuto dall'avvio, e le
-    # migrazioni in start.sh possono allungare il boot: partire a controllare
-    # troppo presto metterebbe l'istanza in ciclo di riavvio proprio durante un
-    # deploy legittimo.
+    # NON abbassare sotto i 60 secondi. start.sh esegue `cache:clear`, e la cache
+    # è lo store condiviso dove vive il battito del pianificatore: a ogni avvio
+    # del container web il battito viene cancellato e torna solo al giro
+    # successivo dello scheduler, cioè entro un minuto. Con un ritardo iniziale
+    # più corto, ogni riavvio del web si auto-diagnosticherebbe come "scheduler
+    # morto" e l'istanza entrerebbe in ciclo di riavvio. 120s lascia margine
+    # anche alle migrazioni, che allungano il boot.
     initial_delay_seconds: 120
     period_seconds: 30
     timeout_seconds: 5
@@ -289,3 +292,127 @@ workers:
   name: worker
   run_command: php artisan queue:work --queue=default,ai --sleep=3 --tries=3 --max-time=3600
     --max-jobs=100 --memory=384
+
+# Il pianificatore ha un componente suo. Prima girava dentro il container web,
+# avviato con `&` in start.sh prima di exec Apache: se moriva, Apache continuava
+# a servire e nessuno se ne accorgeva, mentre le aste non si chiudevano più e lo
+# stock degli ordini abbandonati restava bloccato.
+#
+# instance_count DEVE restare 1: due istanze eseguirebbero lo stesso comando in
+# parallelo. I comandi hanno withoutOverlapping(), che protegge tramite lock in
+# cache, ma è una rete di sicurezza, non un permesso a scalare.
+- build_command: composer install --optimize-autoloader --no-dev
+  envs:
+  - key: APP_ENV
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  # Il worker non aveva APP_URL: le email in coda (fra cui il link di checkout
+  # inviato al vincitore d'asta) uscivano con host http://localhost.
+  - key: APP_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://${APP_DOMAIN}
+  - key: APP_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:OmHtEaJvph/SAC9NuXF5zbln2WfyyjPw:UAJo7fOM+W06PqaMgENXCQ==]
+  - key: APP_DEBUG
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
+  - key: LOG_CHANNEL
+    scope: RUN_AND_BUILD_TIME
+    value: stderr
+  - key: LOG_LEVEL
+    scope: RUN_AND_BUILD_TIME
+    value: error
+  # I job in coda girano qui: senza Sentry sul worker, un fallimento di invio
+  # mail o di sincronizzazione non lascerebbe alcuna traccia visibile.
+  - key: SENTRY_LARAVEL_DSN
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: DA_IMPOSTARE_NEL_PANNELLO_DO
+  - key: SENTRY_ENVIRONMENT
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: SENTRY_TRACES_SAMPLE_RATE
+    scope: RUN_AND_BUILD_TIME
+    value: "0.1"
+  - key: DB_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: mysql
+  - key: DB_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.HOSTNAME}
+  - key: DB_PORT
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.PORT}
+  - key: DB_DATABASE
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.DATABASE}
+  - key: DB_USERNAME
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.USERNAME}
+  - key: DB_PASSWORD
+    scope: RUN_AND_BUILD_TIME
+    value: ${sito-savino-db.PASSWORD}
+  - key: QUEUE_CONNECTION
+    scope: RUN_AND_BUILD_TIME
+    value: database
+  - key: CACHE_STORE
+    scope: RUN_AND_BUILD_TIME
+    value: database
+  - key: FILESYSTEM_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+  - key: MEDIA_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+  - key: AWS_ACCESS_KEY_ID
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:2oyXgvBcvFNkjtaloxP9raPGij27GKqr:tCDRrHfDPnL0VCemCqH354MqHSQDUBY1mRZELclDe1uiX1Ti]
+  - key: AWS_SECRET_ACCESS_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:iQcYFmvB8aQICMuFTIAIUYCy/LMcr4Rw:+sTQNP3MossxOgljk7vl+gHf25ElZT+tWJDTpYNiP46BTr3slcuVX8dn/5V2V/WPennrBr2ylNt4jqw=]
+  - key: AWS_DEFAULT_REGION
+    scope: RUN_AND_BUILD_TIME
+    value: fra1
+  - key: AWS_BUCKET
+    scope: RUN_AND_BUILD_TIME
+    value: sito-savino-assets-2026
+  - key: AWS_ENDPOINT
+    scope: RUN_AND_BUILD_TIME
+    value: https://fra1.digitaloceanspaces.com
+  - key: AWS_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://sito-savino-assets-2026.fra1.digitaloceanspaces.com
+  - key: COMPREFACE_HOST
+    scope: RUN_AND_BUILD_TIME
+    value: http://10.114.0.3:8000
+  - key: COMPREFACE_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: 00000000-0000-0000-0000-000000000001
+  - key: ACTIVECAMPAIGN_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://savinodelbenevolley.api-us1.com
+  - key: ACTIVECAMPAIGN_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: 6caf9e1800fc6da3fdbf3bd991880e8528093a488ebc5acd29d7b3681201d0d1f4732524
+  - key: ACTIVECAMPAIGN_LIST_ID
+    scope: RUN_AND_BUILD_TIME
+    value: "2"
+  github:
+    branch: main
+    # Deploy gestito dal job "deploy" gated in .github/workflows/ci.yml
+    # (solo dopo che i test passano). Evita il doppio deploy e i rilasci
+    # non gated che avvenivano con deploy_on_push: true.
+    deploy_on_push: false
+    repo: MarcoVanzo/sito_savino
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  name: scheduler
+  # Un battito subito all'avvio, poi il ciclo del pianificatore: senza il
+  # primo `scheduler:beat` l'health check del web resterebbe in rosso per un
+  # minuto a ogni riavvio di questo componente.
+  run_command: php artisan scheduler:beat && php artisan schedule:work --no-interaction

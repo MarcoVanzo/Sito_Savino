@@ -44,9 +44,10 @@ php artisan event:cache
 echo "[6/6] Filament optimize..."
 php artisan filament:optimize
 
-# 7. Avvia il scheduler in background (aste, pulizia ordini, sitemap)
-echo "[7/7] Starting scheduler daemon..."
-php artisan schedule:work --no-interaction >> /dev/stderr 2>&1 &
+# Il pianificatore NON gira più qui: ha un componente dedicato in .do/app.yaml.
+# Era avviato in background con `&` prima di exec Apache, e questo lo rendeva
+# invisibile quando moriva — il container restava "healthy" perché Apache era
+# vivo, mentre aste, sblocco stock e sincronizzazione Lega si erano fermati.
 
 echo "=== Starting Apache server (with OPcache tuning) ==="
 exec heroku-php-apache2 -i php-config/opcache.ini public/
