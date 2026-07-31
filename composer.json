@@ -72,7 +72,7 @@
             "vendor/bin/phpstan analyse --no-progress --memory-limit=512M"
         ],
         "coverage": [
-            "@php -d pcov.enabled=1 vendor/bin/phpunit --coverage-clover=coverage.xml",
+            "@php -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit --coverage-clover=coverage.xml",
             "@php scripts/coverage-threshold.php coverage.xml"
         ],
         "post-autoload-dump": [

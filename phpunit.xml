@@ -15,6 +15,12 @@
     <source>
         <include>
             <directory>app</directory>
+            <!-- Le migrazioni sono codice che gira in produzione, e alcune
+                 contengono logica di trasformazione dei dati con test propri.
+                 Restandone fuori risultavano scoperte per SonarCloud, che
+                 invece analizza `database`: la migrazione più delicata di
+                 questa PR appariva non testata pur avendo cinque test. -->
+            <directory>database/migrations</directory>
         </include>
     </source>
     <php>
