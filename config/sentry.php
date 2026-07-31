@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\SentryDsn;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -17,7 +18,15 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 return [
 
     // @see https://docs.sentry.io/concepts/key-terms/dsn-explainer/
-    'dsn' => env('SENTRY_LARAVEL_DSN', env('SENTRY_DSN')),
+    //
+    // Passa da SentryDsn::sanitize(): un valore malformato non deve degradare
+    // la diagnostica, deve essere ignorato. Senza il filtro il SDK lo rifiuta
+    // dentro `boot()` e fa fallire l'avvio dell'intera applicazione — comprese
+    // le migrazioni in start.sh, quindi il container non parte proprio.
+    //
+    // Non è una chiamata a closure: il valore è risolto a scalare, quindi
+    // `config:cache` continua a funzionare.
+    'dsn' => SentryDsn::sanitize(env('SENTRY_LARAVEL_DSN', env('SENTRY_DSN'))),
 
     // @see https://spotlightjs.com/
     // 'spotlight' => env('SENTRY_SPOTLIGHT', false),

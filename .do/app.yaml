@@ -94,13 +94,20 @@ services:
   - key: LOG_LEVEL
     scope: RUN_AND_BUILD_TIME
     value: error
-  # Sentry. Il DSN non è un segreto in senso stretto (finisce nei bundle JS dei
-  # progetti che lo usano lato client), ma è comunque un endpoint di scrittura:
-  # va impostato dal pannello DO come SECRET, non committato qui.
+  # Sentry. Il valore va sostituito con il DSN reale CIFRATO (formato EV[1:...],
+  # come APP_KEY qui sopra): questa spec è la sorgente autorevole — l'action di
+  # deploy la applica alla app — quindi un valore impostato solo dal pannello
+  # verrebbe sovrascritto al rilascio successivo.
+  #
+  # Si genera impostando il DSN dal pannello DO e riscaricando la spec, oppure
+  # con `doctl apps update <app-id> --spec .do/app.yaml`.
+  #
+  # Finché resta vuoto, Sentry è semplicemente spento: SentryDsn::sanitize()
+  # scarta i valori non interpretabili invece di lasciarli arrivare al SDK, che
+  # li rifiuterebbe dentro boot() impedendo l'avvio dell'applicazione.
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: DA_IMPOSTARE_NEL_PANNELLO_DO
+    value: ""
   - key: SENTRY_ENVIRONMENT
     scope: RUN_AND_BUILD_TIME
     value: production
@@ -204,10 +211,10 @@ workers:
     value: error
   # I job in coda girano qui: senza Sentry sul worker, un fallimento di invio
   # mail o di sincronizzazione non lascerebbe alcuna traccia visibile.
+  # Stesso DSN cifrato del componente web (vedi la nota lì).
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: DA_IMPOSTARE_NEL_PANNELLO_DO
+    value: ""
   - key: SENTRY_ENVIRONMENT
     scope: RUN_AND_BUILD_TIME
     value: production
@@ -326,10 +333,10 @@ workers:
     value: error
   # I job in coda girano qui: senza Sentry sul worker, un fallimento di invio
   # mail o di sincronizzazione non lascerebbe alcuna traccia visibile.
+  # Stesso DSN cifrato del componente web (vedi la nota lì).
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
-    type: SECRET
-    value: DA_IMPOSTARE_NEL_PANNELLO_DO
+    value: ""
   - key: SENTRY_ENVIRONMENT
     scope: RUN_AND_BUILD_TIME
     value: production
