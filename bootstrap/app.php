@@ -91,7 +91,25 @@ return Application::configure(basePath: dirname(__DIR__))
                 $host = parse_url($url, PHP_URL_HOST)
                     ?: parse_url('https://'.ltrim($url, '/'), PHP_URL_HOST);
 
-                return is_string($host) && $host !== '' ? [$host] : [];
+                if (! is_string($host) || $host === '') {
+                    return [];
+                }
+
+                return [
+                    $host,
+                    // La sonda di App Platform interroga /up usando come Host
+                    // l'indirizzo IP del pod, non il dominio: senza questo
+                    // schema Symfony risponde 400 e l'istanza non passa mai
+                    // l'health check. Finché il controllo era TCP la cosa non
+                    // emergeva, perché nessuno faceva richieste HTTP interne.
+                    // Ammettere un Host in forma di IP non indebolisce la
+                    // difesa: serve a impedire che un Host forgiato finisca
+                    // negli URL assoluti generati (in primis i link di reset
+                    // password), e un indirizzo IP privato non è un dominio
+                    // verso cui valga la pena dirottare qualcuno.
+                    '^(\d{1,3}\.){3}\d{1,3}$',
+                    '^localhost$',
+                ];
             },
             subdomains: true,
         );
