@@ -15,6 +15,12 @@ if (! app()->isProduction()) {
     Schedule::command('sync:legavolley')->daily();
 }
 
+// Battito del pianificatore, letto dall'health check `/up`. Se questo processo
+// muore il sito continua a rispondere e nessuno se ne accorge: le aste non si
+// chiudono, lo stock degli ordini abbandonati resta bloccato, la Lega non si
+// sincronizza. Deve restare il primo comando del ciclo e non avere dipendenze.
+Schedule::command('scheduler:beat')->everyMinute();
+
 // Calendario, risultati e classifica dal sito della Lega. Ogni ora: i referti
 // arrivano a fine gara e la classifica si aggiorna subito dopo. I fallimenti
 // sono contati da LvfSyncHealth, che avvisa i Super Admin quando il guasto

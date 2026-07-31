@@ -153,6 +153,23 @@ services:
     # non gated che avvenivano con deploy_on_push: true.
     deploy_on_push: false
     repo: MarcoVanzo/sito_savino
+  # Senza questo blocco App Platform si limita al controllo TCP sulla porta:
+  # Apache vivo significava container sano, anche con il database irraggiungibile
+  # o il pianificatore morto. `/up` esegue le verifiche vere (vedi
+  # App\Listeners\VerifyApplicationHealth).
+  health_check:
+    http_path: /up
+    # Il primo battito del pianificatore arriva entro un minuto dall'avvio, e le
+    # migrazioni in start.sh possono allungare il boot: partire a controllare
+    # troppo presto metterebbe l'istanza in ciclo di riavvio proprio durante un
+    # deploy legittimo.
+    initial_delay_seconds: 120
+    period_seconds: 30
+    timeout_seconds: 5
+    # Tre fallimenti di fila (90s) prima del riavvio: una singola lentezza del
+    # database non deve far cadere l'istanza.
+    failure_threshold: 3
+    success_threshold: 1
   http_port: 8080
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-1gb-fixed
