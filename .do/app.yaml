@@ -88,9 +88,25 @@ services:
   - key: LOG_CHANNEL
     scope: RUN_AND_BUILD_TIME
     value: stderr
+  # `error` e non `warning`: i log di App Platform sono effimeri e nessuno li
+  # guarda, quindi servono solo come contesto di un errore già segnalato da
+  # Sentry. Allineato al worker, che prima era su `info` senza motivo.
   - key: LOG_LEVEL
     scope: RUN_AND_BUILD_TIME
-    value: warning
+    value: error
+  # Sentry. Il DSN non è un segreto in senso stretto (finisce nei bundle JS dei
+  # progetti che lo usano lato client), ma è comunque un endpoint di scrittura:
+  # va impostato dal pannello DO come SECRET, non committato qui.
+  - key: SENTRY_LARAVEL_DSN
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: DA_IMPOSTARE_NEL_PANNELLO_DO
+  - key: SENTRY_ENVIRONMENT
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: SENTRY_TRACES_SAMPLE_RATE
+    scope: RUN_AND_BUILD_TIME
+    value: "0.1"
   - key: SESSION_DRIVER
     scope: RUN_AND_BUILD_TIME
     value: database
@@ -165,7 +181,19 @@ workers:
     value: stderr
   - key: LOG_LEVEL
     scope: RUN_AND_BUILD_TIME
-    value: info
+    value: error
+  # I job in coda girano qui: senza Sentry sul worker, un fallimento di invio
+  # mail o di sincronizzazione non lascerebbe alcuna traccia visibile.
+  - key: SENTRY_LARAVEL_DSN
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: DA_IMPOSTARE_NEL_PANNELLO_DO
+  - key: SENTRY_ENVIRONMENT
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: SENTRY_TRACES_SAMPLE_RATE
+    scope: RUN_AND_BUILD_TIME
+    value: "0.1"
   - key: DB_CONNECTION
     scope: RUN_AND_BUILD_TIME
     value: mysql
