@@ -75,3 +75,6 @@ storage/do-ca-certificate.crt
 
 # Cartella temporanea di spatie/media-library (conversioni in lavorazione)
 /storage/media-library
+
+# Report di copertura generato da PHPUnit
+/coverage.xml

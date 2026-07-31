@@ -133,6 +133,14 @@ jobs:
       - name: Esegui test PHPUnit
         run: php artisan test ${{ github.event_name != 'push' && '--coverage-clover=coverage.xml' || '' }}
 
+      # Cricchetto sulla copertura delle aree che toccano denaro: checkout,
+      # carrello, aste e webhook dei gateway. Non è una percentuale
+      # complessiva — quella si alza scrivendo test sui getter e non dice
+      # nulla sul percorso di pagamento. Gira solo quando c'è il report.
+      - name: Verifica soglie di copertura
+        if: github.event_name != 'push'
+        run: php scripts/coverage-threshold.php coverage.xml
+
       # SonarCloud — analisi qualità/sicurezza + upload coverage.
       # Solo run complete (PR, schedule, manuale): sui push a main è la parte
       # più costosa della pipeline e non cambia l'esito del deploy.
