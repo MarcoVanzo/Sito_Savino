@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Exceptions\UnhealthyApplicationException;
+use App\Services\AdminNotificationService;
 use App\Support\SchedulerHeartbeat;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Support\Facades\Cache;
@@ -17,17 +18,23 @@ use Throwable;
  * che il pianificatore fosse morto perché il sito restasse "healthy" mentre non
  * serviva più nulla di utile.
  *
- * Ogni verifica solleva se fallisce, così `/up` risponde 500 e DigitalOcean
- * riavvia l'istanza. Il messaggio finisce anche su Sentry: il riavvio da solo
- * nasconderebbe la causa.
+ * Database e cache sollevano se falliscono: `/up` risponde 500 e DigitalOcean
+ * riavvia l'istanza, che è la cura giusta per un container in stato incoerente.
+ * Il messaggio finisce anche su Sentry, perché il riavvio da solo nasconderebbe
+ * la causa.
+ *
+ * Il pianificatore invece segnala soltanto — vedi reportSchedulerIfStale().
  */
 class VerifyApplicationHealth
 {
     public function handle(DiagnosingHealth $event): void
     {
+        // Solo ciò che un riavvio del container può rimettere a posto fa
+        // fallire il controllo. Il resto segnala e lascia il sito in piedi.
         $this->verifyDatabase();
         $this->verifyCache();
-        $this->verifyScheduler();
+
+        $this->reportSchedulerIfStale();
     }
 
     private function verifyDatabase(): void
@@ -63,27 +70,43 @@ class VerifyApplicationHealth
     }
 
     /**
-     * Solo in produzione: in sviluppo e nei test il pianificatore non gira, e
-     * far fallire `/up` su ogni macchina di sviluppo trasformerebbe il controllo
-     * in rumore da ignorare — che è il modo in cui i controlli smettono di servire.
+     * Il pianificatore fermo SEGNALA ma non fa fallire il controllo.
+     *
+     * È una distinzione che costa cara sbagliare. `/up` decide se App Platform
+     * riavvia il container web; ha senso far fallire solo ciò che un riavvio
+     * del web può davvero rimettere a posto. Il pianificatore ha un componente
+     * suo: riavviare il web non lo resuscita, quindi far fallire qui
+     * significherebbe mettere il sito in ciclo di riavvio — offline — per un
+     * guasto che senza health check sarebbe stato soltanto silenzioso.
+     *
+     * Prima che il pianificatore uscisse dal container web il ragionamento
+     * opposto era corretto, ed è così che questo controllo è nato.
+     *
+     * Solo in produzione: in sviluppo il pianificatore non gira, e un avviso su
+     * ogni macchina di sviluppo diventa rumore da ignorare.
      */
-    private function verifyScheduler(): void
+    private function reportSchedulerIfStale(): void
     {
-        if (! app()->isProduction()) {
+        if (! app()->isProduction() || ! SchedulerHeartbeat::isStale()) {
             return;
         }
 
-        if (! SchedulerHeartbeat::isStale()) {
+        // App Platform interroga `/up` ogni 30 secondi: senza silenziatore un
+        // pianificatore morto produrrebbe 2.880 segnalazioni al giorno.
+        // `add()` è atomico, quindi regge anche con più istanze del web.
+        if (! Cache::add('scheduler-stale-alert', true, 3600)) {
             return;
         }
 
         $elapsed = SchedulerHeartbeat::secondsSinceLastBeat();
 
-        throw UnhealthyApplicationException::for(
+        report(UnhealthyApplicationException::for(
             'scheduler',
             $elapsed === null
                 ? 'nessun battito registrato: il pianificatore non è mai partito'
                 : "ultimo battito {$elapsed}s fa, soglia ".SchedulerHeartbeat::STALE_AFTER_SECONDS.'s',
-        );
+        ));
+
+        app(AdminNotificationService::class)->notifySchedulerStalled($elapsed);
     }
 }

@@ -146,6 +146,32 @@ class AdminNotificationService
     }
 
     /**
+     * Avvisa che il pianificatore si è fermato.
+     *
+     * Non è un guasto che si vede guardando il sito: le pagine rispondono
+     * normalmente. Si manifesta come aste che non si chiudono, stock di ordini
+     * abbandonati che resta bloccato e calendario della Lega fermo — cioè come
+     * una serie di stranezze scollegate, giorni dopo.
+     *
+     * @param  int|null  $secondsSinceLastBeat  null se non è mai partito
+     */
+    public function notifySchedulerStalled(?int $secondsSinceLastBeat): void
+    {
+        $when = $secondsSinceLastBeat === null
+            ? 'Non è mai partito dall\'ultimo rilascio.'
+            : 'Ultimo segno di vita '.round($secondsSinceLastBeat / 60).' minuti fa.';
+
+        $this->sendToAdmins(
+            Notification::make()
+                ->title('Il pianificatore si è fermato')
+                ->body($when.' Aste, sblocco degli ordini non pagati e sincronizzazione con la Lega sono fermi.')
+                ->icon('heroicon-o-clock')
+                ->iconColor('danger'),
+            [UserRole::SuperAdmin->value],
+        );
+    }
+
+    /**
      * Invia una notifica Filament agli utenti dei ruoli indicati; per
      * impostazione predefinita SuperAdmin e ShopManager.
      *

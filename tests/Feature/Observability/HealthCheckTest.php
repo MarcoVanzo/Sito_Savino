@@ -2,8 +2,15 @@
 
 namespace Tests\Feature\Observability;
 
+use App\Enums\UserRole;
+use App\Exceptions\UnhealthyApplicationException;
+use App\Listeners\VerifyApplicationHealth;
+use App\Models\User;
 use App\Support\SchedulerHeartbeat;
+use Illuminate\Foundation\Events\DiagnosingHealth;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -18,6 +25,8 @@ use Tests\TestCase;
  */
 class HealthCheckTest extends TestCase
 {
+    use RefreshDatabase;
+
     #[Test]
     public function risponde_ok_quando_tutto_funziona(): void
     {
@@ -44,34 +53,107 @@ class HealthCheckTest extends TestCase
         $this->get('/up')->assertOk();
     }
 
+    /**
+     * Il caso che conta di più, e che una versione precedente sbagliava.
+     *
+     * `/up` decide se App Platform riavvia il container WEB. Il pianificatore
+     * ha un componente suo: riavviare il web non lo resuscita. Far fallire il
+     * controllo metterebbe il sito in ciclo di riavvio — offline — per un
+     * guasto che senza health check sarebbe stato soltanto silenzioso.
+     */
     #[Test]
-    public function in_produzione_fallisce_se_il_pianificatore_non_e_mai_partito(): void
+    public function un_pianificatore_fermo_non_butta_giu_il_sito(): void
     {
         $this->app['env'] = 'production';
         Cache::forget(SchedulerHeartbeat::CACHE_KEY);
 
-        $this->get('/up')->assertStatus(500);
+        $this->get('/up')->assertOk();
     }
 
     #[Test]
-    public function in_produzione_fallisce_se_il_battito_e_vecchio(): void
+    public function un_pianificatore_fermo_avvisa_i_super_admin(): void
     {
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => UserRole::SuperAdmin->value])->save();
+
         $this->app['env'] = 'production';
-        Cache::put(
-            SchedulerHeartbeat::CACHE_KEY,
-            now()->subSeconds(SchedulerHeartbeat::STALE_AFTER_SECONDS + 60)->timestamp,
-            now()->addHour(),
-        );
+        Cache::forget(SchedulerHeartbeat::CACHE_KEY);
 
-        $this->get('/up')->assertStatus(500);
+        $this->get('/up')->assertOk();
+
+        $this->assertSame(
+            1,
+            $admin->notifications()->whereJsonContains('data->title', 'Il pianificatore si è fermato')->count(),
+        );
     }
 
     #[Test]
-    public function in_produzione_passa_con_un_battito_recente(): void
+    public function l_avviso_sul_pianificatore_e_silenziato(): void
     {
+        // App Platform interroga `/up` ogni 30 secondi: senza silenziatore un
+        // pianificatore morto produrrebbe 2.880 segnalazioni al giorno.
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => UserRole::SuperAdmin->value])->save();
+
+        $this->app['env'] = 'production';
+        Cache::forget(SchedulerHeartbeat::CACHE_KEY);
+
+        $this->get('/up');
+        $this->get('/up');
+        $this->get('/up');
+
+        $this->assertSame(
+            1,
+            $admin->notifications()->whereJsonContains('data->title', 'Il pianificatore si è fermato')->count(),
+        );
+    }
+
+    #[Test]
+    public function con_un_battito_recente_non_avvisa_nessuno(): void
+    {
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => UserRole::SuperAdmin->value])->save();
+
         $this->app['env'] = 'production';
         SchedulerHeartbeat::beat();
 
         $this->get('/up')->assertOk();
+
+        $this->assertSame(0, $admin->notifications()->count());
+    }
+
+    /**
+     * Il rovescio della medaglia: ciò che un riavvio PUÒ risolvere deve
+     * continuare a far fallire il controllo, altrimenti l'health check torna a
+     * essere quello che era — una porta TCP aperta.
+     *
+     * Si esercita il listener direttamente invece di passare da `/up`: rendere
+     * irraggiungibile la connessione romperebbe la transazione di
+     * RefreshDatabase, e il test fallirebbe nel teardown invece che
+     * sull'asserzione.
+     */
+    #[Test]
+    public function un_database_irraggiungibile_fa_fallire_il_controllo(): void
+    {
+        DB::shouldReceive('connection')->andThrow(new \RuntimeException('Connection refused'));
+
+        $this->expectException(UnhealthyApplicationException::class);
+        $this->expectExceptionMessage('database');
+
+        app(VerifyApplicationHealth::class)->handle(new DiagnosingHealth);
+    }
+
+    #[Test]
+    public function una_cache_non_rileggibile_fa_fallire_il_controllo(): void
+    {
+        // Scrittura che passa ma rilettura che non restituisce il valore: è il
+        // guasto silenzioso di uno store rotto, e un riavvio può risolverlo.
+        Cache::shouldReceive('put')->andReturn(true);
+        Cache::shouldReceive('get')->andReturn(null);
+
+        $this->expectException(UnhealthyApplicationException::class);
+        $this->expectExceptionMessage('cache');
+
+        app(VerifyApplicationHealth::class)->handle(new DiagnosingHealth);
     }
 }

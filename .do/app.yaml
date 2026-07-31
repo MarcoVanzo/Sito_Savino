@@ -161,9 +161,15 @@ services:
     deploy_on_push: false
     repo: MarcoVanzo/sito_savino
   # Senza questo blocco App Platform si limita al controllo TCP sulla porta:
-  # Apache vivo significava container sano, anche con il database irraggiungibile
-  # o il pianificatore morto. `/up` esegue le verifiche vere (vedi
+  # Apache vivo significava container sano, anche con il database
+  # irraggiungibile. `/up` esegue le verifiche vere (vedi
   # App\Listeners\VerifyApplicationHealth).
+  #
+  # Fallisce SOLO su ciò che un riavvio di questo container può risolvere:
+  # database e cache. Un pianificatore fermo viene segnalato ma non fa fallire
+  # il controllo — ha un componente suo, riavviare il web non lo resuscita, e
+  # far fallire qui metterebbe il sito in ciclo di riavvio per un guasto che
+  # senza health check sarebbe stato soltanto silenzioso.
   health_check:
     http_path: /up
     # NON abbassare sotto i 60 secondi. start.sh esegue `cache:clear`, e la cache
