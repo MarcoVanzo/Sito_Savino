@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Porta `pages.content_data` al formato translatable.
@@ -38,9 +39,24 @@ return new class extends Migration
                         continue;
                     }
 
+                    $keys = array_keys($decoded);
+
                     // Già suddiviso per lingua (tutte le chiavi di primo livello
                     // sono lingue supportate): si lascia com'è.
-                    if (array_diff(array_keys($decoded), $locales) === []) {
+                    if (array_diff($keys, $locales) === []) {
+                        continue;
+                    }
+
+                    // Forma mista, con una chiave di lingua accanto a chiavi di
+                    // contenuto: avvolgerla creerebbe un doppio livello
+                    // (content_data.it.it). Non è un caso previsto, si lascia
+                    // intatta e si segnala per una revisione a mano.
+                    if (array_intersect($keys, $locales) !== []) {
+                        Log::warning(
+                            "Pagina #{$page->id}: content_data ha una forma mista "
+                            .'(chiavi di lingua e di contenuto insieme), lasciata invariata.'
+                        );
+
                         continue;
                     }
 

@@ -38,13 +38,18 @@ class SeedMenuImages extends Command
                 $path = base_path('database/seeders/menu_images/'.$map[$label]);
                 if (file_exists($path)) {
                     try {
-                        $item->clearMediaCollection('menu-images');
+                        // Niente clearMediaCollection prima del caricamento: la
+                        // collection è singleFile(), quindi addMedia sostituisce
+                        // già l'immagine precedente. Svuotarla in anticipo
+                        // significa perderla se poi il caricamento fallisce —
+                        // com'è successo con le credenziali Spaces scadute, che
+                        // hanno lasciato tutte le voci senza immagine.
                         $item->addMedia($path)
                             ->preservingOriginal()
                             ->toMediaCollection('menu-images', $disk);
                         $url = $item->getFirstMediaUrl('menu-images');
                         $this->info("✓ {$item->label} → {$url}");
-                    } catch (\Exception $e) {
+                    } catch (\Throwable $e) {
                         $this->error("✗ {$item->label}: ".$e->getMessage());
                     }
                 } else {
