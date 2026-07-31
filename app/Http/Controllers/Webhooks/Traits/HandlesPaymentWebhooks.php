@@ -174,6 +174,11 @@ trait HandlesPaymentWebhooks
             return response()->json(['message' => 'Pagamento processato'], 200);
 
         } catch (\Throwable $e) {
+            // `report()` oltre al log: un pagamento incassato dal gateway ma non
+            // registrato qui è denaro preso senza ordine confermato. Il solo
+            // Log::error finiva su stderr, effimero e non presidiato.
+            report($e);
+
             Log::error("{$this->getGatewayName()} webhook: errore processamento pagamento", [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
@@ -234,11 +239,13 @@ trait HandlesPaymentWebhooks
             $order->refresh();
 
             // Send refund confirmation email (outside transaction)
-            $recipientEmail = $order->user?->email ?? $order->guest_email;
+            $recipientEmail = $order->user->email ?? $order->guest_email;
             if ($recipientEmail) {
                 try {
                     Mail::to($recipientEmail)->queue(new RefundConfirmation($order));
                 } catch (\Throwable $e) {
+                    report($e);
+
                     Log::error('Errore invio email rimborso', ['order_id' => $order->id, 'error' => $e->getMessage()]);
                 }
             }
@@ -251,6 +258,8 @@ trait HandlesPaymentWebhooks
             return response()->json(['message' => 'Rimborso processato'], 200);
 
         } catch (\Throwable $e) {
+            report($e);
+
             Log::error("{$this->getGatewayName()} webhook: errore processamento rimborso", [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
@@ -334,7 +343,7 @@ trait HandlesPaymentWebhooks
         // Verifica la disponibilità PRIMA di creare i movimenti: lo
         // StockMovementObserver lancerebbe un'eccezione a scarico già inserito.
         foreach ($productNeed as $productId => $need) {
-            $stock = (int) (Product::lockForUpdate()->find($productId)?->stock ?? 0);
+            $stock = (int) (Product::lockForUpdate()->find($productId)->stock ?? 0);
 
             if ($stock < $need) {
                 return false;
@@ -346,7 +355,7 @@ trait HandlesPaymentWebhooks
                 continue;
             }
 
-            $variantStock = (int) (ProductVariant::lockForUpdate()->find($row['product_variant_id'])?->stock ?? 0);
+            $variantStock = (int) (ProductVariant::lockForUpdate()->find($row['product_variant_id'])->stock ?? 0);
 
             if ($variantStock < $row['missing']) {
                 return false;
@@ -421,6 +430,11 @@ trait HandlesPaymentWebhooks
         $order->forceFill([
             'notes' => trim(($order->notes ? $order->notes."\n" : '').$note),
         ])->save();
+
+        // La riga in shop_events e la nota sull'ordine restano il registro del
+        // caso, ma da sole non avvisano nessuno: un doppio incasso da rimborsare
+        // aspettava che qualcuno andasse a cercarlo.
+        app(AdminNotificationService::class)->notifyPaymentNeedsReview($order, $reason, $message);
     }
 
     /**
@@ -428,8 +442,8 @@ trait HandlesPaymentWebhooks
      */
     protected function sendOrderConfirmationEmail(Order $order): void
     {
-        $recipientEmail = $order->user?->email ?? $order->guest_email;
-        $recipientName = $order->user?->name ?? $order->guest_name;
+        $recipientEmail = $order->user->email ?? $order->guest_email;
+        $recipientName = $order->user->name ?? $order->guest_name;
 
         if (! $recipientEmail) {
             Log::warning("{$this->getGatewayName()} webhook: nessuna email per conferma ordine", [
@@ -443,7 +457,12 @@ trait HandlesPaymentWebhooks
             Mail::to($recipientEmail, $recipientName)
                 ->queue(new OrderConfirmation($order));
         } catch (\Throwable $e) {
-            // Don't fail the webhook for email errors — log and continue
+            // Il webhook non deve fallire per un problema di posta: il pagamento
+            // è già registrato e il gateway ritenterebbe inutilmente. Ma va
+            // segnalato, altrimenti un cliente che non riceve la conferma
+            // d'ordine resta un caso invisibile.
+            report($e);
+
             Log::error('Errore invio email conferma ordine', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),

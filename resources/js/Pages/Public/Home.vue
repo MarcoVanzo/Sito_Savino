@@ -8,7 +8,6 @@ import { useIntersectionReveal } from '@/Composables/useIntersectionReveal';
 import { useCountUp } from '@/Composables/useCountUp';
 import { useTiltEffect } from '@/Composables/useTiltEffect';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
-import LOGOS from '@/Constants/logos.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 import TeamCrest from '@/Components/TeamCrest.vue';
 import { useLocale } from '@/Composables/useLocale.js';

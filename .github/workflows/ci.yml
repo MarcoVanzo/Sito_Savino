@@ -95,6 +95,21 @@ jobs:
       - name: NPM build
         run: npm run build
 
+      # Lint JS/Vue. Blocca solo sugli errori: i warning residui sono quasi
+      # tutti d'ordine degli attributi nei template, li si assorbe man mano
+      # senza un diff di riformattazione che renderebbe illeggibile ogni PR.
+      - name: Lint JS/Vue (ESLint)
+        run: npm run lint
+
+      # Test frontend. Coprono i composable con logica vera — normalizzazione
+      # degli URL dal CMS e sanificazione dell'HTML — cioè le due cose fra il
+      # contenuto redazionale e il DOM del visitatore.
+      # Con copertura nelle run complete: il report lcov alimenta SonarCloud
+      # (vedi sonar.javascript.lcov.reportPaths). Sui push a main si salta,
+      # come già si fa per la copertura PHP.
+      - name: Esegui test frontend (Vitest)
+        run: npm run ${{ github.event_name != 'push' && 'test:coverage' || 'test' }}
+
       # Security audit — verifica vulnerabilità note nelle dipendenze
       - name: Security Audit (Composer)
         run: composer audit --abandoned=report
@@ -120,6 +135,14 @@ jobs:
       # Test PHPUnit con MySQL 8.4 (coverage solo nelle run complete)
       - name: Esegui test PHPUnit
         run: php artisan test ${{ github.event_name != 'push' && '--coverage-clover=coverage.xml' || '' }}
+
+      # Cricchetto sulla copertura delle aree che toccano denaro: checkout,
+      # carrello, aste e webhook dei gateway. Non è una percentuale
+      # complessiva — quella si alza scrivendo test sui getter e non dice
+      # nulla sul percorso di pagamento. Gira solo quando c'è il report.
+      - name: Verifica soglie di copertura
+        if: github.event_name != 'push'
+        run: php scripts/coverage-threshold.php coverage.xml
 
       # SonarCloud — analisi qualità/sicurezza + upload coverage.
       # Solo run complete (PR, schedule, manuale): sui push a main è la parte

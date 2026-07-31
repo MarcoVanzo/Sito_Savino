@@ -40,7 +40,7 @@ class ShopController extends Controller
             'sku' => $p->sku,
             'is_active' => $p->is_active,
             'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
-            'type' => $p->type?->value ?? $p->type,
+            'type' => $p->type->value ?? $p->type,
             'category' => $p->category ? [
                 'id' => $p->category->id,
                 'name' => $p->category->name,
@@ -65,7 +65,7 @@ class ShopController extends Controller
             'price' => $p->price,
             'sale_price' => $p->sale_price,
             'stock' => $p->availableStock(),
-            'type' => $p->type?->value ?? $p->type,
+            'type' => $p->type->value ?? $p->type,
             'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
             'category' => $p->category ? [
                 'id' => $p->category->id,

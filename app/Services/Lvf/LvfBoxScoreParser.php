@@ -67,7 +67,7 @@ class LvfBoxScoreParser
     {
         $rows = $document->xpath->query(self::DIRECT_ROWS, $table);
 
-        if (($rows?->length ?? 0) < 3) {
+        if (($rows->length ?? 0) < 3) {
             return false;
         }
 
@@ -245,7 +245,7 @@ class LvfBoxScoreParser
         foreach ($document->xpath->query('//table') ?: [] as $table) {
             $rows = $document->xpath->query(self::DIRECT_ROWS, $table);
 
-            if (($rows?->length ?? 0) < 2) {
+            if (($rows->length ?? 0) < 2) {
                 continue;
             }
 
@@ -298,7 +298,7 @@ class LvfBoxScoreParser
         foreach ($document->xpath->query('//table') ?: [] as $table) {
             $rows = $document->xpath->query(self::DIRECT_ROWS, $table);
 
-            if (($rows?->length ?? 0) < 2) {
+            if (($rows->length ?? 0) < 2) {
                 continue;
             }
 

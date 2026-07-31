@@ -16,8 +16,10 @@ parameters:
         - identifier: method.notFound
           path: app/Filament/*
         # Filament nullCoalesce edge cases
-        - identifier: nullCoalesce.expr
-          path: app/Filament/*
+        # `nullCoalesce.expr` è stato rimosso: serviva a coprire i `?->prop ??`
+        # dei Resource, ora eliminati. Il null coalescing usa già la semantica
+        # di isset() e sopprime l'accesso a proprietà su null, quindi il
+        # nullsafe alla sua sinistra non aggiungeva niente.
         - identifier: nullCoalesce.offset
           path: app/Filament/*
         # Filament defensive is_array() checks on PHPDoc-typed arrays

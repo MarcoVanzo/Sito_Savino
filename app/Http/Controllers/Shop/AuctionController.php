@@ -61,7 +61,7 @@ class AuctionController extends Controller
                 'is_mine' => $user && $bid->user_id === $user->id,
             ]),
             'userIsHighestBidder' => $userIsHighestBidder,
-            'hasVerifiedPayment' => $user?->has_verified_payment_method ?? false,
+            'hasVerifiedPayment' => $user->has_verified_payment_method ?? false,
             'rulesText' => SiteSetting::get('auctions.rules_text'),
         ]);
     }

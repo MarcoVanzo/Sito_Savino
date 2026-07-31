@@ -197,8 +197,8 @@ class AnalyzeGalleryImageJob implements ShouldQueue
         $namesString = implode(', ', $personNames);
 
         // Contesto dell'evento
-        $eventTitle = $event?->title ?? '';
-        $category = $this->galleryImage->category ?? $event?->category ?? 'Partite';
+        $eventTitle = $event->title ?? '';
+        $category = $this->galleryImage->category ?? $event->category ?? 'Partite';
         $eventDate = $event?->event_date?->format('d/m/Y') ?? '';
 
         // --- 1. Titolo SEO strutturato ---

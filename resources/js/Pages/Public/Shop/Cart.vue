@@ -11,7 +11,7 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 
 const $t = useTranslations();
 
-const { updateQuantity, removeItem, fetchCartCount } = useCart();
+const { fetchCartCount } = useCart();
 const { formatPrice } = useFormatPrice();
 const { onImgError } = useImageFallback();
 

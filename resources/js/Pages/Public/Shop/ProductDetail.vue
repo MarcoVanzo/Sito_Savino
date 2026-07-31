@@ -13,7 +13,7 @@ import ProductCard from '@/Components/Shop/ProductCard.vue';
 
 const $t = useTranslations();
 
-const { sanitize: sanitizeHtml } = useSanitize();
+const { sanitize } = useSanitize();
 
 const { addToCart } = useCart();
 const { formatPrice } = useFormatPrice();
@@ -114,9 +114,6 @@ const currentStock = computed(() => {
 
 const isOutOfStock = computed(() => currentStock.value <= 0);
 
-const needsVariantSelection = computed(() => {
-    return props.product?.variants?.length > 0 && !selectedVariant.value;
-});
 
 // --- Quantity ---
 const quantity = ref(1);
@@ -327,7 +324,7 @@ const structuredData = computed(() => {
                         </div>
 
                         <!-- Short Description -->
-                        <div v-if="product?.description" class="text-gray-600 leading-relaxed mb-8 prose prose-sm max-w-none" v-html="sanitizeHtml(product.description)"></div>
+                        <div v-if="product?.description" class="text-gray-600 leading-relaxed mb-8 prose prose-sm max-w-none" v-html="sanitize(product.description)"></div>
 
                         <!-- Variant Selector -->
                         <div v-if="product?.variants?.length" :class="['mb-6 transition-all duration-300', variantError ? 'ring-2 ring-red-400 rounded-xl p-3 bg-red-50/50' : '']">
@@ -432,7 +429,7 @@ const structuredData = computed(() => {
             <div class="max-w-4xl mx-auto">
                 <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-8">{{ $t('shop.description') }}</h3>
                 <div class="w-12 h-1 bg-savino-gold mb-8"></div>
-                <div class="prose prose-lg max-w-none text-gray-700 prose-headings:text-savino-blue prose-a:text-savino-blue" v-html="sanitizeHtml(product.long_description)"></div>
+                <div class="prose prose-lg max-w-none text-gray-700 prose-headings:text-savino-blue prose-a:text-savino-blue" v-html="sanitize(product.long_description)"></div>
             </div>
         </section>
 

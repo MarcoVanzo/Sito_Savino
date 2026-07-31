@@ -8,7 +8,7 @@ import { ref } from 'vue';
 const $t = useTranslations();
 const page = usePage();
 
-const props = defineProps({
+defineProps({
     hasVerifiedPayment: { type: Boolean, default: false },
 });
 

@@ -316,10 +316,10 @@ class CheckoutService
 
             $availableStock = $variant
                 ? (int) $variant->stock
-                : (int) ($product?->stock ?? 0);
+                : (int) ($product->stock ?? 0);
 
             if ($item->quantity > $availableStock) {
-                $productName = $product?->name ?? 'Unknown';
+                $productName = $product->name ?? 'Unknown';
                 $errors[] = __('messages.checkout.stock_issue', [
                     'product' => $productName,
                     'available' => $availableStock,

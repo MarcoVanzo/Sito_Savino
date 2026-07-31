@@ -1,52 +1,10 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Console/Commands/CheckUnpaidOrders.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Console/Commands/CheckUnpaidOrders.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Console/Commands/CheckUnpaidOrders.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Console/Commands/CheckUnpaidOrders.php
-
-		-
 			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: app/Console/Commands/CreateGalleryFromPosts.php
-
-		-
-			message: '#^Parameter \#1 \$array \(list\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
-			count: 1
-			path: app/Console/Commands/ImportWordPressNews.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Console/Commands/MigrateWpPages.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: app/Console/Commands/MigrateWpProducts.php
 
 		-
 			message: '#^Parameter \#2 \$length of function array_chunk expects int\<1, max\>, string\|null given\.$#'
@@ -79,12 +37,6 @@ parameters:
 			path: app/Filament/Resources/GalleryImageResource/Pages/EditGalleryImage.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Filament/Resources/GameResource.php
-
-		-
 			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1080 given\.$#'
 			identifier: argument.type
 			count: 1
@@ -107,18 +59,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Filament/Resources/ManagementResource.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Filament/Resources/OrderResource.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Filament/Resources/OrderResource.php
 
 		-
 			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
@@ -154,12 +94,6 @@ parameters:
 			message: '#^Parameter \#1 \$width of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetWidth\(\) expects Closure\|string\|null, 1200 given\.$#'
 			identifier: argument.type
 			count: 2
-			path: app/Filament/Resources/RosterResource.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
 			path: app/Filament/Resources/RosterResource.php
 
 		-
@@ -205,12 +139,6 @@ parameters:
 			path: app/Filament/Resources/YouthRosterResource.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>last_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Filament/Resources/YouthRosterResource.php
-
-		-
 			message: '#^Parameter \#1 \$height of method Filament\\Forms\\Components\\FileUpload\:\:imageResizeTargetHeight\(\) expects Closure\|string\|null, 1200 given\.$#'
 			identifier: argument.type
 			count: 1
@@ -221,36 +149,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Filament/Resources/YouthStaffResource.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\OrderItem\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Filament/Widgets/TopProductsWidget.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Filament/Widgets/TopProductsWidget.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:getFirstMediaUrl\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: app/Http/Controllers/PageController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Roster\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/PageController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/PageController.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$galleryEvent\.$#'
@@ -313,12 +211,6 @@ parameters:
 			path: app/Http/Controllers/PublicController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$player\.$#'
 			identifier: property.notFound
 			count: 1
@@ -367,12 +259,6 @@ parameters:
 			path: app/Http/Controllers/PublicController.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Standing\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
 			identifier: argument.unresolvableType
 			count: 1
@@ -412,18 +298,6 @@ parameters:
 			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 2
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>full_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 6
 			path: app/Http/Controllers/PublicController.php
 
 		-
@@ -487,12 +361,6 @@ parameters:
 			path: app/Http/Controllers/Shop/AuctionController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>has_verified_payment_method" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
 			identifier: property.notFound
 			count: 1
@@ -503,30 +371,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/Shop/CartController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>price_modifier" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/Shop/CartController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>stock" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Shop/CartController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/CheckoutController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Shop/CheckoutController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
@@ -541,81 +385,15 @@ parameters:
 			path: app/Http/Controllers/Shop/ShopController.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 2
-			path: app/Http/Controllers/Shop/ShopController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
-
-		-
 			message: '#^Property App\\Http\\Controllers\\Webhooks\\PayPalWebhookController\:\:\$gatewayName \(string\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1
 			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>stock" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/Webhooks/PayPalWebhookController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
 			message: '#^Property App\\Http\\Controllers\\Webhooks\\StripeWebhookController\:\:\$gatewayName \(string\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>stock" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
 			path: app/Http/Controllers/Webhooks/StripeWebhookController.php
 
 		-
@@ -639,18 +417,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$staffMembers\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Jobs/AnalyzeGalleryImageJob.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>category" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Jobs/AnalyzeGalleryImageJob.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>title" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Jobs/AnalyzeGalleryImageJob.php
 
@@ -733,39 +499,15 @@ parameters:
 			path: app/Models/Product.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Observers/OrderObserver.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Observers/OrderObserver.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$paid_at\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Policies/OrderItemPolicy.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/AdminNotificationService.php
-
-		-
 			message: '#^Parameter \#1 \$num of function number_format expects float, string given\.$#'
 			identifier: argument.type
 			count: 2
-			path: app/Services/AdminNotificationService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
 			path: app/Services/AdminNotificationService.php
 
 		-
@@ -877,18 +619,6 @@ parameters:
 			path: app/Services/CheckoutService.php
 
 		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>stock" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/CheckoutService.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 1
@@ -901,12 +631,6 @@ parameters:
 			path: app/Services/GalleryUploadService.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 3
-			path: app/Services/Lvf/LvfBoxScoreParser.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type DOMNodeList\<DOMNameSpaceNode\|DOMNode\>\|false\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 2
@@ -917,15 +641,3 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 2
 			path: app/Services/Lvf/LvfStandingsParser.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: app/Services/Payments/StripePaymentService.php

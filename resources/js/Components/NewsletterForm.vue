@@ -27,7 +27,6 @@ const flashSuccess = computed(() => inertiaPage.props.flash?.success);
 const flashInfo = computed(() => inertiaPage.props.flash?.newsletter_info);
 
 const isHero = computed(() => props.variant === 'hero');
-const isFooter = computed(() => props.variant === 'footer');
 
 const hasError = ref(false);
 

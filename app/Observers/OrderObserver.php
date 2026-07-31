@@ -59,7 +59,7 @@ class OrderObserver
         // Non invia per: Pending (stato iniziale), Paid (webhook gestisce), Shipped (admin invia email con tracking separata)
         $statusesThatNotify = [OrderStatus::Processing, OrderStatus::Delivered, OrderStatus::Cancelled, OrderStatus::Refunded];
         if (in_array($order->status, $statusesThatNotify)) {
-            $recipientEmail = $order->user?->email ?? $order->guest_email;
+            $recipientEmail = $order->user->email ?? $order->guest_email;
             if ($recipientEmail) {
                 Mail::to($recipientEmail)
                     ->queue(new OrderStatusChanged($order, $order->getOriginal('status')?->value, $order->status->value));

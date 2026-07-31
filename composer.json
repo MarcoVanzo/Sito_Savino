@@ -21,6 +21,7 @@
         "league/flysystem-aws-s3-v3": "^3.35",
         "predis/predis": "^3.5",
         "resend/resend-laravel": "^1.4",
+        "sentry/sentry-laravel": "^4.27",
         "spatie/laravel-medialibrary": "^11.0",
         "spatie/laravel-sitemap": "^8.2",
         "spatie/laravel-translatable": "^6.14",
@@ -69,6 +70,10 @@
         ],
         "analyse": [
             "vendor/bin/phpstan analyse --no-progress --memory-limit=512M"
+        ],
+        "coverage": [
+            "@php -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit --coverage-clover=coverage.xml",
+            "@php scripts/coverage-threshold.php coverage.xml"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

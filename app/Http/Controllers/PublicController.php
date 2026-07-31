@@ -371,7 +371,7 @@ class PublicController extends Controller
                 }
             }
 
-            $seasonName = $currentSeason?->name ?? __('Stagione corrente');
+            $seasonName = $currentSeason->name ?? __('Stagione corrente');
 
             return compact('games', 'standings', 'seasonName');
         });
@@ -411,8 +411,8 @@ class PublicController extends Controller
                 return [
                     'id' => $game->id,
                     'matchDate' => $game->match_date?->toIso8601String(),
-                    'home' => $game->homeTeam?->name ?? '',
-                    'away' => $game->awayTeam?->name ?? '',
+                    'home' => $game->homeTeam->name ?? '',
+                    'away' => $game->awayTeam->name ?? '',
                     'homeLogo' => $this->teamLogo($game->homeTeam),
                     'awayLogo' => $this->teamLogo($game->awayTeam),
                     'homeIsOwn' => $homeIsOwn,
@@ -499,7 +499,7 @@ class PublicController extends Controller
             ->get()
             ->map(fn (Standing $row): array => [
                 'pos' => $row->position,
-                'team' => $row->team?->name ?? '',
+                'team' => $row->team->name ?? '',
                 'logo' => $this->teamLogo($row->team),
                 'isOwn' => (bool) $row->team?->is_internal,
                 'pts' => $row->points,
@@ -572,13 +572,13 @@ class PublicController extends Controller
                 'spectators' => $game->spectators,
                 'referees' => $game->referees,
                 'home' => [
-                    'name' => $game->homeTeam?->name ?? '',
+                    'name' => $game->homeTeam->name ?? '',
                     'logo' => $this->teamLogo($game->homeTeam),
                     'isOwn' => (bool) $game->homeTeam?->is_internal,
                     'score' => $game->home_score,
                 ],
                 'away' => [
-                    'name' => $game->awayTeam?->name ?? '',
+                    'name' => $game->awayTeam->name ?? '',
                     'logo' => $this->teamLogo($game->awayTeam),
                     'isOwn' => (bool) $game->awayTeam?->is_internal,
                     'score' => $game->away_score,
@@ -671,7 +671,7 @@ class PublicController extends Controller
             ->map(fn ($stat): array => [
                 'id' => $stat->id,
                 'jersey' => $stat->jersey_number,
-                'name' => $stat->player?->full_name ?? $stat->player_name,
+                'name' => $stat->player->full_name ?? $stat->player_name,
                 'playerSlug' => $stat->player
                     ? $stat->player->id.'-'.Str::slug($stat->player->full_name)
                     : null,

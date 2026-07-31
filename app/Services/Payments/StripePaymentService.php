@@ -38,7 +38,7 @@ class StripePaymentService implements PaymentGatewayInterface
                     'quantity' => 1,
                 ],
             ],
-            'customer_email' => $order->user?->email ?? $order->guest_email,
+            'customer_email' => $order->user->email ?? $order->guest_email,
             // Stripe accetta solo stringhe nei metadata: passare interi fa
             // rifiutare la chiamata.
             'metadata' => [

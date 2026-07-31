@@ -15,6 +15,12 @@
     <source>
         <include>
             <directory>app</directory>
+            <!-- Le migrazioni sono codice che gira in produzione, e alcune
+                 contengono logica di trasformazione dei dati con test propri.
+                 Restandone fuori risultavano scoperte per SonarCloud, che
+                 invece analizza `database`: la migrazione più delicata di
+                 questa PR appariva non testata pur avendo cinque test. -->
+            <directory>database/migrations</directory>
         </include>
     </source>
     <php>
@@ -40,5 +46,10 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Senza DSN il client Sentry è inerte. Esplicito e non ereditato dal
+             .env locale: una macchina con il DSN valorizzato farebbe partire una
+             chiamata di rete a ogni eccezione sollevata dalla suite. -->
+        <env name="SENTRY_LARAVEL_DSN" value=""/>
+        <env name="SENTRY_DSN" value=""/>
     </php>
 </phpunit>

@@ -6,16 +6,7 @@ import { Head, usePage, Link } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
-import DOMPurify from 'dompurify';
-
-const sanitizeHtml = (html) => {
-  if (!html) return '';
-  if (typeof window === 'undefined') return html;
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'a', 'h2', 'h3', 'h4', 'span', 'div', 'blockquote'],
-    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
-  });
-};
+import { useSanitize } from '@/Composables/useSanitize';
 import CountdownTimer from '@/Components/Shop/Auction/CountdownTimer.vue';
 import BidForm from '@/Components/Shop/Auction/BidForm.vue';
 import BidHistory from '@/Components/Shop/Auction/BidHistory.vue';
@@ -23,6 +14,7 @@ import SocialShare from '@/Components/Shop/Auction/SocialShare.vue';
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
+const { sanitize } = useSanitize();
 const { onImgError } = useImageFallback();
 const page = usePage();
 
@@ -141,7 +133,7 @@ const onAuctionEnded = () => {
     currentAuction.value.is_active = false;
 };
 
-const onBidPlaced = (bid) => {
+const onBidPlaced = (_bid) => {
     isHighestBidder.value = true;
     pollStatus(); // Immediate refresh after bid
 };
@@ -156,8 +148,6 @@ onUnmounted(() => {
     stopPolling();
 });
 
-// Rules modal
-const showRules = ref(false);
 </script>
 
 <template>
@@ -336,7 +326,7 @@ const showRules = ref(false);
                                 </svg>
                                 {{ $t('auction.description') || 'Descrizione' }}
                             </h3>
-                            <div class="text-gray-300 text-sm leading-relaxed prose prose-invert prose-sm max-w-none" v-html="sanitizeHtml(currentAuction.description)" />
+                            <div class="text-gray-300 text-sm leading-relaxed prose prose-invert prose-sm max-w-none" v-html="sanitize(currentAuction.description)" />
                         </div>
 
                         <!-- Charity Description -->
@@ -344,7 +334,7 @@ const showRules = ref(false);
                             <h3 class="text-savino-gold font-bold text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
                                 🎗️ {{ $t('auction.charity_label') || 'Asta benefica' }}
                             </h3>
-                            <div class="text-gray-300 text-sm leading-relaxed" v-html="sanitizeHtml(currentAuction.charity_description)" />
+                            <div class="text-gray-300 text-sm leading-relaxed" v-html="sanitize(currentAuction.charity_description)" />
                         </div>
 
                         <!-- Rules -->
@@ -355,7 +345,7 @@ const showRules = ref(false);
                                 </svg>
                                 {{ $t('auction.rules') || 'Regolamento asta' }}
                             </h3>
-                            <div class="text-gray-300 text-sm leading-relaxed prose prose-invert prose-sm max-w-none" v-html="sanitizeHtml(rulesText)" />
+                            <div class="text-gray-300 text-sm leading-relaxed prose prose-invert prose-sm max-w-none" v-html="sanitize(rulesText)" />
                         </div>
 
                         <!-- Bid Increment Info -->

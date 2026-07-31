@@ -260,7 +260,7 @@ class CheckoutController extends Controller
      */
     private function handleBankTransfer(Order $order): RedirectResponse
     {
-        $recipientEmail = $order->user?->email ?? $order->guest_email;
+        $recipientEmail = $order->user->email ?? $order->guest_email;
 
         if ($recipientEmail) {
             Mail::to($recipientEmail)->queue(new OrderConfirmation($order));

@@ -219,7 +219,7 @@ class OrderResource extends Resource
                     ->weight(FontWeight::Bold),
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Cliente')
-                    ->getStateUsing(fn ($record) => $record->user?->name ?? $record->guest_name ?? '-')
+                    ->getStateUsing(fn ($record) => $record->user->name ?? $record->guest_name ?? '-')
                     ->url(fn ($record) => $record->user_id ? UserResource::getUrl('edit', ['record' => $record->user_id]) : null)
                     ->color(fn ($record) => $record->user_id ? 'primary' : null)
                     ->searchable(query: function (Builder $query, string $search): Builder {
@@ -351,7 +351,7 @@ class OrderResource extends Resource
                         $record->save();
 
                         // Invia email di spedizione al cliente
-                        $recipientEmail = $record->user?->email ?? $record->guest_email;
+                        $recipientEmail = $record->user->email ?? $record->guest_email;
                         if ($recipientEmail) {
                             Mail::to($recipientEmail)->queue(new OrderShipped($record));
                         }

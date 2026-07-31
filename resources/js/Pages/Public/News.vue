@@ -13,7 +13,7 @@ const { formatDate, locale } = useLocale();
 
 const $t = useTranslations();
 
-const props = defineProps({
+defineProps({
     posts: Object,
     categories: {
         type: Array,
@@ -160,8 +160,9 @@ const ogMeta = useOgMeta({
                             :href="link.url"
                             class="px-4 py-2.5 min-h-[44px] flex items-center text-sm font-medium border rounded-md transition-colors"
                             :class="link.active ? 'bg-savino-blue text-white border-savino-blue' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'"
-                            v-html="sanitize(link.label)"
-                        />
+                        >
+                            <span v-html="sanitize(link.label)" />
+                        </Link>
                         <span
                             v-else
                             class="px-4 py-2.5 min-h-[44px] flex items-center text-sm text-gray-400 border border-gray-200 rounded-md"
