@@ -95,6 +95,18 @@ jobs:
       - name: NPM build
         run: npm run build
 
+      # Lint JS/Vue. Blocca solo sugli errori: i warning residui sono quasi
+      # tutti d'ordine degli attributi nei template, li si assorbe man mano
+      # senza un diff di riformattazione che renderebbe illeggibile ogni PR.
+      - name: Lint JS/Vue (ESLint)
+        run: npm run lint
+
+      # Test frontend. Coprono i composable con logica vera — normalizzazione
+      # degli URL dal CMS e sanificazione dell'HTML — cioè le due cose fra il
+      # contenuto redazionale e il DOM del visitatore.
+      - name: Esegui test frontend (Vitest)
+        run: npm test
+
       # Security audit — verifica vulnerabilità note nelle dipendenze
       - name: Security Audit (Composer)
         run: composer audit --abandoned=report

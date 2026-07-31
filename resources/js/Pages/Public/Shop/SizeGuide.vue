@@ -6,7 +6,7 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 
 const $t = useTranslations();
 
-const props = defineProps({
+defineProps({
     sizeGuides: { type: Array, default: () => [] },
     supportEmail: { type: String, default: null },
 });

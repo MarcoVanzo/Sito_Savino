@@ -3,15 +3,12 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, watch, onUnmounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 import ProductCardSkeleton from '@/Components/Shop/ProductCardSkeleton.vue';
 
 
 const $t = useTranslations();
-
-const { onImgError } = useImageFallback();
 
 const props = defineProps({
     category: Object,
@@ -162,9 +159,10 @@ onUnmounted(() => {
                             :class="link.active
                                 ? 'bg-savino-blue text-white shadow-md'
                                 : 'text-gray-600 hover:bg-savino-blue/5 hover:text-savino-blue'"
-                            v-html="link.label"
                             preserve-state
-                        />
+                        >
+                            <span v-html="link.label" />
+                        </Link>
                         <span
                             v-else
                             class="px-4 py-2.5 text-sm text-gray-300"

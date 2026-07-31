@@ -8,7 +8,7 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
 
-const props = defineProps({
+defineProps({
     orders: {
         type: Object,
         required: true,
@@ -122,7 +122,7 @@ const formatDate = (dateString) => {
                                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                                     <template v-for="(link, k) in orders.links" :key="k">
                                         <div v-if="link.url === null" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-300" v-html="link.label"></div>
-                                        <Link v-else :href="link.url" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium" :class="{'text-savino-gold font-bold bg-gray-50 z-10': link.active, 'text-gray-500 hover:bg-gray-50': !link.active}" v-html="link.label"></Link>
+                                        <Link v-else :href="link.url" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium" :class="{'text-savino-gold font-bold bg-gray-50 z-10': link.active, 'text-gray-500 hover:bg-gray-50': !link.active}"><span v-html="link.label" /></Link>
                                     </template>
                                 </nav>
                             </div>

@@ -13,7 +13,6 @@ const {
     closeCart,
     updateQuantity,
     removeItem,
-    fetchCartCount,
     cartVersion,
 } = useCart();
 const { formatPrice } = useFormatPrice();

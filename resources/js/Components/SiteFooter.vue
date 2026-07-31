@@ -93,7 +93,6 @@ const displayedLinks = computed(() => {
 
 // Logo e testi dal backend con fallback
 const footerLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
-const footerBrandName = computed(() => general.value.corporate_name || 'Savino Del Bene');
 const footerTagline = computed(() => footerSettings.value.footer_tagline || $t('footer.tagline_default'));
 // Il testo può arrivare dal CMS e finisce in v-html: va sanificato.
 const copyrightText = computed(() => sanitize(

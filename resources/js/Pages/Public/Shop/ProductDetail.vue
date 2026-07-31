@@ -114,9 +114,6 @@ const currentStock = computed(() => {
 
 const isOutOfStock = computed(() => currentStock.value <= 0);
 
-const needsVariantSelection = computed(() => {
-    return props.product?.variants?.length > 0 && !selectedVariant.value;
-});
 
 // --- Quantity ---
 const quantity = ref(1);

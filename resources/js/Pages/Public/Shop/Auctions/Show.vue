@@ -141,7 +141,7 @@ const onAuctionEnded = () => {
     currentAuction.value.is_active = false;
 };
 
-const onBidPlaced = (bid) => {
+const onBidPlaced = (_bid) => {
     isHighestBidder.value = true;
     pollStatus(); // Immediate refresh after bid
 };
@@ -156,8 +156,6 @@ onUnmounted(() => {
     stopPolling();
 });
 
-// Rules modal
-const showRules = ref(false);
 </script>
 
 <template>

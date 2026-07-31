@@ -1,7 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head, usePage } from '@inertiajs/vue3'
+import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
@@ -20,9 +20,6 @@ const props = defineProps({
 const { sanitize } = useSanitize()
 const safeContent = computed(() => sanitize(props.page?.content))
 
-const inertiaPage = usePage()
-const settings = computed(() => inertiaPage.props.siteSettings ?? {})
-const contact = computed(() => settings.value.contact ?? {})
 const cd = computed(() => props.page?.content_data ?? {})
 
 const plans = computed(() => {
