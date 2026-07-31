@@ -174,6 +174,11 @@ trait HandlesPaymentWebhooks
             return response()->json(['message' => 'Pagamento processato'], 200);
 
         } catch (\Throwable $e) {
+            // `report()` oltre al log: un pagamento incassato dal gateway ma non
+            // registrato qui è denaro preso senza ordine confermato. Il solo
+            // Log::error finiva su stderr, effimero e non presidiato.
+            report($e);
+
             Log::error("{$this->getGatewayName()} webhook: errore processamento pagamento", [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
@@ -239,6 +244,8 @@ trait HandlesPaymentWebhooks
                 try {
                     Mail::to($recipientEmail)->queue(new RefundConfirmation($order));
                 } catch (\Throwable $e) {
+                    report($e);
+
                     Log::error('Errore invio email rimborso', ['order_id' => $order->id, 'error' => $e->getMessage()]);
                 }
             }
@@ -251,6 +258,8 @@ trait HandlesPaymentWebhooks
             return response()->json(['message' => 'Rimborso processato'], 200);
 
         } catch (\Throwable $e) {
+            report($e);
+
             Log::error("{$this->getGatewayName()} webhook: errore processamento rimborso", [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
@@ -421,6 +430,11 @@ trait HandlesPaymentWebhooks
         $order->forceFill([
             'notes' => trim(($order->notes ? $order->notes."\n" : '').$note),
         ])->save();
+
+        // La riga in shop_events e la nota sull'ordine restano il registro del
+        // caso, ma da sole non avvisano nessuno: un doppio incasso da rimborsare
+        // aspettava che qualcuno andasse a cercarlo.
+        app(AdminNotificationService::class)->notifyPaymentNeedsReview($order, $reason, $message);
     }
 
     /**
@@ -443,7 +457,12 @@ trait HandlesPaymentWebhooks
             Mail::to($recipientEmail, $recipientName)
                 ->queue(new OrderConfirmation($order));
         } catch (\Throwable $e) {
-            // Don't fail the webhook for email errors — log and continue
+            // Il webhook non deve fallire per un problema di posta: il pagamento
+            // è già registrato e il gateway ritenterebbe inutilmente. Ma va
+            // segnalato, altrimenti un cliente che non riceve la conferma
+            // d'ordine resta un caso invisibile.
+            report($e);
+
             Log::error('Errore invio email conferma ordine', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
