@@ -7,18 +7,6 @@ parameters:
 			path: app/Console/Commands/CreateGalleryFromPosts.php
 
 		-
-			message: '#^Parameter \#1 \$array \(list\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
-			count: 1
-			path: app/Console/Commands/ImportWordPressNews.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: app/Console/Commands/MigrateWpProducts.php
-
-		-
 			message: '#^Parameter \#2 \$length of function array_chunk expects int\<1, max\>, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
