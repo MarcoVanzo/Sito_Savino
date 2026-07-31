@@ -92,6 +92,61 @@ class FixDoubleEncodedTranslationsMigrationTest extends TestCase
         $this->assertSame('Prima squadra', DB::table('categories')->where('id', $id)->value('name'));
     }
 
+    /**
+     * I titoli della galleria hanno lo stesso difetto dei nomi di categoria:
+     * campi in testo semplice riempiti dall'import con un JSON per lingua. Sono
+     * quelli che il visitatore legge sotto ogni foto, quindi il difetto era
+     * visibile in pagina.
+     */
+    #[Test]
+    public function riporta_a_testo_semplice_i_titoli_degli_eventi_galleria(): void
+    {
+        $id = DB::table('gallery_events')->insertGetId([
+            'title' => json_encode(['it' => 'Trofeo Città di Scandicci']),
+            'event_date' => now()->toDateString(),
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->runMigration();
+
+        $this->assertSame('Trofeo Città di Scandicci', DB::table('gallery_events')->where('id', $id)->value('title'));
+    }
+
+    #[Test]
+    public function riporta_a_testo_semplice_i_titoli_delle_immagini(): void
+    {
+        $id = DB::table('gallery_images')->insertGetId([
+            'title' => json_encode(['it' => json_encode(['it' => 'Esultanza dopo il set'])]),
+            'sort_order' => 0,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->runMigration();
+
+        // Doppia codifica anche qui: va sfilata fino al testo vero.
+        $this->assertSame('Esultanza dopo il set', DB::table('gallery_images')->where('id', $id)->value('title'));
+    }
+
+    #[Test]
+    public function lascia_stare_i_titoli_gia_in_testo_semplice(): void
+    {
+        $id = DB::table('gallery_events')->insertGetId([
+            'title' => 'Finale di Coppa',
+            'event_date' => now()->toDateString(),
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->runMigration();
+
+        $this->assertSame('Finale di Coppa', DB::table('gallery_events')->where('id', $id)->value('title'));
+    }
+
     #[Test]
     public function e_idempotente(): void
     {
