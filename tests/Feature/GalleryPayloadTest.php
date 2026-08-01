@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\GalleryImage;
+use App\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -57,5 +59,26 @@ class GalleryPayloadTest extends TestCase
         $this->getJson('/gallery/data')
             ->assertStatus(200)
             ->assertJsonCount(3, 'media');
+    }
+
+    #[Test]
+    public function l_endpoint_per_atleta_filtra_sulle_sue_foto(): void
+    {
+        $player = Player::factory()->create();
+        GalleryImage::factory()->count(2)->create(['is_active' => true])
+            ->each(fn (GalleryImage $img) => $img->players()->attach($player));
+        GalleryImage::factory()->count(3)->create(['is_active' => true]);
+
+        $slug = $player->id.'-'.Str::slug($player->full_name);
+
+        $this->getJson("/gallery/atleta/{$slug}/data")
+            ->assertStatus(200)
+            ->assertJsonCount(2, 'media');
+    }
+
+    #[Test]
+    public function l_atleta_inesistente_da_404(): void
+    {
+        $this->getJson('/gallery/atleta/99999-nessuno/data')->assertStatus(404);
     }
 }

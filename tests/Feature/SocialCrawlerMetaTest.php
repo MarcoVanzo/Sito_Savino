@@ -90,6 +90,42 @@ class SocialCrawlerMetaTest extends TestCase
     }
 
     #[Test]
+    public function il_prodotto_senza_short_description_usa_la_descrizione_lunga(): void
+    {
+        $product = Product::factory()->create([
+            'name' => 'Sciarpa ufficiale',
+            'slug' => 'sciarpa-ufficiale',
+            'short_description' => null,
+            'description' => '<p>Una sciarpa in maglia con i colori sociali, prodotta in Toscana.</p>',
+            'is_active' => true,
+        ]);
+
+        $this->withHeaders(self::CRAWLER)
+            ->get("/shop/prodotto/{$product->slug}")
+            ->assertStatus(200)
+            ->assertSee('Una sciarpa in maglia con i colori sociali', false);
+    }
+
+    #[Test]
+    public function la_pagina_cms_senza_meta_description_ricade_sul_contenuto(): void
+    {
+        Page::factory()->create([
+            'slug' => 'hospitality',
+            'title' => 'Hospitality',
+            'meta_description' => null,
+            'excerpt' => null,
+            'content' => '<p>Pacchetti hospitality per le aziende al Palazzo Wanny.</p>',
+            'status' => PostStatus::Published,
+        ]);
+
+        $this->withHeaders(self::CRAWLER)
+            ->get('/sponsor/hospitality')
+            ->assertStatus(200)
+            ->assertSee('Hospitality —', false)
+            ->assertSee('Pacchetti hospitality per le aziende', false);
+    }
+
+    #[Test]
     public function la_bozza_non_e_esposta_al_crawler(): void
     {
         $post = Post::factory()->create([
