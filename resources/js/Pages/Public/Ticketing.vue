@@ -7,6 +7,7 @@ import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useSafeUrl } from '@/Composables/useSafeUrl'
 import { useLocale } from '@/Composables/useLocale'
+import { mapCmsPlans } from '@/Support/ticketingPlans.js'
 
 const $t = useTranslations();
 const { safeUrl } = useSafeUrl();
@@ -27,29 +28,9 @@ const safeContent = computed(() => sanitize(props.page?.content))
 
 const cd = computed(() => props.page?.content_data ?? {})
 
-// I piani arrivano SOLO dal CMS: nessun prezzo di esempio come fallback.
-// Prima qui c'erano tre piani hard-coded (15/199/99 €) che andavano in produzione
-// come se fossero listino ufficiale, con CTA che non portavano da nessuna parte.
-const plans = computed(() => {
-    const raw = cd.value.plans
-
-    if (!Array.isArray(raw)) {
-        return []
-    }
-
-    return raw
-        .filter(p => p && (p.name || p.price))
-        .map(p => ({
-            name: p.name || $t('ticketing.plan_default_name'),
-            price: p.price || '0',
-            period: p.period || $t('ticketing.period_season'),
-            features: Array.isArray(p.features) ? p.features : [],
-            highlight: !!p.highlight,
-            cta: p.cta || $t('ticketing.buy_cta'),
-            // senza cta_url il pulsante non viene mostrato affatto
-            ctaUrl: safeUrl(p.cta_url) || null,
-        }))
-})
+// I piani arrivano SOLO dal CMS, senza prezzi di esempio come fallback:
+// la normalizzazione (e il perché) sta in mapCmsPlans, coperta dai test.
+const plans = computed(() => mapCmsPlans(cd.value.plans, { t: $t, safeUrl }))
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('ticketing.og_title'),

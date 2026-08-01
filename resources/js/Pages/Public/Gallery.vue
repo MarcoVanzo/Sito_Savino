@@ -5,6 +5,8 @@ import { Head, router } from '@inertiajs/vue3'
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useImageFallback } from '@/Composables/useImageFallback.js'
 import { useOgMeta } from '@/Composables/useOgMeta'
+import { useChunkedList } from '@/Composables/useChunkedList.js'
+import { useDeferredArchive } from '@/Composables/useDeferredArchive.js'
 
 const $t = useTranslations();
 
@@ -42,35 +44,19 @@ const props = defineProps({
 // Il server manda solo le prime ~120 foto, il resto arriva da /gallery/data
 // subito dopo il primo render: la pagina diventa interattiva senza aspettare
 // mezzo megabyte di JSON, e i filtri lavorano comunque sull'archivio completo.
-const lazyMedia = ref(null)
-const displayMedia = computed(() => lazyMedia.value ?? props.media)
+const { items: lazyMedia, load: loadFullArchive } = useDeferredArchive({
+    url: () => {
+        const base = props.currentAthlete
+            ? `/gallery/atleta/${props.currentAthlete.slug}/data`
+            : '/gallery/data'
 
-const galleryDataUrl = computed(() => {
-    const base = props.currentAthlete
-        ? `/gallery/atleta/${props.currentAthlete.slug}/data`
-        : '/gallery/data'
-
-    return window.location.pathname.startsWith('/en/') ? `/en${base}` : base
+        return window.location.pathname.startsWith('/en/') ? `/en${base}` : base
+    },
+    initialCount: props.media.length,
+    totalCount: props.mediaTotal,
 })
 
-async function loadFullArchive() {
-    if (lazyMedia.value || props.mediaTotal <= props.media.length) return
-
-    try {
-        const response = await fetch(galleryDataUrl.value, {
-            headers: { Accept: 'application/json' },
-        })
-        if (!response.ok) return
-
-        const data = await response.json()
-        if (Array.isArray(data.media) && data.media.length) {
-            lazyMedia.value = data.media
-        }
-    } catch {
-        // Restano visibili le foto del primo blocco: nessun messaggio d'errore,
-        // la pagina è comunque utilizzabile.
-    }
-}
+const displayMedia = computed(() => lazyMedia.value ?? props.media)
 
 // ── Particelle hero ───────────────────────────────────────────
 // Valori deterministici: Math.random() nel template verrebbe rieseguito ad
@@ -122,22 +108,12 @@ const filteredMedia = computed(() => {
 // Montare 900 <img> in un colpo solo produceva una pagina alta oltre 100.000px
 // e un DOM che il telefono non regge. Si parte da un blocco e si cresce su
 // richiesta (o quando la sentinella di fondo pagina entra in vista).
-const RENDER_CHUNK = 60
-const renderLimit = ref(RENDER_CHUNK)
-
-const visibleMedia = computed(() => filteredMedia.value.slice(0, renderLimit.value))
-const hasMoreToRender = computed(() => filteredMedia.value.length > renderLimit.value)
-const remainingToRender = computed(() => Math.max(filteredMedia.value.length - renderLimit.value, 0))
-
-function renderMore() {
-    renderLimit.value += RENDER_CHUNK
-}
-
-// Un cambio di filtro riparte dall'inizio: altrimenti si resterebbe con un
-// limite alto ereditato dal filtro precedente.
-watch(filteredMedia, () => {
-    renderLimit.value = RENDER_CHUNK
-})
+const {
+    visible: visibleMedia,
+    hasMore: hasMoreToRender,
+    remaining: remainingToRender,
+    showMore: renderMore,
+} = useChunkedList(filteredMedia, 60)
 
 function filterByCategory(cat) {
     activeCategory.value = cat

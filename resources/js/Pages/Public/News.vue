@@ -7,6 +7,7 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useLocale } from '@/Composables/useLocale.js';
+import { collapseCategories } from '@/Support/collapseCategories.js';
 
 const { onImgError } = useImageFallback();
 const { formatDate, locale } = useLocale();
@@ -30,29 +31,18 @@ const props = defineProps({
 // quello corrente per non perdere il prefisso di lingua.
 const basePath = computed(() => usePage().url.split('?')[0]);
 
-// Le categorie sono più di venti (una per stagione, più le coppe): mostrarle
-// tutte riempiva mezzo schermo di pillole prima ancora della prima notizia.
-// Si mostrano le più usate, il resto dietro un "mostra tutte".
-const VISIBLE_CATEGORIES = 8;
+// Le categorie sono più di venti (una per stagione, più le coppe): si
+// mostrano le più usate, il resto dietro un "mostra tutte". La logica vive
+// in collapseCategories, coperta dai test.
 const showAllCategories = ref(false);
 
-const sortedCategories = computed(() =>
-    [...props.categories].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
-);
+const collapsed = computed(() => collapseCategories(props.categories, {
+    activeSlug: props.activeCategory,
+    showAll: showAllCategories.value,
+}));
 
-const visibleCategories = computed(() => {
-    if (showAllCategories.value) return sortedCategories.value;
-
-    // La categoria attiva resta sempre visibile, anche se poco usata.
-    const head = sortedCategories.value.slice(0, VISIBLE_CATEGORIES);
-    const active = sortedCategories.value.find(c => c.slug === props.activeCategory);
-
-    return active && !head.includes(active) ? [...head, active] : head;
-});
-
-const hiddenCategoriesCount = computed(() =>
-    Math.max(sortedCategories.value.length - visibleCategories.value.length, 0)
-);
+const visibleCategories = computed(() => collapsed.value.visible);
+const hiddenCategoriesCount = computed(() => collapsed.value.hiddenCount);
 
 function categoryUrl(slug) {
     if (!slug) return basePath.value;
