@@ -36,6 +36,11 @@ Schedule::command('lvf:sync')->hourly()->withoutOverlapping();
 // non avrebbe modo di accorgersene.
 Schedule::command('sitemap:generate')->daily()->at('04:00')->withoutOverlapping();
 
+// I file appena caricati arrivano su Spaces senza Content-Type e senza
+// Cache-Control (vedi FixRemoteMediaMetadata): si ripassano quelli recenti,
+// così le immagini nuove nascono cacheabili senza interventi manuali.
+Schedule::command('media:fix-remote-metadata --since="3 days ago"')->dailyAt('04:30')->withoutOverlapping();
+
 // Pulizia periodica
 Schedule::command('activity-log:prune --days=180 --force')->weekly()->withoutOverlapping();
 Schedule::command('model:prune')->daily()->withoutOverlapping();

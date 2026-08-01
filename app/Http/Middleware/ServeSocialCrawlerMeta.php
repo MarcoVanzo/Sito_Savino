@@ -2,7 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\PostStatus;
+use App\Models\Page;
 use App\Models\Post;
+use App\Models\Product;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -88,8 +91,18 @@ class ServeSocialCrawlerMeta
 
         $meta = $this->resolveMetaForPath($request);
 
-        return response($this->buildMinimalHtml($meta, $request), 200)
+        return response($this->buildMinimalHtml($meta, $request, self::localeOf($request)), 200)
             ->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    /**
+     * Lingua della richiesta dedotta dal prefisso di rotta (`/en/...`).
+     * Il middleware gira prima di SetLocale, quindi app()->getLocale() qui
+     * varrebbe sempre 'it' e ogni anteprima inglese dichiarerebbe lang="it".
+     */
+    private static function localeOf(Request $request): string
+    {
+        return preg_match('#^en(/|$)#', ltrim($request->path(), '/')) === 1 ? 'en' : 'it';
     }
 
     /**
@@ -117,20 +130,37 @@ class ServeSocialCrawlerMeta
      */
     private function resolveMetaForPath(Request $request): array
     {
-        $path = ltrim($request->path(), '/');
+        $locale = self::localeOf($request);
 
-        // News singola: /news/{slug}
-        if (preg_match('#^news/([a-z0-9\-]+)$#', $path, $matches)) {
-            return $this->resolveNewsMeta($matches[1]);
+        // Il prefisso di lingua non fa parte del path logico: senza toglierlo,
+        // ogni URL inglese cadeva sul fallback generico della home.
+        $path = ltrim($request->path(), '/');
+        if ($locale === 'en') {
+            $path = ltrim(preg_replace('#^en(/|$)#', '', $path) ?? '', '/');
         }
 
-        // Prodotto shop: /shop/{slug} (se implementato in futuro)
+        // News singola: /news/{slug}
+        if (preg_match('#^news/([\w\-]+)$#u', $path, $matches)) {
+            return $this->resolveNewsMeta($matches[1], $locale);
+        }
+
+        // Prodotto shop: /shop/prodotto/{slug} — in inglese /shop/product/{slug}
+        if (preg_match('#^shop/(?:prodotto|product)/([\w\-]+)$#u', $path, $matches)) {
+            return $this->resolveProductMeta($matches[1], $locale);
+        }
 
         // Pagine statiche
         $basePath = explode('/', $path)[0] ?? '';
         if (isset(self::PAGE_META[$path])) {
             return self::PAGE_META[$path];
         }
+
+        // Pagina del CMS: copre gli slug che non stanno nella tabella qui sopra
+        // (societa/storia, ticketing/abbonamenti, sponsor/…, comunicazione/…).
+        if ($path !== '' && $meta = $this->resolveCmsPageMeta($path, $locale)) {
+            return $meta;
+        }
+
         if (isset(self::PAGE_META[$basePath])) {
             return self::PAGE_META[$basePath];
         }
@@ -139,7 +169,7 @@ class ServeSocialCrawlerMeta
         return self::PAGE_META[''];
     }
 
-    private function resolveNewsMeta(string $slug): array
+    private function resolveNewsMeta(string $slug, string $locale = 'it'): array
     {
         // `published()` è obbligatorio: senza, un `curl -A "WhatsApp"` sullo slug
         // di una bozza ne restituiva titolo ed estratto. Stesso scope usato da
@@ -151,33 +181,110 @@ class ServeSocialCrawlerMeta
             return self::PAGE_META['news'];
         }
 
+        // Il middleware gira prima di SetLocale: i campi tradotti vanno chiesti
+        // esplicitamente nella lingua dell'URL, altrimenti l'anteprima inglese
+        // riporta il testo italiano.
+        $title = $this->translated($post, 'title', $locale);
+        $excerpt = $this->translated($post, 'excerpt', $locale);
+        $content = $this->translated($post, 'content', $locale);
+
         return [
-            'title' => $post->title.' — Savino Del Bene Volley',
-            'description' => $post->excerpt ?? mb_substr(strip_tags($post->body ?? ''), 0, 160),
+            'title' => $title.' — Savino Del Bene Volley',
+            'description' => $excerpt !== '' ? $excerpt : mb_substr(strip_tags($content), 0, 160),
             'image' => $post->getFirstMediaUrl('cover') ?: null,
         ];
     }
 
-    private function buildMinimalHtml(array $meta, Request $request): string
+    private function resolveProductMeta(string $slug, string $locale): array
+    {
+        $product = Product::shoppable()->where('slug', $slug)->first();
+
+        if (! $product) {
+            return self::PAGE_META['shop'];
+        }
+
+        $name = $this->translated($product, 'name', $locale);
+        $short = $this->translated($product, 'short_description', $locale);
+        $description = $short !== ''
+            ? $short
+            : mb_substr(strip_tags($this->translated($product, 'description', $locale)), 0, 160);
+
+        return [
+            'title' => $name.' — Savino Del Bene Volley',
+            'description' => $description,
+            'image' => $product->getFirstMediaUrl('images', 'card')
+                ?: ($product->getFirstMediaUrl('images') ?: null),
+            'type' => 'product',
+        ];
+    }
+
+    private function resolveCmsPageMeta(string $path, string $locale): ?array
+    {
+        // Gli URL di sezione (`/societa/storia`, `/ticketing/abbonamenti`)
+        // portano lo slug nell'ultimo segmento, non nell'intero path.
+        $candidates = array_unique([$path, basename($path)]);
+
+        $page = Page::whereIn('slug', $candidates)
+            ->where('status', PostStatus::Published)
+            ->first();
+
+        if (! $page) {
+            return null;
+        }
+
+        $title = $this->translated($page, 'title', $locale);
+        $metaDescription = $this->translated($page, 'meta_description', $locale);
+        $excerpt = $this->translated($page, 'excerpt', $locale);
+        $content = $this->translated($page, 'content', $locale);
+
+        $description = $metaDescription !== '' ? $metaDescription : $excerpt;
+        if ($description === '') {
+            $description = mb_substr(strip_tags($content), 0, 160);
+        }
+
+        return [
+            'title' => ($title !== '' ? $title : 'Savino Del Bene Volley').' — Savino Del Bene Volley',
+            'description' => $description,
+            'image' => $page->getFirstMediaUrl('cover') ?: null,
+        ];
+    }
+
+    /**
+     * Valore di un campo tradotto, normalizzato a stringa.
+     */
+    private function translated(object $model, string $field, string $locale): string
+    {
+        $value = method_exists($model, 'getTranslation')
+            ? $model->getTranslation($field, $locale)
+            : ($model->{$field} ?? '');
+
+        return is_string($value) ? trim($value) : '';
+    }
+
+    private function buildMinimalHtml(array $meta, Request $request, string $locale = 'it'): string
     {
         $title = e($meta['title'] ?? 'Savino Del Bene Volley');
         $description = e($meta['description'] ?? '');
         $url = e($request->fullUrl());
         $siteName = 'Savino Del Bene Volley';
         $image = e($meta['image'] ?? url('/images/logo.png'));
+        $lang = $locale === 'en' ? 'en' : 'it';
+        $ogLocale = $locale === 'en' ? 'en_GB' : 'it_IT';
+        $ogType = e($meta['type'] ?? 'website');
 
         return <<<HTML
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{$lang}">
 <head>
     <meta charset="utf-8">
     <title>{$title}</title>
     <meta name="description" content="{$description}">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{$ogType}">
     <meta property="og:title" content="{$title}">
     <meta property="og:description" content="{$description}">
     <meta property="og:url" content="{$url}">
     <meta property="og:image" content="{$image}">
+    <meta property="og:locale" content="{$ogLocale}">
     <meta property="og:site_name" content="{$siteName}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{$title}">

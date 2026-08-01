@@ -11,6 +11,7 @@ use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Team;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -113,6 +114,12 @@ class PageController extends Controller
         if (request()->routeIs('*pages.show') && isset(self::SLUG_SECTION_MAP[$page->slug])) {
             $section = self::SLUG_SECTION_MAP[$page->slug];
             $routePrefix = app()->getLocale() === 'it' ? '' : app()->getLocale().'.';
+
+            // Quando lo slug coincide con la sezione l'URL canonico è la sezione
+            // e basta: la regola generale produceva /summer-camp/summer-camp.
+            if ($page->slug === $section && Route::has($routePrefix.$section)) {
+                return redirect()->route($routePrefix.$section, [], 301);
+            }
 
             return redirect()->route($routePrefix.$section.'.page', ['slug' => $page->slug], 301);
         }

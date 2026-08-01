@@ -285,7 +285,8 @@
         "prev_image": "Immagine precedente",
         "next_image": "Immagine successiva",
         "lightbox_label": "Immagine ingrandita",
-        "open_image": "Apri immagine ingrandita"
+        "open_image": "Apri immagine ingrandita",
+        "load_more": "Mostra altre foto"
     },
     "news": {
         "og_title": "News",
@@ -297,7 +298,8 @@
         "empty_category_text": "Non ci sono notizie in questa categoria.",
         "filter_label": "Filtra per categoria",
         "filter_all": "Tutte",
-        "filter_reset": "Mostra tutte le notizie"
+        "filter_reset": "Mostra tutte le notizie",
+        "filter_show_all": "Tutte le categorie"
     },
     "news_detail": {
         "back_to_news": "Torna alle News",
@@ -348,7 +350,8 @@
         "col_set_ratio_short": "QS",
         "col_point_ratio_short": "QP",
         "legend_ratios": "QS = Quoziente set · QP = Quoziente punti",
-        "legend_breakdown": "3-0 / 3-1 / 3-2 = vittorie per punteggio · 2-3 / 1-3 / 0-3 = sconfitte per punteggio"
+        "legend_breakdown": "3-0 / 3-1 / 3-2 = vittorie per punteggio · 2-3 / 1-3 / 0-3 = sconfitte per punteggio",
+        "season_not_started": "Il campionato non è ancora iniziato: le squadre sono elencate in ordine alfabetico e i valori restano a zero fino alla prima giornata."
     },
     "partita": {
         "og_description": "Tabellino e statistiche della gara {home} - {away}: punteggio set per set, parziali e statistiche individuali.",
@@ -427,22 +430,7 @@
     "ticketing": {
         "plan_default_name": "Piano",
         "period_season": "stagione",
-        "period_per_match": "a partita",
         "buy_cta": "Acquista",
-        "plan_single_name": "Singola Partita",
-        "plan_single_cta": "Acquista Biglietto",
-        "plan_gold_name": "Abbonamento Gold",
-        "plan_base_name": "Abbonamento Base",
-        "subscribe_cta": "Sottoscrivi Ora",
-        "feature_access_palazzo": "Accesso al Palazzo Wanny",
-        "feature_side_stand": "Posto in tribuna laterale",
-        "feature_buy_online_counter": "Acquisto online o in cassa",
-        "feature_all_home_games": "Tutte le partite casalinghe",
-        "feature_numbered_seat": "Posto numerato in tribuna centrale",
-        "feature_priority_access": "Accesso prioritario al palazzetto",
-        "feature_merch_discount": "Sconto 10% su merchandising",
-        "feature_meet_greet": "Meet & Greet con le atlete",
-        "feature_dedicated_entrance": "Ingresso dedicato",
         "og_title": "Biglietteria",
         "og_description": "Acquista i biglietti per le partite della Savino Del Bene Volley al Palazzo Wanny. Abbonamenti e biglietti singoli.",
         "hero_label": "Vivi l'Emozione",
@@ -452,7 +440,9 @@
         "info_heading": "Informazioni sull'Acquisto",
         "online_description": "Acquista i biglietti comodamente online tramite il nostro sistema di ticketing. Pagamento sicuro con carta di credito o PayPal.",
         "boxoffice_title": "Al Botteghino",
-        "boxoffice_description": "La biglietteria del Palazzo Wanny apre 2 ore prima dell'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici."
+        "boxoffice_description": "La biglietteria del Palazzo Wanny apre 2 ore prima dell'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.",
+        "plans_empty": "La campagna abbonamenti per la prossima stagione non è ancora aperta. Appena i prezzi saranno ufficiali li troverai qui.",
+        "plans_empty_cta": "Contattaci"
     },
     "shop": {
         "og_title": "Shop Ufficiale",

@@ -43,6 +43,13 @@ class LvfSyncService
      */
     private ?int $seasonYear = null;
 
+    /**
+     * Squadre di cui si è già verificato il logo in questa esecuzione.
+     *
+     * @var array<int, true>
+     */
+    private array $logosChecked = [];
+
     public static function make(): self
     {
         return new self(LvfClient::fromConfig(), new LvfMatchParser, new LvfStandingsParser);
@@ -259,6 +266,13 @@ class LvfSyncService
         $alias = TeamLvfClubId::with('team')->where('lvf_club_id', $clubId)->first();
 
         if ($alias?->team instanceof Team) {
+            // Anche per le squadre già agganciate: `syncLogo` esce subito se il
+            // file c'è già, e senza questa chiamata le società registrate prima
+            // che l'import scaricasse i loghi restavano senza copia locale —
+            // la classifica finiva per puntare le immagini al sito della Lega
+            // a ogni visita.
+            $this->syncLogo($alias->team);
+
             return $alias->team;
         }
 
@@ -366,6 +380,14 @@ class LvfSyncService
      */
     private function syncLogo(Team $team): void
     {
+        // Una squadra ricorre in decine di gare: senza questa memoria il
+        // controllo del media partirebbe a ogni riga del calendario.
+        if (isset($this->logosChecked[$team->id])) {
+            return;
+        }
+
+        $this->logosChecked[$team->id] = true;
+
         if ($team->lvf_club_id === null || $team->getFirstMedia(Team::LOGO_IMPORTED) !== null) {
             return;
         }

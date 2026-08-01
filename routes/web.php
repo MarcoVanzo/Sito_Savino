@@ -19,6 +19,7 @@ use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackShopPageView;
+use App\Services\SitemapBuilder;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -30,6 +31,17 @@ Route::domain('shop.savinodelbenevolley.it')->group(function () {
         return redirect()->to(url('/shop/'.$any), 301);
     })->where('any', '.*');
 });
+
+// Sitemap generata a runtime (con cache): gli URL seguono APP_URL dell'ambiente.
+// Non deve esistere un `public/sitemap.xml`, altrimenti il web server lo servirebbe
+// al posto di questa rotta — ed è così che in produzione sono finiti in sitemap
+// 378 URL `http://localhost:8000`.
+Route::get('/sitemap.xml', function (SitemapBuilder $builder) {
+    return response($builder->render(), 200, [
+        'Content-Type' => 'application/xml; charset=utf-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+})->name('sitemap');
 
 $locales = ['it', 'en'];
 
@@ -89,7 +101,10 @@ foreach ($locales as $loc) {
         })->where('any', '.*');
 
         Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
+        // Resto dell'archivio, caricato dal client dopo il primo render
+        Route::get('/gallery/data', [PublicController::class, 'galleryData'])->name('gallery.data');
         Route::get('/gallery/atleta/{slug}', [PublicController::class, 'galleryAtleta'])->name('gallery.atleta');
+        Route::get('/gallery/atleta/{slug}/data', [PublicController::class, 'galleryData'])->name('gallery.atleta.data');
         Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
         Route::get('/societa', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'societa.page', ['slug' => 'storia']);
@@ -122,6 +137,11 @@ foreach ($locales as $loc) {
         Route::get('/summer-camp/iscrizione', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'summer-camp.page', ['slug' => 'iscrizione-experience'], 301);
         })->name('summer-camp.iscrizione');
+        // La pagina della sezione vive sul suo stesso indirizzo: prima
+        // `/summer-camp` rimbalzava su `/summer-camp/summer-camp`.
+        Route::get('/summer-camp', [PageController::class, 'show'])
+            ->defaults('slug', 'summer-camp')
+            ->name('summer-camp');
         Route::get('/summer-camp/{slug}', [PageController::class, 'show'])->name('summer-camp.page');
 
         // Sociale routes

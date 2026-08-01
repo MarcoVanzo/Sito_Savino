@@ -30,6 +30,12 @@ use Inertia\Response;
 
 class PublicController extends Controller
 {
+    /**
+     * Foto incluse nel payload iniziale della gallery. Il resto dell'archivio
+     * viene caricato dopo, da `galleryData()`.
+     */
+    private const GALLERY_INITIAL_CHUNK = 120;
+
     public function home()
     {
         $locale = app()->getLocale();
@@ -727,11 +733,59 @@ class PublicController extends Controller
             return Page::where('slug', 'gallery')->published()->first();
         });
 
+        $media = $this->galleryMedia($playerFilter);
+
+        // Get all players that have at least one gallery image for the filter dropdown
+        $athletes = Cache::remember("public:gallery_athletes:{$locale}", now()->addMinutes(30), function () {
+            return Player::whereHas('galleryImages', fn ($q) => $q->where('gallery_images.is_active', true))
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->orderBy('id')
+                ->get()->map(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->full_name,
+                    'slug' => $p->id.'-'.Str::slug($p->full_name),
+                ])->toArray();
+        });
+
+        $totalEvents = Cache::remember('public:gallery_total_events', now()->addMinutes(30), function () {
+            return GalleryEvent::where('is_active', true)
+                ->whereHas('galleryImages', fn ($q) => $q->where('is_active', true))
+                ->count();
+        });
+
+        return Inertia::render('Public/Gallery', [
+            'page' => $page,
+            // Solo il primo blocco: l'archivio è di ~900 foto e serializzarlo
+            // tutto portava la pagina a mezzo megabyte di HTML. Il resto arriva
+            // da /gallery/data appena la pagina è interattiva, così i filtri
+            // continuano a lavorare sull'archivio completo.
+            'media' => array_slice($media, 0, self::GALLERY_INITIAL_CHUNK),
+            'mediaTotal' => count($media),
+            'athletes' => $athletes,
+            'totalEvents' => $totalEvents,
+            'currentAthlete' => $playerFilter ? [
+                'id' => $playerFilter->id,
+                'name' => $playerFilter->full_name,
+                'slug' => $playerFilter->id.'-'.Str::slug($playerFilter->full_name),
+            ] : null,
+        ]);
+    }
+
+    /**
+     * Archivio completo della gallery, normalizzato per il front-end.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function galleryMedia(?Player $playerFilter = null): array
+    {
+        $locale = app()->getLocale();
+
         $cacheKey = $playerFilter
             ? "public:gallery_images:player_{$playerFilter->id}:{$locale}"
             : "public:gallery_images:{$locale}";
 
-        $media = Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter, $locale) {
+        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter, $locale) {
             $query = GalleryImage::active()->ordered()
                 ->with(['media', 'players:id,first_name,last_name', 'galleryEvent:id,title']);
 
@@ -779,36 +833,26 @@ class PublicController extends Controller
                 })
                 ->toArray();
         });
+    }
 
-        // Get all players that have at least one gallery image for the filter dropdown
-        $athletes = Cache::remember("public:gallery_athletes:{$locale}", now()->addMinutes(30), function () {
-            return Player::whereHas('galleryImages', fn ($q) => $q->where('gallery_images.is_active', true))
-                ->orderBy('last_name')
-                ->orderBy('first_name')
-                ->orderBy('id')
-                ->get()->map(fn ($p) => [
-                    'id' => $p->id,
-                    'name' => $p->full_name,
-                    'slug' => $p->id.'-'.Str::slug($p->full_name),
-                ])->toArray();
-        });
+    /**
+     * Archivio completo della gallery in JSON, per il caricamento differito.
+     */
+    public function galleryData(?string $slug = null)
+    {
+        $playerFilter = null;
 
-        $totalEvents = Cache::remember('public:gallery_total_events', now()->addMinutes(30), function () {
-            return GalleryEvent::where('is_active', true)
-                ->whereHas('galleryImages', fn ($q) => $q->where('is_active', true))
-                ->count();
-        });
+        if ($slug) {
+            $playerId = (int) explode('-', $slug)[0];
+            $playerFilter = Player::find($playerId);
 
-        return Inertia::render('Public/Gallery', [
-            'page' => $page,
-            'media' => $media,
-            'athletes' => $athletes,
-            'totalEvents' => $totalEvents,
-            'currentAthlete' => $playerFilter ? [
-                'id' => $playerFilter->id,
-                'name' => $playerFilter->full_name,
-                'slug' => $playerFilter->id.'-'.Str::slug($playerFilter->full_name),
-            ] : null,
+            if (! $playerFilter) {
+                abort(404);
+            }
+        }
+
+        return response()->json([
+            'media' => $this->galleryMedia($playerFilter),
         ]);
     }
 

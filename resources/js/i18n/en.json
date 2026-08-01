@@ -285,7 +285,8 @@
         "prev_image": "Previous image",
         "next_image": "Next image",
         "lightbox_label": "Enlarged image",
-        "open_image": "Open enlarged image"
+        "open_image": "Open enlarged image",
+        "load_more": "Show more photos"
     },
     "news": {
         "og_title": "News",
@@ -297,7 +298,8 @@
         "empty_category_text": "There are no articles in this category.",
         "filter_label": "Filter by category",
         "filter_all": "All",
-        "filter_reset": "Show all news"
+        "filter_reset": "Show all news",
+        "filter_show_all": "All categories"
     },
     "news_detail": {
         "back_to_news": "Back to News",
@@ -348,7 +350,8 @@
         "col_set_ratio_short": "SR",
         "col_point_ratio_short": "PR",
         "legend_ratios": "SR = Set ratio · PR = Point ratio",
-        "legend_breakdown": "3-0 / 3-1 / 3-2 = wins by score · 2-3 / 1-3 / 0-3 = losses by score"
+        "legend_breakdown": "3-0 / 3-1 / 3-2 = wins by score · 2-3 / 1-3 / 0-3 = losses by score",
+        "season_not_started": "The season has not started yet: teams are listed alphabetically and all values stay at zero until the first matchday."
     },
     "partita": {
         "og_description": "Box score and statistics for {home} - {away}: set-by-set score, partials and individual stats.",
@@ -427,22 +430,7 @@
     "ticketing": {
         "plan_default_name": "Plan",
         "period_season": "season",
-        "period_per_match": "per match",
         "buy_cta": "Buy",
-        "plan_single_name": "Single Match",
-        "plan_single_cta": "Buy Ticket",
-        "plan_gold_name": "Gold Season Pass",
-        "plan_base_name": "Basic Season Pass",
-        "subscribe_cta": "Subscribe Now",
-        "feature_access_palazzo": "Access to Palazzo Wanny",
-        "feature_side_stand": "Side stand seating",
-        "feature_buy_online_counter": "Buy online or at the box office",
-        "feature_all_home_games": "All home matches",
-        "feature_numbered_seat": "Numbered seat in the central stand",
-        "feature_priority_access": "Priority access to the arena",
-        "feature_merch_discount": "10% discount on merchandising",
-        "feature_meet_greet": "Meet & Greet with athletes",
-        "feature_dedicated_entrance": "Dedicated entrance",
         "og_title": "Ticketing",
         "og_description": "Buy tickets for Savino Del Bene Volley matches at Palazzo Wanny. Season passes and single tickets.",
         "hero_label": "Feel the Emotion",
@@ -452,7 +440,9 @@
         "info_heading": "Purchase Information",
         "online_description": "Buy tickets conveniently online through our ticketing system. Secure payment with credit card or PayPal.",
         "boxoffice_title": "At the Box Office",
-        "boxoffice_description": "The Palazzo Wanny box office opens 2 hours before the start of each match. We accept cash and electronic payments."
+        "boxoffice_description": "The Palazzo Wanny box office opens 2 hours before the start of each match. We accept cash and electronic payments.",
+        "plans_empty": "The season ticket campaign is not open yet. Prices will appear here as soon as they are official.",
+        "plans_empty_cta": "Get in touch"
     },
     "shop": {
         "og_title": "Official Shop",

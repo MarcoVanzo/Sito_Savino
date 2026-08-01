@@ -77,7 +77,10 @@ onMounted(() => {
 });
 
 // --- Variant Selector ---
-const selectedVariant = ref(null);
+// Con una sola taglia disponibile chiedere di sceglierla è solo un ostacolo:
+// si preseleziona, e il messaggio di validazione resta per i casi veri.
+const availableVariants = (props.product?.variants ?? []).filter(v => v.stock > 0);
+const selectedVariant = ref(availableVariants.length === 1 ? availableVariants[0].id : null);
 
 const activeVariant = computed(() => {
     if (selectedVariant.value && props.product?.variants?.length) {

@@ -84,17 +84,21 @@ const corporateDomain = computed(() => {
             class="sticky top-0 z-50 text-gray-200 transition-all duration-500 ease-out"
             :class="headerScrolled 
                 ? 'bg-[#0B1521]/90 backdrop-blur-lg shadow-[0_10px_30px_rgba(0,0,0,0.5)]' 
-                : 'bg-gradient-to-b from-[#0B1521]/70 via-[#0B1521]/30 to-transparent backdrop-blur-[2px] shadow-none'"
+                : 'bg-gradient-to-b from-[#0B1521]/90 via-[#0B1521]/55 to-transparent backdrop-blur-[2px] shadow-none'"
         >
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[85px] relative">
                 <div class="flex justify-between items-center h-full">
                     <!-- LOGHI CHE SBORDANO (Layout Originale) -->
-                    <div class="flex-shrink-0 flex items-center z-[60] w-[380px] h-full relative">
+                    <!-- La larghezza riservata deve restare sotto lo spazio disponibile:
+                         sui telefoni il blocco icone (menu, carrello, account) occupa ~212px
+                         e una larghezza fissa lo spingerebbe fuori dal viewport. -->
+                    <div class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[210px] md:w-[280px] xl:w-[380px] h-full relative">
                         <div class="absolute top-2 left-0 z-[60] flex items-end">
-                            
-                            <!-- Corporate Logo Block (Sfondo Bianco) -->
-                            <div class="relative group">
-                                <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 px-3 py-1.5 mb-2 w-[230px] overflow-hidden">
+
+                            <!-- Corporate Logo Block (Sfondo Bianco) — nascosto sui telefoni: a quella
+                                 dimensione il payoff è illeggibile e ruberebbe spazio alla navigazione -->
+                            <div class="relative group hidden sm:block">
+                                <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 pl-3 pr-8 xl:pr-10 py-1.5 mb-2 w-[150px] md:w-[190px] xl:w-[230px] overflow-hidden">
                                     <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                 </a>
                                 
@@ -118,8 +122,8 @@ const corporateDomain = computed(() => {
                             </div>
 
                             <!-- Volley Logo -->
-                            <Link :href="route('home')" class="block z-10 -ml-8 transition-transform duration-300 hover:scale-105 pb-1">
-                                <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[125px] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
+                            <Link :href="route('home')" class="block z-10 sm:-ml-6 xl:-ml-8 transition-transform duration-300 hover:scale-105 pb-1">
+                                <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[64px] sm:h-[84px] md:h-[100px] xl:h-[125px] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
                             </Link>
                         </div>
                     </div>

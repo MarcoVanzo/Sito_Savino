@@ -10,7 +10,14 @@ import { createTranslations } from './i18n/index.js';
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
 createInertiaApp({
-    title: (title) => title ? `${title} - ${appName}` : appName,
+    // Le pagine che usano useOgMeta arrivano qui con il nome del sito già in
+    // coda: senza questo controllo il titolo diventava
+    // "Shop Ufficiale — Savino Del Bene Volley - Savino Del Bene Volley".
+    title: (title) => {
+        if (!title) return appName;
+
+        return title.includes(appName) ? title : `${title} - ${appName}`;
+    },
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,

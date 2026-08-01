@@ -39,6 +39,10 @@ class CachePublicResponse
     private const EXCLUDED_HEADERS = [
         'set-cookie',
         'x-xsrf-token',
+        // Rimettere in campo il Cache-Control salvato lo accodava a quello che
+        // il framework genera comunque, producendo l'header malformato
+        // "no-cache, private,no-cache, no-store, must-revalidate".
+        'cache-control',
     ];
 
     public function handle(Request $request, Closure $next): Response

@@ -187,7 +187,8 @@ onBeforeUnmount(() => {
                         prefetch
                         class="text-[11px] 2xl:text-[13px] font-black tracking-wide uppercase transition-colors flex items-center h-full px-1 2xl:px-2.5 whitespace-nowrap"
                         :class="[
-                            $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-400 hover:text-white border-b-[3px] border-transparent pt-[3px]',
+                            /* text-gray-200: su una slide chiara dell'hero il gray-400 era illeggibile */
+                            $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-200 hover:text-white border-b-[3px] border-transparent pt-[3px]',
                             item.isHighlight ? 'text-[#ED028C] hover:text-[#ff30a6]' : ''
                         ]"
                         :aria-haspopup="item.children?.length > 0 ? 'true' : undefined"
