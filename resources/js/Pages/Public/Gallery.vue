@@ -30,11 +30,47 @@ const props = defineProps({
     totalEvents: {
         type: Number,
         default: 0
+    },
+    // Foto totali in archivio: `media` ne contiene solo il primo blocco
+    mediaTotal: {
+        type: Number,
+        default: 0
     }
 })
 
 // ── Display data ──────────────────────────────────────────────
-const displayMedia = computed(() => props.media)
+// Il server manda solo le prime ~120 foto, il resto arriva da /gallery/data
+// subito dopo il primo render: la pagina diventa interattiva senza aspettare
+// mezzo megabyte di JSON, e i filtri lavorano comunque sull'archivio completo.
+const lazyMedia = ref(null)
+const displayMedia = computed(() => lazyMedia.value ?? props.media)
+
+const galleryDataUrl = computed(() => {
+    const base = props.currentAthlete
+        ? `/gallery/atleta/${props.currentAthlete.slug}/data`
+        : '/gallery/data'
+
+    return window.location.pathname.startsWith('/en/') ? `/en${base}` : base
+})
+
+async function loadFullArchive() {
+    if (lazyMedia.value || props.mediaTotal <= props.media.length) return
+
+    try {
+        const response = await fetch(galleryDataUrl.value, {
+            headers: { Accept: 'application/json' },
+        })
+        if (!response.ok) return
+
+        const data = await response.json()
+        if (Array.isArray(data.media) && data.media.length) {
+            lazyMedia.value = data.media
+        }
+    } catch {
+        // Restano visibili le foto del primo blocco: nessun messaggio d'errore,
+        // la pagina è comunque utilizzabile.
+    }
+}
 
 // ── Particelle hero ───────────────────────────────────────────
 // Valori deterministici: Math.random() nel template verrebbe rieseguito ad
@@ -80,6 +116,27 @@ const filteredMedia = computed(() => {
     }
 
     return result
+})
+
+// ── Rendering incrementale ────────────────────────────────────
+// Montare 900 <img> in un colpo solo produceva una pagina alta oltre 100.000px
+// e un DOM che il telefono non regge. Si parte da un blocco e si cresce su
+// richiesta (o quando la sentinella di fondo pagina entra in vista).
+const RENDER_CHUNK = 60
+const renderLimit = ref(RENDER_CHUNK)
+
+const visibleMedia = computed(() => filteredMedia.value.slice(0, renderLimit.value))
+const hasMoreToRender = computed(() => filteredMedia.value.length > renderLimit.value)
+const remainingToRender = computed(() => Math.max(filteredMedia.value.length - renderLimit.value, 0))
+
+function renderMore() {
+    renderLimit.value += RENDER_CHUNK
+}
+
+// Un cambio di filtro riparte dall'inizio: altrimenti si resterebbe con un
+// limite alto ereditato dal filtro precedente.
+watch(filteredMedia, () => {
+    renderLimit.value = RENDER_CHUNK
 })
 
 function filterByCategory(cat) {
@@ -168,8 +225,10 @@ function onTouchEnd(e) {
 
 // ── Scroll reveal animation ──────────────────────────────────
 const galleryGridRef = ref(null)
+const loadMoreRef = ref(null)
 const revealedItems = ref(new Set())
 let revealObserver = null
+let loadMoreObserver = null
 
 onMounted(() => {
     const observer = new IntersectionObserver(
@@ -195,7 +254,7 @@ onMounted(() => {
     // `disconnect()` prima di ri-osservare: senza, l'observer continua a
     // referenziare i nodi della lista precedente, che restano vivi anche dopo
     // essere stati rimossi dal DOM.
-    watch(filteredMedia, () => {
+    watch(visibleMedia, () => {
         observer.disconnect()
         revealedItems.value = new Set()
         nextTick(() => {
@@ -204,11 +263,37 @@ onMounted(() => {
             })
         })
     })
+
+    // Il resto dell'archivio parte quando il browser è libero, così non
+    // compete con il rendering del primo blocco.
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => loadFullArchive(), { timeout: 3000 })
+    } else {
+        setTimeout(loadFullArchive, 800)
+    }
+
+    // Sentinella di fondo pagina: continua a mostrare foto scorrendo, senza
+    // costringere a cliccare il pulsante.
+    loadMoreObserver = new IntersectionObserver(
+        (entries) => {
+            if (entries.some(e => e.isIntersecting) && hasMoreToRender.value) {
+                renderMore()
+            }
+        },
+        { rootMargin: '400px' }
+    )
+
+    watch(loadMoreRef, (el) => {
+        loadMoreObserver?.disconnect()
+        if (el) loadMoreObserver?.observe(el)
+    }, { immediate: true, flush: 'post' })
 })
 
 onUnmounted(() => {
     revealObserver?.disconnect()
     revealObserver = null
+    loadMoreObserver?.disconnect()
+    loadMoreObserver = null
     clearTimeout(closeTimeout)
     document.body.style.overflow = ''
 })
@@ -460,7 +545,7 @@ const ogMeta = useOgMeta({
             <!-- Masonry Grid -->
             <div v-else ref="galleryGridRef" class="gallery-masonry">
                 <div
-                    v-for="(item, index) in filteredMedia"
+                    v-for="(item, index) in visibleMedia"
                     :key="item.id"
                     :data-idx="index"
                     role="button"
@@ -488,6 +573,7 @@ const ogMeta = useOgMeta({
                         class="gallery-masonry__img"
                         :class="{ 'gallery-masonry__img--loaded': loadedImages.has(item.id) }"
                         loading="lazy"
+                        decoding="async"
                         @load="onImageLoad(item.id)"
                         @error="onImgError"
                     />
@@ -507,6 +593,14 @@ const ogMeta = useOgMeta({
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Carica il blocco successivo di foto -->
+            <div v-if="hasMoreToRender" ref="loadMoreRef" class="gallery-load-more">
+                <button type="button" class="gallery-load-more__btn" @click="renderMore">
+                    {{ $t('gallery.load_more') }}
+                    <span class="gallery-load-more__count">({{ remainingToRender }})</span>
+                </button>
             </div>
         </section>
 
@@ -1407,6 +1501,38 @@ const ogMeta = useOgMeta({
     color: #6b7280;
     font-size: 0.95rem;
     line-height: 1.6;
+}
+
+/* ── CARICA ALTRE ────────────────────────────────── */
+.gallery-load-more {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1rem 1rem;
+}
+
+.gallery-load-more__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 2rem;
+    border-radius: 9999px;
+    background: #003063;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.gallery-load-more__btn:hover {
+    background: #00224a;
+    transform: translateY(-2px);
+}
+
+.gallery-load-more__count {
+    opacity: 0.7;
+    font-weight: 500;
 }
 
 /* ── LIGHTBOX ────────────────────────────────────── */

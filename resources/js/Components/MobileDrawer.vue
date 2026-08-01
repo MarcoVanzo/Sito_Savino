@@ -81,7 +81,9 @@ onBeforeUnmount(() => {
         leave-from-class="translate-y-0 opacity-100"
         leave-to-class="-translate-y-full opacity-0"
     >
-        <div v-show="isOpen" class="xl:hidden absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-36 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
+        <!-- pt-24: lo spazio riservato all'header, ora che sui telefoni il
+             logo è alto 64px invece di 125px -->
+        <div v-show="isOpen" class="xl:hidden absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-24 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
             <nav role="navigation" :aria-label="$t('nav.mobile_menu')" class="flex flex-col space-y-2 text-center pb-10">
                 <div v-for="(item, index) in navigation" :key="item.label" class="border-b border-white/10 last:border-0">
                     <button type="button" 

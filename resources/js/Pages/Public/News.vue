@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
@@ -13,7 +13,7 @@ const { formatDate, locale } = useLocale();
 
 const $t = useTranslations();
 
-defineProps({
+const props = defineProps({
     posts: Object,
     categories: {
         type: Array,
@@ -29,6 +29,30 @@ defineProps({
 // link è condivisibile e la paginazione lo conserva. Il path si ricava da
 // quello corrente per non perdere il prefisso di lingua.
 const basePath = computed(() => usePage().url.split('?')[0]);
+
+// Le categorie sono più di venti (una per stagione, più le coppe): mostrarle
+// tutte riempiva mezzo schermo di pillole prima ancora della prima notizia.
+// Si mostrano le più usate, il resto dietro un "mostra tutte".
+const VISIBLE_CATEGORIES = 8;
+const showAllCategories = ref(false);
+
+const sortedCategories = computed(() =>
+    [...props.categories].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+);
+
+const visibleCategories = computed(() => {
+    if (showAllCategories.value) return sortedCategories.value;
+
+    // La categoria attiva resta sempre visibile, anche se poco usata.
+    const head = sortedCategories.value.slice(0, VISIBLE_CATEGORIES);
+    const active = sortedCategories.value.find(c => c.slug === props.activeCategory);
+
+    return active && !head.includes(active) ? [...head, active] : head;
+});
+
+const hiddenCategoriesCount = computed(() =>
+    Math.max(sortedCategories.value.length - visibleCategories.value.length, 0)
+);
 
 function categoryUrl(slug) {
     if (!slug) return basePath.value;
@@ -87,7 +111,7 @@ const ogMeta = useOgMeta({
                         {{ $t('news.filter_all') }}
                     </Link>
                     <Link
-                        v-for="category in categories"
+                        v-for="category in visibleCategories"
                         :key="category.slug"
                         :href="categoryUrl(category.slug)"
                         class="px-4 py-2.5 min-h-[44px] flex items-center rounded-full text-xs font-black uppercase tracking-widest transition-colors"
@@ -99,6 +123,15 @@ const ogMeta = useOgMeta({
                         {{ category.name }}
                         <span class="ml-2 text-[10px] opacity-60">{{ category.count }}</span>
                     </Link>
+                    <button
+                        v-if="hiddenCategoriesCount > 0"
+                        type="button"
+                        class="px-4 py-2.5 min-h-[44px] flex items-center rounded-full text-xs font-black uppercase tracking-widest text-savino-blue border border-savino-blue/30 hover:bg-savino-blue/10 transition-colors"
+                        @click="showAllCategories = true"
+                    >
+                        {{ $t('news.filter_show_all') }}
+                        <span class="ml-2 text-[10px] opacity-60">+{{ hiddenCategoriesCount }}</span>
+                    </button>
                 </nav>
 
                 <div v-if="posts?.data?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

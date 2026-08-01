@@ -59,6 +59,12 @@ return [
             'throw' => false,
             'report' => false,
             'visibility' => 'public',
+            // Gli oggetti su Spaces sono immutabili (il nome contiene l'id del
+            // media): senza questo header il CDN e il browser li richiedevano
+            // a ogni visita, e una pagina come la gallery ne carica centinaia.
+            'options' => [
+                'CacheControl' => 'public, max-age=31536000, immutable',
+            ],
         ],
 
     ],

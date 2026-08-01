@@ -112,12 +112,14 @@ const ogMeta = useOgMeta({
                         class="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-500 hover:-translate-y-1"
                     >
                         <!-- Immagine Atleta -->
-                        <div class="h-64 relative bg-gray-100 overflow-hidden">
+                        <!-- Riquadro verticale e ancoraggio in alto: le foto ufficiali sono
+                             ritratti, e un box 4:3 centrato tagliava teste e diciture. -->
+                        <div class="aspect-[3/4] relative bg-gray-100 overflow-hidden">
                             <img
                                 v-if="item.official_photo_url"
                                 :src="item.official_photo_url"
                                 :alt="item.player.first_name + ' ' + item.player.last_name"
-                                class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                                class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
                                 @error="onImgError"
                             />
@@ -213,7 +215,7 @@ const ogMeta = useOgMeta({
                                 v-if="member.photo_url"
                                 :src="member.photo_url"
                                 :alt="member.name"
-                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
                                 @error="onImgError"
                             />
@@ -247,7 +249,7 @@ const ogMeta = useOgMeta({
                                 v-if="member.photo_url"
                                 :src="member.photo_url"
                                 :alt="member.name"
-                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
                                 @error="onImgError"
                             />

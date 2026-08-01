@@ -1,14 +1,19 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useSafeUrl } from '@/Composables/useSafeUrl'
+import { useLocale } from '@/Composables/useLocale'
 
 const $t = useTranslations();
 const { safeUrl } = useSafeUrl();
+const { isEnglish } = useLocale();
+
+// gli slug pubblici sono tradotti, quindi il link va scelto sulla lingua corrente
+const contactUrl = computed(() => (isEnglish.value ? '/en/contacts' : '/contatti'))
 
 const props = defineProps({
     page: {
@@ -22,57 +27,28 @@ const safeContent = computed(() => sanitize(props.page?.content))
 
 const cd = computed(() => props.page?.content_data ?? {})
 
+// I piani arrivano SOLO dal CMS: nessun prezzo di esempio come fallback.
+// Prima qui c'erano tre piani hard-coded (15/199/99 €) che andavano in produzione
+// come se fossero listino ufficiale, con CTA che non portavano da nessuna parte.
 const plans = computed(() => {
-    if (cd.value.plans && Array.isArray(cd.value.plans) && cd.value.plans.length > 0) {
-        return cd.value.plans.map(p => ({
+    const raw = cd.value.plans
+
+    if (!Array.isArray(raw)) {
+        return []
+    }
+
+    return raw
+        .filter(p => p && (p.name || p.price))
+        .map(p => ({
             name: p.name || $t('ticketing.plan_default_name'),
             price: p.price || '0',
             period: p.period || $t('ticketing.period_season'),
             features: Array.isArray(p.features) ? p.features : [],
             highlight: !!p.highlight,
-            cta: p.cta || $t('ticketing.buy_cta')
+            cta: p.cta || $t('ticketing.buy_cta'),
+            // senza cta_url il pulsante non viene mostrato affatto
+            ctaUrl: safeUrl(p.cta_url) || null,
         }))
-    }
-    return [
-        {
-            name: $t('ticketing.plan_single_name'),
-            price: '15',
-            period: $t('ticketing.period_per_match'),
-            features: [
-                $t('ticketing.feature_access_palazzo'),
-                $t('ticketing.feature_side_stand'),
-                $t('ticketing.feature_buy_online_counter'),
-            ],
-            highlight: false,
-            cta: $t('ticketing.plan_single_cta')
-        },
-        {
-            name: $t('ticketing.plan_gold_name'),
-            price: '199',
-            period: $t('ticketing.period_season'),
-            features: [
-                $t('ticketing.feature_all_home_games'),
-                $t('ticketing.feature_numbered_seat'),
-                $t('ticketing.feature_priority_access'),
-                $t('ticketing.feature_merch_discount'),
-                $t('ticketing.feature_meet_greet'),
-            ],
-            highlight: true,
-            cta: $t('ticketing.subscribe_cta')
-        },
-        {
-            name: $t('ticketing.plan_base_name'),
-            price: '99',
-            period: $t('ticketing.period_season'),
-            features: [
-                $t('ticketing.feature_all_home_games'),
-                $t('ticketing.feature_side_stand'),
-                $t('ticketing.feature_dedicated_entrance'),
-            ],
-            highlight: false,
-            cta: $t('ticketing.subscribe_cta')
-        }
-    ]
 })
 
 const ogMeta = useOgMeta({
@@ -110,7 +86,15 @@ const ogMeta = useOgMeta({
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.plans_heading || $t('ticketing.plans_heading') }}</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-12"></div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Nessun listino pubblicato: si dice che non c'è, non si inventa -->
+                <div v-if="plans.length === 0" class="max-w-2xl mx-auto text-center bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-12">
+                    <p class="text-gray-600 text-lg">{{ cd.plans_empty || $t('ticketing.plans_empty') }}</p>
+                    <Link :href="contactUrl" class="inline-block mt-6 px-6 py-3 rounded-lg bg-savino-blue text-white font-bold uppercase tracking-wider text-sm hover:bg-savino-blue/90 transition-colors">
+                        {{ $t('ticketing.plans_empty_cta') }}
+                    </Link>
+                </div>
+
+                <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div
                         v-for="plan in plans"
                         :key="plan.name"
@@ -159,18 +143,17 @@ const ogMeta = useOgMeta({
                                 </li>
                             </ul>
 
-                            <!-- CTA Button/Link -->
-                            <component
-                                :is="safeUrl(plan.cta_url) ? 'a' : 'button'"
-                                :href="safeUrl(plan.cta_url)"
-                                :target="safeUrl(plan.cta_url) ? '_blank' : undefined"
-                                :rel="safeUrl(plan.cta_url) ? 'noopener noreferrer' : undefined"
-                                :type="safeUrl(plan.cta_url) ? undefined : 'button'"
+                            <!-- CTA: solo se il CMS ha una destinazione, altrimenti niente pulsante -->
+                            <a
+                                v-if="plan.ctaUrl"
+                                :href="plan.ctaUrl"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 class="block text-center w-full py-3.5 rounded-lg font-bold uppercase tracking-wider text-sm transition-all duration-300"
                                 :class="plan.highlight
                                     ? 'bg-savino-gold text-white hover:bg-savino-gold/90 shadow-lg shadow-savino-gold/30'
                                     : 'bg-savino-blue text-white hover:bg-savino-blue/90 shadow-lg shadow-savino-blue/20'"
-                            >{{ plan.cta }}</component>
+                            >{{ plan.cta }}</a>
                         </div>
                     </div>
                 </div>

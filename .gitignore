@@ -79,3 +79,6 @@ storage/do-ca-certificate.crt
 # Report di copertura generato da PHPUnit
 /coverage.xml
 /coverage-js
+
+# La sitemap è servita dalla rotta /sitemap.xml: un file qui la scavalcherebbe
+/public/sitemap.xml

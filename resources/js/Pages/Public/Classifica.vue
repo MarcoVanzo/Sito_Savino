@@ -42,6 +42,13 @@ const hasBreakdown = computed(() =>
         .some((value) => value !== null && value !== undefined))
 );
 
+// Prima della prima giornata la Lega pubblica già l'elenco delle squadre, tutte
+// a zero: mostrarlo come "classifica" fa credere a un dato sbagliato. Le
+// posizioni sono solo l'ordine alfabetico, e va detto.
+const seasonNotStarted = computed(() =>
+    props.standings.length > 0 && props.standings.every((row) => !row.played)
+);
+
 function ratio(value) {
     return value === null || value === undefined ? '—' : Number(value).toFixed(2);
 }
@@ -106,7 +113,12 @@ const ogMeta = useOgMeta({
                     class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-10 text-center text-gray-500"
                 >{{ $t('risultati.no_standings') }}</p>
 
-                <div v-else class="relative">
+                <p
+                    v-else-if="seasonNotStarted"
+                    class="bg-savino-blue/5 border border-savino-blue/20 rounded-xl px-6 py-4 text-sm text-savino-blue mb-6"
+                >{{ $t('classifica.season_not_started') }}</p>
+
+                <div v-if="standings.length" class="relative">
                     <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100 bg-white">
                         <table class="w-full text-left">
                             <thead>
