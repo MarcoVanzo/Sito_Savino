@@ -1,6 +1,6 @@
 # Documentazione Tecnica Infrastruttura — Savino Del Bene Volley
 
-> Ultimo aggiornamento: 2 luglio 2026
+> Ultimo aggiornamento: 2 agosto 2026
 
 ---
 
@@ -30,18 +30,19 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
       │ HTTPS                 │  │  🌐 App Web  │────▶│  🗄️ MySQL   │     │
       ├──────────────────────▶│  │  PHP + Apache │     │   8.4 LTS    │     │
       │                       │  │  1GB, $10/mese│◀───│  1GB, $15/mese│    │
-      │                       │  └──────┬───────┘     └──────▲───────┘     │
-      │                       │         │ upload              │ job queue   │
-      │                       │         ▼                     │             │
-      │ immagini CDN          │  ┌──────────────┐     ┌──────┴───────┐     │
-      ├──────────────────────▶│  │  📦 Spaces   │     │  ⚙️ Worker  │     │
-      │                       │  │  S3 + CDN    │     │  0.5GB, $5/mo│     │
-      │                       │  │  $5/mese     │     └──────┬───────┘     │
-      │                       │  └──────────────┘            │ API         │
-      │                       │                        ┌─────▼────────┐    │
-      │                       │                        │ 🖥️ CompreFace│    │
-      │                       │                        │ 4GB, $24/mese│    │
-      │                       │                        └──────────────┘    │
+      │                       │  └──────┬───────┘     └───▲──────▲───┘     │
+      │                       │         │ upload          │      │          │
+      │                       │         ▼        job queue│      │cron      │
+      │ immagini CDN          │  ┌──────────────┐  ┌──────┴───┐ ┌┴────────┐│
+      ├──────────────────────▶│  │  📦 Spaces   │  │ ⚙️ Worker│ │⏱️ Sched.││
+      │                       │  │  S3 + CDN    │  │ 0.5GB    │ │ 0.5GB   ││
+      │                       │  │  $5/mese     │  │ $5/mese  │ │ $5/mese ││
+      │                       │  └──────────────┘  └────┬─────┘ └─────────┘│
+      │                       │                         │ API              │
+      │                       │                   ┌─────▼────────┐         │
+      │                       │                   │ 🖥️ CompreFace│         │
+      │                       │                   │ 4GB, $24/mese│         │
+      │                       │                   └──────────────┘         │
       │                       └─────────────────────────────────────────────┘
 ```
 
@@ -67,7 +68,7 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 |-----------|---------|-------|
 | **Vue.js** | 3.x | Framework UI (via Inertia) |
 | **Vite** | (build tool) | Bundler assets |
-| **Node.js** | 24.14.0 | Build-time (compilazione assets client) |
+| **Node.js** | ≥ 20 (`engines` in `package.json`; la CI usa Node 20) | Build-time (compilazione assets client) |
 | **Tailwind CSS** | (via config) | Styling |
 
 ### Servizi e Librerie
@@ -81,6 +82,8 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 | **Predis** | Client Redis (pronto per futuro uso) |
 | **Spatie Translatable** | Contenuti multilingua |
 | **Spatie Sitemap** | Generazione sitemap SEO |
+| **Sentry** | Error tracking (web, worker e scheduler; attivo solo quando `SENTRY_LARAVEL_DSN` è valorizzato — oggi è vuoto, quindi spento) |
+| **Stripe** (`stripe/stripe-php`) | Pagamenti shop (chiavi `STRIPE_*` non ancora nello spec, vedi §5) |
 
 ### Repository
 
@@ -120,22 +123,30 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 
 ```
 1. php artisan migrate --force          → Aggiorna schema DB
-2. php artisan storage:link             → Crea symlink storage/
-3. php artisan cache:clear              → Pulisce cache vecchia
-4. php artisan config:cache             → Cachea configurazione
-5. php artisan route:cache              → Cachea le route
-6. php artisan view:cache               → Compila Blade templates
-7. php artisan event:cache              → Cachea event listeners
-8. php artisan filament:optimize        → Cachea componenti Filament
-9. php artisan schedule:work &          → Scheduler in background (vedi §9)
-10. heroku-php-apache2 -i opcache.ini   → Avvia Apache con OPcache tuning
+2. php artisan db:seed --class=SiteSettingSeeder --force
+   php artisan db:seed --class=CorporateGovernanceSeeder --force
+                                        → Seeder idempotenti di configurazione
+3. php artisan storage:link             → Crea symlink storage/
+4. php artisan cache:clear              → Pulisce cache vecchia (cancella anche il
+                                          battito dello scheduler, vedi health check)
+5. php artisan config:cache             → Solo se le credenziali AWS sono presenti
+                                          (altrimenti config:clear, per non congelare
+                                          valori S3 vuoti)
+   php artisan route:cache / view:cache / event:cache
+6. php artisan filament:optimize        → Cachea componenti Filament
+7. heroku-php-apache2 -i opcache.ini    → Avvia Apache con OPcache tuning
 ```
 
-> ⚠️ Lo scheduler gira **dentro il container web** come processo in background
-> (`schedule:work`), non come componente `jobs` di App Platform. Funziona solo
-> con `instance_count: 1`: aumentando le istanze i task pianificati verrebbero
-> eseguiti in parallelo su ognuna. Se il processo muore, il container resta up
-> e i task smettono silenziosamente di girare.
+**Health check** (`.do/app.yaml`): App Platform interroga `/up` via HTTP
+(`App\Listeners\VerifyApplicationHealth`), che verifica database e cache.
+Uno scheduler fermo viene segnalato ma **non** fa fallire il check (riavviare
+il web non lo risolverebbe). `initial_delay_seconds: 120` è vincolante: dopo
+`cache:clear` il battito dello scheduler torna solo al giro successivo, e un
+delay più corto metterebbe l'istanza in ciclo di riavvio.
+
+> Lo scheduler **non gira più dentro il container web**: ha un componente
+> dedicato (vedi §3.3). Prima era avviato in background da `start.sh` e, se
+> moriva, il container restava "healthy" mentre i task si fermavano in silenzio.
 
 ---
 
@@ -175,7 +186,33 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 
 ---
 
-### 3.3 🗄️ Database MySQL 8.4 — $15.23/mese
+### 3.3 ⏱️ App Scheduler (pianificatore) — $5/mese
+
+**Cosa fa:** Esegue i task pianificati definiti in `routes/console.php` (vedi §9).
+È un componente dedicato di App Platform, separato dal web.
+
+| Spec | Valore |
+|------|--------|
+| Slug | `apps-s-1vcpu-0.5gb` |
+| CPU | 1 shared vCPU |
+| RAM | 512 MB |
+| Region | `fra` (Frankfurt) |
+| Run command | `php artisan scheduler:beat && php artisan schedule:work --no-interaction` |
+
+**Comportamento:**
+- Il primo `scheduler:beat` esplicito scrive subito il battito nella cache
+  condivisa: senza, l'health check del web resterebbe in rosso per un minuto
+  a ogni riavvio di questo componente.
+- Il battito (`scheduler:beat`, ogni minuto) è letto dall'health check `/up`
+  del web: se lo scheduler muore, il problema viene segnalato invece di
+  restare silenzioso.
+- `instance_count` **deve restare 1**: due istanze eseguirebbero gli stessi
+  comandi in parallelo. I `withoutOverlapping()` nei task sono una rete di
+  sicurezza (lock condiviso via cache), non un permesso a scalare.
+
+---
+
+### 3.4 🗄️ Database MySQL 8.4 — $15.23/mese
 
 **Cosa fa:** Contiene tutti i dati strutturati dell'applicazione. Ogni pagina web legge da qui, ogni azione nel CMS scrive qui.
 
@@ -206,7 +243,7 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 
 ---
 
-### 3.4 📦 Spaces S3 + CDN — $5/mese
+### 3.5 📦 Spaces S3 + CDN — $5/mese
 
 **Cosa fa:** Storage dei file (immagini, media, documenti). È un servizio di object storage compatibile con Amazon S3, quindi Laravel lo usa come se fosse AWS S3.
 
@@ -242,7 +279,7 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 
 ---
 
-### 3.5 🖥️ Droplet CompreFace — $24/mese
+### 3.6 🖥️ Droplet CompreFace — $24/mese
 
 **Cosa fa:** Server dedicato che esegue [CompreFace](https://github.com/exadel-inc/CompreFace), un sistema open-source di riconoscimento facciale basato su deep learning.
 
@@ -333,7 +370,7 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 | `APP_DEBUG` | `false` | Debug disattivato |
 | `APP_KEY` | 🔒 secret | Chiave di cifratura Laravel |
 | `APP_URL` | URL pubblico | URL base dell'applicazione |
-| `APP_LOCALE` | (default) | Lingua predefinita |
+| `APP_LOCALE` | `it` | Lingua predefinita |
 | `DB_CONNECTION` | `mysql` | Driver database |
 | `DB_HOST` | `${sito-savino-db.HOSTNAME}` | Host DB (injected da DO) |
 | `DB_PORT` | `${sito-savino-db.PORT}` | Porta DB (injected da DO) |
@@ -355,20 +392,27 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 | `AWS_URL` | `https://sito-savino-assets-2026.fra1.digitaloceanspaces.com` | URL pubblico |
 | `INERTIA_SSR_ENABLED` | `false` | SSR **disattivato** (non esiste `resources/js/ssr.js` né bundle SSR) |
 | `LOG_CHANNEL` | `stderr` | Log su stderr (visibili in DO dashboard) |
-| `LOG_LEVEL` | `warning` | Solo warning ed errori |
+| `LOG_LEVEL` | `error` | Solo errori: i log DO sono effimeri, servono da contesto per Sentry |
+| `SENTRY_LARAVEL_DSN` | `""` (vuoto) | Error tracking — **spento** finché il DSN non viene valorizzato (cifrato, vedi commento nello spec) |
+| `SENTRY_ENVIRONMENT` | `production` | Ambiente riportato a Sentry |
+| `SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Campionamento performance tracing |
 | `PREVIEW_AUTH_USER` / `PREVIEW_AUTH_PASS` | 🔒 secret | Basic auth su tutto il sito (fase di pre-lancio) |
+| `COMPREFACE_HOST` | `http://10.114.0.3:8000` | URL server CompreFace (rete privata VPC) |
+| `COMPREFACE_KEY` | in chiaro nello spec | API key CompreFace — attualmente il valore di default `0000…0001`, da rigenerare e cifrare |
+| `ACTIVECAMPAIGN_URL` / `ACTIVECAMPAIGN_LIST_ID` | in chiaro | Endpoint e lista newsletter |
+| `ACTIVECAMPAIGN_API_KEY` | ⚠️ in chiaro nello spec | Marcata `SECRET` ma il valore **non è cifrato** (niente formato `EV[1:…]`): va ruotata e ricifrata |
 
 > ⚠️ **Variabili mancanti nello spec** (`.do/app.yaml`): nessuna variabile
 > `MAIL_*` / `RESEND_API_KEY`, `STRIPE_*`, `PAYPAL_*`. Poiché il deploy applica
 > lo spec del repository, eventuali valori aggiunti a mano dal pannello DO
 > vengono sovrascritti ad ogni rilascio. Vanno aggiunti allo spec come `SECRET`.
 
-### Worker (variabili aggiuntive)
+### Worker e Scheduler
 
-| Variabile | Valore | Descrizione |
-|----------|--------|-------------|
-| `COMPREFACE_HOST` | `http://10.114.0.3:8000` | URL server CompreFace (rete privata VPC) |
-| `COMPREFACE_KEY` | in chiaro nello spec | API key CompreFace — attualmente il valore di default `0000…0001`, da rigenerare e cifrare |
+Worker e scheduler replicano le stesse variabili del web (incluse `AWS_*`,
+`COMPREFACE_*`, `ACTIVECAMPAIGN_*`, Sentry), con in più `APP_URL` esplicito:
+senza, le email in coda (es. link di checkout al vincitore d'asta) uscivano
+con host `http://localhost`.
 
 ---
 
@@ -408,11 +452,11 @@ Solo dipendenze PHP (il worker non serve frontend).
 
 | Step | Comando | Scopo |
 |------|---------|-------|
-| 1/6 | `migrate --force` | Applica nuove migrazioni DB |
-| 2/6 | `storage:link` | Symlink `public/storage → storage/app/public` |
-| 3/6 | `cache:clear` | Svuota cache del deploy precedente |
-| 4/6 | `config:cache` | Serializza config in file binario (skip `.env` parse) |
-| 5/6 | `route:cache` + `view:cache` + `event:cache` | Pre-compila route, Blade templates, event map |
+| 1/6 | `migrate --force` | Applica nuove migrazioni DB (senza `\|\| true`: uno schema disallineato deve fermare l'avvio) |
+| 2/6 | `db:seed SiteSettingSeeder` + `db:seed CorporateGovernanceSeeder` | Seeder idempotenti: garantiscono le impostazioni di base (un fallimento ferma l'avvio) |
+| 3/6 | `storage:link` | Symlink `public/storage → storage/app/public` |
+| 4/6 | `cache:clear` | Svuota cache del deploy precedente (cancella anche il battito dello scheduler) |
+| 5/6 | `config:cache` (solo con credenziali AWS) + `route:cache` + `view:cache` + `event:cache` | Pre-compila config, route, Blade templates, event map |
 | 6/6 | `filament:optimize` | Cachea componenti, icone Filament |
 
 ### Avvio Worker
@@ -423,6 +467,14 @@ php artisan queue:work --queue=default,ai --sleep=3 --tries=3 --max-time=3600 --
 
 Polling sulla tabella `jobs` ogni 3 secondi, code `default` e `ai`, max 3 tentativi
 per job, riavvio dopo 100 job / 1 ora / 384 MB.
+
+### Avvio Scheduler
+
+```bash
+php artisan scheduler:beat && php artisan schedule:work --no-interaction
+```
+
+Un battito immediato (per l'health check del web), poi il ciclo del pianificatore.
 
 ---
 
@@ -484,10 +536,11 @@ per job, riavvio dopo 100 job / 1 ora / 384 MB.
 | 2 | 🗄️ Database MySQL | `db-s-1vcpu-1gb`, fra1 | **$15.23** |
 | 3 | 🌐 App Web | `apps-s-1vcpu-1gb-fixed`, fra | **$10.00** |
 | 4 | ⚙️ Worker | `apps-s-1vcpu-0.5gb`, fra | **$5.00** |
-| 5 | 📦 Spaces + CDN | 250 GB, fra1 | **$5.00** |
-| | | **TOTALE** | **$59.23/mese** |
-| | | | **~€54/mese** |
-| | | | **~€654/anno** |
+| 5 | ⏱️ Scheduler | `apps-s-1vcpu-0.5gb`, fra | **$5.00** |
+| 6 | 📦 Spaces + CDN | 250 GB, fra1 | **$5.00** |
+| | | **TOTALE** | **$64.23/mese** |
+| | | | **~€59/mese** |
+| | | | **~€710/anno** |
 
 ---
 
@@ -511,19 +564,24 @@ per job, riavvio dopo 100 job / 1 ora / 384 MB.
 | Sessioni cifrate | ✅ `SESSION_ENCRYPT` attivo |
 | Cookie sicuri | ✅ `SESSION_SECURE_COOKIE` attivo |
 | Debug disattivato | ✅ `APP_DEBUG=false` |
-| Secret in env vars | ⚠️ Quasi tutti cifrati (`EV[1:…]`) in `.do/app.yaml`, ma `ACTIVECAMPAIGN_API_KEY` è in chiaro nel repository pubblico: va **ruotata** e ricifrata |
+| Secret in env vars | ⚠️ Quasi tutti cifrati (`EV[1:…]`) in `.do/app.yaml`, ma `ACTIVECAMPAIGN_API_KEY` è in chiaro nel repository pubblico: va **ruotata** e ricifrata. Anche `COMPREFACE_KEY` è il default in chiaro |
 | Trust proxies | ✅ Configurato per App Platform |
-| Log level | ✅ `warning` (niente info/debug in prod) |
+| Log level | ✅ `error` (niente info/debug in prod) |
+| Health check | ✅ `/up` verifica database e cache; segnala (senza far fallire) uno scheduler fermo |
 | OPcache validate_timestamps | ✅ Disabilitato (previene code injection) |
 
 ### Task schedulati
 
-Definiti in `routes/console.php`, eseguiti dal `schedule:work` avviato da `start.sh`
-nel container web.
+Definiti in `routes/console.php`, eseguiti dal componente **scheduler**
+dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
+(lock condiviso via cache, valido anche fra istanze).
 
 | Comando | Frequenza | Scopo |
 |---------|-----------|-------|
+| `scheduler:beat` | Ogni minuto | Battito letto dall'health check `/up`: rileva uno scheduler morto |
+| `lvf:sync` | Ogni ora | Calendario, risultati e classifica dal sito della Lega (fallimenti contati da `LvfSyncHealth`, alert ai Super Admin) |
 | `sitemap:generate` | Giornaliero (04:00) | Genera sitemap XML per SEO |
+| `media:fix-remote-metadata --since="3 days ago"` | Giornaliero (04:30) | Ripassa Content-Type e Cache-Control sui file recenti caricati su Spaces |
 | `activity-log:prune --days=180` | Settimanale | Pulisce log attività > 6 mesi |
 | `model:prune` | Giornaliero | Pulisce modelli scaduti |
 | `carts:prune-expired` | Giornaliero (03:00) | Elimina i carrelli scaduti |
@@ -531,4 +589,4 @@ nel container web.
 | `auction:activate` | Ogni minuto | Attiva le aste programmate |
 | `auction:close` | Ogni minuto | Chiude le aste scadute e notifica i vincitori |
 | `auction:check-payments` | Oraria | Verifica i pagamenti dei vincitori d'asta |
-| `sync:legavolley` | Giornaliero | Solo in ambienti **non** di produzione |
+| `sync:legavolley` | Giornaliero | Dati **simulati**, solo in ambienti **non** di produzione |

@@ -198,6 +198,8 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   hardcoded — importare sempre le costanti `LOGOS`.
 - **Loghi web** in `public/images/`: `logo.png` (volley a colori),
   `logo-volley-white.png` (volley bianco), `logo-corporate.png` (corporate con payoff),
+  `logo-corporate-left.png` / `logo-corporate-left-white.png` (corporate con cubo a
+  sinistra, usati in header e footer), `logo-corporate-icon.png` (solo cubo),
   `logo-lvf.png` (LVF ufficiale), `logo-lvf-small.png` (LVF ridotto).
 - **File sorgente loghi** nella cartella `Loghi/` (root del progetto), suddivisi in
   `Lega/`, `SDB Azienda/`, `SDB Volley/`.

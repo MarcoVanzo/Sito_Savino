@@ -25,9 +25,9 @@ Basato sulla scansione della sitemap del sito legacy (68 pagine totali) e del me
 | **Contatti** | `/contatti/` (Contact Form 7) | `/contatti` (con `/contatti/submit`) | **Mappata**. Sostituito plugin WP con logica backend nativa Laravel. |
 | **Ticketing / Biglietti** | Link esterni (Vivicket, ecc.) | `/ticketing/{slug}` | **Evoluta**. Il nuovo sito prevede sezioni dedicate per la biglietteria. |
 | **SDB Youth** | `/news-c/sdb-youth/` (era categoria news) | `/youth/{slug}` e `/stagione/b1` | **Evoluta**. Da semplice categoria blog, lo youth ha ora un'area dedicata. Link `/youth/u17-u15` reindirizza a in-costruzione. |
-| **Summer Camp** | Pagine statiche / info | `/summer-camp/{slug}` | **Mappata**. Iscrizione reindirizza a pagina "in-costruzione". |
-| **Corporate Governance** | Safeguarding, Modello Organizzativo (PDF in Media WP) | (Nessuna rotta hardcoded) | **Da Verificare**. Documenti accessibili via CMS o Footer link diretti, da mappare correttamente nei menu. |
-| **Privacy & Cookie** | `/informativa-privacy/`, `/informativa-cookie/` | (Catch-all CMS o in-costruzione) | **Parziale**. Rotte non esplicite in `web.php` (forse catch-all). |
+| **Summer Camp** | Pagine statiche / info | `/summer-camp` e `/summer-camp/{slug}` | **Mappata** *(agg. 2/8/2026)*. `/summer-camp/iscrizione` reindirizza (301) alla pagina CMS `iscrizione-experience`. |
+| **Corporate Governance** | Safeguarding, Modello Organizzativo (PDF in Media WP) | Colonna dedicata nel `SiteFooter.vue` + `CorporateGovernanceSeeder` (eseguito a ogni deploy da `start.sh`) | **Mappata** *(agg. 2/8/2026)*. |
+| **Privacy & Cookie** | `/informativa-privacy/`, `/informativa-cookie/` | Pagine CMS `privacy-policy` e `cookie-policy` (create da `PageSeeder`, servite dal catch-all) | **Mappata** *(agg. 2/8/2026)*. |
 | **Shop** | Esterno (`shop.savinodelbenevolley.it`) | `/shop/*` (Integrato) | **Migliorata (Focus Primario)**. E-commerce completamente internalizzato (carrello, checkout, aste, dashboard utente). |
 | **Newsletter** | Mailchimp/ActiveCampaign iframe | `/newsletter` (Integrato) | **Migliorata**. Form Vue nativo (`NewsletterForm.vue`) e controller Laravel dedicato. |
 
@@ -43,16 +43,18 @@ Durante la navigazione automatizzata, le seguenti aree non sono state esplorate 
 
 ## 4. Checklist di Implementazione e Migrazione
 
-In base al confronto, ecco le priorità operative per assicurare una transizione senza regressioni:
+In base al confronto, ecco le priorità operative per assicurare una transizione senza regressioni.
+
+> Stato aggiornato al **2 agosto 2026** (verifica su `routes/web.php`, seeder e footer).
 
 ### 🔴 Alta Priorità (Bloccanti per il Go-Live)
-- [ ] **Test completo del flusso Shop:** Verificare carrello, checkout, registrazione utente e gestione aste (nuova feature integrata).
-- [ ] **Pagine "In Costruzione":** Completare `/youth/u17-u15` e `/summer-camp/iscrizione` che attualmente effettuano redirect 301 al placeholder.
-- [ ] **SEO & Redirect 301:** Assicurarsi che le URL legacy ad alto traffico (es. `/classifica-2025-2026/`) abbiano un redirect 301 verso le nuove route dinamiche (`/stagione/risultati`), per non perdere indicizzazione (alcuni sono in `web.php`, altri mancano).
-- [ ] **Corporate Governance e PDF:** Migrare i PDF (Safeguarding, Modello Organizzativo, Bilancio) dal vecchio `/wp-content/uploads/` al nuovo storage (DigitalOcean Spaces) e ripristinare i link nel `SiteFooter.vue`.
+- [ ] **Test completo del flusso Shop:** Verificare carrello, checkout, registrazione utente e gestione aste (nuova feature integrata). *(Nota: le chiavi `STRIPE_*`/`PAYPAL_*` non sono ancora nello spec di deploy — vedi `docs/INFRASTRUCTURE.md` §5.)*
+- [ ] **Pagine "In Costruzione":** `/summer-camp/iscrizione` ✅ ora reindirizza alla pagina CMS `iscrizione-experience`; resta da completare `/youth/u17-u15`, che reindirizza ancora a `/in-costruzione`.
+- [x] **SEO & Redirect 301:** implementati in `web.php` i redirect dalle URL legacy (`/classifica-*`, `/campionato-*`, CEV, sponsor, youth, summer camp, comunicazione).
+- [x] **Corporate Governance e PDF:** colonna Corporate Governance nel `SiteFooter.vue` e `CorporateGovernanceSeeder` eseguito a ogni deploy da `start.sh`.
 
 ### 🟡 Media Priorità (Miglioramenti Esperienza)
-- [ ] **Pagine Legali:** Creare le pagine CMS per Privacy Policy e Cookie Policy, garantendo che le URL coincidano con quelle del footer (`/privacy-policy` e `/cookie-policy`) tramite il controller catch-all `/{slug}`.
+- [x] **Pagine Legali:** `PageSeeder` crea le pagine CMS `privacy-policy` e `cookie-policy`, servite dal controller catch-all.
 - [ ] **Form Contatti e Newsletter:** Testare che i rate limiter (`throttle:5,1`) non siano troppo restrittivi in produzione e che l'integrazione API della newsletter funzioni regolarmente.
 - [ ] **Affiliazioni:** Creare la pagina nel CMS (slug `affiliazioni`) per mantenere continuità con il vecchio sito.
 

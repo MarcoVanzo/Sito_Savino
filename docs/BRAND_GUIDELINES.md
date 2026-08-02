@@ -3,7 +3,7 @@
 > Documentazione interna sulle linee guida di brand per il sito web.
 > Fonte: PDF brand book nella cartella `Loghi/` del progetto.
 >
-> Ultimo aggiornamento: 30 giugno 2026
+> Ultimo aggiornamento: 2 agosto 2026
 
 ---
 
@@ -188,13 +188,18 @@ Configurazione font nel sito (da `tailwind.config.js`):
 
 ### File Centralizzato
 
-I percorsi dei loghi sono definiti in [`resources/js/Constants/logos.js`](file:///Users/marcovanzo/Sito%20Savino/resources/js/Constants/logos.js):
+I percorsi dei loghi sono definiti in [`resources/js/Constants/logos.js`](../resources/js/Constants/logos.js):
 
 ```js
 export const LOGOS = {
-    VOLLEY: '/images/logo.png',              // Stemma ufficiale a colori
+    VOLLEY: '/images/logo.png',                     // Stemma ufficiale a colori
     VOLLEY_WHITE: '/images/logo-volley-white.png',  // Bianco per sfondi scuri
     CORPORATE: '/images/logo-corporate.png',        // Corporate con payoff
+    CORPORATE_LEFT: '/images/logo-corporate-left.png',             // Corporate, cubo a sinistra
+    CORPORATE_LEFT_WHITE: '/images/logo-corporate-left-white.png', // Corporate bianco, cubo a sinistra
+    CORPORATE_ICON: '/images/logo-corporate-icon.png',             // Solo simbolo cubo, senza testo
+    LVF: '/images/logo-lvf.png',                    // LVF ufficiale (≥ 25mm)
+    LVF_SMALL: '/images/logo-lvf-small.png',        // LVF ridotto (10–25mm, senza "SERIE A")
 };
 ```
 
@@ -206,21 +211,27 @@ I loghi per il web sono in `public/images/`:
 |------|------------|----------|
 | `logo.png` | 103 KB | `Loghi/SDB Volley/LOGO_SDBVolley_Official.png` |
 | `logo-volley-white.png` | 76 KB | `Loghi/SDB Volley/LOGO_SDBVolley_neg_1colore.png` |
-| `logo-corporate.png` | 107 KB | `Loghi/SDB Azienda/Savino Del Bene Digital Logo - Payoff - RGB.png` |
+| `logo-corporate.png` | 322 KB | `Loghi/SDB Azienda/Savino Del Bene Digital Logo - Payoff - RGB.png` |
+| `logo-corporate-left.png` | 107 KB | Derivato dal logo corporate (cubo a sinistra) |
+| `logo-corporate-left-white.png` | 92 KB | Variante bianca per sfondi scuri |
+| `logo-corporate-icon.png` | 28 KB | Solo simbolo cubo |
+| `logo-lvf.png` | 24 KB | Estratto dal brand book LVF 2026/27 |
+| `logo-lvf-small.png` | 22 KB | Versione ridotta senza scritta "SERIE A" |
 
 ### Dove Vengono Usati
 
 | Componente | Logo | Contesto |
 |------------|------|----------|
 | `ApplicationLogo.vue` | `LOGOS.VOLLEY` | Componente generico app |
-| `PublicLayout.vue` | `LOGOS.CORPORATE` + `LOGOS.VOLLEY` | Header pubblico (corporate in alto a sx, volley al centro) |
-| `SiteFooter.vue` | `LOGOS.VOLLEY` | Footer |
+| `PublicLayout.vue` | `LOGOS.CORPORATE_LEFT` + `LOGOS.VOLLEY` | Header pubblico |
+| `SiteFooter.vue` | `LOGOS.CORPORATE_LEFT_WHITE` + `LOGOS.VOLLEY` | Footer |
 | `MegaMenu.vue` | `LOGOS.VOLLEY` | Immagine fallback voci menu |
-| `Error.vue` | `/images/logo.png` ⚠️ | Watermark pagine errore (hardcoded) |
-| `Home.vue` | `/images/logo-corporate.png` ⚠️ | Sezione prossima partita (hardcoded) |
+| `Login.vue` / `ForceChangePassword.vue` | `LOGOS.VOLLEY_WHITE` | Pagine di autenticazione |
+| `Shop/Maintenance.vue` | `LOGOS.VOLLEY` | Pagina shop in manutenzione |
+| `Error.vue` | `/images/logo.png` ⚠️ | Watermark pagine errore (hardcoded in una classe CSS `bg-[url(...)]`) |
 | `useImageFallback.js` | `LOGOS.VOLLEY` | Fallback quando un'immagine non carica |
 | `useOgMeta.js` | `LOGOS.VOLLEY` | Open Graph image per social sharing |
-| `app.blade.php` | `/images/logo.png` | OG meta, schema.org SportsTeam e WebSite |
+| `app.blade.php` | `/images/logo.png` | OG meta, schema.org SportsTeam e WebSite, apple-touch-icon |
 
 > [!TIP]
 > `PublicLayout.vue` e `SiteFooter.vue` supportano override dal backend tramite `siteSettings.general.corporate_logo` e `site_logo`. Le costanti `LOGOS` servono come fallback.
@@ -272,11 +283,12 @@ I loghi della Lega Volley Femminile sono stati estratti dal brand book PDF e agg
 
 ### Path Hardcoded
 
-Due componenti usano percorsi hardcoded anziché le costanti centralizzate:
-- `Error.vue` → `/images/logo.png`
-- `Home.vue` → `/images/logo-corporate.png`
+Un componente usa ancora un percorso hardcoded anziché le costanti centralizzate:
+- `Error.vue` → `/images/logo.png` (dentro una classe CSS `bg-[url(...)]`, dove
+  la costante JS non è utilizzabile direttamente)
 
-Questi andrebbero migrati a usare `LOGOS.VOLLEY` e `LOGOS.CORPORATE` per coerenza.
+Il precedente hardcode in `Home.vue` (`/images/logo-corporate.png`) è stato rimosso.
+In `app.blade.php` il percorso resta hardcoded per necessità (meta tag server-side).
 
 ### Brand Book LVF Provvisorio
 
