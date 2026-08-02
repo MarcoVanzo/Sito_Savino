@@ -68,11 +68,11 @@ services:
   - key: AWS_ACCESS_KEY_ID
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:N+4GIXt2nCvBxJphWGvQnFldKh2ClvQ0:jHb68CEhxATvpmTbt5aWo9ECmqidvdxBgAKgENuQzHTr3BKi]
+    value: EV[1:+LFmd8w1N5i7v03BKfR//HJqX54tCzFc:4aNByITR0XIXor3kJku8Bcfb3iYSwKVmVpLbKDZ8toCliKFL]
   - key: AWS_SECRET_ACCESS_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:b5h5DNxroKK9EZM9pdl0EQ89xIUIaMLl:lXuCxUJBkQejZnpHNTZV3pd5MYRIhbJbjatoWRUoWiV2FtpCOr6sjlcEjQLVxZ1aXC6HsX9XHFhYMKU=]
+    value: EV[1:7Er1oZyvefY3H27uNgwD5/snxLZ6YlgW:Qoe/6QtoZUuDwMVzP1YCb9doDlrlZNEAfa9pY/WzmjIQHf7s7vU4K2ikfBXx1RkNHI8aJd7gIrLvFKs=]
   - key: AWS_DEFAULT_REGION
     scope: RUN_AND_BUILD_TIME
     value: fra1
@@ -260,11 +260,11 @@ workers:
   - key: AWS_ACCESS_KEY_ID
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:2oyXgvBcvFNkjtaloxP9raPGij27GKqr:tCDRrHfDPnL0VCemCqH354MqHSQDUBY1mRZELclDe1uiX1Ti]
+    value: EV[1:DUW7HLPrX3Fd2bOovoXbPQ1PBc7NVU/3:d7ulj/0e3qt0NyFg3Ptrr/Zq4uxtFHrBVQTmcFM2Lh4/19Nw]
   - key: AWS_SECRET_ACCESS_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:iQcYFmvB8aQICMuFTIAIUYCy/LMcr4Rw:+sTQNP3MossxOgljk7vl+gHf25ElZT+tWJDTpYNiP46BTr3slcuVX8dn/5V2V/WPennrBr2ylNt4jqw=]
+    value: EV[1:84fQ0m/9Cy1DPG7K1qqZLM/JaOZ+wipc:iH8iauy3LuHJp9RYvjCZClNp5PNhctkEoB1cxKwnyy1u3wlxjC8c4i0gyTZDVOPpeQ1brJuwITguIEk=]
   - key: AWS_DEFAULT_REGION
     scope: RUN_AND_BUILD_TIME
     value: fra1
@@ -382,11 +382,11 @@ workers:
   - key: AWS_ACCESS_KEY_ID
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:2oyXgvBcvFNkjtaloxP9raPGij27GKqr:tCDRrHfDPnL0VCemCqH354MqHSQDUBY1mRZELclDe1uiX1Ti]
+    value: EV[1:0Gss8YOaaRsqu/mKczv756dE+bBp7ZeQ:xpYB9jH6Qj/SO2CmriHGGqxZzeWzC6wUWeLivHF0gCmOP9IK]
   - key: AWS_SECRET_ACCESS_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:iQcYFmvB8aQICMuFTIAIUYCy/LMcr4Rw:+sTQNP3MossxOgljk7vl+gHf25ElZT+tWJDTpYNiP46BTr3slcuVX8dn/5V2V/WPennrBr2ylNt4jqw=]
+    value: EV[1:7Wbn7dIBRf6/cO7xPnq7QjX/GRU4YbT5:tgYKTwf/rPOOXJuOZ9aQRO+WiMMfgajsVi3+KknRkUvJxbc1xMPNdlcv6PQFn45H10QbxW6Wb93QaLM=]
   - key: AWS_DEFAULT_REGION
     scope: RUN_AND_BUILD_TIME
     value: fra1
