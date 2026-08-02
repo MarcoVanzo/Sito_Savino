@@ -70,9 +70,10 @@
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 
-    # HTML e risposte PHP — no-cache
-    <FilesMatch "\.php$">
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-        Header set Pragma "no-cache"
-    </FilesMatch>
+    # NIENTE Cache-Control sulle risposte PHP: lo decide Laravel. Il blocco che
+    # stava qui aggiungeva un secondo header Cache-Control che l'edge di App
+    # Platform concatenava a quello del framework, producendo il valore
+    # malformato "no-cache, private,no-cache, no-store, must-revalidate" su
+    # ogni pagina — e avrebbe scavalcato anche gli header voluti (la sitemap
+    # è servita con public, max-age=3600).
 </IfModule>
