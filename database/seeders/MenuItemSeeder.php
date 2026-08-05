@@ -45,7 +45,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Risultati', 'en' => 'Results'],
                 'url' => '/stagione/risultati/',
-                'description' => '/stagione/risultati/',
+                'description' => ['it' => 'Calendario e tabellini', 'en' => 'Fixtures and box scores'],
             ],
             [
                 'label' => ['it' => 'Classifica', 'en' => 'Standings'],
@@ -64,7 +64,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'News & Comunicati', 'en' => 'News & Press Releases'],
                 'url' => '/stagione/news/',
-                'description' => '/stagione/news/',
+                'description' => ['it' => 'Notizie e comunicati', 'en' => 'News and press releases'],
             ],
             [
                 'label' => ['it' => 'Foto Gallery', 'en' => 'Photo Gallery'],
@@ -96,7 +96,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Storia', 'en' => 'History'],
                 'url' => '/societa/storia/',
-                'description' => '/societa/storia/',
+                'description' => ['it' => 'Dal 1982 a oggi', 'en' => 'From 1982 to today'],
             ],
             [
                 'label' => ['it' => 'Safeguarding', 'en' => 'Safeguarding'],
@@ -106,7 +106,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Contatti', 'en' => 'Contact'],
                 'url' => '/societa/contatti/',
-                'description' => '/societa/contatti/',
+                'description' => ['it' => 'Recapiti e sede', 'en' => 'Contact details and address'],
             ],
             [
                 'label' => ['it' => 'Palazzetto & Google Maps', 'en' => 'Arena & Google Maps'],
@@ -133,12 +133,12 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Biglietteria', 'en' => 'Box Office'],
                 'url' => '/ticketing/',
-                'description' => '- Vivaticket WL',
+                'description' => ['it' => 'Prezzi e punti vendita', 'en' => 'Prices and points of sale'],
             ],
             [
                 'label' => ['it' => 'Campagna Abbonamenti', 'en' => 'Season Ticket Campaign'],
                 'url' => '/ticketing/abbonamenti/',
-                'description' => '/ticketing/abbonamenti/',
+                'description' => ['it' => 'Formule e prezzi', 'en' => 'Packages and prices'],
             ],
             [
                 'label' => ['it' => 'Accessibilità & Info', 'en' => 'Accessibility & Info'],
@@ -249,7 +249,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Tutte le Info', 'en' => 'All the Info'],
                 'url' => '/summer-camp/info/',
-                'description' => '/summer-camp/info/',
+                'description' => ['it' => 'Programma e informazioni', 'en' => 'Programme and information'],
             ],
             [
                 'label' => ['it' => 'Iscrizione (Experience)', 'en' => 'Registration (Experience)'],
@@ -276,7 +276,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Progetti Sociali', 'en' => 'Community Projects'],
                 'url' => '/sociale/progetti/',
-                'description' => '/sociale/progetti/',
+                'description' => ['it' => 'Inclusione e territorio', 'en' => 'Inclusion and community'],
             ],
             [
                 'label' => ['it' => 'Volley 4 All', 'en' => 'Volley 4 All'],
@@ -296,7 +296,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Aste Benefiche', 'en' => 'Charity Auctions'],
                 'url' => '/sociale/aste/',
-                'description' => '-> E-Shop',
+                'description' => ['it' => "Aste sull'e-shop ufficiale", 'en' => 'Auctions on the official e-shop'],
             ],
         ]);
 
@@ -333,7 +333,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Double Face', 'en' => 'Double Face'],
                 'url' => '/comunicazione/double-face/',
-                'description' => '-> YouTube Channel',
+                'description' => ['it' => 'Il magazine ufficiale', 'en' => 'The official magazine'],
             ],
         ]);
 
@@ -433,16 +433,25 @@ class MenuItemSeeder extends Seeder
     private function createChildren(MenuItem $parent, array $children, string $location = 'main'): void
     {
         foreach ($children as $index => $child) {
-            MenuItem::create([
+            $attributes = [
                 'label' => $child['label'],
                 'url' => $child['url'],
-                'description' => $child['description'] ?? null,
                 'parent_id' => $parent->id,
                 'location' => $location,
                 'sort_order' => $index,
                 'is_active' => true,
                 'is_highlight' => $child['is_highlight'] ?? false,
-            ]);
+            ];
+
+            // Senza descrizione la colonna resta NULL: passando null a un campo
+            // translatable si otterrebbe {"it":null}, che non è una descrizione
+            // ma nemmeno l'assenza di una, e il fallback del front-end
+            // (common.explore_section) si aspetta l'assenza.
+            if (isset($child['description'])) {
+                $attributes['description'] = $child['description'];
+            }
+
+            MenuItem::create($attributes);
         }
     }
 }
