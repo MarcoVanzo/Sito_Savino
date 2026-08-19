@@ -31,11 +31,24 @@ class RecentActivityWidget extends Widget
 
     public function getActivities(): Collection
     {
-        return Cache::remember('filament:dashboard:recent_activity', 120, function () {
-            return ActivityLog::with('user')
+        // In cache vanno solo gli id: serializzare i modelli Eloquent nella cache
+        // su database produce un __PHP_Incomplete_Class alla rilettura e manda in
+        // 500 tutta la dashboard.
+        $ids = Cache::remember('filament:dashboard:recent_activity_ids', 120, function () {
+            return ActivityLog::query()
                 ->latest('created_at')
                 ->limit(10)
-                ->get();
+                ->pluck('id')
+                ->all();
         });
+
+        if ($ids === []) {
+            return ActivityLog::query()->whereRaw('1 = 0')->get();
+        }
+
+        return ActivityLog::with('user')
+            ->whereIn('id', $ids)
+            ->latest('created_at')
+            ->get();
     }
 }

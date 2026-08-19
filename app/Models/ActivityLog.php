@@ -36,7 +36,7 @@ class ActivityLog extends Model
 
     protected static function booted(): void
     {
-        static::created(fn () => Cache::forget('filament:dashboard:recent_activity'));
+        static::created(fn () => Cache::forget('filament:dashboard:recent_activity_ids'));
     }
 
     // --- Relazioni ---

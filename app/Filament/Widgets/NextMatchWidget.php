@@ -17,12 +17,19 @@ class NextMatchWidget extends Widget
 
     protected function getViewData(): array
     {
-        $nextMatch = Cache::remember('filament:dashboard:next_match', 1800, function () {
-            return Game::with(['homeTeam', 'awayTeam'])
+        // In cache va solo l'id: serializzare il modello Eloquent (con relazioni e
+        // media) nella cache su database produce un __PHP_Incomplete_Class alla
+        // rilettura e manda in 500 tutta la dashboard.
+        $nextMatchId = Cache::remember('filament:dashboard:next_match_id', 1800, function () {
+            return Game::query()
                 ->where('match_date', '>=', now())
                 ->orderBy('match_date', 'asc')
-                ->first();
+                ->value('id');
         });
+
+        $nextMatch = $nextMatchId
+            ? Game::with(['homeTeam', 'awayTeam'])->find($nextMatchId)
+            : null;
 
         return [
             'nextMatch' => $nextMatch,
