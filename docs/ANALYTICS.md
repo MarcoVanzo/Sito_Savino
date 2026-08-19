@@ -30,14 +30,21 @@ rifiuto.
 
 | Cosa | Dove |
 |---|---|
-| App Meta | Creata **dentro il portfolio business che possiede le Pagine**. Così basta lo Standard Access e non serve l'App Review sui permessi di insight. |
-| `META_APP_ID`, `META_APP_SECRET` | Impostazioni di base dell'app. |
-| `META_CONFIG_ID` | ID della configurazione di *Facebook Login for Business*. |
+| App Meta | Creata **dentro il portfolio business che possiede le Pagine**. Così basta lo Standard Access e non serve l'App Review sui permessi di insight. In produzione è `Savino Analytics`, collegata al portfolio *Savino Del Bene Volley* (proprietario della Pagina `Savino Del Bene Volley Scandicci` e del profilo `@savinodelbenevolley`). |
+| `META_APP_ID`, `META_APP_SECRET` | Impostazioni di base dell'app. `META_APP_ID` = `1098244582719500`; il segreto sta cifrato nello spec, mai in chiaro. |
+| `META_CONFIG_ID` | ID della configurazione di *Facebook Login for Business*. In produzione `1530681078385238` (configurazione `Sito Savino Insights`, token d'accesso **dell'utente**: il codice fa `fb_exchange_token` e poi `/me/accounts`, che con un token di utente di sistema non funzionerebbe). |
 | URI di reindirizzamento | `https://<dominio>/admin/social/meta/callback` — lo stampa Impostazioni → Analytics, va copiato identico nell'app Meta. |
 
 Permessi della configurazione: `instagram_basic`, `instagram_manage_insights`,
 `pages_show_list`, `pages_read_engagement`, **`read_insights`**,
 `business_management`.
+
+I permessi non compaiono nella tendina della configurazione finché non sono
+stati aggiunti ai **casi d'uso** dell'app (*Casi d'uso → Personalizza →
+Autorizzazioni e funzioni*): `read_insights` e `pages_read_engagement` stanno
+sotto *Gestisci tutto sulla tua Pagina*, `instagram_basic` e
+`instagram_manage_insights` sotto *Gestisci i messaggi e i contenuti su
+Instagram*.
 
 > `read_insights` è quello che si dimentica. Senza, la Graph API **non dà
 > errore**: risponde con metriche vuote. La pagina lo riconosce (tutte le
