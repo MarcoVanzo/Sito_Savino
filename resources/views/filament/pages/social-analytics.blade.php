@@ -7,13 +7,31 @@
             'non_follower' => 'Non follower',
             'unfollower' => 'Hanno smesso di seguire',
             'ad' => 'Inserzioni',
-            'feed' => 'Feed',
+            'feed' => 'Post',
+            'post' => 'Post',
+            'reel' => 'Reel',
             'reels' => 'Reel',
             'story' => 'Storie',
             'carousel_container' => 'Caroselli',
+            'carousel' => 'Caroselli',
+            'album' => 'Caroselli',
+            'video' => 'Video',
             'igtv' => 'IGTV',
-            'post' => 'Post',
+            'image' => 'Immagini',
             'unknown' => 'Non specificato',
+            'other' => 'Altro',
+            'bio_link' => 'Link in bio',
+            'call' => 'Chiamate',
+            'direction' => 'Indicazioni',
+            'email' => 'Email',
+            'text' => 'Messaggi',
+            'website' => 'Sito web',
+            'like' => 'Mi piace',
+            'love' => 'Love',
+            'wow' => 'Wow',
+            'haha' => 'Haha',
+            'sorry' => 'Sigh',
+            'anger' => 'Grrr',
         ];
     @endphp
 
@@ -44,18 +62,43 @@
             </p>
         </x-filament::section>
     @else
-        <div class="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
-            <span>
-                <strong class="text-gray-950 dark:text-white">{{ $account->name }}</strong>
-                @if ($account->ig_username) · {{ '@'.$account->ig_username }} @endif
-                @if ($account->page_name) · {{ $account->page_name }} @endif
-                · ultimi {{ $data['period']['days'] }} giorni
-            </span>
+        @php $profilo = $data['profile'] ?? []; @endphp
 
-            @if ($account->last_synced_at)
-                <span>Ultimo aggiornamento: {{ $account->last_synced_at->diffForHumans() }}</span>
-            @endif
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="flex items-start gap-4">
+                @if (! empty($profilo['profile_picture_url']))
+                    <img src="{{ $profilo['profile_picture_url'] }}" alt="" loading="lazy"
+                         class="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-primary-500/40" />
+                @endif
+
+                <div class="min-w-0">
+                    <div class="text-base font-semibold text-gray-950 dark:text-white">
+                        {{ $profilo['name'] ?? $account->name }}
+                    </div>
+
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        @if ($account->ig_username) {{ '@'.$account->ig_username }} @endif
+                        @if (! empty($profilo['media_count'])) · {{ number_format((int) $profilo['media_count'], 0, ',', '.') }} post @endif
+                        @if (! empty($profilo['follows_count'])) · segue {{ number_format((int) $profilo['follows_count'], 0, ',', '.') }} @endif
+                    </div>
+
+                    @if (! empty($profilo['biography']))
+                        <p class="mt-1 max-w-2xl text-sm text-gray-600 dark:text-gray-300">{{ $profilo['biography'] }}</p>
+                    @endif
+                </div>
+            </div>
+
+            <div class="text-right text-sm text-gray-500 dark:text-gray-400">
+                <div>Ultimi {{ $data['period']['days'] }} giorni</div>
+                @if ($account->last_synced_at)
+                    <div class="text-xs">Aggiornato {{ $account->last_synced_at->diffForHumans() }}</div>
+                @endif
+            </div>
         </div>
+
+        <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            Instagram — ultimi {{ $data['period']['days'] }} giorni
+        </h3>
 
         @if ($data['error'] ?? null)
             <x-filament::section>
@@ -175,48 +218,124 @@
             </x-filament::section>
 
             <x-filament::section>
+                <x-slot name="heading">Post migliori del periodo</x-slot>
+                <x-slot name="description">In ordine di interazioni. Il tasso è sulle persone raggiunte: quanti, fra chi ha visto, hanno poi fatto qualcosa</x-slot>
+
+                @if (($data['top_posts'] ?? []) === [])
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Nessun contenuto nel periodo.</p>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <tr>
+                                    <th class="pb-2 pr-3 font-medium">#</th>
+                                    <th class="pb-2 pr-4 font-medium">Post</th>
+                                    <th class="pb-2 pr-4 text-right font-medium">Views</th>
+                                    <th class="pb-2 pr-4 text-right font-medium">Reach</th>
+                                    <th class="pb-2 pr-4 text-right font-medium">Interazioni</th>
+                                    <th class="pb-2 pr-4 text-right font-medium">Tasso</th>
+                                    <th class="pb-2 pr-4 text-right font-medium">Salvati</th>
+                                    <th class="pb-2 pr-4 text-right font-medium">Condivisi</th>
+                                    <th class="pb-2 pr-4 text-right font-medium">Visione media</th>
+                                    <th class="pb-2 text-right font-medium">Skip</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                @foreach ($data['top_posts'] as $index => $post)
+                                    @php
+                                        $ins = $post['insights'] ?? [];
+                                        $thumb = $post['thumbnail_url'] ?? $post['media_url'] ?? null;
+                                        $watch = $ins['ig_reels_avg_watch_time'] ?? null;
+                                        $skip = $ins['reels_skip_rate'] ?? null;
+                                    @endphp
+                                    <tr>
+                                        <td class="py-2 pr-3 align-top text-gray-400 tabular-nums">{{ $index + 1 }}</td>
+                                        <td class="py-2 pr-4">
+                                            <div class="flex items-start gap-2">
+                                                @if ($thumb)
+                                                    <img src="{{ $thumb }}" alt="" loading="lazy"
+                                                         class="h-10 w-10 shrink-0 rounded object-cover" />
+                                                @endif
+                                                <div class="min-w-0">
+                                                    <div class="truncate font-medium text-gray-950 dark:text-white" style="max-width: 22rem;">
+                                                        {{ \Illuminate\Support\Str::limit($post['caption'] ?? '—', 60) }}
+                                                    </div>
+                                                    @if (! empty($post['timestamp']))
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                            {{ \Illuminate\Support\Carbon::parse($post['timestamp'])->format('d/m/Y') }}
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-2 pr-4 text-right tabular-nums">{{ number_format((float) ($ins['views'] ?? 0), 0, ',', '.') }}</td>
+                                        <td class="py-2 pr-4 text-right tabular-nums">{{ number_format((float) ($ins['reach'] ?? 0), 0, ',', '.') }}</td>
+                                        <td class="py-2 pr-4 text-right font-semibold tabular-nums text-gray-950 dark:text-white">
+                                            {{ number_format((float) ($ins['total_interactions'] ?? 0), 0, ',', '.') }}
+                                        </td>
+                                        <td class="py-2 pr-4 text-right tabular-nums">
+                                            {{ $post['rank_rate'] === null ? '—' : number_format($post['rank_rate'], 1, ',', '.').'%' }}
+                                        </td>
+                                        <td class="py-2 pr-4 text-right tabular-nums text-gray-500 dark:text-gray-400">{{ number_format((float) ($ins['saved'] ?? 0), 0, ',', '.') }}</td>
+                                        <td class="py-2 pr-4 text-right tabular-nums text-gray-500 dark:text-gray-400">{{ number_format((float) ($ins['shares'] ?? 0), 0, ',', '.') }}</td>
+                                        {{-- Solo i reel hanno tempo di visione e skip: per gli altri contenuti Meta non li calcola. --}}
+                                        <td class="py-2 pr-4 text-right tabular-nums text-gray-500 dark:text-gray-400">
+                                            {{ $watch === null ? '—' : number_format($watch / 1000, 1, ',', '.').'s' }}
+                                        </td>
+                                        <td class="py-2 text-right tabular-nums text-gray-500 dark:text-gray-400">
+                                            {{ $skip === null ? '—' : number_format($skip * 100, 0).'%' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </x-filament::section>
+
+            <x-filament::section>
                 <x-slot name="heading">Ultimi contenuti</x-slot>
 
                 @if ($data['posts'] === [])
                     <p class="text-sm text-gray-500 dark:text-gray-400">Nessun contenuto recente.</p>
                 @else
-                    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         @foreach ($data['posts'] as $post)
                             @php
-                                $insights = $post['insights'] ?? [];
+                                $ins = $post['insights'] ?? [];
                                 $thumb = $post['thumbnail_url'] ?? $post['media_url'] ?? null;
+                                $tipo = $labels[\Illuminate\Support\Str::lower($post['media_product_type'] ?? $post['media_type'] ?? '')] ?? null;
                             @endphp
-                            <div class="flex gap-3 rounded-xl border border-gray-200 p-3 dark:border-gray-700">
+
+                            <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                                 @if ($thumb)
-                                    <img src="{{ $thumb }}" alt="" loading="lazy"
-                                         class="h-20 w-20 shrink-0 rounded-lg object-cover" />
+                                    <a href="{{ $post['permalink'] ?? '#' }}" target="_blank" rel="noopener" class="block">
+                                        <img src="{{ $thumb }}" alt="" loading="lazy"
+                                             class="aspect-square w-full object-cover transition hover:opacity-90" />
+                                    </a>
                                 @endif
 
-                                <div class="min-w-0 flex-1 space-y-1">
-                                    <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                        <span>{{ \Illuminate\Support\Str::headline(\Illuminate\Support\Str::lower($post['media_product_type'] ?? $post['media_type'] ?? 'Post')) }}</span>
-                                        @if (! empty($post['timestamp']))
-                                            <span>· {{ \Illuminate\Support\Carbon::parse($post['timestamp'])->format('d/m/Y') }}</span>
-                                        @endif
+                                <div class="space-y-2 p-3">
+                                    {{-- Le stesse sei metriche dello screenshot, in riga sotto l'immagine. --}}
+                                    <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                                        <span title="Visualizzazioni">{{ number_format((float) ($ins['views'] ?? 0), 0, ',', '.') }} visual.</span>
+                                        <span title="Account raggiunti">{{ number_format((float) ($ins['reach'] ?? 0), 0, ',', '.') }} reach</span>
+                                        <span title="Mi piace">{{ number_format((float) ($ins['likes'] ?? 0), 0, ',', '.') }} like</span>
+                                        <span title="Commenti">{{ number_format((float) ($ins['comments'] ?? 0), 0, ',', '.') }} comm.</span>
+                                        <span title="Condivisioni">{{ number_format((float) ($ins['shares'] ?? 0), 0, ',', '.') }} cond.</span>
+                                        <span title="Salvataggi">{{ number_format((float) ($ins['saved'] ?? 0), 0, ',', '.') }} salv.</span>
                                     </div>
 
                                     <p class="line-clamp-2 text-sm text-gray-700 dark:text-gray-200">
-                                        {{ \Illuminate\Support\Str::limit($post['caption'] ?? '', 90) }}
+                                        {{ \Illuminate\Support\Str::limit($post['caption'] ?? '', 80) }}
                                     </p>
 
-                                    <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs tabular-nums text-gray-500 dark:text-gray-400">
-                                        <span>{{ number_format((float) ($insights['views'] ?? 0), 0, ',', '.') }} visual.</span>
-                                        <span>{{ number_format((float) ($insights['reach'] ?? 0), 0, ',', '.') }} reach</span>
-                                        <span>{{ number_format((float) ($insights['likes'] ?? 0), 0, ',', '.') }} like</span>
-                                        <span>{{ number_format((float) ($insights['comments'] ?? 0), 0, ',', '.') }} commenti</span>
+                                    <div class="flex items-center justify-between text-xs text-gray-400">
+                                        <span>{{ ! empty($post['timestamp']) ? \Illuminate\Support\Carbon::parse($post['timestamp'])->format('d M') : '' }}</span>
+                                        @if ($tipo)
+                                            <span class="rounded-full bg-gray-100 px-2 py-0.5 dark:bg-gray-800">{{ $tipo }}</span>
+                                        @endif
                                     </div>
-
-                                    @if (! empty($post['permalink']))
-                                        <a href="{{ $post['permalink'] }}" target="_blank" rel="noopener"
-                                           class="inline-block text-xs font-medium text-primary-600 hover:underline dark:text-primary-400">
-                                            Apri su Instagram
-                                        </a>
-                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -229,7 +348,14 @@
             @php $fb = $data['facebook']; @endphp
 
             <x-filament::section>
-                <x-slot name="heading">Facebook — {{ $account->page_name ?? 'Pagina' }}</x-slot>
+                <x-slot name="heading">
+                    Facebook — {{ $account->page_name ?? 'Pagina' }}
+                    @if (! empty($fb['link']))
+                        <a href="{{ $fb['link'] }}" target="_blank" rel="noopener"
+                           class="ml-1 text-sm font-normal text-primary-600 hover:underline dark:text-primary-400"
+                           title="Apri la Pagina su Facebook">↗</a>
+                    @endif
+                </x-slot>
 
                 @if ($fb['missing_read_insights'] ?? false)
                     <p class="mb-4 text-sm text-danger-600 dark:text-danger-400">
@@ -261,11 +387,16 @@
 
                 @if (! empty($fb['reactions']))
                     <div class="mt-6">
-                        <h4 class="mb-3 text-sm font-semibold text-gray-950 dark:text-white">Reazioni ai post</h4>
+                        <h4 class="mb-3 text-sm font-semibold text-gray-950 dark:text-white">
+                            Reazioni ai post ({{ $data['period']['days'] }} gg)
+                        </h4>
 
                         @php
                             $reactions = collect($fb['reactions'])
-                                ->map(fn ($value, $type) => ['name' => \Illuminate\Support\Str::headline($type), 'value' => $value])
+                                ->map(fn ($value, $type) => [
+                                    'name' => $labels[\Illuminate\Support\Str::lower($type)] ?? \Illuminate\Support\Str::headline($type),
+                                    'value' => $value,
+                                ])
                                 ->values()
                                 ->all();
                         @endphp

@@ -2,6 +2,29 @@
     @php
         $data = $this->overview();
         $site = $this->site();
+
+        // GA4 restituisce i gruppi di canale in inglese: in una pagina in
+        // italiano "Organic Search" accanto a "Diretto" si legge male.
+        $canali = [
+            'Direct' => 'Diretto',
+            'Organic Search' => 'Ricerca organica',
+            'Paid Search' => 'Ricerca a pagamento',
+            'Organic Social' => 'Social organico',
+            'Paid Social' => 'Social a pagamento',
+            'Organic Video' => 'Video organico',
+            'Email' => 'Email',
+            'Referral' => 'Referral',
+            'Display' => 'Display',
+            'Affiliates' => 'Affiliazioni',
+            'Cross-network' => 'Multirete',
+            'Unassigned' => 'Non assegnato',
+            '(non impostato)' => 'Non assegnato',
+        ];
+
+        $traduci = fn (array $items): array => array_map(
+            fn (array $item): array => ['name' => $canali[$item['name']] ?? $item['name']] + $item,
+            $items,
+        );
     @endphp
 
     {{-- Nessun sito configurato: la pagina spiega cosa manca invece di mostrare zeri. --}}
@@ -87,21 +110,30 @@
                     <table class="w-full text-sm">
                         <thead class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <tr>
+                                <th class="pb-2 pr-3 font-medium">#</th>
                                 <th class="pb-2 pr-4 font-medium">Pagina</th>
-                                <th class="pb-2 pr-4 text-right font-medium">Visualizzazioni</th>
+                                <th class="pb-2 pr-4 text-right font-medium">Visual.</th>
                                 <th class="pb-2 pr-4 text-right font-medium">Utenti</th>
                                 <th class="pb-2 text-right font-medium">Durata media</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                            @foreach ($data['pages'] as $page)
+                            @php $maxViews = max(array_map(fn ($p) => (int) $p['views'], $data['pages'])); @endphp
+                            @foreach ($data['pages'] as $index => $page)
                                 <tr>
+                                    <td class="py-2 pr-3 align-top tabular-nums text-gray-400">{{ $index + 1 }}</td>
                                     <td class="py-2 pr-4">
                                         <div class="truncate font-medium text-gray-950 dark:text-white" title="{{ $page['title'] }}">
                                             {{ $page['title'] !== '' ? $page['title'] : $page['path'] }}
                                         </div>
                                         <div class="truncate text-xs text-gray-500 dark:text-gray-400" title="{{ $page['path'] }}">
                                             {{ $page['path'] }}
+                                        </div>
+                                        {{-- Barra sul massimo, non sul totale: con una pagina dominante
+                                             tutte le altre sarebbero linee invisibili. --}}
+                                        <div class="mt-1 h-1 w-full max-w-md rounded-full bg-gray-100 dark:bg-gray-800">
+                                            <div class="h-1 rounded-full bg-primary-500"
+                                                 style="width: {{ $maxViews > 0 ? max(2, round($page['views'] / $maxViews * 100)) : 0 }}%"></div>
                                         </div>
                                     </td>
                                     <td class="py-2 pr-4 text-right tabular-nums">{{ number_format($page['views'], 0, ',', '.') }}</td>
@@ -120,16 +152,22 @@
         <div class="grid gap-6 lg:grid-cols-2">
             <x-filament::section>
                 <x-slot name="heading">Da dove arrivano</x-slot>
-                <x-slot name="description">Canali di acquisizione</x-slot>
 
-                @include('filament.analytics.bar-list', ['items' => $data['channels'], 'labelKey' => 'name', 'valueKey' => 'sessions'])
-            </x-filament::section>
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            Canali (sessioni)
+                        </h4>
+                        @include('filament.analytics.bar-list', ['items' => $traduci($data['channels']), 'labelKey' => 'name', 'valueKey' => 'sessions'])
+                    </div>
 
-            <x-filament::section>
-                <x-slot name="heading">Sorgenti</x-slot>
-                <x-slot name="description">Siti e motori che portano traffico</x-slot>
-
-                @include('filament.analytics.bar-list', ['items' => $data['sources'], 'labelKey' => 'name', 'valueKey' => 'sessions'])
+                    <div>
+                        <h4 class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            Sorgenti (sessioni)
+                        </h4>
+                        @include('filament.analytics.bar-list', ['items' => $data['sources'], 'labelKey' => 'name', 'valueKey' => 'sessions'])
+                    </div>
+                </div>
             </x-filament::section>
 
             <x-filament::section>

@@ -35,10 +35,34 @@ class NewsletterAnalyticsService
             'subscribers' => $this->subscriberStats($from),
             'daily' => $this->subscriptionsPerDay($from, $days),
             'campaigns' => $campaigns['campaigns'],
+            'campaign_series' => self::campaignSeries($campaigns['campaigns']),
             'campaigns_ok' => $campaigns['ok'],
             'campaigns_message' => $campaigns['message'] ?? null,
             'averages' => self::averages($campaigns['campaigns']),
         ];
+    }
+
+    /**
+     * Le campagne in ordine cronologico, pronte per i grafici.
+     *
+     * ActiveCampaign le restituisce dalla più recente: un grafico letto da
+     * destra a sinistra è un grafico che si legge male, quindi qui si inverte
+     * una volta sola invece di ricordarsene in ogni widget.
+     *
+     * @param  list<array<string, mixed>>  $campaigns
+     * @return list<array<string, mixed>>
+     */
+    private static function campaignSeries(array $campaigns): array
+    {
+        $series = array_reverse($campaigns);
+
+        return array_map(static fn (array $campaign): array => [
+            'name' => $campaign['name'],
+            'sent_at' => $campaign['sent_at'],
+            'sent' => (int) $campaign['sent'],
+            'open_rate' => $campaign['open_rate'],
+            'click_rate' => $campaign['click_rate'],
+        ], $series);
     }
 
     /**

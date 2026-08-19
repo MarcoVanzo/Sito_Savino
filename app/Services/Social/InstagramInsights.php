@@ -41,7 +41,7 @@ class InstagramInsights
 
     /** Metriche in più dei soli reel. */
     private const REELS_METRICS = [
-        'ig_reels_avg_watch_time', 'ig_reels_video_view_total_time',
+        'ig_reels_avg_watch_time', 'ig_reels_video_view_total_time', 'reels_skip_rate',
     ];
 
     /** Meta non accetta intervalli più lunghi di 30 giorni sugli insight. */

@@ -4,7 +4,9 @@ namespace App\Filament\Pages;
 
 use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Filament\Widgets\Analytics\NewsletterKpiWidget;
+use App\Filament\Widgets\Analytics\NewsletterRatesWidget;
 use App\Filament\Widgets\Analytics\NewsletterTrendWidget;
+use App\Filament\Widgets\Analytics\NewsletterVolumeWidget;
 use App\Services\Newsletter\NewsletterAnalyticsService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
@@ -44,13 +46,18 @@ class NewsletterAnalyticsPage extends Page
     {
         return [
             NewsletterKpiWidget::class,
+            NewsletterRatesWidget::class,
+            NewsletterVolumeWidget::class,
             NewsletterTrendWidget::class,
         ];
     }
 
     public function getHeaderWidgetsColumns(): int|array
     {
-        return 1;
+        // Due colonne: i grafici delle campagne si leggono affiancati, tassi a
+        // sinistra e volumi a destra, perché è il confronto fra i due che
+        // spiega i picchi.
+        return 2;
     }
 
     public function getMaxContentWidth(): MaxWidth|string|null

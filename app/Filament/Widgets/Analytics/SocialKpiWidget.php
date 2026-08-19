@@ -26,6 +26,9 @@ class SocialKpiWidget extends BaseWidget
 
     public int $days = 28;
 
+    /** Le otto schede Instagram, tutte nel rosa dell'identità social. */
+    private const ACCENTO = '#ED028C';
+
     protected function getColumns(): int
     {
         return 4;
@@ -55,6 +58,7 @@ class SocialKpiWidget extends BaseWidget
 
         return [
             Stat::make('Follower', self::number($followers))
+                ->extraAttributes(self::accento())
                 ->icon('heroicon-m-users')
                 ->description($delta === null ? 'Variazione non disponibile' : self::signed($delta).' nel periodo')
                 ->descriptionIcon($delta !== null && $delta < 0 ? 'heroicon-m-arrow-trending-down' : 'heroicon-m-arrow-trending-up')
@@ -62,35 +66,54 @@ class SocialKpiWidget extends BaseWidget
                 ->chart(array_map(static fn (array $row): float => (float) $row['follower_count'], $daily)),
 
             Stat::make('Visualizzazioni', self::number($totals['views']))
+                ->extraAttributes(self::accento())
                 ->icon('heroicon-m-eye')
                 ->chart(array_map(static fn (array $row): float => (float) $row['views'], $daily)),
 
             Stat::make('Account raggiunti', $reach === null ? 'n/d' : self::number($reach))
+                ->extraAttributes(self::accento())
                 ->icon('heroicon-m-signal')
                 ->description('Reach del periodo')
                 ->chart(array_map(static fn (array $row): float => (float) $row['reach'], $daily)),
 
             Stat::make('Interazioni', self::number($totals['total_interactions']))
+                ->extraAttributes(self::accento())
                 ->icon('heroicon-m-hand-raised')
                 ->description($reach ? self::percent((int) $totals['total_interactions'], $reach).' del reach' : null)
                 ->chart(array_map(static fn (array $row): float => (float) $row['total_interactions'], $daily)),
 
             Stat::make('Account che hanno interagito', self::number($engaged))
+                ->extraAttributes(self::accento())
                 ->icon('heroicon-m-user-circle')
                 ->description($followers > 0 ? self::percent($engaged, $followers).' dei follower' : null),
 
             Stat::make('Nuovi follower', $totals['new_follows'] === null ? 'n/d' : self::number($totals['new_follows']))
+                ->extraAttributes(self::accento())
                 ->icon('heroicon-m-user-plus')
                 ->description($totals['unfollows'] === null ? null : '−'.self::number($totals['unfollows']).' persi')
                 ->color($totals['new_follows'] === null ? 'gray' : 'success'),
 
             Stat::make('Tap sui link del profilo', self::number($totals['profile_links_taps']))
+                ->extraAttributes(self::accento())
                 ->icon('heroicon-m-link'),
 
             Stat::make('Post pubblicati', self::number((int) ($profile['media_count'] ?? 0)))
+                ->extraAttributes(self::accento())
                 ->icon('heroicon-m-photo')
                 ->description('Storico completo'),
         ];
+    }
+
+    /**
+     * Barra colorata in cima alla scheda: il tema del pannello è condiviso con
+     * dashboard e shop, quindi l'accento resta in linea invece che in una
+     * regola CSS globale.
+     *
+     * @return array<string, string>
+     */
+    private static function accento(): array
+    {
+        return ['style' => 'border-top: 3px solid '.self::ACCENTO.';'];
     }
 
     private static function number(int|float|null $value): string

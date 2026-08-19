@@ -82,6 +82,7 @@ class SocialAnalyticsService
             $data['breakdowns'] = $this->instagram->breakdowns($igId, $token, $days);
             $data['demographics'] = $this->instagram->demographics($igId, $token);
             $data['posts'] = $this->instagram->media($igId, $token);
+            $data['top_posts'] = self::rankPosts($data['posts']);
 
             $sync = $this->dailySync->fill($account, $days);
             $data['daily'] = $this->dailySync->series($account, $days);
@@ -194,8 +195,37 @@ class SocialAnalyticsService
             'breakdowns' => [],
             'demographics' => null,
             'posts' => [],
+            'top_posts' => [],
             'facebook' => null,
         ];
+    }
+
+    /**
+     * I contenuti che hanno reso di più, in ordine di interazioni.
+     *
+     * Il tasso è sulle persone raggiunte e non sulle visualizzazioni: dice
+     * quanti di quelli che hanno visto il post hanno poi fatto qualcosa, che è
+     * la domanda a cui serve rispondere quando si decide cosa ripubblicare.
+     *
+     * @param  list<array<string, mixed>>  $posts
+     * @return list<array<string, mixed>>
+     */
+    private static function rankPosts(array $posts, int $limit = 5): array
+    {
+        $ranked = array_map(static function (array $post): array {
+            $insights = $post['insights'] ?? [];
+            $reach = (int) ($insights['reach'] ?? 0);
+            $interactions = (int) ($insights['total_interactions'] ?? 0);
+
+            return $post + [
+                'rank_interactions' => $interactions,
+                'rank_rate' => $reach > 0 ? round($interactions / $reach * 100, 1) : null,
+            ];
+        }, $posts);
+
+        usort($ranked, static fn (array $a, array $b): int => $b['rank_interactions'] <=> $a['rank_interactions']);
+
+        return array_slice($ranked, 0, $limit);
     }
 
     /**

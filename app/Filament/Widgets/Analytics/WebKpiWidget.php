@@ -23,6 +23,11 @@ class WebKpiWidget extends BaseWidget
 
     public int $days = 28;
 
+    /** Palette dell'identità visiva, ripetuta in ordine sulle schede. */
+    private const ACCENTI = ['#ED028C', '#003063', '#C9A84C', '#0EA5E9', '#F97316', '#10B981'];
+
+    private int $accento = 0;
+
     protected function getColumns(): int
     {
         return 3;
@@ -58,7 +63,9 @@ class WebKpiWidget extends BaseWidget
      */
     private function stat(string $label, string $value, ?float $delta, string $icon, array $daily, ?string $key): Stat
     {
-        $stat = Stat::make($label, $value)->icon($icon);
+        $stat = Stat::make($label, $value)
+            ->icon($icon)
+            ->extraAttributes(self::accento(self::ACCENTI[$this->accento++ % count(self::ACCENTI)]));
 
         if ($key !== null && $daily !== []) {
             $stat->chart(array_map(static fn (array $row): float => (float) $row[$key], $daily));
@@ -72,6 +79,18 @@ class WebKpiWidget extends BaseWidget
             ->description(self::signed($delta).' vs periodo prec.')
             ->descriptionIcon($delta >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
             ->color($delta >= 0 ? 'success' : 'danger');
+    }
+
+    /**
+     * Barra colorata in cima alla scheda.
+     *
+     * Filament non offre un accento per singola statistica e il tema del
+     * pannello è condiviso con dashboard e shop: una regola CSS globale li
+     * colorerebbe tutti. Lo stile in linea resta confinato a queste pagine.
+     */
+    private static function accento(string $colore): array
+    {
+        return ['style' => 'border-top: 3px solid '.$colore.';'];
     }
 
     private static function signed(float $delta): string
