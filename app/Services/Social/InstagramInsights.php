@@ -47,6 +47,13 @@ class InstagramInsights
     /** Meta non accetta intervalli più lunghi di 30 giorni sugli insight. */
     private const MAX_WINDOW_DAYS = 30;
 
+    /**
+     * Valori di dimensione che Meta usa internamente e che non significano
+     * niente per chi legge: comparivano in fondo alle ripartizioni come
+     * "Default Do Not Use", con un conteggio a una cifra.
+     */
+    private const DIMENSIONI_SEGNAPOSTO = ['default_do_not_use', 'unknown_media_type'];
+
     public function __construct(private readonly MetaClient $client) {}
 
     /**
@@ -395,6 +402,11 @@ class InstagramInsights
                 foreach ((array) ($breakdown['results'] ?? []) as $result) {
                     $dimension = (string) (($result['dimension_values'] ?? ['?'])[0] ?? '?');
                     $dimension = $lowercase ? mb_strtolower($dimension) : $dimension;
+
+                    if (in_array(mb_strtolower($dimension), self::DIMENSIONI_SEGNAPOSTO, true)) {
+                        continue;
+                    }
+
                     $values[$dimension] = ($values[$dimension] ?? 0) + (int) ($result['value'] ?? 0);
                 }
             }

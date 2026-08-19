@@ -282,8 +282,11 @@
                                         <td class="py-2 pr-4 text-right tabular-nums text-gray-500 dark:text-gray-400">
                                             {{ $watch === null ? '—' : number_format($watch / 1000, 1, ',', '.').'s' }}
                                         </td>
+                                        {{-- Meta restituisce lo skip rate già in percentuale (50,1 = metà
+                                             di chi ha aperto il reel l'ha saltato): moltiplicarlo per cento
+                                             produceva un 5.010%. --}}
                                         <td class="py-2 text-right tabular-nums text-gray-500 dark:text-gray-400">
-                                            {{ $skip === null ? '—' : number_format($skip * 100, 0).'%' }}
+                                            {{ $skip === null ? '—' : number_format((float) $skip, 1, ',', '.').'%' }}
                                         </td>
                                     </tr>
                                 @endforeach

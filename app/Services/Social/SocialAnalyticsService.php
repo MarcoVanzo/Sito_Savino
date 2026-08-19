@@ -144,7 +144,11 @@ class SocialAnalyticsService
             'accounts_engaged' => (int) ($totals['accounts_engaged'] ?? 0),
             'profile_links_taps' => (int) ($totals['profile_links_taps'] ?? 0),
             'new_follows' => $follows === null ? null : (int) ($follows['follower'] ?? 0),
-            'unfollows' => $follows === null ? null : (int) ($follows['unfollower'] ?? 0),
+            // Meta chiama `non_follower` chi ha smesso di seguire, non
+            // `unfollower`: leggendo la chiave sbagliata i persi risultavano
+            // sempre zero, e con 1.442 nuovi follower e il saldo in negativo
+            // era l'unico numero a non tornare.
+            'unfollows' => $follows === null ? null : (int) ($follows['non_follower'] ?? 0),
             'follower_delta' => self::followerDelta($daily),
         ];
     }

@@ -71,6 +71,80 @@ class SocialAnalyticsPayloadTest extends TestCase
         $this->assertNull($senzaReach['rank_rate']);
     }
 
+    #[Test]
+    public function conta_chi_ha_smesso_di_seguire(): void
+    {
+        $account = SocialAccount::factory()->create();
+
+        Http::fake(function (Request $request) {
+            $url = $request->url();
+
+            if (str_contains($url, 'breakdown=follow_type')) {
+                // Meta chiama `NON_FOLLOWER` chi ha smesso di seguire. Leggendo
+                // `unfollower` il numero restava a zero e nessuno se ne accorgeva:
+                // "1.442 nuovi, 0 persi" sembra solo una bella stagione.
+                return Http::response(['data' => [[
+                    'name' => 'follows_and_unfollows',
+                    'total_value' => ['breakdowns' => [['results' => [
+                        ['dimension_values' => ['FOLLOWER'], 'value' => 1442],
+                        ['dimension_values' => ['NON_FOLLOWER'], 'value' => 1458],
+                    ]]]],
+                ]]], 200);
+            }
+
+            if (str_contains($url, 'metric_type=time_series')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if (str_contains($url, '/media')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            if (str_contains($url, '/insights')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            return Http::response(['id' => '1', 'followers_count' => 76849], 200);
+        });
+
+        $totals = app(SocialAnalyticsService::class)->overview($account, 7)['totals'];
+
+        $this->assertSame(1442, $totals['new_follows']);
+        $this->assertSame(1458, $totals['unfollows']);
+    }
+
+    #[Test]
+    public function i_segnaposto_interni_di_meta_non_finiscono_nelle_ripartizioni(): void
+    {
+        $account = SocialAccount::factory()->create();
+
+        Http::fake(function (Request $request) {
+            $url = $request->url();
+
+            if (str_contains($url, 'breakdown=media_product_type')) {
+                return Http::response(['data' => [[
+                    'name' => 'views',
+                    'total_value' => ['breakdowns' => [['results' => [
+                        ['dimension_values' => ['REELS'], 'value' => 1293380],
+                        // Meta lo restituisce davvero, con conteggi a una cifra:
+                        // in pagina compariva come "Default Do Not Use".
+                        ['dimension_values' => ['DEFAULT_DO_NOT_USE'], 'value' => 2],
+                    ]]]],
+                ]]], 200);
+            }
+
+            if (str_contains($url, 'metric_type=time_series') || str_contains($url, '/media') || str_contains($url, '/insights')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            return Http::response(['id' => '1'], 200);
+        });
+
+        $breakdowns = app(SocialAnalyticsService::class)->overview($account, 7)['breakdowns'];
+
+        $this->assertSame(['reels' => 1293380], $breakdowns['views_by_media_type']);
+    }
+
     private function fakeGraph(): void
     {
         Http::fake(function (Request $request) {
