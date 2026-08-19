@@ -53,16 +53,16 @@ class AdminPanelProvider extends PanelProvider
             ->spa()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->navigationGroups([
-                NavigationGroup::make()->label('Stagione')->icon('heroicon-o-trophy'),
-                NavigationGroup::make()->label('Società')->icon('heroicon-o-building-office-2'),
-                NavigationGroup::make()->label('Ticketing')->icon('heroicon-o-ticket'),
-                NavigationGroup::make()->label('Sponsor')->icon('heroicon-o-currency-dollar'),
-                NavigationGroup::make()->label('SDB Youth')->icon('heroicon-o-academic-cap'),
-                NavigationGroup::make()->label('Summer Camp')->icon('heroicon-o-sun'),
-                NavigationGroup::make()->label('Sociale')->icon('heroicon-o-heart'),
-                NavigationGroup::make()->label('Comunicazione')->icon('heroicon-o-megaphone'),
-                NavigationGroup::make()->label('Shop Ufficiale')->icon('heroicon-o-shopping-bag'),
-                NavigationGroup::make()->label('Marketing')->icon('heroicon-o-envelope'),
+                NavigationGroup::make()->label('Stagione')->icon('heroicon-o-trophy')->collapsed(),
+                NavigationGroup::make()->label('Società')->icon('heroicon-o-building-office-2')->collapsed(),
+                NavigationGroup::make()->label('Ticketing')->icon('heroicon-o-ticket')->collapsed(),
+                NavigationGroup::make()->label('Sponsor')->icon('heroicon-o-currency-dollar')->collapsed(),
+                NavigationGroup::make()->label('SDB Youth')->icon('heroicon-o-academic-cap')->collapsed(),
+                NavigationGroup::make()->label('Summer Camp')->icon('heroicon-o-sun')->collapsed(),
+                NavigationGroup::make()->label('Sociale')->icon('heroicon-o-heart')->collapsed(),
+                NavigationGroup::make()->label('Comunicazione')->icon('heroicon-o-megaphone')->collapsed(),
+                NavigationGroup::make()->label('Shop Ufficiale')->icon('heroicon-o-shopping-bag')->collapsed(),
+                NavigationGroup::make()->label('Marketing')->icon('heroicon-o-envelope')->collapsed(),
                 NavigationGroup::make()->label('Pagine & Extra')->icon('heroicon-o-document-duplicate')->collapsed(),
                 NavigationGroup::make()->label('Amministrazione')->icon('heroicon-o-cog-8-tooth')->collapsed(),
             ])
@@ -95,6 +95,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::TOPBAR_BEFORE,
                 fn (): string => view('filament.hooks.password-expiry-banner')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.hooks.sidebar-accordion')->render()
             )
             ->databaseNotifications()
             ->databaseNotificationsPolling('120s')
