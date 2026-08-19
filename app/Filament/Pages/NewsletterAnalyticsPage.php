@@ -32,7 +32,7 @@ class NewsletterAnalyticsPage extends Page
 
     protected static ?string $navigationGroup = 'Marketing';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 12;
 
     protected static ?string $slug = 'analytics/newsletter';
 
