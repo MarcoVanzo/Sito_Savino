@@ -1,6 +1,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { updateAnalyticsConsent } from '../analytics.js';
+import { updateMarketingConsent } from '../meta-pixel.js';
 
 const showBanner = ref(false);
 const showSettings = ref(false);
@@ -35,6 +37,14 @@ const saveConsent = () => {
         marketing: consent.marketing,
         timestamp: new Date().toISOString(),
     }));
+    // Fino a qui la scelta veniva solo memorizzata e non pilotava nulla: il
+    // banner chiedeva un consenso che poi non cambiava il comportamento del
+    // sito. Da qui la misurazione parte, o si ferma, davvero.
+    updateAnalyticsConsent(consent.analytics);
+    // Il pixel oggi non è subordinato al consenso (scelta di configurazione):
+    // la chiamata resta perché il giorno in cui lo diventa non serva ricordarsi
+    // di aggiungerla qui.
+    updateMarketingConsent(consent.marketing);
     showBanner.value = false;
     showSettings.value = false;
 };

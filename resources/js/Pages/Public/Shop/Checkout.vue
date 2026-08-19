@@ -5,6 +5,7 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
+import { trackInitiateCheckout } from '@/meta-pixel.js'
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -39,7 +40,14 @@ const props = defineProps({
 onMounted(() => {
     if (props.cart.items.length === 0) {
         router.visit(route('shop'));
+
+        return;
     }
+
+    trackInitiateCheckout({
+        value: Number(props.cartTotal),
+        numItems: Number(props.itemCount),
+    });
 });
 
 const authUser = user();

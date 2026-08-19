@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\MetaOAuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsletterController;
@@ -292,6 +293,25 @@ foreach ($locales as $loc) {
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified', EnsureUserIsActive::class])->name('dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| Collegamento OAuth con Meta
+|--------------------------------------------------------------------------
+|
+| Meta rimanda l'utente su un URL fisso, quindi la callback non può vivere
+| dentro una pagina Filament. Le rotte stanno sotto il prefisso del pannello
+| per coerenza con l'URI dichiarato nell'app Meta, e restano protette da
+| autenticazione: il controller verifica anche il ruolo.
+|
+*/
+Route::middleware(['auth', EnsureUserIsActive::class])
+    ->prefix('admin/social/meta')
+    ->name('admin.social.meta.')
+    ->group(function () {
+        Route::get('/connect', [MetaOAuthController::class, 'connect'])->name('connect');
+        Route::get('/callback', [MetaOAuthController::class, 'callback'])->name('callback');
+    });
 
 Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

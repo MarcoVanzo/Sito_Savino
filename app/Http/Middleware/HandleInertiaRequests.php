@@ -88,6 +88,13 @@ class HandleInertiaRequests extends Middleware
                 }
                 $settings = SiteSetting::getPublicGrouped();
 
+                // Il pixel legge una configurazione d'ambiente, non
+                // un'impostazione del pannello: viaggia insieme alle altre voci
+                // di analytics perché il front-end abbia un posto solo da
+                // guardare invece di una prop di primo livello in più.
+                $settings['analytics']['meta_pixel_requires_consent'] =
+                    (bool) config('services.meta.pixel_requires_consent');
+
                 try {
                     $contactPage = Page::where('slug', 'contatti')->first();
                     if ($contactPage) {

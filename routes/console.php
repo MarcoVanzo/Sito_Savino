@@ -41,6 +41,18 @@ Schedule::command('sitemap:generate')->daily()->at('04:00')->withoutOverlapping(
 // così le immagini nuove nascono cacheabili senza interventi manuali.
 Schedule::command('media:fix-remote-metadata --since="3 days ago"')->dailyAt('04:30')->withoutOverlapping();
 
+// Insight Instagram: la Graph API non dà lo storico giorno per giorno, quindi
+// ogni giornata costa una chiamata. Di notte se ne recuperano fino a 120, così
+// aprendo la pagina il grafico è già pieno e restano da scaricare solo i giorni
+// nuovi. L'ora è tarda di proposito: Meta consolida i dati con un paio di
+// giorni di ritardo, non c'è nessun vantaggio ad arrivare per primi.
+Schedule::command('social:sync-meta --days=90')->dailyAt('03:30')->withoutOverlapping();
+
+// Traffico dei siti: la serie si salva già a ogni apertura del pannello, ma se
+// per un mese nessuno lo apre quel mese non entra in archivio e i confronti
+// anno su anno restano bucati.
+Schedule::command('analytics:sync-ga4 --days=90')->dailyAt('05:00')->withoutOverlapping();
+
 // Pulizia periodica
 Schedule::command('activity-log:prune --days=180 --force')->weekly()->withoutOverlapping();
 Schedule::command('model:prune')->daily()->withoutOverlapping();

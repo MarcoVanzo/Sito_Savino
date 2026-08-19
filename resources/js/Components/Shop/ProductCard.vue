@@ -5,6 +5,7 @@ import { Link, router } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useCart } from '@/Composables/useCart.js';
+import { trackAddToCart } from '@/meta-pixel.js';
 
 const $t = useTranslations();
 
@@ -39,10 +40,15 @@ const handleAddToCart = () => {
     }
     isAdding.value = true;
     cartError.value = '';
+    trackAddToCart({
+        id: props.product.id,
+        name: props.product.name,
+        value: Number(props.product.price),
+    });
     addToCart(props.product.id, {
         onFinish: () => { isAdding.value = false; },
         onError: (errors) => {
-            cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || 'Errore durante l\'aggiunta al carrello';
+            cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || $t('shop.cart_error_generic');
             clearCartError();
         },
     });

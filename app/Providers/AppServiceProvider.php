@@ -27,6 +27,8 @@ use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
 use App\Observers\StockMovementObserver;
 use App\Observers\UserObserver;
+use App\Services\Analytics\WebAnalyticsService;
+use App\Services\Social\SocialAnalyticsService;
 use Filament\SpatieLaravelTranslatableContentDriver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -49,6 +51,15 @@ class AppServiceProvider extends ServiceProvider
         // HasActiveLocaleSwitcher: rimpiazzarlo qui è l'unico punto d'aggancio che
         // non richieda di sovrascrivere ogni pagina di ogni risorsa.
         $this->app->bind(SpatieLaravelTranslatableContentDriver::class, TranslatableContentDriver::class);
+
+        // I servizi di analytics tengono una memoria interna per richiesta: la
+        // pagina e i suoi widget sono componenti Livewire distinti che chiedono
+        // gli stessi identici numeri, e senza istanza condivisa ognuno
+        // ripasserebbe da cache e serializzazione per lo stesso payload.
+        // Il client GA4 non è autowirable (le credenziali si costruiscono da una
+        // factory, non dal container): il servizio se lo crea da sé quando serve.
+        $this->app->singleton(WebAnalyticsService::class, static fn (): WebAnalyticsService => new WebAnalyticsService);
+        $this->app->singleton(SocialAnalyticsService::class);
     }
 
     /**
