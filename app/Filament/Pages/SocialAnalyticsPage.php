@@ -111,7 +111,16 @@ class SocialAnalyticsPage extends Page
                 ->label($accounts->isEmpty() ? 'Collega Meta' : 'Ricollega Meta')
                 ->icon('heroicon-m-link')
                 ->color($accounts->isEmpty() ? 'primary' : 'gray')
-                ->url(fn (): string => route('admin.social.meta.connect')),
+                // Un'azione e non un link. Il pannello gira in modalità SPA:
+                // Livewire intercetta i click sui link interni e li carica via
+                // fetch, ma questa rotta risponde con un redirect verso
+                // facebook.com — cross-origin — quindi il fetch fallisce e non
+                // succede assolutamente niente, senza nemmeno un errore a
+                // schermo. Da un'azione, invece, il redirect lo esegue Livewire
+                // cambiando window.location, e il giro OAuth parte davvero.
+                ->action(fn () => redirect()->away(
+                    app(MetaOAuthService::class)->authorizationUrl(auth()->id())
+                )),
 
             Action::make('refresh')
                 ->label('Aggiorna')

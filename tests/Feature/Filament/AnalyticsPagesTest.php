@@ -180,6 +180,26 @@ class AnalyticsPagesTest extends TestCase
             ->assertSee('Non configurata');
     }
 
+    #[Test]
+    public function il_bottone_collega_meta_manda_davvero_su_facebook(): void
+    {
+        config()->set('services.meta.app_id', '1098244582719500');
+        config()->set('services.meta.app_secret', 'segreto-di-prova');
+        config()->set('services.meta.config_id', '1530681078385238');
+
+        // Era un link, e in modalità SPA non funzionava: Livewire intercettava
+        // il click e caricava la rotta via fetch, che rispondeva con un redirect
+        // cross-origin verso facebook.com. Il fetch falliva e non succedeva
+        // niente — nessun errore a schermo, nessun giro OAuth. Da azione il
+        // redirect lo esegue Livewire, e questo test lo blocca lì.
+        Livewire::actingAs($this->utenteConRuolo(UserRole::CommunicationManager))
+            ->test(SocialAnalyticsPage::class)
+            ->callAction('connect')
+            ->assertRedirectContains('facebook.com');
+
+        $this->assertDatabaseCount('social_oauth_states', 1);
+    }
+
     /**
      * `role` e `must_change_password` non sono assegnabili in massa (lo dice il
      * model): passarli alla factory non ha alcun effetto e il test finirebbe per

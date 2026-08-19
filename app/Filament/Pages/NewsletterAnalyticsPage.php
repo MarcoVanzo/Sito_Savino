@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Pages\Concerns\RestrictsAccessByRole;
+use App\Filament\Resources\NewsletterSubscriberResource;
 use App\Filament\Widgets\Analytics\NewsletterKpiWidget;
 use App\Filament\Widgets\Analytics\NewsletterRatesWidget;
 use App\Filament\Widgets\Analytics\NewsletterTrendWidget;
@@ -76,6 +77,23 @@ class NewsletterAnalyticsPage extends Page
     protected function getHeaderActions(): array
     {
         return [
+            // Le due destinazioni che si cercano da questa pagina: l'anagrafica
+            // per intervenire su un singolo iscritto, ActiveCampaign per
+            // preparare la campagna successiva.
+            Action::make('subscribers')
+                ->label('Iscritti')
+                ->icon('heroicon-m-user-group')
+                ->color('gray')
+                ->url(fn (): string => NewsletterSubscriberResource::getUrl()),
+
+            Action::make('activecampaign')
+                ->label('Apri ActiveCampaign')
+                ->icon('heroicon-m-arrow-top-right-on-square')
+                ->color('gray')
+                ->visible(fn (): bool => filled(config('services.activecampaign.url')))
+                ->url(fn (): string => rtrim((string) config('services.activecampaign.url'), '/').'/app/campaigns')
+                ->openUrlInNewTab(),
+
             Action::make('period')
                 ->label('Periodo')
                 ->icon('heroicon-m-calendar-days')
