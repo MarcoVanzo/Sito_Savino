@@ -31,9 +31,9 @@ class WebAnalyticsPage extends Page
 
     protected static ?string $title = 'Analytics Sito';
 
-    protected static ?string $navigationGroup = 'Comunicazione';
+    protected static ?string $navigationGroup = 'Marketing';
 
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 10;
 
     protected static ?string $slug = 'analytics/sito';
 

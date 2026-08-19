@@ -33,9 +33,9 @@ class SocialAnalyticsPage extends Page
 
     protected static ?string $title = 'Social Analytics';
 
-    protected static ?string $navigationGroup = 'Comunicazione';
+    protected static ?string $navigationGroup = 'Marketing';
 
-    protected static ?int $navigationSort = 31;
+    protected static ?int $navigationSort = 11;
 
     protected static ?string $slug = 'analytics/social';
 

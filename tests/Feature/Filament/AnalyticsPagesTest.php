@@ -10,6 +10,7 @@ use App\Filament\Pages\WebAnalyticsPage;
 use App\Models\AnalyticsSite;
 use App\Models\SocialAccount;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
@@ -37,6 +38,33 @@ class AnalyticsPagesTest extends TestCase
         $this->assertTrue(WebAnalyticsPage::canAccess());
         $this->assertTrue(SocialAnalyticsPage::canAccess());
         $this->assertTrue(NewsletterAnalyticsPage::canAccess());
+    }
+
+    #[Test]
+    public function le_tre_pagine_sono_registrate_nel_pannello_sotto_marketing(): void
+    {
+        // Una pagina può esistere, avere i permessi giusti e non comparire lo
+        // stesso: basta che Filament non la scopra o che il gruppo di
+        // navigazione non corrisponda a nessuno di quelli dichiarati nel
+        // pannello. Da fuori sembra che il lavoro non sia stato fatto.
+        $this->actingAs($this->utenteConRuolo(UserRole::SuperAdmin));
+
+        $registrate = array_map(
+            fn (string $page): string => $page,
+            Filament::getPanel('admin')->getPages(),
+        );
+
+        foreach ([WebAnalyticsPage::class, SocialAnalyticsPage::class, NewsletterAnalyticsPage::class] as $page) {
+            $this->assertContains($page, $registrate, $page.' non è registrata nel pannello');
+            $this->assertSame('Marketing', $page::getNavigationGroup(), $page.' non è nel gruppo Marketing');
+        }
+
+        $gruppi = array_map(
+            fn ($group): ?string => $group->getLabel(),
+            Filament::getPanel('admin')->getNavigationGroups(),
+        );
+
+        $this->assertContains('Marketing', $gruppi, 'Il gruppo Marketing non è dichiarato nel pannello');
     }
 
     #[Test]
