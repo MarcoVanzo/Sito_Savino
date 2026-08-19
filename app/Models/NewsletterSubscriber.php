@@ -4,12 +4,15 @@ namespace App\Models;
 
 use App\Jobs\UnsubscribeNewsletterFromActiveCampaign;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
 class NewsletterSubscriber extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'email',
         'first_name',

@@ -238,7 +238,8 @@
         "og_description": "Savino Del Bene Volley - Official website.",
         "download_pdf": "Download PDF",
         "no_magazines": "No issues available at the moment.",
-        "no_videos": "No videos available at the moment."
+        "no_videos": "No videos available at the moment.",
+        "portal_cta_fallback": "Go to the registration portal"
     },
     "sponsor": {
         "og_title": "Sponsors & Partners",
@@ -605,7 +606,8 @@
         "load_more": "Load more products",
         "remaining": "remaining",
         "sort_default": "Sort by",
-        "loading_products": "Loading products"
+        "loading_products": "Loading products",
+        "cart_error_generic": "Something went wrong while adding to the cart"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Order submitted! (placeholder)",
@@ -1035,5 +1037,11 @@
         "point_secure": "Secure payment through Stripe",
         "point_once": "Verification is required only once",
         "cta": "Verify your card"
+    },
+    "password_expiry": {
+        "today": "Your password expires today.",
+        "days": "Your password expires in {days} days.",
+        "cta_hint": "Change it now so you are not locked out at your next sign-in.",
+        "change": "Change password"
     }
 }

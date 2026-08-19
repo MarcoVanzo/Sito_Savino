@@ -1,0 +1,167 @@
+<?php
+
+namespace Tests\Feature\Filament;
+
+use App\Enums\UserRole;
+use App\Filament\Pages\NewsletterAnalyticsPage;
+use App\Filament\Pages\Settings\AnalyticsSettingsPage;
+use App\Filament\Pages\SocialAnalyticsPage;
+use App\Filament\Pages\WebAnalyticsPage;
+use App\Models\AnalyticsSite;
+use App\Models\SocialAccount;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+/**
+ * Le tre pagine di analytics leggono servizi esterni che in produzione possono
+ * non essere configurati o non rispondere. Il requisito è che si aprano
+ * comunque: una pagina del pannello che va in errore 500 perché Google è lento
+ * è peggio di una che dice "dati non disponibili".
+ *
+ * Qui si verifica anche chi può vederle: sono dati di comunicazione, non di
+ * shop, e i ruoli non vanno confusi.
+ */
+class AnalyticsPagesTest extends TestCase
+{
+    use RefreshDatabase;
+
+    #[Test]
+    public function la_gestione_comunicazione_vede_le_tre_pagine(): void
+    {
+        $this->actingAs($this->utenteConRuolo(UserRole::CommunicationManager));
+
+        $this->assertTrue(WebAnalyticsPage::canAccess());
+        $this->assertTrue(SocialAnalyticsPage::canAccess());
+        $this->assertTrue(NewsletterAnalyticsPage::canAccess());
+    }
+
+    #[Test]
+    public function chi_gestisce_solo_lo_shop_non_le_vede(): void
+    {
+        $this->actingAs($this->utenteConRuolo(UserRole::ShopManager));
+
+        $this->assertFalse(WebAnalyticsPage::canAccess());
+        $this->assertFalse(SocialAnalyticsPage::canAccess());
+        $this->assertFalse(NewsletterAnalyticsPage::canAccess());
+    }
+
+    #[Test]
+    public function analytics_sito_si_apre_senza_nessun_sito_configurato(): void
+    {
+        // La configurazione di partenza arriva da una migrazione: qui si prova
+        // il caso opposto, cioè un ambiente in cui i siti non ci sono ancora.
+        AnalyticsSite::query()->delete();
+
+        Http::fake();
+
+        Livewire::actingAs($this->utenteConRuolo(UserRole::CommunicationManager))
+            ->test(WebAnalyticsPage::class)
+            ->assertSuccessful()
+            ->assertSee('Nessun sito configurato');
+
+        // Senza siti non c'è niente da chiedere a Google.
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function analytics_sito_si_apre_anche_se_google_risponde_male(): void
+    {
+        AnalyticsSite::query()->delete();
+        AnalyticsSite::factory()->create(['name' => 'Sito ufficiale', 'property_id' => '123456789']);
+
+        config()->set('services.ga4.service_account_json', json_encode([
+            'client_email' => 'analytics@savino.iam.gserviceaccount.com',
+            'private_key' => 'chiave-non-valida',
+        ]));
+
+        Http::fake(['*' => Http::response('', 500)]);
+
+        Livewire::actingAs($this->utenteConRuolo(UserRole::CommunicationManager))
+            ->test(WebAnalyticsPage::class)
+            ->assertSuccessful()
+            ->assertSee('Dati non disponibili');
+    }
+
+    #[Test]
+    public function social_analytics_si_apre_senza_account_collegati(): void
+    {
+        config()->set('services.meta.app_id', '123');
+        config()->set('services.meta.app_secret', 'segreto');
+
+        Http::fake();
+
+        Livewire::actingAs($this->utenteConRuolo(UserRole::CommunicationManager))
+            ->test(SocialAnalyticsPage::class)
+            ->assertSuccessful()
+            ->assertSee('Nessun account collegato');
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function social_analytics_dice_cosa_manca_se_l_app_meta_non_e_configurata(): void
+    {
+        config()->set('services.meta.app_id', null);
+        config()->set('services.meta.app_secret', null);
+
+        SocialAccount::factory()->create();
+
+        Livewire::actingAs($this->utenteConRuolo(UserRole::CommunicationManager))
+            ->test(SocialAnalyticsPage::class)
+            ->assertSuccessful()
+            ->assertSee('App Meta non configurata');
+    }
+
+    #[Test]
+    public function newsletter_si_apre_anche_senza_activecampaign(): void
+    {
+        config()->set('services.activecampaign.url', null);
+        config()->set('services.activecampaign.key', null);
+
+        Http::fake();
+
+        Livewire::actingAs($this->utenteConRuolo(UserRole::CommunicationManager))
+            ->test(NewsletterAnalyticsPage::class)
+            ->assertSuccessful()
+            ->assertSee('Campagne non disponibili');
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function le_impostazioni_mostrano_cosa_manca_e_cosa_autorizzare(): void
+    {
+        config()->set('services.ga4.service_account_json', json_encode([
+            'client_email' => 'analytics@savino.iam.gserviceaccount.com',
+            'private_key' => 'chiave',
+        ]));
+        config()->set('services.meta.app_id', null);
+        config()->set('services.meta.app_secret', null);
+
+        Livewire::actingAs($this->utenteConRuolo(UserRole::SuperAdmin))
+            ->test(AnalyticsSettingsPage::class)
+            ->assertSuccessful()
+            // Le due domande che ci si fa ogni volta: chi autorizzare su Google
+            // e quale URI dichiarare su Meta.
+            ->assertSee('analytics@savino.iam.gserviceaccount.com')
+            ->assertSee('admin/social/meta/callback')
+            ->assertSee('Non configurata');
+    }
+
+    /**
+     * `role` e `must_change_password` non sono assegnabili in massa (lo dice il
+     * model): passarli alla factory non ha alcun effetto e il test finirebbe per
+     * verificare i permessi di un utente senza ruolo, cioè niente.
+     */
+    private function utenteConRuolo(UserRole $role): User
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['role' => $role, 'must_change_password' => false])->save();
+
+        return $user->refresh();
+    }
+}

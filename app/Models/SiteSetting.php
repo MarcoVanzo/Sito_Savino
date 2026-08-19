@@ -105,7 +105,10 @@ class SiteSetting extends Model
     {
         $all = static::getAllGrouped();
 
-        $publicGroups = ['general', 'brand', 'footer', 'shop', 'social', 'auctions', 'hero', 'legal', 'contact', 'home'];
+        // `analytics` contiene solo il Measurement ID, che il tag di Google
+        // espone comunque in chiaro nel browser: non è un segreto e deve
+        // arrivare al front-end per poter caricare la misurazione.
+        $publicGroups = ['general', 'brand', 'footer', 'shop', 'social', 'auctions', 'hero', 'legal', 'contact', 'home', 'analytics'];
 
         return array_intersect_key($all, array_flip($publicGroups));
     }

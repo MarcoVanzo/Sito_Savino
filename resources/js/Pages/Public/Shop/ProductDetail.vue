@@ -9,6 +9,7 @@ import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
+import { trackViewContent, trackAddToCart } from '@/meta-pixel.js';
 
 
 const $t = useTranslations();
@@ -74,6 +75,12 @@ const handleMouseLeave = () => {
 const isTouchDevice = ref(false);
 onMounted(() => {
     isTouchDevice.value = window.matchMedia('(hover: none)').matches;
+
+    trackViewContent({
+        id: props.product.id,
+        name: props.product.name,
+        value: Number(props.product.price),
+    });
 });
 
 // --- Variant Selector ---
@@ -177,6 +184,14 @@ const handleAddToCart = () => {
     variantError.value = false;
     isAdding.value = true;
     cartError.value = '';
+    // Prima della chiamata e non nella callback: `addToCart` naviga via Inertia
+    // e il componente può essere già smontato quando la risposta arriva.
+    trackAddToCart({
+        id: props.product.id,
+        name: props.product.name,
+        value: Number(props.product.price) * quantity.value,
+        quantity: quantity.value,
+    });
     addToCart({
         product_id: props.product.id,
         variant_id: selectedVariant.value,
@@ -184,7 +199,7 @@ const handleAddToCart = () => {
     }, {
         onFinish: () => { isAdding.value = false; },
         onError: (errors) => {
-            cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || 'Errore durante l\'aggiunta al carrello';
+            cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || $t('shop.cart_error_generic');
             clearCartError();
         },
     });

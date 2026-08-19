@@ -132,4 +132,74 @@ return [
         ),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Google Analytics 4 — Data API
+    |--------------------------------------------------------------------------
+    |
+    | Le statistiche del sito si leggono con un service account, non con OAuth
+    | per utente: la property GA4 aggiunge l'email del service account come
+    | Visualizzatore e basta. Niente schermata di consenso Google da far
+    | verificare, niente token da rinnovare.
+    |
+    | Il JSON del service account NON sta nel repository (che è pubblico): o un
+    | file fuori dal repo, o la variabile con il JSON (anche base64) iniettata
+    | come secret da DigitalOcean App Platform.
+    |
+    */
+
+    'ga4' => [
+        'service_account_file' => env('GA4_SERVICE_ACCOUNT_FILE'),
+        'service_account_json' => env('GA4_SERVICE_ACCOUNT_JSON'),
+        'timeout' => (int) env('GA4_TIMEOUT', 30),
+        // Fuso in cui GA4 chiude la giornata per le nostre property. Le date
+        // relative ("28daysAgo", "today") sono risolte da Google in questo fuso:
+        // le chiavi della serie giornaliera devono essere calcolate uguale,
+        // altrimenti l'ultimo giorno risulta sempre vuoto.
+        'timezone' => env('GA4_TIMEZONE', 'Europe/Rome'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Meta (Instagram + Facebook) — Graph API
+    |--------------------------------------------------------------------------
+    |
+    | Un'unica app Meta serve tutti gli account social della società: ogni
+    | account business si collega con il proprio OAuth ("Facebook Login for
+    | Business") e il token finisce cifrato in `social_accounts`.
+    |
+    | `config_id` è l'ID della configurazione di Facebook Login for Business:
+    | quando c'è sostituisce l'elenco degli scope. La configurazione deve
+    | includere `read_insights`, altrimenti le metriche della Pagina arrivano
+    | vuote SENZA errore.
+    |
+    */
+
+    'meta' => [
+        'app_id' => env('META_APP_ID'),
+        'app_secret' => env('META_APP_SECRET'),
+        'config_id' => env('META_CONFIG_ID'),
+        // Normalmente si ricava dalla rotta di callback: la variabile serve
+        // solo se il dominio pubblico non coincide con APP_URL (anteprime,
+        // ambienti dietro proxy), perché Meta pretende la corrispondenza
+        // esatta con l'URI dichiarato nell'app.
+        'redirect_uri' => env('META_REDIRECT_URI'),
+        'graph_version' => env('META_GRAPH_VERSION', 'v24.0'),
+        'timeout' => (int) env('META_TIMEOUT', 30),
+        // Meta consolida gli insight con un paio di giorni di ritardo: prima di
+        // allora un giorno già scaricato può ancora cambiare.
+        'data_delay_days' => (int) env('META_DATA_DELAY_DAYS', 2),
+        // Fuso in cui Meta chiude la giornata per gli account italiani.
+        'timezone' => env('META_TIMEZONE', 'Europe/Rome'),
+
+        // Il Pixel misura il funnel pubblicitario sul sito, cosa diversa dagli
+        // insight letti via Graph API: l'ID sta nelle impostazioni del pannello
+        // perché non è un segreto (il browser lo espone comunque) e cambia
+        // senza bisogno di un rilascio.
+        //
+        // Oggi il pixel si carica per tutti. Portarlo sotto il consenso
+        // marketing del banner cookie è questa variabile, non un refactoring.
+        'pixel_requires_consent' => filter_var(env('META_PIXEL_REQUIRES_CONSENT', false), FILTER_VALIDATE_BOOL),
+    ],
+
 ];

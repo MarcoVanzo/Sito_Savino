@@ -238,7 +238,8 @@
         "og_description": "Savino Del Bene Volley - Sito ufficiale.",
         "download_pdf": "Scarica PDF",
         "no_magazines": "Nessuna edizione disponibile al momento.",
-        "no_videos": "Nessun video disponibile al momento."
+        "no_videos": "Nessun video disponibile al momento.",
+        "portal_cta_fallback": "Accedi al portale iscrizioni"
     },
     "sponsor": {
         "og_title": "Sponsor & Partner",
@@ -605,7 +606,8 @@
         "load_more": "Mostra altri prodotti",
         "remaining": "rimanenti",
         "sort_default": "Ordina per",
-        "loading_products": "Caricamento prodotti"
+        "loading_products": "Caricamento prodotti",
+        "cart_error_generic": "Errore durante l'aggiunta al carrello"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Ordine inviato! (placeholder)",
@@ -1035,5 +1037,11 @@
         "point_secure": "Pagamento sicuro tramite Stripe",
         "point_once": "La verifica è necessaria una sola volta",
         "cta": "Verifica la tua carta"
+    },
+    "password_expiry": {
+        "today": "La tua password scade entro oggi.",
+        "days": "La tua password scade fra {days} giorni.",
+        "cta_hint": "Cambiala ora per non trovarti bloccato al prossimo accesso.",
+        "change": "Cambia password"
     }
 }

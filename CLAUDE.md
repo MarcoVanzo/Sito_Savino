@@ -290,3 +290,44 @@ rifiuta di girare in produzione. Non è una fonte reale.
 
 I parser sono coperti da test su fixture HTML reali in `tests/Fixtures/Lvf/`. Se la Lega
 cambia il markup, aggiornare le fixture e poi i parser.
+
+---
+
+## 13. Analytics: sito, social, newsletter
+
+Tre pagine del pannello leggono servizi esterni. Documentazione completa in
+`docs/ANALYTICS.md`; qui solo i vincoli da non violare.
+
+- **Credenziali fuori dal repository.** Service account Google e segreti Meta
+  stanno in `.env` / secret di App Platform. Nel database (SiteSetting) c'è solo
+  il Measurement ID di GA4, che il tag espone comunque in chiaro nel browser.
+- **Nessuna delle tre pagine deve poter andare in errore per colpa del servizio
+  esterno.** `WebAnalyticsService` e `SocialAnalyticsService` non lanciano verso
+  la UI: restituiscono un payload con `error` o `degraded`. Una pagina del
+  pannello in 500 perché Google è lento è peggio di una che dice "dati non
+  disponibili".
+- **La serie giornaliera si conserva** (`web_analytics_daily`,
+  `social_insights_daily`) e i giorni `is_final` non si richiedono mai più. Per
+  Meta questo non è una cache: la Graph API non fornisce lo storico giorno per
+  giorno, ogni giornata costa una chiamata. Togliere il controllo su `is_final`
+  farebbe crescere il costo senza limite senza cambiare nulla a schermo.
+- **Tetto alle chiamate Meta**: 15 aprendo la pagina, 120 nel comando notturno
+  (Meta concede circa 200 richieste l'ora).
+- **I totali di periodo non sono la somma dei giorni.** Per reach e account
+  raggiunti sommare conterebbe più volte la stessa persona: si usa `total_value`
+  sull'intervallo intero.
+- **`read_insights`**: senza quel permesso la Graph API non dà errore, dà
+  metriche vuote. Il rilevamento sta in `FacebookPageInsights` e non va tolto.
+- **Il tag GA4 si carica solo dopo il consenso** sui cookie di statistica
+  (`resources/js/analytics.js`, Consent Mode v2). Il `page_view` a ogni
+  navigazione Inertia è ciò che rende possibile la misura pagina per pagina:
+  senza, tutto il traffico finirebbe sulla pagina d'ingresso.
+- **Il Pixel di Meta non è la Graph API.** La Graph API legge gli insight dei
+  profili social; il Pixel (`resources/js/meta-pixel.js`) misura il sito per le
+  inserzioni. `Purchase` è deduplicato per numero d'ordine su `sessionStorage`:
+  la pagina di conferma si ricarica da sola in attesa del webhook e senza il
+  blocco lo stesso ordine varrebbe una decina di conversioni.
+- **Il pixel oggi si carica senza consenso** (`META_PIXEL_REQUIRES_CONSENT`,
+  default `false`): è una scelta dichiarata, non una dimenticanza. Il toggle
+  "marketing" del banner cookie resta quindi senza effetto finché quella
+  variabile non passa a `true`.

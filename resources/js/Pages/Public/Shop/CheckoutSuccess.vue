@@ -4,6 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice';
 import { useTranslations } from '@/Composables/useTranslations.js';
+import { trackPurchase } from '@/meta-pixel.js';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const $t = useTranslations();
@@ -36,6 +37,17 @@ let pollCount = ref(0);
 const maxPolls = 12; // 12 × 5s = 60s
 
 onMounted(() => {
+    // L'ordine con il bonifico non è ancora incassato, ma è comunque una
+    // conversione: la campagna ha portato l'acquisto, il resto è amministrazione.
+    trackPurchase({
+        orderNumber: props.order.order_number,
+        value: Number(props.order.total_price),
+        items: (props.order.items ?? []).map((item) => ({
+            id: item.product_id,
+            quantity: item.quantity,
+        })),
+    });
+
     if (isAwaitingWebhook.value) {
         pollInterval = setInterval(() => {
             pollCount.value++;
