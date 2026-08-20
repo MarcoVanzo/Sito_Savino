@@ -1,8 +1,9 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import LOGOS from '@/Constants/logos.js';
+import { navItemPadding, navShowsSeparators } from '@/Composables/useHeaderNavFit.js';
 
 const { onImgError } = useImageFallback();
 
@@ -11,7 +12,16 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    // Il corpo delle voci lo decide l'header, che è l'unico a sapere quanto spazio
+    // resta fra loghi e icone: vedi useHeaderNavFit.
+    fontSize: {
+        type: Number,
+        default: 13,
+    },
 });
+
+const itemPadding = computed(() => `${navItemPadding(props.fontSize)}px`);
+const showSeparators = computed(() => navShowsSeparators(props.fontSize));
 
 // --- Keyboard accessibility ---
 const openIndex = ref(-1);
@@ -178,14 +188,15 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <nav ref="navRef" role="navigation" :aria-label="$t('nav.main_navigation')" class="hidden xl:flex flex-1 justify-end items-center h-full">
+    <nav ref="navRef" role="navigation" :aria-label="$t('nav.main_navigation')" class="flex flex-1 min-w-0 justify-end items-center h-full">
         <div class="flex items-center h-full">
             <template v-for="(item, index) in navigation" :key="item.label">
                 <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="handleMouseEnter(index)" @mouseleave="handleMouseLeave">
                     <Link 
                         :href="item.href" 
                         prefetch
-                        class="text-[11px] 2xl:text-[13px] font-black tracking-wide uppercase transition-colors flex items-center h-full px-1 2xl:px-2.5 whitespace-nowrap"
+                        class="font-black tracking-wide uppercase transition-colors flex items-center h-full whitespace-nowrap"
+                        :style="{ fontSize: `${fontSize}px`, paddingLeft: itemPadding, paddingRight: itemPadding }"
                         :class="[
                             /* text-gray-200: su una slide chiara dell'hero il gray-400 era illeggibile */
                             $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-200 hover:text-white border-b-[3px] border-transparent pt-[3px]',
@@ -263,7 +274,7 @@ onBeforeUnmount(() => {
                 </div>
                 
                 <!-- Vertical separator | -->
-                <div v-if="index < navigation.length - 1" class="text-white/20 select-none text-[10px] mx-0.5 2xl:mx-1">|</div>
+                <div v-if="showSeparators && index < navigation.length - 1" class="text-white/20 select-none text-[10px] mx-1">|</div>
             </template>
         </div>
         

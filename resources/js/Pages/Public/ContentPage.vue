@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSafeUrl } from '@/Composables/useSafeUrl';
@@ -20,6 +20,20 @@ const safeContent = computed(() => sanitize(props.page?.content));
 
 // URL del bottone/banner: arriva dal CMS, va validato prima di finire in href.
 const buttonUrl = computed(() => safeUrl(props.page?.content_data?.button_url));
+
+// Le foto arrivano dalla media library (accessor `gallery_images` del model
+// Page): niente percorsi costruiti a mano, che su Spaces non funzionerebbero.
+const galleryImages = computed(() => props.page?.gallery_images ?? []);
+const lightboxIndex = ref(null);
+const lightboxImage = computed(() => (lightboxIndex.value === null ? null : galleryImages.value[lightboxIndex.value]));
+
+const openImage = (index) => {
+    lightboxIndex.value = index;
+};
+
+const closeImage = () => {
+    lightboxIndex.value = null;
+};
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('content_page.og_title'),
@@ -68,8 +82,9 @@ const getEmbedUrl = (url) => {
                     v-html="safeContent"
                 ></div>
 
-                <!-- Custom Segment: Iscrizione Experience -->
-                <div v-if="page?.slug === 'iscrizione-experience'" class="mt-12 pt-8 border-t border-gray-100 flex flex-col items-center">
+                <!-- Pulsante di richiamo: presente su qualsiasi pagina che ne
+                     abbia uno configurato, non solo sull'iscrizione al camp -->
+                <div v-if="buttonUrl" class="mt-12 pt-8 border-t border-gray-100 flex flex-col items-center">
                     <div class="w-full max-w-2xl text-center">
                         <template v-if="page?.content_data?.button_image">
                             <!-- Clickable Premium Banner -->
@@ -80,8 +95,8 @@ const getEmbedUrl = (url) => {
                                 class="group relative block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                             >
                                 <img 
-                                    :src="`/storage/${page.content_data.button_image}`" 
-                                    :alt="page.content_data.button_text || 'Accedi'" 
+                                    :src="page.content_data.button_image" 
+                                    :alt="page.content_data.button_text || $t('content_page.portal_cta_fallback')" 
                                     class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-6">
@@ -100,10 +115,34 @@ const getEmbedUrl = (url) => {
                                 rel="noopener noreferrer" 
                                 class="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-savino-blue to-savino-pink text-white font-bold text-lg rounded-full shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 uppercase tracking-wider hover:brightness-110 group"
                             >
-                                <span>{{ page?.content_data?.button_text || 'Accedi al portale iscrizioni' }}</span>
+                                <span>{{ page?.content_data?.button_text || $t('content_page.portal_cta_fallback') }}</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                             </a>
                         </template>
+                    </div>
+                </div>
+
+                <!-- Galleria fotografica della pagina (gestita dal pannello) -->
+                <div v-if="galleryImages.length" class="mt-16 pt-12 border-t border-gray-100">
+                    <h3 class="text-2xl font-bold text-savino-blue mb-8 uppercase tracking-tight">
+                        {{ $t('content_page.gallery_title') }}
+                    </h3>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <button
+                            v-for="(image, idx) in galleryImages"
+                            :key="idx"
+                            type="button"
+                            class="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-gray-100 bg-gray-50"
+                            @click="openImage(idx)"
+                        >
+                            <img
+                                :src="image.thumb || image.url"
+                                :alt="image.name"
+                                loading="lazy"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                        </button>
                     </div>
                 </div>
 
@@ -126,7 +165,7 @@ const getEmbedUrl = (url) => {
                             <div class="w-1/3 relative bg-savino-blue flex-shrink-0 flex items-center justify-center overflow-hidden">
                                 <img 
                                     v-if="mag.cover_image_url"
-                                    :src="`/storage/${mag.cover_image_url}`" 
+                                    :src="mag.cover_image_url" 
                                     :alt="mag.title" 
                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
@@ -148,9 +187,11 @@ const getEmbedUrl = (url) => {
                                     </h4>
                                 </div>
 
-                                <a 
-                                    :href="`/storage/${mag.file_url}`" 
-                                    target="_blank" 
+                                <a
+                                    v-if="mag.file_url"
+                                    :href="mag.file_url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-savino-blue hover:bg-savino-blue/90 text-white rounded-lg font-semibold text-sm transition-all shadow hover:shadow-md transform hover:-translate-y-0.5"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -209,6 +250,26 @@ const getEmbedUrl = (url) => {
                 </div>
             </div>
         </section>
+
+        <!-- Lightbox della galleria -->
+        <div
+            v-if="lightboxImage"
+            class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            @click="closeImage"
+            @keydown.esc="closeImage"
+        >
+            <button
+                type="button"
+                class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20"
+                :aria-label="$t('content_page.gallery_close')"
+                @click.stop="closeImage"
+            >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <img :src="lightboxImage.url" :alt="lightboxImage.name" class="max-h-[85vh] max-w-full object-contain rounded-lg" @click.stop />
+        </div>
     </PublicLayout>
 </template>
 

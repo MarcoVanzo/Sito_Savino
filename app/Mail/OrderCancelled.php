@@ -16,13 +16,17 @@ class OrderCancelled extends Mailable implements ShouldQueue
 
     public function __construct(
         public Order $order,
-    ) {}
+    ) {
+        // La mail parte da un worker: la lingua va presa dall'ordine,
+        // non dalla richiesta, che a quel punto non esiste più.
+        $this->locale($order->locale ?? 'it');
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
             from: config('mail.from.address'),
-            subject: "Ordine #{$this->order->order_number} annullato per mancato pagamento",
+            subject: __('emails.cancelled.subject', ['number' => $this->order->order_number]),
         );
     }
 

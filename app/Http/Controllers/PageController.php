@@ -7,9 +7,10 @@ use App\Enums\StaffType;
 use App\Models\Page;
 use App\Models\Roster;
 use App\Models\Season;
-use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Team;
+use App\Services\SponsorDirectory;
+use App\Support\CmsFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -97,8 +98,9 @@ class PageController extends Controller
             abort(404);
         }
 
-        // Espone l'URL della copertina ai template pubblici (usata come hero).
-        $page->append('cover_url');
+        // Espone ai template pubblici la copertina (hero) e le foto della
+        // galleria di pagina, entrambe gestite dal pannello.
+        $page->append(['cover_url', 'gallery_images']);
 
         // Evita contenuti duplicati (SEO): se l'utente accede alla pagina tramite la rotta generica
         // o di sezione (es. /societa/contatti), reindirizza con un redirect 301 permanente
@@ -133,8 +135,17 @@ class PageController extends Controller
         // Props aggiuntive per template specifici
         $extra = $this->getTemplateData($template);
 
+        // I file caricati dal pannello dentro `content_data` (press kit,
+        // magazine, immagini dei pulsanti) diventano indirizzi pubblici veri:
+        // i template li usavano come "/storage/{percorso}", che in produzione
+        // — con i file su Spaces — non porta da nessuna parte.
+        $dati = $page->toArray();
+        $dati['content_data'] = is_array($dati['content_data'] ?? null)
+            ? CmsFile::resolveInContentData($dati['content_data'])
+            : $dati['content_data'];
+
         return Inertia::render($template, array_merge([
-            'page' => $page,
+            'page' => $dati,
         ], $extra));
     }
 
@@ -215,24 +226,8 @@ class PageController extends Controller
 
     private function getSponsorData(): array
     {
-        $locale = app()->getLocale();
-
         return [
-            'sponsors' => Cache::remember("public:sponsor:{$locale}", now()->addMinutes(30), function () {
-                return Sponsor::with('media')
-                    ->orderBy('tier')
-                    ->orderBy('sort_order')
-                    ->orderBy('id')
-                    ->get()
-                    ->map(fn ($s) => [
-                        'id' => $s->id,
-                        'name' => $s->name,
-                        'tier' => $s->tier,
-                        'website_url' => $s->url,
-                        'logo_url' => $s->getFirstMediaUrl('sponsors', 'card') ?: $s->getFirstMediaUrl('sponsors'),
-                        'sort_order' => $s->sort_order,
-                    ])->toArray();
-            }),
+            'tiers' => app(SponsorDirectory::class)->tiers(),
         ];
     }
 }

@@ -40,7 +40,7 @@ class CacheInvalidationObserver
         Roster::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page'],
         Season::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page', 'public:risultati', 'public:home'],
         Team::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page', 'public:risultati', 'filament:dashboard:next_match_id'],
-        Sponsor::class => ['public:sponsor'],
+        Sponsor::class => ['public:sponsor', 'public:sponsor:tiers'],
         Product::class => ['public:shop'],
         ProductCategory::class => ['public:shop'],
         Post::class => ['public:home', 'filament:dashboard:stats'],

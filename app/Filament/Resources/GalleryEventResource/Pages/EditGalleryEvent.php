@@ -6,9 +6,12 @@ use App\Filament\Resources\GalleryEventResource;
 use App\Models\GalleryEvent;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
 
 class EditGalleryEvent extends EditRecord
 {
+    use Translatable;
+
     protected static string $resource = GalleryEventResource::class;
 
     protected function getHeaderActions(): array

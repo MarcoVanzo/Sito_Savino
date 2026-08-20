@@ -331,3 +331,81 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   default `false`): è una scelta dichiarata, non una dimenticanza. Il toggle
   "marketing" del banner cookie resta quindi senza effetto finché quella
   variabile non passa a `true`.
+
+---
+
+## 14. Contenuti delle pagine CMS (`pages.content_data`)
+
+- **Struttura piatta, sempre.** I template Vue e i form del pannello leggono
+  chiavi di primo livello (`hero_label`, `cta_title`, `stat1_value`,
+  `press_kit_2_title`…). I dati storici usavano una struttura annidata
+  (`hero.badge`, `become_sponsor.stats.0.value`) ed è per questo che il sito
+  mostrava testi che in redazione non esistevano: la migrazione
+  `2026_08_19_090000_allinea_content_data_alla_struttura_del_pannello` li ha
+  convertiti. Non reintrodurre chiavi annidate: aggiungendo un campo, il nome
+  nel form, nel Vue e nel file dati deve essere lo stesso.
+- **Niente contenuti di esempio cablati nei componenti.** Un fallback nel Vue
+  (era il caso della timeline in `Societa/Storia.vue`) produce una pagina che
+  la redazione non può modificare perché non trova da nessuna parte quello che
+  vede online. I valori iniziali stanno in `database/data/page_content_data.php`
+  e `database/data/storia_timeline.php`, usati sia dai seeder sia dalle
+  migrazioni; nel componente resta solo lo stato vuoto.
+- **Recapiti e dati societari stanno nelle impostazioni**, gruppo `contact`
+  (Impostazioni → Contatti): footer, pagina Contatti, Comunicazione e Settore
+  Giovanile leggono da lì. La pagina CMS "Contatti" aveva campi con gli stessi
+  nomi dentro `content_data`, che nessuno leggeva: sono stati tolti, non vanno
+  reintrodotti. Nella pagina restano i testi e la rubrica dei referenti.
+- **Le pagine di sezione hanno contenuti propri.** Abbonamenti, biglietteria,
+  accrediti stampa, cartelle stampa, progetti sociali, volley 4 all, settore
+  giovanile, talent day e organigramma condividono il template con la pagina
+  principale ma avevano `content_data` vuoto: online si vedevano i testi di
+  ripiego delle traduzioni, nel pannello i campi erano vuoti. I valori iniziali
+  stanno in `database/data/page_template_defaults.php`, per template.
+- **La meta description viene dalla colonna `meta_description`** della pagina
+  (scheda SEO del pannello), non da `content_data`: cinque template la leggevano
+  dal posto sbagliato e la descrizione scritta in redazione non arrivava a
+  Google.
+- **`CmsPagesSeeder` non si rilancia in produzione**: fa `updateOrCreate` su
+  tutte le pagine e sovrascriverebbe il lavoro della redazione.
+- **Galleria di pagina**: collection media `gallery` sul model `Page`
+  (accessor `gallery_images`), non upload su disco — in produzione i file
+  stanno su Spaces e un percorso `/storage/...` costruito a mano non risolve.
+
+- **Niente contenuti nel codice dei componenti.** Progetti sociali, valori del
+  vivaio, attività e turni del camp, servizi del palazzetto, documenti di
+  safeguarding, numeri della homepage, argomenti del modulo contatti, menu e
+  canali social del footer erano elencati nei `.vue` come valore di ripiego:
+  online si vedevano, in redazione non esistevano. Ora i componenti leggono solo
+  ciò che arriva dal backend e nascondono la sezione quando è vuota. Se serve un
+  contenuto iniziale si popola con una migrazione, non con un array nel Vue.
+- **Le impostazioni di tipo `json` sono tradotte come le altre.**
+  `SiteSetting::resolveForLocale()` risolve anche i valori già decodificati:
+  senza, i numeri della homepage arrivavano al frontend come
+  `{"it": […], "en": […]}` e la sezione restava vuota.
+
+## 15. Sponsor
+
+- I livelli sono in `App\Enums\SponsorTier` e l'**ordine dei case è l'ordine di
+  pubblicazione** nella pagina. `gold`, `silver` e `standard` restano solo per
+  i record storici.
+- Il raggruppamento è in `App\Services\SponsorDirectory` (cache
+  `public:sponsor:tiers:<locale>`, invalidata da `CacheInvalidationObserver`):
+  è condiviso fra `/sponsor` e le pagine di sezione, non va duplicato.
+- `php artisan sponsors:import-legacy` rilegge sponsor, livelli, link e loghi
+  dalla pagina pubblica del sito precedente. È idempotente (chiave: il nome) e
+  non tocca gli sponsor inseriti a mano che non compaiono su quella pagina.
+  Riconosce come sponsor solo le immagini con `alt`: senza quel filtro
+  entravano in elenco il marchio in testata e i pixel di tracciamento.
+- Le richieste di sponsorizzazione vanno a `marketing@savinodelbenevolley.it`
+  con oggetto precompilato (campi `contact_email` / `contact_subject` della
+  pagina Sponsor).
+
+## 16. Diretta streaming delle gare
+
+- Campo `games.stream_url`, inserito dalla redazione; il sync della Lega non lo
+  tocca perché scrive solo le colonne `lvf_*`.
+- `App\Support\LiveStream::embedUrl()` traduce il link nell'indirizzo da mettere
+  in `<iframe>` e **accetta solo YouTube, Vimeo, Twitch e Dailymotion**. Un
+  dominio fuori elenco verrebbe caricato dentro la pagina con i permessi del
+  sito: in quel caso il frontend apre una scheda nuova invece di incorporarlo.
+  Non allargare la lista senza valutare cosa si sta incorporando.

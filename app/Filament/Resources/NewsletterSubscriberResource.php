@@ -26,6 +26,17 @@ class NewsletterSubscriberResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
+    /**
+     * L'elenco vive dentro Analytics Newsletter: due voci di menu per la
+     * stessa cosa facevano guardare i numeri e agire sui contatti in due
+     * schermate diverse. La resource resta registrata — le sue rotte e i suoi
+     * permessi servono ancora alla tabella incorporata nella pagina.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function table(Table $table): Table
     {
         return $table

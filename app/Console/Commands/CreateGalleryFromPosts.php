@@ -59,6 +59,16 @@ class CreateGalleryFromPosts extends Command
             '10' => 'Ottobre', '11' => 'Novembre', '12' => 'Dicembre',
         ];
 
+        // Il titolo dell'album è l'intestazione della gallery pubblica, che
+        // esiste anche in inglese: va scritto in entrambe le lingue qui, perché
+        // nessuno lo riscriverà a mano per i mesi futuri.
+        $monthNamesEn = [
+            '01' => 'January', '02' => 'February', '03' => 'March',
+            '04' => 'April', '05' => 'May', '06' => 'June',
+            '07' => 'July', '08' => 'August', '09' => 'September',
+            '10' => 'October', '11' => 'November', '12' => 'December',
+        ];
+
         $bar = $this->output->createProgressBar($months->count());
         $bar->setFormat(' %current%/%max% [%bar%] %percent:3s%% — %message%');
         $bar->setMessage('Inizio...');
@@ -66,7 +76,9 @@ class CreateGalleryFromPosts extends Command
         foreach ($months as $yearMonth => $monthPosts) {
             [$year, $month] = explode('-', $yearMonth);
             $monthName = $monthNames[$month] ?? $month;
+            $monthNameEn = $monthNamesEn[$month] ?? $month;
             $title = "{$monthName} {$year} — News";
+            $titleEn = "{$monthNameEn} {$year} — News";
             $bar->setMessage($title);
 
             // Determina la categoria prevalente
@@ -82,16 +94,21 @@ class CreateGalleryFromPosts extends Command
                 continue;
             }
 
-            // Crea o riusa l'evento
-            $event = GalleryEvent::firstOrCreate(
-                ['title' => $title],
-                [
+            // Crea o riusa l'evento. Il confronto è sulla sola chiave italiana
+            // del titolo: `title` è tradotto, quindi in colonna c'è un JSON per
+            // lingua e un `where('title', ...)` non troverebbe più nulla,
+            // duplicando ogni album a ogni esecuzione.
+            $event = GalleryEvent::query()->where('title->it', $title)->first();
+
+            if (! $event) {
+                $event = GalleryEvent::create([
+                    'title' => ['it' => $title, 'en' => $titleEn],
                     'event_date' => "{$year}-{$month}-01",
                     'category' => $category,
                     'description' => "Foto dalle news di {$monthName} {$year}",
                     'is_active' => true,
-                ]
-            );
+                ]);
+            }
 
             $isNew = $event->wasRecentlyCreated;
             if ($isNew) {

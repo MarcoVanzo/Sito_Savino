@@ -106,6 +106,24 @@ class Page extends Model implements HasMedia
     }
 
     /**
+     * Foto della galleria di pagina (collection `gallery`), usata dalle pagine
+     * di contenuto — per esempio Ospitalità — e gestita dal pannello.
+     *
+     * @return list<array{url: string, thumb: string, name: string}>
+     */
+    public function getGalleryImagesAttribute(): array
+    {
+        return $this->getMedia('gallery')
+            ->map(fn (Media $media) => [
+                'url' => $media->getUrl(),
+                'thumb' => $media->hasGeneratedConversion('card') ? $media->getUrl('card') : $media->getUrl(),
+                'name' => $media->getCustomProperty('caption') ?: $media->name,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * URL dell'immagine di copertina (collection `cover`), usata come hero
      * dai template pubblici. Restituisce null se non è stata caricata.
      */

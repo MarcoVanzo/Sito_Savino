@@ -27,60 +27,15 @@ const settings = computed(() => inertiaPage.props.siteSettings ?? {})
 const contact = computed(() => settings.value.contact ?? {})
 const cd = computed(() => props.page?.content_data ?? {})
 
-const defaultActivities = [
-    {
-        icon: '🏐',
-        title: $t('summer_camp.activity_volleyball'),
-        description: $t('summer_camp.activity_volleyball_desc')
-    },
-    {
-        icon: '🏋️',
-        title: $t('summer_camp.activity_fitness'),
-        description: $t('summer_camp.activity_fitness_desc')
-    },
-    {
-        icon: '🎯',
-        title: 'Talent Day',
-        description: $t('summer_camp.activity_talent_desc')
-    },
-    {
-        icon: '🏊',
-        title: $t('summer_camp.activity_water'),
-        description: $t('summer_camp.activity_water_desc')
-    },
-    {
-        icon: '🎨',
-        title: $t('summer_camp.activity_creative'),
-        description: $t('summer_camp.activity_creative_desc')
-    },
-    {
-        icon: '🤝',
-        title: 'Team Building',
-        description: $t('summer_camp.activity_teambuilding_desc')
-    }
-]
-
-const defaultDates = [
-    { period: $t('summer_camp.week_1'), dates: $t('summer_camp.dates_week_1'), status: $t('summer_camp.status_open') },
-    { period: $t('summer_camp.week_2'), dates: $t('summer_camp.dates_week_2'), status: $t('summer_camp.status_open') },
-    { period: $t('summer_camp.week_3'), dates: $t('summer_camp.dates_week_3'), status: $t('summer_camp.status_limited') },
-    { period: $t('summer_camp.week_4'), dates: $t('summer_camp.dates_week_4'), status: $t('summer_camp.status_coming_soon') }
-]
-
-const activities = computed(() => cd.value.activities || defaultActivities)
-const dates = computed(() => cd.value.dates || defaultDates)
-
-const defaultHighlights = [
-    $t('summer_camp.highlight_staff'),
-    $t('summer_camp.highlight_age_groups'),
-    $t('summer_camp.highlight_insurance'),
-    $t('summer_camp.highlight_meals')
-]
-const highlights = computed(() => cd.value.highlights || defaultHighlights)
+// Attività, turni ed elenco dei servizi arrivano dal CMS: gli elenchi di
+// esempio che stavano qui comparivano online senza essere modificabili.
+const activities = computed(() => Array.isArray(cd.value.activities) ? cd.value.activities : [])
+const dates = computed(() => Array.isArray(cd.value.dates) ? cd.value.dates : [])
+const highlights = computed(() => Array.isArray(cd.value.highlights) ? cd.value.highlights : [])
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Summer Camp & Experience',
-    description: cd.value.meta_description || $t('summer_camp.og_description'),
+    title: props.page?.title ?? $t('summer_camp.og_title'),
+    description: props.page?.meta_description || $t('summer_camp.og_description'),
 })
 </script>
 
@@ -101,7 +56,7 @@ const ogMeta = useOgMeta({
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
             <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label || $t('summer_camp.hero_label') }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
-                {{ page?.title ?? 'Summer Camp & Experience' }}
+                {{ page?.title ?? $t('summer_camp.og_title') }}
             </h1>
             <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
             <p class="text-white/70 text-lg max-w-2xl mx-auto">
@@ -140,7 +95,7 @@ const ogMeta = useOgMeta({
                 <div class="bg-gradient-to-br from-savino-blue/10 to-savino-gold/10 rounded-2xl p-8 flex items-center justify-center min-h-[300px]">
                     <div class="text-center">
                         <span class="text-6xl">🏐</span>
-                        <p class="text-savino-blue font-bold mt-4 text-lg">{{ cd.camp_badge_title || 'Summer Camp 2026' }}</p>
+                        <p class="text-savino-blue font-bold mt-4 text-lg">{{ cd.camp_badge_title }}</p>
                         <p class="text-gray-500 text-sm mt-1">{{ cd.camp_badge_subtitle || $t('summer_camp.badge_subtitle') }}</p>
                     </div>
                 </div>
@@ -149,7 +104,7 @@ const ogMeta = useOgMeta({
     </section>
 
     <!-- Activities Grid -->
-    <section class="py-20 bg-gray-50">
+    <section v-if="activities.length" class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.activities_section_label || $t('summer_camp.activities_label') }}</span>
@@ -177,7 +132,7 @@ const ogMeta = useOgMeta({
     </section>
 
     <!-- Dates -->
-    <section class="py-20 bg-white">
+    <section v-if="dates.length" class="py-20 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.dates_section_label || $t('summer_camp.dates_label') }}</span>

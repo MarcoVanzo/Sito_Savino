@@ -25,7 +25,7 @@ class Game extends Model
     protected $fillable = [
         'season_id', 'home_team_id', 'away_team_id',
         'match_date', 'status', 'home_score', 'away_score',
-        'location', 'competition_type',
+        'location', 'stream_url', 'competition_type',
         'lvf_match_id', 'matchday', 'phase', 'lvf_synced_at',
         'spectators', 'referees', 'set_scores', 'stats_synced_at',
     ];

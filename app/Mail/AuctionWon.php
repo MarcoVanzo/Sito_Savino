@@ -18,13 +18,17 @@ class AuctionWon extends Mailable implements ShouldQueue
     public function __construct(
         public Auction $auction,
         public User $winner,
-    ) {}
+    ) {
+        // La mail parte da un worker: la lingua è quella scelta dal vincitore
+        // alla registrazione, non quella della richiesta corrente.
+        $this->locale($winner->locale ?? 'it');
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
             from: config('mail.from.address'),
-            subject: "Hai vinto l'asta: {$this->auction->title}!",
+            subject: __('emails.auction_won.subject', ['title' => $this->auction->title]),
         );
     }
 

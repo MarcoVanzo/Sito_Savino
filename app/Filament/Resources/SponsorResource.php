@@ -50,9 +50,15 @@ class SponsorResource extends Resource
                     ->url()
                     ->maxLength(255),
                 Forms\Components\Select::make('tier')
+                    ->label('Livello')
                     ->options(SponsorTier::class)
-                    ->default(SponsorTier::Standard)
+                    ->default(SponsorTier::Official)
                     ->required(),
+                Forms\Components\TextInput::make('sort_order')
+                    ->label('Ordine')
+                    ->helperText('Posizione dentro al proprio livello: numeri più bassi vengono prima.')
+                    ->numeric()
+                    ->default(0),
                 SpatieMediaLibraryFileUpload::make('logo')
                     ->collection('sponsors')
                     ->image()
@@ -76,11 +82,10 @@ class SponsorResource extends Resource
                 Tables\Columns\TextColumn::make('tier')
                     ->label('Livello')
                     ->badge()
-                    ->color(fn ($state): string => match ($state) {
-                        SponsorTier::Main => 'warning',
-                        SponsorTier::Gold => 'warning',
-                        SponsorTier::Silver => 'gray',
-                        SponsorTier::Technical => 'info',
+                    ->color(fn ($state): string => match ($state instanceof SponsorTier ? $state->size() : 'small') {
+                        'hero' => 'success',
+                        'large' => 'warning',
+                        'medium' => 'info',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('url')

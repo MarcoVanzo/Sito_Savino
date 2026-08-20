@@ -45,6 +45,19 @@ class CmsPagesSeeder extends Seeder
     }
 
     /**
+     * Le tappe della pagina Storia stanno in un file dati condiviso con la
+     * migrazione che le ripristina: un solo posto da aggiornare.
+     *
+     * @return array<string, array<int, array<string, string>>>
+     */
+    private function storiaTimeline(): array
+    {
+        $timeline = require database_path('data/storia_timeline.php');
+
+        return array_map(fn (array $items) => ['timeline' => $items], $timeline);
+    }
+
+    /**
      * Definisce le 22 pagine CMS raggruppate per area tematica.
      *
      * @return array<array<string, mixed>>
@@ -59,86 +72,8 @@ class CmsPagesSeeder extends Seeder
             $this->page('storia', 'Storia del Club', 'Public/Societa/Storia',
                 'La storia della Savino Del Bene Volley: dal 1982 ad oggi, un percorso di crescita e successi nella pallavolo femminile italiana.',
                 '<h2>Le Origini</h2><p>Fondata nel 1982 a Scandicci, la Savino Del Bene Volley è diventata una delle realtà più importanti della pallavolo femminile italiana.</p><h2>La Crescita</h2><p>Con la partnership strategica del Gruppo Savino Del Bene, il club ha raggiunto traguardi storici: la Finale Scudetto, la partecipazione alla CEV Champions League.</p><h2>Il Presente</h2><p>Oggi la Savino Del Bene Volley rappresenta un modello di gestione sportiva, con un settore giovanile d\'eccellenza e una visiose proiettata verso il futuro.</p>',
-                [
-                    'it' => [
-                        'timeline' => [
-                            [
-                                'year' => '1982',
-                                'title' => 'Le Origini',
-                                'description' => 'La Pallavolo Scandicci nasce nel cuore del territorio toscano. I primi passi nei campionati locali pongono le basi per un progetto ambizioso.',
-                            ],
-                            [
-                                'year' => '2012',
-                                'title' => 'La Svolta Savino Del Bene',
-                                'description' => 'L\'ingresso del Gruppo Savino Del Bene come title sponsor trasforma le ambizioni del club. Inizia la scalata verso l\'élite del volley nazionale.',
-                            ],
-                            [
-                                'year' => '2014',
-                                'title' => 'Promozione in Serie A1',
-                                'description' => 'Un traguardo storico: la squadra conquista l\'accesso alla massima serie italiana, portando Scandicci nel panorama nazionale.',
-                            ],
-                            [
-                                'year' => '2018',
-                                'title' => 'Debutto Europeo',
-                                'description' => 'Prima qualificazione in CEV Champions League. La Savino Del Bene Volley si affaccia sul palcoscenico internazionale sfidando le big europee.',
-                            ],
-                            [
-                                'year' => '2022',
-                                'title' => 'CEV Challenge Cup',
-                                'description' => 'Il primo storico trofeo europeo. Una cavalcata trionfale che arricchisce la bacheca del club e consacra il progetto a livello internazionale.',
-                            ],
-                            [
-                                'year' => '2023',
-                                'title' => 'CEV Cup',
-                                'description' => 'Ancora un successo continentale. La Savino Del Bene solleva la CEV Cup, dimostrando continuità di risultati e mentalità vincente.',
-                            ],
-                            [
-                                'year' => '2024',
-                                'title' => 'Finale Scudetto',
-                                'description' => 'Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il Palazzo Wanny.',
-                            ],
-                        ],
-                    ],
-                    'en' => [
-                        'timeline' => [
-                            [
-                                'year' => '1982',
-                                'title' => 'The Origins',
-                                'description' => 'Pallavolo Scandicci was born in the heart of the Tuscan region. The first steps in the local leagues laid the foundations for an ambitious project.',
-                            ],
-                            [
-                                'year' => '2012',
-                                'title' => 'The Savino Del Bene Turning Point',
-                                'description' => 'The entry of the Savino Del Bene Group as title sponsor transformed the club\'s ambitions. The ascent to the elite of Italian national volleyball began.',
-                            ],
-                            [
-                                'year' => '2014',
-                                'title' => 'Promotion to Serie A1',
-                                'description' => 'A historic achievement: the team won promotion to the top Italian division, bringing Scandicci into the national spotlight.',
-                            ],
-                            [
-                                'year' => '2018',
-                                'title' => 'European Debut',
-                                'description' => 'First qualification for the CEV Champions League. Savino Del Bene Volley entered the international stage, challenging Europe\'s giants.',
-                            ],
-                            [
-                                'year' => '2022',
-                                'title' => 'CEV Challenge Cup',
-                                'description' => 'The first historic European trophy. A triumphant journey that enriched the club\'s cabinet and established the project internationally.',
-                            ],
-                            [
-                                'year' => '2023',
-                                'title' => 'CEV Cup',
-                                'description' => 'Another continental success. Savino Del Bene lifted the CEV Cup, demonstrating consistency and a winning mentality.',
-                            ],
-                            [
-                                'year' => '2024',
-                                'title' => 'Scudetto Finals',
-                                'description' => 'For the first time in history, the club reached the Scudetto Finals, fighting point-by-point for the championship and filling Palazzo Wanny.',
-                            ],
-                        ],
-                    ],
-                ]),
+                $this->storiaTimeline()),
+
             $this->page('safeguarding', 'Safeguarding', 'Public/Societa/Safeguarding',
                 'Policy di Safeguarding della Savino Del Bene Volley. Tutela e protezione dei minori e prevenzione delle molestie.',
                 '<h2>Policy di Safeguarding</h2><p>La Savino Del Bene Volley si impegna a garantire un ambiente sicuro e protetto per tutti i tesserati, in particolare per i minori, adottando misure di prevenzione contro ogni forma di abuso, molestia e discriminazione.</p>',
@@ -152,13 +87,13 @@ class CmsPagesSeeder extends Seeder
                                 'title' => 'Modello Organizzativo e di Controllo',
                                 'description' => 'Documento che stabilisce i principi di comportamento e le misure di prevenzione.',
                                 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-                                'file' => '#',
+                                'file' => '',
                             ],
                             [
                                 'title' => 'Codice di Condotta a Tutela dei Minori',
                                 'description' => 'Linee guida specifiche per garantire un ambiente sportivo sicuro per i più giovani.',
                                 'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-                                'file' => '#',
+                                'file' => '',
                             ],
                         ],
                     ],
@@ -171,13 +106,13 @@ class CmsPagesSeeder extends Seeder
                                 'title' => 'Organizational and Control Model',
                                 'description' => 'Document establishing conduct principles and preventive measures.',
                                 'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-                                'file' => '#',
+                                'file' => '',
                             ],
                             [
                                 'title' => 'Code of Conduct for Minor Protection',
                                 'description' => 'Specific guidelines to ensure a safe sports environment for younger members.',
                                 'icon' => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-                                'file' => '#',
+                                'file' => '',
                             ],
                         ],
                     ],
@@ -322,14 +257,14 @@ class CmsPagesSeeder extends Seeder
                     ],
                 ]),
             $this->page('palazzetto', 'Il Palazzetto', 'Public/Societa/Palazzetto',
-                'Palazzo Wanny, la casa della Savino Del Bene Volley a Firenze. Capienza, come arrivare e servizi dell\'impianto.',
-                '<h2>Palazzo Wanny</h2><p>Il Palazzo Wanny di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.</p><h2>Come Arrivare</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI). Facilmente raggiungibile con i mezzi pubblici e con ampio parcheggio disponibile.</p><h2>Servizi</h2><p>Bar, area hospitality, accesso disabili, parcheggio custodito.</p>',
+                'PalaBigmat, la casa della Savino Del Bene Volley a Firenze. Capienza, come arrivare e servizi dell\'impianto.',
+                '<h2>PalaBigmat</h2><p>Il PalaBigmat di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.</p><h2>Come Arrivare</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI). Facilmente raggiungibile con i mezzi pubblici e con ampio parcheggio disponibile.</p><h2>Servizi</h2><p>Bar, area hospitality, accesso disabili, parcheggio custodito.</p>',
                 [
                     'it' => [
-                        'venue_name' => 'Palazzo Wanny',
+                        'venue_name' => 'PalaBigmat',
                         'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',
-                        'maps_link' => 'https://www.google.com/maps/place/Palazzo+Wanny/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
-                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalazzo%20Wanny!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
+                        'maps_link' => 'https://www.google.com/maps/place/PalaBigmat/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
+                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalaBigmat!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
                         'services' => [
                             [
                                 'name' => 'Capienza 4000 Posti',
@@ -350,10 +285,10 @@ class CmsPagesSeeder extends Seeder
                         ],
                     ],
                     'en' => [
-                        'venue_name' => 'Palazzo Wanny',
+                        'venue_name' => 'PalaBigmat',
                         'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI)',
-                        'maps_link' => 'https://www.google.com/maps/place/Palazzo+Wanny/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
-                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalazzo%20Wanny!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
+                        'maps_link' => 'https://www.google.com/maps/place/PalaBigmat/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
+                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalaBigmat!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
                         'services' => [
                             [
                                 'name' => 'Capacity 4000 Seats',
@@ -378,7 +313,7 @@ class CmsPagesSeeder extends Seeder
             // === TICKETING ===
             $this->page('abbonamenti', 'Campagna Abbonamenti', 'Public/Ticketing',
                 'Abbonamenti Savino Del Bene Volley 2026/2027. Scopri le formule e i prezzi per la nuova stagione.',
-                '<h2>Campagna Abbonamenti 2026/2027</h2><p>Vivi tutte le emozioni della Serie A1 e della Champions League con l\'abbonamento stagionale. Scegli la formula più adatta a te e assicurati il tuo posto al Palazzo Wanny.</p>'),
+                '<h2>Campagna Abbonamenti 2026/2027</h2><p>Vivi tutte le emozioni della Serie A1 e della Champions League con l\'abbonamento stagionale. Scegli la formula più adatta a te e assicurati il tuo posto al PalaBigmat.</p>'),
             $this->page('biglietteria', 'Biglietteria', 'Public/Ticketing',
                 'Acquista i biglietti per le partite della Savino Del Bene Volley. Prezzi, punti vendita e modalità di acquisto.',
                 '<h2>Biglietteria</h2><p>I biglietti per le partite casalinghe della Savino Del Bene Volley sono acquistabili online e presso i punti vendita autorizzati.</p>'),
@@ -386,8 +321,8 @@ class CmsPagesSeeder extends Seeder
                 'Convenzioni e agevolazioni per gruppi, scuole e associazioni per assistere alle partite della Savino Del Bene Volley.',
                 '<h2>Convenzioni</h2><p>La Savino Del Bene Volley offre tariffe agevolate per gruppi organizzati, scuole, associazioni sportive e aziende partner. Contattaci per ricevere un preventivo personalizzato.</p>'),
             $this->page('accessibilita', 'Accessibilità', 'Public/ContentPage',
-                'Informazioni sull\'accessibilità del Palazzo Wanny per persone con disabilità. Posti riservati e servizi dedicati.',
-                '<h2>Accessibilità</h2><p>Il Palazzo Wanny è dotato di posti riservati per persone con disabilità motoria, accesso facilitato, servizi igienici dedicati e personale formato per l\'assistenza. Per informazioni e prenotazioni, contatta la segreteria.</p>'),
+                'Informazioni sull\'accessibilità del PalaBigmat per persone con disabilità. Posti riservati e servizi dedicati.',
+                '<h2>Accessibilità</h2><p>Il PalaBigmat è dotato di posti riservati per persone con disabilità motoria, accesso facilitato, servizi igienici dedicati e personale formato per l\'assistenza. Per informazioni e prenotazioni, contatta la segreteria.</p>'),
 
             // === YOUTH / ACADEMY ===
             $this->page('settore-giovanile', 'Settore Giovanile', 'Public/Youth',
@@ -411,7 +346,7 @@ class CmsPagesSeeder extends Seeder
                 'Diventa sponsor della Savino Del Bene Volley. Scopri i pacchetti di sponsorizzazione e i vantaggi per la tua azienda.',
                 '<h2>Perché Sponsorizzare la Savino Del Bene Volley?</h2><p>Visibilità nazionale e internazionale, accesso a un network B2B esclusivo, hospitality premium e attivazioni di marketing dedicate. Contattaci per un preventivo personalizzato.</p>'),
             $this->page('hospitality', 'Hospitality', 'Public/ContentPage',
-                'Hospitality e servizi premium per le partite della Savino Del Bene Volley al Palazzo Wanny.',
+                'Hospitality e servizi premium per le partite della Savino Del Bene Volley al PalaBigmat.',
                 '<h2>Esperienza Hospitality</h2><p>Vivi le partite della Savino Del Bene Volley da una prospettiva esclusiva. Il nostro programma Hospitality offre posti premium, catering dedicato, meet & greet con le atlete e networking con i partner del club.</p>'),
             $this->page('affiliazioni', 'Progetto Affiliazioni', 'Public/ContentPage',
                 'Programma di affiliazione della Savino Del Bene Volley per società sportive e scuole di pallavolo.',

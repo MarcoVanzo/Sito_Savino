@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Traits\LogsActivity;
+use App\Support\Locale;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -64,6 +65,12 @@ class Order extends Model
 
     protected static function booted(): void
     {
+        // La lingua va congelata sull'ordine: le mail transazionali sono in coda
+        // e partono quando la richiesta che le ha originate non esiste più.
+        static::creating(function (Order $order) {
+            $order->locale ??= Locale::current();
+        });
+
         static::created(function (Order $order) {
             if (! $order->order_number) {
                 $order->updateQuietly([

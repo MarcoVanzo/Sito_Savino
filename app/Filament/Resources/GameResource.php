@@ -110,6 +110,13 @@ class GameResource extends Resource
                         Forms\Components\TextInput::make('location')
                             ->label('Luogo / Palazzetto')
                             ->maxLength(255),
+                        Forms\Components\TextInput::make('stream_url')
+                            ->label('Link diretta streaming')
+                            ->url()
+                            ->maxLength(500)
+                            ->placeholder('es. https://www.youtube.com/watch?v=...')
+                            ->helperText('Con un link YouTube, Vimeo, Twitch o Dailymotion la diretta si apre in una finestra dentro al sito. Altri indirizzi vengono aperti in una scheda nuova.')
+                            ->columnSpanFull(),
                     ])->columns(2),
             ]);
     }
@@ -210,6 +217,12 @@ class GameResource extends Resource
                         Infolists\Components\TextEntry::make('location')
                             ->label('Palazzetto')
                             ->placeholder('—')
+                            ->columnSpanFull(),
+                        Infolists\Components\TextEntry::make('stream_url')
+                            ->label('Diretta streaming')
+                            ->placeholder('—')
+                            ->url(fn ($state) => $state)
+                            ->openUrlInNewTab()
                             ->columnSpanFull(),
                     ])->columns(3),
 

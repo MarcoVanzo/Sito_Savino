@@ -8,12 +8,16 @@ use App\Filament\Widgets\Analytics\NewsletterKpiWidget;
 use App\Filament\Widgets\Analytics\NewsletterRatesWidget;
 use App\Filament\Widgets\Analytics\NewsletterTrendWidget;
 use App\Filament\Widgets\Analytics\NewsletterVolumeWidget;
+use App\Models\NewsletterSubscriber;
 use App\Services\Newsletter\NewsletterAnalyticsService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\MaxWidth;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -22,9 +26,15 @@ use Illuminate\Support\Facades\Cache;
  *
  * La distinzione fra le due fonti non è un dettaglio implementativo: se
  * ActiveCampaign non risponde, la metà che conosciamo per certo resta.
+ *
+ * L'anagrafica degli iscritti è in fondo alla pagina: era una voce di menu a
+ * sé ({@see NewsletterSubscriberResource}, che resta raggiungibile via URL ma
+ * non compare più in navigazione), e chi guardava i numeri doveva cambiare
+ * schermata per agire sul singolo contatto.
  */
-class NewsletterAnalyticsPage extends Page
+class NewsletterAnalyticsPage extends Page implements HasTable
 {
+    use InteractsWithTable;
     use RestrictsAccessByRole;
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope-open';
@@ -77,15 +87,6 @@ class NewsletterAnalyticsPage extends Page
     protected function getHeaderActions(): array
     {
         return [
-            // Le due destinazioni che si cercano da questa pagina: l'anagrafica
-            // per intervenire su un singolo iscritto, ActiveCampaign per
-            // preparare la campagna successiva.
-            Action::make('subscribers')
-                ->label('Iscritti')
-                ->icon('heroicon-m-user-group')
-                ->color('gray')
-                ->url(fn (): string => NewsletterSubscriberResource::getUrl()),
-
             Action::make('activecampaign')
                 ->label('Apri ActiveCampaign')
                 ->icon('heroicon-m-arrow-top-right-on-square')
@@ -121,6 +122,18 @@ class NewsletterAnalyticsPage extends Page
                     Notification::make()->title('Campagne ricaricate da ActiveCampaign')->success()->send();
                 }),
         ];
+    }
+
+    /**
+     * L'elenco degli iscritti, con le stesse colonne e azioni della vecchia
+     * voce di menu: la definizione resta sulla resource, qui si riusa.
+     */
+    public function table(Table $table): Table
+    {
+        return NewsletterSubscriberResource::table($table)
+            ->query(NewsletterSubscriber::query())
+            ->heading('Iscritti')
+            ->description('Archivio del sito: chi si è iscritto dal form pubblico e lo stato della sincronizzazione con ActiveCampaign.');
     }
 
     /**

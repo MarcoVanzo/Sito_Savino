@@ -32,9 +32,15 @@ const cd = computed(() => props.page?.content_data ?? {})
 // la normalizzazione (e il perché) sta in mapCmsPlans, coperta dai test.
 const plans = computed(() => mapCmsPlans(cd.value.plans, { t: $t, safeUrl }))
 
+// Link alla biglietteria esterna (Vivaticket): gestito dal CMS, senza link
+// il pulsante non esiste — meglio nessun bottone che un bottone che non porta
+// da nessuna parte.
+const ticketsUrl = computed(() => safeUrl(cd.value.tickets_url))
+const ticketsButtonText = computed(() => cd.value.tickets_button_text || $t('ticketing.tickets_button'))
+
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('ticketing.og_title'),
-    description: cd.value.meta_description || $t('ticketing.og_description'),
+    description: props.page?.meta_description || $t('ticketing.og_description'),
 })
 </script>
 
@@ -58,6 +64,19 @@ const ogMeta = useOgMeta({
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('ticketing.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_subtitle || $t('ticketing.hero_subtitle') }}</p>
+
+                <div v-if="ticketsUrl" class="mt-10">
+                    <a
+                        :href="ticketsUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 bg-savino-gold text-savino-blue px-8 py-4 rounded-lg font-bold uppercase tracking-wider text-sm hover:bg-savino-gold/90 transition-colors shadow-lg shadow-savino-gold/20"
+                    >
+                        {{ ticketsButtonText }}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                    </a>
+                    <p v-if="cd.tickets_note" class="text-white/50 text-xs mt-3">{{ cd.tickets_note }}</p>
+                </div>
             </div>
         </section>
 
@@ -156,6 +175,16 @@ const ogMeta = useOgMeta({
                         </div>
                         <h3 class="text-lg font-bold text-gray-900 mb-2">{{ cd.online_title || 'Online' }}</h3>
                         <p class="text-gray-500 text-sm leading-relaxed">{{ cd.online_description || $t('ticketing.online_description') }}</p>
+                        <a
+                            v-if="ticketsUrl"
+                            :href="ticketsUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-1.5 mt-4 text-savino-blue font-bold text-sm uppercase tracking-wider hover:underline"
+                        >
+                            {{ ticketsButtonText }}
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                        </a>
                     </div>
                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
                         <div class="w-12 h-12 rounded-full bg-savino-gold/10 flex items-center justify-center mb-4">

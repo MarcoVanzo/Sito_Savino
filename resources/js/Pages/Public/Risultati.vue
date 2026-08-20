@@ -3,6 +3,7 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import SeasonNav from '@/Components/SeasonNav.vue'
 import TeamLogo from '@/Components/TeamLogo.vue'
+import LiveStreamModal from '@/Components/LiveStreamModal.vue'
 import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
@@ -10,6 +11,31 @@ import { useLocale } from '@/Composables/useLocale.js'
 
 const $t = useTranslations();
 const { formatDate, formatTime } = useLocale();
+
+// Diretta: le piattaforme incorporabili si aprono in una finestra dentro al
+// sito (il server ha già calcolato `streamEmbedUrl`), le altre in una scheda
+// nuova — un iframe verso un dominio qualunque non lo si apre.
+const activeStream = ref(null);
+
+const openStream = (event, game) => {
+    // Senza embed il pulsante è un vero link: si lascia seguire alla scheda
+    // nuova invece di aprire una finestra vuota.
+    if (!game.streamEmbedUrl) {
+        return;
+    }
+
+    event.preventDefault();
+
+    activeStream.value = {
+        title: `${game.home} — ${game.away}`,
+        embedUrl: game.streamEmbedUrl,
+        url: game.streamUrl,
+    };
+};
+
+const closeStream = () => {
+    activeStream.value = null;
+};
 
 const props = defineProps({
     page: {
@@ -294,6 +320,19 @@ const ogMeta = useOgMeta({
                                     v-if="game.hasStats"
                                     class="text-[10px] font-bold uppercase tracking-wider text-savino-blue"
                                 >{{ $t('risultati.view_box_score') }} &rarr;</span>
+                                <component
+                                    :is="game.streamEmbedUrl ? 'button' : 'a'"
+                                    v-if="game.streamUrl && !game.played"
+                                    :type="game.streamEmbedUrl ? 'button' : undefined"
+                                    :href="game.streamEmbedUrl ? undefined : game.streamUrl"
+                                    :target="game.streamEmbedUrl ? undefined : '_blank'"
+                                    :rel="game.streamEmbedUrl ? undefined : 'noopener noreferrer'"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-savino-red text-white text-[10px] font-bold uppercase tracking-wider hover:bg-savino-red/90 transition-colors"
+                                    @click.stop="openStream($event, game)"
+                                >
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                    {{ $t('stream.watch') }}
+                                </component>
                             </div>
                         </div>
 
@@ -338,6 +377,19 @@ const ogMeta = useOgMeta({
                                     v-if="game.hasStats"
                                     class="text-[10px] font-bold uppercase tracking-wider text-savino-blue pt-1"
                                 >{{ $t('risultati.view_box_score') }} &rarr;</p>
+                                <component
+                                    :is="game.streamEmbedUrl ? 'button' : 'a'"
+                                    v-if="game.streamUrl && !game.played"
+                                    :type="game.streamEmbedUrl ? 'button' : undefined"
+                                    :href="game.streamEmbedUrl ? undefined : game.streamUrl"
+                                    :target="game.streamEmbedUrl ? undefined : '_blank'"
+                                    :rel="game.streamEmbedUrl ? undefined : 'noopener noreferrer'"
+                                    class="mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-savino-red text-white text-[11px] font-bold uppercase tracking-wider"
+                                    @click.stop="openStream($event, game)"
+                                >
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                    {{ $t('stream.watch') }}
+                                </component>
                             </div>
                         </div>
                     </component>
@@ -423,6 +475,8 @@ const ogMeta = useOgMeta({
                 <p class="text-xs text-gray-400 mt-4 text-center">{{ $t('risultati.legend') }}</p>
             </div>
         </section>
+
+        <LiveStreamModal :stream="activeStream" @close="closeStream" />
     </PublicLayout>
 </template>
 

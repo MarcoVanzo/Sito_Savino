@@ -27,6 +27,23 @@ use Throwable;
  */
 class VerifyApplicationHealth
 {
+    /**
+     * Da quanto lo stallo deve durare prima di essere segnalato.
+     *
+     * Il battito vive nella cache, e `start.sh` esegue `cache:clear` a ogni
+     * avvio del container web: appena dopo un rilascio il battito risulta
+     * assente anche con il pianificatore vivo, e senza questa finestra ogni
+     * riavvio del web produceva un falso «non è mai partito». Il battito è al
+     * minuto, quindi due minuti bastano a distinguere un buco di cache da un
+     * processo morto.
+     */
+    private const STALE_CONFIRM_SECONDS = 120;
+
+    /**
+     * Momento della prima osservazione di stallo della serie in corso.
+     */
+    private const STALE_SINCE_KEY = 'scheduler:stale-since';
+
     public function handle(DiagnosingHealth $event): void
     {
         // Solo ciò che un riavvio del container può rimettere a posto fa
@@ -87,7 +104,17 @@ class VerifyApplicationHealth
      */
     private function reportSchedulerIfStale(): void
     {
-        if (! app()->isProduction() || ! SchedulerHeartbeat::isStale()) {
+        if (! app()->isProduction()) {
+            return;
+        }
+
+        if (! SchedulerHeartbeat::isStale()) {
+            Cache::forget(self::STALE_SINCE_KEY);
+
+            return;
+        }
+
+        if (! $this->staleLongEnoughToBeReal()) {
             return;
         }
 
@@ -108,5 +135,26 @@ class VerifyApplicationHealth
         ));
 
         app(AdminNotificationService::class)->notifySchedulerStalled($elapsed);
+    }
+
+    /**
+     * Vero se lo stallo è stato osservato anche STALE_CONFIRM_SECONDS fa.
+     *
+     * La prima osservazione non avvisa: registra soltanto l'istante e lascia
+     * al pianificatore il tempo del battito successivo. La chiave scade dopo
+     * un'ora perché un battito tornato normale la cancella
+     * (reportSchedulerIfStale), e la TTL serve solo come rete di sicurezza.
+     */
+    private function staleLongEnoughToBeReal(): bool
+    {
+        $since = Cache::get(self::STALE_SINCE_KEY);
+
+        if (! is_numeric($since)) {
+            Cache::put(self::STALE_SINCE_KEY, now()->timestamp, now()->addHour());
+
+            return false;
+        }
+
+        return now()->timestamp - (int) $since >= self::STALE_CONFIRM_SECONDS;
     }
 }

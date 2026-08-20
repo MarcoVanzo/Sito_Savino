@@ -21,6 +21,12 @@ const props = defineProps({
         type: Number,
         default: null,
     },
+    // Il drawer non ha più un breakpoint proprio: è l'header a decidere se la
+    // navigazione orizzontale ci sta (useHeaderNavFit) e a spegnere l'una o l'altro.
+    visible: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const emit = defineEmits(['toggle', 'toggle-item']);
@@ -52,7 +58,7 @@ onBeforeUnmount(() => {
 
 <template>
     <!-- MOBILE MENU BUTTON -->
-    <div class="flex items-center xl:hidden z-50 gap-1">
+    <div v-show="visible" class="flex items-center z-50 gap-1">
         <!-- Language Switcher slot (mobile) -->
         <slot name="language-switcher" />
 
@@ -83,7 +89,7 @@ onBeforeUnmount(() => {
     >
         <!-- pt-24: lo spazio riservato all'header, ora che sui telefoni il
              logo è alto 64px invece di 125px -->
-        <div v-show="isOpen" class="xl:hidden absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-24 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
+        <div v-show="isOpen && visible" class="absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-24 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
             <nav role="navigation" :aria-label="$t('nav.mobile_menu')" class="flex flex-col space-y-2 text-center pb-10">
                 <div v-for="(item, index) in navigation" :key="item.label" class="border-b border-white/10 last:border-0">
                     <button type="button" 

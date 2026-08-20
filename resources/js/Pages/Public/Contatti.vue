@@ -4,8 +4,10 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
+import { useSafeUrl } from '@/Composables/useSafeUrl'
 
 const $t = useTranslations();
+const { safeUrl } = useSafeUrl();
 
 const props = defineProps({
     page: {
@@ -47,22 +49,22 @@ const contactInfo = computed(() => [
     {
         icon: 'email',
         title: 'Email',
-        value: contact.value.email || 'info@savinodelbenevolley.it',
-        link: 'mailto:' + (contact.value.email || 'info@savinodelbenevolley.it'),
+        value: contact.value.email,
+        link: 'mailto:' + contact.value.email,
         color: 'savino-blue'
     },
     {
         icon: 'phone',
-        title: $t('contatti.phone') || 'Telefono',
-        value: contact.value.phone || '055 721503',
-        link: 'tel:' + (contact.value.phone || '055721503').replace(/\s/g, ''),
+        title: $t('contatti.phone'),
+        value: contact.value.phone,
+        link: 'tel:' + String(contact.value.phone ?? '').replace(/\s/g, ''),
         color: 'savino-gold'
     },
     {
         icon: 'location',
-        title: $t('contatti.headquarters') || 'Sede Amministrativa',
-        value: contact.value.address || 'Via Benozzo Gozzoli, 5/6 50018 Scandicci – Firenze',
-        link: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(contact.value.address || 'Via Benozzo Gozzoli, 5/6 Scandicci Firenze'),
+        title: $t('contatti.headquarters'),
+        value: contact.value.address,
+        link: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(contact.value.address ?? ''),
         color: 'savino-red'
     }
 ])
@@ -159,46 +161,33 @@ const copyToClipboard = async (text, fieldName) => {
     }
 };
 
-// --- SMART FORM TIPS ---
-const subjectTopics = computed(() => [
-    { value: 'Informazioni Generali', label: $t('contatti.topic_general') || 'Informazioni Generali' },
-    { value: 'Ticketing / Biglietti', label: $t('contatti.topic_ticketing') || 'Ticketing / Biglietti' },
-    { value: 'Sponsor / Commerciale', label: $t('contatti.topic_sponsor') || 'Sponsor / Commerciale' },
-    { value: 'Settore Giovanile', label: $t('contatti.topic_youth') || 'Settore Giovanile' },
-    { value: 'Stampa / Media', label: $t('contatti.topic_press') || 'Stampa / Media' }
-]);
+// Argomenti del modulo e relativo suggerimento: si compongono in
+// Pagine → Contatti. L'elenco stava qui dentro, quindi l'unico modo di
+// aggiungere un argomento era modificare il codice.
+const subjectTopics = computed(() => {
+    const topics = cd.value.form_topics;
+
+    return Array.isArray(topics) ? topics.filter((topic) => topic?.value) : [];
+});
 
 const smartTip = computed(() => {
-    switch (form.subject) {
-        case 'Ticketing / Biglietti':
-            return {
-                title: 'Info Ticketing',
-                text: $t('contatti.tip_ticketing') || 'Sapevi che puoi acquistare i biglietti direttamente dalla nostra biglietteria online?',
-                linkText: 'Vai al Ticketing',
-                linkUrl: '/ticketing'
-            };
-        case 'Settore Giovanile':
-            return {
-                title: 'SDB Youth',
-                text: $t('contatti.tip_youth') || 'Scopri tutto sul nostro settore giovanile e le accademie.',
-                linkText: null,
-                linkUrl: null
-            };
-        case 'Sponsor / Commerciale':
-            return {
-                title: 'Diventa Partner',
-                text: $t('contatti.tip_sponsor') || 'Vuoi diventare nostro partner? Visita la sezione dedicata agli sponsor.',
-                linkText: 'I nostri Sponsor',
-                linkUrl: route('sponsor')
-            };
-        default:
-            return null;
+    const topic = subjectTopics.value.find((item) => item.value === form.subject);
+
+    if (!topic?.tip_text) {
+        return null;
     }
+
+    return {
+        title: topic.tip_title || topic.label || topic.value,
+        text: topic.tip_text,
+        linkText: topic.tip_link_text || null,
+        linkUrl: safeUrl(topic.tip_link_url) || null,
+    };
 });
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('contatti.og_title'),
-    description: cd.value?.meta_description || $t('contatti.og_description'),
+    description: props.page?.meta_description || $t('contatti.og_description'),
 })
 </script>
 
@@ -221,10 +210,10 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent z-0"></div>
             
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24 animate-fade-in-up">
-                <span class="text-savino-gold text-sm font-black uppercase tracking-[0.4em] mb-4 block drop-shadow-sm">{{ cd.hero_subtitle || $t('contatti.hero_subtitle') || 'Siamo a tua disposizione' }}</span>
+                <span class="text-savino-gold text-sm font-black uppercase tracking-[0.4em] mb-4 block drop-shadow-sm">{{ cd.hero_subtitle || $t('contatti.hero_subtitle') }}</span>
                 <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter drop-shadow-lg">{{ page?.title ?? $t('contatti.og_title') ?? 'Contatti' }}</h1>
                 <div class="w-24 h-1.5 bg-savino-gold mx-auto mt-6 mb-8 rounded-full shadow-[0_0_15px_rgba(201,168,76,0.5)]"></div>
-                <p class="text-white/90 text-xl font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-md">{{ cd.hero_description || $t('contatti.hero_description') || 'Inviaci un messaggio o trova il reparto giusto nella nostra rubrica.' }}</p>
+                <p class="text-white/90 text-xl font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-md">{{ cd.hero_description || $t('contatti.hero_description') }}</p>
             </div>
         </section>
 
@@ -285,7 +274,7 @@ const ogMeta = useOgMeta({
                             </svg>
                         </div>
                         <h3 class="text-xl md:text-2xl font-black text-white uppercase tracking-wider">
-                            {{ $t('contatti.corporate_title') || 'Dati Societari & Fatturazione' }}
+                            {{ $t('contatti.corporate_title') }}
                         </h3>
                     </div>
                     
@@ -293,10 +282,10 @@ const ogMeta = useOgMeta({
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <!-- Helper for Clipboard Items -->
                             <template v-for="field in [
-                                { id: 'piva', label: $t('contatti.legal_piva_label') || 'Partita IVA', val: contact.legal_piva || '06271460484' },
-                                { id: 'cf', label: $t('contatti.legal_cf_label') || 'Codice Fiscale', val: contact.legal_cf || '94217750481' },
-                                { id: 'fipav', label: $t('contatti.legal_fipav_label') || 'Codice FIPAV', val: contact.legal_fipav || '100470331' },
-                                { id: 'sdi', label: $t('contatti.legal_sdi_label') || 'Codice SDI', val: contact.legal_sdi || 'KRRH6B9' }
+                                { id: 'piva', label: $t('contatti.legal_piva_label'), val: contact.legal_piva || '06271460484' },
+                                { id: 'cf', label: $t('contatti.legal_cf_label'), val: contact.legal_cf || '94217750481' },
+                                { id: 'fipav', label: $t('contatti.legal_fipav_label'), val: contact.legal_fipav || '100470331' },
+                                { id: 'sdi', label: $t('contatti.legal_sdi_label'), val: contact.legal_sdi || 'KRRH6B9' }
                             ]" :key="field.id">
                                 <div 
                                     @click="copyToClipboard(field.val, field.id)"
@@ -331,8 +320,8 @@ const ogMeta = useOgMeta({
                                     </svg>
                                 </div>
                                 <div>
-                                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('contatti.legal_pec_label') || 'PEC Ufficiale' }}</span>
-                                    <a :href="'mailto:' + (contact.pec || 'pallavoloscandicci@legalmail.it')" class="block text-base font-black text-savino-blue hover:text-savino-blue/80 mt-1 transition-colors">{{ contact.pec || 'pallavoloscandicci@legalmail.it' }}</a>
+                                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('contatti.legal_pec_label') }}</span>
+                                    <a v-if="contact.pec" :href="'mailto:' + contact.pec" class="block text-base font-black text-savino-blue hover:text-savino-blue/80 mt-1 transition-colors">{{ contact.pec }}</a>
                                 </div>
                             </div>
                             <div class="flex items-start gap-5 p-5 rounded-2xl hover:bg-gray-50 transition-colors">
@@ -342,8 +331,8 @@ const ogMeta = useOgMeta({
                                     </svg>
                                 </div>
                                 <div>
-                                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('contatti.office_hours_label') || 'Orari Ufficio Sede' }}</span>
-                                    <span class="block text-base font-black text-gray-900 mt-1 whitespace-pre-line">{{ settings.contact?.office_hours || 'Lun-Ven: 09:00 - 13:00\n14:00 - 18:00' }}</span>
+                                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('contatti.office_hours_label') }}</span>
+                                    <span class="block text-base font-black text-gray-900 mt-1 whitespace-pre-line">{{ settings.contact?.office_hours }}</span>
                                 </div>
                             </div>
                         </div>
@@ -353,8 +342,8 @@ const ogMeta = useOgMeta({
                 <!-- Dynamic Contact Directory / Rubrica -->
                 <div v-if="cd.contacts_list && cd.contacts_list.length > 0" class="mb-24">
                     <div class="text-center mb-12">
-                        <span class="text-savino-pink text-xs font-black uppercase tracking-[0.3em] bg-savino-pink/10 px-4 py-2 rounded-full">{{ $t('contatti.directory_badge') || 'Directory' }}</span>
-                        <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-6">{{ $t('contatti.directory_title') || 'Rubrica Contatti' }}</h2>
+                        <span class="text-savino-pink text-xs font-black uppercase tracking-[0.3em] bg-savino-pink/10 px-4 py-2 rounded-full">{{ $t('contatti.directory_badge') }}</span>
+                        <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-6">{{ $t('contatti.directory_title') }}</h2>
                         <div class="w-16 h-1.5 bg-savino-pink mx-auto mt-4 rounded-full"></div>
                     </div>
 
@@ -371,8 +360,8 @@ const ogMeta = useOgMeta({
                                     v-model="searchQuery"
                                     type="text" 
                                     class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-savino-blue/20 focus:border-savino-blue focus:bg-white transition-all font-medium text-gray-900 placeholder-gray-400"
-                                    :placeholder="$t('contatti.search_placeholder') || 'Cerca per nome, ruolo o email...'"
-                                    :aria-label="$t('contatti.search_placeholder') || 'Cerca per nome, ruolo o email...'"
+                                    :placeholder="$t('contatti.search_placeholder')"
+                                    :aria-label="$t('contatti.search_placeholder')"
                                 >
                             </div>
                             <!-- Chips / Filter -->
@@ -459,8 +448,8 @@ const ogMeta = useOgMeta({
                     <!-- Smart Form -->
                     <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100">
                         <div class="mb-8">
-                            <span class="text-savino-blue text-xs font-black uppercase tracking-[0.2em] block mb-2">{{ cd.form_subtitle || 'Scrivici direttamente' }}</span>
-                            <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-4">{{ cd.form_title || $t('contatti.form_title') || 'Compila il Modulo' }}</h2>
+                            <span class="text-savino-blue text-xs font-black uppercase tracking-[0.2em] block mb-2">{{ cd.form_subtitle }}</span>
+                            <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-4">{{ cd.form_title || $t('contatti.form_title') }}</h2>
                             <div class="w-12 h-1.5 bg-savino-blue rounded-full"></div>
                         </div>
 
@@ -472,8 +461,8 @@ const ogMeta = useOgMeta({
                                 </svg>
                             </div>
                             <h3 class="text-2xl font-black text-gray-900 mb-3">{{ flashSuccess }}</h3>
-                            <p class="text-gray-500 font-medium mb-8 text-lg">{{ cd.form_success_message || $t('contatti.form_success_message') || 'Il tuo messaggio è stato inviato con successo.' }}</p>
-                            <button type="button" @click="resetForm" class="inline-block px-8 py-3.5 bg-gray-100 text-gray-900 rounded-xl font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">{{ cd.form_reset_label || $t('contatti.form_reset_label') || 'Invia un altro messaggio' }}</button>
+                            <p class="text-gray-500 font-medium mb-8 text-lg">{{ cd.form_success_message || $t('contatti.form_success_message') }}</p>
+                            <button type="button" @click="resetForm" class="inline-block px-8 py-3.5 bg-gray-100 text-gray-900 rounded-xl font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">{{ cd.form_reset_label || $t('contatti.form_reset_label') }}</button>
                         </div>
 
                         <!-- Form -->
@@ -484,31 +473,31 @@ const ogMeta = useOgMeta({
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label for="contact-name" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_name || $t('contatti.form_label_name') || 'Nome e Cognome' }} *</label>
+                                    <label for="contact-name" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_name || $t('contatti.form_label_name') }} *</label>
                                     <input
                                         id="contact-name"
                                         v-model="form.name"
                                         type="text"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium"
-                                        :placeholder="cd.form_placeholder_name || $t('contatti.form_placeholder_name') || 'Mario Rossi'"
+                                        :placeholder="cd.form_placeholder_name || $t('contatti.form_placeholder_name')"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label for="contact-email" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_email || 'Email' }} *</label>
+                                    <label for="contact-email" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_email }} *</label>
                                     <input
                                         id="contact-email"
                                         v-model="form.email"
                                         type="email"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium"
-                                        :placeholder="cd.form_placeholder_email || $t('contatti.form_placeholder_email') || 'mario@example.com'"
+                                        :placeholder="cd.form_placeholder_email || $t('contatti.form_placeholder_email')"
                                         required
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label for="contact-subject" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_subject || $t('contatti.form_label_subject') || 'Argomento' }}</label>
+                                <label for="contact-subject" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_subject || $t('contatti.form_label_subject') }}</label>
                                 <!-- Using a select for smart tips -->
                                 <div class="relative">
                                     <select
@@ -517,7 +506,7 @@ const ogMeta = useOgMeta({
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium appearance-none cursor-pointer"
                                     >
                                         <option value="" disabled selected>{{ $t('contatti.select_subject') }}</option>
-                                        <option v-for="topic in subjectTopics" :key="topic.value" :value="topic.value">{{ topic.label }}</option>
+                                        <option v-for="topic in subjectTopics" :key="topic.value" :value="topic.value">{{ topic.label || topic.value }}</option>
                                         <option value="Altro">{{ $t('contatti.subject_other') }}</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-gray-500">
@@ -548,13 +537,13 @@ const ogMeta = useOgMeta({
                             </div>
 
                             <div>
-                                <label for="contact-message" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_message || $t('contatti.form_label_message') || 'Messaggio' }} *</label>
+                                <label for="contact-message" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_message || $t('contatti.form_label_message') }} *</label>
                                 <textarea
                                     id="contact-message"
                                     v-model="form.message"
                                     rows="5"
                                     class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all resize-none font-medium"
-                                    :placeholder="cd.form_placeholder_message || $t('contatti.form_placeholder_message') || 'Scrivi qui il tuo messaggio...'"
+                                    :placeholder="cd.form_placeholder_message || $t('contatti.form_placeholder_message')"
                                     required
                                 ></textarea>
                             </div>
@@ -569,8 +558,8 @@ const ogMeta = useOgMeta({
                                     :disabled="form.processing"
                                     class="w-full sm:w-auto px-10 py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest hover:bg-savino-blue transition-all duration-300 shadow-xl shadow-gray-900/20 hover:shadow-savino-blue/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
                                 >
-                                    <span v-if="form.processing">{{ cd.form_sending_label || $t('contatti.form_sending') || 'Invio in corso...' }}</span>
-                                    <span v-else>{{ cd.form_submit_label || $t('contatti.form_submit') || 'Invia Messaggio' }}</span>
+                                    <span v-if="form.processing">{{ cd.form_sending_label || $t('contatti.form_sending') }}</span>
+                                    <span v-else>{{ cd.form_submit_label || $t('contatti.form_submit') }}</span>
                                     <svg v-if="!form.processing" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                     </svg>

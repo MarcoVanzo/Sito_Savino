@@ -68,4 +68,6 @@
             </div>
         @endif
     </x-filament::section>
+
+    {{ $this->table }}
 </x-filament-panels::page>

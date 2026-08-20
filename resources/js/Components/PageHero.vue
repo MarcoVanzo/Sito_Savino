@@ -15,6 +15,13 @@ defineProps({
     pattern: {
         type: Boolean,
         default: false
+    },
+    // Copertina caricata sulla pagina dal pannello. Le pagine la passavano già,
+    // ma il componente non la dichiarava: l'immagine veniva ignorata e restava
+    // sempre lo sfondo sfumato.
+    image: {
+        type: String,
+        default: ''
     }
 })
 </script>
@@ -22,6 +29,12 @@ defineProps({
 <template>
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
+        <img
+            v-if="image"
+            :src="image"
+            :alt="title"
+            class="absolute inset-0 w-full h-full object-cover opacity-40"
+        />
         <!-- Geometric Pattern Overlay (optional) -->
         <div
             v-if="pattern"

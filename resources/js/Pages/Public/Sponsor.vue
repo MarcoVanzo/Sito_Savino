@@ -12,15 +12,11 @@ const $t = useTranslations();
 
 const props = defineProps({
     page: Object,
-    sponsors: {
-        type: Object,
-        default: () => ({
-            main: [],
-            gold: [],
-            silver: [],
-            technical: [],
-            standard: [],
-        }),
+    // Livelli già ordinati e tradotti dal server (App\Services\SponsorDirectory):
+    // qui si decide solo quanto grandi mostrare i loghi.
+    tiers: {
+        type: Array,
+        default: () => [],
     },
 });
 
@@ -29,45 +25,38 @@ const settings = computed(() => inertiaPage.props.siteSettings ?? {});
 const contact = computed(() => settings.value.contact ?? {});
 const cd = computed(() => props.page?.content_data ?? {});
 
-const groupedSponsors = computed(() => {
-    if (Array.isArray(props.sponsors)) {
-        const groups = {
-            main: [],
-            gold: [],
-            silver: [],
-            technical: [],
-            standard: [],
-        };
-        props.sponsors.forEach(s => {
-            const t = s.tier;
-            if (groups[t]) {
-                groups[t].push(s);
-            } else {
-                groups.standard.push(s);
-            }
-        });
-        return groups;
-    }
-    const base = props.sponsors ?? {};
-    return {
-        main: base.main ?? [],
-        gold: base.gold ?? [],
-        silver: base.silver ?? [],
-        technical: base.technical ?? [],
-        standard: base.standard ?? [],
-    };
-});
-
-
-const tierConfig = {
-    main: { label: 'Title Sponsor', bg: 'bg-gradient-to-br from-savino-gold/20 to-savino-gold/5', border: 'border-savino-gold/30', size: 'h-32 md:h-40', cols: 'grid-cols-1 sm:grid-cols-2', gap: 'gap-8' },
-    gold: { label: 'Gold Partner', bg: 'bg-gradient-to-br from-yellow-50 to-amber-50', border: 'border-amber-200', size: 'h-24 md:h-32', cols: 'grid-cols-2 sm:grid-cols-3', gap: 'gap-6' },
-    silver: { label: 'Silver Partner', bg: 'bg-gray-50', border: 'border-gray-200', size: 'h-20 md:h-24', cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4', gap: 'gap-5' },
-    technical: { label: $t('sponsor.tier_technical'), bg: 'bg-white', border: 'border-gray-100', size: 'h-16 md:h-20', cols: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5', gap: 'gap-4' },
-    standard: { label: 'Supporter', bg: 'bg-white', border: 'border-gray-100', size: 'h-14 md:h-16', cols: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-6', gap: 'gap-4' },
+// Il livello decide l'impaginazione: il title sponsor grande e da solo,
+// i supporter piccoli e in fila.
+const sizeConfig = {
+    hero: { bg: 'bg-gradient-to-br from-savino-gold/20 to-savino-gold/5', border: 'border-savino-gold/30', logo: 'h-32 md:h-40', cols: 'grid-cols-1', gap: 'gap-8', wrap: 'max-w-md mx-auto' },
+    large: { bg: 'bg-gradient-to-br from-yellow-50 to-amber-50', border: 'border-amber-200', logo: 'h-24 md:h-32', cols: 'grid-cols-2 sm:grid-cols-3', gap: 'gap-6', wrap: '' },
+    medium: { bg: 'bg-gray-50', border: 'border-gray-200', logo: 'h-20 md:h-24', cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4', gap: 'gap-5', wrap: '' },
+    small: { bg: 'bg-white', border: 'border-gray-100', logo: 'h-16 md:h-20', cols: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5', gap: 'gap-4', wrap: '' },
 };
 
-const tiers = ['main', 'gold', 'silver', 'technical', 'standard'];
+const configFor = (size) => sizeConfig[size] ?? sizeConfig.small;
+
+// L'indirizzo a cui arrivano le richieste di sponsorizzazione, con oggetto
+// già scritto: chi riceve la mail sa da dove arriva senza aprirla.
+const sponsorMailto = computed(() => {
+    const address = cd.value.contact_email || contact.value.email;
+
+    if (!address) {
+        return null;
+    }
+
+    const subject = cd.value.contact_subject || $t('sponsor.mail_subject');
+
+    return `mailto:${address}?subject=${encodeURIComponent(subject)}`;
+});
+
+// I numeri d'impatto arrivano dal CMS (Pagine → Sponsor): quelli che stavano
+// qui comparivano online anche con i campi del pannello vuoti.
+const impactStats = computed(() => [
+    { value: cd.value.stat1_value, label: cd.value.stat1_label || $t('sponsor.stat_social') },
+    { value: cd.value.stat2_value, label: cd.value.stat2_label || $t('sponsor.stat_spectators') },
+    { value: cd.value.stat3_value, label: cd.value.stat3_label || $t('sponsor.stat_events') },
+].filter((stat) => stat.value));
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('sponsor.og_title'),
@@ -106,52 +95,52 @@ const ogMeta = useOgMeta({
         <!-- SPONSOR TIERS -->
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-white">
             <div class="max-w-7xl mx-auto">
+                <div v-if="tiers.length === 0" class="text-center py-8">
+                    <p class="text-gray-500 text-lg">{{ $t('sponsor.tier_empty') }}</p>
+                </div>
+
                 <div
                     v-for="tier in tiers"
-                    :key="tier"
+                    :key="tier.key"
                     class="mb-20 last:mb-0"
                 >
                     <!-- Tier Header -->
                     <div class="text-center mb-10">
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ tierConfig[tier].label }}</span>
+                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ tier.label }}</span>
                         <div class="w-12 h-0.5 bg-savino-gold mx-auto mt-3"></div>
                     </div>
 
                     <!-- Sponsor Logos Grid -->
                     <div
-                        v-if="groupedSponsors[tier] && groupedSponsors[tier].length > 0"
                         class="grid items-center justify-items-center"
-                        :class="[tierConfig[tier].cols, tierConfig[tier].gap]"
+                        :class="[configFor(tier.size).cols, configFor(tier.size).gap, configFor(tier.size).wrap]"
                     >
-                        <div
-                            v-for="(sponsor, index) in groupedSponsors[tier]"
-                            :key="index"
+                        <component
+                            :is="sponsor.website_url ? 'a' : 'div'"
+                            v-for="sponsor in tier.sponsors"
+                            :key="sponsor.id"
+                            :href="sponsor.website_url || undefined"
+                            :target="sponsor.website_url ? '_blank' : undefined"
+                            :rel="sponsor.website_url ? 'noopener noreferrer' : undefined"
+                            :title="sponsor.name"
                             class="w-full rounded-xl p-6 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border"
-                            :class="[tierConfig[tier].bg, tierConfig[tier].border]"
+                            :class="[configFor(tier.size).bg, configFor(tier.size).border]"
                         >
                             <img
                                 v-if="sponsor.logo_url"
                                 :src="sponsor.logo_url"
                                 :alt="sponsor.name"
                                 class="max-w-full object-contain"
-                                :class="tierConfig[tier].size"
+                                :class="configFor(tier.size).logo"
                                 loading="lazy"
                                 @error="onImgError"
                             />
-                            <div v-else class="flex flex-col items-center justify-center" :class="tierConfig[tier].size">
+                            <div v-else class="flex flex-col items-center justify-center" :class="configFor(tier.size).logo">
                                 <div class="text-savino-blue font-bold text-center uppercase tracking-wide">
                                     {{ sponsor.name }}
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Empty Tier Placeholder -->
-                    <div v-else class="text-center py-8">
-                        <div class="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-6 py-3">
-                            <div class="w-2 h-2 rounded-full bg-savino-gold/50"></div>
-                            <span class="text-gray-400 text-sm font-medium">{{ $t('sponsor.tier_empty') }}</span>
-                        </div>
+                        </component>
                     </div>
                 </div>
             </div>
@@ -168,17 +157,21 @@ const ogMeta = useOgMeta({
                 <p class="text-white/80 text-lg leading-relaxed max-w-2xl mx-auto mb-10">
                     {{ cd.cta_description || $t('sponsor.cta_description') }}
                 </p>
-                <div class="grid sm:grid-cols-3 gap-6 mb-12">
-                    <div v-for="(stat, index) in [
-                        { value: cd.stat1_value || '2M+', label: cd.stat1_label || $t('sponsor.stat_social') },
-                        { value: cd.stat2_value || '50K+', label: cd.stat2_label || $t('sponsor.stat_spectators') },
-                        { value: cd.stat3_value || '100+', label: cd.stat3_label || $t('sponsor.stat_events') }
-                    ]" :key="index" class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+                <div v-if="impactStats.length" class="grid sm:grid-cols-3 gap-6 mb-12">
+                    <div
+                        v-for="(stat, index) in impactStats"
+                        :key="index"
+                        class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6"
+                    >
                         <div class="text-savino-gold text-3xl font-black">{{ stat.value }}</div>
                         <div class="text-white/60 text-sm font-medium mt-1">{{ stat.label }}</div>
                     </div>
                 </div>
-                <a :href="contact.email ? ('mailto:' + contact.email) : '#'" class="inline-flex items-center gap-2 bg-savino-gold text-savino-blue px-8 py-4 font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors">
+                <a
+                    v-if="sponsorMailto"
+                    :href="sponsorMailto"
+                    class="inline-flex items-center gap-2 bg-savino-gold text-savino-blue px-8 py-4 font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors"
+                >
                     {{ cd.cta_button_text || $t('sponsor.cta_button') }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </a>

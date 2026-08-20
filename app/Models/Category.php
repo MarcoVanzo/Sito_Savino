@@ -8,10 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Translatable\HasTranslations;
 
 class Category extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, HasTranslations, LogsActivity;
+
+    /**
+     * Il nome è tradotto perché finisce nei filtri pubblici delle news: sul sito
+     * in inglese comparivano "Notizie", "Società", "Giovanile".
+     *
+     * @var list<string>
+     */
+    public $translatable = ['name'];
 
     protected $fillable = [
         'wp_id',

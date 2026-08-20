@@ -8,6 +8,7 @@ use App\Filament\Pages\Settings\AnalyticsSettingsPage;
 use App\Filament\Pages\SocialAnalyticsPage;
 use App\Filament\Pages\WebAnalyticsPage;
 use App\Models\AnalyticsSite;
+use App\Models\NewsletterSubscriber;
 use App\Models\SocialAccount;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -158,6 +159,24 @@ class AnalyticsPagesTest extends TestCase
             ->assertSee('Campagne non disponibili');
 
         Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function newsletter_mostra_gli_iscritti_nella_stessa_pagina(): void
+    {
+        config()->set('services.activecampaign.url', null);
+        config()->set('services.activecampaign.key', null);
+
+        Http::fake();
+
+        // L'elenco era una voce di menu separata: se sparisce dalla pagina,
+        // dal pannello non si raggiunge più.
+        $iscritta = NewsletterSubscriber::factory()->create(['email' => 'tifosa@example.com']);
+
+        Livewire::actingAs($this->utenteConRuolo(UserRole::CommunicationManager))
+            ->test(NewsletterAnalyticsPage::class)
+            ->assertSuccessful()
+            ->assertCanSeeTableRecords([$iscritta]);
     }
 
     #[Test]

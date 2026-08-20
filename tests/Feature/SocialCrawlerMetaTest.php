@@ -114,7 +114,7 @@ class SocialCrawlerMetaTest extends TestCase
             'title' => 'Hospitality',
             'meta_description' => null,
             'excerpt' => null,
-            'content' => '<p>Pacchetti hospitality per le aziende al Palazzo Wanny.</p>',
+            'content' => '<p>Pacchetti hospitality per le aziende al PalaBigmat.</p>',
             'status' => PostStatus::Published,
         ]);
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Models\Traits\LogsActivity;
+use App\Support\Locale;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -57,6 +58,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
             // Da qui parte il conteggio dei 6 mesi di validità.
             $user->password_changed_at ??= now();
+
+            // Lingua di registrazione: le mail delle aste partono da un worker,
+            // dove la locale della richiesta non è più disponibile.
+            $user->locale ??= Locale::current();
         });
 
         // Lo storico e la data di cambio sono gestiti a livello di model, non nei

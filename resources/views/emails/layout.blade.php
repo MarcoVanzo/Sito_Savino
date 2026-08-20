@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,7 +52,7 @@
                             </p>
 
                             <p style="color: #aaaaaa; font-size: 11px; margin: 16px 0 0; text-align: center; border-top: 1px solid #e0e0e0; padding-top: 16px; line-height: 1.4;">
-                                Questa email è stata generata automaticamente. Non rispondere a questo indirizzo.
+                                {{ __('emails.layout.auto_generated') }}
                             </p>
                         </td>
                     </tr>

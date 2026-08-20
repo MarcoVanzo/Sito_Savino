@@ -17,26 +17,18 @@ const props = defineProps({
 const safeContent = computed(() => sanitize(props.page?.content));
 
 const ogMeta = useOgMeta({
-    title: props.page?.title ?? 'Storia',
-    description: props.page?.meta_description || 'La Storia del Club',
+    title: props.page?.title,
+    description: props.page?.meta_description,
 });
 
 const cd = computed(() => props.page?.content_data ?? {});
 
+// Le tappe arrivano SOLO dal CMS: nessun elenco di esempio nel codice,
+// altrimenti la pagina mostra una storia che in redazione non si trova.
 const timeline = computed(() => {
-    if (cd.value?.timeline && Array.isArray(cd.value.timeline) && cd.value.timeline.length > 0) {
-        return cd.value.timeline;
-    }
-    // Fallback to our stunning hardcoded mock timeline if not configured
-    return [
-        { year: '1982', title: $t('societa.storia_fallback_1982_title') || 'Le Origini', description: $t('societa.storia_fallback_1982_desc') || 'La Pallavolo Scandicci nasce nel cuore del territorio toscano. I primi passi nei campionati locali pongono le basi per un progetto ambizioso.' },
-        { year: '2012', title: $t('societa.storia_fallback_2012_title') || 'La Svolta Savino Del Bene', description: $t('societa.storia_fallback_2012_desc') || 'L\'ingresso del Gruppo Savino Del Bene come title sponsor trasforma le ambizioni del club. Inizia la scalata verso l\'élite del volley nazionale.' },
-        { year: '2014', title: $t('societa.storia_fallback_2014_title') || 'Promozione in Serie A1', description: $t('societa.storia_fallback_2014_desc') || 'Un traguardo storico: la squadra conquista l\'accesso alla massima serie italiana, portando Scandicci nel panorama nazionale.' },
-        { year: '2018', title: $t('societa.storia_fallback_2018_title') || 'Debutto Europeo', description: $t('societa.storia_fallback_2018_desc') || 'Prima qualificazione in CEV Champions League. La Savino Del Bene Volley si affaccia sul palcoscenico internazionale sfidando le big europee.' },
-        { year: '2022', title: $t('societa.storia_fallback_2022_title') || 'CEV Challenge Cup', description: $t('societa.storia_fallback_2022_desc') || 'Il primo storico trofeo europeo. Una cavalcata trionfale che arricchisce la bacheca del club e consacra il progetto a livello internazionale.' },
-        { year: '2023', title: $t('societa.storia_fallback_2023_title') || 'CEV Cup', description: $t('societa.storia_fallback_2023_desc') || 'Ancora un successo continentale. La Savino Del Bene solleva la CEV Cup, dimostrando continuità di risultati e mentalità vincente.' },
-        { year: '2024', title: $t('societa.storia_fallback_2024_title') || 'Finale Scudetto', description: $t('societa.storia_fallback_2024_desc') || 'Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il Palazzo Wanny.' }
-    ];
+    const items = cd.value?.timeline;
+
+    return Array.isArray(items) ? items.filter((item) => item?.year) : [];
 });
 </script>
 
@@ -56,7 +48,7 @@ const timeline = computed(() => {
         <PageHero
             :title="page?.title"
             :subtitle="page?.meta_description"
-            :image="page?.cover_url || '/images/hero-1.jpg'"
+            :image="page?.cover_url"
         />
 
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 relative overflow-hidden">
@@ -79,11 +71,15 @@ const timeline = computed(() => {
                 <!-- Interactive Timeline -->
                 <div class="mt-20">
                     <div class="text-center mb-20">
-                        <h2 class="text-4xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mb-4 drop-shadow-sm">{{ $t('societa.storia_timeline_title') || 'Le Tappe Fondamentali' }}</h2>
+                        <h2 class="text-4xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mb-4 drop-shadow-sm">{{ $t('societa.storia_timeline_title') }}</h2>
                         <div class="w-24 h-1.5 bg-gradient-to-r from-savino-red to-savino-pink mx-auto rounded-full"></div>
                     </div>
 
-                    <div class="relative wrap overflow-hidden p-4 md:p-10 h-full">
+                    <div v-if="timeline.length === 0" class="max-w-2xl mx-auto text-center bg-white rounded-3xl border border-gray-100 shadow-sm px-8 py-12">
+                        <p class="text-gray-500 text-lg">{{ $t('societa.storia_timeline_empty') }}</p>
+                    </div>
+
+                    <div v-else class="relative wrap overflow-hidden p-4 md:p-10 h-full">
                         <!-- Vertical line -->
                         <div class="hidden md:block absolute border-opacity-20 border-savino-blue h-full border-l-[3px] left-1/2 -ml-[1.5px] top-0 rounded-full"></div>
                         

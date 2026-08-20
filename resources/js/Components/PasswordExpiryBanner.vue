@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useTranslations } from '@/Composables/useTranslations.js';
 
 /**
  * Preavviso di scadenza password.
@@ -9,6 +10,7 @@ import { Link, usePage } from '@inertiajs/vue3';
  * CMS non lo vedono mai, quindi questo banner è il loro unico avviso.
  */
 const page = usePage();
+const $t = useTranslations();
 
 const expiry = computed(() => page.props.auth?.passwordExpiry ?? null);
 
@@ -18,10 +20,10 @@ const message = computed(() => {
     const days = expiry.value.days;
 
     if (days <= 1) {
-        return 'La tua password scade entro oggi.';
+        return $t('password_expiry.today');
     }
 
-    return `La tua password scade fra ${days} giorni.`;
+    return $t('password_expiry.days', { days });
 });
 </script>
 
@@ -47,14 +49,14 @@ const message = computed(() => {
         </svg>
 
         <span>
-            {{ message }} Cambiala ora per non trovarti bloccato al prossimo accesso.
+            {{ message }} {{ $t('password_expiry.cta_hint') }}
         </span>
 
         <Link
             :href="route('password.change')"
             class="font-semibold underline underline-offset-2 hover:no-underline"
         >
-            Cambia password
+            {{ $t('password_expiry.change') }}
         </Link>
     </div>
 </template>

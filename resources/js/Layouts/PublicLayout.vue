@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, defineAsyncComponent } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, defineAsyncComponent } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import MegaMenu from '@/Components/MegaMenu.vue';
 import SiteFooter from '@/Components/SiteFooter.vue';
@@ -11,6 +11,7 @@ import CartDrawer from '@/Components/Shop/CartDrawer.vue';
 import FlashMessages from '@/Components/FlashMessages.vue';
 import UserMenu from '@/Components/Shop/UserMenu.vue';
 import PasswordExpiryBanner from '@/Components/PasswordExpiryBanner.vue';
+import { useHeaderNavFit } from '@/Composables/useHeaderNavFit.js';
 
 const MobileDrawer = defineAsyncComponent(() => import('@/Components/MobileDrawer.vue'));
 const CookieConsent = defineAsyncComponent(() => import('@/Components/CookieConsent.vue'));
@@ -64,14 +65,31 @@ const nav = computed(() => page.props.navigation ?? []);
 const settings = computed(() => page.props.siteSettings ?? {});
 const general = computed(() => settings.value.general ?? {});
 
-// Valori derivati con fallback
-const corporateUrl = computed(() => general.value.corporate_url || 'https://www.savinodelbene.com/it/home/');
+// Testi e indirizzi arrivano da Impostazioni → Generali. Restano nel codice
+// solo i loghi: sono file di brand, centralizzati in Constants/logos.js, e
+// servono comunque un'immagine quando il pannello non ne carica una.
+const corporateUrl = computed(() => general.value.corporate_url ?? '');
 const corporateLogo = computed(() => general.value.corporate_logo || LOGOS.CORPORATE_LEFT);
 const siteLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
-const corporateName = computed(() => general.value.corporate_name || 'Savino Del Bene');
-const corporateDescription = computed(() => general.value.corporate_description || 'Global Logistics and Forwarding Company');
+const corporateName = computed(() => general.value.corporate_name ?? '');
+const corporateDescription = computed(() => general.value.corporate_description ?? '');
 const corporateDomain = computed(() => {
-    try { return new URL(corporateUrl.value).hostname; } catch { return 'savinodelbene.com'; }
+    try { return new URL(corporateUrl.value).hostname; } catch { return ''; }
+});
+
+// Navigazione orizzontale o drawer: la decisione è misurata sullo spazio reale
+// dell'header, non su un breakpoint fisso.
+const logoBlock = ref(null);
+const navLabels = computed(() => nav.value.map((item) => item.label ?? ''));
+const { desktopNav, navFontSize } = useHeaderNavFit(navLabels, logoBlock);
+
+// Allargando la finestra con il drawer aperto resterebbe il pannello a tutto schermo
+// sopra un header che ha già la sua navigazione.
+watch(desktopNav, (isDesktop) => {
+    if (isDesktop) {
+        isMobileMenuOpen.value = false;
+        activeMobileIndex.value = null;
+    }
 });
 </script>
 
@@ -92,13 +110,13 @@ const corporateDomain = computed(() => {
                     <!-- La larghezza riservata deve restare sotto lo spazio disponibile:
                          sui telefoni il blocco icone (menu, carrello, account) occupa ~212px
                          e una larghezza fissa lo spingerebbe fuori dal viewport. -->
-                    <div class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[210px] md:w-[280px] xl:w-[380px] h-full relative">
+                    <div ref="logoBlock" class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[210px] md:w-[240px] xl:w-[340px] h-full relative">
                         <div class="absolute top-2 left-0 z-[60] flex items-end">
 
                             <!-- Corporate Logo Block (Sfondo Bianco) — nascosto sui telefoni: a quella
                                  dimensione il payoff è illeggibile e ruberebbe spazio alla navigazione -->
                             <div class="relative group hidden sm:block">
-                                <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 pl-3 pr-8 xl:pr-10 py-1.5 mb-2 w-[150px] md:w-[190px] xl:w-[230px] overflow-hidden">
+                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 pl-3 pr-8 xl:pr-10 py-1.5 mb-2 w-[150px] md:w-[170px] xl:w-[230px] overflow-hidden">
                                     <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                 </a>
                                 
@@ -113,7 +131,7 @@ const corporateDomain = computed(() => {
                                             <img :src="corporateLogo" :alt="corporateName" class="w-48 h-16 object-contain rounded-lg shadow-sm mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                             <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1 whitespace-nowrap">{{ corporateName }}</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">{{ corporateDescription }}</p>
-                                            <a :href="corporateUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">
+                                            <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">
                                                 {{ $t('common.visit_official_site') }}
                                             </a>
                                         </div>
@@ -123,32 +141,33 @@ const corporateDomain = computed(() => {
 
                             <!-- Volley Logo -->
                             <Link :href="route('home')" class="block z-10 sm:-ml-6 xl:-ml-8 transition-transform duration-300 hover:scale-105 pb-1">
-                                <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[64px] sm:h-[84px] md:h-[100px] xl:h-[125px] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
+                                <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[64px] sm:h-[84px] md:h-[92px] xl:h-[125px] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
                             </Link>
                         </div>
                     </div>
 
                     <!-- MEGA MENU (Desktop) -->
-                    <MegaMenu :navigation="nav" />
+                    <MegaMenu v-show="desktopNav" :navigation="nav" :font-size="navFontSize" />
 
                     <!-- LANGUAGE SWITCHER (Desktop) -->
-                    <div class="hidden xl:flex items-center ml-3">
+                    <div v-show="desktopNav" class="flex items-center ml-3">
                         <LanguageSwitcher />
                     </div>
 
                     <!-- USER MENU (Desktop) -->
-                    <div class="hidden xl:flex items-center ml-2">
+                    <div v-show="desktopNav" class="flex items-center ml-2">
                         <UserMenu />
                     </div>
 
                     <!-- CART BADGE -->
-                    <div class="hidden xl:flex items-center ml-2">
+                    <div v-show="desktopNav" class="flex items-center ml-2">
                         <CartBadge />
                     </div>
 
                     <!-- MOBILE MENU -->
                     <MobileDrawer
                         :navigation="nav"
+                        :visible="!desktopNav"
                         :is-open="isMobileMenuOpen"
                         :active-index="activeMobileIndex"
                         @toggle="toggleMobileMenu"

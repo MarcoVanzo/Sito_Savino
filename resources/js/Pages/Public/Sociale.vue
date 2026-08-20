@@ -23,43 +23,11 @@ const { sanitize } = useSanitize()
 const safeContent = computed(() => sanitize(props.page?.content))
 const cd = computed(() => props.page?.content_data ?? {})
 
-const projects = computed(() => cd.value.projects ?? [
-    {
-        icon: '🏐',
-        title: 'Volley4All',
-        color: 'savino-blue',
-        description: $t('sociale.project_volley4all_desc'),
-        tag: $t('sociale.tag_inclusion')
-    },
-    {
-        icon: '📚',
-        title: 'Scuola & Sport',
-        color: 'savino-gold',
-        description: $t('sociale.project_school_desc'),
-        tag: $t('sociale.tag_education')
-    },
-    {
-        icon: '♿',
-        title: $t('sociale.project_inclusion_title'),
-        color: 'savino-red',
-        description: $t('sociale.project_inclusion_desc'),
-        tag: $t('sociale.tag_accessibility')
-    },
-    {
-        icon: '🌱',
-        title: $t('sociale.project_sustainability_title'),
-        color: 'savino-blue',
-        description: $t('sociale.project_sustainability_desc'),
-        tag: $t('sociale.tag_environment')
-    }
-])
+// Progetti e numeri arrivano solo dal CMS: un elenco scritto qui dentro
+// finirebbe online senza che in redazione esista niente da modificare.
+const projects = computed(() => Array.isArray(cd.value.projects) ? cd.value.projects : [])
 
-const impactNumbers = computed(() => cd.value.impact_stats ?? [
-    { value: '500+', label: $t('sociale.stat_youth_involved') },
-    { value: '12', label: $t('sociale.stat_partner_schools') },
-    { value: '30+', label: $t('sociale.stat_social_events') },
-    { value: '€50K', label: $t('sociale.stat_funds_raised') }
-])
+const impactNumbers = computed(() => Array.isArray(cd.value.impact_stats) ? cd.value.impact_stats : [])
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('sociale.og_title'),
@@ -113,7 +81,7 @@ const ogMeta = useOgMeta({
     </section>
 
     <!-- Projects Grid -->
-    <section class="py-20 bg-gray-50">
+    <section v-if="projects.length" class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.initiatives_badge || $t('sociale.initiatives_badge') }}</span>
@@ -162,7 +130,7 @@ const ogMeta = useOgMeta({
     </section>
 
     <!-- Impact Numbers -->
-    <section class="py-20 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
+    <section v-if="impactNumbers.length" class="py-20 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.2em]">{{ cd.results_badge || $t('sociale.results_badge') }}</span>

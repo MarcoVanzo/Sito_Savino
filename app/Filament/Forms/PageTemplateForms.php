@@ -3,6 +3,7 @@
 namespace App\Filament\Forms;
 
 use Filament\Forms;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Illuminate\Database\Eloquent\Model;
 
 class PageTemplateForms
@@ -17,6 +18,41 @@ class PageTemplateForms
             ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
             ->directory('press-kit')
             ->preserveFilenames();
+    }
+
+    /**
+     * Campi delle pagine di contenuto semplice (template "Pagina Contenuto"):
+     * pulsante di richiamo e galleria fotografica, entrambi opzionali.
+     *
+     * La galleria usa la media library e non un upload su disco, così le
+     * immagini finiscono dove finiscono tutte le altre (Spaces in produzione)
+     * e gli URL restano validi anche fuori dal server web.
+     */
+    public static function getContentPageSchema(): array
+    {
+        return [
+            Forms\Components\Fieldset::make('Pulsante')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.button_text')
+                        ->label('Testo del pulsante')
+                        ->placeholder('es. Scrivici'),
+                    Forms\Components\TextInput::make('content_data.button_url')
+                        ->label('Destinazione')
+                        ->helperText('Indirizzo web oppure mailto:indirizzo@dominio.it')
+                        ->placeholder('es. mailto:marketing@savinodelbenevolley.it'),
+                ])
+                ->columns(2),
+            SpatieMediaLibraryFileUpload::make('gallery')
+                ->label('Galleria fotografica')
+                ->helperText('Le foto compaiono in fondo alla pagina. Si riordinano trascinandole.')
+                ->collection('gallery')
+                ->multiple()
+                ->reorderable()
+                ->appendFiles()
+                ->image()
+                ->maxSize(4096)
+                ->columnSpanFull(),
+        ];
     }
 
     /**
@@ -45,8 +81,27 @@ class PageTemplateForms
                 ->label('Etichetta Hero'),
             Forms\Components\Textarea::make('content_data.hero_subtitle')
                 ->label('Sottotitolo Hero'),
+            Forms\Components\Fieldset::make('Biglietteria online (Vivaticket)')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.tickets_url')
+                        ->label('Link alla biglietteria')
+                        ->url()
+                        ->placeholder('https://www.vivaticket.com/it/...')
+                        ->helperText('Indirizzo della pagina di vendita. Se vuoto, il pulsante non viene mostrato.')
+                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('content_data.tickets_button_text')
+                        ->label('Testo del pulsante')
+                        ->placeholder('es. Acquista su Vivaticket'),
+                    Forms\Components\TextInput::make('content_data.tickets_note')
+                        ->label('Nota sotto al pulsante')
+                        ->placeholder('es. Vendita gestita da Vivaticket'),
+                ])
+                ->columns(2),
             Forms\Components\TextInput::make('content_data.plans_heading')
                 ->label('Titolo Sezione Abbonamenti'),
+            Forms\Components\Textarea::make('content_data.plans_empty')
+                ->label('Testo quando non ci sono listini pubblicati')
+                ->rows(2),
             Forms\Components\TextInput::make('content_data.popular_badge')
                 ->label('Testo Badge "Più Popolare"'),
             Forms\Components\Repeater::make('content_data.plans')
@@ -112,7 +167,7 @@ class PageTemplateForms
         return [
             Forms\Components\TextInput::make('content_data.venue_name')
                 ->label('Nome della struttura')
-                ->placeholder('es. Palazzo Wanny'),
+                ->placeholder('es. PalaBigmat'),
             Forms\Components\TextInput::make('content_data.venue_address')
                 ->label('Indirizzo completo')
                 ->placeholder('es. Via del Tridente, 5 — 50127 Firenze (FI)'),
@@ -212,78 +267,79 @@ class PageTemplateForms
                                         ->label('Messaggio di Conferma Invio')
                                         ->placeholder('es. Messaggio inviato con successo!'),
                                 ])->columns(2),
+
+                            // Il template legge queste etichette da content_data:
+                            // senza i campi qui restavano scritte online che in
+                            // redazione non si trovavano da nessuna parte.
+                            Forms\Components\Fieldset::make('Etichette del modulo')
+                                ->schema([
+                                    Forms\Components\TextInput::make('content_data.form_label_name')
+                                        ->label('Etichetta "Nome"')
+                                        ->placeholder('es. Nome e Cognome'),
+                                    Forms\Components\TextInput::make('content_data.form_placeholder_name')
+                                        ->label('Testo guida "Nome"')
+                                        ->placeholder('es. Mario Rossi'),
+                                    Forms\Components\TextInput::make('content_data.form_label_email')
+                                        ->label('Etichetta "Email"'),
+                                    Forms\Components\TextInput::make('content_data.form_placeholder_email')
+                                        ->label('Testo guida "Email"')
+                                        ->placeholder('es. mario.rossi@email.it'),
+                                    Forms\Components\TextInput::make('content_data.form_label_subject')
+                                        ->label('Etichetta "Oggetto"'),
+                                    Forms\Components\TextInput::make('content_data.form_label_message')
+                                        ->label('Etichetta "Messaggio"'),
+                                    Forms\Components\TextInput::make('content_data.form_placeholder_message')
+                                        ->label('Testo guida "Messaggio"')
+                                        ->placeholder('es. Scrivi il tuo messaggio...'),
+                                    Forms\Components\TextInput::make('content_data.form_submit_label')
+                                        ->label('Pulsante di invio')
+                                        ->placeholder('es. Invia Messaggio'),
+                                    Forms\Components\TextInput::make('content_data.form_sending_label')
+                                        ->label('Pulsante durante l\'invio')
+                                        ->placeholder('es. Invio in corso...'),
+                                    Forms\Components\TextInput::make('content_data.form_reset_label')
+                                        ->label('Pulsante di annullamento')
+                                        ->placeholder('es. Annulla'),
+                                ])->columns(2),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Sede & Dati Societari')
+                    Forms\Components\Tabs\Tab::make('Argomenti del Modulo')
+                        ->icon('heroicon-o-chat-bubble-left-right')
+                        ->schema([
+                            Forms\Components\Repeater::make('content_data.form_topics')
+                                ->label('Argomenti selezionabili')
+                                ->helperText('Compaiono nella tendina "Oggetto" del modulo di contatto. Il suggerimento, se compilato, appare quando il visitatore sceglie quell\'argomento.')
+                                ->addActionLabel('Aggiungi argomento')
+                                ->itemLabel(fn (array $state): ?string => $state['label'] ?? $state['value'] ?? null)
+                                ->schema([
+                                    Forms\Components\TextInput::make('value')
+                                        ->label('Argomento')
+                                        ->helperText('Testo che arriva nella mail.')
+                                        ->required(),
+                                    Forms\Components\TextInput::make('label')
+                                        ->label('Etichetta mostrata')
+                                        ->helperText('Se vuota si usa l\'argomento.'),
+                                    Forms\Components\TextInput::make('tip_title')
+                                        ->label('Titolo del suggerimento'),
+                                    Forms\Components\Textarea::make('tip_text')
+                                        ->label('Testo del suggerimento')
+                                        ->rows(2),
+                                    Forms\Components\TextInput::make('tip_link_text')
+                                        ->label('Testo del link'),
+                                    Forms\Components\TextInput::make('tip_link_url')
+                                        ->label('Indirizzo del link')
+                                        ->placeholder('es. /ticketing'),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull(),
+                        ]),
+
+                    Forms\Components\Tabs\Tab::make('Recapiti e Dati Societari')
                         ->icon('heroicon-o-building-office-2')
                         ->schema([
-                            Forms\Components\Fieldset::make('Recapiti Generali')
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.email')
-                                        ->label('Email Principale')
-                                        ->email()
-                                        ->placeholder('es. info@savinodelbenevolley.it'),
-                                    Forms\Components\TextInput::make('content_data.pec')
-                                        ->label('Indirizzo PEC')
-                                        ->email()
-                                        ->placeholder('es. savinodelbenevolley@pec.it'),
-                                    Forms\Components\TextInput::make('content_data.phone')
-                                        ->label('Telefono Sede')
-                                        ->placeholder('es. 055 721503'),
-                                    Forms\Components\TextInput::make('content_data.office_hours')
-                                        ->label('Orari di Apertura')
-                                        ->placeholder('es. Lun-Ven: 09:00-18:00'),
-                                ])->columns(2),
-
-                            Forms\Components\Fieldset::make('Ubicazione Sede')
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.address')
-                                        ->label('Indirizzo')
-                                        ->placeholder('es. Palazzo Wanny, Via Allende 10'),
-                                    Forms\Components\TextInput::make('content_data.city')
-                                        ->label('Città / Località')
-                                        ->placeholder('es. Firenze'),
-                                ])->columns(2),
-
-                            Forms\Components\Fieldset::make('Dati Fiscali e Sportivi')
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.legal_piva')
-                                        ->label('Partita IVA')
-                                        ->placeholder('es. 06271460484'),
-                                    Forms\Components\TextInput::make('content_data.legal_cf')
-                                        ->label('Codice Fiscale')
-                                        ->placeholder('es. 94217750481'),
-                                    Forms\Components\TextInput::make('content_data.legal_fipav')
-                                        ->label('Codice Affiliazione FIPAV')
-                                        ->placeholder('es. 100470331'),
-                                    Forms\Components\TextInput::make('content_data.legal_sdi')
-                                        ->label('Codice Univoco (SDI)')
-                                        ->placeholder('es. KRRH6B9'),
-                                ])->columns(2),
-                        ]),
-
-                    Forms\Components\Tabs\Tab::make('Email Dipartimenti')
-                        ->icon('heroicon-o-envelope-open')
-                        ->schema([
-                            Forms\Components\Fieldset::make('Indirizzi Email Specifici')
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.press_email')
-                                        ->label('Ufficio Stampa')
-                                        ->email()
-                                        ->placeholder('es. stampa@savinodelbenevolley.it'),
-                                    Forms\Components\TextInput::make('content_data.social_email')
-                                        ->label('Social Media')
-                                        ->email()
-                                        ->placeholder('es. social@savinodelbenevolley.it'),
-                                    Forms\Components\TextInput::make('content_data.media_email')
-                                        ->label('Media & Accrediti')
-                                        ->email()
-                                        ->placeholder('es. media@savinodelbenevolley.it'),
-                                    Forms\Components\TextInput::make('content_data.youth_email')
-                                        ->label('Settore Giovanile')
-                                        ->email()
-                                        ->placeholder('es. giovanili@savinodelbenescandicci.it'),
-                                ])->columns(2),
+                            Forms\Components\Placeholder::make('recapiti_spostati')
+                                ->label('Recapiti, sede e dati fiscali')
+                                ->content('Si modificano in Impostazioni → Contatti: da lì valgono per tutto il sito (footer compreso). I campi che stavano qui salvavano una copia che le pagine non leggevano.'),
                         ]),
 
                     Forms\Components\Tabs\Tab::make('Rubrica Referenti')
@@ -605,9 +661,6 @@ class PageTemplateForms
                                     Forms\Components\TextInput::make('content_data.cta_url')
                                         ->label('URL Pulsante CTA (Se vuoto, usa email di contatto)')
                                         ->placeholder('es. https://...'),
-                                    Forms\Components\TextInput::make('content_data.meta_description')
-                                        ->label('Meta Description SEO')
-                                        ->placeholder('es. Partecipa al Summer Camp della Savino Del Bene Volley...'),
                                 ])->columns(1),
                         ]),
                 ])
@@ -768,6 +821,14 @@ class PageTemplateForms
                                     Forms\Components\TextInput::make('content_data.cta_button_text')
                                         ->label('Testo Pulsante CTA')
                                         ->placeholder('es. Diventa Partner'),
+                                    Forms\Components\TextInput::make('content_data.contact_email')
+                                        ->label('Email che riceve le richieste')
+                                        ->email()
+                                        ->helperText('Se vuota si usa l\'email di contatto generale del sito.'),
+                                    Forms\Components\TextInput::make('content_data.contact_subject')
+                                        ->label('Oggetto della mail')
+                                        ->placeholder('es. Savino Del Bene Volley — Richiesta di sponsorizzazione')
+                                        ->helperText('Viene precompilato nella mail di chi scrive.'),
                                 ]),
 
                             Forms\Components\Fieldset::make('Statistiche d\'Impatto')

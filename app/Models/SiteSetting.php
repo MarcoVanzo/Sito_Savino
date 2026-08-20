@@ -130,17 +130,44 @@ class SiteSetting extends Model
      */
     protected static function resolveForLocale(mixed $value): mixed
     {
+        // Le impostazioni di tipo `json` (per esempio i numeri della homepage)
+        // arrivano qui già decodificate: senza questo ramo il frontend riceveva
+        // l'oggetto `{"it": […], "en": […]}` invece dell'elenco della lingua in
+        // uso, e la sezione restava vuota.
+        if (is_array($value)) {
+            return static::pickLocale($value) ?? $value;
+        }
+
         if (! is_string($value) || $value === '') {
             return $value;
         }
-        $decoded = json_decode($value, true);
-        if (is_array($decoded) && (isset($decoded['it']) || isset($decoded['en']))) {
-            $locale = app()->getLocale();
 
-            return $decoded[$locale] ?? $decoded['it'] ?? $value;
+        $decoded = json_decode($value, true);
+
+        if (is_array($decoded)) {
+            return static::pickLocale($decoded) ?? $value;
         }
 
         return $value;
+    }
+
+    /**
+     * Restituisce la traduzione per la lingua corrente, oppure null se il
+     * valore non è un contenitore per lingua.
+     *
+     * Protected e non private: è invocata via `static::`, quindi da una
+     * sottoclasse il metodo privato non sarebbe accessibile (fatal error).
+     */
+    protected static function pickLocale(array $value): mixed
+    {
+        $locales = config('app.supported_locales', ['it', 'en']);
+        $presenti = array_intersect($locales, array_keys($value));
+
+        if ($presenti === []) {
+            return null;
+        }
+
+        return $value[app()->getLocale()] ?? $value[reset($locales)] ?? null;
     }
 
     /**

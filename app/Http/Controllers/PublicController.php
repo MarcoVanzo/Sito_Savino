@@ -16,11 +16,12 @@ use App\Models\Post;
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\SiteSetting;
-use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Services\Lvf\LvfPhaseLabel;
+use App\Services\SponsorDirectory;
+use App\Support\LiveStream;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -62,6 +63,8 @@ class PublicController extends Controller
                 // squadra di casa.
                 $nextGame['home_team']['logo_url'] = $nextGameModel->homeTeam?->logoUrl();
                 $nextGame['away_team']['logo_url'] = $nextGameModel->awayTeam?->logoUrl();
+                // Diretta: incorporabile solo dalle piattaforme conosciute.
+                $nextGame['stream_embed_url'] = LiveStream::embedUrl($nextGameModel->stream_url);
             }
 
             // Ultime 3 news pubblicate
@@ -436,6 +439,10 @@ class PublicController extends Controller
                     'phase' => $game->phase,
                     'phaseLabel' => LvfPhaseLabel::translate($game->phase),
                     'location' => $game->location,
+                    // Diretta streaming: `streamEmbedUrl` è valorizzato solo per
+                    // le piattaforme incorporabili, altrimenti resta il link.
+                    'streamUrl' => $game->stream_url,
+                    'streamEmbedUrl' => LiveStream::embedUrl($game->stream_url),
                     // Vero quando la gara riguarda una squadra della società:
                     // serve a evidenziarla e a filtrare il calendario.
                     'isOwn' => $homeIsOwn || $awayIsOwn,
@@ -575,6 +582,8 @@ class PublicController extends Controller
                 'matchdayLabel' => $this->matchdayLabel($game),
                 'statusLabel' => __('enums.game_status.'.$game->status?->value),
                 'location' => $game->location,
+                'streamUrl' => $game->stream_url,
+                'streamEmbedUrl' => LiveStream::embedUrl($game->stream_url),
                 'spectators' => $game->spectators,
                 'referees' => $game->referees,
                 'home' => [
@@ -895,29 +904,12 @@ class PublicController extends Controller
         ]);
     }
 
-    public function sponsor()
+    public function sponsor(SponsorDirectory $sponsors)
     {
-        $locale = app()->getLocale();
-        $sponsors = Cache::remember("public:sponsor:{$locale}", now()->addMinutes(30), function () {
-            return Sponsor::with('media')
-                ->orderBy('tier')
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get()
-                ->map(fn ($s) => [
-                    'id' => $s->id,
-                    'name' => $s->name,
-                    'tier' => $s->tier,
-                    'website_url' => $s->url,
-                    'logo_url' => $s->getFirstMediaUrl('sponsors', 'card') ?: $s->getFirstMediaUrl('sponsors'),
-                    'sort_order' => $s->sort_order,
-                ])->toArray();
-        });
-
         $page = Page::where('slug', 'sponsor')->published()->first();
 
         return Inertia::render('Public/Sponsor', [
-            'sponsors' => $sponsors,
+            'tiers' => $sponsors->tiers(),
             'page' => $page,
         ]);
     }

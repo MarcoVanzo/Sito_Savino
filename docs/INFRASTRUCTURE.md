@@ -277,6 +277,14 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 4. Il sito pubblico richiede l'immagine dal CDN
 5. Il CDN serve la copia più vicina all'utente (cache edge)
 
+> ⚠️ Le conversioni richiedono **GD**, che il buildpack `heroku/php` non abilita
+> per impostazione predefinita: va richiesto con `"ext-gd": "*"` fra i `require`
+> di `composer.json` (già presente). Senza, il build passa e il sito funziona,
+> ma ogni `PerformConversionsJob` fallisce in coda con
+> `Call to undefined function ...\Gd\imagecreatefrom*` e le immagini restano
+> senza thumbnail. Se si toglie quella riga il guasto ricompare, silenzioso
+> fino al primo upload.
+
 ---
 
 ### 3.6 🖥️ Droplet CompreFace — $24/mese

@@ -33,32 +33,12 @@ const youthTeams = computed(() => {
     return Array.isArray(teams) ? teams : []
 })
 
-const values = computed(() => cd.value.values ?? [
-    {
-        icon: 'star',
-        title: $t('youth.value_1_title'),
-        description: $t('youth.value_1_desc')
-    },
-    {
-        icon: 'heart',
-        title: $t('youth.value_2_title'),
-        description: $t('youth.value_2_desc')
-    },
-    {
-        icon: 'trophy',
-        title: $t('youth.value_3_title'),
-        description: $t('youth.value_3_desc')
-    },
-    {
-        icon: 'users',
-        title: $t('youth.value_4_title'),
-        description: $t('youth.value_4_desc')
-    }
-])
+// I valori del vivaio arrivano dal CMS: nessun elenco di esempio nel codice.
+const values = computed(() => Array.isArray(cd.value.values) ? cd.value.values : [])
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('youth.og_title'),
-    description: cd.value.meta_description || $t('youth.og_description'),
+    description: props.page?.meta_description || $t('youth.og_description'),
 })
 </script>
 
@@ -125,7 +105,7 @@ const ogMeta = useOgMeta({
         </section>
 
         <!-- Values -->
-        <section class="py-16 bg-gray-50">
+        <section v-if="values.length" class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.values_title || $t('youth.values_title') }}</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-12"></div>
@@ -221,7 +201,7 @@ const ogMeta = useOgMeta({
         <!-- Talent Scouting -->
         <section class="py-16 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.scouting_label || 'Talent Scouting' }}</span>
+                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.scouting_label || $t('youth.scouting_label') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4">{{ cd.scouting_title || $t('youth.scouting_title') }}</h2>
                 <div class="w-16 h-1 bg-savino-gold mx-auto mb-8"></div>
                 <p class="text-white/70 text-lg leading-relaxed max-w-2xl mx-auto mb-6">
@@ -242,7 +222,8 @@ const ogMeta = useOgMeta({
                         </svg>
                     </a>
                     <a
-                        :href="'mailto:' + (cd.scouting_email || contact.youth_email || 'giovanili@savinodelbenescandicci.it')"
+                        v-if="cd.scouting_email || contact.youth_email"
+                        :href="'mailto:' + (cd.scouting_email || contact.youth_email)"
                         class="inline-flex items-center justify-center px-8 py-3.5 border-2 border-white/30 text-white font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition-all duration-300 text-sm"
                        
                     >

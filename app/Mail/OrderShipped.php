@@ -18,13 +18,17 @@ class OrderShipped extends Mailable implements ShouldQueue
         public Order $order,
     ) {
         $this->order->loadMissing('user');
+
+        // La mail parte da un worker: la lingua va presa dall'ordine,
+        // non dalla richiesta, che a quel punto non esiste più.
+        $this->locale($order->locale ?? 'it');
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
             from: config('mail.from.address'),
-            subject: "Il tuo ordine #{$this->order->order_number} è stato spedito!",
+            subject: __('emails.shipped.subject', ['number' => $this->order->order_number]),
         );
     }
 

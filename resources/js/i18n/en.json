@@ -38,7 +38,7 @@
         "stats_subtitle": "The Numbers",
         "stats_title": "The Club in Numbers",
         "stat_years": "Years of History",
-        "stat_seats": "Seats at Palazzo Wanny",
+        "stat_seats": "Seats at PalaBigmat",
         "stat_league": "Serie — Top Division",
         "stat_champions": "Champions League",
         "latest_news_subtitle": "Latest News",
@@ -56,7 +56,7 @@
         "privacy_policy": "Privacy Policy",
         "cookie_policy": "Cookie Policy",
         "all_rights_reserved": "All rights reserved",
-        "tagline_default": "Since 1982, a tradition of excellence in Italian women's volleyball.\nSerie A1 — Palazzo Wanny, Florence.",
+        "tagline_default": "Since 1982, a tradition of excellence in Italian women's volleyball.\nSerie A1 — PalaBigmat, Florence.",
         "season": "Season",
         "roster_a1": "Serie A1 Roster",
         "results": "Results",
@@ -144,7 +144,7 @@
         "form_placeholder_message": "Write your message...",
         "form_sending": "Sending...",
         "form_submit": "Send Message",
-        "map_iframe_title": "Map of Palazzo Wanny - Savino Del Bene Volley",
+        "map_iframe_title": "Map of PalaBigmat - Savino Del Bene Volley",
         "directions": "Directions",
         "vat_number": "VAT Number",
         "fiscal_code": "Fiscal Code",
@@ -175,7 +175,7 @@
         "org_title": "Our Management Team",
         "org_empty": "Organisation chart being updated.",
         "palazzetto_label": "Our Home",
-        "palazzetto_description": "Palazzo Wanny in Florence is the home of Savino Del Bene Volley. With a capacity of over 4,000 seats, the venue offers a unique experience for fans and volleyball enthusiasts.",
+        "palazzetto_description": "PalaBigmat in Florence is the home of Savino Del Bene Volley. With a capacity of over 4,000 seats, the venue offers a unique experience for fans and volleyball enthusiasts.",
         "palazzetto_seats": "Seating Capacity",
         "palazzetto_homologation": "Certification",
         "contact_label": "Get in Touch",
@@ -183,21 +183,6 @@
         "contact_phone": "Phone",
         "contact_location": "Office",
         "storia_timeline_title": "Milestones",
-        "storia_fallback_description": "The History of the Club",
-        "storia_fallback_1982_title": "The Origins",
-        "storia_fallback_1982_desc": "Pallavolo Scandicci was born in the heart of the Tuscan region. The first steps in local championships laid the foundations for an ambitious project.",
-        "storia_fallback_2012_title": "The Savino Del Bene Turning Point",
-        "storia_fallback_2012_desc": "The entry of the Savino Del Bene Group as title sponsor transformed the club's ambitions, starting the climb to the elite of national volleyball.",
-        "storia_fallback_2014_title": "Promotion to Serie A1",
-        "storia_fallback_2014_desc": "A historic milestone: the team conquered access to the top Italian division, placing Scandicci on the national stage.",
-        "storia_fallback_2018_title": "European Debut",
-        "storia_fallback_2018_desc": "First qualification in the CEV Champions League. Savino Del Bene Volley appeared on the international stage, challenging European giants.",
-        "storia_fallback_2022_title": "CEV Challenge Cup",
-        "storia_fallback_2022_desc": "The first historic European trophy. A triumphant journey that enriched the club's showcase and consecrated the project internationally.",
-        "storia_fallback_2023_title": "CEV Cup",
-        "storia_fallback_2023_desc": "Another continental success. Savino Del Bene lifted the CEV Cup, demonstrating continuity of results and a winning mentality.",
-        "storia_fallback_2024_title": "Scudetto Final",
-        "storia_fallback_2024_desc": "For the first time in history, the club reached the Scudetto Final, fighting point-by-point for the championship and filling Palazzo Wanny.",
         "palazzetto_hero_title": "OUR HOME",
         "palazzetto_directions_title": "How to Get Here",
         "palazzetto_open_gmaps": "Open on Google Maps",
@@ -213,7 +198,8 @@
         "safeguarding_fallback_doc1_title": "Organizational and Control Model",
         "safeguarding_fallback_doc1_desc": "Document establishing the principles of behavior and risk prevention measures.",
         "safeguarding_fallback_doc2_title": "Child Safeguarding Code of Conduct",
-        "safeguarding_fallback_doc2_desc": "Specific guidelines to guarantee a safe sports environment for young people."
+        "safeguarding_fallback_doc2_desc": "Specific guidelines to guarantee a safe sports environment for young people.",
+        "storia_timeline_empty": "The key milestones will be published shortly."
     },
     "staff": {
         "og_title": "Coaching & Medical Staff",
@@ -239,7 +225,9 @@
         "download_pdf": "Download PDF",
         "no_magazines": "No issues available at the moment.",
         "no_videos": "No videos available at the moment.",
-        "portal_cta_fallback": "Go to the registration portal"
+        "portal_cta_fallback": "Go to the registration portal",
+        "gallery_title": "Photo gallery",
+        "gallery_close": "Close"
     },
     "sponsor": {
         "og_title": "Sponsors & Partners",
@@ -250,11 +238,12 @@
         "tier_empty": "Sponsors being finalised",
         "cta_subtitle": "Join Us",
         "cta_title": "Become a Partner",
-        "cta_description": "Associate your brand with a top-level sports organisation. We offer customised visibility packages including jersey branding, courtside LEDs, digital presence and hospitality at Palazzo Wanny.",
+        "cta_description": "Associate your brand with a top-level sports organisation. We offer customised visibility packages including jersey branding, courtside LEDs, digital presence and hospitality at PalaBigmat.",
         "stat_social": "Social Impressions",
         "stat_spectators": "Seasonal Spectators",
         "stat_events": "Annual Events",
-        "cta_button": "Contact Us for a Proposal"
+        "cta_button": "Contact Us for a Proposal",
+        "mail_subject": "Savino Del Bene Volley — Sponsorship enquiry"
     },
     "under_construction": {
         "og_title": "Site Under Construction — Savino Del Bene Volley",
@@ -433,17 +422,18 @@
         "period_season": "season",
         "buy_cta": "Buy",
         "og_title": "Ticketing",
-        "og_description": "Buy tickets for Savino Del Bene Volley matches at Palazzo Wanny. Season passes and single tickets.",
+        "og_description": "Buy tickets for Savino Del Bene Volley matches at PalaBigmat. Season passes and single tickets.",
         "hero_label": "Feel the Emotion",
-        "hero_subtitle": "Choose your seat and experience the thrill of live volleyball at Palazzo Wanny.",
+        "hero_subtitle": "Choose your seat and experience the thrill of live volleyball at PalaBigmat.",
         "plans_heading": "Choose Your Season Pass",
         "popular_badge": "Most Popular",
         "info_heading": "Purchase Information",
         "online_description": "Buy tickets conveniently online through our ticketing system. Secure payment with credit card or PayPal.",
         "boxoffice_title": "At the Box Office",
-        "boxoffice_description": "The Palazzo Wanny box office opens 2 hours before the start of each match. We accept cash and electronic payments.",
+        "boxoffice_description": "The PalaBigmat box office opens 2 hours before the start of each match. We accept cash and electronic payments.",
         "plans_empty": "The season ticket campaign is not open yet. Prices will appear here as soon as they are official.",
-        "plans_empty_cta": "Get in touch"
+        "plans_empty_cta": "Get in touch",
+        "tickets_button": "Buy tickets"
     },
     "shop": {
         "og_title": "Official Shop",
@@ -754,7 +744,8 @@
         "activities_title": "Our Activities",
         "dates_label": "Calendar",
         "dates_title": "Dates & Sessions",
-        "cta_enroll": "Enroll Now"
+        "cta_enroll": "Enroll Now",
+        "og_title": "Summer Camp & Experience"
     },
     "youth": {
         "og_title": "Youth Academy",
@@ -795,7 +786,8 @@
         "training_u18": "Mon-Wed-Fri 4:00 PM - 6:00 PM",
         "training_u16": "Tue-Thu-Sat 3:00 PM - 5:00 PM",
         "training_u14": "Mon-Wed-Fri 2:30 PM - 4:30 PM",
-        "training_u12": "Tue-Thu 2:00 PM - 3:30 PM"
+        "training_u12": "Tue-Thu 2:00 PM - 3:30 PM",
+        "scouting_label": "Talent Scouting"
     },
     "comunicazione": {
         "press_kit_1_title": "Official Photos",
@@ -824,7 +816,10 @@
         "accreditation_step_3": "Submit the request at least 48 hours before the event",
         "media_hub_subtitle": "Everything you need",
         "contacts_badge": "Contacts",
-        "contacts_section_title": "Communications Office"
+        "contacts_section_title": "Communications Office",
+        "contact_role_social": "Social Media",
+        "contact_name_social": "Social Media Manager",
+        "press_kit_unavailable": "Not available yet"
     },
     "error": {
         "403_title": "Access Denied",
@@ -1043,5 +1038,12 @@
         "days": "Your password expires in {days} days.",
         "cta_hint": "Change it now so you are not locked out at your next sign-in.",
         "change": "Change password"
+    },
+    "stream": {
+        "modal_title": "Live stream",
+        "close": "Close the stream",
+        "open_external": "Open on the platform",
+        "watch": "Watch live",
+        "live_badge": "Live"
     }
 }

@@ -1,14 +1,14 @@
 @extends('emails.layout')
 
-@section('title', 'Rimborso Ordine #' . $order->order_number)
+@section('title', __('emails.refund.title', ['number' => $order->order_number]))
 
 @section('content')
     {{-- Heading --}}
     <h1 style="color: #003063; font-family: 'Montserrat', Arial, sans-serif; font-size: 24px; font-weight: 700; margin: 0 0 8px; text-align: center;">
-        Rimborso confermato
+        {{ __('emails.refund.heading') }}
     </h1>
     <p style="color: #666666; font-size: 14px; text-align: center; margin: 0 0 28px;">
-        Il rimborso per il tuo ordine è stato elaborato.
+        {{ __('emails.refund.intro') }}
     </p>
 
     {{-- Refund Details --}}
@@ -17,7 +17,7 @@
             <td style="padding: 16px 20px; border-bottom: 1px solid #e9ecef;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Numero Ordine</td>
+                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.order_number') }}</td>
                         <td align="right" style="color: #003063; font-size: 15px; font-weight: 700;">{{ $order->order_number }}</td>
                     </tr>
                 </table>
@@ -27,7 +27,7 @@
             <td style="padding: 16px 20px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Importo rimborsato</td>
+                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.refund.refunded_amount') }}</td>
                         <td align="right" style="color: #2e7d32; font-size: 18px; font-weight: 700;">€{{ number_format($refundAmount, 2, ',', '.') }}</td>
                     </tr>
                 </table>
@@ -38,13 +38,12 @@
     {{-- Timing Note --}}
     <div style="background-color: #E8F5E9; border-left: 4px solid #2e7d32; padding: 16px 20px; margin-bottom: 24px; border-radius: 0 6px 6px 0;">
         <p style="color: #333333; font-size: 14px; margin: 0; line-height: 1.6;">
-            <strong>Tempistiche:</strong> il rimborso verrà accreditato sul metodo di pagamento originale entro <strong>5-10 giorni lavorativi</strong>.
-            I tempi possono variare in base al tuo istituto bancario.
+            <strong>{{ __('emails.refund.timing_label') }}</strong> {!! __('emails.refund.timing') !!}
         </p>
     </div>
 
     {{-- Info --}}
     <p style="color: #555555; font-size: 14px; text-align: center; margin: 0;">
-        Se hai domande sul rimborso, non esitare a contattarci.
+        {{ __('emails.refund.questions') }}
     </p>
 @endsection

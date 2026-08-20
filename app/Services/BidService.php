@@ -108,7 +108,7 @@ class BidService
 
                 if ($previousBidder) {
                     Mail::to($previousBidder->email)->queue(
-                        new AuctionOutbid($auction, $bid)
+                        new AuctionOutbid($auction, $bid, $previousBidder)
                     );
                 }
             }

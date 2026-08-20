@@ -18,13 +18,17 @@ class OrderConfirmation extends Mailable implements ShouldQueue
         public Order $order,
     ) {
         $this->order->loadMissing(['items.product', 'items.variant', 'user']);
+
+        // La mail parte da un worker: la lingua va presa dall'ordine,
+        // non dalla richiesta, che a quel punto non esiste più.
+        $this->locale($order->locale ?? 'it');
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
             from: config('mail.from.address'),
-            subject: "Conferma Ordine #{$this->order->order_number}",
+            subject: __('emails.confirmation.subject', ['number' => $this->order->order_number]),
         );
     }
 

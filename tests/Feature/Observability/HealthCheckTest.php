@@ -79,12 +79,70 @@ class HealthCheckTest extends TestCase
         $this->app['env'] = 'production';
         Cache::forget(SchedulerHeartbeat::CACHE_KEY);
 
+        // La prima osservazione apre soltanto la finestra di conferma: serve un
+        // secondo passaggio a distanza per avere l'avviso.
+        $this->get('/up')->assertOk();
+        $this->travel(3)->minutes();
         $this->get('/up')->assertOk();
 
         $this->assertSame(
             1,
             $admin->notifications()->whereJsonContains('data->title', 'Il pianificatore si è fermato')->count(),
         );
+    }
+
+    /**
+     * Il falso positivo che riempiva il pannello di avvisi.
+     *
+     * Il battito vive nella cache condivisa e `start.sh` esegue `cache:clear` a
+     * ogni avvio del container web: subito dopo un rilascio la chiave è assente
+     * anche con il pianificatore vivo. Segnalare al primo controllo produceva un
+     * «non è mai partito» a ogni riavvio del web, e a forza di falsi allarmi
+     * l'avviso vero diventa indistinguibile dal rumore.
+     */
+    #[Test]
+    public function un_battito_assente_da_poco_non_avvisa_nessuno(): void
+    {
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => UserRole::SuperAdmin->value])->save();
+
+        $this->app['env'] = 'production';
+        Cache::forget(SchedulerHeartbeat::CACHE_KEY);
+
+        $this->get('/up')->assertOk();
+
+        // Il pianificatore riscrive il battito entro il minuto successivo.
+        $this->travel(45)->seconds();
+        SchedulerHeartbeat::beat();
+        $this->get('/up')->assertOk();
+
+        $this->assertSame(0, $admin->notifications()->count());
+    }
+
+    /**
+     * Un battito tornato normale chiude la finestra: un secondo stallo, più
+     * tardi, deve ricominciare a contare da zero invece di sfruttare
+     * l'osservazione vecchia e avvisare al primo controllo.
+     */
+    #[Test]
+    public function un_battito_tornato_normale_azzera_la_finestra(): void
+    {
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => UserRole::SuperAdmin->value])->save();
+
+        $this->app['env'] = 'production';
+        Cache::forget(SchedulerHeartbeat::CACHE_KEY);
+
+        $this->get('/up')->assertOk();
+
+        SchedulerHeartbeat::beat();
+        $this->get('/up')->assertOk();
+
+        $this->travel(10)->minutes();
+        Cache::forget(SchedulerHeartbeat::CACHE_KEY);
+        $this->get('/up')->assertOk();
+
+        $this->assertSame(0, $admin->notifications()->count());
     }
 
     #[Test]
@@ -98,6 +156,8 @@ class HealthCheckTest extends TestCase
         $this->app['env'] = 'production';
         Cache::forget(SchedulerHeartbeat::CACHE_KEY);
 
+        $this->get('/up');
+        $this->travel(3)->minutes();
         $this->get('/up');
         $this->get('/up');
         $this->get('/up');

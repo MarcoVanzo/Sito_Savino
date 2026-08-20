@@ -28,6 +28,11 @@ class SocialSettingsPage extends BaseSettingsPage
                     TextInput::make('social_youtube')->label('YouTube')->url(),
                     TextInput::make('social_x')->label('X (Twitter)')->url(),
                     TextInput::make('social_tiktok')->label('TikTok')->url(),
+                    TextInput::make('social_linkedin')->label('LinkedIn')->url(),
+                    TextInput::make('social_whatsapp')
+                        ->label('Canale WhatsApp')
+                        ->url()
+                        ->helperText('Link pubblico del canale, es. https://whatsapp.com/channel/...'),
                 ]),
             ])->statePath('data');
     }

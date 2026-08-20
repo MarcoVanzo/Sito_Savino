@@ -142,6 +142,15 @@ class PageResource extends Resource
                                     ->schema(PageTemplateForms::getMagazineSchema())
                                     ->visible(fn (Forms\Get $get) => $get('slug') === 'magazine'),
 
+                                // FORM: PAGINE DI CONTENUTO (pulsante + galleria foto)
+                                Forms\Components\Section::make('Pulsante e Galleria Fotografica')
+                                    ->schema(PageTemplateForms::getContentPageSchema())
+                                    ->visible(fn (Forms\Get $get) => in_array($get('template'), [
+                                        'Public/ContentPage',
+                                        'Default',
+                                        null,
+                                    ], true) && $get('slug') !== 'iscrizione-experience'),
+
                                 // GENERIC JSON per altre pagine
                                 Forms\Components\Section::make('Dati Contenuto (Altre Pagine)')
                                     ->schema(PageTemplateForms::getGenericJsonSchema())

@@ -100,7 +100,7 @@ class AnalyticsSettingsPage extends BaseSettingsPage
                             ->label('App Meta')
                             ->content(new HtmlString(
                                 $oauth->isConfigured()
-                                    ? 'Configurata. Gli account si collegano da Comunicazione → Social Analytics.'
+                                    ? 'Configurata. Gli account si collegano da Marketing → Analytics Social.'
                                     : '<span class="text-danger-600">Non configurata: mancano <code>META_APP_ID</code> e <code>META_APP_SECRET</code>.</span>'
                             )),
 

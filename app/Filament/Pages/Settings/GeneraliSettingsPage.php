@@ -22,6 +22,12 @@ class GeneraliSettingsPage extends BaseSettingsPage
     {
         return $form
             ->schema([
+                Section::make('Sito')->schema([
+                    TextInput::make('site_logo')
+                        ->label('Logo del sito')
+                        ->helperText('Percorso o indirizzo dell\'immagine. Se vuoto viene usato il logo ufficiale della società.'),
+                ]),
+
                 Section::make('Corporate')->schema([
                     TextInput::make('corporate_logo')->label('Logo Corporate'),
                     TextInput::make('corporate_url')->label('URL Corporate')->url(),

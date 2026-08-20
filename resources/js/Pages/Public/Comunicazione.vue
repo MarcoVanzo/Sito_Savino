@@ -60,26 +60,26 @@ const contacts = computed(() => [
     {
         role: cd.value.contact_1_role || $t('comunicazione.contact_role_press'),
         name: cd.value.contact_1_name || $t('comunicazione.contact_name_press'),
-        email: cd.value.contact_1_email || contact.value.press_email || 'stampa@savinodelbenevolley.it',
-        phone: cd.value.contact_1_phone || contact.value.press_phone || '+39 055 000 0000'
+        email: cd.value.contact_1_email || contact.value.press_email || null,
+        phone: cd.value.contact_1_phone || null
     },
     {
-        role: cd.value.contact_2_role || 'Social Media',
-        name: cd.value.contact_2_name || 'Social Media Manager',
-        email: cd.value.contact_2_email || contact.value.social_email || 'social@savinodelbenevolley.it',
-        phone: cd.value.contact_2_phone || contact.value.social_phone || '+39 055 000 0001'
+        role: cd.value.contact_2_role || $t('comunicazione.contact_role_social'),
+        name: cd.value.contact_2_name || $t('comunicazione.contact_name_social'),
+        email: cd.value.contact_2_email || contact.value.social_email || null,
+        phone: cd.value.contact_2_phone || null
     },
     {
         role: cd.value.contact_3_role || $t('comunicazione.contact_role_media'),
         name: cd.value.contact_3_name || $t('comunicazione.contact_name_media'),
-        email: cd.value.contact_3_email || contact.value.media_email || 'media@savinodelbenevolley.it',
-        phone: cd.value.contact_3_phone || contact.value.media_phone || '+39 055 000 0002'
+        email: cd.value.contact_3_email || contact.value.media_email || null,
+        phone: cd.value.contact_3_phone || null
     }
 ])
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('comunicazione.og_title'),
-    description: cd.value?.meta_description || $t('comunicazione.og_description'),
+    description: props.page?.meta_description || $t('comunicazione.og_description'),
 })
 </script>
 
@@ -130,7 +130,7 @@ const ogMeta = useOgMeta({
                         <ol class="space-y-2 text-gray-600 text-sm">
                             <li class="flex items-start gap-2">
                                 <span class="text-savino-gold font-bold">1.</span>
-                                {{ cd.accreditation_step_1 || $t('comunicazione.accreditation_step_1') }} <strong>{{ cd.accreditation_email || contact.media_email || 'media@savinodelbenevolley.it' }}</strong>
+                                {{ cd.accreditation_step_1 || $t('comunicazione.accreditation_step_1') }} <strong>{{ cd.accreditation_email || contact.media_email }}</strong>
                             </li>
                             <li class="flex items-start gap-2">
                                 <span class="text-savino-gold font-bold">2.</span>
@@ -165,13 +165,15 @@ const ogMeta = useOgMeta({
                 <div class="w-12 h-1 bg-savino-gold mx-auto mt-4"></div>
             </div>
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <a
+                <component
+                    :is="item.file ? 'a' : 'div'"
                     v-for="(item, index) in pressKitItems"
                     :key="index"
-                    :href="`/storage/${item.file}`"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="block bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100 group cursor-pointer"
+                    :href="item.file || undefined"
+                    :target="item.file ? '_blank' : undefined"
+                    :rel="item.file ? 'noopener noreferrer' : undefined"
+                    class="block bg-white rounded-xl p-6 shadow-sm border border-gray-100 group"
+                    :class="item.file ? 'hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer' : 'opacity-70'"
                 >
                     <span class="text-4xl block mb-4">{{ item.icon }}</span>
                     <h3 class="text-base font-bold text-gray-900 mb-2 group-hover:text-savino-blue transition-colors">
@@ -181,12 +183,12 @@ const ogMeta = useOgMeta({
                         {{ item.description }}
                     </p>
                     <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <span class="text-xs text-gray-400">{{ item.format }}</span>
-                        <svg class="w-5 h-5 text-savino-blue group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <span class="text-xs text-gray-400">{{ item.file ? item.format : $t('comunicazione.press_kit_unavailable') }}</span>
+                        <svg v-if="item.file" class="w-5 h-5 text-savino-blue group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
                     </div>
-                </a>
+                </component>
             </div>
         </div>
     </section>
@@ -212,10 +214,10 @@ const ogMeta = useOgMeta({
                         <h4 class="font-bold text-gray-900 mt-1">{{ contact.name }}</h4>
                     </div>
                     <div class="flex flex-col sm:items-end gap-1">
-                        <a :href="'mailto:' + contact.email" class="text-savino-blue text-sm hover:underline">
+                        <a v-if="contact.email" :href="'mailto:' + contact.email" class="text-savino-blue text-sm hover:underline">
                             {{ contact.email }}
                         </a>
-                        <span class="text-gray-500 text-sm">{{ contact.phone }}</span>
+                        <span v-if="contact.phone" class="text-gray-500 text-sm">{{ contact.phone }}</span>
                     </div>
                 </div>
             </div>

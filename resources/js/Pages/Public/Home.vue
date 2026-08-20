@@ -10,6 +10,7 @@ import { useTiltEffect } from '@/Composables/useTiltEffect';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 import TeamCrest from '@/Components/TeamCrest.vue';
+import LiveStreamModal from '@/Components/LiveStreamModal.vue';
 import { useLocale } from '@/Composables/useLocale.js';
 import { useSafeUrl } from '@/Composables/useSafeUrl.js';
 
@@ -33,23 +34,41 @@ const props = defineProps({
     },
 });
 
+// Diretta della prossima gara: le piattaforme conosciute si aprono in una
+// finestra dentro al sito, le altre in una scheda nuova (il link resta un link).
+const activeStream = ref(null);
+
+const openNextGameStream = (event) => {
+    if (!props.nextGame?.stream_embed_url) {
+        return;
+    }
+
+    event.preventDefault();
+
+    activeStream.value = {
+        title: `${props.nextGame?.home_team?.name ?? ''} — ${props.nextGame?.away_team?.name ?? ''}`,
+        embedUrl: props.nextGame.stream_embed_url,
+        url: props.nextGame.stream_url,
+    };
+};
+
+const closeStream = () => {
+    activeStream.value = null;
+};
+
 const page = usePage();
 
 // Impostazioni home dal backend con fallback
 const settings = computed(() => page.props.siteSettings ?? {});
 const homeSettings = computed(() => settings.value.home ?? {});
 
-// Hero slides dal prop (backend) con fallback a immagini statiche
-const slides = computed(() => {
-    if (props.heroSlides && props.heroSlides.length > 0) {
-        return props.heroSlides.map(s => typeof s === 'string' ? s : (s.image || s.url || s));
-    }
-    return ['/images/hero1.jpg', '/images/hero2.jpg'];
-});
+// Le slide arrivano dal pannello (Slide Hero): senza slide caricate resta lo
+// sfondo del blocco, non due immagini scelte nel codice.
+const slides = computed(() => (props.heroSlides ?? []).map(s => typeof s === 'string' ? s : (s.image || s.url || s)));
 
 // Hero testi dal backend con fallback
-const heroTitle = computed(() => homeSettings.value.hero_title || 'SAVINO DEL BENE');
-const heroSubtitle = computed(() => homeSettings.value.hero_subtitle || 'VOLLEY');
+const heroTitle = computed(() => homeSettings.value.hero_title ?? '');
+const heroSubtitle = computed(() => homeSettings.value.hero_subtitle ?? '');
 const heroTagline = computed(() => homeSettings.value.hero_tagline || $t('home.hero_tagline'));
 const heroCta1Label = computed(() => homeSettings.value.hero_cta1_label || $t('home.hero_cta1'));
 const heroCta1Url = computed(() => safeUrl(homeSettings.value.hero_cta1_url, '/stagione'));
@@ -72,16 +91,12 @@ const slideBackground = (slide) => {
 // Stats section dal backend con fallback
 const statsTitle = computed(() => homeSettings.value.stats_title || $t('home.stats_title'));
 const statsSubtitle = computed(() => homeSettings.value.stats_subtitle || $t('home.stats_subtitle'));
+// I numeri del club si modificano in Impostazioni → Homepage: l'elenco che
+// stava qui compariva online senza che in redazione esistesse.
 const stats = computed(() => {
-    if (homeSettings.value.stats && homeSettings.value.stats.length > 0) {
-        return homeSettings.value.stats;
-    }
-    return [
-        { value: '40+', label: $t('home.stat_years'), icon: '🏆' },
-        { value: '4.000+', label: $t('home.stat_seats'), icon: '🏟️' },
-        { value: 'A1', label: $t('home.stat_league'), icon: '🏐' },
-        { value: 'CEV', label: $t('home.stat_champions'), icon: '🌍' },
-    ];
+    const values = homeSettings.value.stats;
+
+    return Array.isArray(values) ? values : [];
 });
 
 // CTA Banner dal backend con fallback
@@ -129,6 +144,12 @@ const doTransition = (nextIndex) => {
 };
 
 const nextSlideAuto = () => {
+    // Con una sola slide (o nessuna) non c'è niente da ruotare: il resto
+    // dell'espressione dividerebbe per zero e finirebbe a NaN.
+    if (slides.value.length < 2) {
+        return;
+    }
+
     doTransition((currentSlide.value + 1) % slides.value.length);
 };
 
@@ -138,7 +159,10 @@ const goToSlide = (index) => {
     doTransition(index);
     // Reset timer auto
     clearInterval(slideInterval);
-    slideInterval = setInterval(nextSlideAuto, 6000);
+
+    if (slides.value.length > 1) {
+        slideInterval = setInterval(nextSlideAuto, 6000);
+    }
 };
 
 // Slide class helper: 3 stati distinti
@@ -313,7 +337,10 @@ onMounted(async () => {
         if (slidesContainer.value) {
             slidesContainer.value.addEventListener('transitionend', onSlideTransitionEnd);
         }
-        slideInterval = setInterval(nextSlideAuto, 6000);
+
+        if (slides.value.length > 1) {
+            slideInterval = setInterval(nextSlideAuto, 6000);
+        }
     }
 
     // Parallax
@@ -395,7 +422,7 @@ const ogMeta = useOgMeta({
         <meta property="og:image" :content="ogMeta.image" />
         <meta property="og:url" :content="ogMeta.url" />
         <meta property="og:type" :content="ogMeta.type" />
-        <link rel="preload" as="image" :href="slides[0]" fetchpriority="high" />
+        <link v-if="slides.length" rel="preload" as="image" :href="slides[0]" fetchpriority="high" />
     </Head>
     <PublicLayout>
         <!-- HERO SECTION -->
@@ -587,11 +614,24 @@ const ogMeta = useOgMeta({
                             </div>
                         </div>
                         <!-- CTA -->
-                        <div class="text-center mt-12">
+                        <div class="text-center mt-12 flex flex-wrap items-center justify-center gap-4">
                             <Link href="/ticketing" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-300 shadow-lg shadow-savino-gold/30">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                                 {{ $t('common.buy_tickets') }}
                             </Link>
+                            <component
+                                :is="nextGame?.stream_embed_url ? 'button' : 'a'"
+                                v-if="nextGame?.stream_url"
+                                :type="nextGame?.stream_embed_url ? 'button' : undefined"
+                                :href="nextGame?.stream_embed_url ? undefined : nextGame.stream_url"
+                                :target="nextGame?.stream_embed_url ? undefined : '_blank'"
+                                :rel="nextGame?.stream_embed_url ? undefined : 'noopener noreferrer'"
+                                class="inline-flex items-center gap-3 bg-savino-red text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-red/90 transition-all duration-300 shadow-lg shadow-savino-red/30"
+                                @click="openNextGameStream"
+                            >
+                                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                                {{ $t('stream.watch') }}
+                            </component>
                         </div>
                     </div>
                 </div>
@@ -600,7 +640,7 @@ const ogMeta = useOgMeta({
 
 
         <!-- IL CLUB IN NUMERI -->
-        <section ref="statsSection" class="relative py-28 overflow-hidden" style="background: linear-gradient(155deg, #001028 0%, #002244 30%, #003063 55%, #001d3d 80%, #000d1f 100%);">
+        <section v-if="stats.length" ref="statsSection" class="relative py-28 overflow-hidden" style="background: linear-gradient(155deg, #001028 0%, #002244 30%, #003063 55%, #001d3d 80%, #000d1f 100%);">
             <!-- Top shadow: transition from light section above -->
             <div class="absolute top-0 left-0 right-0 h-24" style="background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 100%);"></div>
             <!-- Stadium atmosphere: gold-tinted radial glow -->
@@ -762,6 +802,8 @@ const ogMeta = useOgMeta({
             </div>
         </section>
 
+
+        <LiveStreamModal :stream="activeStream" @close="closeStream" />
     </PublicLayout>
 </template>
 

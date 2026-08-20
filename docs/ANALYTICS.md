@@ -1,7 +1,8 @@
 # Analytics — sito, social, newsletter
 
-Tre pagine del pannello, sotto **Comunicazione** (Analytics Sito, Social
-Analytics) e **Marketing** (Analytics Newsletter). Chi le vede: ruoli con
+Tre pagine del pannello, sotto **Marketing**: Analytics Sito, Analytics Social
+e Analytics Newsletter (che contiene anche l'elenco degli iscritti: la voce di
+menu "Newsletter" non esiste più). Chi le vede: ruoli con
 `canManageEditorial()` — Super Admin e Gestione Comunicazione.
 
 ---
@@ -51,7 +52,7 @@ Instagram*.
 > metriche accettate tornate a zero) e lo dice in chiaro, ma la connessione va
 > comunque rifatta.
 
-Il collegamento si fa da **Social Analytics → Collega Meta**. Un solo giro OAuth
+Il collegamento si fa da **Analytics Social → Collega Meta**. Un solo giro OAuth
 porta dentro *tutte* le Pagine amministrate dal profilo: prima squadra e settore
 giovanile diventano due righe distinte in `social_accounts`. Ricollegare
 aggiorna le righe esistenti e non tocca la serie storica.
@@ -118,7 +119,7 @@ sui cookie di statistica, e un `page_view` a ogni navigazione Inertia — senza
 quello, in una SPA tutto il traffico risulterebbe sulla pagina d'ingresso e non
 esisterebbe nessun "pagina per pagina".
 
-### Social Analytics
+### Analytics Social
 
 `App\Services\Social\`:
 

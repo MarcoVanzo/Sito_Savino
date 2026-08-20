@@ -8,11 +8,14 @@ use App\Models\GalleryImage;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\ListRecords\Concerns\Translatable;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 
 class ListGalleryEvents extends ListRecords
 {
+    use Translatable;
+
     protected static string $resource = GalleryEventResource::class;
 
     protected static string $view = 'filament.pages.list-gallery-events';

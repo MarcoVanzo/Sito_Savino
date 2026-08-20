@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\SponsorTier;
 use App\Models\Product;
 use App\Models\Sponsor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -81,10 +82,15 @@ class PublicRoutesTest extends TestCase
 
     public function test_sponsor_page_includes_sponsor_data(): void
     {
-        Sponsor::factory()->count(2)->create();
+        // Gli sponsor arrivano raggruppati per livello: due sponsor dello
+        // stesso livello sono un gruppo solo, quindi si contano gli sponsor
+        // dentro ai gruppi e non i gruppi.
+        Sponsor::factory()->count(2)->create(['tier' => SponsorTier::Official]);
 
         $this->get('/sponsor')->assertInertia(fn ($page) => $page->component('Public/Sponsor')
-            ->has('sponsors', 2)
+            ->has('tiers', 1)
+            ->where('tiers.0.key', 'official')
+            ->has('tiers.0.sponsors', 2)
         );
     }
 

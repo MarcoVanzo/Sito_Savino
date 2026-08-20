@@ -29,9 +29,9 @@ class SocialAnalyticsPage extends Page
 
     protected static ?string $navigationIcon = 'heroicon-o-hashtag';
 
-    protected static ?string $navigationLabel = 'Social Analytics';
+    protected static ?string $navigationLabel = 'Analytics Social';
 
-    protected static ?string $title = 'Social Analytics';
+    protected static ?string $title = 'Analytics Social';
 
     protected static ?string $navigationGroup = 'Marketing';
 

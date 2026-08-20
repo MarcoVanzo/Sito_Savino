@@ -38,7 +38,7 @@
         "stats_subtitle": "I Numeri",
         "stats_title": "Il Club in Numeri",
         "stat_years": "Anni di Storia",
-        "stat_seats": "Posti al Palazzo Wanny",
+        "stat_seats": "Posti al PalaBigmat",
         "stat_league": "Serie — Massima Divisione",
         "stat_champions": "Champions League",
         "latest_news_subtitle": "Ultime Notizie",
@@ -56,7 +56,7 @@
         "privacy_policy": "Privacy Policy",
         "cookie_policy": "Cookie Policy",
         "all_rights_reserved": "Tutti i diritti riservati",
-        "tagline_default": "Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.\nSerie A1 — Palazzo Wanny, Firenze.",
+        "tagline_default": "Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.\nSerie A1 — PalaBigmat, Firenze.",
         "season": "Stagione",
         "roster_a1": "Roster Serie A1",
         "results": "Risultati",
@@ -144,7 +144,7 @@
         "form_placeholder_message": "Scrivi il tuo messaggio...",
         "form_sending": "Invio in corso...",
         "form_submit": "Invia Messaggio",
-        "map_iframe_title": "Mappa Palazzo Wanny - Savino Del Bene Volley",
+        "map_iframe_title": "Mappa PalaBigmat - Savino Del Bene Volley",
         "directions": "Indicazioni",
         "vat_number": "Partita IVA",
         "fiscal_code": "Codice Fiscale",
@@ -175,7 +175,7 @@
         "org_title": "Il Nostro Team Dirigenziale",
         "org_empty": "Organigramma in aggiornamento.",
         "palazzetto_label": "La Nostra Casa",
-        "palazzetto_description": "Il Palazzo Wanny di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l'impianto offre un'esperienza unica per tifosi e appassionati di pallavolo.",
+        "palazzetto_description": "Il PalaBigmat di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l'impianto offre un'esperienza unica per tifosi e appassionati di pallavolo.",
         "palazzetto_seats": "Posti a Sedere",
         "palazzetto_homologation": "Omologazione",
         "contact_label": "Resta in Contatto",
@@ -183,21 +183,6 @@
         "contact_phone": "Telefono",
         "contact_location": "Sede",
         "storia_timeline_title": "Le Tappe Fondamentali",
-        "storia_fallback_description": "La Storia del Club",
-        "storia_fallback_1982_title": "Le Origini",
-        "storia_fallback_1982_desc": "La Pallavolo Scandicci nasce nel cuore del territorio toscano. I primi passi nei campionati locali pongono le basi per un progetto ambizioso.",
-        "storia_fallback_2012_title": "La Svolta Savino Del Bene",
-        "storia_fallback_2012_desc": "L'ingresso del Gruppo Savino Del Bene come title sponsor trasforma le ambizioni del club. Inizia la scalata verso l'élite del volley nazionale.",
-        "storia_fallback_2014_title": "Promozione in Serie A1",
-        "storia_fallback_2014_desc": "Un traguardo storico: la squadra conquista l'accesso alla massima serie italiana, portando Scandicci nel panorama nazionale.",
-        "storia_fallback_2018_title": "Debutto Europeo",
-        "storia_fallback_2018_desc": "Prima qualificazione in CEV Champions League. La Savino Del Bene Volley si affaccia sul palcoscenico internazionale sfidando le big europee.",
-        "storia_fallback_2022_title": "CEV Challenge Cup",
-        "storia_fallback_2022_desc": "Il primo storico trofeo europeo. Una cavalcata trionfale che arricchisce la bacheca del club e consacra il progetto a livello internazionale.",
-        "storia_fallback_2023_title": "CEV Cup",
-        "storia_fallback_2023_desc": "Ancora un successo continentale. La Savino Del Bene solleva la CEV Cup, dimostrando continuità di risultati e mentalità vincente.",
-        "storia_fallback_2024_title": "Finale Scudetto",
-        "storia_fallback_2024_desc": "Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il Palazzo Wanny.",
         "palazzetto_hero_title": "LA NOSTRA CASA",
         "palazzetto_directions_title": "Come Arrivare",
         "palazzetto_open_gmaps": "Apri su Google Maps",
@@ -213,7 +198,8 @@
         "safeguarding_fallback_doc1_title": "Modello Organizzativo e di Controllo",
         "safeguarding_fallback_doc1_desc": "Documento che stabilisce i principi di comportamento e le misure di prevenzione.",
         "safeguarding_fallback_doc2_title": "Codice di Condotta a Tutela dei Minori",
-        "safeguarding_fallback_doc2_desc": "Linee guida specifiche per garantire un ambiente sportivo sicuro per i più giovani."
+        "safeguarding_fallback_doc2_desc": "Linee guida specifiche per garantire un ambiente sportivo sicuro per i più giovani.",
+        "storia_timeline_empty": "Le tappe fondamentali saranno pubblicate a breve."
     },
     "staff": {
         "og_title": "Staff Tecnico e Medico",
@@ -239,7 +225,9 @@
         "download_pdf": "Scarica PDF",
         "no_magazines": "Nessuna edizione disponibile al momento.",
         "no_videos": "Nessun video disponibile al momento.",
-        "portal_cta_fallback": "Accedi al portale iscrizioni"
+        "portal_cta_fallback": "Accedi al portale iscrizioni",
+        "gallery_title": "Galleria fotografica",
+        "gallery_close": "Chiudi"
     },
     "sponsor": {
         "og_title": "Sponsor & Partner",
@@ -250,11 +238,12 @@
         "tier_empty": "Sponsor in fase di definizione",
         "cta_subtitle": "Unisciti a Noi",
         "cta_title": "Diventa Partner",
-        "cta_description": "Associa il tuo brand a una realtà sportiva di primo livello. Offriamo pacchetti di visibilità personalizzati con presenza su maglia, LED bordocampo, digital e hospitality al Palazzo Wanny.",
+        "cta_description": "Associa il tuo brand a una realtà sportiva di primo livello. Offriamo pacchetti di visibilità personalizzati con presenza su maglia, LED bordocampo, digital e hospitality al PalaBigmat.",
         "stat_social": "Impressioni Social",
         "stat_spectators": "Spettatori Stagione",
         "stat_events": "Eventi Annuali",
-        "cta_button": "Contattaci per una Proposta"
+        "cta_button": "Contattaci per una Proposta",
+        "mail_subject": "Savino Del Bene Volley — Richiesta di sponsorizzazione"
     },
     "under_construction": {
         "og_title": "Sito in Costruzione — Savino Del Bene Volley",
@@ -433,17 +422,18 @@
         "period_season": "stagione",
         "buy_cta": "Acquista",
         "og_title": "Biglietteria",
-        "og_description": "Acquista i biglietti per le partite della Savino Del Bene Volley al Palazzo Wanny. Abbonamenti e biglietti singoli.",
+        "og_description": "Acquista i biglietti per le partite della Savino Del Bene Volley al PalaBigmat. Abbonamenti e biglietti singoli.",
         "hero_label": "Vivi l'Emozione",
-        "hero_subtitle": "Scegli il tuo posto e vivi l'emozione della pallavolo dal vivo al Palazzo Wanny.",
+        "hero_subtitle": "Scegli il tuo posto e vivi l'emozione della pallavolo dal vivo al PalaBigmat.",
         "plans_heading": "Scegli il tuo Abbonamento",
         "popular_badge": "Più Popolare",
         "info_heading": "Informazioni sull'Acquisto",
         "online_description": "Acquista i biglietti comodamente online tramite il nostro sistema di ticketing. Pagamento sicuro con carta di credito o PayPal.",
         "boxoffice_title": "Al Botteghino",
-        "boxoffice_description": "La biglietteria del Palazzo Wanny apre 2 ore prima dell'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.",
+        "boxoffice_description": "La biglietteria del PalaBigmat apre 2 ore prima dell'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.",
         "plans_empty": "La campagna abbonamenti per la prossima stagione non è ancora aperta. Appena i prezzi saranno ufficiali li troverai qui.",
-        "plans_empty_cta": "Contattaci"
+        "plans_empty_cta": "Contattaci",
+        "tickets_button": "Acquista i biglietti"
     },
     "shop": {
         "og_title": "Shop Ufficiale",
@@ -754,7 +744,8 @@
         "activities_title": "Le Nostre Attività",
         "dates_label": "Calendario",
         "dates_title": "Date e Turni",
-        "cta_enroll": "Iscriviti Ora"
+        "cta_enroll": "Iscriviti Ora",
+        "og_title": "Summer Camp & Experience"
     },
     "youth": {
         "og_title": "Settore Giovanile",
@@ -795,7 +786,8 @@
         "training_u18": "Lun-Mer-Ven 16:00-18:00",
         "training_u16": "Mar-Gio-Sat 15:00-17:00",
         "training_u14": "Lun-Mer-Ven 14:30-16:30",
-        "training_u12": "Mar-Gio 14:00-15:30"
+        "training_u12": "Mar-Gio 14:00-15:30",
+        "scouting_label": "Talent Scouting"
     },
     "comunicazione": {
         "press_kit_1_title": "Foto Ufficiali",
@@ -824,7 +816,10 @@
         "accreditation_step_3": "Inviare la richiesta almeno 48 ore prima dell'evento",
         "media_hub_subtitle": "Tutto ciò di cui hai bisogno",
         "contacts_badge": "Contatti",
-        "contacts_section_title": "Ufficio Comunicazione"
+        "contacts_section_title": "Ufficio Comunicazione",
+        "contact_role_social": "Social Media",
+        "contact_name_social": "Social Media Manager",
+        "press_kit_unavailable": "Non ancora disponibile"
     },
     "error": {
         "403_title": "Accesso Negato",
@@ -1043,5 +1038,12 @@
         "days": "La tua password scade fra {days} giorni.",
         "cta_hint": "Cambiala ora per non trovarti bloccato al prossimo accesso.",
         "change": "Cambia password"
+    },
+    "stream": {
+        "modal_title": "Diretta streaming",
+        "close": "Chiudi la diretta",
+        "open_external": "Apri sulla piattaforma",
+        "watch": "Guarda la diretta",
+        "live_badge": "Diretta"
     }
 }

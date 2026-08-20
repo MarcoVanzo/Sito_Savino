@@ -12,6 +12,7 @@ use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
+use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
@@ -22,6 +23,8 @@ use Illuminate\Support\Facades\Cache;
 
 class GalleryEventResource extends Resource
 {
+    use Translatable;
+
     protected static ?string $model = GalleryEvent::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';

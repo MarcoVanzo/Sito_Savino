@@ -12,6 +12,14 @@ class SiteSettingSeeder extends Seeder
         $settings = [
             // ── GENERAL ──────────────────────────────────────────────────
             [
+                'key' => 'site_logo',
+                'value' => '',
+                'type' => 'text',
+                'group' => 'general',
+                'label' => 'Logo del sito',
+                'sort_order' => 2,
+            ],
+            [
                 'key' => 'corporate_logo',
                 'value' => '/images/logo-corporate-left.png',
                 'type' => 'image',
@@ -47,7 +55,7 @@ class SiteSettingSeeder extends Seeder
             // ── CONTACT ──────────────────────────────────────────────────
             [
                 'key' => 'email',
-                'value' => 'info@savinodelbenescandicci.it',
+                'value' => 'info@savinodelbenevolley.it',
                 'type' => 'email',
                 'group' => 'contact',
                 'label' => 'Email di Contatto',
@@ -55,7 +63,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'phone',
-                'value' => '+39 055 XXX XXXX',
+                'value' => '055 721503',
                 'type' => 'phone',
                 'group' => 'contact',
                 'label' => 'Telefono',
@@ -71,7 +79,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'address',
-                'value' => 'Palazzo Wanny, Via Allende 10, Firenze',
+                'value' => 'Via Benozzo Gozzoli, 5/6 — 50018 Scandicci (FI)',
                 'type' => 'text',
                 'group' => 'contact',
                 'label' => 'Indirizzo',
@@ -79,7 +87,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'city',
-                'value' => 'Scandicci (FI), Toscana',
+                'value' => 'Scandicci (FI)',
                 'type' => 'text',
                 'group' => 'contact',
                 'label' => 'Città',
@@ -177,7 +185,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'social_youtube',
-                'value' => 'https://www.youtube.com/@savinodelbenevolley1771',
+                'value' => 'https://www.youtube.com/channel/UCyHpswavR-Rs6ssmF4BvLCQ',
                 'type' => 'url',
                 'group' => 'social',
                 'label' => 'YouTube',
@@ -185,7 +193,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'social_x',
-                'value' => '',
+                'value' => 'https://x.com/sdbvolley',
                 'type' => 'url',
                 'group' => 'social',
                 'label' => 'X (Twitter)',
@@ -193,17 +201,33 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'social_tiktok',
-                'value' => '',
+                'value' => 'https://www.tiktok.com/@savinodelbenescandicci',
                 'type' => 'url',
                 'group' => 'social',
                 'label' => 'TikTok',
                 'sort_order' => 4,
             ],
+            [
+                'key' => 'social_linkedin',
+                'value' => 'https://www.linkedin.com/company/savino-del-bene-volley/',
+                'type' => 'url',
+                'group' => 'social',
+                'label' => 'LinkedIn',
+                'sort_order' => 5,
+            ],
+            [
+                'key' => 'social_whatsapp',
+                'value' => 'https://whatsapp.com/channel/0029VasgCCu3WHTcri3MjL2W',
+                'type' => 'url',
+                'group' => 'social',
+                'label' => 'Canale WhatsApp',
+                'sort_order' => 6,
+            ],
 
             // ── FOOTER ──────────────────────────────────────────────────
             [
                 'key' => 'footer_tagline',
-                'value' => 'Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana. Serie A1 — Palazzo Wanny, Firenze.',
+                'value' => 'Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana. Serie A1 — PalaBigmat, Firenze.',
                 'type' => 'textarea',
                 'group' => 'footer',
                 'label' => 'Tagline Footer',
@@ -287,7 +311,7 @@ class SiteSettingSeeder extends Seeder
                 'key' => 'stats',
                 'value' => json_encode([
                     ['value' => '40+', 'label' => 'Anni di Storia', 'icon' => '🏆'],
-                    ['value' => '4.000+', 'label' => 'Posti al Palazzo Wanny', 'icon' => '🏟️'],
+                    ['value' => '4.000+', 'label' => 'Posti al PalaBigmat', 'icon' => '🏟️'],
                     ['value' => 'A1', 'label' => 'Serie — Massima Divisione', 'icon' => '🏐'],
                     ['value' => 'CEV', 'label' => 'Champions League', 'icon' => '🌍'],
                 ]),
