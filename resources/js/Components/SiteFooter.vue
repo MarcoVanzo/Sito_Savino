@@ -118,20 +118,25 @@ const socialLinks = computed(() => {
 
                 <!-- Brand Column -->
                 <div class="lg:col-span-2">
-                    <div class="flex items-center gap-5 mb-6">
+                    <!-- I due marchi affiancati misurano oltre quattrocento pixel: su un
+                         telefono da 375 sfondavano il contenitore, e siccome la pagina ha
+                         `overflow-x-hidden` non si vedeva una barra di scorrimento ma il
+                         contenuto si poteva spostare di lato senza modo di tornare indietro.
+                         Sotto il primo breakpoint si rimpiccioliscono e vanno a capo. -->
+                    <div class="flex flex-wrap items-center gap-3 sm:gap-5 mb-6">
                         <img
                             :src="footerLogo"
                             alt="Savino Del Bene Volley"
-                            class="h-20 w-auto object-contain"
+                            class="h-14 sm:h-20 w-auto object-contain"
                             @error="onImgError"
                         />
-                        <span class="h-14 w-px bg-white/20"></span>
+                        <span class="hidden sm:block h-14 w-px bg-white/20"></span>
                         <!-- `mx-auto` dentro una riga flex spingeva il marchio corporate
                              fuori asse rispetto al volley: i due vanno letti come una coppia. -->
                         <img
                             :src="LOGOS.CORPORATE_LEFT_WHITE"
                             alt="Savino Del Bene Corporate"
-                            class="h-16 w-auto object-contain"
+                            class="h-11 sm:h-16 max-w-full w-auto object-contain"
                             @error="onImgError"
                         />
                     </div>

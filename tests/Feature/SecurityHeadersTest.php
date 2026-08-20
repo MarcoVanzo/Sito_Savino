@@ -118,4 +118,41 @@ class SecurityHeadersTest extends TestCase
 
         $this->assertStringContainsString($host, (string) $frameSrc);
     }
+
+    /**
+     * GA4 e il Pixel di Meta caricano il loro codice da un dominio altrui e
+     * spediscono lì i dati raccolti. La policy li bloccava entrambi: tutto
+     * configurato — misurazione ferma, e nessun errore da nessuna parte se non
+     * nella console del browser.
+     */
+    public function test_la_policy_lascia_passare_le_due_misurazioni_del_sito(): void
+    {
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString('https://www.googletagmanager.com', $csp);
+        $this->assertStringContainsString('https://connect.facebook.net', $csp);
+
+        // Caricare lo script senza poter spedire i dati non servirebbe a nulla.
+        [$connectSrc] = array_values(array_filter(
+            explode('; ', $csp),
+            fn (string $direttiva) => str_starts_with($direttiva, 'connect-src'),
+        ));
+
+        $this->assertStringContainsString('https://www.google-analytics.com', $connectSrc);
+        $this->assertStringContainsString('https://connect.facebook.net', $connectSrc);
+    }
+
+    /**
+     * L'apertura vale per quei due host e basta: `default-src` resta chiuso e
+     * nessuna direttiva concede il jolly.
+     */
+    public function test_la_policy_non_si_apre_a_chiunque(): void
+    {
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString("default-src 'self'", $csp);
+        $this->assertStringNotContainsString('script-src *', $csp);
+        $this->assertStringNotContainsString("script-src 'unsafe-hashes'", $csp);
+        $this->assertStringNotContainsString('connect-src *', $csp);
+    }
 }

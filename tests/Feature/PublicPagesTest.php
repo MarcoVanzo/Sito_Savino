@@ -173,8 +173,10 @@ class PublicPagesTest extends TestCase
         $response = $this->get('/comunicazione/accrediti-stampa');
         $response->assertStatus(200);
 
-        Page::factory()->create([
-            'slug' => 'magazine',
+        // La pagina Magazine arriva con le migrazioni (la voce di menu ci
+        // puntava e non esisteva): qui si aggiorna quella, non se ne crea una
+        // seconda con lo stesso slug.
+        Page::updateOrCreate(['slug' => 'magazine'], [
             'title' => 'Magazine',
             'status' => PostStatus::Published,
             'template' => 'Public/Comunicazione',

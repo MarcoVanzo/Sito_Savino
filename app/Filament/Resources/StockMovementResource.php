@@ -58,8 +58,8 @@ class StockMovementResource extends Resource
                         Forms\Components\Select::make('type')
                             ->label('Tipo di Movimento')
                             ->options([
-                                StockMovementType::Purchase->value => StockMovementType::Purchase->label(),
-                                StockMovementType::Adjustment->value => StockMovementType::Adjustment->label(),
+                                StockMovementType::Purchase->value => StockMovementType::Purchase->getLabel(),
+                                StockMovementType::Adjustment->value => StockMovementType::Adjustment->getLabel(),
                             ])
                             ->required()
                             ->default(StockMovementType::Purchase)
@@ -100,7 +100,7 @@ class StockMovementResource extends Resource
             Tables\Columns\TextColumn::make('type')
                 ->label('Tipo')
                 ->badge()
-                ->formatStateUsing(fn (StockMovementType $state): string => $state->label())
+                ->formatStateUsing(fn (StockMovementType $state): string => $state->getLabel())
                 ->color(fn (StockMovementType $state): string => match ($state) {
                     StockMovementType::Purchase => 'success',
                     StockMovementType::Sale => 'danger',

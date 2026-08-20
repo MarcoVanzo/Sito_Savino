@@ -18,11 +18,29 @@ class SecurityHeadersMiddleware
 
         $csp = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+            // GA4 e il Pixel di Meta caricano il loro codice da un dominio
+            // altrui: senza questi due host la policy li bloccava e la
+            // misurazione era ferma, pur essendo tutto configurato. Sono gli
+            // unici due script esterni ammessi.
+            'script-src '.implode(' ', [
+                "'self'", "'unsafe-inline'", "'unsafe-eval'",
+                'https://www.googletagmanager.com',
+                'https://connect.facebook.net',
+            ]),
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data: https:",
-            "connect-src 'self'",
+            // Dove le due misurazioni spediscono i dati raccolti. Senza,
+            // caricare lo script non sarebbe comunque servito a niente.
+            'connect-src '.implode(' ', [
+                "'self'",
+                'https://www.google-analytics.com',
+                'https://*.google-analytics.com',
+                'https://*.analytics.google.com',
+                'https://www.googletagmanager.com',
+                'https://connect.facebook.net',
+                'https://www.facebook.com',
+            ]),
             // Gli unici host che possono finire dentro un iframe: Google Maps
             // per la pagina Palazzetto e le quattro piattaforme di diretta che
             // `App\Support\LiveStream` sa incorporare. I due elenchi vanno

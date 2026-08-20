@@ -114,13 +114,13 @@ watch(desktopNav, (isDesktop) => {
                          Deve comunque restare sotto lo spazio disponibile: sui telefoni il
                          blocco icone (menu, carrello, account) occupa ~212px e una larghezza
                          fissa lo spingerebbe fuori dal viewport. -->
-                    <div ref="logoBlock" class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[250px] md:w-[285px] xl:w-[380px] h-full relative">
-                        <div class="absolute top-2 left-0 z-[60] flex items-center gap-2 sm:gap-3">
+                    <div ref="logoBlock" class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[232px] md:w-[266px] xl:w-[346px] h-full relative">
+                        <div class="absolute top-2 left-0 z-[60] flex items-center gap-2">
 
                             <!-- Corporate Logo Block (Sfondo Bianco) — nascosto sui telefoni: a quella
                                  dimensione il payoff è illeggibile e ruberebbe spazio alla navigazione -->
                             <div class="relative group hidden sm:block">
-                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 px-3 xl:px-4 py-1.5 w-[150px] md:w-[170px] xl:w-[230px] overflow-hidden">
+                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 px-3 py-1.5 w-[136px] md:w-[156px] xl:w-[200px] overflow-hidden">
                                     <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                 </a>
                                 
