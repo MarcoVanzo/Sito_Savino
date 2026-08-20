@@ -167,12 +167,15 @@ class InstagramDailySync
                 continue;
             }
 
+            // `is_final` NON si tocca qui: lo mette `store()`, che è l'unico a
+            // scaricare i totali del giorno. Marcando definitivo un giorno di
+            // cui si conosce solo la reach, il filtro dei giorni da chiedere lo
+            // salterebbe per sempre e views, interazioni e account raggiunti
+            // resterebbero a zero — cosa che succedeva a tutti i giorni oltre
+            // il tetto di chiamate della prima apertura della pagina.
             SocialInsightDaily::query()->updateOrCreate(
                 ['social_account_id' => $account->id, 'day' => $day],
-                $values + [
-                    'ig_account_id' => (string) $account->ig_account_id,
-                    'is_final' => $this->isFinal($day),
-                ],
+                $values + ['ig_account_id' => (string) $account->ig_account_id],
             );
         }
     }

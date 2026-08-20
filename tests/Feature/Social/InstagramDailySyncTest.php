@@ -107,6 +107,53 @@ class InstagramDailySyncTest extends TestCase
         $this->assertDatabaseCount('social_insights_daily', 2);
     }
 
+    /**
+     * `reach` e `follower_count` arrivano in serie storica e coprono tutto il
+     * periodo, anche i giorni che il tetto di chiamate non ha toccato. Se quelle
+     * righe nascessero già "definitive", il giro dopo verrebbero saltate e i
+     * totali di quei giorni (views, interazioni, account raggiunti) resterebbero
+     * a zero per sempre.
+     */
+    #[Test]
+    public function i_giorni_visti_solo_dalla_serie_storica_restano_da_scaricare(): void
+    {
+        $account = SocialAccount::factory()->create();
+
+        $giorni = collect(range(0, 4))->map(fn (int $i): string => now()->subDays($i)->toDateString());
+
+        Http::fake(function (Request $request) use ($giorni) {
+            if (str_contains($request->url(), 'metric_type=time_series')) {
+                return Http::response(['data' => [[
+                    'name' => 'reach',
+                    'values' => $giorni->map(fn (string $day): array => [
+                        'value' => 100,
+                        'end_time' => $day.'T07:00:00+0000',
+                    ])->all(),
+                ]]], 200);
+            }
+
+            return Http::response(['data' => [['name' => 'views', 'total_value' => ['value' => 10]]]], 200);
+        });
+
+        $sync = app(InstagramDailySync::class);
+
+        // Prima passata con il tetto di un'apertura di pagina: un giorno solo.
+        $sync->fill($account, days: 5, maxCalls: 1);
+
+        $vecchio = SocialInsightDaily::query()->where('day', now()->subDays(4)->toDateString())->firstOrFail();
+        $this->assertSame(100, $vecchio->reach);
+        $this->assertFalse($vecchio->is_final, 'la serie storica non ha i totali del giorno');
+
+        // Seconda passata, quella del job notturno: deve recuperarli.
+        $result = $sync->fill($account, days: 5, maxCalls: 10);
+
+        // Cinque: i tre giorni mai chiesti più i due ancora aperti (oggi e ieri,
+        // che Meta può ritoccare) — quello già scaricato al primo giro compreso.
+        $this->assertSame(5, $result['filled']);
+        $this->assertSame(10, $vecchio->refresh()->views);
+        $this->assertTrue($vecchio->is_final);
+    }
+
     #[Test]
     public function un_account_scollegato_non_genera_chiamate(): void
     {
