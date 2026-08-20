@@ -11,5 +11,6 @@ Disallow: /confirm-password
 Disallow: /storage/
 Disallow: /build/
 
-# Sitemap
-Sitemap: https://www.savinodelbenevolley.com/sitemap.xml
+# Sitemap — dominio definitivo: la direttiva vuole un indirizzo assoluto e
+# quello di anteprima cambierebbe al passaggio del dominio.
+Sitemap: https://www.savinodelbenevolley.it/sitemap.xml
