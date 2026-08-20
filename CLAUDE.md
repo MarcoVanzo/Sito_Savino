@@ -404,6 +404,12 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   `PressAccreditationController::SUBJECT`. È l'unico legame con l'elenco
   "Richieste Accrediti" del pannello (`PressAccreditationResource`, slug
   `forms`): cambiarlo da una parte sola svuota l'elenco senza errori.
+- **Le etichette del menu principale pesano sul layout dell'header.** La barra
+  si dimensiona sullo spazio che le resta accanto ai loghi
+  (`useHeaderNavFit`), e con nove voci sta già al corpo più piccolo ammesso:
+  allungarne una di un paio di parole fa collassare tutto nel pannello a
+  scomparsa, su qualunque schermo. Prima di rinominare una voce, misurare —
+  o accorciarne un'altra.
 - **`SiteSetting::get()` indicizza sulla sola colonna `key`**: il gruppo serve a
   raccogliere le impostazioni nel pannello, non a comporre la chiave.
   `SiteSetting::get('contact.press_email')` restituisce sempre `null`.

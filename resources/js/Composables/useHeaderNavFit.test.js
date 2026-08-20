@@ -49,3 +49,43 @@ describe('navShowsSeparators', () => {
         expect(navShowsSeparators(9)).toBe(false)
     })
 })
+
+/**
+ * Le voci del menu principale non sono solo testo: la barra si dimensiona
+ * sullo spazio che le resta accanto ai loghi, e con nove voci sta gia' al
+ * corpo piu' piccolo ammesso.
+ *
+ * E' successo davvero: rinominando "SDB Youth" in "Savino Del Bene Youth" il
+ * testo passava da 793 a 895 pixel e il menu spariva dentro il pannello a
+ * scomparsa su qualunque schermo, anche a 1900px. Le misure qui sotto sono
+ * quelle vere, prese in produzione con la sonda di `measureLabels`.
+ */
+describe('lo spazio dell\'header e\' gia\' al limite', () => {
+    // Nove voci, spazio residuo misurato a 1900px di viewport.
+    const VOCI_MENU = 9
+    const SPAZIO_A_1900 = 657
+
+    it('con le etichette attuali il menu entra, ma solo al corpo piu\' piccolo', () => {
+        const corpo = pickNavFontSize(793, VOCI_MENU, SPAZIO_A_1900)
+
+        expect(corpo).not.toBeNull()
+        expect(corpo).toBe(9)
+    })
+
+    it('un centinaio di pixel in piu\' e il menu sparisce nel drawer', () => {
+        expect(pickNavFontSize(895, VOCI_MENU, SPAZIO_A_1900)).toBeNull()
+    })
+
+    /**
+     * Il margine che resta prima di perdere il menu. Se questo test inizia a
+     * fallire, qualcuno ha allungato un'etichetta o allargato il blocco loghi:
+     * misurare prima di allargare ancora.
+     */
+    it('il margine residuo e\' meno di cento pixel di testo', () => {
+        const soglia = [...Array(400).keys()]
+            .map(i => 793 + i)
+            .find(larghezza => pickNavFontSize(larghezza, VOCI_MENU, SPAZIO_A_1900) === null)
+
+        expect(soglia - 793).toBeLessThan(100)
+    })
+})
