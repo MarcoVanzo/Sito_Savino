@@ -37,6 +37,10 @@ class MetaOAuthController extends Controller
 
     public function callback(Request $request): RedirectResponse
     {
+        // Anche qui il ruolo, non solo l'autenticazione: la rotta è raggiungibile
+        // da chiunque abbia un account (il negozio ne crea uno a ogni cliente).
+        abort_unless($request->user()->role->canManageEditorial(), 403);
+
         // Lo state va verificato prima di qualunque altra cosa: è l'unica difesa
         // contro una callback costruita da terzi.
         $state = (string) $request->query('state', '');
@@ -44,6 +48,12 @@ class MetaOAuthController extends Controller
 
         if ($context === null) {
             return $this->back('Richiesta di collegamento non valida o scaduta: riprova.', success: false);
+        }
+
+        // Il giro si chiude sulla stessa persona che l'ha aperto: uno state
+        // finito in mani altrui non collega comunque nulla.
+        if ($context['user_id'] !== null && $context['user_id'] !== $request->user()->id) {
+            return $this->back('Il collegamento è stato avviato da un altro utente: riprova.', success: false);
         }
 
         if (filled($request->query('error'))) {
