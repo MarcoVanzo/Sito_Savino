@@ -127,7 +127,7 @@ const loadMore = () => {
 
     <PublicLayout>
         <!-- ANNOUNCEMENT BANNER -->
-        <div v-if="announcementBanner" class="bg-savino-gold text-gray-900 text-center py-3 px-4 font-bold text-sm">
+        <div v-if="announcementBanner" class="bg-savino-fucsia text-gray-900 text-center py-3 px-4 font-bold text-sm">
             {{ announcementBanner }}
         </div>
 
@@ -136,11 +136,11 @@ const loadMore = () => {
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.hero_label') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.hero_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ $t('shop.og_title') }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">
                     {{ $t('shop.hero_description') }}
                 </p>
@@ -159,7 +159,7 @@ const loadMore = () => {
                             type="text"
                             :aria-label="$t('shop.search_placeholder') || 'Search products'"
                             :placeholder="$t('shop.search_placeholder') || 'Cerca prodotti...'"
-                            class="w-full border-2 border-gray-200 rounded-xl pl-12 pr-12 py-4 text-lg text-savino-blue placeholder-gray-400 focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all"
+                            class="w-full border-2 border-gray-200 rounded-xl pl-12 pr-12 py-4 text-lg text-savino-blue placeholder-gray-400 focus:ring-2 focus:ring-savino-fucsia/50 focus:border-savino-fucsia outline-none transition-all"
                         />
                         <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         <!-- Clear button -->
@@ -212,7 +212,7 @@ const loadMore = () => {
                         <select
                             v-model="selectedSort"
                             :aria-label="$t('shop.sort_by') || 'Ordina per'"
-                            class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-700 bg-white focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all cursor-pointer"
+                            class="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-700 bg-white focus:ring-2 focus:ring-savino-fucsia/50 focus:border-savino-fucsia outline-none transition-all cursor-pointer"
                         >
                             <option value="">{{ $t('shop.sort_default') || 'Ordina per' }}</option>
                             <option value="price_asc">{{ $t('shop.sort_price_asc') || 'Prezzo: basso → alto' }}</option>
@@ -263,18 +263,18 @@ const loadMore = () => {
                 <div v-else-if="hasActiveFilters" class="text-center py-20">
                     <div class="max-w-lg mx-auto">
                         <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-savino-blue to-gray-900 flex items-center justify-center shadow-xl">
-                            <svg class="w-10 h-10 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <svg class="w-10 h-10 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </div>
                         <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-3">
                             {{ $t('shop.no_results_title') || 'Nessun risultato' }}
                         </h2>
-                        <div class="w-12 h-1 bg-savino-gold mx-auto mb-4"></div>
+                        <div class="w-12 h-1 bg-savino-fucsia mx-auto mb-4"></div>
                         <p class="text-gray-600 leading-relaxed mb-6">
                             {{ $t('shop.try_different_search') || 'Prova con un altro termine di ricerca o categoria.' }}
                         </p>
                         <button type="button"
                             @click="clearFilters"
-                            class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300"
+                            class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-fucsia hover:text-savino-blue transition-all duration-300"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                             {{ $t('shop.clear_filters') || 'Rimuovi filtri' }}
@@ -287,17 +287,17 @@ const loadMore = () => {
                     <div class="max-w-lg mx-auto">
                         <!-- Animated Shopping Icon -->
                         <div class="w-32 h-32 mx-auto mb-8 rounded-full bg-gradient-to-br from-savino-blue to-gray-900 flex items-center justify-center shadow-2xl">
-                            <svg class="w-14 h-14 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            <svg class="w-14 h-14 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         </div>
                         <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mb-4">
                             {{ $t('shop.coming_soon_title') }}
                         </h2>
-                        <div class="w-16 h-1 bg-savino-gold mx-auto mb-6"></div>
+                        <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-6"></div>
                         <p class="text-gray-600 text-lg leading-relaxed mb-8">
                             {{ $t('shop.coming_soon_description') }}
                         </p>
                         <div class="inline-flex items-center gap-3 bg-savino-blue/5 border border-savino-blue/10 rounded-full px-8 py-4">
-                            <div class="w-2 h-2 rounded-full bg-savino-gold animate-pulse"></div>
+                            <div class="w-2 h-2 rounded-full bg-savino-fucsia animate-pulse"></div>
                             <span class="text-savino-blue text-sm font-bold uppercase tracking-wider">{{ $t('common.coming_soon') }}</span>
                         </div>
                     </div>
@@ -311,7 +311,7 @@ const loadMore = () => {
                     <h3 class="text-2xl font-black text-white uppercase tracking-tight">🔥 {{ $t('shop.auctions_cta_title') }}</h3>
                     <p class="text-white/80 mt-1">{{ $t('shop.auctions_cta_description') }}</p>
                 </div>
-                <Link :href="route('shop.auctions.index')" class="inline-flex items-center px-8 py-3 bg-savino-gold text-savino-blue font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
+                <Link :href="route('shop.auctions.index')" class="inline-flex items-center px-8 py-3 bg-savino-fucsia text-savino-blue font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
                     {{ $t('shop.auctions_cta_button') }}
                 </Link>
             </div>

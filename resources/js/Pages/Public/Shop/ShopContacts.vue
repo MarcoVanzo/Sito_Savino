@@ -58,7 +58,7 @@ const contactCards = [
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_contacts.hero_label') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_contacts.hero_label') }}</span>
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ $t('shop_contacts.hero_title') }}
                 </h1>
@@ -74,7 +74,7 @@ const contactCards = [
                 <!-- Breadcrumbs -->
                 <nav class="mb-8 text-sm">
                     <ol class="flex items-center gap-2 text-gray-500">
-                        <li><Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('shop_contacts.breadcrumb_shop') }}</Link></li>
+                        <li><Link :href="route('shop')" class="hover:text-savino-fucsia transition-colors">{{ $t('shop_contacts.breadcrumb_shop') }}</Link></li>
                         <li>/</li>
                         <li class="text-white">{{ $t('shop_contacts.breadcrumb_current') }}</li>
                     </ol>
@@ -85,10 +85,10 @@ const contactCards = [
                     <template v-for="(card, index) in contactCards" :key="index">
                         <div
                             v-if="card.show()"
-                            class="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center hover:border-savino-gold/30 transition-all duration-300"
+                            class="bg-gray-800/50 border border-gray-700 rounded-xl p-6 text-center hover:border-savino-fucsia/30 transition-all duration-300"
                         >
-                            <div class="w-14 h-14 rounded-full bg-savino-gold/10 flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-6 h-6 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-14 h-14 rounded-full bg-savino-fucsia/10 flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-6 h-6 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" :d="card.icon" />
                                 </svg>
                             </div>
@@ -97,7 +97,7 @@ const contactCards = [
                                 :is="card.href() ? 'a' : 'p'"
                                 :href="card.href() || undefined"
                                 class="text-white font-bold text-lg"
-                                :class="{ 'hover:text-savino-gold transition-colors': card.href() }"
+                                :class="{ 'hover:text-savino-fucsia transition-colors': card.href() }"
                             >
                                 {{ card.value() }}
                             </component>
@@ -107,7 +107,7 @@ const contactCards = [
 
                 <!-- Notes -->
                 <div v-if="supportNotes" class="mt-8 bg-gray-800/30 border border-gray-800 rounded-xl p-6">
-                    <h3 class="text-savino-gold text-xs font-bold uppercase tracking-[0.2em] mb-3">{{ $t('shop_contacts.additional_info') }}</h3>
+                    <h3 class="text-savino-fucsia text-xs font-bold uppercase tracking-[0.2em] mb-3">{{ $t('shop_contacts.additional_info') }}</h3>
                     <p class="text-gray-400 text-sm leading-relaxed whitespace-pre-line">{{ supportNotes }}</p>
                 </div>
 
@@ -129,7 +129,7 @@ const contactCards = [
                 <div class="mt-12 text-center">
                     <Link
                         :href="route('shop')"
-                        class="inline-flex items-center gap-2 text-gray-400 hover:text-savino-gold transition-colors text-sm font-bold uppercase tracking-wider"
+                        class="inline-flex items-center gap-2 text-gray-400 hover:text-savino-fucsia transition-colors text-sm font-bold uppercase tracking-wider"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />

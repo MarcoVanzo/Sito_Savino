@@ -62,7 +62,7 @@ const counters = computed(() => {
 });
 
 const medalTone = {
-    gold: { ring: 'ring-savino-gold/40', fill: 'bg-savino-gold' },
+    gold: { ring: 'ring-savino-fucsia/40', fill: 'bg-savino-fucsia' },
     silver: { ring: 'ring-gray-400/40', fill: 'bg-[#B8BCC0]' },
     bronze: { ring: 'ring-[#A9713B]/40', fill: 'bg-[#A9713B]' },
 };
@@ -154,7 +154,7 @@ onBeforeUnmount(() => {
                                 <span v-if="item.jersey_number" class="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-full bg-white text-savino-blue font-black text-sm">
                                     {{ item.jersey_number }}
                                 </span>
-                                <span class="text-savino-gold text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em]">
+                                <span class="text-savino-fucsia text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em]">
                                     {{ displayRole(item.role, $t) }}
                                 </span>
                             </div>
@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
                                 <span v-if="item.height_cm"> · {{ item.height_cm }} cm</span>
                             </p>
 
-                            <div class="w-12 h-1 bg-savino-gold mt-4"></div>
+                            <div class="w-12 h-1 bg-savino-fucsia mt-4"></div>
 
                             <div v-if="counters.length" class="mt-4 flex gap-3 sm:gap-6">
                                 <div v-for="counter in counters" :key="counter.key">
@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
                             <h3 class="text-savino-blue text-xs font-black uppercase tracking-[0.2em]">
                                 {{ $t('palmares.group_' + group.category) }}
                             </h3>
-                            <div class="w-8 h-0.5 bg-savino-gold mt-2 mb-4"></div>
+                            <div class="w-8 h-0.5 bg-savino-fucsia mt-2 mb-4"></div>
 
                             <ul class="space-y-2">
                                 <li
@@ -208,7 +208,7 @@ onBeforeUnmount(() => {
                                         :class="[medalTone[entry.medal]?.fill, medalTone[entry.medal]?.ring]"
                                         :title="$t('palmares.medal_' + entry.medal)"
                                     ></span>
-                                    <svg v-else-if="group.category === 'individual'" class="shrink-0 mt-0.5 w-5 h-5 text-savino-gold" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <svg v-else-if="group.category === 'individual'" class="shrink-0 mt-0.5 w-5 h-5 text-savino-fucsia" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path d="m12 2 2.9 6.26 6.85.72-5.12 4.6 1.45 6.72L12 16.9l-6.08 3.4 1.45-6.72-5.12-4.6 6.85-.72L12 2Z"/>
                                     </svg>
                                     <svg v-else class="shrink-0 mt-0.5 w-5 h-5 text-savino-blue" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -270,7 +270,7 @@ v-for="cell in [
                     <Link
                         v-if="item.playerSlug"
                         :href="route('gallery.atleta', { slug: item.playerSlug })"
-                        class="inline-flex items-center gap-2 text-sm font-bold text-savino-blue hover:text-savino-gold transition-colors"
+                        class="inline-flex items-center gap-2 text-sm font-bold text-savino-blue hover:text-savino-fucsia transition-colors"
                     >
                         {{ $t('palmares.gallery_link') }}
                         <span aria-hidden="true">→</span>

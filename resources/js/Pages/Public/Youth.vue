@@ -23,6 +23,10 @@ const settings = computed(() => inertiaPage.props.siteSettings ?? {})
 const contact = computed(() => settings.value.contact ?? {})
 const cd = computed(() => props.page?.content_data ?? {})
 
+// Indirizzo del settore giovanile: quello scritto nella pagina, altrimenti
+// quello in Impostazioni -> Contatti.
+const scoutingEmail = computed(() => cd.value.scouting_email || contact.value.youth_email || null)
+
 // Nessun dato di ripiego: i nomi degli allenatori, gli orari di allenamento e
 // il numero di atlete sono informazioni su persone reali. I segnaposto del
 // seeder di sviluppo erano finiti online come se fossero veri. Se il CMS non
@@ -58,9 +62,9 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || $t('youth.hero_subtitle') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || $t('youth.hero_subtitle') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('youth.og_title') }}</h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description || $t('youth.hero_description') }}</p>
             </div>
         </section>
@@ -70,9 +74,9 @@ const ogMeta = useOgMeta({
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-wider">{{ cd.intro_label || $t('youth.intro_label') }}</span>
+                        <span class="text-savino-fucsia text-sm font-bold uppercase tracking-wider">{{ cd.intro_label || $t('youth.intro_label') }}</span>
                         <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mt-3 mb-4">{{ cd.intro_title || $t('youth.intro_title') }}</h2>
-                        <div class="w-12 h-1 bg-savino-gold mb-6"></div>
+                        <div class="w-12 h-1 bg-savino-fucsia mb-6"></div>
                         <p class="text-gray-600 leading-relaxed mb-4">
                             {{ cd.intro_paragraph_1 || $t('youth.intro_paragraph_1') }}
                         </p>
@@ -80,14 +84,14 @@ const ogMeta = useOgMeta({
                             {{ cd.intro_paragraph_2 || $t('youth.intro_paragraph_2') }}
                         </p>
                     </div>
-                    <div class="bg-gradient-to-br from-savino-blue/5 to-savino-gold/5 rounded-2xl p-8 border border-gray-100">
+                    <div class="bg-gradient-to-br from-savino-blue/5 to-savino-fucsia/5 rounded-2xl p-8 border border-gray-100">
                         <div class="grid grid-cols-2 gap-6">
                             <div class="text-center">
                                 <span class="text-4xl font-black text-savino-blue block">{{ cd.stat_athletes || '70+' }}</span>
                                 <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_athletes_label || $t('youth.stat_athletes_label') }}</span>
                             </div>
                             <div class="text-center">
-                                <span class="text-4xl font-black text-savino-gold block">{{ cd.stat_categories || '4' }}</span>
+                                <span class="text-4xl font-black text-savino-fucsia block">{{ cd.stat_categories || '4' }}</span>
                                 <span class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_categories_label || $t('youth.stat_categories_label') }}</span>
                             </div>
                             <div class="text-center">
@@ -108,7 +112,7 @@ const ogMeta = useOgMeta({
         <section v-if="values.length" class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.values_title || $t('youth.values_title') }}</h2>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mb-12"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-12"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     <div
@@ -145,7 +149,7 @@ const ogMeta = useOgMeta({
         <section v-if="youthTeams.length" class="py-16 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.teams_title || $t('youth.teams_title') }}</h2>
-                <div class="w-12 h-1 bg-savino-gold mb-10"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mb-10"></div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div
@@ -158,7 +162,7 @@ const ogMeta = useOgMeta({
                             class="h-32 flex items-center justify-center relative overflow-hidden"
                             :class="{
                                 'bg-gradient-to-br from-savino-blue to-savino-blue/80': team.color === 'savino-blue',
-                                'bg-gradient-to-br from-savino-gold to-savino-gold/80': team.color === 'savino-gold',
+                                'bg-gradient-to-br from-savino-fucsia to-savino-fucsia/80': team.color === 'savino-fucsia',
                                 'bg-gradient-to-br from-savino-red to-savino-red/80': team.color === 'savino-red',
                             }"
                         >
@@ -170,7 +174,7 @@ const ogMeta = useOgMeta({
                         </div>
                         <!-- Team Info -->
                         <div class="p-5">
-                            <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">{{ team.category }}</span>
+                            <span class="text-savino-fucsia text-xs font-bold uppercase tracking-wider">{{ team.category }}</span>
 
                             <div class="space-y-3 mt-4">
                                 <div class="flex items-center gap-2">
@@ -201,33 +205,28 @@ const ogMeta = useOgMeta({
         <!-- Talent Scouting -->
         <section class="py-16 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.scouting_label || $t('youth.scouting_label') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.scouting_label || $t('youth.scouting_label') }}</span>
                 <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4">{{ cd.scouting_title || $t('youth.scouting_title') }}</h2>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mb-8"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-8"></div>
                 <p class="text-white/70 text-lg leading-relaxed max-w-2xl mx-auto mb-6">
                     {{ cd.scouting_description || $t('youth.scouting_description') }}
                 </p>
                 <p class="text-white/50 text-sm mb-8">
                     {{ cd.scouting_info || $t('youth.scouting_info') }}
                 </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <!-- Un solo pulsante, e apre la posta verso il settore giovanile. Erano
+                     due: "Contattaci" rimandava alla pagina Contatti generale, dove chi
+                     cerca il vivaio deve ricominciare da capo a scegliere un destinatario. -->
+                <div class="flex justify-center">
                     <a
-                        href="/contatti"
-                        class="inline-flex items-center justify-center px-8 py-3.5 bg-savino-gold text-white font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-all duration-300 shadow-lg shadow-savino-gold/30 text-sm"
-                       
+                        v-if="scoutingEmail"
+                        :href="'mailto:' + scoutingEmail"
+                        class="inline-flex items-center justify-center px-8 py-3.5 bg-savino-fucsia text-white font-bold uppercase tracking-wider rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 shadow-lg shadow-savino-fucsia/30 text-sm"
                     >
                         {{ cd.scouting_cta_primary || $t('youth.scouting_cta_primary') }}
                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                    </a>
-                    <a
-                        v-if="cd.scouting_email || contact.youth_email"
-                        :href="'mailto:' + (cd.scouting_email || contact.youth_email)"
-                        class="inline-flex items-center justify-center px-8 py-3.5 border-2 border-white/30 text-white font-bold uppercase tracking-wider rounded-lg hover:bg-white/10 transition-all duration-300 text-sm"
-                       
-                    >
-                        {{ cd.scouting_cta_secondary || $t('youth.scouting_cta_secondary') }}
                     </a>
                 </div>
             </div>

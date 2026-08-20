@@ -28,7 +28,7 @@
         "og_title": "Sito Ufficiale",
         "og_description": "Sito ufficiale della Savino Del Bene Volley. Scopri il roster, il calendario e i risultati della Serie A1 femminile.",
         "world_champions": "Campioni del Mondo",
-        "hero_tagline": "Scatena la Potenza.",
+        "hero_tagline": "Believe",
         "hero_cta1": "Prossima Partita",
         "hero_cta2": "Biglietteria",
         "next_match_subtitle": "Prossimo Impegno",
@@ -56,7 +56,6 @@
         "privacy_policy": "Privacy Policy",
         "cookie_policy": "Cookie Policy",
         "all_rights_reserved": "Tutti i diritti riservati",
-        "tagline_default": "Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana.\nSerie A1 — Pala BigMat, Firenze.",
         "season": "Stagione",
         "roster_a1": "Roster Serie A1",
         "results": "Risultati",
@@ -204,7 +203,7 @@
         "storia_timeline_empty": "Le tappe fondamentali saranno pubblicate a breve.",
         "palazzetto_map_title": "Mappa del Pala BigMat",
         "safeguarding_documents_header": "Documenti Ufficiali",
-        "safeguarding_send_report": "Invia Segnalazione"
+        "safeguarding_report_email_label": "Scrivi a"
     },
     "staff": {
         "og_title": "Staff Tecnico e Medico",
@@ -232,7 +231,11 @@
         "no_videos": "Nessun video disponibile al momento.",
         "portal_cta_fallback": "Accedi al portale iscrizioni",
         "gallery_title": "Galleria fotografica",
-        "gallery_close": "Chiudi"
+        "gallery_close": "Chiudi",
+        "video_title": "Guarda il video",
+        "video_open": "Apri il video",
+        "documents_title": "Documenti",
+        "documents_download": "Scarica il PDF"
     },
     "sponsor": {
         "og_title": "Sponsor & Partner",
@@ -265,7 +268,6 @@
         "stat_photos": "Foto",
         "stat_events": "Eventi",
         "stat_tagged_athletes": "Atlete Taggate",
-        "filter_all": "Tutte",
         "search_by_athlete": "Cerca per Atleta",
         "search_athlete_placeholder": "Cerca atleta...",
         "no_athlete_found": "Nessuna atleta trovata",
@@ -281,7 +283,9 @@
         "next_image": "Immagine successiva",
         "lightbox_label": "Immagine ingrandita",
         "open_image": "Apri immagine ingrandita",
-        "load_more": "Mostra altre foto"
+        "load_more": "Mostra altre foto",
+        "back_to_albums": "Torna alle gallerie",
+        "album_untitled": "Senza titolo"
     },
     "news": {
         "og_title": "News",
@@ -294,7 +298,7 @@
         "filter_label": "Filtra per categoria",
         "filter_all": "Tutte",
         "filter_reset": "Mostra tutte le notizie",
-        "filter_show_all": "Tutte le categorie"
+        "filter_show_all": "Altro"
     },
     "news_detail": {
         "back_to_news": "Torna alle News",
@@ -331,7 +335,8 @@
         "matchday": "{number}ª Giornata",
         "other_matches": "Altre gare",
         "filter_all": "Tutto il campionato ({count})",
-        "filter_own": "Solo Savino ({count})"
+        "filter_own": "Savino Del Bene Volley ({count})",
+        "nav_playoff": "Playoff"
     },
     "classifica": {
         "og_title": "Classifica",
@@ -438,7 +443,9 @@
         "boxoffice_description": "La biglietteria del Pala BigMat apre 2 ore prima dell'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.",
         "plans_empty": "La campagna abbonamenti per la prossima stagione non è ancora aperta. Appena i prezzi saranno ufficiali li troverai qui.",
         "plans_empty_cta": "Contattaci",
-        "tickets_button": "Acquista i biglietti"
+        "tickets_button": "Acquista i biglietti",
+        "rate_returning": "Riconferma",
+        "rate_under16": "Under 16"
     },
     "shop": {
         "og_title": "Shop Ufficiale",
@@ -603,7 +610,8 @@
         "sort_default": "Ordina per",
         "loading_products": "Caricamento prodotti",
         "cart_error_generic": "Errore durante l'aggiunta al carrello",
-        "your_bid": "La tua offerta"
+        "your_bid": "La tua offerta",
+        "subcategory_all": "Tutti"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Ordine inviato! (placeholder)",
@@ -782,8 +790,7 @@
         "scouting_title": "Cerchiamo Nuovi Talenti",
         "scouting_description": "Sei una giovane atleta con la passione per la pallavolo? Il nostro programma di scouting è sempre alla ricerca di nuovi talenti. Partecipa alle giornate di prova e inizia il tuo percorso verso l'eccellenza sportiva.",
         "scouting_info": "Per informazioni sulle prove e le iscrizioni, contattaci via email o telefono.",
-        "scouting_cta_primary": "Contattaci",
-        "scouting_cta_secondary": "Scrivi una Email",
+        "scouting_cta_primary": "Scrivi al settore giovanile",
         "days_mon_wed_fri": "Lun-Mer-Ven",
         "days_tue_thu_sat": "Mar-Gio-Sat",
         "days_tue_thu": "Mar-Gio",
@@ -816,16 +823,28 @@
         "accreditation_title": "Accreditamento Stampa",
         "accreditation_text_1": "Giornalisti, fotografi e operatori video possono richiedere l'accreditamento per le partite casalinghe e gli eventi organizzati dalla Savino Del Bene Volley.",
         "accreditation_text_2": "L'accreditamento consente l'accesso alla tribuna stampa, alla zona mista post-partita e alle conferenze stampa pre e post gara.",
-        "accreditation_steps_title": "Come richiedere l'accredito:",
-        "accreditation_step_1": "Inviare una mail a",
-        "accreditation_step_2": "Indicare testata, nome del giornalista e tipo di accredito richiesto",
-        "accreditation_step_3": "Inviare la richiesta almeno 48 ore prima dell'evento",
-        "media_hub_subtitle": "Tutto ciò di cui hai bisogno",
         "contacts_badge": "Contatti",
         "contacts_section_title": "Ufficio Comunicazione",
         "contact_role_social": "Social Media",
         "contact_name_social": "Social Media Manager",
-        "press_kit_unavailable": "Non ancora disponibile"
+        "press_kit_unavailable": "Non ancora disponibile",
+        "accreditation_form_title": "Richiedi l’accredito",
+        "accreditation_form_submit": "Invia la richiesta",
+        "accreditation_form_sending": "Invio in corso…",
+        "accreditation_form_sent_title": "Richiesta inviata",
+        "accreditation_form_sent_text": "Ti risponderemo all’indirizzo che ci hai lasciato. Le richieste si chiudono 24 ore prima della gara.",
+        "accreditation_field_first_name": "Nome",
+        "accreditation_field_last_name": "Cognome",
+        "accreditation_field_email": "Email",
+        "accreditation_field_phone": "Telefono",
+        "accreditation_field_outlet": "Testata",
+        "accreditation_field_role": "Ruolo",
+        "accreditation_role_journalist": "Giornalista",
+        "accreditation_role_photographer": "Fotografo",
+        "accreditation_role_operator": "Operatore video",
+        "accreditation_field_match": "Gara",
+        "accreditation_field_match_placeholder": "es. Savino Del Bene Volley — Numia Vero Volley Milano",
+        "accreditation_field_notes": "Note (facoltative)"
     },
     "error": {
         "403_title": "Accesso Negato",
@@ -1071,5 +1090,13 @@
         "season_blocks": "Muri",
         "source": "Fonte:",
         "gallery_link": "Guarda le foto"
+    },
+    "talent_day": {
+        "og_title": "Talent Day & Recruiting",
+        "og_description": "Le tappe del Talent Day della Savino Del Bene Volley: date, sedi, turni per anno di nascita e come iscriversi.",
+        "stages_title": "Le Tappe",
+        "slots_title": "Orari e Categorie",
+        "signup_title": "Come Iscriversi",
+        "signup_cta": "Vai al modulo di iscrizione"
     }
 }

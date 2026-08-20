@@ -5,6 +5,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PressAccreditationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Shop\AuctionCheckoutController;
@@ -77,6 +78,10 @@ foreach ($locales as $loc) {
             ->name('stagione.partita');
         Route::get('/stagione/cev', [PublicController::class, 'risultatiCev'])->name('stagione.cev');
         Route::get('/stagione/coppa-italia', [PublicController::class, 'risultatiCoppaItalia'])->name('stagione.coppa-italia');
+        // I Playoff hanno una pagina propria: prima stavano dentro Coppa Italia,
+        // ma sono due competizioni con qualificazioni diverse. La pagina esiste
+        // anche prima che ci sia un calendario: senza gare mostra il suo vuoto.
+        Route::get('/stagione/playoff', [PublicController::class, 'risultatiPlayoff'])->name('stagione.playoff');
 
         // Foto Ufficiale e News Redirect
         Route::get('/stagione/foto-ufficiale', [PublicController::class, 'fotoUfficiale'])->name('stagione.foto-ufficiale');
@@ -175,6 +180,11 @@ foreach ($locales as $loc) {
         Route::get('/comunicazione', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'comunicazione.page', ['slug' => 'accrediti-stampa'], 301);
         })->name('comunicazione');
+        // Le richieste di accredito arrivano dal modulo nella pagina Comunicazione
+        // e finiscono in "Richieste Accrediti" nel pannello, oltre che a press@.
+        Route::post('/comunicazione/accrediti', [PressAccreditationController::class, 'submit'])
+            ->middleware('throttle:5,1')
+            ->name('comunicazione.accrediti.submit');
         Route::get('/comunicazione/{slug}', [PageController::class, 'show'])->name('comunicazione.page');
         Route::get('/news', [NewsController::class, 'index'])->name('news.index');
         Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');

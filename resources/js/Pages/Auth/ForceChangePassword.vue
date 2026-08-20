@@ -84,7 +84,7 @@ const handleLogout = () => {
 
         <!-- Animated glowing ambient circles -->
         <div class="absolute top-1/4 -left-32 w-96 h-96 bg-savino-red/10 rounded-full blur-3xl filter animate-pulse"></div>
-        <div class="absolute bottom-1/4 -right-32 w-96 h-96 bg-savino-gold/10 rounded-full blur-3xl filter animate-pulse delay-700"></div>
+        <div class="absolute bottom-1/4 -right-32 w-96 h-96 bg-savino-fucsia/10 rounded-full blur-3xl filter animate-pulse delay-700"></div>
 
         <!-- Logo -->
         <div class="mb-8 relative z-10">
@@ -98,20 +98,20 @@ const handleLogout = () => {
                 <h1 class="text-3xl font-black text-white uppercase tracking-tighter sm:text-4xl">
                     {{ t.title }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-3 mb-4"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-3 mb-4"></div>
                 <p class="text-white/75 text-sm sm:text-base px-4">
                     {{ t.subtitle }}
                 </p>
             </div>
 
             <!-- Security Warning Box (Premium Glassmorphic Banner) -->
-            <div class="mb-6 bg-gradient-to-r from-savino-gold/10 to-transparent border-l-4 border-savino-gold rounded-r-xl p-5 backdrop-blur-md shadow-lg">
+            <div class="mb-6 bg-gradient-to-r from-savino-fucsia/10 to-transparent border-l-4 border-savino-fucsia rounded-r-xl p-5 backdrop-blur-md shadow-lg">
                 <div class="flex items-start space-x-3">
-                    <svg class="h-6 w-6 text-savino-gold flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <svg class="h-6 w-6 text-savino-fucsia flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <div>
-                        <h4 class="text-base font-bold text-savino-gold uppercase tracking-wider">
+                        <h4 class="text-base font-bold text-savino-fucsia uppercase tracking-wider">
                             {{ t.warning_title }}
                         </h4>
                         <p class="text-sm text-white/80 leading-relaxed mt-1">
@@ -130,7 +130,7 @@ const handleLogout = () => {
                         <TextInput
                             id="current_password"
                             type="password"
-                            class="mt-1 block w-full transition-all focus:ring-savino-gold focus:border-savino-gold"
+                            class="mt-1 block w-full transition-all focus:ring-savino-fucsia focus:border-savino-fucsia"
                             v-model="form.current_password"
                             required
                             autofocus
@@ -175,7 +175,7 @@ const handleLogout = () => {
                         <!-- Submit Button -->
                         <button
                             type="submit"
-                            class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-base font-black uppercase tracking-wider text-white bg-savino-blue hover:bg-savino-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-savino-gold transition-all duration-200"
+                            class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-base font-black uppercase tracking-wider text-white bg-savino-blue hover:bg-savino-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-savino-fucsia transition-all duration-200"
                             :class="{ 'opacity-50 cursor-not-allowed': form.processing }"
                             :disabled="form.processing"
                         >

@@ -6,6 +6,7 @@ use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -82,7 +83,10 @@ class GalleryImage extends Model implements HasMedia
         return $this->players->concat($this->staffMembers);
     }
 
-    public function galleryEvent()
+    /**
+     * @return BelongsTo<GalleryEvent, $this>
+     */
+    public function galleryEvent(): BelongsTo
     {
         return $this->belongsTo(GalleryEvent::class);
     }

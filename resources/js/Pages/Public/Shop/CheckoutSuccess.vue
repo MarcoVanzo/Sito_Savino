@@ -157,7 +157,7 @@ onUnmounted(() => {
                     </div>
 
                     <div class="mt-8 text-sm" v-if="$page.props.auth.user">
-                        <Link :href="route('shop.orders')" class="text-savino-gold hover:underline font-medium">
+                        <Link :href="route('shop.orders')" class="text-savino-fucsia hover:underline font-medium">
                             {{ $t('checkout_success.view_orders') }}
                         </Link>
                     </div>

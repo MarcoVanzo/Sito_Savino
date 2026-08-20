@@ -143,7 +143,7 @@ return [
                 1 => [
                     'icon' => '📚',
                     'title' => 'Scuola & Sport',
-                    'color' => 'savino-gold',
+                    'color' => 'savino-fucsia',
                     'description' => 'Programma di doposcuola che unisce supporto scolastico e attività sportiva, promuovendo la crescita a 360°.',
                     'tag' => 'Educazione',
                 ],
@@ -203,7 +203,7 @@ return [
                 1 => [
                     'icon' => '📚',
                     'title' => 'Scuola & Sport',
-                    'color' => 'savino-gold',
+                    'color' => 'savino-fucsia',
                     'description' => 'After-school program combining academic support and sports activities, promoting all-round growth.',
                     'tag' => 'Education',
                 ],

@@ -53,14 +53,14 @@ function handleSubmit() {
         style="background: linear-gradient(135deg, #003063 0%, #001a38 40%, #0B1521 100%);"
     >
         <!-- Subtle pattern overlay -->
-        <div class="absolute inset-0 opacity-[0.04]" style="background-image: repeating-linear-gradient(135deg, #C9A84C 0px, #C9A84C 1px, transparent 1px, transparent 50px);"></div>
+        <div class="absolute inset-0 opacity-[0.04]" style="background-image: repeating-linear-gradient(135deg, #F8269C 0px, #F8269C 1px, transparent 1px, transparent 50px);"></div>
         <!-- Radial glow -->
         <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 50%, rgba(201,168,76,0.08) 0%, transparent 60%);"></div>
 
         <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center" data-reveal>
             <!-- Envelope icon -->
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-savino-gold/10 border border-savino-gold/20 mb-6">
-                <svg class="w-7 h-7 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-savino-fucsia/10 border border-savino-fucsia/20 mb-6">
+                <svg class="w-7 h-7 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                 </svg>
             </div>
@@ -101,7 +101,7 @@ function handleSubmit() {
                         :placeholder="$t('newsletter.placeholder_email')"
                         :aria-label="$t('newsletter.placeholder_email')"
                         required
-                        class="flex-1 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-lg px-5 py-3.5 focus:border-savino-gold focus:ring-2 focus:ring-savino-gold/30 outline-none transition-all text-sm"
+                        class="flex-1 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-lg px-5 py-3.5 focus:border-savino-fucsia focus:ring-2 focus:ring-savino-fucsia/30 outline-none transition-all text-sm"
                         :class="{ 'border-red-400': form.errors.email }"
                     />
                     <input
@@ -109,12 +109,12 @@ function handleSubmit() {
                         type="text"
                         :placeholder="$t('newsletter.placeholder_name')"
                         :aria-label="$t('newsletter.placeholder_name')"
-                        class="sm:w-48 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-lg px-5 py-3.5 focus:border-savino-gold focus:ring-2 focus:ring-savino-gold/30 outline-none transition-all text-sm"
+                        class="sm:w-48 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-lg px-5 py-3.5 focus:border-savino-fucsia focus:ring-2 focus:ring-savino-fucsia/30 outline-none transition-all text-sm"
                     />
                     <button
                         type="submit"
                         :disabled="form.processing"
-                        class="newsletter-cta-btn bg-savino-gold text-gray-900 font-bold text-sm uppercase tracking-wider px-8 py-3.5 rounded-lg hover:bg-white hover:text-savino-blue transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
+                        class="newsletter-cta-btn bg-savino-fucsia text-gray-900 font-bold text-sm uppercase tracking-wider px-8 py-3.5 rounded-lg hover:bg-white hover:text-savino-blue transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 whitespace-nowrap"
                     >
                         <svg v-if="form.processing" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -134,11 +134,11 @@ function handleSubmit() {
                     <input
                         v-model="form.privacy_accepted"
                         type="checkbox"
-                        class="mt-0.5 w-4 h-4 rounded border-white/30 bg-white/10 text-savino-gold focus:ring-savino-gold/30 focus:ring-offset-0"
+                        class="mt-0.5 w-4 h-4 rounded border-white/30 bg-white/10 text-savino-fucsia focus:ring-savino-fucsia/30 focus:ring-offset-0"
                     />
                     <span class="text-white/50 text-xs leading-relaxed group-hover:text-white/70 transition-colors">
                         {{ $t('newsletter.privacy_consent') }}
-                        <Link href="/privacy-policy" class="text-savino-gold hover:text-white underline underline-offset-2 transition-colors">
+                        <Link href="/privacy-policy" class="text-savino-fucsia hover:text-white underline underline-offset-2 transition-colors">
                             {{ $t('newsletter.privacy_link') }}
                         </Link>
                     </span>
@@ -180,13 +180,13 @@ function handleSubmit() {
                     :placeholder="$t('newsletter.placeholder_email')"
                     :aria-label="$t('newsletter.placeholder_email')"
                     required
-                    class="flex-1 min-w-0 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-lg px-3 py-2.5 text-sm focus:border-savino-gold focus:ring-1 focus:ring-savino-gold/30 outline-none transition-all"
+                    class="flex-1 min-w-0 bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-lg px-3 py-2.5 text-sm focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia/30 outline-none transition-all"
                     :class="{ 'border-red-400': form.errors.email }"
                 />
                 <button
                     type="submit"
                     :disabled="form.processing"
-                    class="bg-savino-gold text-gray-900 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-lg hover:bg-white transition-colors duration-300 disabled:opacity-50 flex-shrink-0 flex items-center gap-1.5"
+                    class="bg-savino-fucsia text-gray-900 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-lg hover:bg-white transition-colors duration-300 disabled:opacity-50 flex-shrink-0 flex items-center gap-1.5"
                 >
                     <svg v-if="form.processing" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -206,11 +206,11 @@ function handleSubmit() {
                 <input
                     v-model="form.privacy_accepted"
                     type="checkbox"
-                    class="mt-0.5 w-3.5 h-3.5 rounded border-white/20 bg-white/5 text-savino-gold focus:ring-savino-gold/30 focus:ring-offset-0"
+                    class="mt-0.5 w-3.5 h-3.5 rounded border-white/20 bg-white/5 text-savino-fucsia focus:ring-savino-fucsia/30 focus:ring-offset-0"
                 />
                 <span class="text-white/40 text-[10px] leading-relaxed group-hover:text-white/60 transition-colors">
                     {{ $t('newsletter.privacy_consent') }}
-                    <Link href="/privacy-policy" class="text-savino-gold hover:text-white underline underline-offset-2 transition-colors">
+                    <Link href="/privacy-policy" class="text-savino-fucsia hover:text-white underline underline-offset-2 transition-colors">
                         {{ $t('newsletter.privacy_link') }}
                     </Link>
                 </span>

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
 use App\Enums\StaffType;
-use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
 use App\Models\HeroSlide;
@@ -367,7 +366,12 @@ class PublicController extends Controller
 
     public function risultatiCoppaItalia()
     {
-        return $this->getRisultatiData(CompetitionType::CoppaItalia, 'Coppa Italia & Playoff', false);
+        return $this->getRisultatiData(CompetitionType::CoppaItalia, 'Coppa Italia', false);
+    }
+
+    public function risultatiPlayoff()
+    {
+        return $this->getRisultatiData(CompetitionType::Playoff, 'Playoff', false);
     }
 
     /**
@@ -831,12 +835,6 @@ class PublicController extends Controller
                 ])->toArray();
         });
 
-        $totalEvents = Cache::remember('public:gallery_total_events', now()->addMinutes(30), function () {
-            return GalleryEvent::where('is_active', true)
-                ->whereHas('galleryImages', fn ($q) => $q->where('is_active', true))
-                ->count();
-        });
-
         return Inertia::render('Public/Gallery', [
             'page' => $page,
             // Solo il primo blocco: l'archivio è di ~900 foto e serializzarlo
@@ -846,7 +844,6 @@ class PublicController extends Controller
             'media' => array_slice($media, 0, self::GALLERY_INITIAL_CHUNK),
             'mediaTotal' => count($media),
             'athletes' => $athletes,
-            'totalEvents' => $totalEvents,
             'currentAthlete' => $playerFilter ? [
                 'id' => $playerFilter->id,
                 'name' => $playerFilter->full_name,
@@ -870,7 +867,7 @@ class PublicController extends Controller
 
         return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($playerFilter, $locale) {
             $query = GalleryImage::active()->ordered()
-                ->with(['media', 'players:id,first_name,last_name', 'galleryEvent:id,title']);
+                ->with(['media', 'players:id,first_name,last_name', 'galleryEvent:id,title,event_date']);
 
             if ($playerFilter) {
                 $query->whereHas('players', function ($q) use ($playerFilter) {
@@ -912,6 +909,11 @@ class PublicController extends Controller
                         'category' => $img->category ?? 'Partite',
                         'tags' => $img->players->map(fn ($p) => $p->full_name)->values()->toArray(),
                         'event_name' => $eventName,
+                        // La pagina raggruppa le foto per album: senza l'identificativo
+                        // dovrebbe fidarsi del titolo, e due eventi omonimi in stagioni
+                        // diverse finirebbero nella stessa cartella.
+                        'event_id' => $img->gallery_event_id,
+                        'event_date' => $img->galleryEvent?->event_date?->toDateString(),
                     ];
                 })
                 ->toArray();

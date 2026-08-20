@@ -17,7 +17,7 @@ export default {
             colors: {
                 'savino-blue': '#003063',
                 'savino-red': '#DF338F',
-                'savino-gold': '#C9A84C',
+                'savino-fucsia': '#F8269C',
                 'savino-pink': '#ED028C',
             },
             fontFamily: {

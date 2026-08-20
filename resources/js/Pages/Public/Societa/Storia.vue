@@ -53,7 +53,7 @@ const timeline = computed(() => {
 
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 relative overflow-hidden">
             <!-- Decorative Background Element -->
-            <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-savino-gold/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+            <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-savino-fucsia/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
             <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-savino-blue/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3"></div>
             
             <div class="max-w-5xl mx-auto relative z-10">
@@ -63,7 +63,7 @@ const timeline = computed(() => {
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                     </div>
                     <div 
-                        class="prose prose-lg max-w-none prose-headings:font-black prose-headings:text-savino-blue prose-h2:text-3xl prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-savino-gold prose-a:no-underline hover:prose-a:underline"
+                        class="prose prose-lg max-w-none prose-headings:font-black prose-headings:text-savino-blue prose-h2:text-3xl prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-savino-fucsia prose-a:no-underline hover:prose-a:underline"
                         v-html="safeContent"
                     ></div>
                 </div>
@@ -89,15 +89,15 @@ const timeline = computed(() => {
                             
                             <div class="hidden md:block order-1 w-5/12"></div>
                             
-                            <div class="z-20 flex items-center order-1 bg-gradient-to-br from-savino-gold to-[#e0bc55] shadow-lg w-14 h-14 rounded-full ring-4 ring-white group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 flex-shrink-0 md:mx-auto absolute md:relative left-0 md:left-auto">
+                            <div class="z-20 flex items-center order-1 bg-gradient-to-br from-savino-fucsia to-[#e0bc55] shadow-lg w-14 h-14 rounded-full ring-4 ring-white group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 flex-shrink-0 md:mx-auto absolute md:relative left-0 md:left-auto">
                                 <span class="mx-auto font-bold text-white text-base drop-shadow-md">{{ item.year.substring(2) }}'</span>
                             </div>
                             
                             <div class="order-1 w-full md:w-5/12 pl-20 md:pl-0 px-0 md:px-6 py-4 transition-all duration-500"
                                  :class="index % 2 === 0 ? 'md:text-right text-left' : 'text-left'">
                                 <div class="bg-white p-8 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-gray-50 group-hover:-translate-y-2 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden">
-                                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r" :class="index % 2 === 0 ? 'from-savino-blue to-savino-red' : 'from-savino-gold to-savino-pink'"></div>
-                                    <h4 class="font-black text-savino-gold text-xl mb-1 tracking-wider">{{ item.year }}</h4>
+                                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r" :class="index % 2 === 0 ? 'from-savino-blue to-savino-red' : 'from-savino-fucsia to-savino-pink'"></div>
+                                    <h4 class="font-black text-savino-fucsia text-xl mb-1 tracking-wider">{{ item.year }}</h4>
                                     <h3 class="font-black text-2xl text-savino-blue mb-3 uppercase tracking-tight leading-tight">{{ item.title }}</h3>
                                     <p class="text-gray-600 leading-relaxed font-medium text-base">{{ item.description }}</p>
                                 </div>

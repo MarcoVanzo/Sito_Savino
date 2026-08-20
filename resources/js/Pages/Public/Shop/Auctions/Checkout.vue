@@ -153,13 +153,13 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
         <section class="relative min-h-[35vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">
                     {{ $t('auction_checkout.hero_label') }}
                 </span>
                 <h1 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ $t('auction_checkout.title') }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">
                     {{ $t('auction_checkout.subtitle') }}
                 </p>
@@ -373,7 +373,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                     <div v-else class="w-full h-full flex items-center justify-center text-2xl">🏐</div>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <span class="inline-block text-[10px] font-bold uppercase tracking-widest text-savino-gold mb-0.5">
+                                    <span class="inline-block text-[10px] font-bold uppercase tracking-widest text-savino-fucsia mb-0.5">
                                         {{ $t('auction_checkout.badge_won') }}
                                     </span>
                                     <p class="text-sm font-medium text-gray-900 line-clamp-2">{{ auctionTitle }}</p>
@@ -406,7 +406,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 type="button"
                                 @click="submitOrder"
                                 :disabled="!isSubmittable"
-                                class="w-full mt-8 bg-savino-gold text-savino-blue font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                class="w-full mt-8 bg-savino-fucsia text-savino-blue font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 <svg v-if="form.processing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

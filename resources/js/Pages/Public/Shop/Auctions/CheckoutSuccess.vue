@@ -99,7 +99,7 @@ const ogMeta = useOgMeta({
                             <div v-else class="w-full h-full flex items-center justify-center text-2xl">🏐</div>
                         </div>
                         <div class="min-w-0">
-                            <span class="block text-[10px] font-bold uppercase tracking-widest text-savino-gold mb-0.5">
+                            <span class="block text-[10px] font-bold uppercase tracking-widest text-savino-fucsia mb-0.5">
                                 {{ $t('auction_checkout.badge_won') }}
                             </span>
                             <p class="font-medium text-gray-900 truncate">{{ auctionTitle }}</p>
@@ -170,7 +170,7 @@ const ogMeta = useOgMeta({
                     </div>
 
                     <div class="mt-8 text-sm">
-                        <Link :href="route('shop.orders')" class="text-savino-gold hover:underline font-medium">
+                        <Link :href="route('shop.orders')" class="text-savino-fucsia hover:underline font-medium">
                             {{ $t('checkout_success.view_orders') }}
                         </Link>
                     </div>

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Player;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,6 +49,37 @@ class GalleryPayloadTest extends TestCase
         $response = $this->getJson('/gallery/data');
 
         $response->assertStatus(200)->assertJsonCount(130, 'media');
+    }
+
+    #[Test]
+    public function ogni_foto_porta_l_album_a_cui_appartiene(): void
+    {
+        $evento = GalleryEvent::factory()->create([
+            'title' => ['it' => 'Savino Del Bene — Numia Milano', 'en' => 'Savino Del Bene — Numia Milano'],
+            'event_date' => '2026-10-05',
+            'is_active' => true,
+        ]);
+
+        GalleryImage::factory()->create(['gallery_event_id' => $evento->id, 'is_active' => true]);
+
+        $foto = $this->getJson('/gallery/data')->assertStatus(200)->json('media.0');
+
+        // Senza questi due campi la pagina non puo' costruire le cartelle:
+        // il titolo da solo non basta, due eventi possono chiamarsi uguale.
+        $this->assertSame($evento->id, $foto['event_id']);
+        $this->assertSame('2026-10-05', $foto['event_date']);
+        $this->assertSame('Savino Del Bene — Numia Milano', $foto['event_name']);
+    }
+
+    #[Test]
+    public function una_foto_senza_album_non_inventa_un_evento(): void
+    {
+        GalleryImage::factory()->create(['gallery_event_id' => null, 'is_active' => true]);
+
+        $foto = $this->getJson('/gallery/data')->assertStatus(200)->json('media.0');
+
+        $this->assertNull($foto['event_id']);
+        $this->assertNull($foto['event_date']);
     }
 
     #[Test]

@@ -28,7 +28,7 @@
         "og_title": "Official Website",
         "og_description": "Official website of Savino Del Bene Volley. Discover the roster, schedule and results of the women's Serie A1.",
         "world_champions": "World Champions",
-        "hero_tagline": "Unleash the Power.",
+        "hero_tagline": "Believe",
         "hero_cta1": "Next Match",
         "hero_cta2": "Ticketing",
         "next_match_subtitle": "Next Fixture",
@@ -56,7 +56,6 @@
         "privacy_policy": "Privacy Policy",
         "cookie_policy": "Cookie Policy",
         "all_rights_reserved": "All rights reserved",
-        "tagline_default": "Since 1982, a tradition of excellence in Italian women's volleyball.\nSerie A1 — Pala BigMat, Florence.",
         "season": "Season",
         "roster_a1": "Serie A1 Roster",
         "results": "Results",
@@ -204,7 +203,7 @@
         "storia_timeline_empty": "The key milestones will be published shortly.",
         "palazzetto_map_title": "Pala BigMat map",
         "safeguarding_documents_header": "Official Documents",
-        "safeguarding_send_report": "Send a Report"
+        "safeguarding_report_email_label": "Write to"
     },
     "staff": {
         "og_title": "Coaching & Medical Staff",
@@ -232,7 +231,11 @@
         "no_videos": "No videos available at the moment.",
         "portal_cta_fallback": "Go to the registration portal",
         "gallery_title": "Photo gallery",
-        "gallery_close": "Close"
+        "gallery_close": "Close",
+        "video_title": "Watch the video",
+        "video_open": "Open the video",
+        "documents_title": "Documents",
+        "documents_download": "Download the PDF"
     },
     "sponsor": {
         "og_title": "Sponsors & Partners",
@@ -265,7 +268,6 @@
         "stat_photos": "Photos",
         "stat_events": "Events",
         "stat_tagged_athletes": "Tagged Athletes",
-        "filter_all": "All",
         "search_by_athlete": "Search by Athlete",
         "search_athlete_placeholder": "Search athlete...",
         "no_athlete_found": "No athlete found",
@@ -281,7 +283,9 @@
         "next_image": "Next image",
         "lightbox_label": "Enlarged image",
         "open_image": "Open enlarged image",
-        "load_more": "Show more photos"
+        "load_more": "Show more photos",
+        "back_to_albums": "Back to galleries",
+        "album_untitled": "Untitled"
     },
     "news": {
         "og_title": "News",
@@ -294,7 +298,7 @@
         "filter_label": "Filter by category",
         "filter_all": "All",
         "filter_reset": "Show all news",
-        "filter_show_all": "All categories"
+        "filter_show_all": "More"
     },
     "news_detail": {
         "back_to_news": "Back to News",
@@ -325,13 +329,14 @@
         "nav_results": "Results",
         "nav_standings": "Standings",
         "nav_cev": "CEV Champions League",
-        "nav_coppa_italia": "Italian Cup",
+        "nav_coppa_italia": "Coppa Italia",
         "full_standings": "Full standings",
         "view_box_score": "View box score",
         "matchday": "Round {number}",
         "other_matches": "Other matches",
         "filter_all": "Full league ({count})",
-        "filter_own": "Savino only ({count})"
+        "filter_own": "Savino Del Bene Volley ({count})",
+        "nav_playoff": "Playoffs"
     },
     "classifica": {
         "og_title": "Standings",
@@ -438,7 +443,9 @@
         "boxoffice_description": "The Pala BigMat box office opens 2 hours before the start of each match. We accept cash and electronic payments.",
         "plans_empty": "The season ticket campaign is not open yet. Prices will appear here as soon as they are official.",
         "plans_empty_cta": "Get in touch",
-        "tickets_button": "Buy tickets"
+        "tickets_button": "Buy tickets",
+        "rate_returning": "Renewal",
+        "rate_under16": "Under 16"
     },
     "shop": {
         "og_title": "Official Shop",
@@ -603,7 +610,8 @@
         "sort_default": "Sort by",
         "loading_products": "Loading products",
         "cart_error_generic": "Something went wrong while adding to the cart",
-        "your_bid": "Your bid"
+        "your_bid": "Your bid",
+        "subcategory_all": "All"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Order submitted! (placeholder)",
@@ -782,8 +790,7 @@
         "scouting_title": "We're Looking for New Talent",
         "scouting_description": "Are you a young athlete with a passion for volleyball? Our scouting programme is always looking for new talent. Take part in our trial days and start your journey towards sporting excellence.",
         "scouting_info": "For information about trials and registration, contact us by email or phone.",
-        "scouting_cta_primary": "Contact Us",
-        "scouting_cta_secondary": "Send an Email",
+        "scouting_cta_primary": "Email the youth academy",
         "days_mon_wed_fri": "Mon-Wed-Fri",
         "days_tue_thu_sat": "Tue-Thu-Sat",
         "days_tue_thu": "Tue-Thu",
@@ -816,16 +823,28 @@
         "accreditation_title": "Press Accreditation",
         "accreditation_text_1": "Journalists, photographers, and video operators can request accreditation for home matches and events organized by Savino Del Bene Volley.",
         "accreditation_text_2": "Accreditation grants access to the press tribune, the post-match mixed zone, and pre- and post-match press conferences.",
-        "accreditation_steps_title": "How to request accreditation:",
-        "accreditation_step_1": "Send an email to",
-        "accreditation_step_2": "Include the outlet name, journalist name, and type of accreditation requested",
-        "accreditation_step_3": "Submit the request at least 48 hours before the event",
-        "media_hub_subtitle": "Everything you need",
         "contacts_badge": "Contacts",
         "contacts_section_title": "Communications Office",
         "contact_role_social": "Social Media",
         "contact_name_social": "Social Media Manager",
-        "press_kit_unavailable": "Not available yet"
+        "press_kit_unavailable": "Not available yet",
+        "accreditation_form_title": "Request accreditation",
+        "accreditation_form_submit": "Send the request",
+        "accreditation_form_sending": "Sending…",
+        "accreditation_form_sent_title": "Request sent",
+        "accreditation_form_sent_text": "We will reply to the address you gave us. Requests close 24 hours before the match.",
+        "accreditation_field_first_name": "First name",
+        "accreditation_field_last_name": "Last name",
+        "accreditation_field_email": "Email",
+        "accreditation_field_phone": "Phone",
+        "accreditation_field_outlet": "Publication",
+        "accreditation_field_role": "Role",
+        "accreditation_role_journalist": "Journalist",
+        "accreditation_role_photographer": "Photographer",
+        "accreditation_role_operator": "Video operator",
+        "accreditation_field_match": "Match",
+        "accreditation_field_match_placeholder": "e.g. Savino Del Bene Volley — Numia Vero Volley Milano",
+        "accreditation_field_notes": "Notes (optional)"
     },
     "error": {
         "403_title": "Access Denied",
@@ -1071,5 +1090,13 @@
         "season_blocks": "Blocks",
         "source": "Source:",
         "gallery_link": "View photos"
+    },
+    "talent_day": {
+        "og_title": "Talent Day & Recruiting",
+        "og_description": "Savino Del Bene Volley Talent Day: dates, venues, age groups and how to sign up.",
+        "stages_title": "The Stages",
+        "slots_title": "Times and Age Groups",
+        "signup_title": "How to Sign Up",
+        "signup_cta": "Go to the registration form"
     }
 }

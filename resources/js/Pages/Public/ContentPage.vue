@@ -6,6 +6,7 @@ import { computed, ref } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSafeUrl } from '@/Composables/useSafeUrl';
+import PageMediaTail from '@/Components/PageMediaTail.vue';
 
 const { sanitize } = useSanitize();
 const { safeUrl } = useSafeUrl();
@@ -24,6 +25,20 @@ const buttonUrl = computed(() => safeUrl(props.page?.content_data?.button_url));
 // Le foto arrivano dalla media library (accessor `gallery_images` del model
 // Page): niente percorsi costruiti a mano, che su Spaces non funzionerebbero.
 const galleryImages = computed(() => props.page?.gallery_images ?? []);
+
+// Documenti scaricabili della pagina (es. le annate del bilancio di
+// sostenibilita'). Il percorso e' gia' stato risolto in indirizzo pubblico dal
+// backend: qui si scarta solo chi non ha davvero un file.
+const documents = computed(() => {
+    const elenco = props.page?.content_data?.documents;
+
+    if (!Array.isArray(elenco)) return [];
+
+    return elenco.filter(d => typeof d?.file === 'string' && d.file.trim() !== '');
+});
+
+const videoEmbedUrl = computed(() => props.page?.content_data?.video_embed_url ?? null);
+const videoUrl = computed(() => props.page?.content_data?.video_url ?? null);
 const lightboxIndex = ref(null);
 const lightboxImage = computed(() => (lightboxIndex.value === null ? null : galleryImages.value[lightboxIndex.value]));
 
@@ -73,12 +88,12 @@ const getEmbedUrl = (url) => {
                     <h1 class="text-4xl font-black text-savino-blue uppercase tracking-tighter mb-2">
                         {{ page?.title }}
                     </h1>
-                    <div class="w-16 h-1 bg-savino-gold"></div>
+                    <div class="w-16 h-1 bg-savino-fucsia"></div>
                 </div>
 
                 <!-- Content -->
                 <div 
-                    class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-a:text-savino-gold prose-a:no-underline hover:prose-a:underline"
+                    class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-a:text-savino-fucsia prose-a:no-underline hover:prose-a:underline"
                     v-html="safeContent"
                 ></div>
 
@@ -100,7 +115,7 @@ const getEmbedUrl = (url) => {
                                     class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-6">
-                                    <span class="px-6 py-3 bg-savino-gold text-white font-semibold rounded-lg shadow-lg uppercase tracking-wider text-sm flex items-center gap-2">
+                                    <span class="px-6 py-3 bg-savino-fucsia text-white font-semibold rounded-lg shadow-lg uppercase tracking-wider text-sm flex items-center gap-2">
                                         {{ page.content_data.button_text }}
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                     </span>
@@ -146,6 +161,42 @@ const getEmbedUrl = (url) => {
                     </div>
                 </div>
 
+                <!-- Documenti scaricabili -->
+                <div v-if="documents.length" class="mt-16 pt-12 border-t border-gray-100">
+                    <h3 class="text-2xl font-bold text-savino-blue mb-8 uppercase tracking-tight">
+                        {{ $t('content_page.documents_title') }}
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <a
+                            v-for="(doc, idx) in documents"
+                            :key="idx"
+                            :href="doc.file"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="group flex items-start gap-4 bg-white rounded-2xl border border-gray-100 p-6 hover:border-savino-blue/30 hover:shadow-md transition-all"
+                        >
+                            <span class="flex-shrink-0 bg-blue-50 text-savino-blue p-3 rounded-xl group-hover:bg-savino-blue group-hover:text-white transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </span>
+                            <span class="min-w-0">
+                                <span class="block font-bold text-gray-900 leading-snug">{{ doc.title }}</span>
+                                <span v-if="doc.description" class="block text-sm text-gray-500 mt-1">{{ doc.description }}</span>
+                                <span class="block text-sm font-bold text-savino-blue mt-2 group-hover:text-savino-fucsia transition-colors">{{ $t('content_page.documents_download') }}</span>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Video della pagina -->
+                <PageMediaTail
+                    :video-embed-url="videoEmbedUrl"
+                    :video-url="videoUrl"
+                    :images="[]"
+                />
+
                 <!-- Custom Segment: Magazine Archives -->
                 <div v-if="page?.slug === 'magazine'" class="mt-16 pt-12 border-t border-gray-100">
                     <h3 class="text-2xl font-bold text-savino-blue mb-8 uppercase tracking-tight flex items-center gap-3">
@@ -170,7 +221,7 @@ const getEmbedUrl = (url) => {
                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
                                 <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue to-indigo-900 p-4 flex flex-col justify-between text-white select-none">
-                                    <span class="text-xs uppercase font-semibold text-savino-gold tracking-widest">SDB Volley</span>
+                                    <span class="text-xs uppercase font-semibold text-savino-fucsia tracking-widest">SDB Volley</span>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white/20 self-center" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                                     <span class="text-[10px] opacity-60">Magazine</span>
                                 </div>
@@ -209,7 +260,7 @@ const getEmbedUrl = (url) => {
                 <!-- Custom Segment: Double Face (YouTube Videos) -->
                 <div v-if="page?.slug === 'double-face'" class="mt-16 pt-12 border-t border-gray-100">
                     <h3 class="text-2xl font-bold text-savino-blue mb-8 uppercase tracking-tight flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-full bg-savino-gold/10 flex items-center justify-center text-savino-gold">
+                        <span class="w-8 h-8 rounded-full bg-savino-fucsia/10 flex items-center justify-center text-savino-fucsia">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                         </span>
                         Video & Approfondimenti

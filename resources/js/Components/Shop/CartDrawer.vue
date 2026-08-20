@@ -112,7 +112,7 @@ onUnmounted(() => {
                 <!-- Header -->
                 <div class="flex items-center justify-between px-6 py-5 border-b border-gray-800">
                     <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                         <h2 class="text-white font-bold text-lg uppercase tracking-wider">
@@ -120,7 +120,7 @@ onUnmounted(() => {
                         </h2>
                         <span
                             v-if="itemCount > 0"
-                            class="bg-savino-gold/20 text-savino-gold text-xs font-bold px-2.5 py-0.5 rounded-full"
+                            class="bg-savino-fucsia/20 text-savino-fucsia text-xs font-bold px-2.5 py-0.5 rounded-full"
                         >
                             {{ itemCount }}
                         </span>
@@ -167,7 +167,7 @@ onUnmounted(() => {
                                 v-if="item.slug || item.product?.slug"
                                 :href="route('shop.product', item.slug || item.product?.slug)"
                                 @click="closeCart"
-                                class="text-white text-sm font-bold leading-tight truncate block hover:text-savino-gold transition-colors"
+                                class="text-white text-sm font-bold leading-tight truncate block hover:text-savino-fucsia transition-colors"
                             >
                                 {{ item.product?.name || item.name }}
                             </Link>
@@ -185,7 +185,7 @@ onUnmounted(() => {
                             <div class="flex items-center gap-2 mt-2">
                                 <button type="button"
                                     @click="() => { loadingItems.add(item.id); updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1), { onFinish: () => { loadingItems.delete(item.id); } }); }"
-                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-gold hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold"
+                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold"
                                     :disabled="item.quantity <= 1 || loadingItems.has(item.id)"
                                 >
                                     −
@@ -195,7 +195,7 @@ onUnmounted(() => {
                                 </span>
                                 <button type="button"
                                     @click="() => { loadingItems.add(item.id); updateQuantity(item.id, (item.quantity || 1) + 1, { onFinish: () => { loadingItems.delete(item.id); } }); }"
-                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-gold hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
+                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
                                     :disabled="item.quantity >= (item.stock ?? item.product?.stock ?? 99) || loadingItems.has(item.id)"
                                 >
                                     +
@@ -232,7 +232,7 @@ onUnmounted(() => {
                     </p>
                     <Link
                         :href="route('shop')"
-                        class="inline-flex items-center gap-2 bg-savino-gold text-gray-900 text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-gold/90 transition-colors"
+                        class="inline-flex items-center gap-2 bg-savino-fucsia text-gray-900 text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-fucsia/90 transition-colors"
                         @click="closeCart"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,7 +259,7 @@ onUnmounted(() => {
                         <Link
                             v-if="!hasStockWarnings"
                             :href="route('shop.checkout')"
-                            class="w-full bg-savino-gold text-savino-blue text-sm font-black uppercase tracking-wider py-3.5 rounded-lg hover:bg-savino-gold/90 transition-colors text-center"
+                            class="w-full bg-savino-fucsia text-savino-blue text-sm font-black uppercase tracking-wider py-3.5 rounded-lg hover:bg-savino-fucsia/90 transition-colors text-center"
                             @click="closeCart"
                         >
                             {{ $t('shop.proceed_checkout') || 'Procedi al checkout' }}

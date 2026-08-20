@@ -151,6 +151,9 @@ const activeTab = computed(() => {
         case 'Coppa Italia':
         case 'coppa_italia':
             return 'coppa-italia'
+        case 'Playoff':
+        case 'playoff':
+            return 'playoff'
         default:
             return 'risultati'
     }
@@ -183,6 +186,13 @@ const theme = computed(() => {
                 bgGradient: 'from-savino-red via-red-900 to-savino-pink',
                 dateBg: 'bg-savino-red',
                 headerBg: 'bg-savino-red',
+            };
+        case 'Playoff':
+        case 'playoff':
+            return {
+                bgGradient: 'from-savino-blue via-savino-fucsia to-savino-blue',
+                dateBg: 'bg-savino-fucsia',
+                headerBg: 'bg-savino-fucsia',
             };
         case 'Campionato':
         case 'championship':
@@ -217,9 +227,9 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br" :class="theme.bgGradient"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('risultati.current_season') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('risultati.current_season') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ pageTitle || page?.title || $t('risultati.og_title') }}</h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ $t('risultati.hero_subtitle') }}</p>
             </div>
         </section>
@@ -230,7 +240,7 @@ const ogMeta = useOgMeta({
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ $t('risultati.latest_matches') }}</h2>
-                <div class="w-12 h-1 bg-savino-gold mb-6"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mb-6"></div>
 
                 <div v-if="games.length > 0" class="flex flex-wrap items-center gap-3 mb-10">
                     <button
@@ -274,7 +284,7 @@ const ogMeta = useOgMeta({
                         :key="game.id"
                         :href="game.hasStats ? route('stagione.partita', { game: game.id }) : undefined"
                         class="block bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border"
-                        :class="game.isOwn ? 'border-savino-gold ring-1 ring-savino-gold/40' : 'border-gray-100'"
+                        :class="game.isOwn ? 'border-savino-fucsia ring-1 ring-savino-fucsia/40' : 'border-gray-100'"
                     >
                         <!-- Desktop layout (sm+) -->
                         <div class="hidden sm:flex items-center">
@@ -405,10 +415,10 @@ const ogMeta = useOgMeta({
                     <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight">{{ $t('risultati.standings') }}</h2>
                     <Link
                         :href="route('stagione.classifica')"
-                        class="text-sm font-bold text-savino-blue hover:text-savino-gold transition-colors"
+                        class="text-sm font-bold text-savino-blue hover:text-savino-fucsia transition-colors"
                     >{{ $t('risultati.full_standings') }} &rarr;</Link>
                 </div>
-                <div class="w-12 h-1 bg-savino-gold mb-10"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mb-10"></div>
 
                 <p
                     v-if="displayStandings.length === 0"
@@ -435,12 +445,12 @@ const ogMeta = useOgMeta({
                                 v-for="row in displayStandings"
                                 :key="row.pos"
                                 class="border-b border-gray-100 transition-colors duration-200"
-                                :class="row.isOwn ? 'bg-savino-gold/10 font-bold' : 'hover:bg-gray-50'"
+                                :class="row.isOwn ? 'bg-savino-fucsia/10 font-bold' : 'hover:bg-gray-50'"
                             >
                                 <td class="px-4 py-3 text-sm">
                                     <span
                                         class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black"
-                                        :class="row.pos <= 3 ? 'bg-savino-gold text-white' : 'bg-gray-200 text-gray-600'"
+                                        :class="row.pos <= 3 ? 'bg-savino-fucsia text-white' : 'bg-gray-200 text-gray-600'"
                                     >{{ row.pos }}</span>
                                 </td>
                                 <td class="px-4 py-3">
@@ -468,7 +478,7 @@ const ogMeta = useOgMeta({
                 <p v-if="hasHiddenStandings" class="text-center mt-6">
                     <Link
                         :href="route('stagione.classifica')"
-                        class="inline-block px-6 py-3 rounded-full bg-savino-blue text-white text-xs font-bold uppercase tracking-wider hover:bg-savino-gold transition-colors"
+                        class="inline-block px-6 py-3 rounded-full bg-savino-blue text-white text-xs font-bold uppercase tracking-wider hover:bg-savino-fucsia transition-colors"
                     >{{ $t('risultati.full_standings') }}</Link>
                 </p>
 

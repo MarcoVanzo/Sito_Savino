@@ -15,7 +15,7 @@ const $t = useTranslations();
     <PublicLayout>
         <section class="py-32 px-4 sm:px-6 lg:px-8 bg-white min-h-[60vh] flex flex-col justify-center items-center text-center">
             <div class="max-w-2xl mx-auto">
-                <div class="mb-8 flex justify-center text-savino-gold">
+                <div class="mb-8 flex justify-center text-savino-fucsia">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -24,14 +24,14 @@ const $t = useTranslations();
                 <h1 class="text-4xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mb-4">
                     {{ $t('under_construction.title') }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mb-8"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-8"></div>
                 <p class="text-lg text-gray-600 mb-10">
                     {{ $t('under_construction.description') }}
                 </p>
                 
                 <Link 
                     :href="route('home')" 
-                    class="inline-block px-8 py-3 bg-savino-gold text-white font-bold tracking-wider hover:bg-savino-blue transition-colors duration-300 rounded-sm"
+                    class="inline-block px-8 py-3 bg-savino-fucsia text-white font-bold tracking-wider hover:bg-savino-blue transition-colors duration-300 rounded-sm"
                 >
                     {{ $t('under_construction.back_home') }}
                 </Link>

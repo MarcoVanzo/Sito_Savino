@@ -63,7 +63,7 @@ const ogMeta = useOgMeta({
                     </p>
 
                     <div v-if="auctionTitle" class="bg-gray-50 rounded-lg px-4 py-3 mb-4">
-                        <span class="block text-[10px] font-bold uppercase tracking-widest text-savino-gold mb-1">
+                        <span class="block text-[10px] font-bold uppercase tracking-widest text-savino-fucsia mb-1">
                             {{ $t('auction_checkout.expired_lot') }}
                         </span>
                         <p class="font-medium text-gray-900">{{ auctionTitle }}</p>

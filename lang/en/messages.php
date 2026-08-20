@@ -9,6 +9,13 @@ return [
         'message_required' => 'Message is required.',
         'message_max' => 'Message cannot exceed 5000 characters.',
         'privacy_accepted' => 'You must accept the privacy policy.',
+        'phone_required' => 'The phone number is required.',
+        'outlet_required' => 'The publication is required.',
+        'role_required' => 'Please choose a role.',
+        'match_required' => 'Please tell us which match the request is for.',
+    ],
+    'press_accreditation' => [
+        'success' => 'Request sent. We will reply to the address you gave us.',
     ],
     'contact' => [
         'success_bot' => 'Message sent successfully!',

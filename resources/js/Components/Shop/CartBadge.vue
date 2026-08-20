@@ -14,7 +14,7 @@ onMounted(() => {
 <template>
     <button type="button"
         @click="toggleCart"
-        class="relative p-2 text-gray-300 hover:text-savino-gold transition-colors duration-300 focus:outline-none"
+        class="relative p-2 text-gray-300 hover:text-savino-fucsia transition-colors duration-300 focus:outline-none"
         :aria-label="`${$t('shop.cart_title') || 'Carrello'} (${cartCount})`"
     >
         <!-- Shopping Bag Icon -->

@@ -78,7 +78,7 @@ const ogMeta = useOgMeta({
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">
                     {{ $t('news.hero_title') }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mt-4"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mt-4"></div>
                 <p class="text-gray-300 mt-4 text-lg max-w-2xl">
                     {{ $t('news.hero_subtitle') }}
                 </p>
@@ -140,11 +140,11 @@ const ogMeta = useOgMeta({
                                 @error="onImgError"
                             />
                             <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue to-gray-700 flex items-center justify-center">
-                                <span class="text-savino-gold text-5xl font-black opacity-30">SDB</span>
+                                <span class="text-savino-fucsia text-5xl font-black opacity-30">SDB</span>
                             </div>
                         </div>
                         <div class="p-6">
-                            <time v-if="post.published_at" class="text-xs font-semibold text-savino-gold uppercase tracking-wider">
+                            <time v-if="post.published_at" class="text-xs font-semibold text-savino-fucsia uppercase tracking-wider">
                                 {{ formatDate(post.published_at) }}
                             </time>
                             <h2 class="mt-2 text-lg font-bold text-savino-blue group-hover:text-savino-red transition-colors line-clamp-2">
@@ -157,7 +157,7 @@ const ogMeta = useOgMeta({
                             </p>
                             <Link
                                 :href="`/news/${post.slug}`"
-                                class="inline-flex items-center mt-4 text-sm font-bold text-savino-gold hover:text-savino-red transition-colors uppercase tracking-wider"
+                                class="inline-flex items-center mt-4 text-sm font-bold text-savino-fucsia hover:text-savino-red transition-colors uppercase tracking-wider"
                             >
                                 {{ $t('common.read_more') }} →
                             </Link>

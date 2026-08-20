@@ -179,7 +179,7 @@
 
         .totals-table .discount .label,
         .totals-table .discount .value {
-            color: #C9A84C;
+            color: #F8269C;
         }
 
         .totals-table .grand-total td {

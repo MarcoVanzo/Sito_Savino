@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Translatable\HasTranslations;
 
 class GalleryEvent extends Model
@@ -33,7 +34,10 @@ class GalleryEvent extends Model
         'is_active' => 'boolean',
     ];
 
-    public function galleryImages()
+    /**
+     * @return HasMany<GalleryImage, $this>
+     */
+    public function galleryImages(): HasMany
     {
         return $this->hasMany(GalleryImage::class);
     }

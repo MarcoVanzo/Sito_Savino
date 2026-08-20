@@ -58,7 +58,7 @@ const contactInfo = computed(() => [
         title: $t('contatti.phone'),
         value: contact.value.phone,
         link: 'tel:' + String(contact.value.phone ?? '').replace(/\s/g, ''),
-        color: 'savino-gold'
+        color: 'savino-fucsia'
     },
     {
         icon: 'location',
@@ -210,9 +210,9 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent z-0"></div>
             
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24 animate-fade-in-up">
-                <span class="text-savino-gold text-sm font-black uppercase tracking-[0.4em] mb-4 block drop-shadow-sm">{{ cd.hero_subtitle || $t('contatti.hero_subtitle') }}</span>
+                <span class="text-savino-fucsia text-sm font-black uppercase tracking-[0.4em] mb-4 block drop-shadow-sm">{{ cd.hero_subtitle || $t('contatti.hero_subtitle') }}</span>
                 <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter drop-shadow-lg">{{ page?.title ?? $t('contatti.og_title') ?? 'Contatti' }}</h1>
-                <div class="w-24 h-1.5 bg-savino-gold mx-auto mt-6 mb-8 rounded-full shadow-[0_0_15px_rgba(201,168,76,0.5)]"></div>
+                <div class="w-24 h-1.5 bg-savino-fucsia mx-auto mt-6 mb-8 rounded-full shadow-[0_0_15px_rgba(201,168,76,0.5)]"></div>
                 <p class="text-white/90 text-xl font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-md">{{ cd.hero_description || $t('contatti.hero_description') }}</p>
             </div>
         </section>
@@ -229,7 +229,7 @@ const ogMeta = useOgMeta({
                         class="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 p-8 text-center border-t-4 border-gray-100 hover:-translate-y-2 group"
                         :class="{
                             'hover:border-t-savino-blue': info.color === 'savino-blue',
-                            'hover:border-t-savino-gold': info.color === 'savino-gold',
+                            'hover:border-t-savino-fucsia': info.color === 'savino-fucsia',
                             'hover:border-t-savino-red': info.color === 'savino-red'
                         }"
                     >
@@ -237,7 +237,7 @@ const ogMeta = useOgMeta({
                             class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center transition-transform duration-500 group-hover:scale-110 shadow-inner"
                             :class="{
                                 'bg-savino-blue/10': info.color === 'savino-blue',
-                                'bg-savino-gold/10': info.color === 'savino-gold',
+                                'bg-savino-fucsia/10': info.color === 'savino-fucsia',
                                 'bg-savino-red/10': info.color === 'savino-red'
                             }"
                         >
@@ -245,7 +245,7 @@ const ogMeta = useOgMeta({
                             <svg v-if="info.icon === 'email'" class="w-8 h-8" :class="{ 'text-savino-blue': info.color === 'savino-blue' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
-                            <svg v-else-if="info.icon === 'phone'" class="w-8 h-8" :class="{ 'text-savino-gold': info.color === 'savino-gold' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg v-else-if="info.icon === 'phone'" class="w-8 h-8" :class="{ 'text-savino-fucsia': info.color === 'savino-fucsia' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                             <svg v-else class="w-8 h-8" :class="{ 'text-savino-red': info.color === 'savino-red' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -325,8 +325,8 @@ const ogMeta = useOgMeta({
                                 </div>
                             </div>
                             <div class="flex items-start gap-5 p-5 rounded-2xl hover:bg-gray-50 transition-colors">
-                                <div class="w-12 h-12 rounded-full bg-savino-gold/10 flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-6 h-6 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="w-12 h-12 rounded-full bg-savino-fucsia/10 flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-6 h-6 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-12 0 9 9 0 0112 0z" />
                                     </svg>
                                 </div>
@@ -409,7 +409,7 @@ const ogMeta = useOgMeta({
                                     class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-savino-blue/30 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
                                 >
                                     <div>
-                                        <span class="inline-block text-[10px] font-black text-savino-gold uppercase tracking-[0.2em] mb-3 bg-savino-gold/10 px-2.5 py-1 rounded">{{ item.role }}</span>
+                                        <span class="inline-block text-[10px] font-black text-savino-fucsia uppercase tracking-[0.2em] mb-3 bg-savino-fucsia/10 px-2.5 py-1 rounded">{{ item.role }}</span>
                                         <h4 v-if="item.name" class="text-lg font-black text-gray-900 uppercase tracking-tight mb-4 group-hover:text-savino-blue transition-colors">
                                             {{ item.name }}
                                         </h4>
@@ -427,8 +427,8 @@ const ogMeta = useOgMeta({
                                             <a :href="'mailto:' + item.email" class="font-bold break-all">{{ item.email }}</a>
                                         </div>
                                         <!-- Phone -->
-                                        <div v-if="item.phone" class="flex items-center gap-3 text-gray-600 hover:text-savino-gold transition-colors">
-                                            <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-savino-gold/10 transition-colors">
+                                        <div v-if="item.phone" class="flex items-center gap-3 text-gray-600 hover:text-savino-fucsia transition-colors">
+                                            <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-savino-fucsia/10 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                                 </svg>

@@ -294,11 +294,11 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_checkout.hero_label') }}</span>
+            <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_checkout.hero_label') }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ $t('shop_checkout.og_title') }}
             </h1>
-            <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
+            <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
             <p class="text-white/70 text-lg max-w-2xl mx-auto">
                 {{ $t('shop_checkout.hero_subtitle') }}
             </p>
@@ -326,7 +326,7 @@ const ogMeta = useOgMeta({
                                 {{ $t('shop_checkout.guest_banner_login') }}
                             </Link>
                             {{ $t('shop_checkout.guest_banner_or') }}
-                            <Link :href="route('shop.register')" class="font-bold text-savino-gold hover:text-savino-gold/80 underline underline-offset-2 transition-colors">
+                            <Link :href="route('shop.register')" class="font-bold text-savino-fucsia hover:text-savino-fucsia/80 underline underline-offset-2 transition-colors">
                                 {{ $t('shop_checkout.guest_banner_register') }}
                             </Link>
                             {{ $t('shop_checkout.guest_banner_benefits') }}
@@ -346,7 +346,7 @@ const ogMeta = useOgMeta({
                     <!-- Step 1 -->
                     <div class="flex items-center">
                         <div class="flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all duration-300"
-                             :class="currentStep >= 1 ? (currentStep > 1 ? 'bg-savino-gold text-white' : 'bg-savino-blue text-white') : 'bg-gray-200 text-gray-500'">
+                             :class="currentStep >= 1 ? (currentStep > 1 ? 'bg-savino-fucsia text-white' : 'bg-savino-blue text-white') : 'bg-gray-200 text-gray-500'">
                             <svg v-if="currentStep > 1" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                             </svg>
@@ -357,7 +357,7 @@ const ogMeta = useOgMeta({
                         </span>
                     </div>
                     <!-- Line -->
-                    <div class="w-16 sm:w-24 h-0.5 mx-4 transition-all duration-300" :class="currentStep > 1 ? 'bg-savino-gold' : 'bg-gray-200'"></div>
+                    <div class="w-16 sm:w-24 h-0.5 mx-4 transition-all duration-300" :class="currentStep > 1 ? 'bg-savino-fucsia' : 'bg-gray-200'"></div>
                     <!-- Step 2 -->
                     <div class="flex items-center">
                         <div class="flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all duration-300"
@@ -684,7 +684,7 @@ const ogMeta = useOgMeta({
                         <!-- Coupon Code -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <div class="flex items-center gap-3 mb-4">
-                                <svg class="w-5 h-5 text-savino-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <svg class="w-5 h-5 text-savino-fucsia" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                 </svg>
                                 <h3 class="text-sm font-bold text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.coupon_label') }}</h3>
@@ -828,7 +828,7 @@ const ogMeta = useOgMeta({
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="shippingCost > 0 && selectedZone?.free_threshold" class="text-xs text-savino-gold">
+                            <div v-if="shippingCost > 0 && selectedZone?.free_threshold" class="text-xs text-savino-fucsia">
                                 {{ $t('shop_checkout.free_shipping_threshold') }}
                             </div>
                             <div v-if="couponDiscount > 0" class="flex justify-between text-sm">
@@ -848,7 +848,7 @@ const ogMeta = useOgMeta({
                             v-if="currentStep === 2"
                             @click="submitOrder"
                             :disabled="form.processing || cart.items.length === 0 || !form.payment_gateway || !form.privacy_accepted"
-                            class="w-full mt-8 bg-savino-gold text-savino-blue font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            class="w-full mt-8 bg-savino-fucsia text-savino-blue font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             <svg v-if="form.processing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

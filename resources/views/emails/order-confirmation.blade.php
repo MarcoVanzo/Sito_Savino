@@ -105,8 +105,8 @@
                 <td style="padding: 12px 20px; border-bottom: 1px solid #e9ecef;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                         <tr>
-                            <td style="color: #C9A84C; font-size: 14px;">{{ __('emails.confirmation.coupon_discount') }}</td>
-                            <td align="right" style="color: #C9A84C; font-size: 14px;">-€{{ number_format($order->coupon_discount, 2, ',', '.') }}</td>
+                            <td style="color: #F8269C; font-size: 14px;">{{ __('emails.confirmation.coupon_discount') }}</td>
+                            <td align="right" style="color: #F8269C; font-size: 14px;">-€{{ number_format($order->coupon_discount, 2, ',', '.') }}</td>
                         </tr>
                     </table>
                 </td>
@@ -126,7 +126,7 @@
 
     {{-- Bank Transfer Instructions --}}
     @if($order->payment_gateway === \App\Enums\PaymentGateway::BankTransfer)
-        <div style="background-color: #FFF8E1; border-left: 4px solid #C9A84C; padding: 16px 20px; margin-bottom: 24px; border-radius: 0 6px 6px 0;">
+        <div style="background-color: #FFF8E1; border-left: 4px solid #F8269C; padding: 16px 20px; margin-bottom: 24px; border-radius: 0 6px 6px 0;">
             <h3 style="color: #003063; font-size: 15px; font-weight: 700; margin: 0 0 10px;">
                 {{ __('emails.confirmation.bank_transfer_heading') }}
             </h3>

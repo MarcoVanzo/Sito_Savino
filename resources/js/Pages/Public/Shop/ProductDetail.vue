@@ -252,21 +252,21 @@ const structuredData = computed(() => {
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
                 <!-- Breadcrumb -->
                 <nav class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
-                    <Link :href="route('home')" class="hover:text-savino-gold transition-colors">{{ $t('common.home') }}</Link>
+                    <Link :href="route('home')" class="hover:text-savino-fucsia transition-colors">{{ $t('common.home') }}</Link>
                     <span>/</span>
-                    <Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('common.shop') }}</Link>
+                    <Link :href="route('shop')" class="hover:text-savino-fucsia transition-colors">{{ $t('common.shop') }}</Link>
                     <template v-if="product?.category">
                         <span>/</span>
-                        <Link :href="route('shop.category', product.category.slug)" class="hover:text-savino-gold transition-colors">{{ product.category.name }}</Link>
+                        <Link :href="route('shop.category', product.category.slug)" class="hover:text-savino-fucsia transition-colors">{{ product.category.name }}</Link>
                     </template>
                     <span>/</span>
-                    <span class="text-savino-gold">{{ product?.name }}</span>
+                    <span class="text-savino-fucsia">{{ product?.name }}</span>
                 </nav>
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ product?.category?.name ?? $t('shop.hero_label') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ product?.category?.name ?? $t('shop.hero_label') }}</span>
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ product?.name }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4"></div>
             </div>
         </section>
 
@@ -311,7 +311,7 @@ const structuredData = computed(() => {
                                 :key="index"
                                 @click="selectImage(index)"
                                 class="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:opacity-100"
-                                :class="selectedImageIndex === index ? 'border-savino-gold shadow-md opacity-100' : 'border-gray-200 opacity-60'"
+                                :class="selectedImageIndex === index ? 'border-savino-fucsia shadow-md opacity-100' : 'border-gray-200 opacity-60'"
                             >
                                 <img :src="img" :alt="`${product.name} - ${index + 1}`" class="w-full h-full object-cover" @error="onImgError" />
                             </button>
@@ -354,7 +354,7 @@ const structuredData = computed(() => {
                                     @click="selectedVariant = variant.id"
                                     class="px-5 py-2.5 rounded-lg border-2 text-sm font-semibold transition-all duration-200"
                                     :class="selectedVariant === variant.id
-                                        ? 'border-savino-gold bg-savino-gold/10 text-savino-blue'
+                                        ? 'border-savino-fucsia bg-savino-fucsia/10 text-savino-blue'
                                         : 'border-gray-200 text-gray-600 hover:border-savino-blue/30'"
                                     :disabled="variant.stock <= 0"
                                 >
@@ -369,7 +369,7 @@ const structuredData = computed(() => {
                         </div>
 
                         <!-- Size Guide Link -->
-                        <a v-if="product?.variants?.some(v => v.size)" href="#" @click.prevent="showSizeGuide = true" class="inline-flex items-center gap-1.5 text-sm text-savino-blue hover:text-savino-gold transition-colors mt-3">
+                        <a v-if="product?.variants?.some(v => v.size)" href="#" @click.prevent="showSizeGuide = true" class="inline-flex items-center gap-1.5 text-sm text-savino-blue hover:text-savino-fucsia transition-colors mt-3">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                             {{ $t('shop.size_guide') }}
                         </a>
@@ -410,7 +410,7 @@ const structuredData = computed(() => {
                             class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl text-white font-bold uppercase tracking-wider text-sm transition-all duration-300 shadow-lg"
                             :class="isOutOfStock
                                 ? 'bg-gray-300 cursor-not-allowed shadow-none'
-                                : 'bg-savino-blue hover:bg-savino-gold hover:text-savino-blue hover:shadow-xl transform hover:-translate-y-0.5'"
+                                : 'bg-savino-blue hover:bg-savino-fucsia hover:text-savino-blue hover:shadow-xl transform hover:-translate-y-0.5'"
                         >
                             <svg v-if="!isAdding" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             <svg v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
@@ -446,7 +446,7 @@ const structuredData = computed(() => {
         <section v-if="product?.long_description" class="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div class="max-w-4xl mx-auto">
                 <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-8">{{ $t('shop.description') }}</h3>
-                <div class="w-12 h-1 bg-savino-gold mb-8"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mb-8"></div>
                 <div class="prose prose-lg max-w-none text-gray-700 prose-headings:text-savino-blue prose-a:text-savino-blue" v-html="sanitize(product.long_description)"></div>
             </div>
         </section>
@@ -455,9 +455,9 @@ const structuredData = computed(() => {
         <section v-if="relatedProducts.length > 0" class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
             <div class="max-w-7xl mx-auto">
                 <div class="text-center mb-12">
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.discover') }}</span>
+                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.discover') }}</span>
                     <h3 class="text-3xl font-black text-savino-blue uppercase tracking-tighter mt-2">{{ $t('shop.related_products') }}</h3>
-                    <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
+                    <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4"></div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     <ProductCard v-for="rp in relatedProducts" :key="rp.id" :product="rp" />

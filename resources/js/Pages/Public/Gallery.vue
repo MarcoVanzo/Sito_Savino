@@ -7,6 +7,7 @@ import { useImageFallback } from '@/Composables/useImageFallback.js'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useChunkedList } from '@/Composables/useChunkedList.js'
 import { useDeferredArchive } from '@/Composables/useDeferredArchive.js'
+import { groupIntoAlbums, searchMedia } from '@/Support/galleryAlbums.js'
 
 const $t = useTranslations();
 
@@ -28,10 +29,6 @@ const props = defineProps({
     currentAthlete: {
         type: Object,
         default: null
-    },
-    totalEvents: {
-        type: Number,
-        default: 0
     },
     // Foto totali in archivio: `media` ne contiene solo il primo blocco
     mediaTotal: {
@@ -72,36 +69,81 @@ const heroParticles = Array.from({ length: 20 }, (_, i) => {
 })
 
 // ── Category filter ───────────────────────────────────────────
-const ALL_CATEGORY = '__all__'
-const categories = computed(() => {
-    const cats = [...new Set(displayMedia.value.map(m => m.category).filter(Boolean))]
-    return [ALL_CATEGORY, ...cats]
-})
-const activeCategory = ref(ALL_CATEGORY)
+// La voce "Tutte" è sparita: rovesciava in una griglia sola novecento foto di
+// contesti diversi, che è esattamente il disordine da cui si voleva uscire.
+// Restano le categorie vere, e si entra sempre da una di quelle.
+const categories = computed(() => [...new Set(displayMedia.value.map(m => m.category).filter(Boolean))])
+const activeCategory = ref(null)
+
+// Le categorie si conoscono solo a foto caricate, e l'archivio completo arriva
+// dopo il primo render: la prima disponibile diventa quella aperta.
+watch(categories, (cats) => {
+    if (activeCategory.value === null && cats.length > 0) {
+        activeCategory.value = cats.includes('Partite') ? 'Partite' : cats[0]
+    }
+}, { immediate: true })
 
 // ── Tag search ────────────────────────────────────────────────
 const searchQuery = ref('')
 
+// ── Album ─────────────────────────────────────────────────────
+// Le foto stanno in album (gli "Eventi Gallery" del pannello) e la pagina entra
+// da lì: prima le copertine, poi le foto dentro. Una ricerca per tag o una
+// pagina d'atleta attraversano invece piu' album, quindi in quei due casi si
+// torna all'elenco piatto.
+const activeAlbumId = ref(null)
+
+const categoryMedia = computed(() => {
+    if (!activeCategory.value) return displayMedia.value
+
+    return displayMedia.value.filter(m => m.category === activeCategory.value)
+})
+
+const albums = computed(() => groupIntoAlbums(categoryMedia.value, { untitled: $t('gallery.album_untitled') }))
+
+const activeAlbum = computed(() => albums.value.find(a => a.id === activeAlbumId.value) ?? null)
+
+const isSearching = computed(() => searchQuery.value.trim() !== '')
+
+// L'elenco degli album si mostra solo quando si sta davvero sfogliando l'archivio.
+const showAlbums = computed(() => !props.currentAthlete && !isSearching.value && activeAlbumId.value === null && albums.value.length > 0)
+
+// La categoria e' il modo di sfogliare l'archivio, non un filtro che vale
+// sempre: la pagina di un'atleta mostra le sue foto ovunque siano, e la ricerca
+// guarda tutto. Applicarla anche li' nascondeva meta' del risultato senza dirlo,
+// e senza piu' la voce "Tutte" non c'era modo di rimediare.
 const filteredMedia = computed(() => {
-    let result = displayMedia.value
-
-    // Category filter
-    if (activeCategory.value !== ALL_CATEGORY) {
-        result = result.filter(m => m.category === activeCategory.value)
-    }
-
-    // Text search (AI tags, player names, event name, title)
     const q = searchQuery.value.trim().toLowerCase()
-    if (q) {
-        result = result.filter(m => {
-            const matchAlt = m.alt?.toLowerCase().includes(q)
-            const matchTags = m.tags?.some(t => t.toLowerCase().includes(q))
-            const matchEvent = m.event_name?.toLowerCase().includes(q)
-            return matchAlt || matchTags || matchEvent
-        })
+
+    if (props.currentAthlete) {
+        // Il backend ha gia' ristretto l'archivio a quell'atleta.
+        return searchMedia(displayMedia.value, q)
     }
 
-    return result
+    if (q) {
+        return searchMedia(displayMedia.value, q)
+    }
+
+    if (activeAlbumId.value !== null) {
+        return categoryMedia.value.filter(m => m.event_id === activeAlbumId.value)
+    }
+
+    return categoryMedia.value
+})
+
+function openAlbum(id) {
+    activeAlbumId.value = id
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function closeAlbum() {
+    activeAlbumId.value = null
+}
+
+// Cambiare categoria o cercare porta fuori dall'album aperto: restarci dentro
+// mostrerebbe una cartella che non appartiene piu' a quello che si sta guardando.
+watch([activeCategory, isSearching], () => {
+    activeAlbumId.value = null
 })
 
 // ── Rendering incrementale ────────────────────────────────────
@@ -278,11 +320,6 @@ onUnmounted(() => {
 const loadedImages = ref(new Set())
 function onImageLoad(id) { loadedImages.value.add(id) }
 
-// ── Stats ─────────────────────────────────────────────────────
-const totalPhotos = computed(() => displayMedia.value.length)
-const totalEvents = computed(() => props.totalEvents)
-const totalTaggedAthletes = computed(() => props.athletes?.length || 0)
-
 const ogMeta = useOgMeta({
     title: props.currentAthlete ? $t('gallery.photos_of') + ' ' + props.currentAthlete.name : (props.page?.title ?? $t('gallery.title')),
     description: $t('gallery.og_description'),
@@ -338,21 +375,6 @@ const ogMeta = useOgMeta({
                     {{ $t('gallery.subtitle') }}
                 </p>
 
-                <!-- Stats pills -->
-                <div v-if="totalPhotos > 0" class="gallery-hero__stats">
-                    <div class="gallery-hero__stat">
-                        <span class="gallery-hero__stat-number">{{ totalPhotos }}</span>
-                        <span class="gallery-hero__stat-label">{{ $t('gallery.stat_photos') }}</span>
-                    </div>
-                    <div v-if="totalEvents > 0" class="gallery-hero__stat">
-                        <span class="gallery-hero__stat-number">{{ totalEvents }}</span>
-                        <span class="gallery-hero__stat-label">{{ $t('gallery.stat_events') }}</span>
-                    </div>
-                    <div v-if="totalTaggedAthletes > 0" class="gallery-hero__stat">
-                        <span class="gallery-hero__stat-number">{{ totalTaggedAthletes }}</span>
-                        <span class="gallery-hero__stat-label">{{ $t('gallery.stat_tagged_athletes') }}</span>
-                    </div>
-                </div>
             </div>
 
             <!-- Scroll hint -->
@@ -367,7 +389,7 @@ const ogMeta = useOgMeta({
         <section class="gallery-filters">
             <div class="gallery-filters__inner">
                 <!-- Category filter chips -->
-                <div class="gallery-filters__categories">
+                <div v-if="!currentAthlete" class="gallery-filters__categories">
                     <button type="button"
                         v-for="cat in categories"
                         :key="cat"
@@ -375,10 +397,7 @@ const ogMeta = useOgMeta({
                         class="gallery-filters__chip"
                         :class="{ 'gallery-filters__chip--active': activeCategory === cat }"
                     >
-                        <svg v-if="cat === '__all__'" class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M5.5 3A2.5 2.5 0 003 5.5v2.879a2.5 2.5 0 00.732 1.767l6.5 6.5a2.5 2.5 0 003.536 0l2.878-2.878a2.5 2.5 0 000-3.536l-6.5-6.5A2.5 2.5 0 008.38 3H5.5zM6 7a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
-                        </svg>
-                        <svg v-else-if="cat === 'Partite'" class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
+                        <svg v-if="cat === 'Partite'" class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zM10 7a3 3 0 100 6 3 3 0 000-6z"/>
                         </svg>
                         <svg v-else-if="cat === 'Allenamenti'" class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
@@ -387,10 +406,7 @@ const ogMeta = useOgMeta({
                         <svg v-else class="gallery-filters__chip-icon" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-2.69l-2.22-2.219a.75.75 0 00-1.06 0l-1.91 1.909.47.47a.75.75 0 11-1.06 1.06L6.53 8.091a.75.75 0 00-1.06 0L2.5 11.06z"/>
                         </svg>
-                        {{ cat === '__all__' ? $t('gallery.filter_all') : cat }}
-                        <span v-if="cat !== '__all__'" class="gallery-filters__chip-count">
-                            {{ displayMedia.filter(m => m.category === cat).length }}
-                        </span>
+                        {{ cat }}
                     </button>
                 </div>
 
@@ -494,17 +510,52 @@ const ogMeta = useOgMeta({
                 </div>
             </div>
 
-            <!-- Photo count -->
+            <!-- Conteggio: quante cartelle si stanno sfogliando, o quante foto ci sono dentro -->
             <div class="gallery-filters__count">
-                <span>{{ filteredMedia.length }}</span> {{ $t('gallery.stat_photos').toLowerCase() }}
-                <template v-if="activeCategory !== '__all__'"> {{ $t('gallery.in_category') }} <strong>{{ activeCategory }}</strong></template>
-                <template v-if="currentAthlete"> · <strong>{{ currentAthlete.name }}</strong></template>
-                <template v-if="searchQuery.trim()"> · {{ $t('gallery.search_label') }}: <strong>"{{ searchQuery.trim() }}"</strong></template>
+                <template v-if="showAlbums">
+                    <span>{{ albums.length }}</span> {{ $t('gallery.stat_events').toLowerCase() }}
+                    <template v-if="activeCategory"> {{ $t('gallery.in_category') }} <strong>{{ activeCategory }}</strong></template>
+                </template>
+                <template v-else>
+                    <span>{{ filteredMedia.length }}</span> {{ $t('gallery.stat_photos').toLowerCase() }}
+                    <!-- La categoria si nomina solo quando sta davvero filtrando:
+                         cercando o guardando un'atleta si attraversano tutte. -->
+                    <template v-if="activeAlbum"> {{ $t('gallery.in_category') }} <strong>{{ activeAlbum.name }}</strong></template>
+                    <template v-else-if="activeCategory && !currentAthlete && !isSearching"> {{ $t('gallery.in_category') }} <strong>{{ activeCategory }}</strong></template>
+                    <template v-if="currentAthlete"> · <strong>{{ currentAthlete.name }}</strong></template>
+                    <template v-if="searchQuery.trim()"> · {{ $t('gallery.search_label') }}: <strong>"{{ searchQuery.trim() }}"</strong></template>
+                </template>
+            </div>
+        </section>
+
+        <!-- ═══════════════ ALBUM ═══════════════ -->
+        <section v-if="showAlbums" class="gallery-grid-section">
+            <div class="gallery-albums">
+                <button type="button"
+                    v-for="album in albums"
+                    :key="album.id"
+                    @click="openAlbum(album.id)"
+                    class="gallery-album"
+                >
+                    <div class="gallery-album__cover">
+                        <img :src="album.cover" :alt="album.name" class="gallery-album__img" loading="lazy" decoding="async" @error="onImgError" />
+                        <span class="gallery-album__count">{{ album.count }}</span>
+                    </div>
+                    <span class="gallery-album__name">{{ album.name }}</span>
+                </button>
             </div>
         </section>
 
         <!-- ═══════════════ GALLERY GRID ═══════════════ -->
-        <section class="gallery-grid-section">
+        <section v-else class="gallery-grid-section">
+            <!-- Ritorno all'elenco degli album -->
+            <button type="button" v-if="activeAlbum" @click="closeAlbum" class="gallery-album-back">
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd"/>
+                </svg>
+                {{ $t('gallery.back_to_albums') }}
+            </button>
+
             <!-- Empty State -->
             <div v-if="filteredMedia.length === 0" class="gallery-empty">
                 <div class="gallery-empty__icon-wrap">
@@ -737,11 +788,11 @@ const ogMeta = useOgMeta({
 .gallery-hero__badge-icon {
     width: 1rem;
     height: 1rem;
-    color: #C9A84C;
+    color: #F8269C;
 }
 
 .gallery-hero__badge span {
-    color: #C9A84C;
+    color: #F8269C;
     font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -786,7 +837,7 @@ const ogMeta = useOgMeta({
 .gallery-hero__divider span:nth-child(2) {
     width: 0.5rem;
     height: 0.5rem;
-    background: #C9A84C;
+    background: #F8269C;
     border-radius: 50%;
 }
 
@@ -805,35 +856,6 @@ const ogMeta = useOgMeta({
     line-height: 1.6;
 }
 
-.gallery-hero__stats {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
-
-.gallery-hero__stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-}
-
-.gallery-hero__stat-number {
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: #C9A84C;
-    line-height: 1;
-}
-
-.gallery-hero__stat-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: rgba(255,255,255,0.4);
-}
 
 .gallery-hero__scroll {
     position: absolute;
@@ -965,7 +987,7 @@ const ogMeta = useOgMeta({
 .gallery-filters__search-icon {
     width: 1.1rem;
     height: 1.1rem;
-    color: #C9A84C;
+    color: #F8269C;
 }
 
 .gallery-filters__search-chevron {
@@ -1178,7 +1200,7 @@ const ogMeta = useOgMeta({
 }
 
 .gallery-filters__tag-search-wrap:focus-within .gallery-filters__tag-search-icon {
-    color: #C9A84C;
+    color: #F8269C;
 }
 
 .gallery-filters__tag-search-input {
@@ -1247,6 +1269,115 @@ const ogMeta = useOgMeta({
     min-height: 50vh;
 }
 
+/* ── Album ──────────────────────────────────────────────────────
+   L'archivio si sfoglia per cartelle: una copertina, il nome dell'evento e
+   quante foto contiene. La griglia delle foto resta quella di prima, dentro. */
+.gallery-albums {
+    max-width: 84rem;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1.5rem;
+}
+
+.gallery-album {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.gallery-album__cover {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: .875rem;
+    background: #0b1a2e;
+    box-shadow: 0 10px 30px -15px rgba(0, 48, 99, .5);
+}
+
+.gallery-album__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .6s ease;
+}
+
+.gallery-album:hover .gallery-album__img,
+.gallery-album:focus-visible .gallery-album__img {
+    transform: scale(1.06);
+}
+
+.gallery-album__count {
+    position: absolute;
+    right: .625rem;
+    bottom: .625rem;
+    padding: .25rem .625rem;
+    border-radius: 999px;
+    background: rgba(11, 21, 33, .82);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    backdrop-filter: blur(4px);
+}
+
+.gallery-album__name {
+    font-weight: 700;
+    font-size: .9375rem;
+    line-height: 1.35;
+    color: #0b1521;
+}
+
+.gallery-album:focus-visible {
+    outline: 3px solid #F8269C;
+    outline-offset: 4px;
+    border-radius: .875rem;
+}
+
+.gallery-album-back {
+    display: inline-flex;
+    align-items: center;
+    gap: .375rem;
+    margin: 0 auto 1.75rem;
+    padding: .5rem 1rem .5rem .75rem;
+    border: 1px solid rgba(11, 21, 33, .12);
+    border-radius: 999px;
+    background: #fff;
+    color: #0b1521;
+    font: inherit;
+    font-size: .8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color .2s ease, color .2s ease;
+}
+
+.gallery-album-back svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.gallery-album-back:hover {
+    border-color: #F8269C;
+    color: #F8269C;
+}
+
+.gallery-grid-section:has(.gallery-album-back) {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gallery-album__img { transition: none; }
+    .gallery-album:hover .gallery-album__img { transform: none; }
+}
+
 .gallery-masonry {
     max-width: 84rem;
     margin: 0 auto;
@@ -1283,7 +1414,7 @@ const ogMeta = useOgMeta({
 }
 
 .gallery-masonry__item:focus-visible {
-    outline: 3px solid #C9A84C;
+    outline: 3px solid #F8269C;
     outline-offset: 3px;
 }
 
@@ -1378,7 +1509,7 @@ const ogMeta = useOgMeta({
 .gallery-masonry__category {
     background: rgba(0,0,0,0.5);
     backdrop-filter: blur(8px);
-    color: #C9A84C;
+    color: #F8269C;
     font-size: 0.6rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -1462,7 +1593,7 @@ const ogMeta = useOgMeta({
 .gallery-empty__icon {
     width: 2.5rem;
     height: 2.5rem;
-    color: #C9A84C;
+    color: #F8269C;
 }
 
 .gallery-empty__title {
@@ -1580,7 +1711,7 @@ const ogMeta = useOgMeta({
 .gallery-lightbox__nav:hover {
     background: rgba(201,168,76,0.2);
     border-color: rgba(201,168,76,0.3);
-    color: #C9A84C;
+    color: #F8269C;
 }
 
 .gallery-lightbox__nav svg {
@@ -1640,7 +1771,7 @@ const ogMeta = useOgMeta({
 }
 
 .gallery-lightbox__info-category {
-    color: #C9A84C;
+    color: #F8269C;
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -1698,7 +1829,7 @@ const ogMeta = useOgMeta({
 
 .gallery-lightbox__thumb--active {
     opacity: 1;
-    border-color: #C9A84C;
+    border-color: #F8269C;
     box-shadow: 0 0 12px rgba(201,168,76,0.3);
 }
 

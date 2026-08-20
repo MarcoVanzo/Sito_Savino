@@ -51,8 +51,8 @@ class CacheInvalidationObserver
         Game::class => ['public:risultati', 'public:home', 'filament:dashboard:stats', 'filament:dashboard:next_match_id'],
         Standing::class => ['public:risultati'],
         StaffMember::class => ['public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],
-        GalleryEvent::class => ['public:gallery_total_events', 'public:gallery_images'],
-        GalleryImage::class => ['public:gallery_images', 'public:gallery_athletes', 'public:gallery_total_events'],
+        GalleryEvent::class => ['public:gallery_images'],
+        GalleryImage::class => ['public:gallery_images', 'public:gallery_athletes'],
     ];
 
     /**

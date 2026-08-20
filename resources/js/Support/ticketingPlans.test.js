@@ -43,4 +43,32 @@ describe('mapCmsPlans', () => {
         expect(plan.features).toEqual([])
         expect(plan.highlight).toBe(false)
     })
+
+    it('espone le tariffe ridotte quando ci sono', () => {
+        const [piano] = mapCmsPlans(
+            [{ name: 'Tribuna Ovest', price: '460', price_returning: '390', price_under16: '290' }],
+            deps,
+        )
+
+        expect(piano.price).toBe('460')
+        expect(piano.rates).toEqual([
+            { label: '[ticketing.rate_returning]', price: '390' },
+            { label: '[ticketing.rate_under16]', price: '290' },
+        ])
+    })
+
+    it('senza tariffe ridotte lascia l\'elenco vuoto', () => {
+        const [piano] = mapCmsPlans([{ name: 'Intero', price: '15' }], deps)
+
+        expect(piano.rates).toEqual([])
+    })
+
+    it('scarta le tariffe ridotte lasciate in bianco', () => {
+        const [piano] = mapCmsPlans(
+            [{ name: 'Tribuna Nord', price: '310', price_returning: '  ', price_under16: '190' }],
+            deps,
+        )
+
+        expect(piano.rates).toEqual([{ label: '[ticketing.rate_under16]', price: '190' }])
+    })
 })
