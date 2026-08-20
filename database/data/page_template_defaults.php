@@ -518,6 +518,10 @@ return [
                     'icon' => 'M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M6.75 21A3.75 3.75 0 013 17.25V11.5A2.25 2.25 0 015.25 9.25h13.5A2.25 2.25 0 0121 11.5v5.75A3.75 3.75 0 0117.25 21H6.75z',
                 ],
             ],
+            'venue_name' => 'PalaBigmat',
+            'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',
+            'maps_link' => 'https://www.google.com/maps/place/Palazzo+Wanny/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
+            'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalazzo%20Wanny!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
         ],
         'en' => [
             'services' => [
@@ -538,6 +542,10 @@ return [
                     'icon' => 'M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M6.75 21A3.75 3.75 0 013 17.25V11.5A2.25 2.25 0 015.25 9.25h13.5A2.25 2.25 0 0121 11.5v5.75A3.75 3.75 0 0117.25 21H6.75z',
                 ],
             ],
+            'venue_name' => 'PalaBigmat',
+            'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI)',
+            'maps_link' => 'https://www.google.com/maps/place/Palazzo+Wanny/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
+            'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalazzo%20Wanny!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
         ],
     ],
 ];

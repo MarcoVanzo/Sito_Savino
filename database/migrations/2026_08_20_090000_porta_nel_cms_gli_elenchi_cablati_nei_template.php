@@ -24,7 +24,7 @@ return new class extends Migration
         'Public/Sociale' => ['sociale', ['projects', 'impact_stats']],
         'Public/Youth' => ['youth', ['values', 'youth_teams']],
         'Public/SummerCamp' => ['summer-camp', ['activities', 'dates', 'highlights']],
-        'Public/Societa/Palazzetto' => ['palazzetto', ['services']],
+        'Public/Societa/Palazzetto' => ['palazzetto', ['services', 'venue_name', 'venue_address', 'maps_link', 'maps_iframe_src']],
     ];
 
     public function up(): void
@@ -55,11 +55,16 @@ return new class extends Migration
                             continue;
                         }
 
-                        $valore = $sorgente[$locale][$chiave]
-                            ?? $sorgente['it'][$chiave]
-                            ?? $iniziali[$template][$locale][$chiave]
-                            ?? $iniziali[$template]['it'][$chiave]
-                            ?? null;
+                        // Si prende il primo valore **non vuoto**: `??` si ferma
+                        // al primo non-null, e una chiave presente ma vuota
+                        // (`services: []`) bloccherebbe il ripiego sui dati
+                        // iniziali, lasciando la pagina senza contenuto.
+                        $valore = collect([
+                            $sorgente[$locale][$chiave] ?? null,
+                            $sorgente['it'][$chiave] ?? null,
+                            $iniziali[$template][$locale][$chiave] ?? null,
+                            $iniziali[$template]['it'][$chiave] ?? null,
+                        ])->first(fn ($candidato) => ! empty($candidato));
 
                         if (empty($valore)) {
                             continue;
