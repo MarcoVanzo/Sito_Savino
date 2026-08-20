@@ -95,7 +95,9 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'office_hours',
-                'value' => 'Lun-Ven: 09:00-18:00',
+                // L'unico recapito fatto di parole, quindi tradotto: gli altri
+                // (email, indirizzo, partite IVA) sono uguali in ogni lingua.
+                'value' => '{"it":"Lun-Ven: 09:00-18:00","en":"Mon-Fri: 09:00-18:00"}',
                 'type' => 'text',
                 'group' => 'contact',
                 'label' => 'Orari Ufficio',

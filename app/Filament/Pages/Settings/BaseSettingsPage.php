@@ -28,6 +28,21 @@ abstract class BaseSettingsPage extends Page implements HasForms
 
     public ?array $data = [];
 
+    /**
+     * Impostazioni il cui valore è un JSON per lingua (`{"it":…,"en":…}`).
+     *
+     * Nel form diventano un campo per lingua (`chiave.it`, `chiave.en`) e in
+     * salvataggio tornano una riga sola. Senza questo passaggio il modulo
+     * caricherebbe la sola lingua del pannello e la riscriverebbe come testo
+     * semplice, cancellando le altre traduzioni.
+     *
+     * @return list<string>
+     */
+    protected function translatableKeys(): array
+    {
+        return [];
+    }
+
     public function mount(): void
     {
         $flat = SiteSetting::getAllCached();
@@ -35,11 +50,33 @@ abstract class BaseSettingsPage extends Page implements HasForms
         foreach ($flat as $key => $value) {
             data_set($this->data, $key, $value);
         }
+
+        foreach ($this->translatableKeys() as $key) {
+            $this->data[$key] = SiteSetting::perLocale($key);
+        }
     }
 
     public function save(): void
     {
         $data = $this->form->getState();
+
+        foreach ($this->translatableKeys() as $key) {
+            if (! is_array($data[$key] ?? null)) {
+                continue;
+            }
+
+            $valori = [];
+
+            foreach ($data[$key] as $locale => $valore) {
+                // Gli elenchi (i repeater) arrivano indicizzati per chiave
+                // interna: vanno rinumerati, o in JSON diventano un oggetto.
+                $valori[$locale] = is_array($valore) ? array_values($valore) : (string) ($valore ?? '');
+            }
+
+            SiteSetting::set($key, $valori);
+            unset($data[$key]);
+        }
+
         $flat = Arr::dot($data);
         foreach ($flat as $key => $value) {
             SiteSetting::set($key, $value ?? '');

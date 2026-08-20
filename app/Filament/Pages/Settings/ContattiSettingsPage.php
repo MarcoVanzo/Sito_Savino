@@ -27,6 +27,16 @@ class ContattiSettingsPage extends BaseSettingsPage
 
     protected static ?string $slug = 'settings/contatti';
 
+    /**
+     * Gli orari sono l'unico recapito fatto di parole: su /en si leggeva
+     * "Lun-Ven" perché il valore era uno solo. Il resto (email, indirizzo,
+     * partite IVA) non si traduce.
+     */
+    protected function translatableKeys(): array
+    {
+        return ['office_hours'];
+    }
+
     public function form(Form $form): Form
     {
         return $form
@@ -37,7 +47,12 @@ class ContattiSettingsPage extends BaseSettingsPage
                         TextInput::make('email')->label('Email principale')->email(),
                         TextInput::make('pec')->label('PEC')->email(),
                         TextInput::make('phone')->label('Telefono')->tel(),
-                        TextInput::make('office_hours')->label('Orari di apertura'),
+                        TextInput::make('office_hours.it')
+                            ->label('Orari di apertura (IT)')
+                            ->placeholder('es. Lun-Ven: 09:00-18:00'),
+                        TextInput::make('office_hours.en')
+                            ->label('Orari di apertura (EN)')
+                            ->placeholder('es. Mon-Fri: 09:00-18:00'),
                     ])->columns(2),
 
                 Section::make('Sede')->schema([
