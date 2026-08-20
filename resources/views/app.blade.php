@@ -41,7 +41,7 @@
             "logo": "{{ config('app.url') }}/images/logo.png",
             "location": {
                 "@@type": "Place",
-                "name": "Palazzo Wanny",
+                "name": "PalaBigmat",
                 "address": {
                     "@@type": "PostalAddress",
                     "addressLocality": "Firenze",
