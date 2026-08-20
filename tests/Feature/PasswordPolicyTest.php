@@ -8,6 +8,7 @@ use App\Filament\Resources\UserResource\Pages\EditUser;
 use App\Models\User;
 use App\Notifications\PasswordExpiringSoon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -171,6 +172,14 @@ class PasswordPolicyTest extends TestCase
 
     public function test_il_preavviso_scatta_nella_finestra_configurata(): void
     {
+        // Data fissa perché l'aritmetica sui mesi non è simmetrica: tornando
+        // indietro di sei mesi da fine agosto si finisce in febbraio, che è
+        // corto, e i nove giorni aggiunti scavallano nel mese dopo. Sommando poi
+        // i sei mesi la scadenza cade dodici giorni avanti invece di nove, fuori
+        // dalla finestra di preavviso. Il test passava o falliva a seconda del
+        // giorno in cui lo si lanciava — è scattato da solo a mezzanotte.
+        $this->travelTo(Carbon::parse('2026-06-15 10:00:00'));
+
         $mesi = (int) config('password_policy.expires_after_months');
         $giorni = (int) config('password_policy.warn_before_days');
 
