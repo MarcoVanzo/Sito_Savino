@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Support\LiveStream;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class SecurityHeadersTest extends TestCase
@@ -82,6 +84,38 @@ class SecurityHeadersTest extends TestCase
         $csp = $response->headers->get('Content-Security-Policy');
         $this->assertStringContainsString("default-src 'self'", $csp);
         $this->assertStringContainsString("frame-ancestors 'none'", $csp);
-        $this->assertStringContainsString("frame-src 'self' https://www.youtube.com", $csp);
+        $this->assertStringContainsString("frame-src 'self' https://www.google.com", $csp);
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function dirette(): array
+    {
+        return [
+            'youtube' => ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
+            'vimeo' => ['https://vimeo.com/123456789'],
+            'twitch' => ['https://www.twitch.tv/legavolley'],
+            'dailymotion' => ['https://www.dailymotion.com/video/x8abcd'],
+        ];
+    }
+
+    /**
+     * Le piattaforme che `LiveStream` sa incorporare devono essere ammesse
+     * anche dalla CSP: un link accettato di là e vietato di qua supera i
+     * controlli della redazione e poi resta un riquadro bianco, bloccato dal
+     * browser senza che a schermo si capisca perché.
+     */
+    #[DataProvider('dirette')]
+    public function test_le_dirette_incorporabili_sono_ammesse_dalla_csp(string $url): void
+    {
+        $embed = LiveStream::embedUrl($url);
+        $this->assertNotNull($embed, 'la piattaforma dovrebbe essere incorporabile');
+
+        $host = parse_url($embed, PHP_URL_SCHEME).'://'.parse_url($embed, PHP_URL_HOST);
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+        $frameSrc = collect(explode('; ', (string) $csp))->first(fn (string $riga): bool => str_starts_with($riga, 'frame-src'));
+
+        $this->assertStringContainsString($host, (string) $frameSrc);
     }
 }

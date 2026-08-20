@@ -23,9 +23,22 @@ class SecurityHeadersMiddleware
             "font-src 'self' https://fonts.gstatic.com",
             "img-src 'self' data: https:",
             "connect-src 'self'",
-            // La pagina Palazzetto incorpora Google Maps: senza questi due host
-            // l'iframe non partiva affatto e restava un riquadro bianco.
-            "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://maps.google.com",
+            // Gli unici host che possono finire dentro un iframe: Google Maps
+            // per la pagina Palazzetto e le quattro piattaforme di diretta che
+            // `App\Support\LiveStream` sa incorporare. I due elenchi vanno
+            // tenuti allineati: un link accettato lì e vietato qui passerebbe i
+            // controlli per poi restare un riquadro bianco, bloccato dal
+            // browser senza che si capisca perché.
+            // Dailymotion serve il player da `geo.` dopo una redirezione, e la
+            // redirezione viene verificata come la richiesta iniziale.
+            'frame-src '.implode(' ', [
+                "'self'",
+                'https://www.google.com', 'https://maps.google.com',
+                'https://www.youtube.com', 'https://www.youtube-nocookie.com',
+                'https://player.vimeo.com',
+                'https://player.twitch.tv',
+                'https://www.dailymotion.com', 'https://geo.dailymotion.com',
+            ]),
             "media-src 'self' https:",
             "frame-ancestors 'none'",
             "base-uri 'self'",
