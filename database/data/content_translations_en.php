@@ -794,7 +794,7 @@ return [
                 'title' => 'The Arena',
                 'excerpt' => 'Pala BigMat, home of Savino Del Bene Volley in Florence. Capacity, how to get there and facilities.',
                 'meta_description' => 'Pala BigMat, home of Savino Del Bene Volley in Florence. Capacity, how to get there and facilities.',
-                'content' => '<h2>Pala BigMat</h2><p>Pala BigMat in Florence is the home of Savino Del Bene Volley. With a capacity of more than 3,500 seats, the arena offers a unique experience for fans and volleyball lovers alike.</p><h2>How to Get There</h2><p>Via del Tridente, 5 — 50127 Florence (FI). Easy to reach by public transport, with plenty of parking available.</p><h2>Facilities</h2><p>Bar, hospitality area, accessible entrances, supervised car park.</p>',
+                'content' => '<h2>Pala BigMat</h2><p>Pala BigMat in Florence is the home of Savino Del Bene Volley. With a capacity of more than 3,500 seats, the arena offers a unique experience for fans and volleyball lovers alike.</p><h2>How to Get There</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI). Easy to reach by public transport, with plenty of parking available.</p><h2>Facilities</h2><p>Bar, hospitality area, accessible entrances, supervised car park.</p>',
             ],
             'privacy-policy' => [
                 'title' => 'Privacy Policy',
