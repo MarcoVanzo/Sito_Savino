@@ -1,11 +1,12 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import PageHero from '@/Components/PageHero.vue';
 import SeasonStatsTable from '@/Components/SeasonStatsTable.vue';
 import TeamLogo from '@/Components/TeamLogo.vue';
-import { Head } from '@inertiajs/vue3';
+import PlayerPalmaresModal from '@/Components/PlayerPalmaresModal.vue';
+import { Head, router } from '@inertiajs/vue3';
 import { roleLabels, displayRole, getRoleLabels } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
@@ -41,6 +42,19 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    // Il palmarès si pubblica solo sulla prima squadra: sulle altre le card
+    // non si aprono.
+    palmaresEnabled: {
+        type: Boolean,
+        default: false,
+    },
+    // Slug dell'atleta il cui banner va aperto: arriva da
+    // /stagione/atleta/{slug}, ed è anche quello che l'apertura scrive
+    // nell'indirizzo.
+    openPlayer: {
+        type: String,
+        default: null,
+    },
 });
 
 const ALL_ROLES = '__all__';
@@ -65,6 +79,48 @@ const ogMeta = useOgMeta({
     title: $t('stagione.og_title') + (props.seasonName ? ' — ' + props.seasonName : ''),
     description: $t('stagione.og_description'),
 });
+
+// Il banner ha un indirizzo proprio — così il link è condivisibile e il tasto
+// indietro lo chiude — ma non aspetta il server per aprirsi: lo stato locale
+// comanda a schermo, l'indirizzo lo segue. Il giro sul server chiede solo
+// `openPlayer`, gli altri dati restano quelli già in pagina.
+const openedSlug = ref(props.openPlayer);
+
+watch(() => props.openPlayer, (slug) => {
+    openedSlug.value = slug;
+});
+
+const openedPlayer = computed(
+    () => (openedSlug.value
+        ? props.roster.find(item => item.playerSlug === openedSlug.value) ?? null
+        : null),
+);
+
+const openedStats = computed(
+    () => (openedSlug.value
+        ? props.seasonStats.find(row => row.playerSlug === openedSlug.value) ?? null
+        : null),
+);
+
+function navigate(url) {
+    router.get(url, {}, {
+        only: ['openPlayer'],
+        preserveState: true,
+        preserveScroll: true,
+    });
+}
+
+function openPalmares(item) {
+    if (!props.palmaresEnabled || !item.playerSlug) return;
+
+    openedSlug.value = item.playerSlug;
+    navigate(route('stagione.atleta', { slug: item.playerSlug }));
+}
+
+function closePalmares() {
+    openedSlug.value = null;
+    navigate(route('stagione'));
+}
 </script>
 
 <template>
@@ -91,14 +147,15 @@ const ogMeta = useOgMeta({
 
                 <!-- Filtri Ruolo -->
                 <div class="flex flex-wrap justify-center gap-3 mb-12">
-                    <button type="button"
-                        v-for="role in roles"
+                    <button
+v-for="role in roles"
                         :key="role"
-                        @click="selectedRole = role"
+                        type="button"
                         class="px-5 py-2.5 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300"
                         :class="selectedRole === role
                             ? 'bg-savino-blue text-white shadow-lg shadow-savino-blue/30'
                             : 'bg-white text-gray-600 hover:bg-savino-blue/10 hover:text-savino-blue border border-gray-200'"
+                        @click="selectedRole = role"
                     >
                         {{ role === '__all__' ? $t('stagione.filter_all') : translatedRoleLabels[role] ?? role }}
                     </button>
@@ -106,10 +163,17 @@ const ogMeta = useOgMeta({
 
                 <!-- Griglia Atlete -->
                 <div v-if="filteredRoster.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <div
+                    <component
+                        :is="palmaresEnabled && item.playerSlug ? 'button' : 'div'"
                         v-for="item in filteredRoster"
                         :key="item.id"
-                        class="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-500 hover:-translate-y-1"
+                        :type="palmaresEnabled && item.playerSlug ? 'button' : null"
+                        :aria-label="palmaresEnabled && item.playerSlug
+                            ? item.player.first_name + ' ' + item.player.last_name + ' — ' + $t('palmares.open_hint')
+                            : null"
+                        :class="palmaresEnabled && item.playerSlug ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-savino-gold focus:ring-offset-2' : ''"
+                        class="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-500 hover:-translate-y-1 text-left w-full"
+                        @click="openPalmares(item)"
                     >
                         <!-- Immagine Atleta -->
                         <!-- Riquadro verticale e ancoraggio in alto: le foto ufficiali sono
@@ -132,6 +196,14 @@ const ogMeta = useOgMeta({
                             <div class="absolute top-4 left-4 bg-savino-blue text-white w-10 h-10 flex items-center justify-center rounded-full font-bold text-lg shadow-lg">
                                 {{ item.jersey_number || '–' }}
                             </div>
+
+                            <!-- Invito all'apertura: compare sulla foto al passaggio del mouse -->
+                            <div
+                                v-if="palmaresEnabled && item.playerSlug"
+                                class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-savino-blue/90 to-transparent px-4 pt-10 pb-4 translate-y-full group-hover:translate-y-0 group-focus:translate-y-0 transition-transform duration-500"
+                            >
+                                <span class="text-white text-sm font-semibold">{{ $t('palmares.open_hint') }} →</span>
+                            </div>
                         </div>
 
                         <!-- Dati Atleta -->
@@ -149,7 +221,7 @@ const ogMeta = useOgMeta({
                                 <div v-if="item.player.date_of_birth"><strong>{{ $t('stagione.year_short') }}:</strong> {{ new Date(item.player.date_of_birth).getFullYear() }}</div>
                             </div>
                         </div>
-                    </div>
+                    </component>
                 </div>
 
                 <!-- Empty state -->
@@ -158,7 +230,7 @@ const ogMeta = useOgMeta({
                         <svg class="w-12 h-12 text-savino-blue/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </div>
                     <p class="text-gray-500 text-lg font-semibold">{{ $t('stagione.empty_role') }}</p>
-                    <button type="button" @click="selectedRole = '__all__'" class="mt-4 px-6 py-2.5 bg-savino-gold text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors">
+                    <button type="button" class="mt-4 px-6 py-2.5 bg-savino-gold text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors" @click="selectedRole = '__all__'">
                         {{ $t('stagione.show_all') }}
                     </button>
                 </div>
@@ -263,6 +335,12 @@ const ogMeta = useOgMeta({
                 </div>
             </div>
         </section>
+
+        <PlayerPalmaresModal
+            :item="openedPlayer"
+            :stats="openedStats"
+            @close="closePalmares"
+        />
     </PublicLayout>
 </template>
 

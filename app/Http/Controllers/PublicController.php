@@ -20,6 +20,7 @@ use App\Models\StaffMember;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Services\Lvf\LvfPhaseLabel;
+use App\Services\PalmaresPresenter;
 use App\Services\SponsorDirectory;
 use App\Support\LiveStream;
 use Illuminate\Support\Collection;
@@ -118,11 +119,40 @@ class PublicController extends Controller
     }
 
     /**
+     * Stessa pagina di `/stagione`, con il banner di un'atleta già aperto.
+     *
+     * Il banner è una finestra sopra la rosa, non una pagina a sé: qui non si
+     * costruisce niente di diverso, si dice solo quale atleta mostrare. Serve
+     * perché un palmarès è qualcosa che si manda a qualcuno — senza un
+     * indirizzo proprio non sarebbe né condivisibile né raggiungibile dal
+     * tasto indietro.
+     */
+    public function stagioneAtleta(string $slug): Response
+    {
+        $locale = app()->getLocale();
+
+        return $this->stagioneForTeam(
+            'savino-del-bene-volley',
+            "public:stagione:{$locale}",
+            openPlayerSlug: $slug,
+        );
+    }
+
+    /**
      * Logica condivisa per il caricamento roster di un team specifico.
      */
-    private function stagioneForTeam(string $teamSlug, string $cacheKey, ?string $teamLabel = null): Response
-    {
-        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug) {
+    private function stagioneForTeam(
+        string $teamSlug,
+        string $cacheKey,
+        ?string $teamLabel = null,
+        ?string $openPlayerSlug = null,
+    ): Response {
+        // Il palmarès si pubblica solo sulla prima squadra: le voci di
+        // Wikipedia delle giovanili non esistono, e una card cliccabile che
+        // apre una finestra vuota è peggio di una card che non si clicca.
+        $withPalmares = $teamSlug === 'savino-del-bene-volley';
+
+        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug, $withPalmares) {
             $team = Team::with('media')
                 ->where('slug', $teamSlug)
                 ->orWhere('category', $teamSlug === 'savino-del-bene-volley' ? 'A1' : 'B1')
@@ -147,6 +177,10 @@ class PublicController extends Controller
                     'player.stats' => fn ($query) => $query
                         ->where('season_id', $currentSeason->id)
                         ->where(fn ($scoped) => $scoped->whereNull('team_id')->orWhere('team_id', $team->id)),
+                    // Le righe nascoste dalla redazione restano in archivio per
+                    // non farle riapparire alla prossima importazione: qui non
+                    // devono nemmeno arrivare.
+                    'player.honours' => fn ($query) => $query->visible(),
                 ])
                     ->whereHas('player')
                     ->where('team_id', $team->id)
@@ -155,7 +189,7 @@ class PublicController extends Controller
                     ->orderBy('id')
                     ->get();
 
-                $roster = $rosterEntries->toArray();
+                $roster = $this->presentRoster($rosterEntries, $withPalmares);
                 $seasonStats = $this->presentSeasonStats($rosterEntries, $team->id);
                 $seasonName = $currentSeason->name;
 
@@ -200,7 +234,44 @@ class PublicController extends Controller
             return compact('roster', 'seasonName', 'seasonStats', 'teamInfo', 'staffTecnico', 'staffMedico');
         });
 
-        return Inertia::render('Public/Stagione', $teamLabel ? array_merge($data, ['teamLabel' => $teamLabel]) : $data);
+        if ($teamLabel !== null) {
+            $data['teamLabel'] = $teamLabel;
+        }
+
+        // Distingue "nessun palmarès in archivio" da "su questa pagina il
+        // palmarès non si pubblica": senza, le card delle giovanili sarebbero
+        // cliccabili per aprire una finestra che non ha niente da dire.
+        $data['palmaresEnabled'] = $withPalmares;
+        $data['openPlayer'] = $openPlayerSlug;
+
+        return Inertia::render('Public/Stagione', $data);
+    }
+
+    /**
+     * Rosa pronta per la pagina: la riga di roster così com'è, più lo slug
+     * dell'atleta e — sulla prima squadra — il palmarès già aggregato.
+     *
+     * @param  Collection<int, Roster>  $rosterEntries
+     * @return list<array<string, mixed>>
+     */
+    private function presentRoster(Collection $rosterEntries, bool $withPalmares): array
+    {
+        $presenter = $withPalmares ? app(PalmaresPresenter::class) : null;
+
+        return $rosterEntries->map(function (Roster $entry) use ($presenter): array {
+            $row = $entry->toArray();
+            $player = $entry->player;
+
+            $row['playerSlug'] = $player instanceof Player
+                ? $player->id.'-'.Str::slug($player->full_name)
+                : null;
+
+            $row['palmares'] = $presenter !== null && $player instanceof Player
+                ? $presenter->forPlayer($player)
+                : null;
+
+            return $row;
+        })->all();
     }
 
     /**

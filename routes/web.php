@@ -62,6 +62,10 @@ foreach ($locales as $loc) {
         // finestra di un'atleta già aperta, così il link è condivisibile.
         Route::get('/stagione/atleta/{slug}', [PublicController::class, 'stagioneAtleta'])
             ->name('stagione.atleta');
+        // Indirizzo proprio del banner palmarès: apre /stagione con la
+        // finestra di un'atleta già aperta, così il link è condivisibile.
+        Route::get('/stagione/atleta/{slug}', [PublicController::class, 'stagioneAtleta'])
+            ->name('stagione.atleta');
 
         // Risultati e Competizioni
         Route::get('/stagione/risultati', [PublicController::class, 'risultatiCampionato'])->name('stagione.risultati');

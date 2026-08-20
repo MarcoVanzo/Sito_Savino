@@ -10,6 +10,7 @@ use App\Models\Game;
 use App\Models\Order;
 use App\Models\Page;
 use App\Models\Player;
+use App\Models\PlayerHonour;
 use App\Models\PlayerStat;
 use App\Models\Post;
 use App\Models\Product;
@@ -29,6 +30,7 @@ use App\Observers\StockMovementObserver;
 use App\Observers\UserObserver;
 use App\Services\Analytics\WebAnalyticsService;
 use App\Services\Social\SocialAnalyticsService;
+use App\Services\Wikipedia\WikipediaClient;
 use Filament\SpatieLaravelTranslatableContentDriver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -60,6 +62,11 @@ class AppServiceProvider extends ServiceProvider
         // factory, non dal container): il servizio se lo crea da sé quando serve.
         $this->app->singleton(WebAnalyticsService::class, static fn (): WebAnalyticsService => new WebAnalyticsService);
         $this->app->singleton(SocialAnalyticsService::class);
+
+        // Il client Wikipedia si costruisce dalla configurazione (lingua,
+        // timeout, user agent): non è autowirable perché i parametri sono
+        // scalari.
+        $this->app->bind(WikipediaClient::class, static fn (): WikipediaClient => WikipediaClient::fromConfig());
     }
 
     /**
@@ -96,6 +103,7 @@ class AppServiceProvider extends ServiceProvider
         Roster::observe(CacheInvalidationObserver::class);
         Player::observe(CacheInvalidationObserver::class);
         PlayerStat::observe(CacheInvalidationObserver::class);
+        PlayerHonour::observe(CacheInvalidationObserver::class);
         Season::observe(CacheInvalidationObserver::class);
         Team::observe(CacheInvalidationObserver::class);
         Sponsor::observe(CacheInvalidationObserver::class);

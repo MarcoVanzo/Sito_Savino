@@ -1,0 +1,136 @@
+{{Sportivo
+|Nome = Caterina Bosetti
+|Sesso = F
+|CodiceNazione = {{ITA}}
+|Disciplina = Pallavolo
+|Ruolo = [[Schiacciatore-laterale|Schiacciatrice]]
+|Squadra = {{Volley femminile Savino Del Bene}}
+|TermineCarriera = 
+|SquadreGiovanili=
+{{Carriera sportivo
+|sport = volley femminile
+|pos = G
+|2007-2009|Amatori Orago|
+}}
+|Squadre = 
+{{Carriera sportivo
+|sport = volley femminile
+|pos = G
+|2009-2013|Villa Cortese|
+|2013-2014|Osasco|
+|2014-2015|Galatasaray|
+|2015-2016|AGIL|
+|2016-2018|River|
+|2018-2020|Casalmaggiore|
+|2020-2024|AGIL|
+|2024-2025|Vakifbank|
+|2025-|Savino Del Bene|
+}}
+|SquadreNazionali=
+{{Carriera sportivo
+|2008-2011|{{NazU|PV|ITA|F|18}}|
+|2010|{{NazU|PV|ITA|F|19}}|
+|2011-2013|{{NazU|PV|ITA|F|20}}|
+|2011-|{{Naz|PV|ITA|F}}|
+}}
+|Allenatore = 
+|Incontri = 
+|RigaVuota = 
+|Vittorie =
+{{MedaglieCompetizione|[[Pallavolo ai Giochi olimpici - Torneo femminile|Giochi olimpici]]}}
+{{MedaglieOro|[[Pallavolo ai Giochi della XXXIII Olimpiade - Torneo femminile|Parigi 2024]]}}
+{{MedaglieCompetizione|[[Campionato mondiale femminile di pallavolo|Campionato mondiale]]}}
+{{MedaglieBronzo|[[Campionato mondiale femminile di pallavolo 2022|Paesi Bassi e Polonia 2022]]}}
+{{MedaglieCompetizione|[[Volleyball Nations League femminile|Volleyball Nations League]]}}
+{{MedaglieOro|[[Volleyball Nations League femminile 2022|Ankara 2022]]}}
+{{MedaglieOro|[[Volleyball Nations League femminile 2024|Bangkok 2024]]}}
+{{MedaglieCompetizione|[[World Grand Prix di pallavolo|World Grand Prix]]}}
+{{MedaglieArgento|[[World Grand Prix 2017|Nanchino 2017]]}}
+{{MedaglieCompetizione|[[Coppa del Mondo femminile di pallavolo|Coppa del Mondo]]}}
+{{MedaglieOro|[[Coppa del Mondo femminile di pallavolo 2011|Giappone 2011]]}}
+|Aggiornato = {{data|4|8|2025}}
+}}
+{{Bio
+|Nome = Caterina
+|Cognome = Bosetti
+|Sesso = F
+|LuogoNascita = Tradate
+|GiornoMeseNascita = 2 febbraio
+|AnnoNascita = 1994
+|LuogoMorte = 
+|GiornoMeseMorte = 
+|AnnoMorte = 
+|Epoca = 2000
+|Attività = pallavolista
+|Nazionalità = italiana
+|PostNazionalità = , [[schiacciatore-laterale|schiacciatrice]] del {{Volley femminile Savino Del Bene|NB}}
+}}
+
+== Biografia ==
+Figlia di Giuseppe Bosetti, allenatore di [[pallavolo]], il quale ha guidato anche la [[Nazionale femminile di pallavolo dell'Italia|nazionale italiana]], e di [[Franca Bardelli]], anch'ella pallavolista con 93 presenze all'attivo in nazionale. Le due sorelle, [[Lucia Bosetti|Lucia]] e Chiara, sono ex pallavoliste.
+
+== Carriera ==
+=== Club ===
+La carriera di Caterina Bosetti inizia nel 2007 nelle giovanili dell'{{Volley femminile Amatori Orago|NB}}. Poco dopo l'inizio della [[Serie A1 2009-2010 (pallavolo femminile)|stagione 2009-10]], nel mese di novembre, viene ingaggiata dal {{Volley femminile Villa Cortese|NB}}, neopromossa in [[Serie A1 (pallavolo femminile)|Serie A1]], facendo il suo esordio nella massima divisione italiana contro l'{{Volley femminile Asystel|NB}} a 15 anni: con la squadra [[Lombardia|lombarda]] vince due [[Coppa Italia (pallavolo femminile)|Coppe Italia]].
+
+Per la [[Superliga Série A 2013-2014 (femminile)|stagione 2013-14]] si trasferisce in [[Brasile]] dopo aver firmato per l'{{Volley femminile Osasco|NB}}<ref>{{cita web|url=http://www.volleyball.it/turchia-f-caterina-bosetti-verso-il-galatasaray/|titolo=Brasile: Caterina Bosetti al Sollys Osasco|autore=Giacomo Tarsi|data=26 maggio 2014|accesso=17 luglio 2020|dataarchivio=17 luglio 2020|urlarchivio=https://web.archive.org/web/20200717102729/http://www.volleyball.it/turchia-f-caterina-bosetti-verso-il-galatasaray/|urlmorto=sì}}</ref>, militante nella [[Superliga Série A (femminile)|Superliga Série A]] e con cui vince sia il [[Divisão Especial paulista 2013 (pallavolo femminile)|Campionato Paulista]] che la [[Coppa del Brasile 2014 (pallavolo femminile)|coppa nazionale]]. Nell'[[Voleybol 1. Ligi 2014-2015 (femminile)|annata 2014-15]] veste la maglia del club [[Turchia|turco]] del {{Volley femminile Galatasaray|NB}}<ref>{{cita web|url=http://www.volleyball.it/brasile-caterina-bosetti-al-sollys-osasco/|titolo=Turchia F: Caterina Bosetti verso il Galatasary|autore=Luca Muzzioli|data=7 maggio 2013|accesso=17 luglio 2020|dataarchivio=17 luglio 2020|urlarchivio=https://web.archive.org/web/20200717105247/http://www.volleyball.it/brasile-caterina-bosetti-al-sollys-osasco/|urlmorto=sì}}</ref>, in [[Sultanlar Ligi|Voleybol 1. Ligi]].
+
+Rientra in [[Italia]] nella [[Serie A1 2015-2016 (pallavolo)|stagione 2015-16]] per difendere i colori dell'{{Volley femminile AGIL|NB}} di [[Novara]], in Serie A1. Per il [[Serie A1 2016-2017 (pallavolo)|campionato 2016-17]] passa al {{Volley femminile River|NB}} di [[Piacenza]], mentre in quello [[Serie A1 2018-2019 (pallavolo)|2018-19]] si accasa al {{Volley femminile Casalmaggiore|NB}}. Nella [[Serie A1 2020-2021 (pallavolo)|stagione 2020-21]] torna nuovamente all'AGIL<ref>{{cita web|url=http://www.agilvolley.com/igornovara.asp?id=3&idnews=3019|titolo=Caterina Bosetti torna in azzurro!|data=23 maggio 2020|accesso=17 luglio 2020|urlmorto=sì}}</ref>, sempre in Serie A1, con cui si aggiudica una [[WEVZA Cup 2023|WEVZA Cup]]<ref>{{cita web|url=https://www.volleynews.it/novara-eroica-riemerge-dal-baratro-e-vince-la-wevza-cup/|titolo=Novara eroica: riemerge dal baratro e vince la WEVZA Cup!|data=24 settembre 2023|accesso=30 settembre 2023}}</ref> e una [[Challenge Cup 2023-2024 (pallavolo femminile)|Challenge Cup]]<ref>{{cita web|url=https://www.agilvolley.it/news/partite-a1/campionato-a1/la-challenge-cup-e-azzurra/|titolo=La Challenge Cup è azzurra!|data=28 febbraio 2024|accesso=29 febbraio 2024}}</ref>; dopo un quadriennio con le [[piemonte]]si, nel [[Sultanlar Ligi 2024-2025|campionato 2024-25]] è nuovamente di scena nella [[Sultanlar Ligi|massima divisione turca]], questa volta con il {{Volley femminile Vakifbank|NB|2024}}<ref>{{cita web|url=https://www.vakifbanksporkulubu.com/tr/haber-detay/caterina-bosetti-vakifbankta-n2581|titolo=Caterina Bosetti VakıfBank'ta|lingua=tr|data=9 maggio 2024|accesso=10 maggio 2024}}</ref>, vincendo lo scudetto<ref>{{cita web|url=https://tvf.org.tr/icerik/vodafone-sultanlar-liginde-sampiyon-vakifbank|titolo=Vodafone Sultanlar Ligi'nde Şampiyon VakıfBank|lingua=tr|data=22 aprile 2025|accesso=28 aprile 2025}}</ref>.
+
+Nella [[Serie A1 2025-2026 (pallavolo)|stagione successiva]] viene acquistata dalla {{Volley femminile Savino Del Bene|NB}}, in Serie A1<ref>{{cita web|url=https://savinodelbenevolley.it/benvenuta-caterina-bosetti-approda-alla-savino-del-bene-volley/|titolo=Benvenuta Caterina! Bosetti approda alla Savino Del Bene Volley|data=20 giugno 2025|accesso=4 agosto 2025}}</ref> e conquista il [[Campionato mondiale per club FIVB 2025 (femminile)|campionato mondiale per club]]<ref>{{cita web|url=https://www.fivb.org/vis2009/getdocument.asmx?no=256832300|titolo=FIVB Volleyball Women's Club World Championship 2025 - P-2 Match result - Final 1-2 (Places 1 and 2)|formato=pdf|lingua=en|accesso=20 dicembre 2025}}</ref>.
+
+=== Nazionale ===
+Dal 2008 al 2011 ottiene le convocazioni nella [[Nazionale Under-18 di pallavolo femminile dell'Italia|nazionale italiana under 18]], con cui conquista la medaglia d'argento al [[Campionato europeo femminile under 18 di pallavolo 2011|campionato europeo 2011]]. Nel 2010 è in quella [[Nazionale Under-19 di pallavolo femminile dell'Italia|under 19]], vincendo l'oro al [[Campionato europeo femminile under 19 di pallavolo 2010|campionato europeo]], dove viene premiata anche come [[Most Valuable Player|miglior giocatrice]]. Dal 2011 al 2013 fa parte della [[Nazionale Under-20 di pallavolo femminile dell'Italia|nazionale under 20]]: si aggiudica la medaglia d'oro al [[Campionato mondiale femminile under 20 di pallavolo 2011|campionato mondiale 2011]], eletta, anche in questo caso, come MVP.
+
+Ottiene le prime convocazioni nella [[Nazionale femminile di pallavolo dell'Italia|nazionale maggiore]] nel 2011, conseguendo nello stesso anno la vittoria della [[Coppa del Mondo femminile di pallavolo 2011|Coppa del Mondo]]<ref>{{cita web|url=https://www.federvolley.it/pallavolo-comunicato-federale-del-18-novembre-2011-1|titolo=Pallavolo Comunicato federale del 18 novembre 2011_1|accesso=11 ottobre 2025}}</ref>. Nel 2017 conquista la medaglia d'argento al [[World Grand Prix 2017]]<ref>{{cita web|url=https://www.federvolley.it/news/final-six-grand-prix-2017-le-azzurre-sono-medaglia-d-argento-il-brasile-vince-3-2|titolo=Final Six Grand Prix 2017 - Le azzurre sono medaglia d'Argento, il Brasile vince 3-2|data=6 agosto 2017|accesso=25 dicembre 2025}}</ref> e nel 2022 quella d'oro alla [[Volleyball Nations League femminile 2022|Volleyball Nations League]] e quella di bronzo al [[Campionato mondiale femminile di pallavolo 2022|campionato mondiale]]<ref>{{cita web|url=http://www.fivb.org/vis2009/getdocument.asmx?no=256545304|titolo=FIVB Volleyball Women's World Championship Netherlands Poland 2022 - Final 3-4|lingua=en|data=15 ottobre 2022|accesso=17 ottobre 2022}}</ref>. Nel 2024 bissa l'oro alla [[Volleyball Nations League femminile 2024|Volleyball Nations League]]<ref>{{cita web|url=https://www.fivb.org/vis2009/getdocument.asmx?no=256677411|titolo=Women's Volleyball Nations League 2024 - P-2 Match result - Final 1-2 (Places 1 and 2)|formato=PDF|lingua=en|accesso=24 giugno 2024}}</ref> e mette al collo lo stesso metallo ai [[Pallavolo ai Giochi della XXXIII Olimpiade - Torneo femminile|Giochi della XXXIII Olimpiade]] di [[Parigi]]<ref>{{cita web|url=https://olympics.com/en/paris-2024/results/volleyball/women/fnl-000100--|titolo=United States of America vs Italy Results|lingua=en|accesso=11 agosto 2024}}</ref>.
+
+== Palmarès ==
+=== Club ===
+* {{Pallavolopalm|Campionato turco femminile|1}}
+: [[Sultanlar Ligi 2024-2025|2024-25]]
+
+* {{Pallavolopalm|Coppa Italia femminile|2}}
+: [[Coppa Italia 2009-2010 (pallavolo femminile)|2009-10]], [[Coppa Italia 2010-2011 (pallavolo femminile)|2010-11]]
+
+* {{Pallavolopalm|Coppa del Brasile femminile|1}}
+: [[Coppa del Brasile 2014 (pallavolo femminile)|2014]]
+
+* {{Pallavolopalm|Campionato Paulista femminile|1}}
+: [[Divisão Especial paulista 2013 (pallavolo femminile)|2013]]
+
+* {{Pallavolopalm|Mondiale per club femminile|1}}
+: [[Campionato mondiale per club FIVB 2025 (femminile)|2025]]
+
+* {{Pallavolopalm|Challenge Cup femminile|1}}
+: [[Challenge Cup 2023-2024 (pallavolo femminile)|2023-24]]
+
+* {{Pallavolopalm|WEVZA Cup femminile|1}}
+: [[WEVZA Cup 2023|2023]]
+
+=== Nazionale (competizioni minori) ===
+* {{simbolo|Gold medal europe.svg}} [[Campionato europeo femminile under 19 di pallavolo 2010|Campionato europeo under 19 2010]]
+* {{simbolo|Silver medal europe.svg}} [[Campionato europeo femminile under 18 di pallavolo 2011|Campionato europeo under 18 2011]]
+* {{simbolo|Gold medal world centered-2.svg}} [[Campionato mondiale femminile under 20 di pallavolo 2011|Campionato mondiale under 20 2011]]
+
+=== Premi individuali ===
+* 2010 - [[Campionato europeo femminile under 19 di pallavolo 2010|Campionato europeo under 19]]: [[Most Valuable Player|MVP]]
+* 2011 - [[Campionato europeo femminile under 18 di pallavolo 2011|Campionato europeo under 18]]: Miglior ricezione
+* 2011 - [[Campionato mondiale femminile under 20 di pallavolo 2011|Campionato mondiale under 20]]: Miglior schiacciatrice
+* 2011 - [[Campionato mondiale femminile under 20 di pallavolo 2011|Campionato mondiale under 20]]: MVP
+* 2012 - [[Supercoppa italiana 2012 (pallavolo femminile)|Supercoppa italiana]]: MVP
+* 2022 - [[Volleyball Nations League femminile 2022|Volleyball Nations League]]: Miglior schiacciatrice
+
+== Note ==
+<references/>
+
+== Altri progetti ==
+{{interprogetto}}
+
+== Collegamenti esterni ==
+* {{Collegamenti esterni}}
+* {{cita web|url=https://tvf-web.dataproject.com/PlayerDetails.aspx?TeamID=44&PlayerID=891&ID=10|titolo=Caterina Bosetti|lingua=tr}}
+* {{cita web|url=https://sultanlar.volleystation.com/tr/season/152/players/2204998/|titolo=Caterina Bosetti|lingua=tr}}
+
+{{Portale|biografie|pallavolo}}
+[[Categoria:Pallavolisti figli d'arte]]
+[[Categoria:Vincitori di medaglia d'oro olimpica per l'Italia]]

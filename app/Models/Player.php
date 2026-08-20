@@ -6,6 +6,7 @@ use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -20,6 +21,7 @@ class Player extends Model implements HasMedia
         'first_name', 'last_name', 'date_of_birth',
         'nationality', 'instagram_handle', 'lega_volley_id',
         'ai_face_examples',
+        'wikipedia_title', 'wikipedia_lang', 'wikipedia_revid', 'palmares_synced_at',
     ];
 
     // Nessun campo traducibile sulla tabella `players`: `role` e `biography`
@@ -29,6 +31,8 @@ class Player extends Model implements HasMedia
     protected $casts = [
         'date_of_birth' => 'date',
         'ai_face_examples' => 'integer',
+        'wikipedia_revid' => 'integer',
+        'palmares_synced_at' => 'datetime',
     ];
 
     protected $appends = ['full_name'];
@@ -46,6 +50,22 @@ class Player extends Model implements HasMedia
     public function stats()
     {
         return $this->hasMany(PlayerStat::class);
+    }
+
+    /**
+     * Palmarès: trofei di club, medaglie in nazionale e premi individuali.
+     *
+     * L'ordinamento è quello di pubblicazione — categoria, poi dal più recente:
+     * il banner pubblico non riordina, mostra quello che riceve.
+     *
+     * @return HasMany<PlayerHonour, $this>
+     */
+    public function honours(): HasMany
+    {
+        return $this->hasMany(PlayerHonour::class)
+            ->orderBy('sort_order')
+            ->orderByDesc('year')
+            ->orderBy('id');
     }
 
     public function galleryImages()

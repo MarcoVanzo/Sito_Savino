@@ -1,0 +1,77 @@
+{{Sportivo
+|Nome = Martina Armini
+|Sesso = F
+|CodiceNazione = {{ITA}}
+|Disciplina = Pallavolo
+|Ruolo = [[Libero (pallavolo)|Libero]]
+|Squadra = {{Volley femminile Savino Del Bene}}
+|TermineCarriera =
+|SquadreGiovanili =
+{{Carriera sportivo
+|?-2020|{{Volley femminile Volleyrò|G}}|
+}}
+|Squadre =
+{{Carriera sportivo
+|sport=Volley femminile
+|pos=G
+|2020-2021|Club Italia|
+|2021-2022|Chieri '76|
+|2022-2023|Black Angels Perugia|
+|2023-2024|Savino Del Bene|
+|2024-2026|Bergamo 1991|
+|2026-|Savino Del Bene|
+}}
+|SquadreNazionali =
+{{Carriera sportivo
+|2018-2019|{{NazU|PV|ITA|F|18}}|
+|2021|{{NazU|PV|ITA|F|20}}|
+|2022|{{NazU|PV|ITA|F|21}}|
+|2025-|{{Naz|PV|ITA|F}}|
+}}
+|Aggiornato = 11 giugno 2026
+}}
+{{Bio
+|Nome = Martina
+|Cognome = Armini
+|Sesso = F
+|LuogoNascita = Marino
+|LuogoNascitaLink = Marino (Italia)
+|GiornoMeseNascita = 19 settembre
+|AnnoNascita = 2002
+|LuogoMorte =
+|GiornoMeseMorte =
+|AnnoMorte =
+|Epoca = 2000
+|Attività = pallavolista
+|Nazionalità = italiana
+|PostNazionalità = , [[Libero (pallavolo)|libero]] della {{Volley femminile Savino Del Bene|NB}}
+}}
+
+== Carriera ==
+=== Club ===
+La carriera di Martina Armini inizia nelle file del {{Volley femminile Volleyrò|NB}}: con le squadre giovanili del club [[roma]]no, nel ruolo di [[schiacciatore-laterale|schiacciatrice]], partecipa a diverse finali nazionali di categoria vincendone l'edizione 2018 in under 16 e quella dell'anno successivo in under 18.
+
+Nella [[Serie A2 2020-2021 (pallavolo femminile)|stagione 2020-21]] entra a far parte della squadra [[Federazione Italiana Pallavolo|federale]] del {{Volley femminile Club Italia|NB}}, in [[Serie A2 (pallavolo femminile)|Serie A2]]<ref>{{cita web|url=https://www.federvolley.it/news/club-italia-crai-domani-al-pavesi-inizia-la-nuova-stagione|titolo=Club Italia Crai: domani al Pavesi inizia la nuova stagione|data=25 agosto 2020|accesso=16 gennaio 2023}}</ref>,  modificando anche il ruolo in [[Libero (pallavolo)|libero]]. L'[[Serie A1 2021-2022 (pallavolo)|anno successivo]] fa il suo debutto nella [[Serie A1 (pallavolo femminile)|massima serie nazionale]] grazie all'ingaggio da parte del {{Volley femminile Chieri '76|NB}}<ref>{{cita web|url=https://www.chieri76.it/reale-mutua-fenera-chieri-76-roster-al-gran-completo-con-martina-armini-e-francesca-guarena/|titolo=Reale Mutua Fenera Chieri ’76, roster al gran completo con Martina Armini e Francesca Guarena|data=22 giugno 2021|accesso=16 gennaio 2023}}</ref>. Per il [[Serie A1 2022-2023 (pallavolo)|campionato 2022-23]] veste la maglia della {{Volley femminile Black Angels Perugia|NB|2022}}<ref>{{cita web|url=https://www.wealthplanet.it/per-le-retrovie-arriva-la-specialista-martina-armini/|titolo=Per le retrovie arriva la specialista Martina Armini|data=11 luglio 2022|accesso=16 novembre 2023}}</ref>, in quello [[Serie A1 2023-2024 (pallavolo)|2023-24]] la maglia della {{Volley femminile Savino Del Bene|NB}}<ref>{{cita web|url=https://savinodelbenevolley.it/martina-armini-e-una-nuova-giocatrice-della-savino-del-bene-volley/|titolo=Martina Armini è una nuova giocatrice della Savino Del Bene Volley|data=26 giugno 2023|accesso=4 settembre 2023}}</ref> e nella [[Serie A1 2024-2025 (pallavolo)|stagione 2024-25]] quella del {{Volley femminile Bergamo 1991|NB}}<ref>{{cita web|url=https://www.volleybergamo1991.it/martina-armini-e-il-libero-di-bergamo/|titolo=Martina Armini è il libero di Bergamo|data=13 maggio 2024|accesso=5 settembre 2024}}</ref>, sempre in Serie A1. Nell'[[Serie A1 2026-2027 (pallavolo)|annata 2026-27]] torna alla {{Volley femminile Savino Del Bene|NB}}<ref>{{cita web|url=https://savinodelbenevolley.it/bentornata-martina/|titolo=Bentornata Martina! La Savino Del Bene Volley ufficializza il ritorno di Armini!|data=10 giugno 2026|accesso=11 giugno 2026}}</ref>.
+
+=== Nazionale ===
+Ottiene le prime convocazioni nelle nazionali giovanili nel 2018<ref>{{cita web|url=https://www.federvolley.it/news/nazionale-under-18-femminile-la-squadra-al-centro-pavesi-uno-stage-di-allenamento|titolo=Nazionale Under 18 Femminile: la squadra al Centro Pavesi per uno stage di allenamento|data=14 giugno 2018|accesso=17 gennaio 2023}}</ref>: con l'[[{{NazUT|PV|ITA|F|under 18}}|under 18]] conquista la medaglia di argento al [[Campionato mondiale femminile under 18 di pallavolo 2019|campionato mondiale 2019]] in [[Egitto]]<ref>{{cita web|url=https://www.federvolley.it/news/campionati-mondiali-under-18-le-azzurrine-sono-medaglia-d-argento|titolo=Campionati Mondiali under 18: le azzurrine sono medaglia d’argento|data=14 settembre 2019|accesso=17 gennaio 2023}}</ref>, mentre con l'[[{{NazUT|PV|ITA|F|under 20}}|under 20]] il titolo mondiale nell'[[Campionato mondiale femminile under 20 di pallavolo 2021|edizione 2021]] del campionato di categoria, ottenendo anche il premio come miglior libero della manifestazione<ref>{{cita web|url=https://www.federvolley.it/news/le-azzurrine-campionesse-mondiali-u20-le-parole-dopo-il-trionfo|titolo=Le azzurrine Campionesse Mondiali U20: le parole dopo il trionfo|data=18 luglio 2021|accesso=17 gennaio 2023}}</ref>. Nel 2022, con la [[{{NazUT|PV|ITA|F|under 21}}|nazionale under 21]] conquista la medaglia d'oro al [[Campionato europeo femminile under 21 di pallavolo 2022|campionato europeo]]<ref>{{cita web|url=https://www-old.cev.eu/Competition-Area/MatchStatistics.aspx?ID=62820|titolo=CEV U21 Volleyball European Championship 2022 - Gold Medal Match|lingua=en|data=17 luglio 2022|accesso=2 agosto 2022}}</ref>, disputato in [[Italia]].
+
+Nel 2025 ottiene le prima convocazioni nella [[Nazionale femminile di pallavolo dell'Italia|nazionale maggiore]], con cui, nello stesso anno, vince la medaglia d'oro ai [[Pallavolo ai XXXII Giochi mondiali universitari estivi - Torneo femminile|XXXII Giochi mondiali universitari]]<ref>{{cita web|url=https://www.federvolley.it/node/131407|titolo=Universiadi: l'Italia supera in finale il Giappone e conquista la medaglia d'oro|data=23 luglio 2025|accesso=31 luglio 2025}}</ref>.
+
+== Palmarès ==
+=== Nazionale (competizioni minori) ===
+* {{Med|A|Mondo}} [[Campionato mondiale femminile under 18 di pallavolo 2019|Campionato mondiale under 18 2019]]
+* {{Med|O|Mondo}} [[Campionato mondiale femminile under 20 di pallavolo 2021|Campionato mondiale under 20 2021]]
+* {{Med|O|Europa}} [[Campionato europeo femminile under 21 di pallavolo 2022|Campionato europeo under 21 2022]]
+* {{Med|O|Universiadi}} [[Pallavolo ai XXXII Giochi mondiali universitari estivi - Torneo femminile|Giochi mondiali universitari 2025]]
+
+===Premi individuali===
+* 2021 - [[Campionato mondiale femminile under 20 di pallavolo 2021|Campionato mondiale under 20]]: Miglior libero
+
+==Note==
+<references/>
+
+==Collegamenti esterni==
+* {{Collegamenti esterni}}
+
+{{portale|pallavolo|biografie}}

@@ -184,6 +184,14 @@ class RosterResource extends Resource
             ])
             ->actions(array_merge([
                 SyncFaceAction::make('syncFace'),
+                // Il palmarès sta sull'anagrafica dell'atleta, non sulla riga
+                // di rosa: segue l'atleta di stagione in stagione, e duplicarlo
+                // per ogni annata significherebbe reimportarlo ogni anno.
+                Tables\Actions\Action::make('palmares')
+                    ->label('Palmarès')
+                    ->icon('heroicon-o-trophy')
+                    ->color('warning')
+                    ->url(fn (Roster $record): string => PlayerResource::getUrl('edit', ['record' => $record->player_id])),
             ], static::viewAndEditActions()))
             ->bulkActions(static::standardBulkActions());
     }

@@ -1045,5 +1045,25 @@
         "open_external": "Apri sulla piattaforma",
         "watch": "Guarda la diretta",
         "live_badge": "Diretta"
+    },
+    "palmares": {
+        "open_hint": "Scopri il palmarès",
+        "counter_club": "Trofei",
+        "counter_national": "Medaglie",
+        "counter_individual": "Premi",
+        "group_club": "Club",
+        "group_national": "Nazionale",
+        "group_individual": "Premi individuali",
+        "medal_gold": "Oro",
+        "medal_silver": "Argento",
+        "medal_bronze": "Bronzo",
+        "empty": "Il palmarès di questa atleta non è ancora disponibile.",
+        "season_title": "Stagione in corso",
+        "season_matches": "Gare",
+        "season_sets": "Set",
+        "season_points": "Punti",
+        "season_blocks": "Muri",
+        "source": "Fonte:",
+        "gallery_link": "Guarda le foto"
     }
 }

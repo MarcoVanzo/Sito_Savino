@@ -1045,5 +1045,25 @@
         "open_external": "Open on the platform",
         "watch": "Watch live",
         "live_badge": "Live"
+    },
+    "palmares": {
+        "open_hint": "See her honours",
+        "counter_club": "Trophies",
+        "counter_national": "Medals",
+        "counter_individual": "Awards",
+        "group_club": "Club",
+        "group_national": "National team",
+        "group_individual": "Individual awards",
+        "medal_gold": "Gold",
+        "medal_silver": "Silver",
+        "medal_bronze": "Bronze",
+        "empty": "Honours for this player are not available yet.",
+        "season_title": "Current season",
+        "season_matches": "Matches",
+        "season_sets": "Sets",
+        "season_points": "Points",
+        "season_blocks": "Blocks",
+        "source": "Source:",
+        "gallery_link": "View photos"
     }
 }

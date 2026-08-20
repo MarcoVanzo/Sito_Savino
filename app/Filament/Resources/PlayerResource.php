@@ -157,6 +157,7 @@ class PlayerResource extends Resource
     public static function getRelations(): array
     {
         return [
+            RelationManagers\PlayerHonoursRelationManager::class,
             RelationManagers\PlayerStatsRelationManager::class,
         ];
     }

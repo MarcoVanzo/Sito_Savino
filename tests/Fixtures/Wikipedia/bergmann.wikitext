@@ -1,0 +1,101 @@
+{{Sportivo
+|Nome = Júlia Bergmann
+|Immagine = 
+|Sesso = F
+|CodiceNazione = {{BRA}}<br />{{DEU}}
+|Disciplina = Pallavolo
+|Ruolo = [[Schiacciatore-laterale|Schiacciatrice]]
+|Squadra = {{Volley femminile Savino Del Bene}}
+|TermineCarriera =
+|SquadreGiovanili =
+|Squadre =
+{{Carriera sportivo
+|sport = volley femminile
+|pos = G
+|2015|Avotol|
+|2016-2017|ABEL|
+|2019-2022|UNI Georgia Tech|
+|2023-2026|Turk Hava Yollari|
+|2026-|Savino Del Bene|
+}}
+|SquadreNazionali =
+{{Carriera sportivo
+|2016-2017|{{NazU|PV|BRA|F|18}}|
+|2017-2019|{{NazU|PV|BRA|F|20}}|
+|2019-|{{Naz|PV|BRA|F}}|
+}}
+|Vittorie =
+{{MedaglieCompetizione|[[Pallavolo ai Giochi olimpici - Torneo femminile|Giochi olimpici]]}}
+{{MedaglieBronzo|[[Pallavolo ai Giochi della XXXIII Olimpiade - Torneo femminile|Parigi 2024]]}}
+{{MedaglieCompetizione|[[Campionato mondiale femminile di pallavolo|Campionato mondiale]]}}
+{{MedaglieBronzo|[[Campionato mondiale femminile di pallavolo 2025|Thailandia 2025]]}}
+{{MedaglieCompetizione|[[Campionato sudamericano femminile di pallavolo|Campionato sudamericano]]}}
+{{MedaglieOro|[[Campionato sudamericano femminile di pallavolo 2023|Brasile 2023]]}}
+{{MedaglieCompetizione|[[Volleyball Nations League femminile|Volleyball Nations League]]}}
+{{MedaglieArgento|[[Volleyball Nations League femminile 2022|Ankara 2022]]}}
+{{MedaglieArgento|[[Volleyball Nations League femminile 2025|Łódź 2025]]}}
+{{MedaglieArgento|[[Volleyball Nations League femminile 2026|Macao 2026]]}}
+{{MedaglieCompetizione|[[Coppa del Mondo femminile di pallavolo|Coppa del Mondo]]}}
+{{MedaglieArgento|[[Pallavolo ai Giochi della XXXIII Olimpiade - Qualificazioni al torneo femminile#Girone B|Giappone 2023]]}}
+|Aggiornato = {{data|28|7|2026}}
+}}
+{{Bio
+|Nome = Júlia Isabelle
+|Cognome = Bergmann
+|Sesso = F
+|LuogoNascita = Monaco di Baviera
+|GiornoMeseNascita = 21 febbraio
+|AnnoNascita = 2001
+|LuogoMorte =
+|GiornoMeseMorte =
+|AnnoMorte =
+|Epoca = 2000
+|Attività = pallavolista
+|Nazionalità = brasiliana
+|Cittadinanza = tedesca
+|PostNazionalità = , [[Schiacciatore-laterale|schiacciatrice]] della {{Volley femminile Savino Del Bene|NB}}
+}}
+
+== Biografia ==
+Nasce a [[Monaco di Baviera]] da padre tedesco e madre brasiliana, entrambi ex pallavolisti, trasferendosi in [[Brasile]] con la famiglia nel 2011<ref>{{cita web|url=https://ramblinwreck.com/qa-with-future-jacket-julia-bergmann/|titolo=Q&A WITH FUTURE JACKET JULIA BERGMANN|lingua=en|data={{data|19|5|2019}}|accesso={{data|27|11|2023}}}}</ref>; è la sorella maggiore del pallavolista [[Lukas Bergmann]].
+
+== Carriera ==
+=== Club ===
+Júlia Bergmann muove i primi passi nella pallavolo nel 2013 e due anni dopo partecipa al [[Campionato Paranaense 2015 (pallavolo femminile)|Campionato Paranaense]] con l'{{Volley femminile Avotol|NB}}. Un anno dopo approda all'{{Volley femminile ABEL|NB}}, disputando la [[Taça Prata 2016 (femminile)|Taça Prata 2016]], la [[Superliga Série B 2017 (femminile)|Superliga Série B 2017]] e il [[Campionato Catarinense 2017 (pallavolo femminile)|Campionato Catarinense 2017]]. 
+
+Si trasferisce quindi negli [[Stati Uniti d'America]] per motivi accademici, prendendo parte alla lega universitaria [[NCAA Division I (pallavolo femminile)|NCAA Division I]] con la {{Volley femminile UNI Georgia Tech|NB}}<ref>{{cita web|url=https://ramblinwreck.com/roster/julia-bergmann/|titolo=Júlia Bergmann|lingua=en|accesso={{data|27|11|2023}}}}</ref>: gioca con le ''Yellow Jackets'' dal [[NCAA Division I 2019 (pallavolo femminile)|2019]] al [[NCAA Division I 2022 (pallavolo femminile)|2022]] e si aggiudica il [[National Invitational Volleyball Championship 2019]]<ref name="NIVC 2019">{{cita web|url=https://www.womensnivc.com/news/finals-recap-georgia-tech-vs-south-dakota|titolo=Finals Recap - Georgia Tech vs. South Dakota|lingua=en|data={{data|17|12|2019}}|accesso={{data|27|11|2023}}}}</ref>, venendo inserita nel sestetto ideale del torneo<ref name="NIVC 2019"/>, oltre a ricevere qualche riconoscimento individuale.
+
+Nella [[Sultanlar Ligi 2023-2024|stagione 2023-24]] viene ingaggiata dalle [[Turchia|turche]] del {{Volley femminile Turk Hava Yollari|NB}}<ref>{{cita web|url=https://tvf-web.dataproject.com/PlayerDetails.aspx?TeamID=671&PlayerID=6622&ID=87|titolo=Júlia Bergmann|lingua=tr|accesso={{data|27|11|2023}}}}</ref>, in [[Sultanlar Ligi]], dove trascorre un triennio, trasferendosi poi nel [[Serie A1 2026-2027 (pallavolo)|campionato 2026-27]] in [[Italia]], dove partecipa alla [[Serie A1 (pallavolo femminile)|Serie A1]] con la {{Volley femminile Savino Del Bene|NB|2026}}<ref>{{cita web|url=https://savinodelbenevolley.it/julia-bergmann-nuova-schiacciatrice-della-savino-del-bene-volley/|titolo=Júlia Bergmann è una nuova giocatrice della Savino Del Bene Volley|data=8 giugno 2026|accesso=8 giugno 2026}}</ref>.
+
+=== Nazionale ===
+Fa parte delle [[Selezioni giovanili della nazionale femminile di pallavolo del Brasile|selezioni giovanili brasiliane]], partecipando con l'[[{{NazUT|PV|BRA|F|under 18}}|under 18]] al [[Campionato sudamericano femminile under 18 di pallavolo 2016|campionato sudamericano 2016]], dove si aggiudica l'oro<ref>{{cita web|url=http://www.voleysur.org/v2/noticia.asp?id=12325&idC=|titolo=BRASIL ES ORO EN EL XX SUDAMERICANO U18, PERÚ PLATA Y ARGENTINA BRONCE|lingua=es|data={{data|29|8|2016}}|accesso={{data|27|11|2023}}}}</ref>, e al [[Campionato mondiale femminile under 18 di pallavolo 2017|campionato mondiale 2017]]<ref>{{cita web|url=https://www.fivb.org/vis_web/volley/GU182017/GU182017_p2-076.pdf|titolo=FIVB Volleyball Girls' U18 World Championship 2017 Finals 1st-16th (Places 9-10)|lingua=en|data={{data|27|8|2017}}|accesso={{data|27|11|2023}}}}</ref>; con l'[[{{NazUT|PV|BRA|F|under 20}}|under 20]], invece, dopo aver partecipato al [[Campionato mondiale femminile under 20 di pallavolo 2017|campionato mondiale 2017]]<ref>{{cita web|url=https://www.fivb.org/vis_web/volley/WU202017/WU202017_p2-051.pdf|titolo=FIVB Volleyball Women U20 World Championship 2017 Classification Places 5-8|lingua=en|data={{data|22|7|2017}}|accesso={{data|27|11|2023}}}}</ref>, è di scena al [[Campionato sudamericano femminile under 20 di pallavolo 2018|campionato sudamericano 2018]], conquistando un altro oro<ref>{{cita web|url=http://www.voleysur.org/v2/noticia.asp?id=16180|titolo=BRASIL CONQUISTA SU 20º TÍTULO EN EL XXIV SUDAMERICANO U20|lingua=es|data={{data|22|10|2018}}|accesso={{data|27|11|2023}}}}</ref>, e poi al [[Campionato mondiale femminile under 20 di pallavolo 2019|campionato mondiale 2019]]<ref>{{cita web|url=https://www.fivb.org/vis2009/getdocument.asmx?no=256215921|titolo=FIVB Volleyball Women's U20 World Championship Final 5-6 (Places 5 and 6)|lingua=en|data={{data|21|7|2019}}|accesso={{data|27|11|2023}}}}</ref>.
+
+Nel 2019 debutta in [[Nazionale femminile di pallavolo del Brasile|nazionale maggiore]] disputando alcuni incontri della fase a gironi della [[Volleyball Nations League femminile 2019|Volleyball Nations League]]<ref>{{cita web|url=https://www.fivb.org/vis2009/getdocument.asmx?no=256205231|titolo=FIVB Volleyball Nations League Women Week 1|lingua=en|data={{data|21|5|2019}}|accesso={{data|27|11|2023}}}}</ref>, torneo nel quale si aggiudica l'argento nell'[[Volleyball Nations League femminile 2022|edizione 2022]]<ref>{{cita web|url=https://www.fivb.org/vis2009/getdocument.asmx?no=256520942|titolo=FIVB Volleyball Nations League Women Final 1-2 (Places 1 and 2)|lingua=en|data={{data|17|7|2022}}|accesso={{data|27|11|2023}}}}</ref>, seguito dall'oro al [[Campionato sudamericano femminile di pallavolo 2023|campionato sudamericano 2023]]<ref>{{cita web|url=http://www.voleysur.org/v2/noticia.asp?id=19090|titolo=BRASIL, ARGENTINA Y COLOMBIA EN EL PODIO DEL SUDAMERICANO DE RECIFE|lingua=es|data={{data|24|8|2023}}|accesso={{data|27|11|2023}}}}</ref> e dall'argento alla [[Pallavolo ai Giochi della XXXIII Olimpiade - Qualificazioni al torneo femminile#Girone B|Coppa del Mondo 2023]]<ref>{{cita web|url=https://en.volleyballworld.com/news/japan-unveiled-as-first-hosts-of-olympic-qualification-tournaments|titolo=Japan unveiled as first hosts of Olympic Qualification Tournaments|lingua=en|data=16 ottobre 2022|accesso=10 giugno 2023}}</ref><ref>{{cita web|url=https://en.volleyballworld.com/volleyball/competitions/volleyball-olympic-qualifying-tournament/teams/women/5922/players/|titolo=Players|lingua=en|accesso=10 giugno 2023}}</ref>. Nel 2024 mette al collo il bronzo ai [[Pallavolo ai Giochi della XXXIII Olimpiade - Torneo femminile|Giochi della XXXIII Olimpiade]]<ref>{{cita web|url=https://olympics.com/en/paris-2024/results/volleyball/women/fnl-000200--|titolo=Brazil vs Türkiye Results|lingua=en|accesso=11 agosto 2024}}</ref>, nel 2025 quella d'argento alla [[Volleyball Nations League femminile 2025|Volleyball Nations League]]<ref>{{cita web|url=https://www.fivb.org/vis2009/getdocument.asmx?no=256783345|titolo=Women's Volleyball Nations League 2025, P-2 Match result, Final 1-2 (Places 1 and 2)|formato=PDF|lingua=en|accesso=31 luglio 2025}}</ref> e di bronzo al [[Campionato mondiale femminile di pallavolo 2025|campionato mondiale]]<ref>{{cita web|url=https://www.fivb.org/vis2009/getdocument.asmx?no=256803750|titolo=FIVB Volleyball Women's World Championship 2025 P-2 Match result Final 3-4|lingua=en|formato=pdf|accesso=7 settembre 2025}}</ref> e nel 2026 quella d'argento alla [[Volleyball Nations League femminile 2026|Volleyball Nations League]]<ref>{{cita web|url=https://www.fivb.org/vis2009/getdocument.asmx?no=256899867|titolo=Women's Volleyball Nations League 2026 - P-2 Match result - Final 1-2 (Places 1 and 2)|lingua=en|data=26 luglio 2026|accesso=28 luglio 2026}}</ref>.
+
+== Palmarès ==
+=== Club ===
+* {{Pallavolopalm|NIVC|1}}
+: [[National Invitational Volleyball Championship 2019|2019]]
+
+=== Nazionale (competizioni minori) ===
+* {{Med|O|Sud America}} [[Campionato sudamericano femminile under 18 di pallavolo 2016|Campionato sudamericano under 18 2016]]
+* {{Med|O|Sud America}} [[Campionato sudamericano femminile under 20 di pallavolo 2018|Campionato sudamericano under 20 2018]]
+
+=== Premi individuali ===
+* 2019 - [[National Invitational Volleyball Championship 2019|NIVC]]: ''All-Tournament Team''
+* 2021 - [[AVCA All-America 2021-2030 (femminile, NCAA Division I)|All-America First Team]]
+* 2022 - [[AVCA All-America 2021-2030 (femminile, NCAA Division I)|All-America Second Team]]
+
+== Note ==
+<references/>
+
+== Altri progetti ==
+{{interprogetto}}
+
+== Collegamenti esterni ==
+* {{Collegamenti esterni}}
+* {{cita web|url=https://ramblinwreck.com/roster/julia-bergmann/|titolo=Júlia Bergmann|lingua=en}}
+* {{cita web|url=https://tvf-web.dataproject.com/PlayerDetails.aspx?TeamID=671&PlayerID=6622&ID=87|titolo=Júlia Bergmann|lingua=tr}}
+* {{cita web|url=https://sultanlar.volleystation.com/tr/players/2204974/|titolo=Júlia Bergmann|lingua=tr}}
+
+{{Portale|biografie|pallavolo}}

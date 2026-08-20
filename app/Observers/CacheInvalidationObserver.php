@@ -10,6 +10,7 @@ use App\Models\GalleryImage;
 use App\Models\Game;
 use App\Models\Page;
 use App\Models\Player;
+use App\Models\PlayerHonour;
 use App\Models\PlayerStat;
 use App\Models\Post;
 use App\Models\Product;
@@ -37,6 +38,7 @@ class CacheInvalidationObserver
     private const MODEL_CACHE_MAP = [
         Player::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page', 'public:gallery_athletes', 'public:gallery_images', 'public:home', 'filament:dashboard:stats'],
         PlayerStat::class => ['public:stagione', 'public:stagione:b1'],
+        PlayerHonour::class => ['public:stagione', 'public:stagione:b1'],
         Roster::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page'],
         Season::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page', 'public:risultati', 'public:home'],
         Team::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page', 'public:risultati', 'filament:dashboard:next_match_id'],

@@ -94,6 +94,27 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Wikipedia
+    |--------------------------------------------------------------------------
+    |
+    | Sorgente del palmarès delle atlete. Si leggono le API MediaWiki pubbliche
+    | (nessuna chiave), quindi qui c'è solo l'etichetta con cui ci si presenta:
+    | le regole d'uso chiedono uno user agent che identifichi l'applicazione e
+    | un contatto raggiungibile.
+    |
+    */
+
+    'wikipedia' => [
+        'lang' => env('WIKIPEDIA_LANG', 'it'),
+        'timeout' => (int) env('WIKIPEDIA_TIMEOUT', 15),
+        'user_agent' => env(
+            'WIKIPEDIA_USER_AGENT',
+            'SavinoDelBeneVolleyBot/1.0 (https://www.savinodelbenevolley.it; marketing@savinodelbenevolley.it)'
+        ),
+    ],
+
     'lvf' => [
         'base_url' => env('LVF_BASE_URL', 'https://www.legavolleyfemminile.it'),
         // I tabellini vivono su un host separato: è la pagina che il Match
