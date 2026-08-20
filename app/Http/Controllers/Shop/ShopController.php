@@ -172,8 +172,39 @@ class ShopController extends Controller
 
         [$sortColumn, $sortDirection] = $sortOptions[$sort];
 
+        // Le sottocategorie dividono un reparto in scaffali — Kit Gara in Home,
+        // Away e Champions — e si comportano come i ruoli nel roster: filtrano
+        // senza cambiare pagina. Restano solo quelle che hanno qualcosa dentro,
+        // altrimenti si clicca su un elenco vuoto.
+        $sottocategorie = $category->children()
+            ->withCount(['products' => fn ($query) => $query->shoppable()])
+            ->ordered()
+            ->get()
+            ->filter(fn ($figlia) => $figlia->products_count > 0)
+            ->map(fn ($figlia) => [
+                'id' => $figlia->id,
+                'name' => $figlia->name,
+                'slug' => $figlia->slug,
+                'products_count' => $figlia->products_count,
+            ])
+            ->values();
+
+        $sottocategoriaAttiva = $request->get('gruppo');
+
+        if ($sottocategoriaAttiva !== null && ! $sottocategorie->contains('slug', $sottocategoriaAttiva)) {
+            $sottocategoriaAttiva = null;
+        }
+
+        // Senza figlie si guarda il reparto; con le figlie si guarda uno
+        // scaffale, o tutti gli scaffali insieme.
+        $categorieMostrate = match (true) {
+            $sottocategoriaAttiva !== null => [$sottocategorie->firstWhere('slug', $sottocategoriaAttiva)['id']],
+            $sottocategorie->isNotEmpty() => [$category->id, ...$sottocategorie->pluck('id')->all()],
+            default => [$category->id],
+        };
+
         $paginator = Product::shoppable()
-            ->where('product_category_id', $category->id)
+            ->whereIn('product_category_id', $categorieMostrate)
             ->with(['media', 'category'])
             ->withSum('variants', 'stock')
             ->orderBy($sortColumn, $sortDirection)
@@ -187,6 +218,8 @@ class ShopController extends Controller
             'products' => $paginator,
             'currentSort' => $sort,
             'sortOptions' => array_keys($sortOptions),
+            'subcategories' => $sottocategorie,
+            'activeSubcategory' => $sottocategoriaAttiva,
         ]);
     }
 

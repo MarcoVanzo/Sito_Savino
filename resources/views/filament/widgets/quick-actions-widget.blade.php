@@ -1,3 +1,10 @@
+{{--
+    Gli indirizzi delle risorse non si scrivono a mano: Filament li ricava dal
+    nome della classe e li cambia insieme a quello. Qui erano cablati come
+    /admin/posts/create e /admin/games, mentre le risorse rispondono su
+    /admin/news e /admin/partite: due dei quattro riquadri portavano a una
+    pagina inesistente.
+--}}
 <x-filament-widgets::widget>
     <x-filament::section>
         <div class="flex items-center gap-3 mb-6">
@@ -9,7 +16,7 @@
         
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Azione 1 -->
-            <a href="/admin/posts/create" class="group relative overflow-hidden bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ \App\Filament\Resources\PostResource::getUrl('create') }}" class="group relative overflow-hidden bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                 <div class="absolute -right-4 -bottom-4 text-warning-500/10 group-hover:text-warning-500/20 transition-colors duration-300">
                     <x-heroicon-s-pencil-square class="w-24 h-24" />
                 </div>
@@ -23,7 +30,7 @@
             </a>
             
             <!-- Azione 2 -->
-            <a href="/admin/games" class="group relative overflow-hidden bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ \App\Filament\Resources\GameResource::getUrl('index') }}" class="group relative overflow-hidden bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                 <div class="absolute -right-4 -bottom-4 text-success-500/10 group-hover:text-success-500/20 transition-colors duration-300">
                     <x-heroicon-s-calendar-days class="w-24 h-24" />
                 </div>
@@ -37,7 +44,7 @@
             </a>
 
             <!-- Azione 3 -->
-            <a href="/admin/players" class="group relative overflow-hidden bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ \App\Filament\Resources\PlayerResource::getUrl('index') }}" class="group relative overflow-hidden bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                 <div class="absolute -right-4 -bottom-4 text-primary-500/10 group-hover:text-primary-500/20 transition-colors duration-300">
                     <x-heroicon-s-user-group class="w-24 h-24" />
                 </div>
@@ -51,7 +58,7 @@
             </a>
             
             <!-- Azione 4 -->
-            <a href="/admin/pages" class="group relative overflow-hidden bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <a href="{{ \App\Filament\Resources\PageResource::getUrl('index') }}" class="group relative overflow-hidden bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                 <div class="absolute -right-4 -bottom-4 text-danger-500/10 group-hover:text-danger-500/20 transition-colors duration-300">
                     <x-heroicon-s-document-text class="w-24 h-24" />
                 </div>

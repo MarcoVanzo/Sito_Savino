@@ -57,14 +57,14 @@ const services = computed(() => Array.isArray(cd.value?.services) ? cd.value.ser
                     
                     <!-- Text Content -->
                     <div class="order-2 lg:order-1">
-                        <div class="inline-block px-4 py-1.5 bg-savino-gold/10 text-savino-gold font-bold rounded-full text-sm tracking-wide mb-6">
+                        <div class="inline-block px-4 py-1.5 bg-savino-fucsia/10 text-savino-fucsia font-bold rounded-full text-sm tracking-wide mb-6">
                             {{ $t('societa.palazzetto_hero_title') }}
                         </div>
                         <h2 class="text-4xl md:text-5xl font-black text-savino-blue tracking-tight mb-8">{{ venueName }}</h2>
                         
                         <div 
                             v-if="page?.content"
-                            class="prose prose-lg max-w-none prose-headings:font-black prose-headings:text-savino-blue prose-h2:hidden prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-savino-gold hover:prose-a:underline mb-10"
+                            class="prose prose-lg max-w-none prose-headings:font-black prose-headings:text-savino-blue prose-h2:hidden prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-savino-fucsia hover:prose-a:underline mb-10"
                             v-html="safeContent"
                         ></div>
 

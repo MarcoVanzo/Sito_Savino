@@ -9,15 +9,68 @@ use Illuminate\Database\Eloquent\Model;
 class PageTemplateForms
 {
     /**
-     * Campo di upload (PDF/ZIP) per un Press Kit della pagina Comunicazione.
+     * Coda multimediale di una pagina: un video e una galleria, dopo il testo.
+     *
+     * Le pagine dei progetti sociali raccontavano solo a parole quello che di
+     * suo e' fatto di campo e di persone. Il video accetta gli stessi indirizzi
+     * della diretta delle gare (App\Support\LiveStream): YouTube, Vimeo, Twitch
+     * e Dailymotion, e nessun altro dominio.
+     *
+     * @return array<int, Forms\Components\Component>
      */
-    private static function pressKitFileField(int $n): Forms\Components\FileUpload
+    private static function mediaTailSchema(): array
     {
-        return Forms\Components\FileUpload::make("content_data.press_kit_{$n}_file")
-            ->label('File da scaricare (PDF/ZIP)')
-            ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
-            ->directory('press-kit')
-            ->preserveFilenames();
+        return [
+            Forms\Components\TextInput::make('content_data.video_url')
+                ->label('Video (YouTube, Vimeo, Twitch o Dailymotion)')
+                ->url()
+                ->helperText('Incolla il link del video. Compare in fondo alla pagina, dopo il testo.')
+                ->placeholder('es. https://www.youtube.com/watch?v=...')
+                ->columnSpanFull(),
+            SpatieMediaLibraryFileUpload::make('gallery')
+                ->label('Galleria fotografica')
+                ->helperText('Le foto compaiono in fondo alla pagina. Si riordinano trascinandole.')
+                ->collection('gallery')
+                ->multiple()
+                ->reorderable()
+                ->appendFiles()
+                ->image()
+                ->maxSize(4096)
+                ->columnSpanFull(),
+        ];
+    }
+
+    /**
+     * Elenco di documenti scaricabili (PDF) di una pagina.
+     *
+     * Serve al bilancio di sostenibilita', che ha un'edizione per stagione, ma
+     * vale per qualunque pagina di contenuto che debba allegare dei documenti.
+     */
+    private static function documentsRepeater(string $label): Forms\Components\Repeater
+    {
+        return Forms\Components\Repeater::make('content_data.documents')
+            ->label($label)
+            ->schema([
+                Forms\Components\TextInput::make('title')
+                    ->label('Titolo')
+                    ->required()
+                    ->placeholder('es. Bilancio di Sostenibilita\' 2024/2025'),
+                Forms\Components\Textarea::make('description')
+                    ->label('Descrizione breve')
+                    ->rows(2),
+                Forms\Components\FileUpload::make('file')
+                    ->label('File PDF')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->directory('documenti')
+                    ->required()
+                    ->preserveFilenames()
+                    ->columnSpanFull(),
+            ])
+            ->columns(2)
+            ->columnSpanFull()
+            ->defaultItems(0)
+            ->createItemButtonLabel('Aggiungi documento')
+            ->collapsible();
     }
 
     /**
@@ -42,16 +95,105 @@ class PageTemplateForms
                         ->placeholder('es. mailto:marketing@savinodelbenevolley.it'),
                 ])
                 ->columns(2),
-            SpatieMediaLibraryFileUpload::make('gallery')
-                ->label('Galleria fotografica')
-                ->helperText('Le foto compaiono in fondo alla pagina. Si riordinano trascinandole.')
-                ->collection('gallery')
-                ->multiple()
-                ->reorderable()
-                ->appendFiles()
-                ->image()
-                ->maxSize(4096)
-                ->columnSpanFull(),
+            self::documentsRepeater('Documenti scaricabili'),
+            ...self::mediaTailSchema(),
+        ];
+    }
+
+    /**
+     * Campi del template "Talent Day".
+     *
+     * La pagina prendeva in prestito il modello del Summer Camp e mostrava i
+     * contenuti di quello: le tappe di selezione, i turni per anno di nascita e
+     * il modulo d'iscrizione non avevano dove stare.
+     *
+     * @return array<int, Forms\Components\Component>
+     */
+    public static function getTalentDaySchema(): array
+    {
+        return [
+            Forms\Components\Fieldset::make('Intestazione')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.hero_label')
+                        ->label('Etichetta sopra il titolo')
+                        ->placeholder('es. Talent Scouting'),
+                    Forms\Components\TextInput::make('content_data.hero_subtitle')
+                        ->label('Sottotitolo')
+                        ->placeholder('es. Insegui il Tuo Sogno'),
+                ])
+                ->columns(2),
+
+            Forms\Components\TextInput::make('content_data.stages_title')
+                ->label('Titolo della sezione tappe')
+                ->placeholder('es. Le Tappe'),
+            Forms\Components\Repeater::make('content_data.stages')
+                ->label('Tappe')
+                ->schema([
+                    Forms\Components\TextInput::make('date')
+                        ->label('Data')
+                        ->required()
+                        ->placeholder('es. 19 Maggio'),
+                    Forms\Components\TextInput::make('place')
+                        ->label('Sede')
+                        ->placeholder('es. Palasport, via Rialdoli, Scandicci (FI)'),
+                    Forms\Components\TextInput::make('status')
+                        ->label('Stato')
+                        ->placeholder('es. Disponibile oppure Sold out'),
+                    Forms\Components\Toggle::make('sold_out')
+                        ->label('Esaurita')
+                        ->helperText('Spegne l\'evidenza colorata sullo stato.'),
+                ])
+                ->columns(2)
+                ->columnSpanFull()
+                ->defaultItems(0)
+                ->createItemButtonLabel('Aggiungi tappa')
+                ->collapsible()
+                ->itemLabel(fn (array $state): ?string => trim(($state['date'] ?? '').' — '.($state['place'] ?? '')) ?: null),
+
+            Forms\Components\TextInput::make('content_data.slots_title')
+                ->label('Titolo della sezione turni')
+                ->placeholder('es. Orari e Categorie'),
+            Forms\Components\Repeater::make('content_data.slots')
+                ->label('Turni')
+                ->schema([
+                    Forms\Components\TextInput::make('time')
+                        ->label('Orario')
+                        ->placeholder('es. 16:00-17:30'),
+                    Forms\Components\TextInput::make('years')
+                        ->label('Anni di nascita')
+                        ->placeholder('es. atlete nate dal 2012 al 2014'),
+                ])
+                ->columns(2)
+                ->columnSpanFull()
+                ->defaultItems(0)
+                ->createItemButtonLabel('Aggiungi turno'),
+
+            Forms\Components\Fieldset::make('Iscrizione')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.signup_title')
+                        ->label('Titolo'),
+                    Forms\Components\Textarea::make('content_data.signup_description')
+                        ->label('Descrizione')
+                        ->rows(2),
+                    Forms\Components\TextInput::make('content_data.signup_url')
+                        ->label('Link al modulo d\'iscrizione')
+                        ->url()
+                        ->placeholder('https://...'),
+                    Forms\Components\TextInput::make('content_data.signup_cta')
+                        ->label('Testo del pulsante')
+                        ->placeholder('es. Iscriviti'),
+                    Forms\Components\TextInput::make('content_data.signup_email')
+                        ->label('Email per informazioni')
+                        ->email()
+                        ->helperText('Se vuoto vale quella in Impostazioni -> Contatti.'),
+                    Forms\Components\Textarea::make('content_data.partners')
+                        ->label('Societa\' partner')
+                        ->rows(2)
+                        ->columnSpanFull(),
+                ])
+                ->columns(2),
+
+            ...self::mediaTailSchema(),
         ];
     }
 
@@ -108,8 +250,13 @@ class PageTemplateForms
                 ->label('Piani e Abbonamenti')
                 ->schema([
                     Forms\Components\TextInput::make('name')->label('Nome Piano')->required(),
-                    Forms\Components\TextInput::make('price')->label('Prezzo (€)')->required(),
+                    Forms\Components\TextInput::make('price')->label('Prezzo intero (€)')->required(),
                     Forms\Components\TextInput::make('period')->label('Periodo (es. a partita, stagione)')->required(),
+                    // Lo stesso posto ha piu' tariffe: senza questi campi il listino
+                    // della societa' non ci stava dentro. Lasciandoli vuoti la scheda
+                    // mostra il solo prezzo intero.
+                    Forms\Components\TextInput::make('price_returning')->label('Tariffa riconferma (€)'),
+                    Forms\Components\TextInput::make('price_under16')->label('Tariffa Under 16 (€)'),
                     Forms\Components\TagsInput::make('features')->label('Vantaggi (Premi invio)'),
                     Forms\Components\Toggle::make('highlight')->label('Evidenziato (Più Popolare)'),
                     Forms\Components\TextInput::make('cta')->label('Testo Pulsante (es. Acquista)'),
@@ -219,16 +366,22 @@ class PageTemplateForms
                     Forms\Components\Textarea::make('description')
                         ->label('Descrizione breve')
                         ->placeholder('es. Linee guida specifiche per garantire un ambiente sportivo sicuro...'),
-                    Forms\Components\TextInput::make('file')
-                        ->label('URL File / Allegato (es. /storage/...)')
+                    // Era un campo di testo che chiedeva l'indirizzo del file: per usarlo
+                    // bisognava aver gia' caricato il PDF da qualche altra parte e
+                    // conoscerne il percorso, cosa che dal pannello non si puo' fare.
+                    Forms\Components\FileUpload::make('file')
+                        ->label('File PDF del documento')
+                        ->acceptedFileTypes(['application/pdf'])
+                        ->directory('safeguarding')
                         ->required()
-                        ->placeholder('Carica il file o inserisci il link...'),
+                        ->preserveFilenames(),
                     Forms\Components\TextInput::make('icon')
                         ->label('Icona SVG (Opzionale)')
                         ->placeholder('es. M12 4.354a4...'),
                 ])
                 ->columns(2)
                 ->columnSpanFull()
+                ->defaultItems(0)
                 ->createItemButtonLabel('Aggiungi Documento'),
         ];
     }
@@ -731,24 +884,21 @@ class PageTemplateForms
                                         ->required(),
                                     Forms\Components\TextInput::make('tag')
                                         ->label('Tag / Categoria')
-                                        ->required()
                                         ->placeholder('es. INCLUSIONE'),
                                     Forms\Components\TextInput::make('icon')
                                         ->label('Emoji / Icona')
-                                        ->placeholder('es. 🏐')
-                                        ->required(),
+                                        ->placeholder('es. 🏐'),
                                     Forms\Components\Select::make('color')
                                         ->label('Colore Tema')
                                         ->options([
                                             'savino-blue' => 'Blu Savino',
                                             'savino-red' => 'Rosso Savino',
                                             'savino-pink' => 'Rosa Savino',
-                                            'savino-gold' => 'Oro Savino',
+                                            'savino-fucsia' => 'Fucsia Savino',
                                         ])
                                         ->required(),
                                     Forms\Components\Textarea::make('description')
                                         ->label('Descrizione Progetto')
-                                        ->required()
                                         ->rows(3)
                                         ->columnSpanFull(),
                                     Forms\Components\TextInput::make('link')
@@ -780,6 +930,10 @@ class PageTemplateForms
                                 ->createItemButtonLabel('Aggiungi Statistica')
                                 ->collapsible(),
                         ]),
+
+                    Forms\Components\Tabs\Tab::make('Foto e Video')
+                        ->icon('heroicon-o-photo')
+                        ->schema(self::mediaTailSchema()),
                 ])
                 ->columnSpanFull(),
         ];
@@ -1005,7 +1159,7 @@ class PageTemplateForms
                                         ->label('Colore Tema Card')
                                         ->options([
                                             'savino-blue' => 'Blu Savino',
-                                            'savino-gold' => 'Oro Savino',
+                                            'savino-fucsia' => 'Fucsia Savino',
                                             'savino-red' => 'Rosso Savino',
                                             'savino-pink' => 'Rosa Savino',
                                         ])
@@ -1033,14 +1187,15 @@ class PageTemplateForms
                                 ->label('Informazioni di Contatto Scouting')
                                 ->rows(2),
                             Forms\Components\TextInput::make('content_data.scouting_cta_primary')
-                                ->label('Testo Pulsante Primario')
-                                ->placeholder('es. Scrivici'),
+                                ->label('Testo del Pulsante')
+                                ->placeholder('es. Scrivi al settore giovanile'),
+                            // Il pulsante e' uno solo e apre la posta: se questo campo
+                            // resta vuoto vale l'indirizzo in Impostazioni -> Contatti,
+                            // e senza nessuno dei due il pulsante non compare.
                             Forms\Components\TextInput::make('content_data.scouting_email')
-                                ->label('Email Scouting')
-                                ->placeholder('es. giovanili@savinodelbenevolley.it'),
-                            Forms\Components\TextInput::make('content_data.scouting_cta_secondary')
-                                ->label('Testo Pulsante Secondario')
-                                ->placeholder('es. Regolamento Prove'),
+                                ->label('Email del settore giovanile')
+                                ->email()
+                                ->placeholder('es. giovanile@savinodelbenevolley.it'),
                         ]),
                 ])
                 ->columnSpanFull(),
@@ -1082,36 +1237,16 @@ class PageTemplateForms
                                     Forms\Components\Textarea::make('content_data.accreditation_text_2')
                                         ->label('Testo Accrediti 2')
                                         ->rows(3),
-                                    Forms\Components\TextInput::make('content_data.accreditation_email')
-                                        ->label('Email Invio Richieste Accredito')
-                                        ->placeholder('es. stampa@savinodelbenevolley.it'),
+                                    // Le tre "fasi della procedura" spiegavano come scrivere
+                                    // una mail: la richiesta si manda dal modulo nella pagina
+                                    // e arriva in "Richieste Accrediti". Qui restano le
+                                    // condizioni, che compaiono accanto al modulo.
+                                    Forms\Components\Textarea::make('content_data.accreditation_notes')
+                                        ->label('Condizioni e note')
+                                        ->helperText('Compaiono accanto al modulo. Lasciando vuoto, il riquadro non viene mostrato.')
+                                        ->rows(4)
+                                        ->placeholder("es. Le richieste si chiudono 24 ore prima della gara.\nI posti in tribuna stampa sono limitati."),
                                 ])->columns(1),
-
-                            Forms\Components\Fieldset::make('Fasi della Procedura')
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.accreditation_steps_title')
-                                        ->label('Titolo Fasi Procedura')
-                                        ->placeholder('es. Come Richiedere l\'Accredito'),
-                                    Forms\Components\Textarea::make('content_data.accreditation_step_1')
-                                        ->label('Fase 1: Invio Domanda')
-                                        ->rows(2),
-                                    Forms\Components\Textarea::make('content_data.accreditation_step_2')
-                                        ->label('Fase 2: Valutazione')
-                                        ->rows(2),
-                                    Forms\Components\Textarea::make('content_data.accreditation_step_3')
-                                        ->label('Fase 3: Conferma')
-                                        ->rows(2),
-                                ])->columns(1),
-
-                            Forms\Components\Fieldset::make('Area Media Hub')
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.media_hub_title')
-                                        ->label('Titolo Media Hub')
-                                        ->placeholder('es. Media Hub'),
-                                    Forms\Components\TextInput::make('content_data.media_hub_subtitle')
-                                        ->label('Sottotitolo Media Hub')
-                                        ->placeholder('es. Accedi alla galleria multimediale ufficiale'),
-                                ]),
                         ]),
 
                     Forms\Components\Tabs\Tab::make('Press Kits')
@@ -1127,85 +1262,39 @@ class PageTemplateForms
                                         ->placeholder('es. Press Kit Ufficiali'),
                                 ]),
 
-                            Forms\Components\Fieldset::make('Press Kit 1 (Foto SDB Volley)')
+                            // Quattro caselle fisse ("Foto", "Loghi", "Cartella Stampa",
+                            // "Guida Media") non bastano: servono il logo, il brand book e
+                            // una cartella per ogni gara del calendario. L'elenco e' libero.
+                            Forms\Components\Repeater::make('content_data.press_kits')
+                                ->label('Materiale stampa')
                                 ->schema([
-                                    Forms\Components\Grid::make(3)
-                                        ->schema([
-                                            Forms\Components\TextInput::make('content_data.press_kit_1_icon')
-                                                ->label('Icona/Emoji')
-                                                ->placeholder('es. 📸'),
-                                            Forms\Components\TextInput::make('content_data.press_kit_1_title')
-                                                ->label('Titolo')
-                                                ->placeholder('es. Foto Ufficiali'),
-                                            Forms\Components\TextInput::make('content_data.press_kit_1_format')
-                                                ->label('Formato/Peso')
-                                                ->placeholder('es. ZIP — 45 MB'),
-                                        ]),
-                                    Forms\Components\Textarea::make('content_data.press_kit_1_description')
-                                        ->label('Descrizione Press Kit 1')
-                                        ->rows(2),
-                                    self::pressKitFileField(1),
-                                ])->columns(1),
-
-                            Forms\Components\Fieldset::make('Press Kit 2 (Loghi e Brand Assets)')
-                                ->schema([
-                                    Forms\Components\Grid::make(3)
-                                        ->schema([
-                                            Forms\Components\TextInput::make('content_data.press_kit_2_icon')
-                                                ->label('Icona/Emoji')
-                                                ->placeholder('es. 🎨'),
-                                            Forms\Components\TextInput::make('content_data.press_kit_2_title')
-                                                ->label('Titolo')
-                                                ->placeholder('es. Loghi e Brand Assets'),
-                                            Forms\Components\TextInput::make('content_data.press_kit_2_format')
-                                                ->label('Formato/Peso')
-                                                ->placeholder('es. ZIP — 12 MB'),
-                                        ]),
-                                    Forms\Components\Textarea::make('content_data.press_kit_2_description')
-                                        ->label('Descrizione Press Kit 2')
-                                        ->rows(2),
-                                    self::pressKitFileField(2),
-                                ])->columns(1),
-
-                            Forms\Components\Fieldset::make('Press Kit 3 (Cartella Stampa)')
-                                ->schema([
-                                    Forms\Components\Grid::make(3)
-                                        ->schema([
-                                            Forms\Components\TextInput::make('content_data.press_kit_3_icon')
-                                                ->label('Icona/Emoji')
-                                                ->placeholder('es. 📄'),
-                                            Forms\Components\TextInput::make('content_data.press_kit_3_title')
-                                                ->label('Titolo')
-                                                ->placeholder('es. Cartella Stampa Ufficiale'),
-                                            Forms\Components\TextInput::make('content_data.press_kit_3_format')
-                                                ->label('Formato/Peso')
-                                                ->placeholder('es. PDF — 8 MB'),
-                                        ]),
-                                    Forms\Components\Textarea::make('content_data.press_kit_3_description')
-                                        ->label('Descrizione Press Kit 3')
-                                        ->rows(2),
-                                    self::pressKitFileField(3),
-                                ])->columns(1),
-
-                            Forms\Components\Fieldset::make('Press Kit 4 (Guida Media LVF)')
-                                ->schema([
-                                    Forms\Components\Grid::make(3)
-                                        ->schema([
-                                            Forms\Components\TextInput::make('content_data.press_kit_4_icon')
-                                                ->label('Icona/Emoji')
-                                                ->placeholder('es. 📊'),
-                                            Forms\Components\TextInput::make('content_data.press_kit_4_title')
-                                                ->label('Titolo')
-                                                ->placeholder('es. Guida Media LVF'),
-                                            Forms\Components\TextInput::make('content_data.press_kit_4_format')
-                                                ->label('Formato/Peso')
-                                                ->placeholder('es. PDF — 3 MB'),
-                                        ]),
-                                    Forms\Components\Textarea::make('content_data.press_kit_4_description')
-                                        ->label('Descrizione Press Kit 4')
-                                        ->rows(2),
-                                    self::pressKitFileField(4),
-                                ])->columns(1),
+                                    Forms\Components\TextInput::make('title')
+                                        ->label('Titolo')
+                                        ->required()
+                                        ->placeholder('es. Brand Book 2026/2027'),
+                                    Forms\Components\TextInput::make('icon')
+                                        ->label('Emoji (opzionale)')
+                                        ->placeholder('es. 🎨'),
+                                    Forms\Components\Textarea::make('description')
+                                        ->label('Descrizione breve')
+                                        ->rows(2)
+                                        ->columnSpanFull(),
+                                    Forms\Components\TextInput::make('format')
+                                        ->label('Formato e peso')
+                                        ->placeholder('es. PDF — 8 MB'),
+                                    Forms\Components\FileUpload::make('file')
+                                        ->label('File da scaricare (PDF/ZIP)')
+                                        ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
+                                        ->directory('press-kit')
+                                        ->required()
+                                        ->preserveFilenames(),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull()
+                                ->defaultItems(0)
+                                ->createItemButtonLabel('Aggiungi materiale')
+                                ->collapsible()
+                                ->itemLabel(fn (array $state): ?string => $state['title'] ?? null),
                         ]),
 
                     Forms\Components\Tabs\Tab::make('Contatti Media')

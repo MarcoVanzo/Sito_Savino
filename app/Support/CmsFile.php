@@ -42,7 +42,6 @@ class CmsFile
     {
         $campiSemplici = [
             'button_image',
-            'press_kit_1_file', 'press_kit_2_file', 'press_kit_3_file', 'press_kit_4_file',
         ];
 
         foreach ($campiSemplici as $campo) {
@@ -54,6 +53,7 @@ class CmsFile
         $campiNegliElenchi = [
             'magazines' => ['file_url', 'cover_image_url'],
             'documents' => ['file'],
+            'press_kits' => ['file'],
         ];
 
         foreach ($campiNegliElenchi as $elenco => $campi) {

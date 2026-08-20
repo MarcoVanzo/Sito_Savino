@@ -60,9 +60,9 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label || $t('ticketing.hero_label') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label || $t('ticketing.hero_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('ticketing.og_title') }}</h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_subtitle || $t('ticketing.hero_subtitle') }}</p>
 
                 <div v-if="ticketsUrl" class="mt-10">
@@ -70,7 +70,7 @@ const ogMeta = useOgMeta({
                         :href="ticketsUrl"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="inline-flex items-center gap-2 bg-savino-gold text-savino-blue px-8 py-4 rounded-lg font-bold uppercase tracking-wider text-sm hover:bg-savino-gold/90 transition-colors shadow-lg shadow-savino-gold/20"
+                        class="inline-flex items-center gap-2 bg-savino-fucsia text-savino-blue px-8 py-4 rounded-lg font-bold uppercase tracking-wider text-sm hover:bg-savino-fucsia/90 transition-colors shadow-lg shadow-savino-fucsia/20"
                     >
                         {{ ticketsButtonText }}
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
@@ -84,7 +84,7 @@ const ogMeta = useOgMeta({
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.plans_heading || $t('ticketing.plans_heading') }}</h2>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mb-12"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-12"></div>
 
                 <!-- Nessun listino pubblicato: si dice che non c'è, non si inventa -->
                 <div v-if="plans.length === 0" class="max-w-2xl mx-auto text-center bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-12">
@@ -105,7 +105,7 @@ const ogMeta = useOgMeta({
                     >
                         <!-- Popular Badge -->
                         <div v-if="plan.highlight" class="absolute top-0 right-0">
-                            <div class="bg-savino-gold text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl">
+                            <div class="bg-savino-fucsia text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl">
                                 {{ cd.popular_badge || $t('ticketing.popular_badge') }}
                             </div>
                         </div>
@@ -114,7 +114,7 @@ const ogMeta = useOgMeta({
                             <!-- Plan Name -->
                             <h3
                                 class="text-sm font-bold uppercase tracking-wider mb-4"
-                                :class="plan.highlight ? 'text-savino-gold' : 'text-savino-gold'"
+                                :class="plan.highlight ? 'text-savino-fucsia' : 'text-savino-fucsia'"
                                
                             >{{ plan.name }}</h3>
 
@@ -124,6 +124,14 @@ const ogMeta = useOgMeta({
                                 <span class="text-5xl font-black">{{ plan.price }}</span>
                                 <span class="text-sm" :class="plan.highlight ? 'text-white/60' : 'text-gray-400'">/{{ plan.period }}</span>
                             </div>
+
+                            <!-- Tariffe ridotte dello stesso posto -->
+                            <dl v-if="plan.rates.length" class="mb-6 space-y-1.5">
+                                <div v-for="rate in plan.rates" :key="rate.label" class="flex items-baseline justify-between text-sm">
+                                    <dt :class="plan.highlight ? 'text-white/60' : 'text-gray-500'">{{ rate.label }}</dt>
+                                    <dd class="font-bold tabular-nums" :class="plan.highlight ? 'text-white' : 'text-savino-blue'">&euro;&nbsp;{{ rate.price }}</dd>
+                                </div>
+                            </dl>
 
                             <!-- Divider -->
                             <div class="w-full h-px mb-6" :class="plan.highlight ? 'bg-white/20' : 'bg-gray-200'"></div>
@@ -136,7 +144,7 @@ const ogMeta = useOgMeta({
                                     class="flex items-start gap-3 text-sm"
                                    
                                 >
-                                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" :class="plan.highlight ? 'text-savino-gold' : 'text-savino-blue'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" :class="plan.highlight ? 'text-savino-fucsia' : 'text-savino-blue'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                     </svg>
                                     <span :class="plan.highlight ? 'text-white/90' : 'text-gray-600'">{{ feature }}</span>
@@ -151,7 +159,7 @@ const ogMeta = useOgMeta({
                                 rel="noopener noreferrer"
                                 class="block text-center w-full py-3.5 rounded-lg font-bold uppercase tracking-wider text-sm transition-all duration-300"
                                 :class="plan.highlight
-                                    ? 'bg-savino-gold text-white hover:bg-savino-gold/90 shadow-lg shadow-savino-gold/30'
+                                    ? 'bg-savino-fucsia text-white hover:bg-savino-fucsia/90 shadow-lg shadow-savino-fucsia/30'
                                     : 'bg-savino-blue text-white hover:bg-savino-blue/90 shadow-lg shadow-savino-blue/20'"
                             >{{ plan.cta }}</a>
                         </div>
@@ -164,7 +172,7 @@ const ogMeta = useOgMeta({
         <section class="py-16 bg-white">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.info_heading || $t('ticketing.info_heading') }}</h2>
-                <div class="w-12 h-1 bg-savino-gold mb-10"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mb-10"></div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
@@ -187,8 +195,8 @@ const ogMeta = useOgMeta({
                         </a>
                     </div>
                     <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                        <div class="w-12 h-12 rounded-full bg-savino-gold/10 flex items-center justify-center mb-4">
-                            <svg class="w-6 h-6 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-12 h-12 rounded-full bg-savino-fucsia/10 flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                         </div>

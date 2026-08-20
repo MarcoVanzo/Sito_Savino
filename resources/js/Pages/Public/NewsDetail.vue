@@ -86,17 +86,17 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[35vh] flex items-end bg-gradient-to-br from-gray-900 via-[#0B1521] to-gray-800">
             <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                 <div class="mb-4">
-                    <Link href="/news" class="inline-flex items-center min-h-[44px] text-savino-gold hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
+                    <Link href="/news" class="inline-flex items-center min-h-[44px] text-savino-fucsia hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
                         ← {{ $t('news_detail.back_to_news') }}
                     </Link>
                 </div>
-                <time v-if="formattedDate" class="text-savino-gold text-sm font-semibold uppercase tracking-wider">
+                <time v-if="formattedDate" class="text-savino-fucsia text-sm font-semibold uppercase tracking-wider">
                     {{ formattedDate }}
                 </time>
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mt-2">
                     {{ post?.title }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mt-4"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mt-4"></div>
                 <p v-if="post?.author" class="text-gray-400 mt-4 text-sm">
                     {{ $t('news_detail.by_author') }} <span class="text-white font-semibold">{{ post.author.name }}</span>
                 </p>
@@ -117,7 +117,7 @@ const ogMeta = useOgMeta({
         <article class="py-12 px-4 sm:px-6 lg:px-8 bg-white">
             <div class="max-w-4xl mx-auto">
                 <div
-                    class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-a:text-savino-gold prose-a:no-underline hover:prose-a:underline"
+                    class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-a:text-savino-fucsia prose-a:no-underline hover:prose-a:underline"
                     v-html="safeContent"
                 ></div>
 
@@ -149,7 +149,7 @@ const ogMeta = useOgMeta({
                         class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
                     >
                         <div class="p-6">
-                            <time v-if="related.published_at" class="text-xs font-semibold text-savino-gold uppercase tracking-wider">
+                            <time v-if="related.published_at" class="text-xs font-semibold text-savino-fucsia uppercase tracking-wider">
                                 {{ formatDate(related.published_at) }}
                             </time>
                             <h3 class="mt-2 text-lg font-bold text-savino-blue group-hover:text-savino-red transition-colors line-clamp-2">

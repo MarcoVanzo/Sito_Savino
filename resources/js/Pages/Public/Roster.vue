@@ -60,11 +60,11 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.04]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;40&quot; height=&quot;40&quot; viewBox=&quot;0 0 40 40&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Ccircle cx=&quot;20&quot; cy=&quot;20&quot; r=&quot;8&quot; fill=&quot;%23C5A55A&quot;/%3E%3C/svg%3E'); background-size: 40px 40px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('roster.current_season') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('roster.current_season') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ page?.title ?? $t('roster.hero_title') }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">
                     {{ $t('roster.hero_subtitle') }}
                 </p>
@@ -76,8 +76,8 @@ const ogMeta = useOgMeta({
             <div class="max-w-7xl mx-auto">
                 <!-- Placeholder notice -->
                 <div v-if="isPlaceholder" class="text-center mb-12">
-                    <div class="inline-flex items-center gap-2 bg-savino-gold/10 border border-savino-gold/30 rounded-full px-6 py-3">
-                        <svg class="w-5 h-5 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <div class="inline-flex items-center gap-2 bg-savino-fucsia/10 border border-savino-fucsia/30 rounded-full px-6 py-3">
+                        <svg class="w-5 h-5 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span class="text-savino-blue text-sm font-semibold">{{ $t('roster.placeholder_notice') }}</span>
                     </div>
                 </div>
@@ -137,7 +137,7 @@ const ogMeta = useOgMeta({
                         </div>
 
                         <!-- Bottom Accent -->
-                        <div class="h-1 bg-gradient-to-r from-savino-gold via-savino-gold to-transparent w-0 group-hover:w-full transition-all duration-500"></div>
+                        <div class="h-1 bg-gradient-to-r from-savino-fucsia via-savino-fucsia to-transparent w-0 group-hover:w-full transition-all duration-500"></div>
                     </div>
                 </div>
             </div>

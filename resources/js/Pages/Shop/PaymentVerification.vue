@@ -35,8 +35,8 @@ const startVerification = () => {
             <div class="max-w-lg mx-auto px-4 sm:px-6">
                 <div class="bg-gray-900 rounded-2xl p-8 border border-gray-800 text-center">
                     <!-- Icon -->
-                    <div class="w-20 h-20 mx-auto mb-6 bg-savino-gold/10 rounded-full flex items-center justify-center">
-                        <svg class="w-10 h-10 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-20 h-20 mx-auto mb-6 bg-savino-fucsia/10 rounded-full flex items-center justify-center">
+                        <svg class="w-10 h-10 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                     </div>
@@ -76,7 +76,7 @@ const startVerification = () => {
                     <button type="button"
                         @click="startVerification"
                         :disabled="isLoading"
-                        class="w-full bg-savino-gold text-gray-900 font-black text-sm uppercase tracking-wider py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="w-full bg-savino-fucsia text-gray-900 font-black text-sm uppercase tracking-wider py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <svg v-if="isLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

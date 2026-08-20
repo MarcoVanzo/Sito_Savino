@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
         <!-- Trigger Button -->
         <button type="button"
             @click="toggleMenu"
-            class="relative p-2 text-gray-300 hover:text-savino-gold transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-savino-gold/50 rounded-lg"
+            class="relative p-2 text-gray-300 hover:text-savino-fucsia transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-savino-fucsia/50 rounded-lg"
             :aria-label="user() ? $t('shop.my_account') : $t('shop.login')"
             :aria-expanded="isOpen"
             aria-haspopup="true"
@@ -95,7 +95,7 @@ onBeforeUnmount(() => {
                             role="menuitem"
                             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-savino-blue hover:bg-savino-blue/5 rounded-lg transition-colors"
                         >
-                            <svg class="w-5 h-5 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                             </svg>
                             {{ $t('shop.login') }}
@@ -106,7 +106,7 @@ onBeforeUnmount(() => {
                             role="menuitem"
                             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-savino-blue hover:bg-savino-blue/5 rounded-lg transition-colors"
                         >
-                            <svg class="w-5 h-5 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
                             </svg>
                             {{ $t('shop.register_link') }}
@@ -129,7 +129,7 @@ onBeforeUnmount(() => {
                             role="menuitem"
                             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-savino-blue hover:bg-savino-blue/5 rounded-lg transition-colors"
                         >
-                            <svg class="w-5 h-5 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                             </svg>
                             {{ $t('shop.my_orders') }}

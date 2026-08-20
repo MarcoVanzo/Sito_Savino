@@ -289,7 +289,7 @@ return [
                 1 => [
                     'name' => 'Under 16',
                     'coach' => 'Francesca Galli',
-                    'color' => 'savino-gold',
+                    'color' => 'savino-fucsia',
                     'players' => 16,
                     'category' => 'Campionato Regionale',
                     'training' => 'Mar-Gio-Sab 15:00-17:00',
@@ -367,7 +367,7 @@ return [
                 1 => [
                     'name' => 'Under 16',
                     'coach' => 'Francesca Galli',
-                    'color' => 'savino-gold',
+                    'color' => 'savino-fucsia',
                     'players' => 16,
                     'category' => 'Campionato Regionale',
                     'training' => 'Mar-Gio-Sab 15:00-17:00',
@@ -539,7 +539,7 @@ return [
                 1 => [
                     'tag' => 'Educazione',
                     'icon' => '📚',
-                    'color' => 'savino-gold',
+                    'color' => 'savino-fucsia',
                     'title' => 'Scuola & Sport',
                     'description' => 'Programma di doposcuola che unisce supporto scolastico e attività sportiva, promuovendo la crescita a 360°.',
                 ],
@@ -597,7 +597,7 @@ return [
                 1 => [
                     'tag' => 'Educazione',
                     'icon' => '📚',
-                    'color' => 'savino-gold',
+                    'color' => 'savino-fucsia',
                     'title' => 'Scuola & Sport',
                     'description' => 'Programma di doposcuola che unisce supporto scolastico e attività sportiva, promuovendo la crescita a 360°.',
                 ],

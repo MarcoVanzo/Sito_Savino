@@ -9,6 +9,13 @@ return [
         'message_required' => 'Il messaggio è obbligatorio.',
         'message_max' => 'Il messaggio non può superare i 5000 caratteri.',
         'privacy_accepted' => 'Devi accettare l\'informativa sulla privacy.',
+        'phone_required' => 'Il telefono è obbligatorio.',
+        'outlet_required' => 'La testata è obbligatoria.',
+        'role_required' => 'Scegli il ruolo.',
+        'match_required' => 'Indica la gara per cui chiedi l\'accredito.',
+    ],
+    'press_accreditation' => [
+        'success' => 'Richiesta inviata. Ti risponderemo all\'indirizzo che ci hai lasciato.',
     ],
     'contact' => [
         'success_bot' => 'Messaggio inviato con successo!',

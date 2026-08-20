@@ -122,6 +122,11 @@ class PageResource extends Resource
                                     ->schema(PageTemplateForms::getYouthSchema())
                                     ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Youth'),
 
+                                // FORM: TALENT DAY
+                                Forms\Components\Section::make('Impostazioni Pagina Talent Day')
+                                    ->schema(PageTemplateForms::getTalentDaySchema())
+                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/TalentDay'),
+
                                 // FORM: COMUNICAZIONE
                                 Forms\Components\Section::make('Impostazioni Pagina Comunicazione')
                                     ->schema(PageTemplateForms::getComunicazioneSchema())
@@ -200,6 +205,7 @@ class PageResource extends Resource
                                             'Public/Sponsor' => 'Sponsor',
                                             'Public/Youth' => 'Settore Giovanile',
                                             'Public/SummerCamp' => 'Summer Camp',
+                                            'Public/TalentDay' => 'Talent Day & Recruiting',
                                             'Public/Sociale' => 'Progetti Sociali',
                                             'Public/Comunicazione' => 'Comunicazione',
                                             'Public/Stagione' => 'Stagione',

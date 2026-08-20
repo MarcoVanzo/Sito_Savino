@@ -14,7 +14,7 @@ const $t = useTranslations();
 const props = defineProps({
     active: {
         type: String,
-        required: true, // 'risultati' | 'classifica' | 'cev' | 'coppa-italia'
+        required: true, // 'risultati' | 'classifica' | 'cev' | 'coppa-italia' | 'playoff'
     },
 });
 
@@ -25,6 +25,7 @@ const items = computed(() => [
     { key: 'classifica', label: $t('risultati.nav_standings'), routeName: 'stagione.classifica' },
     { key: 'cev', label: $t('risultati.nav_cev'), routeName: 'stagione.cev' },
     { key: 'coppa-italia', label: $t('risultati.nav_coppa_italia'), routeName: 'stagione.coppa-italia' },
+    { key: 'playoff', label: $t('risultati.nav_playoff'), routeName: 'stagione.playoff' },
 ]);
 
 const isActive = (key) => key === props.active;
@@ -39,7 +40,7 @@ const isActive = (key) => key === props.active;
                         :href="route(item.routeName)"
                         class="block px-4 py-4 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-colors duration-200"
                         :class="isActive(item.key)
-                            ? 'border-savino-gold text-savino-blue'
+                            ? 'border-savino-fucsia text-savino-blue'
                             : 'border-transparent text-gray-500 hover:text-savino-blue hover:border-gray-300'"
                         :aria-current="isActive(item.key) ? 'page' : undefined"
                     >{{ item.label }}</Link>

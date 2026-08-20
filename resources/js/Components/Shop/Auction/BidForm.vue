@@ -91,7 +91,7 @@ onUnmounted(() => {
             </p>
             <a
                 :href="route('login')"
-                class="inline-flex items-center gap-2 bg-savino-gold text-gray-900 font-bold text-sm uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-gold/90 transition-all duration-300"
+                class="inline-flex items-center gap-2 bg-savino-fucsia text-gray-900 font-bold text-sm uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -107,7 +107,7 @@ onUnmounted(() => {
             </p>
             <a
                 :href="route('account.payment-verification')"
-                class="inline-flex items-center gap-2 bg-savino-gold text-gray-900 font-bold text-sm uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-gold/90 transition-all duration-300"
+                class="inline-flex items-center gap-2 bg-savino-fucsia text-gray-900 font-bold text-sm uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -165,7 +165,7 @@ onUnmounted(() => {
                     :class="[
                         'text-xs font-bold py-2 rounded-lg transition-all duration-200',
                         bidAmount === auction.minimum_bid + extra
-                            ? 'bg-savino-gold text-gray-900'
+                            ? 'bg-savino-fucsia text-gray-900'
                             : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700 hover:text-white',
                     ]"
                 >
@@ -184,7 +184,7 @@ onUnmounted(() => {
                         :max="auction.maximum_bid"
                         step="0.01"
                         :disabled="isSubmitting"
-                        class="w-full bg-gray-900 border border-gray-600 text-white text-lg font-bold rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-savino-gold focus:border-savino-gold transition-all disabled:opacity-50"
+                        class="w-full bg-gray-900 border border-gray-600 text-white text-lg font-bold rounded-lg pl-10 pr-4 py-3 focus:ring-2 focus:ring-savino-fucsia focus:border-savino-fucsia transition-all disabled:opacity-50"
                         :placeholder="formatPrice(auction.minimum_bid)"
                         :aria-label="$t('shop.your_bid') || 'La tua offerta'"
                     />
@@ -193,7 +193,7 @@ onUnmounted(() => {
                 <button
                     type="submit"
                     :disabled="isSubmitting || !isValidBid"
-                    class="w-full bg-savino-gold text-gray-900 font-black text-sm uppercase tracking-wider py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-savino-fucsia text-gray-900 font-black text-sm uppercase tracking-wider py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <svg v-if="isSubmitting" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />

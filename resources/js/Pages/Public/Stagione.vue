@@ -171,7 +171,7 @@ v-for="role in roles"
                         :aria-label="palmaresEnabled && item.playerSlug
                             ? item.player.first_name + ' ' + item.player.last_name + ' — ' + $t('palmares.open_hint')
                             : null"
-                        :class="palmaresEnabled && item.playerSlug ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-savino-gold focus:ring-offset-2' : ''"
+                        :class="palmaresEnabled && item.playerSlug ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-savino-fucsia focus:ring-offset-2' : ''"
                         class="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-500 hover:-translate-y-1 text-left w-full"
                         @click="openPalmares(item)"
                     >
@@ -208,7 +208,7 @@ v-for="role in roles"
 
                         <!-- Dati Atleta -->
                         <div class="p-5">
-                            <div class="text-xs font-bold text-savino-gold uppercase tracking-wider mb-1">
+                            <div class="text-xs font-bold text-savino-fucsia uppercase tracking-wider mb-1">
                                 {{ displayRole(item.role, $t) }}
                             </div>
                             <h3 class="text-xl text-savino-blue font-black tracking-tight mb-3">
@@ -230,7 +230,7 @@ v-for="role in roles"
                         <svg class="w-12 h-12 text-savino-blue/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </div>
                     <p class="text-gray-500 text-lg font-semibold">{{ $t('stagione.empty_role') }}</p>
-                    <button type="button" class="mt-4 px-6 py-2.5 bg-savino-gold text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-gold/90 transition-colors" @click="selectedRole = '__all__'">
+                    <button type="button" class="mt-4 px-6 py-2.5 bg-savino-fucsia text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-fucsia/90 transition-colors" @click="selectedRole = '__all__'">
                         {{ $t('stagione.show_all') }}
                     </button>
                 </div>
@@ -244,13 +244,13 @@ v-for="role in roles"
                 <div class="flex items-center gap-3 mb-2">
                     <TeamLogo v-if="teamInfo" :src="teamInfo.logo" :name="teamInfo.name" size="md" />
                     <div>
-                        <span class="text-savino-gold text-xs font-bold uppercase tracking-[0.3em]">{{ $t('stagione.stats_eyebrow') }}</span>
+                        <span class="text-savino-fucsia text-xs font-bold uppercase tracking-[0.3em]">{{ $t('stagione.stats_eyebrow') }}</span>
                         <h2 class="text-2xl md:text-3xl font-black text-savino-blue uppercase tracking-tight">
                             {{ $t('stagione.stats_title') }}<span v-if="seasonName"> — {{ seasonName }}</span>
                         </h2>
                     </div>
                 </div>
-                <div class="w-12 h-1 bg-savino-gold mb-8"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mb-8"></div>
 
                 <!-- Le giovanili non hanno tabellini della Lega: si dice, non si
                      riempie la pagina di zeri. -->
@@ -272,9 +272,9 @@ v-for="role in roles"
         <section v-if="staffTecnico.length > 0" class="py-16 bg-gray-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('stagione.our_team') }}</span>
+                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('stagione.our_team') }}</span>
                     <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tight mt-3">{{ $t('stagione.coaching_staff') }}</h2>
-                    <div class="w-16 h-1 bg-savino-gold mx-auto mt-4"></div>
+                    <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4"></div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     <div
@@ -295,7 +295,7 @@ v-for="role in roles"
                         </div>
                         <div class="p-5 text-center">
                             <h3 class="text-lg font-black text-gray-900 uppercase tracking-tight">{{ member.name }}</h3>
-                            <p class="text-savino-gold text-sm font-bold mt-1">{{ member.role }}</p>
+                            <p class="text-savino-fucsia text-sm font-bold mt-1">{{ member.role }}</p>
                         </div>
                     </div>
                 </div>
@@ -306,7 +306,7 @@ v-for="role in roles"
         <section v-if="staffMedico.length > 0" class="py-16 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('stagione.athlete_support') }}</span>
+                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('stagione.athlete_support') }}</span>
                     <h2 class="text-3xl md:text-4xl font-black text-savino-red uppercase tracking-tight mt-3">{{ $t('stagione.medical_staff') }}</h2>
                     <div class="w-16 h-1 bg-savino-red mx-auto mt-4"></div>
                 </div>

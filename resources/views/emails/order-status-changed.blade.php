@@ -107,7 +107,7 @@
 
     {{-- Contact note for cancellations/refunds --}}
     @if(in_array($order->status, [\App\Enums\OrderStatus::Cancelled, \App\Enums\OrderStatus::Refunded]))
-        <div style="margin-top: 24px; padding: 16px 20px; background-color: #FFF8E1; border-left: 4px solid #C9A84C; border-radius: 0 6px 6px 0;">
+        <div style="margin-top: 24px; padding: 16px 20px; background-color: #FFF8E1; border-left: 4px solid #F8269C; border-radius: 0 6px 6px 0;">
             <p style="color: #333333; font-size: 14px; margin: 0; line-height: 1.6;">
                 {{ __('emails.status_changed.contact_note') }}
                 <a href="mailto:{{ \App\Models\SiteSetting::get('shop.contact_email', config('mail.from.address')) }}" style="color: #003063; text-decoration: none; font-weight: 600;">

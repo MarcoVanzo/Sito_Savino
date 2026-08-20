@@ -67,7 +67,8 @@ const displayedLinks = computed(() => {
 
 // Logo e testi dal backend con fallback
 const footerLogo = computed(() => general.value.site_logo || LOGOS.VOLLEY);
-const footerTagline = computed(() => footerSettings.value.footer_tagline || $t('footer.tagline_default'));
+// Nessun ripiego: il payoff compare solo se la redazione lo scrive.
+const footerTagline = computed(() => footerSettings.value.footer_tagline || '');
 // Il testo può arrivare dal CMS e finisce in v-html: va sanificato.
 const copyrightText = computed(() => sanitize(
     (footerSettings.value.footer_copyright || `© ${currentYear} <span class="whitespace-nowrap">Savino Del Bene</span> Volley — ${$t('footer.all_rights_reserved')}.`)
@@ -125,14 +126,20 @@ const socialLinks = computed(() => {
                             @error="onImgError"
                         />
                         <span class="h-14 w-px bg-white/20"></span>
-                        <img 
-                            :src="LOGOS.CORPORATE_LEFT_WHITE" 
-                            alt="Savino Del Bene Corporate" 
-                            class="h-[60px] w-auto object-contain mx-auto"
+                        <!-- `mx-auto` dentro una riga flex spingeva il marchio corporate
+                             fuori asse rispetto al volley: i due vanno letti come una coppia. -->
+                        <img
+                            :src="LOGOS.CORPORATE_LEFT_WHITE"
+                            alt="Savino Del Bene Corporate"
+                            class="h-16 w-auto object-contain"
                             @error="onImgError"
                         />
                     </div>
-                    <p class="text-gray-400 text-sm leading-relaxed max-w-sm mb-6 whitespace-pre-line">{{ footerTagline }}</p>
+                    <!-- Il payoff "Dal 1982..." era un testo di ripiego cablato nelle
+                         traduzioni: la redazione non lo trovava da nessuna parte e la data
+                         contraddiceva i tredici anni di Savino Del Bene Volley. Resta solo
+                         quello che la redazione scrive davvero in Impostazioni -> Footer. -->
+                    <p v-if="footerTagline" class="text-gray-400 text-sm leading-relaxed max-w-sm mb-6 whitespace-pre-line">{{ footerTagline }}</p>
                     <!-- Social Icons -->
                     <div class="flex items-center gap-4">
                         <a
@@ -142,7 +149,7 @@ const socialLinks = computed(() => {
                             target="_blank"
                             rel="noopener noreferrer"
                             :aria-label="social.name"
-                            class="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-savino-gold hover:border-savino-gold transition-all duration-300 group"
+                            class="w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-savino-fucsia hover:border-savino-fucsia transition-all duration-300 group"
                         >
                             <svg class="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24">
                                 <path :d="social.icon" />
@@ -165,7 +172,7 @@ const socialLinks = computed(() => {
                                 :href="safeUrl(link.url || link.href, '#')"
                                 :target="link.target"
                                 :rel="link.target === '_blank' ? 'noopener noreferrer' : null"
-                                class="text-gray-400 text-sm hover:text-savino-gold transition-colors duration-200"
+                                class="text-gray-400 text-sm hover:text-savino-fucsia transition-colors duration-200"
                             >
                                 {{ link.label }}
                             </component>
@@ -184,9 +191,9 @@ const socialLinks = computed(() => {
                     <span v-if="footerPiva" class="block sm:inline sm:ml-2">P.IVA {{ footerPiva }}</span>
                 </div>
                 <div class="flex items-center gap-6">
-                    <a :href="safeUrl(legalDocs.privacy_policy, '/privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.privacy_policy') }}</a>
-                    <a :href="safeUrl(legalDocs.cookie_policy, '/cookie-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.cookie_policy') }}</a>
-                    <a :href="safeUrl(legalDocs.informativa_fornitori, '/informativa-fornitori')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-gold transition-colors">{{ $t('footer.supplier_policy') }}</a>
+                    <a :href="safeUrl(legalDocs.privacy_policy, '/privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.privacy_policy') }}</a>
+                    <a :href="safeUrl(legalDocs.cookie_policy, '/cookie-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.cookie_policy') }}</a>
+                    <a :href="safeUrl(legalDocs.informativa_fornitori, '/informativa-fornitori')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.supplier_policy') }}</a>
                 </div>
             </div>
         </div>

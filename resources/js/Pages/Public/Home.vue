@@ -239,7 +239,7 @@ class GoldParticle {
     draw(ctx) {
         ctx.save();
         ctx.globalAlpha = this.opacity;
-        ctx.fillStyle = '#C9A84C';
+        ctx.fillStyle = '#F8269C';
         ctx.shadowBlur = this.size * 3;
         ctx.shadowColor = 'rgba(201, 168, 76, 0.6)';
         ctx.beginPath();
@@ -509,11 +509,11 @@ const ogMeta = useOgMeta({
                 <div class="max-w-4xl lg:max-w-5xl ml-auto text-right">
                     <!-- Badge Campioni del Mondo -->
                     <div 
-                        class="badge-campioni inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full border border-savino-gold/40 bg-savino-gold/10 backdrop-blur-sm"
+                        class="badge-campioni inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full border border-savino-fucsia/40 bg-savino-fucsia/10 backdrop-blur-sm"
                         :class="{ 'badge-revealed': heroRevealed }"
                     >
                         <span class="badge-icon text-lg">🏆</span>
-                        <span class="text-savino-gold text-xs sm:text-sm font-bold uppercase tracking-[0.2em]">
+                        <span class="text-savino-fucsia text-xs sm:text-sm font-bold uppercase tracking-[0.2em]">
                             {{ $t('home.world_champions') }}
                         </span>
                         <span class="badge-glow"></span>
@@ -548,7 +548,7 @@ const ogMeta = useOgMeta({
                     >
                         <Link 
                             :href="heroCta1Url" 
-                            class="cta-glow-gold inline-flex items-center justify-center px-8 py-4 border-2 border-savino-gold bg-gray-900/40 hover:bg-savino-gold text-white hover:text-gray-900 text-sm font-bold uppercase tracking-widest transition-all duration-300 backdrop-blur-sm"
+                            class="cta-glow-gold inline-flex items-center justify-center px-8 py-4 border-2 border-savino-fucsia bg-gray-900/40 hover:bg-savino-fucsia text-white hover:text-gray-900 text-sm font-bold uppercase tracking-widest transition-all duration-300 backdrop-blur-sm"
                         >
                             {{ heroCta1Label }}
                         </Link>
@@ -575,15 +575,20 @@ const ogMeta = useOgMeta({
             </div>
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-14" data-reveal>
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.next_match_subtitle') }}</span>
+                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.next_match_subtitle') }}</span>
                     <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">
                         {{ $t('home.next_match_title') }}
                     </h2>
-                    <div class="w-16 h-1 bg-savino-gold mx-auto mt-6"></div>
+                    <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-6"></div>
                 </div>
-                <div class="max-w-5xl mx-auto match-card-gradient rounded-2xl overflow-hidden shadow-[0_25px_80px_-12px_rgba(0,48,99,0.4)]" style="border-top: 3px solid #C9A84C;" data-reveal>
+                <div class="max-w-5xl mx-auto match-card-gradient rounded-2xl overflow-hidden shadow-[0_25px_80px_-12px_rgba(0,48,99,0.4)]" style="border-top: 3px solid #F8269C;" data-reveal>
                     <div class="px-8 py-14 md:px-20 md:py-16">
-                        <div class="flex flex-col md:flex-row items-center justify-between gap-10">
+                        <!-- Gli stemmi stanno sopra il nome, quindi un nome lungo che va a
+                             capo (es. "Reale Mutua Fenera Chieri '76") spingeva in basso
+                             tutta la colonna e i due stemmi finivano a quote diverse.
+                             `items-start` con un'altezza minima riservata al nome li tiene
+                             fermi qualunque cosa ci sia scritto sotto. -->
+                        <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-10">
                             <!-- Home Team -->
                             <div class="text-center md:text-right flex-1">
                                 <TeamCrest
@@ -591,14 +596,14 @@ const ogMeta = useOgMeta({
                                     :name="nextGame?.home_team?.name"
                                     align-class="mx-auto md:ml-auto md:mr-0"
                                 />
-                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
-                                <span class="text-savino-gold text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.home_team') }}</span>
+                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words min-h-[3.5rem] flex items-start justify-center md:justify-end">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
+                                <span class="text-savino-fucsia text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.home_team') }}</span>
                             </div>
                             <!-- VS -->
-                            <div class="text-center px-8">
+                            <div class="text-center px-8 md:pt-10">
                                 <div class="text-white/10 text-6xl md:text-8xl lg:text-9xl font-black leading-none select-none">VS</div>
-                                <div class="-mt-4 bg-savino-gold/15 backdrop-blur-sm rounded-lg px-6 py-3 relative">
-                                    <div class="text-savino-gold text-xs font-bold uppercase tracking-widest">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
+                                <div class="-mt-4 bg-savino-fucsia/15 backdrop-blur-sm rounded-lg px-6 py-3 relative">
+                                    <div class="text-savino-fucsia text-xs font-bold uppercase tracking-widest">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
                                     <div class="text-white text-sm font-bold mt-1">{{ formattedMatchDate ?? $t('common.tbd') }}</div>
                                 </div>
                             </div>
@@ -609,13 +614,19 @@ const ogMeta = useOgMeta({
                                     :name="nextGame?.away_team?.name"
                                     align-class="mx-auto md:mr-auto md:ml-0"
                                 />
-                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>
-                                <span class="text-white/50 text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ nextGame?.location ?? $t('home.away_team') }}</span>
+                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words min-h-[3.5rem] flex items-start justify-center md:justify-start">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>
+                                <span class="text-white/50 text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.away_team') }}</span>
                             </div>
                         </div>
                         <!-- CTA -->
-                        <div class="text-center mt-12 flex flex-wrap items-center justify-center gap-4">
-                            <Link href="/ticketing" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-gold text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-gold/90 transition-all duration-300 shadow-lg shadow-savino-gold/30">
+                        <!-- L'impianto era stampato come sottotitolo della squadra ospite,
+                             dove si legge come una sua indicazione: sta sopra i biglietti,
+                             che e' l'informazione a cui serve. -->
+                        <p v-if="nextGame?.location" class="text-center text-white/70 text-sm font-bold uppercase tracking-[0.2em] mt-12">
+                            {{ nextGame.location }}
+                        </p>
+                        <div class="text-center flex flex-wrap items-center justify-center gap-4" :class="nextGame?.location ? 'mt-5' : 'mt-12'">
+                            <Link href="/ticketing" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 shadow-lg shadow-savino-fucsia/30">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                                 {{ $t('common.buy_tickets') }}
                             </Link>
@@ -649,11 +660,11 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E');"></div>
             <div ref="statsContainer" class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16" data-reveal>
-                    <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ statsSubtitle }}</span>
+                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ statsSubtitle }}</span>
                     <h2 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mt-3">
                         {{ statsTitle }}
                     </h2>
-                    <div class="w-16 h-1 bg-savino-gold mx-auto mt-6"></div>
+                    <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-6"></div>
                 </div>
                 <div class="stats-grid grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0">
                     <div v-for="(stat, index) in stats" :key="stat.label" class="stat-column text-center py-4" data-reveal>
@@ -662,7 +673,7 @@ const ogMeta = useOgMeta({
                             <template v-if="statsRevealed">{{ displayValues[index] ?? stat.value }}</template>
                             <span v-else class="invisible">{{ stat.value }}</span>
                         </div>
-                        <div class="text-savino-gold/70 text-[10px] font-bold uppercase tracking-[0.25em] mt-5">{{ stat.label }}</div>
+                        <div class="text-savino-fucsia/70 text-[10px] font-bold uppercase tracking-[0.25em] mt-5">{{ stat.label }}</div>
                     </div>
                 </div>
             </div>
@@ -681,11 +692,11 @@ const ogMeta = useOgMeta({
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-14" data-reveal>
                     <div>
-                        <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.latest_news_subtitle') }}</span>
+                        <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.latest_news_subtitle') }}</span>
                         <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">{{ $t('home.latest_news_title') }}</h2>
-                        <div class="w-16 h-1 bg-savino-gold mt-4"></div>
+                        <div class="w-16 h-1 bg-savino-fucsia mt-4"></div>
                     </div>
-                    <Link href="/news" class="mt-6 sm:mt-0 inline-flex items-center gap-2 text-savino-blue font-bold text-sm uppercase tracking-wider hover:text-savino-gold transition-colors">
+                    <Link href="/news" class="mt-6 sm:mt-0 inline-flex items-center gap-2 text-savino-blue font-bold text-sm uppercase tracking-wider hover:text-savino-fucsia transition-colors">
                         {{ $t('common.all_news') }}
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                     </Link>
@@ -708,17 +719,17 @@ const ogMeta = useOgMeta({
                             >
                                 <div class="aspect-video overflow-hidden relative">
                                     <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" @error="onImgError" />
-                                    <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue/10 to-savino-gold/10 flex items-center justify-center">
-                                        <span class="text-savino-gold text-4xl font-black opacity-30">SDB</span>
+                                    <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue/10 to-savino-fucsia/10 flex items-center justify-center">
+                                        <span class="text-savino-fucsia text-4xl font-black opacity-30">SDB</span>
                                     </div>
                                     <!-- Tilt glare overlay -->
                                     <div class="absolute inset-0 pointer-events-none tilt-glare" :style="getGlareStyle(index)"></div>
                                 </div>
                                 <div class="p-6">
-                                    <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">{{ formatNewsDate(post.published_at) }}</span>
+                                    <span class="text-savino-fucsia text-xs font-bold uppercase tracking-wider">{{ formatNewsDate(post.published_at) }}</span>
                                     <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors line-clamp-2">{{ post.title }}</h3>
                                     <p v-if="post.excerpt" class="text-gray-500 text-sm mt-3 leading-relaxed line-clamp-3">{{ post.excerpt }}</p>
-                                    <span class="inline-flex items-center gap-1 text-savino-blue text-xs font-bold uppercase tracking-wider mt-4 group-hover:text-savino-gold transition-colors">
+                                    <span class="inline-flex items-center gap-1 text-savino-blue text-xs font-bold uppercase tracking-wider mt-4 group-hover:text-savino-fucsia transition-colors">
                                         {{ $t('common.read_more_alt') }}
                                         <svg class="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                     </span>
@@ -729,11 +740,11 @@ const ogMeta = useOgMeta({
                     <!-- Fallback placeholder -->
                     <template v-else>
                         <div v-for="i in 3" :key="i" class="news-card group bg-white rounded-2xl overflow-hidden" data-reveal>
-                            <div class="aspect-video bg-gradient-to-br from-savino-blue/10 to-savino-gold/10 flex items-center justify-center">
+                            <div class="aspect-video bg-gradient-to-br from-savino-blue/10 to-savino-fucsia/10 flex items-center justify-center">
                                 <svg class="w-12 h-12 text-savino-blue/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
                             </div>
                             <div class="p-6">
-                                <span class="text-savino-gold text-xs font-bold uppercase tracking-wider">{{ $t('common.coming_soon') }}</span>
+                                <span class="text-savino-fucsia text-xs font-bold uppercase tracking-wider">{{ $t('common.coming_soon') }}</span>
                                 <h3 class="text-lg font-bold text-gray-900 mt-2 group-hover:text-savino-blue transition-colors">{{ $t('home.news_placeholder_title') }}</h3>
                                 <p class="text-gray-500 text-sm mt-3 leading-relaxed">{{ $t('home.news_placeholder_desc') }}</p>
                             </div>
@@ -746,7 +757,7 @@ const ogMeta = useOgMeta({
         <!-- GALLERY HIGHLIGHTS STRIP -->
         <section class="py-12 bg-gray-900 overflow-hidden">
             <div class="text-center mb-8">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.gallery_subtitle') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.gallery_subtitle') }}</span>
                 <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mt-2">{{ $t('home.gallery_title') }}</h2>
             </div>
             <div class="marquee-container">
@@ -778,10 +789,10 @@ const ogMeta = useOgMeta({
                 <Link :href="ctaTicketingUrl" class="group relative bg-savino-blue py-16 px-8 text-center hover:bg-savino-blue/90 transition-colors duration-300 overflow-hidden" data-reveal>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div class="relative">
-                        <svg class="w-10 h-10 text-savino-gold mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                        <svg class="w-10 h-10 text-savino-fucsia mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                         <h3 class="text-white text-2xl font-black uppercase tracking-tight">{{ ctaTicketingTitle }}</h3>
                         <p class="text-white/60 text-sm mt-2">{{ ctaTicketingText }}</p>
-                        <span class="inline-flex items-center gap-1 text-savino-gold text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
+                        <span class="inline-flex items-center gap-1 text-savino-fucsia text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
                             {{ $t('common.discover') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
@@ -790,10 +801,10 @@ const ogMeta = useOgMeta({
                 <Link :href="ctaShopUrl" class="group relative bg-gray-900 py-16 px-8 text-center hover:bg-gray-800 transition-colors duration-300 overflow-hidden" data-reveal>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div class="relative">
-                        <svg class="w-10 h-10 text-savino-gold mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                        <svg class="w-10 h-10 text-savino-fucsia mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         <h3 class="text-white text-2xl font-black uppercase tracking-tight">{{ ctaShopTitle }}</h3>
                         <p class="text-white/60 text-sm mt-2">{{ ctaShopText }}</p>
-                        <span class="inline-flex items-center gap-1 text-savino-gold text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
+                        <span class="inline-flex items-center gap-1 text-savino-fucsia text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
                             {{ $t('common.go_to_shop') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
@@ -999,7 +1010,7 @@ const ogMeta = useOgMeta({
         0 1px 3px rgba(0, 0, 0, 0.06),
         0 20px 48px -8px rgba(0, 0, 0, 0.18);
     transform: translateY(-4px);
-    border-left-color: #C9A84C;
+    border-left-color: #F8269C;
 }
 
 /* === STATS GRID SEPARATORS === */

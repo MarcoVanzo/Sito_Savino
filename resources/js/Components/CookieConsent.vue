@@ -86,9 +86,9 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                         <h4 class="text-sm font-bold mb-1">{{ $t('cookie.title') }}</h4>
                         <p class="text-xs text-gray-400 leading-relaxed">
                             {{ $t('cookie.description') }}
-                            <Link href="/privacy-policy" class="text-savino-gold hover:underline">{{ $t('footer.privacy_policy') }}</Link>
+                            <Link href="/privacy-policy" class="text-savino-fucsia hover:underline">{{ $t('footer.privacy_policy') }}</Link>
                             {{ $t('cookie.and_the') }}
-                            <Link href="/cookie-policy" class="text-savino-gold hover:underline">{{ $t('footer.cookie_policy') }}</Link>.
+                            <Link href="/cookie-policy" class="text-savino-fucsia hover:underline">{{ $t('footer.cookie_policy') }}</Link>.
                         </p>
                     </div>
                     <div class="flex gap-2 flex-shrink-0 flex-wrap">
@@ -106,7 +106,7 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                         </button>
                         <button type="button"
                             @click="acceptAll"
-                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-gold text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200 shadow-lg"
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200 shadow-lg"
                         >
                             {{ $t('cookie.accept_all') }}
                         </button>
@@ -133,7 +133,7 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                 <div class="relative">
                                     <input id="cookie-necessary" type="checkbox" checked disabled
                                         :aria-label="$t('cookie.necessary_title')"
-                                        class="w-10 h-5 rounded-full appearance-none bg-savino-gold/50 cursor-not-allowed checked:bg-savino-gold" />
+                                        class="w-10 h-5 rounded-full appearance-none bg-savino-fucsia/50 cursor-not-allowed checked:bg-savino-fucsia" />
                                 </div>
                             </div>
 
@@ -145,7 +145,7 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                 </div>
                                 <label for="cookie-analytics" class="relative inline-flex items-center cursor-pointer">
                                     <input id="cookie-analytics" type="checkbox" v-model="consent.analytics" class="sr-only peer" :aria-label="$t('cookie.analytics_title')" />
-                                    <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-gold transition-colors"></div>
+                                    <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-fucsia transition-colors"></div>
                                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
                                 </label>
                             </div>
@@ -158,7 +158,7 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                 </div>
                                 <label for="cookie-marketing" class="relative inline-flex items-center cursor-pointer">
                                     <input id="cookie-marketing" type="checkbox" v-model="consent.marketing" class="sr-only peer" :aria-label="$t('cookie.marketing_title')" />
-                                    <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-gold transition-colors"></div>
+                                    <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-fucsia transition-colors"></div>
                                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
                                 </label>
                             </div>
@@ -166,7 +166,7 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                             <div class="pt-2 flex justify-end">
                                 <button type="button"
                                     @click="saveConsent"
-                                    class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-gold text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200"
+                                    class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200"
                                 >
                                     {{ $t('cookie.save_preferences') }}
                                 </button>

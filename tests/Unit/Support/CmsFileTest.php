@@ -36,8 +36,13 @@ class CmsFileTest extends TestCase
         Storage::fake('local');
 
         $risolto = CmsFile::resolveInContentData([
-            'press_kit_1_file' => 'press-kit/foto.zip',
-            'press_kit_2_file' => '',
+            // Il materiale stampa e' un elenco libero: le quattro caselle fisse
+            // press_kit_1..4 non bastavano per una cartella a gara.
+            'press_kits' => [
+                ['title' => 'Foto', 'file' => 'press-kit/foto.zip'],
+                ['title' => 'Brand book', 'file' => ''],
+            ],
+            'button_image' => 'pulsanti/sfondo.jpg',
             'magazines' => [
                 ['title' => 'Numero 1', 'file_url' => 'magazine/n1.pdf', 'cover_image_url' => ''],
             ],
@@ -47,8 +52,9 @@ class CmsFileTest extends TestCase
             'hero_label' => 'Area Stampa',
         ]);
 
-        $this->assertSame(Storage::url('press-kit/foto.zip'), $risolto['press_kit_1_file']);
-        $this->assertNull($risolto['press_kit_2_file']);
+        $this->assertSame(Storage::url('press-kit/foto.zip'), $risolto['press_kits'][0]['file']);
+        $this->assertNull($risolto['press_kits'][1]['file']);
+        $this->assertSame(Storage::url('pulsanti/sfondo.jpg'), $risolto['button_image']);
         $this->assertSame(Storage::url('magazine/n1.pdf'), $risolto['magazines'][0]['file_url']);
         $this->assertNull($risolto['magazines'][0]['cover_image_url']);
         $this->assertNull($risolto['documents'][0]['file']);

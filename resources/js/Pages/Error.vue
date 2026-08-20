@@ -52,7 +52,7 @@ const description = computed(() => {
                 </h1>
 
                 <!-- Linea decorativa -->
-                <div class="w-16 h-1 bg-savino-gold mx-auto mb-6"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-6"></div>
 
                 <!-- Descrizione -->
                 <p class="text-gray-300 text-lg mb-10">
@@ -63,7 +63,7 @@ const description = computed(() => {
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link
                         href="/"
-                        class="inline-flex items-center justify-center px-8 py-4 border-2 border-savino-gold bg-savino-gold text-savino-blue text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:bg-transparent hover:text-white"
+                        class="inline-flex items-center justify-center px-8 py-4 border-2 border-savino-fucsia bg-savino-fucsia text-savino-blue text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:bg-transparent hover:text-white"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" /></svg>
                         {{ $t('error.back_home') }}

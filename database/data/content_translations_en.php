@@ -683,6 +683,10 @@ return [
          */
         'menu_items.label' => [
             ['it' => 'CEV Champions League', 'en' => 'CEV Champions League'],
+            // La Brand & Digital Style Guide vieta le abbreviazioni: erano
+            // "Title Sponsor (SDB)" e "SDB Youth". In inglese restano identiche.
+            ['it' => 'Savino Del Bene Youth', 'en' => 'Savino Del Bene Youth'],
+            ['it' => 'Title Sponsor', 'en' => 'Title Sponsor'],
             ['it' => 'Codice Tutela Minori', 'en' => 'Child Protection Code'],
             ['it' => 'Corporate Governance', 'en' => 'Corporate Governance'],
             ['it' => 'Double Face', 'en' => 'Double Face'],

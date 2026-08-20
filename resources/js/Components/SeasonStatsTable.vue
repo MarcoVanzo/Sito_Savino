@@ -128,7 +128,7 @@ function formatCell(value, format) {
                         <th scope="col" class="px-4 py-3 text-xs font-bold uppercase tracking-wider" :aria-sort="ariaSort('name')">
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-savino-gold transition-colors"
+                                class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-savino-fucsia transition-colors"
                                 @click="toggleSort('name')"
                             >
                                 {{ $t('stagione.stats_col_player') }}
@@ -144,7 +144,7 @@ function formatCell(value, format) {
                         >
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-savino-gold transition-colors"
+                                class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-savino-fucsia transition-colors"
                                 @click="toggleSort(column.key)"
                             >
                                 {{ $t(column.label) }}
@@ -163,9 +163,9 @@ function formatCell(value, format) {
                         <td class="px-4 py-3 text-sm whitespace-nowrap">
                             <Link
                                 :href="route('gallery.atleta', { slug: row.playerSlug })"
-                                class="font-bold text-savino-blue hover:text-savino-gold transition-colors"
+                                class="font-bold text-savino-blue hover:text-savino-fucsia transition-colors"
                             >{{ row.name }}</Link>
-                            <span v-if="row.role" class="block text-[10px] font-bold uppercase tracking-wider text-savino-gold">
+                            <span v-if="row.role" class="block text-[10px] font-bold uppercase tracking-wider text-savino-fucsia">
                                 {{ displayRole(row.role, $t) }}
                             </span>
                         </td>

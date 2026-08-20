@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
                         :style="{ fontSize: `${fontSize}px`, paddingLeft: itemPadding, paddingRight: itemPadding }"
                         :class="[
                             /* text-gray-200: su una slide chiara dell'hero il gray-400 era illeggibile */
-                            $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-gold pt-[3px]' : 'text-gray-200 hover:text-white border-b-[3px] border-transparent pt-[3px]',
+                            $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-fucsia pt-[3px]' : 'text-gray-200 hover:text-white border-b-[3px] border-transparent pt-[3px]',
                             item.isHighlight ? 'text-[#ED028C] hover:text-[#ff30a6]' : ''
                         ]"
                         :aria-haspopup="item.children?.length > 0 ? 'true' : undefined"
@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
                             <div class="w-3/5 p-10 flex flex-col">
                                 <div class="mb-8">
                                     <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-2">{{ item.label }}</h3>
-                                    <div class="w-16 h-1 bg-savino-gold"></div>
+                                    <div class="w-16 h-1 bg-savino-fucsia"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 flex-1 content-start">
                                     <Link 
@@ -234,11 +234,11 @@ onBeforeUnmount(() => {
                                         :href="sub.href"
                                         prefetch
                                         role="menuitem"
-                                        class="flex flex-col p-4 rounded-xl border border-gray-100 hover:border-savino-gold/50 bg-gray-50 hover:bg-white hover:shadow-xl transition-all duration-300 group/link"
+                                        class="flex flex-col p-4 rounded-xl border border-gray-100 hover:border-savino-fucsia/50 bg-gray-50 hover:bg-white hover:shadow-xl transition-all duration-300 group/link"
                                     >
                                         <span class="text-[14px] font-black text-savino-blue uppercase tracking-wider mb-1 flex justify-between items-center">
                                             {{ sub.label }}
-                                            <svg class="w-5 h-5 text-savino-gold opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                                            <svg class="w-5 h-5 text-savino-fucsia opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                         </span>
                                         <span class="text-xs text-gray-500 font-medium">{{ sub.description || $t('common.explore_section') }}</span>
                                     </Link>
@@ -246,13 +246,17 @@ onBeforeUnmount(() => {
                             </div>
                             <!-- Right side — per-topic image with blue overlay -->
                             <div class="w-2/5 relative overflow-hidden bg-savino-blue">
-                                <!-- Immagine del tema: scaricata alla prima apertura del menu -->
+                                <!-- Immagine del tema: scaricata alla prima apertura del menu.
+                                     `scale-110` fisso ingrandiva la foto anche da ferma e
+                                     tagliava fuori dal riquadro tutto cio' che non era
+                                     perfettamente al centro: l'ingrandimento resta, ma solo
+                                     come effetto al passaggio del mouse. -->
                                 <img
                                     v-if="revealedImages.has(index)"
                                     :src="item.menuImage || LOGOS.VOLLEY"
                                     :alt="item.label"
                                     loading="lazy"
-                                    class="absolute inset-0 w-full h-full object-cover scale-110 transition-transform duration-[6s] ease-out group-hover:scale-125"
+                                    class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-[6s] ease-out group-hover:scale-110"
                                     @error="onImgError"
                                 />
                                 <!-- Blue overlay — 70% opacity to let the photo show through -->

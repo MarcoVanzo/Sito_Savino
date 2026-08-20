@@ -60,7 +60,7 @@ const submit = () => {
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">Shop</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">Shop</span>
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ $t('shop.register') }}
                 </h1>
@@ -74,7 +74,7 @@ const submit = () => {
                 <!-- Breadcrumbs -->
                 <nav class="mb-8 text-sm">
                     <ol class="flex items-center gap-2 text-gray-500">
-                        <li><Link :href="route('shop')" class="hover:text-savino-gold transition-colors">Shop</Link></li>
+                        <li><Link :href="route('shop')" class="hover:text-savino-fucsia transition-colors">Shop</Link></li>
                         <li>/</li>
                         <li class="text-white">{{ $t('shop.register') }}</li>
                     </ol>
@@ -84,8 +84,8 @@ const submit = () => {
                 <div class="bg-gray-800/50 border border-gray-700 rounded-2xl p-8 backdrop-blur-sm">
                     <!-- Card Header -->
                     <div class="text-center mb-8">
-                        <div class="w-16 h-16 rounded-full bg-savino-gold/10 flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 rounded-full bg-savino-fucsia/10 flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                             </svg>
                         </div>
@@ -112,7 +112,7 @@ const submit = () => {
                                     required
                                     autofocus
                                     autocomplete="name"
-                                    class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:border-savino-gold focus:ring-1 focus:ring-savino-gold transition-colors duration-200"
+                                    class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia transition-colors duration-200"
                                     :placeholder="$t('shop.full_name')"
                                 />
                             </div>
@@ -136,7 +136,7 @@ const submit = () => {
                                     v-model="form.email"
                                     required
                                     autocomplete="username"
-                                    class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:border-savino-gold focus:ring-1 focus:ring-savino-gold transition-colors duration-200"
+                                    class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia transition-colors duration-200"
                                     placeholder="email@esempio.com"
                                 />
                             </div>
@@ -160,7 +160,7 @@ const submit = () => {
                                     v-model="form.password"
                                     required
                                     autocomplete="new-password"
-                                    class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-12 py-3 text-white placeholder-gray-500 focus:border-savino-gold focus:ring-1 focus:ring-savino-gold transition-colors duration-200"
+                                    class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-12 py-3 text-white placeholder-gray-500 focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia transition-colors duration-200"
                                     placeholder="••••••••"
                                 />
                                 <button
@@ -211,7 +211,7 @@ const submit = () => {
                                     v-model="form.password_confirmation"
                                     required
                                     autocomplete="new-password"
-                                    class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-12 py-3 text-white placeholder-gray-500 focus:border-savino-gold focus:ring-1 focus:ring-savino-gold transition-colors duration-200"
+                                    class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-12 py-3 text-white placeholder-gray-500 focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia transition-colors duration-200"
                                     placeholder="••••••••"
                                 />
                                 <button
@@ -254,7 +254,7 @@ const submit = () => {
                                         :href="route('pages.show', 'privacy-policy')"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        class="text-savino-gold hover:underline font-medium"
+                                        class="text-savino-fucsia hover:underline font-medium"
                                     >{{ $t('shop.accept_privacy_2') }}</a>
                                 </span>
                             </label>
@@ -265,10 +265,10 @@ const submit = () => {
                         <div class="pt-2">
                             <button
                                 type="submit"
-                                class="w-full relative overflow-hidden py-3.5 px-6 rounded-lg text-base font-bold uppercase tracking-wider transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-savino-gold/50 focus:ring-offset-2 focus:ring-offset-gray-800"
+                                class="w-full relative overflow-hidden py-3.5 px-6 rounded-lg text-base font-bold uppercase tracking-wider transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-savino-fucsia/50 focus:ring-offset-2 focus:ring-offset-gray-800"
                                 :class="form.processing
                                     ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-savino-gold to-yellow-600 text-gray-900 hover:from-yellow-500 hover:to-savino-gold hover:shadow-lg hover:shadow-savino-gold/20 active:scale-[0.98]'"
+                                    : 'bg-gradient-to-r from-savino-fucsia to-yellow-600 text-gray-900 hover:from-yellow-500 hover:to-savino-fucsia hover:shadow-lg hover:shadow-savino-fucsia/20 active:scale-[0.98]'"
                                 :disabled="form.processing"
                             >
                                 <span v-if="form.processing" class="flex items-center justify-center gap-2">
@@ -288,7 +288,7 @@ const submit = () => {
                                 {{ $t('shop.already_have_account') }}
                                 <Link
                                     :href="route('login')"
-                                    class="font-bold text-savino-gold hover:text-yellow-400 transition-colors"
+                                    class="font-bold text-savino-fucsia hover:text-yellow-400 transition-colors"
                                 >
                                     {{ $t('shop.login_now') }}
                                 </Link>

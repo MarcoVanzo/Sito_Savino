@@ -19,7 +19,27 @@ const props = defineProps({
         type: String,
         default: 'newest',
     },
+    // Gli "scaffali" del reparto: Kit Gara si divide in Home, Away e Champions
+    // e si filtra come i ruoli nel roster, senza cambiare pagina.
+    subcategories: {
+        type: Array,
+        default: () => [],
+    },
+    activeSubcategory: {
+        type: String,
+        default: null,
+    },
 });
+
+function subcategoryUrl(slug) {
+    const parametri = { sort: props.currentSort };
+
+    if (slug) {
+        parametri.gruppo = slug;
+    }
+
+    return route('shop.category', { category: props.category.slug, ...parametri });
+}
 
 const ogMeta = useOgMeta({
     title: props.category?.name ?? $t('shop.category'),
@@ -36,7 +56,13 @@ const sortOptions = [
 ];
 
 watch(selectedSort, (newSort) => {
-    router.get(route('shop.category', props.category.slug), { sort: newSort }, {
+    const parametri = { sort: newSort };
+
+    if (props.activeSubcategory) {
+        parametri.gruppo = props.activeSubcategory;
+    }
+
+    router.get(route('shop.category', props.category.slug), parametri, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -82,17 +108,17 @@ onUnmounted(() => {
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <!-- Breadcrumb -->
                 <nav aria-label="Breadcrumb" class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
-                    <Link :href="route('home')" class="hover:text-savino-gold transition-colors">{{ $t('common.home') }}</Link>
+                    <Link :href="route('home')" class="hover:text-savino-fucsia transition-colors">{{ $t('common.home') }}</Link>
                     <span aria-hidden="true">/</span>
-                    <Link :href="route('shop')" class="hover:text-savino-gold transition-colors">{{ $t('common.shop') }}</Link>
+                    <Link :href="route('shop')" class="hover:text-savino-fucsia transition-colors">{{ $t('common.shop') }}</Link>
                     <span aria-hidden="true">/</span>
-                    <span class="text-savino-gold" aria-current="page">{{ category?.name }}</span>
+                    <span class="text-savino-fucsia" aria-current="page">{{ category?.name }}</span>
                 </nav>
-                <span class="text-savino-gold text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.category_label') }}</span>
+                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.category_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ category?.name }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mt-4 mb-6"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p v-if="category?.description" class="text-white/70 text-lg max-w-2xl mx-auto">
                     {{ category.description }}
                 </p>
@@ -102,6 +128,33 @@ onUnmounted(() => {
         <!-- PRODUCTS SECTION -->
         <section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
             <div class="max-w-7xl mx-auto">
+                <!-- Scaffali del reparto -->
+                <nav v-if="subcategories.length" class="mb-10 flex flex-wrap justify-center gap-3" :aria-label="category?.name">
+                    <Link
+                        :href="subcategoryUrl(null)"
+                        class="px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-colors"
+                        :class="activeSubcategory === null
+                            ? 'bg-savino-blue text-white'
+                            : 'bg-gray-100 text-savino-blue hover:bg-gray-200'"
+                        :aria-current="activeSubcategory === null ? 'page' : undefined"
+                    >
+                        {{ $t('shop.subcategory_all') }}
+                    </Link>
+                    <Link
+                        v-for="sub in subcategories"
+                        :key="sub.id"
+                        :href="subcategoryUrl(sub.slug)"
+                        class="px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-colors"
+                        :class="activeSubcategory === sub.slug
+                            ? 'bg-savino-blue text-white'
+                            : 'bg-gray-100 text-savino-blue hover:bg-gray-200'"
+                        :aria-current="activeSubcategory === sub.slug ? 'page' : undefined"
+                    >
+                        {{ sub.name }}
+                        <span class="ml-2 text-[10px] opacity-60">{{ sub.products_count }}</span>
+                    </Link>
+                </nav>
+
                 <!-- Sort Bar -->
                 <div class="flex items-center justify-between mb-10">
                     <p class="text-gray-500 text-sm">
@@ -114,7 +167,7 @@ onUnmounted(() => {
                             id="sort-select"
                             v-model="selectedSort"
                             :aria-label="$t('shop.sort_by') || 'Ordina per'"
-                            class="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-savino-blue font-semibold bg-white focus:ring-2 focus:ring-savino-gold/50 focus:border-savino-gold outline-none transition-all"
+                            class="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-savino-blue font-semibold bg-white focus:ring-2 focus:ring-savino-fucsia/50 focus:border-savino-fucsia outline-none transition-all"
                         >
                             <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
                         </select>
@@ -135,16 +188,16 @@ onUnmounted(() => {
                 <div v-else class="text-center py-20">
                     <div class="max-w-lg mx-auto">
                         <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-savino-blue to-gray-900 flex items-center justify-center shadow-xl">
-                            <svg class="w-10 h-10 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+                            <svg class="w-10 h-10 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
                         </div>
                         <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-3">
                             {{ $t('shop.no_products_title') }}
                         </h2>
-                        <div class="w-12 h-1 bg-savino-gold mx-auto mb-4"></div>
+                        <div class="w-12 h-1 bg-savino-fucsia mx-auto mb-4"></div>
                         <p class="text-gray-600 leading-relaxed mb-6">
                             {{ $t('shop.no_products_category') }}
                         </p>
-                        <Link :href="route('shop')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-gold hover:text-savino-blue transition-all duration-300">
+                        <Link :href="route('shop')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-fucsia hover:text-savino-blue transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                             {{ $t('shop.back_to_shop') }}
                         </Link>

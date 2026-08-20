@@ -94,7 +94,7 @@ const ogMeta = useOgMeta({
         <section class="relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-                <p class="text-center text-savino-gold text-xs font-bold uppercase tracking-[0.3em]">
+                <p class="text-center text-savino-fucsia text-xs font-bold uppercase tracking-[0.3em]">
                     {{ game.competitionLabel }}<span v-if="game.matchdayLabel"> · {{ game.matchdayLabel }}</span>
                 </p>
 
@@ -103,7 +103,7 @@ const ogMeta = useOgMeta({
                         <TeamLogo :src="game.home.logo" :name="game.home.name" size="lg" class="mx-auto" />
                         <p
                             class="mt-3 text-sm md:text-lg font-black uppercase tracking-tight"
-                            :class="game.home.isOwn ? 'text-savino-gold' : 'text-white'"
+                            :class="game.home.isOwn ? 'text-savino-fucsia' : 'text-white'"
                         >{{ game.home.name }}</p>
                     </div>
                     <div class="flex items-center gap-2 md:gap-4">
@@ -115,7 +115,7 @@ const ogMeta = useOgMeta({
                         <TeamLogo :src="game.away.logo" :name="game.away.name" size="lg" class="mx-auto" />
                         <p
                             class="mt-3 text-sm md:text-lg font-black uppercase tracking-tight"
-                            :class="game.away.isOwn ? 'text-savino-gold' : 'text-white'"
+                            :class="game.away.isOwn ? 'text-savino-fucsia' : 'text-white'"
                         >{{ game.away.name }}</p>
                     </div>
                 </div>
@@ -129,7 +129,7 @@ const ogMeta = useOgMeta({
                 <div class="mt-6 text-center">
                     <Link
                         :href="route('stagione.risultati')"
-                        class="inline-block text-xs font-bold uppercase tracking-wider text-savino-gold hover:text-white transition-colors"
+                        class="inline-block text-xs font-bold uppercase tracking-wider text-savino-fucsia hover:text-white transition-colors"
                     >&larr; {{ $t('partita.back_to_results') }}</Link>
                 </div>
             </div>
@@ -139,7 +139,7 @@ const ogMeta = useOgMeta({
         <section class="py-14 bg-gray-50">
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ $t('partita.sets') }}</h2>
-                <div class="w-12 h-1 bg-savino-gold mb-8"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mb-8"></div>
 
                 <p
                     v-if="!game.sets || game.sets.length === 0"
@@ -201,7 +201,7 @@ const ogMeta = useOgMeta({
         <section class="py-14 bg-white">
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ $t('partita.box_score') }}</h2>
-                <div class="w-12 h-1 bg-savino-gold mb-8"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mb-8"></div>
 
                 <div class="space-y-10">
                     <div v-for="side in sides" :key="side.key">
@@ -245,10 +245,10 @@ const ogMeta = useOgMeta({
                                                 <Link
                                                     v-if="row.playerSlug"
                                                     :href="route('gallery.atleta', { slug: row.playerSlug })"
-                                                    class="font-bold text-savino-blue hover:text-savino-gold transition-colors"
+                                                    class="font-bold text-savino-blue hover:text-savino-fucsia transition-colors"
                                                 >{{ row.name }}</Link>
                                                 <span v-else class="font-semibold text-gray-800">{{ row.name }}</span>
-                                                <span v-if="row.isCaptain" class="ml-2 text-[10px] font-bold uppercase text-savino-gold" :title="$t('partita.captain')">(C)</span>
+                                                <span v-if="row.isCaptain" class="ml-2 text-[10px] font-bold uppercase text-savino-fucsia" :title="$t('partita.captain')">(C)</span>
                                                 <span v-if="row.isLibero" class="ml-1 text-[10px] font-bold uppercase text-gray-400" :title="$t('partita.libero')">(L)</span>
                                             </td>
                                             <td class="px-3 py-3 text-sm text-center text-gray-600 tabular-nums">{{ num(row.setsPlayed) }}</td>

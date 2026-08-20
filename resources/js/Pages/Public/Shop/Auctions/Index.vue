@@ -71,7 +71,7 @@ const countByStatus = (status) => {
                         :class="[
                             'px-5 py-2.5 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300',
                             activeFilter === filter.key
-                                ? 'bg-savino-gold text-gray-900'
+                                ? 'bg-savino-fucsia text-gray-900'
                                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white',
                         ]"
                     >
@@ -121,7 +121,7 @@ const countByStatus = (status) => {
                     <h3 class="text-2xl font-black text-white uppercase tracking-tight">📯 {{ $t('auctions.shop_cta_title') }}</h3>
                     <p class="text-white/80 mt-1">{{ $t('auctions.shop_cta_description') }}</p>
                 </div>
-                <Link :href="route('shop')" class="inline-flex items-center px-8 py-3 bg-savino-gold text-savino-blue font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
+                <Link :href="route('shop')" class="inline-flex items-center px-8 py-3 bg-savino-fucsia text-savino-blue font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
                     {{ $t('auctions.shop_cta_button') }}
                 </Link>
             </div>

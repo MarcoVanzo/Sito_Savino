@@ -11,6 +11,7 @@ use App\Models\StaffMember;
 use App\Models\Team;
 use App\Services\SponsorDirectory;
 use App\Support\CmsFile;
+use App\Support\LiveStream;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,6 +37,7 @@ class PageController extends Controller
         'Public/Sponsor',
         'Public/Youth',
         'Public/SummerCamp',
+        'Public/TalentDay',
         'Public/Sociale',
         'Public/Comunicazione',
         'Public/Risultati',
@@ -143,6 +145,14 @@ class PageController extends Controller
         $dati['content_data'] = is_array($dati['content_data'] ?? null)
             ? CmsFile::resolveInContentData($dati['content_data'])
             : $dati['content_data'];
+
+        // Il video di coda passa dallo stesso filtro della diretta delle gare:
+        // un indirizzo fuori dalle piattaforme conosciute non viene incorporato
+        // nella pagina con i permessi del sito.
+        if (is_array($dati['content_data'] ?? null) && isset($dati['content_data']['video_url'])) {
+            $dati['content_data']['video_embed_url'] = LiveStream::embedUrl($dati['content_data']['video_url']);
+            $dati['content_data']['video_url'] = LiveStream::externalUrl($dati['content_data']['video_url']);
+        }
 
         return Inertia::render($template, array_merge([
             'page' => $dati,

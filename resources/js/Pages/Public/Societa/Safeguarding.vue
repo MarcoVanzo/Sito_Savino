@@ -50,7 +50,9 @@ const documents = computed(() => Array.isArray(cd.value?.documents) ? cd.value.d
 
     <PublicLayout>
         <!-- Formal Hero Section -->
-        <div class="relative bg-savino-blue pt-32 pb-20 overflow-hidden">
+        <!-- La curva in fondo e' alta fino a 80px e sta sopra al testo: senza
+             margine sufficiente l'ultima riga finiva dentro l'onda. -->
+        <div class="relative bg-savino-blue pt-32 pb-32 md:pb-44 overflow-hidden">
             <div class="absolute inset-0 opacity-10 bg-[url('/images/pattern.svg')]"></div>
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/10 text-white mb-6">
@@ -61,8 +63,11 @@ const documents = computed(() => Array.isArray(cd.value?.documents) ? cd.value.d
             </div>
             <!-- Curve bottom -->
             <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
+                <!-- L'onda precedente era asimmetrica: a sinistra saliva quasi dritta e
+                     a destra scendeva morbida, e la differenza si notava. Questa e' una
+                     curva unica, speculare rispetto al centro. -->
                 <svg class="relative block w-full h-[50px] md:h-[80px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,115.93,198.71,105.1,241.13,98.24,281.86,83.5,321.39,56.44Z" fill="#F9FAFB"></path>
+                    <path d="M0,120V64Q600,0,1200,64V120Z" fill="#F9FAFB"></path>
                 </svg>
             </div>
         </div>
@@ -74,7 +79,7 @@ const documents = computed(() => Array.isArray(cd.value?.documents) ? cd.value.d
                 <div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 mb-12">
                     <div 
                         v-if="page?.content"
-                        class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-h2:text-2xl prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-savino-gold hover:prose-a:underline"
+                        class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-h2:text-2xl prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-savino-fucsia hover:prose-a:underline"
                         v-html="safeContent"
                     ></div>
                 </div>
@@ -109,9 +114,16 @@ const documents = computed(() => Array.isArray(cd.value?.documents) ? cd.value.d
                                 {{ reportDescription }}
                             </p>
                         </div>
-                        <a v-if="reportEmail" :href="'mailto:' + reportEmail" class="flex-shrink-0 bg-savino-gold hover:bg-white hover:text-savino-blue text-white text-lg font-bold px-8 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl w-full md:w-auto text-center">
-                            {{ $t('societa.safeguarding_send_report') }}
-                        </a>
+                        <!-- Era un pulsante "Invia segnalazione" che apriva il programma di
+                             posta: su un computer senza client configurato non succedeva
+                             niente e sembrava rotto. L'indirizzo sta scritto, si legge e si
+                             copia; resta cliccabile per chi la posta ce l'ha. -->
+                        <div v-if="reportEmail" class="flex-shrink-0 w-full md:w-auto text-center md:text-right">
+                            <span class="block text-blue-200 text-xs font-bold uppercase tracking-[0.2em] mb-2">{{ $t('societa.safeguarding_report_email_label') }}</span>
+                            <a :href="'mailto:' + reportEmail" class="inline-block text-white text-lg md:text-xl font-black break-all hover:text-savino-fucsia transition-colors">
+                                {{ reportEmail }}
+                            </a>
+                        </div>
                     </div>
                 </div>
 

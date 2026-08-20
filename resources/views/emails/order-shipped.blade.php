@@ -56,7 +56,7 @@
                 <td align="center">
                     <a href="{{ $order->tracking_url }}"
                        target="_blank"
-                       style="display: inline-block; background-color: #C9A84C; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 0.3px;">
+                       style="display: inline-block; background-color: #F8269C; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 0.3px;">
                         {{ __('emails.shipped.track_button') }}
                     </a>
                 </td>

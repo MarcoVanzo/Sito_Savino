@@ -48,7 +48,7 @@ export function getRoleLabels($t) {
  * Colori CSS (classi Tailwind) per i badge ruolo.
  */
 export const roleColors = {
-    palleggiatrice: 'bg-savino-gold',
+    palleggiatrice: 'bg-savino-fucsia',
     schiacciatrice: 'bg-savino-red',
     centrale: 'bg-savino-blue',
     opposto: 'bg-purple-600',

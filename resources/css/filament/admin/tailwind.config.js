@@ -24,7 +24,7 @@ export default {
             keyframes: {
                 'pulse-gold': {
                     '0%, 100%': { opacity: 1, color: '#bda871' },
-                    '50%': { opacity: .5, color: '#C9A84C' },
+                    '50%': { opacity: .5, color: '#F8269C' },
                 },
                 'fade-in': {
                     '0%': { opacity: 0 },

@@ -51,7 +51,7 @@ const submit = () => {
                 <h1 class="text-3xl font-black text-white uppercase tracking-tighter">
                     {{ $t('shop.login_title') }}
                 </h1>
-                <div class="w-12 h-1 bg-savino-gold mx-auto mt-3 mb-4"></div>
+                <div class="w-12 h-1 bg-savino-fucsia mx-auto mt-3 mb-4"></div>
                 <p class="text-white/50 text-sm">{{ $t('shop.login_subtitle') }}</p>
             </div>
 
@@ -99,7 +99,7 @@ const submit = () => {
                         <Link
                             v-if="canResetPassword"
                             :href="route('password.request')"
-                            class="text-sm text-savino-gold hover:text-savino-blue transition-colors font-medium"
+                            class="text-sm text-savino-fucsia hover:text-savino-blue transition-colors font-medium"
                         >
                             {{ $t('shop.forgot_password') }}
                         </Link>
@@ -108,7 +108,7 @@ const submit = () => {
                     <div class="pt-2">
                         <button
                             type="submit"
-                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-base font-bold uppercase tracking-wider text-white bg-savino-blue hover:bg-savino-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-savino-gold transition-all duration-200"
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-base font-bold uppercase tracking-wider text-white bg-savino-blue hover:bg-savino-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-savino-fucsia transition-all duration-200"
                             :class="{ 'opacity-50 cursor-not-allowed': form.processing }"
                             :disabled="form.processing"
                         >
@@ -121,7 +121,7 @@ const submit = () => {
             <!-- Register link -->
             <div class="text-center mt-6 text-sm text-white/60">
                 {{ $t('shop.no_account') }}
-                <Link :href="route('shop.register')" class="font-bold text-savino-gold hover:text-white transition-colors ml-1">
+                <Link :href="route('shop.register')" class="font-bold text-savino-fucsia hover:text-white transition-colors ml-1">
                     {{ $t('shop.register_link') }}
                 </Link>
             </div>

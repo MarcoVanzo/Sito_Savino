@@ -35,7 +35,7 @@ function confirm() {
                 <h1 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mb-4">
                     {{ done ? $t('newsletter.unsubscribe_done_title') : $t('newsletter.unsubscribe_title') }}
                 </h1>
-                <div class="w-16 h-1 bg-savino-gold mx-auto mb-8"></div>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-8"></div>
 
                 <p class="text-lg text-gray-600 mb-2">
                     {{ done ? $t('newsletter.unsubscribe_done_text') : $t('newsletter.unsubscribe_intro') }}
@@ -62,7 +62,7 @@ function confirm() {
                 <Link
                     v-else
                     :href="route('home')"
-                    class="inline-block px-8 py-3 bg-savino-gold text-white font-bold tracking-wider hover:bg-savino-blue transition-colors duration-300 rounded-sm"
+                    class="inline-block px-8 py-3 bg-savino-fucsia text-white font-bold tracking-wider hover:bg-savino-blue transition-colors duration-300 rounded-sm"
                 >
                     {{ $t('under_construction.back_home') }}
                 </Link>

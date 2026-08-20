@@ -193,7 +193,11 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
 - **Documentazione completa**: `docs/BRAND_GUIDELINES.md` per palette colori, varianti
   logo, regole di utilizzo e dimensioni minime.
 - **Colori ufficiali** (da `tailwind.config.js`): `savino-blue` (#003063),
-  `savino-red` (#DF338F), `savino-gold` (#C9A84C), `savino-pink` (#ED028C).
+  `savino-red` (#DF338F), `savino-fucsia` (#F8269C), `savino-pink` (#ED028C).
+  Il token `savino-gold` (#C9A84C) non esiste più: l'oro era fuori dalla palette
+  della Brand & Digital Style Guide 2026-2027 e ogni suo uso è passato al fucsia
+  ufficiale. Restano d'oro solo le serie dei grafici del pannello, dove il colore
+  distingue un dato e non veste il brand.
 - **Loghi centralizzati** in `resources/js/Constants/logos.js`. NON usare percorsi
   hardcoded — importare sempre le costanti `LOGOS`.
 - **Loghi web** in `public/images/`: `logo.png` (volley a colori),
@@ -382,6 +386,27 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   `SiteSetting::resolveForLocale()` risolve anche i valori già decodificati:
   senza, i numeri della homepage arrivavano al frontend come
   `{"it": […], "en": […]}` e la sezione restava vuota.
+
+- **La coda multimediale delle pagine** (video + galleria) è un blocco condiviso:
+  `PageMediaTail.vue` lato sito, `PageTemplateForms::mediaTailSchema()` lato
+  pannello. Il video passa da `LiveStream::embedUrl()` come le dirette delle
+  gare: la lista dei domini incorporabili è una sola (§16).
+- **I file caricati dentro `content_data`** si dichiarano in
+  `App\Support\CmsFile::resolveInContentData()`, che riscrive il percorso in
+  indirizzo pubblico. Un campo di upload nuovo che non passa di lì produce un
+  link rotto in produzione, dove i file stanno su Spaces e non sotto `/storage`.
+- **I Repeater facoltativi vogliono `defaultItems(0)`**: Filament ne apre uno
+  già pronto, e se i suoi campi sono obbligatori una pagina nuova non si salva
+  finché non lo si compila o lo si cancella.
+- **Il materiale stampa è l'elenco `press_kits`**, non quattro caselle fisse:
+  servono il logo, il brand book e una cartella per ogni gara.
+- **Le richieste di accredito stampa** sono `ContactMessage` con oggetto
+  `PressAccreditationController::SUBJECT`. È l'unico legame con l'elenco
+  "Richieste Accrediti" del pannello (`PressAccreditationResource`, slug
+  `forms`): cambiarlo da una parte sola svuota l'elenco senza errori.
+- **`SiteSetting::get()` indicizza sulla sola colonna `key`**: il gruppo serve a
+  raccogliere le impostazioni nel pannello, non a comporre la chiave.
+  `SiteSetting::get('contact.press_email')` restituisce sempre `null`.
 
 ## 15. Sponsor
 

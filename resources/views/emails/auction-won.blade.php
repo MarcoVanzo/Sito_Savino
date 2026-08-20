@@ -61,7 +61,7 @@
     </table>
 
     {{-- Avviso --}}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff8e1; border-radius: 6px; border-left: 4px solid #C9A84C;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff8e1; border-radius: 6px; border-left: 4px solid #F8269C;">
         <tr>
             <td style="padding: 14px 18px;">
                 <p style="color: #7a6520; font-size: 13px; margin: 0; line-height: 1.5;">

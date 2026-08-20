@@ -107,16 +107,20 @@ watch(desktopNav, (isDesktop) => {
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[85px] relative">
                 <div class="flex justify-between items-center h-full">
                     <!-- LOGHI CHE SBORDANO (Layout Originale) -->
-                    <!-- La larghezza riservata deve restare sotto lo spazio disponibile:
-                         sui telefoni il blocco icone (menu, carrello, account) occupa ~212px
-                         e una larghezza fissa lo spingerebbe fuori dal viewport. -->
-                    <div ref="logoBlock" class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[210px] md:w-[240px] xl:w-[340px] h-full relative">
-                        <div class="absolute top-2 left-0 z-[60] flex items-end">
+                    <!-- I due marchi stanno affiancati sulla stessa linea, non sovrapposti:
+                         il volley aveva un margine negativo che lo faceva scavallare sopra
+                         il riquadro bianco della Spa. Senza sovrapposizione la coppia occupa
+                         piu' larghezza, e la larghezza riservata qui sotto ne tiene conto.
+                         Deve comunque restare sotto lo spazio disponibile: sui telefoni il
+                         blocco icone (menu, carrello, account) occupa ~212px e una larghezza
+                         fissa lo spingerebbe fuori dal viewport. -->
+                    <div ref="logoBlock" class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[250px] md:w-[285px] xl:w-[380px] h-full relative">
+                        <div class="absolute top-2 left-0 z-[60] flex items-center gap-2 sm:gap-3">
 
                             <!-- Corporate Logo Block (Sfondo Bianco) — nascosto sui telefoni: a quella
                                  dimensione il payoff è illeggibile e ruberebbe spazio alla navigazione -->
                             <div class="relative group hidden sm:block">
-                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 pl-3 pr-8 xl:pr-10 py-1.5 mb-2 w-[150px] md:w-[170px] xl:w-[230px] overflow-hidden">
+                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 px-3 xl:px-4 py-1.5 w-[150px] md:w-[170px] xl:w-[230px] overflow-hidden">
                                     <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                 </a>
                                 
@@ -131,7 +135,7 @@ watch(desktopNav, (isDesktop) => {
                                             <img :src="corporateLogo" :alt="corporateName" class="w-48 h-16 object-contain rounded-lg shadow-sm mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                             <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1 whitespace-nowrap">{{ corporateName }}</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">{{ corporateDescription }}</p>
-                                            <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-gold transition-colors w-full cursor-pointer">
+                                            <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-fucsia transition-colors w-full cursor-pointer">
                                                 {{ $t('common.visit_official_site') }}
                                             </a>
                                         </div>
@@ -140,7 +144,7 @@ watch(desktopNav, (isDesktop) => {
                             </div>
 
                             <!-- Volley Logo -->
-                            <Link :href="route('home')" class="block z-10 sm:-ml-6 xl:-ml-8 transition-transform duration-300 hover:scale-105 pb-1">
+                            <Link :href="route('home')" class="block z-10 transition-transform duration-300 hover:scale-105">
                                 <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[64px] sm:h-[84px] md:h-[92px] xl:h-[125px] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
                             </Link>
                         </div>

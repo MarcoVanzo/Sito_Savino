@@ -100,7 +100,7 @@ const formatDate = (dateString) => {
                                         {{ formatPrice(order.total_price) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link :href="route('shop.order.show', order.order_number)" class="text-savino-gold hover:text-savino-blue transition-colors">
+                                        <Link :href="route('shop.order.show', order.order_number)" class="text-savino-fucsia hover:text-savino-blue transition-colors">
                                             {{ $t('my_orders.details') }}
                                         </Link>
                                     </td>
@@ -124,7 +124,7 @@ const formatDate = (dateString) => {
                                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                                     <template v-for="(link, k) in orders.links" :key="k">
                                         <div v-if="link.url === null" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-300" v-html="sanitize(link.label)"></div>
-                                        <Link v-else :href="link.url" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium" :class="{'text-savino-gold font-bold bg-gray-50 z-10': link.active, 'text-gray-500 hover:bg-gray-50': !link.active}"><span v-html="sanitize(link.label)" /></Link>
+                                        <Link v-else :href="link.url" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium" :class="{'text-savino-fucsia font-bold bg-gray-50 z-10': link.active, 'text-gray-500 hover:bg-gray-50': !link.active}"><span v-html="sanitize(link.label)" /></Link>
                                     </template>
                                 </nav>
                             </div>

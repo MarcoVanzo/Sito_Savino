@@ -68,7 +68,7 @@ const priceLabel = computed(() => {
 
             <!-- Charity Badge -->
             <div v-if="auction.is_charity" class="absolute top-3 right-3">
-                <span class="bg-savino-gold/20 text-savino-gold border border-savino-gold/30 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
+                <span class="bg-savino-fucsia/20 text-savino-fucsia border border-savino-fucsia/30 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
                     🎗️ Charity
                 </span>
             </div>
@@ -77,7 +77,7 @@ const priceLabel = computed(() => {
             <div
                 class="absolute inset-0 bg-savino-blue/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-center"
             >
-                <span class="text-white text-xs font-bold uppercase tracking-wider border-2 border-savino-gold px-5 py-2.5 hover:bg-savino-gold hover:text-gray-900 transition-colors">
+                <span class="text-white text-xs font-bold uppercase tracking-wider border-2 border-savino-fucsia px-5 py-2.5 hover:bg-savino-fucsia hover:text-gray-900 transition-colors">
                     {{ $t('shop.product_details') || 'Dettagli' }}
                 </span>
             </div>
@@ -86,7 +86,7 @@ const priceLabel = computed(() => {
         <!-- Info -->
         <div class="p-5 flex flex-col flex-grow">
             <!-- Title -->
-            <h3 class="text-white font-bold text-base mb-3 leading-tight group-hover:text-savino-gold transition-colors duration-300 line-clamp-2">
+            <h3 class="text-white font-bold text-base mb-3 leading-tight group-hover:text-savino-fucsia transition-colors duration-300 line-clamp-2">
                 {{ auction.title }}
             </h3>
 
@@ -97,7 +97,7 @@ const priceLabel = computed(() => {
                         <span class="block text-[10px] uppercase tracking-wider text-gray-400 mb-0.5">
                             {{ priceLabel }}
                         </span>
-                        <span class="text-savino-gold font-black text-xl">
+                        <span class="text-savino-fucsia font-black text-xl">
                             {{ formatPrice(displayPrice) }}
                         </span>
                     </div>

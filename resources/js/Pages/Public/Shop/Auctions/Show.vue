@@ -166,9 +166,9 @@ onUnmounted(() => {
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Breadcrumb -->
                 <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-                    <Link :href="route('shop')" class="hover:text-savino-gold transition-colors">Shop</Link>
+                    <Link :href="route('shop')" class="hover:text-savino-fucsia transition-colors">Shop</Link>
                     <span>/</span>
-                    <Link :href="route('shop.auctions.index')" class="hover:text-savino-gold transition-colors">Aste</Link>
+                    <Link :href="route('shop.auctions.index')" class="hover:text-savino-fucsia transition-colors">Aste</Link>
                     <span>/</span>
                     <span class="text-gray-300 truncate">{{ currentAuction.title }}</span>
                 </nav>
@@ -201,7 +201,7 @@ onUnmounted(() => {
                                 <span v-if="currentAuction.is_active" class="bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-full backdrop-blur-sm">
                                     🔴 LIVE
                                 </span>
-                                <span v-if="currentAuction.is_charity" class="bg-savino-gold/20 text-savino-gold border border-savino-gold/30 text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-full backdrop-blur-sm">
+                                <span v-if="currentAuction.is_charity" class="bg-savino-fucsia/20 text-savino-fucsia border border-savino-fucsia/30 text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-full backdrop-blur-sm">
                                     🎗️ Charity
                                 </span>
                             </div>
@@ -216,7 +216,7 @@ onUnmounted(() => {
                                 :class="[
                                     'aspect-square rounded-lg overflow-hidden border-2 transition-all duration-200',
                                     selectedImage === index
-                                        ? 'border-savino-gold ring-2 ring-savino-gold/30'
+                                        ? 'border-savino-fucsia ring-2 ring-savino-fucsia/30'
                                         : 'border-transparent opacity-60 hover:opacity-100',
                                 ]"
                             >
@@ -241,7 +241,7 @@ onUnmounted(() => {
                                 {{ priceLabel }}
                             </span>
                             <div class="flex items-end gap-3">
-                                <span class="text-savino-gold font-black text-4xl sm:text-5xl tabular-nums">
+                                <span class="text-savino-fucsia font-black text-4xl sm:text-5xl tabular-nums">
                                     {{ formatPrice(displayPrice) }}
                                 </span>
                                 <span v-if="currentAuction.bids_count > 0" class="text-gray-400 text-sm pb-1">
@@ -296,9 +296,9 @@ onUnmounted(() => {
                         <!-- Ended: Winner checkout CTA -->
                         <div
                             v-if="!currentAuction.is_active && currentAuction.status === 'ended' && auction.winner_checkout_token"
-                            class="bg-savino-gold/10 border border-savino-gold/30 rounded-xl p-5 text-center"
+                            class="bg-savino-fucsia/10 border border-savino-fucsia/30 rounded-xl p-5 text-center"
                         >
-                            <p class="text-savino-gold font-bold text-lg mb-3">🎉 {{ $t('auction.ended_badge') || 'Asta conclusa!' }}</p>
+                            <p class="text-savino-fucsia font-bold text-lg mb-3">🎉 {{ $t('auction.ended_badge') || 'Asta conclusa!' }}</p>
                         </div>
 
                         <!-- Social Share -->
@@ -321,7 +321,7 @@ onUnmounted(() => {
                         <!-- Description -->
                         <div v-if="currentAuction.description" class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
                             <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 {{ $t('auction.description') || 'Descrizione' }}
@@ -330,8 +330,8 @@ onUnmounted(() => {
                         </div>
 
                         <!-- Charity Description -->
-                        <div v-if="currentAuction.charity_description" class="bg-savino-gold/5 rounded-2xl p-6 border border-savino-gold/20">
-                            <h3 class="text-savino-gold font-bold text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <div v-if="currentAuction.charity_description" class="bg-savino-fucsia/5 rounded-2xl p-6 border border-savino-fucsia/20">
+                            <h3 class="text-savino-fucsia font-bold text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
                                 🎗️ {{ $t('auction.charity_label') || 'Asta benefica' }}
                             </h3>
                             <div class="text-gray-300 text-sm leading-relaxed" v-html="sanitize(currentAuction.charity_description)" />
@@ -340,7 +340,7 @@ onUnmounted(() => {
                         <!-- Rules -->
                         <div v-if="rulesText" class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
                             <h3 class="text-white font-bold text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-savino-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                                 {{ $t('auction.rules') || 'Regolamento asta' }}
