@@ -158,7 +158,9 @@
         "select_subject": "Seleziona l'argomento della richiesta...",
         "subject_other": "Altro",
         "click_to_copy": "Clicca per copiare",
-        "filter_all": "Tutti"
+        "filter_all": "Tutti",
+        "headquarters": "Sede Amministrativa",
+        "search_placeholder": "Cerca per nome, ruolo o email..."
     },
     "societa": {
         "og_title": "La Società",
@@ -199,7 +201,10 @@
         "safeguarding_fallback_doc1_desc": "Documento che stabilisce i principi di comportamento e le misure di prevenzione.",
         "safeguarding_fallback_doc2_title": "Codice di Condotta a Tutela dei Minori",
         "safeguarding_fallback_doc2_desc": "Linee guida specifiche per garantire un ambiente sportivo sicuro per i più giovani.",
-        "storia_timeline_empty": "Le tappe fondamentali saranno pubblicate a breve."
+        "storia_timeline_empty": "Le tappe fondamentali saranno pubblicate a breve.",
+        "palazzetto_map_title": "Mappa del PalaBigmat",
+        "safeguarding_documents_header": "Documenti Ufficiali",
+        "safeguarding_send_report": "Invia Segnalazione"
     },
     "staff": {
         "og_title": "Staff Tecnico e Medico",
@@ -597,7 +602,8 @@
         "remaining": "rimanenti",
         "sort_default": "Ordina per",
         "loading_products": "Caricamento prodotti",
-        "cart_error_generic": "Errore durante l'aggiunta al carrello"
+        "cart_error_generic": "Errore durante l'aggiunta al carrello",
+        "your_bid": "La tua offerta"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Ordine inviato! (placeholder)",

@@ -282,10 +282,10 @@ const ogMeta = useOgMeta({
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <!-- Helper for Clipboard Items -->
                             <template v-for="field in [
-                                { id: 'piva', label: $t('contatti.legal_piva_label'), val: contact.legal_piva || '06271460484' },
-                                { id: 'cf', label: $t('contatti.legal_cf_label'), val: contact.legal_cf || '94217750481' },
-                                { id: 'fipav', label: $t('contatti.legal_fipav_label'), val: contact.legal_fipav || '100470331' },
-                                { id: 'sdi', label: $t('contatti.legal_sdi_label'), val: contact.legal_sdi || 'KRRH6B9' }
+                                { id: 'piva', label: $t('contatti.vat_number'), val: contact.legal_piva || '06271460484' },
+                                { id: 'cf', label: $t('contatti.fiscal_code'), val: contact.legal_cf || '94217750481' },
+                                { id: 'fipav', label: $t('contatti.fipav_code'), val: contact.legal_fipav || '100470331' },
+                                { id: 'sdi', label: $t('contatti.sdi_code'), val: contact.legal_sdi || 'KRRH6B9' }
                             ]" :key="field.id">
                                 <div 
                                     @click="copyToClipboard(field.val, field.id)"
@@ -320,7 +320,7 @@ const ogMeta = useOgMeta({
                                     </svg>
                                 </div>
                                 <div>
-                                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('contatti.legal_pec_label') }}</span>
+                                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('contatti.official_pec') }}</span>
                                     <a v-if="contact.pec" :href="'mailto:' + contact.pec" class="block text-base font-black text-savino-blue hover:text-savino-blue/80 mt-1 transition-colors">{{ contact.pec }}</a>
                                 </div>
                             </div>
@@ -331,7 +331,7 @@ const ogMeta = useOgMeta({
                                     </svg>
                                 </div>
                                 <div>
-                                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('contatti.office_hours_label') }}</span>
+                                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ $t('contatti.office_hours') }}</span>
                                     <span class="block text-base font-black text-gray-900 mt-1 whitespace-pre-line">{{ settings.contact?.office_hours }}</span>
                                 </div>
                             </div>

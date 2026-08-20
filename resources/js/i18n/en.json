@@ -158,7 +158,9 @@
         "select_subject": "Select the topic of your request...",
         "subject_other": "Other",
         "click_to_copy": "Click to copy",
-        "filter_all": "All"
+        "filter_all": "All",
+        "headquarters": "Administrative Office",
+        "search_placeholder": "Search by name, role or email..."
     },
     "societa": {
         "og_title": "About the Club",
@@ -199,7 +201,10 @@
         "safeguarding_fallback_doc1_desc": "Document establishing the principles of behavior and risk prevention measures.",
         "safeguarding_fallback_doc2_title": "Child Safeguarding Code of Conduct",
         "safeguarding_fallback_doc2_desc": "Specific guidelines to guarantee a safe sports environment for young people.",
-        "storia_timeline_empty": "The key milestones will be published shortly."
+        "storia_timeline_empty": "The key milestones will be published shortly.",
+        "palazzetto_map_title": "PalaBigmat map",
+        "safeguarding_documents_header": "Official Documents",
+        "safeguarding_send_report": "Send a Report"
     },
     "staff": {
         "og_title": "Coaching & Medical Staff",
@@ -597,7 +602,8 @@
         "remaining": "remaining",
         "sort_default": "Sort by",
         "loading_products": "Loading products",
-        "cart_error_generic": "Something went wrong while adding to the cart"
+        "cart_error_generic": "Something went wrong while adding to the cart",
+        "your_bid": "Your bid"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Order submitted! (placeholder)",
