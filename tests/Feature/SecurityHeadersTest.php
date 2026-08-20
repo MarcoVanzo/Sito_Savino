@@ -39,6 +39,39 @@ class SecurityHeadersTest extends TestCase
         $response->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     }
 
+    /**
+     * Finché il dominio ufficiale serve il sito precedente, l'indirizzo di
+     * anteprima non deve finire su Google: sarebbero due copie dello stesso
+     * contenuto, e la copia sbagliata potrebbe pure vincere.
+     */
+    public function test_l_indirizzo_di_anteprima_non_viene_indicizzato(): void
+    {
+        config()->set('app.indexable_hosts', ['savinodelbenevolley.it']);
+
+        $this->get('http://seashell-app-47mmf.ondigitalocean.app/')
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+    }
+
+    public function test_il_dominio_definitivo_resta_indicizzabile(): void
+    {
+        config()->set('app.indexable_hosts', ['savinodelbenevolley.it', 'www.savinodelbenevolley.it']);
+
+        $this->get('http://www.savinodelbenevolley.it/')
+            ->assertHeaderMissing('X-Robots-Tag');
+    }
+
+    /**
+     * Elenco vuoto: nessun vincolo. Serve a poter spegnere il controllo da
+     * variabile d'ambiente senza rilasciare codice.
+     */
+    public function test_senza_elenco_non_si_blocca_niente(): void
+    {
+        config()->set('app.indexable_hosts', []);
+
+        $this->get('http://seashell-app-47mmf.ondigitalocean.app/')
+            ->assertHeaderMissing('X-Robots-Tag');
+    }
+
     public function test_response_has_csp_header(): void
     {
         $response = $this->get('/');

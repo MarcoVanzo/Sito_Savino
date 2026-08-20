@@ -43,6 +43,24 @@ class SecurityHeadersMiddleware
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 
+        // Finché si risponde sull'indirizzo di anteprima, fuori dai motori di
+        // ricerca: il dominio ufficiale serve ancora il sito precedente e i due
+        // sarebbero contenuto duplicato.
+        //
+        // Si dichiara `noindex` invece di vietare la scansione in robots.txt,
+        // perché un indirizzo che Google non può leggere può comunque finire in
+        // elenco: il divieto, per essere rispettato, va lasciato leggere.
+        if (! $this->indexable($request)) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+
         return $response;
+    }
+
+    private function indexable(Request $request): bool
+    {
+        $hosts = array_map('strtolower', (array) config('app.indexable_hosts', []));
+
+        return $hosts === [] || in_array(strtolower($request->getHost()), $hosts, true);
     }
 }
