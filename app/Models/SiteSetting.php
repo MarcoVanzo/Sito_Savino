@@ -44,6 +44,38 @@ class SiteSetting extends Model
     }
 
     /**
+     * Il valore di un'impostazione lingua per lingua, così com'è in tabella.
+     *
+     * `get()` restituisce la traduzione della lingua corrente: va bene per il
+     * sito, non per il pannello, che deve poterle modificare tutte. Un valore
+     * ancora in testo semplice viene riportato sulla prima lingua.
+     *
+     * @return array<string, mixed>
+     */
+    public static function perLocale(string $key): array
+    {
+        $locales = config('app.supported_locales', ['it', 'en']);
+        $raw = static::query()->where('key', $key)->value('value');
+        $decoded = is_string($raw) ? json_decode($raw, true) : null;
+
+        if (! is_array($decoded) || array_intersect($locales, array_keys($decoded)) === []) {
+            // Valore non ancora tradotto: vale per la lingua principale. Può
+            // essere un testo o un elenco già decodificato (le impostazioni di
+            // tipo `json`, come i numeri della homepage).
+            $decoded = [reset($locales) => is_array($decoded) ? $decoded : (string) $raw];
+        }
+
+        $out = [];
+
+        foreach ($locales as $locale) {
+            $valore = $decoded[$locale] ?? null;
+            $out[$locale] = is_array($valore) ? $valore : (string) ($valore ?? '');
+        }
+
+        return $out;
+    }
+
+    /**
      * Get all settings as a flat key => value array, cached.
      */
     public static function getAllCached(): array

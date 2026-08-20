@@ -257,17 +257,17 @@ class CmsPagesSeeder extends Seeder
                     ],
                 ]),
             $this->page('palazzetto', 'Il Palazzetto', 'Public/Societa/Palazzetto',
-                'PalaBigmat, la casa della Savino Del Bene Volley a Firenze. Capienza, come arrivare e servizi dell\'impianto.',
-                '<h2>PalaBigmat</h2><p>Il PalaBigmat di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.</p><h2>Come Arrivare</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI). Facilmente raggiungibile con i mezzi pubblici e con ampio parcheggio disponibile.</p><h2>Servizi</h2><p>Bar, area hospitality, accesso disabili, parcheggio custodito.</p>',
+                'Pala BigMat, la casa della Savino Del Bene Volley a Firenze. Capienza, come arrivare e servizi dell\'impianto.',
+                '<h2>Pala BigMat</h2><p>Il Pala BigMat di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 3.500 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.</p><h2>Come Arrivare</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI). Facilmente raggiungibile con i mezzi pubblici e con ampio parcheggio disponibile.</p><h2>Servizi</h2><p>Bar, area hospitality, accesso disabili, parcheggio custodito.</p>',
                 [
                     'it' => [
-                        'venue_name' => 'PalaBigmat',
+                        'venue_name' => 'Pala BigMat',
                         'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',
-                        'maps_link' => 'https://www.google.com/maps/place/PalaBigmat/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
-                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalaBigmat!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
+                        'maps_link' => 'https://www.google.com/maps/place/Pala BigMat/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
+                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPala BigMat!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
                         'services' => [
                             [
-                                'name' => 'Capienza 4000 Posti',
+                                'name' => 'Capienza 3500 Posti',
                                 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
                             ],
                             [
@@ -285,13 +285,13 @@ class CmsPagesSeeder extends Seeder
                         ],
                     ],
                     'en' => [
-                        'venue_name' => 'PalaBigmat',
+                        'venue_name' => 'Pala BigMat',
                         'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI)',
-                        'maps_link' => 'https://www.google.com/maps/place/PalaBigmat/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
-                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalaBigmat!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
+                        'maps_link' => 'https://www.google.com/maps/place/Pala BigMat/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
+                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPala BigMat!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
                         'services' => [
                             [
-                                'name' => 'Capacity 4000 Seats',
+                                'name' => 'Capacity 3500 Seats',
                                 'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
                             ],
                             [
@@ -313,7 +313,7 @@ class CmsPagesSeeder extends Seeder
             // === TICKETING ===
             $this->page('abbonamenti', 'Campagna Abbonamenti', 'Public/Ticketing',
                 'Abbonamenti Savino Del Bene Volley 2026/2027. Scopri le formule e i prezzi per la nuova stagione.',
-                '<h2>Campagna Abbonamenti 2026/2027</h2><p>Vivi tutte le emozioni della Serie A1 e della Champions League con l\'abbonamento stagionale. Scegli la formula più adatta a te e assicurati il tuo posto al PalaBigmat.</p>'),
+                '<h2>Campagna Abbonamenti 2026/2027</h2><p>Vivi tutte le emozioni della Serie A1 e della Champions League con l\'abbonamento stagionale. Scegli la formula più adatta a te e assicurati il tuo posto al Pala BigMat.</p>'),
             $this->page('biglietteria', 'Biglietteria', 'Public/Ticketing',
                 'Acquista i biglietti per le partite della Savino Del Bene Volley. Prezzi, punti vendita e modalità di acquisto.',
                 '<h2>Biglietteria</h2><p>I biglietti per le partite casalinghe della Savino Del Bene Volley sono acquistabili online e presso i punti vendita autorizzati.</p>'),
@@ -321,8 +321,8 @@ class CmsPagesSeeder extends Seeder
                 'Convenzioni e agevolazioni per gruppi, scuole e associazioni per assistere alle partite della Savino Del Bene Volley.',
                 '<h2>Convenzioni</h2><p>La Savino Del Bene Volley offre tariffe agevolate per gruppi organizzati, scuole, associazioni sportive e aziende partner. Contattaci per ricevere un preventivo personalizzato.</p>'),
             $this->page('accessibilita', 'Accessibilità', 'Public/ContentPage',
-                'Informazioni sull\'accessibilità del PalaBigmat per persone con disabilità. Posti riservati e servizi dedicati.',
-                '<h2>Accessibilità</h2><p>Il PalaBigmat è dotato di posti riservati per persone con disabilità motoria, accesso facilitato, servizi igienici dedicati e personale formato per l\'assistenza. Per informazioni e prenotazioni, contatta la segreteria.</p>'),
+                'Informazioni sull\'accessibilità del Pala BigMat per persone con disabilità. Posti riservati e servizi dedicati.',
+                '<h2>Accessibilità</h2><p>Il Pala BigMat è dotato di posti riservati per persone con disabilità motoria, accesso facilitato, servizi igienici dedicati e personale formato per l\'assistenza. Per informazioni e prenotazioni, contatta la segreteria.</p>'),
 
             // === YOUTH / ACADEMY ===
             $this->page('settore-giovanile', 'Settore Giovanile', 'Public/Youth',
@@ -346,7 +346,7 @@ class CmsPagesSeeder extends Seeder
                 'Diventa sponsor della Savino Del Bene Volley. Scopri i pacchetti di sponsorizzazione e i vantaggi per la tua azienda.',
                 '<h2>Perché Sponsorizzare la Savino Del Bene Volley?</h2><p>Visibilità nazionale e internazionale, accesso a un network B2B esclusivo, hospitality premium e attivazioni di marketing dedicate. Contattaci per un preventivo personalizzato.</p>'),
             $this->page('hospitality', 'Hospitality', 'Public/ContentPage',
-                'Hospitality e servizi premium per le partite della Savino Del Bene Volley al PalaBigmat.',
+                'Hospitality e servizi premium per le partite della Savino Del Bene Volley al Pala BigMat.',
                 '<h2>Esperienza Hospitality</h2><p>Vivi le partite della Savino Del Bene Volley da una prospettiva esclusiva. Il nostro programma Hospitality offre posti premium, catering dedicato, meet & greet con le atlete e networking con i partner del club.</p>'),
             $this->page('affiliazioni', 'Progetto Affiliazioni', 'Public/ContentPage',
                 'Programma di affiliazione della Savino Del Bene Volley per società sportive e scuole di pallavolo.',

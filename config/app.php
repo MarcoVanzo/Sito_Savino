@@ -132,6 +132,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Host che possono finire sui motori di ricerca
+    |--------------------------------------------------------------------------
+    |
+    | Finché il sito nuovo risponde solo sull'indirizzo di App Platform e il
+    | dominio ufficiale serve ancora il sito precedente, i due sarebbero due
+    | copie dello stesso contenuto agli occhi di Google. Le risposte servite su
+    | un host fuori da questa lista dichiarano quindi `noindex`.
+    |
+    | Elencare gli host definitivi: al passaggio del dominio l'indicizzazione si
+    | riapre da sé, senza ricordarsi di togliere un interruttore. Una lista
+    | vuota disattiva il controllo.
+    |
+    */
+
+    'indexable_hosts' => array_values(array_filter(
+        array_map('trim', explode(',', (string) env('INDEXABLE_HOSTS', 'savinodelbenevolley.it,www.savinodelbenevolley.it')))
+    )),
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

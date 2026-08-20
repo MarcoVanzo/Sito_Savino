@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Support\LiveStream;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class SecurityHeadersTest extends TestCase
@@ -39,6 +41,41 @@ class SecurityHeadersTest extends TestCase
         $response->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     }
 
+    /**
+     * Finché il dominio ufficiale serve il sito precedente, l'indirizzo di
+     * anteprima non deve finire su Google: sarebbero due copie dello stesso
+     * contenuto, e la copia sbagliata potrebbe pure vincere.
+     *
+     * Le richieste di prova arrivano su `localhost`: si sposta l'elenco degli
+     * host ammessi, non l'host della richiesta, perché gli host attendibili di
+     * Symfony sono uno stato statico del processo e un test che ne cambia il
+     * valore condiziona quelli successivi.
+     */
+    public function test_un_host_fuori_elenco_non_viene_indicizzato(): void
+    {
+        config()->set('app.indexable_hosts', ['savinodelbenevolley.it']);
+
+        $this->get('/')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+    }
+
+    public function test_il_dominio_definitivo_resta_indicizzabile(): void
+    {
+        config()->set('app.indexable_hosts', ['localhost', 'www.savinodelbenevolley.it']);
+
+        $this->get('/')->assertHeaderMissing('X-Robots-Tag');
+    }
+
+    /**
+     * Elenco vuoto: nessun vincolo. Serve a poter spegnere il controllo da
+     * variabile d'ambiente senza rilasciare codice.
+     */
+    public function test_senza_elenco_non_si_blocca_niente(): void
+    {
+        config()->set('app.indexable_hosts', []);
+
+        $this->get('/')->assertHeaderMissing('X-Robots-Tag');
+    }
+
     public function test_response_has_csp_header(): void
     {
         $response = $this->get('/');
@@ -47,6 +84,38 @@ class SecurityHeadersTest extends TestCase
         $csp = $response->headers->get('Content-Security-Policy');
         $this->assertStringContainsString("default-src 'self'", $csp);
         $this->assertStringContainsString("frame-ancestors 'none'", $csp);
-        $this->assertStringContainsString("frame-src 'self' https://www.youtube.com", $csp);
+        $this->assertStringContainsString("frame-src 'self' https://www.google.com", $csp);
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function dirette(): array
+    {
+        return [
+            'youtube' => ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
+            'vimeo' => ['https://vimeo.com/123456789'],
+            'twitch' => ['https://www.twitch.tv/legavolley'],
+            'dailymotion' => ['https://www.dailymotion.com/video/x8abcd'],
+        ];
+    }
+
+    /**
+     * Le piattaforme che `LiveStream` sa incorporare devono essere ammesse
+     * anche dalla CSP: un link accettato di là e vietato di qua supera i
+     * controlli della redazione e poi resta un riquadro bianco, bloccato dal
+     * browser senza che a schermo si capisca perché.
+     */
+    #[DataProvider('dirette')]
+    public function test_le_dirette_incorporabili_sono_ammesse_dalla_csp(string $url): void
+    {
+        $embed = LiveStream::embedUrl($url);
+        $this->assertNotNull($embed, 'la piattaforma dovrebbe essere incorporabile');
+
+        $host = parse_url($embed, PHP_URL_SCHEME).'://'.parse_url($embed, PHP_URL_HOST);
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+        $frameSrc = collect(explode('; ', (string) $csp))->first(fn (string $riga): bool => str_starts_with($riga, 'frame-src'));
+
+        $this->assertStringContainsString($host, (string) $frameSrc);
     }
 }

@@ -159,6 +159,38 @@ class MetaOAuthTest extends TestCase
         $this->actingAs($user)->get(route('admin.social.meta.connect'))->assertForbidden();
     }
 
+    /**
+     * La callback è una rotta come le altre: il ruolo va chiesto anche lì,
+     * altrimenti basta un account del negozio per chiuderci sopra un giro OAuth.
+     */
+    #[Test]
+    public function chi_non_gestisce_la_comunicazione_non_puo_chiudere_il_collegamento(): void
+    {
+        $state = app(MetaOAuthService::class)->createState($this->redattore()->id);
+
+        $this->fakeGraph();
+
+        $this->actingAs($this->utenteConRuolo(UserRole::ShopManager))
+            ->get(route('admin.social.meta.callback', ['code' => 'codice-di-prova', 'state' => $state]))
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('social_accounts', 0);
+    }
+
+    #[Test]
+    public function il_collegamento_si_chiude_solo_su_chi_lo_ha_aperto(): void
+    {
+        $state = app(MetaOAuthService::class)->createState($this->redattore()->id);
+
+        $this->fakeGraph();
+
+        $this->actingAs($this->redattore())
+            ->get(route('admin.social.meta.callback', ['code' => 'codice-di-prova', 'state' => $state]))
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('social_accounts', 0);
+    }
+
     private function redattore(): User
     {
         return $this->utenteConRuolo(UserRole::CommunicationManager);

@@ -754,7 +754,7 @@ return [
                 'title' => 'Season Tickets',
                 'excerpt' => 'Savino Del Bene Volley 2026/2027 season tickets. Discover the packages and prices for the new season.',
                 'meta_description' => 'Savino Del Bene Volley 2026/2027 season tickets. Discover the packages and prices for the new season.',
-                'content' => '<h2>2026/2027 Season Ticket Campaign</h2><p>Live every moment of Serie A1 and the Champions League with a season ticket. Choose the package that suits you best and secure your seat at PalaBigmat.</p>',
+                'content' => '<h2>2026/2027 Season Ticket Campaign</h2><p>Live every moment of Serie A1 and the Champions League with a season ticket. Choose the package that suits you best and secure your seat at Pala BigMat.</p>',
             ],
             'accrediti-stampa' => [
                 'title' => 'Press Accreditation',
@@ -780,8 +780,8 @@ return [
             ],
             'hospitality' => [
                 'title' => 'Hospitality',
-                'excerpt' => 'Hospitality and premium services for Savino Del Bene Volley matches at PalaBigmat.',
-                'meta_description' => 'Hospitality and premium services for Savino Del Bene Volley matches at PalaBigmat.',
+                'excerpt' => 'Hospitality and premium services for Savino Del Bene Volley matches at Pala BigMat.',
+                'meta_description' => 'Hospitality and premium services for Savino Del Bene Volley matches at Pala BigMat.',
                 'content' => '<h2>The Hospitality Experience</h2><p>Watch Savino Del Bene Volley from an exclusive vantage point. Our Hospitality programme offers premium seating, dedicated catering, meet &amp; greet with the players and networking with the club\'s partners.</p>',
             ],
             'organigramma' => [
@@ -792,13 +792,13 @@ return [
             ],
             'palazzetto' => [
                 'title' => 'The Arena',
-                'excerpt' => 'PalaBigmat, home of Savino Del Bene Volley in Florence. Capacity, how to get there and facilities.',
-                'meta_description' => 'PalaBigmat, home of Savino Del Bene Volley in Florence. Capacity, how to get there and facilities.',
-                'content' => '<h2>PalaBigmat</h2><p>PalaBigmat in Florence is the home of Savino Del Bene Volley. With a capacity of more than 4,000 seats, the arena offers a unique experience for fans and volleyball lovers alike.</p><h2>How to Get There</h2><p>Via del Tridente, 5 — 50127 Florence (FI). Easy to reach by public transport, with plenty of parking available.</p><h2>Facilities</h2><p>Bar, hospitality area, accessible entrances, supervised car park.</p>',
+                'excerpt' => 'Pala BigMat, home of Savino Del Bene Volley in Florence. Capacity, how to get there and facilities.',
+                'meta_description' => 'Pala BigMat, home of Savino Del Bene Volley in Florence. Capacity, how to get there and facilities.',
+                'content' => '<h2>Pala BigMat</h2><p>Pala BigMat in Florence is the home of Savino Del Bene Volley. With a capacity of more than 3,500 seats, the arena offers a unique experience for fans and volleyball lovers alike.</p><h2>How to Get There</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI). Easy to reach by public transport, with plenty of parking available.</p><h2>Facilities</h2><p>Bar, hospitality area, accessible entrances, supervised car park.</p>',
             ],
             'privacy-policy' => [
                 'title' => 'Privacy Policy',
-                'content' => '<h2>Privacy Notice</h2><p>Under Article 13 of EU Regulation 2016/679 (GDPR), Savino Del Bene Volley states that the personal data collected through this website is processed in accordance with the data protection legislation in force.</p><h3>Data Controller</h3><p>Savino Del Bene Volley S.S.D. a r.l. — Via di Scandicci, 50142 Florence (FI)</p><h3>Data collected</h3><p>The site only collects the technical data required for browsing (technical cookies, session data). No profiling data is collected without the explicit consent of the user.</p><h3>Your rights</h3><p>You may exercise the rights set out in Articles 15-22 of the GDPR by writing to: privacy@savinodelbenevolley.com</p>',
+                'content' => '<h2>Privacy Notice</h2><p>Under Article 13 of EU Regulation 2016/679 (GDPR), Savino Del Bene Volley states that the personal data collected through this website is processed in accordance with the data protection legislation in force.</p><h3>Data Controller</h3><p>Savino Del Bene Volley S.S.D. a r.l. — Via di Scandicci, 50142 Florence (FI)</p><h3>Data collected</h3><p>The site only collects the technical data required for browsing (technical cookies, session data). No profiling data is collected without the explicit consent of the user.</p><h3>Your rights</h3><p>You may exercise the rights set out in Articles 15-22 of the GDPR by writing to: privacy@savinodelbenevolley.it</p>',
             ],
             'safeguarding' => [
                 'title' => 'Safeguarding',

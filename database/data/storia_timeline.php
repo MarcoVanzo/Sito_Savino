@@ -40,7 +40,7 @@ return [
         6 => [
             'year' => '2024',
             'title' => 'Finale Scudetto',
-            'description' => 'Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il PalaBigmat.',
+            'description' => 'Per la prima volta nella storia, il club raggiunge la Finale Scudetto, lottando punto a punto per il tricolore e riempiendo il Pala BigMat.',
         ],
     ],
     'en' => [
@@ -77,7 +77,7 @@ return [
         6 => [
             'year' => '2024',
             'title' => 'Scudetto Finals',
-            'description' => 'For the first time in history, the club reached the Scudetto Finals, fighting point-by-point for the championship and filling PalaBigmat.',
+            'description' => 'For the first time in history, the club reached the Scudetto Finals, fighting point-by-point for the championship and filling Pala BigMat.',
         ],
     ],
 ];

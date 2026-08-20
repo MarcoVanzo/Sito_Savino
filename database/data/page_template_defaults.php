@@ -14,7 +14,7 @@ return [
         'it' => [
             'tickets_button_text' => 'Acquista i biglietti',
             'hero_label' => 'Vivi l\'Emozione',
-            'hero_subtitle' => 'Scegli il tuo posto e vivi l\'emozione della pallavolo dal vivo al PalaBigmat.',
+            'hero_subtitle' => 'Scegli il tuo posto e vivi l\'emozione della pallavolo dal vivo al Pala BigMat.',
             'plans_heading' => 'Scegli il tuo Abbonamento',
             'plans_empty' => 'La campagna abbonamenti per la prossima stagione non è ancora aperta. Appena i prezzi saranno ufficiali li troverai qui.',
             'popular_badge' => 'Più Popolare',
@@ -22,12 +22,12 @@ return [
             'online_title' => 'Online',
             'online_description' => 'Acquista i biglietti comodamente online tramite il nostro sistema di ticketing. Pagamento sicuro con carta di credito o PayPal.',
             'boxoffice_title' => 'Al Botteghino',
-            'boxoffice_description' => 'La biglietteria del PalaBigmat apre 2 ore prima dell\'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.',
+            'boxoffice_description' => 'La biglietteria del Pala BigMat apre 2 ore prima dell\'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.',
         ],
         'en' => [
             'tickets_button_text' => 'Buy tickets',
             'hero_label' => 'Feel the Emotion',
-            'hero_subtitle' => 'Choose your seat and experience the thrill of live volleyball at PalaBigmat.',
+            'hero_subtitle' => 'Choose your seat and experience the thrill of live volleyball at Pala BigMat.',
             'plans_heading' => 'Choose Your Season Pass',
             'plans_empty' => 'The season ticket campaign is not open yet. Prices will appear here as soon as they are official.',
             'popular_badge' => 'Most Popular',
@@ -35,7 +35,7 @@ return [
             'online_title' => 'Online',
             'online_description' => 'Buy tickets conveniently online through our ticketing system. Secure payment with credit card or PayPal.',
             'boxoffice_title' => 'At the Box Office',
-            'boxoffice_description' => 'The PalaBigmat box office opens 2 hours before the start of each match. We accept cash and electronic payments.',
+            'boxoffice_description' => 'The Pala BigMat box office opens 2 hours before the start of each match. We accept cash and electronic payments.',
         ],
     ],
     'Public/Comunicazione' => [
@@ -502,7 +502,7 @@ return [
         'it' => [
             'services' => [
                 0 => [
-                    'name' => 'Capienza 4000 Posti',
+                    'name' => 'Capienza 3500 Posti',
                     'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
                 ],
                 1 => [
@@ -518,7 +518,7 @@ return [
                     'icon' => 'M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M6.75 21A3.75 3.75 0 013 17.25V11.5A2.25 2.25 0 015.25 9.25h13.5A2.25 2.25 0 0121 11.5v5.75A3.75 3.75 0 0117.25 21H6.75z',
                 ],
             ],
-            'venue_name' => 'PalaBigmat',
+            'venue_name' => 'Pala BigMat',
             'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',
             'maps_link' => 'https://www.google.com/maps/place/Palazzo+Wanny/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
             'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalazzo%20Wanny!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
@@ -526,7 +526,7 @@ return [
         'en' => [
             'services' => [
                 0 => [
-                    'name' => '4000 Seats Capacity',
+                    'name' => '3500 Seats Capacity',
                     'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
                 ],
                 1 => [
@@ -542,7 +542,7 @@ return [
                     'icon' => 'M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M6.75 21A3.75 3.75 0 013 17.25V11.5A2.25 2.25 0 015.25 9.25h13.5A2.25 2.25 0 0121 11.5v5.75A3.75 3.75 0 0117.25 21H6.75z',
                 ],
             ],
-            'venue_name' => 'PalaBigmat',
+            'venue_name' => 'Pala BigMat',
             'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI)',
             'maps_link' => 'https://www.google.com/maps/place/Palazzo+Wanny/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
             'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPalazzo%20Wanny!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
