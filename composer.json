@@ -8,7 +8,6 @@
     "require": {
         "php": "^8.4",
         "ext-curl": "*",
-        "ext-gd": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",
         "barryvdh/laravel-dompdf": "^3.1",
