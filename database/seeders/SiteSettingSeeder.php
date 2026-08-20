@@ -229,7 +229,7 @@ class SiteSettingSeeder extends Seeder
             // ── FOOTER ──────────────────────────────────────────────────
             [
                 'key' => 'footer_tagline',
-                'value' => 'Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana. Serie A1 — PalaBigmat, Firenze.',
+                'value' => 'Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana. Serie A1 — Pala BigMat, Firenze.',
                 'type' => 'textarea',
                 'group' => 'footer',
                 'label' => 'Tagline Footer',
@@ -313,7 +313,7 @@ class SiteSettingSeeder extends Seeder
                 'key' => 'stats',
                 'value' => json_encode([
                     ['value' => '40+', 'label' => 'Anni di Storia', 'icon' => '🏆'],
-                    ['value' => '4.000+', 'label' => 'Posti al PalaBigmat', 'icon' => '🏟️'],
+                    ['value' => '3.500+', 'label' => 'Posti al Pala BigMat', 'icon' => '🏟️'],
                     ['value' => 'A1', 'label' => 'Serie — Massima Divisione', 'icon' => '🏐'],
                     ['value' => 'CEV', 'label' => 'Champions League', 'icon' => '🌍'],
                 ]),

@@ -17,7 +17,7 @@ return [
                     'price' => '15',
                     'period' => 'a partita',
                     'features' => [
-                        0 => 'Accesso al PalaBigmat',
+                        0 => 'Accesso al Pala BigMat',
                         1 => 'Posto in tribuna laterale',
                         2 => 'Acquisto online o in cassa',
                     ],
@@ -53,10 +53,10 @@ return [
             'hero_label' => 'Vivi l\'Emozione',
             'info_heading' => 'Informazioni sull\'Acquisto',
             'online_title' => 'Online',
-            'hero_subtitle' => 'Scegli il tuo posto e vivi l\'emozione della pallavolo dal vivo al PalaBigmat.',
+            'hero_subtitle' => 'Scegli il tuo posto e vivi l\'emozione della pallavolo dal vivo al Pala BigMat.',
             'boxoffice_title' => 'Al Botteghino',
             'online_description' => 'Acquista i biglietti comodamente online tramite il nostro sistema di ticketing. Pagamento sicuro con carta di credito o PayPal.',
-            'boxoffice_description' => 'La biglietteria del PalaBigmat apre 2 ore prima dell\'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.',
+            'boxoffice_description' => 'La biglietteria del Pala BigMat apre 2 ore prima dell\'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.',
         ],
         'it' => [
             'plans' => [
@@ -66,7 +66,7 @@ return [
                     'price' => '15',
                     'period' => 'a partita',
                     'features' => [
-                        0 => 'Accesso al PalaBigmat',
+                        0 => 'Accesso al Pala BigMat',
                         1 => 'Posto in tribuna laterale',
                         2 => 'Acquisto online o in cassa',
                     ],
@@ -102,10 +102,10 @@ return [
             'hero_label' => 'Vivi l\'Emozione',
             'info_heading' => 'Informazioni sull\'Acquisto',
             'online_title' => 'Online',
-            'hero_subtitle' => 'Scegli il tuo posto e vivi l\'emozione della pallavolo dal vivo al PalaBigmat.',
+            'hero_subtitle' => 'Scegli il tuo posto e vivi l\'emozione della pallavolo dal vivo al Pala BigMat.',
             'boxoffice_title' => 'Al Botteghino',
             'online_description' => 'Acquista i biglietti comodamente online tramite il nostro sistema di ticketing. Pagamento sicuro con carta di credito o PayPal.',
-            'boxoffice_description' => 'La biglietteria del PalaBigmat apre 2 ore prima dell\'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.',
+            'boxoffice_description' => 'La biglietteria del Pala BigMat apre 2 ore prima dell\'inizio di ogni partita. Accettiamo contanti e pagamenti elettronici.',
         ],
     ],
     'summer-camp' => [
@@ -420,7 +420,7 @@ return [
             'cta_subtitle' => 'Unisciti a Noi',
             'hero_subtitle' => 'I Nostri Partner',
             'cta_button_text' => 'Contattaci per una Proposta',
-            'cta_description' => 'Associa il tuo brand a una realtà sportiva di primo livello. Offriamo pacchetti di visibilità personalizzati con presenza su maglia, LED bordocampo, digital e hospitality al PalaBigmat.',
+            'cta_description' => 'Associa il tuo brand a una realtà sportiva di primo livello. Offriamo pacchetti di visibilità personalizzati con presenza su maglia, LED bordocampo, digital e hospitality al Pala BigMat.',
             'hero_description' => 'Un network di eccellenza che condivide la passione per lo sport e i valori della Savino Del Bene Volley. Insieme, costruiamo il futuro della pallavolo.',
         ],
         'it' => [
@@ -434,7 +434,7 @@ return [
             'cta_subtitle' => 'Unisciti a Noi',
             'hero_subtitle' => 'I Nostri Partner',
             'cta_button_text' => 'Contattaci per una Proposta',
-            'cta_description' => 'Associa il tuo brand a una realtà sportiva di primo livello. Offriamo pacchetti di visibilità personalizzati con presenza su maglia, LED bordocampo, digital e hospitality al PalaBigmat.',
+            'cta_description' => 'Associa il tuo brand a una realtà sportiva di primo livello. Offriamo pacchetti di visibilità personalizzati con presenza su maglia, LED bordocampo, digital e hospitality al Pala BigMat.',
             'hero_description' => 'Un network di eccellenza che condivide la passione per lo sport e i valori della Savino Del Bene Volley. Insieme, costruiamo il futuro della pallavolo.',
         ],
     ],

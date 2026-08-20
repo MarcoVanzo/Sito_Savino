@@ -114,7 +114,7 @@ class SocialCrawlerMetaTest extends TestCase
             'title' => 'Hospitality',
             'meta_description' => null,
             'excerpt' => null,
-            'content' => '<p>Pacchetti hospitality per le aziende al PalaBigmat.</p>',
+            'content' => '<p>Pacchetti hospitality per le aziende al Pala BigMat.</p>',
             'status' => PostStatus::Published,
         ]);
 

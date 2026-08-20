@@ -38,10 +38,10 @@ class ContentDataSeeder extends Seeder
             ],
             'palazzetto' => [
                 'badge' => 'La Nostra Casa',
-                'title' => 'PalaBigmat',
-                'description' => 'Il PalaBigmat di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 4.000 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.',
+                'title' => 'Pala BigMat',
+                'description' => 'Il Pala BigMat di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 3.500 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.',
                 'stats' => [
-                    ['value' => '4.000+', 'label' => 'Posti a Sedere'],
+                    ['value' => '3.500+', 'label' => 'Posti a Sedere'],
                     ['value' => 'Serie A1', 'label' => 'Omologazione'],
                 ],
                 'address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',

@@ -41,7 +41,7 @@
             "logo": "{{ config('app.url') }}/images/logo.png",
             "location": {
                 "@@type": "Place",
-                "name": "PalaBigmat",
+                "name": "Pala BigMat",
                 "address": {
                     "@@type": "PostalAddress",
                     "addressLocality": "Firenze",

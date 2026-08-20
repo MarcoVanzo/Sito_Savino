@@ -167,7 +167,7 @@ class PageTemplateForms
         return [
             Forms\Components\TextInput::make('content_data.venue_name')
                 ->label('Nome della struttura')
-                ->placeholder('es. PalaBigmat'),
+                ->placeholder('es. Pala BigMat'),
             Forms\Components\TextInput::make('content_data.venue_address')
                 ->label('Indirizzo completo')
                 ->placeholder('es. Via del Tridente, 5 — 50127 Firenze (FI)'),
@@ -183,7 +183,7 @@ class PageTemplateForms
                     Forms\Components\TextInput::make('name')
                         ->label('Nome Servizio')
                         ->required()
-                        ->placeholder('es. Capienza 4000 Posti'),
+                        ->placeholder('es. Capienza 3500 Posti'),
                     Forms\Components\TextInput::make('icon')
                         ->label('Icona (SVG Path d-attribute o nome)')
                         ->placeholder('es. M17 20h5v-2...'),

@@ -21,7 +21,7 @@ export function useCountUp(options = {}) {
 
     /**
      * Parsa un valore stringa e restituisce il numero, il prefisso e il suffisso.
-     * Supporta formati come "40+", "4.000+", "A1", "CEV"
+     * Supporta formati come "40+", "3.500+", "A1", "CEV"
      */
     const parseStatValue = (value) => {
         const str = String(value);
