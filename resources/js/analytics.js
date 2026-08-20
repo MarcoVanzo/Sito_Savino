@@ -15,6 +15,7 @@
 
 let measurementId = null;
 let scriptLoaded = false;
+let consentGranted = false;
 
 // Deve accodare l'oggetto `arguments`, non un array: gtag.js distingue i due
 // casi e un array verrebbe interpretato come un messaggio dataLayer qualunque
@@ -73,9 +74,10 @@ export function updateAnalyticsConsent(granted) {
     if (!measurementId) return;
 
     ensureDataLayer();
-    gtag('consent', 'update', { analytics_storage: granted ? 'granted' : 'denied' });
+    consentGranted = Boolean(granted);
+    gtag('consent', 'update', { analytics_storage: consentGranted ? 'granted' : 'denied' });
 
-    if (granted) loadScript();
+    if (consentGranted) loadScript();
 }
 
 /**
@@ -84,7 +86,10 @@ export function updateAnalyticsConsent(granted) {
  * ancora quelli della pagina precedente.
  */
 export function trackPageView() {
-    if (!measurementId || !scriptLoaded) return;
+    // Il tag caricato non si può togliere, ma dopo una revoca smette di ricevere
+    // visualizzazioni: continuare a mandarle vorrebbe dire misurare comunque
+    // chi ha detto di no.
+    if (!measurementId || !scriptLoaded || !consentGranted) return;
 
     gtag('event', 'page_view', {
         page_location: window.location.href,

@@ -82,6 +82,19 @@ describe('analytics', () => {
         expect(updates.at(-1)[2].analytics_storage).toBe('denied');
     });
 
+    it('dopo la revoca non manda piu visualizzazioni', async () => {
+        const { initAnalytics, updateAnalyticsConsent, trackPageView } = await freshModule();
+
+        initAnalytics('G-TEST12345', true);
+        const prima = [...window.dataLayer].filter((entry) => entry[0] === 'event' && entry[1] === 'page_view').length;
+
+        updateAnalyticsConsent(false);
+        trackPageView();
+
+        const dopo = [...window.dataLayer].filter((entry) => entry[0] === 'event' && entry[1] === 'page_view').length;
+        expect(dopo).toBe(prima);
+    });
+
     it('invia una visualizzazione per ogni navigazione, con il percorso corrente', async () => {
         const { initAnalytics, trackPageView } = await freshModule();
 
