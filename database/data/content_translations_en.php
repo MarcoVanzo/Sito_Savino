@@ -798,7 +798,7 @@ return [
             ],
             'privacy-policy' => [
                 'title' => 'Privacy Policy',
-                'content' => '<h2>Privacy Notice</h2><p>Under Article 13 of EU Regulation 2016/679 (GDPR), Savino Del Bene Volley states that the personal data collected through this website is processed in accordance with the data protection legislation in force.</p><h3>Data Controller</h3><p>Savino Del Bene Volley S.S.D. a r.l. — Via di Scandicci, 50142 Florence (FI)</p><h3>Data collected</h3><p>The site only collects the technical data required for browsing (technical cookies, session data). No profiling data is collected without the explicit consent of the user.</p><h3>Your rights</h3><p>You may exercise the rights set out in Articles 15-22 of the GDPR by writing to: privacy@savinodelbenevolley.com</p>',
+                'content' => '<h2>Privacy Notice</h2><p>Under Article 13 of EU Regulation 2016/679 (GDPR), Savino Del Bene Volley states that the personal data collected through this website is processed in accordance with the data protection legislation in force.</p><h3>Data Controller</h3><p>Savino Del Bene Volley S.S.D. a r.l. — Via di Scandicci, 50142 Florence (FI)</p><h3>Data collected</h3><p>The site only collects the technical data required for browsing (technical cookies, session data). No profiling data is collected without the explicit consent of the user.</p><h3>Your rights</h3><p>You may exercise the rights set out in Articles 15-22 of the GDPR by writing to: privacy@savinodelbenevolley.it</p>',
             ],
             'safeguarding' => [
                 'title' => 'Safeguarding',

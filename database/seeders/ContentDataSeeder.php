@@ -50,7 +50,7 @@ class ContentDataSeeder extends Seeder
                 'badge' => 'Resta in Contatto',
                 'title' => 'Contattaci',
                 'items' => [
-                    ['title' => 'Email', 'value' => 'info@savinodelbenevolley.com'],
+                    ['title' => 'Email', 'value' => 'info@savinodelbenevolley.it'],
                     ['title' => 'Telefono', 'value' => '+39 055 XXX XXXX'],
                     ['title' => 'Sede', 'value' => 'Scandicci (FI), Toscana'],
                 ],
