@@ -48,8 +48,40 @@ class LiveStreamTest extends TestCase
             'null' => [null],
             'dominio sconosciuto' => ['https://streaming-qualsiasi.example/diretta'],
             'schema pericoloso' => ['javascript:alert(1)'],
+            // `parse_url` legge qui l'host di una piattaforma ammessa: senza il
+            // controllo sul protocollo l'indirizzo finiva dritto nell'iframe.
+            'schema pericoloso con host ammesso' => ['javascript://player.vimeo.com/%0aalert(1)'],
+            'dati inline' => ['data:text/html,<script>alert(1)</script>'],
             'youtube senza id' => ['https://www.youtube.com/watch?list=PL123'],
         ];
+    }
+
+    /**
+     * L'indirizzo del player passa intero: la chiave `h=` dei video non elencati
+     * fa parte del link e toglierla lascerebbe un iframe che non parte.
+     */
+    public function test_il_player_di_vimeo_passa_con_la_sua_chiave(): void
+    {
+        $this->assertSame(
+            'https://player.vimeo.com/video/123456789?h=abc',
+            LiveStream::embedUrl('https://player.vimeo.com/video/123456789?h=abc')
+        );
+    }
+
+    /**
+     * Il link non incorporabile viene aperto in una scheda nuova, cioè finisce
+     * in un `href`: deve restare un indirizzo web.
+     */
+    public function test_solo_i_link_web_vengono_riproposti_al_frontend(): void
+    {
+        $this->assertSame(
+            'https://streaming-qualsiasi.example/diretta',
+            LiveStream::externalUrl('https://streaming-qualsiasi.example/diretta')
+        );
+
+        $this->assertNull(LiveStream::externalUrl('javascript:alert(1)'));
+        $this->assertNull(LiveStream::externalUrl('javascript://player.vimeo.com/%0aalert(1)'));
+        $this->assertNull(LiveStream::externalUrl(null));
     }
 
     /**

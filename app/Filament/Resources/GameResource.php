@@ -113,6 +113,10 @@ class GameResource extends Resource
                         Forms\Components\TextInput::make('stream_url')
                             ->label('Link diretta streaming')
                             ->url()
+                            // Il link finisce in un `href` (e, se incorporabile,
+                            // in un `src`): solo indirizzi web, `javascript:`
+                            // sarebbe codice eseguito nella pagina.
+                            ->rule('url:http,https')
                             ->maxLength(500)
                             ->placeholder('es. https://www.youtube.com/watch?v=...')
                             ->helperText('Con un link YouTube, Vimeo, Twitch o Dailymotion la diretta si apre in una finestra dentro al sito. Altri indirizzi vengono aperti in una scheda nuova.')

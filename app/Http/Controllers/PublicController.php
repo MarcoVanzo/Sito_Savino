@@ -64,7 +64,10 @@ class PublicController extends Controller
                 // squadra di casa.
                 $nextGame['home_team']['logo_url'] = $nextGameModel->homeTeam?->logoUrl();
                 $nextGame['away_team']['logo_url'] = $nextGameModel->awayTeam?->logoUrl();
-                // Diretta: incorporabile solo dalle piattaforme conosciute.
+                // Diretta: incorporabile solo dalle piattaforme conosciute, e
+                // comunque solo se è un link web — il template lo usa come
+                // `href` quando non si può incorporare.
+                $nextGame['stream_url'] = LiveStream::externalUrl($nextGameModel->stream_url);
                 $nextGame['stream_embed_url'] = LiveStream::embedUrl($nextGameModel->stream_url);
             }
 
@@ -512,7 +515,7 @@ class PublicController extends Controller
                     'location' => $game->location,
                     // Diretta streaming: `streamEmbedUrl` è valorizzato solo per
                     // le piattaforme incorporabili, altrimenti resta il link.
-                    'streamUrl' => $game->stream_url,
+                    'streamUrl' => LiveStream::externalUrl($game->stream_url),
                     'streamEmbedUrl' => LiveStream::embedUrl($game->stream_url),
                     // Vero quando la gara riguarda una squadra della società:
                     // serve a evidenziarla e a filtrare il calendario.
@@ -653,7 +656,7 @@ class PublicController extends Controller
                 'matchdayLabel' => $this->matchdayLabel($game),
                 'statusLabel' => __('enums.game_status.'.$game->status?->value),
                 'location' => $game->location,
-                'streamUrl' => $game->stream_url,
+                'streamUrl' => LiveStream::externalUrl($game->stream_url),
                 'streamEmbedUrl' => LiveStream::embedUrl($game->stream_url),
                 'spectators' => $game->spectators,
                 'referees' => $game->referees,
