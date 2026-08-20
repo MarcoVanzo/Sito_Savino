@@ -148,8 +148,11 @@ foreach ($locales as $loc) {
         Route::get('/summer-camp/info', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'pages.show', ['slug' => 'summer-camp'], 301);
         })->name('summer-camp.info');
+        // Rimandava a una pagina che in produzione non esiste, quindi il
+        // vecchio indirizzo rispondeva 404. Una redirezione deve portare a
+        // qualcosa che c'e' sempre: la sezione.
         Route::get('/summer-camp/iscrizione', function () use ($namePrefix) {
-            return redirect()->route($namePrefix.'summer-camp.page', ['slug' => 'iscrizione-experience'], 301);
+            return redirect()->route($namePrefix.'summer-camp', [], 301);
         })->name('summer-camp.iscrizione');
         // La pagina della sezione vive sul suo stesso indirizzo: prima
         // `/summer-camp` rimbalzava su `/summer-camp/summer-camp`.

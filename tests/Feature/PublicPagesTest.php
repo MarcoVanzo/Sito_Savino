@@ -210,8 +210,10 @@ class PublicPagesTest extends TestCase
         $response1->assertRedirect('/summer-camp');
         $response1->assertStatus(301);
 
+        // Rimandava alla pagina "iscrizione-experience", che in produzione non
+        // esiste: il vecchio indirizzo finiva in 404. Ora porta alla sezione.
         $response2 = $this->get('/summer-camp/iscrizione');
-        $response2->assertRedirect('/summer-camp/iscrizione-experience');
+        $response2->assertRedirect('/summer-camp');
         $response2->assertStatus(301);
     }
 
