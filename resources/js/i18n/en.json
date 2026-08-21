@@ -844,7 +844,8 @@
         "accreditation_role_operator": "Video operator",
         "accreditation_field_match": "Match",
         "accreditation_field_match_placeholder": "e.g. Savino Del Bene Volley — Numia Vero Volley Milano",
-        "accreditation_field_notes": "Notes (optional)"
+        "accreditation_field_notes": "Notes (optional)",
+        "accreditation_field_match_choose": "Choose the match"
     },
     "error": {
         "403_title": "Access Denied",

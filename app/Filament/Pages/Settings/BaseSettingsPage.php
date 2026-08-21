@@ -45,10 +45,20 @@ abstract class BaseSettingsPage extends Page implements HasForms
 
     public function mount(): void
     {
-        $flat = SiteSetting::getAllCached();
         $this->data = [];
-        foreach ($flat as $key => $value) {
+
+        // Le pagine che nominano i campi con la chiave nuda (`hero_title`).
+        foreach (SiteSetting::getAllCached() as $key => $value) {
             data_set($this->data, $key, $value);
+        }
+
+        // Quelle che li nominano `gruppo.chiave` (`legal.privacy_policy`): il
+        // gruppo sta nella sua colonna, non dentro la chiave, quindi va
+        // ricomposto qui o il modulo si aprirebbe sempre vuoto.
+        foreach (SiteSetting::getAllGrouped() as $group => $values) {
+            foreach ($values as $key => $value) {
+                data_set($this->data, $group.'.'.$key, $value);
+            }
         }
 
         foreach ($this->translatableKeys() as $key) {

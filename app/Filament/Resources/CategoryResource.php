@@ -55,6 +55,15 @@ class CategoryResource extends Resource
                     )
                     ->label('Categoria Genitore')
                     ->searchable(),
+                // L'ordine con cui le categorie compaiono sotto "Altro" nella
+                // pagina News: prima i numeri piu' bassi, e a parita' resta
+                // l'ordine alfabetico.
+                Forms\Components\TextInput::make('sort_order')
+                    ->label('Posizione nel filtro delle news')
+                    ->helperText('Numero più basso = più in alto. Lasciando 0 la categoria va in fondo.')
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0),
             ]);
     }
 
@@ -66,6 +75,9 @@ class CategoryResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Posizione')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('parent.name')
                     ->label('Genitore')
                     ->sortable(),

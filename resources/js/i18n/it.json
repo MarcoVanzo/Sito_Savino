@@ -844,7 +844,8 @@
         "accreditation_role_operator": "Operatore video",
         "accreditation_field_match": "Gara",
         "accreditation_field_match_placeholder": "es. Savino Del Bene Volley — Numia Vero Volley Milano",
-        "accreditation_field_notes": "Note (facoltative)"
+        "accreditation_field_notes": "Note (facoltative)",
+        "accreditation_field_match_choose": "Scegli la gara"
     },
     "error": {
         "403_title": "Accesso Negato",

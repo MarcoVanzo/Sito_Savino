@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PostStatus;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +26,7 @@ class MenuItem extends Model implements HasMedia
         'description',
         'motto_title',
         'motto_subtitle',
+        'menu_image_position',
         'parent_id',
         'location',
         'sort_order',
@@ -91,18 +93,62 @@ class MenuItem extends Model implements HasMedia
     /**
      * Get the full navigation tree for a location, cached.
      */
+    /**
+     * Slug delle pagine che in questo momento non sono pubblicate.
+     *
+     * Mettere una pagina in bozza deve toglierla anche dal menu: la voce
+     * restava e portava a un "pagina non trovata", che per chi legge è peggio
+     * della voce assente. È successo con Summer Camp.
+     *
+     * @return array<int, string>
+     */
+    private static function slugNonPubblicati(): array
+    {
+        return Page::query()
+            ->where('status', '!=', PostStatus::Published->value)
+            ->pluck('slug')
+            ->all();
+    }
+
+    /**
+     * La voce porta a una pagina che oggi non è pubblicata?
+     *
+     * Si guarda l'ultimo segmento dell'indirizzo, che è lo slug della pagina:
+     * `/sociale/progetti-sociali` e `/progetti-sociali` sono la stessa cosa.
+     * Gli indirizzi esterni non hanno una pagina dietro e restano.
+     */
+    private static function portaAUnaPaginaInBozza(?string $url, array $nonPubblicati): bool
+    {
+        if ($nonPubblicati === [] || ! is_string($url) || ! str_starts_with($url, '/')) {
+            return false;
+        }
+
+        $percorso = trim((string) parse_url($url, PHP_URL_PATH), '/');
+
+        if ($percorso === '') {
+            return false;
+        }
+
+        $segmenti = explode('/', $percorso);
+
+        return in_array(end($segmenti), $nonPubblicati, true);
+    }
+
     public static function getTree(string $location = 'main'): array
     {
         $locale = app()->getLocale();
 
         return Cache::remember(self::CACHE_KEY.'_'.$location.'_'.$locale, self::CACHE_TTL, function () use ($location, $locale) {
+            $nonPubblicati = self::slugNonPubblicati();
+
             return static::where('location', $location)
                 ->where('is_active', true)
                 ->whereNull('parent_id')
                 ->with(['children'])
                 ->orderBy('sort_order')
                 ->get()
-                ->map(function ($item) use ($locale) {
+                ->reject(fn ($item) => self::portaAUnaPaginaInBozza($item->url, $nonPubblicati))
+                ->map(function ($item) use ($locale, $nonPubblicati) {
                     $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
                     $itLabel = $item->label;
                     if (is_array($item->getTranslations('label'))) {
@@ -113,9 +159,7 @@ class MenuItem extends Model implements HasMedia
                         $menuImage = '/images/menu/'.self::$staticMenuImages[$normalizedLabel];
                     }
 
-                    $url = rtrim($item->url ?: '/in-costruzione', '/');
-                    $url = $url === '' ? '/' : $url;
-                    $href = static::localizeUrl($url, $locale);
+                    $href = static::href($item->url, $locale);
 
                     return [
                         'id' => $item->id,
@@ -124,25 +168,52 @@ class MenuItem extends Model implements HasMedia
                         'description' => $item->description,
                         'mottoTitle' => $item->motto_title,
                         'mottoSubtitle' => $item->motto_subtitle,
+                        'menuImagePosition' => $item->menu_image_position ?: 'center',
                         'menuImage' => $menuImage,
                         'isHighlight' => $item->is_highlight,
-                        'children' => $item->children->map(function ($child) use ($locale) {
-                            $childUrl = rtrim($child->url ?: '/in-costruzione', '/');
-                            $childUrl = $childUrl === '' ? '/' : $childUrl;
-                            $childHref = MenuItem::localizeUrl($childUrl, $locale);
+                        'children' => $item->children
+                            ->reject(fn ($child) => self::portaAUnaPaginaInBozza($child->url, $nonPubblicati))
+                            ->map(function ($child) use ($locale) {
+                                $childHref = MenuItem::href($child->url, $locale);
 
-                            return [
-                                'id' => $child->id,
-                                'label' => $child->label,
-                                'href' => $childHref,
-                                'description' => $child->description,
-                                'isHighlight' => $child->is_highlight,
-                            ];
-                        })->toArray(),
+                                return [
+                                    'id' => $child->id,
+                                    'label' => $child->label,
+                                    'href' => $childHref,
+                                    'description' => $child->description,
+                                    'isHighlight' => $child->is_highlight,
+                                ];
+                            })->values()->toArray(),
                     ];
                 })
                 ->toArray();
         });
+    }
+
+    /**
+     * Indirizzo finale di una voce di menu.
+     *
+     * Gli indirizzi interni si normalizzano (via la barra finale) e prendono il
+     * prefisso della lingua. Quelli esterni si lasciano esattamente come li ha
+     * scritti la redazione: togliere la barra finale a un indirizzo altrui
+     * significa cambiarlo, e su alcuni siti cambia anche la pagina che apre.
+     */
+    public static function href(?string $url, string $locale): string
+    {
+        $url = trim((string) $url);
+
+        if ($url === '') {
+            return static::localizeUrl('/in-costruzione', $locale);
+        }
+
+        // Non comincia con "/": porta fuori dal sito (o e' un mailto:).
+        if (! str_starts_with($url, '/')) {
+            return $url;
+        }
+
+        $pulito = rtrim($url, '/');
+
+        return static::localizeUrl($pulito === '' ? '/' : $pulito, $locale);
     }
 
     public static function localizeUrl(string $url, string $locale): string

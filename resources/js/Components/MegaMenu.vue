@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import LOGOS from '@/Constants/logos.js';
+import { isExternalLink, externalLinkAttrs } from '@/Support/menuLinks.js';
 import { navItemPadding, navShowsSeparators } from '@/Composables/useHeaderNavFit.js';
 
 const { onImgError } = useImageFallback();
@@ -19,6 +20,20 @@ const props = defineProps({
         default: 13,
     },
 });
+
+// Le classi si scrivono per esteso: Tailwind legge il sorgente e una stringa
+// composta a runtime non finirebbe nel foglio di stile.
+const POSIZIONI_IMMAGINE = {
+    center: 'object-center',
+    top: 'object-top',
+    bottom: 'object-bottom',
+    left: 'object-left',
+    right: 'object-right',
+};
+
+function posizioneImmagine(voce) {
+    return POSIZIONI_IMMAGINE[voce?.menuImagePosition] ?? POSIZIONI_IMMAGINE.center;
+}
 
 const itemPadding = computed(() => `${navItemPadding(props.fontSize)}px`);
 const showSeparators = computed(() => navShowsSeparators(props.fontSize));
@@ -192,14 +207,23 @@ onBeforeUnmount(() => {
         <div class="flex items-center h-full">
             <template v-for="(item, index) in navigation" :key="item.label">
                 <div :data-menu-index="index" class="group h-full flex items-center" style="position: static;" @mouseenter="handleMouseEnter(index)" @mouseleave="handleMouseLeave">
-                    <Link 
-                        :href="item.href" 
-                        prefetch
+                    <!-- Una voce che porta fuori dal sito si apre con un <a>: con
+                         <Link> Inertia chiederebbe la pagina altrui via XHR e
+                         fallirebbe. -->
+                    <component
+                        :is="isExternalLink(item.href) ? 'a' : Link"
+                        :href="item.href"
+                        v-bind="externalLinkAttrs(item.href)"
+                        :prefetch="isExternalLink(item.href) ? undefined : true"
                         class="font-black tracking-wide uppercase transition-colors flex items-center h-full whitespace-nowrap"
                         :style="{ fontSize: `${fontSize}px`, paddingLeft: itemPadding, paddingRight: itemPadding }"
                         :class="[
-                            /* text-gray-200: su una slide chiara dell'hero il gray-400 era illeggibile */
-                            $page.url.startsWith(item.href) ? 'text-white border-b-[3px] border-savino-fucsia pt-[3px]' : 'text-gray-200 hover:text-white border-b-[3px] border-transparent pt-[3px]',
+                            /* Le voci si alternano bianco e fucsia: erano tutte bianche
+                               e la barra si leggeva come un blocco unico. La voce
+                               aperta resta bianca con la sottolineatura fucsia. */
+                            $page.url.startsWith(item.href)
+                                ? 'text-white border-b-[3px] border-savino-fucsia pt-[3px]'
+                                : [index % 2 === 0 ? 'text-gray-200 hover:text-white' : 'text-savino-fucsia hover:text-white', 'border-b-[3px] border-transparent pt-[3px]'],
                             item.isHighlight ? 'text-[#ED028C] hover:text-[#ff30a6]' : ''
                         ]"
                         :aria-haspopup="item.children?.length > 0 ? 'true' : undefined"
@@ -207,7 +231,7 @@ onBeforeUnmount(() => {
                         @keydown="handleKeydown($event, index)"
                     >
                         {{ item.label }}
-                    </Link>
+                    </component>
 
                     <!-- Sottomenu Mega Dropdown — positioned via JS relative to <nav> -->
                     <div
@@ -228,11 +252,13 @@ onBeforeUnmount(() => {
                                     <div class="w-16 h-1 bg-savino-fucsia"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 flex-1 content-start">
-                                    <Link 
-                                        v-for="sub in item.children" 
+                                    <component
+                                        :is="isExternalLink(sub.href) ? 'a' : Link"
+                                        v-for="sub in item.children"
                                         :key="sub.label"
                                         :href="sub.href"
-                                        prefetch
+                                        v-bind="externalLinkAttrs(sub.href)"
+                                        :prefetch="isExternalLink(sub.href) ? undefined : true"
                                         role="menuitem"
                                         class="flex flex-col p-4 rounded-xl border border-gray-100 hover:border-savino-fucsia/50 bg-gray-50 hover:bg-white hover:shadow-xl transition-all duration-300 group/link"
                                     >
@@ -241,7 +267,7 @@ onBeforeUnmount(() => {
                                             <svg class="w-5 h-5 text-savino-fucsia opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                         </span>
                                         <span class="text-xs text-gray-500 font-medium">{{ sub.description || $t('common.explore_section') }}</span>
-                                    </Link>
+                                    </component>
                                 </div>
                             </div>
                             <!-- Right side — per-topic image with blue overlay -->
@@ -256,7 +282,7 @@ onBeforeUnmount(() => {
                                     :src="item.menuImage || LOGOS.VOLLEY"
                                     :alt="item.label"
                                     loading="lazy"
-                                    class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-[6s] ease-out group-hover:scale-110"
+                                    :class="['absolute inset-0 w-full h-full object-cover transition-transform duration-[6s] ease-out group-hover:scale-110', posizioneImmagine(item)]"
                                     @error="onImgError"
                                 />
                                 <!-- Blue overlay — 70% opacity to let the photo show through -->

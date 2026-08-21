@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
+use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\Player;
 use App\Models\PlayerHonour;
@@ -141,6 +142,12 @@ class CacheInvalidationObserver
             foreach ($locales as $locale) {
                 Cache::forget('public:page:'.$model->slug.':'.$locale);
             }
+
+            // Il menu nasconde le voci che portano a una pagina non
+            // pubblicata: mettendone una in bozza, la voce deve sparire
+            // subito. Senza questo restava fino alla scadenza della cache e
+            // continuava a portare a "pagina non trovata".
+            MenuItem::clearCache();
         }
     }
 

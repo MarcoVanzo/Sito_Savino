@@ -648,6 +648,10 @@ return [
             ['it' => 'Gift Card', 'en' => 'Gift Card'],
             ['it' => 'Kit Champions', 'en' => 'Champions Kit'],
             ['it' => 'Kit Gara 25-26', 'en' => 'Match Kit 25-26'],
+            // Le tre varianti della maglia: si chiamano così anche in inglese.
+            ['it' => 'Home', 'en' => 'Home'],
+            ['it' => 'Away', 'en' => 'Away'],
+            ['it' => 'Champions', 'en' => 'Champions'],
         ],
         'staff_members.role' => [
             ['it' => 'Assistente Nutrizionista', 'en' => 'Assistant Nutritionist'],

@@ -26,6 +26,7 @@ class Category extends Model
         'wp_id',
         'name',
         'slug',
+        'sort_order',
         'description',
         'parent_id',
     ];

@@ -1,4 +1,5 @@
 <script setup>
+import { isExternalLink, externalLinkAttrs } from '@/Support/menuLinks.js';
 import { watch, onBeforeUnmount } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useTranslations } from '@/Composables/useTranslations.js';
@@ -105,14 +106,19 @@ onBeforeUnmount(() => {
                     
                     <!-- Sottomenu Mobile -->
                     <div v-show="activeIndex === index" class="bg-black/20 pb-4 pt-2">
-                        <Link 
-                            v-for="sub in item.children" 
+                        <!-- Una voce che porta fuori dal sito si apre con un <a>:
+                             con <Link> Inertia chiederebbe la pagina altrui via
+                             XHR e fallirebbe. -->
+                        <component
+                            :is="isExternalLink(sub.href) ? 'a' : Link"
+                            v-for="sub in item.children"
                             :key="sub.label"
                             :href="sub.href"
+                            v-bind="externalLinkAttrs(sub.href)"
                             class="block py-3 text-sm font-semibold uppercase tracking-widest text-gray-300 hover:text-white min-h-[44px] flex items-center justify-center"
                         >
                             {{ sub.label }}
-                        </Link>
+                        </component>
                     </div>
                 </div>
             </nav>

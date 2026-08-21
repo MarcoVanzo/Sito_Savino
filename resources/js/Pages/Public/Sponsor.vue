@@ -27,11 +27,19 @@ const cd = computed(() => props.page?.content_data ?? {});
 
 // Il livello decide l'impaginazione: il title sponsor grande e da solo,
 // i supporter piccoli e in fila.
+// Il fondo e' bianco per tutti: un logo e' disegnato per stare sul bianco, e i
+// riquadri colorati ne cambiavano la resa. Il livello decide solo quanto grande
+// e' il riquadro e quanti ne stanno in fila.
+//
+// Il logo riempie il riquadro invece di galleggiarci dentro: si fissa
+// l'altezza del riquadro e l'immagine ci sta dentro per intero
+// (`object-contain`), cosi' marchi larghi e marchi quadrati restano
+// otticamente della stessa importanza.
 const sizeConfig = {
-    hero: { bg: 'bg-gradient-to-br from-savino-fucsia/20 to-savino-fucsia/5', border: 'border-savino-fucsia/30', logo: 'h-32 md:h-40', cols: 'grid-cols-1', gap: 'gap-8', wrap: 'max-w-md mx-auto' },
-    large: { bg: 'bg-gradient-to-br from-yellow-50 to-amber-50', border: 'border-amber-200', logo: 'h-24 md:h-32', cols: 'grid-cols-2 sm:grid-cols-3', gap: 'gap-6', wrap: '' },
-    medium: { bg: 'bg-gray-50', border: 'border-gray-200', logo: 'h-20 md:h-24', cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4', gap: 'gap-5', wrap: '' },
-    small: { bg: 'bg-white', border: 'border-gray-100', logo: 'h-16 md:h-20', cols: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5', gap: 'gap-4', wrap: '' },
+    hero: { box: 'h-32 md:h-40 p-6', cols: 'grid-cols-1', gap: 'gap-8', wrap: 'max-w-md mx-auto' },
+    large: { box: 'h-24 md:h-28 p-5', cols: 'grid-cols-2 sm:grid-cols-3', gap: 'gap-5', wrap: '' },
+    medium: { box: 'h-20 md:h-24 p-4', cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4', gap: 'gap-4', wrap: '' },
+    small: { box: 'h-16 md:h-20 p-3', cols: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5', gap: 'gap-3', wrap: '' },
 };
 
 const configFor = (size) => sizeConfig[size] ?? sizeConfig.small;
@@ -123,19 +131,18 @@ const ogMeta = useOgMeta({
                             :target="sponsor.website_url ? '_blank' : undefined"
                             :rel="sponsor.website_url ? 'noopener noreferrer' : undefined"
                             :title="sponsor.name"
-                            class="w-full rounded-xl p-6 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 border"
-                            :class="[configFor(tier.size).bg, configFor(tier.size).border]"
+                            class="w-full rounded-xl bg-white border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                            :class="configFor(tier.size).box"
                         >
                             <img
                                 v-if="sponsor.logo_url"
                                 :src="sponsor.logo_url"
                                 :alt="sponsor.name"
-                                class="max-w-full object-contain"
-                                :class="configFor(tier.size).logo"
+                                class="w-full h-full object-contain"
                                 loading="lazy"
                                 @error="onImgError"
                             />
-                            <div v-else class="flex flex-col items-center justify-center" :class="configFor(tier.size).logo">
+                            <div v-else class="w-full h-full flex flex-col items-center justify-center">
                                 <div class="text-savino-blue font-bold text-center uppercase tracking-wide">
                                     {{ sponsor.name }}
                                 </div>

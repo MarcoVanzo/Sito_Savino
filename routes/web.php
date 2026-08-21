@@ -219,8 +219,11 @@ foreach ($locales as $loc) {
             Route::get('/abbigliamento', function () use ($namePrefix) {
                 return redirect()->route($namePrefix.'shop.category', ['category' => 'abbigliamento'], 301);
             });
+            // Portava alle aste: sono due cose diverse, l'outlet e' merce a
+            // prezzo ridotto e le aste sono le aste. La redazione le vuole
+            // separate anche nel menu.
             Route::get('/outlet', function () use ($namePrefix) {
-                return redirect()->route($namePrefix.'shop.auctions.index', [], 301);
+                return redirect()->route($namePrefix.'shop.category', ['category' => 'outlet'], 301);
             });
 
             // Public shop pages

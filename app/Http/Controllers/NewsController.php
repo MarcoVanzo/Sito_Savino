@@ -65,6 +65,12 @@ class NewsController extends Controller
             return Category::query()
                 ->whereHas('posts', $this->onlyPublished(...))
                 ->withCount(['posts' => $this->onlyPublished(...)])
+                // L'ordine lo decide la redazione dal pannello: alfabetico
+                // metteva "Challenge Cup" prima della stagione in corso.
+                // Posizione 0 vuol dire "non assegnata" e va in fondo, non in
+                // cima: a parita' resta l'ordine alfabetico.
+                ->orderByRaw('sort_order = 0')
+                ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug'])
                 ->map(fn (Category $category) => [

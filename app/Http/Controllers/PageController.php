@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\GameStatus;
 use App\Enums\PostStatus;
 use App\Enums\StaffType;
+use App\Models\Game;
 use App\Models\Page;
 use App\Models\Roster;
 use App\Models\Season;
@@ -167,10 +169,51 @@ class PageController extends Controller
     {
         return match ($template) {
             'Public/Societa/Organigramma' => $this->getSocietaData(),
+            'Public/Comunicazione' => $this->getComunicazioneData(),
             'Public/Roster' => $this->getRosterData(),
             'Public/Sponsor' => $this->getSponsorData(),
             default => [],
         };
+    }
+
+    /**
+     * Le prossime gare in casa, per la tendina del modulo accrediti.
+     *
+     * La gara si scriveva a mano e arrivavano richieste per partite che non
+     * esistono o scritte in dieci modi diversi. Sono le prossime due in
+     * calendario in cui la squadra di casa e' una squadra della societa': le
+     * trasferte non si accreditano qui.
+     *
+     * @return array{upcomingHomeGames: list<array{value: string, label: string}>}
+     */
+    private function getComunicazioneData(): array
+    {
+        $locale = app()->getLocale();
+
+        return [
+            'upcomingHomeGames' => Cache::remember("public:accrediti:gare:{$locale}", now()->addMinutes(30), function () {
+                return Game::with(['homeTeam', 'awayTeam'])
+                    ->where('status', GameStatus::Scheduled)
+                    ->where('match_date', '>=', now())
+                    ->whereHas('homeTeam', fn ($team) => $team->where('is_internal', true))
+                    ->orderBy('match_date')
+                    ->take(2)
+                    ->get()
+                    ->map(function (Game $gara) {
+                        // Le due squadre e la data ci sono per costruzione: la
+                        // query filtra su una squadra di casa interna e su una
+                        // data futura.
+                        $sfida = $gara->homeTeam->name.' — '.$gara->awayTeam->name;
+
+                        return [
+                            'value' => $sfida,
+                            'label' => $sfida.' · '.$gara->match_date->translatedFormat('j F Y'),
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            }),
+        ];
     }
 
     private function getSocietaData(): array

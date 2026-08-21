@@ -14,6 +14,12 @@ const props = defineProps({
     page: {
         type: Object,
         default: () => ({})
+    },
+    // Le prossime gare in casa: la richiesta di accredito si riferisce a una di
+    // quelle, non a un testo libero.
+    upcomingHomeGames: {
+        type: Array,
+        default: () => []
     }
 })
 
@@ -206,7 +212,13 @@ const ogMeta = useOgMeta({
 
                         <div>
                             <label for="acc-match" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_match') }}</label>
-                            <input id="acc-match" v-model="accreditationForm.match" type="text" required :placeholder="$t('comunicazione.accreditation_field_match_placeholder')" class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
+                            <!-- Con il calendario in archivio si sceglie fra le prossime
+                                 gare in casa; senza, resta il campo libero. -->
+                            <select v-if="upcomingHomeGames.length" id="acc-match" v-model="accreditationForm.match" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue">
+                                <option value="" disabled>{{ $t('comunicazione.accreditation_field_match_choose') }}</option>
+                                <option v-for="gara in upcomingHomeGames" :key="gara.value" :value="gara.value">{{ gara.label }}</option>
+                            </select>
+                            <input v-else id="acc-match" v-model="accreditationForm.match" type="text" required :placeholder="$t('comunicazione.accreditation_field_match_placeholder')" class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
                             <p v-if="accreditationForm.errors.match" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.match }}</p>
                         </div>
 

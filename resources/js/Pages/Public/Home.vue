@@ -667,7 +667,7 @@ const ogMeta = useOgMeta({
                     <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-6"></div>
                 </div>
                 <div class="stats-grid grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0">
-                    <div v-for="(stat, index) in stats" :key="stat.label" class="stat-column text-center py-4" data-reveal>
+                    <div v-for="(stat, index) in stats" :key="stat.label" class="stat-column text-center py-4 px-4 md:px-8" data-reveal>
                         <div class="text-4xl mb-4">{{ stat.icon }}</div>
                         <div class="text-white text-5xl md:text-7xl font-black tracking-tighter countup-value leading-none">
                             <template v-if="statsRevealed">{{ displayValues[index] ?? stat.value }}</template>
@@ -1025,7 +1025,7 @@ const ogMeta = useOgMeta({
         top: 15%;
         height: 70%;
         width: 1px;
-        background: linear-gradient(180deg, transparent, rgba(201,168,76,0.25) 30%, rgba(201,168,76,0.25) 70%, transparent);
+        background: linear-gradient(180deg, transparent, rgba(255,255,255,0.18) 30%, rgba(255,255,255,0.18) 70%, transparent);
     }
 }
 

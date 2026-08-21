@@ -21,24 +21,50 @@ class SiteSetting extends Model
     private const CACHE_TTL = 86400; // 24 hours
 
     /**
-     * Get a setting value by key with optional default.
+     * Il valore di un'impostazione.
+     *
+     * Si accetta sia la chiave nuda (`press_email`) sia la forma
+     * `gruppo.chiave` (`contact.press_email`): il gruppo serve a raccogliere le
+     * impostazioni nel pannello e non fa parte della chiave, ma scriverlo è
+     * naturale e chi lo faceva otteneva sempre `null` senza capire perché.
      */
     public static function get(string $key, mixed $default = null): mixed
     {
         $settings = static::getAllCached();
 
-        return $settings[$key] ?? $default;
+        if (array_key_exists($key, $settings)) {
+            return $settings[$key];
+        }
+
+        // "contact.press_email" -> cerca la chiave "press_email".
+        if (str_contains($key, '.')) {
+            [$gruppo, $chiave] = explode('.', $key, 2);
+            $raggruppate = static::getAllGrouped();
+
+            if (isset($raggruppate[$gruppo]) && array_key_exists($chiave, $raggruppate[$gruppo])) {
+                return $raggruppate[$gruppo][$chiave];
+            }
+        }
+
+        return $default;
     }
 
     /**
-     * Set a setting value by key.
+     * Salva un'impostazione.
+     *
+     * La chiave si scrive così com'è: chi usa la forma `gruppo.chiave` la
+     * conserva intera (è la convenzione di `shop.*` e `lvf.*`, letta con
+     * `get()` nello stesso modo). Il gruppo si passa a parte quando serve.
      */
-    public static function set(string $key, mixed $value): void
+    public static function set(string $key, mixed $value, ?string $group = null): void
     {
-        static::updateOrCreate(
-            ['key' => $key],
-            ['value' => is_array($value) ? json_encode($value) : $value]
-        );
+        $attributi = ['value' => is_array($value) ? json_encode($value) : $value];
+
+        if ($group !== null) {
+            $attributi['group'] = $group;
+        }
+
+        static::updateOrCreate(['key' => $key], $attributi);
 
         static::clearCache();
     }
@@ -112,7 +138,26 @@ class SiteSetting extends Model
                     $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
                 }
 
-                $grouped[$setting->group][$setting->key] = static::resolveForLocale($value);
+                $gruppo = $setting->group;
+                $chiave = $setting->key;
+
+                // Alcune pagine del pannello nominano i campi `gruppo.chiave`
+                // e salvano la chiave intera, senza riempire la colonna del
+                // gruppo. Il sito legge le impostazioni raggruppate: senza
+                // questa riga i documenti legali caricati dal pannello non
+                // arrivavano mai al footer.
+                if (str_contains($chiave, '.')) {
+                    [$gruppoImplicito, $chiaveNuda] = explode('.', $chiave, 2);
+
+                    // 'general' e' il valore di default della colonna: vuol
+                    // dire "nessuno ha scelto", non "gruppo generale".
+                    if (in_array($gruppo, [null, '', 'general', $gruppoImplicito], true)) {
+                        $gruppo = $gruppoImplicito;
+                        $chiave = $chiaveNuda;
+                    }
+                }
+
+                $grouped[$gruppo][$chiave] = static::resolveForLocale($value);
             }
 
             return $grouped;

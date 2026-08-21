@@ -98,6 +98,20 @@ class MenuItemResource extends Resource
                             ->image()
                             ->maxSize(5120)
                             ->columnSpanFull(),
+                        // Il riquadro e' piu' stretto della foto, quindi qualcosa si
+                        // taglia sempre: qui si sceglie quale parte tenere.
+                        Forms\Components\Select::make('menu_image_position')
+                            ->label('Parte della foto da tenere')
+                            ->helperText('Se il soggetto non sta al centro dello scatto, spostare qui l\'inquadratura.')
+                            ->options([
+                                'center' => 'Centro',
+                                'top' => 'Alto',
+                                'bottom' => 'Basso',
+                                'left' => 'Sinistra',
+                                'right' => 'Destra',
+                            ])
+                            ->default('center')
+                            ->native(false),
                     ]),
             ]);
     }
