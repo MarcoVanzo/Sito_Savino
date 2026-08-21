@@ -704,6 +704,9 @@ return [
             ['it' => 'Safeguarding', 'en' => 'Safeguarding'],
             ['it' => 'Serie A1', 'en' => 'Serie A1'],
             ['it' => 'Serie B1 / U19', 'en' => 'Serie B1 / U19'],
+            // Era "Shop Ufficiale": la voce e' diventata il pulsante della
+            // testata e l'etichetta si e' accorciata. In inglese resta identica.
+            ['it' => 'Shop', 'en' => 'Shop'],
             ['it' => 'Summer Camp', 'en' => 'Summer Camp'],
             ['it' => 'Talent Day & Recruiting', 'en' => 'Talent Day & Recruiting'],
             ['it' => 'Ticketing', 'en' => 'Ticketing'],
