@@ -28,6 +28,12 @@ class RitagliaILoghiDegliSponsor extends Command
 
     public function handle(): int
     {
+        if (! extension_loaded('gd')) {
+            $this->error("Manca l'estensione GD: senza non si puo' ne' ritagliare ne' generare le anteprime.");
+
+            return self::FAILURE;
+        }
+
         // Le versioni ridotte si generano qui, non in coda: finche' non
         // esistono la pagina mostra un riquadro vuoto al posto del logo, e
         // sostituendone settantasei in una volta la coda ci mette parecchio.

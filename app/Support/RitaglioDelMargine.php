@@ -42,6 +42,13 @@ class RitaglioDelMargine
      */
     public static function ritaglia(string $byte): ?string
     {
+        // Senza GD non si ritaglia niente, ma nemmeno si esplode: il file
+        // resta com'e'. In produzione l'estensione e' mancata per settimane e
+        // ogni conversione moriva con "undefined function".
+        if (! function_exists('imagecreatefromstring')) {
+            return null;
+        }
+
         $immagine = @imagecreatefromstring($byte);
 
         if ($immagine === false) {
