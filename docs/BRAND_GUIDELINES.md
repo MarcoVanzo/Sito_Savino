@@ -92,13 +92,35 @@ Stemma circolare composto da:
 - **Testo:** "SAVINO DEL BENE" in font serif bold, maiuscolo, blu navy
 - **Payoff:** "Global Logistics and Forwarding Company" in peso leggero, stesso blu navy
 
+### Riduzioni — il vincolo del brand book
+
+> [!CAUTION]
+> §1.2 *Trademark — Reduction* (pag. 14): *"When reducing the dimension of our trademark
+> all elements need to remain perfectly legible. The version with payoff cannot be reduced
+> under 40 mm. When smaller than this, the trademark without payoff has to be used."*
+
+40 mm valgono **151 px** CSS (1 px = 1/96 di pollice). Sotto quella larghezza il payoff
+"Global Logistics and Forwarding Company" non è più leggibile e va usato il marchio
+**senza payoff**, che il brand book documenta a pag. 11 con le stesse proporzioni
+(cubo 6,5A, distacco 1,5A). Le due varianti hanno lo stesso ingombro: cambia solo la
+riga del payoff.
+
 ### File Disponibili per il Web
 
 Il logo digitale RGB con payoff è disponibile in 4 formati:
 - `.ai` — Sorgente vettoriale (Adobe Illustrator)
-- `.pdf` — Vettoriale per stampa
+- `.pdf` — Vettoriale per stampa → **origine degli SVG del sito**
 - `.jpg` — Raster con sfondo (746 KB)
-- `.png` — Raster con trasparenza (107 KB) → **usato nel sito web**
+- `.png` — Raster con trasparenza (107 KB)
+
+> [!IMPORTANT]
+> **Il marchio corporate sul sito è vettoriale, non raster.** Il cubo è fatto di 93 righe
+> sottili: un PNG da 3110 px disegnato a 200 px viene ridotto quasi otto volte e le righe
+> cadono sotto il passo dei pixel, spezzandosi in **puntini**. L'SVG viene rasterizzato
+> dal browser direttamente alla misura giusta, a qualunque densità di schermo, e le righe
+> restano righe. Gli SVG sono estratti dai PDF vettoriali ufficiali (nessun ridisegno):
+> `Savino Del Bene Digital Logo - Payoff - RGB.pdf` per la versione con payoff,
+> pag. 11 di `Branding_Guidelines.pdf` per quella senza.
 
 > [!IMPORTANT]
 > Non sono ammesse modifiche al font, colore, dimensione o layout del logo corporate.
@@ -195,8 +217,10 @@ export const LOGOS = {
     VOLLEY: '/images/logo.png',                     // Stemma ufficiale a colori
     VOLLEY_WHITE: '/images/logo-volley-white.png',  // Bianco per sfondi scuri
     CORPORATE: '/images/logo-corporate.png',        // Corporate con payoff
-    CORPORATE_LEFT: '/images/logo-corporate-left.png',             // Corporate, cubo a sinistra
-    CORPORATE_LEFT_WHITE: '/images/logo-corporate-left-white.png', // Corporate bianco, cubo a sinistra
+    CORPORATE_LEFT: '/images/logo-corporate-left.svg',             // Con payoff, cubo a sinistra (>= 151 px)
+    CORPORATE_LEFT_WHITE: '/images/logo-corporate-left-white.svg', // Con payoff, bianco per fondi scuri
+    CORPORATE_NAME: '/images/logo-corporate-name.svg',             // Senza payoff, sotto i 151 px
+    CORPORATE_NAME_WHITE: '/images/logo-corporate-name-white.svg', // Senza payoff, bianco
     CORPORATE_ICON: '/images/logo-corporate-icon.png',             // Solo simbolo cubo, senza testo
     LVF: '/images/logo-lvf.png',                    // LVF ufficiale (≥ 25mm)
     LVF_SMALL: '/images/logo-lvf-small.png',        // LVF ridotto (10–25mm, senza "SERIE A")
@@ -212,8 +236,12 @@ I loghi per il web sono in `public/images/`:
 | `logo.png` | 103 KB | `Loghi/SDB Volley/LOGO_SDBVolley_Official.png` |
 | `logo-volley-white.png` | 76 KB | `Loghi/SDB Volley/LOGO_SDBVolley_neg_1colore.png` |
 | `logo-corporate.png` | 322 KB | `Loghi/SDB Azienda/Savino Del Bene Digital Logo - Payoff - RGB.png` |
-| `logo-corporate-left.png` | 107 KB | Derivato dal logo corporate (cubo a sinistra) |
-| `logo-corporate-left-white.png` | 92 KB | Variante bianca per sfondi scuri |
+| `logo-corporate-left.svg` | 42 KB | `Savino Del Bene Digital Logo - Payoff - RGB.pdf` (vettoriale) |
+| `logo-corporate-left-white.svg` | 42 KB | Stesso file, tratto bianco per fondi scuri |
+| `logo-corporate-name.svg` | 27 KB | `Branding_Guidelines.pdf` pag. 11, marchio senza payoff |
+| `logo-corporate-name-white.svg` | 27 KB | Stesso file, tratto bianco per fondi scuri |
+| `logo-corporate-left.png` | 107 KB | Raster storico, resta come ripiego |
+| `logo-corporate-left-white.png` | 92 KB | Raster storico, resta come ripiego |
 | `logo-corporate-icon.png` | 28 KB | Solo simbolo cubo |
 | `logo-lvf.png` | 24 KB | Estratto dal brand book LVF 2026/27 |
 | `logo-lvf-small.png` | 22 KB | Versione ridotta senza scritta "SERIE A" |
@@ -223,7 +251,7 @@ I loghi per il web sono in `public/images/`:
 | Componente | Logo | Contesto |
 |------------|------|----------|
 | `ApplicationLogo.vue` | `LOGOS.VOLLEY` | Componente generico app |
-| `PublicLayout.vue` | `LOGOS.CORPORATE_LEFT` + `LOGOS.VOLLEY` | Header pubblico |
+| `PublicLayout.vue` | `LOGOS.CORPORATE_NAME_WHITE` (< md) / `LOGOS.CORPORATE_LEFT_WHITE` (>= md) + `LOGOS.VOLLEY` | Header pubblico |
 | `SiteFooter.vue` | `LOGOS.CORPORATE_LEFT_WHITE` + `LOGOS.VOLLEY` | Footer |
 | `MegaMenu.vue` | `LOGOS.VOLLEY` | Immagine fallback voci menu |
 | `Login.vue` / `ForceChangePassword.vue` | `LOGOS.VOLLEY_WHITE` | Pagine di autenticazione |

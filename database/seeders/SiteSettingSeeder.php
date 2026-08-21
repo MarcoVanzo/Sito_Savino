@@ -21,7 +21,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'corporate_logo',
-                'value' => '/images/logo-corporate-left.png',
+                'value' => '/images/logo-corporate-left.svg',
                 'type' => 'image',
                 'group' => 'general',
                 'label' => 'Logo Corporate',

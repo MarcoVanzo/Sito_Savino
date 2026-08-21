@@ -127,7 +127,10 @@ watch(desktopNav, (isDesktop) => {
                                  colori, giusta sul chiaro e sbagliata qui. -->
                             <div class="relative group hidden sm:block">
                                 <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105 w-[136px] md:w-[156px] xl:w-[200px]">
-                                    <img :src="LOGOS.CORPORATE_LEFT_WHITE" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.7)]" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT_WHITE)" />
+                                    <!-- Sotto i 156px il marchio sta sotto i 40 mm (151 px) e il
+                                         brandbook prescrive la versione senza payoff. -->
+                                    <img :src="LOGOS.CORPORATE_NAME_WHITE" :alt="corporateName" fetchpriority="high" decoding="sync" class="md:hidden w-full h-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.7)]" @error="(e) => onImgError(e, LOGOS.CORPORATE_NAME_WHITE)" />
+                                    <img :src="LOGOS.CORPORATE_LEFT_WHITE" :alt="corporateName" fetchpriority="high" decoding="sync" class="hidden md:block w-full h-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.7)]" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT_WHITE)" />
                                 </a>
                                 
                                 <!-- Finestrella Preview Card -->

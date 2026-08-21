@@ -202,9 +202,18 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   hardcoded — importare sempre le costanti `LOGOS`.
 - **Loghi web** in `public/images/`: `logo.png` (volley a colori),
   `logo-volley-white.png` (volley bianco), `logo-corporate.png` (corporate con payoff),
-  `logo-corporate-left.png` / `logo-corporate-left-white.png` (corporate con cubo a
-  sinistra, usati in header e footer), `logo-corporate-icon.png` (solo cubo),
+  `logo-corporate-left.svg` / `logo-corporate-left-white.svg` (corporate con cubo a
+  sinistra, usati in header e footer), `logo-corporate-name.svg` /
+  `logo-corporate-name-white.svg` (senza payoff), `logo-corporate-icon.png` (solo cubo),
   `logo-lvf.png` (LVF ufficiale), `logo-lvf-small.png` (LVF ridotto).
+- **Il marchio corporate va servito vettoriale, mai raster.** Il cubo sono 93 righe
+  sottili: un PNG da 3110 px disegnato a 200 px viene ridotto di quasi otto volte, le
+  righe finiscono sotto il passo dei pixel e si spezzano in puntini. Gli SVG sono
+  estratti dai PDF ufficiali (`Savino Del Bene Digital Logo - Payoff - RGB.pdf` e
+  pag. 11 di `Branding_Guidelines.pdf`), non ridisegnati.
+- **Sotto i 40 mm il payoff si toglie.** Il brand book della Spa (§1.2, pag. 14) vieta la
+  versione con payoff sotto i 40 mm, cioè 151 px CSS: sotto quella misura va
+  `logo-corporate-name*.svg`. L'header lo fa al breakpoint `md` (136 px sotto, 156 sopra).
 - **File sorgente loghi** nella cartella `Loghi/` (root del progetto), suddivisi in
   `Lega/`, `SDB Azienda/`, `SDB Volley/`.
 - **Logo LVF stagione 2026/27**: brand book provvisorio in attesa di nuovo Title Sponsor.
