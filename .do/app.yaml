@@ -77,6 +77,14 @@ services:
   - key: MEDIA_DISK
     scope: RUN_AND_BUILD_TIME
     value: s3
+  # Il pannello NON segue FILESYSTEM_DISK: il valore di serie di Filament e'
+  # il disco locale del container, che qui viene ricreato a ogni rilascio.
+  # Senza questa riga i PDF caricati dalla redazione sparivano lasciando in
+  # archivio un percorso che non porta a nessun file. Il ripiego e' anche in
+  # config/filament.php: qui e' scritto perche' si veda.
+  - key: FILAMENT_FILESYSTEM_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
   - key: AWS_ACCESS_KEY_ID
     scope: RUN_AND_BUILD_TIME
     type: SECRET
@@ -299,6 +307,14 @@ workers:
   - key: MEDIA_DISK
     scope: RUN_AND_BUILD_TIME
     value: s3
+  # Il pannello NON segue FILESYSTEM_DISK: il valore di serie di Filament e'
+  # il disco locale del container, che qui viene ricreato a ogni rilascio.
+  # Senza questa riga i PDF caricati dalla redazione sparivano lasciando in
+  # archivio un percorso che non porta a nessun file. Il ripiego e' anche in
+  # config/filament.php: qui e' scritto perche' si veda.
+  - key: FILAMENT_FILESYSTEM_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
   - key: AWS_ACCESS_KEY_ID
     scope: RUN_AND_BUILD_TIME
     type: SECRET
@@ -441,6 +457,14 @@ workers:
     scope: RUN_AND_BUILD_TIME
     value: s3
   - key: MEDIA_DISK
+    scope: RUN_AND_BUILD_TIME
+    value: s3
+  # Il pannello NON segue FILESYSTEM_DISK: il valore di serie di Filament e'
+  # il disco locale del container, che qui viene ricreato a ogni rilascio.
+  # Senza questa riga i PDF caricati dalla redazione sparivano lasciando in
+  # archivio un percorso che non porta a nessun file. Il ripiego e' anche in
+  # config/filament.php: qui e' scritto perche' si veda.
+  - key: FILAMENT_FILESYSTEM_DISK
     scope: RUN_AND_BUILD_TIME
     value: s3
   - key: AWS_ACCESS_KEY_ID
