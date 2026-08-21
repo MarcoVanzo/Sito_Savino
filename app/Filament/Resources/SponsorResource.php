@@ -9,16 +9,20 @@ use App\Models\Sponsor;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
-use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
+/*
+ * Gli sponsor non hanno testi da tradurre: il nome e' un marchio e
+ * l'indirizzo e' lo stesso in ogni lingua. Il model dichiara infatti
+ * `$translatable = []`, e il plugin delle traduzioni rifiuta un elenco vuoto:
+ * la scheda di uno sponsor rispondeva 500 e non si poteva aprire.
+ */
 class SponsorResource extends Resource
 {
     use HasStandardTableActions;
-    use Translatable;
 
     protected static ?string $model = Sponsor::class;
 
