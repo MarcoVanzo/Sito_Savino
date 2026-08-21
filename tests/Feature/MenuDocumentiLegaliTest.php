@@ -52,6 +52,27 @@ class MenuDocumentiLegaliTest extends TestCase
         );
     }
 
+    /**
+     * In archivio c'e' il percorso sul disco, non l'indirizzo. In produzione i
+     * file stanno su Spaces: "legal/Protocollo.pdf" nel footer diventava un
+     * percorso relativo alla pagina aperta e non apriva niente.
+     */
+    #[Test]
+    public function il_percorso_sul_disco_diventa_un_indirizzo_completo(): void
+    {
+        SiteSetting::set('legal.modello_organizzativo', 'legal/Modello-Organizzativo.pdf');
+        Cache::flush();
+
+        $indirizzo = MenuItem::href('documento:modello_organizzativo', 'it');
+
+        $this->assertNotSame('legal/Modello-Organizzativo.pdf', $indirizzo);
+        $this->assertStringContainsString('Modello-Organizzativo.pdf', $indirizzo);
+        $this->assertTrue(
+            str_starts_with($indirizzo, 'http') || str_starts_with($indirizzo, '/'),
+            "Il link del documento e' relativo alla pagina aperta: {$indirizzo}"
+        );
+    }
+
     /** Il difetto vero: in inglese l'abbinamento per etichetta non funzionava. */
     #[Test]
     public function funziona_anche_sul_sito_inglese(): void
