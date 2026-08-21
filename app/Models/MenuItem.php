@@ -189,6 +189,12 @@ class MenuItem extends Model implements HasMedia
                             })->values()->toArray(),
                     ];
                 })
+                // `values()` non e' un vezzo: `reject()` conserva le chiavi, e
+                // una numerazione con un buco (la voce Summer Camp scartata
+                // perche' in bozza) diventa in JSON un oggetto invece di un
+                // elenco. Nel browser `navigation.map(...)` andava in errore e
+                // la pagina restava bianca — tutta, non solo il menu.
+                ->values()
                 ->toArray();
         });
     }
