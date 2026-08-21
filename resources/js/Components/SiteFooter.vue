@@ -5,6 +5,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useSanitize } from '@/Composables/useSanitize.js';
 import { useSafeUrl } from '@/Composables/useSafeUrl.js';
+import { isExternalLink } from '@/Support/menuLinks.js';
 import LOGOS from '@/Constants/logos.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 
@@ -33,30 +34,16 @@ const displayedLinks = computed(() => {
     if (footerMenuItems.value.length > 0) {
         const groups = {};
         footerMenuItems.value.forEach(parent => {
-            groups[parent.label] = (parent.children || []).map(child => {
-                let finalUrl = child.href;
-                let target = '_self';
-                
-                const legalMapping = {
-                    'Modello Organizzativo': 'modello_organizzativo',
-                    'Codice Tutela Minori': 'codice_tutela_minori',
-                    'Protocollo Bullismo': 'protocollo_bullismo',
-                    'Protocollo Razzismo': 'protocollo_razzismo',
-                    'Safeguarding': 'safeguarding'
-                };
-                
-                if (legalMapping[child.label] && legalDocs.value[legalMapping[child.label]]) {
-                    finalUrl = legalDocs.value[legalMapping[child.label]];
-                    target = '_blank';
-                }
-
-                return {
-                    label: child.label,
-                    // Gli URL arrivano dal CMS: validare lo schema prima dell'href.
-                    url: safeUrl(finalUrl, '#'),
-                    target: target,
-                };
-            });
+            // I documenti legali li risolve il backend (`documento:<chiave>`
+            // sulla voce di menu). Qui si abbinavano confrontando l'etichetta
+            // italiana: sul sito inglese non ne corrispondeva nessuna e tutti i
+            // link di Corporate Governance portavano alla pagina Safeguarding.
+            groups[parent.label] = (parent.children || []).map(child => ({
+                label: child.label,
+                // Gli URL arrivano dal CMS: validare lo schema prima dell'href.
+                url: safeUrl(child.href, '#'),
+                target: isExternalLink(child.href) ? '_blank' : '_self',
+            }));
         });
         return groups;
     }

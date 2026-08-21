@@ -252,7 +252,20 @@ class SiteSetting extends Model
      */
     protected static function booted(): void
     {
-        static::saved(fn () => static::clearCache());
-        static::deleted(fn () => static::clearCache());
+        static::saved(fn () => self::svuotaLeCache());
+        static::deleted(fn () => self::svuotaLeCache());
+    }
+
+    /**
+     * Anche il menu dipende dalle impostazioni.
+     *
+     * Le voci di Corporate Governance puntano ai PDF caricati in Documenti
+     * Legali e l'albero del menu resta in cache un giorno: senza questo,
+     * sostituire un documento dal pannello non cambiava nulla online.
+     */
+    private static function svuotaLeCache(): void
+    {
+        static::clearCache();
+        MenuItem::clearCache();
     }
 }

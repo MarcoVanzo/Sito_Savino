@@ -213,8 +213,10 @@ foreach ($locales as $loc) {
 
         Route::prefix('shop')->middleware([TrackShopPageView::class])->group(function () use ($shopSlugs, $namePrefix) {
             // Redirect legacy per le sotto-voci dello shop (evita 404 per vecchi menu o segnalibri)
+            // Portava alla sola linea Home: "kit-gara" e' il reparto che
+            // raccoglie Home, Away e Champions come linguette.
             Route::get('/kit-gara', function () use ($namePrefix) {
-                return redirect()->route($namePrefix.'shop.category', ['category' => 'kit-gara-25-26'], 301);
+                return redirect()->route($namePrefix.'shop.category', ['category' => 'kit-gara'], 301);
             });
             Route::get('/abbigliamento', function () use ($namePrefix) {
                 return redirect()->route($namePrefix.'shop.category', ['category' => 'abbigliamento'], 301);

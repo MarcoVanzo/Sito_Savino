@@ -43,10 +43,14 @@ class ShopMenuUrlsTest extends TestCase
         $response->assertStatus(404);
     }
 
+    /**
+     * "kit-gara" e' il reparto che raccoglie Home, Away e Champions: prima la
+     * scorciatoia portava alla sola linea Home e non si poteva scegliere.
+     */
     public function test_legacy_italian_redirects_work(): void
     {
         $response = $this->get('/shop/kit-gara');
-        $response->assertRedirect('/shop/categoria/kit-gara-25-26');
+        $response->assertRedirect('/shop/categoria/kit-gara');
         $response->assertStatus(301);
 
         $response2 = $this->get('/shop/abbigliamento');
@@ -57,7 +61,7 @@ class ShopMenuUrlsTest extends TestCase
     public function test_legacy_english_redirects_work(): void
     {
         $response = $this->get('/en/shop/kit-gara');
-        $response->assertRedirect('/en/shop/category/kit-gara-25-26');
+        $response->assertRedirect('/en/shop/category/kit-gara');
         $response->assertStatus(301);
 
         $response2 = $this->get('/en/shop/abbigliamento');

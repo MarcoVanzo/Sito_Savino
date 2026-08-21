@@ -44,6 +44,8 @@ class MenuItem extends Model implements HasMedia
 
     private const CACHE_TTL = 86400;
 
+    private const PREFISSO_DOCUMENTO = 'documento:';
+
     /**
      * Parent menu item.
      */
@@ -147,7 +149,7 @@ class MenuItem extends Model implements HasMedia
                 ->with(['children'])
                 ->orderBy('sort_order')
                 ->get()
-                ->reject(fn ($item) => self::portaAUnaPaginaInBozza($item->url, $nonPubblicati))
+                ->reject(fn ($item) => self::portaAUnaPaginaInBozza($item->url, $nonPubblicati) || self::documentoMancante($item->url))
                 ->map(function ($item) use ($locale, $nonPubblicati) {
                     $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
                     $itLabel = $item->label;
@@ -172,7 +174,7 @@ class MenuItem extends Model implements HasMedia
                         'menuImage' => $menuImage,
                         'isHighlight' => $item->is_highlight,
                         'children' => $item->children
-                            ->reject(fn ($child) => self::portaAUnaPaginaInBozza($child->url, $nonPubblicati))
+                            ->reject(fn ($child) => self::portaAUnaPaginaInBozza($child->url, $nonPubblicati) || self::documentoMancante($child->url))
                             ->map(function ($child) use ($locale) {
                                 $childHref = MenuItem::href($child->url, $locale);
 
@@ -198,12 +200,71 @@ class MenuItem extends Model implements HasMedia
      * scritti la redazione: togliere la barra finale a un indirizzo altrui
      * significa cambiarlo, e su alcuni siti cambia anche la pagina che apre.
      */
+    /**
+     * Chiave del documento legale richiesto da una voce di menu.
+     *
+     * I documenti di Corporate Governance non sono pagine: sono i PDF caricati
+     * in Impostazioni → Documenti Legali. La voce di menu li indica con
+     * `documento:modello_organizzativo`, e l'indirizzo vero si legge al momento:
+     * cosi' sostituire il file dal pannello aggiorna il link, e rinominare la
+     * voce non lo rompe.
+     *
+     * Prima l'abbinamento lo faceva il footer confrontando l'etichetta italiana
+     * ("Protocollo Bullismo"): sul sito inglese nessuna etichetta corrispondeva
+     * e tutti e quattro i link portavano alla pagina Safeguarding.
+     */
+    private static function chiaveDelDocumento(?string $url): ?string
+    {
+        $url = trim((string) $url);
+
+        if (! str_starts_with($url, self::PREFISSO_DOCUMENTO)) {
+            return null;
+        }
+
+        $chiave = substr($url, strlen(self::PREFISSO_DOCUMENTO));
+
+        return $chiave === '' ? null : $chiave;
+    }
+
+    /**
+     * Indirizzo pubblico del documento, o null se non e' stato caricato.
+     */
+    private static function indirizzoDelDocumento(?string $url): ?string
+    {
+        $chiave = self::chiaveDelDocumento($url);
+
+        if ($chiave === null) {
+            return null;
+        }
+
+        $documenti = SiteSetting::getAllGrouped()['legal'] ?? [];
+        $indirizzo = $documenti[$chiave] ?? null;
+
+        return is_string($indirizzo) && trim($indirizzo) !== '' ? $indirizzo : null;
+    }
+
+    /**
+     * La voce chiede un documento che nessuno ha ancora caricato.
+     *
+     * In quel caso sparisce: un link che non apre nulla e' peggio della voce
+     * assente, ed e' esattamente cio' che la redazione ha segnalato.
+     */
+    private static function documentoMancante(?string $url): bool
+    {
+        return self::chiaveDelDocumento($url) !== null
+            && self::indirizzoDelDocumento($url) === null;
+    }
+
     public static function href(?string $url, string $locale): string
     {
         $url = trim((string) $url);
 
         if ($url === '') {
             return static::localizeUrl('/in-costruzione', $locale);
+        }
+
+        if (self::chiaveDelDocumento($url) !== null) {
+            return self::indirizzoDelDocumento($url) ?? static::localizeUrl('/in-costruzione', $locale);
         }
 
         // Non comincia con "/": porta fuori dal sito (o e' un mailto:).
