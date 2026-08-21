@@ -12,35 +12,53 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 // Larghezza del blocco lingua + account + carrello, margini inclusi. È una costante e
 // non una misura del DOM perché quel blocco è nascosto proprio quando la navigazione
 // non ci sta: misurarlo farebbe oscillare il calcolo fra i due stati.
-const ACTIONS_WIDTH = 168;
+const ACTIONS_WIDTH = 172;
+
+// Il pulsante del negozio c'è solo se una voce del menu è marcata "Evidenziata".
+// L'etichetta la sceglie la redazione, quindi la larghezza si misura: "Shop" e
+// "Shop Ufficiale" pesano 90 px di differenza, che a schermo sono un corpo intero
+// di differenza per le voci del menu.
+export const SHOP_BUTTON_FONT_SIZE = 14;
+// Icona, spaziature interne e margine dal menu: la parte del pulsante che non è testo.
+const SHOP_BUTTON_CHROME = 78;
 
 // Sotto questa larghezza il drawer resta la scelta giusta anche se il menu ci stesse:
 // è la fascia dei tablet, dove si naviga con il dito.
 const MIN_DESKTOP_WIDTH = 1024;
 
-// Corpi ammessi per le voci, dal più leggibile in giù. Sotto i 9px l'etichetta in
+// Corpi ammessi per le voci, dal più leggibile in giù. Sotto i 10px l'etichetta in
 // maiuscolo non è più leggibile: meglio il drawer.
-const FONT_STEPS = [13, 12, 11, 10, 9];
+const FONT_STEPS = [16, 15, 14, 13, 12, 11, 10];
 
 const REFERENCE_FONT_SIZE = 13;
 // Spazio di rispetto fra il logo che sborda e la prima voce del menu.
-const SAFETY_MARGIN = 24;
+const SAFETY_MARGIN = 20;
 
 // Il padding orizzontale delle voci scende insieme al corpo del testo, altrimenti a
 // 9px lo spazio fra le voci pesa più delle parole.
 export function navItemPadding(fontSize) {
+    if (fontSize >= 16) return 14;
+    if (fontSize >= 14) return 12;
     if (fontSize >= 13) return 10;
     if (fontSize >= 11) return 6;
     return 3;
 }
 
-// I separatori "|" costano ~7px l'uno: si tengono solo quando c'è spazio abbondante.
+// I separatori "|" costano ~7px l'uno e sei di loro sono quasi mezza voce: si tengono
+// solo quando lo spazio abbonda davvero. Sotto, a separare le voci basta il padding.
 export function navShowsSeparators(fontSize) {
-    return fontSize >= 12;
+    return fontSize >= 15;
 }
 
 function separatorWidth(fontSize) {
     return navShowsSeparators(fontSize) ? 7 : 0;
+}
+
+/** Larghezza del pulsante Shop, margine compreso, dalla misura della sua etichetta. */
+export function shopButtonWidth(labelWidthAtReference) {
+    if (labelWidthAtReference <= 0) return 0;
+
+    return (labelWidthAtReference * SHOP_BUTTON_FONT_SIZE) / REFERENCE_FONT_SIZE + SHOP_BUTTON_CHROME;
 }
 
 /**
@@ -93,8 +111,9 @@ function measureLabels(labels, fontFamily) {
 /**
  * @param {import('vue').Ref<string[]>} labels     etichette delle voci di primo livello
  * @param {import('vue').Ref<HTMLElement|null>} logoRef  blocco loghi (per larghezza riservata e riga header)
+ * @param {import('vue').Ref<string|null>} [shopLabel]  etichetta del pulsante Shop, se c'è
  */
-export function useHeaderNavFit(labels, logoRef) {
+export function useHeaderNavFit(labels, logoRef, shopLabel = ref(null)) {
     const hasWindow = typeof window !== 'undefined';
 
     // Primo render (il sito è solo client-side): stima dal viewport, poi si corregge
@@ -103,6 +122,7 @@ export function useHeaderNavFit(labels, logoRef) {
     const navFontSize = ref(REFERENCE_FONT_SIZE);
 
     let textWidth = 0;
+    let shopWidth = 0;
 
     function remeasure() {
         const fontFamily = logoRef.value
@@ -110,6 +130,9 @@ export function useHeaderNavFit(labels, logoRef) {
             : 'Montserrat, sans-serif';
 
         textWidth = measureLabels(labels.value, fontFamily);
+        shopWidth = shopLabel.value
+            ? shopButtonWidth(measureLabels([shopLabel.value], fontFamily))
+            : 0;
     }
 
     function update() {
@@ -136,7 +159,7 @@ export function useHeaderNavFit(labels, logoRef) {
         const logoRight = Math.max(logoRect.right, painted?.right ?? 0);
 
         const available =
-            row.getBoundingClientRect().right - logoRight - ACTIONS_WIDTH - SAFETY_MARGIN;
+            row.getBoundingClientRect().right - logoRight - ACTIONS_WIDTH - shopWidth - SAFETY_MARGIN;
 
         const fontSize = pickNavFontSize(textWidth, labels.value.length, available);
 
@@ -170,6 +193,7 @@ export function useHeaderNavFit(labels, logoRef) {
 
     // Le etichette cambiano al cambio lingua.
     watch(labels, remeasureAndUpdate, { deep: true });
+    watch(shopLabel, remeasureAndUpdate);
 
     return { desktopNav, navFontSize };
 }

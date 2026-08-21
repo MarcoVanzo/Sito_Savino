@@ -87,6 +87,7 @@ class MenuItemResource extends Resource
                             ->default(true),
                         Forms\Components\Toggle::make('is_highlight')
                             ->label('Evidenziata')
+                            ->helperText('La voce esce dalla barra del menu e diventa il pulsante pieno in testata (oggi lo Shop). Una sola voce per volta.')
                             ->default(false),
                     ])->columns(2),
 

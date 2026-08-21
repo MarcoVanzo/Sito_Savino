@@ -218,13 +218,13 @@ onBeforeUnmount(() => {
                         class="font-black tracking-wide uppercase transition-colors flex items-center h-full whitespace-nowrap"
                         :style="{ fontSize: `${fontSize}px`, paddingLeft: itemPadding, paddingRight: itemPadding }"
                         :class="[
-                            /* Le voci si alternano bianco e fucsia: erano tutte bianche
-                               e la barra si leggeva come un blocco unico. La voce
-                               aperta resta bianca con la sottolineatura fucsia. */
+                            /* Tutte le voci bianche: l'unico elemento colorato della
+                               testata e' il pulsante del negozio, che altrimenti si
+                               confonderebbe con le voci in fucsia. La sezione aperta
+                               si riconosce dalla sottolineatura. */
                             $page.url.startsWith(item.href)
                                 ? 'text-white border-b-[3px] border-savino-fucsia pt-[3px]'
-                                : [index % 2 === 0 ? 'text-gray-200 hover:text-white' : 'text-savino-fucsia hover:text-white', 'border-b-[3px] border-transparent pt-[3px]'],
-                            item.isHighlight ? 'text-[#ED028C] hover:text-[#ff30a6]' : ''
+                                : 'text-white/90 hover:text-white border-b-[3px] border-transparent pt-[3px]',
                         ]"
                         :aria-haspopup="item.children?.length > 0 ? 'true' : undefined"
                         :aria-expanded="item.children?.length > 0 ? (openIndex === index).toString() : undefined"

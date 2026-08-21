@@ -339,12 +339,14 @@ class MenuItemSeeder extends Seeder
 
         // 9. Shop
         $shop = MenuItem::create([
-            'label' => ['it' => 'Shop Ufficiale', 'en' => 'Official Shop'],
+            // Etichetta corta: questa voce e' il pulsante pieno della testata.
+            'label' => ['it' => 'Shop', 'en' => 'Shop'],
             'url' => '/shop/',
             'location' => 'main',
             'sort_order' => 8,
             'is_active' => true,
-            'is_highlight' => false,
+            // Evidenziata = fuori dalla barra, dentro il pulsante pieno della testata.
+            'is_highlight' => true,
             'motto_title' => ['it' => 'Shop Ufficiale', 'en' => 'Official Shop'],
             'motto_subtitle' => ['it' => 'Maglie, merchandise e accessori della squadra', 'en' => 'Team shirts, merchandise and accessories'],
         ]);
