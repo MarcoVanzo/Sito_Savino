@@ -26,6 +26,7 @@ class GalleryEvent extends Model
         'event_date',
         'description',
         'category',
+        'legacy_slug',
         'is_active',
     ];
 
