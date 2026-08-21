@@ -213,7 +213,9 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   pag. 11 di `Branding_Guidelines.pdf`), non ridisegnati.
 - **Sotto i 40 mm il payoff si toglie.** Il brand book della Spa (§1.2, pag. 14) vieta la
   versione con payoff sotto i 40 mm, cioè 151 px CSS: sotto quella misura va
-  `logo-corporate-name*.svg`. L'header lo fa al breakpoint `md` (136 px sotto, 156 sopra).
+  `logo-corporate-name*.svg`. In testata il marchio parte da 280 px, quindi resta
+  sempre la versione con payoff; la variante senza resta disponibile per usi più
+  piccoli.
 - **File sorgente loghi** nella cartella `Loghi/` (root del progetto), suddivisi in
   `Lega/`, `SDB Azienda/`, `SDB Volley/`.
 - **Logo LVF stagione 2026/27**: brand book provvisorio in attesa di nuovo Title Sponsor.
@@ -415,10 +417,15 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   `forms`): cambiarlo da una parte sola svuota l'elenco senza errori.
 - **Le etichette del menu principale pesano sul layout dell'header.** La barra
   si dimensiona sullo spazio che le resta accanto ai loghi
-  (`useHeaderNavFit`), e con nove voci sta già al corpo più piccolo ammesso:
-  allungarne una di un paio di parole fa collassare tutto nel pannello a
-  scomparsa, su qualunque schermo. Prima di rinominare una voce, misurare —
-  o accorciarne un'altra.
+  (`useHeaderNavFit`): allungare una voce di un paio di parole costa un corpo di
+  testo a tutte le altre, e a schermi stretti fa collassare la barra nel pannello
+  a scomparsa. Prima di rinominare una voce, misurare — o accorciarne un'altra.
+  Vale anche per la voce del pulsante Shop, che è misurata allo stesso modo:
+  "Shop Ufficiale" costava un'ottantina di pixel più di "Shop".
+- **La voce marcata "Evidenziata" (`menu_items.is_highlight`) esce dalla barra** e
+  diventa il pulsante pieno della testata (`ShopCtaButton`), l'unico elemento
+  colorato fra voci tutte bianche. Ne va tenuta una sola: il layout prende la
+  prima. Sul telefono resta invece una voce del pannello a scomparsa.
 - **`SiteSetting::get()` indicizza sulla sola colonna `key`**: il gruppo serve a
   raccogliere le impostazioni nel pannello, non a comporre la chiave.
   `SiteSetting::get('contact.press_email')` restituisce sempre `null`.
