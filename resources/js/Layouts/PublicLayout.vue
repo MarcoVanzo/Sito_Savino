@@ -117,11 +117,17 @@ watch(desktopNav, (isDesktop) => {
                     <div ref="logoBlock" class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[232px] md:w-[266px] xl:w-[346px] h-full relative">
                         <div class="absolute top-2 left-0 z-[60] flex items-center gap-2">
 
-                            <!-- Corporate Logo Block (Sfondo Bianco) — nascosto sui telefoni: a quella
-                                 dimensione il payoff è illeggibile e ruberebbe spazio alla navigazione -->
+                            <!-- Marchio della Spa — nascosto sui telefoni: a quella dimensione il
+                                 payoff è illeggibile e ruberebbe spazio alla navigazione.
+                                 Il brandbook della Savino Del Bene Spa vieta la toppa bianca
+                                 dietro al marchio: su fondo pieno o su una foto va il marchio
+                                 bianco, su fondo chiaro quello blu. Qui l'header è sempre scuro
+                                 (#0B1521, o il degradé sopra la foto), quindi bianco. Non si usa
+                                 il logo caricato dal pannello perché quello è la versione a
+                                 colori, giusta sul chiaro e sbagliata qui. -->
                             <div class="relative group hidden sm:block">
-                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center bg-white rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-0 transition-transform duration-300 group-hover:scale-105 px-3 py-1.5 w-[136px] md:w-[156px] xl:w-[200px] overflow-hidden">
-                                    <img :src="corporateLogo" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
+                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105 w-[136px] md:w-[156px] xl:w-[200px]">
+                                    <img :src="LOGOS.CORPORATE_LEFT_WHITE" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.7)]" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT_WHITE)" />
                                 </a>
                                 
                                 <!-- Finestrella Preview Card -->
@@ -132,7 +138,9 @@ watch(desktopNav, (isDesktop) => {
                                             <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                                         </div>
                                         <div class="p-4 flex flex-col items-center justify-center text-center bg-gradient-to-b from-white to-gray-50">
-                                            <img :src="corporateLogo" :alt="corporateName" class="w-48 h-16 object-contain rounded-lg shadow-sm mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
+                                            <!-- Qui il fondo è bianco: ci va il marchio a colori,
+                                                 come prescrive il brandbook per i fondi chiari. -->
+                                            <img :src="corporateLogo" :alt="corporateName" class="w-48 h-16 object-contain mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                             <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1 whitespace-nowrap">{{ corporateName }}</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">{{ corporateDescription }}</p>
                                             <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-fucsia transition-colors w-full cursor-pointer">
