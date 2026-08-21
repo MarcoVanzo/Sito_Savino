@@ -53,9 +53,17 @@ return [
     | Ora il pannello segue il disco dell'applicazione. FILAMENT_FILESYSTEM_DISK
     | resta disponibile per forzarne un altro.
     |
+    | In sviluppo FILESYSTEM_DISK vale 'local', che e' il disco privato di
+    | Laravel (storage/app/private): i suoi indirizzi rispondono 403 e il file
+    | caricato non si vedrebbe. Li' si usa 'public', che il collegamento
+    | creato da storage:link serve normalmente.
+    |
     */
 
-    'default_filesystem_disk' => env('FILAMENT_FILESYSTEM_DISK', env('FILESYSTEM_DISK', 'public')),
+    'default_filesystem_disk' => env('FILAMENT_FILESYSTEM_DISK') ?: match (env('FILESYSTEM_DISK', 'public')) {
+        'local', '', null => 'public',
+        default => env('FILESYSTEM_DISK'),
+    },
 
     /*
     |--------------------------------------------------------------------------

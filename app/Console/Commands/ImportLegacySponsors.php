@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\SponsorTier;
 use App\Models\Sponsor;
+use App\Support\RitaglioDelMargine;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
@@ -225,8 +226,32 @@ class ImportLegacySponsors extends Command
     private function attachLogo(Sponsor $sponsor, string $logoUrl): void
     {
         try {
-            $sponsor->addMediaFromUrl($logoUrl)
-                ->usingFileName(Str::slug($sponsor->name).'.'.pathinfo(parse_url($logoUrl, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION))
+            $risposta = Http::timeout(30)->retry(2, 500, throw: false)->get($logoUrl);
+
+            if (! $risposta->successful()) {
+                $this->warn("Logo non scaricato per {$sponsor->name}: HTTP {$risposta->status()}");
+
+                return;
+            }
+
+            $nome = Str::slug($sponsor->name);
+            $byte = $risposta->body();
+
+            // Sul vecchio sito i marchi stavano dentro riquadri 600x400 con
+            // molto bianco intorno: mostrandoli interi nella scheda il logo
+            // sembra minuscolo dentro una card grande. Il margine si toglie
+            // qui, una volta, invece di combatterlo con il CSS.
+            $ritagliato = RitaglioDelMargine::ritaglia($byte);
+
+            if ($ritagliato !== null) {
+                $byte = $ritagliato;
+                $estensione = 'png';
+            } else {
+                $estensione = pathinfo(parse_url($logoUrl, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION) ?: 'png';
+            }
+
+            $sponsor->addMediaFromString($byte)
+                ->usingFileName($nome.'.'.$estensione)
                 ->toMediaCollection('sponsors');
         } catch (\Throwable $e) {
             $this->warn("Logo non scaricato per {$sponsor->name}: {$e->getMessage()}");

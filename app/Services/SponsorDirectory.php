@@ -34,7 +34,7 @@ class SponsorDirectory
                     'name' => $s->name,
                     'tier' => $s->tier->value,
                     'website_url' => $s->url,
-                    'logo_url' => $s->getFirstMediaUrl('sponsors', 'card') ?: $s->getFirstMediaUrl('sponsors'),
+                    'logo_url' => self::indirizzoDelLogo($s),
                     'sort_order' => $s->sort_order,
                 ])
                 ->groupBy('tier');
@@ -52,5 +52,27 @@ class SponsorDirectory
                 ->values()
                 ->toArray();
         });
+    }
+
+    /**
+     * Indirizzo del logo, con la versione ridotta solo se esiste davvero.
+     *
+     * `getFirstMediaUrl($collezione, 'card')` restituisce l'indirizzo della
+     * conversione anche quando il file non e' ancora stato generato — le
+     * conversioni sono in coda — quindi il `?:` non faceva mai da rete: appena
+     * caricato un logo, e per tutto il tempo che la coda impiegava a smaltire,
+     * nella pagina restava un riquadro vuoto.
+     */
+    private static function indirizzoDelLogo(Sponsor $sponsor): string
+    {
+        $logo = $sponsor->getFirstMedia('sponsors');
+
+        if (! $logo) {
+            return '';
+        }
+
+        return $logo->hasGeneratedConversion('card')
+            ? $logo->getUrl('card')
+            : $logo->getUrl();
     }
 }
