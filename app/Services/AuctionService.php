@@ -10,6 +10,7 @@ use App\Models\Bid;
 use App\Models\Order;
 use App\Models\SiteSetting;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -207,9 +208,9 @@ class AuctionService
      * rilanci alternati fra due utenti l'asta rimbalzava fra gli stessi due
      * nomi, riassegnandola a chi aveva gia' mancato il pagamento.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Bid>
+     * @return Collection<int, Bid>
      */
-    private function classificaOfferte(Auction $auction): \Illuminate\Database\Eloquent\Collection
+    private function classificaOfferte(Auction $auction): Collection
     {
         return $auction->validBids()->get()->unique('user_id')->values();
     }
