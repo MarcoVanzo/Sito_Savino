@@ -75,7 +75,39 @@ class CmsPagesSeeder extends Seeder
     private function buildPages(): array
     {
         return [
-            // === SOCIETÀ ===
+            ...$this->paginaSocieta(),
+            ...$this->paginaTicketing(),
+            ...$this->paginaYouth(),
+            ...$this->paginaSponsor(),
+            ...$this->paginaSociale(),
+            ...$this->paginaComunicazione(),
+        ];
+    }
+
+    /**
+     * Le pagine istituzionali: organigramma, storia, safeguarding, contatti,
+     * palazzetto e le pagine di sezione che ne discendono.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaSocieta(): array
+    {
+        return [
+            ...$this->paginaOrganigrammaEStoria(),
+            ...$this->paginaSafeguarding(),
+            ...$this->paginaContatti(),
+            ...$this->paginaPalazzetto(),
+        ];
+    }
+
+    /**
+     * Organigramma e storia del club.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaOrganigrammaEStoria(): array
+    {
+        return [
             $this->page('organigramma', 'Organigramma', 'Public/Societa/Organigramma',
                 'L\'organigramma ufficiale della Savino Del Bene Volley. Scopri il team dirigenziale e lo staff del club.',
                 '<p>L\'organigramma della Savino Del Bene Volley. Questa pagina è gestita dal CMS.</p>'),
@@ -83,7 +115,17 @@ class CmsPagesSeeder extends Seeder
                 'La storia della Savino Del Bene Volley: dal 1982 ad oggi, un percorso di crescita e successi nella pallavolo femminile italiana.',
                 '<h2>Le Origini</h2><p>Fondata nel 1982 a Scandicci, la Savino Del Bene Volley è diventata una delle realtà più importanti della pallavolo femminile italiana.</p><h2>La Crescita</h2><p>Con la partnership strategica del Gruppo Savino Del Bene, il club ha raggiunto traguardi storici: la Finale Scudetto, la partecipazione alla CEV Champions League.</p><h2>Il Presente</h2><p>Oggi la Savino Del Bene Volley rappresenta un modello di gestione sportiva, con un settore giovanile d\'eccellenza e una visiose proiettata verso il futuro.</p>',
                 $this->storiaTimeline()),
+        ];
+    }
 
+    /**
+     * Safeguarding: policy di tutela dei minori e referenti.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaSafeguarding(): array
+    {
+        return [
             $this->page('safeguarding', 'Safeguarding', 'Public/Societa/Safeguarding',
                 'Policy di Safeguarding della Savino Del Bene Volley. Tutela e protezione dei minori e prevenzione delle molestie.',
                 '<h2>Policy di Safeguarding</h2><p>La Savino Del Bene Volley si impegna a garantire un ambiente sicuro e protetto per tutti i tesserati, in particolare per i minori, adottando misure di prevenzione contro ogni forma di abuso, molestia e discriminazione.</p>',
@@ -127,6 +169,17 @@ class CmsPagesSeeder extends Seeder
                         ],
                     ],
                 ]),
+        ];
+    }
+
+    /**
+     * La pagina Contatti: testi e rubrica dei referenti.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaContatti(): array
+    {
+        return [
             $this->page('contatti', 'Contatti', 'Public/Contatti',
                 'Contatta la Savino Del Bene Volley. Trova i nostri recapiti, l\'indirizzo della sede e il form di contatto.',
                 '',
@@ -266,6 +319,17 @@ class CmsPagesSeeder extends Seeder
                         ],
                     ],
                 ]),
+        ];
+    }
+
+    /**
+     * Il palazzetto: servizi, come arrivare, mappa.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaPalazzetto(): array
+    {
+        return [
             $this->page('palazzetto', 'Il Palazzetto', 'Public/Societa/Palazzetto',
                 'Pala BigMat, la casa della Savino Del Bene Volley a Firenze. Capienza, come arrivare e servizi dell\'impianto.',
                 '<h2>Pala BigMat</h2><p>Il Pala BigMat di Firenze è la casa della Savino Del Bene Volley. Con una capienza di oltre 3.500 posti, l\'impianto offre un\'esperienza unica per tifosi e appassionati di pallavolo.</p><h2>Come Arrivare</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI). Facilmente raggiungibile con i mezzi pubblici e con ampio parcheggio disponibile.</p><h2>Servizi</h2><p>Bar, area hospitality, accesso disabili, parcheggio custodito.</p>',
@@ -319,8 +383,17 @@ class CmsPagesSeeder extends Seeder
                         ],
                     ],
                 ]),
+        ];
+    }
 
-            // === TICKETING ===
+    /**
+     * Biglietteria, abbonamenti, accessibilita' e convenzioni.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaTicketing(): array
+    {
+        return [
             $this->page('abbonamenti', 'Campagna Abbonamenti', 'Public/Ticketing',
                 'Abbonamenti Savino Del Bene Volley 2026/2027. Scopri le formule e i prezzi per la nuova stagione.',
                 '<h2>Campagna Abbonamenti 2026/2027</h2><p>Vivi tutte le emozioni della Serie A1 e della Champions League con l\'abbonamento stagionale. Scegli la formula più adatta a te e assicurati il tuo posto al Pala BigMat.</p>'),
@@ -333,8 +406,17 @@ class CmsPagesSeeder extends Seeder
             $this->page('accessibilita', 'Accessibilità', self::TEMPLATE_CONTENT_PAGE,
                 'Informazioni sull\'accessibilità del Pala BigMat per persone con disabilità. Posti riservati e servizi dedicati.',
                 '<h2>Accessibilità</h2><p>Il Pala BigMat è dotato di posti riservati per persone con disabilità motoria, accesso facilitato, servizi igienici dedicati e personale formato per l\'assistenza. Per informazioni e prenotazioni, contatta la segreteria.</p>'),
+        ];
+    }
 
-            // === YOUTH / ACADEMY ===
+    /**
+     * Settore giovanile, talent day, affiliazioni e camp estivo.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaYouth(): array
+    {
+        return [
             $this->page('settore-giovanile', 'Settore Giovanile', 'Public/Youth',
                 'Il settore giovanile della Savino Del Bene Volley. Under 18, Under 16, Under 14 e Under 13.',
                 '<p>Il settore giovanile rappresenta il cuore pulsante del progetto sportivo. Attraverso un programma di formazione strutturato, le nostre giovani atlete crescono seguendo i valori del club.</p>'),
@@ -347,8 +429,17 @@ class CmsPagesSeeder extends Seeder
             $this->page('progetto-scuola', 'Progetto Scuola', self::TEMPLATE_CONTENT_PAGE,
                 'Il progetto scuola della Savino Del Bene Volley. Promuoviamo la pallavolo e i valori dello sport nelle scuole.',
                 '<h2>Progetto Scuola</h2><p>La Savino Del Bene Volley porta la pallavolo e i valori dello sport nelle scuole del territorio. Attraverso lezioni, dimostrazioni e tornei interscolastici, avviciniamo i giovani alla pratica sportiva.</p>'),
+        ];
+    }
 
-            // === SPONSOR / B2B ===
+    /**
+     * Diventa sponsor, title sponsor e hospitality.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaSponsor(): array
+    {
+        return [
             $this->page('title-sponsor', 'Title Sponsor', self::TEMPLATE_CONTENT_PAGE,
                 'Savino Del Bene S.p.A., title sponsor della Savino Del Bene Volley. Scopri la partnership.',
                 '<h2>Savino Del Bene S.p.A.</h2><p>Il Gruppo Savino Del Bene, leader mondiale nella logistica e nelle spedizioni internazionali, è il title sponsor del club sin dalla sua fondazione. Una partnership che unisce eccellenza imprenditoriale e passione sportiva.</p>'),
@@ -361,8 +452,17 @@ class CmsPagesSeeder extends Seeder
             $this->page('affiliazioni', 'Progetto Affiliazioni', self::TEMPLATE_CONTENT_PAGE,
                 'Programma di affiliazione della Savino Del Bene Volley per società sportive e scuole di pallavolo.',
                 '<h2>Programma Affiliazioni</h2><p>La Savino Del Bene Volley offre un programma di affiliazione per società sportive e scuole di pallavolo del territorio. Formazione tecnica, condivisione di metodologie e partecipazione a eventi esclusivi.</p>'),
+        ];
+    }
 
-            // === SOCIALE ===
+    /**
+     * Progetti sociali, Volley 4 All, sostenibilita' e progetto scuola.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaSociale(): array
+    {
+        return [
             $this->page('volley-4-all', 'Volley 4 All', 'Public/Sociale',
                 'Volley 4 All: il progetto di inclusione sociale della Savino Del Bene Volley. Sport per tutti, senza barriere.',
                 '<h2>Volley 4 All</h2><p>Un progetto che abbatte le barriere e porta la pallavolo a tutti: persone con disabilità, ragazzi in situazioni di disagio sociale e comunità svantaggiate. Perché lo sport è un diritto, non un privilegio.</p>'),
@@ -372,8 +472,17 @@ class CmsPagesSeeder extends Seeder
             $this->page('sostenibilita', 'Bilancio di Sostenibilità', self::TEMPLATE_CONTENT_PAGE,
                 'Il bilancio di sostenibilità della Savino Del Bene Volley. Impegno ambientale, sociale e di governance.',
                 '<h2>Sostenibilità</h2><p>La Savino Del Bene Volley pubblica annualmente il proprio bilancio di sostenibilità, documentando l\'impegno del club in ambito ambientale (riduzione impatto eventi), sociale (progetti inclusivi) e di governance (trasparenza gestionale).</p>'),
+        ];
+    }
 
-            // === COMUNICAZIONE / MEDIA ===
+    /**
+     * Accrediti stampa, cartelle stampa, magazine e Double Face.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function paginaComunicazione(): array
+    {
+        return [
             $this->page('accrediti-stampa', 'Accrediti Stampa', 'Public/Comunicazione',
                 'Richiedi l\'accredito stampa per le partite della Savino Del Bene Volley. Informazioni per giornalisti e fotografi.',
                 '<p>Per richiedere l\'accredito stampa, compila il modulo dedicato almeno 48 ore prima dell\'evento. L\'ufficio stampa valuterà la richiesta e invierà conferma via email.</p>'),

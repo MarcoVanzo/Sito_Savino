@@ -330,6 +330,23 @@ class OrderResource extends Resource
     private static function azioni(): array
     {
         return [
+            ...self::azioniDiStato(),
+            ...self::azioniSuPagamentiEDocumenti(),
+
+            // Standard view & edit
+            ...static::viewAndEditActions(),
+        ];
+    }
+
+    /**
+     * Avanzamento dell'ordine: conferma del bonifico, spedizione, consegna,
+     * annullamento.
+     *
+     * @return array<int, Action>
+     */
+    private static function azioniDiStato(): array
+    {
+        return [
             // 1. Conferma Pagamento (solo bonifico bancario)
             Action::make('confirm_payment')
                 ->label('Conferma Pagamento')
@@ -458,7 +475,17 @@ class OrderResource extends Resource
                         ->warning()
                         ->send();
                 }),
+        ];
+    }
 
+    /**
+     * Rimborso e ricevuta: le due azioni che toccano il denaro incassato.
+     *
+     * @return array<int, Action>
+     */
+    private static function azioniSuPagamentiEDocumenti(): array
+    {
+        return [
             // 5. Rimborso (Stripe/PayPal)
             Action::make('refund_order')
                 ->label('Rimborso')
@@ -542,9 +569,6 @@ class OrderResource extends Resource
                     );
                 })
                 ->visible(fn (Order $record): bool => $record->status !== OrderStatus::Cancelled),
-
-            // Standard view & edit
-            ...static::viewAndEditActions(),
         ];
     }
 

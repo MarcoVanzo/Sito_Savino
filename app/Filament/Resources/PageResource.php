@@ -46,206 +46,229 @@ class PageResource extends Resource
                     'lg' => 3,
                 ])
                     ->schema([
-                        // Colonna Principale (Sinistra, 2/3)
-                        Forms\Components\Group::make([
-                            Forms\Components\Section::make('Contenuto Principale')
-                                ->schema([
-                                    Forms\Components\TextInput::make('title')
-                                        ->label('Titolo')
-                                        ->required()
-                                        ->maxLength(255)
-                                        ->live(onBlur: true)
-                                        ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
-                                    Forms\Components\TextInput::make('slug')
-                                        ->label('URL Slug')
-                                        ->required()
-                                        ->unique(ignoreRecord: true)
-                                        ->maxLength(255),
-                                    Forms\Components\RichEditor::make('content')
-                                        ->label('Contenuto')
-                                        ->columnSpanFull(),
-                                    Forms\Components\Textarea::make('excerpt')
-                                        ->label('Riassunto (Excerpt)')
-                                        ->columnSpanFull(),
-                                ])
-                                ->columns(2)
-                                ->collapsible(),
+                        ...self::colonnaPrincipale(),
 
-                            Forms\Components\Group::make([
-                                // FORM: SOCIETA / ORGANIGRAMMA
-                                Forms\Components\Section::make('Impostazioni Pagina Società')
-                                    ->label('Dati Società / Organigramma')
-                                    ->schema(PageTemplateForms::getSocietaSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Organigramma'),
-
-                                // FORM: STORIA
-                                Forms\Components\Section::make('Impostazioni Pagina Storia')
-                                    ->schema(PageTemplateForms::getStoriaSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Storia'),
-
-                                // FORM: PALAZZETTO
-                                Forms\Components\Section::make('Impostazioni Pagina Palazzetto')
-                                    ->schema(PageTemplateForms::getPalazzettoSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Palazzetto'),
-
-                                // FORM: SAFEGUARDING
-                                Forms\Components\Section::make('Impostazioni Pagina Safeguarding')
-                                    ->schema(PageTemplateForms::getSafeguardingSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Safeguarding'),
-
-                                // FORM: CONTATTI (No outer Section/Card to prevent nested borders!)
-                                Forms\Components\Group::make(PageTemplateForms::getContattiSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Contatti'),
-
-                                // FORM: TICKETING
-                                Forms\Components\Section::make('Impostazioni Pagina Biglietteria')
-                                    ->schema(PageTemplateForms::getTicketingSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Ticketing'),
-
-                                // FORM: SUMMER CAMP
-                                Forms\Components\Section::make('Impostazioni Pagina Summer Camp')
-                                    ->schema(PageTemplateForms::getSummerCampSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/SummerCamp'),
-
-                                // FORM: PROGETTI SOCIALI
-                                Forms\Components\Section::make('Impostazioni Pagina Progetti Sociali')
-                                    ->schema(PageTemplateForms::getSocialeSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sociale'),
-
-                                // FORM: SPONSOR
-                                Forms\Components\Section::make('Impostazioni Pagina Sponsor')
-                                    ->schema(PageTemplateForms::getSponsorSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sponsor'),
-
-                                // FORM: SETTORE GIOVANILE
-                                Forms\Components\Section::make('Impostazioni Pagina Settore Giovanile')
-                                    ->schema(PageTemplateForms::getYouthSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Youth'),
-
-                                // FORM: TALENT DAY
-                                Forms\Components\Section::make('Impostazioni Pagina Talent Day')
-                                    ->schema(PageTemplateForms::getTalentDaySchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/TalentDay'),
-
-                                // FORM: COMUNICAZIONE
-                                Forms\Components\Section::make('Impostazioni Pagina Comunicazione')
-                                    ->schema(PageTemplateForms::getComunicazioneSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Comunicazione'),
-
-                                // FORM: ISCRIZIONE EXPERIENCE (SUMMER CAMP)
-                                Forms\Components\Section::make('Pulsante Grafico Iscrizione (Experience)')
-                                    ->schema(PageTemplateForms::getCampEnrollmentSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('slug') === 'iscrizione-experience'),
-
-                                // FORM: DOUBLE FACE YOUTUBE EMBED
-                                Forms\Components\Section::make('Video YouTube Double Face')
-                                    ->schema(PageTemplateForms::getDoubleFaceSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('slug') === 'double-face'),
-
-                                // FORM: MAGAZINE PDF UPLOAD
-                                Forms\Components\Section::make('Archivio Edizioni Magazine')
-                                    ->schema(PageTemplateForms::getMagazineSchema())
-                                    ->visible(fn (Forms\Get $get) => $get('slug') === 'magazine'),
-
-                                // FORM: PAGINE DI CONTENUTO (pulsante + galleria foto)
-                                Forms\Components\Section::make('Pulsante e Galleria Fotografica')
-                                    ->schema(PageTemplateForms::getContentPageSchema())
-                                    ->visible(fn (Forms\Get $get) => in_array($get('template'), [
-                                        'Public/ContentPage',
-                                        'Default',
-                                        null,
-                                    ], true) && $get('slug') !== 'iscrizione-experience'),
-
-                                // GENERIC JSON per altre pagine
-                                Forms\Components\Section::make('Dati Contenuto (Altre Pagine)')
-                                    ->schema(PageTemplateForms::getGenericJsonSchema())
-                                    ->visible(fn (Forms\Get $get) => ! in_array($get('template'), [
-                                        'Public/Societa/Organigramma',
-                                        'Public/Societa/Storia',
-                                        'Public/Societa/Palazzetto',
-                                        'Public/Societa/Safeguarding',
-                                        'Public/Contatti',
-                                        'Public/Ticketing',
-                                        'Public/SummerCamp',
-                                        'Public/Sociale',
-                                        'Public/Sponsor',
-                                        'Public/Youth',
-                                        'Public/Comunicazione',
-                                        'Public/Roster',
-                                        'Public/Stagione',
-                                        'Public/Shop',
-                                    ]) && ! in_array($get('slug'), [
-                                        'iscrizione-experience',
-                                        'double-face',
-                                        'magazine',
-                                    ])),
-                            ])->columnSpanFull(),
-                        ])->columnSpan(['lg' => 2]),
-
-                        // Colonna Laterale (Destra, 1/3)
-                        Forms\Components\Group::make([
-                            Forms\Components\Section::make('Stato & Associazione')
-                                ->schema([
-                                    Forms\Components\Select::make('status')
-                                        ->label('Stato Pubblicazione')
-                                        ->options(PostStatus::class)
-                                        ->default(PostStatus::Published)
-                                        ->required(),
-                                    Forms\Components\Select::make('template')
-                                        ->label('Template Pagina')
-                                        ->options([
-                                            'Default' => 'Template Predefinito',
-                                            'Public/Societa/Organigramma' => 'Società (Organigramma)',
-                                            'Public/Societa/Storia' => 'Società - Storia',
-                                            'Public/Societa/Palazzetto' => 'Società - Palazzetto',
-                                            'Public/Societa/Safeguarding' => 'Società - Safeguarding',
-                                            'Public/Roster' => 'Roster',
-                                            'Public/Shop' => 'Shop',
-                                            'Public/Ticketing' => 'Biglietteria',
-                                            'Public/Sponsor' => 'Sponsor',
-                                            'Public/Youth' => 'Settore Giovanile',
-                                            'Public/SummerCamp' => 'Summer Camp',
-                                            'Public/TalentDay' => 'Talent Day & Recruiting',
-                                            'Public/Sociale' => 'Progetti Sociali',
-                                            'Public/Comunicazione' => 'Comunicazione',
-                                            'Public/Stagione' => 'Stagione',
-                                            'Public/ContentPage' => 'Pagina Contenuto',
-                                        ])
-                                        ->live()
-                                        ->nullable(),
-                                    Forms\Components\Select::make('parent_id')
-                                        ->relationship('parent', 'title', fn (Builder $query, $record) => $record ? $query->where('id', '!=', $record->id) : $query)
-                                        ->label('Pagina Genitore')
-                                        ->searchable(),
-                                    Forms\Components\Select::make('author_id')
-                                        ->label('Autore')
-                                        ->relationship('author', 'name')
-                                        ->searchable()
-                                        ->default(fn () => auth()->id()),
-                                ]),
-
-                            Forms\Components\Section::make('Immagine di Copertina')
-                                ->schema([
-                                    SpatieMediaLibraryFileUpload::make('cover')
-                                        ->label('Copertina')
-                                        ->collection('cover')
-                                        ->image()
-                                        ->maxSize(5120),
-                                ]),
-
-                            Forms\Components\Section::make('Impostazioni SEO')
-                                ->schema([
-                                    Forms\Components\TextInput::make('meta_title')
-                                        ->label('Meta Titolo (SEO)')
-                                        ->maxLength(255),
-                                    Forms\Components\Textarea::make('meta_description')
-                                        ->label('Meta Descrizione (SEO)')
-                                        ->maxLength(255)
-                                        ->rows(3),
-                                ])->collapsible(),
-                        ])->columnSpan(['lg' => 1]),
+                        ...self::colonnaLaterale(),
                     ])->columnSpanFull(),
             ]);
+    }
+
+    /**
+     * Colonna di sinistra: contenuto della pagina e impostazioni del suo
+     * template.
+     *
+     * @return array<int, Forms\Components\Component>
+     */
+    private static function colonnaPrincipale(): array
+    {
+        return [
+            Forms\Components\Group::make([
+                Forms\Components\Section::make('Contenuto Principale')
+                    ->schema([
+                        Forms\Components\TextInput::make('title')
+                            ->label('Titolo')
+                            ->required()
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+                        Forms\Components\TextInput::make('slug')
+                            ->label('URL Slug')
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->maxLength(255),
+                        Forms\Components\RichEditor::make('content')
+                            ->label('Contenuto')
+                            ->columnSpanFull(),
+                        Forms\Components\Textarea::make('excerpt')
+                            ->label('Riassunto (Excerpt)')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
+
+                Forms\Components\Group::make([
+                    // FORM: SOCIETA / ORGANIGRAMMA
+                    Forms\Components\Section::make('Impostazioni Pagina Società')
+                        ->label('Dati Società / Organigramma')
+                        ->schema(PageTemplateForms::getSocietaSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Organigramma'),
+
+                    // FORM: STORIA
+                    Forms\Components\Section::make('Impostazioni Pagina Storia')
+                        ->schema(PageTemplateForms::getStoriaSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Storia'),
+
+                    // FORM: PALAZZETTO
+                    Forms\Components\Section::make('Impostazioni Pagina Palazzetto')
+                        ->schema(PageTemplateForms::getPalazzettoSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Palazzetto'),
+
+                    // FORM: SAFEGUARDING
+                    Forms\Components\Section::make('Impostazioni Pagina Safeguarding')
+                        ->schema(PageTemplateForms::getSafeguardingSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Safeguarding'),
+
+                    // FORM: CONTATTI (No outer Section/Card to prevent nested borders!)
+                    Forms\Components\Group::make(PageTemplateForms::getContattiSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Contatti'),
+
+                    // FORM: TICKETING
+                    Forms\Components\Section::make('Impostazioni Pagina Biglietteria')
+                        ->schema(PageTemplateForms::getTicketingSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Ticketing'),
+
+                    // FORM: SUMMER CAMP
+                    Forms\Components\Section::make('Impostazioni Pagina Summer Camp')
+                        ->schema(PageTemplateForms::getSummerCampSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/SummerCamp'),
+
+                    // FORM: PROGETTI SOCIALI
+                    Forms\Components\Section::make('Impostazioni Pagina Progetti Sociali')
+                        ->schema(PageTemplateForms::getSocialeSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sociale'),
+
+                    // FORM: SPONSOR
+                    Forms\Components\Section::make('Impostazioni Pagina Sponsor')
+                        ->schema(PageTemplateForms::getSponsorSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sponsor'),
+
+                    // FORM: SETTORE GIOVANILE
+                    Forms\Components\Section::make('Impostazioni Pagina Settore Giovanile')
+                        ->schema(PageTemplateForms::getYouthSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Youth'),
+
+                    // FORM: TALENT DAY
+                    Forms\Components\Section::make('Impostazioni Pagina Talent Day')
+                        ->schema(PageTemplateForms::getTalentDaySchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/TalentDay'),
+
+                    // FORM: COMUNICAZIONE
+                    Forms\Components\Section::make('Impostazioni Pagina Comunicazione')
+                        ->schema(PageTemplateForms::getComunicazioneSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Comunicazione'),
+
+                    // FORM: ISCRIZIONE EXPERIENCE (SUMMER CAMP)
+                    Forms\Components\Section::make('Pulsante Grafico Iscrizione (Experience)')
+                        ->schema(PageTemplateForms::getCampEnrollmentSchema())
+                        ->visible(fn (Forms\Get $get) => $get('slug') === 'iscrizione-experience'),
+
+                    // FORM: DOUBLE FACE YOUTUBE EMBED
+                    Forms\Components\Section::make('Video YouTube Double Face')
+                        ->schema(PageTemplateForms::getDoubleFaceSchema())
+                        ->visible(fn (Forms\Get $get) => $get('slug') === 'double-face'),
+
+                    // FORM: MAGAZINE PDF UPLOAD
+                    Forms\Components\Section::make('Archivio Edizioni Magazine')
+                        ->schema(PageTemplateForms::getMagazineSchema())
+                        ->visible(fn (Forms\Get $get) => $get('slug') === 'magazine'),
+
+                    // FORM: PAGINE DI CONTENUTO (pulsante + galleria foto)
+                    Forms\Components\Section::make('Pulsante e Galleria Fotografica')
+                        ->schema(PageTemplateForms::getContentPageSchema())
+                        ->visible(fn (Forms\Get $get) => in_array($get('template'), [
+                            'Public/ContentPage',
+                            'Default',
+                            null,
+                        ], true) && $get('slug') !== 'iscrizione-experience'),
+
+                    // GENERIC JSON per altre pagine
+                    Forms\Components\Section::make('Dati Contenuto (Altre Pagine)')
+                        ->schema(PageTemplateForms::getGenericJsonSchema())
+                        ->visible(fn (Forms\Get $get) => ! in_array($get('template'), [
+                            'Public/Societa/Organigramma',
+                            'Public/Societa/Storia',
+                            'Public/Societa/Palazzetto',
+                            'Public/Societa/Safeguarding',
+                            'Public/Contatti',
+                            'Public/Ticketing',
+                            'Public/SummerCamp',
+                            'Public/Sociale',
+                            'Public/Sponsor',
+                            'Public/Youth',
+                            'Public/Comunicazione',
+                            'Public/Roster',
+                            'Public/Stagione',
+                            'Public/Shop',
+                        ]) && ! in_array($get('slug'), [
+                            'iscrizione-experience',
+                            'double-face',
+                            'magazine',
+                        ])),
+                ])->columnSpanFull(),
+            ])->columnSpan(['lg' => 2]),
+        ];
+    }
+
+    /**
+     * Colonna di destra: pubblicazione, SEO, copertina e galleria.
+     *
+     * @return array<int, Forms\Components\Component>
+     */
+    private static function colonnaLaterale(): array
+    {
+        return [
+            Forms\Components\Group::make([
+                Forms\Components\Section::make('Stato & Associazione')
+                    ->schema([
+                        Forms\Components\Select::make('status')
+                            ->label('Stato Pubblicazione')
+                            ->options(PostStatus::class)
+                            ->default(PostStatus::Published)
+                            ->required(),
+                        Forms\Components\Select::make('template')
+                            ->label('Template Pagina')
+                            ->options([
+                                'Default' => 'Template Predefinito',
+                                'Public/Societa/Organigramma' => 'Società (Organigramma)',
+                                'Public/Societa/Storia' => 'Società - Storia',
+                                'Public/Societa/Palazzetto' => 'Società - Palazzetto',
+                                'Public/Societa/Safeguarding' => 'Società - Safeguarding',
+                                'Public/Roster' => 'Roster',
+                                'Public/Shop' => 'Shop',
+                                'Public/Ticketing' => 'Biglietteria',
+                                'Public/Sponsor' => 'Sponsor',
+                                'Public/Youth' => 'Settore Giovanile',
+                                'Public/SummerCamp' => 'Summer Camp',
+                                'Public/TalentDay' => 'Talent Day & Recruiting',
+                                'Public/Sociale' => 'Progetti Sociali',
+                                'Public/Comunicazione' => 'Comunicazione',
+                                'Public/Stagione' => 'Stagione',
+                                'Public/ContentPage' => 'Pagina Contenuto',
+                            ])
+                            ->live()
+                            ->nullable(),
+                        Forms\Components\Select::make('parent_id')
+                            ->relationship('parent', 'title', fn (Builder $query, $record) => $record ? $query->where('id', '!=', $record->id) : $query)
+                            ->label('Pagina Genitore')
+                            ->searchable(),
+                        Forms\Components\Select::make('author_id')
+                            ->label('Autore')
+                            ->relationship('author', 'name')
+                            ->searchable()
+                            ->default(fn () => auth()->id()),
+                    ]),
+
+                Forms\Components\Section::make('Immagine di Copertina')
+                    ->schema([
+                        SpatieMediaLibraryFileUpload::make('cover')
+                            ->label('Copertina')
+                            ->collection('cover')
+                            ->image()
+                            ->maxSize(5120),
+                    ]),
+
+                Forms\Components\Section::make('Impostazioni SEO')
+                    ->schema([
+                        Forms\Components\TextInput::make('meta_title')
+                            ->label('Meta Titolo (SEO)')
+                            ->maxLength(255),
+                        Forms\Components\Textarea::make('meta_description')
+                            ->label('Meta Descrizione (SEO)')
+                            ->maxLength(255)
+                            ->rows(3),
+                    ])->collapsible(),
+            ])->columnSpan(['lg' => 1]),
+        ];
     }
 
     public static function table(Table $table): Table
