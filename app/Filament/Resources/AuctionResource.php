@@ -65,7 +65,7 @@ class AuctionResource extends Resource
                                     ->columnSpanFull(),
                                 Forms\Components\Select::make('status')
                                     ->label('Stato')
-                                    ->options(function (Forms\Get $get, ?Auction $record): array {
+                                    ->options(function (?Auction $record): array {
                                         // During creation, only Draft is allowed
                                         if (! $record) {
                                             return [AuctionStatus::Draft->value => AuctionStatus::Draft->getLabel()];

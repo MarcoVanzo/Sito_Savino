@@ -17,7 +17,6 @@ use App\Services\CheckoutService;
 use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -37,7 +36,7 @@ class CheckoutController extends Controller
      * Pagina di checkout.
      * Richiede un carrello non vuoto.
      */
-    public function show(Request $request): Response|RedirectResponse
+    public function show(): Response|RedirectResponse
     {
         $cart = $this->cartService->getCart();
 
@@ -151,7 +150,7 @@ class CheckoutController extends Controller
     /**
      * Pagina di conferma ordine.
      */
-    public function success(Request $request, string $orderToken): Response
+    public function success(string $orderToken): Response
     {
         $order = Order::where('order_token', $orderToken)
             ->with(['items.product', 'user'])
@@ -170,7 +169,7 @@ class CheckoutController extends Controller
     /**
      * Pagina pagamento annullato.
      */
-    public function cancel(Request $request, string $orderToken): Response
+    public function cancel(string $orderToken): Response
     {
         $order = Order::where('order_token', $orderToken)->firstOrFail();
 
@@ -193,7 +192,7 @@ class CheckoutController extends Controller
      * Crea una nuova sessione Stripe/PayPal per l'ordine esistente
      * senza richiedere un nuovo checkout (il carrello è già stato svuotato).
      */
-    public function retryPayment(Request $request, string $orderToken): RedirectResponse
+    public function retryPayment(string $orderToken): RedirectResponse
     {
         $order = Order::where('order_token', $orderToken)->firstOrFail();
 

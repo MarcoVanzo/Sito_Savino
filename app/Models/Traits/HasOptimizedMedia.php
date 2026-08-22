@@ -2,8 +2,6 @@
 
 namespace App\Models\Traits;
 
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
-
 trait HasOptimizedMedia
 {
     /**
@@ -14,7 +12,7 @@ trait HasOptimizedMedia
      * - thumb: 400×400, quality 80 — grids, admin previews, small cards
      * - card:  600px wide, quality 80 — medium cards (news, shop)
      */
-    protected function registerStandardConversions(?Media $media = null): void
+    protected function registerStandardConversions(): void
     {
         $this->addMediaConversion('thumb')
             ->width(400)

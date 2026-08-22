@@ -174,7 +174,7 @@ class GalleryEventResource extends Resource
                     ->color('info')
                     ->requiresConfirmation()
                     ->modalDescription('Tutte le foto di questo evento verranno analizzate con AI in background.')
-                    ->action(function (GalleryEvent $record, Action $action, $livewire) {
+                    ->action(function (GalleryEvent $record, $livewire) {
                         // Query efficiente: evita N+1 con whereHas invece di filter+hasMedia
                         $images = GalleryImage::where('gallery_event_id', $record->id)
                             ->whereHas('media')

@@ -61,7 +61,7 @@ class ListGalleryImages extends ListRecords
                         ->directory('temp_gallery_uploads')
                         ->required(),
                 ])
-                ->action(function (array $data, Actions\Action $action) {
+                ->action(function (array $data) {
                     try {
                         $event = GalleryEvent::create([
                             'title' => $data['title'],

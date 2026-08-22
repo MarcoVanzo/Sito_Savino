@@ -285,7 +285,7 @@ class LvfSyncService
         $team ??= Team::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))])->orderBy('id')->first();
 
         if ($team instanceof Team) {
-            $this->attachClubId($team, $clubId, updateName: false);
+            $this->attachClubId($team, $clubId);
 
             return $team;
         }
@@ -297,7 +297,7 @@ class LvfSyncService
             'is_internal' => false,
         ]);
 
-        $this->attachClubId($team, $clubId, updateName: false);
+        $this->attachClubId($team, $clubId);
 
         return $team;
     }
@@ -346,7 +346,7 @@ class LvfSyncService
     /**
      * Registra un identificativo di club per la squadra e allinea il logo.
      */
-    private function attachClubId(Team $team, int $clubId, bool $updateName): void
+    private function attachClubId(Team $team, int $clubId): void
     {
         TeamLvfClubId::firstOrCreate(
             ['lvf_club_id' => $clubId],

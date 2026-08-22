@@ -41,7 +41,7 @@ class GalleryImage extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerStandardConversions($media);
+        $this->registerStandardConversions();
 
         $this->addMediaConversion('lightbox')
             ->width(1600)

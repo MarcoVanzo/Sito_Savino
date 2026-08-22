@@ -57,7 +57,7 @@ class HeroSlide extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerStandardConversions($media);
+        $this->registerStandardConversions();
 
         $this->addMediaConversion('hero')
             ->width(1920)

@@ -65,7 +65,7 @@ class Post extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerStandardConversions($media);
+        $this->registerStandardConversions();
 
         $this->addMediaConversion('detail')
             ->width(1200)

@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\SiteSetting;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCheckoutRequest extends FormRequest
 {
@@ -50,17 +51,7 @@ class StoreCheckoutRequest extends FormRequest
             'shipping_province' => ['required', 'string', 'max:100'],
             'country' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
             'billing_same_as_shipping' => ['required', 'boolean'],
-            'payment_gateway' => [
-                'required',
-                'string',
-                function ($attribute, $value, $fail) {
-                    $activeGateways = SiteSetting::get('shop.active_payment_gateways', 'stripe,paypal,bank_transfer');
-                    $allowed = array_map('trim', explode(',', $activeGateways));
-                    if (! in_array($value, $allowed)) {
-                        $fail(__('messages.checkout.gateway_not_available'));
-                    }
-                },
-            ],
+            'payment_gateway' => ['required', 'string', Rule::in($this->gatewayAttivi())],
             'coupon_code' => ['nullable', 'string', 'max:50'],
             'privacy_accepted' => ['required', 'accepted'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -97,6 +88,28 @@ class StoreCheckoutRequest extends FormRequest
     /**
      * Aggiunge validazione condizionale per il CAP italiano.
      */
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'payment_gateway.in' => __('messages.checkout.gateway_not_available'),
+        ];
+    }
+
+    /**
+     * Metodi di pagamento accesi nel pannello.
+     *
+     * @return array<int, string>
+     */
+    private function gatewayAttivi(): array
+    {
+        $attivi = SiteSetting::get('shop.active_payment_gateways', 'stripe,paypal,bank_transfer');
+
+        return array_map('trim', explode(',', (string) $attivi));
+    }
+
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
