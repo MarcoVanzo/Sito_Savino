@@ -94,9 +94,6 @@ class MenuItem extends Model implements HasMedia
     ];
 
     /**
-     * Get the full navigation tree for a location, cached.
-     */
-    /**
      * Slug delle pagine che in questo momento non sono pubblicate.
      *
      * Mettere una pagina in bozza deve toglierla anche dal menu: la voce
@@ -137,6 +134,9 @@ class MenuItem extends Model implements HasMedia
         return in_array(end($segmenti), $nonPubblicati, true);
     }
 
+    /**
+     * Albero di navigazione completo di una posizione, tenuto in cache.
+     */
     public static function getTree(string $location = 'main'): array
     {
         $locale = app()->getLocale();
@@ -150,45 +150,8 @@ class MenuItem extends Model implements HasMedia
                 ->with(['children'])
                 ->orderBy('sort_order')
                 ->get()
-                ->reject(fn ($item) => self::portaAUnaPaginaInBozza($item->url, $nonPubblicati) || self::documentoMancante($item->url))
-                ->map(function ($item) use ($locale, $nonPubblicati) {
-                    $menuImage = $item->getFirstMediaUrl('menu-images') ?: null;
-                    $itLabel = $item->label;
-                    if (is_array($item->getTranslations('label'))) {
-                        $itLabel = $item->getTranslation('label', 'it', false) ?: $item->label;
-                    }
-                    $normalizedLabel = mb_strtolower(trim($itLabel));
-                    if (! $menuImage && isset(self::$staticMenuImages[$normalizedLabel])) {
-                        $menuImage = '/images/menu/'.self::$staticMenuImages[$normalizedLabel];
-                    }
-
-                    $href = static::href($item->url, $locale);
-
-                    return [
-                        'id' => $item->id,
-                        'label' => $item->label,
-                        'href' => $href,
-                        'description' => $item->description,
-                        'mottoTitle' => $item->motto_title,
-                        'mottoSubtitle' => $item->motto_subtitle,
-                        'menuImagePosition' => $item->menu_image_position ?: 'center',
-                        'menuImage' => $menuImage,
-                        'isHighlight' => $item->is_highlight,
-                        'children' => $item->children
-                            ->reject(fn ($child) => self::portaAUnaPaginaInBozza($child->url, $nonPubblicati) || self::documentoMancante($child->url))
-                            ->map(function ($child) use ($locale) {
-                                $childHref = MenuItem::href($child->url, $locale);
-
-                                return [
-                                    'id' => $child->id,
-                                    'label' => $child->label,
-                                    'href' => $childHref,
-                                    'description' => $child->description,
-                                    'isHighlight' => $child->is_highlight,
-                                ];
-                            })->values()->toArray(),
-                    ];
-                })
+                ->reject(fn ($item) => self::vaNascosta($item->url, $nonPubblicati))
+                ->map(fn ($item) => self::nodo($item, $locale, $nonPubblicati))
                 // `values()` non e' un vezzo: `reject()` conserva le chiavi, e
                 // una numerazione con un buco (la voce Summer Camp scartata
                 // perche' in bozza) diventa in JSON un oggetto invece di un
@@ -197,6 +160,80 @@ class MenuItem extends Model implements HasMedia
                 ->values()
                 ->toArray();
         });
+    }
+
+    /**
+     * Una voce sparisce dal menu se porta a una pagina in bozza o a un
+     * documento legale che non e' stato caricato.
+     *
+     * @param  array<int, string>  $nonPubblicati
+     */
+    private static function vaNascosta(?string $url, array $nonPubblicati): bool
+    {
+        return self::portaAUnaPaginaInBozza($url, $nonPubblicati) || self::documentoMancante($url);
+    }
+
+    /**
+     * Voce di primo livello, con le sue figlie gia' filtrate.
+     *
+     * @param  array<int, string>  $nonPubblicati
+     * @return array<string, mixed>
+     */
+    private static function nodo(self $item, string $locale, array $nonPubblicati): array
+    {
+        return [
+            'id' => $item->id,
+            'label' => $item->label,
+            'href' => static::href($item->url, $locale),
+            'description' => $item->description,
+            'mottoTitle' => $item->motto_title,
+            'mottoSubtitle' => $item->motto_subtitle,
+            'menuImagePosition' => $item->menu_image_position ?: 'center',
+            'menuImage' => self::immagineDelMenu($item),
+            'isHighlight' => $item->is_highlight,
+            'children' => $item->children
+                ->reject(fn ($child) => self::vaNascosta($child->url, $nonPubblicati))
+                ->map(fn ($child) => self::nodoFiglio($child, $locale))
+                ->values()
+                ->toArray(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function nodoFiglio(self $child, string $locale): array
+    {
+        return [
+            'id' => $child->id,
+            'label' => $child->label,
+            'href' => static::href($child->url, $locale),
+            'description' => $child->description,
+            'isHighlight' => $child->is_highlight,
+        ];
+    }
+
+    /**
+     * Immagine del mega-menu: quella caricata dal pannello se c'e', altrimenti
+     * quella statica abbinata all'etichetta italiana della voce.
+     */
+    private static function immagineDelMenu(self $item): ?string
+    {
+        $caricata = $item->getFirstMediaUrl('menu-images') ?: null;
+
+        if ($caricata) {
+            return $caricata;
+        }
+
+        $etichettaIt = is_array($item->getTranslations('label'))
+            ? ($item->getTranslation('label', 'it', false) ?: $item->label)
+            : $item->label;
+
+        $normalizzata = mb_strtolower(trim((string) $etichettaIt));
+
+        return isset(self::$staticMenuImages[$normalizzata])
+            ? '/images/menu/'.self::$staticMenuImages[$normalizzata]
+            : null;
     }
 
     /**
