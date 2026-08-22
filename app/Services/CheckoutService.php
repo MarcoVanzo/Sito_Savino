@@ -47,36 +47,27 @@ class CheckoutService
         }
 
         // 2. Controllo stock
-        if ($cart->items->isNotEmpty()) {
-            $stockIssues = $this->cartService->validateStock();
-            if (! empty($stockIssues)) {
-                $messages = [];
-                foreach ($stockIssues as $issue) {
-                    $productName = $issue['item']->product->name;
-                    $messages[] = __('messages.checkout.stock_issue', ['product' => $productName, 'available' => $issue['available'], 'requested' => $issue['requested']]);
-                }
-                $errors['stock'] = $messages;
-            }
+        $problemiDiStock = $cart->items->isNotEmpty() ? $this->messaggiDiStock() : [];
+
+        if ($problemiDiStock !== []) {
+            $errors['stock'] = $problemiDiStock;
         }
 
         // 3. Paese servito
-        if (! empty($data['country'])) {
-            $zone = ShippingZone::findByCountry($data['country']);
-            if (! $zone) {
-                $errors['country'] = [__('messages.checkout.country_not_served')];
-            }
-        } else {
-            $errors['country'] = [__('messages.checkout.country_required')];
+        $paese = $this->erroreSulPaese($data['country'] ?? null);
+
+        if ($paese !== null) {
+            $errors['country'] = [$paese];
         }
 
         // 4. Coupon valido (se fornito) — pre-validate and cache result
         $couponResult = null;
+
         if (! empty($data['coupon_code'])) {
             try {
-                $subtotal = $this->calculateSubtotal($cart);
                 $couponResult = $this->applyCoupon(
                     $data['coupon_code'],
-                    $subtotal,
+                    $this->calculateSubtotal($cart),
                     $data['user_id'] ?? null,
                     $data['guest_email'] ?? null
                 );
@@ -95,6 +86,41 @@ class CheckoutService
         }
 
         return ['coupon_result' => $couponResult];
+    }
+
+    /**
+     * Un messaggio per ogni riga del carrello che non ha piu' la giacenza
+     * richiesta.
+     *
+     * @return array<int, string>
+     */
+    private function messaggiDiStock(): array
+    {
+        $messaggi = [];
+
+        foreach ($this->cartService->validateStock() as $issue) {
+            $messaggi[] = __('messages.checkout.stock_issue', [
+                'product' => $issue['item']->product->name,
+                'available' => $issue['available'],
+                'requested' => $issue['requested'],
+            ]);
+        }
+
+        return $messaggi;
+    }
+
+    /**
+     * Il paese manca o non e' coperto da nessuna zona di spedizione.
+     */
+    private function erroreSulPaese(?string $country): ?string
+    {
+        if (empty($country)) {
+            return __('messages.checkout.country_required');
+        }
+
+        return ShippingZone::findByCountry($country)
+            ? null
+            : __('messages.checkout.country_not_served');
     }
 
     /**

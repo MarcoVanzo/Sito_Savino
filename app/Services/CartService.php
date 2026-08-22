@@ -64,27 +64,11 @@ class CartService
     {
         return DB::transaction(function () use ($productId, $quantity, $variantId) {
             $product = Product::lockForUpdate()->findOrFail($productId);
+            $this->verificaCheSiPossaAggiungere($product);
 
-            // Validazione: prodotto attivo e non di tipo Auction
-            if (! $product->is_active) {
-                throw new \InvalidArgumentException(__('messages.cart.product_unavailable'));
-            }
-
-            if ($product->type === ProductType::Auction) {
-                throw new \InvalidArgumentException(__('messages.cart.auction_not_allowed'));
-            }
-
-            $variant = null;
-            if ($variantId) {
-                $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
-                if ($variant->product_id !== $product->id) {
-                    throw new \InvalidArgumentException(__('messages.cart.invalid_variant'));
-                }
-            }
+            $variant = $this->varianteDelProdotto($product, $variantId);
 
             $cart = $this->getOrCreateCart();
-            $maxQty = (int) SiteSetting::get('shop.max_qty_per_product', 10);
-            $availableStock = $this->getAvailableStock($product, $variant);
 
             // Cerca item esistente con stesso prodotto+variante
             $existingItem = $cart->items()
@@ -92,21 +76,8 @@ class CartService
                 ->where('product_variant_id', $variantId)
                 ->first();
 
-            $currentQty = $existingItem ? $existingItem->quantity : 0;
-            $newQty = $currentQty + $quantity;
-
-            // Validazione quantità
-            if ($newQty > $maxQty) {
-                throw new \OverflowException(
-                    __('messages.cart.max_qty', ['qty' => $maxQty])
-                );
-            }
-
-            if ($newQty > $availableStock) {
-                throw new \OverflowException(
-                    __('messages.cart.out_of_stock', ['stock' => $availableStock])
-                );
-            }
+            $newQty = ($existingItem ? $existingItem->quantity : 0) + $quantity;
+            $this->verificaLaQuantita($newQty, $this->getAvailableStock($product, $variant));
 
             if ($existingItem) {
                 $existingItem->update(['quantity' => $newQty]);
@@ -305,41 +276,7 @@ class CartService
             $maxQty = (int) SiteSetting::get('shop.max_qty_per_product', 10);
 
             foreach ($sessionItems as $sessionItem) {
-                $existingItem = $userCart->items()
-                    ->where('product_id', $sessionItem->product_id)
-                    ->where('product_variant_id', $sessionItem->product_variant_id)
-                    ->first();
-
-                $maxAllowed = min(
-                    $this->getAvailableStock($sessionItem->product, $sessionItem->variant),
-                    $maxQty
-                );
-
-                if ($existingItem) {
-                    // Prendi la quantità maggiore, capped a stock e limite per prodotto
-                    $mergedQty = min(
-                        max($existingItem->quantity, $sessionItem->quantity),
-                        $maxAllowed
-                    );
-
-                    // Stock esaurito: rimuovi l'item invece di lasciarlo a quantità 0
-                    if ($mergedQty <= 0) {
-                        $existingItem->delete();
-                    } else {
-                        $existingItem->update(['quantity' => $mergedQty]);
-                    }
-                } else {
-                    // Sposta l'item nel carrello utente
-                    $qty = min($sessionItem->quantity, $maxAllowed);
-
-                    if ($qty > 0) {
-                        $userCart->items()->create([
-                            'product_id' => $sessionItem->product_id,
-                            'product_variant_id' => $sessionItem->product_variant_id,
-                            'quantity' => $qty,
-                        ]);
-                    }
-                }
+                $this->portaNelCarrelloUtente($userCart, $sessionItem, $maxQty);
             }
 
             // Elimina il carrello sessione e i suoi items
@@ -455,5 +392,106 @@ class CartService
         }
 
         return (int) $product->stock;
+    }
+
+    /**
+     * Il prodotto si puo' mettere nel carrello?
+     *
+     * I lotti all'asta non si comprano dal carrello: si aggiudicano, e il
+     * checkout parte dal token del vincitore.
+     */
+    private function verificaCheSiPossaAggiungere(Product $product): void
+    {
+        if (! $product->is_active) {
+            throw new \InvalidArgumentException(__('messages.cart.product_unavailable'));
+        }
+
+        if ($product->type === ProductType::Auction) {
+            throw new \InvalidArgumentException(__('messages.cart.auction_not_allowed'));
+        }
+    }
+
+    /**
+     * La variante richiesta, verificata come appartenente al prodotto: senza
+     * questo controllo si potrebbe comprare la taglia di un altro articolo.
+     */
+    private function varianteDelProdotto(Product $product, ?int $variantId): ?ProductVariant
+    {
+        if (! $variantId) {
+            return null;
+        }
+
+        $variant = ProductVariant::lockForUpdate()->findOrFail($variantId);
+
+        if ($variant->product_id !== $product->id) {
+            throw new \InvalidArgumentException(__('messages.cart.invalid_variant'));
+        }
+
+        return $variant;
+    }
+
+    /**
+     * La quantita' sta sotto il limite per prodotto e sotto la giacenza.
+     */
+    private function verificaLaQuantita(int $quantita, int $disponibili): void
+    {
+        $maxQty = (int) SiteSetting::get('shop.max_qty_per_product', 10);
+
+        if ($quantita > $maxQty) {
+            throw new \OverflowException(
+                __('messages.cart.max_qty', ['qty' => $maxQty])
+            );
+        }
+
+        if ($quantita > $disponibili) {
+            throw new \OverflowException(
+                __('messages.cart.out_of_stock', ['stock' => $disponibili])
+            );
+        }
+    }
+
+    /**
+     * Porta una riga del carrello ospite in quello dell'utente appena entrato.
+     *
+     * Di due quantita' si tiene la maggiore, sempre entro giacenza e limite per
+     * prodotto: il merge non deve essere una scorciatoia per superarli. Se la
+     * giacenza nel frattempo si e' esaurita la riga sparisce, invece di restare
+     * a quantita' zero.
+     */
+    private function portaNelCarrelloUtente(Cart $userCart, CartItem $sessionItem, int $maxQty): void
+    {
+        $maxAllowed = min(
+            $this->getAvailableStock($sessionItem->product, $sessionItem->variant),
+            $maxQty
+        );
+
+        $existingItem = $userCart->items()
+            ->where('product_id', $sessionItem->product_id)
+            ->where('product_variant_id', $sessionItem->product_variant_id)
+            ->first();
+
+        if (! $existingItem) {
+            $qty = min($sessionItem->quantity, $maxAllowed);
+
+            if ($qty > 0) {
+                $userCart->items()->create([
+                    'product_id' => $sessionItem->product_id,
+                    'product_variant_id' => $sessionItem->product_variant_id,
+                    'quantity' => $qty,
+                ]);
+            }
+
+            return;
+        }
+
+        $mergedQty = min(max($existingItem->quantity, $sessionItem->quantity), $maxAllowed);
+
+        if ($mergedQty <= 0) {
+            $existingItem->delete();
+
+            return;
+        }
+
+        $existingItem->update(['quantity' => $mergedQty]);
     }
 }

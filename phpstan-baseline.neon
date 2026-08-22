@@ -313,18 +313,6 @@ parameters:
 			path: app/Http/Controllers/Shop/AuctionController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/CartController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/CartController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 2
@@ -365,18 +353,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Jobs/AnalyzeGalleryImageJob.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$price_modifier\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/CartItem.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:effectivePrice\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Models/CartItem.php
 
 		-
 			message: '#^Right side of && is always true\.$#'
@@ -443,90 +419,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: app/Services/AdminNotificationService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
-			identifier: property.notFound
-			count: 4
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_variant_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
-			identifier: property.notFound
-			count: 6
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Method App\\Services\\CartService\:\:addItem\(\) should return App\\Models\\CartItem\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Method App\\Services\\CartService\:\:updateItemQuantity\(\) should return App\\Models\\CartItem\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Method App\\Services\\CartService\:\:validateStock\(\) should return array\<int, array\{item\: App\\Models\\CartItem, available\: int, requested\: int\}\> but returns list\<array\{item\: Illuminate\\Database\\Eloquent\\Model, available\: int, requested\: mixed\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_variant_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
-			identifier: property.notFound
-			count: 4
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/CheckoutService.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
