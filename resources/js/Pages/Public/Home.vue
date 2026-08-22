@@ -819,10 +819,12 @@ const ogMeta = useOgMeta({
 </template>
 
 <style scoped>
-/* === HERO WRAPPER: Bleed under sticky header === */
+/* === HERO WRAPPER: Bleed under sticky header ===
+   L'altezza dell'header non e' piu' fissa: la detta il logo volley, e la variabile
+   arriva da PublicLayout. Il valore di ripiego e' quello dei telefoni. */
 .hero-wrapper {
-    margin-top: -85px;
-    padding-top: 85px;
+    margin-top: calc(-1 * var(--header-h, 85px));
+    padding-top: var(--header-h, 85px);
 }
 
 /* === FLUID CINEMATIC DISSOLVE ===

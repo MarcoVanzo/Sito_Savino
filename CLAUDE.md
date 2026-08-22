@@ -213,9 +213,21 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   pag. 11 di `Branding_Guidelines.pdf`), non ridisegnati.
 - **Sotto i 40 mm il payoff si toglie.** Il brand book della Spa (§1.2, pag. 14) vieta la
   versione con payoff sotto i 40 mm, cioè 151 px CSS: sotto quella misura va
-  `logo-corporate-name*.svg`. In testata il marchio parte da 280 px, quindi resta
+  `logo-corporate-name*.svg`. In testata il marchio va da 160 a 238 px, quindi resta
   sempre la versione con payoff; la variante senza resta disponibile per usi più
-  piccoli.
+  piccoli. Il margine sul minimo è però sottile: la larghezza discende da quella del
+  logo volley (`--corporate-logo-w` = `--volley-logo-h` × 1,9), quindi rimpicciolire
+  il volley porta il marchio sotto i 151 px e obbliga alla variante senza payoff.
+- **La testata è centrata sul logo volley.** La riga è alta quanto il logo più l'aria
+  attorno (`--header-h` = `--volley-logo-h` + 16 px, in `PublicLayout.vue`): il centro
+  del volley è il centro della riga, e quindi quello del menu, del pulsante Shop e
+  delle icone. Prima il logo sbordava sotto l'header e il suo centro cadeva 28 px più
+  in basso di quello del menu. L'altezza della testata non è più un numero fisso:
+  l'hero della home, che risale sotto l'header, legge la stessa `--header-h`.
+- **Il marchio della Spa è l'80% dell'ingombro del logo volley** (238 × 52 px contro
+  125 × 125 al massimo della scala). Il volley resta il segno principale della
+  testata: dimensionare il marchio corporate sull'altezza del volley lo porterebbe a
+  455 px di larghezza, mangiando al menu un corpo intero di testo.
 - **File sorgente loghi** nella cartella `Loghi/` (root del progetto), suddivisi in
   `Lega/`, `SDB Azienda/`, `SDB Volley/`.
 - **Logo LVF stagione 2026/27**: brand book provvisorio in attesa di nuovo Title Sponsor.
