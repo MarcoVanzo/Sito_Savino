@@ -14,15 +14,13 @@ class FixMediaVisibility extends Command
 
     public function handle(): int
     {
-        $disk = Storage::disk('s3');
-        $dryRun = $this->option('dry-run');
-
+        $dryRun = (bool) $this->option('dry-run');
         $media = Media::where('disk', 's3')->get();
 
         $this->info("Found {$media->count()} media items on S3 disk.");
 
-        $fixed = 0;
-        $errors = 0;
+        $sistemati = 0;
+        $errori = 0;
 
         $bar = $this->output->createProgressBar($media->count());
         $bar->start();
@@ -31,34 +29,14 @@ class FixMediaVisibility extends Command
             $path = $item->getPath();
 
             try {
-                if ($dryRun) {
-                    $this->line(" Would fix: {$path}");
-                } else {
-                    $disk->setVisibility($path, 'public');
-                }
-                $fixed++;
-            } catch (\Exception $e) {
-                $errors++;
+                $this->rendiPubblico($path, $dryRun);
+                $sistemati++;
+            } catch (\Throwable $e) {
+                $errori++;
                 $this->error(" Error for {$path}: {$e->getMessage()}");
             }
 
-            // Also fix conversions
-            $conversionsPath = $item->getPath() ? dirname($item->getPath()).'/conversions/' : null;
-            if ($conversionsPath) {
-                try {
-                    $conversionFiles = $disk->files($conversionsPath);
-                    foreach ($conversionFiles as $file) {
-                        if ($dryRun) {
-                            $this->line(" Would fix conversion: {$file}");
-                        } else {
-                            $disk->setVisibility($file, 'public');
-                        }
-                        $fixed++;
-                    }
-                } catch (\Exception $e) {
-                    // conversions dir may not exist, that's ok
-                }
-            }
+            $sistemati += $this->rendiPubblicheLeConversioni($path, $dryRun);
 
             $bar->advance();
         }
@@ -67,8 +45,50 @@ class FixMediaVisibility extends Command
         $this->newLine(2);
 
         $prefix = $dryRun ? '[DRY RUN] ' : '';
-        $this->info("{$prefix}Fixed visibility for {$fixed} files. Errors: {$errors}.");
+        $this->info("{$prefix}Fixed visibility for {$sistemati} files. Errors: {$errori}.");
 
         return self::SUCCESS;
+    }
+
+    private function rendiPubblico(string $path, bool $dryRun): void
+    {
+        if ($dryRun) {
+            $this->line(" Would fix: {$path}");
+
+            return;
+        }
+
+        Storage::disk('s3')->setVisibility($path, 'public');
+    }
+
+    /**
+     * Miniature e ritagli stanno in una cartella accanto all'originale, che
+     * puo' benissimo non esistere: in quel caso non c'e' niente da sistemare.
+     *
+     * @return int quanti file sono stati resi pubblici
+     */
+    private function rendiPubblicheLeConversioni(?string $path, bool $dryRun): int
+    {
+        if (! $path) {
+            return 0;
+        }
+
+        try {
+            $files = Storage::disk('s3')->files(dirname($path).'/conversions/');
+        } catch (\Throwable) {
+            return 0;
+        }
+
+        foreach ($files as $file) {
+            if ($dryRun) {
+                $this->line(" Would fix conversion: {$file}");
+
+                continue;
+            }
+
+            Storage::disk('s3')->setVisibility($file, 'public');
+        }
+
+        return count($files);
     }
 }

@@ -116,15 +116,32 @@ class VerificaIFileCaricati extends Command
                 continue;
             }
 
-            foreach ($contenuti[$elenco] as $posizione => $voce) {
-                if (! is_array($voce)) {
-                    continue;
-                }
+            $percorsi += $this->percorsiNellElenco($elenco, $contenuti[$elenco], $campi);
+        }
 
-                foreach ($campi as $campo) {
-                    if ($this->sembraUnPercorso($voce[$campo] ?? null)) {
-                        $percorsi["{$elenco}.{$posizione}.{$campo}"] = $voce[$campo];
-                    }
+        return $percorsi;
+    }
+
+    /**
+     * Percorsi trovati dentro un elenco ripetibile del pannello (i documenti
+     * di una cartella stampa, le foto di una sezione).
+     *
+     * @param  array<int|string, mixed>  $voci
+     * @param  array<int, string>  $campi
+     * @return array<string, string>
+     */
+    private function percorsiNellElenco(string $elenco, array $voci, array $campi): array
+    {
+        $percorsi = [];
+
+        foreach ($voci as $posizione => $voce) {
+            if (! is_array($voce)) {
+                continue;
+            }
+
+            foreach ($campi as $campo) {
+                if ($this->sembraUnPercorso($voce[$campo] ?? null)) {
+                    $percorsi["{$elenco}.{$posizione}.{$campo}"] = $voce[$campo];
                 }
             }
         }
