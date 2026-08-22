@@ -96,48 +96,58 @@ class GalleryController extends Controller
             }
 
             return $query->get()
-                ->map(function ($img) use ($locale) {
-                    $decodeTitle = function ($text) use ($locale) {
-                        if (! is_string($text) || ! str_starts_with($text, '{"it":')) {
-                            return $text;
-                        }
-                        $decoded = json_decode($text, true);
-                        if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
-                            return $decoded[$locale] ?? $decoded['it'];
-                        }
-                        // Attempt to fix truncated JSON
-                        $decoded = json_decode($text.'"}', true);
-                        if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
-                            return $decoded[$locale] ?? $decoded['it'];
-                        }
-                        $decoded = json_decode($text.'}', true);
-                        if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
-                            return $decoded[$locale] ?? $decoded['it'];
-                        }
-
-                        return $text;
-                    };
-
-                    $altText = $decodeTitle($img->title ?? __('Immagine Galleria'));
-                    $eventName = $decodeTitle($img->galleryEvent?->title);
-
-                    return [
-                        'id' => $img->id,
-                        'url' => $img->getFirstMediaUrl('gallery', 'lightbox') ?: $img->getFirstMediaUrl('gallery'),
-                        'thumb' => $img->getFirstMediaUrl('gallery', 'thumb') ?: $img->getFirstMediaUrl('gallery'),
-                        'alt' => mb_substr($altText, 0, 255),
-                        'category' => $img->category ?? 'Partite',
-                        'tags' => $img->players->map(fn ($p) => $p->full_name)->values()->toArray(),
-                        'event_name' => $eventName,
-                        // La pagina raggruppa le foto per album: senza l'identificativo
-                        // dovrebbe fidarsi del titolo, e due eventi omonimi in stagioni
-                        // diverse finirebbero nella stessa cartella.
-                        'event_id' => $img->gallery_event_id,
-                        'event_date' => $img->galleryEvent?->event_date?->toDateString(),
-                    ];
-                })
+                ->map(fn (GalleryImage $img): array => $this->presentaLaFoto($img, $locale))
+                ->values()
                 ->toArray();
         });
+    }
+
+    /**
+     * Una foto dell'archivio, nella forma che il front-end si aspetta.
+     *
+     * @return array<string, mixed>
+     */
+    private function presentaLaFoto(GalleryImage $img, string $locale): array
+    {
+        return [
+            'id' => $img->id,
+            'url' => $img->getFirstMediaUrl('gallery', 'lightbox') ?: $img->getFirstMediaUrl('gallery'),
+            'thumb' => $img->getFirstMediaUrl('gallery', 'thumb') ?: $img->getFirstMediaUrl('gallery'),
+            'alt' => mb_substr($this->testoTradotto($img->title ?? __('Immagine Galleria'), $locale), 0, 255),
+            'category' => $img->category ?? 'Partite',
+            'tags' => $img->players->map(fn ($p) => $p->full_name)->values()->toArray(),
+            'event_name' => $this->testoTradotto($img->galleryEvent?->title, $locale),
+            // La pagina raggruppa le foto per album: senza l'identificativo
+            // dovrebbe fidarsi del titolo, e due eventi omonimi in stagioni
+            // diverse finirebbero nella stessa cartella.
+            'event_id' => $img->gallery_event_id,
+            'event_date' => $img->galleryEvent?->event_date?->toDateString(),
+        ];
+    }
+
+    /**
+     * Testo nella lingua richiesta, anche quando in colonna c'e' il JSON per
+     * lingua invece della sola stringa.
+     *
+     * Alcuni titoli storici sono stati troncati in scrittura e il JSON e'
+     * rimasto aperto: si tenta di richiuderlo nei due modi possibili prima di
+     * arrendersi e restituire il testo grezzo.
+     */
+    private function testoTradotto(mixed $text, string $locale): string
+    {
+        if (! is_string($text) || ! str_starts_with($text, '{"it":')) {
+            return is_string($text) ? $text : '';
+        }
+
+        foreach ([$text, $text.'"}', $text.'}'] as $tentativo) {
+            $decoded = json_decode($tentativo, true);
+
+            if (is_array($decoded) && (isset($decoded[$locale]) || isset($decoded['it']))) {
+                return (string) ($decoded[$locale] ?? $decoded['it']);
+            }
+        }
+
+        return $text;
     }
 
     /**

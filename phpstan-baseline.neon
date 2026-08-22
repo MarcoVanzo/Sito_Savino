@@ -145,12 +145,6 @@ parameters:
 			path: app/Filament/Resources/YouthStaffResource.php
 
 		-
-			message: '#^Anonymous function should return App\\Models\\GalleryImage but returns string\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/GalleryController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
 			identifier: property.notFound
 			count: 1

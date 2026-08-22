@@ -358,32 +358,45 @@ class RisultatiController extends Controller
         $sets = [];
 
         foreach ($raw as $index => $entry) {
-            if (! is_array($entry)) {
-                continue;
+            $set = is_array($entry) ? $this->presentaUnSet($entry, $index) : null;
+
+            if ($set !== null) {
+                $sets[] = $set;
             }
-
-            $partials = array_values(array_filter(
-                is_array($entry['partials'] ?? null) ? $entry['partials'] : [],
-                fn ($partial): bool => is_string($partial) && $this->splitPartial($partial) !== null
-            ));
-
-            $final = $partials === [] ? null : $this->splitPartial(end($partials));
-
-            if ($final === null || ($final[0] === 0 && $final[1] === 0)) {
-                continue;
-            }
-
-            $sets[] = [
-                'set' => isset($entry['set']) && is_numeric($entry['set']) ? (int) $entry['set'] : $index + 1,
-                'home' => $final[0],
-                'away' => $final[1],
-                'duration' => isset($entry['duration']) && is_numeric($entry['duration']) ? (int) $entry['duration'] : null,
-                // Solo i parziali intermedi: l'ultimo è già il punteggio del set.
-                'partials' => array_slice($partials, 0, -1),
-            ];
         }
 
         return $sets;
+    }
+
+    /**
+     * Un set del referto, se ha un punteggio finale leggibile.
+     *
+     * Un set 0-0 non e' un set: e' una riga rimasta vuota nel referto.
+     *
+     * @param  array<string, mixed>  $entry
+     * @return array<string, mixed>|null
+     */
+    private function presentaUnSet(array $entry, int $index): ?array
+    {
+        $partials = array_values(array_filter(
+            is_array($entry['partials'] ?? null) ? $entry['partials'] : [],
+            fn ($partial): bool => is_string($partial) && $this->splitPartial($partial) !== null
+        ));
+
+        $final = $partials === [] ? null : $this->splitPartial(end($partials));
+
+        if ($final === null || ($final[0] === 0 && $final[1] === 0)) {
+            return null;
+        }
+
+        return [
+            'set' => isset($entry['set']) && is_numeric($entry['set']) ? (int) $entry['set'] : $index + 1,
+            'home' => $final[0],
+            'away' => $final[1],
+            'duration' => isset($entry['duration']) && is_numeric($entry['duration']) ? (int) $entry['duration'] : null,
+            // Solo i parziali intermedi: l'ultimo è già il punteggio del set.
+            'partials' => array_slice($partials, 0, -1),
+        ];
     }
 
     /**

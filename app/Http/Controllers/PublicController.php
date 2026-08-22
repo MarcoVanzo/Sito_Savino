@@ -155,78 +155,14 @@ class PublicController extends Controller
 
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
-            $roster = [];
-            $seasonName = null;
-            $seasonStats = [];
-            $teamInfo = null;
-
-            if ($team && $currentSeason) {
-                $rosterEntries = Roster::with([
-                    'player',
-                    'media',
-                    // I totali sono per stagione E per squadra: senza il secondo
-                    // filtro un'atleta schierata anche in un'altra squadra della
-                    // società porterebbe qui il bilancio sbagliato. Le righe
-                    // storiche senza squadra restano incluse, altrimenti la
-                    // pagina perderebbe i dati importati prima del campo.
-                    'player.stats' => fn ($query) => $query
-                        ->where('season_id', $currentSeason->id)
-                        ->where(fn ($scoped) => $scoped->whereNull('team_id')->orWhere('team_id', $team->id)),
-                    // Le righe nascoste dalla redazione restano in archivio per
-                    // non farle riapparire alla prossima importazione: qui non
-                    // devono nemmeno arrivare.
-                    'player.honours' => fn ($query) => $query->visible(),
-                ])
-                    ->whereHas('player')
-                    ->where('team_id', $team->id)
-                    ->where('season_id', $currentSeason->id)
-                    ->orderByRaw('jersey_number IS NULL, jersey_number')
-                    ->orderBy('id')
-                    ->get();
-
-                $roster = $this->presentRoster($rosterEntries, $withPalmares);
-                $seasonStats = $this->presentSeasonStats($rosterEntries, $team->id);
-                $seasonName = $currentSeason->name;
-
-                $teamInfo = [
-                    'name' => $team->name,
-                    'logo' => $this->teamLogo($team),
-                ];
-            }
-
             // Staff tecnico e medico filtrati per sezione (A1 vs Youth)
             $section = $teamSlug === 'savino-del-bene-volley' ? 'a1' : 'youth';
 
-            $mapStaff = fn ($p) => [
-                'id' => $p->id,
-                'name' => $p->full_name,
-                'role' => $p->role,
-                'photo_url' => $p->getFirstMediaUrl('staff', 'card') ?: $p->getFirstMediaUrl('staff'),
+            return [
+                ...$this->rosaDellaSquadra($team, $currentSeason, $withPalmares),
+                'staffTecnico' => $this->staffDellaSezione(StaffType::Tecnico, $section),
+                'staffMedico' => $this->staffDellaSezione(StaffType::Medico, $section),
             ];
-
-            $staffTecnico = StaffMember::with('media')
-                ->where('type', StaffType::Tecnico)
-                ->where(function ($q) use ($section) {
-                    if ($section === 'a1') {
-                        $q->where('section', 'a1')->orWhereNull('section');
-                    } else {
-                        $q->where('section', $section);
-                    }
-                })
-                ->orderBy('sort_order')->orderBy('id')->get()->map($mapStaff)->toArray();
-
-            $staffMedico = StaffMember::with('media')
-                ->where('type', StaffType::Medico)
-                ->where(function ($q) use ($section) {
-                    if ($section === 'a1') {
-                        $q->where('section', 'a1')->orWhereNull('section');
-                    } else {
-                        $q->where('section', $section);
-                    }
-                })
-                ->orderBy('sort_order')->orderBy('id')->get()->map($mapStaff)->toArray();
-
-            return compact('roster', 'seasonName', 'seasonStats', 'teamInfo', 'staffTecnico', 'staffMedico');
         });
 
         if ($teamLabel !== null) {
@@ -240,6 +176,80 @@ class PublicController extends Controller
         $data['openPlayer'] = $openPlayerSlug;
 
         return Inertia::render('Public/Stagione', $data);
+    }
+
+    /**
+     * Rosa, statistiche di stagione e intestazione della squadra.
+     *
+     * @return array<string, mixed>
+     */
+    private function rosaDellaSquadra(?Team $team, ?Season $currentSeason, bool $withPalmares): array
+    {
+        if (! $team || ! $currentSeason) {
+            return ['roster' => [], 'seasonName' => null, 'seasonStats' => [], 'teamInfo' => null];
+        }
+
+        $rosterEntries = Roster::with([
+            'player',
+            'media',
+            // I totali sono per stagione E per squadra: senza il secondo
+            // filtro un'atleta schierata anche in un'altra squadra della
+            // società porterebbe qui il bilancio sbagliato. Le righe
+            // storiche senza squadra restano incluse, altrimenti la
+            // pagina perderebbe i dati importati prima del campo.
+            'player.stats' => fn ($query) => $query
+                ->where('season_id', $currentSeason->id)
+                ->where(fn ($scoped) => $scoped->whereNull('team_id')->orWhere('team_id', $team->id)),
+            // Le righe nascoste dalla redazione restano in archivio per
+            // non farle riapparire alla prossima importazione: qui non
+            // devono nemmeno arrivare.
+            'player.honours' => fn ($query) => $query->visible(),
+        ])
+            ->whereHas('player')
+            ->where('team_id', $team->id)
+            ->where('season_id', $currentSeason->id)
+            ->orderByRaw('jersey_number IS NULL, jersey_number')
+            ->orderBy('id')
+            ->get();
+
+        return [
+            'roster' => $this->presentRoster($rosterEntries, $withPalmares),
+            'seasonName' => $currentSeason->name,
+            'seasonStats' => $this->presentSeasonStats($rosterEntries, $team->id),
+            'teamInfo' => [
+                'name' => $team->name,
+                'logo' => $this->teamLogo($team),
+            ],
+        ];
+    }
+
+    /**
+     * Staff di una sezione. Le righe senza sezione contano come prima squadra:
+     * sono quelle inserite prima che il campo esistesse.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function staffDellaSezione(StaffType $type, string $section): array
+    {
+        return StaffMember::with('media')
+            ->where('type', $type)
+            ->where(function ($q) use ($section) {
+                if ($section === 'a1') {
+                    $q->where('section', 'a1')->orWhereNull('section');
+                } else {
+                    $q->where('section', $section);
+                }
+            })
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->full_name,
+                'role' => $p->role,
+                'photo_url' => $p->getFirstMediaUrl('staff', 'card') ?: $p->getFirstMediaUrl('staff'),
+            ])
+            ->toArray();
     }
 
     /**
