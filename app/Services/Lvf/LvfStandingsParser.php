@@ -131,9 +131,16 @@ class LvfStandingsParser
 
         foreach (self::COLUMNS as $label => $field) {
             $raw = $value($label);
-            $numbers[$field] = in_array($field, ['setRatio', 'pointRatio'], true)
-                ? (is_numeric($raw) ? (float) $raw : null)
-                : (int) $raw;
+
+            // I due rapporti sono decimali e possono mancare; il resto sono
+            // conteggi, che a colonna vuota valgono zero.
+            if (in_array($field, ['setRatio', 'pointRatio'], true)) {
+                $numbers[$field] = is_numeric($raw) ? (float) $raw : null;
+
+                continue;
+            }
+
+            $numbers[$field] = (int) $raw;
         }
 
         return new LvfStandingRow(

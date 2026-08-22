@@ -13,11 +13,11 @@ class BidPlaced implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public int $auction_id,
-        public float $bid_amount,
-        public string $bidder_name,
-        public int $bids_count,
-        public string $ends_at,
+        public int $auctionId,
+        public float $bidAmount,
+        public string $bidderName,
+        public int $bidsCount,
+        public string $endsAt,
     ) {}
 
     /**
@@ -25,7 +25,7 @@ class BidPlaced implements ShouldBroadcast
      */
     public function broadcastOn(): Channel
     {
-        return new Channel('auction.'.$this->auction_id);
+        return new Channel('auction.'.$this->auctionId);
     }
 
     /**
@@ -38,15 +38,18 @@ class BidPlaced implements ShouldBroadcast
 
     /**
      * Dati da inviare con l'evento broadcast.
+     *
+     * Le chiavi restano in snake_case: sono il contratto con il front-end,
+     * che le legge cosi' anche dalle risposte JSON dell'asta.
      */
     public function broadcastWith(): array
     {
         return [
-            'auction_id' => $this->auction_id,
-            'bid_amount' => $this->bid_amount,
-            'bidder_name' => $this->bidder_name,
-            'bids_count' => $this->bids_count,
-            'ends_at' => $this->ends_at,
+            'auction_id' => $this->auctionId,
+            'bid_amount' => $this->bidAmount,
+            'bidder_name' => $this->bidderName,
+            'bids_count' => $this->bidsCount,
+            'ends_at' => $this->endsAt,
         ];
     }
 }

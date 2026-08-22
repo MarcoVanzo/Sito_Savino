@@ -63,10 +63,8 @@ class CacheInvalidationObserver
      */
     private function locales(): array
     {
-        /** @var array<int, string> $locales */
-        $locales = config('app.supported_locales', ['it']);
-
-        return $locales;
+        /** @var array<int, string> */
+        return config('app.supported_locales', ['it']);
     }
 
     public function saved(Model $model): void

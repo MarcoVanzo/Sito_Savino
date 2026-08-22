@@ -62,7 +62,7 @@ class SocialKpiWidget extends BaseWidget
                 ->icon('heroicon-m-users')
                 ->description($delta === null ? 'Variazione non disponibile' : self::signed($delta).' nel periodo')
                 ->descriptionIcon($delta !== null && $delta < 0 ? 'heroicon-m-arrow-trending-down' : 'heroicon-m-arrow-trending-up')
-                ->color($delta === null ? 'gray' : ($delta >= 0 ? 'success' : 'danger'))
+                ->color(self::coloreDelta($delta))
                 ->chart(array_map(static fn (array $row): float => (float) $row['follower_count'], $daily)),
 
             Stat::make('Visualizzazioni', self::number($totals['views']))
@@ -129,5 +129,18 @@ class SocialKpiWidget extends BaseWidget
     private static function signed(int $value): string
     {
         return ($value >= 0 ? '+' : '−').self::number(abs($value));
+    }
+
+    /**
+     * Grigio quando il confronto con il periodo precedente non c'e' (la serie
+     * non e' abbastanza lunga), altrimenti verde o rosso.
+     */
+    private static function coloreDelta(?int $delta): string
+    {
+        if ($delta === null) {
+            return 'gray';
+        }
+
+        return $delta >= 0 ? 'success' : 'danger';
     }
 }

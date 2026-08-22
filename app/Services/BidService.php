@@ -95,11 +95,11 @@ class BidService
             $bidsCount = $auction->bids()->valid()->count();
 
             broadcast(new BidPlaced(
-                auction_id: $auction->id,
-                bid_amount: $amount,
-                bidder_name: AuctionService::maskUsername($user->name),
-                bids_count: $bidsCount,
-                ends_at: $auction->end_date->toIso8601String(),
+                auctionId: $auction->id,
+                bidAmount: $amount,
+                bidderName: AuctionService::maskUsername($user->name),
+                bidsCount: $bidsCount,
+                endsAt: $auction->end_date->toIso8601String(),
             ));
 
             // 11. Email al precedente miglior offerente

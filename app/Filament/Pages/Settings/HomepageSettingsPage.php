@@ -117,7 +117,23 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
             ->columnSpanFull()
             // Lo stato resta un elenco: a incapsularlo in JSON ci pensa il
             // salvataggio, che riunisce le lingue in un'unica impostazione.
-            ->formatStateUsing(fn ($state) => is_array($state) ? $state : (json_decode($state ?? '[]', true) ?: []));
+            ->formatStateUsing(self::elencoDaStato(...));
+    }
+
+    /**
+     * Lo stato arriva come elenco gia' pronto oppure come JSON da aprire.
+     *
+     * @return array<int|string, mixed>
+     */
+    private static function elencoDaStato(mixed $state): array
+    {
+        if (is_array($state)) {
+            return $state;
+        }
+
+        $decodificato = json_decode($state ?? '[]', true);
+
+        return is_array($decodificato) ? $decodificato : [];
     }
 
     /** @return list<string> */
