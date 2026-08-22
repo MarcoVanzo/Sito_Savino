@@ -110,10 +110,6 @@ jobs:
       - name: Esegui test frontend (Vitest)
         run: npm run ${{ github.event_name != 'push' && 'test:coverage' || 'test' }}
 
-      # Security audit — verifica vulnerabilità note nelle dipendenze
-      - name: Security Audit (Composer)
-        run: composer audit --abandoned=report
-
       # Lint PHP — verifica errori di sintassi in app/
       - name: PHP Lint
         run: find app/ -name "*.php" -print0 | xargs -0 -n1 php -l
@@ -157,6 +153,20 @@ jobs:
             -Dsonar.projectKey=MarcoVanzo_Sito_Savino
             -Dsonar.organization=marcovanzo
             -Dsonar.php.coverage.reportPaths=coverage.xml
+
+      # Security audit delle dipendenze, in coda di proposito.
+      #
+      # Stava prima dell'analisi e ha bloccato per due lunedì di fila la run
+      # schedulata che rinfresca la baseline di SonarCloud: un advisory su
+      # league/commonmark faceva fallire il job qui, l'analisi non partiva mai
+      # e la baseline è rimasta ferma al 3 agosto. Da lì in poi ogni PR si è
+      # vista attribuire come "nuovo codice" tutto quello scritto nel
+      # frattempo — ventottomila righe — e il quality gate non poteva passare.
+      #
+      # Il passo resta bloccante: un advisory fa fallire la run e niente
+      # deploy. Ma dopo l'analisi, così i due segnali restano indipendenti.
+      - name: Security Audit (Composer)
+        run: composer audit --abandoned=report
 
   # Deploy gated: esegue SOLO su push a main, DOPO che i test passano
   deploy:
