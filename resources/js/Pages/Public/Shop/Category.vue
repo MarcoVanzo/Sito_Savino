@@ -175,14 +175,14 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Skeleton Loading -->
-                <div v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list" :aria-label="$t('shop.loading_products')">
-                    <ProductCardSkeleton v-for="n in 6" :key="'skeleton-' + n" role="listitem" />
-                </div>
+                <ul v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" :aria-label="$t('shop.loading_products')">
+                    <li v-for="n in 6" :key="'skeleton-' + n" class="grid"><ProductCardSkeleton /></li>
+                </ul>
 
                 <!-- Products Grid -->
-                <div v-else-if="products?.data?.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" role="list" :aria-label="$t('shop.products_list') || 'Elenco prodotti'">
-                    <ProductCard v-for="product in products.data" :key="product.id" :product="product" role="listitem" />
-                </div>
+                <ul v-else-if="products?.data?.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" :aria-label="$t('shop.products_list') || 'Elenco prodotti'">
+                    <li v-for="product in products.data" :key="product.id" class="grid"><ProductCard :product="product" /></li>
+                </ul>
 
                 <!-- Empty State -->
                 <div v-else class="text-center py-20">

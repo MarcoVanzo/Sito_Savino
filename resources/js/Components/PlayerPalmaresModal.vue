@@ -9,7 +9,7 @@
  * ne hanno ancora — e la finestra resta utile lo stesso: anagrafica, numeri di
  * stagione e collegamento alle foto.
  */
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
@@ -69,50 +69,54 @@ const medalTone = {
 
 const close = () => emit('close');
 
-const onKeydown = (event) => {
-    if (event.key === 'Escape') close();
-};
+const dialogEl = ref(null);
 
-// Con la finestra aperta la pagina sotto non deve scorrere, e l'Esc deve
-// chiudere anche quando il focus non è ancora entrato nel pannello.
+// `showModal()` mette la finestra nel top layer: il fuoco resta dentro, l'Esc
+// la chiude e lo sfondo lo disegna ::backdrop, senza un ascoltatore su tutta
+// la pagina.
 //
 // `immediate`: aprendo /stagione/atleta/{slug} da un link il componente nasce
 // già con l'atleta dentro, quindi non c'è nessun cambio di stato da osservare
-// — senza, quel caso resterebbe senza Esc e senza blocco dello scorrimento.
-watch(isOpen, (open) => {
+// — senza, quel caso resterebbe chiuso.
+watch(isOpen, async (open) => {
     if (typeof document === 'undefined') return;
 
-    document.body.style.overflow = open ? 'hidden' : '';
+    await nextTick();
 
-    if (open) {
-        document.addEventListener('keydown', onKeydown);
+    const el = dialogEl.value;
+
+    if (el && open && !el.open) {
+        el.showModal();
         requestAnimationFrame(() => panel.value?.focus());
-    } else {
-        document.removeEventListener('keydown', onKeydown);
     }
+
+    if (el && !open && el.open) {
+        el.close();
+    }
+
+    // La pagina sotto non deve scorrere: showModal() blocca il clic, non la rotella.
+    document.body.style.overflow = open ? 'hidden' : '';
 }, { immediate: true });
 
 onBeforeUnmount(() => {
     if (typeof document === 'undefined') return;
     document.body.style.overflow = '';
-    document.removeEventListener('keydown', onKeydown);
 });
 </script>
 
 <template>
-    <Teleport to="body">
-        <!-- Niente <Transition> in uscita: l'elemento resta nel DOM finché la
-             transizione non finisce, e un pannello a schermo intero rimasto lì
-             a opacità zero continuerebbe a intercettare i click sulla pagina.
-             L'entrata è animata in CSS, l'uscita è immediata. -->
-        <div
-            v-if="isOpen"
-            class="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-gray-900/80 backdrop-blur-sm sm:p-6 palmares-overlay"
-            role="dialog"
-            aria-modal="true"
-            :aria-label="fullName"
-            @click.self="close"
-        >
+    <!-- Niente <Transition> in uscita: l'elemento resta nel DOM finché la
+         transizione non finisce, e un pannello a schermo intero rimasto lì a
+         opacità zero continuerebbe a intercettare i click sulla pagina.
+         L'entrata è animata in CSS, l'uscita è immediata. -->
+    <dialog
+        ref="dialogEl"
+        class="palmares-dialog palmares-overlay"
+        :aria-label="fullName"
+        @close="close"
+        @click.self="close"
+    >
+        <template v-if="isOpen">
             <div
                 ref="panel"
                 tabindex="-1"
@@ -277,11 +281,42 @@ v-for="cell in [
                     </Link>
                 </div>
             </div>
-        </div>
-    </Teleport>
+        </template>
+    </dialog>
 </template>
 
 <style scoped>
+/* Il browser dà a <dialog> bordo, sfondo e dimensioni proprie: qui serve un
+   pannello a tutta pagina, in basso sul telefono e centrato da tablet in su. */
+.palmares-dialog {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+}
+
+.palmares-dialog[open] {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.palmares-dialog::backdrop {
+    background: rgb(17 24 39 / 0.8);
+    backdrop-filter: blur(4px);
+}
+
+@media (min-width: 640px) {
+    .palmares-dialog[open] {
+        align-items: center;
+        padding: 1.5rem;
+    }
+}
+
 .palmares-overlay {
     animation: palmares-fade 180ms ease-out;
 }

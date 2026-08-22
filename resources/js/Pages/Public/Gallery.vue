@@ -198,12 +198,17 @@ const lightboxIndex = ref(0)
 const lightboxEl = ref(null)
 const lightboxTransition = ref(false)
 
+// La finestra e' un <dialog>: aperta con showModal() sta nel top layer, il
+// fuoco ci resta dentro e l'Esc la chiude da solo. Le frecce e lo scorrimento
+// col dito restano nostri.
 function openLightbox(index) {
     lightboxIndex.value = index
     lightboxOpen.value = true
     document.body.style.overflow = 'hidden'
     nextTick(() => {
-        lightboxEl.value?.focus()
+        if (lightboxEl.value && !lightboxEl.value.open) {
+            lightboxEl.value.showModal()
+        }
         requestAnimationFrame(() => { lightboxTransition.value = true })
     })
 }
@@ -216,7 +221,15 @@ function closeLightbox() {
     lightboxTransition.value = false
     document.body.style.overflow = ''
     clearTimeout(closeTimeout)
-    closeTimeout = setTimeout(() => { lightboxOpen.value = false }, 300)
+    // La chiusura vera aspetta la dissolvenza: chiudere subito il <dialog> lo
+    // farebbe sparire di scatto.
+    closeTimeout = setTimeout(() => {
+        lightboxOpen.value = false
+
+        if (lightboxEl.value?.open) {
+            lightboxEl.value.close()
+        }
+    }, 300)
 }
 
 // Guardia sulla lista vuota: il modulo su length 0 produrrebbe NaN e il
@@ -571,16 +584,13 @@ const ogMeta = useOgMeta({
 
             <!-- Masonry Grid -->
             <div v-else ref="galleryGridRef" class="gallery-masonry">
-                <div
+                <button
                     v-for="(item, index) in visibleMedia"
                     :key="item.id"
+                    type="button"
                     :data-idx="index"
-                    role="button"
-                    tabindex="0"
                     :aria-label="item.alt || $t('gallery.open_image')"
                     @click="openLightbox(index)"
-                    @keydown.enter.prevent="openLightbox(index)"
-                    @keydown.space.prevent="openLightbox(index)"
                     class="gallery-masonry__item"
                     :class="{
                         'gallery-masonry__item--revealed': revealedItems.has(String(index)),
@@ -619,7 +629,7 @@ const ogMeta = useOgMeta({
                             </div>
                         </div>
                     </div>
-                </div>
+                </button>
             </div>
 
             <!-- Carica il blocco successivo di foto -->
@@ -632,24 +642,19 @@ const ogMeta = useOgMeta({
         </section>
 
         <!-- ═══════════════ LIGHTBOX ═══════════════ -->
-        <Teleport to="body">
-            <Transition name="lightbox-backdrop">
-                <div
-                    v-if="lightboxOpen"
-                    ref="lightboxEl"
-                    class="gallery-lightbox"
-                    :class="{ 'gallery-lightbox--visible': lightboxTransition }"
-                    tabindex="-1"
-                    role="dialog"
-                    aria-modal="true"
-                    :aria-label="$t('gallery.lightbox_label')"
-                    @click.self="closeLightbox"
-                    @keydown.escape="closeLightbox"
-                    @keydown.arrow-left="prevImage"
-                    @keydown.arrow-right="nextImage"
-                    @touchstart.passive="onTouchStart"
-                    @touchend.passive="onTouchEnd"
-                >
+        <dialog
+            ref="lightboxEl"
+            class="gallery-lightbox"
+            :class="{ 'gallery-lightbox--visible': lightboxTransition }"
+            :aria-label="$t('gallery.lightbox_label')"
+            @close="closeLightbox"
+            @click.self="closeLightbox"
+            @keydown.arrow-left="prevImage"
+            @keydown.arrow-right="nextImage"
+            @touchstart.passive="onTouchStart"
+            @touchend.passive="onTouchEnd"
+        >
+            <template v-if="lightboxOpen">
                     <!-- Close -->
                     <button type="button" @click="closeLightbox" :aria-label="$t('common.close')" class="gallery-lightbox__close">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -703,9 +708,8 @@ const ogMeta = useOgMeta({
                             <img :src="item.thumb || item.url" :alt="item.alt" @error="onImgError" />
                         </button>
                     </div>
-                </div>
-            </Transition>
-        </Teleport>
+            </template>
+        </dialog>
     </PublicLayout>
 </template>
 
@@ -918,12 +922,12 @@ const ogMeta = useOgMeta({
     border: 1.5px solid transparent;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: rgba(0,48,99,0.04);
+    background: #f5f7f9;
     color: #4b5563;
 }
 
 .gallery-filters__chip:hover {
-    background: rgba(0,48,99,0.1);
+    background: #e6eaef;
     color: #003063;
     transform: translateY(-1px);
 }
@@ -972,7 +976,7 @@ const ogMeta = useOgMeta({
     font-size: 0.82rem;
     font-weight: 600;
     color: #003063;
-    background: rgba(0,48,99,0.06);
+    background: #f0f3f6;
     border: 1.5px solid rgba(0,48,99,0.12);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1114,7 +1118,7 @@ const ogMeta = useOgMeta({
 }
 
 .gallery-filters__dropdown-item:hover {
-    background: rgba(0,48,99,0.06);
+    background: #f0f3f6;
     color: #003063;
 }
 
@@ -1402,6 +1406,17 @@ const ogMeta = useOgMeta({
 }
 
 .gallery-masonry__item {
+    /* Il riquadro e' un <button>: senza questi tre azzeramenti il browser gli
+       darebbe bordo, sfondo e allineamento del testo dei pulsanti di sistema. */
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    display: block;
     position: relative;
     border-radius: 0.75rem;
     overflow: hidden;
@@ -1643,18 +1658,36 @@ const ogMeta = useOgMeta({
 }
 
 /* ── LIGHTBOX ────────────────────────────────────── */
+/* <dialog> arriva con bordo, sfondo e dimensioni proprie del browser: qui
+   serve una finestra a tutto schermo. Lo sfondo scuro lo disegna ::backdrop. */
 .gallery-lightbox {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    background: rgba(0,0,0,0.96);
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-lightbox[open] {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    outline: none;
+}
+
+.gallery-lightbox::backdrop {
+    background: rgba(0, 0, 0, 0.96);
     opacity: 0;
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-lightbox--visible::backdrop {
+    opacity: 1;
 }
 
 .gallery-lightbox--visible {
@@ -1669,18 +1702,18 @@ const ogMeta = useOgMeta({
     width: 2.8rem;
     height: 2.8rem;
     border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: #1f1f1f;
+    border: 1px solid #2b2b2b;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.78);
 }
 
 .gallery-lightbox__close:hover {
-    background: rgba(255,255,255,0.15);
+    background: #2b2b2b;
     color: white;
     transform: rotate(90deg);
 }
@@ -1698,20 +1731,22 @@ const ogMeta = useOgMeta({
     width: 3rem;
     height: 3rem;
     border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: #1a1a1a;
+    border: 1px solid #212121;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.78);
 }
 
 .gallery-lightbox__nav:hover {
-    background: rgba(201,168,76,0.2);
-    border-color: rgba(201,168,76,0.3);
-    color: #F8269C;
+    /* Il fucsia pieno su fondo scuro sta appena sotto il rapporto minimo di
+       contrasto: per il testo si usa la variante chiara. */
+    background: #32081f;
+    border-color: #4a0c2d;
+    color: #ff8ac9;
 }
 
 .gallery-lightbox__nav svg {
@@ -1771,12 +1806,15 @@ const ogMeta = useOgMeta({
 }
 
 .gallery-lightbox__info-category {
-    color: #F8269C;
+    /* Il fucsia pieno su fondo scuro sta a 4,49:1, appena sotto il minimo:
+       la variante chiara lo porta oltre nove. Il fondo era un residuo d'oro,
+       colore fuori dalla palette dal 2026. */
+    color: #ff8ac9;
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    background: rgba(201,168,76,0.12);
+    background: #2a0a1d;
     padding: 0.2rem 0.6rem;
     border-radius: 9999px;
     white-space: nowrap;

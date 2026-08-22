@@ -175,7 +175,8 @@ const loadMore = () => {
                 </div>
 
                 <!-- Category Filter Pills -->
-                <div v-if="categories.length > 1" role="group" :aria-label="$t('shop.category_filter') || 'Category filter'" class="flex flex-wrap items-center justify-center gap-2 mb-10">
+                <fieldset v-if="categories.length > 1" class="flex flex-wrap items-center justify-center gap-2 mb-10 border-0 p-0 m-0">
+                    <legend class="sr-only">{{ $t('shop.category_filter') || 'Category filter' }}</legend>
                     <button type="button"
                         @click="selectedCategory = null"
                         :aria-pressed="selectedCategory === null"
@@ -200,7 +201,7 @@ const loadMore = () => {
                         {{ cat.name }}
                         <span v-if="cat.products_count" class="ml-1.5 text-xs opacity-70">({{ cat.products_count }})</span>
                     </button>
-                </div>
+                </fieldset>
 
                 <!-- Result count + Sort + Clear filters -->
                 <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
@@ -231,9 +232,9 @@ const loadMore = () => {
                 </div>
 
                 <!-- Skeleton Loading -->
-                <div v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" role="list" :aria-label="$t('shop.loading_products')">
-                    <ProductCardSkeleton v-for="n in 8" :key="'skeleton-' + n" role="listitem" />
-                </div>
+                <ul v-if="isNavigating" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" :aria-label="$t('shop.loading_products')">
+                    <li v-for="n in 8" :key="'skeleton-' + n" class="grid"><ProductCardSkeleton /></li>
+                </ul>
 
                 <!-- Products Grid -->
                 <transition-group
