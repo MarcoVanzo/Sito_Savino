@@ -94,6 +94,47 @@ class GalleryEventResource extends Resource
             ]);
     }
 
+    /**
+     * A che punto e' l'analisi dei volti sulle foto dell'album.
+     */
+    private static function statoDellAnalisi(GalleryEvent $record): string
+    {
+        $total = $record->gallery_images_count ?? 0;
+
+        if ($total === 0) {
+            return 'empty';
+        }
+
+        $analyzed = $record->ai_analyzed_images_count ?? 0;
+
+        if ($analyzed === $total) {
+            return 'complete';
+        }
+
+        return $analyzed > 0 ? 'partial' : 'none';
+    }
+
+    /**
+     * "12/30", oppure un trattino se l'album e' vuoto.
+     */
+    private static function avanzamentoDellAnalisi(string $state, GalleryEvent $record): string
+    {
+        $total = $record->gallery_images_count ?? 0;
+
+        if ($total === 0) {
+            return '—';
+        }
+
+        $analyzed = $record->ai_analyzed_images_count ?? 0;
+
+        return match ($state) {
+            'complete' => '✓ '.$analyzed.'/'.$total,
+            'partial' => $analyzed.'/'.$total,
+            'none' => '0/'.$total,
+            default => '—',
+        };
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -120,36 +161,9 @@ class GalleryEventResource extends Resource
                     ->boolean(),
                 Tables\Columns\TextColumn::make('ai_status')
                     ->label('Analisi AI')
-                    ->state(function (GalleryEvent $record): string {
-                        $total = $record->gallery_images_count ?? 0;
-                        if ($total === 0) {
-                            return 'empty';
-                        }
-                        $analyzed = $record->ai_analyzed_images_count ?? 0;
-                        if ($analyzed === $total) {
-                            return 'complete';
-                        }
-                        if ($analyzed > 0) {
-                            return 'partial';
-                        }
-
-                        return 'none';
-                    })
+                    ->state(fn (GalleryEvent $record): string => self::statoDellAnalisi($record))
                     ->badge()
-                    ->formatStateUsing(function (string $state, GalleryEvent $record): string {
-                        $total = $record->gallery_images_count ?? 0;
-                        if ($total === 0) {
-                            return '—';
-                        }
-                        $analyzed = $record->ai_analyzed_images_count ?? 0;
-
-                        return match ($state) {
-                            'complete' => '✓ '.$analyzed.'/'.$total,
-                            'partial' => $analyzed.'/'.$total,
-                            'none' => '0/'.$total,
-                            default => '—',
-                        };
-                    })
+                    ->formatStateUsing(fn (string $state, GalleryEvent $record): string => self::avanzamentoDellAnalisi($state, $record))
                     ->color(fn (string $state): string => match ($state) {
                         'complete' => 'success',
                         'partial' => 'warning',

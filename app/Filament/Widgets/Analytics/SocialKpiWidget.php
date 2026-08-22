@@ -60,34 +60,34 @@ class SocialKpiWidget extends BaseWidget
             Stat::make('Follower', self::number($followers))
                 ->extraAttributes(self::accento())
                 ->icon('heroicon-m-users')
-                ->description($delta === null ? 'Variazione non disponibile' : self::signed($delta).' nel periodo')
-                ->descriptionIcon($delta !== null && $delta < 0 ? 'heroicon-m-arrow-trending-down' : 'heroicon-m-arrow-trending-up')
+                ->description(self::variazioneFollower($delta))
+                ->descriptionIcon(self::iconaTendenza($delta))
                 ->color(self::coloreDelta($delta))
-                ->chart(array_map(static fn (array $row): float => (float) $row['follower_count'], $daily)),
+                ->chart(self::serie($daily, 'follower_count')),
 
             Stat::make('Visualizzazioni', self::number($totals['views']))
                 ->extraAttributes(self::accento())
                 ->icon('heroicon-m-eye')
-                ->chart(array_map(static fn (array $row): float => (float) $row['views'], $daily)),
+                ->chart(self::serie($daily, 'views')),
 
-            Stat::make('Account raggiunti', $reach === null ? 'n/d' : self::number($reach))
+            Stat::make('Account raggiunti', self::numeroOppureNd($reach))
                 ->extraAttributes(self::accento())
                 ->icon('heroicon-m-signal')
                 ->description('Reach del periodo')
-                ->chart(array_map(static fn (array $row): float => (float) $row['reach'], $daily)),
+                ->chart(self::serie($daily, 'reach')),
 
             Stat::make('Interazioni', self::number($totals['total_interactions']))
                 ->extraAttributes(self::accento())
                 ->icon('heroicon-m-hand-raised')
                 ->description($reach ? self::percent((int) $totals['total_interactions'], $reach).' del reach' : null)
-                ->chart(array_map(static fn (array $row): float => (float) $row['total_interactions'], $daily)),
+                ->chart(self::serie($daily, 'total_interactions')),
 
             Stat::make('Account che hanno interagito', self::number($engaged))
                 ->extraAttributes(self::accento())
                 ->icon('heroicon-m-user-circle')
                 ->description($followers > 0 ? self::percent($engaged, $followers).' dei follower' : null),
 
-            Stat::make('Nuovi follower', $totals['new_follows'] === null ? 'n/d' : self::number($totals['new_follows']))
+            Stat::make('Nuovi follower', self::numeroOppureNd($totals['new_follows']))
                 ->extraAttributes(self::accento())
                 ->icon('heroicon-m-user-plus')
                 ->description($totals['unfollows'] === null ? null : '−'.self::number($totals['unfollows']).' persi')
@@ -102,6 +102,43 @@ class SocialKpiWidget extends BaseWidget
                 ->icon('heroicon-m-photo')
                 ->description('Storico completo'),
         ];
+    }
+
+    /**
+     * La serie giornaliera di una metrica, per il grafico della scheda.
+     *
+     * @param  array<int, array<string, mixed>>  $daily
+     * @return array<int, float>
+     */
+    private static function serie(array $daily, string $campo): array
+    {
+        return array_map(static fn (array $row): float => (float) $row[$campo], $daily);
+    }
+
+    /**
+     * Una metrica che Meta non ha fornito si dice, non si finge zero.
+     */
+    private static function numeroOppureNd(?int $valore): string
+    {
+        return $valore === null ? 'n/d' : self::number($valore);
+    }
+
+    /**
+     * Il confronto con il periodo precedente manca quando la serie non e'
+     * abbastanza lunga.
+     */
+    private static function variazioneFollower(?int $delta): string
+    {
+        return $delta === null
+            ? 'Variazione non disponibile'
+            : self::signed($delta).' nel periodo';
+    }
+
+    private static function iconaTendenza(?int $delta): string
+    {
+        return $delta !== null && $delta < 0
+            ? 'heroicon-m-arrow-trending-down'
+            : 'heroicon-m-arrow-trending-up';
     }
 
     /**
