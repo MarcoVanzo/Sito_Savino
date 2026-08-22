@@ -54,13 +54,13 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label || $t('summer_camp.hero_label') }}</span>
+            <span v-if="cd.hero_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ page?.title ?? $t('summer_camp.og_title') }}
             </h1>
             <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
-            <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                {{ cd.hero_subtitle || $t('summer_camp.hero_subtitle') }}
+            <p v-if="cd.hero_subtitle" class="text-white/70 text-lg max-w-2xl mx-auto">
+                {{ cd.hero_subtitle }}
             </p>
         </div>
     </section>
@@ -70,16 +70,16 @@ const ogMeta = useOgMeta({
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.camp_section_label || $t('summer_camp.camp_section_label') }}</span>
-                    <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                        {{ cd.camp_title || $t('summer_camp.camp_title') }}
+                    <span v-if="cd.camp_section_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.camp_section_label }}</span>
+                    <h2 v-if="cd.camp_title" class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
+                        {{ cd.camp_title }}
                     </h2>
                     <div class="w-12 h-1 bg-savino-fucsia mt-4 mb-6"></div>
-                    <p class="text-gray-600 leading-relaxed mb-4">
-                        {{ cd.camp_description_1 || $t('summer_camp.camp_desc_1') }}
+                    <p v-if="cd.camp_description_1" class="text-gray-600 leading-relaxed mb-4">
+                        {{ cd.camp_description_1 }}
                     </p>
-                    <p class="text-gray-600 leading-relaxed mb-6">
-                        {{ cd.camp_description_2 || $t('summer_camp.camp_desc_2') }}
+                    <p v-if="cd.camp_description_2" class="text-gray-600 leading-relaxed mb-6">
+                        {{ cd.camp_description_2 }}
                     </p>
                     <ul class="space-y-3">
                         <li v-for="item in highlights" :key="item" class="flex items-center gap-3">
@@ -96,7 +96,7 @@ const ogMeta = useOgMeta({
                     <div class="text-center">
                         <span class="text-6xl">🏐</span>
                         <p class="text-savino-blue font-bold mt-4 text-lg">{{ cd.camp_badge_title }}</p>
-                        <p class="text-gray-500 text-sm mt-1">{{ cd.camp_badge_subtitle || $t('summer_camp.badge_subtitle') }}</p>
+                        <p v-if="cd.camp_badge_subtitle" class="text-gray-500 text-sm mt-1">{{ cd.camp_badge_subtitle }}</p>
                     </div>
                 </div>
             </div>
@@ -107,9 +107,9 @@ const ogMeta = useOgMeta({
     <section v-if="activities.length" class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.activities_section_label || $t('summer_camp.activities_label') }}</span>
-                <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ cd.activities_title || $t('summer_camp.activities_title') }}
+                <span v-if="cd.activities_section_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.activities_section_label }}</span>
+                <h2 v-if="cd.activities_title" class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
+                    {{ cd.activities_title }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-fucsia mx-auto mt-4"></div>
             </div>
@@ -135,9 +135,9 @@ const ogMeta = useOgMeta({
     <section v-if="dates.length" class="py-20 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.dates_section_label || $t('summer_camp.dates_label') }}</span>
-                <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ cd.dates_title || $t('summer_camp.dates_title') }}
+                <span v-if="cd.dates_section_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.dates_section_label }}</span>
+                <h2 v-if="cd.dates_title" class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
+                    {{ cd.dates_title }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-fucsia mx-auto mt-4"></div>
             </div>
@@ -171,10 +171,11 @@ const ogMeta = useOgMeta({
             </div>
             <div class="text-center mt-12">
                 <a
+                    v-if="cd.cta_text"
                     :href="safeUrl(cd.cta_url) || (contact.email ? 'mailto:' + contact.email : '#')"
                     class="inline-flex items-center gap-2 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-colors"
                 >
-                    {{ cd.cta_text || $t('summer_camp.cta_enroll') }}
+                    {{ cd.cta_text }}
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>

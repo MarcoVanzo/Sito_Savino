@@ -389,7 +389,7 @@
         "current_season": "Current season",
         "hero_title": "Our Roster",
         "hero_subtitle": "The athletes who defend the colours of Savino Del Bene Volley in Serie A1 and European competitions.",
-        "placeholder_notice": "Roster updating — Preview data",
+        "empty_notice": "The squad has not been published yet.",
         "discover_athlete": "Learn more about this athlete"
     },
     "stagione": {

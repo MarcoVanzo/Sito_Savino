@@ -115,13 +115,13 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge || $t('comunicazione.hero_badge') }}</span>
+            <span v-if="cd.hero_badge" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ page?.title ?? $t('comunicazione.og_title') }}
             </h1>
             <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
-            <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                {{ cd.hero_subtitle || $t('comunicazione.hero_subtitle') }}
+            <p v-if="cd.hero_subtitle" class="text-white/70 text-lg max-w-2xl mx-auto">
+                {{ cd.hero_subtitle }}
             </p>
         </div>
     </section>
@@ -131,16 +131,16 @@ const ogMeta = useOgMeta({
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div>
-                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.accreditation_badge || $t('comunicazione.accreditation_badge') }}</span>
-                    <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                        {{ cd.accreditation_title || $t('comunicazione.accreditation_title') }}
+                    <span v-if="cd.accreditation_badge" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.accreditation_badge }}</span>
+                    <h2 v-if="cd.accreditation_title" class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
+                        {{ cd.accreditation_title }}
                     </h2>
                     <div class="w-12 h-1 bg-savino-fucsia mt-4 mb-6"></div>
-                    <p class="text-gray-600 leading-relaxed mb-4">
-                        {{ cd.accreditation_text_1 || $t('comunicazione.accreditation_text_1') }}
+                    <p v-if="cd.accreditation_text_1" class="text-gray-600 leading-relaxed mb-4">
+                        {{ cd.accreditation_text_1 }}
                     </p>
-                    <p class="text-gray-600 leading-relaxed mb-6">
-                        {{ cd.accreditation_text_2 || $t('comunicazione.accreditation_text_2') }}
+                    <p v-if="cd.accreditation_text_2" class="text-gray-600 leading-relaxed mb-6">
+                        {{ cd.accreditation_text_2 }}
                     </p>
                     <!-- I tre passi elencavano come scrivere una mail: adesso la
                          richiesta si manda dal modulo qui accanto. Resta lo spazio per
@@ -245,9 +245,9 @@ const ogMeta = useOgMeta({
     <section v-if="pressKitItems.length > 0" class="py-20 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.press_kit_badge || 'Download' }}</span>
-                <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ cd.press_kit_section_title || 'Press Kit' }}
+                <span v-if="cd.press_kit_badge" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.press_kit_badge }}</span>
+                <h2 v-if="cd.press_kit_section_title" class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
+                    {{ cd.press_kit_section_title }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-fucsia mx-auto mt-4"></div>
             </div>
@@ -282,9 +282,9 @@ const ogMeta = useOgMeta({
     <section class="py-20 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.contacts_badge || $t('comunicazione.contacts_badge') }}</span>
-                <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
-                    {{ cd.contacts_section_title || $t('comunicazione.contacts_section_title') }}
+                <span v-if="cd.contacts_badge" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.contacts_badge }}</span>
+                <h2 v-if="cd.contacts_section_title" class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-2">
+                    {{ cd.contacts_section_title }}
                 </h2>
                 <div class="w-12 h-1 bg-savino-fucsia mx-auto mt-4"></div>
             </div>

@@ -389,7 +389,7 @@
         "current_season": "Stagione corrente",
         "hero_title": "Il Nostro Roster",
         "hero_subtitle": "Le atlete che difendono i colori della Savino Del Bene Volley in Serie A1 e nelle competizioni europee.",
-        "placeholder_notice": "Roster in fase di aggiornamento — Dati di anteprima",
+        "empty_notice": "La rosa non \u00e8 ancora stata pubblicata.",
         "discover_athlete": "Scopri di più su questa atleta"
     },
     "stagione": {

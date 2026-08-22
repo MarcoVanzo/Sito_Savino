@@ -53,17 +53,19 @@ const sponsorMailto = computed(() => {
         return null;
     }
 
-    const subject = cd.value.contact_subject || $t('sponsor.mail_subject');
+    const subject = cd.value.contact_subject;
 
-    return `mailto:${address}?subject=${encodeURIComponent(subject)}`;
+    return subject
+        ? `mailto:${address}?subject=${encodeURIComponent(subject)}`
+        : `mailto:${address}`;
 });
 
 // I numeri d'impatto arrivano dal CMS (Pagine → Sponsor): quelli che stavano
 // qui comparivano online anche con i campi del pannello vuoti.
 const impactStats = computed(() => [
-    { value: cd.value.stat1_value, label: cd.value.stat1_label || $t('sponsor.stat_social') },
-    { value: cd.value.stat2_value, label: cd.value.stat2_label || $t('sponsor.stat_spectators') },
-    { value: cd.value.stat3_value, label: cd.value.stat3_label || $t('sponsor.stat_events') },
+    { value: cd.value.stat1_value, label: cd.value.stat1_label },
+    { value: cd.value.stat2_value, label: cd.value.stat2_label },
+    { value: cd.value.stat3_value, label: cd.value.stat3_label },
 ].filter((stat) => stat.value));
 
 const ogMeta = useOgMeta({
@@ -89,13 +91,13 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.04]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Crect x=&quot;10&quot; y=&quot;10&quot; width=&quot;40&quot; height=&quot;40&quot; rx=&quot;4&quot; fill=&quot;none&quot; stroke=&quot;%23C5A55A&quot; stroke-width=&quot;1&quot;/%3E%3C/svg%3E'); background-size: 60px 60px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle || $t('sponsor.hero_subtitle') }}</span>
+                <span v-if="cd.hero_subtitle" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ page?.title ?? $t('sponsor.og_title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">
-                    {{ cd.hero_description || $t('sponsor.hero_description') }}
+                <p v-if="cd.hero_description" class="text-white/70 text-lg max-w-2xl mx-auto">
+                    {{ cd.hero_description }}
                 </p>
             </div>
         </section>
@@ -156,13 +158,13 @@ const ogMeta = useOgMeta({
         <!-- BECOME A SPONSOR CTA -->
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-savino-blue">
             <div class="max-w-4xl mx-auto text-center">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.cta_subtitle || $t('sponsor.cta_subtitle') }}</span>
-                <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mt-3">
-                    {{ cd.cta_title || $t('sponsor.cta_title') }}
+                <span v-if="cd.cta_subtitle" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.cta_subtitle }}</span>
+                <h2 v-if="cd.cta_title" class="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mt-3">
+                    {{ cd.cta_title }}
                 </h2>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-8"></div>
-                <p class="text-white/80 text-lg leading-relaxed max-w-2xl mx-auto mb-10">
-                    {{ cd.cta_description || $t('sponsor.cta_description') }}
+                <p v-if="cd.cta_description" class="text-white/80 text-lg leading-relaxed max-w-2xl mx-auto mb-10">
+                    {{ cd.cta_description }}
                 </p>
                 <div v-if="impactStats.length" class="grid sm:grid-cols-3 gap-6 mb-12">
                     <div
@@ -175,11 +177,11 @@ const ogMeta = useOgMeta({
                     </div>
                 </div>
                 <a
-                    v-if="sponsorMailto"
+                    v-if="sponsorMailto && cd.cta_button_text"
                     :href="sponsorMailto"
                     class="inline-flex items-center gap-2 bg-savino-fucsia text-savino-blue px-8 py-4 font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-savino-fucsia/90 transition-colors"
                 >
-                    {{ cd.cta_button_text || $t('sponsor.cta_button') }}
+                    {{ cd.cta_button_text }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </a>
             </div>

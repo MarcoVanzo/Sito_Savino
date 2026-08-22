@@ -210,10 +210,10 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent z-0"></div>
             
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24 animate-fade-in-up">
-                <span class="text-savino-fucsia text-sm font-black uppercase tracking-[0.4em] mb-4 block drop-shadow-sm">{{ cd.hero_subtitle || $t('contatti.hero_subtitle') }}</span>
+                <span v-if="cd.hero_subtitle" class="text-savino-fucsia text-sm font-black uppercase tracking-[0.4em] mb-4 block drop-shadow-sm">{{ cd.hero_subtitle }}</span>
                 <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter drop-shadow-lg">{{ page?.title ?? $t('contatti.og_title') ?? 'Contatti' }}</h1>
                 <div class="w-24 h-1.5 bg-savino-fucsia mx-auto mt-6 mb-8 rounded-full shadow-[0_0_15px_rgba(201,168,76,0.5)]"></div>
-                <p class="text-white/90 text-xl font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-md">{{ cd.hero_description || $t('contatti.hero_description') }}</p>
+                <p v-if="cd.hero_description" class="text-white/90 text-xl font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-md">{{ cd.hero_description }}</p>
             </div>
         </section>
 
@@ -449,7 +449,7 @@ const ogMeta = useOgMeta({
                     <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 border border-gray-100">
                         <div class="mb-8">
                             <span class="text-savino-blue text-xs font-black uppercase tracking-[0.2em] block mb-2">{{ cd.form_subtitle }}</span>
-                            <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-4">{{ cd.form_title || $t('contatti.form_title') }}</h2>
+                            <h2 v-if="cd.form_title" class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-4">{{ cd.form_title }}</h2>
                             <div class="w-12 h-1.5 bg-savino-blue rounded-full"></div>
                         </div>
 
@@ -461,8 +461,8 @@ const ogMeta = useOgMeta({
                                 </svg>
                             </div>
                             <h3 class="text-2xl font-black text-gray-900 mb-3">{{ flashSuccess }}</h3>
-                            <p class="text-gray-500 font-medium mb-8 text-lg">{{ cd.form_success_message || $t('contatti.form_success_message') }}</p>
-                            <button type="button" @click="resetForm" class="inline-block px-8 py-3.5 bg-gray-100 text-gray-900 rounded-xl font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">{{ cd.form_reset_label || $t('contatti.form_reset_label') }}</button>
+                            <p v-if="cd.form_success_message" class="text-gray-500 font-medium mb-8 text-lg">{{ cd.form_success_message }}</p>
+                            <button v-if="cd.form_reset_label" type="button" @click="resetForm" class="inline-block px-8 py-3.5 bg-gray-100 text-gray-900 rounded-xl font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">{{ cd.form_reset_label }}</button>
                         </div>
 
                         <!-- Form -->
@@ -473,13 +473,13 @@ const ogMeta = useOgMeta({
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label for="contact-name" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_name || $t('contatti.form_label_name') }} *</label>
+                                    <label for="contact-name" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_name }} *</label>
                                     <input
                                         id="contact-name"
                                         v-model="form.name"
                                         type="text"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium"
-                                        :placeholder="cd.form_placeholder_name || $t('contatti.form_placeholder_name')"
+                                        :placeholder="cd.form_placeholder_name"
                                         required
                                     />
                                 </div>
@@ -490,14 +490,14 @@ const ogMeta = useOgMeta({
                                         v-model="form.email"
                                         type="email"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium"
-                                        :placeholder="cd.form_placeholder_email || $t('contatti.form_placeholder_email')"
+                                        :placeholder="cd.form_placeholder_email"
                                         required
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label for="contact-subject" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_subject || $t('contatti.form_label_subject') }}</label>
+                                <label v-if="cd.form_label_subject" for="contact-subject" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_subject }}</label>
                                 <!-- Using a select for smart tips -->
                                 <div class="relative">
                                     <select
@@ -537,13 +537,13 @@ const ogMeta = useOgMeta({
                             </div>
 
                             <div>
-                                <label for="contact-message" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_message || $t('contatti.form_label_message') }} *</label>
+                                <label for="contact-message" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_message }} *</label>
                                 <textarea
                                     id="contact-message"
                                     v-model="form.message"
                                     rows="5"
                                     class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all resize-none font-medium"
-                                    :placeholder="cd.form_placeholder_message || $t('contatti.form_placeholder_message')"
+                                    :placeholder="cd.form_placeholder_message"
                                     required
                                 ></textarea>
                             </div>
@@ -558,8 +558,8 @@ const ogMeta = useOgMeta({
                                     :disabled="form.processing"
                                     class="w-full sm:w-auto px-10 py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest hover:bg-savino-blue transition-all duration-300 shadow-xl shadow-gray-900/20 hover:shadow-savino-blue/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
                                 >
-                                    <span v-if="form.processing">{{ cd.form_sending_label || $t('contatti.form_sending') }}</span>
-                                    <span v-else>{{ cd.form_submit_label || $t('contatti.form_submit') }}</span>
+                                    <span v-if="form.processing">{{ cd.form_sending_label }}</span>
+                                    <span v-else>{{ cd.form_submit_label }}</span>
                                     <svg v-if="!form.processing" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                     </svg>

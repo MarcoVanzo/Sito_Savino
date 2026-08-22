@@ -96,7 +96,7 @@ const ogMeta = useOgMeta({
     <!-- Tappe -->
     <section v-if="stages.length" class="py-16 bg-gray-50">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.stages_title || $t('talent_day.stages_title') }}</h2>
+            <h2 v-if="cd.stages_title" class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.stages_title }}</h2>
             <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-10"></div>
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -123,7 +123,7 @@ const ogMeta = useOgMeta({
     <!-- Turni -->
     <section v-if="slots.length" class="py-16 bg-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.slots_title || $t('talent_day.slots_title') }}</h2>
+            <h2 v-if="cd.slots_title" class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.slots_title }}</h2>
             <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-10"></div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -142,19 +142,19 @@ const ogMeta = useOgMeta({
     <!-- Iscrizione -->
     <section class="py-16 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-4">{{ cd.signup_title || $t('talent_day.signup_title') }}</h2>
+            <h2 v-if="cd.signup_title" class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-4">{{ cd.signup_title }}</h2>
             <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-8"></div>
             <p v-if="cd.signup_description" class="text-white/70 text-lg leading-relaxed mb-8">{{ cd.signup_description }}</p>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                    v-if="signupUrl"
+                    v-if="signupUrl && cd.signup_cta"
                     :href="signupUrl"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="inline-flex items-center justify-center px-8 py-3.5 bg-savino-fucsia text-white font-bold uppercase tracking-wider rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 shadow-lg shadow-savino-fucsia/30 text-sm"
                 >
-                    {{ cd.signup_cta || $t('talent_day.signup_cta') }}
+                    {{ cd.signup_cta }}
                 </a>
                 <a
                     v-if="signupEmail"

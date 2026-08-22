@@ -46,12 +46,12 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subheading || $t('organigramma.hero_subtitle') }}</span>
+                <span v-if="cd.hero_subheading" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subheading }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title || $t('organigramma.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
 
                 <div v-if="page?.content" class="prose prose-lg prose-invert max-w-3xl mx-auto" v-html="safeContent"></div>
-                <p v-else class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description || $t('organigramma.hero_description') }}</p>
+                <p v-else-if="cd.hero_description" class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description }}</p>
             </div>
         </section>
 
