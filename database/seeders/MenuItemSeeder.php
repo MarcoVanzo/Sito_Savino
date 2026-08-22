@@ -241,8 +241,6 @@ class MenuItemSeeder extends Seeder
     /**
      * SDB Youth, Camp, Sociale, Media e Shop.
      */
-    private function voceYouthCampSocialeMediaShop(): void {}
-
     /**
      * SDB Youth: settore giovanile, talent day, affiliazioni.
      */

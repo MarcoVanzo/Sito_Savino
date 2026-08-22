@@ -206,8 +206,8 @@ const validateCoupon = async () => {
             couponDiscount.value = 0;
             couponMessage.value = data.message;
         }
-    } catch (errore) {
-        if (import.meta.env.DEV) console.debug('verifica coupon non riuscita', errore);
+    } catch (error) {
+        if (import.meta.env.DEV) console.debug('verifica coupon non riuscita', error);
         couponStatus.value = 'invalid';
         couponMessage.value = $t('shop_checkout.coupon_error');
     }

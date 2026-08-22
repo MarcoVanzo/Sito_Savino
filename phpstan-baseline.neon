@@ -235,12 +235,6 @@ parameters:
 			path: app/Models/MenuItem.php
 
 		-
-			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: app/Models/MenuItem.php
-
-		-
 			message: '#^Relation ''children'' is not found in App\\Models\\MenuItem model\.$#'
 			identifier: larastan.relationExistence
 			count: 1

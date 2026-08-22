@@ -117,7 +117,7 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
             ->columnSpanFull()
             // Lo stato resta un elenco: a incapsularlo in JSON ci pensa il
             // salvataggio, che riunisce le lingue in un'unica impostazione.
-            ->formatStateUsing(self::elencoDaStato(...));
+            ->formatStateUsing(fn ($state) => self::elencoDaStato($state));
     }
 
     /**

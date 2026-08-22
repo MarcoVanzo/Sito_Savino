@@ -32,7 +32,8 @@ createInertiaApp({
 
         const originalRoute = window.route;
         window.route = (name, params, absolute, config) => {
-            const locale = String(props.initialPage.props.locale ?? '');
+            const condivisa = props.initialPage.props.locale;
+            const locale = typeof condivisa === 'string' ? condivisa : '';
             if (locale && locale !== 'it' && name && !name.startsWith(locale + '.')) {
                 const localizedName = `${locale}.${name}`;
                 if (window.Ziggy?.routes[localizedName] || typeof originalRoute().has === 'function' && originalRoute().has(localizedName)) {

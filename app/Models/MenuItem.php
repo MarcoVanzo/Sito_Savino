@@ -225,10 +225,9 @@ class MenuItem extends Model implements HasMedia
             return $caricata;
         }
 
-        $etichettaIt = is_array($item->getTranslations('label'))
-            ? ($item->getTranslation('label', 'it', false) ?: $item->label)
-            : $item->label;
-
+        // `label` e' tradotto: l'abbinamento con le immagini statiche e' sulla
+        // versione italiana, che e' quella con cui sono state nominate.
+        $etichettaIt = $item->getTranslation('label', 'it', false) ?: $item->label;
         $normalizzata = mb_strtolower(trim((string) $etichettaIt));
 
         return isset(self::$staticMenuImages[$normalizzata])

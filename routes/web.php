@@ -41,8 +41,10 @@ foreach ($locales as $loc) {
         ServeSocialCrawlerMeta::class,
         SetLocale::class.':'.$loc,
     ])->prefix($prefix)->name($namePrefix)->group(function () use ($loc, $namePrefix) {
-        require __DIR__.'/pubbliche/sito.php';
-        require __DIR__.'/pubbliche/shop.php';
+        // I due file restituiscono una funzione: la lingua e il prefisso dei nomi
+        // si passano, non si ereditano dallo scope di chi include.
+        (require __DIR__.'/pubbliche/sito.php')($loc, $namePrefix);
+        (require __DIR__.'/pubbliche/shop.php')($loc, $namePrefix);
     });
 }
 

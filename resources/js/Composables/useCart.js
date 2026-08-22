@@ -29,10 +29,10 @@ export function useCart() {
             const data = await response.json();
             cartCount.value = data.count;
             cartTotal.value = data.total;
-        } catch (errore) {
+        } catch (error) {
             // Il badge del carrello non e' critico: si tiene il valore
             // precedente, ma in sviluppo il motivo resta leggibile.
-            if (import.meta.env.DEV) console.debug('conteggio carrello non disponibile', errore);
+            if (import.meta.env.DEV) console.debug('conteggio carrello non disponibile', error);
         }
     };
 
