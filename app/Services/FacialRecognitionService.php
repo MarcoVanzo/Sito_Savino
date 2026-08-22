@@ -165,37 +165,65 @@ class FacialRecognitionService
             throw new FacialRecognitionException("CompreFace API error (HTTP {$response->status()}): {$errorBody}");
         }
 
-        $result = $response->json();
         $detectedPersons = [];
         $hasUnrecognizedFaces = false;
 
-        if (isset($result['result'])) {
-            foreach ($result['result'] as $face) {
-                if (isset($face['subjects']) && count($face['subjects']) > 0) {
-                    $topMatch = $face['subjects'][0];
-                    if ($topMatch['similarity'] >= $minConfidence) {
-                        $resolved = $this->resolveSubject($topMatch['subject']);
-                        if ($resolved) {
-                            $detectedPersons[] = [
-                                'person_type' => $resolved['type'],
-                                'person_id' => $resolved['id'],
-                                'confidence' => $topMatch['similarity'] * 100,
-                            ];
-                            Log::info("CompreFace Recognized: {$topMatch['subject']} (similarity: {$topMatch['similarity']})");
-                        }
-                    } else {
-                        Log::info("CompreFace Ignored: {$topMatch['subject']} (similarity: {$topMatch['similarity']} < {$minConfidence})");
-                        $hasUnrecognizedFaces = true;
-                    }
-                } else {
-                    $hasUnrecognizedFaces = true;
-                }
+        foreach ($response->json()['result'] ?? [] as $face) {
+            ['persona' => $persona, 'daRivedere' => $daRivedere] = $this->personaDelVolto($face, $minConfidence);
+
+            if ($persona !== null) {
+                $detectedPersons[] = $persona;
             }
+
+            $hasUnrecognizedFaces = $hasUnrecognizedFaces || $daRivedere;
         }
 
         return [
             'detected_persons' => $detectedPersons,
             'has_unrecognized_faces' => $hasUnrecognizedFaces,
+        ];
+    }
+
+    /**
+     * La persona riconosciuta in un volto, e se quel volto lascia la foto da
+     * rivedere in redazione.
+     *
+     * Un volto senza soggetti o sotto la soglia di somiglianza va rivisto. Un
+     * soggetto riconosciuto ma non piu' in anagrafica non viene invece
+     * segnalato: e' il comportamento storico, qui reso esplicito.
+     *
+     * @param  array<string, mixed>  $face
+     * @return array{persona: array<string, mixed>|null, daRivedere: bool}
+     */
+    private function personaDelVolto(array $face, float $minConfidence): array
+    {
+        $topMatch = $face['subjects'][0] ?? null;
+
+        if ($topMatch === null) {
+            return ['persona' => null, 'daRivedere' => true];
+        }
+
+        if ($topMatch['similarity'] < $minConfidence) {
+            Log::info("CompreFace Ignored: {$topMatch['subject']} (similarity: {$topMatch['similarity']} < {$minConfidence})");
+
+            return ['persona' => null, 'daRivedere' => true];
+        }
+
+        $resolved = $this->resolveSubject($topMatch['subject']);
+
+        if (! $resolved) {
+            return ['persona' => null, 'daRivedere' => false];
+        }
+
+        Log::info("CompreFace Recognized: {$topMatch['subject']} (similarity: {$topMatch['similarity']})");
+
+        return [
+            'persona' => [
+                'person_type' => $resolved['type'],
+                'person_id' => $resolved['id'],
+                'confidence' => $topMatch['similarity'] * 100,
+            ],
+            'daRivedere' => false,
         ];
     }
 
