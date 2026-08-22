@@ -146,7 +146,7 @@ class FacialRecognitionService
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping recognition.');
 
-            throw new \RuntimeException('CompreFace API Key non configurata.');
+            throw new FacialRecognitionException('CompreFace API Key non configurata.');
         }
 
         $response = Http::withHeaders([
@@ -162,7 +162,7 @@ class FacialRecognitionService
                 'body' => $errorBody,
             ]);
 
-            throw new \RuntimeException("CompreFace API error (HTTP {$response->status()}): {$errorBody}");
+            throw new FacialRecognitionException("CompreFace API error (HTTP {$response->status()}): {$errorBody}");
         }
 
         $result = $response->json();

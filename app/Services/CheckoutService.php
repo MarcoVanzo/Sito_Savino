@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Enums\StockMovementType;
+use App\Exceptions\ShippingUnavailableException;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
@@ -215,14 +216,14 @@ class CheckoutService
     /**
      * Calcola il costo di spedizione per un paese e subtotale.
      *
-     * @throws \RuntimeException
+     * @throws ShippingUnavailableException
      */
     public function calculateShipping(string $countryCode, float $subtotal): float
     {
         $zone = ShippingZone::findByCountry($countryCode);
 
         if (! $zone) {
-            throw new \RuntimeException(
+            throw new ShippingUnavailableException(
                 __('messages.checkout.country_not_served')
             );
         }

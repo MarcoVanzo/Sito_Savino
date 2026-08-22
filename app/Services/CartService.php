@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ProductType;
+use App\Exceptions\CartNotFoundException;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
@@ -137,7 +138,7 @@ class CartService
         return DB::transaction(function () use ($cartItemId, $quantity) {
             $cart = $this->findCurrentCart();
             if (! $cart) {
-                throw new \RuntimeException(__('messages.cart.not_found'));
+                throw new CartNotFoundException(__('messages.cart.not_found'));
             }
 
             $item = $cart->items()->with(['product', 'variant'])->findOrFail($cartItemId);

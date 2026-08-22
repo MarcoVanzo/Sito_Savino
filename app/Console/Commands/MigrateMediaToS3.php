@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Exceptions\MediaProcessingException;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -90,7 +91,7 @@ class MigrateMediaToS3 extends Command
                 // Copia il file originale
                 $stream = $sourceDisk->readStream($relativePath);
                 if (! $stream) {
-                    throw new \RuntimeException('Impossibile leggere il file sorgente.');
+                    throw new MediaProcessingException('Impossibile leggere il file sorgente.');
                 }
 
                 $targetDisk->writeStream($relativePath, $stream, ['visibility' => 'public']);

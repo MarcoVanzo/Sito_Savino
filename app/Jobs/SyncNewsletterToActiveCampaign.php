@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\NewsletterSubscriber;
+use App\Services\ActiveCampaignException;
 use App\Services\ActiveCampaignService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -57,7 +58,7 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
                 'email' => $this->subscriber->email,
             ]);
 
-            throw new \RuntimeException('Impossibile sincronizzare il contatto con ActiveCampaign');
+            throw new ActiveCampaignException('Impossibile sincronizzare il contatto con ActiveCampaign');
         }
 
         // Step 2: Iscrivi alla lista
@@ -69,7 +70,7 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
                 'contact_id' => $contactId,
             ]);
 
-            throw new \RuntimeException('Impossibile iscrivere il contatto alla lista ActiveCampaign');
+            throw new ActiveCampaignException('Impossibile iscrivere il contatto alla lista ActiveCampaign');
         }
 
         // Step 3: Aggiorna il record locale

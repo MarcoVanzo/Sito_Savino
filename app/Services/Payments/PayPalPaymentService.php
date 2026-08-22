@@ -48,7 +48,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
-            throw new RuntimeException('Impossibile ottenere il token PayPal');
+            throw new PayPalException('Impossibile ottenere il token PayPal');
         }
 
         $token = $response->json('access_token');
@@ -102,7 +102,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
                 'status' => $response->status(),
                 'body' => $response->json(),
             ]);
-            throw new RuntimeException('Impossibile creare l\'ordine PayPal');
+            throw new PayPalException('Impossibile creare l\'ordine PayPal');
         }
 
         $data = $response->json();
@@ -112,7 +112,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
             ->firstWhere('rel', 'approve');
 
         if (! $approveLink) {
-            throw new RuntimeException('PayPal approve link non trovato nella risposta');
+            throw new PayPalException('PayPal approve link non trovato nella risposta');
         }
 
         return $approveLink['href'];
@@ -162,7 +162,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
                 'amount' => $amount ?? 'total',
                 'body' => $response->json(),
             ]);
-            throw new RuntimeException("Rimborso PayPal fallito per ordine {$order->order_number}");
+            throw new PayPalException("Rimborso PayPal fallito per ordine {$order->order_number}");
         }
 
         Log::info('PayPal refund emesso', [
@@ -195,7 +195,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
             Log::warning('PayPal webhook signature verification request failed', [
                 'status' => $response->status(),
             ]);
-            throw new RuntimeException('Verifica firma webhook PayPal fallita');
+            throw new PayPalException('Verifica firma webhook PayPal fallita');
         }
 
         $status = $response->json('verification_status');
@@ -204,7 +204,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
             Log::warning('PayPal webhook signature non valida', [
                 'verification_status' => $status,
             ]);
-            throw new RuntimeException('Firma webhook PayPal non valida');
+            throw new PayPalException('Firma webhook PayPal non valida');
         }
     }
 
@@ -216,7 +216,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
         $paypalOrderId = $payload['resource']['id'] ?? null;
 
         if (! $paypalOrderId) {
-            throw new RuntimeException('PayPal order ID non trovato nel payload webhook');
+            throw new PayPalException('PayPal order ID non trovato nel payload webhook');
         }
 
         // Capture the order
@@ -227,7 +227,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
                 'paypal_order_id' => $paypalOrderId,
                 'body' => $response->json(),
             ]);
-            throw new RuntimeException('Cattura pagamento PayPal fallita');
+            throw new PayPalException('Cattura pagamento PayPal fallita');
         }
 
         $captureData = $response->json();

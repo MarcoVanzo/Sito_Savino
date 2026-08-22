@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Exceptions\InsufficientStockException;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\StockMovement;
@@ -76,7 +77,7 @@ class StockMovementObserver
                 $currentStock = $modelClass::where('id', $id)->value('stock') ?? 0;
                 $label = $modelClass === ProductVariant::class ? 'Variante' : 'Prodotto';
                 Log::error("Stock insufficiente: {$label} #{$id} ha stock={$currentStock}, richiesto decremento di ".abs($quantity));
-                throw new \RuntimeException(
+                throw new InsufficientStockException(
                     "Stock insufficiente per {$label} #{$id}: disponibile {$currentStock}, richiesto ".abs($quantity)
                 );
             }

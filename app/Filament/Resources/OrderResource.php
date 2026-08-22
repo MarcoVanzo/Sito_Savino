@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
+use App\Exceptions\UnsupportedPaymentGatewayException;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
@@ -463,7 +464,7 @@ class OrderResource extends Resource
                             $service = match ($record->payment_gateway) {
                                 PaymentGateway::Stripe => new StripePaymentService,
                                 PaymentGateway::PayPal => new PayPalPaymentService,
-                                default => throw new \Exception('Gateway non supportato per il rimborso automatico.'),
+                                default => throw new UnsupportedPaymentGatewayException('Gateway non supportato per il rimborso automatico.'),
                             };
 
                             $amount = $data['refund_type'] === 'partial' ? (float) $data['amount'] : null;

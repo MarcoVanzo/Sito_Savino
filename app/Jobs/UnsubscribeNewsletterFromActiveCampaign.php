@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Services\ActiveCampaignException;
 use App\Services\ActiveCampaignService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -41,7 +42,7 @@ class UnsubscribeNewsletterFromActiveCampaign implements ShouldQueue
             : $service->unsubscribeFromList($this->contactId);
 
         if (! $done) {
-            throw new \RuntimeException('Impossibile propagare la disiscrizione ad ActiveCampaign');
+            throw new ActiveCampaignException('Impossibile propagare la disiscrizione ad ActiveCampaign');
         }
     }
 
