@@ -102,7 +102,7 @@ watch(desktopNav, (isDesktop) => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-900 flex flex-col font-sans overflow-x-hidden">
+    <div class="site-shell min-h-screen bg-gray-900 flex flex-col font-sans overflow-x-hidden">
         <PasswordExpiryBanner />
 
         <!-- HEADER STICKY -->
@@ -115,22 +115,21 @@ watch(desktopNav, (isDesktop) => {
             <!-- La riga usa tutta la larghezza dello schermo: con il contenitore a
                  1280px il menu restava schiacciato fra i loghi e le icone anche su
                  monitor larghi il doppio. -->
-            <div class="w-full px-4 h-[85px] relative">
+            <div class="w-full px-4 h-[var(--header-h)] relative">
                 <div class="flex justify-between items-center h-full">
                     <!-- LOGHI CHE SBORDANO (Layout Originale) -->
                     <!-- I due marchi stanno affiancati sulla stessa linea, non sovrapposti:
-                         il volley aveva un margine negativo che lo faceva scavallare sopra
-                         il riquadro bianco della Spa. Senza sovrapposizione la coppia occupa
-                         piu' larghezza, e la larghezza riservata qui sotto ne tiene conto.
-                         Deve comunque restare sotto lo spazio disponibile: sui telefoni il
-                         blocco icone (menu, carrello, account) occupa ~212px e una larghezza
-                         fissa lo spingerebbe fuori dal viewport. -->
-                    <div ref="logoBlock" class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[calc(clamp(280px,22vw,420px)_+_clamp(72px,5.8vw,116px)_+_12px)] h-full relative">
-                        <!-- `items-start` + `mt-2` sul volley conservano lo sbordo verso il
-                             basso; il marchio della Spa invece e' `self-center`, cioe'
-                             centrato sui 85px della riga, gli stessi su cui e' centrato il
-                             menu: i due si leggono sulla stessa linea. -->
-                        <div class="absolute inset-y-0 left-0 z-[60] flex items-start gap-3">
+                         la larghezza riservata qui sotto e' la somma delle due piu' il gap.
+                         Deve restare sotto lo spazio disponibile: sui telefoni il blocco
+                         icone (menu, carrello, account) occupa ~212px e una larghezza fissa
+                         lo spingerebbe fuori dal viewport, per questo li' sono 76px. -->
+                    <div ref="logoBlock" class="flex-shrink-0 flex items-center z-[60] w-[76px] sm:w-[calc(var(--corporate-logo-w)_+_var(--volley-logo-h)_+_12px)] h-full relative">
+                        <!-- Tutto e' centrato sulla stessa orizzontale: il centro del logo
+                             volley e' il centro della riga, e quindi il centro del menu, del
+                             pulsante Shop e delle icone. Per questo la riga e' alta quanto il
+                             logo (piu' l'aria attorno) invece di lasciarlo sbordare in basso:
+                             lo sbordo spostava il suo centro 28px sotto quello del menu. -->
+                        <div class="absolute inset-y-0 left-0 z-[60] flex items-center gap-3">
 
                             <!-- Marchio della Spa — nascosto sui telefoni: a quella dimensione il
                                  payoff è illeggibile e ruberebbe spazio alla navigazione.
@@ -140,21 +139,21 @@ watch(desktopNav, (isDesktop) => {
                                  (#0B1521, o il degradé sopra la foto), quindi bianco. Non si usa
                                  il logo caricato dal pannello perché quello è la versione a
                                  colori, giusta sul chiaro e sbagliata qui. -->
-                            <div class="relative group hidden sm:block self-center">
-                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105 w-[clamp(280px,22vw,420px)]">
-                                    <!-- Il marchio sta sempre sopra i 40 mm (151 px), quindi
-                                         resta la versione con payoff prescritta dal brandbook.
-                                         Le due misure crescono col viewport invece che a scatti:
-                                         fra 1280 e 1536 px Tailwind non ha un gradino, e un
-                                         marchio dimensionato per un monitor da 1512 lasciava a
-                                         1280 troppo poco spazio al menu. Il rapporto dell'SVG e'
-                                         4,55:1, quindi il marchio resta sempre attorno all'83%
-                                         dell'altezza del logo volley accanto. -->
+                            <div class="relative group hidden sm:block">
+                                <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="flex items-center justify-center z-0 transition-transform duration-300 group-hover:scale-105 w-[var(--corporate-logo-w)]">
+                                    <!-- La larghezza discende da quella del logo volley
+                                         (--corporate-logo-w), cosi' il rapporto fra i due
+                                         marchi non cambia col viewport: il marchio della Spa
+                                         occupa l'80% dell'ingombro del volley, che resta il
+                                         segno principale della testata. Con l'SVG a 4,55:1
+                                         la larghezza minima resta sopra i 40 mm (151 px),
+                                         quindi e' ancora la versione con payoff prescritta
+                                         dal brandbook. -->
                                     <img :src="LOGOS.CORPORATE_LEFT_WHITE" :alt="corporateName" fetchpriority="high" decoding="sync" class="w-full h-auto object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.7)]" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT_WHITE)" />
                                 </a>
                                 
                                 <!-- Finestrella Preview Card -->
-                                <div class="absolute top-[95px] left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100]">
+                                <div class="absolute top-[calc(var(--header-h)_+_10px)] left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100]">
                                     <div class="w-[280px] bg-white rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] border border-gray-200 overflow-hidden relative">
                                         <div class="bg-gray-100 px-3 py-2 border-b border-gray-200 flex items-center justify-between">
                                             <span class="text-xs font-bold text-gray-700">{{ corporateDomain }}</span>
@@ -175,8 +174,8 @@ watch(desktopNav, (isDesktop) => {
                             </div>
 
                             <!-- Volley Logo -->
-                            <Link :href="route('home')" class="block z-10 mt-2 transition-transform duration-300 hover:scale-105">
-                                <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[64px] sm:h-[clamp(72px,5.8vw,116px)] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
+                            <Link :href="route('home')" class="block z-10 transition-transform duration-300 hover:scale-105">
+                                <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[var(--volley-logo-h)] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
                             </Link>
                         </div>
                     </div>
@@ -239,3 +238,30 @@ watch(desktopNav, (isDesktop) => {
         <CartDrawer />
     </div>
 </template>
+
+<style scoped>
+/* Il logo volley e' il centro della testata. La riga e' alta quanto lui piu' l'aria
+   attorno: cosi' il suo centro coincide con il centro della riga, e quindi con quello
+   del menu, del pulsante Shop e delle icone — tutto sulla stessa orizzontale. Prima
+   il logo sbordava sotto l'header e il suo centro cadeva 28px piu' in basso.
+   Le altre misure discendono da lui; --header-h serve anche all'hero della home, che
+   sale sotto l'header (Home.vue). */
+.site-shell {
+    --volley-logo-h: 64px;
+    --header-h: 85px;
+    --corporate-logo-w: 122px;
+}
+
+@media (min-width: 640px) {
+    .site-shell {
+        /* Cresce col viewport invece che a scatti: fra 1280 e 1536 px Tailwind non ha
+           un gradino, e un logo dimensionato per un monitor da 1512 lasciava a 1280
+           troppo poco spazio al menu. Il tetto e' l'altezza storica del logo. */
+        --volley-logo-h: clamp(84px, 8.3vw, 125px);
+        --header-h: calc(var(--volley-logo-h) + 16px);
+        /* 1,9 e' il rapporto che da' al marchio della Spa l'80% dell'ingombro del
+           volley: con l'SVG a 4,55:1 sono 238x52 px contro 125x125. */
+        --corporate-logo-w: calc(var(--volley-logo-h) * 1.9);
+    }
+}
+</style>
