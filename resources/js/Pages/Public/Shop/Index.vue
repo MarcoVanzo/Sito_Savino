@@ -240,12 +240,11 @@ const loadMore = () => {
                 <transition-group
                     v-else-if="filteredProducts.length > 0"
                     name="product-fade"
-                    tag="div"
+                    tag="ul"
                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-                    role="list"
                     :aria-label="$t('shop.products_list') || 'Elenco prodotti'"
                 >
-                    <ProductCard v-for="product in visibleProducts" :key="product.id" :product="product" role="listitem" />
+                    <li v-for="product in visibleProducts" :key="product.id" class="grid"><ProductCard :product="product" /></li>
                 </transition-group>
 
                 <!-- Load More Button -->
