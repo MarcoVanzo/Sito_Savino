@@ -168,24 +168,41 @@ class InstagramInsights
                 $response = $this->client->get($igAccountId.self::INSIGHTS_EDGE, ['metric' => $metrics] + $params);
             }
 
-            foreach ((array) ($response['data'] ?? []) as $metric) {
-                $name = is_array($metric) ? (string) ($metric['name'] ?? '') : '';
-
-                if (! isset($out[$name])) {
-                    continue;
-                }
-
-                foreach ((array) ($metric['values'] ?? []) as $value) {
-                    $day = self::dayFromEndTime((string) ($value['end_time'] ?? ''));
-
-                    if ($day !== null) {
-                        $out[$name][$day] = (int) ($value['value'] ?? 0);
-                    }
-                }
-            }
+            $out = $this->accumulaLaSerie($out, $response);
 
             $until = $since;
             $remaining -= $window;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Aggiunge alla serie i giorni contenuti in una risposta della Graph API.
+     *
+     * Le metriche che non interessano si scartano qui: la risposta puo'
+     * contenerne piu' di quante ne siano state chieste.
+     *
+     * @param  array<string, array<string, int>>  $out
+     * @param  array<string, mixed>  $response
+     * @return array<string, array<string, int>>
+     */
+    private function accumulaLaSerie(array $out, array $response): array
+    {
+        foreach ((array) ($response['data'] ?? []) as $metric) {
+            $name = is_array($metric) ? (string) ($metric['name'] ?? '') : '';
+
+            if (! isset($out[$name])) {
+                continue;
+            }
+
+            foreach ((array) ($metric['values'] ?? []) as $value) {
+                $day = self::dayFromEndTime((string) ($value['end_time'] ?? ''));
+
+                if ($day !== null) {
+                    $out[$name][$day] = (int) ($value['value'] ?? 0);
+                }
+            }
         }
 
         return $out;

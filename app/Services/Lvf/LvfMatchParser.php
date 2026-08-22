@@ -95,10 +95,10 @@ class LvfMatchParser
         foreach ($document->xpath->query('.//thead//th', $table) ?: [] as $cell) {
             $text = LvfDocument::text($cell);
 
-            foreach ($document->xpath->query('.//a/@href', $cell) ?: [] as $href) {
-                if (preg_match('#/match-center/(\d+)#', $href->nodeValue ?? '', $m) === 1) {
-                    $result['matchCenterId'] = (int) $m[1];
-                }
+            $matchCenterId = $this->matchCenterId($document, $cell);
+
+            if ($matchCenterId !== null) {
+                $result['matchCenterId'] = $matchCenterId;
             }
 
             if ($text === '') {
@@ -123,12 +123,10 @@ class LvfMatchParser
                 continue;
             }
 
-            if (preg_match('/(\d+)\s*a?\s*Giornata\s*-\s*(Andata|Ritorno)/ui', $text, $m) === 1) {
-                $result['matchday'] = (int) $m[1];
-                $result['phase'] = ucfirst(mb_strtolower($m[2]));
+            $giornata = $this->giornataFaseECompetizione($text);
 
-                $competition = trim(mb_substr($text, 0, (int) mb_strpos($text, $m[0])));
-                $result['competition'] = $competition !== '' ? $competition : null;
+            if ($giornata !== null) {
+                $result = [...$result, ...$giornata];
 
                 continue;
             }
@@ -139,17 +137,67 @@ class LvfMatchParser
             }
         }
 
-        if ($day !== null) {
-            $result['date'] = CarbonImmutable::create(
-                (int) $day[3], (int) $day[2], (int) $day[1],
-                $time !== null ? (int) $time[1] : 0,
-                $time !== null ? (int) $time[2] : 0,
-            );
-        }
+        $result['date'] = $this->dataEOra($day, $time);
 
         $result['location'] = $candidates[0] ?? null;
 
         return $result;
+    }
+
+    /**
+     * Identificativo della gara nel Match Center, dal link nella cella.
+     */
+    private function matchCenterId(LvfDocument $document, DOMNode $cell): ?int
+    {
+        foreach ($document->xpath->query('.//a/@href', $cell) ?: [] as $href) {
+            if (preg_match('#/match-center/(\d+)#', $href->nodeValue ?? '', $m) === 1) {
+                return (int) $m[1];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * "Serie A1 3a Giornata - Andata" da' competizione, giornata e fase.
+     *
+     * La Lega numera le giornate da 1 sia all'andata sia al ritorno: senza la
+     * fase, la prima di ritorno e la prima di andata sono indistinguibili.
+     *
+     * @return array{matchday: int, phase: string, competition: string|null}|null
+     */
+    private function giornataFaseECompetizione(string $text): ?array
+    {
+        if (preg_match('/(\d+)\s*a?\s*Giornata\s*-\s*(Andata|Ritorno)/ui', $text, $m) !== 1) {
+            return null;
+        }
+
+        $competition = trim(mb_substr($text, 0, (int) mb_strpos($text, $m[0])));
+
+        return [
+            'matchday' => (int) $m[1],
+            'phase' => ucfirst(mb_strtolower($m[2])),
+            'competition' => $competition !== '' ? $competition : null,
+        ];
+    }
+
+    /**
+     * Data e ora della gara. L'ora puo' mancare, e allora vale mezzanotte.
+     *
+     * @param  array<int, string>|null  $day
+     * @param  array<int, string>|null  $time
+     */
+    private function dataEOra(?array $day, ?array $time): ?CarbonImmutable
+    {
+        if ($day === null) {
+            return null;
+        }
+
+        return CarbonImmutable::create(
+            (int) $day[3], (int) $day[2], (int) $day[1],
+            $time !== null ? (int) $time[1] : 0,
+            $time !== null ? (int) $time[2] : 0,
+        );
     }
 
     /**

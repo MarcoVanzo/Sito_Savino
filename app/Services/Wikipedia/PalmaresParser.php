@@ -119,15 +119,10 @@ class PalmaresParser
 
             // Riga degli anni di un titolo di club: ": [[…|2017-18]], [[…|2021-22]]".
             if (str_starts_with($line, ':')) {
-                if ($pending === null) {
-                    continue;
+                if ($pending !== null) {
+                    $honours = [...$honours, ...$this->edizioniDelTitolo($pending, ltrim($line, ': '))];
+                    $pending = null;
                 }
-
-                foreach ($this->splitEditions(ltrim($line, ': ')) as $edition) {
-                    $honours[] = [...$pending, 'edition' => $edition, 'year' => $this->extractYear($edition)];
-                }
-
-                $pending = null;
 
                 continue;
             }
@@ -155,41 +150,20 @@ class PalmaresParser
                 continue;
             }
 
-            if (preg_match('/\{\{\s*Pallavolopalm\s*\|\s*([^|}]+)/iu', $item, $m) === 1) {
-                $pending = [
-                    'category' => PlayerHonourCategory::Club->value,
-                    'competition' => $this->normalizeCompetition($this->plainText($m[1])),
-                    'edition' => null,
-                    'year' => null,
-                    'medal' => null,
-                    'note' => null,
-                ];
+            $titoloDiClub = $this->titoloDiClub($item);
+
+            if ($titoloDiClub !== null) {
+                // Gli anni arrivano dalla riga successiva: si tiene in sospeso.
+                $pending = $titoloDiClub;
 
                 continue;
             }
 
-            $medal = $this->medalFromMarkup($item);
+            $titoloConNazionale = $this->titoloConNazionale($item);
 
-            if ($medal === null) {
-                continue;
+            if ($titoloConNazionale !== null) {
+                $honours[] = $titoloConNazionale;
             }
-
-            $label = $this->plainText($this->stripTemplates($item));
-
-            if ($label === '') {
-                continue;
-            }
-
-            [$competition, $edition] = $this->splitCompetitionAndEdition($label);
-
-            $honours[] = [
-                'category' => PlayerHonourCategory::National->value,
-                'competition' => $competition,
-                'edition' => $edition,
-                'year' => $this->extractYear($edition ?? $label),
-                'medal' => $medal->value,
-                'note' => null,
-            ];
         }
 
         if ($pending !== null) {
@@ -197,6 +171,77 @@ class PalmaresParser
         }
 
         return $honours;
+    }
+
+    /**
+     * Un titolo di club vinto in piu' edizioni produce una riga per edizione.
+     *
+     * @param  array<string, mixed>  $titolo
+     * @return list<array<string, mixed>>
+     */
+    private function edizioniDelTitolo(array $titolo, string $riga): array
+    {
+        $honours = [];
+
+        foreach ($this->splitEditions($riga) as $edition) {
+            $honours[] = [...$titolo, 'edition' => $edition, 'year' => $this->extractYear($edition)];
+        }
+
+        return $honours;
+    }
+
+    /**
+     * Titolo di club, riconosciuto dal template `Pallavolopalm`. Resta senza
+     * edizione: gli anni stanno nella riga successiva.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function titoloDiClub(string $item): ?array
+    {
+        if (preg_match('/\{\{\s*Pallavolopalm\s*\|\s*([^|}]+)/iu', $item, $m) !== 1) {
+            return null;
+        }
+
+        return [
+            'category' => PlayerHonourCategory::Club->value,
+            'competition' => $this->normalizeCompetition($this->plainText($m[1])),
+            'edition' => null,
+            'year' => null,
+            'medal' => null,
+            'note' => null,
+        ];
+    }
+
+    /**
+     * Titolo con la nazionale: la medaglia e' nel markup, competizione ed
+     * edizione nel testo che resta una volta tolti i template.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function titoloConNazionale(string $item): ?array
+    {
+        $medal = $this->medalFromMarkup($item);
+
+        if ($medal === null) {
+            return null;
+        }
+
+        $label = $this->plainText($this->stripTemplates($item));
+
+        if ($label === '') {
+            return null;
+        }
+
+        [$competition, $edition] = $this->splitCompetitionAndEdition($label);
+
+        return [
+            'category' => PlayerHonourCategory::National->value,
+            'competition' => $competition,
+            'edition' => $edition,
+            'year' => $this->extractYear($edition ?? $label),
+            'medal' => $medal->value,
+            'note' => null,
+        ];
     }
 
     /**
