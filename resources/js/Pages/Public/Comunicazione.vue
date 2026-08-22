@@ -165,8 +165,22 @@ const ogMeta = useOgMeta({
                     <form v-else class="space-y-4" @submit.prevent="submitAccreditation">
                         <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('comunicazione.accreditation_form_title') }}</h3>
 
-                        <!-- Trappola anti-spam: invisibile a chi legge la pagina. -->
-                        <input v-model="accreditationForm.honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hidden" />
+                        <!-- Trappola anti-spam: invisibile a chi legge la pagina.
+                             L'etichetta e' un aria-label e non un <label> visibile:
+                             il campo deve restare invisibile per funzionare, ed e'
+                             gia' fuori dall'albero di accessibilita' (aria-hidden,
+                             tabindex negativo). -->
+                        <input
+                            id="acc-website"
+                            v-model="accreditationForm.honeypot"
+                            type="text"
+                            name="website"
+                            tabindex="-1"
+                            autocomplete="off"
+                            aria-hidden="true"
+                            aria-label="website"
+                            class="hidden"
+                        />
 
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
