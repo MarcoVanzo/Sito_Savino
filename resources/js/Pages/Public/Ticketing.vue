@@ -60,10 +60,10 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label || $t('ticketing.hero_label') }}</span>
+                <span v-if="cd.hero_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('ticketing.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_subtitle || $t('ticketing.hero_subtitle') }}</p>
+                <p v-if="cd.hero_subtitle" class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_subtitle }}</p>
 
                 <div v-if="ticketsUrl" class="mt-10">
                     <a
@@ -83,12 +83,12 @@ const ogMeta = useOgMeta({
         <!-- Subscription Plans -->
         <section class="py-16 bg-gray-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.plans_heading || $t('ticketing.plans_heading') }}</h2>
+                <h2 v-if="cd.plans_heading" class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.plans_heading }}</h2>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-12"></div>
 
                 <!-- Nessun listino pubblicato: si dice che non c'è, non si inventa -->
                 <div v-if="plans.length === 0" class="max-w-2xl mx-auto text-center bg-white rounded-2xl border border-gray-100 shadow-sm px-8 py-12">
-                    <p class="text-gray-600 text-lg">{{ cd.plans_empty || $t('ticketing.plans_empty') }}</p>
+                    <p v-if="cd.plans_empty" class="text-gray-600 text-lg">{{ cd.plans_empty }}</p>
                     <Link :href="contactUrl" class="inline-block mt-6 px-6 py-3 rounded-lg bg-savino-blue text-white font-bold uppercase tracking-wider text-sm hover:bg-savino-blue/90 transition-colors">
                         {{ $t('ticketing.plans_empty_cta') }}
                     </Link>
@@ -104,9 +104,9 @@ const ogMeta = useOgMeta({
                             : 'bg-white text-gray-900 shadow-lg border border-gray-100 hover:shadow-xl'"
                     >
                         <!-- Popular Badge -->
-                        <div v-if="plan.highlight" class="absolute top-0 right-0">
+                        <div v-if="plan.highlight && cd.popular_badge" class="absolute top-0 right-0">
                             <div class="bg-savino-fucsia text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl">
-                                {{ cd.popular_badge || $t('ticketing.popular_badge') }}
+                                {{ cd.popular_badge }}
                             </div>
                         </div>
 
@@ -171,7 +171,7 @@ const ogMeta = useOgMeta({
         <!-- Info Acquisto -->
         <section class="py-16 bg-white">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.info_heading || $t('ticketing.info_heading') }}</h2>
+                <h2 v-if="cd.info_heading" class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.info_heading }}</h2>
                 <div class="w-12 h-1 bg-savino-fucsia mb-10"></div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -181,8 +181,8 @@ const ogMeta = useOgMeta({
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-2">{{ cd.online_title || 'Online' }}</h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">{{ cd.online_description || $t('ticketing.online_description') }}</p>
+                        <h3 v-if="cd.online_title" class="text-lg font-bold text-gray-900 mb-2">{{ cd.online_title }}</h3>
+                        <p v-if="cd.online_description" class="text-gray-500 text-sm leading-relaxed">{{ cd.online_description }}</p>
                         <a
                             v-if="ticketsUrl"
                             :href="ticketsUrl"
@@ -200,8 +200,8 @@ const ogMeta = useOgMeta({
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900 mb-2">{{ cd.boxoffice_title || $t('ticketing.boxoffice_title') }}</h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">{{ cd.boxoffice_description || $t('ticketing.boxoffice_description') }}</p>
+                        <h3 v-if="cd.boxoffice_title" class="text-lg font-bold text-gray-900 mb-2">{{ cd.boxoffice_title }}</h3>
+                        <p v-if="cd.boxoffice_description" class="text-gray-500 text-sm leading-relaxed">{{ cd.boxoffice_description }}</p>
                     </div>
                 </div>
             </div>

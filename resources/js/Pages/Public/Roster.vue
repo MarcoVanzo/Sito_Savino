@@ -23,19 +23,11 @@ const props = defineProps({
     },
 });
 
-const placeholderPlayers = [
-    { id: 1, first_name: 'Atleta', last_name: '1', number: 1, role: 'palleggiatrice' },
-    { id: 2, first_name: 'Atleta', last_name: '2', number: 7, role: 'schiacciatrice' },
-    { id: 3, first_name: 'Atleta', last_name: '3', number: 10, role: 'centrale' },
-    { id: 4, first_name: 'Atleta', last_name: '4', number: 4, role: 'opposto' },
-    { id: 5, first_name: 'Atleta', last_name: '5', number: 14, role: 'libero' },
-    { id: 6, first_name: 'Atleta', last_name: '6', number: 9, role: 'schiacciatrice' },
-    { id: 7, first_name: 'Atleta', last_name: '7', number: 3, role: 'centrale' },
-    { id: 8, first_name: 'Atleta', last_name: '8', number: 11, role: 'palleggiatrice' },
-];
-
-const displayPlayers = computed(() => props.players.length > 0 ? props.players : placeholderPlayers);
-const isPlaceholder = computed(() => props.players.length === 0);
+// La rosa arriva dal pannello e basta. Qui c'erano otto atlete finte —
+// "Atleta 1"…"Atleta 8" — mostrate quando la tabella era vuota: online si
+// vedevano nomi che in redazione non esisteva modo di correggere. Senza
+// giocatrici la pagina dice che non ce ne sono.
+const isEmpty = computed(() => props.players.length === 0);
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('roster.og_title'),
@@ -75,17 +67,17 @@ const ogMeta = useOgMeta({
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
             <div class="max-w-7xl mx-auto">
                 <!-- Placeholder notice -->
-                <div v-if="isPlaceholder" class="text-center mb-12">
+                <div v-if="isEmpty" class="text-center mb-12">
                     <div class="inline-flex items-center gap-2 bg-savino-fucsia/10 border border-savino-fucsia/30 rounded-full px-6 py-3">
                         <svg class="w-5 h-5 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span class="text-savino-blue text-sm font-semibold">{{ $t('roster.placeholder_notice') }}</span>
+                        <span class="text-savino-blue text-sm font-semibold">{{ $t('roster.empty_notice') }}</span>
                     </div>
                 </div>
 
                 <!-- Player Cards Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <div
-                        v-for="player in displayPlayers"
+                        v-for="player in players"
                         :key="player.id"
                         class="group relative bg-white rounded-lg overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1"
                     >
