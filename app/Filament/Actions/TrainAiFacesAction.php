@@ -8,6 +8,7 @@ use App\Services\FacialRecognitionService;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class TrainAiFacesAction
@@ -19,84 +20,91 @@ class TrainAiFacesAction
     public static function execute(Model $record, array $data): void
     {
         $service = app(FacialRecognitionService::class);
-        $successCount = 0;
-        $errorCount = 0;
 
         // Ensure subject exists in CompreFace
         $service->createSubject($record);
 
-        $errorMessages = [];
+        $esiti = [];
 
-        if (! empty($data['training_images'])) {
-            foreach ($data['training_images'] as $image) {
-                $path = is_string($image)
-                    ? Storage::disk('local')->path($image)
-                    : $image->getRealPath();
-
-                $result = $service->addFaceExample($record, $path);
-                if ($result['success']) {
-                    $successCount++;
-                } else {
-                    $errorCount++;
-                    if ($result['error']) {
-                        $errorMessages[] = $result['error'];
-                    }
-                }
-
-                // Cleanup: rimuovi il file temporaneo dopo l'invio all'AI
-                if (is_string($image)) {
-                    Storage::disk('local')->delete($image);
-                }
-            }
+        foreach ($data['training_images'] ?? [] as $image) {
+            $esiti[] = self::apprendiDaFile($service, $record, $image);
         }
 
-        // Sync avatar as well — determina automaticamente la collection in base al tipo di modello
-        $mediaCollection = static::getMediaCollection($record);
-        $media = $record->getFirstMedia($mediaCollection);
+        // Sync avatar as well — la collection dipende dal tipo di modello
+        $media = $record->getFirstMedia(static::getMediaCollection($record));
+
         if ($media) {
-            $result = $service->addFaceExampleFromMedia($record, $media);
-            if ($result['success']) {
-                $successCount++;
-            } else {
-                $errorCount++;
-                if ($result['error']) {
-                    $errorMessages[] = $result['error'];
-                }
-            }
+            $esiti[] = $service->addFaceExampleFromMedia($record, $media);
         }
 
-        $body = "{$successCount} volti appresi con successo.".($errorCount > 0 ? " {$errorCount} scartati." : '');
+        $appresi = count(array_filter($esiti, fn (array $esito) => $esito['success']));
 
-        if ($errorCount > 0) {
-            // Deduplicate and translate common errors
-            $uniqueErrors = array_unique($errorMessages);
-            $translatedErrors = array_map(function ($err) {
-                if (str_contains(strtolower($err), 'more than one face')) {
-                    return 'Trovati più volti nella foto (usa un primo piano).';
-                }
-                if (str_contains(strtolower($err), 'no face is found')) {
-                    return 'Nessun volto trovato nella foto.';
-                }
+        self::notifica($appresi, count($esiti) - $appresi, self::motiviLeggibili($esiti));
+    }
 
-                return $err;
-            }, $uniqueErrors);
+    /**
+     * Manda una foto all'AI e ripulisce il file temporaneo appena inviato: le
+     * immagini caricate per l'addestramento non restano sul server.
+     *
+     * @param  string|UploadedFile  $image
+     * @return array<string, mixed>
+     */
+    private static function apprendiDaFile(FacialRecognitionService $service, Model $record, $image): array
+    {
+        $path = is_string($image)
+            ? Storage::disk('local')->path($image)
+            : $image->getRealPath();
 
-            if (count($translatedErrors) > 0) {
-                $body .= ' Motivi: '.implode(' | ', $translatedErrors);
+        $esito = $service->addFaceExample($record, $path);
+
+        if (is_string($image)) {
+            Storage::disk('local')->delete($image);
+        }
+
+        return $esito;
+    }
+
+    /**
+     * Motivi degli scarti, senza doppioni e nella lingua del pannello.
+     *
+     * @param  array<int, array<string, mixed>>  $esiti
+     * @return array<int, string>
+     */
+    private static function motiviLeggibili(array $esiti): array
+    {
+        $messaggi = array_unique(array_filter(array_column($esiti, 'error')));
+
+        return array_map(function (string $errore): string {
+            $minuscolo = strtolower($errore);
+
+            if (str_contains($minuscolo, 'more than one face')) {
+                return 'Trovati più volti nella foto (usa un primo piano).';
             }
 
-            Notification::make()
-                ->title('Addestramento Completato')
-                ->body($body)
-                ->warning()
-                ->send();
-        } else {
-            Notification::make()
-                ->title('Addestramento Completato')
-                ->body($body)
-                ->success()
-                ->send();
+            if (str_contains($minuscolo, 'no face is found')) {
+                return 'Nessun volto trovato nella foto.';
+            }
+
+            return $errore;
+        }, $messaggi);
+    }
+
+    /**
+     * @param  array<int, string>  $motivi
+     */
+    private static function notifica(int $appresi, int $scartati, array $motivi): void
+    {
+        $body = "{$appresi} volti appresi con successo.".($scartati > 0 ? " {$scartati} scartati." : '');
+
+        if ($motivi !== []) {
+            $body .= ' Motivi: '.implode(' | ', $motivi);
         }
+
+        $notifica = Notification::make()
+            ->title('Addestramento Completato')
+            ->body($body);
+
+        ($scartati > 0 ? $notifica->warning() : $notifica->success())->send();
     }
 
     /**
