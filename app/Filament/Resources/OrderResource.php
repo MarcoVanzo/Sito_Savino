@@ -21,6 +21,10 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Columns\Column;
+use Filament\Tables\Filters\BaseFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -215,306 +219,333 @@ class OrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('order_number')
-                    ->label('Numero Ordine')
-                    ->searchable()
-                    ->sortable()
-                    ->weight(FontWeight::Bold),
-                Tables\Columns\TextColumn::make('customer_name')
-                    ->label('Cliente')
-                    ->getStateUsing(fn ($record) => $record->user->name ?? $record->guest_name ?? '-')
-                    ->url(fn ($record) => $record->user_id ? UserResource::getUrl('edit', ['record' => $record->user_id]) : null)
-                    ->color(fn ($record) => $record->user_id ? 'primary' : null)
-                    ->searchable(query: function (Builder $query, string $search): Builder {
-                        return $query->where(function (Builder $query) use ($search) {
-                            $query->whereHas('user', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
-                                ->orWhere('guest_name', 'like', "%{$search}%")
-                                ->orWhere('guest_email', 'like', "%{$search}%");
-                        });
-                    }),
-                Tables\Columns\TextColumn::make('contact_phone')
-                    ->label('Telefono')
-                    ->getStateUsing(fn ($record) => $record->phone ?? $record->guest_phone ?? '-')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('status')
-                    ->label(self::LABEL_ORDER_STATUS)
-                    ->badge()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('payment_gateway')
-                    ->label('Pagamento')
-                    ->badge()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('total_price')
-                    ->label('Totale')
-                    ->money('EUR')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Data Ordine')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
-            ])
+            ->columns(self::colonne())
             ->defaultSort('created_at', 'desc')
-            ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->label(self::LABEL_ORDER_STATUS)
-                    ->options(OrderStatus::class),
-                Tables\Filters\SelectFilter::make('payment_gateway')
-                    ->label('Gateway Pagamento')
-                    ->options(PaymentGateway::class),
-                Tables\Filters\Filter::make('created_at')
-                    ->label('Periodo')
-                    ->form([
-                        Forms\Components\DatePicker::make('from')
-                            ->label('Da'),
-                        Forms\Components\DatePicker::make('until')
-                            ->label('A'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
-                            )
-                            ->when(
-                                $data['until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
-                            );
-                    })
-                    ->indicateUsing(function (array $data): array {
-                        $indicators = [];
-                        if ($data['from'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('Da: '.Carbon::parse($data['from'])->format('d/m/Y'))
-                                ->removeField('from');
-                        }
-                        if ($data['until'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('A: '.Carbon::parse($data['until'])->format('d/m/Y'))
-                                ->removeField('until');
-                        }
-
-                        return $indicators;
-                    }),
-                Tables\Filters\TrashedFilter::make(),
-            ])
-            ->actions([
-                // 1. Conferma Pagamento (solo bonifico bancario)
-                Tables\Actions\Action::make('confirm_payment')
-                    ->label('Conferma Pagamento')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn (Order $record): bool => $record->status === OrderStatus::Pending
-                        && $record->payment_gateway === PaymentGateway::BankTransfer
-                    )
-                    ->requiresConfirmation()
-                    ->modalHeading('Conferma pagamento bonifico')
-                    ->modalDescription('Confermi di aver ricevuto il pagamento tramite bonifico?')
-                    ->modalSubmitActionLabel('Conferma ricevuto')
-                    ->action(function (Order $record): void {
-                        $record->status = OrderStatus::Processing;
-                        $record->paid_at = now();
-                        $record->save();
-
-                        app(AdminNotificationService::class)->notifyPaymentReceived($record);
-
-                        Cache::forget('filament:dashboard:stats');
-
-                        Notification::make()
-                            ->title('Pagamento confermato')
-                            ->body("Ordine #{$record->order_number} aggiornato a In Lavorazione.")
-                            ->success()
-                            ->send();
-                    }),
-
-                // 2. Segna Spedito
-                Tables\Actions\Action::make('mark_shipped')
-                    ->label('Segna Spedito')
-                    ->icon('heroicon-o-truck')
-                    ->color('info')
-                    ->visible(fn (Order $record): bool => in_array($record->status, [
-                        OrderStatus::Processing,
-                        OrderStatus::Paid,
-                    ]))
-                    ->form([
-                        Forms\Components\TextInput::make('tracking_number')
-                            ->label('Numero Tracking')
-                            ->required()
-                            ->maxLength(100),
-                        Forms\Components\TextInput::make('tracking_url')
-                            ->label('URL Tracking')
-                            ->url()
-                            ->maxLength(500),
-                    ])
-                    ->modalHeading('Inserisci dati spedizione')
-                    ->modalSubmitActionLabel('Conferma spedizione')
-                    ->action(function (Order $record, array $data): void {
-                        $record->tracking_number = $data['tracking_number'];
-                        $record->tracking_url = $data['tracking_url'] ?? null;
-                        $record->shipped_at = now();
-                        $record->status = OrderStatus::Shipped;
-                        $record->save();
-
-                        // Invia email di spedizione al cliente
-                        $recipientEmail = $record->user->email ?? $record->guest_email;
-                        if ($recipientEmail) {
-                            Mail::to($recipientEmail)->queue(new OrderShipped($record));
-                        }
-
-                        Cache::forget('filament:dashboard:stats');
-
-                        Notification::make()
-                            ->title('Ordine spedito')
-                            ->body("Ordine #{$record->order_number} segnato come spedito. Email inviata.")
-                            ->success()
-                            ->send();
-                    }),
-
-                // 3. Segna Consegnato
-                Tables\Actions\Action::make('mark_delivered')
-                    ->label('Segna Consegnato')
-                    ->icon('heroicon-o-check-badge')
-                    ->color('success')
-                    ->visible(fn (Order $record): bool => $record->status === OrderStatus::Shipped)
-                    ->requiresConfirmation()
-                    ->modalHeading('Conferma consegna')
-                    ->modalDescription('Confermi che l\'ordine è stato consegnato?')
-                    ->action(function (Order $record): void {
-                        $record->status = OrderStatus::Delivered;
-                        $record->save();
-
-                        Cache::forget('filament:dashboard:stats');
-
-                        Notification::make()
-                            ->title('Ordine consegnato')
-                            ->body("Ordine #{$record->order_number} segnato come consegnato.")
-                            ->success()
-                            ->send();
-                    }),
-
-                // 4. Annulla Ordine
-                Tables\Actions\Action::make('cancel_order')
-                    ->label('Annulla')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->visible(fn (Order $record): bool => in_array($record->status, [
-                        OrderStatus::Pending,
-                        OrderStatus::Processing,
-                        OrderStatus::Paid,
-                    ]))
-                    ->requiresConfirmation()
-                    ->modalHeading('Annulla ordine')
-                    ->modalDescription('Sei sicuro? Lo stock verrà ripristinato.')
-                    ->modalSubmitActionLabel('Annulla ordine')
-                    ->action(function (Order $record): void {
-                        DB::transaction(function () use ($record) {
-                            // L'OrderObserver gestisce il ripristino stock
-                            // tramite restoreStock() quando lo status diventa Cancelled
-                            $record->status = OrderStatus::Cancelled;
-                            $record->save();
-                        });
-
-                        Cache::forget('filament:dashboard:stats');
-
-                        $body = "Ordine #{$record->order_number} annullato. Stock ripristinato.";
-                        if ($record->paid_at) {
-                            $body .= ' ⚠️ Il pagamento era stato ricevuto: potrebbe essere necessario un rimborso manuale.';
-                        }
-
-                        Notification::make()
-                            ->title('Ordine annullato')
-                            ->body($body)
-                            ->warning()
-                            ->send();
-                    }),
-
-                // 5. Rimborso (Stripe/PayPal)
-                Tables\Actions\Action::make('refund_order')
-                    ->label('Rimborso')
-                    ->icon('heroicon-o-receipt-refund')
-                    ->color('warning')
-                    ->visible(fn (Order $record): bool => $record->payment_id !== null &&
-                        in_array($record->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal]) &&
-                        $record->status !== OrderStatus::Refunded
-                    )
-                    ->form([
-                        Forms\Components\Radio::make('refund_type')
-                            ->label('Tipo di Rimborso')
-                            ->options([
-                                'full' => 'Rimborso Totale',
-                                'partial' => 'Rimborso Parziale',
-                            ])
-                            ->default('full')
-                            ->required()
-                            ->live(), // filament 3 uses live() instead of reactive()
-                        Forms\Components\TextInput::make('amount')
-                            ->label('Importo (EUR)')
-                            ->numeric()
-                            ->prefix('€')
-                            ->required()
-                            ->visible(fn (Forms\Get $get) => $get('refund_type') === 'partial')
-                            ->maxValue(fn (Order $record) => (float) $record->total_price)
-                            ->minValue(0.01)
-                            ->step(0.01),
-                    ])
-                    ->modalHeading('Emetti Rimborso')
-                    ->modalDescription('Il rimborso verrà emesso direttamente sul metodo di pagamento originale del cliente. Lo stock NON verrà modificato automaticamente.')
-                    ->modalSubmitActionLabel('Emetti Rimborso')
-                    ->action(function (Order $record, array $data): void {
-                        try {
-                            $service = match ($record->payment_gateway) {
-                                PaymentGateway::Stripe => new StripePaymentService,
-                                PaymentGateway::PayPal => new PayPalPaymentService,
-                                default => throw new UnsupportedPaymentGatewayException('Gateway non supportato per il rimborso automatico.'),
-                            };
-
-                            $amount = $data['refund_type'] === 'partial' ? (float) $data['amount'] : null;
-
-                            $service->refund($record, $amount);
-
-                            if ($data['refund_type'] === 'full') {
-                                $record->status = OrderStatus::Refunded;
-                                $record->save();
-                            }
-
-                            Cache::forget('filament:dashboard:stats');
-
-                            $amountFormatted = $amount ? 'di €'.number_format($amount, 2, ',', '.') : 'totale';
-
-                            Notification::make()
-                                ->title('Rimborso emesso con successo')
-                                ->body("Il rimborso {$amountFormatted} è stato elaborato dal gateway.")
-                                ->success()
-                                ->send();
-
-                        } catch (\Throwable $e) {
-                            Notification::make()
-                                ->title('Errore durante il rimborso')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
-
-                // 6. Scarica Ricevuta
-                Tables\Actions\Action::make('download_receipt')
-                    ->label('Ricevuta')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('gray')
-                    ->action(function (Order $record) {
-                        return response()->streamDownload(
-                            function () use ($record) {
-                                echo app(ReceiptService::class)->generate($record);
-                            },
-                            'ricevuta-'.$record->order_number.'.pdf',
-                            ['Content-Type' => 'application/pdf']
-                        );
-                    })
-                    ->visible(fn (Order $record): bool => $record->status !== OrderStatus::Cancelled),
-
-                // Standard view & edit
-                ...static::viewAndEditActions(),
-            ])
+            ->filters(self::filtri())
+            ->actions(self::azioni())
             ->bulkActions(static::softDeleteBulkActions());
+    }
+
+    /**
+     * @return array<int, Column>
+     */
+    private static function colonne(): array
+    {
+        return [
+            Tables\Columns\TextColumn::make('order_number')
+                ->label('Numero Ordine')
+                ->searchable()
+                ->sortable()
+                ->weight(FontWeight::Bold),
+            Tables\Columns\TextColumn::make('customer_name')
+                ->label('Cliente')
+                ->getStateUsing(fn ($record) => $record->user->name ?? $record->guest_name ?? '-')
+                ->url(fn ($record) => $record->user_id ? UserResource::getUrl('edit', ['record' => $record->user_id]) : null)
+                ->color(fn ($record) => $record->user_id ? 'primary' : null)
+                ->searchable(query: function (Builder $query, string $search): Builder {
+                    return $query->where(function (Builder $query) use ($search) {
+                        $query->whereHas('user', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
+                            ->orWhere('guest_name', 'like', "%{$search}%")
+                            ->orWhere('guest_email', 'like', "%{$search}%");
+                    });
+                }),
+            Tables\Columns\TextColumn::make('contact_phone')
+                ->label('Telefono')
+                ->getStateUsing(fn ($record) => $record->phone ?? $record->guest_phone ?? '-')
+                ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('status')
+                ->label(self::LABEL_ORDER_STATUS)
+                ->badge()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('payment_gateway')
+                ->label('Pagamento')
+                ->badge()
+                ->sortable()
+                ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('total_price')
+                ->label('Totale')
+                ->money('EUR')
+                ->sortable(),
+            Tables\Columns\TextColumn::make('created_at')
+                ->label('Data Ordine')
+                ->dateTime('d/m/Y H:i')
+                ->sortable(),
+        ];
+    }
+
+    /**
+     * @return array<int, BaseFilter>
+     */
+    private static function filtri(): array
+    {
+        return [
+            Tables\Filters\SelectFilter::make('status')
+                ->label(self::LABEL_ORDER_STATUS)
+                ->options(OrderStatus::class),
+            Tables\Filters\SelectFilter::make('payment_gateway')
+                ->label('Gateway Pagamento')
+                ->options(PaymentGateway::class),
+            Tables\Filters\Filter::make('created_at')
+                ->label('Periodo')
+                ->form([
+                    Forms\Components\DatePicker::make('from')
+                        ->label('Da'),
+                    Forms\Components\DatePicker::make('until')
+                        ->label('A'),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['from'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                        )
+                        ->when(
+                            $data['until'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                        );
+                })
+                ->indicateUsing(function (array $data): array {
+                    $indicators = [];
+                    if ($data['from'] ?? null) {
+                        $indicators[] = Tables\Filters\Indicator::make('Da: '.Carbon::parse($data['from'])->format('d/m/Y'))
+                            ->removeField('from');
+                    }
+                    if ($data['until'] ?? null) {
+                        $indicators[] = Tables\Filters\Indicator::make('A: '.Carbon::parse($data['until'])->format('d/m/Y'))
+                            ->removeField('until');
+                    }
+
+                    return $indicators;
+                }),
+            Tables\Filters\TrashedFilter::make(),
+        ];
+    }
+
+    /**
+     * Le azioni sull'ordine: conferma del bonifico, rimborso, cambio di stato
+     * e le due standard di visualizzazione e modifica.
+     *
+     * @return array<int, Action|ActionGroup>
+     */
+    private static function azioni(): array
+    {
+        return [
+            // 1. Conferma Pagamento (solo bonifico bancario)
+            Action::make('confirm_payment')
+                ->label('Conferma Pagamento')
+                ->icon('heroicon-o-check-circle')
+                ->color('success')
+                ->visible(fn (Order $record): bool => $record->status === OrderStatus::Pending
+                    && $record->payment_gateway === PaymentGateway::BankTransfer
+                )
+                ->requiresConfirmation()
+                ->modalHeading('Conferma pagamento bonifico')
+                ->modalDescription('Confermi di aver ricevuto il pagamento tramite bonifico?')
+                ->modalSubmitActionLabel('Conferma ricevuto')
+                ->action(function (Order $record): void {
+                    $record->status = OrderStatus::Processing;
+                    $record->paid_at = now();
+                    $record->save();
+
+                    app(AdminNotificationService::class)->notifyPaymentReceived($record);
+
+                    Cache::forget('filament:dashboard:stats');
+
+                    Notification::make()
+                        ->title('Pagamento confermato')
+                        ->body("Ordine #{$record->order_number} aggiornato a In Lavorazione.")
+                        ->success()
+                        ->send();
+                }),
+
+            // 2. Segna Spedito
+            Action::make('mark_shipped')
+                ->label('Segna Spedito')
+                ->icon('heroicon-o-truck')
+                ->color('info')
+                ->visible(fn (Order $record): bool => in_array($record->status, [
+                    OrderStatus::Processing,
+                    OrderStatus::Paid,
+                ]))
+                ->form([
+                    Forms\Components\TextInput::make('tracking_number')
+                        ->label('Numero Tracking')
+                        ->required()
+                        ->maxLength(100),
+                    Forms\Components\TextInput::make('tracking_url')
+                        ->label('URL Tracking')
+                        ->url()
+                        ->maxLength(500),
+                ])
+                ->modalHeading('Inserisci dati spedizione')
+                ->modalSubmitActionLabel('Conferma spedizione')
+                ->action(function (Order $record, array $data): void {
+                    $record->tracking_number = $data['tracking_number'];
+                    $record->tracking_url = $data['tracking_url'] ?? null;
+                    $record->shipped_at = now();
+                    $record->status = OrderStatus::Shipped;
+                    $record->save();
+
+                    // Invia email di spedizione al cliente
+                    $recipientEmail = $record->user->email ?? $record->guest_email;
+                    if ($recipientEmail) {
+                        Mail::to($recipientEmail)->queue(new OrderShipped($record));
+                    }
+
+                    Cache::forget('filament:dashboard:stats');
+
+                    Notification::make()
+                        ->title('Ordine spedito')
+                        ->body("Ordine #{$record->order_number} segnato come spedito. Email inviata.")
+                        ->success()
+                        ->send();
+                }),
+
+            // 3. Segna Consegnato
+            Action::make('mark_delivered')
+                ->label('Segna Consegnato')
+                ->icon('heroicon-o-check-badge')
+                ->color('success')
+                ->visible(fn (Order $record): bool => $record->status === OrderStatus::Shipped)
+                ->requiresConfirmation()
+                ->modalHeading('Conferma consegna')
+                ->modalDescription('Confermi che l\'ordine è stato consegnato?')
+                ->action(function (Order $record): void {
+                    $record->status = OrderStatus::Delivered;
+                    $record->save();
+
+                    Cache::forget('filament:dashboard:stats');
+
+                    Notification::make()
+                        ->title('Ordine consegnato')
+                        ->body("Ordine #{$record->order_number} segnato come consegnato.")
+                        ->success()
+                        ->send();
+                }),
+
+            // 4. Annulla Ordine
+            Action::make('cancel_order')
+                ->label('Annulla')
+                ->icon('heroicon-o-x-circle')
+                ->color('danger')
+                ->visible(fn (Order $record): bool => in_array($record->status, [
+                    OrderStatus::Pending,
+                    OrderStatus::Processing,
+                    OrderStatus::Paid,
+                ]))
+                ->requiresConfirmation()
+                ->modalHeading('Annulla ordine')
+                ->modalDescription('Sei sicuro? Lo stock verrà ripristinato.')
+                ->modalSubmitActionLabel('Annulla ordine')
+                ->action(function (Order $record): void {
+                    DB::transaction(function () use ($record) {
+                        // L'OrderObserver gestisce il ripristino stock
+                        // tramite restoreStock() quando lo status diventa Cancelled
+                        $record->status = OrderStatus::Cancelled;
+                        $record->save();
+                    });
+
+                    Cache::forget('filament:dashboard:stats');
+
+                    $body = "Ordine #{$record->order_number} annullato. Stock ripristinato.";
+                    if ($record->paid_at) {
+                        $body .= ' ⚠️ Il pagamento era stato ricevuto: potrebbe essere necessario un rimborso manuale.';
+                    }
+
+                    Notification::make()
+                        ->title('Ordine annullato')
+                        ->body($body)
+                        ->warning()
+                        ->send();
+                }),
+
+            // 5. Rimborso (Stripe/PayPal)
+            Action::make('refund_order')
+                ->label('Rimborso')
+                ->icon('heroicon-o-receipt-refund')
+                ->color('warning')
+                ->visible(fn (Order $record): bool => $record->payment_id !== null &&
+                    in_array($record->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal]) &&
+                    $record->status !== OrderStatus::Refunded
+                )
+                ->form([
+                    Forms\Components\Radio::make('refund_type')
+                        ->label('Tipo di Rimborso')
+                        ->options([
+                            'full' => 'Rimborso Totale',
+                            'partial' => 'Rimborso Parziale',
+                        ])
+                        ->default('full')
+                        ->required()
+                        ->live(), // filament 3 uses live() instead of reactive()
+                    Forms\Components\TextInput::make('amount')
+                        ->label('Importo (EUR)')
+                        ->numeric()
+                        ->prefix('€')
+                        ->required()
+                        ->visible(fn (Forms\Get $get) => $get('refund_type') === 'partial')
+                        ->maxValue(fn (Order $record) => (float) $record->total_price)
+                        ->minValue(0.01)
+                        ->step(0.01),
+                ])
+                ->modalHeading('Emetti Rimborso')
+                ->modalDescription('Il rimborso verrà emesso direttamente sul metodo di pagamento originale del cliente. Lo stock NON verrà modificato automaticamente.')
+                ->modalSubmitActionLabel('Emetti Rimborso')
+                ->action(function (Order $record, array $data): void {
+                    try {
+                        $service = match ($record->payment_gateway) {
+                            PaymentGateway::Stripe => new StripePaymentService,
+                            PaymentGateway::PayPal => new PayPalPaymentService,
+                            default => throw new UnsupportedPaymentGatewayException('Gateway non supportato per il rimborso automatico.'),
+                        };
+
+                        $amount = $data['refund_type'] === 'partial' ? (float) $data['amount'] : null;
+
+                        $service->refund($record, $amount);
+
+                        if ($data['refund_type'] === 'full') {
+                            $record->status = OrderStatus::Refunded;
+                            $record->save();
+                        }
+
+                        Cache::forget('filament:dashboard:stats');
+
+                        $amountFormatted = $amount ? 'di €'.number_format($amount, 2, ',', '.') : 'totale';
+
+                        Notification::make()
+                            ->title('Rimborso emesso con successo')
+                            ->body("Il rimborso {$amountFormatted} è stato elaborato dal gateway.")
+                            ->success()
+                            ->send();
+
+                    } catch (\Throwable $e) {
+                        Notification::make()
+                            ->title('Errore durante il rimborso')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
+
+            // 6. Scarica Ricevuta
+            Action::make('download_receipt')
+                ->label('Ricevuta')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('gray')
+                ->action(function (Order $record) {
+                    return response()->streamDownload(
+                        function () use ($record) {
+                            echo app(ReceiptService::class)->generate($record);
+                        },
+                        'ricevuta-'.$record->order_number.'.pdf',
+                        ['Content-Type' => 'application/pdf']
+                    );
+                })
+                ->visible(fn (Order $record): bool => $record->status !== OrderStatus::Cancelled),
+
+            // Standard view & edit
+            ...static::viewAndEditActions(),
+        ];
     }
 
     public static function getRelations(): array
