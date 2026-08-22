@@ -283,12 +283,6 @@ parameters:
 			path: app/Http/Controllers/PublicController.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
 			identifier: property.notFound
 			count: 1
@@ -296,18 +290,6 @@ parameters:
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$placed_at\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/Shop/AuctionController.php
@@ -326,12 +308,6 @@ parameters:
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:getMedia\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
 			identifier: method.notFound
 			count: 1
 			path: app/Http/Controllers/Shop/AuctionController.php
@@ -389,18 +365,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Jobs/AnalyzeGalleryImageJob.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Models/Auction.php
-
-		-
-			message: '#^Method App\\Models\\Auction\:\:highestBid\(\) should return App\\Models\\Bid\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Models/Auction.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$price_modifier\.$#'
@@ -479,30 +443,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: app/Services/AdminNotificationService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/AuctionService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
-			identifier: property.notFound
-			count: 6
-			path: app/Services/AuctionService.php
-
-		-
-			message: '#^Parameter \#1 \$value of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:search\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model, Closure\(App\\Models\\Bid\)\: bool given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Services/AuctionService.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Services/BidService.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'

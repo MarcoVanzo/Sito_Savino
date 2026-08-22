@@ -50,6 +50,9 @@ class Auction extends Model
         return $this->belongsTo(Product::class);
     }
 
+    /**
+     * @return HasMany<Bid, $this>
+     */
     public function bids(): HasMany
     {
         return $this->hasMany(Bid::class);
@@ -72,6 +75,8 @@ class Auction extends Model
 
     /**
      * Offerte valide ordinate per importo decrescente.
+     *
+     * @return HasMany<Bid, $this>
      */
     public function validBids(): HasMany
     {
