@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -29,6 +30,18 @@ class ActiveCampaignService
     }
 
     /**
+     * Le tre chiamate all'API usano gli stessi header, lo stesso timeout e la
+     * stessa politica di ritentativo: cambia solo l'endpoint e il corpo.
+     */
+    private function client(): PendingRequest
+    {
+        return Http::withHeaders([
+            'Api-Token' => $this->apiKey,
+            'Content-Type' => 'application/json',
+        ])->timeout(15)->retry(2, 1000, throw: false);
+    }
+
+    /**
      * Create or update a contact (idempotent via contact/sync).
      * Returns the contact ID on success, null on failure.
      */
@@ -50,10 +63,7 @@ class ActiveCampaignService
             $contactData['lastName'] = $lastName;
         }
 
-        $response = Http::withHeaders([
-            'Api-Token' => $this->apiKey,
-            'Content-Type' => 'application/json',
-        ])->timeout(15)->retry(2, 1000, throw: false)->post($this->baseUrl.'/api/3/contact/sync', [
+        $response = $this->client()->post($this->baseUrl.'/api/3/contact/sync', [
             'contact' => $contactData,
         ]);
 
@@ -86,10 +96,7 @@ class ActiveCampaignService
             return false;
         }
 
-        $response = Http::withHeaders([
-            'Api-Token' => $this->apiKey,
-            'Content-Type' => 'application/json',
-        ])->timeout(15)->retry(2, 1000, throw: false)->post($this->baseUrl.'/api/3/contactLists', [
+        $response = $this->client()->post($this->baseUrl.'/api/3/contactLists', [
             'contactList' => [
                 'list' => $this->listId,
                 'contact' => $contactId,
@@ -128,10 +135,7 @@ class ActiveCampaignService
             return false;
         }
 
-        $response = Http::withHeaders([
-            'Api-Token' => $this->apiKey,
-            'Content-Type' => 'application/json',
-        ])->timeout(15)->retry(2, 1000, throw: false)->post($this->baseUrl.'/api/3/contactLists', [
+        $response = $this->client()->post($this->baseUrl.'/api/3/contactLists', [
             'contactList' => [
                 'list' => $this->listId,
                 'contact' => $contactId,

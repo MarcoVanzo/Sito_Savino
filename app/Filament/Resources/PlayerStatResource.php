@@ -46,6 +46,11 @@ class PlayerStatResource extends Resource
 {
     protected static ?string $model = PlayerStat::class;
 
+    /** Etichette condivise fra form, tabella e scheda della statistica. */
+    private const LABEL_MATCHES_PLAYED = 'Partite giocate';
+
+    private const LABEL_SETS_PLAYED = 'Set giocati';
+
     protected static ?string $recordTitleAttribute = 'id';
 
     protected static bool $isGloballySearchable = false;
@@ -121,10 +126,10 @@ class PlayerStatResource extends Resource
                 Forms\Components\Section::make('Impiego')
                     ->schema([
                         Forms\Components\TextInput::make('matches_played')
-                            ->label('Partite giocate')
+                            ->label(self::LABEL_MATCHES_PLAYED)
                             ->numeric()->minValue(0)->default(0)->required(),
                         Forms\Components\TextInput::make('sets_played')
-                            ->label('Set giocati')
+                            ->label(self::LABEL_SETS_PLAYED)
                             ->numeric()->minValue(0)->default(0)->required(),
                     ])->columns(2),
 
@@ -234,13 +239,13 @@ class PlayerStatResource extends Resource
         return [
             Tables\Columns\TextColumn::make('matches_played')
                 ->label('PG')
-                ->tooltip('Partite giocate')
+                ->tooltip(self::LABEL_MATCHES_PLAYED)
                 ->alignCenter()
                 ->sortable(),
 
             Tables\Columns\TextColumn::make('sets_played')
                 ->label('Set')
-                ->tooltip('Set giocati')
+                ->tooltip(self::LABEL_SETS_PLAYED)
                 ->alignCenter()
                 ->sortable(),
 
@@ -456,8 +461,8 @@ class PlayerStatResource extends Resource
 
                 Infolists\Components\Section::make('Impiego e punti')
                     ->schema([
-                        Infolists\Components\TextEntry::make('matches_played')->label('Partite giocate'),
-                        Infolists\Components\TextEntry::make('sets_played')->label('Set giocati'),
+                        Infolists\Components\TextEntry::make('matches_played')->label(self::LABEL_MATCHES_PLAYED),
+                        Infolists\Components\TextEntry::make('sets_played')->label(self::LABEL_SETS_PLAYED),
                         Infolists\Components\TextEntry::make('points')->label('Punti totali'),
                         Infolists\Components\TextEntry::make('points_per_set')
                             ->label('Punti per set')

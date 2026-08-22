@@ -9,6 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 class PageTemplateForms
 {
     /**
+     * Etichette dei campi che ogni template ripete: l'hero e la rubrica dei
+     * referenti hanno gli stessi campi in tutte le pagine di sezione.
+     */
+    private const LABEL_HERO_BADGE = 'Etichetta Hero';
+
+    private const LABEL_HERO_SUBTITLE = 'Sottotitolo Hero';
+
+    private const LABEL_HERO_DESCRIPTION = 'Descrizione Hero';
+
+    private const LABEL_FULL_NAME = 'Nome Completo';
+
+    /**
      * Coda multimediale di una pagina: un video e una galleria, dopo il testo.
      *
      * Le pagine dei progetti sociali raccontavano solo a parole quello che di
@@ -204,10 +216,10 @@ class PageTemplateForms
     {
         return [
             Forms\Components\TextInput::make('content_data.hero_subheading')
-                ->label('Sottotitolo Hero')
+                ->label(self::LABEL_HERO_SUBTITLE)
                 ->placeholder('es. Dal 1982'),
             Forms\Components\Textarea::make('content_data.hero_description')
-                ->label('Descrizione Hero')
+                ->label(self::LABEL_HERO_DESCRIPTION)
                 ->helperText('Mostrata sotto al titolo quando la pagina non ha un contenuto testuale.')
                 ->rows(3),
         ];
@@ -220,9 +232,9 @@ class PageTemplateForms
     {
         return [
             Forms\Components\TextInput::make('content_data.hero_label')
-                ->label('Etichetta Hero'),
+                ->label(self::LABEL_HERO_BADGE),
             Forms\Components\Textarea::make('content_data.hero_subtitle')
-                ->label('Sottotitolo Hero'),
+                ->label(self::LABEL_HERO_SUBTITLE),
             Forms\Components\Fieldset::make('Biglietteria online (Vivaticket)')
                 ->schema([
                     Forms\Components\TextInput::make('content_data.tickets_url')
@@ -704,10 +716,10 @@ class PageTemplateForms
                             Forms\Components\Fieldset::make('Intestazioni e Copertina')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.hero_label')
-                                        ->label('Etichetta Hero')
+                                        ->label(self::LABEL_HERO_BADGE)
                                         ->placeholder('es. SUMMER CAMP & EXPERIENCE'),
                                     Forms\Components\TextInput::make('content_data.hero_subtitle')
-                                        ->label('Sottotitolo Hero')
+                                        ->label(self::LABEL_HERO_SUBTITLE)
                                         ->placeholder('es. Entra nel Mondo del Volley Professionistico'),
                                     Forms\Components\TextInput::make('content_data.camp_section_label')
                                         ->label('Etichetta Sezione Camp')
@@ -835,10 +847,10 @@ class PageTemplateForms
                             Forms\Components\Fieldset::make('Intestazioni e Mission')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.hero_badge')
-                                        ->label('Etichetta Hero')
+                                        ->label(self::LABEL_HERO_BADGE)
                                         ->placeholder('es. PROGETTI SOCIALI'),
                                     Forms\Components\TextInput::make('content_data.hero_description')
-                                        ->label('Descrizione Hero')
+                                        ->label(self::LABEL_HERO_DESCRIPTION)
                                         ->placeholder('es. Più di uno sport: un impegno costante verso il territorio...'),
                                     Forms\Components\TextInput::make('content_data.mission_badge')
                                         ->label('Etichetta Sezione Missione')
@@ -951,10 +963,10 @@ class PageTemplateForms
                         ->icon('heroicon-o-presentation-chart-bar')
                         ->schema([
                             Forms\Components\TextInput::make('content_data.hero_subtitle')
-                                ->label('Sottotitolo Hero')
+                                ->label(self::LABEL_HERO_SUBTITLE)
                                 ->placeholder('es. I NOSTRI PARTNER'),
                             Forms\Components\Textarea::make('content_data.hero_description')
-                                ->label('Descrizione Hero')
+                                ->label(self::LABEL_HERO_DESCRIPTION)
                                 ->placeholder('es. Grazie al sostegno dei nostri sponsor continuiamo a crescere...'),
                         ]),
 
@@ -1035,10 +1047,10 @@ class PageTemplateForms
                             Forms\Components\Fieldset::make('Hero')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.hero_subtitle')
-                                        ->label('Sottotitolo Hero')
+                                        ->label(self::LABEL_HERO_SUBTITLE)
                                         ->placeholder('es. LINEA VERDE'),
                                     Forms\Components\Textarea::make('content_data.hero_description')
-                                        ->label('Descrizione Hero')
+                                        ->label(self::LABEL_HERO_DESCRIPTION)
                                         ->placeholder('es. Il futuro della pallavolo nasce dalle nostre giovani atlete...'),
                                 ]),
 
@@ -1216,10 +1228,10 @@ class PageTemplateForms
                             Forms\Components\Fieldset::make('Hero')
                                 ->schema([
                                     Forms\Components\TextInput::make('content_data.hero_badge')
-                                        ->label('Etichetta Hero')
+                                        ->label(self::LABEL_HERO_BADGE)
                                         ->placeholder('es. AREA COMUNICAZIONE'),
                                     Forms\Components\TextInput::make('content_data.hero_subtitle')
-                                        ->label('Sottotitolo Hero')
+                                        ->label(self::LABEL_HERO_SUBTITLE)
                                         ->placeholder('es. Ufficio Stampa & Media Hub'),
                                 ]),
 
@@ -1318,7 +1330,7 @@ class PageTemplateForms
                                                 ->label('Ruolo')
                                                 ->placeholder('es. Responsabile Ufficio Stampa'),
                                             Forms\Components\TextInput::make('content_data.contact_1_name')
-                                                ->label('Nome Completo')
+                                                ->label(self::LABEL_FULL_NAME)
                                                 ->placeholder('es. Stefano Rossi'),
                                             Forms\Components\TextInput::make('content_data.contact_1_email')
                                                 ->label('Email')
@@ -1337,7 +1349,7 @@ class PageTemplateForms
                                                 ->label('Ruolo')
                                                 ->placeholder('es. Social Media Specialist'),
                                             Forms\Components\TextInput::make('content_data.contact_2_name')
-                                                ->label('Nome Completo')
+                                                ->label(self::LABEL_FULL_NAME)
                                                 ->placeholder('es. Giulia Bianchi'),
                                             Forms\Components\TextInput::make('content_data.contact_2_email')
                                                 ->label('Email')
@@ -1356,7 +1368,7 @@ class PageTemplateForms
                                                 ->label('Ruolo')
                                                 ->placeholder('es. Fotografo Ufficiale'),
                                             Forms\Components\TextInput::make('content_data.contact_3_name')
-                                                ->label('Nome Completo')
+                                                ->label(self::LABEL_FULL_NAME)
                                                 ->placeholder('es. Marco Neri'),
                                             Forms\Components\TextInput::make('content_data.contact_3_email')
                                                 ->label('Email')

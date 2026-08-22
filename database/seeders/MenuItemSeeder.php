@@ -8,6 +8,17 @@ use Illuminate\Support\Facades\Schema;
 
 class MenuItemSeeder extends Seeder
 {
+    /**
+     * Testi che compaiono in piu' voci del menu: la descrizione della pagina
+     * roster e l'etichetta del club, in italiano e in inglese.
+     *
+     * @var array<string, string>
+     */
+    private const DESCRIPTION_ROSTER = ['it' => 'Roster e Staff', 'en' => 'Roster and staff'];
+
+    /** @var array<string, string> */
+    private const LABEL_THE_CLUB = ['it' => 'Il Club', 'en' => 'The Club'];
+
     public function run(): void
     {
         // Truncate the table to start fresh (clears cache via model events)
@@ -35,7 +46,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Serie A1', 'en' => 'Serie A1'],
                 'url' => '/stagione/',
-                'description' => ['it' => 'Roster e Staff', 'en' => 'Roster and staff'],
+                'description' => self::DESCRIPTION_ROSTER,
             ],
             [
                 'label' => ['it' => 'Foto Ufficiale', 'en' => 'Official Team Photo'],
@@ -81,7 +92,7 @@ class MenuItemSeeder extends Seeder
             'sort_order' => 1,
             'is_active' => true,
             'is_highlight' => false,
-            'motto_title' => ['it' => 'Il Club', 'en' => 'The Club'],
+            'motto_title' => self::LABEL_THE_CLUB,
             'motto_subtitle' => [
                 'it' => 'Storia, organigramma e strutture della Savino Del Bene',
                 'en' => 'History, leadership and facilities of Savino Del Bene',
@@ -207,12 +218,12 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Serie B1 / U19', 'en' => 'Serie B1 / U19'],
                 'url' => '/youth/b1-u19/',
-                'description' => ['it' => 'Roster e Staff', 'en' => 'Roster and staff'],
+                'description' => self::DESCRIPTION_ROSTER,
             ],
             [
                 'label' => ['it' => 'Serie U17 & U15', 'en' => 'U17 & U15'],
                 'url' => '/youth/u17-u15/',
-                'description' => ['it' => 'Roster e Staff', 'en' => 'Roster and staff'],
+                'description' => self::DESCRIPTION_ROSTER,
             ],
             [
                 'label' => ['it' => 'Settore Giovanile', 'en' => 'Youth Programme'],
@@ -398,7 +409,7 @@ class MenuItemSeeder extends Seeder
 
         // 2. Il Club
         $footerClub = MenuItem::create([
-            'label' => ['it' => 'Il Club', 'en' => 'The Club'],
+            'label' => self::LABEL_THE_CLUB,
             'url' => '/societa',
             'location' => 'footer',
             'sort_order' => 1,

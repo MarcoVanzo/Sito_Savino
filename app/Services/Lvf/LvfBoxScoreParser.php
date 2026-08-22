@@ -28,6 +28,9 @@ class LvfBoxScoreParser
      */
     private const DIRECT_ROWS = './tr | ./thead/tr | ./tbody/tr';
 
+    /** Tutte le tabelle della pagina, a qualsiasi livello di annidamento. */
+    private const ALL_TABLES = '//table';
+
     public function parse(string $html, int $lvfMatchId, int $homeClubId, int $awayClubId): LvfBoxScore
     {
         $document = LvfDocument::fromHtml($html);
@@ -36,7 +39,7 @@ class LvfBoxScoreParser
         $clubIds = [$homeClubId, $awayClubId];
         $index = 0;
 
-        foreach ($document->xpath->query('//table') ?: [] as $table) {
+        foreach ($document->xpath->query(self::ALL_TABLES) ?: [] as $table) {
             if (! $this->isPlayerTable($document, $table)) {
                 continue;
             }
@@ -242,7 +245,7 @@ class LvfBoxScoreParser
      */
     private function parseSets(LvfDocument $document): array
     {
-        foreach ($document->xpath->query('//table') ?: [] as $table) {
+        foreach ($document->xpath->query(self::ALL_TABLES) ?: [] as $table) {
             $rows = $document->xpath->query(self::DIRECT_ROWS, $table);
 
             if (($rows->length ?? 0) < 2) {
@@ -295,7 +298,7 @@ class LvfBoxScoreParser
      */
     private function parseSpectators(LvfDocument $document): ?int
     {
-        foreach ($document->xpath->query('//table') ?: [] as $table) {
+        foreach ($document->xpath->query(self::ALL_TABLES) ?: [] as $table) {
             $rows = $document->xpath->query(self::DIRECT_ROWS, $table);
 
             if (($rows->length ?? 0) < 2) {

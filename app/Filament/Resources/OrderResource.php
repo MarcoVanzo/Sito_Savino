@@ -33,6 +33,9 @@ class OrderResource extends Resource
 
     protected static ?string $model = Order::class;
 
+    /** Etichetta dello stato ordine: form, tabella e scheda devono coincidere. */
+    private const LABEL_ORDER_STATUS = 'Stato Ordine';
+
     // Attributo usato per il titolo nei risultati di ricerca globale
     protected static ?string $recordTitleAttribute = 'id';
 
@@ -66,7 +69,7 @@ class OrderResource extends Resource
                                     ->disabled()
                                     ->dehydrated(false),
                                 Forms\Components\Select::make('status')
-                                    ->label('Stato Ordine')
+                                    ->label(self::LABEL_ORDER_STATUS)
                                     ->options(OrderStatus::class)
                                     ->required()
                                     ->default(OrderStatus::Pending),
@@ -234,7 +237,7 @@ class OrderResource extends Resource
                     ->getStateUsing(fn ($record) => $record->phone ?? $record->guest_phone ?? '-')
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Stato Ordine')
+                    ->label(self::LABEL_ORDER_STATUS)
                     ->badge()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('payment_gateway')
@@ -254,7 +257,7 @@ class OrderResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Stato Ordine')
+                    ->label(self::LABEL_ORDER_STATUS)
                     ->options(OrderStatus::class),
                 Tables\Filters\SelectFilter::make('payment_gateway')
                     ->label('Gateway Pagamento')

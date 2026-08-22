@@ -157,72 +157,90 @@ class AdminPanelProvider extends PanelProvider
             'Accrediti Stampa' => 'accrediti-stampa',
         ];
 
-        $items = [
-            // Stagione
-            ['CEV Champions League', 'Stagione', 4],
-            ['Coppa Italia & Playoff', 'Stagione', 5],
-            // Società
-            ['Organigramma', 'Società', 1],
-            ['Storia', 'Società', 2],
-            ['Safeguarding', 'Società', 3],
-            ['Contatti', 'Società', 4],
-            ['Palazzetto & Google Maps', 'Società', 6],
-            // Ticketing
-            ['Biglietteria', 'Ticketing', 1],
-            ['Campagna Abbonamenti', 'Ticketing', 2],
-            ['Accessibilità & Info', 'Ticketing', 3],
-            ['Convenzioni', 'Ticketing', 4],
-            // Sponsor
-            ['Diventa Sponsor', 'Sponsor', 2],
-            ['Title Sponsor (SDB)', 'Sponsor', 3],
-            ['Hospitality', 'Sponsor', 4],
-            // SDB Youth
-            ['Settore Giovanile', 'SDB Youth', 3],
-            ['Talent Day & Recruiting', 'SDB Youth', 4],
-            ['Progetto Affiliazioni', 'SDB Youth', 5],
-            // Summer Camp
-            ['Tutte le Info', 'Summer Camp', 1],
-            ['Iscrizione (Experience)', 'Summer Camp', 2],
-            // Sociale
-            ['Progetti Sociali', 'Sociale', 1],
-            ['Volley 4 All', 'Sociale', 2],
-            ['Bilancio Sostenibilità', 'Sociale', 3],
-            ['Progetto Scuola', 'Sociale', 4],
-            // Comunicazione
-            ['Accrediti Stampa', 'Comunicazione', 1],
-            ['Cartelle Stampa', 'Comunicazione', 2],
-            ['Magazine', 'Comunicazione', 3],
-            ['Double Face', 'Comunicazione', 4],
+        // Le voci sono raggruppate per gruppo di navigazione: il nome del gruppo
+        // compare una volta sola, come chiave, e non piu' ripetuto riga per riga.
+        $itemsByGroup = [
+            'Stagione' => [
+                ['CEV Champions League', 4],
+                ['Coppa Italia & Playoff', 5],
+            ],
+            'Società' => [
+                ['Organigramma', 1],
+                ['Storia', 2],
+                ['Safeguarding', 3],
+                ['Contatti', 4],
+                ['Palazzetto & Google Maps', 6],
+            ],
+            'Ticketing' => [
+                ['Biglietteria', 1],
+                ['Campagna Abbonamenti', 2],
+                ['Accessibilità & Info', 3],
+                ['Convenzioni', 4],
+            ],
+            'Sponsor' => [
+                ['Diventa Sponsor', 2],
+                ['Title Sponsor (SDB)', 3],
+                ['Hospitality', 4],
+            ],
+            'SDB Youth' => [
+                ['Settore Giovanile', 3],
+                ['Talent Day & Recruiting', 4],
+                ['Progetto Affiliazioni', 5],
+            ],
+            'Summer Camp' => [
+                ['Tutte le Info', 1],
+                ['Iscrizione (Experience)', 2],
+            ],
+            'Sociale' => [
+                ['Progetti Sociali', 1],
+                ['Volley 4 All', 2],
+                ['Bilancio Sostenibilità', 3],
+                ['Progetto Scuola', 4],
+            ],
+            'Comunicazione' => [
+                ['Accrediti Stampa', 1],
+                ['Cartelle Stampa', 2],
+                ['Magazine', 3],
+                ['Double Face', 4],
+            ],
         ];
 
-        return array_map(
-            function (array $item) use ($slugMap, $underConstructionUrl) {
-                $label = $item[0];
-                $group = $item[1];
-                $sort = $item[2];
+        $navigationItems = [];
 
-                $urlClosure = function () use ($label, $slugMap, $underConstructionUrl) {
-                    try {
-                        if (isset($slugMap[$label])) {
-                            $slug = $slugMap[$label];
-                            $page = Page::where('slug', $slug)->first();
-                            if ($page) {
-                                return "/admin/pages/{$page->id}/edit";
-                            }
-                        }
-                    } catch (\Throwable $e) {
-                        // Safe fallback in case database is not accessible/migrated yet
-                    }
-
-                    return $underConstructionUrl;
-                };
-
-                return NavigationItem::make($label)
+        foreach ($itemsByGroup as $group => $groupItems) {
+            foreach ($groupItems as [$label, $sort]) {
+                $navigationItems[] = NavigationItem::make($label)
                     ->group($group)
-                    ->url($urlClosure)
+                    ->url(self::wipItemUrl($label, $slugMap, $underConstructionUrl))
                     ->sort($sort);
-            },
-            $items
-        );
+            }
+        }
+
+        return $navigationItems;
+    }
+
+    /**
+     * Indirizzo della voce: la pagina del CMS se esiste, altrimenti la pagina
+     * "in costruzione". Risolto alla prima chiamata e non alla costruzione del
+     * menu, perche' il pannello si carica anche a database non migrato.
+     *
+     * @param  array<string, string>  $slugMap
+     */
+    private static function wipItemUrl(string $label, array $slugMap, string $underConstructionUrl): \Closure
+    {
+        return function () use ($label, $slugMap, $underConstructionUrl) {
+            try {
+                $slug = $slugMap[$label] ?? null;
+                $page = $slug ? Page::where('slug', $slug)->first() : null;
+
+                if ($page) {
+                    return "/admin/pages/{$page->id}/edit";
+                }
+            } catch (\Throwable) {
+                // Fallback: database non raggiungibile o non ancora migrato.
+            }
+
+            return $underConstructionUrl;
+        };
     }
 }

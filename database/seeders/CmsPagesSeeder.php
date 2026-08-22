@@ -8,6 +8,16 @@ use Illuminate\Database\Seeder;
 
 class CmsPagesSeeder extends Seeder
 {
+    /** Template Vue delle pagine di solo testo. */
+    private const TEMPLATE_CONTENT_PAGE = 'Public/ContentPage';
+
+    /** Categorie della rubrica dei referenti e recapito del safeguarding. */
+    private const CATEGORY_SERIE_A1 = 'SERIE A1';
+
+    private const CATEGORY_YOUTH = 'SDB VOLLEY YOUTH';
+
+    private const SAFEGUARDING_EMAIL = 'safeguarding@savinodelbenevolley.it';
+
     /**
      * Le 22 pagine CMS del progetto con slug, template e contenuto base.
      * Esegui con: php artisan db:seed --class=CmsPagesSeeder
@@ -81,7 +91,7 @@ class CmsPagesSeeder extends Seeder
                     'it' => [
                         'report_title' => 'Segnalazioni',
                         'report_description' => 'Per segnalare comportamenti non conformi al Codice di Condotta o presunti abusi, è possibile contattare il Responsabile Safeguarding in totale riservatezza.',
-                        'report_email' => 'safeguarding@savinodelbenevolley.it',
+                        'report_email' => self::SAFEGUARDING_EMAIL,
                         'documents' => [
                             [
                                 'title' => 'Modello Organizzativo e di Controllo',
@@ -100,7 +110,7 @@ class CmsPagesSeeder extends Seeder
                     'en' => [
                         'report_title' => 'Reports',
                         'report_description' => 'To report behaviors not in compliance with the Code of Conduct or alleged abuses, you can contact the Safeguarding Officer in total confidentiality.',
-                        'report_email' => 'safeguarding@savinodelbenevolley.it',
+                        'report_email' => self::SAFEGUARDING_EMAIL,
                         'documents' => [
                             [
                                 'title' => 'Organizational and Control Model',
@@ -138,49 +148,49 @@ class CmsPagesSeeder extends Seeder
                         'legal_fipav' => '100470331',
                         'contacts_list' => [
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'DIRETTORE GENERALE',
                                 'name' => 'Francesco Paoletti',
                                 'email' => 'francesco.paoletti@savinodelbenevolley.it',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'UFFICIO STAMPA',
                                 'name' => '',
                                 'email' => 'press@savinodelbenevolley.it',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'RESPONSABILE MARKETING',
                                 'name' => '',
                                 'email' => 'marketing@savinodelbenevolley.it',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'SAFEGUARDING OFFICE',
                                 'name' => '',
-                                'email' => 'safeguarding@savinodelbenevolley.it',
+                                'email' => self::SAFEGUARDING_EMAIL,
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'SETTORE GIOVANILE',
                                 'name' => '',
                                 'email' => 'settoregiovanile@savinodelbenevolley.it',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SDB VOLLEY YOUTH',
+                                'category' => self::CATEGORY_YOUTH,
                                 'role' => 'RESPONSABILE SDB VOLLEY YOUTH',
                                 'name' => 'Massimo Toccafondi',
                                 'email' => '',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SDB VOLLEY YOUTH',
+                                'category' => self::CATEGORY_YOUTH,
                                 'role' => 'REFERENTE SQUADRE SDB VOLLEY YOUTH',
                                 'name' => 'Lucrezia Grandini',
                                 'email' => '',
@@ -205,49 +215,49 @@ class CmsPagesSeeder extends Seeder
                         'legal_fipav' => '100470331',
                         'contacts_list' => [
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'GENERAL MANAGER',
                                 'name' => 'Francesco Paoletti',
                                 'email' => 'francesco.paoletti@savinodelbenevolley.it',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'PRESS OFFICE',
                                 'name' => '',
                                 'email' => 'press@savinodelbenevolley.it',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'MARKETING MANAGER',
                                 'name' => '',
                                 'email' => 'marketing@savinodelbenevolley.it',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'SAFEGUARDING OFFICE',
                                 'name' => '',
-                                'email' => 'safeguarding@savinodelbenevolley.it',
+                                'email' => self::SAFEGUARDING_EMAIL,
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SERIE A1',
+                                'category' => self::CATEGORY_SERIE_A1,
                                 'role' => 'YOUTH SECTOR',
                                 'name' => '',
                                 'email' => 'settoregiovanile@savinodelbenevolley.it',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SDB VOLLEY YOUTH',
+                                'category' => self::CATEGORY_YOUTH,
                                 'role' => 'HEAD OF SDB VOLLEY YOUTH',
                                 'name' => 'Massimo Toccafondi',
                                 'email' => '',
                                 'phone' => '',
                             ],
                             [
-                                'category' => 'SDB VOLLEY YOUTH',
+                                'category' => self::CATEGORY_YOUTH,
                                 'role' => 'SDB VOLLEY YOUTH TEAM CONTACT',
                                 'name' => 'Lucrezia Grandini',
                                 'email' => '',
@@ -317,10 +327,10 @@ class CmsPagesSeeder extends Seeder
             $this->page('biglietteria', 'Biglietteria', 'Public/Ticketing',
                 'Acquista i biglietti per le partite della Savino Del Bene Volley. Prezzi, punti vendita e modalità di acquisto.',
                 '<h2>Biglietteria</h2><p>I biglietti per le partite casalinghe della Savino Del Bene Volley sono acquistabili online e presso i punti vendita autorizzati.</p>'),
-            $this->page('convenzioni', 'Convenzioni', 'Public/ContentPage',
+            $this->page('convenzioni', 'Convenzioni', self::TEMPLATE_CONTENT_PAGE,
                 'Convenzioni e agevolazioni per gruppi, scuole e associazioni per assistere alle partite della Savino Del Bene Volley.',
                 '<h2>Convenzioni</h2><p>La Savino Del Bene Volley offre tariffe agevolate per gruppi organizzati, scuole, associazioni sportive e aziende partner. Contattaci per ricevere un preventivo personalizzato.</p>'),
-            $this->page('accessibilita', 'Accessibilità', 'Public/ContentPage',
+            $this->page('accessibilita', 'Accessibilità', self::TEMPLATE_CONTENT_PAGE,
                 'Informazioni sull\'accessibilità del Pala BigMat per persone con disabilità. Posti riservati e servizi dedicati.',
                 '<h2>Accessibilità</h2><p>Il Pala BigMat è dotato di posti riservati per persone con disabilità motoria, accesso facilitato, servizi igienici dedicati e personale formato per l\'assistenza. Per informazioni e prenotazioni, contatta la segreteria.</p>'),
 
@@ -334,21 +344,21 @@ class CmsPagesSeeder extends Seeder
             $this->page('summer-camp', 'Summer Camp & Experience', 'Public/SummerCamp',
                 'Summer Camp Savino Del Bene Volley. Settimane di sport, divertimento e formazione con le atlete della Serie A1.',
                 '<h2>Summer Camp 2026</h2><p>Un\'esperienza unica per le giovani pallavoliste: allenamenti con lo staff tecnico della prima squadra, tornei, attività ricreative e la possibilità di incontrare le atlete della Serie A1.</p>'),
-            $this->page('progetto-scuola', 'Progetto Scuola', 'Public/ContentPage',
+            $this->page('progetto-scuola', 'Progetto Scuola', self::TEMPLATE_CONTENT_PAGE,
                 'Il progetto scuola della Savino Del Bene Volley. Promuoviamo la pallavolo e i valori dello sport nelle scuole.',
                 '<h2>Progetto Scuola</h2><p>La Savino Del Bene Volley porta la pallavolo e i valori dello sport nelle scuole del territorio. Attraverso lezioni, dimostrazioni e tornei interscolastici, avviciniamo i giovani alla pratica sportiva.</p>'),
 
             // === SPONSOR / B2B ===
-            $this->page('title-sponsor', 'Title Sponsor', 'Public/ContentPage',
+            $this->page('title-sponsor', 'Title Sponsor', self::TEMPLATE_CONTENT_PAGE,
                 'Savino Del Bene S.p.A., title sponsor della Savino Del Bene Volley. Scopri la partnership.',
                 '<h2>Savino Del Bene S.p.A.</h2><p>Il Gruppo Savino Del Bene, leader mondiale nella logistica e nelle spedizioni internazionali, è il title sponsor del club sin dalla sua fondazione. Una partnership che unisce eccellenza imprenditoriale e passione sportiva.</p>'),
-            $this->page('diventa-sponsor', 'Diventa Sponsor', 'Public/ContentPage',
+            $this->page('diventa-sponsor', 'Diventa Sponsor', self::TEMPLATE_CONTENT_PAGE,
                 'Diventa sponsor della Savino Del Bene Volley. Scopri i pacchetti di sponsorizzazione e i vantaggi per la tua azienda.',
                 '<h2>Perché Sponsorizzare la Savino Del Bene Volley?</h2><p>Visibilità nazionale e internazionale, accesso a un network B2B esclusivo, hospitality premium e attivazioni di marketing dedicate. Contattaci per un preventivo personalizzato.</p>'),
-            $this->page('hospitality', 'Hospitality', 'Public/ContentPage',
+            $this->page('hospitality', 'Hospitality', self::TEMPLATE_CONTENT_PAGE,
                 'Hospitality e servizi premium per le partite della Savino Del Bene Volley al Pala BigMat.',
                 '<h2>Esperienza Hospitality</h2><p>Vivi le partite della Savino Del Bene Volley da una prospettiva esclusiva. Il nostro programma Hospitality offre posti premium, catering dedicato, meet & greet con le atlete e networking con i partner del club.</p>'),
-            $this->page('affiliazioni', 'Progetto Affiliazioni', 'Public/ContentPage',
+            $this->page('affiliazioni', 'Progetto Affiliazioni', self::TEMPLATE_CONTENT_PAGE,
                 'Programma di affiliazione della Savino Del Bene Volley per società sportive e scuole di pallavolo.',
                 '<h2>Programma Affiliazioni</h2><p>La Savino Del Bene Volley offre un programma di affiliazione per società sportive e scuole di pallavolo del territorio. Formazione tecnica, condivisione di metodologie e partecipazione a eventi esclusivi.</p>'),
 
@@ -359,7 +369,7 @@ class CmsPagesSeeder extends Seeder
             $this->page('progetti-sociali', 'Progetti Sociali', 'Public/Sociale',
                 'I progetti sociali della Savino Del Bene Volley. Inclusione, territorio e responsabilità sociale.',
                 '<p>La Savino Del Bene Volley è impegnata attivamente nel tessuto sociale del territorio con iniziative di inclusione, formazione e sostegno alle comunità locali.</p>'),
-            $this->page('sostenibilita', 'Bilancio di Sostenibilità', 'Public/ContentPage',
+            $this->page('sostenibilita', 'Bilancio di Sostenibilità', self::TEMPLATE_CONTENT_PAGE,
                 'Il bilancio di sostenibilità della Savino Del Bene Volley. Impegno ambientale, sociale e di governance.',
                 '<h2>Sostenibilità</h2><p>La Savino Del Bene Volley pubblica annualmente il proprio bilancio di sostenibilità, documentando l\'impegno del club in ambito ambientale (riduzione impatto eventi), sociale (progetti inclusivi) e di governance (trasparenza gestionale).</p>'),
 
@@ -370,7 +380,7 @@ class CmsPagesSeeder extends Seeder
             $this->page('cartelle-stampa', 'Cartelle Stampa', 'Public/Comunicazione',
                 'Scarica le cartelle stampa ufficiali della Savino Del Bene Volley. Logo, foto ufficiali e materiali per la stampa.',
                 '<h2>Materiale Stampa</h2><p>In questa sezione sono disponibili i materiali ufficiali per la stampa: logo del club in vari formati, foto ufficiali delle atlete, cartelle stampa pre-partita e comunicati ufficiali.</p>'),
-            $this->page('double-face', 'Double Face — Il Magazine', 'Public/ContentPage',
+            $this->page('double-face', 'Double Face — Il Magazine', self::TEMPLATE_CONTENT_PAGE,
                 'Double Face, il magazine ufficiale della Savino Del Bene Volley. Interviste, approfondimenti e dietro le quinte.',
                 '<h2>Double Face</h2><p>Il magazine ufficiale della Savino Del Bene Volley. Interviste esclusive con le atlete, approfondimenti tattici, dietro le quinte e storie dal settore giovanile. Disponibile in formato digitale.</p>', [
                     'youtube_videos' => [
@@ -381,7 +391,7 @@ class CmsPagesSeeder extends Seeder
                         ],
                     ],
                 ]),
-            $this->page('magazine', 'Magazine', 'Public/ContentPage',
+            $this->page('magazine', 'Magazine', self::TEMPLATE_CONTENT_PAGE,
                 'Sfoglia l\'archivio del magazine ufficiale della Savino Del Bene Volley. Scarica le edizioni in formato PDF.',
                 '<h2>Archivio Magazine</h2><p>In questa sezione puoi consultare e scaricare in formato PDF tutti i numeri di "Double Face", il magazine ufficiale della Savino Del Bene Volley.</p>', [
                     'magazines' => [
@@ -393,7 +403,7 @@ class CmsPagesSeeder extends Seeder
                         ],
                     ],
                 ]),
-            $this->page('iscrizione-experience', 'Iscrizione (Experience)', 'Public/ContentPage',
+            $this->page('iscrizione-experience', 'Iscrizione (Experience)', self::TEMPLATE_CONTENT_PAGE,
                 'Iscrizione al Summer Camp Savino Del Bene Volley. Accedi al portale iscrizioni del partner organizzativo.',
                 '<h2>Iscrizione Online</h2><p>Le iscrizioni per l\'edizione 2026 del Summer Camp sono gestite direttamente dal nostro partner organizzativo. Clicca sul pulsante sottostante per accedere al portale di iscrizione esterno.</p>', [
                     'button_text' => 'Accedi al portale iscrizioni',

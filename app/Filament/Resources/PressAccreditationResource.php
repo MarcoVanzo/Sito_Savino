@@ -17,6 +17,18 @@ class PressAccreditationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-ticket';
 
+    /**
+     * Le etichette dello stato servono al form, al filtro e al badge della
+     * tabella: tenerle in un posto solo evita che i tre elenchi divergano.
+     *
+     * @var array<string, string>
+     */
+    private const STATUS_LABELS = [
+        'unread' => 'In Attesa',
+        'read' => 'Letto',
+        'replied' => 'Accreditato / Risposto',
+    ];
+
     protected static ?string $navigationLabel = 'Richieste Accrediti';
 
     protected static ?string $pluralLabel = 'Richieste Accrediti';
@@ -69,11 +81,7 @@ class PressAccreditationResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->label('Stato')
-                            ->options([
-                                'unread' => 'In Attesa',
-                                'read' => 'Letto',
-                                'replied' => 'Accreditato / Risposto',
-                            ])
+                            ->options(self::STATUS_LABELS)
                             ->default('unread')
                             ->required(),
                         Forms\Components\Textarea::make('extra_data.admin_notes')
@@ -108,12 +116,7 @@ class PressAccreditationResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'unread' => 'In Attesa',
-                        'read' => 'Letto',
-                        'replied' => 'Accreditato / Risposto',
-                        default => $state,
-                    })
+                    ->formatStateUsing(fn (string $state): string => self::STATUS_LABELS[$state] ?? $state)
                     ->color(fn (string $state): string => match ($state) {
                         'unread' => 'danger',
                         'read' => 'warning',
@@ -129,11 +132,7 @@ class PressAccreditationResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Stato')
-                    ->options([
-                        'unread' => 'In Attesa',
-                        'read' => 'Letto',
-                        'replied' => 'Accreditato / Risposto',
-                    ]),
+                    ->options(self::STATUS_LABELS),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
