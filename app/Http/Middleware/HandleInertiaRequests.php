@@ -32,21 +32,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'locale' => fn () => app()->getLocale(),
-            'alternateUrl' => function () use ($request) {
-                $locale = app()->getLocale();
-                $path = $request->getPathInfo();
-                $query = $request->getQueryString() ? '?'.$request->getQueryString() : '';
-
-                if ($locale === 'it') {
-                    $enPath = $path === '/' ? '/en' : '/en'.$path;
-
-                    return url($enPath.$query);
-                }
-
-                $itPath = preg_replace('#^/en(/|$)#', '/', $path);
-
-                return url($itPath.$query);
-            },
+            'alternateUrl' => fn () => $this->alternateUrl($request),
             'locales' => config('app.supported_locales', ['it', 'en']),
             // Le pagine usano `ziggy.url`/`ziggy.location` per i dati strutturati
             // e i meta Open Graph, che richiedono URL assoluti. La direttiva
@@ -57,21 +43,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'auth' => [
                 'user' => $request->user()?->only('id', 'name', 'email', 'role'),
-                // Preavviso di scadenza password: il banner sul sito è l'unico
-                // canale che raggiunge anche i clienti dello shop, che il
-                // pannello CMS non lo vedono mai.
-                'passwordExpiry' => function () use ($request) {
-                    $user = $request->user();
-
-                    if (! $user instanceof User || ! $user->passwordIsExpiringSoon()) {
-                        return null;
-                    }
-
-                    return [
-                        'days' => $user->daysUntilPasswordExpires(),
-                        'expiresOn' => $user->passwordExpiresAt()?->toDateString(),
-                    ];
-                },
+                'passwordExpiry' => fn () => $this->passwordExpiryNotice($request),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
@@ -82,44 +54,103 @@ class HandleInertiaRequests extends Middleware
             ],
             'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
             'footerMenu' => fn () => $isPublic ? MenuItem::getTree('footer') : [],
-            'siteSettings' => function () use ($isPublic) {
-                if (! $isPublic) {
-                    return [];
-                }
-                $settings = SiteSetting::getPublicGrouped();
-
-                // Il pixel legge una configurazione d'ambiente, non
-                // un'impostazione del pannello: viaggia insieme alle altre voci
-                // di analytics perché il front-end abbia un posto solo da
-                // guardare invece di una prop di primo livello in più.
-                $settings['analytics']['meta_pixel_requires_consent'] =
-                    (bool) config('services.meta.pixel_requires_consent');
-
-                try {
-                    $contactPage = Page::where('slug', 'contatti')->first();
-                    if ($contactPage) {
-                        $contentData = $contactPage->getTranslation('content_data', app()->getLocale());
-                        if (is_string($contentData)) {
-                            $contentData = json_decode($contentData, true);
-                        }
-                        if (is_array($contentData)) {
-                            $settings['contact'] = array_merge($settings['contact'] ?? [], $contentData);
-                        }
-                    }
-                } catch (\Throwable $e) {
-                    // Safe fallback in case table/page doesn't exist
-                }
-
-                if (isset($settings['legal'])) {
-                    foreach ($settings['legal'] as $key => $path) {
-                        if ($path) {
-                            $settings['legal'][$key] = Storage::url($path);
-                        }
-                    }
-                }
-
-                return $settings;
-            },
+            'siteSettings' => fn () => $isPublic ? $this->publicSiteSettings() : [],
         ];
+    }
+
+    /**
+     * Indirizzo della stessa pagina nell'altra lingua, per il selettore.
+     */
+    private function alternateUrl(Request $request): string
+    {
+        $path = $request->getPathInfo();
+        $query = $request->getQueryString() ? '?'.$request->getQueryString() : '';
+
+        if (app()->getLocale() === 'it') {
+            return url(($path === '/' ? '/en' : '/en'.$path).$query);
+        }
+
+        return url(preg_replace('#^/en(/|$)#', '/', $path).$query);
+    }
+
+    /**
+     * Preavviso di scadenza password: il banner sul sito e' l'unico canale che
+     * raggiunge anche i clienti dello shop, che il pannello CMS non lo vedono
+     * mai.
+     *
+     * @return array{days: int|null, expiresOn: string|null}|null
+     */
+    private function passwordExpiryNotice(Request $request): ?array
+    {
+        $user = $request->user();
+
+        if (! $user instanceof User || ! $user->passwordIsExpiringSoon()) {
+            return null;
+        }
+
+        return [
+            'days' => $user->daysUntilPasswordExpires(),
+            'expiresOn' => $user->passwordExpiresAt()?->toDateString(),
+        ];
+    }
+
+    /**
+     * Impostazioni pubbliche del sito, gia' pronte per il front-end.
+     *
+     * @return array<string, mixed>
+     */
+    private function publicSiteSettings(): array
+    {
+        $settings = SiteSetting::getPublicGrouped();
+
+        // Il pixel legge una configurazione d'ambiente, non un'impostazione del
+        // pannello: viaggia insieme alle altre voci di analytics perche' il
+        // front-end abbia un posto solo da guardare invece di una prop di primo
+        // livello in piu'.
+        $settings['analytics']['meta_pixel_requires_consent'] =
+            (bool) config('services.meta.pixel_requires_consent');
+
+        $contactOverrides = $this->contactPageOverrides();
+
+        if ($contactOverrides !== []) {
+            $settings['contact'] = array_merge($settings['contact'] ?? [], $contactOverrides);
+        }
+
+        foreach ($settings['legal'] ?? [] as $key => $path) {
+            if ($path) {
+                $settings['legal'][$key] = Storage::url($path);
+            }
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Campi della pagina CMS "Contatti" che integrano il gruppo di
+     * impostazioni omonimo.
+     *
+     * @return array<string, mixed>
+     */
+    private function contactPageOverrides(): array
+    {
+        try {
+            $contactPage = Page::where('slug', 'contatti')->first();
+
+            if (! $contactPage) {
+                return [];
+            }
+
+            $contentData = $contactPage->getTranslation('content_data', app()->getLocale());
+
+            if (is_string($contentData)) {
+                $contentData = json_decode($contentData, true);
+            }
+
+            return is_array($contentData) ? $contentData : [];
+        } catch (\Throwable) {
+            // La tabella o la pagina possono non esistere ancora: il sito deve
+            // reggere lo stesso.
+            return [];
+        }
     }
 }
