@@ -139,63 +139,55 @@ class ComunicazioneTemplateForm
                                 ->placeholder('es. Ufficio Stampa & Media Relations'),
                         ]),
 
-                    Forms\Components\Fieldset::make('Contatto 1 (Ufficio Stampa)')
-                        ->schema([
-                            Forms\Components\Grid::make(2)
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.contact_1_role')
-                                        ->label('Ruolo')
-                                        ->placeholder('es. Responsabile Ufficio Stampa'),
-                                    Forms\Components\TextInput::make('content_data.contact_1_name')
-                                        ->label(EtichetteDeiCampi::FULL_NAME)
-                                        ->placeholder('es. Stefano Rossi'),
-                                    Forms\Components\TextInput::make('content_data.contact_1_email')
-                                        ->label('Email')
-                                        ->placeholder('es. stampa@savinodelbenevolley.it'),
-                                    Forms\Components\TextInput::make('content_data.contact_1_phone')
-                                        ->label('Telefono')
-                                        ->placeholder('es. +39 055 000 0000'),
-                                ]),
-                        ]),
+                    self::contattoMedia(1, 'Ufficio Stampa', [
+                        'role' => 'es. Responsabile Ufficio Stampa',
+                        'name' => 'es. Stefano Rossi',
+                        'email' => 'es. stampa@savinodelbenevolley.it',
+                        'phone' => 'es. +39 055 000 0000',
+                    ]),
 
-                    Forms\Components\Fieldset::make('Contatto 2 (Social Media)')
-                        ->schema([
-                            Forms\Components\Grid::make(2)
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.contact_2_role')
-                                        ->label('Ruolo')
-                                        ->placeholder('es. Social Media Specialist'),
-                                    Forms\Components\TextInput::make('content_data.contact_2_name')
-                                        ->label(EtichetteDeiCampi::FULL_NAME)
-                                        ->placeholder('es. Giulia Bianchi'),
-                                    Forms\Components\TextInput::make('content_data.contact_2_email')
-                                        ->label('Email')
-                                        ->placeholder('es. social@savinodelbenevolley.it'),
-                                    Forms\Components\TextInput::make('content_data.contact_2_phone')
-                                        ->label('Telefono')
-                                        ->placeholder('es. +39 055 000 0001'),
-                                ]),
-                        ]),
+                    self::contattoMedia(2, 'Social Media', [
+                        'role' => 'es. Social Media Specialist',
+                        'name' => 'es. Giulia Bianchi',
+                        'email' => 'es. social@savinodelbenevolley.it',
+                        'phone' => 'es. +39 055 000 0001',
+                    ]),
 
-                    Forms\Components\Fieldset::make('Contatto 3 (Fotografo Ufficiale)')
-                        ->schema([
-                            Forms\Components\Grid::make(2)
-                                ->schema([
-                                    Forms\Components\TextInput::make('content_data.contact_3_role')
-                                        ->label('Ruolo')
-                                        ->placeholder('es. Fotografo Ufficiale'),
-                                    Forms\Components\TextInput::make('content_data.contact_3_name')
-                                        ->label(EtichetteDeiCampi::FULL_NAME)
-                                        ->placeholder('es. Marco Neri'),
-                                    Forms\Components\TextInput::make('content_data.contact_3_email')
-                                        ->label('Email')
-                                        ->placeholder('es. media@savinodelbenevolley.it'),
-                                    Forms\Components\TextInput::make('content_data.contact_3_phone')
-                                        ->label('Telefono')
-                                        ->placeholder('es. +39 055 000 0002'),
-                                ]),
-                        ]),
+                    self::contattoMedia(3, 'Fotografo Ufficiale', [
+                        'role' => 'es. Fotografo Ufficiale',
+                        'name' => 'es. Marco Neri',
+                        'email' => 'es. media@savinodelbenevolley.it',
+                        'phone' => 'es. +39 055 000 0002',
+                    ]),
                 ]),
         ];
+    }
+
+    /**
+     * Una scheda della rubrica stampa. I tre referenti hanno gli stessi quattro
+     * campi e cambiano solo di numero: erano tre blocchi identici in fila.
+     *
+     * @param  array{role: string, name: string, email: string, phone: string}  $esempi
+     */
+    private static function contattoMedia(int $numero, string $titolo, array $esempi): Forms\Components\Fieldset
+    {
+        return Forms\Components\Fieldset::make("Contatto {$numero} ({$titolo})")
+            ->schema([
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\TextInput::make("content_data.contact_{$numero}_role")
+                            ->label('Ruolo')
+                            ->placeholder($esempi['role']),
+                        Forms\Components\TextInput::make("content_data.contact_{$numero}_name")
+                            ->label(EtichetteDeiCampi::FULL_NAME)
+                            ->placeholder($esempi['name']),
+                        Forms\Components\TextInput::make("content_data.contact_{$numero}_email")
+                            ->label('Email')
+                            ->placeholder($esempi['email']),
+                        Forms\Components\TextInput::make("content_data.contact_{$numero}_phone")
+                            ->label('Telefono')
+                            ->placeholder($esempi['phone']),
+                    ]),
+            ]);
     }
 }
