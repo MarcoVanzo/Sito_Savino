@@ -4,7 +4,10 @@
  * Rotte pubbliche del sito, registrate dentro il gruppo per lingua di web.php.
  *
  * Il file restituisce una funzione invece di appoggiarsi allo scope di chi lo
- * include: `$loc` e `$namePrefix` sono parametri, e si vede da dove arrivano.
+ * include: il prefisso dei nomi e' un parametro, e si vede da dove arriva. La
+ * lingua non serve qui — gli indirizzi del sito sono gli stessi in entrambe, e
+ * il prefisso lo mette gia' il gruppo di web.php. La usa solo lo shop, che ha
+ * gli slug tradotti.
  * Sta a parte perche' il gruppo era di duecentocinquanta righe e ci si perdeva
  * fra le sezioni; qui ci sono le rotte del sito, lo shop e' nel file accanto.
  */
@@ -17,7 +20,7 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\RisultatiController;
 use Illuminate\Support\Facades\Route;
 
-return function (string $loc, string $namePrefix): void {
+return function (string $namePrefix): void {
     Route::get('/', [PublicController::class, 'home'])->name('home');
     Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
     Route::get('/stagione/b1', [PublicController::class, 'stagioneB1'])->name('stagione.b1');
