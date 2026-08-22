@@ -145,142 +145,10 @@ parameters:
 			path: app/Filament/Resources/YouthStaffResource.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$attack_pct\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$attack_points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$block_points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_captain\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_internal\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_libero\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$jersey_number\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$player\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$player_name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$points_total\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reception_perfect_pct\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reception_positive_pct\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$serve_points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sets_played\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
 			message: '#^Anonymous function should return App\\Models\\GalleryImage but returns string\.$#'
 			identifier: return.type
 			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Parameter \#1 \$team of method App\\Http\\Controllers\\PublicController\:\:teamLogo\(\) expects App\\Models\\Team\|null, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Relation ''galleryImages'' is not found in App\\Models\\Player model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Relation ''players'' is not found in App\\Models\\GalleryImage model\.$#'
-			identifier: larastan.relationExistence
-			count: 2
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Enums\\GameStatus\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: app/Http/Controllers/PublicController.php
+			path: app/Http/Controllers/GalleryController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
@@ -343,12 +211,6 @@ parameters:
 			path: app/Http/Middleware/ServeSocialCrawlerMeta.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Jobs/AnalyzeGalleryImageJob.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$staffMembers\.$#'
 			identifier: property.notFound
 			count: 1
@@ -365,12 +227,6 @@ parameters:
 			identifier: identical.alwaysFalse
 			count: 1
 			path: app/Models/Coupon.php
-
-		-
-			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/GalleryImage.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$staffMembers\.$#'

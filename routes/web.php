@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Admin\MetaOAuthController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PressAccreditationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\RisultatiController;
 use App\Http\Controllers\Shop\AuctionCheckoutController;
 use App\Http\Controllers\Shop\AuctionController;
 use App\Http\Controllers\Shop\CartController;
@@ -69,19 +71,19 @@ foreach ($locales as $loc) {
             ->name('stagione.atleta');
 
         // Risultati e Competizioni
-        Route::get('/stagione/risultati', [PublicController::class, 'risultatiCampionato'])->name('stagione.risultati');
+        Route::get('/stagione/risultati', [RisultatiController::class, 'risultatiCampionato'])->name('stagione.risultati');
         // Deve stare prima della rotta con parametro, altrimenti "classifica"
         // verrebbe interpretato come identificativo di gara.
-        Route::get('/stagione/classifica', [PublicController::class, 'classifica'])->name('stagione.classifica');
-        Route::get('/stagione/risultati/{game}', [PublicController::class, 'partita'])
+        Route::get('/stagione/classifica', [RisultatiController::class, 'classifica'])->name('stagione.classifica');
+        Route::get('/stagione/risultati/{game}', [RisultatiController::class, 'partita'])
             ->whereNumber('game')
             ->name('stagione.partita');
-        Route::get('/stagione/cev', [PublicController::class, 'risultatiCev'])->name('stagione.cev');
-        Route::get('/stagione/coppa-italia', [PublicController::class, 'risultatiCoppaItalia'])->name('stagione.coppa-italia');
+        Route::get('/stagione/cev', [RisultatiController::class, 'risultatiCev'])->name('stagione.cev');
+        Route::get('/stagione/coppa-italia', [RisultatiController::class, 'risultatiCoppaItalia'])->name('stagione.coppa-italia');
         // I Playoff hanno una pagina propria: prima stavano dentro Coppa Italia,
         // ma sono due competizioni con qualificazioni diverse. La pagina esiste
         // anche prima che ci sia un calendario: senza gare mostra il suo vuoto.
-        Route::get('/stagione/playoff', [PublicController::class, 'risultatiPlayoff'])->name('stagione.playoff');
+        Route::get('/stagione/playoff', [RisultatiController::class, 'risultatiPlayoff'])->name('stagione.playoff');
 
         // Foto Ufficiale e News Redirect
         Route::get('/stagione/foto-ufficiale', [PublicController::class, 'fotoUfficiale'])->name('stagione.foto-ufficiale');
@@ -114,11 +116,11 @@ foreach ($locales as $loc) {
             return redirect()->route($namePrefix.'news.index', [], 301);
         })->where('any', '.*');
 
-        Route::get('/gallery', [PublicController::class, 'gallery'])->name('gallery');
+        Route::get('/gallery', [GalleryController::class, 'gallery'])->name('gallery');
         // Resto dell'archivio, caricato dal client dopo il primo render
-        Route::get('/gallery/data', [PublicController::class, 'galleryData'])->name('gallery.data');
-        Route::get('/gallery/atleta/{slug}', [PublicController::class, 'galleryAtleta'])->name('gallery.atleta');
-        Route::get('/gallery/atleta/{slug}/data', [PublicController::class, 'galleryData'])->name('gallery.atleta.data');
+        Route::get('/gallery/data', [GalleryController::class, 'galleryData'])->name('gallery.data');
+        Route::get('/gallery/atleta/{slug}', [GalleryController::class, 'galleryAtleta'])->name('gallery.atleta');
+        Route::get('/gallery/atleta/{slug}/data', [GalleryController::class, 'galleryData'])->name('gallery.atleta.data');
         Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
         Route::get('/societa', function () use ($namePrefix) {
             return redirect()->route($namePrefix.'societa.page', ['slug' => 'storia']);

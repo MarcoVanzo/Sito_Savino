@@ -49,6 +49,9 @@ class Game extends Model
         'set_scores' => 'array',
     ];
 
+    /**
+     * @return HasMany<GamePlayerStat, $this>
+     */
     public function playerStats(): HasMany
     {
         return $this->hasMany(GamePlayerStat::class);
@@ -71,11 +74,17 @@ class Game extends Model
     /**
      * @return BelongsTo<Team, $this>
      */
+    /**
+     * @return BelongsTo<Team, $this>
+     */
     public function homeTeam(): BelongsTo
     {
         return $this->belongsTo(Team::class, 'home_team_id');
     }
 
+    /**
+     * @return BelongsTo<Team, $this>
+     */
     /**
      * @return BelongsTo<Team, $this>
      */
