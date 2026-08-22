@@ -83,7 +83,7 @@ const heroVideoUrl = computed(() => homeSettings.value.hero_video_url || null);
 const slideBackground = (slide) => {
     if (typeof slide !== 'string' || slide.trim() === '') return {};
     const escaped = slide
-        .replace(/[\\"]/g, '\\$&')   // backslash e doppi apici
+        .replace(/[\\"]/g, String.raw`\$&`)   // backslash e doppi apici
         .replace(/[\n\r]/g, '');      // niente a capo dentro url()
     return { backgroundImage: `url("${escaped}")` };
 };

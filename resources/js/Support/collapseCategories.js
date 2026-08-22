@@ -21,7 +21,7 @@
 /** Anno di apertura di una categoria stagionale, oppure null. */
 export function seasonYear(category) {
     const testo = `${category?.slug ?? ''} ${nomeLeggibile(category?.name)}`
-    const match = testo.match(/(\d{4})\s*[-/]\s*(\d{4}|\d{2})\b/)
+    const match = /(\d{4})\s*[-/]\s*(\d{4}|\d{2})\b/.exec(testo)
 
     return match ? Number(match[1]) : null
 }

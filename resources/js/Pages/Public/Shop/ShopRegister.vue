@@ -32,7 +32,7 @@ const passwordStrength = computed(() => {
     if (p.length >= 8) score++;
     if (p.length >= 12) score++;
     if (/[A-Z]/.test(p)) score++;
-    if (/[0-9]/.test(p)) score++;
+    if (/\d/.test(p)) score++;
     if (/[^A-Za-z0-9]/.test(p)) score++;
 
     if (score <= 1) return { score: 1, label: $t('shop.password_strength_weak') || 'Debole', color: 'bg-red-500' };
