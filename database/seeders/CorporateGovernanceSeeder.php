@@ -22,11 +22,14 @@ use Illuminate\Support\Facades\DB;
  */
 class CorporateGovernanceSeeder extends Seeder
 {
+    /** Indirizzo della pagina Safeguarding, a cui punta la voce di menu. */
+    private const URL_SAFEGUARDING = '/societa/safeguarding';
+
     private const TITOLO = 'Corporate Governance';
 
     /** L'ordine è quello in cui compaiono nel footer. */
     private const VOCI = [
-        ['it' => 'Safeguarding', 'en' => 'Safeguarding', 'url' => '/societa/safeguarding'],
+        ['it' => 'Safeguarding', 'en' => 'Safeguarding', 'url' => self::URL_SAFEGUARDING],
         ['it' => 'Protocollo Razzismo', 'en' => 'Anti-Racism Protocol', 'url' => 'documento:protocollo_razzismo'],
         ['it' => 'Protocollo Bullismo', 'en' => 'Anti-Bullying Protocol', 'url' => 'documento:protocollo_bullismo'],
         ['it' => 'Codice Tutela Minori', 'en' => 'Child Protection Code', 'url' => 'documento:codice_tutela_minori'],
@@ -37,7 +40,7 @@ class CorporateGovernanceSeeder extends Seeder
     {
         $colonna = $this->colonnaUnica();
 
-        $colonna->update(['url' => '/societa/safeguarding', 'is_active' => true]);
+        $colonna->update(['url' => self::URL_SAFEGUARDING, 'is_active' => true]);
 
         foreach (self::VOCI as $posizione => $voce) {
             $esistente = $colonna->children()->get()
@@ -79,7 +82,7 @@ class CorporateGovernanceSeeder extends Seeder
         if ($colonne->isEmpty()) {
             return MenuItem::create([
                 'label' => ['it' => self::TITOLO, 'en' => self::TITOLO],
-                'url' => '/societa/safeguarding',
+                'url' => self::URL_SAFEGUARDING,
                 'location' => 'footer',
                 'sort_order' => 3,
                 'is_active' => true,

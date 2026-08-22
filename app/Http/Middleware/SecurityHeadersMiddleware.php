@@ -8,6 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeadersMiddleware
 {
+    /** Sorgente "lo stesso sito" nelle direttive della Content Security Policy. */
+    private const SELF = "'self'";
+
     /**
      * Aggiunge header di sicurezza a tutte le risposte HTTP.
      * CSP in modalità enforcing.
@@ -23,7 +26,7 @@ class SecurityHeadersMiddleware
             // misurazione era ferma, pur essendo tutto configurato. Sono gli
             // unici due script esterni ammessi.
             'script-src '.implode(' ', [
-                "'self'", "'unsafe-inline'", "'unsafe-eval'",
+                self::SELF, "'unsafe-inline'", "'unsafe-eval'",
                 'https://www.googletagmanager.com',
                 'https://connect.facebook.net',
             ]),
@@ -33,7 +36,7 @@ class SecurityHeadersMiddleware
             // Dove le due misurazioni spediscono i dati raccolti. Senza,
             // caricare lo script non sarebbe comunque servito a niente.
             'connect-src '.implode(' ', [
-                "'self'",
+                self::SELF,
                 'https://www.google-analytics.com',
                 'https://*.google-analytics.com',
                 'https://*.analytics.google.com',
@@ -50,7 +53,7 @@ class SecurityHeadersMiddleware
             // Dailymotion serve il player da `geo.` dopo una redirezione, e la
             // redirezione viene verificata come la richiesta iniziale.
             'frame-src '.implode(' ', [
-                "'self'",
+                self::SELF,
                 'https://www.google.com', 'https://maps.google.com',
                 'https://www.youtube.com', 'https://www.youtube-nocookie.com',
                 'https://player.vimeo.com',

@@ -20,6 +20,12 @@ class PageTemplateForms
 
     private const LABEL_FULL_NAME = 'Nome Completo';
 
+    private const LABEL_BUTTON_TEXT = 'Testo del pulsante';
+
+    private const LABEL_SHORT_DESCRIPTION = 'Descrizione breve';
+
+    private const PDF_MIME = 'application/pdf';
+
     /**
      * Coda multimediale di una pagina: un video e una galleria, dopo il testo.
      *
@@ -68,11 +74,11 @@ class PageTemplateForms
                     ->required()
                     ->placeholder('es. Bilancio di Sostenibilita\' 2024/2025'),
                 Forms\Components\Textarea::make('description')
-                    ->label('Descrizione breve')
+                    ->label(self::LABEL_SHORT_DESCRIPTION)
                     ->rows(2),
                 Forms\Components\FileUpload::make('file')
                     ->label('File PDF')
-                    ->acceptedFileTypes(['application/pdf'])
+                    ->acceptedFileTypes([self::PDF_MIME])
                     ->directory('documenti')
                     ->required()
                     ->preserveFilenames()
@@ -99,7 +105,7 @@ class PageTemplateForms
             Forms\Components\Fieldset::make('Pulsante')
                 ->schema([
                     Forms\Components\TextInput::make('content_data.button_text')
-                        ->label('Testo del pulsante')
+                        ->label(self::LABEL_BUTTON_TEXT)
                         ->placeholder('es. Scrivici'),
                     Forms\Components\TextInput::make('content_data.button_url')
                         ->label('Destinazione')
@@ -192,7 +198,7 @@ class PageTemplateForms
                         ->url()
                         ->placeholder('https://...'),
                     Forms\Components\TextInput::make('content_data.signup_cta')
-                        ->label('Testo del pulsante')
+                        ->label(self::LABEL_BUTTON_TEXT)
                         ->placeholder('es. Iscriviti'),
                     Forms\Components\TextInput::make('content_data.signup_email')
                         ->label('Email per informazioni')
@@ -244,7 +250,7 @@ class PageTemplateForms
                         ->helperText('Indirizzo della pagina di vendita. Se vuoto, il pulsante non viene mostrato.')
                         ->columnSpanFull(),
                     Forms\Components\TextInput::make('content_data.tickets_button_text')
-                        ->label('Testo del pulsante')
+                        ->label(self::LABEL_BUTTON_TEXT)
                         ->placeholder('es. Acquista su Vivaticket'),
                     Forms\Components\TextInput::make('content_data.tickets_note')
                         ->label('Nota sotto al pulsante')
@@ -376,14 +382,14 @@ class PageTemplateForms
                         ->required()
                         ->placeholder('es. Codice di Condotta a Tutela dei Minori'),
                     Forms\Components\Textarea::make('description')
-                        ->label('Descrizione breve')
+                        ->label(self::LABEL_SHORT_DESCRIPTION)
                         ->placeholder('es. Linee guida specifiche per garantire un ambiente sportivo sicuro...'),
                     // Era un campo di testo che chiedeva l'indirizzo del file: per usarlo
                     // bisognava aver gia' caricato il PDF da qualche altra parte e
                     // conoscerne il percorso, cosa che dal pannello non si puo' fare.
                     Forms\Components\FileUpload::make('file')
                         ->label('File PDF del documento')
-                        ->acceptedFileTypes(['application/pdf'])
+                        ->acceptedFileTypes([self::PDF_MIME])
                         ->directory('safeguarding')
                         ->required()
                         ->preserveFilenames(),
@@ -591,7 +597,7 @@ class PageTemplateForms
                         ->placeholder('es. Ottobre 2026'),
                     Forms\Components\FileUpload::make('file_url')
                         ->label('File PDF del Magazine')
-                        ->acceptedFileTypes(['application/pdf'])
+                        ->acceptedFileTypes([self::PDF_MIME])
                         ->directory('magazines/pdfs')
                         ->required()
                         ->preserveFilenames(),
@@ -1288,7 +1294,7 @@ class PageTemplateForms
                                         ->label('Emoji (opzionale)')
                                         ->placeholder('es. 🎨'),
                                     Forms\Components\Textarea::make('description')
-                                        ->label('Descrizione breve')
+                                        ->label(self::LABEL_SHORT_DESCRIPTION)
                                         ->rows(2)
                                         ->columnSpanFull(),
                                     Forms\Components\TextInput::make('format')
@@ -1296,7 +1302,7 @@ class PageTemplateForms
                                         ->placeholder('es. PDF — 8 MB'),
                                     Forms\Components\FileUpload::make('file')
                                         ->label('File da scaricare (PDF/ZIP)')
-                                        ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-zip-compressed'])
+                                        ->acceptedFileTypes([self::PDF_MIME, 'application/zip', 'application/x-zip-compressed'])
                                         ->directory('press-kit')
                                         ->required()
                                         ->preserveFilenames(),
