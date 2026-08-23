@@ -168,7 +168,8 @@ services:
     value: http://10.114.0.3:8000
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
-    value: 00000000-0000-0000-0000-000000000001
+    type: SECRET
+    value: EV[1:PDLgtGt+aK43RpEn8cr9ld9kIREtKpNF:NRlgEbkP29S4vWwUVl2bDEVeyUHGTjJyrHktq3V6C3N6Gx1uvEIh4PaxArgn3iMeMubzqQ==]
   - key: ACTIVECAMPAIGN_URL
     scope: RUN_AND_BUILD_TIME
     value: https://savinodelbenevolley.api-us1.com
@@ -340,7 +341,8 @@ workers:
     value: http://10.114.0.3:8000
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
-    value: 00000000-0000-0000-0000-000000000001
+    type: SECRET
+    value: EV[1:JTMIylQ7phfBvFEc4JNH4pRBuzH/U10J:8/XA4SurHgyLIBxmcA/UPIbqhrEHEnKKMxnnm4UPJP38nCkaoiD7HwwZDdUjhv4ODcKE1Q==]
   - key: ACTIVECAMPAIGN_URL
     scope: RUN_AND_BUILD_TIME
     value: https://savinodelbenevolley.api-us1.com
@@ -492,7 +494,8 @@ workers:
     value: http://10.114.0.3:8000
   - key: COMPREFACE_KEY
     scope: RUN_AND_BUILD_TIME
-    value: 00000000-0000-0000-0000-000000000001
+    type: SECRET
+    value: EV[1:y8TGzb32WgEGM6mrnVwJw4RcdCJ/itl0:ShMRVPfPBzaR3zRk29tO0U939NHr0BwlOAK+rxJp1R/NxJ93SDRkVIn4K0TuklOikuG1lw==]
   - key: ACTIVECAMPAIGN_URL
     scope: RUN_AND_BUILD_TIME
     value: https://savinodelbenevolley.api-us1.com
