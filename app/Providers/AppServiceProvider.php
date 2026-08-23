@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
+use App\Models\HeroSlide;
 use App\Models\Order;
 use App\Models\Page;
 use App\Models\Player;
@@ -118,6 +119,7 @@ class AppServiceProvider extends ServiceProvider
         StaffMember::observe(CacheInvalidationObserver::class);
         GalleryEvent::observe(CacheInvalidationObserver::class);
         GalleryImage::observe(CacheInvalidationObserver::class);
+        HeroSlide::observe(CacheInvalidationObserver::class);
 
         // Forza HTTPS in produzione
         if (app()->isProduction()) {

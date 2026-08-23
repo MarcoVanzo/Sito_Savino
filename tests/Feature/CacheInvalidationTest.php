@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Game;
+use App\Models\HeroSlide;
 use App\Models\Player;
 use App\Models\Post;
 use App\Models\Roster;
@@ -113,6 +114,38 @@ class CacheInvalidationTest extends TestCase
         $season->delete();
 
         $this->assertNull(Cache::get('public:risultati'));
+    }
+
+    /**
+     * Gli slide sono il primo schermo della homepage e li si cambia spesso:
+     * senza l'observer restavano quelli vecchi per i cinque minuti di
+     * `public:home`, e in redazione sembrava che il salvataggio non avesse
+     * funzionato.
+     */
+    public function test_cache_della_home_svuotata_quando_cambia_uno_slide(): void
+    {
+        $slide = HeroSlide::factory()->create();
+
+        Cache::put('public:home', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:home:it', 'cached_data', now()->addMinutes(30));
+        Cache::put('public:home:en', 'cached_data', now()->addMinutes(30));
+
+        $slide->update(['title' => 'Nuovo titolo']);
+
+        $this->assertNull(Cache::get('public:home'));
+        $this->assertNull(Cache::get('public:home:it'));
+        $this->assertNull(Cache::get('public:home:en'));
+    }
+
+    public function test_cache_della_home_svuotata_quando_uno_slide_e_cancellato(): void
+    {
+        $slide = HeroSlide::factory()->create();
+
+        Cache::put('public:home:it', 'cached_data', now()->addMinutes(30));
+
+        $slide->delete();
+
+        $this->assertNull(Cache::get('public:home:it'));
     }
 
     public function test_cache_is_cleared_when_team_is_updated(): void

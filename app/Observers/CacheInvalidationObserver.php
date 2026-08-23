@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
+use App\Models\HeroSlide;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\Player;
@@ -50,6 +51,10 @@ class CacheInvalidationObserver
         Category::class => ['public:news_categories'],
         Page::class => [],
         Game::class => ['public:risultati', 'public:home', 'filament:dashboard:stats', 'filament:dashboard:next_match_id'],
+        // Gli slide sono il primo schermo della homepage e si cambiano spesso:
+        // senza questa voce restavano quelli vecchi per i cinque minuti di
+        // `public:home`, e la redazione ricaricava senza vedere niente.
+        HeroSlide::class => ['public:home'],
         Standing::class => ['public:risultati'],
         StaffMember::class => ['public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],
         GalleryEvent::class => ['public:gallery_images'],
