@@ -15,6 +15,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ListGalleryImages extends ListRecords
 {
@@ -139,9 +140,15 @@ class ListGalleryImages extends ListRecords
      */
     private function improntaDelFile(string $file): ?string
     {
-        $fullPath = storage_path('app/private/'.$file);
+        // Il percorso lo dà il disco, non si compone a mano: il file arriva dal
+        // campo di caricamento, che dichiara `->disk('local')`, e cablare qui
+        // `storage_path('app/private/…')` significa che basta un cambio di
+        // radice del disco perché l'impronta torni null. Non salterebbe niente
+        // in modo visibile: semplicemente i doppioni ricomincerebbero a
+        // passare, senza un errore da nessuna parte.
+        $percorso = Storage::disk('local')->path($file);
 
-        return file_exists($fullPath) ? hash_file('sha256', $fullPath) : null;
+        return file_exists($percorso) ? hash_file('sha256', $percorso) : null;
     }
 
     /**

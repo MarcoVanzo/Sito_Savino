@@ -12,6 +12,11 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class FacialRecognitionService
 {
+    /**
+     * Codice CompreFace per "No face is found in the given image".
+     */
+    private const ERRORE_NESSUN_VOLTO = 28;
+
     protected string $host;
 
     protected string $apiKey;
@@ -149,11 +154,28 @@ class FacialRecognitionService
             throw new FacialRecognitionException('CompreFace API Key non configurata.');
         }
 
+        // `throw: false` come negli altri tre metodi del servizio: senza, al
+        // terzo tentativo fallito Laravel lancia la propria RequestException e
+        // il controllo qui sotto non viene mai raggiunto — cioe' proprio quando
+        // CompreFace e' in errore non si scriveva il log con lo stato e il
+        // corpo della risposta, e chi chiama riceveva un'eccezione diversa da
+        // quella dichiarata.
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->timeout(30)->retry(2, 1000)->attach(
+        ])->timeout(30)->retry(2, 1000, throw: false)->attach(
             'file', fopen($imagePath, 'r'), basename($imagePath)
         )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
+
+        // "No face is found" (code 28) non e' un guasto: e' l'esito normale
+        // per le foto senza volti (pubblico, palazzetto, dettagli di gioco) —
+        // quasi un terzo della galleria. Trattarlo come errore faceva fallire
+        // il job per tre tentativi e riempiva failed_jobs di falsi allarmi.
+        if ($response->status() === 400 && ($response->json()['code'] ?? null) === self::ERRORE_NESSUN_VOLTO) {
+            return [
+                'detected_persons' => [],
+                'has_unrecognized_faces' => false,
+            ];
+        }
 
         if (! $response->successful()) {
             $errorBody = $response->body();

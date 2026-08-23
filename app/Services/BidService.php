@@ -91,7 +91,7 @@ class BidService
     {
         $base = $ciSonoOfferte ? (float) $auction->current_bid : (float) $auction->starting_price;
 
-        $bidIncrement = (float) ($auction->bid_increment ?: SiteSetting::get('auctions.min_bid_increment', 5));
+        $bidIncrement = $this->sogliaDellAsta($auction->bid_increment, 'auctions.min_bid_increment', 5);
         $minimumBid = round($base + $bidIncrement, 2);
 
         if ($amount < $minimumBid) {
@@ -100,7 +100,7 @@ class BidService
             );
         }
 
-        $maxBidJump = (float) ($auction->max_bid_jump ?: SiteSetting::get('auctions.max_bid_jump', 100));
+        $maxBidJump = $this->sogliaDellAsta($auction->max_bid_jump, 'auctions.max_bid_jump', 100);
         $maximumBid = round($base + $maxBidJump, 2);
 
         if ($amount > $maximumBid) {
@@ -108,6 +108,25 @@ class BidService
                 "L'offerta massima consentita è di €".number_format($maximumBid, 2, ',', '.').'.'
             );
         }
+    }
+
+    /**
+     * Il valore dichiarato sull'asta, se c'e', altrimenti quello delle
+     * impostazioni.
+     *
+     * Il controllo e' su "maggiore di zero" e non su `?:` perche' le colonne
+     * hanno il cast `decimal:2`: un rilancio a zero arriva come la stringa
+     * "0.00", che PHP considera vera. Con `?:` il ripiego non scattava e
+     * l'asta si bloccava — soglia minima e massima coincidevano col prezzo
+     * base, quindi nessun rilancio era piu' accettato.
+     */
+    private function sogliaDellAsta(mixed $valoreDellAsta, string $impostazione, float $predefinito): float
+    {
+        $valore = (float) $valoreDellAsta;
+
+        return $valore > 0
+            ? $valore
+            : (float) SiteSetting::get($impostazione, $predefinito);
     }
 
     /**
