@@ -2,6 +2,7 @@
 
 namespace App\Filament\Forms\Templates;
 
+use App\Filament\Forms\CampiDelleStatistiche;
 use App\Filament\Forms\EtichetteDeiCampi;
 use Filament\Forms;
 
@@ -53,41 +54,16 @@ class YouthTemplateForm
 
                     Forms\Components\Fieldset::make('Numeri del Settore Giovanile')
                         ->schema([
-                            Forms\Components\Grid::make(4)
-                                ->schema([
-                                    Forms\Components\Group::make([
-                                        Forms\Components\TextInput::make('content_data.stat_athletes')
-                                            ->label('Valore Atlete')
-                                            ->placeholder('es. 70+'),
-                                        Forms\Components\TextInput::make('content_data.stat_athletes_label')
-                                            ->label('Etichetta Atlete')
-                                            ->placeholder('es. Atlete Tesserate'),
-                                    ]),
-                                    Forms\Components\Group::make([
-                                        Forms\Components\TextInput::make('content_data.stat_categories')
-                                            ->label('Valore Categorie')
-                                            ->placeholder('es. 4'),
-                                        Forms\Components\TextInput::make('content_data.stat_categories_label')
-                                            ->label('Etichetta Categorie')
-                                            ->placeholder('es. Categorie d\'Età'),
-                                    ]),
-                                    Forms\Components\Group::make([
-                                        Forms\Components\TextInput::make('content_data.stat_coaches')
-                                            ->label('Valore Allenatori')
-                                            ->placeholder('es. 12'),
-                                        Forms\Components\TextInput::make('content_data.stat_coaches_label')
-                                            ->label('Etichetta Allenatori')
-                                            ->placeholder('es. Tecnici Qualificati'),
-                                    ]),
-                                    Forms\Components\Group::make([
-                                        Forms\Components\TextInput::make('content_data.stat_years')
-                                            ->label('Valore Anni')
-                                            ->placeholder('es. 15+'),
-                                        Forms\Components\TextInput::make('content_data.stat_years_label')
-                                            ->label('Etichetta Anni')
-                                            ->placeholder('es. Anni di Attività'),
-                                    ]),
-                                ]),
+                            CampiDelleStatistiche::griglia([
+                                ['valore' => 'content_data.stat_athletes', 'etichetta' => 'content_data.stat_athletes_label',
+                                    'nome' => 'Atlete', 'esempioValore' => 'es. 70+', 'esempioEtichetta' => 'es. Atlete Tesserate'],
+                                ['valore' => 'content_data.stat_categories', 'etichetta' => 'content_data.stat_categories_label',
+                                    'nome' => 'Categorie', 'esempioValore' => 'es. 4', 'esempioEtichetta' => 'es. Categorie d\'Età'],
+                                ['valore' => 'content_data.stat_coaches', 'etichetta' => 'content_data.stat_coaches_label',
+                                    'nome' => 'Allenatori', 'esempioValore' => 'es. 12', 'esempioEtichetta' => 'es. Tecnici Qualificati'],
+                                ['valore' => 'content_data.stat_years', 'etichetta' => 'content_data.stat_years_label',
+                                    'nome' => 'Anni', 'esempioValore' => 'es. 15+', 'esempioEtichetta' => 'es. Anni di Attività'],
+                            ], 4),
                         ]),
                 ]),
         ];

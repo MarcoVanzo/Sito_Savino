@@ -129,91 +129,26 @@ class AdminPanelProvider extends PanelProvider
     {
         $underConstructionUrl = '/admin/under-construction';
 
-        $slugMap = [
-            'Organigramma' => 'organigramma',
-            'Storia' => 'storia',
-            'Safeguarding' => 'safeguarding',
-            'Contatti' => 'contatti',
-            'Palazzetto & Google Maps' => 'palazzetto',
-            'Biglietteria' => 'biglietteria',
-            'Campagna Abbonamenti' => 'abbonamenti',
-            'Accessibilità & Info' => 'accessibilita',
-            'Convenzioni' => 'convenzioni',
-            'Diventa Sponsor' => 'diventa-sponsor',
-            'Title Sponsor (SDB)' => 'title-sponsor',
-            'Hospitality' => 'hospitality',
-            'Settore Giovanile' => 'settore-giovanile',
-            'Talent Day & Recruiting' => 'talent-day',
-            'Progetto Affiliazioni' => 'affiliazioni',
-            'Tutte le Info' => 'summer-camp',
-            'Iscrizione (Experience)' => 'iscrizione-experience',
-            'Progetti Sociali' => 'progetti-sociali',
-            'Volley 4 All' => 'volley-4-all',
-            'Bilancio Sostenibilità' => 'sostenibilita',
-            'Progetto Scuola' => 'progetto-scuola',
-            'Cartelle Stampa' => 'cartelle-stampa',
-            'Magazine' => 'magazine',
-            'Double Face' => 'double-face',
-            'Accrediti Stampa' => 'accrediti-stampa',
-        ];
+        // L'elenco delle voci sta in database/data/, con gli altri contenuti
+        // iniziali: sono dati, e qui dentro erano settanta righe di array che
+        // il rilevatore di cloni segnalava come codice duplicato.
+        $voci = require database_path('data/voci_di_menu_in_costruzione.php');
 
-        // Le voci sono raggruppate per gruppo di navigazione: il nome del gruppo
-        // compare una volta sola, come chiave, e non piu' ripetuto riga per riga.
-        $itemsByGroup = [
-            'Stagione' => [
-                ['CEV Champions League', 4],
-                ['Coppa Italia & Playoff', 5],
-            ],
-            'Società' => [
-                ['Organigramma', 1],
-                ['Storia', 2],
-                ['Safeguarding', 3],
-                ['Contatti', 4],
-                ['Palazzetto & Google Maps', 6],
-            ],
-            'Ticketing' => [
-                ['Biglietteria', 1],
-                ['Campagna Abbonamenti', 2],
-                ['Accessibilità & Info', 3],
-                ['Convenzioni', 4],
-            ],
-            'Sponsor' => [
-                ['Diventa Sponsor', 2],
-                ['Title Sponsor (SDB)', 3],
-                ['Hospitality', 4],
-            ],
-            'SDB Youth' => [
-                ['Settore Giovanile', 3],
-                ['Talent Day & Recruiting', 4],
-                ['Progetto Affiliazioni', 5],
-            ],
-            'Summer Camp' => [
-                ['Tutte le Info', 1],
-                ['Iscrizione (Experience)', 2],
-            ],
-            'Sociale' => [
-                ['Progetti Sociali', 1],
-                ['Volley 4 All', 2],
-                ['Bilancio Sostenibilità', 3],
-                ['Progetto Scuola', 4],
-            ],
-            'Comunicazione' => [
-                ['Accrediti Stampa', 1],
-                ['Cartelle Stampa', 2],
-                ['Magazine', 3],
-                ['Double Face', 4],
-            ],
-        ];
+        $slugMap = [];
+
+        foreach ($voci as $voce) {
+            if ($voce['slug'] !== null) {
+                $slugMap[$voce['etichetta']] = $voce['slug'];
+            }
+        }
 
         $navigationItems = [];
 
-        foreach ($itemsByGroup as $group => $groupItems) {
-            foreach ($groupItems as [$label, $sort]) {
-                $navigationItems[] = NavigationItem::make($label)
-                    ->group($group)
-                    ->url(self::wipItemUrl($label, $slugMap, $underConstructionUrl))
-                    ->sort($sort);
-            }
+        foreach ($voci as $voce) {
+            $navigationItems[] = NavigationItem::make($voce['etichetta'])
+                ->group($voce['gruppo'])
+                ->url(self::wipItemUrl($voce['etichetta'], $slugMap, $underConstructionUrl))
+                ->sort($voce['ordine']);
         }
 
         return $navigationItems;

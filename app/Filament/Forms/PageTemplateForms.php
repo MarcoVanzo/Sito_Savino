@@ -989,33 +989,14 @@ class PageTemplateForms
 
                             Forms\Components\Fieldset::make('Statistiche d\'Impatto')
                                 ->schema([
-                                    Forms\Components\Grid::make(3)
-                                        ->schema([
-                                            Forms\Components\Group::make([
-                                                Forms\Components\TextInput::make('content_data.stat1_value')
-                                                    ->label('Valore Stat 1')
-                                                    ->placeholder('es. 2M+'),
-                                                Forms\Components\TextInput::make('content_data.stat1_label')
-                                                    ->label('Etichetta Stat 1')
-                                                    ->placeholder('es. Social Reach'),
-                                            ]),
-                                            Forms\Components\Group::make([
-                                                Forms\Components\TextInput::make('content_data.stat2_value')
-                                                    ->label('Valore Stat 2')
-                                                    ->placeholder('es. 50K+'),
-                                                Forms\Components\TextInput::make('content_data.stat2_label')
-                                                    ->label('Etichetta Stat 2')
-                                                    ->placeholder('es. Spettatori'),
-                                            ]),
-                                            Forms\Components\Group::make([
-                                                Forms\Components\TextInput::make('content_data.stat3_value')
-                                                    ->label('Valore Stat 3')
-                                                    ->placeholder('es. 100+'),
-                                                Forms\Components\TextInput::make('content_data.stat3_label')
-                                                    ->label('Etichetta Stat 3')
-                                                    ->placeholder('es. Eventi Societari'),
-                                            ]),
-                                        ]),
+                                    CampiDelleStatistiche::griglia([
+                                        ['valore' => 'content_data.stat1_value', 'etichetta' => 'content_data.stat1_label',
+                                            'nome' => 'Stat 1', 'esempioValore' => 'es. 2M+', 'esempioEtichetta' => 'es. Social Reach'],
+                                        ['valore' => 'content_data.stat2_value', 'etichetta' => 'content_data.stat2_label',
+                                            'nome' => 'Stat 2', 'esempioValore' => 'es. 50K+', 'esempioEtichetta' => 'es. Spettatori'],
+                                        ['valore' => 'content_data.stat3_value', 'etichetta' => 'content_data.stat3_label',
+                                            'nome' => 'Stat 3', 'esempioValore' => 'es. 100+', 'esempioEtichetta' => 'es. Eventi Societari'],
+                                    ], 3),
                                 ]),
                         ]),
                 ])
