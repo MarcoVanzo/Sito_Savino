@@ -2,10 +2,10 @@
 
 namespace App\Filament\Widgets\Analytics;
 
+use App\Filament\Widgets\Analytics\Concerns\HasAnalyticsPeriod;
 use App\Services\Newsletter\NewsletterAnalyticsService;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
-use Livewire\Attributes\Reactive;
 
 /**
  * Quanti destinatari ha raggiunto ogni campagna.
@@ -15,6 +15,8 @@ use Livewire\Attributes\Reactive;
  */
 class NewsletterVolumeWidget extends ChartWidget
 {
+    use HasAnalyticsPeriod;
+
     protected static ?string $heading = 'Volumi di invio';
 
     protected static ?string $pollingInterval = null;
@@ -26,16 +28,6 @@ class NewsletterVolumeWidget extends ChartWidget
     protected static ?string $maxHeight = '260px';
 
     protected int|string|array $columnSpan = 1;
-
-    /*
-     * I valori arrivano da getWidgetData() della pagina. #[Reactive] non è
-     * decorativo: senza, Livewire applica i mount param una sola volta e il
-     * widget resta fermo al periodo con cui è stato montato — la pagina cambia,
-     * i numeri no. È il meccanismo che Filament usa nel suo
-     * InteractsWithPageFilters.
-     */
-    #[Reactive]
-    public int $days = 28;
 
     protected function getType(): string
     {

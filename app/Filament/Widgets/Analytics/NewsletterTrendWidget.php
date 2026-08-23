@@ -2,10 +2,10 @@
 
 namespace App\Filament\Widgets\Analytics;
 
+use App\Filament\Widgets\Analytics\Concerns\HasAnalyticsPeriod;
 use App\Services\Newsletter\NewsletterAnalyticsService;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
-use Livewire\Attributes\Reactive;
 
 /**
  * Nuove iscrizioni giorno per giorno.
@@ -15,6 +15,8 @@ use Livewire\Attributes\Reactive;
  */
 class NewsletterTrendWidget extends ChartWidget
 {
+    use HasAnalyticsPeriod;
+
     protected static ?string $heading = 'Nuove iscrizioni';
 
     protected static ?string $pollingInterval = null;
@@ -24,16 +26,6 @@ class NewsletterTrendWidget extends ChartWidget
     protected static ?int $sort = 2;
 
     protected static ?string $maxHeight = '260px';
-
-    /*
-     * I valori arrivano da getWidgetData() della pagina. #[Reactive] non è
-     * decorativo: senza, Livewire applica i mount param una sola volta e il
-     * widget resta fermo al periodo con cui è stato montato — la pagina cambia,
-     * i numeri no. È il meccanismo che Filament usa nel suo
-     * InteractsWithPageFilters.
-     */
-    #[Reactive]
-    public int $days = 28;
 
     protected function getType(): string
     {
