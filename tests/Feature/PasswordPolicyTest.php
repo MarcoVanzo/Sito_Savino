@@ -194,11 +194,23 @@ class PasswordPolicyTest extends TestCase
     public function test_il_cambio_password_azzera_scadenza_e_preavviso(): void
     {
         $mesi = (int) config('password_policy.expires_after_months');
+        $giorni = (int) config('password_policy.warn_before_days');
 
+        // Il fixture si ricava dalla finestra configurata invece di cablare un
+        // numero di giorni: era l'unico dato del test che non seguiva la
+        // config, e con una finestra più stretta un `addDays(2)` scritto a mano
+        // finirebbe fuori senza che da qui si veda perché. Costruito a ritroso
+        // dalla scadenza voluta, perché partire dal passato e risalire dei mesi
+        // non riporta al punto di partenza (vedi il test qui sopra).
         $user = $this->staff([
-            'password_changed_at' => now()->subMonths($mesi)->addDays(2),
+            'password_changed_at' => now()->addDays(intdiv($giorni, 2))->subMonths($mesi),
             'password_expiry_notified_at' => now()->subDay(),
         ]);
+
+        // La precondizione è il punto: senza, un fixture che smettesse di
+        // essere in preavviso darebbe un verde che non dimostra niente, perché
+        // il cambio password azzererebbe un preavviso mai partito.
+        $this->assertTrue($user->passwordIsExpiringSoon());
 
         $this->actingAs($user)->put('/password', [
             'current_password' => 'password',
@@ -220,8 +232,10 @@ class PasswordPolicyTest extends TestCase
         Notification::fake();
 
         $mesi = (int) config('password_policy.expires_after_months');
+        $giorni = (int) config('password_policy.warn_before_days');
+
         $user = $this->staff([
-            'password_changed_at' => now()->subMonths($mesi)->addDays(3),
+            'password_changed_at' => now()->addDays(intdiv($giorni, 2))->subMonths($mesi),
         ]);
 
         $this->post('/login', ['email' => $user->email, 'password' => 'password']);
