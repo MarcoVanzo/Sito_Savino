@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Order;
 use Filament\Widgets\ChartWidget;
+use Livewire\Attributes\Reactive;
 
 class PaymentMethodsWidget extends ChartWidget
 {
@@ -18,6 +19,14 @@ class PaymentMethodsWidget extends ChartWidget
     protected static bool $isDiscovered = false;
 
     protected static ?string $maxHeight = '300px';
+
+    /**
+     * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]
+     * è indispensabile: senza, Livewire monta il widget una volta sola e il
+     * cambio di periodo sulla pagina non arriverebbe mai qui.
+     */
+    #[Reactive]
+    public int $period = 30;
 
     /**
      * Stati che indicano ordini effettivamente pagati.
@@ -36,7 +45,7 @@ class PaymentMethodsWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $days = $this->period;
         $from = now()->subDays($days)->startOfDay();
 
         $gatewayColors = [

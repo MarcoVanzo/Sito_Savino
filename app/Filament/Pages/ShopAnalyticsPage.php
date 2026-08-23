@@ -26,8 +26,23 @@ class ShopAnalyticsPage extends Page
 
     protected static string $view = 'filament.pages.shop-analytics';
 
-    // Periodo di default: ultimi 30 giorni
-    public string $period = '30';
+    /**
+     * Periodi selezionabili, in giorni. È anche la lista dei valori ammessi:
+     * `$period` è una proprietà pubblica Livewire, quindi scrivibile dal client,
+     * e finisce in `subDays()` e in un `CarbonPeriod` giorno per giorno. Un valore
+     * arbitrario (50.000) costa una manciata di MB e un HTML da più di un mega per
+     * ogni richiesta, quindi si accetta solo ciò che il menu offre davvero.
+     */
+    private const PERIOD_OPTIONS = [
+        7 => 'Ultimi 7 giorni',
+        30 => 'Ultimi 30 giorni',
+        90 => 'Ultimi 90 giorni',
+        365 => 'Ultimo anno',
+    ];
+
+    private const DEFAULT_PERIOD = 30;
+
+    public int $period = self::DEFAULT_PERIOD;
 
     protected function getHeaderWidgets(): array
     {
@@ -56,27 +71,38 @@ class ShopAnalyticsPage extends Page
                 ->form([
                     Select::make('period')
                         ->label('Periodo')
-                        ->options([
-                            '7' => 'Ultimi 7 giorni',
-                            '30' => 'Ultimi 30 giorni',
-                            '90' => 'Ultimi 90 giorni',
-                            '365' => 'Ultimo anno',
-                        ])
+                        ->options(self::PERIOD_OPTIONS)
                         ->default($this->period)
-                        ->required(),
+                        ->required()
+                        ->in(array_keys(self::PERIOD_OPTIONS)),
                 ])
-                ->action(function (array $data) {
-                    $this->period = $data['period'];
-                    $this->dispatch('updatePeriod', period: $this->period);
-                }),
+                ->action(fn (array $data) => $this->period = (int) $data['period']),
         ];
     }
 
-    protected function getHeaderWidgetsData(): array
+    /**
+     * Il nome del metodo non è libero: Filament v3 chiama getWidgetData() (vedi
+     * Filament\Pages\Page e la view components/page/index.blade.php). Un metodo
+     * chiamato diversamente non viene mai invocato e i widget restano al default.
+     *
+     * @return array<string, mixed>
+     */
+    public function getWidgetData(): array
     {
-        return [
-            'period' => $this->period,
-        ];
+        return ['period' => $this->selectedPeriod()];
+    }
+
+    /**
+     * Il periodo scelto, ridotto a uno di quelli offerti dal menu. La validazione
+     * dell'azione copre il percorso normale, non un aggiornamento Livewire
+     * costruito a mano: questo è l'unico punto da cui il valore raggiunge i
+     * widget, quindi è qui che va chiuso.
+     */
+    private function selectedPeriod(): int
+    {
+        return array_key_exists($this->period, self::PERIOD_OPTIONS)
+            ? $this->period
+            : self::DEFAULT_PERIOD;
     }
 
     protected static function requiredAbility(): string

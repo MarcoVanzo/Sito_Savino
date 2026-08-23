@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ShopEvent;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Reactive;
 
 class PageViewsWidget extends ChartWidget
 {
@@ -19,6 +20,14 @@ class PageViewsWidget extends ChartWidget
 
     protected static ?string $maxHeight = '300px';
 
+    /**
+     * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]
+     * è indispensabile: senza, Livewire monta il widget una volta sola e il
+     * cambio di periodo sulla pagina non arriverebbe mai qui.
+     */
+    #[Reactive]
+    public int $period = 30;
+
     protected function getType(): string
     {
         return 'bar';
@@ -26,7 +35,7 @@ class PageViewsWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $days = $this->period;
         $from = now()->subDays($days)->startOfDay();
 
         $topViews = ShopEvent::views()

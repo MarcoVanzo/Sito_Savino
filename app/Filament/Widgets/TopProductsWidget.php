@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Models\OrderItem;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Reactive;
 
 class TopProductsWidget extends Widget
 {
@@ -18,11 +19,19 @@ class TopProductsWidget extends Widget
     protected int|string|array $columnSpan = 'full';
 
     /**
+     * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]
+     * è indispensabile: senza, Livewire monta il widget una volta sola e il
+     * cambio di periodo sulla pagina non arriverebbe mai qui.
+     */
+    #[Reactive]
+    public int $period = 30;
+
+    /**
      * Query dei top 10 prodotti per fatturato generato nel periodo selezionato.
      */
     public function getTopProducts(): array
     {
-        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $days = $this->period;
         $from = now()->subDays($days)->startOfDay();
 
         return OrderItem::query()
