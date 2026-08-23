@@ -149,9 +149,15 @@ class FacialRecognitionService
             throw new FacialRecognitionException('CompreFace API Key non configurata.');
         }
 
+        // `throw: false` come negli altri tre metodi del servizio: senza, al
+        // terzo tentativo fallito Laravel lancia la propria RequestException e
+        // il controllo qui sotto non viene mai raggiunto — cioe' proprio quando
+        // CompreFace e' in errore non si scriveva il log con lo stato e il
+        // corpo della risposta, e chi chiama riceveva un'eccezione diversa da
+        // quella dichiarata.
         $response = Http::withHeaders([
             'x-api-key' => $this->apiKey,
-        ])->timeout(30)->retry(2, 1000)->attach(
+        ])->timeout(30)->retry(2, 1000, throw: false)->attach(
             'file', fopen($imagePath, 'r'), basename($imagePath)
         )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
 
