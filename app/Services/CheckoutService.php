@@ -4,17 +4,14 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
-use App\Enums\StockMovementType;
 use App\Exceptions\ShippingUnavailableException;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ShippingZone;
-use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -187,19 +184,20 @@ class CheckoutService
             // status is not mass-assignable (security), set it explicitly
             $order->forceFill(['status' => OrderStatus::Pending])->save();
 
-            // 8. Crea OrderItems con snapshot dei prezzi
+            // 8. Crea OrderItems con snapshot dei prezzi e riserva lo stock:
+            // le due scritture stanno insieme in Order::registraArticolo().
             foreach ($cart->items as $cartItem) {
                 $effectivePrice = $cartItem->product->effectivePrice();
                 $modifier = $cartItem->variant ? (float) $cartItem->variant->price_modifier : 0.0;
                 $unitPrice = $effectivePrice + $modifier;
 
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $cartItem->product_id,
-                    'product_variant_id' => $cartItem->product_variant_id,
-                    'quantity' => $cartItem->quantity,
-                    'price_at_time_of_purchase' => round($unitPrice, 2),
-                ]);
+                $order->registraArticolo(
+                    $cartItem->product_id,
+                    $cartItem->product_variant_id,
+                    $cartItem->quantity,
+                    $unitPrice,
+                    'vendita (riservato al checkout)',
+                );
             }
 
             // 9. Registra CouponUsage e incrementa contatore
@@ -215,19 +213,7 @@ class CheckoutService
                 $coupon->incrementUsage();
             }
 
-            // 10. Riserva lo stock istantaneamente
-            foreach ($cart->items as $cartItem) {
-                StockMovement::create([
-                    'product_id' => $cartItem->product_id,
-                    'product_variant_id' => $cartItem->product_variant_id,
-                    'order_id' => $order->id,
-                    'quantity' => -abs($cartItem->quantity),
-                    'type' => StockMovementType::Sale,
-                    'notes' => "Ordine #{$order->id} — vendita (riservato al checkout)",
-                ]);
-            }
-
-            // 11. Svuota il carrello
+            // 10. Svuota il carrello
             $this->cartService->clearCart();
 
             // Aggiorna il telefono nel profilo utente se fornito

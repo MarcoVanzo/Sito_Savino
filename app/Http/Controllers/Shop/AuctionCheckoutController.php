@@ -4,13 +4,10 @@ namespace App\Http\Controllers\Shop;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
-use App\Enums\StockMovementType;
 use App\Http\Controllers\Controller;
 use App\Models\Auction;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\ShippingZone;
-use App\Models\StockMovement;
 use App\Services\AuctionService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
@@ -351,23 +348,15 @@ class AuctionCheckoutController extends Controller
             'status' => OrderStatus::Pending,
         ])->save();
 
-        // Crea l'item dell'ordine (un solo prodotto d'asta)
-        OrderItem::create([
-            'order_id' => $order->id,
-            'product_id' => $auction->product_id,
-            'quantity' => 1,
-            'price_at_time_of_purchase' => $winningBid,
-        ]);
-
-        // Riserva lo stock del prodotto d'asta
-        StockMovement::create([
-            'product_id' => $auction->product_id,
-            'product_variant_id' => null,
-            'order_id' => $order->id,
-            'quantity' => -1,
-            'type' => StockMovementType::Sale,
-            'notes' => "Ordine #{$order->id} — asta #{$auction->id}",
-        ]);
+        // L'unico articolo dell'asta, con la sua riserva di stock: stessa
+        // strada che percorre il carrello dello shop.
+        $order->registraArticolo(
+            $auction->product_id,
+            null,
+            1,
+            $winningBid,
+            "asta #{$auction->id}",
+        );
 
         return ['order' => $order, 'paid' => false];
     }
