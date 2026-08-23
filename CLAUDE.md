@@ -438,9 +438,11 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   diventa il pulsante pieno della testata (`ShopCtaButton`), l'unico elemento
   colorato fra voci tutte bianche. Ne va tenuta una sola: il layout prende la
   prima. Sul telefono resta invece una voce del pannello a scomparsa.
-- **`SiteSetting::get()` indicizza sulla sola colonna `key`**: il gruppo serve a
-  raccogliere le impostazioni nel pannello, non a comporre la chiave.
-  `SiteSetting::get('contact.press_email')` restituisce sempre `null`.
+- **`SiteSetting::get()` accetta sia `chiave` sia `gruppo.chiave`**: cerca prima
+  fra le chiavi nude, poi — se il nome contiene un punto — dentro il gruppo
+  corrispondente. `SiteSetting::get('shop.free_shipping_threshold')` funziona, ed
+  è la forma usata in tutto lo shop e nelle aste. La colonna indicizzata resta
+  `key`: il gruppo non fa parte della chiave, è la via di ripiego.
 
 ## 15. Sponsor
 
