@@ -6,6 +6,7 @@ use App\Models\AnalyticsSite;
 use App\Services\Analytics\WebAnalyticsService;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Livewire\Attributes\Reactive;
 
 /**
  * I sei numeri in testa alla pagina Analytics Sito, ciascuno con la variazione
@@ -19,8 +20,17 @@ class WebKpiWidget extends BaseWidget
 
     protected static ?int $sort = 1;
 
+    /*
+     * I valori arrivano da getWidgetData() della pagina. #[Reactive] non è
+     * decorativo: senza, Livewire applica i mount param una sola volta e il
+     * widget resta fermo al periodo con cui è stato montato — la pagina cambia,
+     * i numeri no. È il meccanismo che Filament usa nel suo
+     * InteractsWithPageFilters.
+     */
+    #[Reactive]
     public ?int $siteId = null;
 
+    #[Reactive]
     public int $days = 28;
 
     /** Palette dell'identità visiva, ripetuta in ordine sulle schede. */
