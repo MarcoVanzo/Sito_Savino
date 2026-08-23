@@ -8,6 +8,7 @@ use App\Models\ShopEvent;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\Reactive;
 
 class ShopKpiWidget extends BaseWidget
 {
@@ -16,6 +17,14 @@ class ShopKpiWidget extends BaseWidget
     protected static bool $isDiscovered = false;
 
     protected static ?int $sort = 1;
+
+    /**
+     * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]
+     * è indispensabile: senza, Livewire monta il widget una volta sola e il
+     * cambio di periodo sulla pagina non arriverebbe mai qui.
+     */
+    #[Reactive]
+    public int $period = 30;
 
     /**
      * Stati che identificano un ordine "pagato" (fatturato effettivo).
@@ -29,7 +38,7 @@ class ShopKpiWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $days = $this->period;
         $from = now()->subDays($days)->startOfDay();
         $to = now()->endOfDay();
 

@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Order;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Livewire\Attributes\Reactive;
 
 class CustomersWidget extends BaseWidget
 {
@@ -14,9 +15,17 @@ class CustomersWidget extends BaseWidget
 
     protected static bool $isDiscovered = false;
 
+    /**
+     * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]
+     * è indispensabile: senza, Livewire monta il widget una volta sola e il
+     * cambio di periodo sulla pagina non arriverebbe mai qui.
+     */
+    #[Reactive]
+    public int $period = 30;
+
     protected function getStats(): array
     {
-        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $days = $this->period;
         $from = now()->subDays($days)->startOfDay();
 
         // Clienti registrati (user_id distinti) nel periodo

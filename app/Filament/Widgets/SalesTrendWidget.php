@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use Carbon\CarbonPeriod;
 use Filament\Widgets\ChartWidget;
+use Livewire\Attributes\Reactive;
 
 class SalesTrendWidget extends ChartWidget
 {
@@ -20,6 +21,14 @@ class SalesTrendWidget extends ChartWidget
     protected int|string|array $columnSpan = 'full';
 
     protected static ?string $maxHeight = '350px';
+
+    /**
+     * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]
+     * è indispensabile: senza, Livewire monta il widget una volta sola e il
+     * cambio di periodo sulla pagina non arriverebbe mai qui.
+     */
+    #[Reactive]
+    public int $period = 30;
 
     /**
      * Stati che identificano un ordine "pagato".
@@ -38,7 +47,7 @@ class SalesTrendWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $days = $this->period;
         $from = now()->subDays($days)->startOfDay();
         $to = now()->endOfDay();
 

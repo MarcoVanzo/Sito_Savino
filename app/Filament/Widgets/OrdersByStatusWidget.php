@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use Filament\Widgets\ChartWidget;
+use Livewire\Attributes\Reactive;
 
 class OrdersByStatusWidget extends ChartWidget
 {
@@ -18,6 +19,14 @@ class OrdersByStatusWidget extends ChartWidget
 
     protected static ?string $maxHeight = '300px';
 
+    /**
+     * Periodo in giorni, passato da ShopAnalyticsPage::getWidgetData(). #[Reactive]
+     * è indispensabile: senza, Livewire monta il widget una volta sola e il
+     * cambio di periodo sulla pagina non arriverebbe mai qui.
+     */
+    #[Reactive]
+    public int $period = 30;
+
     protected function getType(): string
     {
         return 'doughnut';
@@ -25,7 +34,7 @@ class OrdersByStatusWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $days = (int) ($this->filterFormData['period'] ?? 30);
+        $days = $this->period;
         $from = now()->subDays($days)->startOfDay();
 
         $statusColors = [
