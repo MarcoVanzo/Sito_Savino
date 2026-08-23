@@ -30,11 +30,15 @@ Route::get('/sitemap.xml', function (SitemapBuilder $builder) {
     ]);
 })->name('sitemap');
 
-$locales = ['it', 'en'];
+// Le lingue si leggono dalla configurazione, non si riscrivono qui: aggiungerne
+// una in `config/app.php` deve generarne le rotte, altrimenti il resto del
+// sito la conosce e l'indirizzo non esiste. Quella predefinita non ha prefisso.
+$locales = config('app.supported_locales', ['it']);
+$defaultLocale = config('app.locale');
 
 foreach ($locales as $loc) {
-    $prefix = $loc === 'it' ? '' : $loc;
-    $namePrefix = $loc === 'it' ? '' : "$loc.";
+    $prefix = $loc === $defaultLocale ? '' : $loc;
+    $namePrefix = $loc === $defaultLocale ? '' : "$loc.";
 
     Route::middleware([
         'throttle:web',
