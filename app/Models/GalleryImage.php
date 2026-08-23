@@ -7,6 +7,7 @@ use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -41,7 +42,7 @@ class GalleryImage extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerStandardConversions($media);
+        $this->registerStandardConversions();
 
         $this->addMediaConversion('lightbox')
             ->width(1600)
@@ -61,7 +62,10 @@ class GalleryImage extends Model implements HasMedia
         return $query->orderBy('sort_order')->orderBy('id');
     }
 
-    public function players()
+    /**
+     * @return MorphToMany<Player, $this>
+     */
+    public function players(): MorphToMany
     {
         return $this->morphedByMany(Player::class, 'person', 'gallery_image_person')
             ->withPivot('confidence_score')

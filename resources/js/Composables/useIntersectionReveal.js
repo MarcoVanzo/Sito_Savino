@@ -32,24 +32,27 @@ export function useIntersectionReveal(options = {}) {
             el.style.transition = 'none'; // Nessuna transizione iniziale
         });
 
+        // Scala l'entrata degli elementi del contenitore, uno dopo l'altro.
+        const rivelaContenuto = (container) => {
+            container.querySelectorAll('[data-reveal]').forEach((el, index) => {
+                const delay = index * staggerDelay;
+
+                // Piccolo ritardo per assicurarsi che la transition sia applicata
+                setTimeout(() => {
+                    el.style.transition = `opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}ms, transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}ms`;
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 50);
+            });
+        };
+
         observer.value = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        const container = entry.target;
-                        const revealEls = container.querySelectorAll('[data-reveal]');
+                    if (!entry.isIntersecting) return;
 
-                        revealEls.forEach((el, index) => {
-                            const delay = index * staggerDelay;
-                            setTimeout(() => {
-                                el.style.transition = `opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}ms, transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${delay}ms`;
-                                el.style.opacity = '1';
-                                el.style.transform = 'translateY(0)';
-                            }, 50); // Piccolo ritardo per assicurarsi che la transition sia applicata
-                        });
-
-                        observer.value?.unobserve(container);
-                    }
+                    rivelaContenuto(entry.target);
+                    observer.value?.unobserve(entry.target);
                 });
             },
             { threshold, rootMargin }

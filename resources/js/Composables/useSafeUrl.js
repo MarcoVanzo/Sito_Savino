@@ -9,7 +9,7 @@
  * sito (`/pagina`, `#ancora`) passano perché non hanno schema.
  */
 
-const SAFE_PROTOCOLS = ['http:', 'https:', 'mailto:'];
+const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
 
 // Base fittizia: serve solo a far risolvere i percorsi relativi a `new URL`.
 const RESOLUTION_BASE = 'https://savinodelbenevolley.local';
@@ -32,7 +32,7 @@ export function safeUrl(url, fallback = undefined) {
 
     try {
         const parsed = new URL(value, RESOLUTION_BASE);
-        return SAFE_PROTOCOLS.includes(parsed.protocol) ? value : fallback;
+        return SAFE_PROTOCOLS.has(parsed.protocol) ? value : fallback;
     } catch {
         return fallback;
     }

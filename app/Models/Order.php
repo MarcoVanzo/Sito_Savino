@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
+use App\Enums\StockMovementType;
 use App\Models\Traits\LogsActivity;
 use App\Support\Locale;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -102,6 +103,48 @@ class Order extends Model
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    /**
+     * Mette un articolo nell'ordine e ne riserva subito lo stock.
+     *
+     * Le due scritture vanno sempre insieme: una riga d'ordine senza il
+     * movimento corrispondente vende merce che non c'è. Lo shop e le aste
+     * arrivavano qui per due strade separate — `CheckoutService` da una parte,
+     * `AuctionCheckoutController` dall'altra — e ripetevano la stessa coppia
+     * con segni e causali scritti a mano: una correzione a una delle due non
+     * raggiungeva l'altra.
+     *
+     * La quantità si passa positiva: il movimento la registra in negativo,
+     * perché è merce che esce.
+     *
+     * Da chiamare dentro la transazione di chi crea l'ordine.
+     */
+    public function registraArticolo(
+        int $productId,
+        ?int $productVariantId,
+        int $quantity,
+        float $unitPrice,
+        string $causale,
+    ): OrderItem {
+        $item = OrderItem::create([
+            'order_id' => $this->id,
+            'product_id' => $productId,
+            'product_variant_id' => $productVariantId,
+            'quantity' => $quantity,
+            'price_at_time_of_purchase' => round($unitPrice, 2),
+        ]);
+
+        StockMovement::create([
+            'product_id' => $productId,
+            'product_variant_id' => $productVariantId,
+            'order_id' => $this->id,
+            'quantity' => -abs($quantity),
+            'type' => StockMovementType::Sale,
+            'notes' => "Ordine #{$this->id} — {$causale}",
+        ]);
+
+        return $item;
     }
 
     public function coupon(): BelongsTo

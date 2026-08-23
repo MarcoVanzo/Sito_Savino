@@ -100,17 +100,17 @@ class LvfClient
                 ->retry(2, 2000, throw: false)
                 ->get($url, $query);
         } catch (ConnectionException $e) {
-            throw new RuntimeException("Connessione a {$url} fallita: {$e->getMessage()}", previous: $e);
+            throw new LvfException("Connessione a {$url} fallita: {$e->getMessage()}", previous: $e);
         }
 
         if (! $response->successful()) {
-            throw new RuntimeException("{$url} ha risposto con HTTP {$response->status()}.");
+            throw new LvfException("{$url} ha risposto con HTTP {$response->status()}.");
         }
 
         $body = $response->body();
 
         if (trim($body) === '') {
-            throw new RuntimeException("{$url} ha restituito una risposta vuota.");
+            throw new LvfException("{$url} ha restituito una risposta vuota.");
         }
 
         return $body;

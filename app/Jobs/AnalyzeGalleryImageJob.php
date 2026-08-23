@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Exceptions\MediaProcessingException;
 use App\Models\GalleryImage;
 use App\Services\FacialRecognitionService;
 use Illuminate\Bus\Batchable;
@@ -91,11 +92,11 @@ class AnalyzeGalleryImageJob implements ShouldQueue
             // Usa get() invece di readStream per evitare problemi di timeout con DigitalOcean Spaces
             $fileContent = $disk->get($relativePath);
             if ($fileContent === null) {
-                throw new \RuntimeException("Failed to read file from S3: {$relativePath}");
+                throw new MediaProcessingException("Failed to read file from S3: {$relativePath}");
             }
 
             if (file_put_contents($tempPath, $fileContent) === false) {
-                throw new \RuntimeException("Failed to write to temp file: {$tempPath}");
+                throw new MediaProcessingException("Failed to write to temp file: {$tempPath}");
             }
 
             // Libera la memoria subito dopo la scrittura su disco

@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
+use App\Models\HeroSlide;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\Player;
@@ -50,6 +51,10 @@ class CacheInvalidationObserver
         Category::class => ['public:news_categories'],
         Page::class => [],
         Game::class => ['public:risultati', 'public:home', 'filament:dashboard:stats', 'filament:dashboard:next_match_id'],
+        // Gli slide sono il primo schermo della homepage e si cambiano spesso:
+        // senza questa voce restavano quelli vecchi per i cinque minuti di
+        // `public:home`, e la redazione ricaricava senza vedere niente.
+        HeroSlide::class => ['public:home'],
         Standing::class => ['public:risultati'],
         StaffMember::class => ['public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],
         GalleryEvent::class => ['public:gallery_images'],
@@ -63,10 +68,8 @@ class CacheInvalidationObserver
      */
     private function locales(): array
     {
-        /** @var array<int, string> $locales */
-        $locales = config('app.supported_locales', ['it']);
-
-        return $locales;
+        /** @var array<int, string> */
+        return config('app.supported_locales', ['it']);
     }
 
     public function saved(Model $model): void
@@ -81,8 +84,7 @@ class CacheInvalidationObserver
 
     private function clearCachesForModel(Model $model): void
     {
-        $class = get_class($model);
-        $keys = self::MODEL_CACHE_MAP[$class] ?? [];
+        $keys = self::MODEL_CACHE_MAP[get_class($model)] ?? [];
         $locales = $this->locales();
 
         foreach ($keys as $key) {
@@ -95,7 +97,24 @@ class CacheInvalidationObserver
             }
         }
 
-        // I risultati sono cachati per competizione: public:risultati:<competizione>:<locale>
+        $this->dimenticaLeChiaviComposte($keys, $locales);
+
+        // Flush full-page response cache so visitors see fresh content
+        $this->flushPageCache();
+
+        $this->dimenticaLeChiaviDelModello($model, $locales);
+    }
+
+    /**
+     * Le chiavi che non sono una sola: i risultati sono per competizione e la
+     * galleria ha una variante per ogni atleta.
+     *
+     * @param  array<int, string>  $keys
+     * @param  array<int, string>  $locales
+     */
+    private function dimenticaLeChiaviComposte(array $keys, array $locales): void
+    {
+        // public:risultati:<competizione>:<locale>
         if (in_array('public:risultati', $keys, true)) {
             foreach (CompetitionType::cases() as $competition) {
                 foreach ($locales as $locale) {
@@ -104,7 +123,7 @@ class CacheInvalidationObserver
             }
         }
 
-        // La galleria filtrata per atleta usa public:gallery_images:player_<id>:<locale>
+        // public:gallery_images:player_<id>:<locale>
         if (in_array('public:gallery_images', $keys, true)) {
             foreach (Player::query()->pluck('id') as $playerId) {
                 foreach ($locales as $locale) {
@@ -112,10 +131,16 @@ class CacheInvalidationObserver
                 }
             }
         }
+    }
 
-        // Flush full-page response cache so visitors see fresh content
-        $this->flushPageCache();
-
+    /**
+     * Le chiavi che dipendono dal contenuto della riga toccata: lo slug di una
+     * news o di una pagina, l'elenco delle categorie.
+     *
+     * @param  array<int, string>  $locales
+     */
+    private function dimenticaLeChiaviDelModello(Model $model, array $locales): void
+    {
         // Post: invalida anche la cache per slug e le prime 5 pagine di listing.
         if ($model instanceof Post) {
             $slugs = array_filter([$model->slug, $model->getOriginal('slug')]);

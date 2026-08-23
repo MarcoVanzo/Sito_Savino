@@ -18,6 +18,11 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ServeSocialCrawlerMeta
 {
+    private const SITE_NAME = 'Savino Del Bene Volley';
+
+    /** Coda del titolo di ogni pagina condivisa sui social. */
+    private const TITLE_SUFFIX = ' — '.self::SITE_NAME;
+
     /**
      * User-agent patterns dei crawler social.
      */
@@ -189,7 +194,7 @@ class ServeSocialCrawlerMeta
         $content = $this->translated($post, 'content', $locale);
 
         return [
-            'title' => $title.' — Savino Del Bene Volley',
+            'title' => $title.self::TITLE_SUFFIX,
             'description' => $excerpt !== '' ? $excerpt : mb_substr(strip_tags($content), 0, 160),
             'image' => $post->getFirstMediaUrl('cover') ?: null,
         ];
@@ -210,7 +215,7 @@ class ServeSocialCrawlerMeta
             : mb_substr(strip_tags($this->translated($product, 'description', $locale)), 0, 160);
 
         return [
-            'title' => $name.' — Savino Del Bene Volley',
+            'title' => $name.self::TITLE_SUFFIX,
             'description' => $description,
             'image' => $product->getFirstMediaUrl('images', 'card')
                 ?: ($product->getFirstMediaUrl('images') ?: null),
@@ -243,7 +248,7 @@ class ServeSocialCrawlerMeta
         }
 
         return [
-            'title' => ($title !== '' ? $title : 'Savino Del Bene Volley').' — Savino Del Bene Volley',
+            'title' => $title !== '' ? $title.self::TITLE_SUFFIX : self::SITE_NAME,
             'description' => $description,
             'image' => $page->getFirstMediaUrl('cover') ?: null,
         ];
@@ -263,10 +268,10 @@ class ServeSocialCrawlerMeta
 
     private function buildMinimalHtml(array $meta, Request $request, string $locale = 'it'): string
     {
-        $title = e($meta['title'] ?? 'Savino Del Bene Volley');
+        $title = e($meta['title'] ?? self::SITE_NAME);
         $description = e($meta['description'] ?? '');
         $url = e($request->fullUrl());
-        $siteName = 'Savino Del Bene Volley';
+        $siteName = self::SITE_NAME;
         $image = e($meta['image'] ?? url('/images/logo.png'));
         $lang = $locale === 'en' ? 'en' : 'it';
         $ogLocale = $locale === 'en' ? 'en_GB' : 'it_IT';

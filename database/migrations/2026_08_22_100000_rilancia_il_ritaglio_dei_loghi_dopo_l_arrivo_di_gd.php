@@ -22,5 +22,10 @@ return new class extends Migration
         RitagliaILoghiDegliSponsor::dispatch()->onConnection($coda);
     }
 
-    public function down(): void {}
+    public function down(): void
+    {
+        // Niente da annullare: questa migrazione non tocca lo schema, mette in
+        // coda dei lavori. Quelli gia' eseguiti non si disfano tornando
+        // indietro di una migrazione.
+    }
 };

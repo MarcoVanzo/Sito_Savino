@@ -4,7 +4,6 @@ namespace App\Services\Wikipedia;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
 
 /**
  * Accesso alle API MediaWiki di Wikipedia.
@@ -145,11 +144,11 @@ class WikipediaClient
                 ->retry(2, 500, throw: false)
                 ->get(sprintf('https://%s.wikipedia.org/w/api.php', $this->lang), $query);
         } catch (ConnectionException $e) {
-            throw new RuntimeException("Wikipedia non raggiungibile: {$e->getMessage()}", previous: $e);
+            throw new WikipediaException("Wikipedia non raggiungibile: {$e->getMessage()}", previous: $e);
         }
 
         if (! $response->successful()) {
-            throw new RuntimeException("Wikipedia ha risposto {$response->status()}.");
+            throw new WikipediaException("Wikipedia ha risposto {$response->status()}.");
         }
 
         $data = $response->json();

@@ -28,6 +28,9 @@ class LvfBoxScoreParser
      */
     private const DIRECT_ROWS = './tr | ./thead/tr | ./tbody/tr';
 
+    /** Tutte le tabelle della pagina, a qualsiasi livello di annidamento. */
+    private const ALL_TABLES = '//table';
+
     public function parse(string $html, int $lvfMatchId, int $homeClubId, int $awayClubId): LvfBoxScore
     {
         $document = LvfDocument::fromHtml($html);
@@ -36,7 +39,7 @@ class LvfBoxScoreParser
         $clubIds = [$homeClubId, $awayClubId];
         $index = 0;
 
-        foreach ($document->xpath->query('//table') ?: [] as $table) {
+        foreach ($document->xpath->query(self::ALL_TABLES) ?: [] as $table) {
             if (! $this->isPlayerTable($document, $table)) {
                 continue;
             }
@@ -242,19 +245,10 @@ class LvfBoxScoreParser
      */
     private function parseSets(LvfDocument $document): array
     {
-        foreach ($document->xpath->query('//table') ?: [] as $table) {
+        foreach ($document->xpath->query(self::ALL_TABLES) ?: [] as $table) {
             $rows = $document->xpath->query(self::DIRECT_ROWS, $table);
 
-            if (($rows->length ?? 0) < 2) {
-                continue;
-            }
-
-            // Confronto sulle celle esatte, non sul testo: la tabella-contenitore
-            // più esterna ha una sola riga che ingloba l'intero documento e
-            // supererebbe qualunque controllo per sottostringa.
-            $header = $this->cellTexts($document, $rows->item(0));
-
-            if (($header[0] ?? '') !== 'Set' || ! in_array('Parziali', $header, true)) {
+            if (! $this->eLaTabellaDeiSet($document, $rows)) {
                 continue;
             }
 
@@ -265,22 +259,11 @@ class LvfBoxScoreParser
                     continue;
                 }
 
-                $cells = $this->cellTexts($document, $row);
+                $set = $this->rigaDelSet($document, $row);
 
-                if (count($cells) < 2 || ! is_numeric($cells[0])) {
-                    continue;
+                if ($set !== null) {
+                    $sets[] = $set;
                 }
-
-                $partials = array_values(array_filter(
-                    array_slice($cells, 2),
-                    fn (string $cell) => preg_match('/^\d+-\d+$/', $cell) === 1
-                ));
-
-                $sets[] = [
-                    'set' => (int) $cells[0],
-                    'duration' => preg_match('/(\d+)/', $cells[1], $m) === 1 ? (int) $m[1] : null,
-                    'partials' => $partials,
-                ];
             }
 
             return $sets;
@@ -290,12 +273,55 @@ class LvfBoxScoreParser
     }
 
     /**
+     * La tabella dei set si riconosce dalla testata "Set … Parziali".
+     *
+     * Il confronto e' sulle celle esatte, non sul testo: la tabella-contenitore
+     * piu' esterna ha una sola riga che ingloba l'intero documento e
+     * supererebbe qualunque controllo per sottostringa.
+     */
+    private function eLaTabellaDeiSet(LvfDocument $document, ?\DOMNodeList $rows): bool
+    {
+        if (($rows->length ?? 0) < 2) {
+            return false;
+        }
+
+        $header = $this->cellTexts($document, $rows->item(0));
+
+        return ($header[0] ?? '') === 'Set' && in_array('Parziali', $header, true);
+    }
+
+    /**
+     * Una riga della tabella dei set, se e' davvero un set e non un'intestazione.
+     *
+     * @return array{set: int, duration: int|null, partials: list<string>}|null
+     */
+    private function rigaDelSet(LvfDocument $document, DOMNode $row): ?array
+    {
+        $cells = $this->cellTexts($document, $row);
+
+        if (count($cells) < 2 || ! is_numeric($cells[0])) {
+            return null;
+        }
+
+        $partials = array_values(array_filter(
+            array_slice($cells, 2),
+            fn (string $cell) => preg_match('/^\d+-\d+$/', $cell) === 1
+        ));
+
+        return [
+            'set' => (int) $cells[0],
+            'duration' => preg_match('/(\d+)/', $cells[1], $m) === 1 ? (int) $m[1] : null,
+            'partials' => $partials,
+        ];
+    }
+
+    /**
      * Gli spettatori stanno in una testata (Data | Ora | Spettatori | Incasso)
      * con i valori nella riga sotto, alla stessa colonna.
      */
     private function parseSpectators(LvfDocument $document): ?int
     {
-        foreach ($document->xpath->query('//table') ?: [] as $table) {
+        foreach ($document->xpath->query(self::ALL_TABLES) ?: [] as $table) {
             $rows = $document->xpath->query(self::DIRECT_ROWS, $table);
 
             if (($rows->length ?? 0) < 2) {

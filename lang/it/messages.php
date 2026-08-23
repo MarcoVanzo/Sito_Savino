@@ -46,6 +46,7 @@ return [
         'coupon_applied' => 'Coupon applicato! Sconto di € :discount.',
         'already_processing' => 'Un pagamento è già in corso. Attendi.',
         'retry_not_available' => 'Il retry del pagamento non è disponibile per questo ordine.',
+        'gateway_not_available' => 'Il metodo di pagamento scelto non è disponibile.',
     ],
     'shop' => [
         'register_success' => 'Registrazione completata! Benvenuto nello shop.',

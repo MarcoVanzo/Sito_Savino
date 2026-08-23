@@ -77,47 +77,58 @@ class Coupon extends Model
      */
     public function isValidForOrder(float $subtotal, ?int $userId = null, ?string $guestEmail = null): bool
     {
-        // Coupon non attivo
         if (! $this->is_active) {
             return false;
         }
 
-        // Periodo di validità
-        if ($this->valid_from && now()->lt($this->valid_from)) {
-            return false;
-        }
-        if ($this->valid_until && now()->gt($this->valid_until)) {
+        if (! $this->periodoValido()) {
             return false;
         }
 
-        // Limite utilizzi globali
         if ($this->max_uses !== null && $this->used_count >= $this->max_uses) {
             return false;
         }
 
-        // Importo minimo ordine
         if ($this->min_order_amount !== null && $subtotal < (float) $this->min_order_amount) {
             return false;
         }
 
-        // Limite utilizzi per utente.
-        // La colonna è NOT NULL default 1, quindi il vecchio `!== null` era sempre
-        // vero e un valore 0 rendeva il coupon inutilizzabile da chiunque.
-        // Semantica esplicita: 0 (o null) = nessun limite per utente.
-        $maxPerUser = $this->max_uses_per_user === null ? 0 : (int) $this->max_uses_per_user;
+        return ! $this->limitePerUtenteRaggiunto($userId, $guestEmail);
+    }
 
-        if ($maxPerUser > 0 && ($userId || $guestEmail)) {
-            $usageCount = $this->usages()
-                ->when($userId, fn ($q) => $q->where('user_id', $userId))
-                ->when(! $userId && $guestEmail, fn ($q) => $q->where('guest_email', $guestEmail))
-                ->count();
-
-            if ($usageCount >= $maxPerUser) {
-                return false;
-            }
+    /**
+     * Siamo dentro la finestra di validita' del coupon.
+     */
+    private function periodoValido(): bool
+    {
+        if ($this->valid_from && now()->lt($this->valid_from)) {
+            return false;
         }
 
-        return true;
+        return ! ($this->valid_until && now()->gt($this->valid_until));
+    }
+
+    /**
+     * Questo utente (o questa email ospite) ha gia' esaurito i suoi utilizzi.
+     *
+     * La colonna e' NOT NULL default 1, quindi il vecchio `!== null` era sempre
+     * vero e un valore 0 rendeva il coupon inutilizzabile da chiunque.
+     * Semantica esplicita: 0 (o null) = nessun limite per utente.
+     */
+    private function limitePerUtenteRaggiunto(?int $userId, ?string $guestEmail): bool
+    {
+        $maxPerUser = $this->max_uses_per_user === null ? 0 : (int) $this->max_uses_per_user;
+
+        if ($maxPerUser <= 0 || (! $userId && ! $guestEmail)) {
+            return false;
+        }
+
+        $usageCount = $this->usages()
+            ->when($userId, fn ($q) => $q->where('user_id', $userId))
+            ->when(! $userId && $guestEmail, fn ($q) => $q->where('guest_email', $guestEmail))
+            ->count();
+
+        return $usageCount >= $maxPerUser;
     }
 
     /**

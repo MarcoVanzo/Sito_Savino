@@ -31,10 +31,10 @@ export function isExternalLink(href) {
  * @returns {{target?: string, rel?: string}}
  */
 export function externalLinkAttrs(href) {
-    if (!isExternalLink(href)) return {}
+    if (!isExternalLink(href) || typeof href !== 'string') return {}
 
     // mailto: e tel: non aprono una scheda: aprirla lascerebbe una pagina bianca.
-    if (/^(mailto|tel):/i.test(String(href).trim())) return {}
+    if (/^(mailto|tel):/i.test(href.trim())) return {}
 
     return { target: '_blank', rel: 'noopener noreferrer' }
 }

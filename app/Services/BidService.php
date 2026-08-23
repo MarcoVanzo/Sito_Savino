@@ -24,51 +24,11 @@ class BidService
         return DB::transaction(function () use ($auction, $user, $amount) {
             // Lock sull'asta per evitare race condition
             $auction = Auction::lockForUpdate()->find($auction->id);
-
-            // 1. Validazione stato asta
-            if ($auction->status !== AuctionStatus::Active) {
-                throw new \InvalidArgumentException('L\'asta non è attiva.');
-            }
-
-            // 2. Validazione data fine
-            if ($auction->end_date->isPast()) {
-                throw new \InvalidArgumentException('L\'asta è già terminata.');
-            }
-
-            // 3. Validazione: non puoi superare te stesso
             $highestBid = $auction->highestBid();
-            if ($highestBid && $highestBid->user_id === $user->id) {
-                throw new \InvalidArgumentException('Sei già il miglior offerente. Non puoi superare la tua stessa offerta.');
-            }
 
-            // 4. Calcolo offerta minima
-            $bidIncrement = (float) ($auction->bid_increment ?: SiteSetting::get('auctions.min_bid_increment', 5));
+            $this->verificaCheSiPossaOffrire($auction, $user, $highestBid);
+            $this->verificaImporto($auction, $amount, $highestBid !== null);
 
-            if ($highestBid) {
-                $minimumBid = round((float) $auction->current_bid + $bidIncrement, 2);
-            } else {
-                $minimumBid = round((float) $auction->starting_price + $bidIncrement, 2);
-            }
-
-            // 5. Validazione importo minimo
-            if ($amount < $minimumBid) {
-                throw new \InvalidArgumentException(
-                    "L'offerta minima è di €".number_format($minimumBid, 2, ',', '.').'.'
-                );
-            }
-
-            // 6. Validazione salto massimo
-            $maxBidJump = (float) ($auction->max_bid_jump ?: SiteSetting::get('auctions.max_bid_jump', 100));
-            $currentBase = $highestBid ? (float) $auction->current_bid : (float) $auction->starting_price;
-            $maximumBid = round($currentBase + $maxBidJump, 2);
-
-            if ($amount > $maximumBid) {
-                throw new \InvalidArgumentException(
-                    "L'offerta massima consentita è di €".number_format($maximumBid, 2, ',', '.').'.'
-                );
-            }
-
-            // 7. Creazione offerta
             $bid = Bid::create([
                 'auction_id' => $auction->id,
                 'user_id' => $user->id,
@@ -79,41 +39,105 @@ class BidService
             // is_valid is not mass-assignable (security), set it explicitly
             $bid->forceFill(['is_valid' => true])->save();
 
-            // 8. Aggiornamento offerta corrente sull'asta
             $auction->update(['current_bid' => $amount]);
 
-            // 9. Anti-sniping
-            $antiSnipeMinutes = (int) SiteSetting::get('auctions.anti_snipe_minutes', 5);
-            if ($auction->isInAntiSnipePeriod($antiSnipeMinutes)) {
-                $auction->extendByMinutes($antiSnipeMinutes);
-            }
+            $this->prolungaSeInDirittura($auction);
 
             // Ricarica l'asta per avere l'end_date aggiornata
             $auction->refresh();
 
-            // 10. Broadcast evento BidPlaced
-            $bidsCount = $auction->bids()->valid()->count();
-
             broadcast(new BidPlaced(
-                auction_id: $auction->id,
-                bid_amount: $amount,
-                bidder_name: AuctionService::maskUsername($user->name),
-                bids_count: $bidsCount,
-                ends_at: $auction->end_date->toIso8601String(),
+                auctionId: $auction->id,
+                bidAmount: $amount,
+                bidderName: AuctionService::maskUsername($user->name),
+                bidsCount: $auction->bids()->valid()->count(),
+                endsAt: $auction->end_date->toIso8601String(),
             ));
 
-            // 11. Email al precedente miglior offerente
-            if ($highestBid && $highestBid->user_id !== $user->id) {
-                $previousBidder = User::find($highestBid->user_id);
-
-                if ($previousBidder) {
-                    Mail::to($previousBidder->email)->queue(
-                        new AuctionOutbid($auction, $bid, $previousBidder)
-                    );
-                }
-            }
+            $this->avvisaChiEStatoSuperato($auction, $bid, $highestBid, $user);
 
             return $bid;
         });
+    }
+
+    /**
+     * L'asta e' aperta e l'offerente non e' gia' il miglior offerente.
+     *
+     * Superare se stessi alzerebbe il prezzo senza cambiare l'esito: e' un
+     * errore di chi offre, non una gara con qualcun altro.
+     */
+    private function verificaCheSiPossaOffrire(Auction $auction, User $user, ?Bid $highestBid): void
+    {
+        if ($auction->status !== AuctionStatus::Active) {
+            throw new \InvalidArgumentException('L\'asta non è attiva.');
+        }
+
+        if ($auction->end_date->isPast()) {
+            throw new \InvalidArgumentException('L\'asta è già terminata.');
+        }
+
+        if ($highestBid && $highestBid->user_id === $user->id) {
+            throw new \InvalidArgumentException('Sei già il miglior offerente. Non puoi superare la tua stessa offerta.');
+        }
+    }
+
+    /**
+     * L'importo sta fra il rilancio minimo e il salto massimo.
+     *
+     * Il tetto esiste perche' un'offerta enormemente sopra la precedente
+     * chiude di fatto l'asta, per errore di battitura o per dispetto.
+     */
+    private function verificaImporto(Auction $auction, float $amount, bool $ciSonoOfferte): void
+    {
+        $base = $ciSonoOfferte ? (float) $auction->current_bid : (float) $auction->starting_price;
+
+        $bidIncrement = (float) ($auction->bid_increment ?: SiteSetting::get('auctions.min_bid_increment', 5));
+        $minimumBid = round($base + $bidIncrement, 2);
+
+        if ($amount < $minimumBid) {
+            throw new \InvalidArgumentException(
+                "L'offerta minima è di €".number_format($minimumBid, 2, ',', '.').'.'
+            );
+        }
+
+        $maxBidJump = (float) ($auction->max_bid_jump ?: SiteSetting::get('auctions.max_bid_jump', 100));
+        $maximumBid = round($base + $maxBidJump, 2);
+
+        if ($amount > $maximumBid) {
+            throw new \InvalidArgumentException(
+                "L'offerta massima consentita è di €".number_format($maximumBid, 2, ',', '.').'.'
+            );
+        }
+    }
+
+    /**
+     * Anti-sniping: un'offerta all'ultimo secondo sposta in avanti la chiusura,
+     * cosi' chi era in testa ha il tempo di rispondere.
+     */
+    private function prolungaSeInDirittura(Auction $auction): void
+    {
+        $antiSnipeMinutes = (int) SiteSetting::get('auctions.anti_snipe_minutes', 5);
+
+        if ($auction->isInAntiSnipePeriod($antiSnipeMinutes)) {
+            $auction->extendByMinutes($antiSnipeMinutes);
+        }
+    }
+
+    /**
+     * Email a chi era in testa fino a un attimo fa.
+     */
+    private function avvisaChiEStatoSuperato(Auction $auction, Bid $bid, ?Bid $highestBid, User $user): void
+    {
+        if (! $highestBid || $highestBid->user_id === $user->id) {
+            return;
+        }
+
+        $previousBidder = User::find($highestBid->user_id);
+
+        if ($previousBidder) {
+            Mail::to($previousBidder->email)->queue(
+                new AuctionOutbid($auction, $bid, $previousBidder)
+            );
+        }
     }
 }

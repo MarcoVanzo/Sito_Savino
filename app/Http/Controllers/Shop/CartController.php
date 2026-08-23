@@ -21,7 +21,7 @@ class CartController extends Controller
     /**
      * Mostra il contenuto del carrello.
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
         $cart = $this->cartService->getCart();
         $total = $this->cartService->getCartTotal();
@@ -114,7 +114,7 @@ class CartController extends Controller
     /**
      * Restituisce il conteggio carrello in JSON per aggiornamento badge AJAX.
      */
-    public function count(Request $request): JsonResponse
+    public function count(): JsonResponse
     {
         return response()->json([
             'count' => $this->cartService->getItemCount(),
@@ -125,7 +125,7 @@ class CartController extends Controller
     /**
      * Restituisce i dati completi del carrello in JSON (per CartDrawer).
      */
-    public function data(Request $request): JsonResponse
+    public function data(): JsonResponse
     {
         $cart = $this->cartService->getCart();
 

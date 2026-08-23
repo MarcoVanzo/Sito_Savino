@@ -23,7 +23,7 @@ class ShopAuthController extends Controller
     /**
      * Mostra il form di registrazione dello shop.
      */
-    public function showRegister(Request $request): Response
+    public function showRegister(): Response
     {
         return Inertia::render('Public/Shop/ShopRegister');
     }

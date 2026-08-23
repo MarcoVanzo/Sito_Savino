@@ -4,16 +4,14 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
-use App\Enums\StockMovementType;
+use App\Exceptions\ShippingUnavailableException;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ShippingZone;
-use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -46,36 +44,27 @@ class CheckoutService
         }
 
         // 2. Controllo stock
-        if ($cart->items->isNotEmpty()) {
-            $stockIssues = $this->cartService->validateStock();
-            if (! empty($stockIssues)) {
-                $messages = [];
-                foreach ($stockIssues as $issue) {
-                    $productName = $issue['item']->product->name;
-                    $messages[] = __('messages.checkout.stock_issue', ['product' => $productName, 'available' => $issue['available'], 'requested' => $issue['requested']]);
-                }
-                $errors['stock'] = $messages;
-            }
+        $problemiDiStock = $cart->items->isNotEmpty() ? $this->messaggiDiStock() : [];
+
+        if ($problemiDiStock !== []) {
+            $errors['stock'] = $problemiDiStock;
         }
 
         // 3. Paese servito
-        if (! empty($data['country'])) {
-            $zone = ShippingZone::findByCountry($data['country']);
-            if (! $zone) {
-                $errors['country'] = [__('messages.checkout.country_not_served')];
-            }
-        } else {
-            $errors['country'] = [__('messages.checkout.country_required')];
+        $paese = $this->erroreSulPaese($data['country'] ?? null);
+
+        if ($paese !== null) {
+            $errors['country'] = [$paese];
         }
 
         // 4. Coupon valido (se fornito) — pre-validate and cache result
         $couponResult = null;
+
         if (! empty($data['coupon_code'])) {
             try {
-                $subtotal = $this->calculateSubtotal($cart);
                 $couponResult = $this->applyCoupon(
                     $data['coupon_code'],
-                    $subtotal,
+                    $this->calculateSubtotal($cart),
                     $data['user_id'] ?? null,
                     $data['guest_email'] ?? null
                 );
@@ -94,6 +83,41 @@ class CheckoutService
         }
 
         return ['coupon_result' => $couponResult];
+    }
+
+    /**
+     * Un messaggio per ogni riga del carrello che non ha piu' la giacenza
+     * richiesta.
+     *
+     * @return array<int, string>
+     */
+    private function messaggiDiStock(): array
+    {
+        $messaggi = [];
+
+        foreach ($this->cartService->validateStock() as $issue) {
+            $messaggi[] = __('messages.checkout.stock_issue', [
+                'product' => $issue['item']->product->name,
+                'available' => $issue['available'],
+                'requested' => $issue['requested'],
+            ]);
+        }
+
+        return $messaggi;
+    }
+
+    /**
+     * Il paese manca o non e' coperto da nessuna zona di spedizione.
+     */
+    private function erroreSulPaese(?string $country): ?string
+    {
+        if (empty($country)) {
+            return __('messages.checkout.country_required');
+        }
+
+        return ShippingZone::findByCountry($country)
+            ? null
+            : __('messages.checkout.country_not_served');
     }
 
     /**
@@ -160,19 +184,20 @@ class CheckoutService
             // status is not mass-assignable (security), set it explicitly
             $order->forceFill(['status' => OrderStatus::Pending])->save();
 
-            // 8. Crea OrderItems con snapshot dei prezzi
+            // 8. Crea OrderItems con snapshot dei prezzi e riserva lo stock:
+            // le due scritture stanno insieme in Order::registraArticolo().
             foreach ($cart->items as $cartItem) {
                 $effectivePrice = $cartItem->product->effectivePrice();
                 $modifier = $cartItem->variant ? (float) $cartItem->variant->price_modifier : 0.0;
                 $unitPrice = $effectivePrice + $modifier;
 
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $cartItem->product_id,
-                    'product_variant_id' => $cartItem->product_variant_id,
-                    'quantity' => $cartItem->quantity,
-                    'price_at_time_of_purchase' => round($unitPrice, 2),
-                ]);
+                $order->registraArticolo(
+                    $cartItem->product_id,
+                    $cartItem->product_variant_id,
+                    $cartItem->quantity,
+                    $unitPrice,
+                    'vendita (riservato al checkout)',
+                );
             }
 
             // 9. Registra CouponUsage e incrementa contatore
@@ -188,19 +213,7 @@ class CheckoutService
                 $coupon->incrementUsage();
             }
 
-            // 10. Riserva lo stock istantaneamente
-            foreach ($cart->items as $cartItem) {
-                StockMovement::create([
-                    'product_id' => $cartItem->product_id,
-                    'product_variant_id' => $cartItem->product_variant_id,
-                    'order_id' => $order->id,
-                    'quantity' => -abs($cartItem->quantity),
-                    'type' => StockMovementType::Sale,
-                    'notes' => "Ordine #{$order->id} — vendita (riservato al checkout)",
-                ]);
-            }
-
-            // 11. Svuota il carrello
+            // 10. Svuota il carrello
             $this->cartService->clearCart();
 
             // Aggiorna il telefono nel profilo utente se fornito
@@ -215,14 +228,14 @@ class CheckoutService
     /**
      * Calcola il costo di spedizione per un paese e subtotale.
      *
-     * @throws \RuntimeException
+     * @throws ShippingUnavailableException
      */
     public function calculateShipping(string $countryCode, float $subtotal): float
     {
         $zone = ShippingZone::findByCountry($countryCode);
 
         if (! $zone) {
-            throw new \RuntimeException(
+            throw new ShippingUnavailableException(
                 __('messages.checkout.country_not_served')
             );
         }

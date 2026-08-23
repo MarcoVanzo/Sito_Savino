@@ -91,31 +91,7 @@ class RitaglioDelMargine
             return null;
         }
 
-        $sinistra = $larghezza;
-        $destra = -1;
-        $alto = $altezza;
-        $basso = -1;
-
-        for ($y = 0; $y < $altezza; $y++) {
-            for ($x = 0; $x < $larghezza; $x++) {
-                if (self::eFondo($immagine, $x, $y, $fondo)) {
-                    continue;
-                }
-
-                if ($x < $sinistra) {
-                    $sinistra = $x;
-                }
-                if ($x > $destra) {
-                    $destra = $x;
-                }
-                if ($y < $alto) {
-                    $alto = $y;
-                }
-                if ($y > $basso) {
-                    $basso = $y;
-                }
-            }
-        }
+        [$sinistra, $alto, $destra, $basso] = self::estremiDelDisegno($immagine, $larghezza, $altezza, $fondo);
 
         // Immagine tutta di un colore: non c'è niente da ritagliare.
         if ($destra < $sinistra || $basso < $alto) {
@@ -131,6 +107,39 @@ class RitaglioDelMargine
             min($larghezza - 1, $destra + $ariaX),
             min($altezza - 1, $basso + $ariaY),
         ];
+    }
+
+    /**
+     * I quattro estremi dei pixel che non sono di fondo.
+     *
+     * Se non ne trova nessuno restituisce estremi incrociati (destra prima di
+     * sinistra), che e' come chi chiama riconosce l'immagine monocroma.
+     *
+     * @param  \GdImage  $immagine
+     * @param  array{r: int, g: int, b: int, a: int}  $fondo
+     * @return array{int, int, int, int} sinistra, alto, destra, basso
+     */
+    private static function estremiDelDisegno($immagine, int $larghezza, int $altezza, array $fondo): array
+    {
+        $sinistra = $larghezza;
+        $destra = -1;
+        $alto = $altezza;
+        $basso = -1;
+
+        for ($y = 0; $y < $altezza; $y++) {
+            for ($x = 0; $x < $larghezza; $x++) {
+                if (self::eFondo($immagine, $x, $y, $fondo)) {
+                    continue;
+                }
+
+                $sinistra = min($sinistra, $x);
+                $destra = max($destra, $x);
+                $alto = min($alto, $y);
+                $basso = max($basso, $y);
+            }
+        }
+
+        return [$sinistra, $alto, $destra, $basso];
     }
 
     /**

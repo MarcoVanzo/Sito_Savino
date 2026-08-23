@@ -75,22 +75,7 @@ class FacebookPageInsights
             'unavailable' => [],
         ];
 
-        try {
-            $page = $this->client->get($pageId, [
-                'fields' => 'name,followers_count,fan_count,link',
-                'access_token' => $token,
-            ]);
-
-            $result['followers'] = isset($page['followers_count']) ? (int) $page['followers_count'] : null;
-            $result['fans'] = isset($page['fan_count']) ? (int) $page['fan_count'] : null;
-            $result['link'] = $page['link'] ?? null;
-        } catch (MetaException $e) {
-            if (! $e->isRetryableWithoutMetric()) {
-                throw $e;
-            }
-
-            $result['unavailable'][] = 'followers';
-        }
+        $result = [...$result, ...$this->datiDellaPagina($pageId, $token, $result['unavailable'])];
 
         $empty = 0;
         $rejected = 0;
@@ -124,16 +109,7 @@ class FacebookPageInsights
             $result['unavailable'][] = 'reactions';
             $empty += $reactions === [] ? 1 : 0;
         } else {
-            $accumulated = [];
-
-            foreach ($reactions as $value) {
-                foreach ((array) ($value['value'] ?? []) as $type => $count) {
-                    $accumulated[(string) $type] = ($accumulated[(string) $type] ?? 0) + (int) $count;
-                }
-            }
-
-            arsort($accumulated);
-            $result['reactions'] = $accumulated;
+            $result['reactions'] = $this->reazioniPerTipo($reactions);
         }
 
         // Tutte le metriche che Meta ha accettato sono tornate vuote: è il
@@ -141,6 +117,62 @@ class FacebookPageInsights
         $result['missing_read_insights'] = $empty > 0 && ($empty + $rejected) >= count(self::SUM_METRICS);
 
         return $result;
+    }
+
+    /**
+     * Follower, fan e indirizzo della pagina.
+     *
+     * Se Meta rifiuta il campo — succede con un token senza i permessi giusti —
+     * la voce finisce fra le non disponibili invece di far fallire tutto.
+     *
+     * @param  array<int, string>  $unavailable
+     * @return array<string, mixed>
+     *
+     * @throws MetaException
+     */
+    private function datiDellaPagina(string $pageId, string $token, array $unavailable): array
+    {
+        try {
+            $page = $this->client->get($pageId, [
+                'fields' => 'name,followers_count,fan_count,link',
+                'access_token' => $token,
+            ]);
+        } catch (MetaException $e) {
+            if (! $e->isRetryableWithoutMetric()) {
+                throw $e;
+            }
+
+            return ['unavailable' => [...$unavailable, 'followers']];
+        }
+
+        return [
+            'followers' => isset($page['followers_count']) ? (int) $page['followers_count'] : null,
+            'fans' => isset($page['fan_count']) ? (int) $page['fan_count'] : null,
+            'link' => $page['link'] ?? null,
+            'unavailable' => $unavailable,
+        ];
+    }
+
+    /**
+     * Le reazioni arrivano giorno per giorno, divise per tipo: si sommano e si
+     * ordinano dalla piu' usata.
+     *
+     * @param  list<array<string, mixed>>  $reactions
+     * @return array<string, int>
+     */
+    private function reazioniPerTipo(array $reactions): array
+    {
+        $accumulated = [];
+
+        foreach ($reactions as $value) {
+            foreach ((array) ($value['value'] ?? []) as $type => $count) {
+                $accumulated[(string) $type] = ($accumulated[(string) $type] ?? 0) + (int) $count;
+            }
+        }
+
+        arsort($accumulated);
+
+        return $accumulated;
     }
 
     /**

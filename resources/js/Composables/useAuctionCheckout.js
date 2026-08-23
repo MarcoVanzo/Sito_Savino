@@ -45,7 +45,7 @@ export function useAuctionCheckout(props = {}) {
         if (props.order?.order_token) return props.order.order_token;
 
         if (typeof window !== 'undefined') {
-            const match = window.location.pathname.match(/\/checkout\/asta\/([^/?#]+)/);
+            const match = /\/checkout\/asta\/([^/?#]+)/.exec(window.location.pathname);
             if (match) return decodeURIComponent(match[1]);
         }
 

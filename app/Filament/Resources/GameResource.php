@@ -26,6 +26,9 @@ class GameResource extends Resource
 
     protected static ?string $model = Game::class;
 
+    /** Formato con cui data e ora della gara compaiono nel pannello. */
+    private const DATE_TIME_FORMAT = 'd/m/Y H:i';
+
     // Attributo usato per il titolo nei risultati di ricerca globale
     protected static ?string $recordTitleAttribute = 'competition_type';
 
@@ -131,7 +134,7 @@ class GameResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('match_date')
                     ->label('Data e Ora')
-                    ->dateTime('d/m/Y H:i')
+                    ->dateTime(self::DATE_TIME_FORMAT)
                     ->sortable()
                     ->description(fn ($record) => $record->location),
                 Tables\Columns\TextColumn::make('competition_type')
@@ -174,7 +177,7 @@ class GameResource extends Resource
                     ->alignCenter()
                     ->boolean()
                     ->tooltip(fn ($record) => $record->stats_synced_at
-                        ? 'Tabellino importato il '.$record->stats_synced_at->format('d/m/Y H:i')
+                        ? 'Tabellino importato il '.$record->stats_synced_at->format(self::DATE_TIME_FORMAT)
                         : 'Tabellino non ancora importato'),
             ])
             ->defaultSort('match_date', 'desc')
@@ -203,7 +206,7 @@ class GameResource extends Resource
                     ->schema([
                         Infolists\Components\TextEntry::make('match_date')
                             ->label('Data e ora')
-                            ->dateTime('d/m/Y H:i'),
+                            ->dateTime(self::DATE_TIME_FORMAT),
                         Infolists\Components\TextEntry::make('competition_type')
                             ->label('Competizione')
                             ->badge(),
@@ -307,11 +310,11 @@ class GameResource extends Resource
                             ->label('ID gara Lega'),
                         Infolists\Components\TextEntry::make('lvf_synced_at')
                             ->label('Gara sincronizzata il')
-                            ->dateTime('d/m/Y H:i')
+                            ->dateTime(self::DATE_TIME_FORMAT)
                             ->placeholder('mai'),
                         Infolists\Components\TextEntry::make('stats_synced_at')
                             ->label('Tabellino sincronizzato il')
-                            ->dateTime('d/m/Y H:i')
+                            ->dateTime(self::DATE_TIME_FORMAT)
                             ->placeholder('mai'),
                     ])
                     ->columns(3)

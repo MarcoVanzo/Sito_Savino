@@ -7,6 +7,7 @@ use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -68,7 +69,10 @@ class Player extends Model implements HasMedia
             ->orderBy('id');
     }
 
-    public function galleryImages()
+    /**
+     * @return MorphToMany<GalleryImage, $this>
+     */
+    public function galleryImages(): MorphToMany
     {
         return $this->morphToMany(GalleryImage::class, 'person', 'gallery_image_person')
             ->withPivot('confidence_score')
@@ -83,6 +87,6 @@ class Player extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerStandardConversions($media);
+        $this->registerStandardConversions();
     }
 }

@@ -19,7 +19,7 @@ class OrderController extends Controller
     /**
      * I miei ordini (solo utenti autenticati).
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
         $orders = Order::where('user_id', auth()->id())
             ->with(['items.product'])
@@ -50,7 +50,7 @@ class OrderController extends Controller
     /**
      * Download ricevuta PDF.
      */
-    public function downloadReceipt(Request $request, string $orderToken): SymfonyResponse
+    public function downloadReceipt(string $orderToken): SymfonyResponse
     {
         $order = Order::where('order_token', $orderToken)->firstOrFail();
 

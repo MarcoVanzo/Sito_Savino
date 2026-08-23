@@ -23,6 +23,9 @@ use Illuminate\Support\Facades\Log;
  */
 class InstagramInsights
 {
+    /** Ramo della Graph API che restituisce le metriche di un profilo. */
+    private const INSIGHTS_EDGE = '/insights';
+
     /** Metriche `total_value` senza breakdown: valide sia per giorno sia per periodo. */
     public const TOTAL_METRICS = [
         'views', 'likes', 'comments', 'shares', 'saves', 'reposts', 'replies',
@@ -89,7 +92,7 @@ class InstagramInsights
 
         foreach ([self::TOTAL_METRICS, self::TOTAL_METRICS_MINIMAL] as $metrics) {
             try {
-                $response = $this->client->get($igAccountId.'/insights', [
+                $response = $this->client->get($igAccountId.self::INSIGHTS_EDGE, [
                     'metric' => implode(',', $metrics),
                     'period' => 'day',
                     'metric_type' => 'total_value',
@@ -151,7 +154,7 @@ class InstagramInsights
             ];
 
             try {
-                $response = $this->client->get($igAccountId.'/insights', ['metric' => $metrics] + $params);
+                $response = $this->client->get($igAccountId.self::INSIGHTS_EDGE, ['metric' => $metrics] + $params);
             } catch (MetaException $e) {
                 if ($metrics === 'reach' || ! $e->isRetryableWithoutMetric()) {
                     throw $e;
@@ -162,27 +165,44 @@ class InstagramInsights
                 ]);
 
                 $metrics = 'reach';
-                $response = $this->client->get($igAccountId.'/insights', ['metric' => $metrics] + $params);
+                $response = $this->client->get($igAccountId.self::INSIGHTS_EDGE, ['metric' => $metrics] + $params);
             }
 
-            foreach ((array) ($response['data'] ?? []) as $metric) {
-                $name = is_array($metric) ? (string) ($metric['name'] ?? '') : '';
-
-                if (! isset($out[$name])) {
-                    continue;
-                }
-
-                foreach ((array) ($metric['values'] ?? []) as $value) {
-                    $day = self::dayFromEndTime((string) ($value['end_time'] ?? ''));
-
-                    if ($day !== null) {
-                        $out[$name][$day] = (int) ($value['value'] ?? 0);
-                    }
-                }
-            }
+            $out = $this->accumulaLaSerie($out, $response);
 
             $until = $since;
             $remaining -= $window;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Aggiunge alla serie i giorni contenuti in una risposta della Graph API.
+     *
+     * Le metriche che non interessano si scartano qui: la risposta puo'
+     * contenerne piu' di quante ne siano state chieste.
+     *
+     * @param  array<string, array<string, int>>  $out
+     * @param  array<string, mixed>  $response
+     * @return array<string, array<string, int>>
+     */
+    private function accumulaLaSerie(array $out, array $response): array
+    {
+        foreach ((array) ($response['data'] ?? []) as $metric) {
+            $name = is_array($metric) ? (string) ($metric['name'] ?? '') : '';
+
+            if (! isset($out[$name])) {
+                continue;
+            }
+
+            foreach ((array) ($metric['values'] ?? []) as $value) {
+                $day = self::dayFromEndTime((string) ($value['end_time'] ?? ''));
+
+                if ($day !== null) {
+                    $out[$name][$day] = (int) ($value['value'] ?? 0);
+                }
+            }
         }
 
         return $out;
@@ -241,7 +261,7 @@ class InstagramInsights
 
                 foreach (['age', 'gender', 'city', 'country'] as $breakdown) {
                     try {
-                        $response = $this->client->get($igAccountId.'/insights', [
+                        $response = $this->client->get($igAccountId.self::INSIGHTS_EDGE, [
                             'metric' => 'follower_demographics',
                             'period' => 'lifetime',
                             'metric_type' => 'total_value',
@@ -335,7 +355,7 @@ class InstagramInsights
     private function reelsExtras(string $mediaId, string $token): array
     {
         try {
-            $response = $this->client->get($mediaId.'/insights', [
+            $response = $this->client->get($mediaId.self::INSIGHTS_EDGE, [
                 'metric' => implode(',', self::REELS_METRICS),
                 'access_token' => $token,
             ]);
@@ -360,7 +380,7 @@ class InstagramInsights
             $chunkSince = max($since, $cursor - self::MAX_WINDOW_DAYS * 86400);
 
             try {
-                $response = $this->client->get($igAccountId.'/insights', [
+                $response = $this->client->get($igAccountId.self::INSIGHTS_EDGE, [
                     'metric' => $metric,
                     'period' => 'day',
                     'metric_type' => 'total_value',

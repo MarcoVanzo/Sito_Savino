@@ -18,52 +18,59 @@ class EnsurePasswordIsChanged
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check()) {
-            $user = $request->user();
-            $mustChange = array_key_exists('must_change_password', $user->getAttributes()) && $user->must_change_password;
-
-            // Password scaduta (policy: ogni N mesi) ⇒ stesso trattamento del
-            // cambio obbligatorio al primo accesso: si passa da /change-password.
-            if (! $mustChange && $user instanceof User && $user->passwordHasExpired()) {
-                $mustChange = true;
-            }
-
-            if ($mustChange) {
-                // Evita di bloccare le chiamate API (che non possono seguire un
-                // redirect verso una pagina). NON si guarda `expectsJson()`: è
-                // pilotato dall'header Accept del client, quindi basterebbe
-                // inviare `Accept: application/json` per navigare tutto il sito
-                // senza mai cambiare la password scaduta.
-                if ($request->is('api/*')) {
-                    return $next($request);
-                }
-
-                $route = $request->route();
-                $routeName = $route ? $route->getName() : null;
-                $path = $request->path();
-
-                // Consentiamo l'accesso solo alle rotte di cambio password e alle rotte di logout
-                // per evitare redirect loop infiniti. Escludiamo anche asset e chiamate di debug.
-                //
-                // Il confronto è ESATTO sulle due sole rotte di logout esistenti
-                // (sito pubblico e pannello Filament). Un `endsWith($path, 'logout')`
-                // lasciava passare qualunque URL il cui ultimo segmento finisse
-                // per "logout": bastava uno slug CMS o di prodotto tipo
-                // `/shop/prodotto/kit-logout` per navigare il sito senza mai
-                // cambiare la password scaduta.
-                $isLogoutRoute = in_array($routeName, ['logout', 'filament.admin.auth.logout'], true)
-                    || in_array($path, ['logout', 'admin/logout'], true);
-
-                if ($routeName !== 'password.change' &&
-                    $routeName !== 'password.change.update' &&
-                    ! $isLogoutRoute &&
-                    ! Str::startsWith($path, ['_debugbar', '_ignition', 'storage', 'livewire', 'vendor'])
-                ) {
-                    return redirect()->route('password.change');
-                }
-            }
+        if (! Auth::check() || ! $this->deveCambiareLaPassword($request->user())) {
+            return $next($request);
         }
 
-        return $next($request);
+        // Evita di bloccare le chiamate API (che non possono seguire un
+        // redirect verso una pagina). NON si guarda `expectsJson()`: è
+        // pilotato dall'header Accept del client, quindi basterebbe
+        // inviare `Accept: application/json` per navigare tutto il sito
+        // senza mai cambiare la password scaduta.
+        if ($request->is('api/*') || $this->eUnaRottaConsentita($request)) {
+            return $next($request);
+        }
+
+        return redirect()->route('password.change');
+    }
+
+    /**
+     * L'utente deve passare da /change-password: o perche' e' il primo accesso,
+     * o perche' la password e' scaduta (policy: ogni N mesi).
+     */
+    private function deveCambiareLaPassword(mixed $user): bool
+    {
+        if (array_key_exists('must_change_password', $user->getAttributes()) && $user->must_change_password) {
+            return true;
+        }
+
+        return $user instanceof User && $user->passwordHasExpired();
+    }
+
+    /**
+     * Le uniche rotte raggiungibili con la password da cambiare: quelle del
+     * cambio stesso, l'uscita, e le richieste che non sono pagine.
+     *
+     * Il confronto sull'uscita e' ESATTO sulle due sole rotte esistenti (sito
+     * pubblico e pannello Filament). Un `endsWith($path, 'logout')` lasciava
+     * passare qualunque URL il cui ultimo segmento finisse per "logout":
+     * bastava uno slug CMS o di prodotto tipo `/shop/prodotto/kit-logout` per
+     * navigare il sito senza mai cambiare la password scaduta.
+     */
+    private function eUnaRottaConsentita(Request $request): bool
+    {
+        $routeName = $request->route()?->getName();
+        $path = $request->path();
+
+        if (in_array($routeName, ['password.change', 'password.change.update'], true)) {
+            return true;
+        }
+
+        if (in_array($routeName, ['logout', 'filament.admin.auth.logout'], true)
+            || in_array($path, ['logout', 'admin/logout'], true)) {
+            return true;
+        }
+
+        return Str::startsWith($path, ['_debugbar', '_ignition', 'storage', 'livewire', 'vendor']);
     }
 }

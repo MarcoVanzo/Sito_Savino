@@ -31,21 +31,13 @@ class WikipediaPageResolver
      */
     public function resolve(Player $player, ?string $forcedTitle = null): ?array
     {
-        $forcedTitle = $forcedTitle !== null ? trim($forcedTitle) : null;
+        $imposta = $this->voceImposta($forcedTitle, $player);
 
-        // Titolo imposto (o già salvato): si prende com'è, senza verifiche.
-        // Se la redazione ha scelto quella voce, ha ragione lei.
-        foreach (array_filter([$forcedTitle, $player->wikipedia_title]) as $title) {
-            $page = $this->client->page((string) $title);
-
-            if ($page !== null) {
-                return $this->present($page, 'confermata', []);
-            }
+        if ($imposta !== null) {
+            return $imposta;
         }
 
         $fullName = trim("{$player->first_name} {$player->last_name}");
-        $alternatives = [];
-
         $exact = $this->client->page($fullName);
 
         if ($exact !== null && $this->isVolleyballPlayer($exact['wikitext'])) {
@@ -56,6 +48,45 @@ class WikipediaPageResolver
             );
         }
 
+        return $this->cercaFraICandidati($player, $fullName);
+    }
+
+    /**
+     * Voce scelta dalla redazione, o gia' salvata: si prende com'e', senza
+     * verifiche. Se ha scelto quella, ha ragione lei.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function voceImposta(?string $forcedTitle, Player $player): ?array
+    {
+        $titoli = array_filter([
+            $forcedTitle !== null ? trim($forcedTitle) : null,
+            $player->wikipedia_title,
+        ]);
+
+        foreach ($titoli as $title) {
+            $page = $this->client->page((string) $title);
+
+            if ($page !== null) {
+                return $this->present($page, 'confermata', []);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Cerca fra i risultati della ricerca la voce che parla di questa atleta.
+     *
+     * Con la data di nascita in anagrafica si accetta solo chi la conferma;
+     * senza, si prende il primo risultato con un nome abbastanza vicino, ma lo
+     * si segnala come da verificare.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function cercaFraICandidati(Player $player, string $fullName): ?array
+    {
+        $alternatives = [];
         $best = null;
 
         foreach (array_slice($this->client->search("{$fullName} pallavolista"), 0, self::MAX_CANDIDATES_INSPECTED) as $result) {
@@ -67,19 +98,7 @@ class WikipediaPageResolver
 
             $alternatives[] = $candidate['title'];
 
-            if ($best !== null) {
-                continue;
-            }
-
-            $birthMatches = $this->birthYearMatches($player, $candidate['wikitext']);
-
-            // Con la data di nascita in anagrafica si accetta solo chi la
-            // conferma; senza, si prende il primo risultato ma lo si segnala.
-            if ($birthMatches === true) {
-                $best = [$candidate, 'sicura'];
-            } elseif ($birthMatches === null && $this->nameLooksClose($fullName, $candidate['title'])) {
-                $best = [$candidate, 'da verificare'];
-            }
+            $best ??= $this->candidatoAccettabile($player, $fullName, $candidate);
         }
 
         if ($best === null) {
@@ -89,6 +108,27 @@ class WikipediaPageResolver
         [$page, $confidence] = $best;
 
         return $this->present($page, $confidence, array_values(array_diff($alternatives, [$page['title']])));
+    }
+
+    /**
+     * Il candidato regge il confronto con l'anagrafica?
+     *
+     * @param  array<string, mixed>  $candidate
+     * @return array{array<string, mixed>, string}|null
+     */
+    private function candidatoAccettabile(Player $player, string $fullName, array $candidate): ?array
+    {
+        $birthMatches = $this->birthYearMatches($player, $candidate['wikitext']);
+
+        if ($birthMatches === true) {
+            return [$candidate, 'sicura'];
+        }
+
+        if ($birthMatches === null && $this->nameLooksClose($fullName, $candidate['title'])) {
+            return [$candidate, 'da verificare'];
+        }
+
+        return null;
     }
 
     /**

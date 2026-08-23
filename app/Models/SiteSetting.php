@@ -119,49 +119,66 @@ class SiteSetting extends Model
     public static function getAllGrouped(): array
     {
         return Cache::remember(self::CACHE_KEY.'_grouped_'.app()->getLocale(), self::CACHE_TTL, function () {
-            $settings = static::orderBy('group')->orderBy('sort_order')->get();
             $grouped = [];
 
-            foreach ($settings as $setting) {
-                $value = $setting->value;
+            foreach (static::orderBy('group')->orderBy('sort_order')->get() as $setting) {
+                [$gruppo, $chiave] = self::collocazione($setting);
 
-                // Auto-decode JSON values
-                if ($setting->type === 'json' && is_string($value)) {
-                    $decoded = json_decode($value, true);
-                    if (json_last_error() === JSON_ERROR_NONE) {
-                        $value = $decoded;
-                    }
-                }
-
-                // Cast booleans
-                if ($setting->type === 'boolean') {
-                    $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
-                }
-
-                $gruppo = $setting->group;
-                $chiave = $setting->key;
-
-                // Alcune pagine del pannello nominano i campi `gruppo.chiave`
-                // e salvano la chiave intera, senza riempire la colonna del
-                // gruppo. Il sito legge le impostazioni raggruppate: senza
-                // questa riga i documenti legali caricati dal pannello non
-                // arrivavano mai al footer.
-                if (str_contains($chiave, '.')) {
-                    [$gruppoImplicito, $chiaveNuda] = explode('.', $chiave, 2);
-
-                    // 'general' e' il valore di default della colonna: vuol
-                    // dire "nessuno ha scelto", non "gruppo generale".
-                    if (in_array($gruppo, [null, '', 'general', $gruppoImplicito], true)) {
-                        $gruppo = $gruppoImplicito;
-                        $chiave = $chiaveNuda;
-                    }
-                }
-
-                $grouped[$gruppo][$chiave] = static::resolveForLocale($value);
+                $grouped[$gruppo][$chiave] = static::resolveForLocale(self::valoreTipizzato($setting));
             }
 
             return $grouped;
         });
+    }
+
+    /**
+     * Il valore dell'impostazione nel tipo dichiarato dalla colonna `type`.
+     */
+    private static function valoreTipizzato(self $setting): mixed
+    {
+        $value = $setting->value;
+
+        if ($setting->type === 'boolean') {
+            return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        if ($setting->type === 'json' && is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            return json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Gruppo e chiave con cui l'impostazione arriva al sito.
+     *
+     * Alcune pagine del pannello nominano i campi `gruppo.chiave` e salvano la
+     * chiave intera, senza riempire la colonna del gruppo. Il sito legge le
+     * impostazioni raggruppate: senza questa conversione i documenti legali
+     * caricati dal pannello non arrivavano mai al footer.
+     *
+     * @return array{0: string|null, 1: string}
+     */
+    private static function collocazione(self $setting): array
+    {
+        $gruppo = $setting->group;
+        $chiave = $setting->key;
+
+        if (! str_contains($chiave, '.')) {
+            return [$gruppo, $chiave];
+        }
+
+        [$gruppoImplicito, $chiaveNuda] = explode('.', $chiave, 2);
+
+        // 'general' e' il valore di default della colonna: vuol dire "nessuno
+        // ha scelto", non "gruppo generale".
+        if (in_array($gruppo, [null, '', 'general', $gruppoImplicito], true)) {
+            return [$gruppoImplicito, $chiaveNuda];
+        }
+
+        return [$gruppo, $chiave];
     }
 
     /**

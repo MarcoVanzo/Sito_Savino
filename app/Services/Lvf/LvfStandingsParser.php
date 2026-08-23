@@ -119,22 +119,7 @@ class LvfStandingsParser
             return null;
         }
 
-        $value = function (string $label) use ($cells, $columns): ?string {
-            $index = $columns[$label] ?? null;
-
-            return $index !== null && isset($cells[$index])
-                ? LvfDocument::text($cells[$index])
-                : null;
-        };
-
-        $numbers = [];
-
-        foreach (self::COLUMNS as $label => $field) {
-            $raw = $value($label);
-            $numbers[$field] = in_array($field, ['setRatio', 'pointRatio'], true)
-                ? (is_numeric($raw) ? (float) $raw : null)
-                : (int) $raw;
-        }
+        $numbers = $this->numeriDellaRiga($cells, $columns);
 
         return new LvfStandingRow(
             position: $position,
@@ -157,5 +142,38 @@ class LvfStandingsParser
             setRatio: $numbers['setRatio'],
             pointRatio: $numbers['pointRatio'],
         );
+    }
+
+    /**
+     * Le colonne numeriche della riga, nell'ordine dichiarato dalla testata.
+     *
+     * I due rapporti sono decimali e possono mancare (una squadra a zero set
+     * persi non ha quoziente); il resto sono conteggi, che a colonna vuota
+     * valgono zero.
+     *
+     * @param  array<int, DOMNode>  $cells
+     * @param  array<string, int>  $columns
+     * @return array<string, float|int|null>
+     */
+    private function numeriDellaRiga(array $cells, array $columns): array
+    {
+        $numbers = [];
+
+        foreach (self::COLUMNS as $label => $field) {
+            $index = $columns[$label] ?? null;
+            $raw = $index !== null && isset($cells[$index])
+                ? LvfDocument::text($cells[$index])
+                : null;
+
+            if (in_array($field, ['setRatio', 'pointRatio'], true)) {
+                $numbers[$field] = is_numeric($raw) ? (float) $raw : null;
+
+                continue;
+            }
+
+            $numbers[$field] = (int) $raw;
+        }
+
+        return $numbers;
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Game;
 use App\Models\GamePlayerStat;
 use App\Models\Player;
 use App\Models\PlayerStat;
+use App\Models\Team;
 use App\Services\Lvf\Data\LvfPlayerStat;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -129,26 +130,13 @@ class LvfStatsSyncService
                 // Le chiavi squadra della gara sono NOT NULL con vincolo di
                 // integrità: la relazione è sempre valorizzata.
                 $team = $player->clubId === $homeClubId ? $game->homeTeam : $game->awayTeam;
-
-                // Solo per le nostre squadre si tenta l'aggancio all'anagrafica.
-                $playerId = $team->is_internal
-                    ? ($ownPlayers[$this->nameKey($player->playerName)] ?? null)
-                    : null;
+                $playerId = $this->anagraficaDi($player, $team, $ownPlayers);
 
                 if ($playerId !== null) {
                     $matched++;
                 }
 
-                $record = GamePlayerStat::updateOrCreate(
-                    [
-                        'game_id' => $game->id,
-                        'team_id' => $team->id,
-                        'player_name' => $player->playerName,
-                    ],
-                    $this->attributes($player, $playerId),
-                );
-
-                $keep[] = $record->id;
+                $keep[] = $this->salvaLaRiga($game, $team, $player, $playerId)->id;
                 $rows++;
             }
 
@@ -164,6 +152,39 @@ class LvfStatsSyncService
         });
 
         return ['rows' => $rows, 'matched' => $matched];
+    }
+
+    /**
+     * L'atleta in anagrafica, se la riga e' di una nostra squadra.
+     *
+     * Per le avversarie non si tenta nemmeno: non sono in archivio, e un
+     * omonimo aggancerebbe la statistica alla persona sbagliata.
+     *
+     * @param  array<string, int>  $ownPlayers
+     */
+    private function anagraficaDi(LvfPlayerStat $player, Team $team, array $ownPlayers): ?int
+    {
+        if (! $team->is_internal) {
+            return null;
+        }
+
+        return $ownPlayers[$this->nameKey($player->playerName)] ?? null;
+    }
+
+    /**
+     * La riga del tabellino, riconosciuta da gara + squadra + nome: rilanciare
+     * l'import aggiorna quella che c'e' invece di aggiungerne un'altra.
+     */
+    private function salvaLaRiga(Game $game, Team $team, LvfPlayerStat $player, ?int $playerId): GamePlayerStat
+    {
+        return GamePlayerStat::updateOrCreate(
+            [
+                'game_id' => $game->id,
+                'team_id' => $team->id,
+                'player_name' => $player->playerName,
+            ],
+            $this->attributes($player, $playerId),
+        );
     }
 
     /**

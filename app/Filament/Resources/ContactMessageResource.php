@@ -15,6 +15,18 @@ class ContactMessageResource extends Resource
 {
     protected static ?string $model = ContactMessage::class;
 
+    /**
+     * Le etichette dello stato servono al form, al filtro e al badge della
+     * tabella: tenerle in un posto solo evita che i tre elenchi divergano.
+     *
+     * @var array<string, string>
+     */
+    private const STATUS_LABELS = [
+        'unread' => 'Non Letto',
+        'read' => 'Letto',
+        'replied' => 'Risposto',
+    ];
+
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
 
     protected static ?string $navigationLabel = 'Messaggi Contatti';
@@ -69,11 +81,7 @@ class ContactMessageResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->label('Stato Messaggio')
-                            ->options([
-                                'unread' => 'Non Letto',
-                                'read' => 'Letto',
-                                'replied' => 'Risposto',
-                            ])
+                            ->options(self::STATUS_LABELS)
                             ->default('unread')
                             ->required(),
                         Forms\Components\Textarea::make('extra_data.admin_notes')
@@ -108,12 +116,7 @@ class ContactMessageResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'unread' => 'Non Letto',
-                        'read' => 'Letto',
-                        'replied' => 'Risposto',
-                        default => $state,
-                    })
+                    ->formatStateUsing(fn (string $state): string => self::STATUS_LABELS[$state] ?? $state)
                     ->color(fn (string $state): string => match ($state) {
                         'unread' => 'danger',
                         'read' => 'warning',
@@ -129,11 +132,7 @@ class ContactMessageResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Stato')
-                    ->options([
-                        'unread' => 'Non Letto',
-                        'read' => 'Letto',
-                        'replied' => 'Risposto',
-                    ]),
+                    ->options(self::STATUS_LABELS),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([

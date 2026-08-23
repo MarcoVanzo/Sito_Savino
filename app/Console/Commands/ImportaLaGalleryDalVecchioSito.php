@@ -82,18 +82,11 @@ class ImportaLaGalleryDalVecchioSito extends Command
                 continue;
             }
 
-            if ($dal !== null && ($album['data'] === null || $album['data'] < $dal)) {
+            if ($this->fuoriPeriodo($album, $dal)) {
                 continue;
             }
 
-            if ($this->option('prova')) {
-                $this->line(sprintf('  %s — %s (%d foto)', $album['data'] ?? '????-??-??', $album['titolo'], count($album['foto'])));
-                $importati++;
-
-                continue;
-            }
-
-            $foto += $this->importaAlbum($album);
+            $foto += $this->consideraAlbum($album);
             $importati++;
         }
 
@@ -101,6 +94,36 @@ class ImportaLaGalleryDalVecchioSito extends Command
         $this->info("Album considerati: {$importati}. Foto aggiunte: {$foto}. Album senza foto: {$saltati}.");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * L'album e' anteriore alla data da cui si vuole importare.
+     *
+     * Un album senza data conta come fuori periodo: non si puo' stabilire se
+     * rientri, e importarlo lo metterebbe in archivio senza collocazione.
+     *
+     * @param  array{slug: string, titolo: string, data: ?string, foto: list<string>}  $album
+     */
+    private function fuoriPeriodo(array $album, ?string $dal): bool
+    {
+        return $dal !== null && ($album['data'] === null || $album['data'] < $dal);
+    }
+
+    /**
+     * Importa l'album, oppure lo elenca soltanto se e' stata chiesta una prova.
+     *
+     * @param  array{slug: string, titolo: string, data: ?string, foto: list<string>}  $album
+     * @return int foto aggiunte
+     */
+    private function consideraAlbum(array $album): int
+    {
+        if (! $this->option('prova')) {
+            return $this->importaAlbum($album);
+        }
+
+        $this->line(sprintf('  %s — %s (%d foto)', $album['data'] ?? '????-??-??', $album['titolo'], count($album['foto'])));
+
+        return 0;
     }
 
     /**

@@ -52,7 +52,10 @@ const fetchSuggestions = async (query) => {
             province: item.address?.county || item.address?.state || '',
         }));
         showDropdown.value = suggestions.value.length > 0;
-    } catch (e) {
+    } catch (error) {
+        // Il suggeritore di indirizzi e' un aiuto, non un requisito: se il
+        // servizio non risponde l'elenco resta vuoto e il campo si compila a mano.
+        if (import.meta.env.DEV) console.debug('suggerimenti indirizzo non disponibili', error);
         suggestions.value = [];
         showDropdown.value = false;
     } finally {

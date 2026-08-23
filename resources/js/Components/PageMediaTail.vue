@@ -38,17 +38,25 @@ const hasSomething = computed(() => hasVideo.value || hasImages.value);
 const zoomIndex = ref(null);
 const zoomImage = computed(() => (zoomIndex.value === null ? null : props.images[zoomIndex.value]));
 
-// Esc chiude solo se il riquadro ha il fuoco: un `div` non lo prende da solo,
-// e senza queste due righe il tasto non farebbe niente.
+// La foto ingrandita e' un <dialog>: aperta con showModal() sta nel top layer,
+// il fuoco ci resta dentro e l'Esc la chiude senza doverlo ascoltare a mano.
 const zoomEl = ref(null);
 
 function openImage(index) {
     zoomIndex.value = index;
-    nextTick(() => zoomEl.value?.focus());
+    nextTick(() => {
+        if (zoomEl.value && !zoomEl.value.open) {
+            zoomEl.value.showModal();
+        }
+    });
 }
 
 function closeImage() {
     zoomIndex.value = null;
+
+    if (zoomEl.value?.open) {
+        zoomEl.value.close();
+    }
 }
 </script>
 
@@ -66,8 +74,7 @@ function closeImage() {
                     <iframe
                         :src="videoEmbedUrl"
                         :title="$t('content_page.video_title')"
-                        class="w-full h-full"
-                        frameborder="0"
+                        class="w-full h-full border-0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen
                     ></iframe>
@@ -114,15 +121,12 @@ function closeImage() {
         </div>
 
         <!-- Foto ingrandita -->
-        <div
-            v-if="zoomImage"
+        <dialog
             ref="zoomEl"
-            class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
-            tabindex="-1"
-            role="dialog"
-            aria-modal="true"
+            class="foto-ingrandita"
+            :aria-label="zoomImage?.name"
+            @close="closeImage"
             @click="closeImage"
-            @keydown.esc="closeImage"
         >
             <button
                 type="button"
@@ -134,7 +138,32 @@ function closeImage() {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-            <img :src="zoomImage.url" :alt="zoomImage.name" class="max-w-full max-h-full object-contain rounded-lg" @click.stop />
-        </div>
+            <img v-if="zoomImage" :src="zoomImage.url" :alt="zoomImage.name" class="max-w-full max-h-full object-contain rounded-lg" @click.stop />
+        </dialog>
     </section>
 </template>
+
+<style scoped>
+/* Il browser dà a <dialog> bordo, sfondo e dimensioni proprie: qui serve la
+   foto al centro di uno schermo scuro. */
+.foto-ingrandita {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: 1rem;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+}
+
+.foto-ingrandita[open] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.foto-ingrandita::backdrop {
+    background: rgb(0 0 0 / 0.9);
+}
+</style>

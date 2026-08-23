@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: app/Console/Commands/CreateGalleryFromPosts.php
-
-		-
 			message: '#^Parameter \#2 \$length of function array_chunk expects int\<1, max\>, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -151,150 +145,6 @@ parameters:
 			path: app/Filament/Resources/YouthStaffResource.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$attack_pct\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$attack_points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$block_points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_captain\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_internal\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_libero\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$jersey_number\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$player\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$player_name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$points_total\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reception_perfect_pct\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reception_positive_pct\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$serve_points\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sets_played\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Anonymous function should return App\\Models\\GalleryImage but returns string\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Parameter \#1 \$team of method App\\Http\\Controllers\\PublicController\:\:teamLogo\(\) expects App\\Models\\Team\|null, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Relation ''galleryImages'' is not found in App\\Models\\Player model\.$#'
-			identifier: larastan.relationExistence
-			count: 1
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Relation ''players'' is not found in App\\Models\\GalleryImage model\.$#'
-			identifier: larastan.relationExistence
-			count: 2
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Enums\\GameStatus\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 3
-			path: app/Http/Controllers/PublicController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
 			identifier: property.notFound
 			count: 1
@@ -302,18 +152,6 @@ parameters:
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$placed_at\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/Shop/AuctionController.php
@@ -335,24 +173,6 @@ parameters:
 			identifier: method.notFound
 			count: 1
 			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/AuctionController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/CartController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Shop/CartController.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
@@ -385,40 +205,10 @@ parameters:
 			path: app/Http/Middleware/ServeSocialCrawlerMeta.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Jobs/AnalyzeGalleryImageJob.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$staffMembers\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Jobs/AnalyzeGalleryImageJob.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Models/Auction.php
-
-		-
-			message: '#^Method App\\Models\\Auction\:\:highestBid\(\) should return App\\Models\\Bid\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Models/Auction.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$price_modifier\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/CartItem.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:effectivePrice\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Models/CartItem.php
 
 		-
 			message: '#^Right side of && is always true\.$#'
@@ -433,12 +223,6 @@ parameters:
 			path: app/Models/Coupon.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$players\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/GalleryImage.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\GalleryImage\:\:\$staffMembers\.$#'
 			identifier: property.notFound
 			count: 1
@@ -447,12 +231,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Models\\MenuItem\:\:\$children\.$#'
 			identifier: property.notFound
-			count: 1
-			path: app/Models/MenuItem.php
-
-		-
-			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
 			count: 1
 			path: app/Models/MenuItem.php
 
@@ -485,114 +263,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: app/Services/AdminNotificationService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/AuctionService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
-			identifier: property.notFound
-			count: 6
-			path: app/Services/AuctionService.php
-
-		-
-			message: '#^Parameter \#1 \$value of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:search\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model, Closure\(App\\Models\\Bid\)\: bool given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Services/AuctionService.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:valid\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Services/BidService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
-			identifier: property.notFound
-			count: 4
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_variant_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
-			identifier: property.notFound
-			count: 6
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Method App\\Services\\CartService\:\:addItem\(\) should return App\\Models\\CartItem\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Method App\\Services\\CartService\:\:updateItemQuantity\(\) should return App\\Models\\CartItem\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Method App\\Services\\CartService\:\:validateStock\(\) should return array\<int, array\{item\: App\\Models\\CartItem, available\: int, requested\: int\}\> but returns list\<array\{item\: Illuminate\\Database\\Eloquent\\Model, available\: int, requested\: mixed\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Services/CartService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_variant_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
-			identifier: property.notFound
-			count: 4
-			path: app/Services/CheckoutService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$variant\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Services/CheckoutService.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'

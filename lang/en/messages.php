@@ -46,6 +46,7 @@ return [
         'coupon_applied' => 'Coupon applied! Discount of € :discount.',
         'already_processing' => 'A payment is already being processed. Please wait.',
         'retry_not_available' => 'Payment retry is not available for this order.',
+        'gateway_not_available' => 'The selected payment method is not available.',
     ],
     'shop' => [
         'register_success' => 'Registration completed! Welcome to the shop.',

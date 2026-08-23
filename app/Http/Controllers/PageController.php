@@ -14,6 +14,7 @@ use App\Models\Team;
 use App\Services\SponsorDirectory;
 use App\Support\CmsFile;
 use App\Support\LiveStream;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -106,28 +107,10 @@ class PageController extends Controller
         // galleria di pagina, entrambe gestite dal pannello.
         $page->append(['cover_url', 'gallery_images']);
 
-        // Evita contenuti duplicati (SEO): se l'utente accede alla pagina tramite la rotta generica
-        // o di sezione (es. /societa/contatti), reindirizza con un redirect 301 permanente
-        // alla rotta canonical principale (/contatti o /en/contacts).
-        if ($page->slug === 'contatti') {
-            $routePrefix = app()->getLocale() === 'it' ? '' : app()->getLocale().'.';
+        $canonico = $this->redirectCanonico($page);
 
-            return redirect()->route($routePrefix.'contatti', [], 301);
-        }
-
-        // Evita contenuti duplicati (SEO): se la pagina appartiene a una sezione specifica
-        // ma è stata chiamata tramite la rotta catch-all, fai un redirect 301 alla rotta corretta.
-        if (request()->routeIs('*pages.show') && isset(self::SLUG_SECTION_MAP[$page->slug])) {
-            $section = self::SLUG_SECTION_MAP[$page->slug];
-            $routePrefix = app()->getLocale() === 'it' ? '' : app()->getLocale().'.';
-
-            // Quando lo slug coincide con la sezione l'URL canonico è la sezione
-            // e basta: la regola generale produceva /summer-camp/summer-camp.
-            if ($page->slug === $section && Route::has($routePrefix.$section)) {
-                return redirect()->route($routePrefix.$section, [], 301);
-            }
-
-            return redirect()->route($routePrefix.$section.'.page', ['slug' => $page->slug], 301);
+        if ($canonico !== null) {
+            return $canonico;
         }
 
         // Se il template è nella whitelist, usalo. Altrimenti renderizza
@@ -143,22 +126,72 @@ class PageController extends Controller
         // magazine, immagini dei pulsanti) diventano indirizzi pubblici veri:
         // i template li usavano come "/storage/{percorso}", che in produzione
         // — con i file su Spaces — non porta da nessuna parte.
-        $dati = $page->toArray();
-        $dati['content_data'] = is_array($dati['content_data'] ?? null)
-            ? CmsFile::resolveInContentData($dati['content_data'])
-            : $dati['content_data'];
+        return Inertia::render($template, array_merge([
+            'page' => $this->datiDellaPagina($page),
+        ], $extra));
+    }
 
-        // Il video di coda passa dallo stesso filtro della diretta delle gare:
-        // un indirizzo fuori dalle piattaforme conosciute non viene incorporato
-        // nella pagina con i permessi del sito.
-        if (is_array($dati['content_data'] ?? null) && isset($dati['content_data']['video_url'])) {
+    /**
+     * Il redirect 301 all'indirizzo canonico, quando la pagina e' stata
+     * raggiunta da una rotta diversa da quello.
+     *
+     * Serve a non avere lo stesso contenuto su due indirizzi (SEO): la pagina
+     * Contatti ha un indirizzo suo, e le pagine di sezione raggiunte dalla
+     * rotta generica vanno riportate alla loro sezione.
+     */
+    private function redirectCanonico(Page $page): ?RedirectResponse
+    {
+        $routePrefix = app()->getLocale() === 'it' ? '' : app()->getLocale().'.';
+
+        if ($page->slug === 'contatti') {
+            return redirect()->route($routePrefix.'contatti', [], 301);
+        }
+
+        if (! request()->routeIs('*pages.show') || ! isset(self::SLUG_SECTION_MAP[$page->slug])) {
+            return null;
+        }
+
+        $section = self::SLUG_SECTION_MAP[$page->slug];
+
+        // Quando lo slug coincide con la sezione l'URL canonico è la sezione
+        // e basta: la regola generale produceva /summer-camp/summer-camp.
+        if ($page->slug === $section && Route::has($routePrefix.$section)) {
+            return redirect()->route($routePrefix.$section, [], 301);
+        }
+
+        return redirect()->route($routePrefix.$section.'.page', ['slug' => $page->slug], 301);
+    }
+
+    /**
+     * La pagina nella forma che arriva al frontend.
+     *
+     * I file caricati dal pannello dentro `content_data` (press kit, magazine,
+     * immagini dei pulsanti) diventano indirizzi pubblici veri: i template li
+     * usavano come "/storage/{percorso}", che in produzione — con i file su
+     * Spaces — non porta da nessuna parte.
+     *
+     * Il video di coda passa dallo stesso filtro della diretta delle gare: un
+     * indirizzo fuori dalle piattaforme conosciute non viene incorporato nella
+     * pagina con i permessi del sito.
+     *
+     * @return array<string, mixed>
+     */
+    private function datiDellaPagina(Page $page): array
+    {
+        $dati = $page->toArray();
+
+        if (! is_array($dati['content_data'] ?? null)) {
+            return $dati;
+        }
+
+        $dati['content_data'] = CmsFile::resolveInContentData($dati['content_data']);
+
+        if (isset($dati['content_data']['video_url'])) {
             $dati['content_data']['video_embed_url'] = LiveStream::embedUrl($dati['content_data']['video_url']);
             $dati['content_data']['video_url'] = LiveStream::externalUrl($dati['content_data']['video_url']);
         }
 
-        return Inertia::render($template, array_merge([
-            'page' => $dati,
-        ], $extra));
+        return $dati;
     }
 
     /**
@@ -244,37 +277,39 @@ class PageController extends Controller
 
         return Cache::remember("public:roster_page:{$locale}", now()->addMinutes(10), function () {
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
-
-            $players = [];
-
-            if ($currentSeason) {
-                $team = Team::where('category', 'A1')->first();
-
-                if ($team) {
-                    $players = Roster::with(['player', 'media'])
-                        ->whereHas('player')
-                        ->where('team_id', $team->id)
-                        ->where('season_id', $currentSeason->id)
-                        ->orderByRaw('jersey_number IS NULL, jersey_number')
-                        ->orderBy('id')
-                        ->get()
-                        ->map(fn ($r) => [
-                            'id' => $r->player->id ?? $r->id,
-                            'first_name' => $r->player->first_name ?? '',
-                            'last_name' => $r->player->last_name ?? '',
-                            'number' => $r->jersey_number,
-                            'role' => $r->role?->value,
-                            'photo_url' => $r->getFirstMediaUrl('rosters_official', 'card') ?: ($r->player?->getFirstMediaUrl('players', 'card') ?: $r->player?->getFirstMediaUrl('players') ?: null),
-                        ])
-                        ->toArray();
-                }
-            }
+            $team = $currentSeason ? Team::where('category', 'A1')->first() : null;
 
             return [
-                'players' => $players,
+                'players' => $team ? $this->atleteInRosa($team, $currentSeason) : [],
                 'seasonName' => $currentSeason->name ?? __('Stagione corrente'),
             ];
         });
+    }
+
+    /**
+     * Le atlete della rosa, ordinate per numero di maglia (chi non ce l'ha in
+     * fondo), gia' pronte per il frontend.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function atleteInRosa(Team $team, Season $season): array
+    {
+        return Roster::with(['player', 'media'])
+            ->whereHas('player')
+            ->where('team_id', $team->id)
+            ->where('season_id', $season->id)
+            ->orderByRaw('jersey_number IS NULL, jersey_number')
+            ->orderBy('id')
+            ->get()
+            ->map(fn ($r) => [
+                'id' => $r->player->id ?? $r->id,
+                'first_name' => $r->player->first_name ?? '',
+                'last_name' => $r->player->last_name ?? '',
+                'number' => $r->jersey_number,
+                'role' => $r->role?->value,
+                'photo_url' => $r->getFirstMediaUrl('rosters_official', 'card') ?: ($r->player?->getFirstMediaUrl('players', 'card') ?: $r->player?->getFirstMediaUrl('players') ?: null),
+            ])
+            ->toArray();
     }
 
     private function getSponsorData(): array

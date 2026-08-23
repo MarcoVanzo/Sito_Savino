@@ -44,6 +44,9 @@ class GamePlayerStat extends Model
         return $this->belongsTo(Team::class);
     }
 
+    /**
+     * @return BelongsTo<Player, $this>
+     */
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class);

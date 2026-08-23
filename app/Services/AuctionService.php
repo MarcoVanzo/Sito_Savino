@@ -10,6 +10,7 @@ use App\Models\Bid;
 use App\Models\Order;
 use App\Models\SiteSetting;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -101,89 +102,134 @@ class AuctionService
             DB::transaction(function () use ($auction, &$processed) {
                 $auction = Auction::lockForUpdate()->find($auction->id);
 
-                // Verifica se il vincitore ha già pagato (dentro la transazione per evitare TOCTOU).
-                // Va controllato il PAGAMENTO, non la semplice esistenza dell'ordine:
-                // il vincitore che apre il checkout senza completarlo lascia un
-                // ordine Pending, che faceva considerare l'asta come pagata e ne
-                // impediva per sempre la riassegnazione all'offerente successivo.
-                $existingOrder = $this->getWinnerOrder($auction);
-
-                if ($existingOrder?->paid_at !== null) {
-                    return; // Pagamento già effettuato
-                }
-
-                // L'ordine rimasto aperto oltre la deadline non è più pagabile:
-                // annullarlo restituisce lo stock tramite OrderObserver.
-                // Vanno annullati anche gli stati diversi da Pending (es. Processing):
-                // ignorarli riassegnava comunque l'asta lasciando lo stock riservato
-                // per sempre.
-                if ($existingOrder && in_array($existingOrder->status, [OrderStatus::Pending, OrderStatus::Processing], true)) {
-                    $existingOrder->forceFill(['status' => OrderStatus::Cancelled])->save();
-                } elseif ($existingOrder && ! in_array($existingOrder->status, [OrderStatus::Cancelled, OrderStatus::Refunded], true)) {
-                    // Spedito/consegnato senza paid_at: situazione anomala che non va
-                    // risolta automaticamente (la merce è già partita). Nessuna
-                    // riassegnazione: richiede intervento manuale.
-                    Log::error("Asta #{$auction->id}: ordine #{$existingOrder->id} in stato {$existingOrder->status->value} senza pagamento registrato — riassegnazione sospesa, verificare manualmente.");
-
+                if (! $this->chiudiIlTurnoDelVincitore($auction)) {
                     return;
                 }
 
-                $currentAttempt = (int) $auction->current_winner_attempt;
-
-                // Offerte valide ordinate per importo decrescente, una sola per utente
-                // (la più alta): lo stesso utente può aver rilanciato più volte e con
-                // rilanci alternati fra due utenti l'asta rimbalzava fra gli stessi
-                // due nomi, riassegnandola a chi aveva già mancato il pagamento.
-                $rankedBids = $auction->validBids()->get()->unique('user_id')->values();
-
-                // Gli utenti che hanno già perso il turno sono tutti quelli in
-                // classifica fino al vincitore corrente incluso: il prossimo è quello
-                // immediatamente sotto. Se l'offerta del vincitore corrente non è più
-                // valida (invalidata a mano) si ricade sul contatore dei tentativi.
-                $currentIndex = $rankedBids->search(
-                    fn (Bid $bid) => $bid->user_id === $auction->winner_user_id
-                );
-
-                $nextIndex = $currentIndex === false
-                    ? max(0, $currentAttempt)
-                    : $currentIndex + 1;
-
-                $nextBid = $rankedBids->get($nextIndex);
-
-                if ($nextBid) {
-                    $paymentDeadlineHours = (int) SiteSetting::get('auctions.payment_deadline_hours', 48);
-
-                    $auction->forceFill([
-                        'winner_user_id' => $nextBid->user_id,
-                        'winner_checkout_token' => Str::uuid()->toString(),
-                        'winner_checkout_deadline' => now()->addHours($paymentDeadlineHours),
-                        // Posizione 1-based del nuovo vincitore in classifica
-                        'current_winner_attempt' => $nextIndex + 1,
-                    ])->save();
-
-                    $newWinner = User::find($nextBid->user_id);
-
-                    if ($newWinner) {
-                        $this->sendAuctionWonMail($auction->fresh(), $newWinner);
-                    }
-
-                    Log::info("Asta #{$auction->id}: vincitore precedente non ha pagato. Nuovo vincitore: User #{$nextBid->user_id} (tentativo #{$auction->current_winner_attempt}).");
-                } else {
-                    // Nessun altro offerente disponibile
-                    $auction->forceFill([
-                        'winner_user_id' => null,
-                        'winner_checkout_token' => null,
-                        'winner_checkout_deadline' => null,
-                    ])->save();
-
-                    Log::warning("Asta #{$auction->id}: nessun altro offerente disponibile dopo {$currentAttempt} tentativi. Asta senza vincitore.");
-                }
+                $this->passaAlProssimoOfferente($auction);
 
                 $processed++;
             });
         }
 
         return $processed;
+    }
+
+    /**
+     * Il turno del vincitore corrente e' finito senza pagamento?
+     *
+     * Va controllato il PAGAMENTO, non la semplice esistenza dell'ordine: il
+     * vincitore che apre il checkout senza completarlo lascia un ordine
+     * Pending, che faceva considerare l'asta come pagata e ne impediva per
+     * sempre la riassegnazione all'offerente successivo.
+     *
+     * L'ordine rimasto aperto oltre il termine non e' piu' pagabile:
+     * annullarlo restituisce lo stock tramite OrderObserver. Vanno annullati
+     * anche gli stati diversi da Pending (per esempio Processing): ignorarli
+     * riassegnava comunque l'asta lasciando lo stock riservato per sempre.
+     *
+     * @return bool false se non si deve riassegnare niente
+     */
+    private function chiudiIlTurnoDelVincitore(Auction $auction): bool
+    {
+        $existingOrder = $this->getWinnerOrder($auction);
+
+        if ($existingOrder?->paid_at !== null) {
+            return false; // Pagamento già effettuato
+        }
+
+        if (! $existingOrder) {
+            return true;
+        }
+
+        if (in_array($existingOrder->status, [OrderStatus::Pending, OrderStatus::Processing], true)) {
+            $existingOrder->forceFill(['status' => OrderStatus::Cancelled])->save();
+
+            return true;
+        }
+
+        if (in_array($existingOrder->status, [OrderStatus::Cancelled, OrderStatus::Refunded], true)) {
+            return true;
+        }
+
+        // Spedito/consegnato senza paid_at: situazione anomala che non va
+        // risolta automaticamente (la merce è già partita). Nessuna
+        // riassegnazione: richiede intervento manuale.
+        Log::error("Asta #{$auction->id}: ordine #{$existingOrder->id} in stato {$existingOrder->status->value} senza pagamento registrato — riassegnazione sospesa, verificare manualmente.");
+
+        return false;
+    }
+
+    /**
+     * Assegna l'asta a chi viene dopo in classifica, o la lascia senza
+     * vincitore se non c'e' piu' nessuno.
+     */
+    private function passaAlProssimoOfferente(Auction $auction): void
+    {
+        $currentAttempt = (int) $auction->current_winner_attempt;
+        $nextIndex = $this->posizioneDelProssimo($auction);
+        $nextBid = $this->classificaOfferte($auction)->get($nextIndex);
+
+        if (! $nextBid) {
+            // Nessun altro offerente disponibile
+            $auction->forceFill([
+                'winner_user_id' => null,
+                'winner_checkout_token' => null,
+                'winner_checkout_deadline' => null,
+            ])->save();
+
+            Log::warning("Asta #{$auction->id}: nessun altro offerente disponibile dopo {$currentAttempt} tentativi. Asta senza vincitore.");
+
+            return;
+        }
+
+        $paymentDeadlineHours = (int) SiteSetting::get('auctions.payment_deadline_hours', 48);
+
+        $auction->forceFill([
+            'winner_user_id' => $nextBid->user_id,
+            'winner_checkout_token' => Str::uuid()->toString(),
+            'winner_checkout_deadline' => now()->addHours($paymentDeadlineHours),
+            // Posizione 1-based del nuovo vincitore in classifica
+            'current_winner_attempt' => $nextIndex + 1,
+        ])->save();
+
+        $newWinner = User::find($nextBid->user_id);
+
+        if ($newWinner) {
+            $this->sendAuctionWonMail($auction->fresh(), $newWinner);
+        }
+
+        Log::info("Asta #{$auction->id}: vincitore precedente non ha pagato. Nuovo vincitore: User #{$nextBid->user_id} (tentativo #{$auction->current_winner_attempt}).");
+    }
+
+    /**
+     * Offerte valide ordinate per importo decrescente, una sola per utente (la
+     * piu' alta): lo stesso utente puo' aver rilanciato piu' volte e con
+     * rilanci alternati fra due utenti l'asta rimbalzava fra gli stessi due
+     * nomi, riassegnandola a chi aveva gia' mancato il pagamento.
+     *
+     * @return Collection<int, Bid>
+     */
+    private function classificaOfferte(Auction $auction): Collection
+    {
+        return $auction->validBids()->get()->unique('user_id')->values();
+    }
+
+    /**
+     * Gli utenti che hanno gia' perso il turno sono tutti quelli in classifica
+     * fino al vincitore corrente incluso: il prossimo e' quello immediatamente
+     * sotto. Se l'offerta del vincitore corrente non e' piu' valida
+     * (invalidata a mano) si ricade sul contatore dei tentativi.
+     */
+    private function posizioneDelProssimo(Auction $auction): int
+    {
+        $currentIndex = $this->classificaOfferte($auction)->search(
+            fn (Bid $bid) => $bid->user_id === $auction->winner_user_id
+        );
+
+        return $currentIndex === false
+            ? max(0, (int) $auction->current_winner_attempt)
+            : $currentIndex + 1;
     }
 
     /**

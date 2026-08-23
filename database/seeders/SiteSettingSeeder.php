@@ -10,7 +10,37 @@ class SiteSettingSeeder extends Seeder
     public function run(): void
     {
         $settings = [
-            // ── GENERAL ──────────────────────────────────────────────────
+            ...$this->impostazioniGenerali(),
+            ...$this->impostazioniDiContatto(),
+            ...$this->impostazioniSocial(),
+            ...$this->impostazioniDelFooter(),
+            ...$this->impostazioniDellaHome(),
+        ];
+
+        foreach ($settings as $setting) {
+            $existing = SiteSetting::where('key', $setting['key'])->first();
+            if ($existing) {
+                // Preserviamo il valore modificato dall'utente, aggiorniamo solo i metadati strutturali
+                $existing->update([
+                    'type' => $setting['type'],
+                    'group' => $setting['group'],
+                    'label' => $setting['label'],
+                    'sort_order' => $setting['sort_order'],
+                ]);
+            } else {
+                SiteSetting::create($setting);
+            }
+        }
+    }
+
+    /**
+     * Logo, nome del sito e marchio corporate.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function impostazioniGenerali(): array
+    {
+        return [
             [
                 'key' => 'site_logo',
                 'value' => '',
@@ -51,8 +81,17 @@ class SiteSettingSeeder extends Seeder
                 'label' => 'Descrizione Corporate',
                 'sort_order' => 6,
             ],
+        ];
+    }
 
-            // ── CONTACT ──────────────────────────────────────────────────
+    /**
+     * Recapiti e dati societari: li leggono footer, pagina Contatti, Comunicazione e Settore Giovanile.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function impostazioniDiContatto(): array
+    {
+        return [
             [
                 'key' => 'email',
                 'value' => 'info@savinodelbenevolley.it',
@@ -167,8 +206,17 @@ class SiteSettingSeeder extends Seeder
                 'label' => 'Codice SDI',
                 'sort_order' => 13,
             ],
+        ];
+    }
 
-            // ── SOCIAL ───────────────────────────────────────────────────
+    /**
+     * Indirizzi dei profili e identificativi di misurazione.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function impostazioniSocial(): array
+    {
+        return [
             [
                 'key' => 'social_instagram',
                 'value' => 'https://www.instagram.com/savinodelbenevolley/',
@@ -225,8 +273,17 @@ class SiteSettingSeeder extends Seeder
                 'label' => 'Canale WhatsApp',
                 'sort_order' => 6,
             ],
+        ];
+    }
 
-            // ── FOOTER ──────────────────────────────────────────────────
+    /**
+     * Testi e voci in fondo a ogni pagina.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function impostazioniDelFooter(): array
+    {
+        return [
             [
                 'key' => 'footer_tagline',
                 'value' => 'Dal 1982, una tradizione di eccellenza nella pallavolo femminile italiana. Serie A1 — Pala BigMat, Firenze.',
@@ -251,8 +308,17 @@ class SiteSettingSeeder extends Seeder
                 'label' => 'Partita IVA',
                 'sort_order' => 2,
             ],
+        ];
+    }
 
-            // ── HOME ─────────────────────────────────────────────────────
+    /**
+     * Numeri e titoli delle sezioni della pagina d'ingresso.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function impostazioniDellaHome(): array
+    {
+        return [
             [
                 'key' => 'hero_title',
                 'value' => 'SAVINO DEL BENE',
@@ -387,20 +453,5 @@ class SiteSettingSeeder extends Seeder
                 'sort_order' => 15,
             ],
         ];
-
-        foreach ($settings as $setting) {
-            $existing = SiteSetting::where('key', $setting['key'])->first();
-            if ($existing) {
-                // Preserviamo il valore modificato dall'utente, aggiorniamo solo i metadati strutturali
-                $existing->update([
-                    'type' => $setting['type'],
-                    'group' => $setting['group'],
-                    'label' => $setting['label'],
-                    'sort_order' => $setting['sort_order'],
-                ]);
-            } else {
-                SiteSetting::create($setting);
-            }
-        }
     }
 }

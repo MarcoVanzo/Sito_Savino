@@ -23,16 +23,29 @@ class LegalSettingsPage extends BaseSettingsPage
         return $form
             ->schema([
                 Section::make('Privacy e Policy')->schema([
-                    FileUpload::make('legal.privacy_policy')->label('Privacy Policy')->acceptedFileTypes(['application/pdf'])->directory('legal')->preserveFilenames(),
-                    FileUpload::make('legal.cookie_policy')->label('Cookie Policy')->acceptedFileTypes(['application/pdf'])->directory('legal')->preserveFilenames(),
-                    FileUpload::make('legal.informativa_fornitori')->label('Informativa Fornitori')->acceptedFileTypes(['application/pdf'])->directory('legal')->preserveFilenames(),
+                    self::pdfUpload('legal.privacy_policy', 'Privacy Policy'),
+                    self::pdfUpload('legal.cookie_policy', 'Cookie Policy'),
+                    self::pdfUpload('legal.informativa_fornitori', 'Informativa Fornitori'),
                 ])->columns(3),
                 Section::make('Corporate Governance')->schema([
-                    FileUpload::make('legal.modello_organizzativo')->label('Modello Organizzativo')->acceptedFileTypes(['application/pdf'])->directory('legal')->preserveFilenames(),
-                    FileUpload::make('legal.codice_tutela_minori')->label('Codice Tutela Minori')->acceptedFileTypes(['application/pdf'])->directory('legal')->preserveFilenames(),
-                    FileUpload::make('legal.protocollo_bullismo')->label('Protocollo Bullismo')->acceptedFileTypes(['application/pdf'])->directory('legal')->preserveFilenames(),
-                    FileUpload::make('legal.protocollo_razzismo')->label('Protocollo Razzismo')->acceptedFileTypes(['application/pdf'])->directory('legal')->preserveFilenames(),
+                    self::pdfUpload('legal.modello_organizzativo', 'Modello Organizzativo'),
+                    self::pdfUpload('legal.codice_tutela_minori', 'Codice Tutela Minori'),
+                    self::pdfUpload('legal.protocollo_bullismo', 'Protocollo Bullismo'),
+                    self::pdfUpload('legal.protocollo_razzismo', 'Protocollo Razzismo'),
                 ])->columns(2),
             ])->statePath('data');
+    }
+
+    /**
+     * I documenti legali sono tutti PDF caricati nella stessa cartella e con il
+     * nome originale conservato: cambia solo la chiave e l'etichetta.
+     */
+    private static function pdfUpload(string $key, string $label): FileUpload
+    {
+        return FileUpload::make($key)
+            ->label($label)
+            ->acceptedFileTypes(['application/pdf'])
+            ->directory('legal')
+            ->preserveFilenames();
     }
 }

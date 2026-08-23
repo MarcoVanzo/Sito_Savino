@@ -28,9 +28,8 @@ const message = computed(() => {
 </script>
 
 <template>
-    <div
+    <output
         v-if="expiry"
-        role="status"
         class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
     >
         <svg
@@ -58,5 +57,5 @@ const message = computed(() => {
         >
             {{ $t('password_expiry.change') }}
         </Link>
-    </div>
+    </output>
 </template>

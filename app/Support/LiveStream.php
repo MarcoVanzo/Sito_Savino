@@ -98,7 +98,7 @@ class LiveStream
 
     private static function twitch(string $channel): ?string
     {
-        if (preg_match('/^[A-Za-z0-9_]{3,}$/', $channel) !== 1) {
+        if (preg_match('/^\\w{3,}$/', $channel) !== 1) {
             return null;
         }
 

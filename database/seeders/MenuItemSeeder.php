@@ -8,6 +8,17 @@ use Illuminate\Support\Facades\Schema;
 
 class MenuItemSeeder extends Seeder
 {
+    /**
+     * Testi che compaiono in piu' voci del menu: la descrizione della pagina
+     * roster e l'etichetta del club, in italiano e in inglese.
+     *
+     * @var array<string, string>
+     */
+    private const DESCRIPTION_ROSTER = ['it' => 'Roster e Staff', 'en' => 'Roster and staff'];
+
+    /** @var array<string, string> */
+    private const LABEL_THE_CLUB = ['it' => 'Il Club', 'en' => 'The Club'];
+
     public function run(): void
     {
         // Truncate the table to start fresh (clears cache via model events)
@@ -15,9 +26,31 @@ class MenuItemSeeder extends Seeder
         MenuItem::truncate();
         Schema::enableForeignKeyConstraints();
 
-        // ── MAIN MENU ────────────────────────────────────────────────
+        $this->menuPrincipale();
+        $this->menuDelFooter();
+    }
 
-        // 1. Stagione
+    /**
+     * Le nove voci della barra in testata, ognuna con le sue figlie.
+     */
+    private function menuPrincipale(): void
+    {
+        $this->voceStagione();
+        $this->voceSocieta();
+        $this->voceTicketing();
+        $this->voceSponsor();
+        $this->voceYouth();
+        $this->voceCamp();
+        $this->voceSociale();
+        $this->voceMedia();
+        $this->voceShop();
+    }
+
+    /**
+     * Stagione: roster, foto ufficiale, risultati, classifica, coppe.
+     */
+    private function voceStagione(): void
+    {
         $stagione = MenuItem::create([
             'label' => ['it' => 'Stagione', 'en' => 'Season'],
             'url' => '/stagione/',
@@ -35,7 +68,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Serie A1', 'en' => 'Serie A1'],
                 'url' => '/stagione/',
-                'description' => ['it' => 'Roster e Staff', 'en' => 'Roster and staff'],
+                'description' => self::DESCRIPTION_ROSTER,
             ],
             [
                 'label' => ['it' => 'Foto Ufficiale', 'en' => 'Official Team Photo'],
@@ -72,8 +105,13 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => 'Galleria Fotografica', 'en' => 'Photo gallery'],
             ],
         ]);
+    }
 
-        // 2. Società
+    /**
+     * Societa': organigramma, storia, palazzetto, safeguarding, contatti.
+     */
+    private function voceSocieta(): void
+    {
         $societa = MenuItem::create([
             'label' => ['it' => 'Società', 'en' => 'Club'],
             'url' => '/societa/',
@@ -81,7 +119,7 @@ class MenuItemSeeder extends Seeder
             'sort_order' => 1,
             'is_active' => true,
             'is_highlight' => false,
-            'motto_title' => ['it' => 'Il Club', 'en' => 'The Club'],
+            'motto_title' => self::LABEL_THE_CLUB,
             'motto_subtitle' => [
                 'it' => 'Storia, organigramma e strutture della Savino Del Bene',
                 'en' => 'History, leadership and facilities of Savino Del Bene',
@@ -114,8 +152,13 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => 'Come raggiungerci', 'en' => 'How to reach us'],
             ],
         ]);
+    }
 
-        // 3. Ticketing
+    /**
+     * Ticketing: biglietteria, abbonamenti, accessibilita', convenzioni.
+     */
+    private function voceTicketing(): void
+    {
         $ticketing = MenuItem::create([
             'label' => ['it' => 'Ticketing', 'en' => 'Tickets'],
             'url' => '/ticketing/',
@@ -151,8 +194,13 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => 'Abbonati e possessori', 'en' => 'Season ticket and card holders'],
             ],
         ]);
+    }
 
-        // 4. Sponsor
+    /**
+     * Sponsor: partner, diventa sponsor, hospitality.
+     */
+    private function voceSponsor(): void
+    {
         $sponsor = MenuItem::create([
             'label' => ['it' => 'Sponsor', 'en' => 'Sponsors'],
             'url' => '/sponsor/',
@@ -188,8 +236,16 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => 'Descrizione Servizio', 'en' => 'Service details'],
             ],
         ]);
+    }
 
-        // 5. SDB Youth
+    /**
+     * SDB Youth, Camp, Sociale, Media e Shop.
+     */
+    /**
+     * SDB Youth: settore giovanile, talent day, affiliazioni.
+     */
+    private function voceYouth(): void
+    {
         $youth = MenuItem::create([
             'label' => ['it' => 'SDB Youth', 'en' => 'SDB Youth'],
             'url' => '/youth/',
@@ -207,12 +263,12 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Serie B1 / U19', 'en' => 'Serie B1 / U19'],
                 'url' => '/youth/b1-u19/',
-                'description' => ['it' => 'Roster e Staff', 'en' => 'Roster and staff'],
+                'description' => self::DESCRIPTION_ROSTER,
             ],
             [
                 'label' => ['it' => 'Serie U17 & U15', 'en' => 'U17 & U15'],
                 'url' => '/youth/u17-u15/',
-                'description' => ['it' => 'Roster e Staff', 'en' => 'Roster and staff'],
+                'description' => self::DESCRIPTION_ROSTER,
             ],
             [
                 'label' => ['it' => 'Settore Giovanile', 'en' => 'Youth Programme'],
@@ -230,8 +286,13 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => 'Loghi Società', 'en' => 'Club logos'],
             ],
         ]);
+    }
 
-        // 6. Camp
+    /**
+     * Summer Camp: informazioni e iscrizione.
+     */
+    private function voceCamp(): void
+    {
         $camp = MenuItem::create([
             'label' => ['it' => 'Summer Camp', 'en' => 'Summer Camp'],
             'url' => '/summer-camp/',
@@ -257,8 +318,13 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => 'Form multi-step', 'en' => 'Multi-step form'],
             ],
         ]);
+    }
 
-        // 7. Sociale
+    /**
+     * Sociale: progetti, Volley 4 All, sostenibilita', scuola.
+     */
+    private function voceSociale(): void
+    {
         $sociale = MenuItem::create([
             'label' => ['it' => 'Sociale', 'en' => 'Community'],
             'url' => '/sociale/',
@@ -299,8 +365,13 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => "Aste sull'e-shop ufficiale", 'en' => 'Auctions on the official e-shop'],
             ],
         ]);
+    }
 
-        // 8. Media
+    /**
+     * Comunicazione: accrediti, cartelle stampa, magazine.
+     */
+    private function voceMedia(): void
+    {
         $media = MenuItem::create([
             'label' => ['it' => 'Comunicazione', 'en' => 'Media'],
             'url' => '/comunicazione/',
@@ -336,8 +407,13 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => 'Il magazine ufficiale', 'en' => 'The official magazine'],
             ],
         ]);
+    }
 
-        // 9. Shop
+    /**
+     * Shop ufficiale, la voce evidenziata della testata.
+     */
+    private function voceShop(): void
+    {
         $shop = MenuItem::create([
             // Etichetta corta: questa voce e' il pulsante pieno della testata.
             'label' => ['it' => 'Shop', 'en' => 'Shop'],
@@ -377,9 +453,13 @@ class MenuItemSeeder extends Seeder
                 'description' => ['it' => 'Assistenza Clienti', 'en' => 'Customer Support'],
             ],
         ]);
+    }
 
-        // ── FOOTER MENU ──────────────────────────────────────────────
-
+    /**
+     * Le tre colonne del footer.
+     */
+    private function menuDelFooter(): void
+    {
         // 1. Stagione
         $footerStagione = MenuItem::create([
             'label' => ['it' => 'Stagione', 'en' => 'Season'],
@@ -398,7 +478,7 @@ class MenuItemSeeder extends Seeder
 
         // 2. Il Club
         $footerClub = MenuItem::create([
-            'label' => ['it' => 'Il Club', 'en' => 'The Club'],
+            'label' => self::LABEL_THE_CLUB,
             'url' => '/societa',
             'location' => 'footer',
             'sort_order' => 1,

@@ -38,6 +38,9 @@ class Standing extends Model
         return $this->belongsTo(Season::class);
     }
 
+    /**
+     * @return BelongsTo<Team, $this>
+     */
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);

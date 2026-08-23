@@ -17,7 +17,28 @@ class ShopSettingsSeeder extends Seeder
     public function run(): void
     {
         $settings = [
-            // --- Gruppo: shop ---
+            ...$this->impostazioniDelloShop(),
+            ...$this->impostazioniDelleAste(),
+        ];
+
+        foreach ($settings as $setting) {
+            SiteSetting::firstOrCreate(
+                ['key' => $setting['key']],
+                $setting,
+            );
+        }
+
+        $this->command->info('✅ Impostazioni shop e aste create/aggiornate.');
+    }
+
+    /**
+     * Negozio: attivazione, spese, limiti per prodotto, metodi di pagamento.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function impostazioniDelloShop(): array
+    {
+        return [
             [
                 'key' => 'shop.enabled',
                 'value' => '1',
@@ -119,8 +140,17 @@ class ShopSettingsSeeder extends Seeder
                 'description' => 'Testo in fondo alla ricevuta PDF inviata al cliente',
                 'sort_order' => 31,
             ],
+        ];
+    }
 
-            // --- Gruppo: auctions ---
+    /**
+     * Aste: attivazione, rilanci, anti-sniping, termine di pagamento.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function impostazioniDelleAste(): array
+    {
+        return [
             [
                 'key' => 'auctions.enabled',
                 'value' => '1',
@@ -176,14 +206,5 @@ class ShopSettingsSeeder extends Seeder
                 'sort_order' => 6,
             ],
         ];
-
-        foreach ($settings as $setting) {
-            SiteSetting::firstOrCreate(
-                ['key' => $setting['key']],
-                $setting,
-            );
-        }
-
-        $this->command->info('✅ Impostazioni shop e aste create/aggiornate.');
     }
 }

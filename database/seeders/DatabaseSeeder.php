@@ -12,6 +12,9 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
+    /** Data di nascita segnaposto delle atlete di cui il seeder non ha il dato vero. */
+    private const PLACEHOLDER_BIRTH_DATE = '2002-01-01';
+
     private function restoreOrCreate($modelClass, $attributes, $values = [])
     {
         if (in_array(SoftDeletes::class, class_uses_recursive($modelClass))) {
@@ -153,7 +156,7 @@ class DatabaseSeeder extends Seeder
         // #13 Emma Graziani
         $graziani = $this->restoreOrCreate(Player::class,
             ['first_name' => 'Emma', 'last_name' => 'Graziani'],
-            ['nationality' => 'Italia', 'date_of_birth' => '2002-01-01']
+            ['nationality' => 'Italia', 'date_of_birth' => self::PLACEHOLDER_BIRTH_DATE]
         );
         $this->restoreOrCreate(Roster::class,
             ['player_id' => $graziani->id, 'team_id' => $team->id, 'season_id' => $season->id],
@@ -163,7 +166,7 @@ class DatabaseSeeder extends Seeder
         // #14 Linda Nwakalor
         $nwakalor = $this->restoreOrCreate(Player::class,
             ['first_name' => 'Linda', 'last_name' => 'Nwakalor'],
-            ['nationality' => 'Italia', 'date_of_birth' => '2002-01-01']
+            ['nationality' => 'Italia', 'date_of_birth' => self::PLACEHOLDER_BIRTH_DATE]
         );
         $this->restoreOrCreate(Roster::class,
             ['player_id' => $nwakalor->id, 'team_id' => $team->id, 'season_id' => $season->id],
@@ -185,7 +188,7 @@ class DatabaseSeeder extends Seeder
         // #15 Martina Armini
         $armini = $this->restoreOrCreate(Player::class,
             ['first_name' => 'Martina', 'last_name' => 'Armini'],
-            ['nationality' => 'Italia', 'date_of_birth' => '2002-01-01']
+            ['nationality' => 'Italia', 'date_of_birth' => self::PLACEHOLDER_BIRTH_DATE]
         );
         $this->restoreOrCreate(Roster::class,
             ['player_id' => $armini->id, 'team_id' => $team->id, 'season_id' => $season->id],

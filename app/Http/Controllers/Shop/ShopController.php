@@ -79,7 +79,7 @@ class ShopController extends Controller
      * Shop homepage.
      * Se lo shop è disabilitato, mostra la pagina di manutenzione.
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
         if (! filter_var(SiteSetting::get('shop.enabled', true), FILTER_VALIDATE_BOOLEAN)) {
             return Inertia::render('Public/Shop/Maintenance');
@@ -125,7 +125,7 @@ class ShopController extends Controller
      * Pagina dettaglio prodotto.
      * La view viene tracciata dal middleware TrackShopPageView.
      */
-    public function productShow(Request $request, Product $product): Response
+    public function productShow(Product $product): Response
     {
         // Solo prodotti attivi e non di tipo Auction
         if (! $product->is_active || $product->type === ProductType::Auction) {

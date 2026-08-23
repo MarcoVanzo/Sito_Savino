@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSafeUrl } from '@/Composables/useSafeUrl';
@@ -42,12 +42,25 @@ const videoUrl = computed(() => props.page?.content_data?.video_url ?? null);
 const lightboxIndex = ref(null);
 const lightboxImage = computed(() => (lightboxIndex.value === null ? null : galleryImages.value[lightboxIndex.value]));
 
+// La foto ingrandita e' un <dialog>: aperta con showModal() sta nel top layer,
+// il fuoco ci resta dentro e l'Esc la chiude senza ascoltarlo a mano.
+const lightboxEl = ref(null);
+
 const openImage = (index) => {
     lightboxIndex.value = index;
+    nextTick(() => {
+        if (lightboxEl.value && !lightboxEl.value.open) {
+            lightboxEl.value.showModal();
+        }
+    });
 };
 
 const closeImage = () => {
     lightboxIndex.value = null;
+
+    if (lightboxEl.value?.open) {
+        lightboxEl.value.close();
+    }
 };
 
 const ogMeta = useOgMeta({
@@ -276,8 +289,7 @@ const getEmbedUrl = (url) => {
                                 <iframe 
                                     v-if="vid.youtube_url"
                                     :src="getEmbedUrl(vid.youtube_url)" 
-                                    title="YouTube video player" 
-                                    frameborder="0" 
+                                    title="YouTube video player"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                                     allowfullscreen
                                     class="absolute top-0 left-0 w-full h-full border-0"
@@ -303,13 +315,12 @@ const getEmbedUrl = (url) => {
         </section>
 
         <!-- Lightbox della galleria -->
-        <div
-            v-if="lightboxImage"
-            class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
+        <dialog
+            ref="lightboxEl"
+            class="foto-ingrandita"
+            :aria-label="lightboxImage?.name"
+            @close="closeImage"
             @click="closeImage"
-            @keydown.esc="closeImage"
         >
             <button
                 type="button"
@@ -319,8 +330,33 @@ const getEmbedUrl = (url) => {
             >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-            <img :src="lightboxImage.url" :alt="lightboxImage.name" class="max-h-[85vh] max-w-full object-contain rounded-lg" @click.stop />
-        </div>
+            <img v-if="lightboxImage" :src="lightboxImage.url" :alt="lightboxImage.name" class="max-h-[85vh] max-w-full object-contain rounded-lg" @click.stop />
+        </dialog>
     </PublicLayout>
 </template>
+
+<style scoped>
+/* Il browser dà a <dialog> bordo, sfondo e dimensioni proprie: qui serve la
+   foto al centro di uno schermo scuro. */
+.foto-ingrandita {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    padding: 1rem;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+}
+
+.foto-ingrandita[open] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.foto-ingrandita::backdrop {
+    background: rgb(0 0 0 / 0.9);
+}
+</style>
 

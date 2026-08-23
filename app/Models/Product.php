@@ -160,7 +160,7 @@ class Product extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->registerStandardConversions($media);
+        $this->registerStandardConversions();
 
         $this->addMediaConversion('zoom')
             ->width(1200)

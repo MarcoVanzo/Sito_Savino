@@ -29,8 +29,12 @@ let scriptLoaded = false;
 function ensureStub() {
     if (window.fbq) return;
 
-    const fbq = function () {
-        fbq.callMethod ? fbq.callMethod.apply(fbq, arguments) : fbq.queue.push(arguments);
+    const fbq = function (...args) {
+        if (fbq.callMethod) {
+            fbq.callMethod(...args);
+        } else {
+            fbq.queue.push(args);
+        }
     };
 
     fbq.push = fbq;
