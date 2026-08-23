@@ -144,36 +144,46 @@
             </x-filament::section>
         @else
             <div class="grid gap-6 lg:grid-cols-2">
+                {{--
+                    Una ripartizione senza niente da mostrare non lascia il suo
+                    riquadro vuoto: sparisce. I due casi sono diversi e nessuno
+                    dei due si risolve da questa parte — `null` è Meta che
+                    rifiuta la combinazione metrica/ripartizione (views per
+                    follower_type non la concede, mentre media_product_type sì),
+                    tutti zero è il dato vero (nessun tap sul link del profilo).
+                    In entrambi i casi il riquadro spiegava all'utente un
+                    dettaglio dell'API che non gli serve e occupava mezza pagina.
+                    Restano fuori dal loop, quindi tornano da soli il giorno in
+                    cui il dato arriva.
+                --}}
                 @foreach ([
-                    'views_by_follower_type' => ['Visualizzazioni: follower e non', null],
-                    'views_by_media_type' => ['Visualizzazioni per tipo di contenuto', null],
-                    'reach_by_media_type' => ['Reach per tipo di contenuto', null],
-                    'profile_links_by_type' => ['Tap sui link del profilo', 'Nessun tap nel periodo'],
-                ] as $key => [$heading, $emptyText])
+                    'views_by_follower_type' => 'Visualizzazioni: follower e non',
+                    'views_by_media_type' => 'Visualizzazioni per tipo di contenuto',
+                    'reach_by_media_type' => 'Reach per tipo di contenuto',
+                    'profile_links_by_type' => 'Tap sui link del profilo',
+                ] as $key => $heading)
+                    @php
+                        $raw = $data['breakdowns'][$key] ?? null;
+                        $items = $raw === null ? [] : collect($raw)
+                            ->filter(fn ($value) => (int) $value > 0)
+                            ->map(fn ($value, $dimension) => [
+                                'name' => $labels[$dimension] ?? \Illuminate\Support\Str::headline($dimension),
+                                'value' => $value,
+                            ])
+                            ->values()
+                            ->all();
+                    @endphp
+
+                    @continue($items === [])
+
                     <x-filament::section>
                         <x-slot name="heading">{{ $heading }}</x-slot>
 
-                        @php
-                            $raw = $data['breakdowns'][$key] ?? null;
-                            $items = $raw === null ? [] : collect($raw)
-                                ->map(fn ($value, $dimension) => [
-                                    'name' => $labels[$dimension] ?? \Illuminate\Support\Str::headline($dimension),
-                                    'value' => $value,
-                                ])
-                                ->values()
-                                ->all();
-                        @endphp
-
-                        @if ($raw === null)
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Meta non fornisce questa ripartizione per l'account.</p>
-                        @else
-                            @include('filament.analytics.bar-list', [
-                                'items' => $items,
-                                'labelKey' => 'name',
-                                'valueKey' => 'value',
-                                'empty' => $emptyText ?? 'Nessun dato nel periodo',
-                            ])
-                        @endif
+                        @include('filament.analytics.bar-list', [
+                            'items' => $items,
+                            'labelKey' => 'name',
+                            'valueKey' => 'value',
+                        ])
                     </x-filament::section>
                 @endforeach
             </div>
