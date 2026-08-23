@@ -6,6 +6,14 @@ use App\Enums\UserRole;
 use App\Filament\Pages\NewsletterAnalyticsPage;
 use App\Filament\Pages\SocialAnalyticsPage;
 use App\Filament\Pages\WebAnalyticsPage;
+use App\Filament\Widgets\Analytics\NewsletterKpiWidget;
+use App\Filament\Widgets\Analytics\NewsletterRatesWidget;
+use App\Filament\Widgets\Analytics\NewsletterTrendWidget;
+use App\Filament\Widgets\Analytics\NewsletterVolumeWidget;
+use App\Filament\Widgets\Analytics\SocialKpiWidget;
+use App\Filament\Widgets\Analytics\SocialTrendWidget;
+use App\Filament\Widgets\Analytics\WebKpiWidget;
+use App\Filament\Widgets\Analytics\WebTrendWidget;
 use App\Models\AnalyticsSite;
 use App\Models\SocialAccount;
 use App\Models\User;
@@ -94,6 +102,84 @@ class AnalyticsPeriodoWidgetTest extends TestCase
         // getWidgetData() è il nome che Filament\Pages\Page dichiara e che
         // components/page/index.blade.php invoca a ogni render.
         $this->assertSame(90, $test->instance()->getWidgetData()['days'] ?? null);
+    }
+
+    /**
+     * @return array<string, array{class-string, string}>
+     */
+    public static function widget(): array
+    {
+        return [
+            'social kpi' => [SocialKpiWidget::class, 'accountId'],
+            'social trend' => [SocialTrendWidget::class, 'accountId'],
+            'sito kpi' => [WebKpiWidget::class, 'siteId'],
+            'sito trend' => [WebTrendWidget::class, 'siteId'],
+            'newsletter kpi' => [NewsletterKpiWidget::class, ''],
+            'newsletter tassi' => [NewsletterRatesWidget::class, ''],
+            'newsletter volumi' => [NewsletterVolumeWidget::class, ''],
+            'newsletter andamento' => [NewsletterTrendWidget::class, ''],
+        ];
+    }
+
+    /**
+     * Ogni widget montato per conto suo, con il servizio esterno che non
+     * risponde. È il requisito dichiarato per queste tre pagine: un widget che
+     * va in errore perché Google o Meta sono lenti è peggio di uno che dice che
+     * il dato non c'è. Qui si esegue davvero il corpo del widget, cosa che
+     * montare la pagina non fa — i widget sono lazy.
+     *
+     * @param  class-string  $widget
+     */
+    #[Test]
+    #[DataProvider('widget')]
+    public function il_widget_regge_il_servizio_esterno_che_non_risponde(string $widget, string $chiave): void
+    {
+        Http::fake(['*' => Http::response('', 500)]);
+        $this->actingAs($this->gestioneComunicazione());
+
+        Livewire::test($widget, $this->parametri($chiave, 7))->assertSuccessful();
+    }
+
+    /**
+     * Lo stesso widget con due periodi diversi: verifica che il corpo giri per
+     * entrambi e non solo per il default.
+     *
+     * @param  class-string  $widget
+     */
+    #[Test]
+    #[DataProvider('widget')]
+    public function il_widget_si_monta_con_qualunque_periodo(string $widget, string $chiave): void
+    {
+        Http::fake();
+        $this->actingAs($this->gestioneComunicazione());
+
+        // L'entità si crea una volta sola: property_id e ig_account_id hanno un
+        // vincolo di unicità, rifarla a ogni giro fa fallire l'inserimento.
+        $parametri = $this->parametri($chiave, 7);
+
+        foreach ([7, 90] as $giorni) {
+            $test = Livewire::test($widget, [...$parametri, 'days' => $giorni])->assertSuccessful();
+
+            $this->assertSame($giorni, $test->get('days'));
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function parametri(string $chiave, int $giorni): array
+    {
+        $parametri = ['days' => $giorni];
+
+        if ($chiave === 'accountId') {
+            $parametri['accountId'] = SocialAccount::factory()->create()->id;
+        }
+
+        if ($chiave === 'siteId') {
+            $parametri['siteId'] = AnalyticsSite::factory()->create(['property_id' => '123456789'])->id;
+        }
+
+        return $parametri;
     }
 
     /**

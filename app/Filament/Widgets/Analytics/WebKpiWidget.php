@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets\Analytics;
 
+use App\Filament\Widgets\Analytics\Concerns\HasAnalyticsPeriod;
 use App\Models\AnalyticsSite;
 use App\Services\Analytics\WebAnalyticsService;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -14,24 +15,17 @@ use Livewire\Attributes\Reactive;
  */
 class WebKpiWidget extends BaseWidget
 {
+    use HasAnalyticsPeriod;
+
     protected static ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 
     protected static ?int $sort = 1;
 
-    /*
-     * I valori arrivano da getWidgetData() della pagina. #[Reactive] non è
-     * decorativo: senza, Livewire applica i mount param una sola volta e il
-     * widget resta fermo al periodo con cui è stato montato — la pagina cambia,
-     * i numeri no. È il meccanismo che Filament usa nel suo
-     * InteractsWithPageFilters.
-     */
+    /** Il sito scelto in testata. Reattiva come il periodo: vedi HasAnalyticsPeriod. */
     #[Reactive]
     public ?int $siteId = null;
-
-    #[Reactive]
-    public int $days = 28;
 
     /** Palette dell'identità visiva, ripetuta in ordine sulle schede. */
     private const ACCENTI = ['#ED028C', '#003063', '#C9A84C', '#0EA5E9', '#F97316', '#10B981'];

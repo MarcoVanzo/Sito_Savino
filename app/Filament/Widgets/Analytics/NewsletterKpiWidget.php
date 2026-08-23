@@ -2,16 +2,18 @@
 
 namespace App\Filament\Widgets\Analytics;
 
+use App\Filament\Widgets\Analytics\Concerns\HasAnalyticsPeriod;
 use App\Services\Newsletter\NewsletterAnalyticsService;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Livewire\Attributes\Reactive;
 
 /**
  * Iscritti e rendimento medio delle campagne.
  */
 class NewsletterKpiWidget extends BaseWidget
 {
+    use HasAnalyticsPeriod;
+
     protected static ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
@@ -19,16 +21,6 @@ class NewsletterKpiWidget extends BaseWidget
     protected static ?int $sort = 1;
 
     protected int|string|array $columnSpan = 'full';
-
-    /*
-     * I valori arrivano da getWidgetData() della pagina. #[Reactive] non è
-     * decorativo: senza, Livewire applica i mount param una sola volta e il
-     * widget resta fermo al periodo con cui è stato montato — la pagina cambia,
-     * i numeri no. È il meccanismo che Filament usa nel suo
-     * InteractsWithPageFilters.
-     */
-    #[Reactive]
-    public int $days = 28;
 
     /** Palette dell'identità visiva, ripetuta in ordine sulle schede. */
     private const ACCENTI = ['#ED028C', '#10B981', '#94A3B8', '#0EA5E9', '#003063', '#C9A84C', '#F97316'];

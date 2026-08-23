@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets\Analytics;
 
+use App\Filament\Widgets\Analytics\Concerns\HasAnalyticsPeriod;
 use App\Models\SocialAccount;
 use App\Services\Social\SocialAnalyticsService;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -17,24 +18,17 @@ use Livewire\Attributes\Reactive;
  */
 class SocialKpiWidget extends BaseWidget
 {
+    use HasAnalyticsPeriod;
+
     protected static ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 
     protected static ?int $sort = 1;
 
-    /*
-     * I valori arrivano da getWidgetData() della pagina. #[Reactive] non è
-     * decorativo: senza, Livewire applica i mount param una sola volta e il
-     * widget resta fermo al periodo con cui è stato montato — la pagina cambia,
-     * i numeri no. È il meccanismo che Filament usa nel suo
-     * InteractsWithPageFilters.
-     */
+    /** L'account scelto in testata. Reattiva come il periodo: vedi HasAnalyticsPeriod. */
     #[Reactive]
     public ?int $accountId = null;
-
-    #[Reactive]
-    public int $days = 28;
 
     /** Le otto schede Instagram, tutte nel rosa dell'identità social. */
     private const ACCENTO = '#ED028C';
