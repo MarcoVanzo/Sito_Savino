@@ -6,6 +6,7 @@ use App\Models\SocialAccount;
 use App\Services\Social\SocialAnalyticsService;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\Reactive;
 
 /**
  * Visualizzazioni, reach e interazioni giorno per giorno.
@@ -26,8 +27,17 @@ class SocialTrendWidget extends ChartWidget
 
     protected static ?string $maxHeight = '280px';
 
+    /*
+     * I valori arrivano da getWidgetData() della pagina. #[Reactive] non è
+     * decorativo: senza, Livewire applica i mount param una sola volta e il
+     * widget resta fermo al periodo con cui è stato montato — la pagina cambia,
+     * i numeri no. È il meccanismo che Filament usa nel suo
+     * InteractsWithPageFilters.
+     */
+    #[Reactive]
     public ?int $accountId = null;
 
+    #[Reactive]
     public int $days = 28;
 
     protected function getType(): string

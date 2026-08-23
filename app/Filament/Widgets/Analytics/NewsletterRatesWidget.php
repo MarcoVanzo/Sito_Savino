@@ -5,6 +5,7 @@ namespace App\Filament\Widgets\Analytics;
 use App\Services\Newsletter\NewsletterAnalyticsService;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\Reactive;
 
 /**
  * Aperture e click campagna per campagna, in percentuale.
@@ -27,6 +28,14 @@ class NewsletterRatesWidget extends ChartWidget
 
     protected int|string|array $columnSpan = 1;
 
+    /*
+     * I valori arrivano da getWidgetData() della pagina. #[Reactive] non è
+     * decorativo: senza, Livewire applica i mount param una sola volta e il
+     * widget resta fermo al periodo con cui è stato montato — la pagina cambia,
+     * i numeri no. È il meccanismo che Filament usa nel suo
+     * InteractsWithPageFilters.
+     */
+    #[Reactive]
     public int $days = 28;
 
     protected function getType(): string
