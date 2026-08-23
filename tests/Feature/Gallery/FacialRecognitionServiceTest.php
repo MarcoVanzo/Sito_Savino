@@ -156,6 +156,42 @@ class FacialRecognitionServiceTest extends TestCase
         $this->assertTrue($esito['has_unrecognized_faces'], 'Il terzo volto resta da rivedere.');
     }
 
+    /**
+     * CompreFace risponde 400 (code 28) quando nella foto non ci sono volti:
+     * pubblico, palazzetto, dettagli di gioco. Non è un guasto — la foto è
+     * analizzata, senza tag e senza revisione.
+     */
+    #[Test]
+    public function una_foto_senza_volti_e_analizzata_senza_tag_ne_revisione(): void
+    {
+        Http::fake(['*/recognize*' => Http::response([
+            'message' => 'No face is found in the given image',
+            'code' => 28,
+        ], 400)]);
+
+        $esito = $this->servizio->recognizeFaces($this->immagineFinta());
+
+        $this->assertSame([], $esito['detected_persons']);
+        $this->assertFalse($esito['has_unrecognized_faces']);
+    }
+
+    /**
+     * Gli altri 400 (file illeggibile, estensione non supportata…) restano
+     * errori veri: devono arrivare a chi chiama, non passare per "nessun volto".
+     */
+    #[Test]
+    public function un_400_diverso_da_nessun_volto_resta_un_errore(): void
+    {
+        Http::fake(['*/recognize*' => Http::response([
+            'message' => 'File has an unavailable extension',
+            'code' => 21,
+        ], 400)]);
+
+        $this->expectException(FacialRecognitionException::class);
+
+        $this->servizio->recognizeFaces($this->immagineFinta());
+    }
+
     #[Test]
     public function un_errore_del_servizio_di_riconoscimento_non_passa_inosservato(): void
     {
