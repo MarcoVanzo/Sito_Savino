@@ -701,6 +701,7 @@ return [
             ['it' => 'Protocollo Bullismo', 'en' => 'Anti-Bullying Protocol'],
             ['it' => 'Protocollo Razzismo', 'en' => 'Anti-Racism Protocol'],
             ['it' => 'SDB Youth', 'en' => 'SDB Youth'],
+            ['it' => 'SDB Volley Club Race', 'en' => 'SDB Volley Club Race'],
             ['it' => 'Safeguarding', 'en' => 'Safeguarding'],
             ['it' => 'Serie A1', 'en' => 'Serie A1'],
             ['it' => 'Serie B1 / U19', 'en' => 'Serie B1 / U19'],
