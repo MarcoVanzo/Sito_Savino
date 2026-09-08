@@ -12,7 +12,6 @@ use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
-use Filament\Resources\Concerns\Translatable;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -22,7 +21,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PlayerResource extends Resource
 {
     use HasStandardTableActions;
-    use Translatable;
 
     protected static ?string $model = Player::class;
 

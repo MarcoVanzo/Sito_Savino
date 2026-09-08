@@ -164,4 +164,15 @@ class CmsResourcesSmokeTest extends TestCase
             ->assertSuccessful()
             ->assertActionExists('activeLocale');
     }
+
+    /**
+     * La modifica di un'atleta andava in 500: la risorsa usava il plugin
+     * traduzioni ma `players` non ha colonne tradotte.
+     */
+    public function test_la_scheda_di_un_atleta_si_apre_in_modifica(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(Resources\PlayerResource\Pages\EditPlayer::class, ['record' => Player::first()->getKey()])
+            ->assertSuccessful();
+    }
 }
