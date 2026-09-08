@@ -45,11 +45,11 @@ abstract class BaseSettingsPage extends Page implements HasForms
 
     public function mount(): void
     {
-        $this->data = [];
+        $data = [];
 
         // Le pagine che nominano i campi con la chiave nuda (`hero_title`).
         foreach (SiteSetting::getAllCached() as $key => $value) {
-            data_set($this->data, $key, $value);
+            data_set($data, $key, $value);
         }
 
         // Quelle che li nominano `gruppo.chiave` (`legal.privacy_policy`): il
@@ -57,13 +57,21 @@ abstract class BaseSettingsPage extends Page implements HasForms
         // ricomposto qui o il modulo si aprirebbe sempre vuoto.
         foreach (SiteSetting::getAllGrouped() as $group => $values) {
             foreach ($values as $key => $value) {
-                data_set($this->data, $group.'.'.$key, $value);
+                data_set($data, $group.'.'.$key, $value);
             }
         }
 
         foreach ($this->translatableKeys() as $key) {
-            $this->data[$key] = SiteSetting::perLocale($key);
+            $data[$key] = SiteSetting::perLocale($key);
         }
+
+        // Passare dal form e non assegnare `$this->data` a mano: i campi vanno
+        // idratati. Un FileUpload tiene lo stato come mappa `{uuid: percorso}`
+        // e lo costruisce proprio in idratazione; con il percorso assegnato
+        // come stringa, la richiesta con cui il browser chiede i file gia'
+        // caricati andava in errore 500 e Documenti Legali non si apriva piu'
+        // da quando i PDF erano in archivio.
+        $this->form->fill($data);
     }
 
     public function save(): void

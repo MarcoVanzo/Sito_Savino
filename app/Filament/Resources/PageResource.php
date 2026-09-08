@@ -117,6 +117,11 @@ class PageResource extends Resource
                         ->schema(PageTemplateForms::getTicketingSchema())
                         ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Ticketing'),
 
+                    // FORM: CLUB RACE
+                    Forms\Components\Section::make('Impostazioni Pagina Club Race')
+                        ->schema(PageTemplateForms::getClubRaceSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/ClubRace'),
+
                     // FORM: SUMMER CAMP
                     Forms\Components\Section::make('Impostazioni Pagina Summer Camp')
                         ->schema(PageTemplateForms::getSummerCampSchema())
@@ -181,6 +186,7 @@ class PageResource extends Resource
                             'Public/Societa/Safeguarding',
                             'Public/Contatti',
                             'Public/Ticketing',
+                            'Public/ClubRace',
                             'Public/SummerCamp',
                             'Public/Sociale',
                             'Public/Sponsor',
@@ -226,6 +232,7 @@ class PageResource extends Resource
                                 'Public/Roster' => 'Roster',
                                 'Public/Shop' => 'Shop',
                                 'Public/Ticketing' => 'Biglietteria',
+                                'Public/ClubRace' => 'SDB Volley Club Race',
                                 'Public/Sponsor' => 'Sponsor',
                                 'Public/Youth' => 'Settore Giovanile',
                                 'Public/SummerCamp' => 'Summer Camp',

@@ -27,18 +27,6 @@ const cd = computed(() => props.page?.content_data ?? {})
 // quello in Impostazioni -> Contatti.
 const scoutingEmail = computed(() => cd.value.scouting_email || contact.value.youth_email || null)
 
-// Nessun dato di ripiego: i nomi degli allenatori, gli orari di allenamento e
-// il numero di atlete sono informazioni su persone reali. I segnaposto del
-// seeder di sviluppo erano finiti online come se fossero veri. Se il CMS non
-// ha ancora le squadre, la sezione semplicemente non si mostra.
-const youthTeams = computed(() => {
-    const teams = cd.value.youth_teams
-
-    return Array.isArray(teams) ? teams : []
-})
-
-// I valori del vivaio arrivano dal CMS: nessun elenco di esempio nel codice.
-const values = computed(() => Array.isArray(cd.value.values) ? cd.value.values : [])
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('youth.og_title'),
@@ -101,100 +89,6 @@ const ogMeta = useOgMeta({
                             <div class="text-center">
                                 <span class="text-4xl font-black text-savino-blue block">{{ cd.stat_years }}</span>
                                 <span v-if="cd.stat_years_label" class="text-sm text-gray-500 font-semibold mt-1 block">{{ cd.stat_years_label }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Values -->
-        <section v-if="values.length" class="py-16 bg-gray-50">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 v-if="cd.values_title" class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.values_title }}</h2>
-                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-12"></div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div
-                        v-for="value in values"
-                        :key="value.title"
-                        class="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-500 border border-gray-100 hover:-translate-y-1 text-center"
-                    >
-                        <div class="w-14 h-14 rounded-full bg-savino-blue/10 flex items-center justify-center mx-auto mb-4">
-                            <!-- Star -->
-                            <svg v-if="value.icon === 'star'" class="w-7 h-7 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                            <!-- Heart -->
-                            <svg v-else-if="value.icon === 'heart'" class="w-7 h-7 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                            <!-- Trophy -->
-                            <svg v-else-if="value.icon === 'trophy'" class="w-7 h-7 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                            </svg>
-                            <!-- Users -->
-                            <svg v-else class="w-7 h-7 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                        <h3 class="text-base font-black text-gray-900 uppercase tracking-tight mb-2">{{ value.title }}</h3>
-                        <p class="text-gray-500 text-sm leading-relaxed">{{ value.description }}</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Youth Teams Grid: mostrata solo se il CMS ha davvero le squadre -->
-        <section v-if="youthTeams.length" class="py-16 bg-white">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 v-if="cd.teams_title" class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.teams_title }}</h2>
-                <div class="w-12 h-1 bg-savino-fucsia mb-10"></div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div
-                        v-for="team in youthTeams"
-                        :key="team.name"
-                        class="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:-translate-y-1"
-                    >
-                        <!-- Team Header -->
-                        <div
-                            class="h-32 flex items-center justify-center relative overflow-hidden"
-                            :class="{
-                                'bg-gradient-to-br from-savino-blue to-savino-blue/80': team.color === 'savino-blue',
-                                'bg-gradient-to-br from-savino-fucsia to-savino-fucsia/80': team.color === 'savino-fucsia',
-                                'bg-gradient-to-br from-savino-red to-savino-red/80': team.color === 'savino-red',
-                            }"
-                        >
-                            <div class="absolute inset-0 opacity-10">
-                                <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/20"></div>
-                                <div class="absolute -left-4 -bottom-4 w-20 h-20 rounded-full bg-white/10"></div>
-                            </div>
-                            <h3 class="text-2xl font-black text-white uppercase tracking-tight relative z-10">{{ team.name }}</h3>
-                        </div>
-                        <!-- Team Info -->
-                        <div class="p-5">
-                            <span class="text-savino-fucsia text-xs font-bold uppercase tracking-wider">{{ team.category }}</span>
-
-                            <div class="space-y-3 mt-4">
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                    <span class="text-sm text-gray-600">{{ team.coach }}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span class="text-sm text-gray-600">{{ team.training }}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <span class="text-sm text-gray-600">{{ team.players }} {{ $t('youth.players_unit') }}</span>
-                                </div>
                             </div>
                         </div>
                     </div>

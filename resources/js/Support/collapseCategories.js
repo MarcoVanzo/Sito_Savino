@@ -6,12 +6,15 @@
  * coppe): mostrarle tutte riempiva mezzo schermo di pillole prima della
  * prima notizia.
  *
+ * L'ordine e' quello con cui arrivano dal server, cioe' la posizione che la
+ * redazione assegna dal pannello (`categories.sort_order`): qui non si
+ * riordina per numero di notizie. Si faceva, e il campo "posizione" del
+ * pannello non contava nulla: in prima fila finivano le annate piu' piene e
+ * dietro "Altro" la stagione in corso.
+ *
  * Le categorie di stagione ("Serie A1 2023/2024", "CEV Cup 2022/2023") sono
- * la maggioranza, e ordinandole per numero di notizie le annate vecchie
- * scalzavano dalla prima fila le categorie sempre valide — Notizie, Sponsor,
- * Società. Di quelle stagionali resta in vista solo l'annata più recente:
- * le precedenti stanno dietro "Altro", che è esattamente dove si va a
- * cercarle.
+ * la maggioranza: di quelle resta in vista solo l'annata piu' recente, le
+ * precedenti stanno dietro "Altro", che e' esattamente dove si va a cercarle.
  *
  * @param {Array<{slug: string, count?: number}>} categories
  * @param {{activeSlug?: string|null, limit?: number, showAll?: boolean}} options
@@ -38,7 +41,7 @@ function nomeLeggibile(name) {
 }
 
 export function collapseCategories(categories, { activeSlug = null, limit = 8, showAll = false } = {}) {
-    const sorted = [...categories].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+    const sorted = [...categories]
 
     if (showAll) {
         return { visible: sorted, hiddenCount: 0 }

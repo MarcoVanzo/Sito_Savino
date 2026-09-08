@@ -7,7 +7,11 @@ use App\Filament\Forms\EtichetteDeiCampi;
 use Filament\Forms;
 
 /**
- * Le tre schede del form della pagina Settore Giovanile.
+ * Le due schede del form della pagina Settore Giovanile.
+ *
+ * "Valori" e "Squadre" non ci sono piu': la redazione ha chiesto di togliere
+ * quelle due sezioni dalla pagina, e un campo che non si vede online non deve
+ * restare nel pannello a far credere il contrario.
  *
  * Stanno qui e non in PageTemplateForms perche' quella classe raccoglie tutti i
  * template del CMS: aggiungendoci anche le schede di due template lunghi era
@@ -65,89 +69,6 @@ class YouthTemplateForm
                                     'nome' => 'Anni', 'esempioValore' => 'es. 15+', 'esempioEtichetta' => 'es. Anni di Attività'],
                             ], 4),
                         ]),
-                ]),
-        ];
-    }
-
-    /**
-     * I valori del settore e le squadre iscritte.
-     *
-     * @return array<int, Forms\Components\Tabs\Tab>
-     */
-    public static function schedaValoriESquadre(): array
-    {
-        return [
-            Forms\Components\Tabs\Tab::make('Valori & Squadre')
-                ->icon('heroicon-o-academic-cap')
-                ->schema([
-                    Forms\Components\TextInput::make('content_data.values_title')
-                        ->label('Titolo Sezione Valori')
-                        ->placeholder('es. I Nostri Capisaldi'),
-
-                    Forms\Components\Repeater::make('content_data.values')
-                        ->label('Valori del Settore Giovanile')
-                        ->schema([
-                            Forms\Components\Select::make('icon')
-                                ->label('Icona')
-                                ->options([
-                                    'star' => 'Stella ⭐',
-                                    'heart' => 'Cuore ❤️',
-                                    'trophy' => 'Trofeo 🏆',
-                                    'users' => 'Utenti 👥',
-                                    'shield-check' => 'Scudo 🛡️',
-                                ])
-                                ->required(),
-                            Forms\Components\TextInput::make('title')
-                                ->label('Titolo Valore')
-                                ->required(),
-                            Forms\Components\Textarea::make('description')
-                                ->label('Descrizione Valore')
-                                ->required()
-                                ->rows(2)
-                                ->columnSpanFull(),
-                        ])
-                        ->columns(2)
-                        ->columnSpanFull()
-                        ->createItemButtonLabel('Aggiungi Valore')
-                        ->collapsible(),
-
-                    Forms\Components\TextInput::make('content_data.teams_title')
-                        ->label('Titolo Sezione Squadre')
-                        ->placeholder('es. Le Nostre Selezioni'),
-
-                    Forms\Components\Repeater::make('content_data.youth_teams')
-                        ->label('Squadre Giovanili')
-                        ->schema([
-                            Forms\Components\TextInput::make('name')
-                                ->label('Nome Squadra (es. Under 18)')
-                                ->required(),
-                            Forms\Components\TextInput::make('category')
-                                ->label('Categoria (es. Serie C / Regionale)')
-                                ->required(),
-                            Forms\Components\TextInput::make('coach')
-                                ->label('Primo Allenatore')
-                                ->required(),
-                            Forms\Components\TextInput::make('training')
-                                ->label('Orari Allenamenti')
-                                ->required()
-                                ->placeholder('es. Lun-Mer-Ven 16:00-18:00'),
-                            Forms\Components\TextInput::make('players')
-                                ->label('Numero Atlete')
-                                ->placeholder('es. 14'),
-                            Forms\Components\Select::make('color')
-                                ->label('Colore Tema Card')
-                                ->options([
-                                    'savino-blue' => 'Blu Savino',
-                                    'savino-fucsia' => 'Fucsia Savino',
-                                    'savino-red' => 'Rosso Savino',
-                                    'savino-pink' => 'Rosa Savino',
-                                ])
-                                ->required(),
-                        ])
-                        ->columns(2)
-                        ->columnSpanFull()
-                        ->createItemButtonLabel('Aggiungi Squadra')
-                        ->collapsible(),
                 ]),
         ];
     }

@@ -98,6 +98,13 @@ return function (string $namePrefix): void {
     Route::get('/sponsor/{slug}', [PageController::class, 'show'])->name('sponsor.page');
 
     // Ticketing routes
+    // La sezione porta alla biglietteria: prima `/ticketing` cadeva sulla
+    // rotta generica e serviva una terza pagina con lo stesso modello, che
+    // aveva ancora il listino di esempio (15/99/199 EUR). La redazione
+    // modificava "Biglietteria" e online vedeva un'altra pagina.
+    Route::get('/ticketing', function () use ($namePrefix) {
+        return redirect()->route($namePrefix.'ticketing.page', ['slug' => 'biglietteria'], 301);
+    })->name('ticketing');
     Route::get('/ticketing/{slug}', [PageController::class, 'show'])->name('ticketing.page');
 
     // Youth routes
@@ -107,6 +114,12 @@ return function (string $namePrefix): void {
     Route::get('/youth/u17-u15', function () use ($namePrefix) {
         return redirect()->route($namePrefix.'in-costruzione', [], 301);
     })->name('youth.u17-u15');
+    // Stessa cosa per il vivaio: `/youth` serviva una copia con i testi del
+    // seeder ("Formare campioni dentro e fuori dal campo") mentre la
+    // redazione scriveva su Settore Giovanile.
+    Route::get('/youth', function () use ($namePrefix) {
+        return redirect()->route($namePrefix.'youth.page', ['slug' => 'settore-giovanile'], 301);
+    })->name('youth');
     Route::get('/youth/{slug}', [PageController::class, 'show'])->name('youth.page');
 
     // Summer Camp routes
