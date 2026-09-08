@@ -8,12 +8,14 @@ use App\Services\FacialRecognitionService;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
 
+/**
+ * Niente plugin traduzioni: `players` non ha colonne tradotte (ruolo e
+ * biografia stanno su rosters e staff_members) e con `$translatable` vuoto il
+ * plugin faceva andare in 500 la modifica di qualunque atleta.
+ */
 class EditPlayer extends EditRecord
 {
-    use Translatable;
-
     protected static string $resource = PlayerResource::class;
 
     protected function getHeaderActions(): array
