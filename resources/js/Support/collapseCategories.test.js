@@ -6,7 +6,7 @@ const cat = (slug, count) => ({ slug, count })
 describe('collapseCategories', () => {
     const venti = Array.from({ length: 20 }, (_, i) => cat(`cat-${i}`, 20 - i))
 
-    it('mostra le più usate entro il limite', () => {
+    it('mostra le prime entro il limite', () => {
         const { visible, hiddenCount } = collapseCategories(venti, { limit: 8 })
 
         expect(visible).toHaveLength(8)
@@ -14,13 +14,43 @@ describe('collapseCategories', () => {
         expect(hiddenCount).toBe(12)
     })
 
-    it('ordina per utilizzo, non per posizione', () => {
+    it('tiene l\'ordine del pannello, non quello per utilizzo', () => {
         const { visible } = collapseCategories(
             [cat('rara', 1), cat('frequente', 99)],
             { limit: 1 },
         )
 
-        expect(visible[0].slug).toBe('frequente')
+        expect(visible[0].slug).toBe('rara')
+    })
+
+    it('anche dietro "Altro" l\'ordine resta quello del pannello', () => {
+        const { visible } = collapseCategories(
+            [cat('rara', 1), cat('frequente', 99)],
+            { showAll: true },
+        )
+
+        expect(visible.map(c => c.slug)).toEqual(['rara', 'frequente'])
+    })
+
+    it('l\'ordine chiesto dalla redazione arriva in pagina cosi\' com\'e\'', () => {
+        // Le posizioni assegnate dal pannello: le annate passate stanno in fondo.
+        const dalServer = [
+            { slug: 'serie-a1-20262027', name: 'Serie A1 2026/2027', count: 16 },
+            { slug: 'cev-champions-league', name: 'CEV Champions League', count: 67 },
+            { slug: 'coppa-italia', name: 'Coppa Italia A1', count: 12 },
+            { slug: 'sponsor', name: 'Sponsor', count: 50 },
+            { slug: 'societa', name: 'Società', count: 3 },
+            { slug: 'notizie', name: 'Notizie', count: 84 },
+            { slug: 'sdb-youth', name: 'SDB Youth', count: 114 },
+            { slug: 'mondiale-per-club', name: 'Mondiale per Club', count: 9 },
+            { slug: 'serie-a1-2025-2026', name: 'Serie A1 2025/2026', count: 94 },
+            { slug: 'serie-a1-2023-2024', name: 'Serie A1 2023/2024', count: 153 },
+        ]
+
+        const { visible, hiddenCount } = collapseCategories(dalServer, { limit: 8 })
+
+        expect(visible.map(c => c.slug)).toEqual(dalServer.slice(0, 8).map(c => c.slug))
+        expect(hiddenCount).toBe(2)
     })
 
     it('la categoria attiva resta visibile anche se poco usata', () => {
@@ -56,7 +86,7 @@ describe('collapseCategories', () => {
             { slug: 'serie-a1-2021-2022', name: 'Serie A1 2021/2022', count: 101 },
         ], { limit: 8 })
 
-        expect(visible.map(c => c.slug)).toEqual(['serie-a1-2025-2026', 'notizie'])
+        expect(visible.map(c => c.slug)).toEqual(['notizie', 'serie-a1-2025-2026'])
         expect(hiddenCount).toBe(2)
     })
 

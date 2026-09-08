@@ -8,6 +8,7 @@ use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -28,6 +29,17 @@ class LegalSettingsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Cache::flush();
+    }
+
+    /**
+     * Un PDF gia' in archivio, sul disco che Filament usa per gli upload: il
+     * form scarta i percorsi che sul disco non esistono.
+     */
+    private function documentoInArchivio(string $chiave, string $percorso): void
+    {
+        Storage::fake(config('filament.default_filesystem_disk'))->put($percorso, '%PDF-1.4');
+        SiteSetting::set($chiave, $percorso);
         Cache::flush();
     }
 
@@ -86,11 +98,12 @@ class LegalSettingsTest extends TestCase
     {
         $this->actingAs($this->redattore());
 
-        SiteSetting::set('legal.protocollo_bullismo', 'legal/bullismo.pdf');
-        Cache::flush();
+        $this->documentoInArchivio('legal.protocollo_bullismo', 'legal/bullismo.pdf');
 
-        Livewire::test(LegalSettingsPage::class)
-            ->assertSet('data.legal.protocollo_bullismo', 'legal/bullismo.pdf');
+        // Idratato, lo stato di un FileUpload e' una mappa uuid => percorso.
+        $stato = Livewire::test(LegalSettingsPage::class)->get('data.legal.protocollo_bullismo');
+
+        $this->assertSame(['legal/bullismo.pdf'], array_values($stato));
     }
 
     /** Salvare i documenti legali non deve toccare le altre impostazioni. */
@@ -107,5 +120,37 @@ class LegalSettingsTest extends TestCase
 
         $this->assertSame('SAVINO DEL BENE', SiteSetting::get('hero_title'));
         $this->assertDatabaseHas('site_settings', ['key' => 'hero_title', 'group' => 'home']);
+    }
+
+    /**
+     * Il browser, appena aperta la pagina, chiede al componente i file gia'
+     * caricati. Con lo stato assegnato a mano invece che idratato dal form, un
+     * percorso in archivio faceva andare quella richiesta in errore 500 e la
+     * pagina restava inutilizzabile finche' c'era almeno un PDF salvato.
+     */
+    #[Test]
+    public function i_file_gia_caricati_si_possono_rileggere(): void
+    {
+        $this->actingAs($this->redattore());
+
+        $this->documentoInArchivio('legal.modello_organizzativo', 'legal/modello.pdf');
+
+        Livewire::test(LegalSettingsPage::class)
+            ->call('getFormUploadedFiles', 'data.legal.modello_organizzativo')
+            ->assertHasNoErrors();
+    }
+
+    /** E il salvataggio riscrive il percorso, non la mappa. */
+    #[Test]
+    public function salvare_conserva_il_percorso_del_file(): void
+    {
+        $this->actingAs($this->redattore());
+
+        $this->documentoInArchivio('legal.modello_organizzativo', 'legal/modello.pdf');
+
+        Livewire::test(LegalSettingsPage::class)->call('save')->assertHasNoErrors();
+        Cache::flush();
+
+        $this->assertSame('legal/modello.pdf', SiteSetting::get('legal.modello_organizzativo'));
     }
 }

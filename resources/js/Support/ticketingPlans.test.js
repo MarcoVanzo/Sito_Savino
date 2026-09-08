@@ -71,4 +71,14 @@ describe('mapCmsPlans', () => {
 
         expect(piano.rates).toEqual([{ label: '[ticketing.rate_under16]', price: '190' }])
     })
+
+    it('la parola chiave "season" del listino importato si traduce', () => {
+        const [importato, scritto] = mapCmsPlans([
+            { name: 'Ovest', price: '460', period: 'season' },
+            { name: 'Singola', price: '15', period: 'a partita' },
+        ], deps)
+
+        expect(importato.period).toBe('[ticketing.period_season]')
+        expect(scritto.period).toBe('a partita')
+    })
 })

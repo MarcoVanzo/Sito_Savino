@@ -37,6 +37,7 @@ class PageController extends Controller
         'Public/Roster',
 
         'Public/Ticketing',
+        'Public/ClubRace',
         'Public/Sponsor',
         'Public/Youth',
         'Public/SummerCamp',
@@ -60,6 +61,7 @@ class PageController extends Controller
         'palazzetto' => 'societa',
 
         // Ticketing
+        'club-race' => 'ticketing',
         'abbonamenti' => 'ticketing',
         'biglietteria' => 'ticketing',
         'convenzioni' => 'ticketing',

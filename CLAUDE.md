@@ -438,6 +438,35 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   diventa il pulsante pieno della testata (`ShopCtaButton`), l'unico elemento
   colorato fra voci tutte bianche. Ne va tenuta una sola: il layout prende la
   prima. Sul telefono resta invece una voce del pannello a scomparsa.
+- **`content_data` si salva dal form deidratato, mai dallo stato grezzo di
+  Livewire.** Un Repeater nello stato grezzo è una mappa `{uuid: voce}` e un
+  FileUpload singolo `{uuid: percorso}`: salvati così, i template (che chiedono
+  un elenco con `Array.isArray`) nascondono la sezione intera. È successo a
+  piani abbonamento, progetti sociali, valori del vivaio, cartelle stampa e
+  documenti. `PreservaContentData` prende i valori da `$form->getState()` e
+  passa da `App\Support\ContentData::normalizza()`; i test di
+  `PageContentDataTest` verificano `array_is_list`, non solo `assertCount`.
+- **Nessun campo del form si chiama `content_data` nudo.** C'era un
+  `KeyValue::make('content_data')` per le "altre pagine", nascosto sui modelli
+  con form proprio: un campo nascosto non viene deidratato e Filament toglie
+  dallo stato tutto ciò che sta sotto il suo percorso, quindi `content_data`
+  intero. Era la causa del "salvo e sparisce tutto".
+- **Le pagine delle impostazioni passano da `$this->form->fill()`**, non da
+  `$this->data = …`: senza idratazione un FileUpload con un percorso in
+  archivio manda in 500 la richiesta con cui il browser chiede i file già
+  caricati (Documenti Legali non si apriva più).
+- **Una sezione, una pagina.** `/youth` e `/ticketing` rimandano a
+  `settore-giovanile` e `biglietteria` (come `/sociale` → `volley-4-all`): le
+  copie del seeder `youth`, `ticketing` e `sociale` sono state tolte perché la
+  redazione modificava una pagina e online vedeva l'altra. Non ricreare pagine
+  con lo slug di una sezione.
+- **Club Race** (`Public/ClubRace`, slug `club-race` sotto Ticketing):
+  regolamento nell'editor della pagina, classifica in `content_data.standings`
+  (`club`, `points`) ordinata per punti dal frontend
+  (`resources/js/Support/clubRaceStandings.js`).
+- **L'ordine delle categorie delle news** è `categories.sort_order` dal
+  pannello, servito già ordinato: `collapseCategories.js` non deve riordinare
+  per conteggio.
 - **`SiteSetting::get()` accetta sia `chiave` sia `gruppo.chiave`**: cerca prima
   fra le chiavi nude, poi — se il nome contiene un punto — dentro il gruppo
   corrispondente. `SiteSetting::get('shop.free_shipping_threshold')` funziona, ed

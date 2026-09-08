@@ -25,24 +25,21 @@ const settings = computed(() => inertiaPage.props.siteSettings ?? {});
 const contact = computed(() => settings.value.contact ?? {});
 const cd = computed(() => props.page?.content_data ?? {});
 
-// Il livello decide l'impaginazione: il title sponsor grande e da solo,
-// i supporter piccoli e in fila.
-// Il fondo e' bianco per tutti: un logo e' disegnato per stare sul bianco, e i
-// riquadri colorati ne cambiavano la resa. Il livello decide solo quanto grande
-// e' il riquadro e quanti ne stanno in fila.
+// Tutti i riquadri hanno la stessa misura, tre per riga, qualunque sia il
+// livello: la redazione ha chiesto di togliere le griglie a quattro e a
+// cinque dei livelli minori. Il fondo e' bianco per tutti, perche' un logo e'
+// disegnato per stare sul bianco.
+//
+// La fila e' un flex e non una griglia: cosi' un livello con un solo sponsor
+// (Mobility Partner, Official Radio...) o con due mostra i riquadri al centro
+// invece di lasciarli appoggiati a sinistra. La larghezza di ogni riquadro e'
+// un terzo dello spazio al netto dei due spazi vuoti fra le colonne.
 //
 // Il logo riempie il riquadro invece di galleggiarci dentro: si fissa
 // l'altezza del riquadro e l'immagine ci sta dentro per intero
 // (`object-contain`), cosi' marchi larghi e marchi quadrati restano
 // otticamente della stessa importanza.
-const sizeConfig = {
-    hero: { box: 'h-32 md:h-40 p-6', cols: 'grid-cols-1', gap: 'gap-8', wrap: 'max-w-md mx-auto' },
-    large: { box: 'h-24 md:h-28 p-5', cols: 'grid-cols-2 sm:grid-cols-3', gap: 'gap-5', wrap: '' },
-    medium: { box: 'h-20 md:h-24 p-4', cols: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4', gap: 'gap-4', wrap: '' },
-    small: { box: 'h-16 md:h-20 p-3', cols: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5', gap: 'gap-3', wrap: '' },
-};
-
-const configFor = (size) => sizeConfig[size] ?? sizeConfig.small;
+const boxClass = 'h-24 md:h-28 p-5 w-[calc((100%-1.25rem)/2)] sm:w-[calc((100%-2.5rem)/3)]';
 
 // L'indirizzo a cui arrivano le richieste di sponsorizzazione, con oggetto
 // già scritto: chi riceve la mail sa da dove arriva senza aprirla.
@@ -121,10 +118,7 @@ const ogMeta = useOgMeta({
                     </div>
 
                     <!-- Sponsor Logos Grid -->
-                    <div
-                        class="grid items-center justify-items-center"
-                        :class="[configFor(tier.size).cols, configFor(tier.size).gap, configFor(tier.size).wrap]"
-                    >
+                    <div class="flex flex-wrap justify-center gap-5">
                         <component
                             :is="sponsor.website_url ? 'a' : 'div'"
                             v-for="sponsor in tier.sponsors"
@@ -133,8 +127,8 @@ const ogMeta = useOgMeta({
                             :target="sponsor.website_url ? '_blank' : undefined"
                             :rel="sponsor.website_url ? 'noopener noreferrer' : undefined"
                             :title="sponsor.name"
-                            class="w-full rounded-xl bg-white border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
-                            :class="configFor(tier.size).box"
+                            class="rounded-xl bg-white border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                            :class="boxClass"
                         >
                             <img
                                 v-if="sponsor.logo_url"

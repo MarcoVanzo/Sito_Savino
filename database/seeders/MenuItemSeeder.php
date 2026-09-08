@@ -404,7 +404,7 @@ class MenuItemSeeder extends Seeder
             [
                 'label' => ['it' => 'Double Face', 'en' => 'Double Face'],
                 'url' => '/comunicazione/double-face/',
-                'description' => ['it' => 'Il magazine ufficiale', 'en' => 'The official magazine'],
+                'description' => ['it' => 'Il podcast ufficiale', 'en' => 'The official podcast'],
             ],
         ]);
     }

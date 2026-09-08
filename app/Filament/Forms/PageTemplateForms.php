@@ -6,7 +6,6 @@ use App\Filament\Forms\Templates\ComunicazioneTemplateForm;
 use App\Filament\Forms\Templates\YouthTemplateForm;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Illuminate\Database\Eloquent\Model;
 
 class PageTemplateForms
 {
@@ -277,6 +276,54 @@ class PageTemplateForms
                 ->label('Titolo Info Botteghino'),
             Forms\Components\Textarea::make('content_data.boxoffice_description')
                 ->label('Descrizione Info Botteghino'),
+        ];
+    }
+
+    /**
+     * SDB Volley Club Race: regolamento nell'editor della pagina, classifica
+     * delle societa' compilata a mano. L'ordine in pagina lo decide il
+     * punteggio, non la posizione nell'elenco.
+     */
+    public static function getClubRaceSchema(): array
+    {
+        return [
+            Forms\Components\TextInput::make('content_data.hero_label')
+                ->label(EtichetteDeiCampi::HERO_BADGE),
+            Forms\Components\Textarea::make('content_data.hero_subtitle')
+                ->label(EtichetteDeiCampi::HERO_SUBTITLE)
+                ->rows(2),
+            Forms\Components\Fieldset::make('Classifica')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.standings_title')
+                        ->label('Titolo della classifica')
+                        ->placeholder('es. Classifica'),
+                    Forms\Components\TextInput::make('content_data.standings_updated')
+                        ->label('Aggiornata al')
+                        ->placeholder('es. 12 gennaio 2027'),
+                    Forms\Components\Repeater::make('content_data.standings')
+                        ->label('Società in classifica')
+                        ->schema([
+                            Forms\Components\TextInput::make('club')
+                                ->label('Società')
+                                ->required(),
+                            Forms\Components\TextInput::make('points')
+                                ->label('Punti')
+                                ->numeric()
+                                ->minValue(0)
+                                ->required(),
+                        ])
+                        ->columns(2)
+                        ->columnSpanFull()
+                        ->defaultItems(0)
+                        ->createItemButtonLabel('Aggiungi società')
+                        ->itemLabel(fn (array $state): ?string => $state['club'] ?? null)
+                        ->collapsible(),
+                    Forms\Components\Textarea::make('content_data.standings_note')
+                        ->label('Nota sotto la classifica')
+                        ->rows(2)
+                        ->columnSpanFull(),
+                ])
+                ->columns(2),
         ];
     }
 
@@ -627,69 +674,24 @@ class PageTemplateForms
     }
 
     /**
-     * Restituisce il campo JSON generico per le altre pagine
+     * Il modello della pagina non ha campi propri.
+     *
+     * Qui c'era un `KeyValue::make('content_data')`, nascosto per i modelli
+     * con un form dedicato. Un campo nascosto non viene deidratato, e Filament
+     * a quel punto toglie dallo stato tutto ciò che sta sotto il suo percorso:
+     * `content_data` intero, compresi i campi `content_data.*` dei modelli
+     * veri. Per questo salvare una pagina la svuotava, e il salvataggio era
+     * stato dirottato sullo stato grezzo di Livewire (vedi PreservaContentData).
+     * Nessuna pagina in archivio usa piu' la mappa chiave-valore: i modelli
+     * senza form (Stagione, Roster, Shop...) non leggono `content_data`.
      */
     public static function getGenericJsonSchema(): array
     {
         return [
-            Forms\Components\KeyValue::make('content_data')
-                ->label('Variabili Template (Chiave-Valore)')
-                ->keyLabel('Chiave (es. hero_title)')
-                ->valueLabel('Valore testuale')
-                // La chiusura predefinita di KeyValue tipizza i valori come
-                // ?string: con un contenuto annidato (o con lo stato per lingua
-                // del plugin translatable) il salvataggio andava in errore e il
-                // form della pagina non si salvava affatto.
-                ->dehydrateStateUsing(fn (?array $state) => collect($state ?? [])
-                    ->filter(fn ($value, $key) => filled($key))
-                    ->all())
-                // Le pagine con struttura annidata (hero, plans, timeline…) sono
-                // gestite dallo schema del loro template: mostrarle come coppie
-                // chiave-valore le appiattirebbe.
-                ->visible(fn (?Model $record) => self::hasFlatContentData($record)),
-
-            Forms\Components\Placeholder::make('content_data_structured')
+            Forms\Components\Placeholder::make('content_data_assente')
                 ->label('Variabili Template')
-                ->content('Questa pagina usa contenuti strutturati gestiti dal proprio template: non sono modificabili come coppie chiave-valore.')
-                ->visible(fn (?Model $record) => $record !== null && ! self::hasFlatContentData($record)),
+                ->content('Questo modello non ha campi propri: il contenuto si scrive nell\'editor qui sopra.'),
         ];
-    }
-
-    /**
-     * Vero se `content_data` è una mappa piatta di valori testuali, l'unica
-     * forma che il campo chiave-valore sa rappresentare senza perdere dati.
-     */
-    private static function hasFlatContentData(?Model $record): bool
-    {
-        $data = $record?->getAttributes()['content_data'] ?? null;
-
-        if (is_string($data)) {
-            $data = json_decode($data, true);
-        }
-
-        if (! is_array($data) || $data === []) {
-            return true;
-        }
-
-        // La colonna è translatable: si guarda dentro al livello della lingua,
-        // altrimenti qualunque pagina risulterebbe "annidata".
-        $locales = config('app.supported_locales', ['it', 'en']);
-
-        if (array_diff(array_keys($data), $locales) === []) {
-            $data = reset($data);
-
-            if (! is_array($data) || $data === []) {
-                return true;
-            }
-        }
-
-        foreach ($data as $value) {
-            if (is_array($value)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -1013,7 +1015,6 @@ class PageTemplateForms
             Forms\Components\Tabs::make('Settore Giovanile')
                 ->tabs([
                     ...YouthTemplateForm::schedaInfoEStatistiche(),
-                    ...YouthTemplateForm::schedaValoriESquadre(),
                     ...YouthTemplateForm::schedaScouting(),
                 ])
                 ->columnSpanFull(),

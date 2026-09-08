@@ -226,36 +226,12 @@ return [
             'stat_coaches_label' => 'Allenatori',
             'stat_years' => '15+',
             'stat_years_label' => 'Anni di Attività',
-            'values_title' => 'I Nostri Valori',
-            'teams_title' => 'Le Nostre Squadre',
             'scouting_label' => 'Talent Scouting',
             'scouting_title' => 'Cerchiamo Nuovi Talenti',
             'scouting_description' => 'Sei una giovane atleta con la passione per la pallavolo? Il nostro programma di scouting è sempre alla ricerca di nuovi talenti. Partecipa alle giornate di prova e inizia il tuo percorso verso l\'eccellenza sportiva.',
             'scouting_info' => 'Per informazioni sulle prove e le iscrizioni, contattaci via email o telefono.',
             'scouting_cta_primary' => 'Contattaci',
             'scouting_cta_secondary' => 'Scrivi una Email',
-            'values' => [
-                0 => [
-                    'icon' => 'star',
-                    'title' => 'Formazione',
-                    'description' => 'Un percorso tecnico strutturato che sviluppa competenze e consapevolezza tattica.',
-                ],
-                1 => [
-                    'icon' => 'heart',
-                    'title' => 'Crescita',
-                    'description' => 'Accompagniamo ogni atleta in un percorso di maturazione sportiva e personale.',
-                ],
-                2 => [
-                    'icon' => 'trophy',
-                    'title' => 'Passione',
-                    'description' => 'Coltiviamo l\'amore per la pallavolo e i valori dello sport di squadra.',
-                ],
-                3 => [
-                    'icon' => 'users',
-                    'title' => 'Eccellenza',
-                    'description' => 'Puntiamo ai massimi livelli con metodi di allenamento all\'avanguardia.',
-                ],
-            ],
         ],
         'en' => [
             'hero_subtitle' => 'Our Future',
@@ -272,36 +248,12 @@ return [
             'stat_coaches_label' => 'Coaches',
             'stat_years' => '15+',
             'stat_years_label' => 'Years of Activity',
-            'values_title' => 'Our Values',
-            'teams_title' => 'Our Teams',
             'scouting_label' => 'Talent Scouting',
             'scouting_title' => 'We\'re Looking for New Talent',
             'scouting_description' => 'Are you a young athlete with a passion for volleyball? Our scouting programme is always looking for new talent. Take part in our trial days and start your journey towards sporting excellence.',
             'scouting_info' => 'For information about trials and registration, contact us by email or phone.',
             'scouting_cta_primary' => 'Contact Us',
             'scouting_cta_secondary' => 'Send an Email',
-            'values' => [
-                0 => [
-                    'icon' => 'star',
-                    'title' => 'Development',
-                    'description' => 'A structured technical pathway that builds skills and tactical awareness.',
-                ],
-                1 => [
-                    'icon' => 'heart',
-                    'title' => 'Growth',
-                    'description' => 'We support every athlete through a journey of sporting and personal maturity.',
-                ],
-                2 => [
-                    'icon' => 'trophy',
-                    'title' => 'Passion',
-                    'description' => 'We nurture the love of volleyball and the values of team sport.',
-                ],
-                3 => [
-                    'icon' => 'users',
-                    'title' => 'Excellence',
-                    'description' => 'We aim for the highest levels with cutting-edge training methods.',
-                ],
-            ],
         ],
     ],
     'Public/SummerCamp' => [
