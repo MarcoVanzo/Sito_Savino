@@ -34,7 +34,7 @@ class ContattiSettingsPage extends BaseSettingsPage
      */
     protected function translatableKeys(): array
     {
-        return ['office_hours'];
+        return ['office_hours', 'address_label'];
     }
 
     public function form(Form $form): Form
@@ -56,6 +56,13 @@ class ContattiSettingsPage extends BaseSettingsPage
                     ])->columns(2),
 
                 Section::make('Sede')->schema([
+                    // L'intestazione sopra l'indirizzo nella pagina Contatti.
+                    TextInput::make('address_label.it')
+                        ->label('Etichetta della sede (IT)')
+                        ->placeholder('es. Sede legale'),
+                    TextInput::make('address_label.en')
+                        ->label('Etichetta della sede (EN)')
+                        ->placeholder('es. Registered office'),
                     TextInput::make('address')->label('Indirizzo'),
                     TextInput::make('city')->label('Città / Località'),
                 ])->columns(2),

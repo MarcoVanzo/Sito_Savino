@@ -382,6 +382,19 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   Giovanile leggono da lì. La pagina CMS "Contatti" aveva campi con gli stessi
   nomi dentro `content_data`, che nessuno leggeva: sono stati tolti, non vanno
   reintrodotti. Nella pagina restano i testi e la rubrica dei referenti.
+  Anche l'intestazione sopra l'indirizzo ("Sede legale", "Sede amministrativa")
+  è un'impostazione tradotta, `contact.address_label`: le chiavi nuove di un
+  gruppo si creano con una migrazione, perché `SiteSetting::set()` le mette nel
+  gruppo predefinito e non arriverebbero al frontend.
+- **La mappa del Palazzetto** (`content_data.maps_iframe_src`) accetta il
+  codice `<iframe>` intero di Google: il pannello tiene solo il `src`. Vuota o
+  non Google, la pagina centra la mappa su nome e indirizzo della struttura.
+- **Il calendario si apre già filtrato sul Savino con `?squadra=savino`**
+  (`/stagione/risultati?squadra=savino`, anche via `/risultati`, che passa la
+  query): è il link della CTA "Prossima partita" in homepage.
+- **Il profilo Instagram delle atlete** (`players.instagram_handle`) si salva
+  come nome utente anche se si incolla il link: `Player::instagramUrl()` lo
+  espone nella scheda palmarès di `/stagione`.
 - **Le pagine di sezione hanno contenuti propri.** Abbonamenti, biglietteria,
   accrediti stampa, cartelle stampa, progetti sociali, volley 4 all, settore
   giovanile, talent day e organigramma condividono il template con la pagina

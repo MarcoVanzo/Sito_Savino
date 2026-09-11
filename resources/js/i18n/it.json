@@ -394,6 +394,7 @@
     },
     "stagione": {
         "og_title": "Roster Serie A1",
+        "roster_team": "Roster {team}",
         "og_description": "La rosa ufficiale della Savino Del Bene Volley per la stagione in corso. Scopri le atlete del roster Serie A1.",
         "hero_subtitle": "La Nostra Squadra",
         "hero_description": "Scopri le atlete della Savino Del Bene Volley per la stagione in corso.",

@@ -28,7 +28,21 @@ const cd = computed(() => props.page?.content_data ?? {});
 const venueName = computed(() => cd.value?.venue_name || props.page?.title || '');
 const venueAddress = computed(() => cd.value?.venue_address || '');
 const mapsLink = computed(() => cd.value?.maps_link || '');
-const mapsIframeSrc = computed(() => cd.value?.maps_iframe_src || '');
+// Il pannello salva già il solo indirizzo, ma una pagina salvata prima può
+// avere l'intero codice <iframe> di Google. Si incorpora solo Google Maps;
+// senza una mappa valida la si centra sull'indirizzo della struttura.
+const mapsIframeSrc = computed(() => {
+    const raw = String(cd.value?.maps_iframe_src ?? '').trim();
+    const src = (raw.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] ?? raw).replace(/&amp;/g, '&');
+
+    if (/^https:\/\/(www|maps)\.google\.com\/maps/.test(src)) {
+        return src;
+    }
+
+    const query = [venueName.value, venueAddress.value].filter(Boolean).join(', ');
+
+    return query ? `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=16&output=embed` : '';
+});
 
 const services = computed(() => Array.isArray(cd.value?.services) ? cd.value.services : []);
 </script>
@@ -47,7 +61,7 @@ const services = computed(() => Array.isArray(cd.value?.services) ? cd.value.ser
     <PublicLayout>
         <PageHero
             :title="page?.title"
-            :subtitle="page?.meta_description"
+            :subtitle="page?.excerpt || page?.meta_description"
             :image="page?.cover_url"
         />
 

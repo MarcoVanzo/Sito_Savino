@@ -394,6 +394,7 @@
     },
     "stagione": {
         "og_title": "Serie A1 Roster",
+        "roster_team": "{team} Roster",
         "og_description": "The official roster of Savino Del Bene Volley for the current season. Discover the Serie A1 roster athletes.",
         "hero_subtitle": "Our Team",
         "hero_description": "Discover the athletes of Savino Del Bene Volley for the current season.",

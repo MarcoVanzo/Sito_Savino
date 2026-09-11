@@ -110,7 +110,8 @@ class PublicController extends Controller
     {
         $locale = app()->getLocale();
 
-        return $this->stagioneForTeam('serie-b1', "public:stagione:b1:{$locale}", 'Serie B1');
+        // Stesso nome della voce di menu ("Serie B1 / U19"): è la stessa squadra.
+        return $this->stagioneForTeam('serie-b1', "public:stagione:b1:{$locale}", 'Serie B1 / U19');
     }
 
     /**
@@ -274,6 +275,8 @@ class PublicController extends Controller
             $row['palmares'] = $presenter !== null && $player instanceof Player
                 ? $presenter->forPlayer($player)
                 : null;
+
+            $row['instagram_url'] = $player instanceof Player ? $player->instagramUrl() : null;
 
             return $row;
         })->all();

@@ -4,7 +4,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue'
 import SeasonNav from '@/Components/SeasonNav.vue'
 import TeamLogo from '@/Components/TeamLogo.vue'
 import LiveStreamModal from '@/Components/LiveStreamModal.vue'
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useLocale } from '@/Composables/useLocale.js'
@@ -74,8 +74,15 @@ const props = defineProps({
 // nulla, si mostra uno stato vuoto esplicito.
 // Il calendario mostra l'intero campionato: i risultati delle avversarie
 // determinano la classifica e interessano al tifoso quanto i nostri. Chi vuole
-// il solo Savino ha il filtro qui sotto.
-const onlyOwn = ref(false)
+// il solo Savino ha il filtro qui sotto, e `?squadra=savino` apre la pagina
+// già filtrata (è il link della CTA "Prossima partita" in homepage).
+// Si legge dall'URL della pagina Inertia e non da `window.location`: in una
+// navigazione interna la barra degli indirizzi può non essere ancora aggiornata
+// quando il componente nasce.
+const page = usePage()
+const onlyOwn = ref(
+    new URLSearchParams(String(page.url ?? '').split('?')[1] ?? '').get('squadra') === 'savino'
+)
 
 const displayGames = computed(() =>
     onlyOwn.value ? props.games.filter((game) => game.isOwn) : props.games

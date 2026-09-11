@@ -54,9 +54,10 @@ return function (string $namePrefix): void {
         return redirect()->route($namePrefix.'news.index');
     })->name('stagione.news');
 
-    // Redirect legacy per compatibilità
+    // Redirect legacy per compatibilità. La query passa: `/risultati?squadra=savino`
+    // deve arrivare al calendario già filtrato.
     Route::get('/risultati', function () use ($namePrefix) {
-        return redirect()->route($namePrefix.'stagione.risultati');
+        return redirect()->route($namePrefix.'stagione.risultati', request()->query());
     })->name('risultati');
     Route::get('/classifica', function () use ($namePrefix) {
         return redirect()->route($namePrefix.'stagione.classifica');

@@ -4,10 +4,13 @@ namespace App\Filament\Traits;
 
 use App\Models\Roster;
 use App\Services\FacialRecognitionService;
+use Illuminate\Http\Client\ConnectionException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 trait HasFaceSyncMethods
 {
+    private const SERVIZIO_AI_IRRAGGIUNGIBILE = 'Servizio AI non raggiungibile: riprova più tardi.';
+
     /**
      * Restituisce la lista dei media da sincronizzare per un roster.
      */
@@ -61,7 +64,20 @@ trait HasFaceSyncMethods
         }
 
         $service = app(FacialRecognitionService::class);
-        $result = $service->addFaceExampleFromMedia($roster->player, $media);
+
+        try {
+            $result = $service->addFaceExampleFromMedia($roster->player, $media);
+        } catch (ConnectionException $e) {
+            // Il riquadro di avanzamento mostra l'errore foto per foto: un
+            // server irraggiungibile non deve diventare un 500 del pannello.
+            report($e);
+
+            return [
+                'success' => false,
+                'error' => self::SERVIZIO_AI_IRRAGGIUNGIBILE,
+                'newScore' => $roster->player->ai_face_examples,
+            ];
+        }
 
         $success = is_array($result) ? $result['success'] : (bool) $result;
         $error = is_array($result) ? ($result['error'] ?? null) : null;
@@ -95,8 +111,22 @@ trait HasFaceSyncMethods
         $roster = Roster::with('player')->find($rosterId);
         if ($roster && $roster->player) {
             $service = app(FacialRecognitionService::class);
-            $service->deleteAllSubjectExamples($roster->player);
-            $roster->player->update(['ai_face_examples' => 0]);
+
+            try {
+                $cancellati = $service->deleteAllSubjectExamples($roster->player);
+            } catch (ConnectionException $e) {
+                // Le foto successive falliranno una per una con il messaggio
+                // leggibile: qui basta non rompere la richiesta.
+                report($e);
+
+                return;
+            }
+
+            // Il contatore si azzera solo se gli esempi sono spariti davvero
+            // da CompreFace, altrimenti il pannello direbbe il falso.
+            if ($cancellati) {
+                $roster->player->update(['ai_face_examples' => 0]);
+            }
         }
     }
 }
