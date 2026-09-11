@@ -79,9 +79,9 @@ const props = defineProps({
 // Si legge dall'URL della pagina Inertia e non da `window.location`: in una
 // navigazione interna la barra degli indirizzi può non essere ancora aggiornata
 // quando il componente nasce.
-const page = usePage()
+const inertiaPage = usePage()
 const onlyOwn = ref(
-    new URLSearchParams(String(page.url ?? '').split('?')[1] ?? '').get('squadra') === 'savino'
+    new URLSearchParams(String(inertiaPage.url ?? '').split('?')[1] ?? '').get('squadra') === 'savino'
 )
 
 const displayGames = computed(() =>
