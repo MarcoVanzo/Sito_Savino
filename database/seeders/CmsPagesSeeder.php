@@ -338,7 +338,7 @@ class CmsPagesSeeder extends Seeder
                         'venue_name' => 'Pala BigMat',
                         'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',
                         'maps_link' => 'https://www.google.com/maps/place/Pala BigMat/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
-                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPala BigMat!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
+                        'maps_iframe_src' => '',
                         'services' => [
                             [
                                 'name' => 'Capienza 3500 Posti',
@@ -362,7 +362,7 @@ class CmsPagesSeeder extends Seeder
                         'venue_name' => 'Pala BigMat',
                         'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI)',
                         'maps_link' => 'https://www.google.com/maps/place/Pala BigMat/@43.7725946,11.1989035,17z/data=!3m1!4b1!4m6!3m5!1s0x132a514d3f32c3f9:0x6b4a2e5d5225c5d0!8m2!3d43.7725946!4d11.1989035!16s%2Fg%2F11q26v9v3g',
-                        'maps_iframe_src' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2880.088656114169!2d11.2001!3d43.7917!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x132a514d3f32c3f9%3A0x6b4a2e5d5225c5d0!2sPala BigMat!5e0!3m2!1sit!2sit!4v1700000000000!5m2!1sit!2sit',
+                        'maps_iframe_src' => '',
                         'services' => [
                             [
                                 'name' => 'Capacity 3500 Seats',

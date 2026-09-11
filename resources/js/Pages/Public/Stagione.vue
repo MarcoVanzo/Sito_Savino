@@ -55,6 +55,20 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    // Nome della squadra quando non è la prima (es. "Serie B1"): la pagina è
+    // la stessa, il titolo no.
+    teamLabel: {
+        type: String,
+        default: null,
+    },
+});
+
+const heroTitle = computed(() => {
+    const base = props.teamLabel
+        ? $t('stagione.roster_team', { team: props.teamLabel })
+        : $t('stagione.og_title');
+
+    return base + (props.seasonName ? ' — ' + props.seasonName : '');
 });
 
 const ALL_ROLES = '__all__';
@@ -76,8 +90,9 @@ function getInitials(name) {
 }
 
 const ogMeta = useOgMeta({
-    title: $t('stagione.og_title') + (props.seasonName ? ' — ' + props.seasonName : ''),
-    description: $t('stagione.og_description'),
+    title: heroTitle.value,
+    // La descrizione della prima squadra parla di Serie A1.
+    description: props.teamLabel ? $t('stagione.hero_description') : $t('stagione.og_description'),
 });
 
 // Il banner ha un indirizzo proprio — così il link è condivisibile e il tasto
@@ -137,7 +152,7 @@ function closePalmares() {
         <!-- Hero -->
         <PageHero
             :subtitle="$t('stagione.hero_subtitle')"
-            :title="$t('stagione.og_title') + (seasonName ? ' — ' + seasonName : '')"
+            :title="heroTitle"
             :description="$t('stagione.hero_description')"
         />
 

@@ -72,6 +72,29 @@ class ContattiSettingsPageTest extends TestCase
         $this->assertSame('Mon-Fri: 09:00-18:00', SiteSetting::getGroup('contact')['office_hours']);
     }
 
+    /**
+     * "Sede Amministrativa" era una traduzione fissa: la redazione deve poterla
+     * cambiare in "Sede legale" dalle impostazioni, e il sito deve leggerla.
+     */
+    #[Test]
+    public function l_etichetta_della_sede_si_cambia_dalle_impostazioni(): void
+    {
+        Livewire::actingAs($this->superAdmin())
+            ->test(ContattiSettingsPage::class)
+            ->assertSet('data.address_label.it', 'Sede Amministrativa')
+            ->set('data.address_label.it', 'Sede legale')
+            ->set('data.address_label.en', 'Registered office')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        SiteSetting::clearCache();
+        $this->assertSame('Sede legale', SiteSetting::getGroup('contact')['address_label']);
+
+        app()->setLocale('en');
+        SiteSetting::clearCache();
+        $this->assertSame('Registered office', SiteSetting::getGroup('contact')['address_label']);
+    }
+
     private function superAdmin(): User
     {
         $user = User::factory()->create();

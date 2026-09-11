@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Player;
 use App\Models\StaffMember;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -36,6 +38,22 @@ class FacialRecognitionService
     }
 
     /**
+     * Richiesta verso CompreFace.
+     *
+     * Se il server non risponde si rinuncia al primo tentativo, dopo cinque
+     * secondi: tre tentativi da dieci superavano il tempo massimo di una
+     * richiesta del pannello, e la redazione vedeva un 500 invece del messaggio
+     * d'errore. Le risposte d'errore del server si ritentano come prima.
+     */
+    private function richiesta(int $timeout): PendingRequest
+    {
+        return Http::withHeaders(['x-api-key' => $this->apiKey])
+            ->connectTimeout(5)
+            ->timeout($timeout)
+            ->retry(2, 1000, fn (\Throwable $e): bool => ! $e instanceof ConnectionException, throw: false);
+    }
+
+    /**
      * Create a subject for the person in CompreFace.
      */
     public function createSubject(Model $person): bool
@@ -46,9 +64,7 @@ class FacialRecognitionService
 
         $subjectName = $this->getSubjectName($person);
 
-        $response = Http::withHeaders([
-            'x-api-key' => $this->apiKey,
-        ])->timeout(15)->retry(2, 1000, throw: false)->post($this->getBaseUrl().'/subjects', [
+        $response = $this->richiesta(15)->post($this->getBaseUrl().'/subjects', [
             'subject' => $subjectName,
         ]);
 
@@ -80,9 +96,7 @@ class FacialRecognitionService
         // Ensure subject exists first
         $this->createSubject($person);
 
-        $response = Http::withHeaders([
-            'x-api-key' => $this->apiKey,
-        ])->timeout(30)->retry(2, 1000, throw: false)->attach(
+        $response = $this->richiesta(30)->attach(
             'file', fopen($imagePath, 'r'), basename($imagePath)
         )->post($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
@@ -135,9 +149,7 @@ class FacialRecognitionService
 
         $subjectName = $this->getSubjectName($person);
 
-        $response = Http::withHeaders([
-            'x-api-key' => $this->apiKey,
-        ])->timeout(15)->retry(2, 1000, throw: false)->delete($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
+        $response = $this->richiesta(15)->delete($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
         return $response->successful();
     }
@@ -160,9 +172,7 @@ class FacialRecognitionService
         // CompreFace e' in errore non si scriveva il log con lo stato e il
         // corpo della risposta, e chi chiama riceveva un'eccezione diversa da
         // quella dichiarata.
-        $response = Http::withHeaders([
-            'x-api-key' => $this->apiKey,
-        ])->timeout(30)->retry(2, 1000, throw: false)->attach(
+        $response = $this->richiesta(30)->attach(
             'file', fopen($imagePath, 'r'), basename($imagePath)
         )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
 

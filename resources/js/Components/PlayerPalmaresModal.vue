@@ -173,6 +173,17 @@ onBeforeUnmount(() => {
                                 <span v-if="item.height_cm"> · {{ item.height_cm }} cm</span>
                             </p>
 
+                            <a
+                                v-if="item.instagram_url"
+                                :href="item.instagram_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="mt-3 inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-white/90 hover:text-white transition-colors"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="0.75" fill="currentColor" /></svg>
+                                Instagram
+                            </a>
+
                             <div class="w-12 h-1 bg-savino-fucsia mt-4"></div>
 
                             <div v-if="counters.length" class="mt-4 flex gap-3 sm:gap-6">

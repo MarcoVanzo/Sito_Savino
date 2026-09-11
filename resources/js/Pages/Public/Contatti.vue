@@ -62,7 +62,9 @@ const contactInfo = computed(() => [
     },
     {
         icon: 'location',
-        title: $t('contatti.headquarters'),
+        // Etichetta dalle impostazioni (Contatti → Sede): "Sede legale",
+        // "Sede amministrativa"… decide la redazione.
+        title: contact.value.address_label || $t('contatti.headquarters'),
         value: contact.value.address,
         link: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(contact.value.address ?? ''),
         color: 'savino-red'

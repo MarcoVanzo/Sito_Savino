@@ -8,6 +8,7 @@ use App\Services\FacialRecognitionService;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,25 +22,53 @@ class TrainAiFacesAction
     {
         $service = app(FacialRecognitionService::class);
 
-        // Ensure subject exists in CompreFace
-        $service->createSubject($record);
+        try {
+            // Ensure subject exists in CompreFace
+            $service->createSubject($record);
 
-        $esiti = [];
+            $esiti = [];
 
-        foreach ($data['training_images'] ?? [] as $image) {
-            $esiti[] = self::apprendiDaFile($service, $record, $image);
-        }
+            foreach ($data['training_images'] ?? [] as $image) {
+                $esiti[] = self::apprendiDaFile($service, $record, $image);
+            }
 
-        // Sync avatar as well — la collection dipende dal tipo di modello
-        $media = $record->getFirstMedia(static::getMediaCollection($record));
+            // Sync avatar as well — la collection dipende dal tipo di modello
+            $media = $record->getFirstMedia(static::getMediaCollection($record));
 
-        if ($media) {
-            $esiti[] = $service->addFaceExampleFromMedia($record, $media);
+            if ($media) {
+                $esiti[] = $service->addFaceExampleFromMedia($record, $media);
+            }
+        } catch (ConnectionException $e) {
+            // Server di riconoscimento irraggiungibile: prima era un 500 a
+            // tutto schermo, senza dire alla redazione cosa fosse successo.
+            report($e);
+            self::eliminaFotoTemporanee($data);
+
+            Notification::make()
+                ->title('Servizio AI non raggiungibile')
+                ->body('Il server di riconoscimento facciale non risponde: nessuna foto è stata appresa. Riprova più tardi; se il problema resta, avvisa l\'assistenza.')
+                ->danger()
+                ->send();
+
+            return;
         }
 
         $appresi = count(array_filter($esiti, fn (array $esito) => $esito['success']));
 
         self::notifica($appresi, count($esiti) - $appresi, self::motiviLeggibili($esiti));
+    }
+
+    /**
+     * Le foto caricate per l'addestramento non restano sul server nemmeno
+     * quando l'invio all'AI si interrompe.
+     */
+    private static function eliminaFotoTemporanee(array $data): void
+    {
+        foreach ($data['training_images'] ?? [] as $image) {
+            if (is_string($image)) {
+                Storage::disk('local')->delete($image);
+            }
+        }
     }
 
     /**

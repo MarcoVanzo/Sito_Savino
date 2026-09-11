@@ -4,6 +4,12 @@ databases:
   name: sito-savino-db
   production: true
   version: "8"
+# L'app sta nella VPC `default-fra1`: CompreFace ascolta solo sull'IP privato del
+# droplet (10.114.0.3) e il suo firewall apre la porta 8000 alla sola VPC.
+# Senza questa voce ogni chiamata al riconoscimento facciale va in timeout
+# (addestramento in 500, foto della gallery mai taggate).
+vpc:
+  id: 0b432134-1887-4407-bb69-cd63816797a6
 # Segreto dell'app Meta (`Savino Analytics`). Sta a livello di app, non dentro i
 # singoli componenti: web, worker e scheduler ne hanno tutti bisogno (il web per
 # il giro OAuth, gli altri per il sync notturno degli insight).

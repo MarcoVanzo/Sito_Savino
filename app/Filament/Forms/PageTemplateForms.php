@@ -370,9 +370,13 @@ class PageTemplateForms
             Forms\Components\TextInput::make('content_data.maps_link')
                 ->label('Link Google Maps (Pulsante "Apri su Maps")')
                 ->placeholder('es. https://maps.app.goo.gl/...'),
+            // Google dà il codice HTML intero (Condividi → Incorpora una mappa):
+            // chi lo incolla così com'è non deve sapere cosa sia un `src`.
             Forms\Components\TextInput::make('content_data.maps_iframe_src')
-                ->label('URL Iframe Mappa Google (Src embed)')
-                ->placeholder('es. https://www.google.com/maps/embed?...'),
+                ->label('Mappa Google incorporata')
+                ->placeholder('es. <iframe src="https://www.google.com/maps/embed?pb=…"></iframe>')
+                ->helperText('Su Google Maps cerca il palazzetto, poi Condividi → Incorpora una mappa → Copia HTML e incolla qui tutto il codice. Se lasci vuoto, la mappa si centra sull\'indirizzo qui sopra.')
+                ->dehydrateStateUsing(fn (?string $state): ?string => self::srcDellaMappa($state)),
             Forms\Components\Repeater::make('content_data.services')
                 ->label('Servizi della struttura')
                 ->schema([
@@ -388,6 +392,23 @@ class PageTemplateForms
                 ->columnSpanFull()
                 ->createItemButtonLabel('Aggiungi Servizio'),
         ];
+    }
+
+    /**
+     * L'indirizzo della mappa da quello che la redazione incolla: il codice
+     * `<iframe …>` di Google oppure il solo indirizzo.
+     */
+    public static function srcDellaMappa(?string $valore): ?string
+    {
+        $valore = trim((string) $valore);
+
+        if (preg_match('/\bsrc\s*=\s*["\']([^"\']+)["\']/i', $valore, $trovato)) {
+            $valore = $trovato[1];
+        }
+
+        $valore = html_entity_decode($valore, ENT_QUOTES | ENT_HTML5);
+
+        return $valore === '' ? null : $valore;
     }
 
     /**
@@ -418,11 +439,15 @@ class PageTemplateForms
                     // Era un campo di testo che chiedeva l'indirizzo del file: per usarlo
                     // bisognava aver gia' caricato il PDF da qualche altra parte e
                     // conoscerne il percorso, cosa che dal pannello non si puo' fare.
+                    // Non obbligatorio: i documenti del seeder hanno il segnaposto "#",
+                    // che il form scarta, e un solo documento senza PDF bloccava il
+                    // salvataggio di tutti gli altri. Senza file il sito non mostra
+                    // il pulsante di download.
                     Forms\Components\FileUpload::make('file')
                         ->label('File PDF del documento')
                         ->acceptedFileTypes([EtichetteDeiCampi::PDF_MIME])
                         ->directory('safeguarding')
-                        ->required()
+                        ->helperText('Senza PDF il documento compare sul sito senza pulsante di download.')
                         ->preserveFilenames(),
                     Forms\Components\TextInput::make('icon')
                         ->label('Icona SVG (Opzionale)')

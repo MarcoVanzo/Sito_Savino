@@ -63,6 +63,8 @@ class PlayerResource extends Resource
                         Forms\Components\TextInput::make('instagram_handle')
                             ->label('Profilo Instagram')
                             ->prefix('@')
+                            ->helperText('Nome utente, oppure il link del profilo: si tiene solo il nome. Compare nella scheda dell\'atleta in Stagione.')
+                            ->dehydrateStateUsing(fn (?string $state): ?string => Player::instagramHandleDa($state) ?? (filled($state) ? $state : null))
                             ->maxLength(255),
                         Forms\Components\TextInput::make('lega_volley_id')
                             ->label('ID Lega Volley')

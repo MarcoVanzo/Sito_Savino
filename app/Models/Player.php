@@ -43,6 +43,33 @@ class Player extends Model implements HasMedia
         return "{$this->first_name} {$this->last_name}";
     }
 
+    /**
+     * Indirizzo del profilo Instagram, o null se non ce n'è uno valido.
+     */
+    public function instagramUrl(): ?string
+    {
+        $handle = self::instagramHandleDa($this->instagram_handle);
+
+        return $handle !== null ? "https://www.instagram.com/{$handle}/" : null;
+    }
+
+    /**
+     * Il nome utente da quello che la redazione scrive: "@nome", "nome" oppure
+     * il link del profilo copiato dall'app, che si porta dietro `?utm_source=…`.
+     */
+    public static function instagramHandleDa(?string $valore): ?string
+    {
+        $valore = trim((string) $valore);
+
+        if (preg_match('~instagram\.com/([A-Za-z0-9._]+)~i', $valore, $trovato)) {
+            $valore = $trovato[1];
+        }
+
+        $valore = ltrim($valore, '@');
+
+        return preg_match('/^[A-Za-z0-9._]{1,30}$/', $valore) ? $valore : null;
+    }
+
     public function rosters()
     {
         return $this->hasMany(Roster::class);
