@@ -289,28 +289,30 @@ const ogMeta = useOgMeta({
                                 { id: 'fipav', label: $t('contatti.fipav_code'), val: contact.legal_fipav || '100470331' },
                                 { id: 'sdi', label: $t('contatti.sdi_code'), val: contact.legal_sdi || 'KRRH6B9' }
                             ]" :key="field.id">
-                                <div 
+                                <button
+                                    type="button"
                                     @click="copyToClipboard(field.val, field.id)"
-                                    class="group p-5 bg-gray-50 rounded-2xl border border-gray-200 hover:border-savino-blue/50 hover:bg-savino-blue/5 transition-all duration-300 cursor-pointer relative"
+                                    class="group w-full text-left p-5 bg-gray-50 rounded-2xl border border-gray-200 hover:border-savino-blue/50 hover:bg-savino-blue/5 transition-all duration-300 cursor-pointer relative"
                                     :title="$t('contatti.click_to_copy')"
+                                    :aria-label="`${field.label}: ${field.val} — ${$t('contatti.click_to_copy')}`"
                                 >
                                     <span class="block text-xs font-bold text-gray-500 uppercase tracking-widest">{{ field.label }}</span>
                                     <span class="block text-lg font-black text-gray-900 mt-2">{{ field.val }}</span>
                                     
                                     <!-- Copy Icon -->
-                                    <div class="absolute top-4 right-4 text-gray-300 group-hover:text-savino-blue transition-colors">
+                                    <span class="block absolute top-4 right-4 text-gray-300 group-hover:text-savino-blue transition-colors">
                                         <svg v-if="copiedField !== field.id" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                         </svg>
                                         <svg v-else class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                         </svg>
-                                    </div>
+                                    </span>
                                     <!-- Copied Toast Micro-interaction -->
-                                    <div v-if="copiedField === field.id" class="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded shadow-lg whitespace-nowrap animate-fade-in-up z-50">
-                                        Copiato!
-                                    </div>
-                                </div>
+                                    <span v-if="copiedField === field.id" class="block absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded shadow-lg whitespace-nowrap animate-fade-in-up z-50">
+                                        {{ $t('contatti.copied') }}
+                                    </span>
+                                </button>
                             </template>
                         </div>
 
