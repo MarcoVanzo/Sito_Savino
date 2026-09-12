@@ -157,6 +157,7 @@
         "select_subject": "Seleziona l'argomento della richiesta...",
         "subject_other": "Altro",
         "click_to_copy": "Clicca per copiare",
+        "copied": "Copiato!",
         "filter_all": "Tutti",
         "headquarters": "Sede Amministrativa",
         "search_placeholder": "Cerca per nome, ruolo o email..."
