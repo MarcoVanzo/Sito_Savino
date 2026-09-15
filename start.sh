@@ -32,6 +32,9 @@ php artisan storage:link 2>/dev/null || true
 # initial_delay_seconds: 120 (vedi .do/app.yaml). Non ridurre quel valore.
 echo "[4/6] Pulizia cache..."
 php artisan cache:clear
+# La gallery (12.000 foto) si ricostruisce in coda invece di farlo pagare
+# al primo visitatore: il job e' unico, un avvio doppio non accoda doppioni.
+php artisan gallery:riscalda-cache || echo "  ⚠️  gallery:riscalda-cache fallito, la cache si costruira' al primo accesso"
 
 # 5. Cache di configurazione, rotte, viste ed eventi
 echo "[5/6] Cache di config, rotte, viste ed eventi..."

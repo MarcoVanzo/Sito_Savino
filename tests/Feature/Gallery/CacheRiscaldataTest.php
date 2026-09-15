@@ -67,4 +67,14 @@ class CacheRiscaldataTest extends TestCase
 
         $this->assertNull(Cache::get(GalleryArchive::CHIAVE.':player_'.$atleta->id.':it'));
     }
+
+    #[Test]
+    public function il_comando_di_avvio_mette_in_coda_la_ricostruzione(): void
+    {
+        Bus::fake([RicostruisciLaCacheDellaGallery::class]);
+
+        $this->artisan('gallery:riscalda-cache')->assertSuccessful();
+
+        Bus::assertDispatched(RicostruisciLaCacheDellaGallery::class);
+    }
 }
