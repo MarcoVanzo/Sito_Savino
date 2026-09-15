@@ -354,6 +354,19 @@ buttano come prima.
 - CompreFace accetta per l'addestramento **solo foto con un volto**: primi
   piani. Le foto in azione con più persone vengono rifiutate ("More than one
   face"), e usarle ritagliate richiede di aver verificato chi c'è nel ritaglio.
+- **Mai esempi con volto piccolo o miniature.** Il 15/09/2026 cinque foto da
+  8-32 KB (volto fino a 44 px) di un'atleta arrivata quest'anno hanno
+  prodotto 123 tag falsi al 99% su foto della stagione precedente, con i
+  titoli SEO riscritti col suo nome. `FacialRecognitionService::addFaceExample`
+  ora misura il volto con `/recognize` prima di caricare e rifiuta sotto
+  `services.compreface.min_face_px` (90). Una somiglianza alta non prova
+  nulla se l'esempio è scadente: confrontare sempre i tag con la stagione
+  in cui la persona era in squadra.
+- **Il job non toglie mai i tag**: `AnalyzeGalleryImageJob` fa solo
+  `updateOrInsert` sul pivot. Per rifare un'analisi sbagliata bisogna prima
+  cancellare le righe di `gallery_image_person` con `confidence_score` non
+  nullo (quelle manuali lo hanno nullo) e azzerare `ai_analyzed_at`; il
+  titolo lo riscrive `optimizeForSeo` anche senza volti riconosciuti.
 - I batch `Bus::batch(...)->allowFailures()` dell'analisi non si chiudono mai se
   un job fallisce: `queue:prune-batches` li pota dopo tre giorni.
 

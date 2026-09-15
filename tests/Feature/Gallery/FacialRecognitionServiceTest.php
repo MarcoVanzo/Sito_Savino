@@ -244,4 +244,76 @@ class FacialRecognitionServiceTest extends TestCase
 
         Http::assertNothingSent();
     }
+
+    // ── Qualità degli esempi di addestramento ──────────────────────────────
+
+    private function volto(int $altezza): array
+    {
+        return ['box' => ['x_min' => 100, 'y_min' => 100, 'x_max' => 100 + $altezza, 'y_max' => 100 + $altezza, 'probability' => 0.99], 'subjects' => []];
+    }
+
+    #[Test]
+    public function un_primo_piano_viene_caricato_come_esempio(): void
+    {
+        $atleta = Player::factory()->create();
+        Http::fake([
+            '*/recognize*' => Http::response(['result' => [$this->volto(180)]]),
+            '*/subjects' => Http::response(['subject' => 'player_'.$atleta->id]),
+            '*/faces*' => Http::response(['image_id' => 'abc', 'subject' => 'player_'.$atleta->id]),
+        ]);
+
+        $esito = $this->servizio->addFaceExample($atleta, $this->immagineFinta());
+
+        $this->assertTrue($esito['success']);
+        Http::assertSent(fn (Request $r) => str_contains($r->url(), '/faces?subject=player_'.$atleta->id));
+    }
+
+    #[Test]
+    public function un_volto_troppo_piccolo_non_diventa_un_esempio(): void
+    {
+        config(['services.compreface.min_face_px' => 90]);
+        $atleta = Player::factory()->create();
+        Http::fake([
+            '*/recognize*' => Http::response(['result' => [$this->volto(44)]]),
+            '*/faces*' => Http::response(['image_id' => 'mai']),
+        ]);
+
+        $esito = $this->servizio->addFaceExample($atleta, $this->immagineFinta());
+
+        $this->assertFalse($esito['success']);
+        $this->assertStringContainsString('Volto troppo piccolo (44 px, minimo 90)', $esito['error']);
+        Http::assertNotSent(fn (Request $r) => str_contains($r->url(), '/faces'));
+    }
+
+    #[Test]
+    public function una_foto_con_piu_volti_viene_scartata_prima_di_caricarla(): void
+    {
+        $atleta = Player::factory()->create();
+        Http::fake([
+            '*/recognize*' => Http::response(['result' => [$this->volto(200), $this->volto(150)]]),
+            '*/faces*' => Http::response(['image_id' => 'mai']),
+        ]);
+
+        $esito = $this->servizio->addFaceExample($atleta, $this->immagineFinta());
+
+        $this->assertFalse($esito['success']);
+        $this->assertSame('Trovati più volti nella foto (usa un primo piano).', $esito['error']);
+        Http::assertNotSent(fn (Request $r) => str_contains($r->url(), '/faces'));
+    }
+
+    #[Test]
+    public function una_foto_senza_volti_viene_scartata_prima_di_caricarla(): void
+    {
+        $atleta = Player::factory()->create();
+        Http::fake([
+            '*/recognize*' => Http::response(['message' => 'No face is found in the given image', 'code' => 28], 400),
+            '*/faces*' => Http::response(['image_id' => 'mai']),
+        ]);
+
+        $esito = $this->servizio->addFaceExample($atleta, $this->immagineFinta());
+
+        $this->assertFalse($esito['success']);
+        $this->assertSame('Nessun volto trovato nella foto.', $esito['error']);
+        Http::assertNotSent(fn (Request $r) => str_contains($r->url(), '/faces'));
+    }
 }

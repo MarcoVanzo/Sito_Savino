@@ -93,6 +93,10 @@ class FacialRecognitionService
 
         $subjectName = $this->getSubjectName($person);
 
+        if ($scarto = $this->motivoDiScartoComeEsempio($imagePath)) {
+            return ['success' => false, 'error' => $scarto];
+        }
+
         // Ensure subject exists first
         $this->createSubject($person);
 
@@ -110,6 +114,53 @@ class FacialRecognitionService
         Log::error('CompreFace Add Face Error: '.$response->body());
 
         return ['success' => false, 'error' => $errorMessage];
+    }
+
+    /**
+     * Perché una foto non va bene come esempio di volto, o null se va bene.
+     *
+     * CompreFace accetta qualunque immagine con un solo volto, anche una
+     * miniatura. Il 15/09/2026 cinque foto in azione di un'atleta da 8-32 KB,
+     * con volti alti fino a 44 px, hanno prodotto impronte che somigliavano a
+     * chiunque: 123 foto dell'archivio taggate con lei al 99% di somiglianza,
+     * tutte di una stagione in cui non era ancora in squadra. La misura del
+     * volto si legge con lo stesso riconoscimento usato per la gallery, prima
+     * di caricare: costa una chiamata in più su un'operazione rara.
+     *
+     * @throws ConnectionException se CompreFace non risponde
+     */
+    private function motivoDiScartoComeEsempio(string $imagePath): ?string
+    {
+        $response = $this->richiesta(30)->attach(
+            'file', fopen($imagePath, 'r'), basename($imagePath)
+        )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
+
+        if ($response->status() === 400 && ($response->json()['code'] ?? null) === self::ERRORE_NESSUN_VOLTO) {
+            return 'Nessun volto trovato nella foto.';
+        }
+
+        if (! $response->successful()) {
+            // Sarà il caricamento vero a fallire con il messaggio del server.
+            return null;
+        }
+
+        $volti = $response->json('result') ?? [];
+
+        if (count($volti) !== 1) {
+            return count($volti) === 0
+                ? 'Nessun volto trovato nella foto.'
+                : 'Trovati più volti nella foto (usa un primo piano).';
+        }
+
+        $box = $volti[0]['box'] ?? [];
+        $altezza = (int) (($box['y_max'] ?? 0) - ($box['y_min'] ?? 0));
+        $minimo = (int) config('services.compreface.min_face_px', 90);
+
+        if ($altezza < $minimo) {
+            return "Volto troppo piccolo ({$altezza} px, minimo {$minimo}): serve un primo piano ad alta risoluzione.";
+        }
+
+        return null;
     }
 
     /**
