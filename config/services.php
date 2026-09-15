@@ -43,6 +43,10 @@ return [
     'compreface' => [
         'host' => env('COMPREFACE_HOST', 'http://localhost:8000'),
         'key' => env('COMPREFACE_KEY'),
+        // Altezza minima in pixel del volto in una foto di addestramento: sotto,
+        // l'impronta somiglia a chiunque e produce tag falsi al 99% (vedi
+        // FacialRecognitionService::motivoDiScartoComeEsempio).
+        'min_face_px' => (int) env('COMPREFACE_MIN_FACE_PX', 90),
     ],
 
     'activecampaign' => [

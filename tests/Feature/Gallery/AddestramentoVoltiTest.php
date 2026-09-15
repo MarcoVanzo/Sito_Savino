@@ -40,12 +40,24 @@ class AddestramentoVoltiTest extends TestCase
         return 'temp_ai_training/'.$nome;
     }
 
-    private function rispostaAddestramento(int $stato, array $corpo = []): void
+    /**
+     * Prima di caricare, il servizio misura il volto con `/recognize`: di
+     * default la foto ha un primo piano buono, e l'esito lo decide `/faces`.
+     */
+    private function rispostaAddestramento(int $stato, array $corpo = [], ?array $volti = null): void
     {
+        $volti ??= [self::volto(200)];
+
         Http::fake([
+            '*/recognize*' => Http::response(['result' => $volti], 200),
             '*/subjects' => Http::response(['message' => 'ok'], 201),
             '*/faces*' => Http::response($corpo, $stato),
         ]);
+    }
+
+    private static function volto(int $altezza): array
+    {
+        return ['box' => ['x_min' => 10, 'y_min' => 10, 'x_max' => 10 + $altezza, 'y_max' => 10 + $altezza, 'probability' => 0.99], 'subjects' => []];
     }
 
     #[Test]
@@ -111,7 +123,7 @@ class AddestramentoVoltiTest extends TestCase
     public function i_motivi_dello_scarto_sono_spiegati_in_italiano(): void
     {
         NotificationFacade::fake();
-        $this->rispostaAddestramento(400, ['message' => 'More than one face is found in the image']);
+        $this->rispostaAddestramento(201, ['image_id' => 'mai'], volti: [self::volto(200), self::volto(180)]);
         $atleta = Player::factory()->create();
 
         TrainAiFacesAction::execute($atleta, ['training_images' => [$this->fotoDiProva('gruppo.jpg')]]);
@@ -126,7 +138,7 @@ class AddestramentoVoltiTest extends TestCase
     #[Test]
     public function una_foto_senza_volti_lo_dice(): void
     {
-        $this->rispostaAddestramento(400, ['message' => 'No face is found in the given image']);
+        $this->rispostaAddestramento(201, ['image_id' => 'mai'], volti: []);
         $atleta = Player::factory()->create();
 
         TrainAiFacesAction::execute($atleta, ['training_images' => [$this->fotoDiProva('paesaggio.jpg')]]);
@@ -144,6 +156,18 @@ class AddestramentoVoltiTest extends TestCase
 
         Http::assertSent(fn ($r) => str_contains($r->url(), '/subjects'));
         $this->assertStringContainsString('appresi', $this->ultimaNotifica());
+    }
+
+    #[Test]
+    public function una_miniatura_col_volto_piccolo_viene_rifiutata_dal_pannello(): void
+    {
+        $this->rispostaAddestramento(201, ['image_id' => 'mai'], volti: [self::volto(44)]);
+        $atleta = Player::factory()->create();
+
+        TrainAiFacesAction::execute($atleta, ['training_images' => [$this->fotoDiProva('miniatura.jpg')]]);
+
+        $this->assertStringContainsString('Volto troppo piccolo (44 px', $this->ultimaNotifica());
+        Http::assertNotSent(fn ($r) => str_contains($r->url(), '/faces?'));
     }
 
     private function ultimaNotifica(): ?string

@@ -113,6 +113,8 @@ class TrainAiFacesAction
             if (str_contains($minuscolo, 'no face is found')) {
                 return 'Nessun volto trovato nella foto.';
             }
+            // I motivi decisi dal servizio (volto troppo piccolo, più volti)
+            // sono già in italiano e arrivano qui così come sono.
 
             return $errore;
         }, $messaggi);
