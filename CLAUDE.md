@@ -320,6 +320,19 @@ cambia il markup, aggiornare le fixture e poi i parser.
 
 ---
 
+## 12-bis. Gallery: la cache non si butta, si rigenera
+
+L'archivio fotografico supera le dodicimila foto e costruirlo (query con media,
+atlete ed eventi, due indirizzi Spaces per foto) costa una decina di secondi.
+`App\Services\GalleryArchive` lo tiene in cache un giorno; a ogni foto, album o
+atleta salvati `CacheInvalidationObserver` **non** cancella la chiave
+`public:gallery_images:<locale>` ma mette in coda
+`RicostruisciLaCacheDellaGallery`, che la sostituisce (unico finché non entra in
+lavorazione); lo scheduler lo rilancia ogni ora. Cancellare la chiave farebbe
+pagare quei secondi al primo visitatore dopo ogni modifica — anche quelle del
+job di riconoscimento dei volti. Le varianti per atleta restano piccole e si
+buttano come prima.
+
 ## 13. Analytics: sito, social, newsletter
 
 Tre pagine del pannello leggono servizi esterni. Documentazione completa in
@@ -485,6 +498,31 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   corrispondente. `SiteSetting::get('shop.free_shipping_threshold')` funziona, ed
   è la forma usata in tutto lo shop e nelle aste. La colonna indicizzata resta
   `key`: il gruppo non fa parte della chiave, è la via di ripiego.
+
+- **Biglietteria e Campagna Abbonamenti condividono il template `Public/Ticketing`**
+  (form in `App\Filament\Forms\Templates\TicketingTemplateForm`), ma ogni blocco
+  compare solo se compilato: spazio in evidenza (`feature_*`: testo, grafica,
+  pulsante), vantaggi (`benefits`, elenco di `{text}`), fasi della campagna
+  (`phases`: titolo, periodo, descrizione — vuote fino alla campagna di luglio
+  2027), Gift Card (`gift_card_*`, grafica 390×390) e listino (`plans`). La
+  biglietteria **non ha listino**: i prezzi dei biglietti cambiano di partita in
+  partita e stanno su Vivaticket; il messaggio `plans_empty` compare solo se
+  scritto. La normalizzazione dei blocchi sta in `ticketingBlocks.js`, quella dei
+  piani in `ticketingPlans.js`, entrambe con test.
+- **Convenzioni** ha il template `Public/Convenzioni`: partner in
+  `content_data.partners` (`name`, `url`, `discount`, `description`,
+  `how_to_use`, `logo`), introduzione nell'editor. Il logo passa da `CmsFile`
+  come ogni altro upload dentro `content_data`.
+- **Le lingue diverse da quella di partenza arrivano al form grezze.** Il plugin
+  translatable idrata solo la lingua iniziale e monta le altre così come stanno
+  in archivio, sia cambiando lingua sia salvando: un FileUpload con il percorso
+  nudo al posto della mappa `{uuid: percorso}` mostrava un campo file grezzo in
+  inglese, andava in errore al primo PDF e faceva saltare anche il salvataggio
+  in italiano sulla validazione dell'inglese (Safeguarding). `EditPage` tiene
+  traccia delle `lingueGrezze` e le fa passare da `$form->fill()` prima di
+  usarle; per le altre lingue `PreservaContentData` chiama
+  `callBeforeStateDehydrated()` così i file caricati lì finiscono su disco.
+  Test in `SafeguardingDocumentiTest`.
 
 ## 15. Sponsor
 

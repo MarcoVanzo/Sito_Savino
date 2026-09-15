@@ -447,7 +447,16 @@
         "plans_empty_cta": "Contattaci",
         "tickets_button": "Acquista i biglietti",
         "rate_returning": "Riconferma",
-        "rate_under16": "Under 16"
+        "rate_under16": "Under 16",
+        "feature_cta": "Scopri di più",
+        "gift_card_label": "Gift Card",
+        "gift_card_cta": "Acquista la Gift Card"
+    },
+    "convenzioni": {
+        "og_title": "Convenzioni",
+        "og_description": "Sconti e agevolazioni riservati agli abbonati della Savino Del Bene Volley presso i partner convenzionati.",
+        "how_to_use": "Come usarla",
+        "visit_site": "Vai al sito"
     },
     "club_race": {
         "og_title": "SDB Volley Club Race",

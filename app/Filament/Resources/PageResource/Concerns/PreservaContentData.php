@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PageResource\Concerns;
 
 use App\Support\ContentData;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Salva `content_data` senza cancellare quello che il modulo non ha in mano.
@@ -33,6 +34,20 @@ use App\Support\ContentData;
 trait PreservaContentData
 {
     /**
+     * Vero mentre il plugin delle traduzioni salva una lingua diversa da
+     * quella attiva: i suoi file caricati non sono ancora passati dai ganci
+     * di deidratazione, quindi non sono ancora su disco.
+     */
+    protected bool $salvandoUnAltraLingua = false;
+
+    /**
+     * La lingua che si sta salvando quando non è quella attiva: senza, la
+     * base "in archivio" sarebbe quella della lingua attiva e le chiavi degli
+     * altri modelli di pagina passerebbero da una lingua all'altra.
+     */
+    protected ?string $linguaInSalvataggio = null;
+
+    /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
@@ -55,8 +70,16 @@ trait PreservaContentData
             $mostrati[$chiave] = true;
         }
 
-        // I ganci (salvataggio dei file caricati, relazioni) sono già stati
-        // eseguiti dalla prima deidratazione: qui serve solo la forma finale.
+        // Per la lingua attiva i ganci (salvataggio dei file caricati,
+        // relazioni) sono già stati eseguiti dalla prima deidratazione: qui
+        // serve solo la forma finale. Per le altre lingue nessuno li ha
+        // chiamati e un PDF caricato lì resterebbe nella cartella temporanea:
+        // si chiamano solo quelli che portano i file su disco, non quelli
+        // delle relazioni, che riguardano campi comuni a tutte le lingue.
+        if ($this->salvandoUnAltraLingua) {
+            $this->form->callBeforeStateDehydrated();
+        }
+
         $deidratati = $this->form->getState(shouldCallHooksBefore: false)['content_data'] ?? [];
         $aggiornati = $this->contentDataInArchivio();
 
@@ -77,8 +100,15 @@ trait PreservaContentData
      */
     private function contentDataInArchivio(): array
     {
-        $lingua = $this->activeLocale ?? app()->getLocale();
-        $valore = $this->getRecord()->getTranslation('content_data', $lingua, false);
+        $record = $this->getRecord();
+
+        // In creazione non c'è ancora niente in archivio.
+        if (! $record instanceof Model || ! $record->exists) {
+            return [];
+        }
+
+        $lingua = $this->linguaInSalvataggio ?? $this->activeLocale ?? app()->getLocale();
+        $valore = $record->getTranslation('content_data', $lingua, false);
 
         return is_array($valore) ? $valore : [];
     }

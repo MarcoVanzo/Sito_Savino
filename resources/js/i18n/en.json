@@ -447,7 +447,16 @@
         "plans_empty_cta": "Get in touch",
         "tickets_button": "Buy tickets",
         "rate_returning": "Renewal",
-        "rate_under16": "Under 16"
+        "rate_under16": "Under 16",
+        "feature_cta": "Find out more",
+        "gift_card_label": "Gift Card",
+        "gift_card_cta": "Buy a Gift Card"
+    },
+    "convenzioni": {
+        "og_title": "Partner offers",
+        "og_description": "Discounts and benefits for Savino Del Bene Volley season ticket holders at our partners.",
+        "how_to_use": "How to use it",
+        "visit_site": "Visit the website"
     },
     "club_race": {
         "og_title": "SDB Volley Club Race",

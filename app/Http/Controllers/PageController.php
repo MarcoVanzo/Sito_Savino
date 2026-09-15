@@ -38,6 +38,7 @@ class PageController extends Controller
 
         'Public/Ticketing',
         'Public/ClubRace',
+        'Public/Convenzioni',
         'Public/Sponsor',
         'Public/Youth',
         'Public/SummerCamp',

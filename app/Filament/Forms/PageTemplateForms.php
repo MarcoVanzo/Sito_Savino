@@ -3,6 +3,7 @@
 namespace App\Filament\Forms;
 
 use App\Filament\Forms\Templates\ComunicazioneTemplateForm;
+use App\Filament\Forms\Templates\TicketingTemplateForm;
 use App\Filament\Forms\Templates\YouthTemplateForm;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -215,67 +216,74 @@ class PageTemplateForms
     }
 
     /**
-     * Restituisce i campi specifici per il template "Biglietteria"
+     * Biglietteria e Campagna Abbonamenti: il form sta in TicketingTemplateForm.
+     *
+     * @return array<int, Forms\Components\Component>
      */
     public static function getTicketingSchema(): array
+    {
+        return TicketingTemplateForm::schema();
+    }
+
+    /**
+     * Convenzioni per gli abbonati: i partner che offrono agevolazioni, con
+     * il link al loro sito e il riassunto dello sconto. L'introduzione sta
+     * nell'editor della pagina.
+     *
+     * @return array<int, Forms\Components\Component>
+     */
+    public static function getConvenzioniSchema(): array
     {
         return [
             Forms\Components\TextInput::make('content_data.hero_label')
                 ->label(EtichetteDeiCampi::HERO_BADGE),
             Forms\Components\Textarea::make('content_data.hero_subtitle')
                 ->label(EtichetteDeiCampi::HERO_SUBTITLE),
-            Forms\Components\Fieldset::make('Biglietteria online (Vivaticket)')
+            Forms\Components\TextInput::make('content_data.partners_heading')
+                ->label('Titolo dell\'elenco dei partner')
+                ->placeholder('es. I nostri partner'),
+            Forms\Components\Textarea::make('content_data.partners_empty')
+                ->label('Testo quando non ci sono partner')
+                ->rows(2)
+                ->placeholder('es. Le convenzioni della stagione sono in arrivo.'),
+            Forms\Components\Repeater::make('content_data.partners')
+                ->label('Partner convenzionati')
                 ->schema([
-                    Forms\Components\TextInput::make('content_data.tickets_url')
-                        ->label('Link alla biglietteria')
+                    Forms\Components\TextInput::make('name')
+                        ->label('Nome del partner')
+                        ->required()
+                        ->placeholder('es. Trattoria da Mario'),
+                    Forms\Components\TextInput::make('url')
+                        ->label('Sito o pagina dedicata')
                         ->url()
-                        ->placeholder('https://www.vivaticket.com/it/...')
-                        ->helperText('Indirizzo della pagina di vendita. Se vuoto, il pulsante non viene mostrato.')
+                        ->placeholder('es. https://www.partner.it/savino')
+                        ->helperText('Il nome del partner rimanda qui.'),
+                    Forms\Components\TextInput::make('discount')
+                        ->label('Sconto')
+                        ->placeholder('es. 10%'),
+                    Forms\Components\FileUpload::make('logo')
+                        ->label('Logo (facoltativo)')
+                        ->image()
+                        ->directory('convenzioni')
+                        ->maxSize(2048),
+                    Forms\Components\Textarea::make('description')
+                        ->label('Su cosa si applica')
+                        ->rows(2)
+                        ->placeholder('es. Sul conto a pranzo e a cena, bevande escluse')
                         ->columnSpanFull(),
-                    Forms\Components\TextInput::make('content_data.tickets_button_text')
-                        ->label(EtichetteDeiCampi::BUTTON_TEXT)
-                        ->placeholder('es. Acquista su Vivaticket'),
-                    Forms\Components\TextInput::make('content_data.tickets_note')
-                        ->label('Nota sotto al pulsante')
-                        ->placeholder('es. Vendita gestita da Vivaticket'),
+                    Forms\Components\Textarea::make('how_to_use')
+                        ->label('Come usarla')
+                        ->rows(2)
+                        ->placeholder('es. Presentando la tessera dell\'abbonamento e un documento d\'identità')
+                        ->columnSpanFull(),
                 ])
-                ->columns(2),
-            Forms\Components\TextInput::make('content_data.plans_heading')
-                ->label('Titolo Sezione Abbonamenti'),
-            Forms\Components\Textarea::make('content_data.plans_empty')
-                ->label('Testo quando non ci sono listini pubblicati')
-                ->rows(2),
-            Forms\Components\TextInput::make('content_data.popular_badge')
-                ->label('Testo Badge "Più Popolare"'),
-            Forms\Components\Repeater::make('content_data.plans')
-                ->label('Piani e Abbonamenti')
-                ->schema([
-                    Forms\Components\TextInput::make('name')->label('Nome Piano')->required(),
-                    Forms\Components\TextInput::make('price')->label('Prezzo intero (€)')->required(),
-                    Forms\Components\TextInput::make('period')->label('Periodo (es. a partita, stagione)')->required(),
-                    // Lo stesso posto ha piu' tariffe: senza questi campi il listino
-                    // della societa' non ci stava dentro. Lasciandoli vuoti la scheda
-                    // mostra il solo prezzo intero.
-                    Forms\Components\TextInput::make('price_returning')->label('Tariffa riconferma (€)'),
-                    Forms\Components\TextInput::make('price_under16')->label('Tariffa Under 16 (€)'),
-                    Forms\Components\TagsInput::make('features')->label('Vantaggi (Premi invio)'),
-                    Forms\Components\Toggle::make('highlight')->label('Evidenziato (Più Popolare)'),
-                    Forms\Components\TextInput::make('cta')->label('Testo Pulsante (es. Acquista)'),
-                    Forms\Components\TextInput::make('cta_url')
-                        ->label('Link Pulsante (URL acquisto/abbonamento)')
-                        ->url()
-                        ->placeholder('es. https://www.vivaticket.com/...'),
-                ])->columns(2)->columnSpanFull(),
-            Forms\Components\TextInput::make('content_data.info_heading')
-                ->label('Titolo Sezione Info'),
-            Forms\Components\TextInput::make('content_data.online_title')
-                ->label('Titolo Info Online'),
-            Forms\Components\Textarea::make('content_data.online_description')
-                ->label('Descrizione Info Online'),
-            Forms\Components\TextInput::make('content_data.boxoffice_title')
-                ->label('Titolo Info Botteghino'),
-            Forms\Components\Textarea::make('content_data.boxoffice_description')
-                ->label('Descrizione Info Botteghino'),
+                ->columns(2)
+                ->columnSpanFull()
+                ->defaultItems(0)
+                ->reorderable()
+                ->collapsible()
+                ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                ->createItemButtonLabel('Aggiungi partner'),
         ];
     }
 
