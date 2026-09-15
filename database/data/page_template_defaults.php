@@ -10,9 +10,29 @@
  * Chiave del primo livello: il template della pagina.
  */
 return [
+    'Public/Convenzioni' => [
+        'it' => [
+            'hero_label' => 'Riservato agli abbonati',
+            'hero_subtitle' => 'Sconti e agevolazioni presso i partner della Savino Del Bene Volley, presentando la tessera dell\'abbonamento.',
+            'partners_heading' => 'I nostri partner',
+            'partners_empty' => 'Le convenzioni della stagione sono in arrivo: torna a trovarci.',
+            'partners' => [],
+        ],
+        'en' => [
+            'hero_label' => 'Season ticket holders only',
+            'hero_subtitle' => 'Discounts and benefits at Savino Del Bene Volley partners, on showing your season ticket card.',
+            'partners_heading' => 'Our partners',
+            'partners_empty' => 'This season\'s partner offers are on their way: check back soon.',
+            'partners' => [],
+        ],
+    ],
     'Public/Ticketing' => [
         'it' => [
             'tickets_button_text' => 'Acquista i biglietti',
+            'feature_button_text' => 'Scopri di più',
+            'benefits_heading' => 'Vantaggi',
+            'phases_heading' => 'Le fasi della campagna',
+            'gift_card_button_text' => 'Acquista la Gift Card',
             'hero_label' => 'Vivi l\'Emozione',
             'hero_subtitle' => 'Scegli il tuo posto e vivi l\'emozione della pallavolo dal vivo al Pala BigMat.',
             'plans_heading' => 'Scegli il tuo Abbonamento',
@@ -26,6 +46,10 @@ return [
         ],
         'en' => [
             'tickets_button_text' => 'Buy tickets',
+            'feature_button_text' => 'Find out more',
+            'benefits_heading' => 'Benefits',
+            'phases_heading' => 'Campaign phases',
+            'gift_card_button_text' => 'Buy a Gift Card',
             'hero_label' => 'Feel the Emotion',
             'hero_subtitle' => 'Choose your seat and experience the thrill of live volleyball at Pala BigMat.',
             'plans_heading' => 'Choose Your Season Pass',

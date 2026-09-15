@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\RicostruisciLaCacheDellaGallery;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -52,6 +53,11 @@ Schedule::command('social:sync-meta --days=90')->dailyAt('03:30')->withoutOverla
 // per un mese nessuno lo apre quel mese non entra in archivio e i confronti
 // anno su anno restano bucati.
 Schedule::command('analytics:sync-ga4 --days=90')->dailyAt('05:00')->withoutOverlapping();
+
+// L'archivio della gallery in cache dura un giorno e si rigenera in coda a
+// ogni modifica; il giro orario copre il caso in cui un job sia andato perso e
+// tiene la copia fresca anche quando nessuno tocca niente.
+Schedule::job(new RicostruisciLaCacheDellaGallery)->hourlyAt(17)->withoutOverlapping();
 
 // Pulizia periodica
 Schedule::command('activity-log:prune --days=180 --force')->weekly()->withoutOverlapping();

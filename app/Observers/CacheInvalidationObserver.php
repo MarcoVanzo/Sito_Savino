@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Enums\CompetitionType;
 use App\Http\Middleware\CachePublicResponse;
+use App\Jobs\RicostruisciLaCacheDellaGallery;
 use App\Models\Category;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
@@ -23,6 +24,7 @@ use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Standing;
 use App\Models\Team;
+use App\Services\GalleryArchive;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -88,6 +90,15 @@ class CacheInvalidationObserver
         $locales = $this->locales();
 
         foreach ($keys as $key) {
+            // L'archivio completo della gallery non si butta: ricostruirlo
+            // costa una decina di secondi che pagherebbe il primo visitatore.
+            // Si rigenera in coda, e intanto resta servita la copia di prima.
+            if ($key === GalleryArchive::CHIAVE) {
+                RicostruisciLaCacheDellaGallery::dispatch()->afterCommit();
+
+                continue;
+            }
+
             // Chiave nuda (retrocompatibilità) + una variante per ogni lingua,
             // perché i controller pubblici suffissano sempre la locale.
             Cache::forget($key);
@@ -124,10 +135,10 @@ class CacheInvalidationObserver
         }
 
         // public:gallery_images:player_<id>:<locale>
-        if (in_array('public:gallery_images', $keys, true)) {
+        if (in_array(GalleryArchive::CHIAVE, $keys, true)) {
             foreach (Player::query()->pluck('id') as $playerId) {
                 foreach ($locales as $locale) {
-                    Cache::forget('public:gallery_images:player_'.$playerId.':'.$locale);
+                    Cache::forget(GalleryArchive::CHIAVE.':player_'.$playerId.':'.$locale);
                 }
             }
         }

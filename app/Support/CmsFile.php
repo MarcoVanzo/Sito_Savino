@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 class CmsFile
 {
     /** Campi di primo livello che contengono un file caricato dal pannello. */
-    private const CAMPI_SEMPLICI = ['button_image'];
+    private const CAMPI_SEMPLICI = ['button_image', 'feature_image', 'gift_card_image'];
 
     /**
      * Campi file dentro gli elenchi ripetibili, per elenco.
@@ -28,6 +28,7 @@ class CmsFile
         'magazines' => ['file_url', 'cover_image_url'],
         'documents' => ['file'],
         'press_kits' => ['file'],
+        'partners' => ['logo'],
     ];
 
     public static function url(mixed $path): ?string

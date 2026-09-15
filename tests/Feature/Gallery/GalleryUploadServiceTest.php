@@ -174,7 +174,9 @@ class GalleryUploadServiceTest extends TestCase
         GalleryUploadService::processUploads($this->componente(), null, $evento);
 
         $this->assertDatabaseCount('gallery_images', 0);
-        Queue::assertNothingPushed();
+        // In coda c'e' solo la ricostruzione della cache, dovuta all'album
+        // appena creato: nessuna analisi di foto che non esistono.
+        Queue::assertNotPushed(AnalyzeGalleryImageJob::class);
     }
 
     /**
