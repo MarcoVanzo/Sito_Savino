@@ -333,6 +333,30 @@ pagare quei secondi al primo visitatore dopo ogni modifica — anche quelle del
 job di riconoscimento dei volti. Le varianti per atleta restano piccole e si
 buttano come prima.
 
+## 12-ter. Riconoscimento dei volti (CompreFace)
+
+- Il servizio gira su un droplet a parte, raggiungibile **solo dalla VPC**
+  (`COMPREFACE_HOST` in `.do/app.yaml`); la chiave vera sta nel suo Postgres.
+  Le foto di addestramento **non restano nel repo né su Spaces**: il pannello
+  le manda a CompreFace e le cancella. Per vedere cosa conosce il servizio si
+  interroga `GET /api/v1/recognition/faces` dal droplet.
+- **`players.ai_face_examples` è una copia, non la verità.** Si incrementa a
+  ogni foto appresa ma nessuno lo abbassa quando il servizio viene azzerato o
+  ricreato: a settembre 2026 diceva 3-7 esempi per atleta e CompreFace ne
+  aveva uno (la foto ufficiale del roster). `volti:riconcilia-contatori` lo
+  riallinea ogni notte dallo scheduler.
+- **Le foto entrate senza passare dall'upload del pannello non si analizzano
+  da sole.** L'import dell'archivio storico ne ha portate undicimila senza
+  mandarne una all'AI: `gallery:analyze --pending --limit=600` gira ogni ora e
+  le recupera a blocchi, contando anche i job già nella coda `ai`. Un nuovo
+  canale d'ingresso delle foto non deve reinventare il dispatch: basta lasciare
+  `ai_analyzed_at` nullo.
+- CompreFace accetta per l'addestramento **solo foto con un volto**: primi
+  piani. Le foto in azione con più persone vengono rifiutate ("More than one
+  face"), e usarle ritagliate richiede di aver verificato chi c'è nel ritaglio.
+- I batch `Bus::batch(...)->allowFailures()` dell'analisi non si chiudono mai se
+  un job fallisce: `queue:prune-batches` li pota dopo tre giorni.
+
 ## 13. Analytics: sito, social, newsletter
 
 Tre pagine del pannello leggono servizi esterni. Documentazione completa in

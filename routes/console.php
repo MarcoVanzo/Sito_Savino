@@ -59,9 +59,24 @@ Schedule::command('analytics:sync-ga4 --days=90')->dailyAt('05:00')->withoutOver
 // tiene la copia fresca anche quando nessuno tocca niente.
 Schedule::job(new RicostruisciLaCacheDellaGallery)->hourlyAt(17)->withoutOverlapping();
 
+// Riconoscimento dei volti nella gallery. Le foto caricate dal pannello
+// partono da sole; quelle arrivate per altre vie (l'import dell'archivio
+// storico ne ha portate undicimila senza analizzarne una) le recupera questo
+// giro, a blocchi che il worker smaltisce entro l'ora. Il limite conta anche
+// i job già in coda: se il worker è in ritardo non si accumula.
+Schedule::command('gallery:analyze --pending --limit=600 --force')->hourlyAt(37)->withoutOverlapping();
+
+// Il contatore "Esempi AI" delle atlete è una copia di ciò che sta su
+// CompreFace, che può essere azzerato o ricreato senza avvisare l'archivio.
+Schedule::command('volti:riconcilia-contatori')->dailyAt('04:15')->withoutOverlapping();
+
 // Pulizia periodica
 Schedule::command('activity-log:prune --days=180 --force')->weekly()->withoutOverlapping();
 Schedule::command('model:prune')->daily()->withoutOverlapping();
+// I batch di analisi della gallery con `allowFailures()` non si chiudono mai
+// da soli se un job fallisce: a settembre 2026 ce n'erano 18 aperti da luglio.
+Schedule::command('queue:prune-batches --hours=48 --unfinished=72 --cancelled=72')->daily()->withoutOverlapping();
+Schedule::command('queue:prune-failed --hours=720')->daily()->withoutOverlapping();
 Schedule::command('carts:prune-expired')->daily()->at('03:00')->withoutOverlapping();
 
 // Controllo ordini non pagati: cancella Stripe/PayPal abbandonati (1h) e bonifici scaduti (7gg)
