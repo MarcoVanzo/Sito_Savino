@@ -155,6 +155,47 @@ class FacialRecognitionService
     }
 
     /**
+     * Quanti esempi di volto conserva CompreFace per ogni soggetto
+     * (`player_1` => 4, `staff_16` => 1, …).
+     *
+     * È l'unica fonte attendibile: il contatore `ai_face_examples` in
+     * archivio si incrementa a ogni caricamento riuscito ma nessuno lo
+     * riallinea quando il servizio viene azzerato o ricreato, e a settembre
+     * 2026 diceva 3-7 esempi per atleta dove ce n'era uno solo.
+     *
+     * @return array<string, int>
+     *
+     * @throws ConnectionException se CompreFace non risponde
+     * @throws FacialRecognitionException se CompreFace risponde con un errore
+     */
+    public function esempiPerSoggetto(): array
+    {
+        if (empty($this->apiKey)) {
+            throw new FacialRecognitionException('CompreFace API Key non configurata.');
+        }
+
+        $conteggi = [];
+        $pagina = 0;
+
+        do {
+            $response = $this->richiesta(15)->get($this->getBaseUrl().'/faces', ['page' => $pagina, 'size' => 1000]);
+
+            if (! $response->successful()) {
+                throw new FacialRecognitionException("CompreFace API error (HTTP {$response->status()}): {$response->body()}");
+            }
+
+            foreach ($response->json('faces') ?? [] as $volto) {
+                $soggetto = (string) ($volto['subject'] ?? '');
+                $conteggi[$soggetto] = ($conteggi[$soggetto] ?? 0) + 1;
+            }
+
+            $pagina++;
+        } while ($pagina < (int) ($response->json('total_pages') ?? 1));
+
+        return $conteggi;
+    }
+
+    /**
      * Recognize faces in an image.
      * Returns an array of detected persons (Player or StaffMember) with confidence >= threshold.
      */
