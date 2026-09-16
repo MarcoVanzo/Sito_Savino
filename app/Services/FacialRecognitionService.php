@@ -312,9 +312,13 @@ class FacialRecognitionService
      * La persona riconosciuta in un volto, e se quel volto lascia la foto da
      * rivedere in redazione.
      *
-     * Un volto senza soggetti o sotto la soglia di somiglianza va rivisto. Un
-     * soggetto riconosciuto ma non piu' in anagrafica non viene invece
-     * segnalato: e' il comportamento storico, qui reso esplicito.
+     * Va rivisto solo il volto "quasi riconosciuto": somiglia a una persona in
+     * anagrafica più di `services.compreface.review_similarity` senza arrivare
+     * alla soglia del tag, ed è abbastanza grande da poterlo giudicare
+     * (`review_min_face_px`). Prima bastava un volto qualunque senza tag —
+     * tribuna, avversarie, arbitri — e a settembre 2026 il flag era acceso su
+     * 6.004 foto su 6.005: in redazione non distingueva più niente. Un
+     * soggetto riconosciuto ma non piu' in anagrafica non viene segnalato.
      *
      * @param  array<string, mixed>  $face
      * @return array{persona: array<string, mixed>|null, daRivedere: bool}
@@ -324,13 +328,13 @@ class FacialRecognitionService
         $topMatch = $face['subjects'][0] ?? null;
 
         if ($topMatch === null) {
-            return ['persona' => null, 'daRivedere' => true];
+            return ['persona' => null, 'daRivedere' => false];
         }
 
         if ($topMatch['similarity'] < $minConfidence) {
             Log::info("CompreFace Ignored: {$topMatch['subject']} (similarity: {$topMatch['similarity']} < {$minConfidence})");
 
-            return ['persona' => null, 'daRivedere' => true];
+            return ['persona' => null, 'daRivedere' => $this->quasiRiconosciuto($face, $topMatch)];
         }
 
         $resolved = $this->resolveSubject($topMatch['subject']);
@@ -349,6 +353,29 @@ class FacialRecognitionService
             ],
             'daRivedere' => false,
         ];
+    }
+
+    /**
+     * Un volto grande abbastanza da giudicarlo a occhio, che somiglia a una
+     * persona in anagrafica senza raggiungere la soglia del tag.
+     *
+     * @param  array<string, mixed>  $face
+     * @param  array<string, mixed>  $topMatch
+     */
+    private function quasiRiconosciuto(array $face, array $topMatch): bool
+    {
+        if ($this->resolveSubject((string) $topMatch['subject']) === null) {
+            return false;
+        }
+
+        if ($topMatch['similarity'] < (float) config('services.compreface.review_similarity', 0.90)) {
+            return false;
+        }
+
+        $box = $face['box'] ?? [];
+        $altezza = (int) (($box['y_max'] ?? 0) - ($box['y_min'] ?? 0));
+
+        return $altezza >= (int) config('services.compreface.review_min_face_px', 80);
     }
 
     /**

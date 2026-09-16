@@ -147,10 +147,10 @@ class AnalyzeGalleryImageJob implements ShouldQueue
 
             Log::info("AnalyzeGalleryImageJob: [STEP 5/6] Image #{$imageId} — Updating flags");
 
-            // Flag per revisione manuale se ci sono volti non riconosciuti
-            if ($hasUnrecognizedFaces) {
-                $this->galleryImage->needs_review = true;
-            }
+            // Il flag lo decide l'analisi, in entrambe le direzioni: prima si
+            // accendeva soltanto, e una foto importata già marcata restava
+            // "da rivedere" per sempre anche quando l'AI non trovava nulla.
+            $this->galleryImage->needs_review = $hasUnrecognizedFaces;
 
             // Segna la foto come analizzata dall'AI
             $this->galleryImage->ai_analyzed_at = now();

@@ -49,6 +49,19 @@ class FacialRecognitionServiceTest extends TestCase
         Http::fake(['*/recognize*' => Http::response(['result' => $volti], 200)]);
     }
 
+    /**
+     * Un volto come lo descrive CompreFace: riquadro e miglior soggetto.
+     *
+     * @param  array<int, array{subject: string, similarity: float}>  $subjects
+     */
+    private function voltoAlto(int $altezza, array $subjects): array
+    {
+        return [
+            'box' => ['x_min' => 0, 'y_min' => 0, 'x_max' => $altezza, 'y_max' => $altezza, 'probability' => 0.99],
+            'subjects' => $subjects,
+        ];
+    }
+
     #[Test]
     public function il_nome_del_soggetto_distingue_atlete_e_staff(): void
     {
@@ -94,15 +107,16 @@ class FacialRecognitionServiceTest extends TestCase
     }
 
     /**
-     * Sotto la soglia non si tagga e la foto resta da rivedere: meglio un tag
-     * mancante che uno sbagliato su una foto pubblica.
+     * Sotto la soglia non si tagga: meglio un tag mancante che uno sbagliato
+     * su una foto pubblica. Ma se il volto è grande e somiglia molto a
+     * un'atleta, la foto va in redazione: è il caso che vale la pena guardare.
      */
     #[Test]
-    public function un_volto_somigliante_ma_sotto_soglia_lascia_la_foto_da_rivedere(): void
+    public function un_volto_grande_quasi_riconosciuto_lascia_la_foto_da_rivedere(): void
     {
         $atleta = Player::factory()->create();
         $this->rispostaConVolti([
-            ['subjects' => [['subject' => 'player_'.$atleta->id, 'similarity' => 0.90]]],
+            $this->voltoAlto(200, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.95]]),
         ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
@@ -111,15 +125,36 @@ class FacialRecognitionServiceTest extends TestCase
         $this->assertTrue($esito['has_unrecognized_faces']);
     }
 
+    /**
+     * A settembre 2026 il flag era acceso su 6.004 foto su 6.005: bastava un
+     * volto in tribuna. Chi non somiglia a nessuno dei nostri non si rivede.
+     */
     #[Test]
-    public function un_volto_senza_nessun_soggetto_lascia_la_foto_da_rivedere(): void
+    public function un_volto_che_non_somiglia_a_nessuno_non_manda_la_foto_in_revisione(): void
     {
-        $this->rispostaConVolti([['subjects' => []]]);
+        $atleta = Player::factory()->create();
+        $this->rispostaConVolti([
+            $this->voltoAlto(200, []),
+            $this->voltoAlto(200, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.60]]),
+        ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
 
         $this->assertSame([], $esito['detected_persons']);
-        $this->assertTrue($esito['has_unrecognized_faces']);
+        $this->assertFalse($esito['has_unrecognized_faces']);
+    }
+
+    #[Test]
+    public function un_volto_piccolo_anche_se_somigliante_non_si_puo_rivedere(): void
+    {
+        $atleta = Player::factory()->create();
+        $this->rispostaConVolti([
+            $this->voltoAlto(40, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.97]]),
+        ]);
+
+        $esito = $this->servizio->recognizeFaces($this->immagineFinta());
+
+        $this->assertFalse($esito['has_unrecognized_faces']);
     }
 
     /**
@@ -131,6 +166,7 @@ class FacialRecognitionServiceTest extends TestCase
     {
         $this->rispostaConVolti([
             ['subjects' => [['subject' => 'sconosciuto_9', 'similarity' => 0.999]]],
+            $this->voltoAlto(200, [['subject' => 'sconosciuto_9', 'similarity' => 0.95]]),
         ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
@@ -147,13 +183,13 @@ class FacialRecognitionServiceTest extends TestCase
         $this->rispostaConVolti([
             ['subjects' => [['subject' => 'player_'.$prima->id, 'similarity' => 0.99]]],
             ['subjects' => [['subject' => 'player_'.$seconda->id, 'similarity' => 0.995]]],
-            ['subjects' => []],
+            $this->voltoAlto(150, [['subject' => 'player_'.$prima->id, 'similarity' => 0.93]]),
         ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
 
         $this->assertCount(2, $esito['detected_persons']);
-        $this->assertTrue($esito['has_unrecognized_faces'], 'Il terzo volto resta da rivedere.');
+        $this->assertTrue($esito['has_unrecognized_faces'], 'Il terzo volto, quasi riconosciuto, resta da rivedere.');
     }
 
     /**

@@ -102,6 +102,7 @@ class GalleryImagesRelationManager extends RelationManager
                     ->separator(', '),
                 Tables\Columns\IconColumn::make('needs_review')
                     ->label('Da Rev.')
+                    ->tooltip('Un volto grande somiglia a una persona in anagrafica senza raggiungere la soglia del tag: conferma o correggi con "Identifica".')
                     ->boolean()
                     ->trueIcon('heroicon-o-exclamation-triangle')
                     ->trueColor('warning')
@@ -113,7 +114,9 @@ class GalleryImagesRelationManager extends RelationManager
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('needs_review')
-                    ->label('Da Revisionare'),
+                    ->label('Da Revisionare')
+                    ->trueLabel('Sì, volto quasi riconosciuto')
+                    ->falseLabel('No, OK'),
             ])
             ->headerActions([
                 Tables\Actions\Action::make('analyzeAll')

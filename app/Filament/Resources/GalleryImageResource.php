@@ -133,6 +133,7 @@ class GalleryImageResource extends Resource
                     ->limitList(3),
                 Tables\Columns\IconColumn::make('needs_review')
                     ->label('Da Rev.')
+                    ->tooltip('Un volto grande somiglia a una persona in anagrafica senza raggiungere la soglia del tag: conferma o correggi con "Identifica".')
                     ->boolean()
                     ->trueIcon('heroicon-o-exclamation-triangle')
                     ->trueColor('warning')
@@ -161,7 +162,7 @@ class GalleryImageResource extends Resource
                 Tables\Filters\TernaryFilter::make('needs_review')
                     ->label('Da Revisionare')
                     ->placeholder('Tutte le foto')
-                    ->trueLabel('Sì, da identificare')
+                    ->trueLabel('Sì, volto quasi riconosciuto')
                     ->falseLabel('No, OK'),
             ])
             ->actions([
