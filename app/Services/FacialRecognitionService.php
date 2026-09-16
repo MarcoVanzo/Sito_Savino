@@ -368,7 +368,7 @@ class FacialRecognitionService
             return false;
         }
 
-        if ($topMatch['similarity'] < (float) config('services.compreface.review_similarity', 0.90)) {
+        if ($topMatch['similarity'] < (float) config('services.compreface.review_similarity', 0.97)) {
             return false;
         }
 

@@ -50,8 +50,11 @@ return [
         // Una foto va "rivista" solo se un volto somiglia a una persona in
         // anagrafica almeno così tanto (senza arrivare alla soglia del tag,
         // 0.985) ed è alto almeno così tanti pixel: il resto è tribuna,
-        // avversarie e arbitri, che nessuno deve rivedere.
-        'review_similarity' => (float) env('COMPREFACE_REVIEW_SIMILARITY', 0.90),
+        // avversarie e arbitri, che nessuno deve rivedere. A 0.90 il flag
+        // prendeva quasi metà delle foto (16/09/2026: 541 su 1.150), perché
+        // due volti qualunque si somigliano spesso al 91-96%; a 0.97 circa
+        // una su sei.
+        'review_similarity' => (float) env('COMPREFACE_REVIEW_SIMILARITY', 0.97),
         'review_min_face_px' => (int) env('COMPREFACE_REVIEW_MIN_FACE_PX', 80),
     ],
 

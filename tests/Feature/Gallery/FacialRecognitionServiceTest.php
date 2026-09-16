@@ -116,7 +116,7 @@ class FacialRecognitionServiceTest extends TestCase
     {
         $atleta = Player::factory()->create();
         $this->rispostaConVolti([
-            $this->voltoAlto(200, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.95]]),
+            $this->voltoAlto(200, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.975]]),
         ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
@@ -136,6 +136,8 @@ class FacialRecognitionServiceTest extends TestCase
         $this->rispostaConVolti([
             $this->voltoAlto(200, []),
             $this->voltoAlto(200, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.60]]),
+            // Due volti qualunque si somigliano spesso al 91-96%: non basta.
+            $this->voltoAlto(200, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.95]]),
         ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
@@ -149,7 +151,7 @@ class FacialRecognitionServiceTest extends TestCase
     {
         $atleta = Player::factory()->create();
         $this->rispostaConVolti([
-            $this->voltoAlto(40, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.97]]),
+            $this->voltoAlto(40, [['subject' => 'player_'.$atleta->id, 'similarity' => 0.98]]),
         ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
@@ -166,7 +168,7 @@ class FacialRecognitionServiceTest extends TestCase
     {
         $this->rispostaConVolti([
             ['subjects' => [['subject' => 'sconosciuto_9', 'similarity' => 0.999]]],
-            $this->voltoAlto(200, [['subject' => 'sconosciuto_9', 'similarity' => 0.95]]),
+            $this->voltoAlto(200, [['subject' => 'sconosciuto_9', 'similarity' => 0.975]]),
         ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
@@ -183,7 +185,7 @@ class FacialRecognitionServiceTest extends TestCase
         $this->rispostaConVolti([
             ['subjects' => [['subject' => 'player_'.$prima->id, 'similarity' => 0.99]]],
             ['subjects' => [['subject' => 'player_'.$seconda->id, 'similarity' => 0.995]]],
-            $this->voltoAlto(150, [['subject' => 'player_'.$prima->id, 'similarity' => 0.93]]),
+            $this->voltoAlto(150, [['subject' => 'player_'.$prima->id, 'similarity' => 0.975]]),
         ]);
 
         $esito = $this->servizio->recognizeFaces($this->immagineFinta());
