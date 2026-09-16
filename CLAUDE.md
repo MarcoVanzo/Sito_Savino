@@ -363,9 +363,10 @@ buttano come prima.
   nulla se l'esempio è scadente: confrontare sempre i tag con la stagione
   in cui la persona era in squadra.
 - **"Da rivedere" significa "volto grande quasi riconosciuto"**: somiglianza
-  fra `review_similarity` (0.90) e la soglia del tag (0.985) su un volto alto
+  fra `review_similarity` (0.97) e la soglia del tag (0.985) su un volto alto
   almeno `review_min_face_px` (80). Prima bastava un volto qualunque senza tag
-  e il flag era acceso su tutto l'archivio. Il job lo scrive in entrambe le
+  e il flag era acceso su tutto l'archivio; a 0.90 prendeva ancora metà delle
+  foto, perché due volti qualunque si somigliano spesso al 91-96%. Il job lo scrive in entrambe le
   direzioni: una foto importata già marcata si spegne se l'AI non trova nulla.
 - **Il job non toglie mai i tag**: `AnalyzeGalleryImageJob` fa solo
   `updateOrInsert` sul pivot. Per rifare un'analisi sbagliata bisogna prima
