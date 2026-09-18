@@ -146,18 +146,20 @@ jobs:
       # ---------------------------------------------------------------
       # 5. Genera manifest
       # ---------------------------------------------------------------
-      # Il manifest elenca il bucket di backup UNA volta sola. Prima erano due
-      # scansioni complete di oltre dodicimila oggetti (`lsl` per l'elenco,
-      # `lsf --recursive` per il conteggio) e DO Spaces limita la frequenza
-      # delle LIST: rclone ritentava col suo backoff e lo step restava appeso
-      # fino al tetto di due ore del job. Dal 23/08/2026 al 13/09/2026 il
-      # backup è morto così ogni domenica — con i file già copiati, perché la
-      # copia finisce in cinque minuti allo step precedente.
+      # Il manifest si costruisce elencando il bucket SORGENTE, non quello di
+      # backup. Sono gli stessi file — la copia dello step precedente esce con
+      # errore se non li ha trasferiti tutti — ma i due bucket non si elencano
+      # affatto allo stesso modo: il 18/09/2026, con 81.308 oggetti per 11 GB,
+      # la listata del sorgente ha impiegato 25 secondi e quella del bucket di
+      # backup non è finita in 20 minuti, nemmeno con `--fast-list`.
       #
-      # Il conteggio ora si ricava dal manifest, `--fast-list` chiede l'elenco
-      # in blocchi invece che cartella per cartella, e il passo non può più
-      # fermare il workflow: se l'elenco non arriva il backup resta valido, è
-      # solo il suo indice a mancare (il riepilogo lo dichiara).
+      # È la stessa lentezza che dal 23/08 al 13/09 ha ucciso quattro backup di
+      # fila al tetto delle due ore: il passo restava appeso mentre i file, in
+      # realtà, erano già stati copiati.
+      #
+      # Restano il tetto di tempo e `continue-on-error` come rete: se anche
+      # questa listata si impantana, il backup resta valido e il riepilogo
+      # dichiara che manca l'indice.
       - name: Genera manifest post-sync
         id: manifest
         if: steps.pre_sync.outputs.skip_sync != 'true'
@@ -176,23 +178,25 @@ jobs:
             echo "# Generated: ${TIMESTAMP}"
             echo "# Source: do-prod:${PROD_BUCKET}"
             echo "# Destination: do-backup:${BACKUP_BUCKET}/media/"
+            echo "# L'elenco è quello dei file di produzione al momento della copia:"
+            echo "# la copia è terminata senza errori, quindi il backup li contiene tutti."
             echo "---"
           } > "$MANIFEST_FILE"
 
-          if rclone lsl "do-backup:${BACKUP_BUCKET}/media/" \
+          if rclone lsl "do-prod:${PROD_BUCKET}" \
             --fast-list \
             --retries 2 \
             --low-level-retries 3 \
             >> "$MANIFEST_FILE" 2>/dev/null; then
             # Le righe dell'intestazione non sono file.
-            BACKUP_COUNT=$(($(wc -l < "$MANIFEST_FILE") - 5))
+            BACKUP_COUNT=$(($(wc -l < "$MANIFEST_FILE") - 7))
             echo "manifest_ok=true" >> "$GITHUB_OUTPUT"
-            echo "📁 File nel backup: ${BACKUP_COUNT}"
+            echo "📁 File nel manifest: ${BACKUP_COUNT}"
           else
             BACKUP_COUNT=0
             echo "manifest_ok=false" >> "$GITHUB_OUTPUT"
             echo "# ELENCO NON RIUSCITO — i file sono copiati, manca il loro indice." >> "$MANIFEST_FILE"
-            echo "⚠️ Elenco del bucket di backup non riuscito: i file sono copiati, manca il manifest."
+            echo "⚠️ Elenco non riuscito: i file sono copiati, manca il manifest."
           fi
 
           echo "backup_count=${BACKUP_COUNT}" >> "$GITHUB_OUTPUT"
