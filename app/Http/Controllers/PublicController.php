@@ -187,6 +187,10 @@ class PublicController extends Controller
             // condizioni stanno dentro lo stesso gruppo, altrimenti l'OR
             // scavalcherebbe ogni altro filtro.
             $team = Team::with('media')
+                // Solo squadre della societa': `teams` tiene anche le
+                // avversarie importate dalla Lega, e una di loro con la
+                // categoria valorizzata finirebbe sulla pagina della rosa.
+                ->where('is_internal', true)
                 ->where(fn ($query) => $query
                     ->when($teamSlug !== null, fn ($q) => $q->where('slug', $teamSlug))
                     ->orWhere('category', $categoria))

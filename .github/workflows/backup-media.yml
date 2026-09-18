@@ -146,12 +146,29 @@ jobs:
       # ---------------------------------------------------------------
       # 5. Genera manifest
       # ---------------------------------------------------------------
+      # Il manifest elenca il bucket di backup UNA volta sola. Prima erano due
+      # scansioni complete di oltre dodicimila oggetti (`lsl` per l'elenco,
+      # `lsf --recursive` per il conteggio) e DO Spaces limita la frequenza
+      # delle LIST: rclone ritentava col suo backoff e lo step restava appeso
+      # fino al tetto di due ore del job. Dal 23/08/2026 al 13/09/2026 il
+      # backup è morto così ogni domenica — con i file già copiati, perché la
+      # copia finisce in cinque minuti allo step precedente.
+      #
+      # Il conteggio ora si ricava dal manifest, `--fast-list` chiede l'elenco
+      # in blocchi invece che cartella per cartella, e il passo non può più
+      # fermare il workflow: se l'elenco non arriva il backup resta valido, è
+      # solo il suo indice a mancare (il riepilogo lo dichiara).
       - name: Genera manifest post-sync
         id: manifest
         if: steps.pre_sync.outputs.skip_sync != 'true'
+        continue-on-error: true
+        timeout-minutes: 20
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H%M%SZ")
           MANIFEST_FILE="manifest-${TIMESTAMP}.txt"
+
+          echo "timestamp=${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+          echo "manifest_file=${MANIFEST_FILE}" >> "$GITHUB_OUTPUT"
 
           echo "📋 Generazione manifest..."
           {
@@ -160,15 +177,25 @@ jobs:
             echo "# Source: do-prod:${PROD_BUCKET}"
             echo "# Destination: do-backup:${BACKUP_BUCKET}/media/"
             echo "---"
-            rclone lsl "do-backup:${BACKUP_BUCKET}/media/" 2>/dev/null || true
           } > "$MANIFEST_FILE"
 
-          BACKUP_COUNT=$(rclone lsf "do-backup:${BACKUP_BUCKET}/media/" --recursive 2>/dev/null | wc -l)
-          echo "backup_count=${BACKUP_COUNT}" >> "$GITHUB_OUTPUT"
-          echo "timestamp=${TIMESTAMP}" >> "$GITHUB_OUTPUT"
-          echo "manifest_file=${MANIFEST_FILE}" >> "$GITHUB_OUTPUT"
+          if rclone lsl "do-backup:${BACKUP_BUCKET}/media/" \
+            --fast-list \
+            --retries 2 \
+            --low-level-retries 3 \
+            >> "$MANIFEST_FILE" 2>/dev/null; then
+            # Le righe dell'intestazione non sono file.
+            BACKUP_COUNT=$(($(wc -l < "$MANIFEST_FILE") - 5))
+            echo "manifest_ok=true" >> "$GITHUB_OUTPUT"
+            echo "📁 File nel backup: ${BACKUP_COUNT}"
+          else
+            BACKUP_COUNT=0
+            echo "manifest_ok=false" >> "$GITHUB_OUTPUT"
+            echo "# ELENCO NON RIUSCITO — i file sono copiati, manca il loro indice." >> "$MANIFEST_FILE"
+            echo "⚠️ Elenco del bucket di backup non riuscito: i file sono copiati, manca il manifest."
+          fi
 
-          echo "📁 File nel backup: ${BACKUP_COUNT}"
+          echo "backup_count=${BACKUP_COUNT}" >> "$GITHUB_OUTPUT"
 
       # ---------------------------------------------------------------
       # 6. Upload manifest e log (fix #2: usa env vars)
@@ -217,6 +244,9 @@ jobs:
           echo "  Timestamp:       ${{ steps.manifest.outputs.timestamp }}"
           echo "  File produzione: ${{ steps.pre_sync.outputs.prod_count }}"
           echo "  File backup:     ${{ steps.manifest.outputs.backup_count }}"
+          if [ "${{ steps.manifest.outputs.manifest_ok }}" != "true" ]; then
+            echo "  Manifest:        ⚠️ non generato (file copiati, indice mancante)"
+          fi
           echo "  Modalità:        Copia incrementale con checksum (no delete)"
           echo "  Trigger:         ${{ github.event_name }}"
           echo "============================================="
@@ -239,7 +269,10 @@ jobs:
     name: Notifica fallimento
     runs-on: ubuntu-latest
     needs: backup-media
-    if: failure()
+    # Anche `cancelled()`: un job fermato dal tetto di `timeout-minutes` non si
+    # conclude "failure" e per quattro domeniche di fila nessuno ha ricevuto
+    # niente mentre il backup moriva.
+    if: failure() || cancelled()
     permissions:
       issues: write
     steps:

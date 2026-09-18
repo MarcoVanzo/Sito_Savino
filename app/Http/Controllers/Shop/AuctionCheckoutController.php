@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class AuctionCheckoutController extends Controller
 {
@@ -53,7 +54,7 @@ class AuctionCheckoutController extends Controller
     /**
      * Mostra la pagina di checkout per il vincitore dell'asta.
      */
-    public function show(string $token): Response|RedirectResponse
+    public function show(string $token): Response|RedirectResponse|SymfonyResponse
     {
         $auction = Auction::where('winner_checkout_token', $token)->first();
 
@@ -90,7 +91,7 @@ class AuctionCheckoutController extends Controller
             $retryUrl = $this->openPaymentSession($existingOrder);
 
             if ($retryUrl) {
-                return redirect()->away($retryUrl);
+                return Inertia::location($retryUrl);
             }
         } elseif ($existingOrder) {
             // Ordine annullato/rimborsato o già in lavorazione: non è pagabile e
@@ -136,7 +137,7 @@ class AuctionCheckoutController extends Controller
     /**
      * Processa il checkout dell'asta e avvia il pagamento Stripe.
      */
-    public function store(Request $request, string $token): RedirectResponse
+    public function store(Request $request, string $token): RedirectResponse|SymfonyResponse
     {
         $auction = Auction::where('winner_checkout_token', $token)->first();
 
@@ -189,10 +190,14 @@ class AuctionCheckoutController extends Controller
                 return back()->with('error', __('messages.checkout.error'));
             }
 
-            // Pagamento forzato su Stripe
+            // Pagamento forzato su Stripe. Inertia::location e non
+            // redirect()->away(): il form di checkout è Inertia e un 302 verso
+            // stripe.com verrebbe seguito dalla XHR, che muore sul CORS del
+            // gateway con l'ordine già creato e la merce riservata. Fuori da
+            // Inertia degrada da sé al 302 di prima.
             $url = app(StripePaymentService::class)->createSession($result['order']);
 
-            return redirect()->away($url);
+            return Inertia::location($url);
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {

@@ -36,6 +36,8 @@ return [
     ],
 
     'preview' => [
+        // L'anteprima si chiude solo se lo si chiede: vedi PreviewBasicAuth.
+        'enabled' => env('PREVIEW_AUTH_ENABLED', false),
         'user' => env('PREVIEW_AUTH_USER'),
         'pass' => env('PREVIEW_AUTH_PASS'),
     ],

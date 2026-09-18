@@ -28,6 +28,24 @@ enum PaymentGateway: string implements HasLabel
         };
     }
 
+    /**
+     * Il gateway ha le credenziali per lavorare.
+     *
+     * Il metodo di pagamento si sceglie dal pannello, ma le chiavi stanno
+     * nell'ambiente: offrire una carta di credito senza le chiavi di Stripe
+     * significa mandare il cliente in errore DOPO aver creato l'ordine e
+     * riservato la merce. Meglio non mostrarlo affatto.
+     */
+    public function configurato(): bool
+    {
+        return match ($this) {
+            self::Stripe => filled(config('services.stripe.secret')),
+            self::PayPal => filled(config('services.paypal.client_id'))
+                && filled(config('services.paypal.client_secret')),
+            self::BankTransfer => true,
+        };
+    }
+
     public function getIcon(): string
     {
         return match ($this) {

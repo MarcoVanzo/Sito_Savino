@@ -168,6 +168,17 @@ jobs:
       - name: Security Audit (Composer)
         run: composer audit --abandoned=report
 
+      # Lo stesso controllo per le dipendenze JavaScript, che finora non aveva
+      # nessuno: a settembre 2026 la produzione montava dompurify 3.4.12 con un
+      # XSS aperto — ed è la libreria che sanifica il contenuto del CMS prima
+      # che finisca in `v-html`, cioè l'unica cosa che lo rende innocuo.
+      #
+      # Solo `--omit=dev`: è il codice che arriva al browser del visitatore.
+      # Gli advisory su vitest e sugli altri strumenti di sviluppo non entrano
+      # nel bundle e bloccherebbero il deploy per un rischio che non corriamo.
+      - name: Security Audit (npm, solo dipendenze di produzione)
+        run: npm audit --omit=dev --audit-level=moderate
+
   # Deploy gated: esegue SOLO su push a main, DOPO che i test passano
   deploy:
     name: Deploy to DigitalOcean

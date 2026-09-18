@@ -37,6 +37,12 @@ class CheckUnpaidOrders extends Command
 
         // 2. Auto-cancel: ordini pending via bonifico (7gg) o digitali abbandonati (1h)
         $ordersToCancel = Order::where('status', OrderStatus::Pending)
+            // Un ordine con una transazione registrata NON e' un checkout
+            // abbandonato: il denaro e' stato incassato e l'ordine e' rimasto in
+            // attesa apposta (importo diverso dal totale, revisione manuale).
+            // Annullarlo qui rimetterebbe la merce a scaffale lasciando i soldi
+            // del cliente senza ordine.
+            ->whereNull('payment_id')
             ->where(function ($query) {
                 // Bonifico: cancella dopo 7 giorni
                 $query->where(function ($q) {

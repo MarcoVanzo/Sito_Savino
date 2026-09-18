@@ -620,3 +620,83 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   dominio fuori elenco verrebbe caricato dentro la pagina con i permessi del
   sito: in quel caso il frontend apre una scheda nuova invece di incorporarlo.
   Non allargare la lista senza valutare cosa si sta incorporando.
+
+---
+
+## 17. Pagamenti dello shop (Stripe, PayPal, bonifico)
+
+- **Per uscire dal sito verso il gateway serve `Inertia::location()`, mai
+  `redirect()->away()`.** Il modulo di checkout è un form Inertia: la POST parte
+  come XHR, e un 302 verso stripe.com o paypal.com viene seguito dalla stessa
+  XHR, che sbatte contro il CORS del gateway e muore in console — con l'ordine
+  già creato e la merce riservata. Vale per il checkout dello shop e per quello
+  delle aste. Fuori da Inertia `Inertia::location` degrada da sé al 302.
+- **Gli indirizzi di ritorno si chiedono a `Order::successUrl()` /
+  `cancelUrl()`**, non si ricompongono a mano: il segmento della rotta si chiama
+  `orderToken`, e scritto `['order' => …]` il generatore lancia
+  `UrlGenerationException` — la sessione di pagamento non nasceva affatto, né
+  con Stripe né con PayPal.
+- **PayPal incassa in due punti, ed è voluto.** La cattura avviene al ritorno
+  del cliente (`CheckoutController::success`, con il `token` che PayPal mette in
+  coda al `return_url`) e nel webhook `CHECKOUT.ORDER.APPROVED`. Il primo che
+  arriva registra il pagamento, l'altro si ferma sull'idempotenza della coppia
+  (ordine, transazione); un ordine già catturato (`ORDER_ALREADY_CAPTURED`) non
+  è un errore, si rilegge. Con la sola strada del webhook, una notifica che non
+  arriva significava denaro mai incassato e ordine annullato dopo un'ora.
+- **Il numero d'ordine non si legge solo dalla risposta della cattura.** Lo
+  schema di PayPal dichiara `custom_id` sull'unità d'acquisto e sulla cattura,
+  ma non garantisce che la risposta lo riporti: si guarda anche l'ordine
+  contenuto nell'evento e, in ultima istanza, si risolve l'ordine dal
+  `reference_id` (il numero d'ordine).
+- **Un gateway senza credenziali non si offre** (`PaymentGateway::configurato()`,
+  usato dalla pagina di checkout e dalla validazione): mostrarlo significa
+  creare l'ordine, riservare la merce e solo allora mandare il cliente
+  sull'errore generico. In produzione le chiavi di Stripe non sono impostate:
+  finché restano fuori, quel metodo non compare.
+- **L'importo incassato si confronta con il totale dell'ordine.** Fra
+  l'apertura della sessione e il pagamento il totale può cambiare (il pannello
+  ritocca l'ordine, si riprova un pagamento): incassato meno del dovuto, il
+  pagamento si registra ma l'ordine NON si conferma e va in revisione manuale;
+  incassato di più, l'ordine si conferma e la differenza resta segnalata.
+- **Un ordine con `payment_id` valorizzato non si annulla e non si ripaga.**
+  `order:check-unpaid` salta gli ordini con una transazione registrata (non
+  sono checkout abbandonati: i soldi sono in cassa) e il pulsante "riprova il
+  pagamento" li manda alla pagina di conferma invece di aprire una seconda
+  sessione.
+- **`php artisan paypal:verifica`** dice se le credenziali sono buone, se il
+  webhook configurato esiste, se punta a questo sito e se ascolta gli eventi che
+  il codice gestisce. Dall'esterno non si distingue un impianto sano da uno
+  rotto: l'endpoint risponde 400 sia con la firma sbagliata sia con le
+  credenziali sbagliate. Va lanciato dove vivono le variabili (in locale con le
+  chiavi sandbox, in produzione dalla console dell'app).
+
+---
+
+## 18. Content Security Policy e header di sicurezza
+
+`App\Http\Middleware\SecurityHeadersMiddleware` serve **due policy diverse**, e
+la differenza sta solo in `script-src`:
+
+- **Sito pubblico**: niente `unsafe-inline` né `unsafe-eval`. Gli script in
+  linea passano per un **nonce** generato a ogni richiesta
+  (`Vite::useCspNonce()`), che `app.blade.php` stampa sui tag propri e passa a
+  `@routes(null, $cspNonce)`. **Un nuovo `<script>` in linea nel layout, o un
+  gestore scritto dentro un attributo (`onload=`, `onclick=`), non viene
+  eseguito**: il nonce non copre gli attributi di evento — era il caso del
+  foglio dei font, caricato con `rel=preload` e `onload`, ora un normale
+  `rel=stylesheet`. GA4 e il Pixel restano leciti perché si iniettano da soli
+  creando un tag con `src` verso i loro host, senza codice in linea.
+- **Pannello** (`admin`, `admin/*`, `filament/*`, `livewire/*`): `unsafe-inline`
+  e `unsafe-eval` restano, perché Alpine valuta le espressioni dei template con
+  `new Function`, e in più sono ammessi `fonts.bunny.net` (il font Outfit di
+  Filament). Il pannello **non passa dal gruppo `web`**: il middleware è
+  registrato nel suo stack in `AdminPanelProvider`, ed è da lì che arrivano
+  anche `X-Frame-Options` e gli altri header, che prima gli mancavano del tutto.
+
+Una pagina servita da `CachePublicResponse` ripete per un minuto il nonce con
+cui è stata costruita: quella cache salva l'HTML e le sue intestazioni insieme,
+quindi restano coerenti. Separare i due (per esempio rigenerando l'header su un
+cache hit) lascerebbe la pagina senza script, in silenzio.
+
+`frame-src` e l'elenco di `LiveStream::embedUrl()` vanno tenuti allineati (§16).
+Test in `tests/Feature/SecurityHeadersTest.php`.

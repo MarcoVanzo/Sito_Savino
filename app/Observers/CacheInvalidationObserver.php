@@ -39,13 +39,30 @@ class CacheInvalidationObserver
      * Mantenere allineate con le chiavi usate nei controller pubblici: per ogni voce
      * viene invalidata sia la chiave nuda sia la variante "<chiave>:<locale>".
      */
+    /**
+     * Le pagine con una rosa: la prima squadra e una per ogni categoria del
+     * vivaio (`Team::CATEGORIE_VIVAIO`). Stavano scritte a mano voce per voce e
+     * si erano fermate alla B1: aperte /stagione/u17 e /stagione/u15, una rosa
+     * modificata in redazione continuava a mostrare quella vecchia finché la
+     * cache non scadeva da sé. `CacheStagioneVivaioTest` tiene allineati i due
+     * elenchi.
+     *
+     * @var list<string>
+     */
+    private const CHIAVI_STAGIONE = [
+        'public:stagione',
+        'public:stagione:b1',
+        'public:stagione:u17',
+        'public:stagione:u15',
+    ];
+
     private const MODEL_CACHE_MAP = [
-        Player::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page', 'public:gallery_athletes', 'public:gallery_images', 'public:home', 'filament:dashboard:stats'],
-        PlayerStat::class => ['public:stagione', 'public:stagione:b1'],
-        PlayerHonour::class => ['public:stagione', 'public:stagione:b1'],
-        Roster::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page'],
-        Season::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page', 'public:risultati', 'public:home'],
-        Team::class => ['public:stagione', 'public:stagione:b1', 'public:roster_page', 'public:risultati', 'filament:dashboard:next_match_id'],
+        Player::class => [...self::CHIAVI_STAGIONE, 'public:roster_page', 'public:gallery_athletes', 'public:gallery_images', 'public:home', 'filament:dashboard:stats'],
+        PlayerStat::class => self::CHIAVI_STAGIONE,
+        PlayerHonour::class => self::CHIAVI_STAGIONE,
+        Roster::class => [...self::CHIAVI_STAGIONE, 'public:roster_page'],
+        Season::class => [...self::CHIAVI_STAGIONE, 'public:roster_page', 'public:risultati', 'public:home'],
+        Team::class => [...self::CHIAVI_STAGIONE, 'public:roster_page', 'public:risultati', 'filament:dashboard:next_match_id'],
         Sponsor::class => ['public:sponsor', 'public:sponsor:tiers'],
         Product::class => ['public:shop'],
         ProductCategory::class => ['public:shop'],

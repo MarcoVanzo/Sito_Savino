@@ -83,6 +83,24 @@ class PagineDelleSquadreYouthTest extends TestCase
     }
 
     /**
+     * La B1 e' arrivata dopo, con una migrazione sua: la voce di menu e la
+     * pagina esistevano da sempre, la squadra no, e la rosa restava vuota
+     * qualunque cosa la redazione tesserasse.
+     */
+    public function test_anche_la_b1_ha_la_sua_squadra_e_la_sua_rosa(): void
+    {
+        $atleta = $this->atletaDi('B1', 'Verdi');
+
+        $this->get('/stagione/b1')
+            ->assertOk()
+            ->assertInertia(fn ($pagina) => $pagina
+                ->component('Public/Stagione')
+                ->where('teamLabel', 'Serie B1 / U19')
+                ->where('roster.0.player.last_name', $atleta->last_name)
+                ->has('roster', 1));
+    }
+
+    /**
      * La squadra e' quella creata dalla migrazione: il test usa l'archivio
      * vero, non una squadra inventata che finirebbe in doppione sulla stessa
      * categoria.

@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Models\Page;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -113,6 +114,12 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                // Il pannello non passa dal gruppo `web`, quindi non vedeva
+                // nessuno degli header di sicurezza: rispondeva senza CSP e
+                // senza `X-Frame-Options`, cioè incorniciabile in un iframe
+                // altrui — che su un pannello dove si cambiano prezzi e ordini
+                // è il bersaglio più goloso del sito pubblico.
+                SecurityHeadersMiddleware::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

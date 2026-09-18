@@ -18,7 +18,8 @@ class ProductVariantFactory extends Factory
             'color' => fake()->safeColorName(),
             'sku' => strtoupper(fake()->bothify('VAR-??-####')),
             'price_modifier' => fake()->randomFloat(2, -10, 20),
-            'stock' => fake()->numberBetween(0, 50),
+            // Mai zero, per la stessa ragione della fabbrica dei prodotti.
+            'stock' => fake()->numberBetween(5, 50),
         ];
     }
 }
