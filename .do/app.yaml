@@ -184,7 +184,7 @@ services:
   - key: ACTIVECAMPAIGN_API_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: 6caf9e1800fc6da3fdbf3bd991880e8528093a488ebc5acd29d7b3681201d0d1f4732524
+    value: EV[1:5hYulrTHr58XBdSrStn5Tk7/DxTog0Hi:gPF/M0G2B2ys6GGDayu+E619PjpX9riMpaJAJJogznv7K3CGEczu7RbotWR6G4SIHlVX28qN0eUkLuugU+/QsJwTMIrKQ1q3qf7rCUZ0JsiBCdtSPGtrpQ==]
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
     value: "2"
@@ -378,7 +378,7 @@ workers:
   - key: ACTIVECAMPAIGN_API_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: 6caf9e1800fc6da3fdbf3bd991880e8528093a488ebc5acd29d7b3681201d0d1f4732524
+    value: EV[1:154oo3OU8n9CrG9XdwB/wI2k2jErtd6V:7Xj4qLPUZ9vYGANuSodv8EtE6E3DPZkC71U5bJWLjYdmEu0I13nIVRfbF67Ibp81Gn+kmWWpPlgMiIPAjw5uYX0lBSEDg18ZOq6IORglNOVYFmMFdrNtWQ==]
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
     value: "2"
@@ -531,7 +531,7 @@ workers:
   - key: ACTIVECAMPAIGN_API_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: 6caf9e1800fc6da3fdbf3bd991880e8528093a488ebc5acd29d7b3681201d0d1f4732524
+    value: EV[1:NoAFPtuxUtIILZ1tk9MK8jsnorofncyF:m4fqVPs5knlkaYDL7TTQMPMj+azmdLLUyLFg5L8juBrddY8raKNpfDk8R2fcVIORVQ7o1Dd4sHbE3zitrqE4C5MA/j6KWvuDQY/H3zmHeX0VHcCvxpPbyw==]
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
     value: "2"
