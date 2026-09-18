@@ -68,7 +68,9 @@ function elencoDiTesti(raw, chiave) {
  */
 function haContenuto(voce) {
     return voce
-        .replace(/<[^>]*>/g, '')
+        // `[^<>]` e non `[^>]`: senza escludere anche l'apertura, una sfilza
+        // di `<` fa ripercorrere al motore la stessa stringa molte volte.
+        .replace(/<[^<>]*>/g, '')
         .replace(/&nbsp;/gi, ' ')
         .trim() !== ''
 }

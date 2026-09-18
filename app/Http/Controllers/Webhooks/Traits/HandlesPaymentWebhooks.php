@@ -89,53 +89,8 @@ trait HandlesPaymentWebhooks
                 }
 
                 // L'importo dichiarato dal gateway deve essere quello dell'ordine.
-                // Fra l'apertura della sessione di pagamento e l'incasso il
-                // totale può cambiare — il pannello aggiunge una riga, si
-                // riprova un pagamento su un ordine ritoccato — e il cliente
-                // paga comunque la cifra della sessione vecchia: senza questo
-                // controllo l'ordine risultava pagato per intero con in cassa
-                // meno soldi, e nessuno se ne accorgeva.
-                $scarto = $this->scartoSulTotale($order, $result);
-
-                if ($scarto !== null && $scarto < 0) {
-                    // Incassato meno del dovuto: il pagamento è un fatto e va
-                    // registrato, ma l'ordine non si conferma da solo.
-                    $order->payment_id = $result['payment_id'];
-                    $order->paid_at = now();
-                    $order->save();
-
-                    Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: incassato meno del totale dell'ordine — ordine NON confermato, revisione manuale", [
-                        'order_id' => $order->id,
-                        'payment_id' => $result['payment_id'],
-                        'incassato' => $result['amount'],
-                        'totale' => (float) $order->total_price,
-                    ]);
-
-                    $this->flagForManualReview(
-                        $order,
-                        'amount_mismatch',
-                        "Incassati {$result['amount']} € su un totale di ".number_format((float) $order->total_price, 2).' €: verificare prima di confermare l\'ordine.',
-                        ['incassato' => $result['amount'], 'totale' => (float) $order->total_price]
-                    );
-
+                if ($this->importoDiscorde($order, $result) === 'needs_review') {
                     return 'needs_review';
-                }
-
-                if ($scarto !== null && $scarto > 0) {
-                    // Incassato più del dovuto: l'ordine è pagato e si conferma,
-                    // ma la differenza va restituita.
-                    Log::warning("{$this->getGatewayName()} {$this->canaleDiIncasso()}: incassato più del totale dell'ordine", [
-                        'order_id' => $order->id,
-                        'incassato' => $result['amount'],
-                        'totale' => (float) $order->total_price,
-                    ]);
-
-                    $this->flagForManualReview(
-                        $order,
-                        'overpaid',
-                        "Incassati {$result['amount']} € su un totale di ".number_format((float) $order->total_price, 2).' €: differenza da rimborsare.',
-                        ['incassato' => $result['amount'], 'totale' => (float) $order->total_price]
-                    );
                 }
 
                 // Se l'ordine era già stato annullato/rimborsato lo stock è stato
@@ -248,6 +203,70 @@ trait HandlesPaymentWebhooks
 
             return response()->json(['error' => 'Errore interno'], 500);
         }
+    }
+
+    /**
+     * Confronta l'incasso col totale dell'ordine e decide cosa farne.
+     *
+     * Fra l'apertura della sessione di pagamento e l'incasso il totale può
+     * cambiare — il pannello aggiunge una riga, si riprova un pagamento su un
+     * ordine ritoccato — e il cliente paga comunque la cifra della sessione
+     * vecchia: senza questo controllo l'ordine risultava pagato per intero con
+     * in cassa meno soldi, e nessuno se ne accorgeva.
+     *
+     * Incassato meno del dovuto: il pagamento è un fatto e va registrato, ma
+     * l'ordine non si conferma da solo ('needs_review'). Incassato di più:
+     * l'ordine si conferma e la differenza resta segnalata.
+     *
+     * @param  array<string, mixed>  $result
+     */
+    private function importoDiscorde(Order $order, array $result): ?string
+    {
+        $scarto = $this->scartoSulTotale($order, $result);
+
+        if ($scarto === null) {
+            return null;
+        }
+
+        $incassato = $result['amount'];
+        $totale = number_format((float) $order->total_price, 2);
+
+        if ($scarto < 0) {
+            $order->payment_id = $result['payment_id'];
+            $order->paid_at = now();
+            $order->save();
+
+            Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: incassato meno del totale dell'ordine — ordine NON confermato, revisione manuale", [
+                'order_id' => $order->id,
+                'payment_id' => $result['payment_id'],
+                'incassato' => $incassato,
+                'totale' => (float) $order->total_price,
+            ]);
+
+            $this->flagForManualReview(
+                $order,
+                'amount_mismatch',
+                "Incassati {$incassato} € su un totale di {$totale} €: verificare prima di confermare l'ordine.",
+                ['incassato' => $incassato, 'totale' => (float) $order->total_price]
+            );
+
+            return 'needs_review';
+        }
+
+        Log::warning("{$this->getGatewayName()} {$this->canaleDiIncasso()}: incassato più del totale dell'ordine", [
+            'order_id' => $order->id,
+            'incassato' => $incassato,
+            'totale' => (float) $order->total_price,
+        ]);
+
+        $this->flagForManualReview(
+            $order,
+            'overpaid',
+            "Incassati {$incassato} € su un totale di {$totale} €: differenza da rimborsare.",
+            ['incassato' => $incassato, 'totale' => (float) $order->total_price]
+        );
+
+        return null;
     }
 
     /**

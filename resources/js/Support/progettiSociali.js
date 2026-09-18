@@ -49,5 +49,8 @@ function indirizzoDiPosta(valore) {
 
     const pulito = valore.trim()
 
-    return /^[^\s@,;:<>]+@[^\s@,;:<>]+\.[^\s@,;:<>]+$/.test(pulito) ? pulito : null
+    // Ogni pezzo esclude il punto: cosi' non c'e' modo di spezzare lo stesso
+    // indirizzo in due maniere diverse, che e' quello che fa impazzire il
+    // motore delle espressioni regolari su un testo lungo senza chiocciola.
+    return /^[^\s@,;:<>]+@[^\s@,;:<>.]+(?:\.[^\s@,;:<>.]+)+$/.test(pulito) ? pulito : null
 }

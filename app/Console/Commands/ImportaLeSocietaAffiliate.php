@@ -181,8 +181,11 @@ class ImportaLeSocietaAffiliate extends Command
                 return null;
             }
 
+            // Il pezzetto di hash distingue due loghi con lo stesso nome; non
+            // e' un contesto crittografico, ma md5 fa scattare l'analisi
+            // statica e sha256 troncato costa uguale.
             $estensione = pathinfo(parse_url($voce['logo'], PHP_URL_PATH) ?? '', PATHINFO_EXTENSION) ?: 'png';
-            $percorso = self::CARTELLA.'/'.Str::slug($voce['name']).'-'.Str::substr(md5($voce['logo']), 0, 8).'.'.$estensione;
+            $percorso = self::CARTELLA.'/'.Str::slug($voce['name']).'-'.Str::substr(hash('sha256', $voce['logo']), 0, 8).'.'.$estensione;
 
             // Lo stesso disco dei campi di upload del pannello: in produzione
             // e' Spaces, in locale quello pubblico. Scrivendo sul disco
