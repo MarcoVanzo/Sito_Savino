@@ -51,6 +51,13 @@ services:
     scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: EV[1:RUWZWKvJM8r0wVrFVOaICwXh5QlfgFFx:DfBDG/9Cwe6n071yJRZRL7V52SH21MaLsortBRZgqnztQEL9jkzdSCrNmmYl1qPiQYTRvacg3+5l2w61bo3ANT3TBw==]
+  # Il sito è pubblico: la basic auth dell'anteprima resta spenta finché non
+  # la si accende qui. Le due credenziali sotto restano pronte per quando
+  # servirà richiuderlo (con la protezione accesa e i segreti vuoti il sito
+  # risponde 503, non si apre).
+  - key: PREVIEW_AUTH_ENABLED
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
   - key: PREVIEW_AUTH_USER
     scope: RUN_AND_BUILD_TIME
     type: SECRET
