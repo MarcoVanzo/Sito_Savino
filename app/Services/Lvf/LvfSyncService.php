@@ -325,10 +325,15 @@ class LvfSyncService
         }
 
         // Primo aggancio in assoluto: si prende una squadra interna ancora
-        // vergine. Una già collegata ad altri club non viene mai ripuntata.
+        // vergine. Una già collegata ad altri club non viene mai ripuntata, e
+        // le squadre del vivaio restano fuori: giocano altri campionati e
+        // agganciarci il club di A1 sposterebbe lì gare e classifica.
         return Team::where('is_internal', true)
             ->whereDoesntHave('lvfClubIds')
             ->whereNull('lvf_club_id')
+            ->where(fn ($query) => $query
+                ->whereNull('category')
+                ->orWhereNotIn('category', Team::CATEGORIE_VIVAIO))
             ->orderBy('id')
             ->first();
     }

@@ -52,7 +52,14 @@ const slots = computed(() => {
     return elenco.filter(t => t?.time || t?.years);
 });
 
-const partners = computed(() => (typeof cd.value.partners === 'string' ? cd.value.partners.trim() : ''));
+// `partners_note`: la chiave si chiamava `partners`, come l'elenco dei partner
+// delle Convenzioni, e quel nome condiviso mandava in errore il pannello.
+// La vecchia resta come ripiego per le pagine non ancora migrate.
+const partners = computed(() => {
+    const valore = cd.value.partners_note ?? cd.value.partners;
+
+    return typeof valore === 'string' ? valore.trim() : '';
+});
 const signupUrl = computed(() => safeUrl(cd.value.signup_url) || null);
 const signupEmail = computed(() => cd.value.signup_email || contact.value.email || null);
 

@@ -24,10 +24,10 @@ return function (string $namePrefix): void {
     Route::get('/', [PublicController::class, 'home'])->name('home');
     Route::get('/stagione', [PublicController::class, 'stagione'])->name('stagione');
     Route::get('/stagione/b1', [PublicController::class, 'stagioneB1'])->name('stagione.b1');
-    // Indirizzo proprio del banner palmarès: apre /stagione con la
-    // finestra di un'atleta già aperta, così il link è condivisibile.
-    Route::get('/stagione/atleta/{slug}', [PublicController::class, 'stagioneAtleta'])
-        ->name('stagione.atleta');
+    // Le altre due squadre del vivaio hanno una pagina ciascuna, come la B1:
+    // erano un'unica voce "Serie U17 & U15" che finiva in costruzione.
+    Route::get('/stagione/u17', [PublicController::class, 'stagioneU17'])->name('stagione.u17');
+    Route::get('/stagione/u15', [PublicController::class, 'stagioneU15'])->name('stagione.u15');
     // Indirizzo proprio del banner palmarès: apre /stagione con la
     // finestra di un'atleta già aperta, così il link è condivisibile.
     Route::get('/stagione/atleta/{slug}', [PublicController::class, 'stagioneAtleta'])
@@ -112,8 +112,17 @@ return function (string $namePrefix): void {
     Route::get('/youth/b1-u19', function () use ($namePrefix) {
         return redirect()->route($namePrefix.'stagione.b1', [], 301);
     })->name('youth.b1-u19');
+    Route::get('/youth/u17', function () use ($namePrefix) {
+        return redirect()->route($namePrefix.'stagione.u17', [], 301);
+    })->name('youth.u17');
+    Route::get('/youth/u15', function () use ($namePrefix) {
+        return redirect()->route($namePrefix.'stagione.u15', [], 301);
+    })->name('youth.u15');
+    // La vecchia voce unica: chi arriva da un link salvato o dai motori di
+    // ricerca finisce sulla piu' grande delle due, non su una pagina "in
+    // costruzione" che ormai non esiste.
     Route::get('/youth/u17-u15', function () use ($namePrefix) {
-        return redirect()->route($namePrefix.'in-costruzione', [], 301);
+        return redirect()->route($namePrefix.'stagione.u17', [], 301);
     })->name('youth.u17-u15');
     // Stessa cosa per il vivaio: `/youth` serviva una copia con i testi del
     // seeder ("Formare campioni dentro e fuori dal campo") mentre la

@@ -27,6 +27,11 @@ const cd = computed(() => props.page?.content_data ?? {})
 // quello in Impostazioni -> Contatti.
 const scoutingEmail = computed(() => cd.value.scouting_email || contact.value.youth_email || null)
 
+// Le foto di squadra, dall'Under 19 alla Promozionale: una voce senza foto non
+// ha niente da mostrare e resta fuori.
+const teamPhotos = computed(() => (Array.isArray(cd.value.team_photos) ? cd.value.team_photos : [])
+    .filter(squadra => squadra && typeof squadra === 'object' && typeof squadra.photo === 'string' && squadra.photo !== ''))
+
 
 const ogMeta = useOgMeta({
     title: props.page?.title ?? $t('youth.og_title'),
@@ -92,6 +97,31 @@ const ogMeta = useOgMeta({
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Foto delle squadre: grandi, una per squadra -->
+        <section v-if="teamPhotos.length" class="py-16 bg-gray-50" data-test="youth-team-photos">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div v-if="cd.team_photos_heading" class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight">{{ cd.team_photos_heading }}</h2>
+                    <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4"></div>
+                </div>
+
+                <div class="space-y-14">
+                    <figure v-for="(squadra, index) in teamPhotos" :key="index">
+                        <figcaption class="text-center mb-5">
+                            <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tight">{{ squadra.title }}</h3>
+                            <p v-if="squadra.caption" class="text-gray-500 text-sm mt-1">{{ squadra.caption }}</p>
+                        </figcaption>
+                        <img
+                            :src="squadra.photo"
+                            :alt="squadra.title || ''"
+                            class="w-full h-auto rounded-2xl shadow-xl"
+                            loading="lazy"
+                        />
+                    </figure>
                 </div>
             </div>
         </section>

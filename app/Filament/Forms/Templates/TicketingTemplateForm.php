@@ -105,17 +105,24 @@ class TicketingTemplateForm
                 Forms\Components\Repeater::make('content_data.benefits')
                     ->label('Elenco dei vantaggi')
                     ->schema([
-                        Forms\Components\Textarea::make('text')
+                        // Editor e non area di testo: la redazione evidenzia in
+                        // grassetto una parte della frase (l'importo, la data,
+                        // il nome del partner), e in una Textarea ne' Ctrl+B ne'
+                        // il copia-incolla da un documento lasciano formattazione.
+                        Forms\Components\RichEditor::make('text')
                             ->label('Vantaggio')
                             ->required()
-                            ->rows(2)
+                            ->toolbarButtons(['bold', 'italic', 'link', 'undo', 'redo'])
+                            ->helperText('Grassetto con il pulsante B o Ctrl+B; il corsivo e i collegamenti funzionano allo stesso modo.')
                             ->placeholder('es. Sconto del 10% sul merchandising ufficiale presentando la tessera dell\'abbonamento'),
                     ])
                     ->columnSpanFull()
                     ->defaultItems(0)
                     ->reorderable()
                     ->collapsible()
-                    ->itemLabel(fn (array $state): ?string => $state['text'] ?? null)
+                    // L'etichetta della voce chiusa e' testo, non markup: con
+                    // l'editor il valore arriva come <p>...</p>.
+                    ->itemLabel(fn (array $state): ?string => self::soloTesto($state['text'] ?? null))
                     ->createItemButtonLabel('Aggiungi vantaggio'),
             ]);
     }
@@ -226,6 +233,21 @@ class TicketingTemplateForm
                     ->itemLabel(fn (array $state): ?string => $state['name'] ?? null),
             ])
             ->columns(2);
+    }
+
+    /**
+     * L'etichetta di una voce chiusa del ripetitore: solo il testo, senza i tag
+     * dell'editor.
+     */
+    private static function soloTesto(mixed $valore): ?string
+    {
+        if (! is_string($valore)) {
+            return null;
+        }
+
+        $testo = trim(html_entity_decode(strip_tags($valore), ENT_QUOTES | ENT_HTML5));
+
+        return $testo !== '' ? $testo : null;
     }
 
     private static function informazioni(): Forms\Components\Fieldset

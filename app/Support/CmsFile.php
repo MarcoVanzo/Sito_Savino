@@ -29,6 +29,8 @@ class CmsFile
         'documents' => ['file'],
         'press_kits' => ['file'],
         'partners' => ['logo'],
+        'team_photos' => ['photo'],
+        'affiliates' => ['logo'],
     ];
 
     public static function url(mixed $path): ?string

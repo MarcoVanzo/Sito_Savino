@@ -11,6 +11,7 @@
         "excellence_sport": "Eccellenza<br/>nello Sport.",
         "passion_motto": "Passione, determinazione e orgoglio in ogni partita.",
         "discover": "Scopri",
+        "contact_us": "Contattaci",
         "buy_tickets": "Acquista Biglietti",
         "go_to_shop": "Vai allo Shop",
         "all_news": "Tutte le News",
@@ -253,6 +254,13 @@
         "stat_events": "Eventi Annuali",
         "cta_button": "Contattaci per una Proposta",
         "mail_subject": "Savino Del Bene Volley — Richiesta di sponsorizzazione"
+    },
+    "affiliazioni": {
+        "og_title": "Progetto Affiliazioni",
+        "og_description": "Le società del progetto affiliazioni della Savino Del Bene Volley.",
+        "tier_main": "Main Partner",
+        "tier_official": "Partner Ufficiale",
+        "tier_affiliated": "Società Affiliate"
     },
     "under_construction": {
         "og_title": "Sito in Costruzione — Savino Del Bene Volley",

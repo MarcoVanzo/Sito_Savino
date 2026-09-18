@@ -7,6 +7,7 @@ import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useSafeUrl } from '@/Composables/useSafeUrl'
 import PageMediaTail from '@/Components/PageMediaTail.vue'
+import { progettiSociali } from '@/Support/progettiSociali.js'
 
 const $t = useTranslations();
 const { safeUrl } = useSafeUrl();
@@ -26,7 +27,9 @@ const cd = computed(() => props.page?.content_data ?? {})
 
 // Progetti e numeri arrivano solo dal CMS: un elenco scritto qui dentro
 // finirebbe online senza che in redazione esista niente da modificare.
-const projects = computed(() => Array.isArray(cd.value.projects) ? cd.value.projects : [])
+// Il pulsante di ogni scheda ("Contattaci" o "Scopri") lo decide
+// progettiSociali, che ha i test.
+const projects = computed(() => progettiSociali(cd.value.projects, { safeUrl }))
 
 const impactNumbers = computed(() => Array.isArray(cd.value.impact_stats) ? cd.value.impact_stats : [])
 
@@ -118,10 +121,13 @@ const ogMeta = useOgMeta({
                     <p v-if="project.description" class="text-gray-600 leading-relaxed">
                         {{ project.description }}
                     </p>
-                    <div v-if="safeUrl(project.link)" class="mt-6 pt-6 border-t border-gray-100">
-                        <a :href="safeUrl(project.link)" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-fucsia transition-colors">
-                            {{ $t('common.discover') }}
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <div v-if="project.cta" class="mt-6 pt-6 border-t border-gray-100">
+                        <a :href="project.cta.href" class="inline-flex items-center gap-2 text-savino-blue text-sm font-bold uppercase tracking-wider hover:text-savino-fucsia transition-colors">
+                            {{ project.cta.tipo === 'email' ? $t('common.contact_us') : $t('common.discover') }}
+                            <svg v-if="project.cta.tipo === 'email'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                             </svg>
                         </a>

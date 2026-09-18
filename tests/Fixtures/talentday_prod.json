@@ -1,0 +1,310 @@
+{
+    "it": {
+        "dates": [
+            {
+                "dates": "16 - 20 Giugno",
+                "period": "1ª Settimana",
+                "status": "Iscrizioni Aperte"
+            },
+            {
+                "dates": "23 - 27 Giugno",
+                "period": "2ª Settimana",
+                "status": "Iscrizioni Aperte"
+            },
+            {
+                "dates": "30 Giugno - 4 Luglio",
+                "period": "3ª Settimana",
+                "status": "Posti Limitati"
+            },
+            {
+                "dates": "7 - 11 Luglio",
+                "period": "4ª Settimana",
+                "status": "Prossimamente"
+            }
+        ],
+        "slots": [
+            {
+                "time": "16:00 — 17:30",
+                "years": "Atlete nate dal 2012 al 2014"
+            },
+            {
+                "time": "17:30 — 19:00",
+                "years": "Atlete nate dal 2008 al 2011"
+            }
+        ],
+        "stages": [
+            {
+                "date": "19 maggio",
+                "place": "Palasport, via Rialdoli — Scandicci (FI)",
+                "status": "Esaurita",
+                "sold_out": true
+            },
+            {
+                "date": "26 maggio",
+                "place": "Palasport, via Rialdoli — Scandicci (FI)",
+                "status": "Esaurita",
+                "sold_out": true
+            },
+            {
+                "date": "28 maggio",
+                "place": "Roma (RM)",
+                "status": "Esaurita",
+                "sold_out": true
+            },
+            {
+                "date": "3 giugno",
+                "place": "Venezia (VE)",
+                "status": "Esaurita",
+                "sold_out": true
+            },
+            {
+                "date": "4 giugno",
+                "place": "Trieste (TS)",
+                "status": "Esaurita",
+                "sold_out": true
+            },
+            {
+                "date": "5 giugno",
+                "place": "Udine (UD)",
+                "status": "Disponibile",
+                "sold_out": false
+            },
+            {
+                "date": "10 giugno",
+                "place": "Torino (TO)",
+                "status": "Esaurita",
+                "sold_out": true
+            },
+            {
+                "date": "11 giugno",
+                "place": "Lecce (LE)",
+                "status": "Esaurita",
+                "sold_out": true
+            },
+            {
+                "date": "19 giugno",
+                "place": "Catania (CT)",
+                "status": "Esaurita",
+                "sold_out": true
+            },
+            {
+                "date": "29 giugno",
+                "place": "Cagliari (CA)",
+                "status": "Disponibile",
+                "sold_out": false
+            }
+        ],
+        "cta_text": "Iscriviti Ora",
+        "partners": "In collaborazione con Civitavecchia Volley, Fusion Team Volley, Azzurra Volley R.d.R Trieste, VolaValley, Volley Melendugno e Ciclope Volley Bronte.",
+        "activities": [
+            {
+                "icon": "🏐",
+                "title": "Pallavolo",
+                "description": "Allenamenti tecnici e tattici con i coach della prima squadra."
+            },
+            {
+                "icon": "🏋️",
+                "title": "Preparazione Atletica",
+                "description": "Sessioni di forza, agilità e coordinazione per ogni età."
+            },
+            {
+                "icon": "🎯",
+                "title": "Talent Day",
+                "description": "Giornate di selezione aperte per scoprire nuovi talenti."
+            },
+            {
+                "icon": "🏊",
+                "title": "Attività Acquatiche",
+                "description": "Divertimento in piscina e giochi d'acqua per rinfrescarsi."
+            },
+            {
+                "icon": "🎨",
+                "title": "Laboratori Creativi",
+                "description": "Arte, musica e attività espressive per stimolare la creatività."
+            },
+            {
+                "icon": "🤝",
+                "title": "Team Building",
+                "description": "Giochi di squadra e attività per rafforzare lo spirito di gruppo."
+            }
+        ],
+        "camp_title": "Vivi la Pallavolo",
+        "hero_label": "Talent Scouting",
+        "highlights": [
+            "Staff tecnico qualificato",
+            "Gruppi per fasce d'età",
+            "Assicurazione inclusa",
+            "Pranzo e merenda inclusi"
+        ],
+        "signup_cta": "Vai al modulo di iscrizione",
+        "signup_url": "https://www.fusionteamvolley.it/ERP/talent-day/",
+        "dates_title": "Date e Turni",
+        "slots_title": "Orari e Categorie",
+        "signup_title": "Come Iscriversi",
+        "stages_title": "Le Tappe",
+        "hero_subtitle": "Insegui il Tuo Sogno",
+        "activities_title": "Le Nostre Attività",
+        "camp_badge_title": "Summer Camp 2026",
+        "camp_description_1": "Il Summer Camp della Savino Del Bene è un'esperienza unica pensata per ragazze e ragazzi dai 6 ai 16 anni. Un programma completo che unisce la passione per la pallavolo ad attività ricreative e formative.",
+        "camp_description_2": "I nostri istruttori qualificati seguiranno ogni partecipante in un percorso di crescita sportiva e personale, in un ambiente sicuro e stimolante.",
+        "camp_section_label": "Il Camp",
+        "signup_description": "L'iscrizione si effettua compilando il modulo online. I posti di ogni tappa sono limitati.",
+        "camp_badge_subtitle": "Edizione speciale",
+        "dates_section_label": "Calendario",
+        "activities_section_label": "Programma"
+    },
+    "en": {
+        "dates": [
+            {
+                "dates": "June 16 – 20",
+                "period": "Week 1",
+                "status": "Registration Open"
+            },
+            {
+                "dates": "June 23 – 27",
+                "period": "Week 2",
+                "status": "Registration Open"
+            },
+            {
+                "dates": "June 30 – July 4",
+                "period": "Week 3",
+                "status": "Limited Spots"
+            },
+            {
+                "dates": "July 7 – 11",
+                "period": "Week 4",
+                "status": "Coming Soon"
+            }
+        ],
+        "slots": [
+            {
+                "time": "16:00 — 17:30",
+                "years": "Players born between 2012 and 2014"
+            },
+            {
+                "time": "17:30 — 19:00",
+                "years": "Players born between 2008 and 2011"
+            }
+        ],
+        "stages": [
+            {
+                "date": "19 May",
+                "place": "Palasport, via Rialdoli — Scandicci (FI)",
+                "status": "Sold out",
+                "sold_out": true
+            },
+            {
+                "date": "26 May",
+                "place": "Palasport, via Rialdoli — Scandicci (FI)",
+                "status": "Sold out",
+                "sold_out": true
+            },
+            {
+                "date": "28 May",
+                "place": "Rome (RM)",
+                "status": "Sold out",
+                "sold_out": true
+            },
+            {
+                "date": "3 June",
+                "place": "Venice (VE)",
+                "status": "Sold out",
+                "sold_out": true
+            },
+            {
+                "date": "4 June",
+                "place": "Trieste (TS)",
+                "status": "Sold out",
+                "sold_out": true
+            },
+            {
+                "date": "5 June",
+                "place": "Udine (UD)",
+                "status": "Available",
+                "sold_out": false
+            },
+            {
+                "date": "10 June",
+                "place": "Turin (TO)",
+                "status": "Sold out",
+                "sold_out": true
+            },
+            {
+                "date": "11 June",
+                "place": "Lecce (LE)",
+                "status": "Sold out",
+                "sold_out": true
+            },
+            {
+                "date": "19 June",
+                "place": "Catania (CT)",
+                "status": "Sold out",
+                "sold_out": true
+            },
+            {
+                "date": "29 June",
+                "place": "Cagliari (CA)",
+                "status": "Available",
+                "sold_out": false
+            }
+        ],
+        "cta_text": "Enroll Now",
+        "partners": "In partnership with Civitavecchia Volley, Fusion Team Volley, Azzurra Volley R.d.R Trieste, VolaValley, Volley Melendugno and Ciclope Volley Bronte.",
+        "activities": [
+            {
+                "icon": "🏐",
+                "title": "Volleyball",
+                "description": "Technical and tactical training sessions with the first team coaches."
+            },
+            {
+                "icon": "🏋️",
+                "title": "Athletic Training",
+                "description": "Strength, agility, and coordination sessions for all ages."
+            },
+            {
+                "icon": "🎯",
+                "title": "Talent Day",
+                "description": "Open selection days to discover new talents."
+            },
+            {
+                "icon": "🏊",
+                "title": "Water Activities",
+                "description": "Pool fun and water games to cool off."
+            },
+            {
+                "icon": "🎨",
+                "title": "Creative Workshops",
+                "description": "Art, music, and expressive activities to stimulate creativity."
+            },
+            {
+                "icon": "🤝",
+                "title": "Team Building",
+                "description": "Team games and activities to strengthen team spirit."
+            }
+        ],
+        "camp_title": "Experience Volleyball",
+        "hero_label": "Talent Scouting",
+        "highlights": [
+            "Qualified coaching staff",
+            "Groups by age range",
+            "Insurance included",
+            "Lunch and snack included"
+        ],
+        "signup_cta": "Go to the registration form",
+        "signup_url": "https://www.fusionteamvolley.it/ERP/talent-day/",
+        "dates_title": "Dates & Sessions",
+        "slots_title": "Times and Age Groups",
+        "signup_title": "How to Sign Up",
+        "stages_title": "The Stages",
+        "hero_subtitle": "Chase Your Dream",
+        "activities_title": "Our Activities",
+        "camp_badge_title": "Summer Camp 2026",
+        "camp_description_1": "The Savino Del Bene Summer Camp is a unique experience designed for boys and girls aged 6 to 16. A complete program that combines a passion for volleyball with recreational and educational activities.",
+        "camp_description_2": "Our qualified instructors will guide each participant through a journey of sporting and personal growth, in a safe and stimulating environment.",
+        "camp_section_label": "The Camp",
+        "signup_description": "Registration is through the online form. Places at each stage are limited.",
+        "camp_badge_subtitle": "Special edition",
+        "dates_section_label": "Calendar",
+        "activities_section_label": "Program"
+    }
+}

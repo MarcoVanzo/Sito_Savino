@@ -16,6 +16,18 @@ class Team extends Model implements HasMedia
 {
     use HasFactory, HasOptimizedMedia, InteractsWithMedia, LogsActivity, SoftDeletes;
 
+    /**
+     * Le categorie delle squadre del vivaio.
+     *
+     * Sono squadre interne come la prima, ma non giocano il campionato che il
+     * sync della Lega importa: l'elenco serve sia al pannello delle Atlete
+     * Youth sia al sync, che senza questo filtro poteva agganciare
+     * l'identificativo del club di A1 a un'Under.
+     *
+     * @var list<string>
+     */
+    public const CATEGORIE_VIVAIO = ['B1', 'U17', 'U15'];
+
     protected $fillable = [
         'name', 'slug', 'category', 'is_internal', 'lvf_club_id', 'logo_url',
     ];

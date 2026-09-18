@@ -51,3 +51,21 @@ describe('blocchiTicketing', () => {
         })
     })
 })
+
+describe('vantaggi scritti con l\'editor', () => {
+    it('tiene il markup del grassetto e scarta le voci svuotate', () => {
+        const blocchi = blocchiTicketing({
+            benefits: [
+                { text: '<p>Sconto del <strong>10%</strong> sul merchandising</p>' },
+                { text: '<p></p>' },
+                { text: '<p>&nbsp;</p>' },
+                { text: '<p>Prelazione sulle trasferte</p>' },
+            ],
+        }, deps)
+
+        expect(blocchi.benefits).toEqual([
+            '<p>Sconto del <strong>10%</strong> sul merchandising</p>',
+            '<p>Prelazione sulle trasferte</p>',
+        ])
+    })
+})

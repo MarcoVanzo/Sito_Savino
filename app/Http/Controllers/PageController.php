@@ -41,6 +41,7 @@ class PageController extends Controller
         'Public/Convenzioni',
         'Public/Sponsor',
         'Public/Youth',
+        'Public/Affiliazioni',
         'Public/SummerCamp',
         'Public/TalentDay',
         'Public/Sociale',
