@@ -267,12 +267,124 @@ jobs:
           echo "============================================="
 
   # -----------------------------------------------------------------
+  # Copia fuori da DigitalOcean, su un bucket che non si riscrive
+  #
+  # Su Spaces la protezione è una bucket policy che vieta le cancellazioni: non
+  # tiene contro chi ha una chiave con permessi di gestione, perché quella
+  # policy la può riscrivere, e comunque `PutObject` resta permesso — le foto
+  # si possono sovrascrivere con spazzatura. Su R2 la regola `retention-media`
+  # impedisce cancellazione e sovrascrittura per 30 giorni, chiunque sia a
+  # chiedere, e le credenziali vivono su Cloudflare: chi compromette
+  # DigitalOcean non le ha.
+  #
+  # Si copia dalla produzione, non dal bucket di backup: è la stessa sorgente e
+  # si elenca in 25 secondi invece di non finire mai (vedi il passo del
+  # manifest).
+  # -----------------------------------------------------------------
+  offsite:
+    name: Copia immutabile su Cloudflare R2
+    runs-on: ubuntu-latest
+    needs: backup-media
+    if: needs.backup-media.result == 'success'
+    timeout-minutes: 180
+    permissions:
+      issues: write
+
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      # Il confronto si valuta qui e ne esce un booleano: le chiavi non
+      # compaiono da nessuna parte, ma il job sa se ci sono.
+      R2_CHIAVI_PRESENTI: ${{ secrets.R2_ACCESS_KEY_ID != '' && secrets.R2_SECRET_ACCESS_KEY != '' }}
+
+    steps:
+      - name: Installa rclone
+        if: env.R2_ACCOUNT_ID != '' && env.R2_BUCKET != '' && env.R2_CHIAVI_PRESENTI == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rclone
+          rclone version | head -1
+
+      - name: Configura rclone
+        if: env.R2_ACCOUNT_ID != '' && env.R2_BUCKET != '' && env.R2_CHIAVI_PRESENTI == 'true'
+        env:
+          DO_PROD_KEY: ${{ secrets.DO_PROD_SPACES_KEY }}
+          DO_PROD_SECRET: ${{ secrets.DO_PROD_SPACES_SECRET }}
+          R2_KEY: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf <<EOF
+          [do-prod]
+          type = s3
+          provider = DigitalOcean
+          access_key_id = ${DO_PROD_KEY}
+          secret_access_key = ${DO_PROD_SECRET}
+          endpoint = ${PROD_ENDPOINT}
+          acl = private
+
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_KEY}
+          secret_access_key = ${R2_SECRET}
+          endpoint = https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          region = auto
+          acl = private
+          EOF
+
+          sed -i 's/^          //' ~/.config/rclone/rclone.conf
+
+          rclone lsd "do-prod:${PROD_BUCKET}" > /dev/null 2>&1 && echo "✅ Remote do-prod OK" || { echo "❌ Remote do-prod fallito"; exit 1; }
+          rclone lsd "r2:${R2_BUCKET}" > /dev/null 2>&1 && echo "✅ Remote r2 OK" || { echo "❌ Remote r2 fallito"; exit 1; }
+
+      # `--ignore-existing` non è un'ottimizzazione: con la regola di lock
+      # attiva, riscrivere un file già copiato viene RIFIUTATO, e senza questa
+      # opzione rclone ci proverebbe a ogni giro facendo fallire il job.
+      # I file dei media non cambiano contenuto a parità di nome: quando una
+      # foto viene sostituita, medialibrary le dà un percorso nuovo.
+      - name: Copia i media su R2
+        if: env.R2_ACCOUNT_ID != '' && env.R2_BUCKET != '' && env.R2_CHIAVI_PRESENTI == 'true'
+        id: copia
+        run: |
+          set -eo pipefail
+
+          echo "🔄 Copia verso R2 (solo i file che non ci sono ancora)..."
+
+          rclone copy "do-prod:${PROD_BUCKET}/" "r2:${R2_BUCKET}/media/" \
+            --ignore-existing \
+            --transfers 16 \
+            --checkers 32 \
+            --s3-chunk-size 64M \
+            --stats 60s \
+            --stats-one-line \
+            --log-level INFO \
+            --log-file rclone-r2.log
+
+          # Le statistiche finali dicono quanto è stato trasferito in questo giro:
+          # il primo costa 11 GB, i successivi solo le foto nuove.
+          TRASFERITI=$(grep -oE 'Transferred:[[:space:]]+[0-9]+ / [0-9]+' rclone-r2.log | tail -1 || echo "")
+          echo "📦 ${TRASFERITI:-nessun trasferimento registrato}"
+          echo "✅ Copia su R2 completata."
+
+      - name: Avviso se la copia fuori sede non è configurata
+        if: env.R2_ACCOUNT_ID == '' || env.R2_BUCKET == '' || env.R2_CHIAVI_PRESENTI != 'true'
+        run: |
+          echo "⚠️ Nessuna copia dei media fuori da DigitalOcean: i segreti R2_* non sono impostati."
+          echo "   Le foto esistono in una sola copia, su un bucket dove un attaccante con i"
+          echo "   permessi giusti può sovrascriverle. Vedi BACKUP.md."
+
+      - name: Cleanup
+        if: always()
+        run: rm -f rclone-r2.log ~/.config/rclone/rclone.conf
+
+  # -----------------------------------------------------------------
   # Notifica fallimento
   # -----------------------------------------------------------------
   notify-failure:
     name: Notifica fallimento
     runs-on: ubuntu-latest
-    needs: backup-media
+    needs: [backup-media, offsite]
     # Anche `cancelled()`: un job fermato dal tetto di `timeout-minutes` non si
     # conclude "failure" e per quattro domeniche di fila nessuno ha ricevuto
     # niente mentre il backup moriva.

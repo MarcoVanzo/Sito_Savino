@@ -77,6 +77,15 @@ Si configura una volta sola:
 Finché i secret non ci sono, `backup-db.yml` salta il passo e lo scrive nel log:
 il backup su Spaces continua a funzionare, semplicemente resta in una copia sola.
 
+Dalla stessa configurazione passano anche i **media**: `backup-media.yml` ha un
+job che copia le foto dalla produzione a `media/` nello stesso bucket, con la
+regola `retention-media` a 30 giorni. Si copia con `--ignore-existing`, e non
+per fretta: con la regola attiva riscrivere un file gia' copiato viene
+**rifiutato**, e senza quell'opzione rclone ci riproverebbe a ogni giro facendo
+fallire il job. I file di medialibrary non cambiano contenuto a parita' di
+nome — una foto sostituita prende un percorso nuovo — quindi non si perde
+nulla.
+
 **Provato sul campo il 18/09/2026**, sul backup vero appena caricato (4,75 MB):
 
 | Tentativo | Esito |
