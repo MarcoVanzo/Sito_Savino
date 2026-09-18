@@ -173,6 +173,24 @@ class Order extends Model
     }
 
     /**
+     * Dove il gateway rimanda il cliente dopo il pagamento.
+     *
+     * Stanno qui, e non nei due servizi di pagamento, perché il nome del
+     * parametro della rotta è `orderToken`: scritto a mano come `order` il
+     * generatore lancia UrlGenerationException e la sessione di pagamento non
+     * nasce nemmeno — è quello che accadeva a Stripe e a PayPal.
+     */
+    public function successUrl(): string
+    {
+        return route('shop.checkout.success', ['orderToken' => $this->order_token]);
+    }
+
+    public function cancelUrl(): string
+    {
+        return route('shop.checkout.cancel', ['orderToken' => $this->order_token]);
+    }
+
+    /**
      * Stati in cui il totale non va più toccato: l'importo è già stato incassato
      * e il ricalcolo lo disallineerebbe dal pagamento registrato.
      */

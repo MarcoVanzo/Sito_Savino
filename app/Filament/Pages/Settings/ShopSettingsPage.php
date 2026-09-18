@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages\Settings;
 
+use App\Enums\PaymentGateway;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -74,7 +75,10 @@ class ShopSettingsPage extends BaseSettingsPage
                     ->schema([
                         TextInput::make('shop.active_payment_gateways')
                             ->label('Gateway di pagamento attivi')
-                            ->helperText('Valori separati da virgola. Ammessi: stripe, paypal, bank_transfer.')
+                            // Un gateway acceso qui ma senza credenziali
+                            // nell'ambiente non compare nel checkout: meglio
+                            // dirlo, invece di lasciar credere che sia attivo.
+                            ->helperText(fn (): string => 'Valori separati da virgola. Ammessi: stripe, paypal, bank_transfer.'.self::avvisoCredenziali())
                             ->columnSpanFull(),
                         TextInput::make('shop.bank_transfer_iban')
                             ->label('IBAN per bonifico'),
@@ -126,5 +130,21 @@ class ShopSettingsPage extends BaseSettingsPage
                     ])->columns(2),
             ])
             ->statePath('data');
+    }
+
+    /**
+     * I gateway senza credenziali nell'ambiente: accesi o no, il checkout non
+     * li mostra, perche' aprirebbero un ordine che non si puo' pagare.
+     */
+    private static function avvisoCredenziali(): string
+    {
+        $senzaChiavi = collect(PaymentGateway::cases())
+            ->reject(fn (PaymentGateway $gateway) => $gateway->configurato())
+            ->map(fn (PaymentGateway $gateway) => $gateway->value)
+            ->implode(', ');
+
+        return $senzaChiavi === ''
+            ? ''
+            : " Senza credenziali configurate (non compaiono nel checkout): {$senzaChiavi}.";
     }
 }

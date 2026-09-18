@@ -45,8 +45,8 @@ class StripePaymentService implements PaymentGatewayInterface
                 'order_id' => (string) $order->id,
                 'order_number' => (string) $order->order_number,
             ],
-            'success_url' => route('shop.checkout.success', ['order' => $order->order_token]).'?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('shop.checkout.cancel', ['order' => $order->order_token]),
+            'success_url' => $order->successUrl().'?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $order->cancelUrl(),
         ]);
 
         return $session->url;
@@ -123,6 +123,10 @@ class StripePaymentService implements PaymentGatewayInterface
             'payment_id' => $session['payment_intent'],
             'status' => 'completed',
             'order_id' => (int) $session['metadata']['order_id'],
+            // Gli importi di Stripe sono in centesimi. Serve al confronto col
+            // totale dell'ordine: una sessione aperta su un carrello poi
+            // cambiato incassa la cifra vecchia.
+            'amount' => isset($session['amount_total']) ? ((int) $session['amount_total']) / 100 : null,
         ];
     }
 

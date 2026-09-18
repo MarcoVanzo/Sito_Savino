@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Webhooks\Traits\HandlesPaymentWebhooks;
 use App\Http\Requests\StoreCheckoutRequest;
 use App\Mail\OrderConfirmation;
 use App\Models\Order;
@@ -17,15 +18,29 @@ use App\Services\CheckoutService;
 use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class CheckoutController extends Controller
 {
+    // L'incasso al ritorno dal gateway riusa, senza riscriverla, la stessa
+    // registrazione del pagamento dei webhook: idempotenza sulla coppia
+    // (ordine, transazione), riscarico della merce su un ordine annullato,
+    // email di conferma e avviso al pannello. L'unico gateway che passa di qui
+    // è PayPal — Stripe incassa da sé prima di rimandare il cliente indietro.
+    use HandlesPaymentWebhooks;
+
+    protected function getGatewayName(): string
+    {
+        return 'PayPal';
+    }
+
     public function __construct(
         protected CartService $cartService,
         protected CheckoutService $checkoutService,
@@ -65,6 +80,10 @@ class CheckoutController extends Controller
         $paymentGateways = collect(explode(',', $activeGateways))
             ->map(fn ($g) => trim($g))
             ->filter(fn ($g) => PaymentGateway::tryFrom($g) !== null)
+            // Un gateway senza credenziali non si mostra: l'ordine verrebbe
+            // creato e la merce riservata, e solo dopo il cliente finirebbe
+            // sull'errore generico del checkout.
+            ->filter(fn ($g) => PaymentGateway::from($g)->configurato())
             ->map(fn ($g) => [
                 'value' => $g,
                 'label' => PaymentGateway::from($g)->getLabel(),
@@ -84,7 +103,7 @@ class CheckoutController extends Controller
     /**
      * Processa il checkout e gestisce il pagamento.
      */
-    public function store(StoreCheckoutRequest $request): RedirectResponse
+    public function store(StoreCheckoutRequest $request): RedirectResponse|SymfonyResponse
     {
         $cart = $this->cartService->getCart();
         if (! $cart || $cart->items->isEmpty()) {
@@ -150,7 +169,7 @@ class CheckoutController extends Controller
     /**
      * Pagina di conferma ordine.
      */
-    public function success(string $orderToken): Response
+    public function success(Request $request, string $orderToken): Response
     {
         $order = Order::where('order_token', $orderToken)
             ->with(['items.product', 'user'])
@@ -161,9 +180,77 @@ class CheckoutController extends Controller
             abort(403);
         }
 
+        if ($this->incassaAlRitornoDaPayPal($request, $order)) {
+            $order->refresh()->load(['items.product', 'user']);
+        }
+
         return Inertia::render('Public/Shop/CheckoutSuccess', [
             'order' => $order,
         ]);
+    }
+
+    /**
+     * Incassa il pagamento PayPal appena il cliente torna sul sito.
+     *
+     * La cattura viveva solo dentro il webhook: se quello non arriva — non
+     * registrato, dominio cambiato, firma che non verifica — il cliente ha
+     * approvato su PayPal e l'incasso non parte mai; l'ordine resta in attesa
+     * e dopo un'ora `order:check-unpaid` lo annulla. PayPal rimanda qui
+     * l'identificativo dell'ordine nel parametro `token`: si tenta subito la
+     * cattura, e il webhook — che di norma arriva lo stesso — trova il lavoro
+     * fatto e si ferma sull'idempotenza.
+     *
+     * @return bool true se il pagamento è stato registrato adesso
+     */
+    private function incassaAlRitornoDaPayPal(Request $request, Order $order): bool
+    {
+        $token = trim((string) $request->query('token', ''));
+
+        if ($token === ''
+            || $order->payment_gateway !== PaymentGateway::PayPal
+            || $order->payment_id !== null
+            || $order->status !== OrderStatus::Pending) {
+            return false;
+        }
+
+        // La pagina di conferma si ricarica da sola ogni cinque secondi finché
+        // l'ordine è in attesa: senza questo freno ogni ricarica rifarebbe il
+        // giro completo di chiamate al gateway. `add` è atomico, quindi para
+        // anche due richieste arrivate insieme.
+        if (! Cache::add("paypal:ritorno:{$order->id}", true, 30)) {
+            return false;
+        }
+
+        try {
+            $esito = app(PayPalPaymentService::class)->catturaAlRitorno($order, $token);
+
+            if ($esito === null) {
+                return false;
+            }
+
+            $this->handlePaymentCompleted($esito);
+
+            return true;
+        } catch (\Throwable $e) {
+            // Il cliente deve vedere comunque la sua pagina di conferma: se la
+            // cattura non riesce resta il webhook, e se manca anche quello
+            // l'ordine si annulla da solo senza aver incassato nulla. Ma un
+            // guasto qui va segnalato, non solo scritto su un log effimero.
+            report($e);
+
+            Log::error('PayPal: cattura al ritorno non riuscita', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /** Da dove arriva l'incasso registrato da questo controller. */
+    protected function canaleDiIncasso(): string
+    {
+        return 'ritorno dal gateway';
     }
 
     /**
@@ -192,7 +279,7 @@ class CheckoutController extends Controller
      * Crea una nuova sessione Stripe/PayPal per l'ordine esistente
      * senza richiedere un nuovo checkout (il carrello è già stato svuotato).
      */
-    public function retryPayment(string $orderToken): RedirectResponse
+    public function retryPayment(string $orderToken): RedirectResponse|SymfonyResponse
     {
         $order = Order::where('order_token', $orderToken)->firstOrFail();
 
@@ -211,6 +298,14 @@ class CheckoutController extends Controller
         } elseif ($order->user_id !== null) {
             // Guest: non può fare retry su ordini di utenti registrati
             abort(403);
+        }
+
+        // Un ordine con una transazione già registrata non si ripaga: resta in
+        // attesa perché qualcuno deve guardarlo (per esempio un incasso di
+        // importo diverso dal totale), e aprirgli una seconda sessione
+        // significherebbe farlo pagare due volte.
+        if ($order->payment_id !== null) {
+            return redirect()->route('shop.checkout.success', ['orderToken' => $orderToken]);
         }
 
         try {
@@ -232,25 +327,43 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Gestisce il pagamento Stripe: crea sessione e redirect.
+     * Gestisce il pagamento Stripe: crea sessione e manda al gateway.
      */
-    private function handleStripe(Order $order): RedirectResponse
+    private function handleStripe(Order $order): SymfonyResponse
     {
         $stripeService = app(StripePaymentService::class);
         $url = $stripeService->createSession($order);
 
-        return redirect()->away($url);
+        return $this->vaiAlGateway($url);
     }
 
     /**
-     * Gestisce il pagamento PayPal: crea sessione e redirect.
+     * Gestisce il pagamento PayPal: crea sessione e manda al gateway.
      */
-    private function handlePayPal(Order $order): RedirectResponse
+    private function handlePayPal(Order $order): SymfonyResponse
     {
         $paypalService = app(PayPalPaymentService::class);
         $url = $paypalService->createSession($order);
 
-        return redirect()->away($url);
+        return $this->vaiAlGateway($url);
+    }
+
+    /**
+     * Porta il cliente fuori dal sito, sul gateway.
+     *
+     * Il modulo di checkout è un form Inertia: la POST parte come XHR con
+     * l'header X-Inertia, e un 302 verso stripe.com o paypal.com viene
+     * seguito dalla stessa XHR, che sbatte contro il CORS del gateway e
+     * muore in console. L'ordine è però già stato creato e la merce
+     * riservata: il cliente resta sulla pagina senza pagare e la merce
+     * risulta venduta. Inertia vuole 409 + X-Inertia-Location per una
+     * navigazione fuori dall'applicazione; fuori da Inertia (nessun JS,
+     * un test, un crawler) `Inertia::location` degrada da sé al 302 di
+     * prima.
+     */
+    private function vaiAlGateway(string $url): SymfonyResponse
+    {
+        return Inertia::location($url);
     }
 
     /**
