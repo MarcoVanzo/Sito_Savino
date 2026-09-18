@@ -210,6 +210,29 @@ services:
   - key: META_CONFIG_ID
     scope: RUN_AND_BUILD_TIME
     value: "1530681078385238"
+  # PayPal — pagamenti dello shop. L'incasso vero avviene dentro il webhook
+  # CHECKOUT.ORDER.APPROVED (App\Services\Payments\PayPalPaymentService): senza
+  # queste variabili l'ordine resta "pending" e il cliente vede girare la rotella.
+  # Il secret è cifrato dal pannello DO; va tenuto qui perché la spec del
+  # repository è autorevole e un deploy cancellerebbe quanto impostato a mano.
+  - key: PAYPAL_CLIENT_ID
+    scope: RUN_AND_BUILD_TIME
+    value: BAA-40si1om8PByIayUtz8uaVOSuc8jTYgGxORrjy82J9csv8jLRg__Rru2yYWnhUiw6CM9i3fIo6p41qU
+  - key: PAYPAL_CLIENT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:DEVkKm+QQhuNRjnbBJYK2AXW+QZtR82s:yS0s9TvVq6Ax+sRGHETPpHpSAJUtTizDma0m4QKrCMrbzt3f5JgCqK1gRESiRk399E3aEVrAKzukwprLtU16D6WN+8C64yE+Jhmq6yuLW9OW11Pj+EBmZcqc+4+aVzHG]
+  # 'live' = incassi reali. 'sandbox' userebbe api-m.sandbox.paypal.com e
+  # credenziali diverse: cambiando questo va cambiata anche la coppia sopra.
+  - key: PAYPAL_MODE
+    scope: RUN_AND_BUILD_TIME
+    value: live
+  # Identifica il webhook registrato su developer.paypal.com; serve a verificare
+  # la firma di ogni notifica. Puntato su /api/webhooks/paypal di questa app:
+  # cambiando dominio va rifatto il webhook e aggiornato questo valore.
+  - key: PAYPAL_WEBHOOK_ID
+    scope: RUN_AND_BUILD_TIME
+    value: 13C19054TT859171H
   github:
     branch: main
     # Deploy gestito dal job "deploy" gated in .github/workflows/ci.yml
