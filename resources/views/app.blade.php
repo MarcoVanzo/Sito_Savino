@@ -6,6 +6,7 @@
         <meta name="description" content="{{ __('site.default_description') }}">
         <link rel="canonical" href="{{ url()->current() }}">
         @php
+            $cspNonce = \Illuminate\Support\Facades\Vite::cspNonce();
             $currentLocale = app()->getLocale();
             $currentPath = request()->getPathInfo();
             $itUrl = $currentLocale === 'it' ? url()->current() : url(preg_replace('#^/en(/|$)#', '/', $currentPath));
@@ -31,7 +32,7 @@
         <meta name="theme-color" content="#003063">
 
         <!-- Structured Data -->
-        <script type="application/ld+json">
+        <script type="application/ld+json" nonce="{{ $cspNonce }}">
         {
             "@@context": "https://schema.org",
             "@@type": "SportsTeam",
@@ -57,7 +58,7 @@
         </script>
 
         <!-- WebSite Structured Data -->
-        <script type="application/ld+json">
+        <script type="application/ld+json" nonce="{{ $cspNonce }}">
         {
             "@@context": "https://schema.org",
             "@@type": "WebSite",
@@ -81,11 +82,10 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-        <noscript><link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet"></noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,700;1,400&display=swap">
 
         <!-- Scripts -->
-        @routes
+        @routes(null, $cspNonce)
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
