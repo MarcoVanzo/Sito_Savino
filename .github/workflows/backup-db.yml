@@ -43,6 +43,12 @@ jobs:
     env:
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
       R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      # Il confronto si valuta qui e ne esce un booleano: le chiavi non
+      # compaiono da nessuna parte, ma il passo sa se ci sono. Senza questo
+      # controllo bastava avere account e bucket configurati perché la copia
+      # partisse comunque e fallisse sull'autenticazione, facendo risultare
+      # rotto un backup che su Spaces era riuscito benissimo.
+      R2_CHIAVI_PRESENTI: ${{ secrets.R2_ACCESS_KEY_ID != '' && secrets.R2_SECRET_ACCESS_KEY != '' }}
 
     steps:
       # ---------------------------------------------------------------
@@ -233,7 +239,7 @@ jobs:
       # l'account DigitalOcean non le ha, e viceversa.
       # ---------------------------------------------------------------
       - name: Copia immutabile su Cloudflare R2
-        if: env.R2_ACCOUNT_ID != '' && env.R2_BUCKET != ''
+        if: env.R2_ACCOUNT_ID != '' && env.R2_BUCKET != '' && env.R2_CHIAVI_PRESENTI == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -273,7 +279,7 @@ jobs:
           echo "🔒 Copia immutabile su R2 verificata (${R2_SIZE} bytes)."
 
       - name: Avviso se la copia fuori sede non è configurata
-        if: env.R2_ACCOUNT_ID == '' || env.R2_BUCKET == ''
+        if: env.R2_ACCOUNT_ID == '' || env.R2_BUCKET == '' || env.R2_CHIAVI_PRESENTI != 'true'
         run: |
           echo "⚠️ Nessuna copia fuori da DigitalOcean: i segreti R2_* non sono impostati."
           echo "   Il backup esiste in una sola copia, su un bucket dove un attaccante"
