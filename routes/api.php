@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('webhooks')->middleware('throttle:60,1')->group(function () {
-    Route::post('/stripe', [StripeWebhookController::class, 'handle']);
-    Route::post('/paypal', [PayPalWebhookController::class, 'handle']);
+    Route::post('/stripe', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
+    // Il nome serve a `paypal:verifica`, che confronta l'indirizzo registrato
+    // su PayPal con quello di questo sito.
+    Route::post('/paypal', [PayPalWebhookController::class, 'handle'])->name('paypal.webhook');
 });
 
 /*

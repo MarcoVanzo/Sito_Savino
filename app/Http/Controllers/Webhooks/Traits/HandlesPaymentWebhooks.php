@@ -20,12 +20,23 @@ use Illuminate\Support\Facades\Mail;
 trait HandlesPaymentWebhooks
 {
     /**
-     * Get the gateway name used in log messages (e.g. 'Stripe', 'PayPal').
-     * Override in the class using this trait.
+     * Il nome del gateway nei messaggi di log (es. 'Stripe', 'PayPal').
+     *
+     * Era una proprietà letta con `??`, cioè dichiarata da chi usa il trait ma
+     * non dal trait stesso: un uso che si regge su una convenzione tacita e che
+     * l'analisi statica non sa verificare. Chiederlo come metodo lo rende un
+     * obbligo esplicito.
      */
-    protected function getGatewayName(): string
+    abstract protected function getGatewayName(): string;
+
+    /**
+     * Da dove arriva la notizia del pagamento: il webhook del gateway, oppure
+     * il ritorno del cliente sul sito. Serve solo a rendere leggibili i log,
+     * che altrimenti raccontano di un webhook anche quando webhook non c'è.
+     */
+    protected function canaleDiIncasso(): string
     {
-        return $this->gatewayName ?? 'Payment';
+        return 'webhook';
     }
 
     /**
@@ -36,7 +47,7 @@ trait HandlesPaymentWebhooks
         $order = Order::find($result['order_id']);
 
         if (! $order) {
-            Log::error("{$this->getGatewayName()} webhook: ordine non trovato", [
+            Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: ordine non trovato", [
                 'order_id' => $result['order_id'],
             ]);
 
@@ -53,7 +64,7 @@ trait HandlesPaymentWebhooks
                 // pagamento con id diverso sullo stesso ordine (incasso doppio).
                 if ($order->payment_id !== null) {
                     if ($order->payment_id === $result['payment_id']) {
-                        Log::info("{$this->getGatewayName()} webhook: ordine già processato (idempotenza)", [
+                        Log::info("{$this->getGatewayName()} {$this->canaleDiIncasso()}: ordine già processato (idempotenza)", [
                             'order_id' => $order->id,
                             'payment_id' => $order->payment_id,
                         ]);
@@ -61,7 +72,7 @@ trait HandlesPaymentWebhooks
                         return 'replay';
                     }
 
-                    Log::error("{$this->getGatewayName()} webhook: secondo pagamento su un ordine già pagato — probabile doppio incasso da rimborsare", [
+                    Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: secondo pagamento su un ordine già pagato — probabile doppio incasso da rimborsare", [
                         'order_id' => $order->id,
                         'existing_payment_id' => $order->payment_id,
                         'new_payment_id' => $result['payment_id'],
@@ -75,6 +86,56 @@ trait HandlesPaymentWebhooks
                     );
 
                     return 'conflict';
+                }
+
+                // L'importo dichiarato dal gateway deve essere quello dell'ordine.
+                // Fra l'apertura della sessione di pagamento e l'incasso il
+                // totale può cambiare — il pannello aggiunge una riga, si
+                // riprova un pagamento su un ordine ritoccato — e il cliente
+                // paga comunque la cifra della sessione vecchia: senza questo
+                // controllo l'ordine risultava pagato per intero con in cassa
+                // meno soldi, e nessuno se ne accorgeva.
+                $scarto = $this->scartoSulTotale($order, $result);
+
+                if ($scarto !== null && $scarto < 0) {
+                    // Incassato meno del dovuto: il pagamento è un fatto e va
+                    // registrato, ma l'ordine non si conferma da solo.
+                    $order->payment_id = $result['payment_id'];
+                    $order->paid_at = now();
+                    $order->save();
+
+                    Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: incassato meno del totale dell'ordine — ordine NON confermato, revisione manuale", [
+                        'order_id' => $order->id,
+                        'payment_id' => $result['payment_id'],
+                        'incassato' => $result['amount'],
+                        'totale' => (float) $order->total_price,
+                    ]);
+
+                    $this->flagForManualReview(
+                        $order,
+                        'amount_mismatch',
+                        "Incassati {$result['amount']} € su un totale di ".number_format((float) $order->total_price, 2).' €: verificare prima di confermare l\'ordine.',
+                        ['incassato' => $result['amount'], 'totale' => (float) $order->total_price]
+                    );
+
+                    return 'needs_review';
+                }
+
+                if ($scarto !== null && $scarto > 0) {
+                    // Incassato più del dovuto: l'ordine è pagato e si conferma,
+                    // ma la differenza va restituita.
+                    Log::warning("{$this->getGatewayName()} {$this->canaleDiIncasso()}: incassato più del totale dell'ordine", [
+                        'order_id' => $order->id,
+                        'incassato' => $result['amount'],
+                        'totale' => (float) $order->total_price,
+                    ]);
+
+                    $this->flagForManualReview(
+                        $order,
+                        'overpaid',
+                        "Incassati {$result['amount']} € su un totale di ".number_format((float) $order->total_price, 2).' €: differenza da rimborsare.',
+                        ['incassato' => $result['amount'], 'totale' => (float) $order->total_price]
+                    );
                 }
 
                 // Se l'ordine era già stato annullato/rimborsato lo stock è stato
@@ -92,7 +153,7 @@ trait HandlesPaymentWebhooks
                         $order->paid_at = now();
                         $order->save();
 
-                        Log::error("{$this->getGatewayName()} webhook: pagamento ricevuto su ordine {$previousStatus} ma stock insufficiente — ordine NON confermato, revisione manuale", [
+                        Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: pagamento ricevuto su ordine {$previousStatus} ma stock insufficiente — ordine NON confermato, revisione manuale", [
                             'order_id' => $order->id,
                             'payment_id' => $result['payment_id'],
                             'previous_status' => $previousStatus,
@@ -108,7 +169,7 @@ trait HandlesPaymentWebhooks
                         return 'needs_review';
                     }
 
-                    Log::warning("{$this->getGatewayName()} webhook: pagamento ricevuto su un ordine {$previousStatus} — stock riscaricato e ordine confermato", [
+                    Log::warning("{$this->getGatewayName()} {$this->canaleDiIncasso()}: pagamento ricevuto su un ordine {$previousStatus} — stock riscaricato e ordine confermato", [
                         'order_id' => $order->id,
                         'previous_status' => $previousStatus,
                     ]);
@@ -166,7 +227,7 @@ trait HandlesPaymentWebhooks
             // 5. Notify admin panel
             app(AdminNotificationService::class)->notifyPaymentReceived($order);
 
-            Log::info("{$this->getGatewayName()} webhook: pagamento completato", [
+            Log::info("{$this->getGatewayName()} {$this->canaleDiIncasso()}: pagamento completato", [
                 'order_id' => $order->id,
                 'payment_id' => $result['payment_id'],
             ]);
@@ -179,7 +240,7 @@ trait HandlesPaymentWebhooks
             // Log::error finiva su stderr, effimero e non presidiato.
             report($e);
 
-            Log::error("{$this->getGatewayName()} webhook: errore processamento pagamento", [
+            Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: errore processamento pagamento", [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -190,6 +251,25 @@ trait HandlesPaymentWebhooks
     }
 
     /**
+     * Di quanto l'incasso si discosta dal totale dell'ordine, in euro.
+     *
+     * Null quando il gateway non dichiara l'importo (o quando coincide a meno
+     * del centesimo, che è la precisione con cui si fanno i conti qui).
+     *
+     * @param  array<string, mixed>  $result
+     */
+    private function scartoSulTotale(Order $order, array $result): ?float
+    {
+        if (! isset($result['amount']) || ! is_numeric($result['amount'])) {
+            return null;
+        }
+
+        $scarto = round((float) $result['amount'] - (float) $order->total_price, 2);
+
+        return abs($scarto) < 0.01 ? null : $scarto;
+    }
+
+    /**
      * Handle refund webhook event.
      */
     protected function handleRefund(array $result): JsonResponse
@@ -197,7 +277,7 @@ trait HandlesPaymentWebhooks
         $order = Order::where('payment_id', $result['payment_id'])->first();
 
         if (! $order) {
-            Log::warning("{$this->getGatewayName()} webhook: ordine non trovato per rimborso", [
+            Log::warning("{$this->getGatewayName()} {$this->canaleDiIncasso()}: ordine non trovato per rimborso", [
                 'payment_id' => $result['payment_id'],
             ]);
 
@@ -211,7 +291,7 @@ trait HandlesPaymentWebhooks
 
                 // Idempotency check: if already refunded, skip processing
                 if ($order->status === OrderStatus::Refunded) {
-                    Log::info("{$this->getGatewayName()} webhook: rimborso già processato (idempotenza)", [
+                    Log::info("{$this->getGatewayName()} {$this->canaleDiIncasso()}: rimborso già processato (idempotenza)", [
                         'order_id' => $order->id,
                     ]);
 
@@ -250,7 +330,7 @@ trait HandlesPaymentWebhooks
                 }
             }
 
-            Log::info("{$this->getGatewayName()} webhook: rimborso registrato", [
+            Log::info("{$this->getGatewayName()} {$this->canaleDiIncasso()}: rimborso registrato", [
                 'order_id' => $order->id,
                 'payment_id' => $result['payment_id'],
             ]);
@@ -260,7 +340,7 @@ trait HandlesPaymentWebhooks
         } catch (\Throwable $e) {
             report($e);
 
-            Log::error("{$this->getGatewayName()} webhook: errore processamento rimborso", [
+            Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: errore processamento rimborso", [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -399,7 +479,7 @@ trait HandlesPaymentWebhooks
         }
 
         if (! empty($outstanding)) {
-            Log::info("{$this->getGatewayName()} webhook: stock riconciliato dopo rimborso", [
+            Log::info("{$this->getGatewayName()} {$this->canaleDiIncasso()}: stock riconciliato dopo rimborso", [
                 'order_id' => $order->id,
             ]);
         }
@@ -446,7 +526,7 @@ trait HandlesPaymentWebhooks
         $recipientName = $order->user->name ?? $order->guest_name;
 
         if (! $recipientEmail) {
-            Log::warning("{$this->getGatewayName()} webhook: nessuna email per conferma ordine", [
+            Log::warning("{$this->getGatewayName()} {$this->canaleDiIncasso()}: nessuna email per conferma ordine", [
                 'order_id' => $order->id,
             ]);
 

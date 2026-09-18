@@ -15,7 +15,10 @@ class StripeWebhookController
 {
     use HandlesPaymentWebhooks;
 
-    protected string $gatewayName = 'Stripe';
+    protected function getGatewayName(): string
+    {
+        return 'Stripe';
+    }
 
     /**
      * Handle incoming Stripe webhook events.

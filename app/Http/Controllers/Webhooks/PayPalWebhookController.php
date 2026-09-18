@@ -12,7 +12,10 @@ class PayPalWebhookController
 {
     use HandlesPaymentWebhooks;
 
-    protected string $gatewayName = 'PayPal';
+    protected function getGatewayName(): string
+    {
+        return 'PayPal';
+    }
 
     /**
      * Handle incoming PayPal webhook events.
