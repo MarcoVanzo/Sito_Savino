@@ -38,13 +38,44 @@ Sistema di backup sicuro e protetto da cancellazione, interamente su DigitalOcea
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Protezione a 3 Livelli
+### Cosa protegge cosa
 
-| Livello | Protezione | Cosa Fa |
-|---------|-----------|---------|
-| **Bucket Policy** | Anti-cancellazione | Nessuna API key può cancellare file dal bucket |
-| **Versioning** | Anti-sovrascrittura | Ogni versione precedente è preservata |
-| **Cifratura GPG** | Anti-lettura | I dump DB sono illeggibili senza passphrase |
+| Livello | Protegge da | Limite |
+|---------|-------------|--------|
+| **Bucket policy** (Spaces) | Cancellazione: nessuna chiave può cancellare dal bucket — verificato sul campo, "delete failed" anche con una chiave fullaccess | Chi ha una chiave con permessi di gestione **può riscrivere la policy**; e `PutObject` resta permesso, quindi un backup si può **sovrascrivere** |
+| **Bucket lock** (Cloudflare R2) | Cancellazione *e* sovrascrittura, per la durata della retention, chiunque sia a chiedere | Va configurato una volta sola sul bucket (vedi sotto); finché i segreti `R2_*` non ci sono, la copia non parte |
+| **Cifratura GPG** | Lettura: i dump sono illeggibili senza passphrase | Se si perde la passphrase si perdono i backup: sta nei secret GitHub e va tenuta anche altrove |
+| **Verifica del restore** | Backup che esistono ma non si ripristinano | Vedi `verifica-restore.yml`: gira ogni lunedì e apre una issue se l'ultimo dump non torna su |
+
+> Su DO Spaces il versioning è dichiarato dallo script di setup, ma DigitalOcean
+> non offre né Object Lock né versioning con le garanzie di S3: non dare per
+> scontato che una versione precedente esista. La copia davvero immutabile è
+> quella su R2.
+
+### La copia fuori sede (Cloudflare R2)
+
+Serve perché tutto il resto vive dentro un solo account DigitalOcean: chi ne
+ottiene le chiavi con permessi di gestione arriva anche ai backup. Le credenziali
+R2 stanno su Cloudflare, quindi i due perimetri non si toccano.
+
+Si configura una volta sola:
+
+1. Su Cloudflare → R2 → crea il bucket (es. `sito-savino-backup-offsite`), regione
+   automatica.
+2. Applica la regola di retention — impedisce cancellazione **e** sovrascrittura:
+   ```bash
+   npx wrangler r2 bucket lock add sito-savino-backup-offsite \
+     --name retention-db --prefix db/ --retention-days 90
+   npx wrangler r2 bucket lock list sito-savino-backup-offsite
+   ```
+   Attenzione: un bucket con regole di lock **non si può svuotare** finché le
+   regole ci sono. È esattamente lo scopo, ma va saputo prima.
+3. Crea un token R2 con permesso di scrittura **solo su quel bucket** e aggiungi
+   quattro secret al repository: `R2_ACCOUNT_ID`, `R2_BUCKET`,
+   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`.
+
+Finché i secret non ci sono, `backup-db.yml` salta il passo e lo scrive nel log:
+il backup su Spaces continua a funzionare, semplicemente resta in una copia sola.
 
 ---
 
@@ -236,7 +267,25 @@ rclone copy do-backup:sito-savino-backups/media/ do-prod:sito-savino-assets-2026
 
 ## Verifica Integrità
 
-### Verifica automatica
+### Verifica automatica del restore (settimanale)
+
+`verifica-restore.yml` gira ogni lunedì alle 04:30 UTC e fa la sola cosa che
+dice davvero se un backup è buono: lo **ripristina**. Scarica l'ultimo dump,
+controlla il checksum, lo decifra, verifica che mysqldump l'abbia chiuso, lo
+carica in un MySQL di servizio e poi guarda dentro — numero di tabelle, presenza
+di quelle senza cui il sito non esiste, righe in `pages`, `players`,
+`site_settings`, `menu_items`, e qual è l'ultima migrazione presente. Fallisce
+anche se l'ultimo backup ha più di 36 ore, che vuol dire che il giornaliero si è
+fermato. Su fallimento apre una issue etichettata `urgente`.
+
+Non tocca la produzione: legge dal bucket e scrive in un container che muore a
+fine job. Si lancia anche a mano:
+
+```bash
+gh workflow run verifica-restore.yml --repo MarcoVanzo/Sito_Savino --ref main
+```
+
+### Verifica del singolo file (manuale)
 
 ```bash
 # Verifica l'ultimo backup

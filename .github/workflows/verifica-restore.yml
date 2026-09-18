@@ -1,0 +1,296 @@
+# =============================================================================
+# Verifica Restore — Sito Savino
+#
+# Prende l'ultimo backup del database, lo decifra e lo ripristina davvero in un
+# MySQL di servizio, poi guarda cosa c'è dentro.
+#
+# Finché nessuno ripristina, "abbiamo i backup" è un'ipotesi: una passphrase
+# sbagliata nei secret, un dump troncato, una tabella che il dump non ha
+# preso — te ne accorgi il giorno che servono, che è il giorno peggiore.
+# Questo workflow non tocca la produzione: legge dal bucket e scrive in un
+# container che muore a fine job.
+# =============================================================================
+
+name: Verifica Restore
+
+on:
+  schedule:
+    # Lunedì 04:30 UTC: il backup notturno delle 03:00 è già finito.
+    - cron: '30 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Motivo della verifica manuale'
+        required: false
+        default: 'Verifica manuale del restore'
+
+concurrency:
+  group: verifica-restore
+  cancel-in-progress: false
+
+env:
+  BUCKET_NAME: sito-savino-backups
+  SPACES_REGION: fra1
+  SPACES_ENDPOINT: https://fra1.digitaloceanspaces.com
+  # Il ripristino gira qui dentro, non sfiora il database di produzione.
+  DB_DI_PROVA: verifica_restore
+
+jobs:
+  verifica:
+    name: Ripristina l'ultimo backup e controlla i dati
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      issues: write
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: verifica_restore
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Installa dipendenze
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mysql-client gpg
+
+      # ---------------------------------------------------------------
+      # 1. Qual è l'ultimo backup
+      # ---------------------------------------------------------------
+      - name: Trova l'ultimo backup
+        id: ultimo
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+          AWS_DEFAULT_REGION: ${{ env.SPACES_REGION }}
+        run: |
+          set -eo pipefail
+
+          # I nomi contengono il timestamp in UTC, quindi l'ordine alfabetico è
+          # anche quello cronologico.
+          CHIAVE=$(aws s3 ls "s3://${BUCKET_NAME}/db/" --recursive \
+            --endpoint-url "${SPACES_ENDPOINT}" \
+            | grep -E '\.sql\.gz\.gpg$' \
+            | sort \
+            | tail -1 \
+            | awk '{print $4}')
+
+          if [ -z "$CHIAVE" ]; then
+            echo "❌ Nessun backup trovato in s3://${BUCKET_NAME}/db/"
+            exit 1
+          fi
+
+          NOME=$(basename "$CHIAVE")
+          echo "chiave=${CHIAVE}" >> "$GITHUB_OUTPUT"
+          echo "nome=${NOME}" >> "$GITHUB_OUTPUT"
+          echo "📦 Ultimo backup: ${CHIAVE}"
+
+          # Un backup vecchio è un allarme anche se si ripristina benissimo.
+          GIORNO=$(echo "$NOME" | sed -E 's/^backup-([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/')
+          IERI=$(date -u -d '36 hours ago' +%Y-%m-%d)
+          if [[ "$GIORNO" < "$IERI" ]]; then
+            echo "❌ L'ultimo backup è del ${GIORNO}: il giornaliero non sta girando."
+            exit 1
+          fi
+          echo "🗓️ Data del backup: ${GIORNO}"
+
+      # ---------------------------------------------------------------
+      # 2. Scarica e verifica l'integrità del file
+      # ---------------------------------------------------------------
+      - name: Scarica il backup e il suo checksum
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_BACKUP_SPACES_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_BACKUP_SPACES_SECRET }}
+          AWS_DEFAULT_REGION: ${{ env.SPACES_REGION }}
+        run: |
+          set -eo pipefail
+
+          aws s3 cp "s3://${BUCKET_NAME}/${{ steps.ultimo.outputs.chiave }}" \
+            "${{ steps.ultimo.outputs.nome }}" --endpoint-url "${SPACES_ENDPOINT}"
+          aws s3 cp "s3://${BUCKET_NAME}/${{ steps.ultimo.outputs.chiave }}.sha256" \
+            "${{ steps.ultimo.outputs.nome }}.sha256" --endpoint-url "${SPACES_ENDPOINT}"
+
+          # Il checksum è stato calcolato prima dell'upload: se combacia, il
+          # file è arrivato e tornato indietro identico.
+          sha256sum -c "${{ steps.ultimo.outputs.nome }}.sha256"
+          echo "🔐 Checksum verificato."
+
+      # ---------------------------------------------------------------
+      # 3. Decifra
+      # ---------------------------------------------------------------
+      - name: Decifra il backup
+        env:
+          GPG_PASSPHRASE: ${{ secrets.BACKUP_GPG_PASSPHRASE }}
+        run: |
+          set -eo pipefail
+
+          gpg --batch --yes --quiet \
+              --passphrase-fd 3 \
+              --decrypt "${{ steps.ultimo.outputs.nome }}" 3<<< "$GPG_PASSPHRASE" \
+          | gunzip > dump.sql
+
+          RIGHE=$(wc -l < dump.sql)
+          echo "📄 Dump decifrato: ${RIGHE} righe."
+
+          # Un dump troncato spesso si decifra benissimo e finisce a metà di una
+          # INSERT: la riga di chiusura di mysqldump è l'unica prova che il file
+          # è completo.
+          if ! tail -5 dump.sql | grep -q "Dump completed"; then
+            echo "❌ Il dump non ha la riga di chiusura di mysqldump: è troncato."
+            exit 1
+          fi
+          echo "✅ Il dump si chiude regolarmente."
+
+      # ---------------------------------------------------------------
+      # 4. Ripristina davvero
+      # ---------------------------------------------------------------
+      - name: Ripristina nel MySQL di servizio
+        run: |
+          set -eo pipefail
+          mysql -h 127.0.0.1 -P 3306 -u root -psecret "${DB_DI_PROVA}" < dump.sql
+          echo "✅ Ripristino completato."
+
+      # ---------------------------------------------------------------
+      # 5. Guarda cosa c'è dentro
+      # ---------------------------------------------------------------
+      - name: Controlla il contenuto ripristinato
+        id: controllo
+        run: |
+          set -eo pipefail
+
+          interroga() {
+            mysql -h 127.0.0.1 -P 3306 -u root -psecret -N -B -e "$1" "${DB_DI_PROVA}"
+          }
+
+          TABELLE=$(interroga "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_DI_PROVA}';")
+          echo "📊 Tabelle ripristinate: ${TABELLE}"
+          if [ "$TABELLE" -lt 40 ]; then
+            echo "❌ Solo ${TABELLE} tabelle: il dump non è completo."
+            exit 1
+          fi
+
+          # Le tabelle senza le quali il sito non esiste. Se una manca, il dump
+          # è di un altro database o mysqldump ne ha saltata una.
+          for T in migrations users pages players games teams site_settings menu_items gallery_images; do
+            PRESENTE=$(interroga "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${DB_DI_PROVA}' AND table_name='${T}';")
+            if [ "$PRESENTE" -eq 0 ]; then
+              echo "❌ Tabella mancante: ${T}"
+              exit 1
+            fi
+          done
+          echo "✅ Tutte le tabelle attese sono presenti."
+
+          # Uno schema si ripristina anche quando è vuoto: sono le righe a dire
+          # che il backup contiene il lavoro della redazione.
+          RIEPILOGO=""
+          for T in migrations pages players site_settings menu_items; do
+            N=$(interroga "SELECT COUNT(*) FROM \`${T}\`;")
+            echo "   ${T}: ${N} righe"
+            RIEPILOGO="${RIEPILOGO}${T}=${N} "
+            if [ "$N" -eq 0 ]; then
+              echo "❌ ${T} è vuota: il backup non contiene i dati."
+              exit 1
+            fi
+          done
+
+          # Non è un controllo di integrità: dice se il dump è allineato al
+          # codice che gira, cioè se le migrazioni dell'ultimo rilascio ci sono.
+          ULTIMA=$(interroga "SELECT migration FROM migrations ORDER BY id DESC LIMIT 1;")
+          echo "🧱 Ultima migrazione nel backup: ${ULTIMA}"
+
+          {
+            echo "tabelle=${TABELLE}"
+            echo "riepilogo=${RIEPILOGO}"
+            echo "ultima_migrazione=${ULTIMA}"
+          } >> "$GITHUB_OUTPUT"
+
+      # ---------------------------------------------------------------
+      # 6. Pulizia
+      # ---------------------------------------------------------------
+      - name: Cleanup
+        if: always()
+        run: rm -f ./*.sql.gz.gpg ./*.sha256 dump.sql
+
+      - name: Riepilogo
+        if: success()
+        run: |
+          echo "============================================="
+          echo "  ✅ BACKUP RIPRISTINABILE"
+          echo "============================================="
+          echo "  File:        ${{ steps.ultimo.outputs.nome }}"
+          echo "  Tabelle:     ${{ steps.controllo.outputs.tabelle }}"
+          echo "  Righe:       ${{ steps.controllo.outputs.riepilogo }}"
+          echo "  Migrazione:  ${{ steps.controllo.outputs.ultima_migrazione }}"
+          echo "============================================="
+
+  # -----------------------------------------------------------------
+  # Notifica fallimento
+  # -----------------------------------------------------------------
+  notifica:
+    name: Notifica fallimento
+    runs-on: ubuntu-latest
+    needs: verifica
+    # Anche `cancelled()`: un job fermato dal tetto di tempo non si conclude
+    # "failure", e un backup che non si ripristina non deve passare in silenzio.
+    if: failure() || cancelled()
+    permissions:
+      issues: write
+    steps:
+      - name: Apri una issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Il backup del database non si ripristina — ${new Date().toISOString().split('T')[0]}`;
+            const body = [
+              '## Verifica del restore fallita',
+              '',
+              `**Data:** ${new Date().toISOString()}`,
+              `**Run ID:** ${context.runId}`,
+              '',
+              `🔗 [Vedi i log](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              '',
+              '### Perché conta',
+              'I backup continuano a essere prodotti, ma l\'ultimo non è stato ripristinato',
+              'con successo: finché non si capisce perché, vanno considerati inaffidabili.',
+              '',
+              '### Cosa guardare, in ordine',
+              '1. Il passo che ha fallito: download, checksum, decifratura, ripristino o contenuto.',
+              '2. Se ha fallito la decifratura, il secret `BACKUP_GPG_PASSPHRASE` non corrisponde',
+              '   più alla passphrase con cui il backup è stato cifrato.',
+              '3. Se ha fallito il contenuto, il dump è incompleto: guardare i log del workflow',
+              '   "Backup Database" della notte corrispondente.',
+            ].join('\n');
+
+            for (const label of ['backup', 'urgente']) {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                });
+              } catch {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label,
+                  color: label === 'urgente' ? 'D93F0B' : '0E8A16',
+                });
+              }
+            }
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['backup', 'urgente'],
+            });

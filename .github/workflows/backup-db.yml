@@ -36,6 +36,14 @@ jobs:
     permissions:
       issues: write
 
+    # Esposti a livello di job perché il campo `if:` di uno step non vede il
+    # context `secrets` (stesso motivo per cui `ci.yml` espone così SONAR_TOKEN).
+    # Finché non sono impostati, la copia su R2 viene saltata e il backup su
+    # Spaces continua a funzionare come prima.
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+
     steps:
       # ---------------------------------------------------------------
       # 1. Installazione dipendenze
@@ -208,6 +216,68 @@ jobs:
           fi
 
           echo "✅ Backup verificato su DO Spaces (${REMOTE_SIZE} bytes)."
+
+      # ---------------------------------------------------------------
+      # 6-bis. Copia fuori da DigitalOcean, su un bucket che non si riscrive
+      #
+      # Su Spaces la protezione è una bucket policy che vieta le cancellazioni:
+      # tiene contro l'errore e contro chi ha una chiave qualunque, ma non
+      # contro chi ha una chiave con permessi di gestione — può riscrivere la
+      # policy, e comunque `PutObject` resta permesso, quindi un backup si può
+      # sovrascrivere con spazzatura. DO Spaces non offre niente di meglio: né
+      # Object Lock né versioning.
+      #
+      # Su R2 il bucket porta una *bucket lock rule* che impedisce cancellazione
+      # e sovrascrittura per la durata della retention, indipendentemente dalle
+      # credenziali usate. Le chiavi vivono su Cloudflare: chi compromette
+      # l'account DigitalOcean non le ha, e viceversa.
+      # ---------------------------------------------------------------
+      - name: Copia immutabile su Cloudflare R2
+        if: env.R2_ACCOUNT_ID != '' && env.R2_BUCKET != ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          # aws-cli v2 aggiunge di suo dei checksum che R2 rifiuta su alcune
+          # richieste: si calcolano solo dove il protocollo li richiede.
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+        run: |
+          set -eo pipefail
+
+          R2_ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+
+          aws s3api put-object \
+            --bucket "${R2_BUCKET}" \
+            --key "${{ steps.naming.outputs.s3_path }}" \
+            --body "${{ steps.naming.outputs.filename }}" \
+            --endpoint-url "$R2_ENDPOINT" > /dev/null
+
+          aws s3api put-object \
+            --bucket "${R2_BUCKET}" \
+            --key "${{ steps.naming.outputs.s3_path }}.sha256" \
+            --body "${{ steps.naming.outputs.filename }}.sha256" \
+            --endpoint-url "$R2_ENDPOINT" > /dev/null
+
+          # Una copia che nessuno ha riletto non è una copia.
+          R2_SIZE=$(aws s3api head-object \
+            --bucket "${R2_BUCKET}" \
+            --key "${{ steps.naming.outputs.s3_path }}" \
+            --endpoint-url "$R2_ENDPOINT" \
+            --query 'ContentLength' --output text)
+
+          if [ -z "$R2_SIZE" ] || [ "$R2_SIZE" -lt 500 ]; then
+            echo "❌ Copia su R2 assente o troncata (size: ${R2_SIZE:-0})"
+            exit 1
+          fi
+
+          echo "🔒 Copia immutabile su R2 verificata (${R2_SIZE} bytes)."
+
+      - name: Avviso se la copia fuori sede non è configurata
+        if: env.R2_ACCOUNT_ID == '' || env.R2_BUCKET == ''
+        run: |
+          echo "⚠️ Nessuna copia fuori da DigitalOcean: i segreti R2_* non sono impostati."
+          echo "   Il backup esiste in una sola copia, su un bucket dove un attaccante"
+          echo "   con i permessi giusti può sovrascriverlo. Vedi BACKUP.md."
 
       # ---------------------------------------------------------------
       # 7. Cleanup
