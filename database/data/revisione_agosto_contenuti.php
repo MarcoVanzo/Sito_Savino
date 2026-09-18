@@ -38,7 +38,7 @@ return [
             'signup_description' => "L'iscrizione si effettua compilando il modulo online. I posti di ogni tappa sono limitati.",
             'signup_url' => 'https://www.fusionteamvolley.it/ERP/talent-day/',
             'signup_cta' => 'Vai al modulo di iscrizione',
-            'partners' => 'In collaborazione con Civitavecchia Volley, Fusion Team Volley, Azzurra Volley R.d.R Trieste, VolaValley, Volley Melendugno e Ciclope Volley Bronte.',
+            'partners_note' => 'In collaborazione con Civitavecchia Volley, Fusion Team Volley, Azzurra Volley R.d.R Trieste, VolaValley, Volley Melendugno e Ciclope Volley Bronte.',
         ],
         'en' => [
             'hero_label' => 'Talent Scouting',
@@ -65,7 +65,7 @@ return [
             'signup_description' => 'Registration is through the online form. Places at each stage are limited.',
             'signup_url' => 'https://www.fusionteamvolley.it/ERP/talent-day/',
             'signup_cta' => 'Go to the registration form',
-            'partners' => 'In partnership with Civitavecchia Volley, Fusion Team Volley, Azzurra Volley R.d.R Trieste, VolaValley, Volley Melendugno and Ciclope Volley Bronte.',
+            'partners_note' => 'In partnership with Civitavecchia Volley, Fusion Team Volley, Azzurra Volley R.d.R Trieste, VolaValley, Volley Melendugno and Ciclope Volley Bronte.',
         ],
     ],
 

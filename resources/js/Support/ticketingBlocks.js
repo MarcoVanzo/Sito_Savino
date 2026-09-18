@@ -56,7 +56,21 @@ function elencoDiTesti(raw, chiave) {
 
     return raw
         .map(voce => (typeof voce === 'string' ? voce : testo(voce?.[chiave])))
-        .filter(voce => voce !== '')
+        .filter(voce => haContenuto(voce))
+}
+
+/**
+ * I vantaggi si scrivono con l'editor, quindi arrivano come HTML: una voce
+ * svuotata in redazione resta `<p></p>` e la stringa non e' vuota. Si guarda
+ * il testo, non il markup.
+ *
+ * @param {string} voce
+ */
+function haContenuto(voce) {
+    return voce
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .trim() !== ''
 }
 
 function fasi(raw) {

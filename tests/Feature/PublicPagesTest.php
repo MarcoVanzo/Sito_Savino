@@ -199,9 +199,18 @@ class PublicPagesTest extends TestCase
         $response1->assertRedirect('/stagione/b1');
         $response1->assertStatus(301);
 
-        $response2 = $this->get('/youth/u17-u15');
-        $response2->assertRedirect('/in-costruzione');
+        $response2 = $this->get('/youth/u17');
+        $response2->assertRedirect('/stagione/u17');
         $response2->assertStatus(301);
+
+        $response3 = $this->get('/youth/u15');
+        $response3->assertRedirect('/stagione/u15');
+        $response3->assertStatus(301);
+
+        // Il vecchio indirizzo unico non finisce piu' in costruzione.
+        $response4 = $this->get('/youth/u17-u15');
+        $response4->assertRedirect('/stagione/u17');
+        $response4->assertStatus(301);
     }
 
     public function test_summer_camp_redirects(): void

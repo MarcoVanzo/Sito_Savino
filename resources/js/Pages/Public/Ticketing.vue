@@ -148,27 +148,6 @@ const ogMeta = useOgMeta({
             </div>
         </section>
 
-        <!-- Vantaggi per gli abbonati -->
-        <section v-if="benefits.length" class="py-16 bg-gray-50" data-test="ticketing-benefits">
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 v-if="cd.benefits_heading" class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.benefits_heading }}</h2>
-                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-12"></div>
-
-                <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <li
-                        v-for="(benefit, idx) in benefits"
-                        :key="idx"
-                        class="flex items-start gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5"
-                    >
-                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-savino-fucsia/10 text-savino-fucsia flex items-center justify-center mt-0.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
-                        </span>
-                        <span class="text-gray-700 leading-relaxed">{{ benefit }}</span>
-                    </li>
-                </ul>
-            </div>
-        </section>
-
         <!-- Subscription Plans -->
         <section v-if="showPlans" class="py-16 bg-gray-50" data-test="ticketing-plans">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -244,6 +223,30 @@ const ogMeta = useOgMeta({
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Vantaggi per gli abbonati -->
+        <section v-if="benefits.length" class="py-16 bg-white" data-test="ticketing-benefits">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 v-if="cd.benefits_heading" class="text-3xl font-black text-gray-900 uppercase tracking-tight text-center mb-2">{{ cd.benefits_heading }}</h2>
+                <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-12"></div>
+
+                <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <li
+                        v-for="(benefit, idx) in benefits"
+                        :key="idx"
+                        class="flex items-start gap-4 bg-gray-50 rounded-2xl border border-gray-100 px-6 py-5"
+                    >
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-savino-fucsia/10 text-savino-fucsia flex items-center justify-center mt-0.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                        </span>
+                        <span
+                            class="text-gray-700 leading-relaxed [&_p]:m-0 [&_p+p]:mt-2 [&_strong]:font-bold [&_a]:text-savino-blue [&_a]:underline"
+                            v-html="sanitize(benefit)"
+                        ></span>
+                    </li>
+                </ul>
             </div>
         </section>
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Forms;
 
+use App\Enums\AffiliateTier;
 use App\Filament\Forms\Templates\ComunicazioneTemplateForm;
 use App\Filament\Forms\Templates\TicketingTemplateForm;
 use App\Filament\Forms\Templates\YouthTemplateForm;
@@ -188,7 +189,13 @@ class PageTemplateForms
                         ->label('Email per informazioni')
                         ->email()
                         ->helperText('Se vuoto vale quella in Impostazioni -> Contatti.'),
-                    Forms\Components\Textarea::make('content_data.partners')
+                    // `partners_note` e non `partners`: quel nome nelle
+                    // Convenzioni e' l'elenco dei partner (un Repeater), e
+                    // Filament idrata anche i campi delle sezioni nascoste.
+                    // Con un testo sotto quella chiave il Repeater delle
+                    // Convenzioni riceveva una stringa e la pagina Talent Day
+                    // non si apriva piu' in redazione (500).
+                    Forms\Components\Textarea::make('content_data.partners_note')
                         ->label('Societa\' partner')
                         ->rows(2)
                         ->columnSpanFull(),
@@ -284,6 +291,62 @@ class PageTemplateForms
                 ->collapsible()
                 ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
                 ->createItemButtonLabel('Aggiungi partner'),
+        ];
+    }
+
+    /**
+     * Progetto Affiliazioni: le societa' del progetto, divise nei tre livelli
+     * del sito precedente (Main Partner, Partner Ufficiale, Societa'
+     * Affiliate).
+     *
+     * Un solo elenco con il livello accanto a ogni societa', non tre elenchi:
+     * spostare una societa' di livello e' cambiare una tendina, e i gruppi in
+     * pagina li compone il frontend nell'ordine di AffiliateTier.
+     */
+    public static function getAffiliazioniSchema(): array
+    {
+        return [
+            Forms\Components\TextInput::make('content_data.hero_label')
+                ->label(EtichetteDeiCampi::HERO_BADGE)
+                ->placeholder('es. Progetto Affiliazioni'),
+            Forms\Components\Textarea::make('content_data.hero_description')
+                ->label(EtichetteDeiCampi::HERO_DESCRIPTION)
+                ->rows(2),
+            Forms\Components\TextInput::make('content_data.clubs_heading')
+                ->label('Titolo dell\'elenco')
+                ->placeholder('es. Le societa\' del progetto')
+                ->columnSpanFull(),
+            Forms\Components\Repeater::make('content_data.affiliates')
+                ->label('Societa\' del progetto')
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->label('Nome della societa\'')
+                        ->required()
+                        ->placeholder('es. Volley Appennino'),
+                    Forms\Components\Select::make('tier')
+                        ->label('Livello')
+                        ->options(AffiliateTier::opzioni())
+                        ->default(AffiliateTier::Affiliated->value)
+                        ->required(),
+                    Forms\Components\TextInput::make('url')
+                        ->label('Sito della societa\'')
+                        ->url()
+                        ->placeholder('es. https://www.volleyappennino.it')
+                        ->helperText('Il logo rimanda qui. Senza indirizzo resta un riquadro non cliccabile.'),
+                    Forms\Components\FileUpload::make('logo')
+                        ->label('Logo')
+                        ->image()
+                        ->directory('affiliazioni')
+                        ->maxSize(2048)
+                        ->helperText('Su fondo bianco o trasparente. Senza logo si vede il nome.'),
+                ])
+                ->columns(2)
+                ->columnSpanFull()
+                ->defaultItems(0)
+                ->reorderable()
+                ->collapsible()
+                ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                ->createItemButtonLabel('Aggiungi societa\''),
         ];
     }
 
@@ -938,9 +1001,23 @@ class PageTemplateForms
                                         ->label('Descrizione Progetto')
                                         ->rows(3)
                                         ->columnSpanFull(),
+                                    // Due modi di chiudere la scheda, non due
+                                    // pulsanti: con l'indirizzo di posta il
+                                    // progetto mostra "Contattaci", altrimenti
+                                    // "Scopri" verso la pagina. L'email vince,
+                                    // perche' i progetti che si raccontano in
+                                    // una pagina non hanno un referente a cui
+                                    // scrivere.
+                                    Forms\Components\TextInput::make('contact_email')
+                                        ->label('Email di contatto (pulsante "Contattaci")')
+                                        ->email()
+                                        ->placeholder('es. federico.latanza@savinodelbenevolley.it')
+                                        ->helperText('Compilata, la scheda mostra "Contattaci" e apre la posta al posto di "Scopri".')
+                                        ->columnSpanFull(),
                                     Forms\Components\TextInput::make('link')
                                         ->label('Link "Scopri" (opzionale)')
                                         ->placeholder('es. /sociale/volley-4-all oppure https://...')
+                                        ->helperText('Usato solo se non c\'e\' un indirizzo di posta.')
                                         ->columnSpanFull(),
                                 ])
                                 ->columns(2)
@@ -1048,6 +1125,7 @@ class PageTemplateForms
             Forms\Components\Tabs::make('Settore Giovanile')
                 ->tabs([
                     ...YouthTemplateForm::schedaInfoEStatistiche(),
+                    ...YouthTemplateForm::schedaFotoDelleSquadre(),
                     ...YouthTemplateForm::schedaScouting(),
                 ])
                 ->columnSpanFull(),

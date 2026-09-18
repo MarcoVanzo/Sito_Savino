@@ -122,6 +122,11 @@ class PageResource extends Resource
                         ->schema(PageTemplateForms::getConvenzioniSchema())
                         ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Convenzioni'),
 
+                    // FORM: PROGETTO AFFILIAZIONI
+                    Forms\Components\Section::make('Societa\' del progetto affiliazioni')
+                        ->schema(PageTemplateForms::getAffiliazioniSchema())
+                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Affiliazioni'),
+
                     Forms\Components\Section::make('Impostazioni Pagina Club Race')
                         ->schema(PageTemplateForms::getClubRaceSchema())
                         ->visible(fn (Forms\Get $get) => $get('template') === 'Public/ClubRace'),
@@ -241,6 +246,7 @@ class PageResource extends Resource
                                 'Public/Convenzioni' => 'Convenzioni per gli abbonati',
                                 'Public/Sponsor' => 'Sponsor',
                                 'Public/Youth' => 'Settore Giovanile',
+                                'Public/Affiliazioni' => 'Progetto Affiliazioni',
                                 'Public/SummerCamp' => 'Summer Camp',
                                 'Public/TalentDay' => 'Talent Day & Recruiting',
                                 'Public/Sociale' => 'Progetti Sociali',

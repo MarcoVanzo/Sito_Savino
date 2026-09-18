@@ -703,8 +703,11 @@ return [
             ['it' => 'SDB Youth', 'en' => 'SDB Youth'],
             ['it' => 'SDB Volley Club Race', 'en' => 'SDB Volley Club Race'],
             ['it' => 'Safeguarding', 'en' => 'Safeguarding'],
+            ['it' => 'Seconda Divisione / Under 15', 'en' => 'Second Division / Under 15'],
             ['it' => 'Serie A1', 'en' => 'Serie A1'],
             ['it' => 'Serie B1 / U19', 'en' => 'Serie B1 / U19'],
+            // Il campionato si chiama così anche per un lettore inglese.
+            ['it' => 'Serie C / Under 17', 'en' => 'Serie C / Under 17'],
             // Era "Shop Ufficiale": la voce e' diventata il pulsante della
             // testata e l'etichetta si e' accorciata. In inglese resta identica.
             ['it' => 'Shop', 'en' => 'Shop'],

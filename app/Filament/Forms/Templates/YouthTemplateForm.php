@@ -7,7 +7,7 @@ use App\Filament\Forms\EtichetteDeiCampi;
 use Filament\Forms;
 
 /**
- * Le due schede del form della pagina Settore Giovanile.
+ * Le schede del form della pagina Settore Giovanile.
  *
  * "Valori" e "Squadre" non ci sono piu': la redazione ha chiesto di togliere
  * quelle due sezioni dalla pagina, e un campo che non si vede online non deve
@@ -69,6 +69,53 @@ class YouthTemplateForm
                                     'nome' => 'Anni', 'esempioValore' => 'es. 15+', 'esempioEtichetta' => 'es. Anni di Attività'],
                             ], 4),
                         ]),
+                ]),
+        ];
+    }
+
+    /**
+     * Le foto di squadra, dall'Under 19 alla Promozionale.
+     *
+     * Non sono la galleria in coda alla pagina: la redazione le vuole grandi e
+     * al centro del racconto, una per squadra, come sul sito precedente.
+     *
+     * @return array<int, Forms\Components\Tabs\Tab>
+     */
+    public static function schedaFotoDelleSquadre(): array
+    {
+        return [
+            Forms\Components\Tabs\Tab::make('Foto delle Squadre')
+                ->icon('heroicon-o-user-group')
+                ->schema([
+                    Forms\Components\TextInput::make('content_data.team_photos_heading')
+                        ->label('Titolo della sezione')
+                        ->placeholder('es. Le Nostre Squadre')
+                        ->columnSpanFull(),
+                    Forms\Components\Repeater::make('content_data.team_photos')
+                        ->label('Squadre')
+                        ->schema([
+                            Forms\Components\TextInput::make('title')
+                                ->label('Squadra')
+                                ->required()
+                                ->placeholder('es. Under 19'),
+                            Forms\Components\TextInput::make('caption')
+                                ->label('Didascalia')
+                                ->placeholder('es. Stagione 2026/2027'),
+                            Forms\Components\FileUpload::make('photo')
+                                ->label('Foto di squadra')
+                                ->image()
+                                ->directory('settore-giovanile')
+                                ->maxSize(8192)
+                                ->helperText('Orizzontale, almeno 1600 px di larghezza: la foto si vede a tutta colonna.')
+                                ->columnSpanFull(),
+                        ])
+                        ->columns(2)
+                        ->columnSpanFull()
+                        ->defaultItems(0)
+                        ->reorderable()
+                        ->collapsible()
+                        ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
+                        ->createItemButtonLabel('Aggiungi squadra'),
                 ]),
         ];
     }

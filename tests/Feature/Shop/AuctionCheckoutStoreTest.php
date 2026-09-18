@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Auction;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\ShippingZone;
 use App\Models\User;
 use App\Services\Payments\StripePaymentService;
@@ -46,7 +47,15 @@ class AuctionCheckoutStoreTest extends TestCase
 
     private function astaVinta(User $winner, string $token, ?\DateTimeInterface $deadline = null): Auction
     {
-        $auction = Auction::factory()->ended()->create(['current_bid' => 100]);
+        // Il lotto ha una giacenza: la fabbrica dei prodotti la tira a caso fra
+        // 0 e 100, e con lo zero l'osservatore del magazzino rifiuta il
+        // movimento di scarico. Il checkout lo prendeva come un guasto e
+        // rimandava indietro, quindi il test cadeva una volta ogni cento senza
+        // che niente fosse rotto davvero.
+        $auction = Auction::factory()->ended()->create([
+            'current_bid' => 100,
+            'product_id' => Product::factory()->create(['stock' => 5])->id,
+        ]);
 
         $auction->forceFill([
             'winner_user_id' => $winner->id,

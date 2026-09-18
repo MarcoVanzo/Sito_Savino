@@ -556,6 +556,33 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   `content_data.partners` (`name`, `url`, `discount`, `description`,
   `how_to_use`, `logo`), introduzione nell'editor. Il logo passa da `CmsFile`
   come ogni altro upload dentro `content_data`.
+- **Una chiave di `content_data`, un tipo solo.** I modelli di pagina
+  condividono lo spazio dei nomi e Filament idrata anche i campi delle sezioni
+  nascoste: un testo salvato sotto il nome di un elenco arriva comunque al
+  Repeater dell'altro modello e la pagina va in 500 prima di disegnarsi
+  (`foreach() argument must be of type array|object, string given`). È successo
+  il 17/09/2026 con `partners` — nota del Talent Day, elenco delle Convenzioni
+  — e la nota è passata a `partners_note`. Le chiavi che sono elenchi stanno in
+  `ContentData::CHIAVI_ELENCO` (un test le confronta con i Repeater dichiarati
+  nei form) e `EditPage::mutateFormDataBeforeFill` tiene fuori dal modulo i
+  valori di tipo sbagliato senza cancellarli dall'archivio.
+- **Progetto Affiliazioni** ha il template `Public/Affiliazioni`: le società in
+  `content_data.affiliates` (`name`, `tier`, `url`, `logo`), raggruppate dal
+  frontend nell'ordine di `App\Enums\AffiliateTier` (Main Partner, Partner
+  Ufficiale, Società Affiliate) con le intestazioni tradotte in `affiliazioni.*`;
+  il racconto resta nell'editor. `php artisan affiliazioni:importa-dal-vecchio-sito`
+  rilegge società, livelli, link e loghi dalla pagina del sito precedente ed è
+  idempotente (chiave: il nome); i loghi vanno sul disco dei campi di upload del
+  pannello, non su quello predefinito. La migrazione che accende il template
+  toglie dal racconto le sezioni "Main Partner" e "Partner Ufficiali" scritte a
+  testo: sono le stesse società che l'elenco pubblica con il logo, e lasciarle
+  le mostrava due volte nella stessa pagina.
+- **Le squadre del vivaio si scelgono per categoria**, non per slug:
+  `teams.category` (`B1`, `U17`, `U15`) lega le pagine `/stagione/b1`,
+  `/stagione/u17` e `/stagione/u15` (voci di menu `/youth/u17`, `/youth/u15`) al
+  pannello delle Atlete Youth e al suo filtro. Il nome della squadra cambia con
+  il campionato ed è la redazione a scriverlo; l'etichetta della pagina è quella
+  della voce di menu.
 - **Le lingue diverse da quella di partenza arrivano al form grezze.** Il plugin
   translatable idrata solo la lingua iniziale e monta le altre così come stanno
   in archivio, sia cambiando lingua sia salvando: un FileUpload con il percorso

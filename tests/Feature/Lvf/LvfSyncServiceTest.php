@@ -146,7 +146,29 @@ class LvfSyncServiceTest extends TestCase
 
         $this->assertDatabaseCount('games', 1);
         $this->assertDatabaseCount('standings', 2);
-        $this->assertSame(2, Team::count());
+
+        // Si contano le squadre del campionato, cioe' quelle agganciate a un
+        // identificativo della Lega: in archivio ci sono anche le squadre del
+        // vivaio (Under 17, Under 15), che il sync non deve toccare.
+        $this->assertSame(2, Team::whereNotNull('lvf_club_id')->count());
+        $this->assertSame(2, Team::whereIn('category', ['U17', 'U15'])->count(), 'Le squadre del vivaio sono state toccate dal sync.');
+    }
+
+    /**
+     * Le squadre del vivaio sono interne come la prima ma giocano altri
+     * campionati: agganciare a una di loro l'identificativo del club di A1
+     * porterebbe lì gare e classifica della prima squadra.
+     */
+    #[Test]
+    public function non_aggancia_il_club_a_una_squadra_del_vivaio(): void
+    {
+        $vivaio = Team::where('category', 'U17')->where('is_internal', true)->firstOrFail();
+
+        $this->fakeSite($this->matchHtml(747982, ['home' => 3, 'away' => 1]));
+        LvfSyncService::make()->sync(2026);
+
+        $this->assertNull($vivaio->fresh()->lvf_club_id, 'Il club è stato agganciato a una squadra del vivaio.');
+        $this->assertSame(0, $vivaio->fresh()->lvfClubIds()->count());
     }
 
     #[Test]
@@ -164,7 +186,7 @@ class LvfSyncServiceTest extends TestCase
 
         LvfSyncService::make()->sync(2026);
 
-        $this->assertSame(2, Team::count(), 'La squadra del club è stata duplicata.');
+        $this->assertSame(2, Team::whereNotNull('lvf_club_id')->count(), 'La squadra del club è stata duplicata.');
         $this->assertSame(self::OWN_CLUB, $own->fresh()->lvf_club_id);
         $this->assertSame('Savino Del Bene Volley', $own->fresh()->name);
         $this->assertSame($own->id, Game::first()->home_team_id);
@@ -436,7 +458,7 @@ class LvfSyncServiceTest extends TestCase
         $this->fakeSite($this->matchHtml(747982, ['home' => 3, 'away' => 1], awayClub: 710949));
         LvfSyncService::make()->sync(2026);
 
-        $this->assertSame(2, Team::count());
+        $this->assertSame(2, Team::whereNotNull('lvf_club_id')->count());
 
         // Stessa denominazione, identificativi diversi: è la stagione precedente.
         $this->fakeSite(
@@ -449,7 +471,7 @@ class LvfSyncServiceTest extends TestCase
         config()->set('services.lvf.club_ids', [self::OWN_CLUB, 710918]);
         LvfSyncService::make()->sync(2025);
 
-        $this->assertSame(2, Team::count(), 'Le squadre sono state duplicate cambiando stagione.');
+        $this->assertSame(2, Team::whereNotNull('lvf_club_id')->count(), 'Le squadre sono state duplicate cambiando stagione.');
 
         $savino = Team::firstWhere('slug', 'savino-del-bene-scandicci');
         $this->assertNotNull($savino);
@@ -476,9 +498,11 @@ class LvfSyncServiceTest extends TestCase
         $this->fakeSite($this->matchHtml(747982, ['home' => 3, 'away' => 1], '04/10/2026', self::OWN_CLUB, 710949));
         LvfSyncService::make()->sync(2026);
 
+        // Le squadre del vivaio sono interne anche loro ma non giocano in A1:
+        // qui conta quella agganciata agli identificativi della Lega.
         $this->assertSame(
             1,
-            Team::where('is_internal', true)->count(),
+            Team::where('is_internal', true)->whereNotNull('lvf_club_id')->count(),
             'La squadra della società è stata duplicata cambiando stagione.'
         );
 

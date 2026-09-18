@@ -9,6 +9,7 @@ use App\Filament\Columns\AiScoreColumn;
 use App\Filament\Resources\YouthRosterResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Roster;
+use App\Models\Team;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
@@ -66,7 +67,7 @@ class YouthRosterResource extends Resource
                             ->relationship(
                                 'team',
                                 'name',
-                                fn (Builder $query) => $query->whereIn('category', ['B1', 'U17', 'U15'])
+                                fn (Builder $query) => $query->whereIn('category', Team::CATEGORIE_VIVAIO)
                             )
                             ->searchable()
                             ->preload()
@@ -192,6 +193,18 @@ class YouthRosterResource extends Resource
                         : $query
                     ),
             ])
+            // L'elenco arriva gia' diviso per squadra: le atlete sono di tre
+            // squadre diverse (B1/U19, Serie C/U17, Seconda Divisione/U15) e
+            // in una lista unica non si capiva chi giocasse dove.
+            ->groups([
+                Tables\Grouping\Group::make('team.name')
+                    ->label('Squadra')
+                    ->collapsible(),
+                Tables\Grouping\Group::make('season.name')
+                    ->label('Stagione')
+                    ->collapsible(),
+            ])
+            ->defaultGroup('team.name')
             ->actions(array_merge([
                 SyncFaceAction::make('syncFace'),
             ], static::viewAndEditActions()))
@@ -221,6 +234,6 @@ class YouthRosterResource extends Resource
     {
         return parent::getEloquentQuery()
             ->with(['player', 'team', 'season', 'media'])
-            ->whereHas('team', fn (Builder $q) => $q->whereIn('category', ['B1', 'U17', 'U15']));
+            ->whereHas('team', fn (Builder $q) => $q->whereIn('category', Team::CATEGORIE_VIVAIO));
     }
 }

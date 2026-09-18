@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PageResource\Pages;
 
 use App\Filament\Resources\PageResource;
 use App\Filament\Resources\PageResource\Concerns\PreservaContentData;
+use App\Support\ContentData;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
@@ -183,6 +184,28 @@ class EditPage extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         return $this->contentDataPreservato($data);
+    }
+
+    /**
+     * I modelli di pagina condividono lo spazio dei nomi di `content_data` e
+     * Filament idrata anche i campi delle sezioni nascoste: un testo salvato
+     * sotto il nome di un elenco (era il caso di `partners`, nota del Talent
+     * Day ed elenco delle Convenzioni) arriva al Repeater dell'altro modello e
+     * manda la pagina in 500 prima di disegnarla.
+     *
+     * Qui quei valori restano fuori dal modulo. In archivio non si toccano: il
+     * salvataggio riscrive solo le chiavi dei campi che il modulo mostra.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (is_array($data['content_data'] ?? null)) {
+            $data['content_data'] = ContentData::soloElenchiValidi($data['content_data']);
+        }
+
+        return $data;
     }
 
     protected function getHeaderActions(): array

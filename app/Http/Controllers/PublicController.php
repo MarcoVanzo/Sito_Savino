@@ -103,15 +103,46 @@ class PublicController extends Controller
     {
         $locale = app()->getLocale();
 
-        return $this->stagioneForTeam('savino-del-bene-volley', "public:stagione:{$locale}");
+        return $this->stagioneForTeam('savino-del-bene-volley', 'A1', "public:stagione:{$locale}");
     }
 
     public function stagioneB1()
     {
+        // Stesso nome della voce di menu ("Serie B1 / U19"): è la stessa squadra.
+        return $this->stagioneDelVivaio('B1', 'b1', 'Serie B1 / U19');
+    }
+
+    public function stagioneU17()
+    {
+        return $this->stagioneDelVivaio('U17', 'u17', 'Serie C / Under 17');
+    }
+
+    public function stagioneU15()
+    {
+        return $this->stagioneDelVivaio('U15', 'u15', 'Seconda Divisione / Under 15');
+    }
+
+    /**
+     * La rosa di una squadra del vivaio, scelta per categoria.
+     *
+     * La categoria e non lo slug: le squadre del vivaio le crea la redazione e
+     * il nome cambia con il campionato ("Serie C / Under 17" quest'anno), mentre
+     * `teams.category` resta la chiave con cui le riconoscono anche il pannello
+     * delle Atlete Youth e il suo filtro.
+     *
+     * L'etichetta arriva da qui e non dal nome in archivio perché è quella
+     * della voce di menu: la pagina e il menu devono dire la stessa cosa.
+     */
+    private function stagioneDelVivaio(string $categoria, string $chiaveDiCache, string $etichetta): Response
+    {
         $locale = app()->getLocale();
 
-        // Stesso nome della voce di menu ("Serie B1 / U19"): è la stessa squadra.
-        return $this->stagioneForTeam('serie-b1', "public:stagione:b1:{$locale}", 'Serie B1 / U19');
+        return $this->stagioneForTeam(
+            teamSlug: null,
+            categoria: $categoria,
+            cacheKey: "public:stagione:{$chiaveDiCache}:{$locale}",
+            teamLabel: $etichetta,
+        );
     }
 
     /**
@@ -129,6 +160,7 @@ class PublicController extends Controller
 
         return $this->stagioneForTeam(
             'savino-del-bene-volley',
+            'A1',
             "public:stagione:{$locale}",
             openPlayerSlug: $slug,
         );
@@ -138,7 +170,8 @@ class PublicController extends Controller
      * Logica condivisa per il caricamento roster di un team specifico.
      */
     private function stagioneForTeam(
-        string $teamSlug,
+        ?string $teamSlug,
+        string $categoria,
         string $cacheKey,
         ?string $teamLabel = null,
         ?string $openPlayerSlug = null,
@@ -148,10 +181,15 @@ class PublicController extends Controller
         // apre una finestra vuota è peggio di una card che non si clicca.
         $withPalmares = $teamSlug === 'savino-del-bene-volley';
 
-        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug, $withPalmares) {
+        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug, $categoria, $withPalmares) {
+            // Lo slug è quello della prima squadra, che è un record storico;
+            // le squadre del vivaio si riconoscono dalla categoria. Le due
+            // condizioni stanno dentro lo stesso gruppo, altrimenti l'OR
+            // scavalcherebbe ogni altro filtro.
             $team = Team::with('media')
-                ->where('slug', $teamSlug)
-                ->orWhere('category', $teamSlug === 'savino-del-bene-volley' ? 'A1' : 'B1')
+                ->where(fn ($query) => $query
+                    ->when($teamSlug !== null, fn ($q) => $q->where('slug', $teamSlug))
+                    ->orWhere('category', $categoria))
                 ->first();
 
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();

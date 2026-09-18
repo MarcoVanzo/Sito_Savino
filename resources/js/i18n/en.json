@@ -11,6 +11,7 @@
         "excellence_sport": "Excellence<br/>in Sport.",
         "passion_motto": "Passion, determination and pride in every match.",
         "discover": "Discover",
+        "contact_us": "Contact us",
         "buy_tickets": "Buy Tickets",
         "go_to_shop": "Go to Shop",
         "all_news": "All News",
@@ -253,6 +254,13 @@
         "stat_events": "Annual Events",
         "cta_button": "Contact Us for a Proposal",
         "mail_subject": "Savino Del Bene Volley — Sponsorship enquiry"
+    },
+    "affiliazioni": {
+        "og_title": "Affiliation Project",
+        "og_description": "The clubs taking part in the Savino Del Bene Volley affiliation project.",
+        "tier_main": "Main Partner",
+        "tier_official": "Official Partner",
+        "tier_affiliated": "Affiliated Clubs"
     },
     "under_construction": {
         "og_title": "Site Under Construction — Savino Del Bene Volley",
