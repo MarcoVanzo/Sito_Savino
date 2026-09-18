@@ -429,12 +429,20 @@ class LvfSyncServiceTest extends TestCase
     {
         // Se la prima squadra interna è già legata a un altro club della Lega,
         // ripuntarla al nostro ne falserebbe gare e classifica.
-        $b1 = Team::create([
-            'name' => 'Serie B1',
-            'slug' => 'serie-b1',
-            'is_internal' => true,
-            'lvf_club_id' => 999999,
-        ]);
+        // La squadra della B1 esiste gia' in archivio (la crea una migrazione,
+        // le serve la sua pagina): qui si aggiorna invece di ricrearla, e la
+        // categoria resta vuota perche' la protezione che questo test verifica
+        // e' il legame gia' esistente con un altro club, non l'esclusione delle
+        // squadre del vivaio.
+        $b1 = Team::updateOrCreate(
+            ['slug' => 'serie-b1'],
+            [
+                'name' => 'Serie B1',
+                'category' => null,
+                'is_internal' => true,
+                'lvf_club_id' => 999999,
+            ],
+        );
 
         TeamLvfClubId::create(['team_id' => $b1->id, 'lvf_club_id' => 999999]);
 

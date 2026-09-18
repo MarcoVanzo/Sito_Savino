@@ -47,11 +47,9 @@ class AuctionCheckoutStoreTest extends TestCase
 
     private function astaVinta(User $winner, string $token, ?\DateTimeInterface $deadline = null): Auction
     {
-        // Il lotto ha una giacenza: la fabbrica dei prodotti la tira a caso fra
-        // 0 e 100, e con lo zero l'osservatore del magazzino rifiuta il
-        // movimento di scarico. Il checkout lo prendeva come un guasto e
-        // rimandava indietro, quindi il test cadeva una volta ogni cento senza
-        // che niente fosse rotto davvero.
+        // Il lotto ha una giacenza esplicita: qui serve sapere che c'è merce
+        // da scaricare, e leggerlo nel test vale più che fidarsi del minimo
+        // della fabbrica.
         $auction = Auction::factory()->ended()->create([
             'current_bid' => 100,
             'product_id' => Product::factory()->create(['stock' => 5])->id,

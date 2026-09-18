@@ -19,12 +19,13 @@ declare(strict_types=1);
  *   php scripts/coverage-threshold.php coverage.xml
  */
 $thresholds = [
-    // Checkout, carrello, aste: 35,8% al 31/07/2026.
-    'app/Http/Controllers/Shop' => 34.0,
-    // Webhook Stripe e PayPal: 71,4% al 31/07/2026.
-    'app/Http/Controllers/Webhooks' => 70.0,
-    // CheckoutService, CartService, AuctionService, BidService: 59,5%.
-    'app/Services' => 58.0,
+    // Checkout, carrello, aste: 35,8% al 31/07/2026, 56,0% al 18/09/2026.
+    'app/Http/Controllers/Shop' => 50.0,
+    // Webhook Stripe e PayPal: 71,4% al 31/07/2026, 78,5% al 18/09/2026.
+    'app/Http/Controllers/Webhooks' => 74.0,
+    // CheckoutService, CartService, AuctionService, BidService e i due
+    // servizi di pagamento: 59,5% al 31/07/2026, 81,7% al 18/09/2026.
+    'app/Services' => 78.0,
 ];
 
 $reportPath = $argv[1] ?? 'coverage.xml';

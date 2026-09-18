@@ -19,7 +19,11 @@ class ProductFactory extends Factory
             'slug' => Str::slug($name).'-'.fake()->unique()->randomNumber(5),
             'description' => fake()->paragraph(),
             'price' => fake()->randomFloat(2, 5, 200),
-            'stock' => fake()->numberBetween(0, 100),
+            // Mai zero: con la giacenza a zero l'osservatore del magazzino
+            // rifiuta il movimento di scarico e ogni test che compra qualcosa
+            // cadeva una volta ogni cento, senza che niente fosse rotto. Chi
+            // vuole un prodotto esaurito lo dichiara.
+            'stock' => fake()->numberBetween(5, 100),
             'sku' => strtoupper(fake()->bothify('??-####')),
             'is_active' => true,
         ];

@@ -653,6 +653,16 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   creare l'ordine, riservare la merce e solo allora mandare il cliente
   sull'errore generico. In produzione le chiavi di Stripe non sono impostate:
   finché restano fuori, quel metodo non compare.
+- **L'importo incassato si confronta con il totale dell'ordine.** Fra
+  l'apertura della sessione e il pagamento il totale può cambiare (il pannello
+  ritocca l'ordine, si riprova un pagamento): incassato meno del dovuto, il
+  pagamento si registra ma l'ordine NON si conferma e va in revisione manuale;
+  incassato di più, l'ordine si conferma e la differenza resta segnalata.
+- **Un ordine con `payment_id` valorizzato non si annulla e non si ripaga.**
+  `order:check-unpaid` salta gli ordini con una transazione registrata (non
+  sono checkout abbandonati: i soldi sono in cassa) e il pulsante "riprova il
+  pagamento" li manda alla pagina di conferma invece di aprire una seconda
+  sessione.
 - **`php artisan paypal:verifica`** dice se le credenziali sono buone, se il
   webhook configurato esiste, se punta a questo sito e se ascolta gli eventi che
   il codice gestisce. Dall'esterno non si distingue un impianto sano da uno

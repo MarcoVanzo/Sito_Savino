@@ -111,7 +111,11 @@ class SeasonStatsPageTest extends TestCase
     {
         // Un'atleta puo' essere schierata anche in B1: i due bilanci sono
         // distinti e questa pagina deve mostrare solo quello della sua squadra.
-        $altra = Team::create(['name' => 'Serie B1', 'slug' => 'serie-b1', 'is_internal' => true]);
+        // La B1 e' gia' in archivio (la crea una migrazione): si riusa.
+        $altra = Team::updateOrCreate(
+            ['slug' => 'serie-b1'],
+            ['name' => 'Serie B1', 'is_internal' => true],
+        );
 
         $player = $this->player('Emma', 'Graziani', 7, [
             'matches_played' => 2,
