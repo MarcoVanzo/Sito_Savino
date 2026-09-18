@@ -77,6 +77,19 @@ Si configura una volta sola:
 Finché i secret non ci sono, `backup-db.yml` salta il passo e lo scrive nel log:
 il backup su Spaces continua a funzionare, semplicemente resta in una copia sola.
 
+**Provato sul campo il 18/09/2026**, sul backup vero appena caricato (4,75 MB):
+
+| Tentativo | Esito |
+|---|---|
+| Rilettura dell'oggetto | riuscita, byte identici all'originale |
+| **Sovrascrittura** | **rifiutata**: `The object is locked by the bucket policy` (codice 10069) |
+| **Cancellazione** | nessun effetto: l'oggetto è ancora lì, identico |
+
+> Attenzione al secondo caso: `wrangler r2 object delete` stampa **"Delete complete."**
+> e restituisce 0 anche quando la regola impedisce la cancellazione. Il file non
+> viene toccato — lo si verifica rileggendolo — ma il messaggio dice il
+> contrario. Non fidarsi dell'output: controllare che l'oggetto ci sia ancora.
+
 ---
 
 ## Setup Iniziale
