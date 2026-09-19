@@ -157,13 +157,18 @@ jobs:
       # fila al tetto delle due ore: il passo restava appeso mentre i file, in
       # realtà, erano già stati copiati.
       #
-      # Niente `--fast-list`: era lui la causa, non il bucket. La prova del
-      # 18/09/2026, sugli stessi 81.308 oggetti: `rclone lsf --recursive` senza
-      # quell'opzione (il passo "Conta file sorgente") impiega 25 secondi,
-      # `rclone lsl --fast-list` non finisce in 20 minuti e lascia un manifest
-      # troncato a un decimo delle righe. `--fast-list` tiene l'intero elenco
-      # in memoria prima di emetterlo, e su un bucket di questa taglia non
-      # conviene.
+      # Il manifest usa `lsf`, non `lsl`, e non e' una preferenza di formato.
+      # `lsl` stampa la data di modifica, e rclone su S3 la legge dai metadata
+      # dell'oggetto: una richiesta HEAD per file, cioe' 81.308 richieste in
+      # fila. `lsf` si accontenta di quello che torna dalla listata.
+      #
+      # Misurato nella stessa run, sugli stessi file: `lsf --recursive` (il
+      # passo "Conta file sorgente") 25 secondi, `lsl` oltre 20 minuti, sia con
+      # `--fast-list` sia senza. Due giri di backup sono finiti con un manifest
+      # troncato a un decimo delle righe prima che la differenza fosse chiara.
+      #
+      # Le dimensioni non si perdono: totale file e byte arrivano
+      # dall'intestazione, che li prende da `rclone size` gia' calcolato prima.
       #
       # Restano il tetto di tempo e `continue-on-error` come rete: se anche
       # questa listata si impantana, il backup resta valido e il riepilogo
@@ -188,15 +193,17 @@ jobs:
             echo "# Destination: do-backup:${BACKUP_BUCKET}/media/"
             echo "# L'elenco è quello dei file di produzione al momento della copia:"
             echo "# la copia è terminata senza errori, quindi il backup li contiene tutti."
+            echo "# File: ${{ steps.pre_sync.outputs.prod_count }} — Byte: ${{ steps.pre_sync.outputs.prod_size }}"
             echo "---"
           } > "$MANIFEST_FILE"
 
-          if rclone lsl "do-prod:${PROD_BUCKET}" \
+          if rclone lsf "do-prod:${PROD_BUCKET}" \
+            --recursive \
             --retries 2 \
             --low-level-retries 3 \
             >> "$MANIFEST_FILE" 2>/dev/null; then
             # Le righe dell'intestazione non sono file.
-            BACKUP_COUNT=$(($(wc -l < "$MANIFEST_FILE") - 7))
+            BACKUP_COUNT=$(($(wc -l < "$MANIFEST_FILE") - 8))
             echo "manifest_ok=true" >> "$GITHUB_OUTPUT"
             echo "📁 File nel manifest: ${BACKUP_COUNT}"
           else
