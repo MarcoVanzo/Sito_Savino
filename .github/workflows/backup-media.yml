@@ -157,6 +157,14 @@ jobs:
       # fila al tetto delle due ore: il passo restava appeso mentre i file, in
       # realtà, erano già stati copiati.
       #
+      # Niente `--fast-list`: era lui la causa, non il bucket. La prova del
+      # 18/09/2026, sugli stessi 81.308 oggetti: `rclone lsf --recursive` senza
+      # quell'opzione (il passo "Conta file sorgente") impiega 25 secondi,
+      # `rclone lsl --fast-list` non finisce in 20 minuti e lascia un manifest
+      # troncato a un decimo delle righe. `--fast-list` tiene l'intero elenco
+      # in memoria prima di emetterlo, e su un bucket di questa taglia non
+      # conviene.
+      #
       # Restano il tetto di tempo e `continue-on-error` come rete: se anche
       # questa listata si impantana, il backup resta valido e il riepilogo
       # dichiara che manca l'indice.
@@ -184,7 +192,6 @@ jobs:
           } > "$MANIFEST_FILE"
 
           if rclone lsl "do-prod:${PROD_BUCKET}" \
-            --fast-list \
             --retries 2 \
             --low-level-retries 3 \
             >> "$MANIFEST_FILE" 2>/dev/null; then
@@ -361,10 +368,10 @@ jobs:
             --log-level INFO \
             --log-file rclone-r2.log
 
-          # Le statistiche finali dicono quanto è stato trasferito in questo giro:
-          # il primo costa 11 GB, i successivi solo le foto nuove.
-          TRASFERITI=$(grep -oE 'Transferred:[[:space:]]+[0-9]+ / [0-9]+' rclone-r2.log | tail -1 || echo "")
-          echo "📦 ${TRASFERITI:-nessun trasferimento registrato}"
+          # Le statistiche stanno nel log di rclone, non sullo standard output:
+          # il primo giro costa 11 GB, i successivi solo le foto nuove.
+          echo "📦 Ultime righe del log di rclone:"
+          tail -3 rclone-r2.log || true
           echo "✅ Copia su R2 completata."
 
       - name: Avviso se la copia fuori sede non è configurata
