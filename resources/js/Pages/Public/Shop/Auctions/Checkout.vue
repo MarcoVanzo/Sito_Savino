@@ -9,6 +9,7 @@ import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useAuctionCheckout } from '@/Composables/useAuctionCheckout.js';
+import { costoDiSpedizione } from '@/Support/spedizione.js';
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -21,6 +22,9 @@ const props = defineProps({
     auction: { type: Object, default: () => ({}) },
     product: { type: Object, default: null },
     shippingZones: { type: Array, default: () => [] },
+    // Il peso del pezzo battuto, ripiego compreso: decide la fascia tariffaria
+    // della zona (Product::pesoPerLaSpedizione).
+    pesoDelCollo: { type: [Number, String], default: 0 },
     checkoutDeadline: { type: String, default: null },
     winningBid: { type: [Number, String], default: 0 },
     token: { type: String, default: null },
@@ -83,12 +87,14 @@ const selectedZone = computed(() => {
         ?? zones.find(z => (z.countries || []).includes('*'));
 });
 
-const shippingCost = computed(() => {
-    const zone = selectedZone.value;
-    if (!zone) return 0;
-    if (zone.free_threshold && bidAmount.value >= zone.free_threshold) return 0;
-    return Number(zone.flat_rate ?? 0) || 0;
-});
+// Lo stesso conto del server (ShippingZone::calculateShippingCost) e dello
+// shop: qui era rimasta la sola tariffa base, e appena una zona prende le
+// fasce di peso il totale mostrato al vincitore non è quello che gli viene
+// addebitato.
+const shippingCost = computed(() => costoDiSpedizione(selectedZone.value, {
+    subtotale: bidAmount.value,
+    peso: props.pesoDelCollo,
+}));
 
 const orderTotal = computed(() => bidAmount.value + shippingCost.value);
 

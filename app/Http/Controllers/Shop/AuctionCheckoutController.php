@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Auction;
 use App\Models\Order;
 use App\Models\ShippingZone;
-use App\Models\SiteSetting;
 use App\Services\AuctionService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
@@ -105,12 +104,24 @@ class AuctionCheckoutController extends Controller
         // Carica l'asta con product e media
         $auction->load(['product.media']);
 
-        $shippingZones = ShippingZone::active()->ordered()->get();
+        // Le fasce arrivano al client gia' ordinate e ripulite, come nel
+        // checkout dello shop: il costo mostrato al vincitore e' lo stesso che
+        // gli viene addebitato, e con la sola `flat_rate` divergeva appena una
+        // zona prendeva le fasce di peso.
+        $shippingZones = ShippingZone::active()->ordered()->get()
+            // array_merge e non l'unione con `+`: `toArray()` contiene gia'
+            // `weight_rates` grezze e l'unione non sovrascrive le chiavi
+            // presenti, lasciando al client l'elenco non ordinato.
+            ->map(fn (ShippingZone $zone): array => array_merge($zone->toArray(), [
+                'weight_rates' => $zone->fasceOrdinate(),
+            ]))
+            ->all();
 
         return Inertia::render('Public/Shop/Auctions/Checkout', [
             'auction' => $auction,
             'product' => $auction->product,
             'shippingZones' => $shippingZones,
+            'pesoDelCollo' => $auction->product?->pesoPerLaSpedizione() ?? 0.0,
             'checkoutDeadline' => $auction->winner_checkout_deadline?->toIso8601String(),
             'winningBid' => $this->auctionService->winningAmountFor($auction),
         ]);
@@ -312,10 +323,12 @@ class AuctionCheckoutController extends Controller
         // L'importo dovuto è l'offerta del vincitore corrente, che può
         // non coincidere con current_bid in caso di riassegnazione.
         $winningBid = $this->auctionService->winningAmountFor($lockedAuction);
-        // Un pezzo solo: il peso e' quello del prodotto battuto, e senza
-        // vale il ripiego usato anche per il carrello.
-        $peso = (float) ($lockedAuction->product?->weight ?: SiteSetting::get('shop.default_item_weight_kg', 0.5));
-        $shippingCost = $shippingZone->calculateShippingCost($winningBid, $peso);
+        // Un pezzo solo: il peso e' quello del prodotto battuto, ripiego
+        // compreso (Product::pesoPerLaSpedizione), come per il carrello.
+        $shippingCost = $shippingZone->calculateShippingCost(
+            $winningBid,
+            $lockedAuction->product?->pesoPerLaSpedizione() ?? 0.0,
+        );
         [$shippingAddress, $billingAddress] = $this->indirizzi($validated);
 
         $dati = [
