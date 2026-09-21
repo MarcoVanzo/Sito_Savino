@@ -125,6 +125,8 @@ class EditPage extends EditRecord
 
         $this->lingueGrezze = [];
 
+        $this->allineaLeChiaviComuni($record, $data['content_data'] ?? null);
+
         $record->save();
 
         foreach (array_keys($this->otherLocaleData) as $lingua) {
@@ -132,6 +134,49 @@ class EditPage extends EditRecord
         }
 
         return $record;
+    }
+
+    /**
+     * Riscrive in tutte le lingue le chiavi che non hanno traduzione.
+     *
+     * Le società affiliate e la classifica della Club Race sono nomi, livelli,
+     * link, loghi e punti: identici in italiano e in inglese, ma `content_data`
+     * è tradotto in blocco e ogni lingua ne teneva una copia. Chi modificava
+     * l'elenco con il pannello in inglese — succede, perché la lingua resta
+     * quella dell'ultima pagina su cui si è lavorato — non vedeva cambiare
+     * niente sul sito italiano, e nessun messaggio diceva perché.
+     *
+     * Si riscrivono solo le chiavi che il modulo ha davvero mostrato: quelle
+     * degli altri modelli di pagina restano dove sono, come nel salvataggio.
+     *
+     * @param  mixed  $contenuti  il `content_data` appena salvato nella lingua attiva
+     */
+    private function allineaLeChiaviComuni(Model $record, mixed $contenuti): void
+    {
+        if (! is_array($contenuti)) {
+            return;
+        }
+
+        $chiavi = array_intersect($this->chiaviMostrate, ContentData::CHIAVI_COMUNI);
+
+        if ($chiavi === []) {
+            return;
+        }
+
+        foreach (config('app.supported_locales') as $lingua) {
+            if ($lingua === $this->activeLocale) {
+                continue;
+            }
+
+            $valori = $record->getTranslation('content_data', $lingua, false);
+            $valori = is_array($valori) ? $valori : [];
+
+            foreach ($chiavi as $chiave) {
+                $valori[$chiave] = $contenuti[$chiave] ?? [];
+            }
+
+            $record->setTranslation('content_data', $lingua, $valori);
+        }
     }
 
     /**
