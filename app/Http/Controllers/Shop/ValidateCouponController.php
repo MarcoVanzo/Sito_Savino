@@ -36,11 +36,11 @@ class ValidateCouponController extends Controller
         }
 
         try {
-            $subtotal = $this->cartService->getCartTotal($cart);
-
+            // Il carrello per intero, non il suo totale: un coupon limitato a
+            // certi prodotti deve poter guardare cosa c'e' dentro.
             $result = $this->checkoutService->applyCoupon(
                 $validated['coupon_code'],
-                $subtotal,
+                $cart,
                 auth()->id(),
                 $validated['guest_email'] ?? null,
             );

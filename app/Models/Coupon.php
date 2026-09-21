@@ -6,8 +6,10 @@ use App\Enums\CouponType;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 class Coupon extends Model
 {
@@ -30,6 +32,27 @@ class Coupon extends Model
     ];
 
     // --- Relazioni ---
+
+    /**
+     * I prodotti su cui il coupon vale, se è limitato a qualcuno.
+     *
+     * @return BelongsToMany<Product, $this>
+     */
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'coupon_product');
+    }
+
+    /**
+     * Le categorie su cui il coupon vale: evitano di riscrivere l'elenco dei
+     * prodotti a ogni articolo nuovo dello stesso reparto.
+     *
+     * @return BelongsToMany<ProductCategory, $this>
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(ProductCategory::class, 'coupon_product_category');
+    }
 
     public function usages(): HasMany
     {
@@ -68,6 +91,61 @@ class Coupon extends Model
     public function scopeByCode($query, string $code)
     {
         return $query->whereRaw('UPPER(code) = ?', [strtoupper($code)]);
+    }
+
+    // --- Limiti di catalogo ---
+
+    /**
+     * Il coupon vale solo su una parte del catalogo.
+     *
+     * Senza prodotti né categorie vale su tutto, che è il comportamento
+     * storico e quello dei saldi generici.
+     */
+    public function haLimitiDiCatalogo(): bool
+    {
+        return $this->prodottiAmmessi()->isNotEmpty() || $this->categorieAmmesse()->isNotEmpty();
+    }
+
+    /**
+     * Questo articolo rientra fra quelli scontabili.
+     *
+     * Prodotti e categorie si sommano: basta comparire in uno dei due
+     * elenchi. La categoria è quella del prodotto, non la sua discendenza:
+     * scegliendo "Kit Gara" non si scontano da sole le sottocategorie, che
+     * vanno aggiunte se servono.
+     */
+    public function valePerIlProdotto(Product $prodotto): bool
+    {
+        if (! $this->haLimitiDiCatalogo()) {
+            return true;
+        }
+
+        if ($this->prodottiAmmessi()->contains($prodotto->getKey())) {
+            return true;
+        }
+
+        return $prodotto->product_category_id !== null
+            && $this->categorieAmmesse()->contains($prodotto->product_category_id);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    private function prodottiAmmessi(): Collection
+    {
+        $this->loadMissing('products:id');
+
+        return $this->products->pluck('id');
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, int>
+     */
+    private function categorieAmmesse(): Collection
+    {
+        $this->loadMissing('categories:id');
+
+        return $this->categories->pluck('id');
     }
 
     // --- Logica di validazione ---
