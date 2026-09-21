@@ -43,9 +43,24 @@ abstract class BaseSettingsPage extends Page implements HasForms
         return [];
     }
 
+    /**
+     * I valori con cui si apre un campo la cui chiave non è ancora in
+     * archivio.
+     *
+     * Senza, un Toggle mancante si disegna spento e il primo salvataggio lo
+     * scrive spento davvero: è così che accendere le aste ha mandato lo shop
+     * in manutenzione, perché `shop.enabled` in produzione non c'era.
+     *
+     * @return array<string, mixed>
+     */
+    protected function valoriPredefiniti(): array
+    {
+        return [];
+    }
+
     public function mount(): void
     {
-        $data = [];
+        $data = $this->valoriPredefiniti();
 
         // Le pagine che nominano i campi con la chiave nuda (`hero_title`).
         foreach (SiteSetting::getAllCached() as $key => $value) {

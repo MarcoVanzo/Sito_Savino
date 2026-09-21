@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Settings;
 
 use App\Enums\PaymentGateway;
+use App\Models\SiteSetting;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -30,6 +31,49 @@ class ShopSettingsPage extends BaseSettingsPage
     protected static ?int $navigationSort = 10;
 
     protected static ?string $slug = 'settings/shop';
+
+    /**
+     * Le chiavi in cui "vuoto" è una scelta, non una mancanza.
+     *
+     * Senza soglia qui, il carrello usa quella della zona di spedizione
+     * (CartController::sogliaDellaSpedizioneGratuita). Proporre i 50 € del
+     * seeder significherebbe scriverli al primo Salva e far promettere al
+     * carrello una spedizione gratuita che il checkout — che applica la
+     * soglia della zona — non concede.
+     *
+     * @var list<string>
+     */
+    private const SENZA_RIPIEGO = ['shop.free_shipping_threshold'];
+
+    /**
+     * I valori di partenza delle chiavi che non sono ancora in archivio.
+     *
+     * In produzione le righe di `shop.*` non c'erano tutte: gli interruttori
+     * si aprivano spenti e i numeri vuoti, e il primo Salva li scriveva così.
+     * Accendendo le aste, la redazione ha spento il negozio.
+     *
+     * @return array<string, mixed>
+     */
+    protected function valoriPredefiniti(): array
+    {
+        $predefiniti = [];
+
+        foreach (SiteSetting::definizioniDelloShop() as $impostazione) {
+            if (in_array($impostazione['key'], self::SENZA_RIPIEGO, true)) {
+                continue;
+            }
+
+            data_set(
+                $predefiniti,
+                $impostazione['key'],
+                $impostazione['type'] === 'boolean'
+                    ? filter_var($impostazione['value'], FILTER_VALIDATE_BOOLEAN)
+                    : $impostazione['value'],
+            );
+        }
+
+        return $predefiniti;
+    }
 
     public function form(Form $form): Form
     {
@@ -59,7 +103,8 @@ class ShopSettingsPage extends BaseSettingsPage
                         TextInput::make('shop.free_shipping_threshold')
                             ->label('Soglia spedizione gratuita (€)')
                             ->numeric()
-                            ->minValue(0),
+                            ->minValue(0)
+                            ->helperText('Lascia vuoto per usare la soglia della zona di spedizione: un valore qui vale per tutti i paesi e ha la precedenza.'),
                         TextInput::make('shop.max_qty_per_product')
                             ->label('Quantità max per prodotto')
                             ->numeric()
