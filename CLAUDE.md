@@ -865,7 +865,9 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   `auction` lo toglie dalla vetrina; finche' il cambio si faceva solo alla
   creazione, cancellare l'asta lasciava il prodotto invisibile per sempre, con
   la sua pagina in 404. Il ritorno e' legato al ciclo di vita dell'asta
-  (`Auction::booted`) e il tipo si deduce dalle varianti.
+  (`App\Observers\AuctionObserver`, registrato in `AppServiceProvider`) e il
+  tipo si deduce dalle varianti. Sul model restano le sole transizioni di
+  stato: la classe era arrivata a 21 metodi, oltre la soglia di SonarCloud.
 - **La giacenza di un prodotto con varianti e' la somma delle taglie**
   (`Product::availableStock`). La colonna `products.stock` non la aggiorna piu'
   nessuno da quando l'archivio e' arrivato da WooCommerce: nel pannello

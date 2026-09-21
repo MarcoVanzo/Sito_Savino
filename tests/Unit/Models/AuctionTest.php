@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Models;
 
+use App\Enums\AuctionStatus;
 use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\Product;
@@ -119,5 +120,29 @@ class AuctionTest extends TestCase
 
         $this->assertSoftDeleted('auctions', ['id' => $auctionId]);
         $this->assertNotNull(Auction::withTrashed()->find($auctionId));
+    }
+
+    /**
+     * `cambiaStato` e' l'unico varco su `status`: uno stato inesistente o
+     * uguale a quello corrente non e' una transizione e non tocca l'archivio.
+     */
+    public function test_cambia_stato_rifiuta_i_valori_che_non_sono_transizioni(): void
+    {
+        $auction = Auction::factory()->create();
+        $auction->forceFill(['status' => AuctionStatus::Draft])->save();
+
+        $this->assertFalse($auction->cambiaStato(AuctionStatus::Draft));
+        $this->assertFalse($auction->cambiaStato('stato-inventato'));
+        $this->assertFalse($auction->cambiaStato(null));
+
+        $this->assertSame(AuctionStatus::Draft, $auction->refresh()->status);
+    }
+
+    public function test_stati_raggiungibili_senza_stato_di_partenza_li_elenca_tutti(): void
+    {
+        $this->assertSame(
+            array_map(fn (AuctionStatus $caso) => $caso->value, AuctionStatus::cases()),
+            array_keys(Auction::statiRaggiungibiliDa(null)),
+        );
     }
 }
