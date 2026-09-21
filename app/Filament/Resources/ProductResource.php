@@ -157,6 +157,7 @@ class ProductResource extends Resource
                     ->schema([
                         // In creazione: Repeater inline per setup iniziale (stock disabilitato, verrà gestito dai Movimenti Magazzino)
                         Forms\Components\Repeater::make('variants')
+                            ->defaultItems(0)
                             ->label('Aggiungi Varianti')
                             ->relationship()
                             ->schema([

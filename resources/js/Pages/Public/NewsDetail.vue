@@ -86,7 +86,7 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[35vh] flex items-end bg-gradient-to-br from-gray-900 via-[#0B1521] to-gray-800">
             <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                 <div class="mb-4">
-                    <Link href="/news" class="inline-flex items-center min-h-[44px] text-savino-fucsia hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
+                    <Link :href="route('news.index')" class="inline-flex items-center min-h-[44px] text-savino-fucsia hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
                         ← {{ $t('news_detail.back_to_news') }}
                     </Link>
                 </div>
@@ -153,7 +153,7 @@ const ogMeta = useOgMeta({
                                 {{ formatDate(related.published_at) }}
                             </time>
                             <h3 class="mt-2 text-lg font-bold text-savino-blue group-hover:text-savino-red transition-colors line-clamp-2">
-                                <Link :href="`/news/${related.slug}`">{{ related.title }}</Link>
+                                <Link :href="route('news.show', related.slug)">{{ related.title }}</Link>
                             </h3>
                         </div>
                     </article>

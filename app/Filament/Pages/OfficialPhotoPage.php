@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Pages\Concerns\RestrictsAccessByRole;
+use App\Models\MenuItem;
 use App\Models\SiteSetting;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
@@ -35,7 +36,12 @@ class OfficialPhotoPage extends Page implements HasForms
 
     public function mount(): void
     {
-        $this->data = SiteSetting::getAllCached();
+        // Con `fill()` e non assegnando `$this->data`: senza idratazione un
+        // FileUpload con un file già in archivio manda in 500 la richiesta con
+        // cui il browser chiede i file caricati (successe a Documenti Legali).
+        $this->form->fill([
+            'official_photo_pdf' => SiteSetting::getAllCached()['official_photo_pdf'] ?? null,
+        ]);
     }
 
     public function form(Form $form): Form
@@ -66,6 +72,8 @@ class OfficialPhotoPage extends Page implements HasForms
             } else {
                 SiteSetting::where('key', 'official_photo_pdf')->delete();
                 SiteSetting::clearCache();
+                // Senza PDF la voce "Foto Ufficiale" esce dal menu.
+                MenuItem::clearCache();
             }
         }
 

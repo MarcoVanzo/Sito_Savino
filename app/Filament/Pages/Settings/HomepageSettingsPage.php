@@ -106,6 +106,7 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
     private function statistiche(string $locale): Repeater
     {
         return Repeater::make("stats.{$locale}")
+            ->defaultItems(0)
             ->label('Statistiche ('.strtoupper($locale).')')
             ->schema([
                 TextInput::make('value')->label('Valore')->required()->placeholder('es. 40+'),

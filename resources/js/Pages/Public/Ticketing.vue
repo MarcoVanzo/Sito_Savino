@@ -45,7 +45,12 @@ const giftCard = computed(() => blocchi.value.giftCard)
 // Il listino si mostra se ci sono piani; senza piani resta solo il messaggio
 // "campagna non ancora aperta", e solo se la redazione lo ha scritto.
 const showPlans = computed(() => plans.value.length > 0 || !!cd.value.plans_empty)
-const showInfo = computed(() => !!(cd.value.info_heading || cd.value.online_title || cd.value.online_description || cd.value.boxoffice_title || cd.value.boxoffice_description))
+// Il riquadro del botteghino compare solo se compilato: gli abbonamenti non si
+// vendono al botteghino, e la redazione — non potendolo togliere — lo aveva
+// riempito con un secondo "Vantaggi", doppione del blocco qui sopra.
+const showOnline = computed(() => !!(cd.value.online_title || cd.value.online_description))
+const showBoxoffice = computed(() => !!(cd.value.boxoffice_title || cd.value.boxoffice_description))
+const showInfo = computed(() => showOnline.value || showBoxoffice.value)
 
 // Link alla biglietteria esterna (Vivaticket): gestito dal CMS, senza link
 // il pulsante non esiste — meglio nessun bottone che un bottone che non porta
@@ -97,6 +102,18 @@ const ogMeta = useOgMeta({
                     </a>
                     <p v-if="cd.tickets_note" class="text-white/50 text-xs mt-3">{{ cd.tickets_note }}</p>
                 </div>
+            </div>
+        </section>
+
+        <!-- Introduzione (testo dell'editor). Sta subito sotto l'hero: dice dove e
+             come si compra, e in fondo alla pagina arrivava dopo i pulsanti
+             d'acquisto che doveva presentare. -->
+        <section v-if="page?.content" class="py-12 bg-white border-b border-gray-100" data-test="ticketing-intro">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div
+                    class="prose prose-lg max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight prose-a:text-savino-blue"
+                    v-html="safeContent"
+                ></div>
             </div>
         </section>
 
@@ -162,7 +179,7 @@ const ogMeta = useOgMeta({
                     </Link>
                 </div>
 
-                <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div v-else class="grid grid-cols-1 gap-8" :class="plans.length === 4 ? 'sm:grid-cols-2 xl:grid-cols-4' : 'md:grid-cols-3'">
                     <div
                         v-for="plan in plans"
                         :key="plan.name"
@@ -313,8 +330,8 @@ const ogMeta = useOgMeta({
                 <h2 v-if="cd.info_heading" class="text-3xl font-black text-gray-900 uppercase tracking-tight mb-2">{{ cd.info_heading }}</h2>
                 <div class="w-12 h-1 bg-savino-fucsia mb-10"></div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                <div class="grid grid-cols-1 gap-8" :class="showOnline && showBoxoffice ? 'md:grid-cols-2' : ''">
+                    <div v-if="showOnline" class="bg-gray-50 rounded-xl p-6 border border-gray-100" data-test="ticketing-info-online">
                         <div class="w-12 h-12 rounded-full bg-savino-blue/10 flex items-center justify-center mb-4">
                             <svg class="w-6 h-6 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -333,7 +350,7 @@ const ogMeta = useOgMeta({
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                         </a>
                     </div>
-                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                    <div v-if="showBoxoffice" class="bg-gray-50 rounded-xl p-6 border border-gray-100" data-test="ticketing-info-boxoffice">
                         <div class="w-12 h-12 rounded-full bg-savino-fucsia/10 flex items-center justify-center mb-4">
                             <svg class="w-6 h-6 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -343,16 +360,6 @@ const ogMeta = useOgMeta({
                         <p v-if="cd.boxoffice_description" class="text-gray-500 text-sm leading-relaxed">{{ cd.boxoffice_description }}</p>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- Page Content (CMS) -->
-        <section v-if="page?.content" class="py-16 bg-gray-50">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div
-                    class="prose prose-lg max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight prose-a:text-savino-blue"
-                    v-html="safeContent"
-                ></div>
             </div>
         </section>
     </PublicLayout>

@@ -150,7 +150,7 @@ class TrainAiFacesAction
                 ->image()
                 ->disk('local')
                 ->directory('temp_ai_training')
-                ->helperText('Carica più foto del volto da diverse angolazioni. Non verranno salvate sul server, ma solo inviate all\'AI.')
+                ->helperText('Solo primi piani con UN volto, grande e nitido: niente miniature, foto di gruppo o in azione, che vengono scartate. Usa foto della stagione in cui la persona era in squadra. Non vengono salvate sul server, ma solo inviate all\'AI.')
                 ->required(),
         ];
     }

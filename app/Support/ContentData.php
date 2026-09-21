@@ -93,6 +93,70 @@ class ContentData
     }
 
     /**
+     * Gli elenchi rimasti vuoti in una lingua prendono quelli della lingua
+     * di partenza.
+     *
+     * `content_data` è tradotto in blocco, quindi una classifica, un listino,
+     * i partner di una convenzione o i PDF di una pagina andrebbero ricopiati
+     * a mano in ogni lingua. La redazione li compila in italiano e basta: in
+     * inglese la Club Race diceva "classifica non disponibile", le Convenzioni
+     * "offerte in arrivo", e il Bilancio di Sostenibilità non aveva il PDF.
+     * Un elenco in italiano dentro una pagina inglese è meglio di una sezione
+     * che dichiara vuoto ciò che vuoto non è; appena la lingua ha un elenco
+     * suo, vale quello.
+     *
+     * @param  array<string, mixed>  $contenuti  i valori della lingua richiesta
+     * @param  array<string, mixed>  $diPartenza  i valori della lingua di partenza
+     * @return array<string, mixed>
+     */
+    public static function conGliElenchiDiRipiego(array $contenuti, array $diPartenza): array
+    {
+        foreach (self::CHIAVI_ELENCO as $chiave) {
+            $elenco = $contenuti[$chiave] ?? null;
+            $ripiego = $diPartenza[$chiave] ?? null;
+
+            if (($elenco === null || $elenco === []) && is_array($ripiego) && $ripiego !== []) {
+                $contenuti[$chiave] = $ripiego;
+            }
+        }
+
+        // Lo stesso vale per i valori che non hanno lingua: un link d'acquisto,
+        // un'immagine, un'email, un numero. In inglese la Biglietteria non
+        // aveva il link a Vivaticket né la grafica della Gift Card, Hospitality
+        // non aveva il pulsante, Sponsor non aveva i numeri: nessuno li aveva
+        // ricopiati nella scheda inglese. I testi restano senza ripiego.
+        foreach ($diPartenza as $chiave => $ripiego) {
+            if (! self::nonHaLingua((string) $chiave) || ! is_string($ripiego) || trim($ripiego) === '') {
+                continue;
+            }
+
+            $valore = $contenuti[$chiave] ?? null;
+
+            if ($valore === null || $valore === '' || $valore === []) {
+                $contenuti[$chiave] = $ripiego;
+            }
+        }
+
+        return $contenuti;
+    }
+
+    /**
+     * Le chiavi il cui valore è lo stesso in ogni lingua, riconosciute dal
+     * suffisso con cui i form le chiamano (`tickets_url`, `gift_card_image`,
+     * `maps_link`, `report_email`, `maps_iframe_src`, `stat1_value`…).
+     */
+    private static function nonHaLingua(string $chiave): bool
+    {
+        foreach (['_url', '_image', '_link', '_email', '_src', '_value', '_file'] as $suffisso) {
+            if (str_ends_with($chiave, $suffisso)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * `content_data` pronto per riempire il modulo: le chiavi che il modulo
      * tratta come elenchi restano solo se in archivio sono davvero elenchi.
      *

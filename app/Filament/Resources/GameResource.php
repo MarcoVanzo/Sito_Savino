@@ -92,7 +92,7 @@ class GameResource extends Resource
                             ->required()
                             ->live(),
                         Forms\Components\TextInput::make('home_score')
-                            ->label('Punti (Casa)')
+                            ->label('Set vinti (Casa)')
                             ->numeric()
                             ->minValue(0),
                         Forms\Components\Select::make('away_team_id')
@@ -101,7 +101,7 @@ class GameResource extends Resource
                             ->required()
                             ->different('home_team_id'),
                         Forms\Components\TextInput::make('away_score')
-                            ->label('Punti (Trasferta)')
+                            ->label('Set vinti (Trasferta)')
                             ->numeric()
                             ->minValue(0),
                     ])->columns(2),
@@ -156,10 +156,10 @@ class GameResource extends Resource
                     ->searchable()
                     ->weight('bold'),
                 Tables\Columns\TextColumn::make('home_score')
-                    ->label('Pt.')
+                    ->label('Set')
                     ->alignCenter(),
                 Tables\Columns\TextColumn::make('away_score')
-                    ->label('Pt.')
+                    ->label('Set')
                     ->alignCenter(),
                 Tables\Columns\TextColumn::make('awayTeam.name')
                     ->label('Trasferta')

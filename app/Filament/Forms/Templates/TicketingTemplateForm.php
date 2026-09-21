@@ -260,7 +260,8 @@ class TicketingTemplateForm
                 Forms\Components\TextInput::make('content_data.online_title')
                     ->label('Titolo Info Online'),
                 Forms\Components\TextInput::make('content_data.boxoffice_title')
-                    ->label('Titolo Info Botteghino'),
+                    ->label('Titolo Info Botteghino')
+                    ->helperText('Lasciando vuoti titolo e descrizione il riquadro del botteghino non compare.'),
                 Forms\Components\Textarea::make('content_data.online_description')
                     ->label('Descrizione Info Online'),
                 Forms\Components\Textarea::make('content_data.boxoffice_description')

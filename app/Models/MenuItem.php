@@ -170,7 +170,24 @@ class MenuItem extends Model implements HasMedia
      */
     private static function vaNascosta(?string $url, array $nonPubblicati): bool
     {
-        return self::portaAUnaPaginaInBozza($url, $nonPubblicati) || self::documentoMancante($url);
+        return self::portaAUnaPaginaInBozza($url, $nonPubblicati)
+            || self::documentoMancante($url)
+            || self::fotoUfficialeMancante($url);
+    }
+
+    /**
+     * "Foto Ufficiale" apre il PDF caricato dal pannello. Finché non c'è, la
+     * voce rimandava alla pagina della stagione con "Foto ufficiale non ancora
+     * caricata": una voce di menu che porta a un messaggio d'errore. Ricompare
+     * da sola appena il PDF viene caricato (salvare un'impostazione svuota
+     * la cache del menu).
+     */
+    private static function fotoUfficialeMancante(?string $url): bool
+    {
+        $percorso = trim((string) parse_url((string) $url, PHP_URL_PATH), '/');
+
+        return $percorso === 'stagione/foto-ufficiale'
+            && blank(SiteSetting::get('official_photo_pdf'));
     }
 
     /**

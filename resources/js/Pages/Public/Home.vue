@@ -11,6 +11,7 @@ import { useImageFallback } from '@/Composables/useImageFallback.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 import TeamCrest from '@/Components/TeamCrest.vue';
 import LiveStreamModal from '@/Components/LiveStreamModal.vue';
+import { isExternalLink, externalLinkAttrs } from '@/Support/menuLinks.js';
 import { useLocale } from '@/Composables/useLocale.js';
 import { useSafeUrl } from '@/Composables/useSafeUrl.js';
 
@@ -546,18 +547,25 @@ const ogMeta = useOgMeta({
                         class="hero-text-reveal hero-text-delay-3 flex flex-col sm:flex-row gap-4 justify-end"
                         :class="{ 'revealed': heroRevealed }"
                     >
-                        <Link 
+                        <!-- Gli indirizzi arrivano dalle impostazioni: uno esterno
+                             (Vivaticket) con <Link> partirebbe come XHR e il
+                             pulsante non porterebbe da nessuna parte. -->
+                        <component
+                            :is="isExternalLink(heroCta1Url) ? 'a' : Link"
+                            v-bind="externalLinkAttrs(heroCta1Url)"
                             :href="heroCta1Url" 
                             class="cta-glow-gold inline-flex items-center justify-center px-8 py-4 border-2 border-savino-fucsia bg-gray-900/40 hover:bg-savino-fucsia text-white hover:text-gray-900 text-sm font-bold uppercase tracking-widest transition-all duration-300 backdrop-blur-sm"
                         >
                             {{ heroCta1Label }}
-                        </Link>
-                        <Link 
+                        </component>
+                        <component
+                            :is="isExternalLink(heroCta2Url) ? 'a' : Link"
+                            v-bind="externalLinkAttrs(heroCta2Url)"
                             :href="heroCta2Url" 
                             class="cta-glow-red inline-flex items-center justify-center px-8 py-4 border-2 border-[#C42D7E] bg-[#C42D7E] hover:bg-white hover:text-[#C42D7E] hover:border-white text-white text-sm font-bold uppercase tracking-widest transition-all duration-300"
                         >
                             {{ heroCta2Label }}
-                        </Link>
+                        </component>
                     </div>
                 </div>
             </div>
@@ -626,7 +634,7 @@ const ogMeta = useOgMeta({
                             {{ nextGame.location }}
                         </p>
                         <div class="text-center flex flex-wrap items-center justify-center gap-4" :class="nextGame?.location ? 'mt-5' : 'mt-12'">
-                            <Link href="/ticketing" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 shadow-lg shadow-savino-fucsia/30">
+                            <Link :href="route('ticketing.page', 'biglietteria')" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 shadow-lg shadow-savino-fucsia/30">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                                 {{ $t('common.buy_tickets') }}
                             </Link>
@@ -696,7 +704,7 @@ const ogMeta = useOgMeta({
                         <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">{{ $t('home.latest_news_title') }}</h2>
                         <div class="w-16 h-1 bg-savino-fucsia mt-4"></div>
                     </div>
-                    <Link href="/news" class="mt-6 sm:mt-0 inline-flex items-center gap-2 text-savino-blue font-bold text-sm uppercase tracking-wider hover:text-savino-fucsia transition-colors">
+                    <Link :href="route('news.index')" class="mt-6 sm:mt-0 inline-flex items-center gap-2 text-savino-blue font-bold text-sm uppercase tracking-wider hover:text-savino-fucsia transition-colors">
                         {{ $t('common.all_news') }}
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                     </Link>
@@ -713,7 +721,7 @@ const ogMeta = useOgMeta({
                             @mouseleave="getCachedTiltHandlers(index).onMouseleave($event)"
                         >
                             <Link 
-                                :href="`/news/${post.slug}`" 
+                                :href="route('news.show', post.slug)" 
                                 class="tilt-card news-card group bg-white rounded-2xl overflow-hidden block"
                                 :style="getTiltStyle(index)"
                             >
@@ -786,7 +794,7 @@ const ogMeta = useOgMeta({
         <!-- CTA SPLIT BANNER -->
         <section ref="ctaSection" class="py-0 overflow-hidden">
             <div class="grid md:grid-cols-2">
-                <Link :href="ctaTicketingUrl" class="group relative bg-savino-blue py-16 px-8 text-center hover:bg-savino-blue/90 transition-colors duration-300 overflow-hidden" data-reveal>
+                <component :is="isExternalLink(ctaTicketingUrl) ? 'a' : Link" :href="ctaTicketingUrl" v-bind="externalLinkAttrs(ctaTicketingUrl)" class="group relative bg-savino-blue py-16 px-8 text-center hover:bg-savino-blue/90 transition-colors duration-300 overflow-hidden" data-reveal>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div class="relative">
                         <svg class="w-10 h-10 text-savino-fucsia mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
@@ -797,8 +805,8 @@ const ogMeta = useOgMeta({
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
                     </div>
-                </Link>
-                <Link :href="ctaShopUrl" class="group relative bg-gray-900 py-16 px-8 text-center hover:bg-gray-800 transition-colors duration-300 overflow-hidden" data-reveal>
+                </component>
+                <component :is="isExternalLink(ctaShopUrl) ? 'a' : Link" :href="ctaShopUrl" v-bind="externalLinkAttrs(ctaShopUrl)" class="group relative bg-gray-900 py-16 px-8 text-center hover:bg-gray-800 transition-colors duration-300 overflow-hidden" data-reveal>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div class="relative">
                         <svg class="w-10 h-10 text-savino-fucsia mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
@@ -809,7 +817,7 @@ const ogMeta = useOgMeta({
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
                     </div>
-                </Link>
+                </component>
             </div>
         </section>
 

@@ -23,7 +23,8 @@
     "nav": {
         "main_navigation": "Main navigation",
         "mobile_menu": "Mobile menu",
-        "submenu": "submenu"
+        "submenu": "submenu",
+        "go_to_section": "Go to {label}"
     },
     "home": {
         "og_title": "Official Website",
@@ -237,6 +238,8 @@
         "video_title": "Watch the video",
         "video_open": "Open the video",
         "documents_title": "Documents",
+        "magazines_title": "Our issues",
+        "videos_title": "Videos & insights",
         "documents_download": "Download the PDF"
     },
     "sponsor": {
@@ -318,8 +321,8 @@
         "og_title": "Results & Standings",
         "og_description": "Results, schedule and standings of Savino Del Bene Volley. Follow all the matches of the current season.",
         "current_season": "Current season",
-        "hero_subtitle": "Follow the results of our matches and the updated league standings.",
-        "latest_matches": "Latest Matches",
+        "hero_subtitle": "Follow the fixtures and results of the whole league and the updated standings.",
+        "latest_matches": "Fixtures & results",
         "win": "Win",
         "loss": "Loss",
         "standings": "Standings",
@@ -412,6 +415,7 @@
         "height_short": "Height",
         "year_short": "Year",
         "empty_role": "No athlete found for the selected role.",
+        "empty_roster": "This team’s roster will be published soon.",
         "show_all": "Show all",
         "our_team": "Our Team",
         "coaching_staff": "Coaching Staff",
@@ -457,7 +461,7 @@
         "rate_returning": "Renewal",
         "rate_under16": "Under 16",
         "feature_cta": "Find out more",
-        "gift_card_label": "Gift Card",
+        "gift_card_label": "Gift idea",
         "gift_card_cta": "Buy a Gift Card"
     },
     "convenzioni": {
@@ -568,6 +572,8 @@
         "maintenance_status": "Our shop is under maintenance. We'll be back soon!",
         "back_to_home": "Back to home",
         "add_to_cart": "Add to Cart",
+        "choose_options": "Choose options",
+        "email_placeholder": "email@example.com",
         "clear_search": "Clear search",
         "category_filter": "Filter by category",
         "products_list": "Products list",
@@ -671,7 +677,7 @@
         "subtotal": "Subtotal",
         "shipping": "Shipping",
         "free_shipping": "Free",
-        "free_shipping_threshold": "Free shipping on orders over €50",
+        "free_shipping_over": "Free shipping on orders over {amount}",
         "total": "Total",
         "confirm_order": "Confirm Order",
         "payment_secure_note": "Secure and protected payment. Your data is safe.",
@@ -1104,6 +1110,7 @@
         "stages_title": "The Stages",
         "slots_title": "Times and Age Groups",
         "signup_title": "How to Sign Up",
-        "signup_cta": "Go to the registration form"
+        "signup_cta": "Go to the registration form",
+        "signup_closed": "This year's stages are over. The next dates will be published on this page: write to us for information."
     }
 }

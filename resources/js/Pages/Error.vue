@@ -6,6 +6,10 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 const $t = useTranslations();
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 
+// Nei template Vue `window` non è un globale: `window.location` lì dentro era
+// `undefined.location`, e "Riprova" su un 500/503 lanciava un TypeError.
+const retry = () => router.reload();
+
 const props = defineProps({
     status: Number,
 });
@@ -62,7 +66,7 @@ const description = computed(() => {
                 <!-- CTA -->
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link
-                        href="/"
+                        :href="route('home')"
                         class="inline-flex items-center justify-center px-8 py-4 border-2 border-savino-fucsia bg-savino-fucsia text-savino-blue text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:bg-transparent hover:text-white"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" /></svg>
@@ -70,7 +74,7 @@ const description = computed(() => {
                     </Link>
                     <button type="button"
                         v-if="status >= 500"
-                        @click="router.visit(window.location.pathname, { preserveState: false })"
+                        @click="retry"
                         class="inline-flex items-center justify-center px-8 py-4 border-2 border-white/20 text-white text-sm font-bold uppercase tracking-widest transition-all duration-300 hover:border-white/50 hover:bg-white/5"
                     >
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>

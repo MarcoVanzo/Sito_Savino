@@ -31,18 +31,25 @@ const cd = computed(() => props.page?.content_data ?? {});
 
 const flashSuccess = computed(() => inertiaPage.props.flash?.success)
 
+// L'esito è uno stato di QUESTO modulo. Il flash è condiviso da tutta la
+// pagina: iscriversi alla newsletter dal footer sostituiva il modulo contatti
+// con il messaggio della newsletter, e "Invia un altro messaggio" non lo
+// riapriva perché il flash restava lì.
+const sent = ref(false)
+
 function handleSubmit() {
     form.post(route('contatti.submit'), {
         preserveScroll: true,
         onSuccess: () => {
-            // Form reset automatico dopo successo
             form.reset()
+            sent.value = true
         },
     })
 }
 
 function resetForm() {
     form.reset()
+    sent.value = false
 }
 
 const contactInfo = computed(() => [
@@ -69,7 +76,8 @@ const contactInfo = computed(() => [
         link: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(contact.value.address ?? ''),
         color: 'savino-red'
     }
-])
+// Una scheda senza valore produceva "mailto:undefined" e un link senza testo.
+].filter(scheda => scheda.value))
 
 // --- DIRECTORY DYNAMICS ---
 // Valore sentinella del filtro "nessuna categoria selezionata": è una chiave
@@ -284,11 +292,11 @@ const ogMeta = useOgMeta({
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <!-- Helper for Clipboard Items -->
                             <template v-for="field in [
-                                { id: 'piva', label: $t('contatti.vat_number'), val: contact.legal_piva || '06271460484' },
-                                { id: 'cf', label: $t('contatti.fiscal_code'), val: contact.legal_cf || '94217750481' },
-                                { id: 'fipav', label: $t('contatti.fipav_code'), val: contact.legal_fipav || '100470331' },
-                                { id: 'sdi', label: $t('contatti.sdi_code'), val: contact.legal_sdi || 'KRRH6B9' }
-                            ]" :key="field.id">
+                                { id: 'piva', label: $t('contatti.vat_number'), val: contact.legal_piva },
+                                { id: 'cf', label: $t('contatti.fiscal_code'), val: contact.legal_cf },
+                                { id: 'fipav', label: $t('contatti.fipav_code'), val: contact.legal_fipav },
+                                { id: 'sdi', label: $t('contatti.sdi_code'), val: contact.legal_sdi }
+                            ].filter(f => f.val)" :key="field.id">
                                 <button
                                     type="button"
                                     @click="copyToClipboard(field.val, field.id)"
@@ -458,13 +466,13 @@ const ogMeta = useOgMeta({
                         </div>
 
                         <!-- Success State -->
-                        <div v-if="flashSuccess" class="text-center py-16 animate-fade-in-up">
+                        <div v-if="sent" class="text-center py-16 animate-fade-in-up">
                             <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center shadow-inner">
                                 <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 class="text-2xl font-black text-gray-900 mb-3">{{ flashSuccess }}</h3>
+                            <h3 class="text-2xl font-black text-gray-900 mb-3">{{ flashSuccess || cd.form_success_message }}</h3>
                             <p v-if="cd.form_success_message" class="text-gray-500 font-medium mb-8 text-lg">{{ cd.form_success_message }}</p>
                             <button v-if="cd.form_reset_label" type="button" @click="resetForm" class="inline-block px-8 py-3.5 bg-gray-100 text-gray-900 rounded-xl font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">{{ cd.form_reset_label }}</button>
                         </div>

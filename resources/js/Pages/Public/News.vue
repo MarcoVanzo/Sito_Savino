@@ -148,7 +148,7 @@ const ogMeta = useOgMeta({
                                 {{ formatDate(post.published_at) }}
                             </time>
                             <h2 class="mt-2 text-lg font-bold text-savino-blue group-hover:text-savino-red transition-colors line-clamp-2">
-                                <Link :href="`/news/${post.slug}`">
+                                <Link :href="route('news.show', post.slug)">
                                     {{ post.title }}
                                 </Link>
                             </h2>
@@ -156,7 +156,7 @@ const ogMeta = useOgMeta({
                                 {{ post.excerpt }}
                             </p>
                             <Link
-                                :href="`/news/${post.slug}`"
+                                :href="route('news.show', post.slug)"
                                 class="inline-flex items-center mt-4 text-sm font-bold text-savino-fucsia hover:text-savino-red transition-colors uppercase tracking-wider"
                             >
                                 {{ $t('common.read_more') }} →

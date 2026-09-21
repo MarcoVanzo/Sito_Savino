@@ -21,6 +21,22 @@ describe('safeUrl', () => {
         expect(safeUrl('#calendario')).toBe('#calendario');
     });
 
+    it("completa l'email e il dominio scritti senza schema", () => {
+        // Senza schema il browser li risolve come percorsi relativi alla pagina:
+        // il pulsante di Hospitality portava a /sponsor/marketing@… (404).
+        expect(safeUrl('marketing@savinodelbenevolley.it')).toBe(
+            'mailto:marketing@savinodelbenevolley.it',
+        );
+        expect(safeUrl('  info@savinodelbenevolley.it ')).toBe(
+            'mailto:info@savinodelbenevolley.it',
+        );
+        expect(safeUrl('www.savinodelbene.com/it/home/')).toBe(
+            'https://www.savinodelbene.com/it/home/',
+        );
+        // Un percorso che contiene una chiocciola resta un percorso.
+        expect(safeUrl('/utenti/nome@dominio.it')).toBe('/utenti/nome@dominio.it');
+    });
+
     it('blocca javascript: in ogni forma', () => {
         expect(safeUrl('javascript:alert(1)')).toBeUndefined();
         // Maiuscole e spazi interni: `new URL` normalizza lo schema, quindi il

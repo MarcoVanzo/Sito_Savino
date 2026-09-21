@@ -144,7 +144,7 @@ class PageTemplateForms
                         ->placeholder('es. Disponibile oppure Sold out'),
                     Forms\Components\Toggle::make('sold_out')
                         ->label('Esaurita')
-                        ->helperText('Spegne l\'evidenza colorata sullo stato.'),
+                        ->helperText('Spegne l\'evidenza colorata sullo stato. Quando tutte le tappe sono esaurite o concluse, il pulsante del modulo di iscrizione sparisce da solo.'),
                 ])
                 ->columns(2)
                 ->columnSpanFull()
@@ -405,6 +405,7 @@ class PageTemplateForms
     {
         return [
             Forms\Components\Repeater::make('content_data.timeline')
+                ->defaultItems(0)
                 ->label('Tappe Fondamentali (Timeline)')
                 ->schema([
                     Forms\Components\TextInput::make('year')
@@ -449,6 +450,7 @@ class PageTemplateForms
                 ->helperText('Su Google Maps cerca il palazzetto, poi Condividi → Incorpora una mappa → Copia HTML e incolla qui tutto il codice. Se lasci vuoto, la mappa si centra sull\'indirizzo qui sopra.')
                 ->dehydrateStateUsing(fn (?string $state): ?string => self::srcDellaMappa($state)),
             Forms\Components\Repeater::make('content_data.services')
+                ->defaultItems(0)
                 ->label('Servizi della struttura')
                 ->schema([
                     Forms\Components\TextInput::make('name')
@@ -605,6 +607,7 @@ class PageTemplateForms
                         ->icon('heroicon-o-chat-bubble-left-right')
                         ->schema([
                             Forms\Components\Repeater::make('content_data.form_topics')
+                                ->defaultItems(0)
                                 ->label('Argomenti selezionabili')
                                 ->helperText('Compaiono nella tendina "Oggetto" del modulo di contatto. Il suggerimento, se compilato, appare quando il visitatore sceglie quell\'argomento.')
                                 ->addActionLabel('Aggiungi argomento')
@@ -713,6 +716,7 @@ class PageTemplateForms
     {
         return [
             Forms\Components\Repeater::make('content_data.magazines')
+                ->defaultItems(0)
                 ->label('Edizioni del Magazine (PDF)')
                 ->schema([
                     Forms\Components\TextInput::make('title')
@@ -748,6 +752,7 @@ class PageTemplateForms
     {
         return [
             Forms\Components\Repeater::make('content_data.youtube_videos')
+                ->defaultItems(0)
                 ->label('Video YouTube (Double Face)')
                 ->schema([
                     Forms\Components\TextInput::make('title')
@@ -846,6 +851,7 @@ class PageTemplateForms
                                 ->label('Titolo Sezione Attività')
                                 ->placeholder('es. Non Solo Pallavolo'),
                             Forms\Components\Repeater::make('content_data.activities')
+                                ->defaultItems(0)
                                 ->label('Elenco Attività')
                                 ->schema([
                                     Forms\Components\TextInput::make('title')
@@ -876,6 +882,7 @@ class PageTemplateForms
                                 ->label('Titolo Sezione Date')
                                 ->placeholder('es. Scegli la Tua Settimana'),
                             Forms\Components\Repeater::make('content_data.dates')
+                                ->defaultItems(0)
                                 ->label('Elenco Turni')
                                 ->schema([
                                     Forms\Components\TextInput::make('period')
@@ -977,6 +984,7 @@ class PageTemplateForms
                         ->icon('heroicon-o-folder-open')
                         ->schema([
                             Forms\Components\Repeater::make('content_data.projects')
+                                ->defaultItems(0)
                                 ->label('Elenco Progetti')
                                 ->schema([
                                     Forms\Components\TextInput::make('title')
@@ -1030,6 +1038,7 @@ class PageTemplateForms
                         ->icon('heroicon-o-chart-bar')
                         ->schema([
                             Forms\Components\Repeater::make('content_data.impact_stats')
+                                ->defaultItems(0)
                                 ->label('Statistiche d\'Impatto')
                                 ->schema([
                                     Forms\Components\TextInput::make('value')

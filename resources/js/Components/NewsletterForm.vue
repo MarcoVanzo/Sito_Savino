@@ -138,7 +138,7 @@ function handleSubmit() {
                     />
                     <span class="text-white/50 text-xs leading-relaxed group-hover:text-white/70 transition-colors">
                         {{ $t('newsletter.privacy_consent') }}
-                        <Link href="/privacy-policy" class="text-savino-fucsia hover:text-white underline underline-offset-2 transition-colors">
+                        <Link :href="route('pages.show', 'privacy-policy')" class="text-savino-fucsia hover:text-white underline underline-offset-2 transition-colors">
                             {{ $t('newsletter.privacy_link') }}
                         </Link>
                     </span>
@@ -186,6 +186,7 @@ function handleSubmit() {
                 <button
                     type="submit"
                     :disabled="form.processing"
+                    :aria-label="$t('newsletter.subscribe')"
                     class="bg-savino-fucsia text-gray-900 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-lg hover:bg-white transition-colors duration-300 disabled:opacity-50 flex-shrink-0 flex items-center gap-1.5"
                 >
                     <svg v-if="form.processing" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
@@ -210,7 +211,7 @@ function handleSubmit() {
                 />
                 <span class="text-white/40 text-[10px] leading-relaxed group-hover:text-white/60 transition-colors">
                     {{ $t('newsletter.privacy_consent') }}
-                    <Link href="/privacy-policy" class="text-savino-fucsia hover:text-white underline underline-offset-2 transition-colors">
+                    <Link :href="route('pages.show', 'privacy-policy')" class="text-savino-fucsia hover:text-white underline underline-offset-2 transition-colors">
                         {{ $t('newsletter.privacy_link') }}
                     </Link>
                 </span>

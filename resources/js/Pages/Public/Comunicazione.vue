@@ -126,6 +126,15 @@ const ogMeta = useOgMeta({
         </div>
     </section>
 
+    <!-- Introduzione (testo dell'editor). Sta sotto l'hero: negli accrediti è
+         l'istruzione "almeno 48 ore prima", che in fondo alla pagina si leggeva
+         dopo aver già compilato il modulo. -->
+    <section v-if="page?.content" class="py-12 bg-gray-50 border-b border-gray-100" data-test="comunicazione-intro">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="prose prose-lg max-w-none" v-html="safeContent"></div>
+        </div>
+    </section>
+
     <!-- Press Accreditation -->
     <section v-if="showAccreditation" class="py-20 bg-white">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -320,13 +329,6 @@ const ogMeta = useOgMeta({
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Dynamic Content -->
-    <section v-if="page?.content" class="py-20 bg-gray-50">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="prose prose-lg max-w-none" v-html="safeContent"></div>
         </div>
     </section>
 </template>

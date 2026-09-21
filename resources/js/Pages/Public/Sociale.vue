@@ -25,6 +25,11 @@ const { sanitize } = useSanitize()
 const safeContent = computed(() => sanitize(props.page?.content))
 const cd = computed(() => props.page?.content_data ?? {})
 
+// La missione compare solo se scritta. Le tre pagine della sezione condividono
+// il modello e partivano tutte con lo stesso testo: tolto da due, la sezione
+// restava in pagina vuota, con la sola riga fucsia.
+const hasMission = computed(() => !!(cd.value.mission_title || cd.value.mission_text_1 || cd.value.mission_text_2))
+
 // Progetti e numeri arrivano solo dal CMS: un elenco scritto qui dentro
 // finirebbe online senza che in redazione esista niente da modificare.
 // Il pulsante di ogni scheda ("Contattaci" o "Scopri") lo decide
@@ -66,7 +71,7 @@ const ogMeta = useOgMeta({
     </section>
 
     <!-- Mission -->
-    <section class="py-20 bg-white">
+    <section v-if="hasMission" class="py-20 bg-white" data-test="sociale-mission">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl mx-auto text-center">
                 <span v-if="cd.mission_badge" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.mission_badge }}</span>
@@ -108,7 +113,8 @@ const ogMeta = useOgMeta({
                             :class="{
                                 'bg-savino-blue/10 text-savino-blue': project.color === 'savino-blue',
                                 'bg-savino-fucsia/10 text-savino-fucsia': project.color === 'savino-fucsia',
-                                'bg-savino-red/10 text-savino-red': project.color === 'savino-red'
+                                'bg-savino-red/10 text-savino-red': project.color === 'savino-red',
+                                'bg-savino-pink/10 text-savino-pink': project.color === 'savino-pink'
                             }"
                            
                         >
@@ -118,7 +124,7 @@ const ogMeta = useOgMeta({
                     <h3 class="text-xl font-black text-gray-900 uppercase tracking-tight mb-3 group-hover:text-savino-blue transition-colors">
                         {{ project.title }}
                     </h3>
-                    <p v-if="project.description" class="text-gray-600 leading-relaxed">
+                    <p v-if="project.description" class="text-gray-600 leading-relaxed whitespace-pre-line">
                         {{ project.description }}
                     </p>
                     <div v-if="project.cta" class="mt-6 pt-6 border-t border-gray-100">

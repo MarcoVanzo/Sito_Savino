@@ -23,7 +23,8 @@
     "nav": {
         "main_navigation": "Navigazione principale",
         "mobile_menu": "Menu mobile",
-        "submenu": "sottomenu"
+        "submenu": "sottomenu",
+        "go_to_section": "Vai a {label}"
     },
     "home": {
         "og_title": "Sito Ufficiale",
@@ -237,6 +238,8 @@
         "video_title": "Guarda il video",
         "video_open": "Apri il video",
         "documents_title": "Documenti",
+        "magazines_title": "Le nostre edizioni",
+        "videos_title": "Video & approfondimenti",
         "documents_download": "Scarica il PDF"
     },
     "sponsor": {
@@ -318,8 +321,8 @@
         "og_title": "Risultati e Classifica",
         "og_description": "Risultati, calendario e classifica della Savino Del Bene Volley. Segui tutte le partite della stagione in corso.",
         "current_season": "Stagione corrente",
-        "hero_subtitle": "Segui i risultati delle nostre partite e la classifica aggiornata del campionato.",
-        "latest_matches": "Ultime Partite",
+        "hero_subtitle": "Segui calendario e risultati di tutto il campionato e la classifica aggiornata.",
+        "latest_matches": "Calendario e risultati",
         "win": "Vittoria",
         "loss": "Sconfitta",
         "standings": "Classifica",
@@ -412,6 +415,7 @@
         "height_short": "Alt",
         "year_short": "Anno",
         "empty_role": "Nessuna atleta trovata per il ruolo selezionato.",
+        "empty_roster": "La rosa di questa squadra sarà pubblicata a breve.",
         "show_all": "Mostra tutte",
         "our_team": "Il Nostro Team",
         "coaching_staff": "Staff Tecnico",
@@ -457,7 +461,7 @@
         "rate_returning": "Riconferma",
         "rate_under16": "Under 16",
         "feature_cta": "Scopri di più",
-        "gift_card_label": "Gift Card",
+        "gift_card_label": "Idea regalo",
         "gift_card_cta": "Acquista la Gift Card"
     },
     "convenzioni": {
@@ -568,6 +572,8 @@
         "maintenance_status": "Il nostro shop è in manutenzione. Torneremo presto!",
         "back_to_home": "Torna alla home",
         "add_to_cart": "Aggiungi al Carrello",
+        "choose_options": "Scegli la taglia",
+        "email_placeholder": "email@esempio.com",
         "clear_search": "Cancella ricerca",
         "category_filter": "Filtra per categoria",
         "products_list": "Lista prodotti",
@@ -671,7 +677,7 @@
         "subtotal": "Subtotale",
         "shipping": "Spedizione",
         "free_shipping": "Gratuita",
-        "free_shipping_threshold": "Spedizione gratuita per ordini sopra i €50",
+        "free_shipping_over": "Spedizione gratuita per ordini sopra {amount}",
         "total": "Totale",
         "confirm_order": "Conferma Ordine",
         "payment_secure_note": "Pagamento sicuro e protetto. I tuoi dati sono al sicuro.",
@@ -1104,6 +1110,7 @@
         "stages_title": "Le Tappe",
         "slots_title": "Orari e Categorie",
         "signup_title": "Come Iscriversi",
-        "signup_cta": "Vai al modulo di iscrizione"
+        "signup_cta": "Vai al modulo di iscrizione",
+        "signup_closed": "Le tappe di questa edizione sono concluse. Le prossime date saranno pubblicate in questa pagina: per informazioni scrivici."
     }
 }

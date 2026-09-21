@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\SiteSetting;
+use App\Support\CmsFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -271,12 +272,15 @@ class ShopController extends Controller
             $sizeGuides = json_decode($sizeGuides, true) ?? [];
         }
 
-        // Convert file paths to full URLs
-        $guides = collect($sizeGuides ?? [])->map(fn ($path) => [
-            'path' => $path,
-            'url' => asset('storage/'.$path),
-            'name' => pathinfo($path, PATHINFO_FILENAME),
-        ])->values()->all();
+        // L'indirizzo lo dà CmsFile: in produzione i file stanno su Spaces e un
+        // "/storage/…" costruito a mano non porta da nessuna parte.
+        $guides = collect($sizeGuides ?? [])
+            ->filter(fn ($path) => is_string($path) && $path !== '')
+            ->map(fn (string $path) => [
+                'path' => $path,
+                'url' => CmsFile::url($path),
+                'name' => pathinfo($path, PATHINFO_FILENAME),
+            ])->values()->all();
 
         return Inertia::render('Public/Shop/SizeGuide', [
             'sizeGuides' => $guides,

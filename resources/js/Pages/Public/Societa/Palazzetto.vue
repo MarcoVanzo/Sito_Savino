@@ -6,6 +6,7 @@ import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import PageHero from '@/Components/PageHero.vue';
+import { safeUrl } from '@/Composables/useSafeUrl';
 
 const { sanitize } = useSanitize();
 const $t = useTranslations();
@@ -27,7 +28,7 @@ const cd = computed(() => props.page?.content_data ?? {});
 // i valori che stavano qui restavano online anche dopo averli cambiati.
 const venueName = computed(() => cd.value?.venue_name || props.page?.title || '');
 const venueAddress = computed(() => cd.value?.venue_address || '');
-const mapsLink = computed(() => cd.value?.maps_link || '');
+const mapsLink = computed(() => safeUrl(cd.value?.maps_link) || '');
 // Il pannello salva già il solo indirizzo, ma una pagina salvata prima può
 // avere l'intero codice <iframe> di Google. Si incorpora solo Google Maps;
 // senza una mappa valida la si centra sull'indirizzo della struttura.
