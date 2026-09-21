@@ -4,10 +4,17 @@ namespace Tests\Feature;
 
 use App\Enums\PostStatus;
 use App\Models\Page;
+use App\Models\Player;
 use App\Models\Post;
 use App\Models\Product;
+use App\Models\Roster;
+use App\Models\Season;
+use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -28,6 +35,8 @@ class SocialCrawlerMetaTest extends TestCase
         parent::setUp();
         $this->withoutVite();
         Cache::flush();
+        Storage::fake('public');
+        config(['media-library.disk_name' => 'public']);
     }
 
     #[Test]
@@ -134,9 +143,118 @@ class SocialCrawlerMetaTest extends TestCase
             'status' => PostStatus::Draft,
         ]);
 
+        // 404 come per chiunque altro: NewsController fa firstOrFail sullo
+        // scope published. Prima il middleware si fermava qui e restituiva 200
+        // con l'anteprima generica delle news, cioè una pagina che non esiste.
         $this->withHeaders(self::CRAWLER)
             ->get("/news/{$post->slug}")
-            ->assertStatus(200)
+            ->assertStatus(404)
             ->assertDontSee('Annuncio riservato', false);
+    }
+
+    #[Test]
+    public function la_pagina_inglese_con_slug_tradotto_non_cade_sul_ripiego(): void
+    {
+        // `/contatti` in inglese è `/en/contacts`: con la tabella indicizzata
+        // per percorso il middleware non la riconosceva e annunciava la home.
+        $this->withHeaders(self::CRAWLER)
+            ->get('/en/contacts')
+            ->assertStatus(200)
+            ->assertSee('Contacts', false)
+            ->assertDontSee('Sito Ufficiale', false);
+    }
+
+    #[Test]
+    public function la_pagina_senza_pagina_cms_e_tradotta(): void
+    {
+        // `/stagione` non ha una pagina del CMS: i testi vengono dalle
+        // traduzioni, e in inglese devono essere quelli inglesi.
+        $this->withHeaders(self::CRAWLER)
+            ->get('/stagione')
+            ->assertStatus(200)
+            ->assertSee('Stagione — Savino Del Bene Volley', false);
+
+        $this->withHeaders(self::CRAWLER)
+            ->get('/en/stagione')
+            ->assertStatus(200)
+            ->assertSee('Season — Savino Del Bene Volley', false)
+            ->assertSee('lang="en"', false);
+    }
+
+    #[Test]
+    public function la_scheda_atleta_ha_nome_e_foto(): void
+    {
+        $roster = $this->atletaInRosa();
+        $player = $roster->player;
+        $slug = $player->id.'-'.Str::slug($player->full_name);
+
+        $this->withHeaders(self::CRAWLER)
+            ->get("/stagione/atleta/{$slug}")
+            ->assertStatus(200)
+            ->assertSee($player->full_name, false)
+            ->assertSee('og:type" content="profile', false)
+            // La foto dell'atleta, non il logo: è tutta la differenza fra
+            // un'anteprima che invoglia ad aprire il link e una che no.
+            ->assertSee('foto-atleta', false)
+            ->assertDontSee('og:image" content="'.url('/images/logo.png'), false);
+    }
+
+    #[Test]
+    public function l_atleta_fuori_rosa_resta_un_404(): void
+    {
+        $fuoriRosa = Player::factory()->create(['first_name' => 'Nome', 'last_name' => 'Inventato']);
+
+        $this->withHeaders(self::CRAWLER)
+            ->get("/stagione/atleta/{$fuoriRosa->id}-nome-inventato")
+            ->assertStatus(404);
+    }
+
+    #[Test]
+    public function la_rotta_di_rimando_resta_una_redirezione(): void
+    {
+        // `/ticketing` rimanda a `/ticketing/biglietteria`: servire 200 con
+        // un'anteprima generica spezzava la catena e dava al crawler il titolo
+        // sbagliato.
+        $this->withHeaders(self::CRAWLER)
+            ->get('/ticketing')
+            ->assertRedirect();
+    }
+
+    #[Test]
+    public function un_indirizzo_inesistente_resta_un_404(): void
+    {
+        $this->withHeaders(self::CRAWLER)
+            ->get('/pagina-che-non-esiste')
+            ->assertStatus(404);
+    }
+
+    /**
+     * Atleta della prima squadra nella stagione corrente, come la cerca
+     * PublicController per `/stagione/atleta/{slug}`.
+     */
+    private function atletaInRosa(): Roster
+    {
+        $stagione = Season::factory()->current()->create();
+        $squadra = Team::factory()->create([
+            'slug' => 'savino-del-bene-volley',
+            'category' => 'A1',
+            'is_internal' => true,
+        ]);
+
+        $player = Player::factory()->create([
+            'first_name' => 'Ekaterina',
+            'last_name' => 'Antropova',
+        ]);
+
+        // Senza foto ufficiale di stagione l'accessor di Roster ripiega su
+        // quella della scheda atleta: è il caso normale a inizio stagione.
+        $player->addMedia(UploadedFile::fake()->image('foto-atleta.jpg', 600, 600))
+            ->toMediaCollection('players', 'public');
+
+        return Roster::factory()->create([
+            'player_id' => $player->id,
+            'team_id' => $squadra->id,
+            'season_id' => $stagione->id,
+        ]);
     }
 }

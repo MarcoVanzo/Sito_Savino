@@ -772,3 +772,39 @@ cache hit) lascerebbe la pagina senza script, in silenzio.
 
 `frame-src` e l'elenco di `LiveStream::embedUrl()` vanno tenuti allineati (§16).
 Test in `tests/Feature/SecurityHeadersTest.php`.
+
+---
+
+## 19. Anteprime social (WhatsApp, Facebook, Telegram…)
+
+Il layout `app.blade.php` serve meta `og:` **statici** e non è lì che si
+correggono le anteprime: i crawler non arrivano al rendering Inertia. Le
+anteprime le costruisce `App\Http\Middleware\ServeSocialCrawlerMeta`, che
+intercetta gli user-agent dell'elenco `CRAWLER_PATTERNS` su tutto il gruppo
+pubblico (`routes/web.php`) e risponde con un HTML minimale. Le pagine Vue
+impostano comunque il proprio `<Head>`, che copre browser e Googlebot.
+
+- **La pagina si riconosce dal nome della rotta, non dal percorso.** Il nome è
+  lo stesso in tutte le lingue (`contatti` / `en.contatti`), l'indirizzo no
+  (`/contatti` / `/en/contacts`). Con la tabella indicizzata per percorso ogni
+  pagina inglese con slug tradotto cadeva sul ripiego generico della home.
+  Le pagine del CMS si riconoscono invece dal controller (`PageController@show`),
+  perché le sezioni hanno nomi di rotta diversi fra loro e `/summer-camp`
+  passa il proprio slug da `defaults()`.
+- **Quello che non si sa descrivere passa oltre** (`$next`), e non riceve
+  un'anteprima inventata: così il 301 delle sezioni (`/ticketing` →
+  `/ticketing/biglietteria`), il 404 di un indirizzo che non esiste e quello di
+  una bozza restano tali anche per un crawler. Prima diventavano tutti 200.
+- **Gli scope pubblici vanno riapplicati qui**: il route model binding risolve
+  qualunque record, quindi bozze e prodotti non pubblicati si filtrano di nuovo
+  (`Post::published()`, `Product::shoppable()`). Stessa cosa per le regole che
+  vivono nel controller: `/stagione/atleta/{slug}` è solo la prima squadra, e
+  `rigaDiRosa()` ricalca la scelta di `PublicController::stagioneForTeam`.
+- **I testi delle pagine senza pagina del CMS stanno in `lang/*/site.php`**
+  sotto `social`, non nel middleware: il middleware gira prima di `SetLocale`,
+  quindi la lingua si passa a mano (`__($chiave, [], $locale)`), e con le
+  stringhe cablate nel codice `/en/stagione` annunciava "Stagione".
+- `CachePublicResponse` esclude del tutto le richieste dei crawler, in lettura e
+  in scrittura: senza, l'HTML ridotto finirebbe servito a tutti gli anonimi.
+
+Test in `tests/Feature/SocialCrawlerMetaTest.php`.
