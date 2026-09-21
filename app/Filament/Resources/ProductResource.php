@@ -7,6 +7,7 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Product;
+use App\Support\GuidaTaglie;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
@@ -161,8 +162,47 @@ class ProductResource extends Resource
                             ->label('Peso (kg)')
                             ->numeric()
                             ->nullable()
-                            ->suffix('kg'),
+                            ->suffix('kg')
+                            ->helperText('Usato dalle fasce di peso della spedizione. Vuoto: vale il peso di ripiego delle Impostazioni Shop.'),
+                        Forms\Components\Select::make('size_guide')
+                            ->label('Guida alle taglie')
+                            // I PDF sono quelli caricati in "Guida Taglie &
+                            // Contatti": qui si sceglie quale mostrare, non
+                            // se ne carica uno nuovo.
+                            ->options(GuidaTaglie::opzioni())
+                            ->placeholder('Quella generale (tutti i documenti)')
+                            ->helperText('La voce sotto le taglie, nella scheda del prodotto. Scegli "Nessuna guida" per i prodotti per cui non ne esiste una.'),
                     ])->columns(2),
+
+                Forms\Components\Section::make('Articoli collegati')
+                    ->description('Compaiono in fondo alla scheda, sotto "Ti potrebbe interessare anche". Lasciando vuoto, il sito continua a proporre da sé quattro articoli della stessa categoria.')
+                    ->schema([
+                        Forms\Components\Select::make('relatedProducts')
+                            ->label('Prodotti da mostrare')
+                            ->relationship(
+                                name: 'relatedProducts',
+                                titleAttribute: 'name',
+                                // Niente aste (non sono in vendita) e niente
+                                // se stesso, che in vetrina si mostrerebbe
+                                // sotto la propria scheda.
+                                modifyQueryUsing: function (Builder $query, Forms\Components\Select $component): Builder {
+                                    $query->where('type', '!=', ProductType::Auction);
+
+                                    $record = $component->getRecord();
+
+                                    if ($record instanceof Product) {
+                                        $query->whereKeyNot($record->getKey());
+                                    }
+
+                                    return $query;
+                                },
+                            )
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Il collegamento vale in un verso solo: per vederli accostati anche al contrario, aggiungi questo prodotto anche nella scheda dell\'altro.')
+                            ->columnSpanFull(),
+                    ]),
 
                 Forms\Components\Section::make('Galleria Immagini')
                     ->schema([

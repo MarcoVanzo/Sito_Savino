@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\SiteSetting;
-use App\Support\CmsFile;
+use App\Support\GuidaTaglie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -55,6 +55,10 @@ class ShopController extends Controller
             'image_url' => $p->getImageUrl('card'),
             'images' => $media->map(fn ($m) => $m->getUrl())->values()->all(),
             'variants' => $p->relationLoaded('variants') ? $p->variants : [],
+            // Null quando la redazione ha tolto la voce o non c'e' nessuna
+            // guida caricata: il frontend non mostra un link che non porta
+            // da nessuna parte.
+            'size_guide_url' => GuidaTaglie::perIlProdotto($p),
         ];
     }
 
@@ -145,8 +149,37 @@ class ShopController extends Controller
 
         $product->load(['variants', 'category', 'media']);
 
+        return Inertia::render('Public/Shop/ProductDetail', [
+            'product' => $this->mapProduct($product),
+            'relatedProducts' => $this->prodottiCorrelati($product),
+        ]);
+    }
+
+    /**
+     * Gli articoli da mostrare sotto la scheda prodotto.
+     *
+     * Quelli scelti in redazione vengono prima e non si mettono in cache: e'
+     * una lettura da poco e deve rispecchiare subito il pannello, altrimenti
+     * chi li collega non li vede per mezz'ora e pensa di aver sbagliato. Il
+     * ripiego a caso nella stessa categoria, che e' il comportamento storico,
+     * resta in cache come prima.
+     */
+    private function prodottiCorrelati(Product $product)
+    {
+        $scelti = $product->relatedProducts()
+            ->shoppable()
+            ->with(['media', 'category'])
+            ->withSum('variants', 'stock')
+            ->orderBy('sort_order')
+            ->get();
+
+        if ($scelti->isNotEmpty()) {
+            return $scelti->map(fn ($p) => $this->mapProductCard($p))->values();
+        }
+
         $relatedCacheKey = 'product:'.$product->id.':related:'.app()->getLocale();
-        $relatedProducts = Cache::remember($relatedCacheKey, now()->addMinutes(30), function () use ($product) {
+
+        return Cache::remember($relatedCacheKey, now()->addMinutes(30), function () use ($product) {
             return Product::shoppable()
                 ->when($product->product_category_id, fn ($q) => $q->where('product_category_id', $product->product_category_id))
                 ->where('id', '!=', $product->id)
@@ -158,11 +191,6 @@ class ShopController extends Controller
                 ->map(fn ($p) => $this->mapProductCard($p))
                 ->values();
         });
-
-        return Inertia::render('Public/Shop/ProductDetail', [
-            'product' => $this->mapProduct($product),
-            'relatedProducts' => $relatedProducts,
-        ]);
     }
 
     /**
@@ -277,23 +305,8 @@ class ShopController extends Controller
      */
     public function sizeGuide(): Response
     {
-        $sizeGuides = SiteSetting::get('shop.size_guides');
-        if (is_string($sizeGuides)) {
-            $sizeGuides = json_decode($sizeGuides, true) ?? [];
-        }
-
-        // L'indirizzo lo dà CmsFile: in produzione i file stanno su Spaces e un
-        // "/storage/…" costruito a mano non porta da nessuna parte.
-        $guides = collect($sizeGuides ?? [])
-            ->filter(fn ($path) => is_string($path) && $path !== '')
-            ->map(fn (string $path) => [
-                'path' => $path,
-                'url' => CmsFile::url($path),
-                'name' => pathinfo($path, PATHINFO_FILENAME),
-            ])->values()->all();
-
         return Inertia::render('Public/Shop/SizeGuide', [
-            'sizeGuides' => $guides,
+            'sizeGuides' => GuidaTaglie::documenti(),
             'supportEmail' => SiteSetting::get('shop.support_email'),
         ]);
     }
