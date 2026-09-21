@@ -5,6 +5,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice';
 import { useImageFallback } from '@/Composables/useImageFallback';
+import { safeUrl } from '@/Composables/useSafeUrl';
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -25,7 +26,7 @@ const page = usePage();
 const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    const locale = page.props.locale || 'it-IT';
+    const locale = page.props.locale === 'en' ? 'en-GB' : 'it-IT';
     return date.toLocaleString(locale, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
 };
 </script>
@@ -161,7 +162,7 @@ const formatDate = (dateString) => {
                                 <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mt-6 mb-4">{{ $t('shop.order_detail.tracking') }}</h3>
                                 <div class="bg-blue-50 text-savino-blue p-4 rounded-md text-sm border border-blue-100">
                                     <p class="font-bold">{{ order.tracking_number }}</p>
-                                    <a v-if="order.tracking_url" :href="order.tracking_url" target="_blank" class="mt-2 inline-flex items-center text-blue-700 hover:text-blue-900 font-medium">
+                                    <a v-if="safeUrl(order.tracking_url)" :href="safeUrl(order.tracking_url)" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center text-blue-700 hover:text-blue-900 font-medium">
                                         {{ $t('shop.order_detail.track_shipping') }}
                                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                                     </a>

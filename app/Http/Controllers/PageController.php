@@ -13,6 +13,7 @@ use App\Models\StaffMember;
 use App\Models\Team;
 use App\Services\SponsorDirectory;
 use App\Support\CmsFile;
+use App\Support\ContentData;
 use App\Support\LiveStream;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
@@ -55,6 +56,30 @@ class PageController extends Controller
     /**
      * Mappatura dei singoli slug di pagina alle rispettive sezioni (per URL canonici SEO).
      */
+    /**
+     * L'indirizzo pubblico di una pagina del CMS a partire dallo slug: quello
+     * della sua sezione, non `/{slug}` che per le pagine di sezione è solo un
+     * rimando. Serve alla sitemap, che pubblicava 24 indirizzi su 38 in 301.
+     * Null per le pagine che non hanno un indirizzo proprio.
+     */
+    public static function percorsoPubblico(string $slug): ?string
+    {
+        // Pagine-contenitore: l'indirizzo è una rotta sua (già in sitemap) o un
+        // rimando alla prima pagina della sezione.
+        if (in_array($slug, ['home', 'societa', 'sponsor', 'shop', 'comunicazione'], true)) {
+            return null;
+        }
+
+        if (! isset(self::SLUG_SECTION_MAP[$slug])) {
+            return '/'.$slug;
+        }
+
+        $sezione = self::SLUG_SECTION_MAP[$slug];
+
+        // Slug uguale alla sezione: l'indirizzo è la sezione (`/summer-camp`).
+        return $slug === $sezione ? '/'.$sezione : '/'.$sezione.'/'.$slug;
+    }
+
     private const SLUG_SECTION_MAP = [
         // Società
         'organigramma' => 'societa',
@@ -107,6 +132,13 @@ class PageController extends Controller
             abort(404);
         }
 
+        // La pagina "home" del CMS tiene i metadati della homepage: aperta dal
+        // suo slug disegnava una home svuotata (niente slide, gara, notizie),
+        // ed era pure in sitemap. Il suo indirizzo è "/".
+        if ($page->slug === 'home') {
+            return redirect()->route(app()->getLocale() === config('app.fallback_locale') ? 'home' : app()->getLocale().'.home', [], 301);
+        }
+
         // Espone ai template pubblici la copertina (hero) e le foto della
         // galleria di pagina, entrambe gestite dal pannello.
         $page->append(['cover_url', 'gallery_images']);
@@ -151,16 +183,23 @@ class PageController extends Controller
             return redirect()->route($routePrefix.'contatti', [], 301);
         }
 
-        if (! request()->routeIs('*pages.show') || ! isset(self::SLUG_SECTION_MAP[$page->slug])) {
+        if (! isset(self::SLUG_SECTION_MAP[$page->slug])) {
             return null;
         }
 
         $section = self::SLUG_SECTION_MAP[$page->slug];
 
         // Quando lo slug coincide con la sezione l'URL canonico è la sezione
-        // e basta: la regola generale produceva /summer-camp/summer-camp.
-        if ($page->slug === $section && Route::has($routePrefix.$section)) {
-            return redirect()->route($routePrefix.$section, [], 301);
+        // e basta: la regola generale produceva /summer-camp/summer-camp, che
+        // rispondeva 200 ed era la stessa pagina a due indirizzi.
+        if ($page->slug === $section) {
+            return request()->routeIs($routePrefix.$section) || ! Route::has($routePrefix.$section)
+                ? null
+                : redirect()->route($routePrefix.$section, [], 301);
+        }
+
+        if (! request()->routeIs('*pages.show')) {
+            return null;
         }
 
         return redirect()->route($routePrefix.$section.'.page', ['slug' => $page->slug], 301);
@@ -188,6 +227,7 @@ class PageController extends Controller
             return $dati;
         }
 
+        $dati['content_data'] = $this->conGliElenchiDellaLinguaDiPartenza($page, $dati['content_data']);
         $dati['content_data'] = CmsFile::resolveInContentData($dati['content_data']);
 
         if (isset($dati['content_data']['video_url'])) {
@@ -196,6 +236,29 @@ class PageController extends Controller
         }
 
         return $dati;
+    }
+
+    /**
+     * Nelle lingue diverse da quella di partenza, gli elenchi che la redazione
+     * non ha ricopiato (classifica, listino, partner, documenti…) si prendono
+     * dall'italiano: vedi `ContentData::conGliElenchiDiRipiego()`.
+     *
+     * @param  array<string, mixed>  $contenuti
+     * @return array<string, mixed>
+     */
+    private function conGliElenchiDellaLinguaDiPartenza(Page $page, array $contenuti): array
+    {
+        $diPartenza = (string) config('app.fallback_locale');
+
+        if (app()->getLocale() === $diPartenza) {
+            return $contenuti;
+        }
+
+        $originali = $page->getTranslation('content_data', $diPartenza, false);
+
+        return is_array($originali)
+            ? ContentData::conGliElenchiDiRipiego($contenuti, $originali)
+            : $contenuti;
     }
 
     /**

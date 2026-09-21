@@ -86,9 +86,9 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                         <h4 class="text-sm font-bold mb-1">{{ $t('cookie.title') }}</h4>
                         <p class="text-xs text-gray-400 leading-relaxed">
                             {{ $t('cookie.description') }}
-                            <Link href="/privacy-policy" class="text-savino-fucsia hover:underline">{{ $t('footer.privacy_policy') }}</Link>
+                            <Link :href="route('pages.show', 'privacy-policy')" class="text-savino-fucsia hover:underline">{{ $t('footer.privacy_policy') }}</Link>
                             {{ $t('cookie.and_the') }}
-                            <Link href="/cookie-policy" class="text-savino-fucsia hover:underline">{{ $t('footer.cookie_policy') }}</Link>.
+                            <Link :href="route('pages.show', 'cookie-policy')" class="text-savino-fucsia hover:underline">{{ $t('footer.cookie_policy') }}</Link>.
                         </p>
                     </div>
                     <div class="flex gap-2 flex-shrink-0 flex-wrap">

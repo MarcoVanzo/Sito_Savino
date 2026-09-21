@@ -43,6 +43,12 @@ const stages = computed(() => {
     return elenco.filter(t => t?.date);
 });
 
+// Le iscrizioni seguono le tappe: quando sono tutte esaurite o concluse il
+// pulsante del modulo si spegne da solo e torna appena ne arriva una aperta.
+// A settembre 2026 le tappe erano tutte di maggio e giugno e il modulo era
+// ancora in pagina. Senza tappe in elenco decide la redazione, come prima.
+const iscrizioniAperte = computed(() => stages.value.length === 0 || stages.value.some(t => !t.sold_out));
+
 // Turni per anno di nascita.
 const slots = computed(() => {
     const elenco = cd.value.slots;
@@ -151,11 +157,12 @@ const ogMeta = useOgMeta({
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 v-if="cd.signup_title" class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mb-4">{{ cd.signup_title }}</h2>
             <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-8"></div>
-            <p v-if="cd.signup_description" class="text-white/70 text-lg leading-relaxed mb-8">{{ cd.signup_description }}</p>
+            <p v-if="!iscrizioniAperte" class="text-white/70 text-lg leading-relaxed mb-8" data-test="talent-day-signup-closed">{{ $t('talent_day.signup_closed') }}</p>
+            <p v-else-if="cd.signup_description" class="text-white/70 text-lg leading-relaxed mb-8">{{ cd.signup_description }}</p>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                    v-if="signupUrl && cd.signup_cta"
+                    v-if="iscrizioniAperte && signupUrl && cd.signup_cta"
                     :href="signupUrl"
                     target="_blank"
                     rel="noopener noreferrer"

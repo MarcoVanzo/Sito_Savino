@@ -185,7 +185,7 @@ const socialLinks = computed(() => {
                 <div class="flex items-center gap-6">
                     <a :href="safeUrl(legalDocs.privacy_policy, '/privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.privacy_policy') }}</a>
                     <a :href="safeUrl(legalDocs.cookie_policy, '/cookie-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.cookie_policy') }}</a>
-                    <a :href="safeUrl(legalDocs.informativa_fornitori, '/informativa-fornitori')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.supplier_policy') }}</a>
+                    <a v-if="safeUrl(legalDocs.informativa_fornitori)" :href="safeUrl(legalDocs.informativa_fornitori)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.supplier_policy') }}</a>
                 </div>
             </div>
         </div>

@@ -106,7 +106,7 @@ const displayPrice = computed(() => {
 });
 
 const originalPrice = computed(() => {
-    if (props.product?.sale_price && props.product?.price > props.product?.sale_price) {
+    if (props.product?.sale_price && Number(props.product.price) > Number(props.product.sale_price)) {
         return props.product.price;
     }
     return null;
@@ -135,6 +135,12 @@ const decrementQty = () => {
 const incrementQty = () => {
     if (quantity.value < currentStock.value) quantity.value++;
 };
+
+// Prima di scegliere la taglia la giacenza è la somma di tutte le varianti:
+// otto pezzi scelti e poi una taglia che ne ha due davano errore solo dal server.
+watch(currentStock, (stock) => {
+    if (quantity.value > stock) quantity.value = Math.max(1, stock);
+});
 
 // --- Add to Cart ---
 const showSizeGuide = ref(false);

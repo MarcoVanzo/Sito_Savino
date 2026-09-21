@@ -21,7 +21,7 @@ const props = defineProps({
 });
 
 const isOutOfStock = computed(() => props.product.stock !== undefined && props.product.stock !== null && props.product.stock <= 0);
-const hasSalePrice = computed(() => props.product.sale_price && props.product.sale_price < props.product.price);
+const hasSalePrice = computed(() => props.product.sale_price && Number(props.product.sale_price) < Number(props.product.price));
 
 const isAdding = ref(false);
 const cartError = ref('');
@@ -161,7 +161,7 @@ const handleAddToCart = () => {
                 <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                {{ $t('shop.add_to_cart') || 'Aggiungi al carrello' }}
+                {{ product.type === 'variable' ? $t('shop.choose_options') : $t('shop.add_to_cart') }}
             </button>
             <p v-if="cartError" class="text-red-500 text-xs mt-2 text-center">
                 {{ cartError }}

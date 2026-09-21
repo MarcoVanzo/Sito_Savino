@@ -21,8 +21,13 @@ class NextMatchWidget extends Widget
         // media) nella cache su database produce un __PHP_Incomplete_Class alla
         // rilettura e manda in 500 tutta la dashboard.
         $nextMatchId = Cache::remember('filament:dashboard:next_match_id', 1800, function () {
+            // La prossima gara della società: il calendario contiene l'intero
+            // campionato, e la prima gara futura era quasi sempre di altre due squadre.
             return Game::query()
                 ->where('match_date', '>=', now())
+                ->where(fn ($gare) => $gare
+                    ->whereHas('homeTeam', fn ($squadra) => $squadra->where('is_internal', true))
+                    ->orWhereHas('awayTeam', fn ($squadra) => $squadra->where('is_internal', true)))
                 ->orderBy('match_date', 'asc')
                 ->value('id');
         });

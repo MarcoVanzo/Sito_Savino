@@ -72,9 +72,11 @@ class PublicController extends Controller
                 ->get()
                 ->map(fn ($post) => [
                     'id' => $post->id,
-                    'title' => $post->getTranslation('title', app()->getLocale(), false),
+                    // Con il ripiego sull'italiano, come l'archivio: nessuna news
+                    // ha ancora l'inglese e su /en le tre schede uscivano vuote.
+                    'title' => $post->getTranslation('title', app()->getLocale()),
                     'slug' => $post->slug,
-                    'excerpt' => $post->getTranslation('excerpt', app()->getLocale(), false),
+                    'excerpt' => $post->getTranslation('excerpt', app()->getLocale()),
                     'published_at' => $post->published_at?->toISOString(),
                     'image_url' => $post->getFirstMediaUrl('cover', 'card') ?: $post->getFirstMediaUrl('cover'),
                 ])->toArray();
@@ -218,6 +220,13 @@ class PublicController extends Controller
         $data['palmaresEnabled'] = $withPalmares;
         $data['openPlayer'] = $openPlayerSlug;
 
+        // Un indirizzo /stagione/atleta/{slug} che non corrisponde a nessuna
+        // atleta in rosa rispondeva 200 con la pagina della stagione: per i
+        // motori di ricerca ogni slug inventato era una pagina valida.
+        if ($openPlayerSlug !== null && ! collect($data['roster'] ?? [])->contains(fn ($voce): bool => ($voce['playerSlug'] ?? null) === $openPlayerSlug)) {
+            abort(404);
+        }
+
         return Inertia::render('Public/Stagione', $data);
     }
 
@@ -234,6 +243,8 @@ class PublicController extends Controller
 
         $rosterEntries = Roster::with([
             'player',
+            // Serve al ripiego della foto ufficiale sulla foto dell'atleta.
+            'player.media',
             'media',
             // I totali sono per stagione E per squadra: senza il secondo
             // filtro un'atleta schierata anche in un'altra squadra della

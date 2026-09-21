@@ -830,7 +830,7 @@ const ogMeta = useOgMeta({
                                 </div>
                             </div>
                             <div v-if="shippingCost > 0 && selectedZone?.free_threshold" class="text-xs text-savino-fucsia">
-                                {{ $t('shop_checkout.free_shipping_threshold') }}
+                                {{ $t('shop_checkout.free_shipping_over', { amount: formatPrice(Number(selectedZone.free_threshold)) }) }}
                             </div>
                             <div v-if="couponDiscount > 0" class="flex justify-between text-sm">
                                 <span class="text-green-600">{{ $t('shop_checkout.discount') }}</span>

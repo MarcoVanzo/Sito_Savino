@@ -55,15 +55,11 @@ class ManagementResource extends Resource
                             ->label('Cognome')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\Select::make('type')
-                            ->label('Sezione (Tipologia)')
-                            ->options([
-                                StaffType::Dirigenza->value => StaffType::Dirigenza->label(),
-                            ])
-                            ->default(StaffType::Dirigenza->value)
-                            ->required()
-                            ->hidden()
-                            ->helperText('Determina in quale pagina del sito comparirà.'),
+                        // Campo nascosto vero: una Select con `hidden()` non viene
+                        // deidratata, e senza `type` (NOT NULL, nessun default) la
+                        // creazione di un membro falliva con un errore SQL.
+                        Forms\Components\Hidden::make('type')
+                            ->default(StaffType::Dirigenza->value),
                         Forms\Components\TextInput::make('role')
                             ->label('Ruolo specifico')
                             ->required()

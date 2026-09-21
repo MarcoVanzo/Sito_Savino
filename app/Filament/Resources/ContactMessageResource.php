@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactMessageResource\Pages;
+use App\Http\Controllers\PressAccreditationController;
 use App\Models\ContactMessage;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -136,7 +137,19 @@ class ContactMessageResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\EditAction::make()
+                        // Il modulo ha il solo campo `extra_data.admin_notes`: senza
+                        // questa fusione il salvataggio riscriveva `extra_data` con
+                        // la sola nota e cancellava ciò che il sito aveva raccolto
+                        // (testata, ruolo, gara, telefono).
+                        ->mutateFormDataUsing(function (array $data, $record): array {
+                            $data['extra_data'] = array_merge(
+                                is_array($record->extra_data) ? $record->extra_data : [],
+                                is_array($data['extra_data'] ?? null) ? $data['extra_data'] : [],
+                            );
+
+                            return $data;
+                        }),
                     Tables\Actions\Action::make('markAsRead')
                         ->label('Segna come Letto')
                         ->icon('heroicon-o-check-circle')
@@ -163,7 +176,7 @@ class ContactMessageResource extends Resource
     {
         return parent::getEloquentQuery()
             ->where(function (Builder $query) {
-                $query->where('subject', '!=', 'Stampa / Media')
+                $query->where('subject', '!=', PressAccreditationController::SUBJECT)
                     ->orWhereNull('subject');
             });
     }

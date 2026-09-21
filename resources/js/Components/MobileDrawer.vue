@@ -32,6 +32,15 @@ const props = defineProps({
 
 const emit = defineEmits(['toggle', 'toggle-item']);
 
+// Serve un link alla pagina della sezione solo quando nessuna sottovoce ci
+// porta già (a parità di indirizzo, barra finale a parte). Vale per la voce
+// in evidenza — lo Shop, che in testata è un pulsante verso il catalogo: le
+// altre sezioni hanno come indirizzo un rimando a una delle proprie sottovoci,
+// e un "Vai a Società" che apre la Storia sarebbe solo una riga in più.
+const senzaBarra = (href) => String(href ?? '').replace(/\/+$/, '');
+const portaAllaSezione = (item) => !!item.href && !!item.isHighlight
+    && !(item.children ?? []).some(sub => senzaBarra(sub.href) === senzaBarra(item.href));
+
 const user = () => page.props.auth?.user;
 
 const handleLogout = () => {
@@ -93,7 +102,20 @@ onBeforeUnmount(() => {
         <div v-show="isOpen && visible" class="absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-24 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
             <nav role="navigation" :aria-label="$t('nav.mobile_menu')" class="flex flex-col space-y-2 text-center pb-10">
                 <div v-for="(item, index) in navigation" :key="item.label" class="border-b border-white/10 last:border-0">
-                    <button type="button" 
+                    <!-- Una voce senza sottovoci è un link: il pulsante apriva
+                         un sottomenu vuoto. -->
+                    <component
+                        :is="isExternalLink(item.href) ? 'a' : Link"
+                        v-if="!item.children?.length"
+                        :href="item.href"
+                        v-bind="externalLinkAttrs(item.href)"
+                        class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none"
+                        :class="{'text-savino-red': $page.url.startsWith(item.href), 'text-[#ED028C]': item.isHighlight}"
+                    >
+                        <span>{{ item.label }}</span>
+                    </component>
+                    <button type="button"
+                        v-else
                         @click="emit('toggle-item', index)"
                         aria-haspopup="true"
                         :aria-expanded="activeIndex === index"
@@ -105,7 +127,20 @@ onBeforeUnmount(() => {
                     </button>
                     
                     <!-- Sottomenu Mobile -->
-                    <div v-show="activeIndex === index" class="bg-black/20 pb-4 pt-2">
+                    <div v-if="item.children?.length" v-show="activeIndex === index" class="bg-black/20 pb-4 pt-2">
+                        <!-- Sul telefono la voce principale è solo un interruttore:
+                             se nessuna sottovoce porta alla sua pagina — era il
+                             caso del catalogo dello Shop — quella pagina non si
+                             raggiungeva. -->
+                        <component
+                            :is="isExternalLink(item.href) ? 'a' : Link"
+                            v-if="portaAllaSezione(item)"
+                            :href="item.href"
+                            v-bind="externalLinkAttrs(item.href)"
+                            class="block py-3 text-sm font-bold uppercase tracking-widest text-white hover:text-savino-fucsia min-h-[44px] flex items-center justify-center"
+                        >
+                            {{ $t('nav.go_to_section', { label: item.label }) }}
+                        </component>
                         <!-- Una voce che porta fuori dal sito si apre con un <a>:
                              con <Link> Inertia chiederebbe la pagina altrui via
                              XHR e fallirebbe. -->

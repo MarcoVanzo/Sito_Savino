@@ -5,6 +5,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
+import { safeUrl } from '@/Composables/useSafeUrl';
 
 const { onImgError } = useImageFallback();
 
@@ -120,12 +121,12 @@ const ogMeta = useOgMeta({
                     <!-- Sponsor Logos Grid -->
                     <div class="flex flex-wrap justify-center gap-5">
                         <component
-                            :is="sponsor.website_url ? 'a' : 'div'"
+                            :is="safeUrl(sponsor.website_url) ? 'a' : 'div'"
                             v-for="sponsor in tier.sponsors"
                             :key="sponsor.id"
-                            :href="sponsor.website_url || undefined"
-                            :target="sponsor.website_url ? '_blank' : undefined"
-                            :rel="sponsor.website_url ? 'noopener noreferrer' : undefined"
+                            :href="safeUrl(sponsor.website_url)"
+                            :target="safeUrl(sponsor.website_url) ? '_blank' : undefined"
+                            :rel="safeUrl(sponsor.website_url) ? 'noopener noreferrer' : undefined"
                             :title="sponsor.name"
                             class="rounded-xl bg-white border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
                             :class="boxClass"

@@ -233,7 +233,7 @@ v-for="role in roles"
                             <div class="flex gap-4 text-sm text-gray-500">
                                 <div v-if="item.player.nationality"><strong>{{ $t('stagione.nationality_short') }}:</strong> {{ item.player.nationality }}</div>
                                 <div v-if="item.height_cm"><strong>{{ $t('stagione.height_short') }}:</strong> {{ item.height_cm }} cm</div>
-                                <div v-if="item.player.date_of_birth"><strong>{{ $t('stagione.year_short') }}:</strong> {{ new Date(item.player.date_of_birth).getFullYear() }}</div>
+                                <div v-if="item.player.date_of_birth"><strong>{{ $t('stagione.year_short') }}:</strong> {{ String(item.player.date_of_birth).slice(0, 4) }}</div>
                             </div>
                         </div>
                     </component>
@@ -244,8 +244,8 @@ v-for="role in roles"
                     <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-savino-blue/10 flex items-center justify-center">
                         <svg class="w-12 h-12 text-savino-blue/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </div>
-                    <p class="text-gray-500 text-lg font-semibold">{{ $t('stagione.empty_role') }}</p>
-                    <button type="button" class="mt-4 px-6 py-2.5 bg-savino-fucsia text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-fucsia/90 transition-colors" @click="selectedRole = '__all__'">
+                    <p class="text-gray-500 text-lg font-semibold">{{ roster.length ? $t('stagione.empty_role') : $t('stagione.empty_roster') }}</p>
+                    <button v-if="roster.length" type="button" class="mt-4 px-6 py-2.5 bg-savino-fucsia text-white text-sm font-bold uppercase tracking-wider rounded-lg hover:bg-savino-fucsia/90 transition-colors" @click="selectedRole = '__all__'">
                         {{ $t('stagione.show_all') }}
                     </button>
                 </div>

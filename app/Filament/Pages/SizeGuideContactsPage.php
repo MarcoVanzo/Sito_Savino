@@ -62,8 +62,10 @@ class SizeGuideContactsPage extends Page implements HasForms
                             ->label('File PDF Guida Taglie')
                             ->multiple()
                             ->acceptedFileTypes(['application/pdf'])
+                            // Nessun `disk()`: vale quello del pannello (Spaces in
+                            // produzione). Con 'public' i PDF finivano sul container,
+                            // che a ogni deploy riparte vuoto.
                             ->directory('size-guides')
-                            ->disk('public')
                             ->maxSize(10240)
                             ->reorderable()
                             ->openable()

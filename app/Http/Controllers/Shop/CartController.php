@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\CartItem;
+use App\Models\ShippingZone;
 use App\Models\SiteSetting;
 use App\Services\CartService;
 use Illuminate\Http\JsonResponse;
@@ -36,8 +37,36 @@ class CartController extends Controller
             ],
             'total' => $total,
             'itemCount' => $itemCount,
-            'freeShippingThreshold' => (float) SiteSetting::get('shop.free_shipping_threshold', 50),
+            'freeShippingThreshold' => $this->sogliaDellaSpedizioneGratuita(),
         ]);
+    }
+
+    /**
+     * La soglia che il carrello promette è quella che il checkout applica.
+     *
+     * Il carrello leggeva `shop.free_shipping_threshold`, che in archivio non
+     * esiste, e ripiegava su 50 €: annunciava "spedizione gratuita sbloccata"
+     * a un cliente al quale il checkout — che usa le zone di spedizione, con
+     * soglia a 100 € — faceva poi pagare la consegna. Nel carrello il paese
+     * non si conosce ancora: vale la zona dell'Italia, dove va quasi ogni
+     * ordine. L'impostazione resta come scelta esplicita, se un giorno
+     * qualcuno la compila. Senza soglia (0) la barra non compare.
+     */
+    private function sogliaDellaSpedizioneGratuita(): float
+    {
+        $esplicita = SiteSetting::get('shop.free_shipping_threshold');
+
+        if (is_numeric($esplicita) && (float) $esplicita > 0) {
+            return (float) $esplicita;
+        }
+
+        $italia = ShippingZone::findByCountry('IT');
+
+        if ($italia === null || $italia->free_threshold === null) {
+            return 0.0;
+        }
+
+        return (float) $italia->free_threshold;
     }
 
     /**

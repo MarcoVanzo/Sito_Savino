@@ -137,7 +137,7 @@ const submit = () => {
                                     required
                                     autocomplete="username"
                                     class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia transition-colors duration-200"
-                                    placeholder="email@esempio.com"
+                                    :placeholder="$t('shop.email_placeholder')"
                                 />
                             </div>
                             <InputError class="mt-2" :message="form.errors.email" />

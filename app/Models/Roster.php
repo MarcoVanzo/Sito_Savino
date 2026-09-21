@@ -38,10 +38,19 @@ class Roster extends Model implements HasMedia
 
     /**
      * URL della foto ufficiale (collection Spatie 'rosters_official').
+     *
+     * Finché la foto ufficiale della stagione non c'è — a settembre 2026 non
+     * l'aveva nessuna delle 14 atlete, e /stagione era una pagina di sagome
+     * grigie — si ripiega sulla foto della scheda atleta, come già fanno le
+     * pagine del vivaio.
      */
     public function getOfficialPhotoUrlAttribute(): ?string
     {
         $url = $this->getFirstMediaUrl('rosters_official');
+
+        if ($url === '' && $this->relationLoaded('player') && $this->player !== null) {
+            $url = $this->player->getFirstMediaUrl('players', 'card') ?: $this->player->getFirstMediaUrl('players');
+        }
 
         return $url !== '' ? $url : null;
     }

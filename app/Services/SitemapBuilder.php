@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\PostStatus;
+use App\Http\Controllers\PageController;
 use App\Models\Page;
 use App\Models\Post;
 use Illuminate\Support\Facades\Cache;
@@ -89,12 +90,16 @@ class SitemapBuilder
         $staticRoutes = [
             '/stagione' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.9],
             '/news' => ['freq' => Url::CHANGE_FREQUENCY_DAILY, 'priority' => 0.9],
-            '/risultati' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.8],
+            // Gli indirizzi veri, non i rimandi brevi (/risultati è un 302).
+            '/stagione/risultati' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.8],
+            '/stagione/classifica' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.8],
             '/gallery' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.7],
             '/staff' => ['freq' => Url::CHANGE_FREQUENCY_MONTHLY, 'priority' => 0.7],
             '/sponsor' => ['freq' => Url::CHANGE_FREQUENCY_MONTHLY, 'priority' => 0.7],
             '/shop' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.8],
             '/stagione/b1' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.7],
+            '/stagione/u17' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.7],
+            '/stagione/u15' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.7],
         ];
 
         foreach ($staticRoutes as $path => $config) {
@@ -102,7 +107,15 @@ class SitemapBuilder
         }
 
         Page::where('status', PostStatus::Published)->each(function (Page $page) use ($addLocalizedUrls): void {
-            $addLocalizedUrls("/{$page->slug}", [
+            // L'indirizzo della sezione, non `/{slug}`: per le pagine di sezione
+            // quello è un 301, e una sitemap di rimandi non serve a nessuno.
+            $percorso = PageController::percorsoPubblico($page->slug);
+
+            if ($percorso === null) {
+                return;
+            }
+
+            $addLocalizedUrls($percorso, [
                 'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
                 'priority' => 0.7,
             ], $page->updated_at);
