@@ -2,10 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Enums\GameStatus;
+use App\Enums\PostStatus;
 use App\Filament\Resources\PressAccreditationResource;
 use App\Http\Controllers\PressAccreditationController;
 use App\Models\ContactMessage;
+use App\Models\Game;
+use App\Models\Page;
 use App\Models\SiteSetting;
+use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -159,5 +164,48 @@ class PressAccreditationTest extends TestCase
         $risposta->assertRedirect();
         $this->assertDatabaseCount('contact_messages', 0);
         Mail::assertNothingSent();
+    }
+
+    /**
+     * La tendina della gara mostra la data per esteso nella lingua della
+     * pagina. La componeva `Carbon::translatedFormat()`, che sotto php-fpm
+     * faceva morire il processo: ora i mesi vengono da `site.months`, e questo
+     * test è ciò che impedisce di tornare indietro senza accorgersene.
+     */
+    public function test_la_tendina_della_gara_scrive_la_data_per_esteso(): void
+    {
+        $casa = Team::factory()->internal()->create(['name' => 'Savino Del Bene Volley']);
+        $ospite = Team::factory()->create(['name' => 'Numia Vero Volley Milano']);
+
+        Game::factory()->create([
+            'home_team_id' => $casa->id,
+            'away_team_id' => $ospite->id,
+            'match_date' => now()->addDays(10)->setDate(2027, 3, 4)->setTime(20, 30),
+            'status' => GameStatus::Scheduled,
+        ]);
+
+        Page::factory()->create([
+            'slug' => 'accrediti-stampa',
+            'template' => 'Public/Comunicazione',
+            'status' => PostStatus::Published,
+        ]);
+
+        $sfida = 'Savino Del Bene Volley — Numia Vero Volley Milano';
+
+        $this->get(route('comunicazione.page', ['slug' => 'accrediti-stampa']))
+            ->assertOk()
+            ->assertInertia(fn ($pagina) => $pagina->where('upcomingHomeGames', [[
+                'value' => $sfida,
+                'label' => $sfida.' · 4 marzo 2027',
+            ]]));
+
+        Cache::flush();
+
+        $this->get(route('en.comunicazione.page', ['slug' => 'accrediti-stampa']))
+            ->assertOk()
+            ->assertInertia(fn ($pagina) => $pagina->where('upcomingHomeGames', [[
+                'value' => $sfida,
+                'label' => $sfida.' · 4 March 2027',
+            ]]));
     }
 }
