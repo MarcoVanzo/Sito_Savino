@@ -58,6 +58,30 @@ class ContentData
         'youtube_videos',
     ];
 
+    /**
+     * Le chiavi che valgono allo stesso modo in ogni lingua.
+     *
+     * `content_data` è tradotto in blocco, ma una società affiliata non cambia
+     * nome, livello, sito o logo passando dall'italiano all'inglese, e nemmeno
+     * i punti di una classifica cambiano. Finché ogni lingua ne teneva una
+     * copia, una modifica fatta con il pannello in inglese non si vedeva sul
+     * sito italiano: il 21/09/2026 lo spostamento di una società da Partner
+     * Ufficiale a Società Affiliata è rimasto invisibile per questo, salvato
+     * tre volte e ogni volta nella sola scheda inglese.
+     *
+     * Il salvataggio le riscrive in tutte le lingue
+     * (`EditPage::allineaLeChiaviComuni`). Qui stanno solo gli elenchi i cui
+     * campi sono tutti strutturali: `press_kits`, `partners`, `magazines` o
+     * `team_photos` hanno titoli, didascalie e descrizioni, e vanno tradotti
+     * davvero.
+     *
+     * @var list<string>
+     */
+    public const CHIAVI_COMUNI = [
+        'affiliates',
+        'standings',
+    ];
+
     public static function normalizza(mixed $valore): mixed
     {
         if (! is_array($valore)) {

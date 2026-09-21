@@ -48,6 +48,15 @@ trait PreservaContentData
     protected ?string $linguaInSalvataggio = null;
 
     /**
+     * Le chiavi di primo livello che il modulo ha mostrato nell'ultimo
+     * salvataggio: chi allinea le lingue deve sapere che cosa è stato davvero
+     * toccato, e non riscrivere le chiavi degli altri modelli di pagina.
+     *
+     * @var list<string>
+     */
+    protected array $chiaviMostrate = [];
+
+    /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
@@ -69,6 +78,8 @@ trait PreservaContentData
             $chiave = explode('.', substr($nome, strlen('content_data.')))[0];
             $mostrati[$chiave] = true;
         }
+
+        $this->chiaviMostrate = array_keys($mostrati);
 
         // Per la lingua attiva i ganci (salvataggio dei file caricati,
         // relazioni) sono già stati eseguiti dalla prima deidratazione: qui
