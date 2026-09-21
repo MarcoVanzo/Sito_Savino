@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AuctionStatus;
+use App\Enums\ProductType;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -43,8 +44,110 @@ class Auction extends Model
         'is_charity' => 'boolean',
     ];
 
+    /**
+     * Transizioni di stato ammesse alla redazione.
+     *
+     * `status` resta fuori da $fillable perche' nessun modulo deve poterlo
+     * scrivere in massa, ed e' questo che rendeva muto il campo "Stato" del
+     * pannello: il valore scelto veniva scartato da `fill()` senza un errore,
+     * l'asta restava in bozza e la pagina pubblica — che elenca solo le aste
+     * attive, programmate e concluse — non la mostrava mai. `cambiaStato()`
+     * e' l'unico varco, e verifica la transizione invece di fidarsi delle
+     * opzioni disegnate nel form.
+     *
+     * @var array<string, list<string>>
+     */
+    public const TRANSIZIONI_AMMESSE = [
+        'draft' => ['draft', 'scheduled', 'active', 'cancelled'],
+        'scheduled' => ['scheduled', 'active', 'cancelled'],
+        'active' => ['active', 'ended', 'cancelled'],
+        'ended' => ['ended'],
+        'cancelled' => ['cancelled', 'draft'],
+    ];
+
+    /**
+     * Gli stati raggiungibili da quello indicato, con la loro etichetta.
+     *
+     * @return array<string, string>
+     */
+    public static function statiRaggiungibiliDa(?AuctionStatus $stato): array
+    {
+        $stati = self::TRANSIZIONI_AMMESSE[$stato?->value] ?? array_map(
+            fn (AuctionStatus $caso) => $caso->value,
+            AuctionStatus::cases(),
+        );
+
+        $etichette = [];
+
+        foreach ($stati as $valore) {
+            $etichette[$valore] = AuctionStatus::from($valore)->getLabel();
+        }
+
+        return $etichette;
+    }
+
+    /**
+     * Porta l'asta nello stato richiesto, se la transizione e' ammessa.
+     *
+     * Restituisce false quando il cambio non si puo' fare: chi chiama lo dice
+     * a chi l'ha chiesto, perche' un rifiuto silenzioso e' il difetto da cui
+     * nasce questo metodo.
+     */
+    public function cambiaStato(AuctionStatus|string|null $nuovo): bool
+    {
+        $nuovo = $nuovo instanceof AuctionStatus ? $nuovo : AuctionStatus::tryFrom((string) $nuovo);
+
+        if ($nuovo === null || $nuovo === $this->status) {
+            return false;
+        }
+
+        if (! array_key_exists($nuovo->value, self::statiRaggiungibiliDa($this->status))) {
+            return false;
+        }
+
+        $this->forceFill(['status' => $nuovo])->save();
+
+        return true;
+    }
+
+    /**
+     * Il prodotto di un'asta esce dallo shop, e ci rientra quando l'asta non
+     * c'e' piu'.
+     *
+     * Il tipo `auction` tiene il pezzo fuori dalla griglia e dal carrello
+     * (`Product::scopeShoppable`). Finche' il cambio si faceva solo alla
+     * creazione dell'asta, cancellarla lasciava il prodotto invisibile per
+     * sempre: la sua pagina rispondeva 404 e in redazione non c'era modo di
+     * capire perche'. Al ritorno il tipo si deduce dalle varianti, perche'
+     * quello di partenza non e' conservato da nessuna parte.
+     */
+    protected static function booted(): void
+    {
+        static::created(fn (self $asta) => $asta->product?->update(['type' => ProductType::Auction]));
+
+        static::deleted(fn (self $asta) => $asta->riportaIlProdottoNelloShop());
+
+        static::restored(fn (self $asta) => $asta->product?->update(['type' => ProductType::Auction]));
+    }
+
+    private function riportaIlProdottoNelloShop(): void
+    {
+        $prodotto = $this->product;
+
+        if (! $prodotto || $prodotto->type !== ProductType::Auction) {
+            return;
+        }
+
+        $prodotto->update([
+            'type' => $prodotto->variants()->exists() ? ProductType::Variable : ProductType::Simple,
+        ]);
+    }
+
     // --- Relazioni ---
 
+    /**
+     * @return BelongsTo<Product, $this>
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
