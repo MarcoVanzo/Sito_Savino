@@ -466,6 +466,19 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
 - **Galleria di pagina**: collection media `gallery` sul model `Page`
   (accessor `gallery_images`), non upload su disco — in produzione i file
   stanno su Spaces e un percorso `/storage/...` costruito a mano non risolve.
+- **I media delle notizie non stanno piu' sul vecchio sito.** Ventinove
+  comunicati importati da WordPress citavano immagini, calendari in PDF e
+  cartelle stampa in ODT su `savinodelbenevolley.it/wp-content/uploads/`:
+  funzionavano solo finche' quel dominio puntava al sito precedente, e il
+  giorno della migrazione si sarebbero spenti senza possibilita' di recupero
+  (staccato il vecchio sito, i file non sono piu' interrogabili).
+  `php artisan news:importa-i-media-dal-vecchio-sito` li copia sotto
+  `news/<anno>/<mese>/` sul disco configurato e riscrive i link; `--prova`
+  mostra cosa farebbe. E' idempotente e va lanciato **dalla console dell'app**,
+  dove vivono le chiavi di Spaces e il database. I ritagli di `srcset` non si
+  copiano: `useSanitize` non ammette quell'attributo, quindi il browser non li
+  ha mai usati, e il comando li toglie invece di portarsi dietro un centinaio
+  di indirizzi morti.
 
 - **Niente contenuti nel codice dei componenti.** Progetti sociali, valori del
   vivaio, attività e turni del camp, servizi del palazzetto, documenti di
