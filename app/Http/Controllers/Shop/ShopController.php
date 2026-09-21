@@ -36,7 +36,12 @@ class ShopController extends Controller
             'description' => $p->description,
             'short_description' => $p->short_description,
             'price' => $p->price,
-            'sale_price' => $p->sale_price,
+            // Lo sconto si annuncia solo mentre e' in corso: `sale_price`
+            // da sola ignora la finestra sale_start/sale_end, e in vetrina un
+            // ribasso programmato per il mese prossimo si vedeva gia' oggi
+            // mentre il carrello — che passa da effectivePrice() — faceva
+            // pagare il prezzo pieno.
+            'sale_price' => $p->isOnSale() ? $p->sale_price : null,
             'stock' => $p->availableStock(),
             'sku' => $p->sku,
             'is_active' => $p->is_active,
@@ -64,7 +69,12 @@ class ShopController extends Controller
             'name' => $p->name,
             'slug' => $p->slug,
             'price' => $p->price,
-            'sale_price' => $p->sale_price,
+            // Lo sconto si annuncia solo mentre e' in corso: `sale_price`
+            // da sola ignora la finestra sale_start/sale_end, e in vetrina un
+            // ribasso programmato per il mese prossimo si vedeva gia' oggi
+            // mentre il carrello — che passa da effectivePrice() — faceva
+            // pagare il prezzo pieno.
+            'sale_price' => $p->isOnSale() ? $p->sale_price : null,
             'stock' => $p->availableStock(),
             'type' => $p->type->value ?? $p->type,
             'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),

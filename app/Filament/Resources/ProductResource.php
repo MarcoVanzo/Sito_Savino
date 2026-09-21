@@ -120,7 +120,22 @@ class ProductResource extends Resource
                             ->default(0)
                             ->disabled(fn (string $context): bool => $context === 'edit')
                             ->dehydrated(fn (string $context): bool => $context !== 'edit')
-                            ->helperText(fn (string $context): ?string => $context === 'edit' ? 'Gestito dai Movimenti Magazzino. Modifica tramite la sezione dedicata.' : null),
+                            // Per un prodotto con varianti la colonna `stock`
+                            // non la aggiorna nessuno: la giacenza sta sulle
+                            // taglie. Mostrarla lasciava in pagina il 56
+                            // ereditato da WooCommerce mentre il sito, che
+                            // somma le varianti (Product::availableStock),
+                            // ne contava 19.
+                            ->afterStateHydrated(function (Forms\Components\TextInput $component, ?Product $record): void {
+                                if ($record?->type === ProductType::Variable) {
+                                    $component->state($record->availableStock());
+                                }
+                            })
+                            ->helperText(fn (string $context, ?Product $record): ?string => match (true) {
+                                $context !== 'edit' => null,
+                                $record?->type === ProductType::Variable => 'Somma delle giacenze delle varianti. Si modifica dalla tab "Varianti" o dai Movimenti Magazzino.',
+                                default => 'Gestito dai Movimenti Magazzino. Modifica tramite la sezione dedicata.',
+                            }),
                         Forms\Components\TextInput::make('sku')
                             ->label('Codice (SKU)')
                             ->maxLength(255)
@@ -130,7 +145,13 @@ class ProductResource extends Resource
                             ->numeric()
                             ->prefix('€')
                             ->nullable()
-                            ->rule('lte:price')
+                            // `->lte('price')` e non `->rule('lte:price')`: la
+                            // regola scritta a mano cerca un campo `price` alla
+                            // radice dei dati validati, che stanno tutti sotto
+                            // `data.` — non lo trovava mai e falliva sempre,
+                            // impedendo di salvare il prodotto intero (sconto,
+                            // SKU, peso e date comprese).
+                            ->lte('price')
                             ->helperText('Per codici promozionali al checkout, vai a Codici Promozionali nel menu Shop.'),
                         Forms\Components\DateTimePicker::make('sale_start')
                             ->label('Inizio Sconto'),
@@ -225,9 +246,15 @@ class ProductResource extends Resource
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('stock')
-                    ->label('Stock (Base)')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Giacenza')
+                    // Come nel modulo: per i prodotti a varianti la colonna
+                    // del prodotto non dice nulla, conta la somma delle
+                    // taglie (precaricata da getEloquentQuery).
+                    // Niente ordinamento: la colonna del prodotto e la somma
+                    // delle taglie sono due numeri diversi, e ordinare per la
+                    // prima mostrando la seconda confonde e basta.
+                    ->state(fn (Product $record): int => $record->availableStock())
+                    ->numeric(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Attivo')
                     ->boolean(),
@@ -337,6 +364,7 @@ class ProductResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->with(['category', 'media']);
+            ->with(['category', 'media'])
+            ->withSum('variants', 'stock');
     }
 }

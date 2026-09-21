@@ -46,6 +46,33 @@ return [
     'uppercase' => 'Il campo :attribute deve essere in maiuscolo.',
     'url' => 'Il campo :attribute deve essere un URL valido.',
     'uuid' => 'Il campo :attribute deve essere un UUID valido.',
+    // Confronti fra due campi (`gte:data.starting_price`, `lte:data.price`):
+    // senza queste chiavi il pannello mostrava la chiave grezza
+    // "validation.lte.numeric" al posto del messaggio.
+    'gt' => [
+        'array' => 'Il campo :attribute deve avere più di :value elementi.',
+        'file' => 'Il campo :attribute deve superare i :value kilobyte.',
+        'numeric' => 'Il campo :attribute deve essere maggiore di :value.',
+        'string' => 'Il campo :attribute deve contenere più di :value caratteri.',
+    ],
+    'gte' => [
+        'array' => 'Il campo :attribute deve avere almeno :value elementi.',
+        'file' => 'Il campo :attribute deve essere di almeno :value kilobyte.',
+        'numeric' => 'Il campo :attribute non può essere inferiore a :value.',
+        'string' => 'Il campo :attribute deve contenere almeno :value caratteri.',
+    ],
+    'lt' => [
+        'array' => 'Il campo :attribute deve avere meno di :value elementi.',
+        'file' => 'Il campo :attribute deve essere inferiore a :value kilobyte.',
+        'numeric' => 'Il campo :attribute deve essere minore di :value.',
+        'string' => 'Il campo :attribute deve contenere meno di :value caratteri.',
+    ],
+    'lte' => [
+        'array' => 'Il campo :attribute non può avere più di :value elementi.',
+        'file' => 'Il campo :attribute non può superare i :value kilobyte.',
+        'numeric' => 'Il campo :attribute non può essere superiore a :value.',
+        'string' => 'Il campo :attribute non può contenere più di :value caratteri.',
+    ],
     'min' => [
         'array' => 'Il campo :attribute deve avere almeno :min elementi.',
         'file' => 'Il campo :attribute deve essere di almeno :min kilobyte.',
