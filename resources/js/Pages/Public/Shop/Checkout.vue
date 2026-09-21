@@ -6,6 +6,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 import { trackInitiateCheckout } from '@/meta-pixel.js'
+import { costoDiSpedizione } from '@/Support/spedizione.js'
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -169,30 +170,14 @@ const selectedZone = computed(() => {
     return props.shippingZones.find(z => (z.countries || []).includes('*'));
 });
 
-// `flat_rate` e `free_threshold` hanno il cast `decimal:2` sul model: in JSON
-// arrivano come stringhe. Senza conversione esplicita la somma nel totale
-// diventa una concatenazione (4 + "7.90" = "47.90").
-const shippingCost = computed(() => {
-    if (!selectedZone.value) return 0;
-
-    const threshold = Number(selectedZone.value.free_threshold ?? 0);
-    if (threshold > 0 && Number(props.cartTotal) >= threshold) return 0;
-
-    // Stessa scelta del server (ShippingZone::calculateShippingCost): la prima
-    // fascia che contiene il peso del carrello, e la tariffa base quando non
-    // ci sono fasce o nessuna lo copre. Le fasce arrivano già ordinate.
-    const peso = Number(props.cartWeight) || 0;
-
-    for (const fascia of selectedZone.value.weight_rates || []) {
-        const limite = fascia?.max_weight;
-
-        if (limite === null || limite === undefined || peso <= Number(limite)) {
-            return Number(fascia.rate) || 0;
-        }
-    }
-
-    return Number(selectedZone.value.flat_rate ?? 0) || 0;
-});
+// Il conto sta in `Support/spedizione.js`, condiviso con il checkout dell'asta
+// e specchio di ShippingZone::calculateShippingCost: soglia gratuita, poi la
+// fascia che contiene il peso, poi la tariffa base. Converte anche i numeri,
+// che con il cast `decimal:2` arrivano come stringhe (4 + "7.90" = "47.90").
+const shippingCost = computed(() => costoDiSpedizione(selectedZone.value, {
+    subtotale: props.cartTotal,
+    peso: props.cartWeight,
+}));
 
 const couponStatus = ref(null);
 const couponMessage = ref('');

@@ -161,7 +161,10 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   l'avvio del container (le migrazioni girano a ogni deploy via `start.sh → migrate --force`).
   Il codebase contiene ancora colonne `json` storiche per lo stesso scopo: nuove colonne
   translatable vanno create `text`, e le `json` esistenti si convertono quando si tocca la
-  tabella. Le migrazioni allarganti (varchar/json → text) hanno `down()` no-op documentato:
+  tabella. Nello shop sono passate a `text` `products.name` e
+  `product_categories.name` (erano `varchar(255)`); restano `json`
+  `shipping_zones.name` e `auctions.title` / `description` /
+  `charity_description`. Le migrazioni allarganti (varchar/json → text) hanno `down()` no-op documentato:
   non sono reversibili in modo sicuro.
 - **Lingue del sito**: unica fonte di verità `config('app.supported_locales')` (`['it','en']`).
   Non riscrivere l'array a mano in rotte, observer, provider o middleware.
@@ -899,9 +902,14 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   gratuita viene prima delle fasce. Il peso del carrello somma i pesi di
   scheda, e i prodotti che non ne hanno uno valgono
   `shop.default_item_weight_kg` invece di zero, o un ordine intero di articoli
-  senza peso viaggerebbe nella fascia piu' economica. **Il conto e' scritto due
-  volte**, in `ShippingZone::calculateShippingCost` e in `Checkout.vue`: se
-  cambia una regola vanno cambiate entrambe.
+  senza peso viaggerebbe nella fascia piu' economica; il peso di un articolo,
+  ripiego compreso, lo decide `Product::pesoPerLaSpedizione()`. **Il conto e'
+  scritto due volte**, in `ShippingZone::calculateShippingCost` e in
+  `resources/js/Support/spedizione.js` (con test): se cambia una regola vanno
+  cambiate entrambe. La copia JS e' **una sola** e la usano sia il checkout
+  dello shop sia quello dell'asta — quando quest'ultimo aveva la sua, e' rimasto
+  indietro alle fasce e mostrava al vincitore una spedizione diversa da quella
+  che l'ordine gli addebitava.
 - **Gli articoli collegati sono a senso unico e non passano dalla cache.**
   Mettere B sotto A non mette A sotto B (e' il cross-selling di WooCommerce da
   cui arriva la richiesta). La cache di mezz'ora resta solo sul ripiego
@@ -914,3 +922,21 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   caricati la voce non compare a nessuno. La tabella delle misure cablata nel
   componente Vue non c'e' piu': quello che si legge online deve esistere nel
   pannello.
+- **Le impostazioni scritte vuote dal pannello sono un guasto, non una scelta.**
+  Il 21/09/2026 il primo Salva della pagina Shop ha creato in produzione tutte
+  le righe `shop.*` e `auctions.*` vuote: `max_qty_per_product` a '' vale zero
+  pezzi per prodotto, `active_payment_gateways` a '' non offre alcun metodo di
+  pagamento, e i due interruttori sono finiti spenti — negozio in manutenzione.
+  Il modulo ora si apre sui valori di partenza (§20, `valoriPredefiniti`), e la
+  migrazione `2026_09_22_100000_ripristina_le_impostazioni_dello_shop_rimaste_vuote`
+  ha rimesso i numeri **a guardia** (solo se ancora vuoti). Gli interruttori
+  restano come li ha lasciati la redazione: riaccendere il negozio lo decide
+  lei, non una migrazione.
+- **Non creare in una migrazione la forma `gruppo.chiave` di un'impostazione.**
+  `SiteSetting::get('shop.enabled')` cerca prima la chiave letterale
+  `shop.enabled` e solo dopo la chiave `enabled` nel gruppo `shop`: seminare la
+  prima oscura in silenzio un valore salvato nella seconda, sostituendogli un
+  valore di partenza. Una chiave che in archivio non c'e' vale il ripiego del
+  codice, e il pannello la mostra comunque col suo valore iniziale. Quattro
+  test (`SiteSettingTest`, `BidServiceTest`, `ShopCorrectnessAuditTest`) usano
+  la forma nuda proprio per questo.

@@ -8,6 +8,7 @@ use App\Models\Auction;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ShippingZone;
+use App\Models\SiteSetting;
 use App\Models\User;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -209,5 +210,103 @@ class AuctionCheckoutStoreTest extends TestCase
 
         $this->assertSame(1, Order::where('auction_id', $auction->id)->count());
         $this->assertSame('3331234567', $order->fresh()->phone);
+    }
+
+    public function test_la_spedizione_del_lotto_segue_la_fascia_di_peso(): void
+    {
+        $winner = User::factory()->create();
+        $token = Str::uuid()->toString();
+        $auction = $this->astaVinta($winner, $token);
+        // Un lotto pesante: sei chili stanno oltre la seconda fascia.
+        $auction->product->update(['weight' => 6]);
+
+        ShippingZone::factory()->create([
+            'countries' => ['IT'],
+            'flat_rate' => 7.9,
+            'free_threshold' => 1000,
+            'weight_rates' => [
+                ['max_weight' => 2, 'rate' => 5.9],
+                ['max_weight' => 5, 'rate' => 9.9],
+                ['max_weight' => null, 'rate' => 19.9],
+            ],
+        ]);
+
+        $stripe = Mockery::mock(StripePaymentService::class);
+        $stripe->shouldReceive('createSession')->once()->andReturn('https://checkout.stripe.test/sessione');
+        $this->app->instance(StripePaymentService::class, $stripe);
+
+        $this->actingAs($winner)
+            ->post(route('shop.auction-checkout.store', ['token' => $token]), $this->datiValidi())
+            ->assertRedirect('https://checkout.stripe.test/sessione');
+
+        $order = Order::where('auction_id', $auction->id)->firstOrFail();
+
+        // 100 di offerta piu' la fascia oltre i 5 kg, non la tariffa base.
+        $this->assertEqualsWithDelta(119.9, (float) $order->total_price, 0.01);
+    }
+
+    public function test_un_lotto_senza_peso_in_scheda_usa_il_ripiego(): void
+    {
+        $winner = User::factory()->create();
+        $token = Str::uuid()->toString();
+        $auction = $this->astaVinta($winner, $token);
+        $auction->product->update(['weight' => null]);
+
+        SiteSetting::set('shop.default_item_weight_kg', '0.5');
+
+        ShippingZone::factory()->create([
+            'countries' => ['IT'],
+            'flat_rate' => 7.9,
+            'free_threshold' => 1000,
+            'weight_rates' => [
+                ['max_weight' => 2, 'rate' => 5.9],
+                ['max_weight' => null, 'rate' => 19.9],
+            ],
+        ]);
+
+        $stripe = Mockery::mock(StripePaymentService::class);
+        $stripe->shouldReceive('createSession')->once()->andReturn('https://checkout.stripe.test/sessione');
+        $this->app->instance(StripePaymentService::class, $stripe);
+
+        $this->actingAs($winner)
+            ->post(route('shop.auction-checkout.store', ['token' => $token]), $this->datiValidi())
+            ->assertRedirect('https://checkout.stripe.test/sessione');
+
+        $order = Order::where('auction_id', $auction->id)->firstOrFail();
+
+        // Mezzo chilo: la prima fascia, non quella "da lì in su".
+        $this->assertEqualsWithDelta(105.9, (float) $order->total_price, 0.01);
+    }
+
+    public function test_la_pagina_passa_al_client_le_fasce_ordinate_e_il_peso_del_collo(): void
+    {
+        $winner = User::factory()->create();
+        $token = Str::uuid()->toString();
+        $auction = $this->astaVinta($winner, $token);
+        $auction->product->update(['weight' => 6]);
+
+        // Fasce scritte fuori ordine nel pannello: al client arrivano ordinate,
+        // perché è nell'ordine che sceglie la tariffa.
+        ShippingZone::factory()->create([
+            'countries' => ['IT'],
+            'flat_rate' => 7.9,
+            'free_threshold' => 1000,
+            'weight_rates' => [
+                ['max_weight' => null, 'rate' => 19.9],
+                ['max_weight' => 2, 'rate' => 5.9],
+            ],
+        ]);
+
+        $response = $this->actingAs($winner)
+            ->get(route('shop.auction-checkout.show', ['token' => $token]))
+            ->assertOk();
+
+        $props = $response->viewData('page')['props'];
+
+        $this->assertEqualsWithDelta(6.0, (float) $props['pesoDelCollo'], 0.001);
+        $this->assertSame(
+            [['max_weight' => 2.0, 'rate' => 5.9], ['max_weight' => null, 'rate' => 19.9]],
+            $props['shippingZones'][0]['weight_rates'],
+        );
     }
 }

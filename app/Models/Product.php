@@ -91,6 +91,25 @@ class Product extends Model implements HasMedia
         return (int) $this->variants()->sum('stock');
     }
 
+    /**
+     * Il peso da usare per la spedizione, in chilogrammi.
+     *
+     * Un prodotto senza peso in scheda userebbe zero, e un collo di soli
+     * articoli senza peso viaggerebbe nella fascia più economica: al suo posto
+     * vale `shop.default_item_weight_kg`, che resta un ripiego — il peso vero
+     * si mette sul prodotto. Lo chiedono sia il carrello
+     * (CartService::getCartWeight) sia il checkout dell'asta, che spedisce un
+     * pezzo solo: il ripiego deve essere lo stesso nei due punti.
+     */
+    public function pesoPerLaSpedizione(): float
+    {
+        $peso = (float) ($this->weight ?? 0);
+
+        return $peso > 0
+            ? $peso
+            : (float) SiteSetting::get('shop.default_item_weight_kg', 0.5);
+    }
+
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
