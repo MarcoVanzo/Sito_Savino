@@ -129,7 +129,7 @@ class Coupon extends Model
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, int>
+     * @return Collection<int, int>
      */
     private function prodottiAmmessi(): Collection
     {
@@ -139,7 +139,7 @@ class Coupon extends Model
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, int>
+     * @return Collection<int, int>
      */
     private function categorieAmmesse(): Collection
     {
