@@ -38,7 +38,7 @@ class CreateAuction extends CreateRecord
     {
         $asta = $this->getRecord();
 
-        // Il prodotto esce dallo shop da se': lo fa Auction::booted().
+        // Il prodotto esce dallo shop da se': lo fa AuctionObserver.
         if ($asta instanceof Auction) {
             $asta->cambiaStato($this->statoRichiesto);
         }

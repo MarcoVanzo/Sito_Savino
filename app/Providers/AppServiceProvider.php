@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Filament\Support\TranslatableContentDriver;
+use App\Models\Auction;
 use App\Models\Category;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
@@ -24,6 +25,7 @@ use App\Models\Standing;
 use App\Models\StockMovement;
 use App\Models\Team;
 use App\Models\User;
+use App\Observers\AuctionObserver;
 use App\Observers\CacheInvalidationObserver;
 use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
@@ -111,6 +113,7 @@ class AppServiceProvider extends ServiceProvider
         Standing::observe(CacheInvalidationObserver::class);
         Product::observe(CacheInvalidationObserver::class);
         Product::observe(ProductObserver::class);
+        Auction::observe(AuctionObserver::class);
         ProductCategory::observe(CacheInvalidationObserver::class);
         Post::observe(CacheInvalidationObserver::class);
         Category::observe(CacheInvalidationObserver::class);

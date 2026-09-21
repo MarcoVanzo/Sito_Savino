@@ -97,6 +97,22 @@ class AstaDalPannelloTest extends TestCase
     }
 
     #[Test]
+    public function una_transizione_non_ammessa_avvisa_la_redazione(): void
+    {
+        $asta = $this->asta();
+        $asta->forceFill(['status' => AuctionStatus::Ended])->save();
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(EditAuction::class, ['record' => $asta->getRouteKey()])
+            ->fillForm(['status' => AuctionStatus::Active->value])
+            ->call('save')
+            ->assertHasNoFormErrors()
+            ->assertNotified();
+
+        $this->assertSame(AuctionStatus::Ended, $asta->refresh()->status);
+    }
+
+    #[Test]
     public function cancellare_l_asta_riporta_il_prodotto_nello_shop(): void
     {
         $asta = $this->asta();
@@ -109,6 +125,50 @@ class AstaDalPannelloTest extends TestCase
         $asta->delete();
 
         $this->assertSame(ProductType::Variable, $prodotto->refresh()->type);
+    }
+
+    #[Test]
+    public function un_prodotto_senza_varianti_torna_semplice(): void
+    {
+        $asta = $this->asta();
+        $prodotto = $asta->product;
+
+        $asta->delete();
+
+        $this->assertSame(ProductType::Simple, $prodotto->refresh()->type);
+    }
+
+    #[Test]
+    public function ripristinare_l_asta_toglie_di_nuovo_il_prodotto_dallo_shop(): void
+    {
+        $asta = $this->asta();
+        $prodotto = $asta->product;
+
+        $asta->delete();
+        $this->assertSame(ProductType::Simple, $prodotto->refresh()->type);
+
+        $asta->restore();
+
+        $this->assertSame(ProductType::Auction, $prodotto->refresh()->type);
+    }
+
+    /**
+     * Il prodotto che la redazione ha gia' rimesso in vendita non si tocca:
+     * altrimenti cancellare una vecchia asta lo riporterebbe al tipo dedotto
+     * dalle varianti, scavalcando la scelta fatta a mano.
+     */
+    #[Test]
+    public function cancellare_l_asta_non_tocca_un_prodotto_gia_in_vendita(): void
+    {
+        $asta = $this->asta();
+        $prodotto = $asta->product;
+
+        $prodotto->update(['type' => ProductType::Simple]);
+        ProductVariant::factory()->for($prodotto)->create(['size' => 'L', 'stock' => 2]);
+
+        $asta->delete();
+
+        $this->assertSame(ProductType::Simple, $prodotto->refresh()->type);
     }
 
     private function asta(): Auction

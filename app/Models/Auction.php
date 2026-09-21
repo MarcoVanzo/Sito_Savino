@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\AuctionStatus;
-use App\Enums\ProductType;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -108,39 +107,6 @@ class Auction extends Model
         $this->forceFill(['status' => $nuovo])->save();
 
         return true;
-    }
-
-    /**
-     * Il prodotto di un'asta esce dallo shop, e ci rientra quando l'asta non
-     * c'e' piu'.
-     *
-     * Il tipo `auction` tiene il pezzo fuori dalla griglia e dal carrello
-     * (`Product::scopeShoppable`). Finche' il cambio si faceva solo alla
-     * creazione dell'asta, cancellarla lasciava il prodotto invisibile per
-     * sempre: la sua pagina rispondeva 404 e in redazione non c'era modo di
-     * capire perche'. Al ritorno il tipo si deduce dalle varianti, perche'
-     * quello di partenza non e' conservato da nessuna parte.
-     */
-    protected static function booted(): void
-    {
-        static::created(fn (self $asta) => $asta->product?->update(['type' => ProductType::Auction]));
-
-        static::deleted(fn (self $asta) => $asta->riportaIlProdottoNelloShop());
-
-        static::restored(fn (self $asta) => $asta->product?->update(['type' => ProductType::Auction]));
-    }
-
-    private function riportaIlProdottoNelloShop(): void
-    {
-        $prodotto = $this->product;
-
-        if (! $prodotto || $prodotto->type !== ProductType::Auction) {
-            return;
-        }
-
-        $prodotto->update([
-            'type' => $prodotto->variants()->exists() ? ProductType::Variable : ProductType::Simple,
-        ]);
     }
 
     // --- Relazioni ---
