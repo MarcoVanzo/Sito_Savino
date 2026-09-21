@@ -143,7 +143,6 @@ watch(currentStock, (stock) => {
 });
 
 // --- Add to Cart ---
-const showSizeGuide = ref(false);
 const isAdding = ref(false);
 const cartError = ref('');
 const variantError = ref(false);
@@ -155,29 +154,10 @@ const clearCartError = () => {
     cartErrorTimer = setTimeout(() => { cartError.value = ''; }, 5000);
 };
 
-// Escape key handler for Size Guide modal
-const handleEscape = (e) => {
-    if (e.key === 'Escape' && showSizeGuide.value) {
-        showSizeGuide.value = false;
-    }
-};
-
-// Body scroll lock when modal is open
-watch(showSizeGuide, (open) => {
-    document.body.style.overflow = open ? 'hidden' : '';
-    if (open) {
-        document.addEventListener('keydown', handleEscape);
-    } else {
-        document.removeEventListener('keydown', handleEscape);
-    }
-});
-
 // Cleanup on unmount
 onUnmounted(() => {
     if (cartErrorTimer) clearTimeout(cartErrorTimer);
     if (variantErrorTimer) clearTimeout(variantErrorTimer);
-    document.removeEventListener('keydown', handleEscape);
-    document.body.style.overflow = '';
 });
 
 const handleAddToCart = () => {
@@ -374,8 +354,9 @@ const structuredData = computed(() => {
                             </p>
                         </div>
 
-                        <!-- Size Guide Link -->
-                        <a v-if="product?.variants?.some(v => v.size)" href="#" @click.prevent="showSizeGuide = true" class="inline-flex items-center gap-1.5 text-sm text-savino-blue hover:text-savino-fucsia transition-colors mt-3">
+                        <!-- Guida alle taglie: il documento scelto in redazione,
+                             o la pagina generale. Senza, la voce non compare. -->
+                        <a v-if="product?.size_guide_url && product?.variants?.some(v => v.size)" :href="product.size_guide_url" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm text-savino-blue hover:text-savino-fucsia transition-colors mt-3">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                             {{ $t('shop.size_guide') }}
                         </a>
@@ -471,37 +452,6 @@ const structuredData = computed(() => {
             </div>
         </section>
 
-        <!-- Size Guide Modal -->
-        <Teleport to="body">
-            <Transition name="fade">
-                <div v-if="showSizeGuide" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showSizeGuide = false"></div>
-                    <div class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 z-10">
-                        <button type="button" @click="showSizeGuide = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                        <h3 class="text-xl font-bold text-gray-900 mb-4">{{ $t('shop.size_guide') }}</h3>
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="py-2 text-left font-semibold text-gray-700">{{ $t('shop.size') }}</th>
-                                    <th class="py-2 text-center font-semibold text-gray-700">{{ $t('shop.size_guide_chest') }}</th>
-                                    <th class="py-2 text-center font-semibold text-gray-700">{{ $t('shop.size_guide_length') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="row in [{ size: 'XS', chest: '86-91', length: '65' }, { size: 'S', chest: '91-96', length: '68' }, { size: 'M', chest: '96-101', length: '71' }, { size: 'L', chest: '101-106', length: '74' }, { size: 'XL', chest: '106-111', length: '77' }, { size: 'XXL', chest: '111-116', length: '80' }]" :key="row.size" class="border-b border-gray-100">
-                                    <td class="py-2 font-medium">{{ row.size }}</td>
-                                    <td class="py-2 text-center text-gray-600">{{ row.chest }} cm</td>
-                                    <td class="py-2 text-center text-gray-600">{{ row.length }} cm</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="text-xs text-gray-500 mt-4">{{ $t('shop.size_guide_note') }}</p>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
 
     </PublicLayout>
 </template>
