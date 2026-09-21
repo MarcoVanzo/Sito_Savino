@@ -594,6 +594,78 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   `callBeforeStateDehydrated()` così i file caricati lì finiscono su disco.
   Test in `SafeguardingDocumentiTest`.
 
+- **Gli elenchi vuoti in inglese prendono quelli italiani.** `content_data` è
+  tradotto in blocco: classifica della Club Race, listino, partner delle
+  convenzioni, PDF e cartelle stampa andrebbero ricopiati a mano in ogni lingua,
+  e nessuno lo fa — `/en` diceva "classifica non disponibile" e "offerte in
+  arrivo". `ContentData::conGliElenchiDiRipiego()` (chiamato da
+  `PageController::datiDellaPagina`) riempie le sole `CHIAVI_ELENCO` rimaste
+  vuote; un elenco compilato in inglese vince sempre. I testi non hanno ripiego.
+- **Il testo dell'editor è l'introduzione e sta sotto l'hero** nei modelli
+  Ticketing e Comunicazione (come già in Sociale, Convenzioni e Club Race): in
+  fondo alla pagina "compila il modulo almeno 48 ore prima" si leggeva dopo il
+  modulo. Non deve cominciare con un `<h2>` uguale al titolo: l'hero lo mostra già.
+- **Un riquadro che la redazione non può togliere viene riempito a caso.** Il
+  riquadro "Al botteghino" degli abbonamenti era diventato un secondo
+  "Vantaggi". Ora i due riquadri di "Informazioni sull'acquisto" compaiono solo
+  se compilati, e la Missione del modello Sociale pure: sezioni nuove nascono
+  facoltative.
+- **Gli indirizzi scritti dalla redazione passano da `safeUrl`**, che completa
+  un'email nuda in `mailto:` e un `www.` in `https://`: senza schema il browser
+  li legge come percorsi relativi (il "Contattaci" di Hospitality portava a
+  `/sponsor/marketing@…`, 404).
+- **Il pulsante d'iscrizione del Talent Day segue le tappe**: con tutte le
+  tappe `sold_out` (esaurite o concluse) il modulo sparisce e compare
+  `talent_day.signup_closed`; torna da solo alla prima tappa aperta. Senza tappe
+  in elenco decide la redazione, come prima.
+- **I documenti del Safeguarding possono puntare ai PDF dei Documenti Legali**
+  (`legal/…`): Filament non cancella dal disco un file tolto da un upload
+  (nessun `deleteUploadedFileUsing` nel progetto), quindi toglierlo dalla pagina
+  non rompe il link del footer. Se un giorno si attiva la cancellazione dei
+  file, quei due percorsi condivisi vanno prima duplicati.
+- **I valori senza lingua ripiegano sull'italiano come gli elenchi**: le chiavi
+  di `content_data` che finiscono in `_url`, `_image`, `_link`, `_email`, `_src`,
+  `_value`, `_file` non hanno traduzione, e in inglese restavano vuote (la
+  Biglietteria senza link a Vivaticket, Hospitality senza pulsante, Sponsor
+  senza numeri). Vale la stessa regola: un valore compilato in inglese vince.
+- **Un indirizzo che non esiste deve rispondere 404.** `/stagione/atleta/{slug}`
+  con uno slug inventato serviva la pagina della stagione con stato 200, e la
+  pagina CMS `home` disegnava una home svuotata sul proprio slug (ora 301 su
+  `/`). Vale anche per `/summer-camp/summer-camp`.
+- **La sitemap pubblica l'indirizzo di sezione**, non `/{slug}`:
+  `PageController::percorsoPubblico()` è l'unica fonte di verità, e le pagine
+  contenitore (home, societa, sponsor, shop, comunicazione) restano fuori. Prima
+  24 indirizzi su 38 erano redirect.
+- **La soglia della spedizione gratuita è quella delle zone di spedizione.** Il
+  carrello leggeva `shop.free_shipping_threshold` (che in archivio non esiste)
+  e ripiegava su 50 €, mentre il checkout applica il `free_threshold` della zona
+  (100 € per l'Italia): il cliente vedeva "spedizione gratuita sbloccata" e poi
+  la pagava. `CartController::sogliaDellaSpedizioneGratuita()` legge
+  l'impostazione se c'è, altrimenti la zona dell'Italia.
+- **Gli indirizzi che il pannello raccoglie non si mettono in `<Link>`.** Un
+  `<Link>` di Inertia verso un sito esterno (Vivaticket nelle CTA della
+  homepage) parte come XHR e non porta da nessuna parte: si usa
+  `isExternalLink()` / `externalLinkAttrs()` di `resources/js/Support/menuLinks.js`.
+  I link interni scritti a mano (`href="/news"`) perdono il prefisso della
+  lingua: vanno scritti con `route()`.
+- **La voce di menu "Foto Ufficiale" esce dal menu finché il PDF non c'è**
+  (`MenuItem::fotoUfficialeMancante()`), come i documenti legali mancanti:
+  portava a un messaggio d'errore. Ricompare salvando l'impostazione.
+- **Squadra creata dal pannello = squadra della società** (`is_internal`, §12):
+  le avversarie arrivano solo dal sync.
+- **Un campo `hidden()` non viene deidratato** (vale anche per `Select`): per un
+  valore fisso serve `Forms\Components\Hidden`. Con una `Select::hidden()` la
+  creazione di un membro dell'organigramma falliva sul NOT NULL di `type`.
+- **Un modulo che mostra una sola chiave di una colonna JSON la riscrive tutta**:
+  l'azione di modifica di Messaggi e Accrediti salvava `extra_data` con la sola
+  nota dell'amministratore, cancellando testata, ruolo, gara e telefono. Si fonde
+  con `mutateFormDataUsing`.
+- **Revisione dei contenuti della redazione**: `activity_logs` dice chi ha
+  toccato cosa (`user_id`, `model_type`, `model_id`). Le correzioni ai testi in
+  produzione si fanno con una migrazione a guardie (tocca un valore solo se è
+  ancora quello sbagliato), provata a secco su una copia in memoria delle righe
+  lette in sola lettura: vedi `2026_09_20_100000_revisione_dei_contenuti_della_redazione`.
+
 ## 15. Sponsor
 
 - I livelli sono in `App\Enums\SponsorTier` e l'**ordine dei case è l'ordine di
