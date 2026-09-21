@@ -59,6 +59,32 @@ class ImportaIMediaDelleNotizieTest extends TestCase
         $this->assertStringContainsString('news/2022/10/Locandina-211x300.jpg', $contenuto);
     }
 
+    /**
+     * Il link incollato nudo: WordPress ripete l'indirizzo come etichetta, e
+     * quella restava a nominare il vecchio dominio anche dopo la copia.
+     */
+    #[Test]
+    public function riscrive_anche_l_indirizzo_scritto_nel_testo(): void
+    {
+        Storage::fake();
+        $this->fingiIlVecchioSito();
+
+        $notizia = $this->notiziaCon(
+            '<p>Il documento si scarica qui:<br />'
+            .'<a href="https://savinodelbenevolley.it/wp-content/uploads/2026/06/bilancio.pdf">'
+            .'https://savinodelbenevolley.it/wp-content/uploads/2026/06/bilancio.pdf</a>.</p>'
+        );
+
+        $this->artisan('news:importa-i-media-dal-vecchio-sito')->assertSuccessful();
+
+        $contenuto = $notizia->fresh()->getTranslation('content', 'it');
+
+        $this->assertStringNotContainsString('savinodelbenevolley.it/wp-content', $contenuto);
+        $this->assertSame(2, substr_count($contenuto, 'news/2026/06/bilancio.pdf'), 'href ed etichetta devono puntare allo stesso file');
+        // Il punto di fine frase non fa parte del nome del file.
+        $this->assertStringEndsWith('</a>.</p>', $contenuto);
+    }
+
     #[Test]
     public function copia_anche_i_pdf_collegati(): void
     {

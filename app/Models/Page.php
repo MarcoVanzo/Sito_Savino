@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Enums\PostStatus;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
+use App\Support\CmsFile;
+use App\Support\ContentData;
+use App\Support\LiveStream;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,6 +52,69 @@ class Page extends Model implements HasMedia
         // Un JSON valido è già gestito da spatie: qui interessa solo il testo
         // semplice rimasto dalle importazioni.
         return json_last_error() === JSON_ERROR_NONE ? $value : $raw;
+    }
+
+    /**
+     * La pagina nella forma che arriva al frontend pubblico.
+     *
+     * I file caricati dal pannello dentro `content_data` (press kit, magazine,
+     * immagini dei pulsanti) diventano indirizzi pubblici veri: i template li
+     * usavano come "/storage/{percorso}", che in produzione — con i file su
+     * Spaces — non porta da nessuna parte. Gli elenchi e i valori senza lingua
+     * che una traduzione non ha si prendono dalla lingua di partenza, e il
+     * video di coda passa dallo stesso filtro della diretta delle gare: un
+     * indirizzo fuori dalle piattaforme conosciute non viene incorporato nella
+     * pagina con i permessi del sito.
+     *
+     * Sta qui e non nel controller delle pagine perché non sono solo le pagine
+     * del CMS a pubblicare una `Page`: Sponsor, Contatti e Gallery hanno una
+     * rotta propria, passavano il record grezzo e si portavano dietro i difetti
+     * che questo metodo chiude — la pagina Sponsor inglese, per dirne una,
+     * mostrava le etichette dei numeri d'impatto senza i numeri.
+     *
+     * @return array<string, mixed>
+     */
+    public function datiPerIlFrontend(): array
+    {
+        $dati = $this->toArray();
+
+        if (! is_array($dati['content_data'] ?? null)) {
+            return $dati;
+        }
+
+        $dati['content_data'] = $this->conGliElenchiDellaLinguaDiPartenza($dati['content_data']);
+        $dati['content_data'] = CmsFile::resolveInContentData($dati['content_data']);
+
+        if (isset($dati['content_data']['video_url'])) {
+            $dati['content_data']['video_embed_url'] = LiveStream::embedUrl($dati['content_data']['video_url']);
+            $dati['content_data']['video_url'] = LiveStream::externalUrl($dati['content_data']['video_url']);
+        }
+
+        return $dati;
+    }
+
+    /**
+     * Nelle lingue diverse da quella di partenza, gli elenchi che la redazione
+     * non ha ricopiato (classifica, listino, partner, documenti…) e i valori
+     * che non hanno lingua (link d'acquisto, immagini, email, numeri) si
+     * prendono dall'italiano: vedi `ContentData::conGliElenchiDiRipiego()`.
+     *
+     * @param  array<string, mixed>  $contenuti
+     * @return array<string, mixed>
+     */
+    private function conGliElenchiDellaLinguaDiPartenza(array $contenuti): array
+    {
+        $diPartenza = (string) config('app.fallback_locale');
+
+        if (app()->getLocale() === $diPartenza) {
+            return $contenuti;
+        }
+
+        $originali = $this->getTranslation('content_data', $diPartenza, false);
+
+        return is_array($originali)
+            ? ContentData::conGliElenchiDiRipiego($contenuti, $originali)
+            : $contenuti;
     }
 
     protected $fillable = [

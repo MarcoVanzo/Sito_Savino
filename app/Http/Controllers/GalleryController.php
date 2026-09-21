@@ -58,7 +58,7 @@ class GalleryController extends Controller
         });
 
         return Inertia::render('Public/Gallery', [
-            'page' => $page,
+            'page' => $page?->datiPerIlFrontend(),
             // Solo il primo blocco: l'archivio è di ~900 foto e serializzarlo
             // tutto portava la pagina a mezzo megabyte di HTML. Il resto arriva
             // da /gallery/data appena la pagina è interattiva, così i filtri

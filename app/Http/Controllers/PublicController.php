@@ -475,7 +475,7 @@ class PublicController extends Controller
 
         return Inertia::render('Public/Sponsor', [
             'tiers' => $sponsors->tiers(),
-            'page' => $page,
+            'page' => $page?->datiPerIlFrontend(),
         ]);
     }
 
@@ -484,7 +484,7 @@ class PublicController extends Controller
         $page = Page::where('slug', 'contatti')->published()->first();
 
         return Inertia::render('Public/Contatti', [
-            'page' => $page,
+            'page' => $page?->datiPerIlFrontend(),
         ]);
     }
 

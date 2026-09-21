@@ -186,13 +186,41 @@ class ImportaIMediaDelleNotizie extends Command
     {
         $html = $this->togliLeVariantiDiWordPress($html);
 
-        return preg_replace_callback(
+        $html = preg_replace_callback(
             '/\b(src|href)="([^"]+)"/i',
             function (array $pezzi): string {
                 $nuovo = $this->indirizzoNuovo($pezzi[2]);
 
                 return $nuovo === null ? $pezzi[0] : $pezzi[1].'="'.$nuovo.'"';
             },
+            $html
+        ) ?? $html;
+
+        return $this->riscriviGliIndirizziNelTesto($html);
+    }
+
+    /**
+     * Riscrive anche gli indirizzi rimasti nel testo visibile.
+     *
+     * Quando in redazione si incolla un link nudo, WordPress usa l'indirizzo
+     * stesso come etichetta: l'attributo `href` lo sistema il passaggio sopra,
+     * il testo fra i due tag no. Il lettore si trova scritto in pagina
+     * l'indirizzo di un dominio che sta per cambiare padrone, mentre il file
+     * che scarica arriva gia' dal nostro disco. E' successo al Bilancio di
+     * Sostenibilita' (notizia #169). Qui l'etichetta si allinea allo stesso
+     * file.
+     *
+     * L'indirizzo deve finire con una delle estensioni ammesse: senza quel
+     * vincolo la punteggiatura di fine frase entrerebbe nel nome del file.
+     */
+    private function riscriviGliIndirizziNelTesto(string $html): string
+    {
+        $domini = implode('|', array_map(fn (string $dominio): string => preg_quote($dominio, '~'), self::DOMINI));
+        $estensioni = implode('|', self::ESTENSIONI);
+
+        return preg_replace_callback(
+            '~https?://(?:'.$domini.')'.preg_quote(self::PREFISSO, '~').'[^\s"\'<>]+?\.(?:'.$estensioni.')~i',
+            fn (array $pezzi): string => $this->indirizzoNuovo($pezzi[0]) ?? $pezzi[0],
             $html
         ) ?? $html;
     }

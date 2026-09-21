@@ -12,13 +12,9 @@ use App\Models\Season;
 use App\Models\StaffMember;
 use App\Models\Team;
 use App\Services\SponsorDirectory;
-use App\Support\CmsFile;
-use App\Support\ContentData;
-use App\Support\LiveStream;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -165,7 +161,7 @@ class PageController extends Controller
         // i template li usavano come "/storage/{percorso}", che in produzione
         // — con i file su Spaces — non porta da nessuna parte.
         return Inertia::render($template, array_merge([
-            'page' => $this->datiDellaPagina($page),
+            'page' => $page->datiPerIlFrontend(),
         ], $extra));
     }
 
@@ -208,62 +204,6 @@ class PageController extends Controller
     }
 
     /**
-     * La pagina nella forma che arriva al frontend.
-     *
-     * I file caricati dal pannello dentro `content_data` (press kit, magazine,
-     * immagini dei pulsanti) diventano indirizzi pubblici veri: i template li
-     * usavano come "/storage/{percorso}", che in produzione — con i file su
-     * Spaces — non porta da nessuna parte.
-     *
-     * Il video di coda passa dallo stesso filtro della diretta delle gare: un
-     * indirizzo fuori dalle piattaforme conosciute non viene incorporato nella
-     * pagina con i permessi del sito.
-     *
-     * @return array<string, mixed>
-     */
-    private function datiDellaPagina(Page $page): array
-    {
-        $dati = $page->toArray();
-
-        if (! is_array($dati['content_data'] ?? null)) {
-            return $dati;
-        }
-
-        $dati['content_data'] = $this->conGliElenchiDellaLinguaDiPartenza($page, $dati['content_data']);
-        $dati['content_data'] = CmsFile::resolveInContentData($dati['content_data']);
-
-        if (isset($dati['content_data']['video_url'])) {
-            $dati['content_data']['video_embed_url'] = LiveStream::embedUrl($dati['content_data']['video_url']);
-            $dati['content_data']['video_url'] = LiveStream::externalUrl($dati['content_data']['video_url']);
-        }
-
-        return $dati;
-    }
-
-    /**
-     * Nelle lingue diverse da quella di partenza, gli elenchi che la redazione
-     * non ha ricopiato (classifica, listino, partner, documenti…) si prendono
-     * dall'italiano: vedi `ContentData::conGliElenchiDiRipiego()`.
-     *
-     * @param  array<string, mixed>  $contenuti
-     * @return array<string, mixed>
-     */
-    private function conGliElenchiDellaLinguaDiPartenza(Page $page, array $contenuti): array
-    {
-        $diPartenza = (string) config('app.fallback_locale');
-
-        if (app()->getLocale() === $diPartenza) {
-            return $contenuti;
-        }
-
-        $originali = $page->getTranslation('content_data', $diPartenza, false);
-
-        return is_array($originali)
-            ? ContentData::conGliElenchiDiRipiego($contenuti, $originali)
-            : $contenuti;
-    }
-
-    /**
      * Carica dati aggiuntivi in base al template.
      * Ogni template specializzato riceve le props che il componente Vue si aspetta.
      */
@@ -299,53 +239,36 @@ class PageController extends Controller
      * frontend pubblico; la data ora si compone con le traduzioni del
      * progetto (`site.months`).
      *
-     * I `Log::error` dei singoli passi restano finché la produzione non
-     * conferma: se il processo morisse ancora, l'ultima riga scritta dice
-     * dove. `LOG_LEVEL=error` in produzione, quindi si vedono.
+     * Le due pagine hanno retto lo scadere della cache e il `cache:clear` del
+     * deploy del 21/09/2026: le righe di diagnostica che accompagnavano ogni
+     * passo non servono più.
      *
      * @return array{upcomingHomeGames: list<array{value: string, label: string}>}
      */
     private function getComunicazioneData(): array
     {
-        $locale = app()->getLocale();
-
         return [
-            'upcomingHomeGames' => Cache::remember("public:accrediti:gare:{$locale}", now()->addMinutes(30), function () use ($locale) {
-                Log::error("[accrediti] 1 costruzione elenco gare ({$locale})");
-
-                $gare = Game::with(['homeTeam', 'awayTeam'])
+            'upcomingHomeGames' => Cache::remember('public:accrediti:gare:'.app()->getLocale(), now()->addMinutes(30), function () {
+                return Game::with(['homeTeam', 'awayTeam'])
                     ->where('status', GameStatus::Scheduled)
                     ->where('match_date', '>=', now())
                     ->whereHas('homeTeam', fn ($team) => $team->where('is_internal', true))
                     ->orderBy('match_date')
                     ->take(2)
-                    ->get();
+                    ->get()
+                    ->map(function (Game $gara) {
+                        // Le due squadre e la data ci sono per costruzione: la
+                        // query filtra su una squadra di casa interna e su una
+                        // data futura.
+                        $sfida = $gara->homeTeam->name.' — '.$gara->awayTeam->name;
 
-                Log::error('[accrediti] 2 query eseguita: '.$gare->count().' gare');
-
-                $voci = [];
-
-                foreach ($gare as $gara) {
-                    // Le due squadre e la data ci sono per costruzione: la
-                    // query filtra su una squadra di casa interna e su una
-                    // data futura.
-                    $sfida = $gara->homeTeam->name.' — '.$gara->awayTeam->name;
-
-                    Log::error('[accrediti] 3 squadre: '.$sfida);
-
-                    $quando = self::dataEstesa($gara->match_date);
-
-                    Log::error('[accrediti] 4 data: '.$quando);
-
-                    $voci[] = [
-                        'value' => $sfida,
-                        'label' => $sfida.' · '.$quando,
-                    ];
-                }
-
-                Log::error('[accrediti] 5 elenco pronto: '.count($voci).' voci');
-
-                return $voci;
+                        return [
+                            'value' => $sfida,
+                            'label' => $sfida.' · '.self::dataEstesa($gara->match_date),
+                        ];
+                    })
+                    ->values()
+                    ->all();
             }),
         ];
     }

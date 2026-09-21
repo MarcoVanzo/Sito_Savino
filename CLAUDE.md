@@ -612,8 +612,28 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   convenzioni, PDF e cartelle stampa andrebbero ricopiati a mano in ogni lingua,
   e nessuno lo fa — `/en` diceva "classifica non disponibile" e "offerte in
   arrivo". `ContentData::conGliElenchiDiRipiego()` (chiamato da
-  `PageController::datiDellaPagina`) riempie le sole `CHIAVI_ELENCO` rimaste
+  `Page::datiPerIlFrontend()`) riempie le sole `CHIAVI_ELENCO` rimaste
   vuote; un elenco compilato in inglese vince sempre. I testi non hanno ripiego.
+- **Gli elenchi che non hanno niente da tradurre si salvano in tutte le
+  lingue.** Una società affiliata è nome, livello, sito e logo; la classifica
+  della Club Race è club e punti: le stesse cose in italiano e in inglese, ma
+  `content_data` è tradotto in blocco e ogni lingua ne teneva una copia. Chi le
+  modificava con il pannello in un'altra lingua — la lingua resta quella
+  dell'ultima pagina su cui si è lavorato — non vedeva cambiare niente sul sito
+  italiano e non riceveva nessun messaggio (21/09/2026: tre salvataggi, tutti
+  nella sola scheda inglese). Le chiavi stanno in `ContentData::CHIAVI_COMUNI` e
+  le riscrive `EditPage::allineaLeChiaviComuni`, solo per quelle che il modulo
+  ha mostrato. Restano fuori `press_kits`, `partners`, `magazines` e
+  `team_photos`, che hanno titoli e descrizioni. Test in
+  `ChiaviComuniAlleLingueTest`.
+- **La pagina arriva al frontend da `Page::datiPerIlFrontend()`**, una porta
+  sola: ripiego sulla lingua di partenza, percorsi dei file caricati dal
+  pannello (`CmsFile`) e filtro del video di coda (`LiveStream`). Sponsor,
+  Contatti e Gallery hanno una rotta propria in `PublicController` e
+  `GalleryController` e passavano il record grezzo: sulla pagina Sponsor
+  inglese si leggevano le etichette dei numeri d'impatto senza i numeri. Una
+  rotta nuova che pubblica una `Page` passa di lì. Test in
+  `PaginePubblicheConRottaPropriaTest`.
 - **Il testo dell'editor è l'introduzione e sta sotto l'hero** nei modelli
   Ticketing e Comunicazione (come già in Sociale, Convenzioni e Club Race): in
   fondo alla pagina "compila il modulo almeno 48 ore prima" si leggeva dopo il
