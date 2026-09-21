@@ -20,12 +20,13 @@ class ShippingZone extends Model
     public $translatable = ['name'];
 
     protected $fillable = [
-        'name', 'countries', 'flat_rate', 'free_threshold',
+        'name', 'countries', 'flat_rate', 'weight_rates', 'free_threshold',
         'estimated_days_min', 'estimated_days_max', 'is_active', 'sort_order',
     ];
 
     protected $casts = [
         'countries' => 'array',
+        'weight_rates' => 'array',
         'flat_rate' => 'decimal:2',
         'free_threshold' => 'decimal:2',
         'is_active' => 'boolean',
@@ -90,15 +91,79 @@ class ShippingZone extends Model
     }
 
     /**
-     * Calcola il costo spedizione per un dato subtotale.
+     * Calcola il costo spedizione per un dato subtotale e peso (in kg).
+     *
+     * La soglia della spedizione gratuita viene prima di tutto: e' una
+     * promessa fatta al cliente nel carrello, e vale qualunque sia il collo.
+     * Poi si cerca la fascia di peso; senza fasce vale la tariffa base, che
+     * e' il comportamento storico.
      */
-    public function calculateShippingCost(float $subtotal): float
+    public function calculateShippingCost(float $subtotal, float $peso = 0.0): float
     {
         if ($this->free_threshold && $subtotal >= $this->free_threshold) {
             return 0.00;
         }
 
-        return (float) $this->flat_rate;
+        $fascia = $this->fasciaPerIlPeso($peso);
+
+        return $fascia !== null ? $fascia : (float) $this->flat_rate;
+    }
+
+    /**
+     * La tariffa della prima fascia che contiene questo peso.
+     *
+     * Le fasce sono ordinate per peso crescente e l'ultima puo' non avere un
+     * limite: e' quella che prende tutto il resto. Se le fasce ci sono ma
+     * nessuna copre il peso — l'ultima e' chiusa e il collo la supera —
+     * si torna null e decide la tariffa base, perche' rifiutare la spedizione
+     * a carrello pieno sarebbe peggio.
+     */
+    private function fasciaPerIlPeso(float $peso): ?float
+    {
+        foreach ($this->fasceOrdinate() as $fascia) {
+            $limite = $fascia['max_weight'] ?? null;
+
+            if ($limite === null || $peso <= (float) $limite) {
+                return (float) $fascia['rate'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Le fasce valide, dalla piu' leggera alla piu' pesante.
+     *
+     * L'ordine non si puo' dare per scontato: e' un elenco compilato a mano
+     * dal pannello, e una fascia fuori posto farebbe pagare la tariffa
+     * sbagliata. Quelle senza tariffa non sono fasce.
+     *
+     * @return list<array{max_weight: float|null, rate: float}>
+     */
+    public function fasceOrdinate(): array
+    {
+        $fasce = [];
+
+        foreach (is_array($this->weight_rates) ? $this->weight_rates : [] as $fascia) {
+            if (! is_array($fascia) || ! isset($fascia['rate']) || ! is_numeric($fascia['rate'])) {
+                continue;
+            }
+
+            $limite = $fascia['max_weight'] ?? null;
+
+            $fasce[] = [
+                'max_weight' => is_numeric($limite) ? (float) $limite : null,
+                'rate' => (float) $fascia['rate'],
+            ];
+        }
+
+        usort($fasce, fn (array $a, array $b) => match (true) {
+            $a['max_weight'] === null => 1,
+            $b['max_weight'] === null => -1,
+            default => $a['max_weight'] <=> $b['max_weight'],
+        });
+
+        return $fasce;
     }
 
     /**

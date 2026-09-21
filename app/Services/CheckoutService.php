@@ -142,8 +142,12 @@ class CheckoutService
             // 3. Calcola subtotale da DB
             $subtotal = $this->calculateSubtotal($cart);
 
-            // 4. Calcola spedizione
-            $shippingCost = $this->calculateShipping($data['country'], $subtotal);
+            // 4. Calcola spedizione: il peso decide la fascia tariffaria
+            $shippingCost = $this->calculateShipping(
+                $data['country'],
+                $subtotal,
+                $this->cartService->getCartWeight($cart),
+            );
 
             // 5. Reuse coupon result from validation (no double-lookup)
             $couponId = null;
@@ -231,7 +235,7 @@ class CheckoutService
      *
      * @throws ShippingUnavailableException
      */
-    public function calculateShipping(string $countryCode, float $subtotal): float
+    public function calculateShipping(string $countryCode, float $subtotal, float $peso = 0.0): float
     {
         $zone = ShippingZone::findByCountry($countryCode);
 
@@ -241,7 +245,7 @@ class CheckoutService
             );
         }
 
-        return $zone->calculateShippingCost($subtotal);
+        return $zone->calculateShippingCost($subtotal, $peso);
     }
 
     /**

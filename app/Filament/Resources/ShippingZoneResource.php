@@ -73,6 +73,40 @@ class ShippingZoneResource extends Resource
                             ->numeric()
                             ->default(0),
                     ])->columns(2),
+
+                Forms\Components\Section::make('Fasce di peso')
+                    ->description('Tariffe diverse a seconda del peso del collo. Lascia l\'elenco vuoto per applicare sempre la tariffa base.')
+                    ->schema([
+                        Forms\Components\Repeater::make('weight_rates')
+                            ->label('')
+                            // Facoltativo: con una riga aperta d'ufficio, una
+                            // zona nuova non si salverebbe finche' non la si
+                            // compila o la si cancella.
+                            ->defaultItems(0)
+                            ->addActionLabel('Aggiungi una fascia')
+                            ->schema([
+                                Forms\Components\TextInput::make('max_weight')
+                                    ->label('Fino a (kg)')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->suffix('kg')
+                                    ->helperText('Vuoto = da qui in su. Tienine al massimo una senza limite.'),
+                                Forms\Components\TextInput::make('rate')
+                                    ->label('Tariffa (€)')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->prefix('€')
+                                    ->required(),
+                            ])
+                            ->columns(2)
+                            ->itemLabel(fn (array $state): string => match (true) {
+                                ! isset($state['rate']) => 'Nuova fascia',
+                                blank($state['max_weight'] ?? null) => 'Oltre l\'ultima fascia — € '.$state['rate'],
+                                default => 'Fino a '.$state['max_weight'].' kg — € '.$state['rate'],
+                            })
+                            ->reorderable()
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
@@ -91,6 +125,13 @@ class ShippingZoneResource extends Resource
                     ->label('Tariffa')
                     ->money('EUR')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('fasce')
+                    ->label('Fasce di peso')
+                    ->state(fn (ShippingZone $record): string => $record->fasceOrdinate() === []
+                        ? 'Solo tariffa base'
+                        : count($record->fasceOrdinate()).' fasce')
+                    ->badge()
+                    ->color(fn (ShippingZone $record): string => $record->fasceOrdinate() === [] ? 'gray' : 'success'),
                 Tables\Columns\TextColumn::make('free_threshold')
                     ->label('Soglia Gratis')
                     ->money('EUR')

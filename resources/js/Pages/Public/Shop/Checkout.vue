@@ -23,6 +23,10 @@ const props = defineProps({
         type: Number,
         default: 0
     },
+    cartWeight: {
+        type: Number,
+        default: 0
+    },
     itemCount: {
         type: Number,
         default: 0
@@ -173,6 +177,19 @@ const shippingCost = computed(() => {
 
     const threshold = Number(selectedZone.value.free_threshold ?? 0);
     if (threshold > 0 && Number(props.cartTotal) >= threshold) return 0;
+
+    // Stessa scelta del server (ShippingZone::calculateShippingCost): la prima
+    // fascia che contiene il peso del carrello, e la tariffa base quando non
+    // ci sono fasce o nessuna lo copre. Le fasce arrivano già ordinate.
+    const peso = Number(props.cartWeight) || 0;
+
+    for (const fascia of selectedZone.value.weight_rates || []) {
+        const limite = fascia?.max_weight;
+
+        if (limite === null || limite === undefined || peso <= Number(limite)) {
+            return Number(fascia.rate) || 0;
+        }
+    }
 
     return Number(selectedZone.value.flat_rate ?? 0) || 0;
 });
