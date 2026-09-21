@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Auction;
 use App\Models\Order;
 use App\Models\ShippingZone;
+use App\Models\SiteSetting;
 use App\Services\AuctionService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
@@ -311,7 +312,10 @@ class AuctionCheckoutController extends Controller
         // L'importo dovuto è l'offerta del vincitore corrente, che può
         // non coincidere con current_bid in caso di riassegnazione.
         $winningBid = $this->auctionService->winningAmountFor($lockedAuction);
-        $shippingCost = $shippingZone->calculateShippingCost($winningBid);
+        // Un pezzo solo: il peso e' quello del prodotto battuto, e senza
+        // vale il ripiego usato anche per il carrello.
+        $peso = (float) ($lockedAuction->product?->weight ?: SiteSetting::get('shop.default_item_weight_kg', 0.5));
+        $shippingCost = $shippingZone->calculateShippingCost($winningBid, $peso);
         [$shippingAddress, $billingAddress] = $this->indirizzi($validated);
 
         $dati = [

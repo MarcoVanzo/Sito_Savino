@@ -70,6 +70,15 @@ return [
         'sort_order' => 10,
     ],
     [
+        'key' => 'shop.default_item_weight_kg',
+        'value' => '0.5',
+        'type' => 'number',
+        'group' => 'shop',
+        'label' => 'Peso di ripiego per articolo (kg)',
+        'description' => 'Peso usato per i prodotti che non ne hanno uno in scheda, per le fasce di peso della spedizione',
+        'sort_order' => 11,
+    ],
+    [
         'key' => 'shop.active_payment_gateways',
         'value' => 'stripe,paypal,bank_transfer',
         'type' => 'text',

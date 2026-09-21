@@ -841,3 +841,74 @@ impostano comunque il proprio `<Head>`, che copre browser e Googlebot.
   in scrittura: senza, l'HTML ridotto finirebbe servito a tutti gli anonimi.
 
 Test in `tests/Feature/SocialCrawlerMetaTest.php`.
+
+---
+
+## 20. Shop: catalogo, coupon, spedizione
+
+- **Per confrontare due campi di un modulo si usano gli aiutanti di Filament**
+  (`->lte('price')`, `->gte('starting_price')`, `->after('start_date')`), mai la
+  regola scritta a mano (`->rule('lte:price')`): i dati validati stanno tutti
+  sotto `data.`, la regola cerca il campo alla radice, non lo trova e **fallisce
+  sempre**. Il prezzo scontato di un prodotto non si e' potuto salvare per
+  settimane, e con lui SKU, peso e date dello stesso modulo. Le traduzioni
+  italiane di `gt/gte/lt/lte` ora ci sono: senza, l'errore arrivava a schermo
+  come `validation.lte.numeric`.
+- **Una colonna fuori da `$fillable` non si scrive dal modulo e non protesta.**
+  `Auction::status` e' escluso apposta dalla scrittura di massa, e il campo
+  "Stato" del pannello finiva nel nulla: l'asta restava in bozza e la pagina
+  pubblica, che elenca solo attive/programmate/concluse, non mostrava niente.
+  L'unico varco e' `Auction::cambiaStato()`, che verifica la transizione
+  (`TRANSIZIONI_AMMESSE`) invece di fidarsi delle opzioni disegnate nel form, e
+  le pagine del pannello dicono all'utente quando il cambio viene rifiutato.
+- **Il prodotto di un'asta esce dallo shop e ci rientra da solo.** Il tipo
+  `auction` lo toglie dalla vetrina; finche' il cambio si faceva solo alla
+  creazione, cancellare l'asta lasciava il prodotto invisibile per sempre, con
+  la sua pagina in 404. Il ritorno e' legato al ciclo di vita dell'asta
+  (`Auction::booted`) e il tipo si deduce dalle varianti.
+- **La giacenza di un prodotto con varianti e' la somma delle taglie**
+  (`Product::availableStock`). La colonna `products.stock` non la aggiorna piu'
+  nessuno da quando l'archivio e' arrivato da WooCommerce: nel pannello
+  mostrava 56 dove il sito ne contava 19.
+- **In vetrina lo sconto si annuncia solo mentre e' in corso.** `sale_price`
+  nuda ignora `sale_start`/`sale_end`, mentre carrello e ordine passano da
+  `effectivePrice()`: un ribasso programmato si vedeva subito e al pagamento
+  tornava il prezzo pieno.
+- **Le impostazioni dello Shop hanno un valore di partenza anche quando la
+  riga non esiste** (`database/data/impostazioni_shop.php`, letto dal seeder e
+  dalla pagina del pannello). In produzione le righe `shop.*` non c'erano: il
+  sito usava i predefiniti e funzionava, ma il modulo si apriva con gli
+  interruttori spenti e il primo Salva li scriveva davvero — accendendo le
+  aste, la redazione ha mandato il negozio in manutenzione. Unica eccezione
+  `shop.free_shipping_threshold`, dove vuoto significa "vale la soglia della
+  zona di spedizione": proporre un numero lo scriverebbe, e il carrello
+  prometterebbe una spedizione gratuita che il checkout non concede.
+- **Un coupon puo' valere solo su alcuni prodotti o categorie**
+  (`Coupon::valePerIlProdotto`), che valgono in somma; senza nessuno dei due
+  vale su tutto. Lo sconto si calcola sulla **sola parte ammessa** del
+  carrello, mentre l'ordine minimo guarda la spesa intera: e' una soglia di
+  spesa, non un vincolo su cosa si compra. Per questo `applyCoupon` riceve il
+  carrello e non il suo totale.
+- **Le fasce di peso stanno in una colonna JSON della zona**
+  (`shipping_zones.weight_rates`), non in una tabella a parte: le zone attive
+  finiscono in cache come semplici attributi e una relazione non
+  sopravviverebbe a quel giro. Si riordinano in lettura, perche' le compila la
+  redazione; l'ultima puo' restare senza limite. La soglia della spedizione
+  gratuita viene prima delle fasce. Il peso del carrello somma i pesi di
+  scheda, e i prodotti che non ne hanno uno valgono
+  `shop.default_item_weight_kg` invece di zero, o un ordine intero di articoli
+  senza peso viaggerebbe nella fascia piu' economica. **Il conto e' scritto due
+  volte**, in `ShippingZone::calculateShippingCost` e in `Checkout.vue`: se
+  cambia una regola vanno cambiate entrambe.
+- **Gli articoli collegati sono a senso unico e non passano dalla cache.**
+  Mettere B sotto A non mette A sotto B (e' il cross-selling di WooCommerce da
+  cui arriva la richiesta). La cache di mezz'ora resta solo sul ripiego
+  automatico — quattro prodotti a caso della stessa categoria — perche' chi
+  collega un articolo nel pannello deve vederlo comparire subito.
+- **La guida alle taglie si sceglie sul prodotto** fra i PDF caricati in
+  "Guida Taglie & Contatti" (`App\Support\GuidaTaglie`): uno in particolare, la
+  pagina generale con tutti, oppure nessuna e la voce sparisce — serve per le
+  maglie vecchie, per cui una guida aggiornata non esiste. Senza documenti
+  caricati la voce non compare a nessuno. La tabella delle misure cablata nel
+  componente Vue non c'e' piu': quello che si legge online deve esistere nel
+  pannello.

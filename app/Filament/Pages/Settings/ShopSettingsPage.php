@@ -105,6 +105,11 @@ class ShopSettingsPage extends BaseSettingsPage
                             ->numeric()
                             ->minValue(0)
                             ->helperText('Lascia vuoto per usare la soglia della zona di spedizione: un valore qui vale per tutti i paesi e ha la precedenza.'),
+                        TextInput::make('shop.default_item_weight_kg')
+                            ->label('Peso di ripiego per articolo (kg)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->helperText('Usato per i prodotti senza peso in scheda, quando la zona di spedizione ha fasce di peso.'),
                         TextInput::make('shop.max_qty_per_product')
                             ->label('Quantità max per prodotto')
                             ->numeric()
@@ -113,7 +118,7 @@ class ShopSettingsPage extends BaseSettingsPage
                             ->label('Scadenza carrello (giorni)')
                             ->numeric()
                             ->minValue(1),
-                    ])->columns(3),
+                    ])->columns(2),
 
                 Section::make('Pagamenti')
                     ->icon('heroicon-o-credit-card')

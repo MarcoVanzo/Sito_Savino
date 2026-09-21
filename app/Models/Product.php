@@ -8,6 +8,7 @@ use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -23,7 +24,7 @@ class Product extends Model implements HasMedia
     protected $fillable = [
         'product_category_id', 'name', 'slug', 'description', 'price',
         'stock', 'sku', 'is_active', 'type', 'sale_price', 'sale_start',
-        'sale_end', 'short_description', 'weight',
+        'sale_end', 'short_description', 'weight', 'size_guide',
     ];
 
     public $translatable = ['name', 'description', 'short_description'];
@@ -46,6 +47,19 @@ class Product extends Model implements HasMedia
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
+    }
+
+    /**
+     * Gli articoli che la redazione accosta a questo, per la sezione
+     * "Ti potrebbe interessare anche".
+     *
+     * Legame a senso unico: mettere B sotto A non mette A sotto B.
+     *
+     * @return BelongsToMany<Product, $this>
+     */
+    public function relatedProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'product_related', 'product_id', 'related_product_id');
     }
 
     /**

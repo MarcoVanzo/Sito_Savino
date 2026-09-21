@@ -43,6 +43,7 @@ return [
         'privacy_required' => 'Devi accettare l\'informativa sulla privacy.',
         'invalid_coupon' => 'Codice coupon non valido.',
         'coupon_not_applicable' => 'Il coupon non è applicabile a questo ordine.',
+        'coupon_products_missing' => 'Questo codice vale solo su alcuni prodotti, che non sono nel carrello.',
         'coupon_applied' => 'Coupon applicato! Sconto di € :discount.',
         'already_processing' => 'Un pagamento è già in corso. Attendi.',
         'retry_not_available' => 'Il retry del pagamento non è disponibile per questo ordine.',

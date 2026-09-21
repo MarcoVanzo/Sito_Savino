@@ -43,6 +43,7 @@ return [
         'privacy_required' => 'You must accept the privacy policy.',
         'invalid_coupon' => 'Invalid coupon code.',
         'coupon_not_applicable' => 'This coupon is not applicable to this order.',
+        'coupon_products_missing' => 'This code only applies to selected products, and none of them is in your cart.',
         'coupon_applied' => 'Coupon applied! Discount of € :discount.',
         'already_processing' => 'A payment is already being processed. Please wait.',
         'retry_not_available' => 'Payment retry is not available for this order.',

@@ -203,6 +203,40 @@ class CartService
     }
 
     /**
+     * Il peso del carrello in chilogrammi.
+     *
+     * Serve alle fasce di peso delle zone di spedizione. I prodotti senza
+     * peso in scheda userebbero zero, e un ordine intero di articoli senza
+     * peso viaggerebbe nella fascia piu' economica: al loro posto vale
+     * `shop.default_item_weight_kg`, che la redazione puo' correggere e che
+     * resta un ripiego — il peso vero si mette sul prodotto.
+     */
+    public function getCartWeight(?Cart $cart = null): float
+    {
+        $cart ??= $this->getCart();
+
+        if (! $cart) {
+            return 0.0;
+        }
+
+        $cart->loadMissing('items.product');
+        $ripiego = (float) SiteSetting::get('shop.default_item_weight_kg', 0.5);
+        $peso = 0.0;
+
+        foreach ($cart->items as $item) {
+            $pesoDellArticolo = (float) ($item->product->weight ?? 0);
+
+            if ($pesoDellArticolo <= 0) {
+                $pesoDellArticolo = $ripiego;
+            }
+
+            $peso += $pesoDellArticolo * $item->quantity;
+        }
+
+        return round($peso, 3);
+    }
+
+    /**
      * Restituisce il numero totale di pezzi nel carrello.
      */
     public function getItemCount(): int

@@ -69,6 +69,9 @@ class CheckoutController extends Controller
                 'name' => $zone->name,
                 'countries' => $zone->countries,
                 'flat_rate' => (float) $zone->flat_rate,
+                // Gia' ordinate e ripulite: il client sceglie la prima fascia
+                // che contiene il peso, come fa il server.
+                'weight_rates' => $zone->fasceOrdinate(),
                 'free_threshold' => $zone->free_threshold !== null ? (float) $zone->free_threshold : null,
                 'estimated_days_min' => $zone->estimated_days_min,
                 'estimated_days_max' => $zone->estimated_days_max,
@@ -94,6 +97,7 @@ class CheckoutController extends Controller
         return Inertia::render('Public/Shop/Checkout', [
             'cart' => $cart,
             'cartTotal' => $this->cartService->getCartTotal(),
+            'cartWeight' => $this->cartService->getCartWeight($cart),
             'itemCount' => $this->cartService->getItemCount(),
             'shippingZones' => $shippingZones,
             'paymentGateways' => $paymentGateways,

@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Exceptions\ShippingUnavailableException;
 use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use App\Models\Order;
@@ -64,7 +65,7 @@ class CheckoutService
             try {
                 $couponResult = $this->applyCoupon(
                     $data['coupon_code'],
-                    $this->calculateSubtotal($cart),
+                    $cart,
                     $data['user_id'] ?? null,
                     $data['guest_email'] ?? null
                 );
@@ -141,8 +142,12 @@ class CheckoutService
             // 3. Calcola subtotale da DB
             $subtotal = $this->calculateSubtotal($cart);
 
-            // 4. Calcola spedizione
-            $shippingCost = $this->calculateShipping($data['country'], $subtotal);
+            // 4. Calcola spedizione: il peso decide la fascia tariffaria
+            $shippingCost = $this->calculateShipping(
+                $data['country'],
+                $subtotal,
+                $this->cartService->getCartWeight($cart),
+            );
 
             // 5. Reuse coupon result from validation (no double-lookup)
             $couponId = null;
@@ -230,7 +235,7 @@ class CheckoutService
      *
      * @throws ShippingUnavailableException
      */
-    public function calculateShipping(string $countryCode, float $subtotal): float
+    public function calculateShipping(string $countryCode, float $subtotal, float $peso = 0.0): float
     {
         $zone = ShippingZone::findByCountry($countryCode);
 
@@ -240,7 +245,7 @@ class CheckoutService
             );
         }
 
-        return $zone->calculateShippingCost($subtotal);
+        return $zone->calculateShippingCost($subtotal, $peso);
     }
 
     /**
@@ -250,7 +255,7 @@ class CheckoutService
      *
      * @throws \InvalidArgumentException
      */
-    public function applyCoupon(string $code, float $subtotal, ?int $userId = null, ?string $guestEmail = null): array
+    public function applyCoupon(string $code, Cart $cart, ?int $userId = null, ?string $guestEmail = null): array
     {
         $coupon = Coupon::byCode($code)->lockForUpdate()->first();
 
@@ -258,16 +263,50 @@ class CheckoutService
             throw new \InvalidArgumentException(__('messages.checkout.invalid_coupon'));
         }
 
-        if (! $coupon->isValidForOrder($subtotal, $userId, $guestEmail)) {
+        // L'ordine minimo guarda tutto il carrello: e' una soglia di spesa,
+        // non un vincolo su cosa si compra.
+        if (! $coupon->isValidForOrder($this->calculateSubtotal($cart), $userId, $guestEmail)) {
             throw new \InvalidArgumentException(__('messages.checkout.coupon_not_applicable'));
         }
 
-        $discount = $coupon->calculateDiscount($subtotal);
+        // Lo sconto, invece, morde solo sugli articoli ammessi.
+        $scontabile = $this->importoScontabile($cart, $coupon);
+
+        if ($scontabile <= 0.0) {
+            throw new \InvalidArgumentException(__('messages.checkout.coupon_products_missing'));
+        }
+
+        $discount = $coupon->calculateDiscount($scontabile);
 
         return [
             'discount' => round($discount, 2),
             'coupon' => $coupon,
         ];
+    }
+
+    /**
+     * La parte di carrello su cui il coupon puo' applicarsi.
+     *
+     * Un codice nato per una maglia non deve scontare anche il resto
+     * dell'ordine: senza questo, "compleanno di Kate" toglieva il 10% pure
+     * dalle sciarpe finite nello stesso carrello.
+     */
+    private function importoScontabile(Cart $cart, Coupon $coupon): float
+    {
+        if (! $coupon->haLimitiDiCatalogo()) {
+            return $this->calculateSubtotal($cart);
+        }
+
+        $cart->loadMissing('items.product', 'items.variant');
+        $totale = 0.0;
+
+        foreach ($cart->items as $item) {
+            if ($item->product && $coupon->valePerIlProdotto($item->product)) {
+                $totale += $this->importoDellaRiga($item);
+            }
+        }
+
+        return round($totale, 2);
     }
 
     /**
@@ -279,12 +318,21 @@ class CheckoutService
         $subtotal = 0.0;
 
         foreach ($cart->items as $item) {
-            $effectivePrice = $item->product->effectivePrice();
-            $modifier = $item->variant ? (float) $item->variant->price_modifier : 0.0;
-            $subtotal += ($effectivePrice + $modifier) * $item->quantity;
+            $subtotal += $this->importoDellaRiga($item);
         }
 
         return round($subtotal, 2);
+    }
+
+    /**
+     * Quanto vale una riga del carrello: prezzo effettivo del prodotto piu'
+     * la variazione della variante, per la quantita'.
+     */
+    private function importoDellaRiga(CartItem $item): float
+    {
+        $modifier = $item->variant ? (float) $item->variant->price_modifier : 0.0;
+
+        return ($item->product->effectivePrice() + $modifier) * $item->quantity;
     }
 
     /**

@@ -89,6 +89,28 @@ class CouponResource extends Resource
                             ->numeric()
                             ->default(1),
                     ])->columns(3),
+                Forms\Components\Section::make('Prodotti a cui si applica')
+                    ->description('Lascia vuoto per applicare il codice a tutto il carrello. Compilando anche solo uno dei due elenchi, lo sconto vale soltanto sugli articoli indicati.')
+                    ->schema([
+                        Forms\Components\Select::make('products')
+                            ->label('Prodotti')
+                            ->relationship('products', 'name')
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            ->columnSpanFull(),
+                        Forms\Components\Select::make('categories')
+                            ->label('Categorie')
+                            ->relationship('categories', 'name')
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
+                            // Le sottocategorie non seguono la categoria
+                            // madre: "Kit Gara" non sconta da solo "Kit Gara
+                            // Away", che va aggiunto se serve.
+                            ->helperText('Vale per i prodotti della categoria scelta. Le sottocategorie vanno aggiunte a parte.')
+                            ->columnSpanFull(),
+                    ])->columns(1),
                 Forms\Components\Section::make('Validità')
                     ->schema([
                         Forms\Components\DateTimePicker::make('valid_from')
@@ -145,6 +167,13 @@ class CouponResource extends Resource
                 Tables\Columns\TextColumn::make('value')
                     ->label('Valore')
                     ->formatStateUsing(fn ($state, $record): string => $record->type === CouponType::Percentage ? "{$state}%" : "€{$state}"),
+                Tables\Columns\TextColumn::make('ambito')
+                    ->label('Si applica a')
+                    ->state(fn (Coupon $record): string => $record->haLimitiDiCatalogo()
+                        ? 'Solo alcuni prodotti'
+                        : 'Tutto il carrello')
+                    ->badge()
+                    ->color(fn (Coupon $record): string => $record->haLimitiDiCatalogo() ? 'warning' : 'gray'),
                 Tables\Columns\TextColumn::make('used_count')
                     ->label('Utilizzi')
                     ->suffix(fn ($record): string => '/ '.($record->max_uses ?? '∞')),
@@ -193,6 +222,9 @@ class CouponResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            // La colonna "Si applica a" chiede a ogni riga se ha limiti di
+            // catalogo: senza questo sarebbero due query per coupon.
+            ->with(['products:id', 'categories:id']);
     }
 }
