@@ -4,6 +4,7 @@ namespace Tests\Feature\Shop;
 
 use App\Enums\ProductType;
 use App\Enums\UserRole;
+use App\Filament\Resources\ProductResource\Pages\CreateProduct;
 use App\Filament\Resources\ProductResource\Pages\EditProduct;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -100,6 +101,32 @@ class ArticoliCollegatiTest extends TestCase
                 ->has('relatedProducts', 1)
                 ->where('relatedProducts.0.id', $portachiavi->id),
             );
+    }
+
+    public function test_anche_un_prodotto_nuovo_nasce_con_i_suoi_collegamenti(): void
+    {
+        // In creazione il prodotto non esiste ancora quando si sceglie
+        // l'elenco: il legame si scrive dopo, ed e' il caso che si rompe per
+        // primo se qualcuno cambia il campo.
+        $portachiavi = $this->prodotto();
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(CreateProduct::class)
+            ->fillForm([
+                'name' => 'Maglia gara 26/27',
+                'slug' => 'maglia-gara-26-27',
+                'product_category_id' => ProductCategory::factory()->create()->id,
+                'type' => ProductType::Simple->value,
+                'price' => 90,
+                'stock' => 5,
+                'relatedProducts' => [$portachiavi->id],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $maglia = Product::where('slug', 'maglia-gara-26-27')->firstOrFail();
+
+        $this->assertSame([$portachiavi->id], $maglia->relatedProducts->pluck('id')->all());
     }
 
     private function prodotto(?ProductCategory $categoria = null): Product
