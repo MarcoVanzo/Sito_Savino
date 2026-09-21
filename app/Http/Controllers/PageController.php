@@ -15,8 +15,10 @@ use App\Services\SponsorDirectory;
 use App\Support\CmsFile;
 use App\Support\ContentData;
 use App\Support\LiveStream;
+use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -284,6 +286,23 @@ class PageController extends Controller
      * calendario in cui la squadra di casa e' una squadra della societa': le
      * trasferte non si accreditano qui.
      *
+     * Costruire questo elenco faceva morire php-fpm di segmentation fault
+     * (`child ... exited on signal 11`), e con lui la pagina, che rispondeva
+     * 503 senza lasciare traccia nei log applicativi. Il risultato sta in
+     * cache mezz'ora: finché la chiave c'era la pagina si disegnava, e alla
+     * sua scadenza — o dopo il `cache:clear` di ogni deploy — la prima
+     * richiesta che provava a ricostruirla mandava giù le due pagine per
+     * tutti. Lo stesso codice eseguito da CLI nello stesso container non è mai
+     * crollato: non sono i dati né la memoria (picco 18 MB), e nemmeno
+     * opcache o il JIT. L'unico costrutto fuori dall'ordinario era
+     * `Carbon::translatedFormat()`, che qui è l'unica occorrenza di tutto il
+     * frontend pubblico; la data ora si compone con le traduzioni del
+     * progetto (`site.months`).
+     *
+     * I `Log::error` dei singoli passi restano finché la produzione non
+     * conferma: se il processo morisse ancora, l'ultima riga scritta dice
+     * dove. `LOG_LEVEL=error` in produzione, quindi si vedono.
+     *
      * @return array{upcomingHomeGames: list<array{value: string, label: string}>}
      */
     private function getComunicazioneData(): array
@@ -291,29 +310,64 @@ class PageController extends Controller
         $locale = app()->getLocale();
 
         return [
-            'upcomingHomeGames' => Cache::remember("public:accrediti:gare:{$locale}", now()->addMinutes(30), function () {
-                return Game::with(['homeTeam', 'awayTeam'])
+            'upcomingHomeGames' => Cache::remember("public:accrediti:gare:{$locale}", now()->addMinutes(30), function () use ($locale) {
+                Log::error("[accrediti] 1 costruzione elenco gare ({$locale})");
+
+                $gare = Game::with(['homeTeam', 'awayTeam'])
                     ->where('status', GameStatus::Scheduled)
                     ->where('match_date', '>=', now())
                     ->whereHas('homeTeam', fn ($team) => $team->where('is_internal', true))
                     ->orderBy('match_date')
                     ->take(2)
-                    ->get()
-                    ->map(function (Game $gara) {
-                        // Le due squadre e la data ci sono per costruzione: la
-                        // query filtra su una squadra di casa interna e su una
-                        // data futura.
-                        $sfida = $gara->homeTeam->name.' — '.$gara->awayTeam->name;
+                    ->get();
 
-                        return [
-                            'value' => $sfida,
-                            'label' => $sfida.' · '.$gara->match_date->translatedFormat('j F Y'),
-                        ];
-                    })
-                    ->values()
-                    ->all();
+                Log::error('[accrediti] 2 query eseguita: '.$gare->count().' gare');
+
+                $voci = [];
+
+                foreach ($gare as $gara) {
+                    // Le due squadre e la data ci sono per costruzione: la
+                    // query filtra su una squadra di casa interna e su una
+                    // data futura.
+                    $sfida = $gara->homeTeam->name.' — '.$gara->awayTeam->name;
+
+                    Log::error('[accrediti] 3 squadre: '.$sfida);
+
+                    $quando = self::dataEstesa($gara->match_date);
+
+                    Log::error('[accrediti] 4 data: '.$quando);
+
+                    $voci[] = [
+                        'value' => $sfida,
+                        'label' => $sfida.' · '.$quando,
+                    ];
+                }
+
+                Log::error('[accrediti] 5 elenco pronto: '.count($voci).' voci');
+
+                return $voci;
             }),
         ];
+    }
+
+    /**
+     * La data per esteso ("4 ottobre 2026"), nella lingua della richiesta.
+     *
+     * Non usa `translatedFormat()` né `isoFormat()`: passano entrambi dal
+     * traduttore di Carbon, ed è lì che il processo moriva.
+     */
+    private static function dataEstesa(CarbonInterface $data): string
+    {
+        $chiave = 'site.months.'.$data->format('n');
+        $mese = __($chiave);
+
+        // `__()` restituisce la chiave quando la traduzione manca: in quel caso
+        // meglio il nome inglese di Carbon che "site.months.3" in pagina.
+        if (! is_string($mese) || $mese === $chiave) {
+            $mese = $data->format('F');
+        }
+
+        return $data->format('j').' '.$mese.' '.$data->format('Y');
     }
 
     private function getSocietaData(): array

@@ -85,4 +85,25 @@ return [
             'description' => 'Tutte le foto di :nome nell\'archivio fotografico della Savino Del Bene Volley.',
         ],
     ],
+
+    /*
+     * I nomi dei mesi per le date scritte per esteso (la tendina della gara nel
+     * modulo accrediti). Prima li dava `Carbon::translatedFormat()`, che sotto
+     * php-fpm faceva morire il processo di segmentation fault: vedi
+     * `PageController::dataEstesa()`.
+     */
+    'months' => [
+        1 => 'gennaio',
+        2 => 'febbraio',
+        3 => 'marzo',
+        4 => 'aprile',
+        5 => 'maggio',
+        6 => 'giugno',
+        7 => 'luglio',
+        8 => 'agosto',
+        9 => 'settembre',
+        10 => 'ottobre',
+        11 => 'novembre',
+        12 => 'dicembre',
+    ],
 ];

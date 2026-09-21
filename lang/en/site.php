@@ -83,4 +83,24 @@ return [
             'description' => 'All photos of :nome in the Savino Del Bene Volley photo archive.',
         ],
     ],
+
+    /*
+     * Month names for dates written out in full (the match dropdown in the
+     * press accreditation form). See `lang/it/site.php` for why they are here
+     * and not in `Carbon::translatedFormat()`.
+     */
+    'months' => [
+        1 => 'January',
+        2 => 'February',
+        3 => 'March',
+        4 => 'April',
+        5 => 'May',
+        6 => 'June',
+        7 => 'July',
+        8 => 'August',
+        9 => 'September',
+        10 => 'October',
+        11 => 'November',
+        12 => 'December',
+    ],
 ];
