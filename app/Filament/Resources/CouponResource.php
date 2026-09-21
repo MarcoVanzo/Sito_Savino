@@ -63,15 +63,15 @@ class CouponResource extends Resource
                             ->required()
                             ->numeric()
                             ->minValue(0)
-                            ->maxValue(fn (Forms\Get $get) => $get('type') === CouponType::Percentage->value ? 100 : null)
-                            ->suffix(fn (Forms\Get $get) => $get('type') === CouponType::Percentage->value ? '%' : '€'),
+                            ->maxValue(fn (Forms\Get $get) => self::eInPercentuale($get) ? 100 : null)
+                            ->suffix(fn (Forms\Get $get) => self::eInPercentuale($get) ? '%' : '€'),
                         Forms\Components\TextInput::make('max_discount')
                             ->label('Sconto Massimo (€)')
                             ->numeric()
                             ->nullable()
                             ->prefix('€')
                             ->helperText('Solo per coupon percentuali')
-                            ->visible(fn (Forms\Get $get) => $get('type') === CouponType::Percentage->value),
+                            ->visible(fn (Forms\Get $get) => self::eInPercentuale($get)),
                     ])->columns(2),
                 Forms\Components\Section::make('Condizioni')
                     ->schema([
@@ -107,6 +107,25 @@ class CouponResource extends Resource
                     ->columnSpanFull()
                     ->rows(2),
             ]);
+    }
+
+    /**
+     * Il tipo di sconto scelto nel modulo e' la percentuale.
+     *
+     * La colonna ha il cast a CouponType, e con il valore predefinito il campo
+     * tiene l'enum: confrontarlo con la stringa `'percentage'` dava sempre
+     * falso, cosi' un coupon percentuale mostrava il suffisso € invece di %,
+     * accettava valori oltre 100 e nascondeva il tetto allo sconto.
+     */
+    private static function eInPercentuale(Forms\Get $get): bool
+    {
+        $tipo = $get('type');
+
+        if (! $tipo instanceof CouponType) {
+            $tipo = CouponType::tryFrom((string) $tipo);
+        }
+
+        return $tipo === CouponType::Percentage;
     }
 
     public static function table(Table $table): Table

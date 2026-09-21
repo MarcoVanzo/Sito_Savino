@@ -182,6 +182,20 @@ class SiteSetting extends Model
     }
 
     /**
+     * Le impostazioni di Shop e Aste con il loro valore di partenza.
+     *
+     * Le legge il seeder che crea le righe e la pagina del pannello che le
+     * modifica: una chiave non ancora in archivio deve aprirsi con il valore
+     * di partenza, non vuota (un interruttore vuoto si salva spento).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function definizioniDelloShop(): array
+    {
+        return require database_path('data/impostazioni_shop.php');
+    }
+
+    /**
      * Get settings for a specific group.
      */
     public static function getGroup(string $group): array

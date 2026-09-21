@@ -65,48 +65,17 @@ class AuctionResource extends Resource
                                     ->columnSpanFull(),
                                 Forms\Components\Select::make('status')
                                     ->label('Stato')
-                                    ->options(function (?Auction $record): array {
-                                        // During creation, only Draft is allowed
-                                        if (! $record) {
-                                            return [AuctionStatus::Draft->value => AuctionStatus::Draft->getLabel()];
-                                        }
-
-                                        // Define allowed transitions per status
-                                        $allowedTransitions = [
-                                            AuctionStatus::Draft->value => [
-                                                AuctionStatus::Draft,
-                                                AuctionStatus::Scheduled,
-                                                AuctionStatus::Active,
-                                                AuctionStatus::Cancelled,
-                                            ],
-                                            AuctionStatus::Scheduled->value => [
-                                                AuctionStatus::Scheduled,
-                                                AuctionStatus::Active,
-                                                AuctionStatus::Cancelled,
-                                            ],
-                                            AuctionStatus::Active->value => [
-                                                AuctionStatus::Active,
-                                                AuctionStatus::Ended,
-                                                AuctionStatus::Cancelled,
-                                            ],
-                                            AuctionStatus::Ended->value => [
-                                                AuctionStatus::Ended,
-                                            ],
-                                            AuctionStatus::Cancelled->value => [
-                                                AuctionStatus::Cancelled,
-                                                AuctionStatus::Draft,
-                                            ],
-                                        ];
-
-                                        $currentStatus = $record->status->value ?? AuctionStatus::Draft->value;
-                                        $allowed = $allowedTransitions[$currentStatus] ?? AuctionStatus::cases();
-
-                                        return collect($allowed)
-                                            ->mapWithKeys(fn (AuctionStatus $s) => [$s->value => $s->getLabel()])
-                                            ->all();
-                                    })
+                                    // Le transizioni ammesse stanno sul model
+                                    // (Auction::TRANSIZIONI_AMMESSE): qui si
+                                    // disegnano le opzioni, li' si applicano.
+                                    ->options(fn (?Auction $record): array => $record
+                                        ? Auction::statiRaggiungibiliDa($record->status)
+                                        : [AuctionStatus::Draft->value => AuctionStatus::Draft->getLabel()])
                                     ->required()
-                                    ->default(AuctionStatus::Draft),
+                                    ->default(AuctionStatus::Draft)
+                                    ->helperText(fn (?Auction $record): string => $record
+                                        ? 'Sul sito compaiono solo le aste Attive, Programmate e Concluse: una bozza resta invisibile.'
+                                        : 'L’asta nasce in bozza e non è ancora visibile sul sito. Dopo il salvataggio riaprila e portala su “Attiva” o “Programmata”.'),
                                 Forms\Components\Toggle::make('is_charity')
                                     ->label('Asta Benefica'),
                                 Forms\Components\Textarea::make('charity_description')
@@ -126,7 +95,9 @@ class AuctionResource extends Resource
                                     ->label('Prezzo di Riserva')
                                     ->numeric()
                                     ->prefix('€')
-                                    ->rule('gte:starting_price'),
+                                    // Vedi ProductResource: la regola scritta a mano
+                                    // non risolve il percorso `data.` e fallisce sempre.
+                                    ->gte('starting_price'),
                                 Forms\Components\TextInput::make('bid_increment')
                                     ->label('Incremento Offerta')
                                     ->numeric()
@@ -153,7 +124,7 @@ class AuctionResource extends Resource
                                 Forms\Components\DateTimePicker::make('end_date')
                                     ->label('Data Fine')
                                     ->required()
-                                    ->rule('after:start_date'),
+                                    ->after('start_date'),
                             ])->columns(2),
 
                         Forms\Components\Tabs\Tab::make('Vincitore')
