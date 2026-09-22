@@ -212,6 +212,27 @@ class PermalinkVecchioSitoTest extends TestCase
     }
 
     #[Test]
+    public function i_vecchi_indirizzi_del_feed_portano_al_feed(): void
+    {
+        // WordPress serviva lo stesso feed su piu' indirizzi, e i feed per
+        // categoria e per tag stavano sotto quei prefissi: devono arrivare al
+        // feed di oggi, non all'archivio HTML — chi legge un feed non saprebbe
+        // che farsene di una pagina. Le rotte stanno prima di quelle di tag e
+        // categoria, che altrimenti se li prenderebbero.
+        $this->get('/feed/atom/')->assertRedirect('/feed')->assertStatus(301);
+        $this->get('/feed/rss2/')->assertRedirect('/feed')->assertStatus(301);
+        $this->get('/comments/feed')->assertRedirect('/feed')->assertStatus(301);
+        $this->get('/news-c/sdb-youth/feed')->assertRedirect('/feed')->assertStatus(301);
+        $this->get('/tag/playasone/feed')->assertRedirect('/feed')->assertStatus(301);
+    }
+
+    #[Test]
+    public function il_feed_di_oggi_non_e_oscurato_dalle_rotte_legacy(): void
+    {
+        $this->get('/feed')->assertOk();
+    }
+
+    #[Test]
     public function gli_eventi_una_tantum_del_vecchio_sito_restano_404(): void
     {
         // Non hanno un erede: una convention del 2024 e un segnaposto della
