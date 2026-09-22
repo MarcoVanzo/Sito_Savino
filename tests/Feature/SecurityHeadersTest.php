@@ -172,7 +172,7 @@ class SecurityHeadersTest extends TestCase
      */
     public function test_facebook_non_diventa_una_piattaforma_incorporabile(): void
     {
-        $this->assertNull(\App\Support\LiveStream::embedUrl('https://www.facebook.com/savinodelbenevolley/videos/123456'));
+        $this->assertNull(LiveStream::embedUrl('https://www.facebook.com/savinodelbenevolley/videos/123456'));
     }
 
     /**
