@@ -16,6 +16,12 @@
         <link rel="alternate" hreflang="en" href="{{ $enUrl }}">
         <link rel="alternate" hreflang="x-default" href="{{ $itUrl }}">
 
+        {{-- Feed RSS delle notizie: è così che un lettore automatico lo trova
+             senza che gli si dia l'indirizzo. --}}
+        <link rel="alternate" type="application/rss+xml"
+              title="{{ __('site.feed.title') }}"
+              href="{{ \App\Services\NewsFeedBuilder::indirizzo($currentLocale) }}">
+
         <!-- Open Graph -->
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="Savino Del Bene Volley">

@@ -978,3 +978,57 @@ di pagine e il sito ne ha 1958 (941 notizie, più altrettante in inglese), cioè
   `database/data/informative_privacy.php`. I dati societari si prendono dalle
   impostazioni, gruppo `contact`: il testo precedente riportava un indirizzo
   che non era la sede.
+
+---
+
+## 22. Feed RSS delle notizie
+
+La Lega Pallavolo Serie A Femminile riprende i comunicati delle società da un
+feed RSS: è una richiesta arrivata dalla Lega per il nuovo sito, quindi
+l'indirizzo è pubblicato a terzi.
+
+- **L'indirizzo canonico è `/feed`** (`/en/feed` per l'inglese), lo stesso che
+  serviva il vecchio sito WordPress: chi lo aveva già registrato non deve
+  rifarlo. `/news/feed` e `/rss` sono 301 verso di lui. Cambiarlo significa
+  spegnere il feed a chi è abbonato, senza che nessuno se ne accorga: prima si
+  avvisa la Lega.
+- La rotta `/news/feed` sta **prima** di `/news/{slug}`, o "feed" verrebbe letto
+  come lo slug di una notizia.
+- **Il prefisso della lingua si chiede al router** (`Route::has('en.news.index')`),
+  non si deduce confrontando la lingua con `config('app.locale')`:
+  `app()->setLocale()` riscrive proprio quella voce, quindi durante una
+  richiesta a `/en/feed` il confronto è sempre vero e il feed inglese
+  uscirebbe con gli indirizzi italiani. Stessa regola per il
+  `<link rel="alternate">` del layout, che passa da
+  `NewsFeedBuilder::indirizzo()`.
+- **Il `guid` non è il link.** È `urn:savinodelbenevolley:notizia:<id>` con
+  `isPermaLink="false"`, perché è con quello che gli aggregatori riconoscono
+  una notizia già letta: usare l'indirizzo significherebbe ripubblicare la
+  notizia a tutti gli abbonati ogni volta che la redazione corregge uno slug.
+  È anche la forma che il feed di WordPress usa (`?p=<id>`), quindi quella che
+  la Lega riceve oggi. **Cambiare il formato del guid ripubblica l'intero
+  archivio**: non si tocca.
+- **Il contenuto esce dal sito**: gli indirizzi relativi dentro `content`
+  diventano assoluti (un `/storage/...` dentro un lettore RSS punterebbe al
+  dominio dell'aggregatore), le sequenze `]]>` si spezzano perché non chiudano
+  il CDATA a metà comunicato, e i caratteri di controllo dei testi importati da
+  WordPress si tolgono: uno solo rende il feed illeggibile a tutti gli
+  aggregatori insieme.
+- **I campi tradotti si leggono con `testoTradotto()`** (trait
+  `App\Models\Traits\TestoTradotto`, su `Post` e `Category`): le righe
+  importate da WordPress contengono testo semplice invece del JSON per lingua e
+  `getTranslations()` di spatie le restituirebbe come vuote — un titolo che
+  sparisce, non un errore che si nota (§9). Non passa da `getTranslations()`
+  nemmeno per il caso opposto: quello scarta i valori vuoti, e un campo
+  tradotto ma non compilato sembrerebbe una riga storica, pubblicando il JSON
+  così com'è.
+- **La copertina esce due volte**: `enclosure` con l'originale e la sua
+  dimensione esatta, `media:content` con la conversione `detail` da 1200 px
+  quando è stata generata — l'originale caricato in redazione pesa qualche mega
+  e l'aggregatore lo scaricherebbe per intero.
+- Cache di mezz'ora, buttata da `CacheInvalidationObserver` appena la redazione
+  salva una notizia o una categoria: un comunicato ritirato deve sparire subito
+  anche dal feed. Lo stesso mezz'ora sta nel `ttl` del canale e nel
+  `Cache-Control` della risposta.
+
+Test in `tests/Feature/NewsFeedTest.php`.

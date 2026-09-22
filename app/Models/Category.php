@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\LogsActivity;
+use App\Models\Traits\TestoTradotto;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Spatie\Translatable\HasTranslations;
 
 class Category extends Model
 {
-    use HasFactory, HasTranslations, LogsActivity;
+    use HasFactory, HasTranslations, LogsActivity, TestoTradotto;
 
     /**
      * Il nome è tradotto perché finisce nei filtri pubblici delle news: sul sito

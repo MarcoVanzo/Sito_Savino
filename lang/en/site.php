@@ -5,6 +5,14 @@ return [
     'default_og_description' => 'Savino Del Bene Volley - Official website of the women\'s volleyball team from Scandicci. Serie A1, roster, schedule, results and shop.',
 
     /*
+     * Heading of the news RSS feed (NewsFeedBuilder).
+     */
+    'feed' => [
+        'title' => 'Savino Del Bene Volley — News',
+        'description' => 'Official news from Savino Del Bene Volley: press releases, results and club life.',
+    ],
+
+    /*
      * Social previews (ServeSocialCrawlerMeta) for the pages that have no CMS
      * page to take title and description from. See the Italian file: these
      * strings live here so that an English URL gets an English preview.

@@ -178,5 +178,17 @@ return function (string $namePrefix): void {
         ->name('comunicazione.accrediti.submit');
     Route::get('/comunicazione/{slug}', [PageController::class, 'show'])->name('comunicazione.page');
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+    // Il feed RSS delle notizie, che la Lega Pallavolo Serie A Femminile
+    // riprende per la rassegna delle società. L'indirizzo canonico è `/feed`,
+    // lo stesso che serviva il vecchio sito WordPress: chi lo aveva già
+    // registrato non deve rifarlo. Deve stare prima di `/news/{slug}`,
+    // altrimenti "feed" verrebbe letto come lo slug di una notizia.
+    Route::get('/news/feed', function () use ($namePrefix) {
+        return redirect()->route($namePrefix.'news.feed', [], 301);
+    })->name('news.feed.alias');
+    Route::get('/rss', function () use ($namePrefix) {
+        return redirect()->route($namePrefix.'news.feed', [], 301);
+    })->name('news.feed.rss');
+    Route::get('/feed', [NewsController::class, 'feed'])->name('news.feed');
     Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
 };
