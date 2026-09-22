@@ -29,6 +29,15 @@ ingress:
     match:
       path:
         prefix: /
+# Nessuna sezione `domains:`: l'app risponde solo sul suo indirizzo
+# `ondigitalocean.app`. Il dominio vero si aggiunge qui il giorno del
+# passaggio (docs/GO_LIVE.md), non dal pannello DigitalOcean — questa spec e'
+# autorevole e il primo deploy successivo cancellerebbe un dominio aggiunto di
+# la'. Non va nemmeno aggiunto in anticipo: APP_URL vale `https://${APP_DOMAIN}`,
+# quindi appena il dominio compare qui ogni indirizzo generato fuori da una
+# richiesta (link nelle email in coda, sitemap, feed RSS, ritorni dei
+# pagamenti) punterebbe a savinodelbenevolley.it mentre la' risponde ancora
+# WordPress.
 name: sito-savino
 region: fra
 services:

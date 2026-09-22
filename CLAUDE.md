@@ -188,6 +188,30 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
 - **SSR non attivo**: `INERTIA_SSR_ENABLED=false` nello spec, non esiste l'entrypoint
   `resources/js/ssr.js` e lo script `build:ssr` non viene mai invocato dalla pipeline.
   Non esiste nessun bundle `bootstrap/ssr/ssr.mjs`. Vedi `docs/INFRASTRUCTURE.md` §6.
+- **Il passaggio del dominio ha una procedura sua: `docs/GO_LIVE.md`.** Il sito va
+  online su `savinodelbenevolley.it` il **1 ottobre 2026**; oggi risponde solo su
+  `seashell-app-47mmf.ondigitalocean.app`. `php artisan verifica:lancio` dice cosa
+  manca (posta, pagamenti, interruttori del negozio, allineamento delle notizie) e
+  distingue i blocchi dalle cose da guardare.
+- **Nella spec non c'e' nessuna sezione `domains:`, ed e' voluto.** La spec e'
+  autorevole: un dominio aggiunto dal pannello DO verrebbe cancellato al primo
+  deploy. Ma non va nemmeno messo in anticipo, perche' `APP_URL` vale
+  `https://${APP_DOMAIN}`: appena il dominio compare nella spec, ogni indirizzo
+  generato fuori da una richiesta (link nelle email in coda, sitemap, feed RSS,
+  ritorni dei pagamenti) punta al dominio nuovo mentre li' risponde ancora
+  WordPress. Si aggiunge quando si sposta il DNS, non prima.
+- **La posta oggi non esce.** `MAIL_MAILER` non e' nella spec, quindi
+  `config/mail.php` cade su `log`: conferme d'ordine, spedizioni, rimborsi, aste
+  vinte e reimpostazioni della password vengono scritte nel log e non spedite.
+  Finche' il sito sta su un indirizzo che nessuno usa non si nota; dal giorno del
+  passaggio significa che un cliente paga e non riceve niente. Le variabili vanno
+  su **web e worker** — le email partono dalla coda.
+- **Il webhook di PayPal si modifica, non si ricrea.** L'id in
+  `PAYPAL_WEBHOOK_ID` entra nella verifica della firma: creando un webhook nuovo
+  per il dominio nuovo si apre una finestra in cui le notifiche arrivano a un
+  indirizzo e la firma si verifica contro un altro, e gli ordini restano
+  "pending". Cambiando l'URL del webhook esistente l'id resta valido e la spec non
+  si tocca.
 
 ---
 
