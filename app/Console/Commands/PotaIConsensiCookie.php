@@ -26,9 +26,15 @@ class PotaIConsensiCookie extends Command
 
         $cancellati = ConsensoCookie::query()->where('created_at', '<', $limite)->delete();
 
-        $this->info($cancellati === 0
-            ? 'Nessun consenso da togliere.'
-            : $cancellati.' '.($cancellati === 1 ? 'consenso cancellato' : 'consensi cancellati').', più vecchi del '.$limite->format('d/m/Y').'.');
+        if ($cancellati === 0) {
+            $this->info('Nessun consenso da togliere.');
+
+            return self::SUCCESS;
+        }
+
+        $quanti = $cancellati === 1 ? 'consenso cancellato' : 'consensi cancellati';
+
+        $this->info($cancellati.' '.$quanti.', più vecchi del '.$limite->format('d/m/Y').'.');
 
         return self::SUCCESS;
     }

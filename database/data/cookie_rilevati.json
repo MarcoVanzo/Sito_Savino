@@ -1,5 +1,5 @@
 {
-    "generato_il": "2026-09-22T16:38:11.258Z",
+    "generato_il": "2026-09-22T19:12:11.968Z",
     "indirizzo": "https://seashell-app-47mmf.ondigitalocean.app",
     "pagine_visitate": 14,
     "cookie": [
@@ -104,16 +104,16 @@
             "conConsenso": false
         },
         {
-            "host": "region1.google-analytics.com",
-            "categoria": "statistiche",
-            "fornitore": "Google Ireland Ltd.",
-            "conConsenso": true
-        },
-        {
             "host": "sito-savino-assets-2026.fra1.digitaloceanspaces.com",
             "categoria": "necessari",
             "fornitore": "DigitalOcean (Spaces)",
             "conConsenso": false
+        },
+        {
+            "host": "www.google-analytics.com",
+            "categoria": "statistiche",
+            "fornitore": "Google Ireland Ltd.",
+            "conConsenso": true
         },
         {
             "host": "www.googletagmanager.com",
