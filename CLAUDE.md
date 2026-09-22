@@ -978,3 +978,54 @@ di pagine e il sito ne ha 1958 (941 notizie, più altrettante in inglese), cioè
   `database/data/informative_privacy.php`. I dati societari si prendono dalle
   impostazioni, gruppo `contact`: il testo precedente riportava un indirizzo
   che non era la sede.
+
+---
+
+## 22. Gli indirizzi del vecchio sito WordPress
+
+Il dominio `savinodelbenevolley.it` è rimasto su WordPress fino al passaggio
+fissato per il **1 ottobre 2026**. Tutto ciò che Google ha indicizzato, che gli
+aggregatori hanno salvato e che gira sui social usa gli indirizzi di quel sito,
+e arriva qui. Le rotte stanno in `routes/pubbliche/legacy.php`.
+
+- **L'ordine di inclusione in `web.php` è un vincolo, non una preferenza.**
+  `legacy.php` sta fra `sito.php` e `shop.php`: dopo le rotte vere, che devono
+  vincere sugli indirizzi legacy con lo stesso prefisso (`/gallery/data` prima
+  di `/gallery/{any}`, o l'archivio smette di caricare le foto), e prima della
+  rotta generica `/{slug}` che chiude `shop.php` — dopo quella una redirezione
+  a un segmento non verrebbe mai raggiunta. Dentro il file, i feed vanno prima
+  di tag e categorie, che altrimenti se li prendono.
+- **Le notizie non hanno una tabella di redirect: hanno lo slug.** Su WordPress
+  stavano alla radice (`/titolo-della-notizia/`), qui sotto `/news/{slug}`, ma
+  lo slug l'import l'ha conservato. `App\Support\PermalinkVecchioSito`, chiamata
+  da `PageController@show` subito prima del 404, cerca fra le notizie pubblicate
+  e fa 301. Una tabella sarebbe una seconda copia da riallineare a ogni slug che
+  la redazione corregge.
+- **Si guarda solo dalla rotta generica** (`request()->routeIs('*pages.show')`):
+  lo stesso controller serve anche `/societa/{slug}`, `/youth/{slug}` e le altre
+  sezioni, dove il vecchio sito non ha mai messo notizie.
+- **La pagina del CMS vince sulla notizia omonima**, perché la ricerca parte
+  dopo che il CMS non ha risposto: in produzione è il caso di `cartelle-stampa`,
+  pagina della sezione Comunicazione e insieme vecchio comunicato.
+- **Quello che non si riconosce resta 404.** Dei 2988 permalink del sitemap di
+  Yoast solo 938 hanno un post in archivio: gli altri 2048 sono l'archivio
+  2014-2021 che non è mai stato importato. Mandarli tutti su `/news` sarebbe un
+  soft 404 per Google e nasconderebbe il buco. Stessa regola per gli eventi una
+  tantum del vecchio sito (`/health-perfomance-conference`).
+- **`config('app.locale')` non dice qual è la lingua predefinita**: a richiesta
+  in corso `App::setLocale()` l'ha già riscritta con la lingua corrente, quindi
+  il confronto `$locale === config('app.locale')` è sempre vero e il prefisso
+  `en.` dei nomi di rotta sparisce (le notizie inglesi finivano sull'indirizzo
+  italiano). Il confronto va fatto con `app.fallback_locale`, che nessuno tocca.
+  In `web.php` la forma con `app.locale` è corretta perché lì si è ancora in
+  fase di registrazione delle rotte.
+- **`?p={wp_id}` è un indirizzo, non un residuo.** È la forma con cui WordPress
+  indirizza un post senza slug ed è il `guid` che il vecchio feed pubblicava:
+  `PublicController@home` lo risolve prima di costruire la pagina.
+
+I vecchi indirizzi del feed (`/feed/atom/`, `/comments/feed/`,
+`/news-c/{cat}/feed/`, `/tag/{x}/feed/`) portano tutti al feed di oggi
+(`news.feed`), non all'archivio HTML: chi legge un feed non saprebbe che farsene
+di una pagina.
+
+Test in `tests/Feature/PermalinkVecchioSitoTest.php`.

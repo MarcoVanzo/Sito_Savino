@@ -13,6 +13,7 @@ use App\Models\StaffMember;
 use App\Models\Team;
 use App\Services\SponsorDirectory;
 use App\Support\DichiarazioneCookie;
+use App\Support\PermalinkVecchioSito;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
@@ -128,6 +129,26 @@ class PageController extends Controller
             ->first();
 
         if (! $page) {
+            // Prima del 404: su WordPress le notizie stavano alla radice del
+            // dominio, dove oggi risponde la rotta generica. Se quello slug è
+            // una notizia pubblicata, il posto giusto è `/news/{slug}`. Si
+            // guarda qui e non in una rotta a parte perché la generica è
+            // l'unica che può ricevere un indirizzo a un segmento, e si guarda
+            // dopo il CMS perché una pagina e un vecchio comunicato possono
+            // avere lo stesso slug: vince la pagina.
+            //
+            // Solo dalla generica, però: questo metodo serve anche le sezioni
+            // (`/societa/{slug}`, `/youth/{slug}`), e lì un indirizzo sbagliato
+            // è un indirizzo sbagliato — il vecchio sito non ci ha mai messo
+            // le notizie sotto.
+            $permalink = request()->routeIs('*pages.show')
+                ? PermalinkVecchioSito::perLoSlug((string) $slug)
+                : null;
+
+            if ($permalink !== null) {
+                return redirect()->to($permalink, 301);
+            }
+
             abort(404);
         }
 
