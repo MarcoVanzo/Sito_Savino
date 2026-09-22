@@ -16,7 +16,15 @@ use Illuminate\Support\Facades\Cache;
  */
 class DichiarazioneCookie
 {
-    private const CATEGORIE = ['necessari', 'statistiche', 'marketing', 'non classificati'];
+    /**
+     * Dove finisce un cookie o un host che il catalogo non sa nominare. Il nome
+     * è anche la chiave con cui la pagina pubblica cerca il titolo della
+     * categoria (`cookie_declaration.categories.*` in `resources/js/i18n/`):
+     * cambiarlo qui senza cambiarlo lì lascia la sezione senza intestazione.
+     */
+    private const NON_CLASSIFICATI = 'non classificati';
+
+    private const CATEGORIE = ['necessari', 'statistiche', 'marketing', self::NON_CLASSIFICATI];
 
     /**
      * @return array{aggiornata_il: ?string, categorie: list<array<string, mixed>>, in_regola: bool}
@@ -64,7 +72,7 @@ class DichiarazioneCookie
             // catalogo il giorno della scansione: correggere una descrizione
             // deve bastare a correggere la pagina.
             $noto = self::cookieNoto($catalogo, $cookie['nome'] ?? '');
-            $categoria = $noto['categoria'] ?? ($cookie['categoria'] ?? 'non classificati');
+            $categoria = $noto['categoria'] ?? ($cookie['categoria'] ?? self::NON_CLASSIFICATI);
 
             $perCategoria[$categoria]['cookie'][] = [
                 'nome' => $cookie['nome'] ?? '',
@@ -77,7 +85,7 @@ class DichiarazioneCookie
 
         foreach ($rilevato['host'] ?? [] as $host) {
             $noto = self::hostNoto($catalogo, $host['host'] ?? '');
-            $categoria = $noto['categoria'] ?? ($host['categoria'] ?? 'non classificati');
+            $categoria = $noto['categoria'] ?? ($host['categoria'] ?? self::NON_CLASSIFICATI);
 
             $perCategoria[$categoria]['host'][] = [
                 'host' => $host['host'] ?? '',

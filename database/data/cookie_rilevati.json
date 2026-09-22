@@ -1,5 +1,5 @@
 {
-    "generato_il": "2026-09-22T14:38:56.144Z",
+    "generato_il": "2026-09-22T19:12:11.968Z",
     "indirizzo": "https://seashell-app-47mmf.ondigitalocean.app",
     "pagine_visitate": 14,
     "cookie": [
@@ -17,7 +17,7 @@
                 "en": "Links visits to the site with ads on Facebook and Instagram."
             },
             "scadenza": "2026-12-21",
-            "conConsenso": false
+            "conConsenso": true
         },
         {
             "nome": "_ga",
@@ -64,7 +64,7 @@
                 "it": "Tiene la sessione di navigazione: carrello, area riservata e messaggi del sito.",
                 "en": "Keeps the browsing session: cart, account area and site messages."
             },
-            "scadenza": "2026-09-22",
+            "scadenza": "2026-09-23",
             "conConsenso": false
         },
         {
@@ -80,7 +80,7 @@
                 "it": "Protegge i moduli del sito dall'invio di richieste da parte di altri siti.",
                 "en": "Protects the site's forms against requests forged by other sites."
             },
-            "scadenza": "2026-09-22",
+            "scadenza": "2026-09-23",
             "conConsenso": false
         }
     ],
@@ -89,7 +89,7 @@
             "host": "connect.facebook.net",
             "categoria": "marketing",
             "fornitore": "Meta Platforms Ireland Ltd.",
-            "conConsenso": false
+            "conConsenso": true
         },
         {
             "host": "fonts.googleapis.com",
@@ -104,16 +104,16 @@
             "conConsenso": false
         },
         {
-            "host": "region1.google-analytics.com",
-            "categoria": "statistiche",
-            "fornitore": "Google Ireland Ltd.",
-            "conConsenso": true
-        },
-        {
             "host": "sito-savino-assets-2026.fra1.digitaloceanspaces.com",
             "categoria": "necessari",
             "fornitore": "DigitalOcean (Spaces)",
             "conConsenso": false
+        },
+        {
+            "host": "www.google-analytics.com",
+            "categoria": "statistiche",
+            "fornitore": "Google Ireland Ltd.",
+            "conConsenso": true
         },
         {
             "host": "www.googletagmanager.com",
@@ -122,6 +122,6 @@
             "conConsenso": true
         }
     ],
-    "senza_consenso_in_regola": false,
+    "senza_consenso_in_regola": true,
     "non_classificati": []
 }
