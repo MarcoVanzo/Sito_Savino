@@ -15,12 +15,7 @@
       }
     },
     {
-      "nome": "laravel-session",
-      "alias": [
-        "laravel_session",
-        "savino-session",
-        "savino_session"
-      ],
+      "schema": "^[a-z0-9]+([_-][a-z0-9]+)*[_-]session$",
       "categoria": "necessari",
       "fornitore": "Savino Del Bene Volley",
       "durata": {
@@ -30,7 +25,8 @@
       "scopo": {
         "it": "Tiene la sessione di navigazione: carrello, area riservata e messaggi del sito.",
         "en": "Keeps the browsing session: cart, account area and site messages."
-      }
+      },
+      "_nota": "Il nome nasce da APP_NAME con Str::slug (config/session.php), quindi cambia fra gli ambienti."
     },
     {
       "schema": "^remember_web_",

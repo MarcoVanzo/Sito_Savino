@@ -88,6 +88,17 @@ function ospite(indirizzo) {
 
 const nostroHost = ospite(base);
 
+/**
+ * In locale il sito si apre su `localhost` mentre le richieste partono verso
+ * `127.0.0.1`: senza questo, lo scanner conterebbe il sito stesso fra le terze
+ * parti e la verifica diventerebbe rossa per niente.
+ */
+const NOSTRI_HOST = new Set(
+    ['localhost', '127.0.0.1', '[::1]'].includes(nostroHost)
+        ? ['localhost', '127.0.0.1', '[::1]']
+        : [nostroHost],
+);
+
 function classificaCookie(nome) {
     for (const voce of CATALOGO.cookie) {
         if (voce.nome === nome || (voce.alias ?? []).includes(nome)) {
@@ -136,7 +147,7 @@ async function passata(browser, pagine, conConsenso) {
     contesto.on('request', (richiesta) => {
         const host = ospite(richiesta.url());
 
-        if (host && host !== nostroHost) {
+        if (host && ! NOSTRI_HOST.has(host)) {
             hostContattati.add(host);
         }
     });
