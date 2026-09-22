@@ -4,7 +4,6 @@ namespace App\Services\VecchioSito;
 
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
 
 /**
  * Legge i comunicati dalle API REST di WordPress del vecchio sito.
@@ -172,7 +171,7 @@ class LettoreDelleNotizie
         }
 
         if (! $risposta->successful()) {
-            throw new RuntimeException(
+            throw new VecchioSitoNonRisponde(
                 "Il vecchio sito ha risposto HTTP {$risposta->status()} su /{$risorsa}."
             );
         }
@@ -180,7 +179,7 @@ class LettoreDelleNotizie
         $righe = $risposta->json();
 
         if (! is_array($righe)) {
-            throw new RuntimeException("Risposta illeggibile del vecchio sito su /{$risorsa}.");
+            throw new VecchioSitoNonRisponde("Risposta illeggibile del vecchio sito su /{$risorsa}.");
         }
 
         return array_values(array_filter($righe, 'is_array'));

@@ -49,10 +49,14 @@ jobs:
       # Playwright non sta fra le dipendenze del progetto: serve solo qui, e
       # metterlo nel package.json farebbe scaricare un browser a ogni
       # `npm ci` di chiunque.
+      # `--ignore-scripts`: si scarica un pacchetto fuori dal lockfile del
+      # progetto, e i suoi script di installazione girerebbero con il token del
+      # workflow. Il browser lo scarica il comando dopo, che e' quello che
+      # serve davvero.
       - name: Installa Playwright
         run: |
-          npm install --no-save playwright@1.56.0
-          npx playwright install --with-deps chromium
+          npm install --no-save --ignore-scripts playwright@1.56.0
+          ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Scansiona il sito
         id: scansione
