@@ -47,6 +47,7 @@ class VerificaIlLancio extends Command
         $this->line('');
 
         $this->ambiente();
+        $this->chiaveApplicativa();
         $this->indirizzoPubblico();
         $this->accessoRiservato();
         $this->posta();
@@ -71,6 +72,27 @@ class VerificaIlLancio extends Command
             'Ambiente',
             "app.env = {$ambiente}, app.debug = ".($debug ? 'true' : 'false'),
             'APP_DEBUG deve essere false in produzione.',
+        );
+    }
+
+    /**
+     * La chiave con cui si cifra e si firma.
+     *
+     * Va controllata su OGNI componente, perche' web, worker e scheduler sono
+     * tre ambienti distinti e una variabile scritta in uno non arriva agli
+     * altri. Senza chiave non si rompe niente a vista: `encrypt()` e le firme
+     * degli URL smettono semplicemente di combaciare con quelle del web, e
+     * l'output dello scheduler finisce in `/dev/null`.
+     */
+    private function chiaveApplicativa(): void
+    {
+        $chiave = (string) config('app.key');
+
+        $this->registra(
+            $chiave === '' ? self::BLOCCO : self::OK,
+            'Chiave applicativa',
+            $chiave === '' ? 'APP_KEY assente' : 'presente ('.strlen($chiave).' caratteri)',
+            'Senza APP_KEY i valori con cast `encrypted` non si leggono e i link firmati (la disiscrizione dalla newsletter) non si verificano. Da rilanciare sulla console di web, worker e scheduler: le variabili non sono condivise.',
         );
     }
 
