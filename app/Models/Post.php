@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PostStatus;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
+use App\Models\Traits\TestoTradotto;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +17,7 @@ use Spatie\Translatable\HasTranslations;
 
 class Post extends Model implements HasMedia
 {
-    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity;
+    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity, TestoTradotto;
 
     protected $fillable = [
         'wp_id',
@@ -38,16 +39,25 @@ class Post extends Model implements HasMedia
         'status' => PostStatus::class,
     ];
 
+    /**
+     * @return BelongsToMany<Category, $this>
+     */
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
     }
 
+    /**
+     * @return BelongsToMany<Tag, $this>
+     */
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');

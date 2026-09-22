@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Post;
+use App\Services\NewsFeedBuilder;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -94,6 +96,20 @@ class NewsController extends Controller
     private function onlyPublished(Builder $query): Builder
     {
         return $query->published();
+    }
+
+    /**
+     * Feed RSS delle notizie, nella lingua della richiesta.
+     *
+     * Serve alla Lega Pallavolo Serie A Femminile, che lo legge con un
+     * aggregatore: non è una pagina del sito e non passa da Inertia.
+     */
+    public function feed(NewsFeedBuilder $builder): HttpResponse
+    {
+        return response($builder->render(app()->getLocale()), 200, [
+            'Content-Type' => 'application/rss+xml; charset=utf-8',
+            'Cache-Control' => 'public, max-age=1800',
+        ]);
     }
 
     /**

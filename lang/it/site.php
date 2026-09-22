@@ -5,6 +5,16 @@ return [
     'default_og_description' => 'Savino Del Bene Volley - Sito ufficiale della squadra di pallavolo femminile di Scandicci. Serie A1, roster, calendario, risultati e shop.',
 
     /*
+     * Intestazione del feed RSS delle notizie (NewsFeedBuilder): la legge
+     * chi si abbona, a partire dalla Lega, quindi è in lingua come tutto
+     * il resto.
+     */
+    'feed' => [
+        'title' => 'Savino Del Bene Volley — News',
+        'description' => 'Le notizie ufficiali della Savino Del Bene Volley: comunicati, risultati e vita del club.',
+    ],
+
+    /*
      * Anteprime social (ServeSocialCrawlerMeta) delle pagine che non hanno una
      * pagina del CMS da cui prendere titolo e descrizione. Stanno qui e non
      * nel middleware perché l'anteprima di una pagina inglese deve essere in

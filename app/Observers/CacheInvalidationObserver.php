@@ -25,6 +25,7 @@ use App\Models\StaffMember;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Services\GalleryArchive;
+use App\Services\NewsFeedBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -182,12 +183,14 @@ class CacheInvalidationObserver
             }
 
             $this->forgetNewsListings($locales);
+            $this->dimenticaIlFeedDelleNotizie($locales);
         }
 
         // Categoria: cambia l'elenco dei filtri e, se ne cambia lo slug, anche
         // le chiavi delle liste filtrate.
         if ($model instanceof Category) {
             $this->forgetNewsListings($locales);
+            $this->dimenticaIlFeedDelleNotizie($locales);
         }
 
         // Page: invalida la cache per slug
@@ -201,6 +204,20 @@ class CacheInvalidationObserver
             // subito. Senza questo restava fino alla scadenza della cache e
             // continuava a portare a "pagina non trovata".
             MenuItem::clearCache();
+        }
+    }
+
+    /**
+     * Il feed RSS lo rileggono gli aggregatori, a partire da quello della
+     * Lega: una notizia corretta o ritirata deve sparirne subito, non entro
+     * la mezz'ora di cache.
+     *
+     * @param  array<int, string>  $locales
+     */
+    private function dimenticaIlFeedDelleNotizie(array $locales): void
+    {
+        foreach ($locales as $locale) {
+            Cache::forget(NewsFeedBuilder::chiaveDiCache($locale));
         }
     }
 
