@@ -8,7 +8,7 @@ Non è un deploy: il codice è già in produzione e il sito gira da mesi su
 dominio, e con lui alcune cose che oggi non si notano perché quell'indirizzo
 non lo guarda nessuno.
 
-Il controllo di partenza è uno solo, dalla console dell'app:
+Il controllo di partenza, dalla console dell'app:
 
 ```
 php artisan verifica:lancio
@@ -17,6 +17,11 @@ php artisan verifica:lancio
 Elenca quello che manca e distingue i blocchi dalle cose da guardare. Quello
 che non può sapere lo dice: il webhook di PayPal va chiesto a PayPal con
 `php artisan paypal:verifica`.
+
+> Va lanciato sulla console di **tutti e tre i componenti** — `web`, `worker`,
+> `scheduler` — non solo del primo: sono tre ambienti distinti e una variabile
+> scritta in uno non arriva agli altri. È così che `APP_KEY` è rimasta vuota
+> per mesi su due di essi (§2).
 
 ---
 
@@ -70,7 +75,37 @@ Prova dopo l'attivazione, dalla console:
 php artisan tinker --execute="Mail::raw('prova', fn(\$m) => \$m->to('marco@mv-consulting.it')->subject('Prova invio'));"
 ```
 
-### 2. Il webhook di PayPal — si modifica, non si ricrea
+### 2. La chiave applicativa su worker e scheduler — l'altro blocco
+
+Verificato il 23/09/2026 dalla console dei tre componenti: `APP_KEY` è di 51
+caratteri sul servizio `web` e **vuota** su `worker` e `scheduler` (il valore
+cifrato nello spec si decifrava in stringa vuota, ed era lo stesso blob su
+entrambi).
+
+Non si vede, e infatti non l'ha visto nessuno: `schedule:work` manda l'output
+dei comandi in `/dev/null` e Sentry è spento. Ma `social:sync-meta` fallisce
+ogni notte da sempre — `social_accounts.access_token` ha il cast `encrypted` —
+e le poche righe in `social_insights_daily` sono state scritte aprendo la
+pagina del pannello, mai alle 03:30. Dal giorno in cui la posta parte davvero
+si aggiunge il danno peggiore: il link di disiscrizione dalla newsletter nasce
+nella mail in coda, cioè sul worker, e una firma fatta con una chiave diversa
+da quella del web **non si verifica** — ogni disiscrizione risponde 403.
+
+La correzione è nello spec (`.do/app.yaml`): lo stesso blob cifrato del
+servizio `web` su tutti e tre i componenti. I valori cifrati sono legati
+all'app, non al componente, quindi si copiano.
+
+Dopo il deploy, dalla console di **ciascun** componente:
+
+```
+doctl apps console <app-id> web        # poi worker, poi scheduler
+php -r 'echo strlen(getenv("APP_KEY")), "\n";'
+```
+
+Deve dire 51 su tutti e tre. Lo stesso controllo lo fa `verifica:lancio`, che
+però va lanciato su ogni componente: le variabili non sono condivise.
+
+### 3. Il webhook di PayPal — si modifica, non si ricrea
 
 `PAYPAL_WEBHOOK_ID` (`13C19054TT859171H`) identifica il webhook registrato su
 developer.paypal.com, ed è puntato su
@@ -99,7 +134,7 @@ Deve dire che le credenziali sono buone, che il webhook esiste, che punta a
 questo sito e che ascolta `CHECKOUT.ORDER.APPROVED` e
 `PAYMENT.CAPTURE.REFUNDED`.
 
-### 3. Le notizie del vecchio sito
+### 4. Le notizie del vecchio sito
 
 Fino al passaggio la redazione pubblica ancora là. Lo scheduler le riprende
 ogni ora e si spegne da solo il 2 ottobre, ma **l'ultimo giro va fatto a mano
@@ -114,7 +149,24 @@ php artisan news:importa-dal-vecchio-sito
 Se il passaggio slitta, spostare `VECCHIO_SITO_FINO_A` invece di toccare il
 codice.
 
-### 4. Da decidere, non bloccanti
+### 5. La scansione dei cookie guarda ancora l'indirizzo di anteprima
+
+Il workflow `scansione-cookie.yml` visita `vars.URL_SITO`, e quella variabile
+di repository **non esiste**: ripiega sull'indirizzo `ondigitalocean.app`. I
+domini che finiscono nella dichiarazione pubblica dei cookie sono quelli del
+sito scansionato — oggi `.seashell-app-47mmf.ondigitalocean.app`, che dopo il
+passaggio si leggerebbe in fondo alla Cookie Policy del sito vero.
+
+Si crea la variabile (non è un segreto):
+
+```
+gh variable set URL_SITO --body "https://savinodelbenevolley.it"
+```
+
+e si rilancia la scansione a mano (`workflow_dispatch`) invece di aspettare il
+lunedì.
+
+### 6. Da decidere, non bloccanti
 
 - **Stripe**: senza chiavi la carta di credito non viene offerta. È gestito,
   non rotto (`PaymentGateway::configurato()`), ma al lancio resta il solo
@@ -131,7 +183,7 @@ L'ordine conta. Il dominio va aggiunto **all'app prima** che il DNS lo mandi
 lì: al contrario, per il tempo che passa fra le due cose App Platform non
 riconosce l'host e risponde 404 a tutti.
 
-1. **Ultimo import delle notizie** (§3).
+1. **Ultimo import delle notizie** (§4).
 
 2. **Aggiungere il dominio alla spec.** Oggi `.do/app.yaml` **non ha nessuna
    sezione `domains:`**, e la spec è autorevole: un dominio aggiunto solo dal
@@ -183,3 +235,16 @@ riconosce l'host e risponde 404 a tutti.
   solo, il comando si può togliere.
 - Il vecchio sito, una volta staccato, non è più interrogabile: tutto quello
   che serviva recuperare da lì va recuperato prima.
+
+## Cose che si sistemano da sole (non toccare)
+
+- **L'indicizzazione si riapre da sé.** Finché si risponde sull'indirizzo di
+  anteprima ogni pagina esce con `X-Robots-Tag: noindex, nofollow`, perché il
+  dominio ufficiale serve ancora WordPress e i due sarebbero contenuto
+  duplicato. Non è un interruttore da ricordarsi di spegnere: la regola è
+  `config('app.indexable_hosts')`, che elenca i domini definitivi, e appena il
+  sito risponde lì l'header smette di comparire.
+- **`canonical` e la sitemap seguono `APP_URL`**, che vale `https://${APP_DOMAIN}`:
+  cambiano con il dominio, senza interventi. L'unico indirizzo scritto a mano è
+  la direttiva `Sitemap:` di `public/robots.txt`, ed è sull'apex senza `www`,
+  come il canonico.

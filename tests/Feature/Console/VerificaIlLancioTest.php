@@ -51,6 +51,24 @@ class VerificaIlLancioTest extends TestCase
     }
 
     /**
+     * Il 23/09/2026 worker e scheduler giravano con `APP_KEY` vuota: nessun
+     * errore da nessuna parte, ma la sincronizzazione notturna di Meta
+     * falliva da sempre (`social_accounts.access_token` ha il cast
+     * `encrypted`) e i link firmati nati in coda non sarebbero stati
+     * verificabili dal web.
+     */
+    #[Test]
+    public function blocca_se_manca_la_chiave_applicativa(): void
+    {
+        $this->tuttoAPosto();
+        config(['app.key' => '']);
+
+        $this->artisan('verifica:lancio')
+            ->expectsOutputToContain('APP_KEY assente')
+            ->assertFailed();
+    }
+
+    /**
      * La voce che pesa di piu': senza posta un cliente paga e non riceve
      * niente — ne' la conferma d'ordine, ne' la spedizione, ne' il rimborso.
      */
