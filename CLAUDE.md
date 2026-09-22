@@ -481,7 +481,53 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   dove vivono le chiavi di Spaces e il database. I ritagli di `srcset` non si
   copiano: `useSanitize` non ammette quell'attributo, quindi il browser non li
   ha mai usati, e il comando li toglie invece di portarsi dietro un centinaio
-  di indirizzi morti.
+  di indirizzi morti. Le regole di cosa si copia e dove stanno in
+  `App\Services\VecchioSito\MediaDelVecchioSito`, che usa anche l'import dei
+  comunicati: sono scritte una volta sola.
+- **L'archivio delle notizie si riallinea da `wp-json`, non da un export.** Le
+  941 notizie storiche erano entrate da un export statico di WordPress salvato
+  sul portatile (`~/wp_export_savino/data`), fermo al 2 luglio 2026 e oggi non
+  piu' sul disco; il comando che lo leggeva e' stato tolto dando la migrazione
+  per conclusa. Intanto la redazione ha continuato a pubblicare sul vecchio
+  sito e il sito nuovo si e' fermato al 26 giugno: tre mesi di comunicati
+  mancanti, che dal giorno del feed RSS (§22) sono anche quelli che la Lega non
+  riceve. `php artisan news:importa-dal-vecchio-sito` legge invece le API REST
+  pubbliche del vecchio sito, quindi e' ripetibile: senza `--da` riparte dalla
+  notizia piu' recente in archivio, `--prova` mostra cosa farebbe. Va lanciato
+  **dalla console dell'app**, dove vivono database e chiavi di Spaces.
+- **Lo scheduler dell'import ha una scadenza, ed e' voluta.** Gira ogni ora
+  (`routes/console.php`) perche' fino al passaggio del dominio la redazione
+  pubblica sul vecchio sito e la finestra e' di giorni, non di mesi: un
+  comunicato uscito in mattinata e lo switch nel pomeriggio starebbero nello
+  stesso giorno. Si spegne da solo il 2 ottobre 2026
+  (`services.vecchio_sito.leggibile_fino_a`, spostabile se il passaggio slitta):
+  dopo, `savinodelbenevolley.it` e' questo sito, `wp-json` risponde 404 e il
+  comando fallirebbe a ogni giro. La scadenza e' coperta da
+  `tests/Feature/Console/ImportNotizieSchedulatoTest.php`, non solo da un
+  commento. Il comando resta lanciabile a mano: l'ultimo giro va fatto subito
+  prima di spostare il DNS.
+- **La chiave naturale di una notizia e' `wp_id`**, l'identificativo del post su
+  WordPress: ce l'hanno tutte le righe dell'archivio, ed e' cio' che rende
+  l'import ripetibile. Lo slug e' la seconda strada, per il comunicato che la
+  redazione ha gia' scritto a mano: quella riga si riscrive e adotta il `wp_id`,
+  invece di prendersi accanto un gemello con lo slug numerato.
+- **Le categorie si risolvono per `wp_id`, poi slug, poi nome esatto** — come le
+  squadre della Lega (§12) e per lo stesso motivo. Le due strade in fondo non
+  sono teoriche: "News Sponsor" da noi si chiama `sponsor` (stesso `wp_id`,
+  slug diverso) e "Serie A1 2026/2027" la redazione l'aveva creata a mano come
+  `serie-a1-20262027`, senza `wp_id` e prima in ordine di menu. Cercando il solo
+  `wp_id` sarebbe nata una seconda categoria con lo stesso nome e nove
+  comunicati su quindici sarebbero finiti li' dentro. Trovata per slug o per
+  nome, la categoria adotta il `wp_id`: dal giro dopo basta il primo confronto.
+- **Le date dei comunicati sono l'ora locale del vecchio sito** (`date` di
+  WordPress, non `date_gmt`): e' quella che l'import di allora ha scritto in
+  `posts.published_at`, ed e' quella con cui le API confrontano il filtro
+  `after`. Il connettore MCP le mostra spostate di due ore — leggerle con
+  `CAST(published_at AS CHAR)` prima di concludere che qualcosa si e' spostato.
+- **Uno slug come `41541-2` non e' uno slug**: WordPress lo genera da solo
+  quando si pubblica senza titolo, ed e' l'id del post. Finirebbe
+  nell'indirizzo della notizia e nel `guid` del feed, che non si puo' piu'
+  cambiare (§22): l'import lo sostituisce con quello ricavato dal titolo.
 
 - **Niente contenuti nel codice dei componenti.** Progetti sociali, valori del
   vivaio, attività e turni del camp, servizi del palazzetto, documenti di
