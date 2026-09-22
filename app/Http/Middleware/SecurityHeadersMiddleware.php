@@ -13,6 +13,14 @@ class SecurityHeadersMiddleware
     private const SELF = "'self'";
 
     /**
+     * L'host del Pixel di Meta, che compare in tre direttive diverse: manda lì
+     * gli eventi (`connect-src`), per spedirli apre un iframe verso il proprio
+     * endpoint (`frame-src`) e in parte li invia come form (`form-action`).
+     * Non è una piattaforma incorporabile e non va aggiunto a `LiveStream`.
+     */
+    private const PIXEL_DI_META = 'https://www.facebook.com';
+
+    /**
      * I percorsi serviti dal pannello, dove la policy resta larga. Stesso
      * elenco di `bootstrap/app.php`: il pannello è Filament, cioè Livewire e
      * Alpine, e Alpine valuta le espressioni dei template con `new Function`.
@@ -128,7 +136,7 @@ class SecurityHeadersMiddleware
                 'https://*.analytics.google.com',
                 'https://www.googletagmanager.com',
                 'https://connect.facebook.net',
-                'https://www.facebook.com',
+                self::PIXEL_DI_META,
             ]),
             // Gli unici host che possono finire dentro un iframe: Google Maps
             // per la pagina Palazzetto e le quattro piattaforme di diretta che
@@ -150,7 +158,7 @@ class SecurityHeadersMiddleware
                 'https://player.vimeo.com',
                 'https://player.twitch.tv',
                 'https://www.dailymotion.com', 'https://geo.dailymotion.com',
-                'https://www.facebook.com',
+                self::PIXEL_DI_META,
             ]),
             "media-src 'self' https:",
             "frame-ancestors 'none'",
@@ -159,7 +167,7 @@ class SecurityHeadersMiddleware
             // `facebook.com/tr/`, e `'self'` da solo li rifiutava: il tag si
             // caricava, la misurazione no. Resta l'unico host esterno a cui
             // una pagina di questo sito può inviare un modulo.
-            'form-action '.implode(' ', [self::SELF, 'https://www.facebook.com']),
+            'form-action '.implode(' ', [self::SELF, self::PIXEL_DI_META]),
         ]);
     }
 

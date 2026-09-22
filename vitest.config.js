@@ -24,10 +24,12 @@ export default defineConfig({
             // `sonar.sources` include `resources`.
             reporter: ['text-summary', 'lcov'],
             reportsDirectory: 'coverage-js',
-            include: ['resources/js/**/*.js'],
-            // I componenti .vue restano fuori: non hanno test propri e
-            // includerli darebbe una percentuale che parla di codice che
-            // nessuno ha scelto di coprire, invece che dei composable.
+            // I .vue sono qui dentro dal 22/09/2026, da quando il banner dei
+            // cookie ha dei test propri. Tenerli fuori non li faceva contare
+            // come coperti: li lasciava senza dati, e Sonar — che analizza
+            // tutto `resources` — li conta comunque a zero. Fuori dal report
+            // un componente coperto non si distingue da uno che non lo è.
+            include: ['resources/js/**/*.js', 'resources/js/**/*.vue'],
             exclude: ['resources/js/**/*.test.js', 'resources/js/bootstrap.js'],
         },
     },

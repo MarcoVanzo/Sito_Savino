@@ -38,9 +38,11 @@ const dataLeggibile = computed(() => {
 
     const quando = new Date(registratoIl.value);
 
-    return Number.isNaN(quando.getTime())
-        ? null
-        : quando.toLocaleString(page.props.locale === 'en' ? 'en-GB' : 'it-IT');
+    if (Number.isNaN(quando.getTime())) {
+        return null;
+    }
+
+    return quando.toLocaleString(page.props.locale === 'en' ? 'en-GB' : 'it-IT');
 });
 
 const apriIlBanner = () => {
