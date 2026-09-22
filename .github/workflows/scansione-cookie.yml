@@ -49,10 +49,18 @@ jobs:
       # Playwright non sta fra le dipendenze del progetto: serve solo qui, e
       # metterlo nel package.json farebbe scaricare un browser a ogni
       # `npm ci` di chiunque.
-      # `--ignore-scripts`: si scarica un pacchetto fuori dal lockfile del
-      # progetto, e i suoi script di installazione girerebbero con il token del
-      # workflow. Il browser lo scarica il comando dopo, che e' quello che
-      # serve davvero.
+      #
+      # La versione è fissata e gli script di installazione non girano: questo
+      # lavoro ha il permesso di scrivere sul repository, quindi un postinstall
+      # di un pacchetto qualunque della catena scriverebbe su main con il token
+      # del lavoro. Si chiama il binario appena installato invece di `npx`,
+      # che a pacchetto mancante lo scaricherebbe al volo dal registro, senza
+      # versione.
+      #
+      # A scaricare i browser era il postinstall di Playwright, e con gli
+      # script spenti tocca chiederli qui. `install chromium` porta con sé
+      # anche il "headless shell" — il binario che `chromium.launch()` avvia
+      # davvero dalla 1.49 — e lascia fuori Firefox e WebKit, che non servono.
       - name: Installa Playwright
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.0
