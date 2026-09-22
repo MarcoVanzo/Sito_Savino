@@ -130,6 +130,39 @@ return [
         ),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Vecchio sito (WordPress)
+    |--------------------------------------------------------------------------
+    |
+    | savinodelbenevolley.it risponde ancora con il sito precedente, e la
+    | redazione ci ha pubblicato fino alla migrazione del dominio. Le sue API
+    | REST sono pubbliche e senza chiave: da li' si rileggono i comunicati che
+    | l'archivio non ha (`news:importa-dal-vecchio-sito`).
+    |
+    | Il giorno in cui il dominio punta al sito nuovo questa sorgente si spegne,
+    | e con essa l'ultima copia di quei testi: l'import va fatto prima.
+    |
+    */
+
+    'vecchio_sito' => [
+        'base_url' => env('VECCHIO_SITO_URL', 'https://www.savinodelbenevolley.it'),
+        'timeout' => (int) env('VECCHIO_SITO_TIMEOUT', 30),
+        // WordPress confronta il filtro delle date con l'ora locale del sito,
+        // non con GMT.
+        'fuso_orario' => env('VECCHIO_SITO_FUSO', 'Europe/Rome'),
+        // Il sito nuovo va online il 1 ottobre 2026: da quel giorno il dominio
+        // punta qui e `wp-json` non risponde piu'. Lo scheduler dell'import si
+        // spegne da solo a questa data (il 1 ottobre gira ancora, per i
+        // comunicati usciti nelle ore prima dello switch); il comando resta
+        // lanciabile a mano. Spostare la data se il passaggio slitta.
+        'leggibile_fino_a' => env('VECCHIO_SITO_FINO_A', '2026-10-02'),
+        'user_agent' => env(
+            'VECCHIO_SITO_USER_AGENT',
+            'SavinoDelBeneVolleyBot/1.0 (+https://www.savinodelbenevolley.it; import delle notizie)'
+        ),
+    ],
+
     'lvf' => [
         'base_url' => env('LVF_BASE_URL', 'https://www.legavolleyfemminile.it'),
         // I tabellini vivono su un host separato: è la pagina che il Match

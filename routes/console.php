@@ -28,6 +28,22 @@ Schedule::command('scheduler:beat')->everyMinute();
 // dura (soglia in `services.lvf.failure_alert_threshold`).
 Schedule::command('lvf:sync')->hourly()->withoutOverlapping();
 
+// I comunicati che la redazione continua a pubblicare sul vecchio sito, finche'
+// il dominio e' suo. Ogni ora e non una volta al giorno perche' la finestra e'
+// di pochi giorni: un comunicato uscito in mattinata e il passaggio del dominio
+// nel pomeriggio starebbero nello stesso giorno, e quel comunicato si
+// perderebbe per sempre — staccato il vecchio sito, non e' piu' interrogabile.
+// Quando non c'e' niente di nuovo il giro e' una sola richiesta.
+//
+// Si spegne da solo il giorno dopo il passaggio
+// (`services.vecchio_sito.leggibile_fino_a`): da li' `savinodelbenevolley.it` e'
+// questo sito, `wp-json` risponde 404 e il comando fallirebbe a ogni giro. Il
+// comando resta lanciabile a mano, per l'ultimo giro prima dello switch.
+Schedule::command('news:importa-dal-vecchio-sito')
+    ->hourly()
+    ->withoutOverlapping()
+    ->skip(fn (): bool => now()->greaterThanOrEqualTo((string) config('services.vecchio_sito.leggibile_fino_a')));
+
 // Da qui in giù tutto ha withoutOverlapping(). Non è una precauzione contro la
 // lentezza dei singoli comandi — la sitemap e le potature girano una volta al
 // giorno — ma contro l'esecuzione doppia: il lock è condiviso via cache, quindi
