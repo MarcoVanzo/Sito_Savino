@@ -1,0 +1,89 @@
+# La scansione settimanale dei cookie del sito.
+#
+# Fa con un browser vero quello che i gestori del consenso a pagamento vendono
+# come "scansione automatica": visita un campione di pagine senza consenso e
+# con tutto accettato, aggiorna `database/data/cookie_rilevati.json` — da cui
+# la dichiarazione pubblica si riscrive da sola — e **fallisce** se prima del
+# consenso è partito qualcosa che non sia strettamente necessario.
+#
+# Gira di lunedì presto, quando un eventuale commit e il deploy che ne segue
+# non danno fastidio a nessuno.
+name: Scansione cookie
+
+on:
+  schedule:
+    - cron: '30 4 * * 1' # lunedì 04:30 UTC, dopo il backup notturno
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Indirizzo da scansionare (vuoto: quello configurato)"
+        required: false
+      pagine:
+        description: 'Quante pagine visitare'
+        required: false
+        default: '14'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scansione-cookie
+  cancel-in-progress: false
+
+jobs:
+  scansione:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Il commit del risultato torna su main: senza il token di scrittura
+          # il push verrebbe rifiutato.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      # Playwright non sta fra le dipendenze del progetto: serve solo qui, e
+      # metterlo nel package.json farebbe scaricare un browser a ogni
+      # `npm ci` di chiunque.
+      - name: Installa Playwright
+        run: |
+          npm install --no-save playwright@1.56.0
+          npx playwright install --with-deps chromium
+
+      - name: Scansiona il sito
+        id: scansione
+        continue-on-error: true
+        run: |
+          node scripts/scansione-cookie.mjs \
+            --url="${{ github.event.inputs.url || vars.URL_SITO || 'https://seashell-app-47mmf.ondigitalocean.app' }}" \
+            --pagine="${{ github.event.inputs.pagine || '14' }}" \
+            --scrivi
+
+      - name: Pubblica il risultato
+        run: |
+          if git diff --quiet -- database/data/cookie_rilevati.json; then
+            echo "Niente di nuovo: il file resta com'è."
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add database/data/cookie_rilevati.json
+          git commit -m "chore: la scansione settimanale dei cookie
+
+          Aggiornato da .github/workflows/scansione-cookie.yml: e' la
+          fotografia di cosa il sito carica prima e dopo il consenso, ed e'
+          quella che la dichiarazione pubblica dei cookie mostra al visitatore."
+          git push
+
+      # Il commit arriva comunque, perché la fotografia è vera anche quando è
+      # brutta: il lavoro rosso serve a farsene accorgere.
+      - name: Segnala se prima del consenso parte qualcosa
+        if: steps.scansione.outcome == 'failure'
+        run: |
+          echo "::error::Prima del consenso il sito fa partire cookie o richieste non necessarie. Il dettaglio è nei log del passo 'Scansiona il sito'."
+          exit 1

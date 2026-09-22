@@ -138,6 +138,11 @@ class SecurityHeadersMiddleware
             // browser senza che si capisca perché.
             // Dailymotion serve il player da `geo.` dopo una redirezione, e la
             // redirezione viene verificata come la richiesta iniziale.
+            // `www.facebook.com` non è una piattaforma incorporabile e non va
+            // aggiunto a LiveStream: è il pixel, che per spedire gli eventi
+            // apre un iframe verso il proprio endpoint. Bloccarlo lasciava
+            // metà delle conversioni per strada senza dirlo a nessuno —
+            // l'errore si leggeva solo nella console del visitatore.
             'frame-src '.implode(' ', [
                 self::SELF,
                 'https://www.google.com', 'https://maps.google.com',
@@ -145,11 +150,16 @@ class SecurityHeadersMiddleware
                 'https://player.vimeo.com',
                 'https://player.twitch.tv',
                 'https://www.dailymotion.com', 'https://geo.dailymotion.com',
+                'https://www.facebook.com',
             ]),
             "media-src 'self' https:",
             "frame-ancestors 'none'",
             "base-uri 'self'",
-            "form-action 'self'",
+            // Il pixel di Meta spedisce gli eventi anche come form verso
+            // `facebook.com/tr/`, e `'self'` da solo li rifiutava: il tag si
+            // caricava, la misurazione no. Resta l'unico host esterno a cui
+            // una pagina di questo sito può inviare un modulo.
+            'form-action '.implode(' ', [self::SELF, 'https://www.facebook.com']),
         ]);
     }
 

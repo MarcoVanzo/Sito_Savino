@@ -1,0 +1,235 @@
+{
+  "_commento": "I cookie e gli host che sappiamo riconoscere. Lo legge lo scanner (scripts/scansione-cookie.mjs) per classificare ciò che trova, e la dichiarazione pubblica per descriverlo al visitatore. Quello che non è qui dentro finisce fra i non classificati: la scansione lo segnala e la dichiarazione lo pubblica come tale, perché un cookie non riconosciuto è un fatto da dire, non da nascondere.",
+  "cookie": [
+    {
+      "nome": "XSRF-TOKEN",
+      "categoria": "necessari",
+      "fornitore": "Savino Del Bene Volley",
+      "durata": {
+        "it": "2 ore",
+        "en": "2 hours"
+      },
+      "scopo": {
+        "it": "Protegge i moduli del sito dall'invio di richieste da parte di altri siti.",
+        "en": "Protects the site's forms against requests forged by other sites."
+      }
+    },
+    {
+      "nome": "laravel-session",
+      "alias": [
+        "laravel_session",
+        "savino-session",
+        "savino_session"
+      ],
+      "categoria": "necessari",
+      "fornitore": "Savino Del Bene Volley",
+      "durata": {
+        "it": "8 ore",
+        "en": "8 hours"
+      },
+      "scopo": {
+        "it": "Tiene la sessione di navigazione: carrello, area riservata e messaggi del sito.",
+        "en": "Keeps the browsing session: cart, account area and site messages."
+      }
+    },
+    {
+      "schema": "^remember_web_",
+      "categoria": "necessari",
+      "fornitore": "Savino Del Bene Volley",
+      "durata": {
+        "it": "1 anno",
+        "en": "1 year"
+      },
+      "scopo": {
+        "it": "Mantiene l'accesso all'area riservata fra una visita e l'altra, se lo si è chiesto.",
+        "en": "Keeps you signed in to the account area between visits, if you asked for it."
+      }
+    },
+    {
+      "nome": "_ga",
+      "categoria": "statistiche",
+      "fornitore": "Google Ireland Ltd.",
+      "durata": {
+        "it": "2 anni",
+        "en": "2 years"
+      },
+      "scopo": {
+        "it": "Distingue i visitatori per contare quante persone leggono il sito.",
+        "en": "Tells visitors apart in order to count how many people read the site."
+      }
+    },
+    {
+      "schema": "^_ga_",
+      "categoria": "statistiche",
+      "fornitore": "Google Ireland Ltd.",
+      "durata": {
+        "it": "2 anni",
+        "en": "2 years"
+      },
+      "scopo": {
+        "it": "Conserva lo stato della sessione di misurazione di Google Analytics 4.",
+        "en": "Holds the Google Analytics 4 measurement session state."
+      }
+    },
+    {
+      "nome": "_gid",
+      "categoria": "statistiche",
+      "fornitore": "Google Ireland Ltd.",
+      "durata": {
+        "it": "24 ore",
+        "en": "24 hours"
+      },
+      "scopo": {
+        "it": "Distingue i visitatori nell'arco della giornata.",
+        "en": "Tells visitors apart within a single day."
+      }
+    },
+    {
+      "schema": "^_gat",
+      "categoria": "statistiche",
+      "fornitore": "Google Ireland Ltd.",
+      "durata": {
+        "it": "1 minuto",
+        "en": "1 minute"
+      },
+      "scopo": {
+        "it": "Limita la frequenza delle richieste inviate a Google Analytics.",
+        "en": "Throttles how often requests are sent to Google Analytics."
+      }
+    },
+    {
+      "nome": "_fbp",
+      "categoria": "marketing",
+      "fornitore": "Meta Platforms Ireland Ltd.",
+      "durata": {
+        "it": "3 mesi",
+        "en": "3 months"
+      },
+      "scopo": {
+        "it": "Collega le visite al sito alle inserzioni su Facebook e Instagram.",
+        "en": "Links visits to the site with ads on Facebook and Instagram."
+      }
+    },
+    {
+      "nome": "fr",
+      "categoria": "marketing",
+      "fornitore": "Meta Platforms Ireland Ltd.",
+      "durata": {
+        "it": "3 mesi",
+        "en": "3 months"
+      },
+      "scopo": {
+        "it": "Misura e personalizza le inserzioni di Meta.",
+        "en": "Measures and personalises Meta's advertising."
+      }
+    },
+    {
+      "nome": "VISITOR_INFO1_LIVE",
+      "categoria": "marketing",
+      "fornitore": "Google Ireland Ltd. (YouTube)",
+      "durata": {
+        "it": "6 mesi",
+        "en": "6 months"
+      },
+      "scopo": {
+        "it": "Impostato dai video di YouTube incorporati nelle pagine.",
+        "en": "Set by the YouTube videos embedded in the pages."
+      }
+    },
+    {
+      "nome": "YSC",
+      "categoria": "marketing",
+      "fornitore": "Google Ireland Ltd. (YouTube)",
+      "durata": {
+        "it": "sessione",
+        "en": "session"
+      },
+      "scopo": {
+        "it": "Impostato dai video di YouTube incorporati nelle pagine.",
+        "en": "Set by the YouTube videos embedded in the pages."
+      }
+    }
+  ],
+  "domini": [
+    {
+      "host": "www.googletagmanager.com",
+      "categoria": "statistiche",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "www.google-analytics.com",
+      "categoria": "statistiche",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "google-analytics.com",
+      "categoria": "statistiche",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "analytics.google.com",
+      "categoria": "statistiche",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "connect.facebook.net",
+      "categoria": "marketing",
+      "fornitore": "Meta Platforms Ireland Ltd."
+    },
+    {
+      "host": "www.facebook.com",
+      "categoria": "marketing",
+      "fornitore": "Meta Platforms Ireland Ltd."
+    },
+    {
+      "host": "fonts.googleapis.com",
+      "categoria": "necessari",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "fonts.gstatic.com",
+      "categoria": "necessari",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "www.youtube.com",
+      "categoria": "marketing",
+      "fornitore": "Google Ireland Ltd. (YouTube)"
+    },
+    {
+      "host": "www.youtube-nocookie.com",
+      "categoria": "necessari",
+      "fornitore": "Google Ireland Ltd. (YouTube)"
+    },
+    {
+      "host": "player.vimeo.com",
+      "categoria": "marketing",
+      "fornitore": "Vimeo Inc."
+    },
+    {
+      "host": "www.google.com",
+      "categoria": "necessari",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "maps.google.com",
+      "categoria": "necessari",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "maps.googleapis.com",
+      "categoria": "necessari",
+      "fornitore": "Google Ireland Ltd."
+    },
+    {
+      "host": "sito-savino-assets-2026.fra1.digitaloceanspaces.com",
+      "categoria": "necessari",
+      "fornitore": "DigitalOcean (Spaces)"
+    },
+    {
+      "host": "fra1.digitaloceanspaces.com",
+      "categoria": "necessari",
+      "fornitore": "DigitalOcean (Spaces)"
+    }
+  ]
+}

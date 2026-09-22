@@ -144,6 +144,38 @@ class SecurityHeadersTest extends TestCase
     }
 
     /**
+     * Il pixel di Meta non spedisce solo con `fetch`: quando il payload è
+     * grande passa da un modulo verso `facebook.com/tr/`, e apre un iframe
+     * verso lo stesso host. Con `form-action 'self'` e il frame vietato, i due
+     * canali venivano rifiutati dal browser — il tag si caricava, gli eventi
+     * si fermavano, e l'unico posto dove si vedeva era la console.
+     */
+    public function test_la_policy_lascia_passare_gli_eventi_del_pixel(): void
+    {
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        foreach (['form-action', 'frame-src'] as $nome) {
+            [$direttiva] = array_values(array_filter(
+                explode('; ', $csp),
+                fn (string $riga) => str_starts_with($riga, $nome.' '),
+            ));
+
+            $this->assertStringContainsString('https://www.facebook.com', $direttiva, $nome.' non lascia passare il pixel');
+        }
+    }
+
+    /**
+     * `www.facebook.com` sta in `frame-src` per il pixel, non perché si possa
+     * incorporare un video di Facebook: quell'elenco è di LiveStream e i due
+     * non vanno confusi. Un link a Facebook nel campo diretta deve continuare
+     * ad aprire una scheda nuova, non un riquadro dentro la pagina.
+     */
+    public function test_facebook_non_diventa_una_piattaforma_incorporabile(): void
+    {
+        $this->assertNull(\App\Support\LiveStream::embedUrl('https://www.facebook.com/savinodelbenevolley/videos/123456'));
+    }
+
+    /**
      * `'unsafe-inline'` su `script-src` vuol dire che qualunque `<script>`
      * finito nella pagina viene eseguito: con il contenuto del CMS che arriva
      * in `v-html`, era l'unica cosa fra un XSS e il browser del visitatore.
