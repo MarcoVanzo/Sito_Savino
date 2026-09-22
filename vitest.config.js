@@ -24,12 +24,23 @@ export default defineConfig({
             // `sonar.sources` include `resources`.
             reporter: ['text-summary', 'lcov'],
             reportsDirectory: 'coverage-js',
-            // I .vue sono qui dentro dal 22/09/2026, da quando il banner dei
-            // cookie ha dei test propri. Tenerli fuori non li faceva contare
-            // come coperti: li lasciava senza dati, e Sonar — che analizza
-            // tutto `resources` — li conta comunque a zero. Fuori dal report
-            // un componente coperto non si distingue da uno che non lo è.
-            include: ['resources/js/**/*.js', 'resources/js/**/*.vue'],
+            // I componenti .vue restano fuori dal report, e non è una svista.
+            //
+            // Ce li abbiamo messi il 22/09/2026 credendo che Sonar li contasse
+            // a zero comunque: non è vero. Senza dati nel report lcov Sonar non
+            // li misura affatto — nello storico di main non hanno mai avuto un
+            // valore di copertura — e mettercelo ha fatto entrare nel calcolo
+            // i 105 che un test non ce l'hanno. La copertura del codice nuovo
+            // di main è scesa da 85,4% a 79,7%, sotto la soglia, e quella
+            // complessiva da 69,7% a 56,4%: senza che una riga di codice fosse
+            // cambiata.
+            //
+            // Includerli è una scelta che si può fare, ma va fatta sapendo che
+            // da lì in avanti ogni pagina Vue che si tocca si porta dietro dei
+            // test, o il quality gate si ferma. Sono 284 righe scoperte da
+            // recuperare: le più pesanti stanno in Ticketing (69), Affiliazioni
+            // (44), Convenzioni (40) e ClubRace (35).
+            include: ['resources/js/**/*.js'],
             exclude: ['resources/js/**/*.test.js', 'resources/js/bootstrap.js'],
         },
     },
