@@ -1111,5 +1111,23 @@
         "signup_title": "How to Sign Up",
         "signup_cta": "Go to the registration form",
         "signup_closed": "This year's stages are over. The next dates will be published on this page: write to us for information."
+    },
+    "cookie_declaration": {
+        "title": "The cookies we use",
+        "intro": "This list comes from an automated scan of the site, not from a hand-written page: it changes by itself when the site changes.",
+        "updated_on": "Updated on",
+        "manage": "Manage your preferences",
+        "name": "Name",
+        "provider": "Provider",
+        "purpose": "Purpose",
+        "duration": "Duration",
+        "third_parties": "Addresses contacted:",
+        "unknown_purpose": "Being classified.",
+        "categories": {
+            "necessari": "Necessary",
+            "statistiche": "Statistics",
+            "marketing": "Marketing",
+            "non classificati": "Not yet classified"
+        }
     }
 }
