@@ -72,6 +72,10 @@ Schedule::command('volti:riconcilia-contatori')->dailyAt('04:15')->withoutOverla
 
 // Pulizia periodica
 Schedule::command('activity-log:prune --days=180 --force')->weekly()->withoutOverlapping();
+
+// Il registro dei consensi ai cookie tiene dodici mesi, quanto dura il consenso
+// che documenta: oltre, conservarlo sarebbe raccolta di dati senza scopo.
+Schedule::command('consensi:pota')->weekly()->withoutOverlapping();
 Schedule::command('model:prune')->daily()->withoutOverlapping();
 // I batch di analisi della gallery con `allowFailures()` non si chiudono mai
 // da soli se un job fallisce: a settembre 2026 ce n'erano 18 aperti da luglio.

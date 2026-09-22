@@ -89,7 +89,9 @@
         "analytics_desc": "Ci aiutano a capire come usi il sito per migliorarlo.",
         "marketing_title": "Cookie di Marketing",
         "marketing_desc": "Personalizzano la pubblicità in base ai tuoi interessi.",
-        "save_preferences": "Salva preferenze"
+        "save_preferences": "Salva preferenze",
+        "reference_label": "Riferimento del consenso:",
+        "manage_aria": "Gestisci il consenso ai cookie"
     },
     "newsletter": {
         "title": "Non perderti nulla",
@@ -401,7 +403,7 @@
         "current_season": "Stagione corrente",
         "hero_title": "Il Nostro Roster",
         "hero_subtitle": "Le atlete che difendono i colori della Savino Del Bene Volley in Serie A1 e nelle competizioni europee.",
-        "empty_notice": "La rosa non \u00e8 ancora stata pubblicata.",
+        "empty_notice": "La rosa non è ancora stata pubblicata.",
         "discover_athlete": "Scopri di più su questa atleta"
     },
     "stagione": {

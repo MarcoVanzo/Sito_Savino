@@ -1,11 +1,27 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import { updateAnalyticsConsent } from '../analytics.js';
 import { updateMarketingConsent } from '../meta-pixel.js';
+import { leggiIlConsenso, salvaIlConsenso, registraIlConsenso, consensoInAttesa } from '../consenso.js';
+
+/**
+ * L'evento con cui il footer, la cookie policy o qualunque altro punto del sito
+ * riaprono le preferenze: un `ref` sul componente non basterebbe, perché il
+ * banner è caricato in differita dal layout.
+ */
+const EVENTO_APERTURA = 'preferenze-cookie:apri';
+
+const page = usePage();
 
 const showBanner = ref(false);
 const showSettings = ref(false);
+
+/** Con la scelta fatta il banner sparisce e resta l'icona per tornarci. */
+const sceltaFatta = ref(false);
+
+const riferimento = ref(null);
+const registratoIl = ref(null);
 
 const consent = reactive({
     necessary: true, // Sempre attivo, non disattivabile
@@ -13,38 +29,101 @@ const consent = reactive({
     marketing: false,
 });
 
-const CONSENT_KEY = 'cookie-consent-v2';
+const versione = computed(() => page.props.consensoCookie?.versione ?? null);
 
-onMounted(() => {
-    const stored = localStorage.getItem(CONSENT_KEY);
-    if (!stored) {
-        showBanner.value = true;
-    } else {
-        try {
-            const parsed = JSON.parse(stored);
-            consent.analytics = parsed.analytics ?? false;
-            consent.marketing = parsed.marketing ?? false;
-        } catch {
-            showBanner.value = true;
-        }
+const dataLeggibile = computed(() => {
+    if (! registratoIl.value) {
+        return null;
     }
+
+    const quando = new Date(registratoIl.value);
+
+    return Number.isNaN(quando.getTime())
+        ? null
+        : quando.toLocaleString(page.props.locale === 'en' ? 'en-GB' : 'it-IT');
 });
 
+const apriIlBanner = () => {
+    showBanner.value = true;
+    showSettings.value = true;
+};
+
+onMounted(() => {
+    const salvato = leggiIlConsenso(versione.value);
+
+    consent.analytics = salvato.statistiche;
+    consent.marketing = salvato.marketing;
+    riferimento.value = salvato.riferimento ?? null;
+    registratoIl.value = salvato.data ?? null;
+
+    sceltaFatta.value = salvato.scelto;
+    showBanner.value = ! salvato.scelto;
+
+    // Il consenso raccolto su un'informativa precedente non vale più: finché
+    // non si risponde al banner nuovo, la misurazione si ferma. Senza questo,
+    // aggiungere un tracker basterebbe a coprirlo con un sì di mesi prima.
+    if (salvato.versioneSuperata) {
+        updateAnalyticsConsent(false);
+        updateMarketingConsent(false);
+    }
+
+    // Una registrazione rimasta indietro (rete assente nel momento della
+    // scelta) si completa adesso, senza disturbare il visitatore.
+    const inAttesa = consensoInAttesa();
+
+    if (inAttesa) {
+        registra(inAttesa.statistiche, inAttesa.marketing);
+    }
+
+    window.addEventListener(EVENTO_APERTURA, apriIlBanner);
+});
+
+onBeforeUnmount(() => window.removeEventListener(EVENTO_APERTURA, apriIlBanner));
+
+async function registra(statistiche, marketing) {
+    const esito = await registraIlConsenso(
+        { statistiche, marketing, riferimento: riferimento.value },
+        route('consenso-cookie.registra'),
+    );
+
+    if (! esito) {
+        return;
+    }
+
+    riferimento.value = esito.riferimento;
+    registratoIl.value = esito.registrato_il;
+
+    // Il riferimento arriva dal server: va riscritto nel browser, o alla
+    // prossima modifica il visitatore aprirebbe una seconda storia invece di
+    // aggiungere una riga alla propria.
+    salvaIlConsenso({
+        statistiche,
+        marketing,
+        versione: versione.value,
+        riferimento: esito.riferimento,
+        data: esito.registrato_il,
+    });
+}
+
 const saveConsent = () => {
-    localStorage.setItem(CONSENT_KEY, JSON.stringify({
-        necessary: true,
-        analytics: consent.analytics,
+    salvaIlConsenso({
+        statistiche: consent.analytics,
         marketing: consent.marketing,
-        timestamp: new Date().toISOString(),
-    }));
+        versione: versione.value,
+        riferimento: riferimento.value,
+    });
+
     // Fino a qui la scelta veniva solo memorizzata e non pilotava nulla: il
     // banner chiedeva un consenso che poi non cambiava il comportamento del
     // sito. Da qui la misurazione parte, o si ferma, davvero.
     updateAnalyticsConsent(consent.analytics);
-    // Il pixel oggi non è subordinato al consenso (scelta di configurazione):
-    // la chiamata resta perché il giorno in cui lo diventa non serva ricordarsi
-    // di aggiungerla qui.
     updateMarketingConsent(consent.marketing);
+
+    // La prova della scelta, sul server. Non si aspetta: il sito si comporta
+    // già come il visitatore ha chiesto.
+    registra(consent.analytics, consent.marketing);
+
+    sceltaFatta.value = true;
     showBanner.value = false;
     showSettings.value = false;
 };
@@ -66,7 +145,7 @@ const openSettings = () => {
 };
 
 // Esponi per revoca esterna (footer link)
-defineExpose({ show: () => { showBanner.value = true; showSettings.value = true; } });
+defineExpose({ show: apriIlBanner });
 </script>
 
 <template>
@@ -92,21 +171,24 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                         </p>
                     </div>
                     <div class="flex gap-2 flex-shrink-0 flex-wrap">
-                        <button type="button"
-                            @click="openSettings"
+                        <button
+type="button"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white border border-gray-600 hover:border-white/30 rounded-lg transition-all duration-200"
+                            @click="openSettings"
                         >
                             {{ $t('cookie.customize') }}
                         </button>
-                        <button type="button"
-                            @click="rejectAll"
+                        <button
+type="button"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white border border-gray-600 hover:border-white/30 rounded-lg transition-all duration-200"
+                            @click="rejectAll"
                         >
                             {{ $t('cookie.reject_all') }}
                         </button>
-                        <button type="button"
-                            @click="acceptAll"
+                        <button
+type="button"
                             class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200 shadow-lg"
+                            @click="acceptAll"
                         >
                             {{ $t('cookie.accept_all') }}
                         </button>
@@ -131,7 +213,8 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     <p class="text-xs text-gray-500">{{ $t('cookie.necessary_desc') }}</p>
                                 </div>
                                 <div class="relative">
-                                    <input id="cookie-necessary" type="checkbox" checked disabled
+                                    <input
+id="cookie-necessary" type="checkbox" checked disabled
                                         :aria-label="$t('cookie.necessary_title')"
                                         class="w-10 h-5 rounded-full appearance-none bg-savino-fucsia/50 cursor-not-allowed checked:bg-savino-fucsia" />
                                 </div>
@@ -144,7 +227,7 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     <p class="text-xs text-gray-500">{{ $t('cookie.analytics_desc') }}</p>
                                 </div>
                                 <label for="cookie-analytics" class="relative inline-flex items-center cursor-pointer">
-                                    <input id="cookie-analytics" type="checkbox" v-model="consent.analytics" class="sr-only peer" :aria-label="$t('cookie.analytics_title')" />
+                                    <input id="cookie-analytics" v-model="consent.analytics" type="checkbox" class="sr-only peer" :aria-label="$t('cookie.analytics_title')" />
                                     <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-fucsia transition-colors"></div>
                                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
                                 </label>
@@ -157,16 +240,26 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                                     <p class="text-xs text-gray-500">{{ $t('cookie.marketing_desc') }}</p>
                                 </div>
                                 <label for="cookie-marketing" class="relative inline-flex items-center cursor-pointer">
-                                    <input id="cookie-marketing" type="checkbox" v-model="consent.marketing" class="sr-only peer" :aria-label="$t('cookie.marketing_title')" />
+                                    <input id="cookie-marketing" v-model="consent.marketing" type="checkbox" class="sr-only peer" :aria-label="$t('cookie.marketing_title')" />
                                     <div class="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-savino-fucsia transition-colors"></div>
                                     <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
                                 </label>
                             </div>
 
+                            <!-- Il riferimento della scelta gia' registrata: e' il
+                                 numero che il visitatore cita se ci scrive per
+                                 chiedere conto del proprio consenso. -->
+                            <p v-if="riferimento" class="text-[11px] text-gray-500 leading-relaxed border-t border-white/10 pt-3">
+                                {{ $t('cookie.reference_label') }}
+                                <span class="font-mono text-gray-400 break-all">{{ riferimento }}</span>
+                                <template v-if="dataLeggibile"> &middot; {{ dataLeggibile }}</template>
+                            </p>
+
                             <div class="pt-2 flex justify-end">
-                                <button type="button"
-                                    @click="saveConsent"
+                                <button
+type="button"
                                     class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200"
+                                    @click="saveConsent"
                                 >
                                     {{ $t('cookie.save_preferences') }}
                                 </button>
@@ -176,5 +269,31 @@ defineExpose({ show: () => { showBanner.value = true; showSettings.value = true;
                 </transition>
             </div>
         </div>
+    </transition>
+
+    <!-- Una volta risposto al banner resta questa: e' l'unico modo che il
+         visitatore ha di tornare sulle proprie scelte in qualsiasi pagina.
+         Sta in basso a sinistra per non finire sotto il pulsante del carrello
+         e sotto i riquadri di aiuto, che stanno a destra. -->
+    <transition
+        enter-active-class="transition duration-300 ease-out delay-500"
+        enter-from-class="translate-y-4 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+    >
+        <button
+            v-if="sceltaFatta && !showBanner"
+            type="button"
+            :aria-label="$t('cookie.manage_aria')"
+            :title="$t('cookie.manage_aria')"
+            class="fixed bottom-4 left-4 z-[90] w-11 h-11 rounded-full bg-savino-blue/90 text-white shadow-lg backdrop-blur ring-1 ring-white/20 flex items-center justify-center transition-all duration-200 hover:bg-savino-blue hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-savino-fucsia print:hidden"
+            @click="apriIlBanner"
+        >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 1 0 9 9 3.6 3.6 0 0 1-4.2-2.1A3.6 3.6 0 0 1 12 3Z" />
+                <circle cx="9" cy="10" r="1" fill="currentColor" stroke="none" />
+                <circle cx="13.5" cy="14.5" r="1" fill="currentColor" stroke="none" />
+                <circle cx="9.5" cy="15.5" r="0.75" fill="currentColor" stroke="none" />
+            </svg>
+        </button>
     </transition>
 </template>

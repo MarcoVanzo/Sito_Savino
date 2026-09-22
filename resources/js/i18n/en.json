@@ -89,7 +89,9 @@
         "analytics_desc": "Help us understand how you use the site so we can improve it.",
         "marketing_title": "Marketing Cookies",
         "marketing_desc": "Used to personalise ads based on your interests.",
-        "save_preferences": "Save preferences"
+        "save_preferences": "Save preferences",
+        "reference_label": "Consent reference:",
+        "manage_aria": "Manage cookie consent"
     },
     "newsletter": {
         "title": "Don't miss a thing",

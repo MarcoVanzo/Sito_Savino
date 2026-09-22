@@ -82,3 +82,6 @@ storage/do-ca-certificate.crt
 
 # La sitemap è servita dalla rotta /sitemap.xml: un file qui la scavalcherebbe
 /public/sitemap.xml
+
+# Stato locale di wrangler/miniflare (cache R2, sqlite): non e' codice.
+.wrangler/

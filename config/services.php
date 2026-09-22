@@ -233,9 +233,12 @@ return [
         // perché non è un segreto (il browser lo espone comunque) e cambia
         // senza bisogno di un rilascio.
         //
-        // Oggi il pixel si carica per tutti. Portarlo sotto il consenso
-        // marketing del banner cookie è questa variabile, non un refactoring.
-        'pixel_requires_consent' => filter_var(env('META_PIXEL_REQUIRES_CONSENT', false), FILTER_VALIDATE_BOOL),
+        // Il pixel sta sotto il consenso di marketing del banner: finché il
+        // visitatore non lo dà, non si carica. Prima il valore di partenza era
+        // `false` — il toggle "marketing" del banner era quindi una casella che
+        // non governava niente. La variabile resta per poterlo riaprire in
+        // fretta, ma il posto giusto per decidere è il banner.
+        'pixel_requires_consent' => filter_var(env('META_PIXEL_REQUIRES_CONSENT', true), FILTER_VALIDATE_BOOL),
     ],
 
 ];

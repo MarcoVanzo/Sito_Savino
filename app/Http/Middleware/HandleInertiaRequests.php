@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ConsensoCookie;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\SiteSetting;
@@ -55,6 +56,10 @@ class HandleInertiaRequests extends Middleware
             'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
             'footerMenu' => fn () => $isPublic ? MenuItem::getTree('footer') : [],
             'siteSettings' => fn () => $isPublic ? $this->publicSiteSettings() : [],
+            // La versione dei testi dell'informativa: il banner la confronta con
+            // quella salvata nel browser e, se è cambiata, torna a chiedere
+            // invece di dare per buono un sì raccolto su un'altra informativa.
+            'consensoCookie' => ['versione' => ConsensoCookie::VERSIONE],
         ];
     }
 

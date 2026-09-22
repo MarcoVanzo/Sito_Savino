@@ -8,6 +8,7 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createTranslations } from './i18n/index.js';
 import { initAnalytics, trackPageView } from './analytics.js';
 import { initMetaPixel, trackPageView as trackPixelPageView } from './meta-pixel.js';
+import { leggiIlConsenso } from './consenso.js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
@@ -62,18 +63,15 @@ createInertiaApp({
         // qualcosa, mentre chi ha già accettato va misurato da subito.
         const measurementId = props.initialPage.props.siteSettings?.analytics?.ga4_measurement_id;
 
+        // Una sola lettura per tutti e due i tag, e con la versione
+        // dell'informativa: un consenso raccolto su un'informativa precedente
+        // non vale, e qui è l'unico punto in cui si fa in tempo a non far
+        // partire niente. Valore illeggibile o scaduto: si riparte dal non
+        // consenso e il banner tornerà a chiedere.
+        const consenso = leggiIlConsenso(props.initialPage.props.consensoCookie?.versione ?? null);
+
         if (measurementId) {
-            let consent;
-
-            try {
-                consent = JSON.parse(localStorage.getItem('cookie-consent-v2') || '{}').analytics === true;
-            } catch {
-                // Valore illeggibile: si riparte dal non consenso e il banner
-                // tornerà a chiedere.
-                consent = false;
-            }
-
-            initAnalytics(measurementId, consent);
+            initAnalytics(measurementId, consenso.statistiche);
 
             // Senza questo, in una SPA GA4 attribuirebbe tutto il traffico alla
             // pagina d'ingresso: è proprio la misura pagina per pagina che serve.
@@ -86,17 +84,9 @@ createInertiaApp({
         const analytics = props.initialPage.props.siteSettings?.analytics ?? {};
 
         if (analytics.meta_pixel_id) {
-            let marketingConsent;
-
-            try {
-                marketingConsent = JSON.parse(localStorage.getItem('cookie-consent-v2') || '{}').marketing === true;
-            } catch {
-                marketingConsent = false;
-            }
-
             initMetaPixel(analytics.meta_pixel_id, {
                 needsConsent: analytics.meta_pixel_requires_consent === true,
-                hasConsent: marketingConsent,
+                hasConsent: consenso.marketing,
             });
 
             router.on('navigate', () => window.setTimeout(trackPixelPageView, 0));
