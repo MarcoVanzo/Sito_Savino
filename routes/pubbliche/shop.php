@@ -9,6 +9,7 @@
  * funzione restituita, non variabili ereditate da chi include.
  */
 
+use App\Http\Controllers\ConsensoCookieController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
@@ -130,6 +131,14 @@ return function (string $loc, string $namePrefix): void {
     Route::post('/newsletter', [NewsletterController::class, 'subscribe'])
         ->middleware('throttle:5,1')
         ->name('newsletter.subscribe');
+
+    // Il registro delle scelte fatte sul banner dei cookie. L'indirizzo non si
+    // traduce: non lo digita nessuno, lo chiama il banner. Il limite è largo
+    // perché una persona sola può cambiare idea più volte di seguito, e un
+    // consenso rifiutato per troppe richieste sarebbe una prova persa.
+    Route::post('/consenso-cookie', [ConsensoCookieController::class, 'registra'])
+        ->middleware('throttle:20,1')
+        ->name('consenso-cookie.registra');
 
     // Disiscrizione: l'URL è firmato, non serve autenticazione. Il GET
     // mostra solo la conferma, la POST esegue (vedi NewsletterController).

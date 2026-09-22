@@ -89,7 +89,9 @@
         "analytics_desc": "Ci aiutano a capire come usi il sito per migliorarlo.",
         "marketing_title": "Cookie di Marketing",
         "marketing_desc": "Personalizzano la pubblicità in base ai tuoi interessi.",
-        "save_preferences": "Salva preferenze"
+        "save_preferences": "Salva preferenze",
+        "reference_label": "Riferimento del consenso:",
+        "manage_aria": "Gestisci il consenso ai cookie"
     },
     "newsletter": {
         "title": "Non perderti nulla",
@@ -401,7 +403,7 @@
         "current_season": "Stagione corrente",
         "hero_title": "Il Nostro Roster",
         "hero_subtitle": "Le atlete che difendono i colori della Savino Del Bene Volley in Serie A1 e nelle competizioni europee.",
-        "empty_notice": "La rosa non \u00e8 ancora stata pubblicata.",
+        "empty_notice": "La rosa non è ancora stata pubblicata.",
         "discover_athlete": "Scopri di più su questa atleta"
     },
     "stagione": {
@@ -1109,5 +1111,23 @@
         "signup_title": "Come Iscriversi",
         "signup_cta": "Vai al modulo di iscrizione",
         "signup_closed": "Le tappe di questa edizione sono concluse. Le prossime date saranno pubblicate in questa pagina: per informazioni scrivici."
+    },
+    "cookie_declaration": {
+        "title": "I cookie che usiamo",
+        "intro": "L'elenco è generato da una scansione automatica del sito, non scritto a mano: cambia da solo quando cambia il sito.",
+        "updated_on": "Aggiornato al",
+        "manage": "Gestisci le tue preferenze",
+        "name": "Nome",
+        "provider": "Fornitore",
+        "purpose": "Scopo",
+        "duration": "Durata",
+        "third_parties": "Indirizzi contattati:",
+        "unknown_purpose": "In corso di classificazione.",
+        "categories": {
+            "necessari": "Necessari",
+            "statistiche": "Statistici",
+            "marketing": "Marketing",
+            "non classificati": "Non ancora classificati"
+        }
     }
 }

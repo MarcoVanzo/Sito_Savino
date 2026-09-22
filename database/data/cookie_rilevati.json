@@ -1,0 +1,127 @@
+{
+    "generato_il": "2026-09-22T14:38:56.144Z",
+    "indirizzo": "https://seashell-app-47mmf.ondigitalocean.app",
+    "pagine_visitate": 14,
+    "cookie": [
+        {
+            "nome": "_fbp",
+            "dominio": ".seashell-app-47mmf.ondigitalocean.app",
+            "categoria": "marketing",
+            "fornitore": "Meta Platforms Ireland Ltd.",
+            "durata": {
+                "it": "3 mesi",
+                "en": "3 months"
+            },
+            "scopo": {
+                "it": "Collega le visite al sito alle inserzioni su Facebook e Instagram.",
+                "en": "Links visits to the site with ads on Facebook and Instagram."
+            },
+            "scadenza": "2026-12-21",
+            "conConsenso": false
+        },
+        {
+            "nome": "_ga",
+            "dominio": ".seashell-app-47mmf.ondigitalocean.app",
+            "categoria": "statistiche",
+            "fornitore": "Google Ireland Ltd.",
+            "durata": {
+                "it": "2 anni",
+                "en": "2 years"
+            },
+            "scopo": {
+                "it": "Distingue i visitatori per contare quante persone leggono il sito.",
+                "en": "Tells visitors apart in order to count how many people read the site."
+            },
+            "scadenza": "2027-10-27",
+            "conConsenso": true
+        },
+        {
+            "nome": "_ga_MZ6MT5576Y",
+            "dominio": ".seashell-app-47mmf.ondigitalocean.app",
+            "categoria": "statistiche",
+            "fornitore": "Google Ireland Ltd.",
+            "durata": {
+                "it": "2 anni",
+                "en": "2 years"
+            },
+            "scopo": {
+                "it": "Conserva lo stato della sessione di misurazione di Google Analytics 4.",
+                "en": "Holds the Google Analytics 4 measurement session state."
+            },
+            "scadenza": "2027-10-27",
+            "conConsenso": true
+        },
+        {
+            "nome": "laravel-session",
+            "dominio": "seashell-app-47mmf.ondigitalocean.app",
+            "categoria": "necessari",
+            "fornitore": "Savino Del Bene Volley",
+            "durata": {
+                "it": "8 ore",
+                "en": "8 hours"
+            },
+            "scopo": {
+                "it": "Tiene la sessione di navigazione: carrello, area riservata e messaggi del sito.",
+                "en": "Keeps the browsing session: cart, account area and site messages."
+            },
+            "scadenza": "2026-09-22",
+            "conConsenso": false
+        },
+        {
+            "nome": "XSRF-TOKEN",
+            "dominio": "seashell-app-47mmf.ondigitalocean.app",
+            "categoria": "necessari",
+            "fornitore": "Savino Del Bene Volley",
+            "durata": {
+                "it": "2 ore",
+                "en": "2 hours"
+            },
+            "scopo": {
+                "it": "Protegge i moduli del sito dall'invio di richieste da parte di altri siti.",
+                "en": "Protects the site's forms against requests forged by other sites."
+            },
+            "scadenza": "2026-09-22",
+            "conConsenso": false
+        }
+    ],
+    "host": [
+        {
+            "host": "connect.facebook.net",
+            "categoria": "marketing",
+            "fornitore": "Meta Platforms Ireland Ltd.",
+            "conConsenso": false
+        },
+        {
+            "host": "fonts.googleapis.com",
+            "categoria": "necessari",
+            "fornitore": "Google Ireland Ltd.",
+            "conConsenso": false
+        },
+        {
+            "host": "fonts.gstatic.com",
+            "categoria": "necessari",
+            "fornitore": "Google Ireland Ltd.",
+            "conConsenso": false
+        },
+        {
+            "host": "region1.google-analytics.com",
+            "categoria": "statistiche",
+            "fornitore": "Google Ireland Ltd.",
+            "conConsenso": true
+        },
+        {
+            "host": "sito-savino-assets-2026.fra1.digitaloceanspaces.com",
+            "categoria": "necessari",
+            "fornitore": "DigitalOcean (Spaces)",
+            "conConsenso": false
+        },
+        {
+            "host": "www.googletagmanager.com",
+            "categoria": "statistiche",
+            "fornitore": "Google Ireland Ltd.",
+            "conConsenso": true
+        }
+    ],
+    "senza_consenso_in_regola": false,
+    "non_classificati": []
+}

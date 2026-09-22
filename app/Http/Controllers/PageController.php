@@ -12,6 +12,7 @@ use App\Models\Season;
 use App\Models\StaffMember;
 use App\Models\Team;
 use App\Services\SponsorDirectory;
+use App\Support\DichiarazioneCookie;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
@@ -155,6 +156,14 @@ class PageController extends Controller
 
         // Props aggiuntive per template specifici
         $extra = $this->getTemplateData($template);
+
+        // La Cookie Policy non elenca a mano i cookie: mostra quelli che la
+        // scansione settimanale ha trovato davvero sul sito. Si riconosce dallo
+        // slug e non dal template, perché divide `Public/ContentPage` con le
+        // altre pagine di solo testo.
+        if ($page->slug === 'cookie-policy') {
+            $extra['dichiarazioneCookie'] = DichiarazioneCookie::perIlFrontend();
+        }
 
         // I file caricati dal pannello dentro `content_data` (press kit,
         // magazine, immagini dei pulsanti) diventano indirizzi pubblici veri:

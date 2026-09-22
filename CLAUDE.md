@@ -940,3 +940,41 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   codice, e il pannello la mostra comunque col suo valore iniziale. Quattro
   test (`SiteSettingTest`, `BidServiceTest`, `ShopCorrectnessAuditTest`) usano
   la forma nuda proprio per questo.
+
+---
+
+## 21. Cookie, consenso e informative
+
+Cookiebot è stato provato e scartato il 22/09/2026: il prezzo dipende dal numero
+di pagine e il sito ne ha 1958 (941 notizie, più altrettante in inglese), cioè
+30 €/mese. Consenso, scansione e dichiarazione sono fatti in casa.
+
+- **La scelta del visitatore si legge in un posto solo**: `resources/js/consenso.js`.
+  La usano `app.js`, che decide se far partire GA4 e il Pixel, e il banner. Due
+  copie della stessa regola divergono, ed è già successo con il calcolo della
+  spedizione.
+- **Il consenso porta con sé la versione dell'informativa** (`ConsensoCookie::VERSIONE`).
+  Alzarla fa ricomparire il banner a tutti: si alza quando cambia *quello che si
+  dichiara*, non a ogni ritocco di stile.
+- **`consensi_cookie` è la prova del consenso** (GDPR art. 7 §1), non un registro
+  statistico: mai l'indirizzo IP in chiaro, solo l'impronta con `APP_KEY` come
+  sale, e dodici mesi di conservazione (`consensi:pota`, settimanale).
+- **Il Pixel di Meta sta sotto il consenso di marketing**
+  (`META_PIXEL_REQUIRES_CONSENT` parte da `true`). La CSP deve tenere
+  `www.facebook.com` in `form-action` e `frame-src`, o gli eventi non partono:
+  è il pixel, **non** una piattaforma incorporabile, e non va aggiunto
+  all'elenco di `LiveStream` (§16).
+- **La dichiarazione dei cookie non si scrive a mano.** L'elenco in fondo alla
+  Cookie Policy viene da `database/data/cookie_rilevati.json`, che aggiorna il
+  workflow `scansione-cookie.yml` (Playwright, lunedì 04:30 UTC), descritto con
+  `database/data/catalogo_cookie.json`. Un cookie nuovo va spiegato nel
+  catalogo, non nell'editor del pannello: finché non lo è, la pagina lo
+  pubblica come "non ancora classificato", ed è voluto.
+- **La scansione senza consenso è un controllo, non un inventario**: se prima
+  della scelta parte qualcosa che non sia necessario, il workflow diventa rosso.
+  Non silenziarlo — è l'unico posto in cui quel difetto si vede.
+- **I testi delle informative si correggono con una migrazione a guardie**
+  (§14), perché la redazione può averli già riscritti; i contenuti stanno in
+  `database/data/informative_privacy.php`. I dati societari si prendono dalle
+  impostazioni, gruppo `contact`: il testo precedente riportava un indirizzo
+  che non era la sede.

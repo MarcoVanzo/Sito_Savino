@@ -7,6 +7,7 @@ import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSafeUrl } from '@/Composables/useSafeUrl';
 import PageMediaTail from '@/Components/PageMediaTail.vue';
+import DichiarazioneCookie from '@/Components/DichiarazioneCookie.vue';
 
 const { sanitize } = useSanitize();
 const { safeUrl } = useSafeUrl();
@@ -15,6 +16,9 @@ const $t = useTranslations();
 
 const props = defineProps({
     page: Object,
+    // Solo la Cookie Policy la riceve: le altre pagine di solo testo
+    // condividono questo template e non hanno niente da dichiarare.
+    dichiarazioneCookie: { type: Object, default: null },
 });
 
 const safeContent = computed(() => sanitize(props.page?.content));
@@ -109,6 +113,11 @@ const getEmbedUrl = (url) => {
                     class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-a:text-savino-fucsia prose-a:no-underline hover:prose-a:underline"
                     v-html="safeContent"
                 ></div>
+
+                <!-- L'elenco dei cookie che il sito usa davvero: lo riceve
+                     solo la Cookie Policy, e arriva dalla scansione
+                     settimanale invece che dall'editor. -->
+                <DichiarazioneCookie v-if="dichiarazioneCookie" :dichiarazione="dichiarazioneCookie" />
 
                 <!-- Pulsante di richiamo: presente su qualsiasi pagina che ne
                      abbia uno configurato, non solo sull'iscrizione al camp -->
