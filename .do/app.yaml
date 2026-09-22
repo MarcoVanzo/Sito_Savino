@@ -289,10 +289,21 @@ workers:
   - key: APP_URL
     scope: RUN_AND_BUILD_TIME
     value: https://${APP_DOMAIN}
+  # La stessa chiave del servizio web, non una copia diversa: il valore che
+  # stava qui si decifrava in una stringa VUOTA (verificato dalla console:
+  # `strlen(getenv("APP_KEY"))` dava 0 su worker e scheduler e 51 su web).
+  # Con la chiave vuota la sincronizzazione notturna di Meta falliva in
+  # silenzio — `social_accounts.access_token` ha il cast `encrypted` — e le
+  # firme prodotte qui (il link di disiscrizione della newsletter, che nasce
+  # dalla mail in coda) non sarebbero verificabili dal web. Non si nota finche'
+  # la posta finisce nel log; si notera' il giorno in cui parte davvero.
+  #
+  # I valori cifrati sono legati all'app, non al componente: lo stesso blob si
+  # usa in tutti e tre.
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:OmHtEaJvph/SAC9NuXF5zbln2WfyyjPw:UAJo7fOM+W06PqaMgENXCQ==]
+    value: EV[1:RUWZWKvJM8r0wVrFVOaICwXh5QlfgFFx:DfBDG/9Cwe6n071yJRZRL7V52SH21MaLsortBRZgqnztQEL9jkzdSCrNmmYl1qPiQYTRvacg3+5l2w61bo3ANT3TBw==]
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"
@@ -442,10 +453,21 @@ workers:
   - key: APP_URL
     scope: RUN_AND_BUILD_TIME
     value: https://${APP_DOMAIN}
+  # La stessa chiave del servizio web, non una copia diversa: il valore che
+  # stava qui si decifrava in una stringa VUOTA (verificato dalla console:
+  # `strlen(getenv("APP_KEY"))` dava 0 su worker e scheduler e 51 su web).
+  # Con la chiave vuota la sincronizzazione notturna di Meta falliva in
+  # silenzio — `social_accounts.access_token` ha il cast `encrypted` — e le
+  # firme prodotte qui (il link di disiscrizione della newsletter, che nasce
+  # dalla mail in coda) non sarebbero verificabili dal web. Non si nota finche'
+  # la posta finisce nel log; si notera' il giorno in cui parte davvero.
+  #
+  # I valori cifrati sono legati all'app, non al componente: lo stesso blob si
+  # usa in tutti e tre.
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:OmHtEaJvph/SAC9NuXF5zbln2WfyyjPw:UAJo7fOM+W06PqaMgENXCQ==]
+    value: EV[1:RUWZWKvJM8r0wVrFVOaICwXh5QlfgFFx:DfBDG/9Cwe6n071yJRZRL7V52SH21MaLsortBRZgqnztQEL9jkzdSCrNmmYl1qPiQYTRvacg3+5l2w61bo3ANT3TBw==]
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"

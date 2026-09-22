@@ -13,4 +13,9 @@ Disallow: /build/
 
 # Sitemap — dominio definitivo: la direttiva vuole un indirizzo assoluto e
 # quello di anteprima cambierebbe al passaggio del dominio.
-Sitemap: https://www.savinodelbenevolley.it/sitemap.xml
+#
+# Senza "www": e' l'host canonico del sito (il vecchio sito manda www in 301
+# sull'apex, e APP_URL varra' il dominio PRIMARY, che e' l'apex). Una sitemap
+# dichiarata su un host diverso da quello che la serve e' una sitemap che
+# Google considera di un altro sito.
+Sitemap: https://savinodelbenevolley.it/sitemap.xml
