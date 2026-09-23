@@ -75,12 +75,17 @@ Prova dopo l'attivazione, dalla console:
 php artisan tinker --execute="Mail::raw('prova', fn(\$m) => \$m->to('marco@mv-consulting.it')->subject('Prova invio'));"
 ```
 
-### 2. La chiave applicativa su worker e scheduler — l'altro blocco
+### 2. Le variabili dei tre componenti — chiuso, ma è la famiglia di guasti da sorvegliare
 
-Verificato il 23/09/2026 dalla console dei tre componenti: `APP_KEY` è di 51
-caratteri sul servizio `web` e **vuota** su `worker` e `scheduler` (il valore
-cifrato nello spec si decifrava in stringa vuota, ed era lo stesso blob su
-entrambi).
+> **Stato al 23/09/2026: rientrato.** Dalla console dei tre componenti
+> `APP_KEY` è ora presente e **identica** (51 caratteri, stessa impronta su
+> `web`, `worker`, `scheduler`). Resta scritto perché è il difetto che questo
+> impianto produce più facilmente, e perché la correzione si può disfare con un
+> deploy distratto.
+
+Com'era: `APP_KEY` era di 51 caratteri sul servizio `web` e **vuota** su
+`worker` e `scheduler` (il valore cifrato nello spec si decifrava in stringa
+vuota, ed era lo stesso blob su entrambi).
 
 Non si vede, e infatti non l'ha visto nessuno: `schedule:work` manda l'output
 dei comandi in `/dev/null` e Sentry è spento. Ma `social:sync-meta` fallisce
@@ -104,6 +109,25 @@ php -r 'echo strlen(getenv("APP_KEY")), "\n";'
 
 Deve dire 51 su tutti e tre. Lo stesso controllo lo fa `verifica:lancio`, che
 però va lanciato su ogni componente: le variabili non sono condivise.
+
+**Lanciarlo su tutti e tre non è una formalità.** Il 23/09/2026, fatto davvero,
+ha trovato un secondo caso: le quattro variabili `PAYPAL_*` stavano solo sotto
+`services:`, quindi `verifica:lancio` dava *due* blocchi su `worker` e
+`scheduler` (posta e pagamenti) contro l'unico del `web`. Là non rompeva ancora
+niente — nessun job in coda costruisce `PayPalPaymentService`, il checkout, il
+webhook e il pannello sono tutte richieste web — ma il primo rimborso messo in
+coda sarebbe fallito senza lasciare traccia. Corretto nello spec insieme a
+`APP_LOCALE`, che per lo stesso motivo mancava (le email in coda sono rese dal
+worker, e la lingua combaciava solo grazie al ripiego di `config/app.php`).
+
+Perché non capiti una terza volta, il confronto fra le tre liste è un test:
+`tests/Unit/VariabiliAllineateFraIComponentiTest.php`. Ogni variabile del `web`
+deve esistere anche su worker e scheduler, salvo quelle che vivono dentro una
+richiesta HTTP (`SESSION_*`, `PREVIEW_AUTH_*`, `INERTIA_SSR_ENABLED`), elencate
+lì una per una con il motivo. Verifica anche che `APP_KEY` sia lo stesso blob:
+averla su tutti e tre ma **diversa** è il caso peggiore, perché non somiglia a
+un guasto — le firme prodotte dalla coda semplicemente non si verificano dal
+web.
 
 ### 3. Il webhook di PayPal — si modifica, non si ricrea
 
