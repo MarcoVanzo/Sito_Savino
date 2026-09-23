@@ -788,9 +788,14 @@ return [
                 'meta_description' => 'Download the official Savino Del Bene Volley press kits. Logo, official photos and press materials.',
                 'content' => '<h2>Press Materials</h2><p>This section holds the official press materials: the club logo in various formats, official photos of the players, pre-match press kits and official statements.</p>',
             ],
+            // Privacy Policy e Cookie Policy non stanno qui: le due lingue le
+            // tiene `database/data/informative_privacy.php`, che le scrive
+            // insieme. Una traduzione inglese in questo file era una seconda
+            // copia dell'informativa, ferma al testo del 2025 — quello che
+            // diceva che il sito usa "solo cookie tecnici" mentre caricava
+            // Google Analytics e il pixel di Meta.
             'cookie-policy' => [
                 'title' => 'Cookie Policy',
-                'content' => '<h2>Cookie Notice</h2><p>This website only uses technical cookies necessary for the site to work.</p><h3>Technical cookies</h3><p>These cookies are essential for the site to work properly and cannot be disabled. They include session cookies (XSRF-TOKEN, laravel_session) that keep browsing secure.</p><h3>Third-party cookies</h3><p>The site does not use profiling or third-party tracking cookies.</p><h3>How to manage cookies</h3><p>You can manage your cookie preferences through your browser settings.</p>',
             ],
             'hospitality' => [
                 'title' => 'Hospitality',
@@ -810,9 +815,10 @@ return [
                 'meta_description' => 'Pala BigMat, home of Savino Del Bene Volley in Florence. Capacity, how to get there and facilities.',
                 'content' => '<h2>Pala BigMat</h2><p>Pala BigMat in Florence is the home of Savino Del Bene Volley. With a capacity of more than 3,500 seats, the arena offers a unique experience for fans and volleyball lovers alike.</p><h2>How to Get There</h2><p>Via del Cavallaccio, 18/20/22/24 — 50142 Florence (FI). Easy to reach by public transport, with plenty of parking available.</p><h2>Facilities</h2><p>Bar, hospitality area, accessible entrances, supervised car park.</p>',
             ],
+            // Il testo sta in `database/data/informative_privacy.php`: vedi la
+            // nota sopra, alla voce cookie-policy.
             'privacy-policy' => [
                 'title' => 'Privacy Policy',
-                'content' => '<h2>Privacy Notice</h2><p>Under Article 13 of EU Regulation 2016/679 (GDPR), Savino Del Bene Volley states that the personal data collected through this website is processed in accordance with the data protection legislation in force.</p><h3>Data Controller</h3><p>Savino Del Bene Volley S.S.D. a r.l. — Via di Scandicci, 50142 Florence (FI)</p><h3>Data collected</h3><p>The site only collects the technical data required for browsing (technical cookies, session data). No profiling data is collected without the explicit consent of the user.</p><h3>Your rights</h3><p>You may exercise the rights set out in Articles 15-22 of the GDPR by writing to: privacy@savinodelbenevolley.it</p>',
             ],
             'safeguarding' => [
                 'title' => 'Safeguarding',

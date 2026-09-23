@@ -205,7 +205,14 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   vinte e reimpostazioni della password vengono scritte nel log e non spedite.
   Finche' il sito sta su un indirizzo che nessuno usa non si nota; dal giorno del
   passaggio significa che un cliente paga e non riceve niente. Le variabili vanno
-  su **web e worker** — le email partono dalla coda.
+  su **web e worker** — le email partono dalla coda. Non e' pero' solo una
+  questione di variabili: il DNS del dominio e' della Spa (`dns*.sdb.it`, MX
+  Proofpoint davanti a Microsoft 365) e pubblica `DMARC p=reject` con SPF
+  `-all`. Finche' li' non c'e' il DKIM di Resend, una email spedita da
+  `@savinodelbenevolley.it` non finisce in spam: viene **rifiutata**. E' la
+  cosa con il tempo di attesa piu' lungo di tutto il passaggio, non dipende dal
+  dominio e si avvia subito; la procedura, sottodominio d'invio compreso, sta
+  in `docs/GO_LIVE.md` §1.
 - **Il webhook di PayPal si modifica, non si ricrea.** L'id in
   `PAYPAL_WEBHOOK_ID` entra nella verifica della firma: creando un webhook nuovo
   per il dominio nuovo si apre una finestra in cui le notifiche arrivano a un
@@ -449,10 +456,11 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   inserzioni. `Purchase` è deduplicato per numero d'ordine su `sessionStorage`:
   la pagina di conferma si ricarica da sola in attesa del webhook e senza il
   blocco lo stesso ordine varrebbe una decina di conversioni.
-- **Il pixel oggi si carica senza consenso** (`META_PIXEL_REQUIRES_CONSENT`,
-  default `false`): è una scelta dichiarata, non una dimenticanza. Il toggle
-  "marketing" del banner cookie resta quindi senza effetto finché quella
-  variabile non passa a `true`.
+- **Il pixel parte solo col consenso di marketing**
+  (`META_PIXEL_REQUIRES_CONSENT`, predefinito `true` in `config/services.php` e
+  non sovrascritto nella spec). Questa riga diceva il contrario, con un
+  predefinito `false` che nel codice non c'è mai stato: il toggle "marketing"
+  del banner ha effetto, ed è ciò che l'informativa dichiara.
 
 ---
 
@@ -1057,9 +1065,52 @@ di pagine e il sito ne ha 1958 (941 notizie, più altrettante in inglese), cioè
   Non silenziarlo — è l'unico posto in cui quel difetto si vede.
 - **I testi delle informative si correggono con una migrazione a guardie**
   (§14), perché la redazione può averli già riscritti; i contenuti stanno in
-  `database/data/informative_privacy.php`. I dati societari si prendono dalle
+  `database/data/informative_privacy.php`, letti da un punto solo
+  (`App\Support\TestiDelleInformative`). I dati societari si prendono dalle
   impostazioni, gruppo `contact`: il testo precedente riportava un indirizzo
   che non era la sede.
+- **Le `firme` di quel file sono cumulative**: pubblicando una revisione si
+  aggiunge la frase della versione che se ne va e non si toglie niente, o una
+  migrazione già scritta, rigirando su un database nuovo, non riconoscerebbe
+  più niente da correggere.
+- **L'informativa non si ricopia altrove.** `PageSeeder` e
+  `content_translations_en.php` ne tenevano una versione ferma al 2025 —
+  "esclusivamente cookie tecnici", indirizzo sbagliato, un'email che non
+  esiste — e ogni ambiente nuovo, compreso il database dei test, nasceva con
+  quella. Il seeder ora legge il file dati.
+- **Il riconoscimento dei volti è un trattamento biometrico e va dichiarato.**
+  Sta nell'informativa dal 23/09/2026 (cosa rileva, cosa conserva, cosa no, e
+  che i nomi finiscono nei titoli delle immagini e quindi nei motori di
+  ricerca), con la base giuridica dichiarata: **consenso esplicito**
+  dell'interessato, art. 9 §2 lett. a. Quel consenso lo raccoglie la società
+  fuori dal sito e **nessun campo del pannello lo verifica**: si può addestrare
+  qualunque atleta in rosa, U15 e U17 comprese. Alla revoca vanno cancellati il
+  soggetto su CompreFace e le righe di `gallery_image_person` con
+  `confidence_score` non nullo. Resta il primo punto aperto di
+  `docs/PRIVACY.md`.
+- **Mappa e video incorporati partono prima del consenso** (`Palazzetto.vue`,
+  `LiveStreamModal.vue`, `PageMediaTail.vue`): la Cookie Policy adesso lo dice,
+  ma dirlo non lo rende lecito — il rimedio è il click-to-load. È il difetto
+  che la scansione settimanale può far diventare rosso: è vero, non è un falso
+  positivo.
+- **I caratteri tipografici li serve il sito**, non il CDN di Google: i
+  `@font-face` stanno in `resources/css/app.css`, i woff2 variabili (Fontsource,
+  OFL 1.1, sottoinsiemi latin e latin-ext) in `public/fonts`. Il foglio di
+  `fonts.googleapis.com` mandava a Google l'IP di ogni visitatore prima di
+  qualsiasi scelta. Il nome della famiglia resta `Montserrat` e non
+  `Montserrat Variable`: lo usano `tailwind.config.js`, i modelli delle email e
+  la misura delle etichette del menu in `useHeaderNavFit.js`, che con un nome
+  sconosciuto misurerebbe il carattere di ripiego (§14).
+- **Una conservazione dichiarata senza un comando che la applichi è una frase
+  falsa.** I 24 mesi di messaggi e accrediti li faceva rispettare nessuno:
+  `contact_messages` non aveva né `prunable` né comando, e restava tutto.
+  `messaggi:pota` (settimanale) conta dalla **data del messaggio**, non da
+  `updated_at`, che cambia quando la redazione lo segna come letto e
+  rimanderebbe in là la scadenza dell'archivio a ogni giro nel pannello.
+- **`docs/PRIVACY.md` è la mappa tecnica**: dove ogni frase dell'informativa
+  diventa vera nel codice, quali conservazioni hanno davvero un comando che le
+  applica, e i tre punti aperti. Aggiungendo un trattamento si aggiorna quello
+  prima dell'informativa.
 
 ---
 

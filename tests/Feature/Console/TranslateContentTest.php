@@ -88,11 +88,16 @@ class TranslateContentTest extends TestCase
     {
         // La pagina esiste già nel database di test: la riportiamo allo stato
         // pre-traduzione invece di crearne una seconda con lo stesso slug.
+        //
+        // Non si usa qui privacy-policy: le informative hanno le due lingue
+        // nello stesso file (`database/data/informative_privacy.php`) e non
+        // passano da questa mappa, apposta — una traduzione in due posti è una
+        // traduzione che invecchia in uno dei due.
         $page = Page::updateOrCreate(
-            ['slug' => 'privacy-policy'],
+            ['slug' => 'palazzetto'],
             [
-                'title' => ['it' => 'Privacy Policy', 'en' => 'Privacy Policy'],
-                'content' => ['it' => '<h2>Informativa sulla Privacy</h2>', 'en' => ''],
+                'title' => ['it' => 'Il Palazzetto', 'en' => 'Il Palazzetto'],
+                'content' => ['it' => '<h2>Pala BigMat</h2>', 'en' => ''],
                 'status' => 'publish',
             ],
         );
@@ -101,8 +106,9 @@ class TranslateContentTest extends TestCase
 
         $page->refresh();
 
-        $this->assertStringContainsString('Privacy Notice', $page->getTranslation('content', 'en'));
-        $this->assertSame('<h2>Informativa sulla Privacy</h2>', $page->getTranslation('content', 'it'));
+        $this->assertStringContainsString('Pala BigMat', $page->getTranslation('content', 'en'));
+        $this->assertStringContainsString('home of Savino Del Bene Volley', $page->getTranslation('content', 'en'));
+        $this->assertSame('<h2>Pala BigMat</h2>', $page->getTranslation('content', 'it'));
     }
 
     public function test_una_pagina_senza_testo_italiano_non_viene_riempita(): void

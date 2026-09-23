@@ -92,6 +92,11 @@ Schedule::command('activity-log:prune --days=180 --force')->weekly()->withoutOve
 // Il registro dei consensi ai cookie tiene dodici mesi, quanto dura il consenso
 // che documenta: oltre, conservarlo sarebbe raccolta di dati senza scopo.
 Schedule::command('consensi:pota')->weekly()->withoutOverlapping();
+
+// Messaggi del modulo contatti e richieste di accredito: ventiquattro mesi, che
+// è quello che l'informativa promette. Finché non c'è stato questo comando era
+// l'unica conservazione dichiarata che nessuno applicava.
+Schedule::command('messaggi:pota')->weekly()->withoutOverlapping();
 Schedule::command('model:prune')->daily()->withoutOverlapping();
 // I batch di analisi della gallery con `allowFailures()` non si chiudono mai
 // da soli se un job fallisce: a settembre 2026 ce n'erano 18 aperti da luglio.

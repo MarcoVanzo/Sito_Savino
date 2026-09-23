@@ -98,8 +98,8 @@ class SecurityHeadersMiddleware
         // attributi `style` e Filament nei suoi componenti. Un foglio di stile
         // non esegue codice, e legarli tutti al nonce vorrebbe dire riscrivere
         // ogni `:style` del frontend.
-        $fogliDiStile = [self::SELF, "'unsafe-inline'", 'https://fonts.googleapis.com'];
-        $font = [self::SELF, 'https://fonts.gstatic.com'];
+        $fogliDiStile = [self::SELF, "'unsafe-inline'"];
+        $font = [self::SELF];
 
         if ($pannello) {
             $scriptSrc = [self::SELF, "'unsafe-inline'", "'unsafe-eval'"];

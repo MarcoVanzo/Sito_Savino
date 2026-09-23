@@ -92,18 +92,6 @@
             "conConsenso": true
         },
         {
-            "host": "fonts.googleapis.com",
-            "categoria": "necessari",
-            "fornitore": "Google Ireland Ltd.",
-            "conConsenso": false
-        },
-        {
-            "host": "fonts.gstatic.com",
-            "categoria": "necessari",
-            "fornitore": "Google Ireland Ltd.",
-            "conConsenso": false
-        },
-        {
             "host": "sito-savino-assets-2026.fra1.digitaloceanspaces.com",
             "categoria": "necessari",
             "fornitore": "DigitalOcean (Spaces)",

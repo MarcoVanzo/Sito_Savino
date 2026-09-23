@@ -276,13 +276,30 @@ class SecurityHeadersTest extends TestCase
     }
 
     /**
-     * Il sito pubblico invece non ne ha bisogno: i suoi font arrivano da Google.
+     * Il sito pubblico invece non ne ha bisogno, e nemmeno degli host di
+     * Google: i suoi caratteri li serve lui, da `public/fonts`. Finché quei
+     * tre host restano fuori dalla policy, una riga rimessa nel layout si
+     * rompe subito invece di rimandare in silenzio l'IP dei visitatori a
+     * Google prima di qualsiasi consenso.
      */
     public function test_il_sito_pubblico_non_apre_host_che_non_gli_servono(): void
     {
         $csp = (string) $this->get('/')->headers->get('Content-Security-Policy');
 
         $this->assertStringNotContainsString('https://fonts.bunny.net', $csp);
+        $this->assertStringNotContainsString('fonts.googleapis.com', $csp);
+        $this->assertStringNotContainsString('fonts.gstatic.com', $csp);
+    }
+
+    /**
+     * E il layout non deve tornare a chiederli.
+     */
+    public function test_la_pagina_pubblica_non_chiede_i_font_a_google(): void
+    {
+        $html = $this->get('/')->getContent();
+
+        $this->assertStringNotContainsString('fonts.googleapis.com', (string) $html);
+        $this->assertStringNotContainsString('fonts.gstatic.com', (string) $html);
     }
 
     private function scriptSrc(TestResponse $risposta): string
