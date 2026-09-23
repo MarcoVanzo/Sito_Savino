@@ -212,6 +212,18 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   indirizzo e la firma si verifica contro un altro, e gli ordini restano
   "pending". Cambiando l'URL del webhook esistente l'id resta valido e la spec non
   si tocca.
+- **I tre componenti sono tre ambienti distinti, e le variabili vanno ripetute in
+  tutti e tre.** Web, worker e scheduler non condividono nulla: una variabile
+  scritta solo sotto `services:` non arriva alla coda ne' allo scheduler. Il caso
+  peggiore e' `APP_KEY`, perche' senza non si rompe niente a vista — `encrypt()`
+  e le firme degli URL smettono semplicemente di combaciare con quelle del web.
+  Il 23/09/2026 worker e scheduler avevano un valore cifrato che si decifrava in
+  stringa vuota: `social:sync-meta` falliva ogni notte da sempre (il cast
+  `encrypted` su `social_accounts.access_token`) senza lasciare traccia, perche'
+  `schedule:work` manda l'output in `/dev/null` e Sentry e' spento. Si controlla
+  dalla console di ciascun componente:
+  `doctl apps console <app> <componente>` e poi
+  `php -r 'echo strlen(getenv("APP_KEY"));'`.
 
 ---
 
