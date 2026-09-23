@@ -316,6 +316,12 @@ workers:
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"
+  # La lingua di base vale anche qui: le email nascono in coda, e sono rese da
+  # questo componente. Oggi combacia per caso, perche' config/app.php ripiega
+  # su 'it'; scritta, non dipende piu' da quel ripiego.
+  - key: APP_LOCALE
+    scope: RUN_AND_BUILD_TIME
+    value: it
   - key: LOG_CHANNEL
     scope: RUN_AND_BUILD_TIME
     value: stderr
@@ -431,6 +437,27 @@ workers:
   - key: META_CONFIG_ID
     scope: RUN_AND_BUILD_TIME
     value: "1530681078385238"
+  # PayPal — le stesse quattro variabili del servizio web, e per la stessa
+  # ragione per cui APP_KEY sta su tutti e tre: web, worker e scheduler sono
+  # ambienti distinti, e una variabile scritta in uno non arriva agli altri.
+  # Oggi nessun job in coda costruisce PayPalPaymentService (checkout, webhook
+  # e pannello sono tutte richieste web), quindi l'assenza non si vede: si
+  # vedrebbe il giorno in cui un rimborso o una cattura finiscono in coda, e
+  # fallirebbe in silenzio con l'output del worker in /dev/null e Sentry spento.
+  # I valori cifrati sono legati all'app, non al componente: si copiano.
+  - key: PAYPAL_CLIENT_ID
+    scope: RUN_AND_BUILD_TIME
+    value: BAA-40si1om8PByIayUtz8uaVOSuc8jTYgGxORrjy82J9csv8jLRg__Rru2yYWnhUiw6CM9i3fIo6p41qU
+  - key: PAYPAL_CLIENT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:DEVkKm+QQhuNRjnbBJYK2AXW+QZtR82s:yS0s9TvVq6Ax+sRGHETPpHpSAJUtTizDma0m4QKrCMrbzt3f5JgCqK1gRESiRk399E3aEVrAKzukwprLtU16D6WN+8C64yE+Jhmq6yuLW9OW11Pj+EBmZcqc+4+aVzHG]
+  - key: PAYPAL_MODE
+    scope: RUN_AND_BUILD_TIME
+    value: live
+  - key: PAYPAL_WEBHOOK_ID
+    scope: RUN_AND_BUILD_TIME
+    value: 13C19054TT859171H
   github:
     branch: main
     # Deploy gestito dal job "deploy" gated in .github/workflows/ci.yml
@@ -480,6 +507,12 @@ workers:
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"
+  # La lingua di base vale anche qui: le email nascono in coda, e sono rese da
+  # questo componente. Oggi combacia per caso, perche' config/app.php ripiega
+  # su 'it'; scritta, non dipende piu' da quel ripiego.
+  - key: APP_LOCALE
+    scope: RUN_AND_BUILD_TIME
+    value: it
   - key: LOG_CHANNEL
     scope: RUN_AND_BUILD_TIME
     value: stderr
@@ -595,6 +628,27 @@ workers:
   - key: META_CONFIG_ID
     scope: RUN_AND_BUILD_TIME
     value: "1530681078385238"
+  # PayPal — le stesse quattro variabili del servizio web, e per la stessa
+  # ragione per cui APP_KEY sta su tutti e tre: web, worker e scheduler sono
+  # ambienti distinti, e una variabile scritta in uno non arriva agli altri.
+  # Oggi nessun job in coda costruisce PayPalPaymentService (checkout, webhook
+  # e pannello sono tutte richieste web), quindi l'assenza non si vede: si
+  # vedrebbe il giorno in cui un rimborso o una cattura finiscono in coda, e
+  # fallirebbe in silenzio con l'output del worker in /dev/null e Sentry spento.
+  # I valori cifrati sono legati all'app, non al componente: si copiano.
+  - key: PAYPAL_CLIENT_ID
+    scope: RUN_AND_BUILD_TIME
+    value: BAA-40si1om8PByIayUtz8uaVOSuc8jTYgGxORrjy82J9csv8jLRg__Rru2yYWnhUiw6CM9i3fIo6p41qU
+  - key: PAYPAL_CLIENT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:DEVkKm+QQhuNRjnbBJYK2AXW+QZtR82s:yS0s9TvVq6Ax+sRGHETPpHpSAJUtTizDma0m4QKrCMrbzt3f5JgCqK1gRESiRk399E3aEVrAKzukwprLtU16D6WN+8C64yE+Jhmq6yuLW9OW11Pj+EBmZcqc+4+aVzHG]
+  - key: PAYPAL_MODE
+    scope: RUN_AND_BUILD_TIME
+    value: live
+  - key: PAYPAL_WEBHOOK_ID
+    scope: RUN_AND_BUILD_TIME
+    value: 13C19054TT859171H
   github:
     branch: main
     # Deploy gestito dal job "deploy" gated in .github/workflows/ci.yml

@@ -230,7 +230,15 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   `schedule:work` manda l'output in `/dev/null` e Sentry e' spento. Si controlla
   dalla console di ciascun componente:
   `doctl apps console <app> <componente>` e poi
-  `php -r 'echo strlen(getenv("APP_KEY"));'`.
+  `php -r 'echo strlen(getenv("APP_KEY"));'`. Il 23/09/2026 quel controllo,
+  fatto su tutti e tre invece che sul solo web, ha trovato il caso successivo:
+  le credenziali `PAYPAL_*` stavano solo sotto `services:`. Innocue finche'
+  nessun job in coda costruisce `PayPalPaymentService` — checkout, webhook e
+  pannello sono tutte richieste web — e mute il giorno in cui uno lo fa. Ora le
+  tre liste le confronta un test
+  (`tests/Unit/VariabiliAllineateFraIComponentiTest.php`): quello che sta sul
+  web deve stare anche su worker e scheduler, e le eccezioni — le variabili che
+  vivono dentro una richiesta HTTP — sono elencate li' una per una col motivo.
 
 ---
 
