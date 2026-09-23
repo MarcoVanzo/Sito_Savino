@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\DB;
+
 /**
  * Privacy Policy e Cookie Policy: un posto solo da cui leggerle.
  *
@@ -36,6 +38,49 @@ class TestiDelleInformative
         }
 
         return array_map(self::ripulisci(...), $informativa['contenuto']);
+    }
+
+    /**
+     * Riscrive le informative pubblicate, lasciando stare quelle che la
+     * redazione ha già messo mano.
+     *
+     * È il corpo di ogni migrazione che pubblica una revisione: cercare la
+     * pagina, riconoscerne una firma, sostituire tutte le lingue. Scritto una
+     * volta qui, perché la terza copia dello stesso `foreach` è il momento in
+     * cui le copie cominciano a divergere.
+     *
+     * @return list<string> gli slug effettivamente riscritti
+     */
+    public static function riscriviDoveNonToccata(): array
+    {
+        $riscritte = [];
+
+        foreach (self::tutte() as $slug => $informativa) {
+            $pagina = DB::table('pages')->where('slug', $slug)->first();
+
+            if (! $pagina) {
+                continue;
+            }
+
+            $contenuti = json_decode((string) $pagina->content, true);
+
+            if (! is_array($contenuti) || ! self::eAncoraUnTestoPrecedente($contenuti, $informativa['firme'])) {
+                continue;
+            }
+
+            foreach (self::contenuto($slug) as $lingua => $testo) {
+                $contenuti[$lingua] = $testo;
+            }
+
+            DB::table('pages')->where('id', $pagina->id)->update([
+                'content' => json_encode($contenuti, JSON_UNESCAPED_UNICODE),
+                'updated_at' => now(),
+            ]);
+
+            $riscritte[] = $slug;
+        }
+
+        return $riscritte;
     }
 
     /**

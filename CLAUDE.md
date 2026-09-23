@@ -1107,6 +1107,26 @@ di pagine e il sito ne ha 1958 (941 notizie, più altrettante in inglese), cioè
   `messaggi:pota` (settimanale) conta dalla **data del messaggio**, non da
   `updated_at`, che cambia quando la redazione lo segna come letto e
   rimanderebbe in là la scadenza dell'archivio a ogni giro nel pannello.
+- **Il titolare del trattamento è la ragione sociale**, non il nome con cui la
+  squadra gioca: «Pallavolo Scandicci Savino Del Bene Società Sportiva
+  Dilettantistica a Responsabilità Limitata» (CF 94217750481, P. IVA
+  06271460484, SDI KRRH6B9, PEC `pallavoloscandicci@legalmail.it`, sede in Via
+  Benozzo Gozzoli, 5/6 — 50018 Scandicci). L'informativa diceva «Savino Del
+  Bene Volley S.S.D. a r.l.», che non è la denominazione di nessuno: è la
+  persona giuridica verso cui si esercitano i diritti, e va per esteso. Il
+  copyright del footer usa invece il nome d'uso, ed è giusto così.
+- **I diritti si esercitano a `privacy@savinodelbenevolley.it`**, la casella
+  indicata anche dall'informativa fornitori e da quella promozionale — non
+  `contact.email` (`info@`), che è il recapito generale del sito e resta a
+  footer, pagina Contatti e modulo contatti.
+- **L'informativa del sito è la pagina, non un PDF.** Il footer chiedeva
+  `legalDocs.privacy_policy` e ripiegava sulla pagina solo se il documento
+  mancava: i PDF c'erano, quindi da ogni pagina il link apriva l'informativa
+  cookie del vecchio WordPress (plugin GDPR Cookie Consent, AddThis, Universal
+  Analytics — nessuno dei quali esiste qui) mentre il banner e le caselle dei
+  moduli facevano accettare la pagina. In Documenti Legali restano le sole
+  informative **che esistono solo come documento** (promozionale, fornitori) e
+  i protocolli di governance; l'elenco commentato sta in `docs/PRIVACY.md` §1.
 - **`docs/PRIVACY.md` è la mappa tecnica**: dove ogni frase dell'informativa
   diventa vera nel codice, quali conservazioni hanno davvero un comando che le
   applica, e i tre punti aperti. Aggiungendo un trattamento si aggiorna quello

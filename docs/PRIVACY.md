@@ -22,6 +22,7 @@ Ultima verifica sul codice: **23 settembre 2026**.
 | Pagine pubbliche | `pages` con slug `privacy-policy` e `cookie-policy`, template `Public/ContentPage` |
 | Elenco dei cookie in fondo alla Cookie Policy | `database/data/cookie_rilevati.json` (scansione) descritto da `database/data/catalogo_cookie.json` |
 | Versione dell'informativa a cui si lega il consenso | `App\Models\ConsensoCookie::VERSIONE` |
+| Documenti PDF (fornitori, promozionale, governance) | Impostazioni → Documenti Legali, gruppo `legal`, file in `legal/` su Spaces |
 
 **I testi in produzione si correggono con una migrazione a guardie**, mai con un
 `update` diretto: la redazione può averli già riscritti dal pannello, e in quel
@@ -43,6 +44,81 @@ nascevano con quella. Ora il seeder legge `TestiDelleInformative::contenuto()`.
 **Quando alzare `ConsensoCookie::VERSIONE`**: quando cambia *ciò che si
 dichiara* — un tracker nuovo, una finalità diversa, un destinatario in più — non
 a ogni ritocco di stile. Alzarla fa ricomparire il banner a tutti.
+
+
+### L'informativa del sito è la pagina, non un PDF
+
+Il footer chiedeva `legalDocs.privacy_policy` e ripiegava sulla pagina solo se
+il PDF mancava. I PDF c'erano: da ogni pagina del sito il link "Privacy Policy"
+apriva un documento, mentre il banner dei cookie e le caselle di newsletter,
+registrazione e checkout facevano accettare la pagina. Due informative diverse
+per lo stesso sito, e in prima fila la peggiore — perché
+`Informativa Cookie.pdf` era quella del **vecchio WordPress**: elencava i cookie
+del plugin GDPR Cookie Consent, di AddThis e di Universal Analytics
+(`_gat_gtag_UA_80836627_23`), che qui non esistono, e non nominava il pixel di
+Meta, che invece c'è.
+
+Dal 23/09/2026 `SiteFooter.vue` punta sempre alle pagine, e in Documenti Legali
+restano solo le informative **che esistono solo come documento**.
+
+### I documenti in `legal/`, uno per uno
+
+| File | Che cos'è | Stato |
+| --- | --- | --- |
+| `Informativa Cookie.pdf` | cookie del vecchio sito WordPress | **ritirata** dal pannello; il file resta su Spaces, non lo linka più nessuno |
+| `Informativa generale Privacy.pdf` | invio di informazioni e promozioni via email, social, WhatsApp | valida; ora sotto il nome giusto, `legal.informativa_promozionale` |
+| `Informativa-Fornitori.pdf` | informativa privacy per clienti e fornitori | valida, coerente, resta dov'era |
+| `Protocollo-1-Codice-di-condotta.pdf` | codice di condotta e tutela minori | valido; è anche il documento che disciplina immagini e dati biometrici (sotto) |
+| `Protocollo-2-…`, `Protocollo-3-…`, `Modello-Organizzativo_compressed.pdf` | governance | validi, non riguardano il sito |
+
+Il Modello Organizzativo e il Protocollo 1 sono caricati **due volte**, in
+`legal/` e in `safeguarding/`: il footer usa i primi, la pagina Safeguarding i
+secondi. Aggiornandone uno, l'altro resta indietro senza che niente lo segnali.
+
+### Quello che i documenti dicono e l'informativa no
+
+Il Codice di condotta contiene due regole che riguardano da vicino il
+riconoscimento dei volti (§4):
+
+- i **dati biometrici** «possono essere trattati solo previo libero ed esplicito
+  consenso dell'interessato, manifestato **in forma scritta**». È esattamente la
+  base che l'informativa dichiara;
+- la Società «fermo restando il preventivo consenso raccolto all'atto
+  dell'iscrizione/tesseramento, può pubblicare fotografie ritraenti i tesserati».
+  Quel consenso copre la **pubblicazione dell'immagine**, non il trattamento
+  biometrico: sono due cose distinte, e la seconda va raccolta a parte;
+- per i tesserati **minori**, immagini e video si usano solo «acquisendo le
+  necessarie autorizzazioni da coloro che esercitano la responsabilità
+  genitoriale».
+
+**Quattro caselle e tre denominazioni.** I documenti non concordano fra loro né
+con il sito su chi contattare e su come si chiama il titolare:
+
+| Dove | Contatto | Titolare |
+| --- | --- | --- |
+| Informativa del sito (pagine) | **`privacy@savinodelbenevolley.it`** | **Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata** |
+| Informativa promozionale, Fornitori | `privacy@savinodelbenevolley.it` | Pallavolo Scandicci Savino Del Bene ssdrl |
+| Codice di condotta | `privacy@pallavoloscandiccissd.it` | PALLAVOLO SCANDICCI VOLLEY SRL |
+| Informativa promozionale (paesi extra-SEE) | `privacy@savinodelbene.com` | — (è il dominio della Spa) |
+
+**La ragione sociale giusta è la prima**, confermata il 23/09/2026: gli altri
+documenti la abbreviano («ssdrl») o la scrivono diversa («PALLAVOLO SCANDICCI
+VOLLEY SRL»). Fino a quel giorno l'informativa del sito diceva «Savino Del Bene
+Volley S.S.D. a r.l.», che è il nome con cui la squadra gioca e non la
+denominazione di nessuno: in un'informativa il titolare va per esteso, perché è
+la persona giuridica verso cui si esercitano i diritti. Il copyright del footer
+continua invece a usare il nome d'uso, e va bene così.
+
+**La casella dei diritti è `privacy@savinodelbenevolley.it`**, confermata il
+23/09/2026: è la stessa che indicano l'informativa fornitori e quella
+promozionale. Non è `contact.email` (`info@`), che è il recapito generale del
+sito e resta dov'è — footer, pagina Contatti, modulo contatti. Restano fuori
+solo il Codice di condotta, che manda a `privacy@pallavoloscandiccissd.it`, e
+l'elenco dei paesi extra-SEE del PDF promozionale, che manda al dominio della
+Spa: sono PDF, si correggono da dove sono stati scritti.
+
+Gli altri dati del titolare stanno nelle impostazioni, gruppo `contact`
+(`legal_cf`, `legal_piva`, `legal_sdi`, `pec`, `address`) e sono corretti.
 
 ---
 
@@ -121,16 +197,16 @@ Quello che l'informativa dice, e dove sta:
   di `gallery_image_person` con `confidence_score` non nullo: le fotografie
   restano, il nome no.
 
-Chiede di comparire o di sparire: `info@savinodelbenevolley.it`, come tutti gli
-altri diritti.
+Chiede di comparire o di sparire: `privacy@savinodelbenevolley.it`, come tutti
+gli altri diritti.
 
 ---
 
 ## 5. Punti aperti
 
-Due, e nessuno dei due si chiude scrivendo codice da soli. Il terzo — i
-ventiquattro mesi dei messaggi che nessun comando applicava — è chiuso:
-`messaggi:pota` gira ogni settimana.
+Tre, e nessuno si chiude scrivendo codice da soli. Il quarto — i ventiquattro
+mesi dei messaggi che nessun comando applicava — è chiuso: `messaggi:pota` gira
+ogni settimana.
 
 1. **Il consenso al riconoscimento dei volti va raccolto davvero, e nessuno lo
    verifica.** L'informativa dichiara la base giuridica — consenso esplicito,
@@ -150,6 +226,17 @@ ventiquattro mesi dei messaggi che nessun comando applicava — è chiuso:
    componenti elencati al §3. Fino ad allora la scansione settimanale dei cookie
    può trovare cookie di terze parti prima della scelta: è un difetto vero, non
    un falso positivo, e non va silenziato.
+
+3. **Due PDF mandano i diritti a caselle diverse.** Ragione sociale e casella
+   del sito sono risolte (§1): l'informativa manda a
+   `privacy@savinodelbenevolley.it`, come i PDF fornitori e promozionale. Il
+   Codice di condotta indica però `privacy@pallavoloscandiccissd.it` e il PDF
+   promozionale, per l'elenco dei paesi extra-SEE, `privacy@savinodelbene.com`
+   — che è il dominio della Spa, non della società sportiva. Sono gli indirizzi
+   a cui un interessato scrive per esercitare i propri diritti: o rispondono, o
+   i due documenti vanno corretti da chi li ha scritti. Da qui non si toccano.
+
+---
 
 ## 6. Quando si aggiunge un trattamento
 
