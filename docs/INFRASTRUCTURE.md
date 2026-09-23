@@ -1,6 +1,13 @@
 # Documentazione Tecnica Infrastruttura — Savino Del Bene Volley
 
-> Ultimo aggiornamento: 2 agosto 2026
+> Ultimo aggiornamento: 23 settembre 2026
+>
+> Il sito oggi risponde solo su `seashell-app-47mmf.ondigitalocean.app`. Il passaggio
+> di `savinodelbenevolley.it` è fissato al **1 ottobre 2026** e ha una procedura sua:
+> [`docs/GO_LIVE.md`](GO_LIVE.md) (`php artisan verifica:lancio` dice cosa manca).
+>
+> La versione stampabile `docs/INFRASTRUCTURE.html` si rigenera da questo file con
+> `python3 scripts/genera-infrastructure-html.py`: non si modifica a mano.
 
 ---
 
@@ -33,9 +40,9 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
       │                       │  └──────┬───────┘     └───▲──────▲───┘     │
       │                       │         │ upload          │      │          │
       │                       │         ▼        job queue│      │cron      │
-      │ immagini CDN          │  ┌──────────────┐  ┌──────┴───┐ ┌┴────────┐│
+      │ immagini (Spaces)     │  ┌──────────────┐  ┌──────┴───┐ ┌┴────────┐│
       ├──────────────────────▶│  │  📦 Spaces   │  │ ⚙️ Worker│ │⏱️ Sched.││
-      │                       │  │  S3 + CDN    │  │ 0.5GB    │ │ 0.5GB   ││
+      │                       │  │  S3 (fra1)   │  │ 0.5GB    │ │ 0.5GB   ││
       │                       │  │  $5/mese     │  │ $5/mese  │ │ $5/mese ││
       │                       │  └──────────────┘  └────┬─────┘ └─────────┘│
       │                       │                         │ API              │
@@ -46,6 +53,11 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
       │                       └─────────────────────────────────────────────┘
 ```
 
+Fuori da questo schema: il bucket di backup `sito-savino-backups` (Spaces, stessa
+region), la copia fuori sede su **Cloudflare R2** e i job di GitHub Actions che li
+alimentano (§9). CompreFace è raggiungibile solo dalla VPC `default-fra1`, in cui
+l'app è agganciata con la voce `vpc:` della spec.
+
 ---
 
 ## 2. Stack Tecnologico
@@ -54,10 +66,10 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 
 | Tecnologia | Versione | Ruolo |
 |-----------|---------|-------|
-| **PHP** | 8.5.5 | Linguaggio backend |
+| **PHP** | `^8.4` (`composer.json`; in locale 8.5) | Linguaggio backend |
 | **Laravel** | 13.17.0 | Framework MVC |
 | **Filament** | 3.3.54 | Pannello admin (CMS) |
-| **Inertia.js** | 2.x | Bridge server↔client (SSR non attivo, vedi §6) |
+| **Inertia.js** | 2.0 (`inertia-laravel` 2.0.24) | Bridge server↔client (SSR non attivo, vedi §6) |
 | **MySQL** | 8.4 LTS | Database relazionale |
 | **Apache** | (heroku buildpack) | Web server |
 | **OPcache + JIT** | tracing 1255 | Compilazione PHP → codice nativo |
@@ -67,9 +79,10 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 | Tecnologia | Versione | Ruolo |
 |-----------|---------|-------|
 | **Vue.js** | 3.x | Framework UI (via Inertia) |
-| **Vite** | (build tool) | Bundler assets |
+| **Vite** | 8.x | Bundler assets |
 | **Node.js** | ≥ 20 (`engines` in `package.json`; la CI usa Node 20) | Build-time (compilazione assets client) |
-| **Tailwind CSS** | (via config) | Styling |
+| **Tailwind CSS** | 3.4 | Styling |
+| **Font** | Montserrat, Playfair Display | Serviti dal sito (`public/fonts`, `@font-face` in `resources/css/app.css`), non dal CDN di Google |
 
 ### Servizi e Librerie
 
@@ -83,13 +96,17 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 | **Spatie Translatable** | Contenuti multilingua |
 | **Spatie Sitemap** | Generazione sitemap SEO |
 | **Sentry** | Error tracking (web, worker e scheduler; attivo solo quando `SENTRY_LARAVEL_DSN` è valorizzato — oggi è vuoto, quindi spento) |
-| **Stripe** (`stripe/stripe-php`) | Pagamenti shop (chiavi `STRIPE_*` non ancora nello spec, vedi §5) |
+| **PayPal** (REST API, `PayPalPaymentService`) | Pagamenti shop e aste, modalità `live`; `php artisan paypal:verifica` controlla credenziali e webhook |
+| **Stripe** (`stripe/stripe-php`) | Pagamenti shop — chiavi `STRIPE_*` non nello spec: il metodo non viene offerto al checkout (`PaymentGateway::configurato()`) |
+| **ActiveCampaign** | Newsletter (iscrizioni e revoche via coda) |
+| **GA4 Data API** / **Meta Graph API** | Analytics del pannello (sito, Facebook, Instagram) — vedi `docs/ANALYTICS.md` |
+| **Lega Volley Femminile** | Calendario, risultati, classifica e tabellini, letti dalle pagine pubbliche (`app/Services/Lvf/`) |
 
 ### Repository
 
 | Dettaglio | Valore |
 |----------|--------|
-| GitHub | [MarcoVanzo/Sito_Savino](https://github.com/MarcoVanzo/Sito_Savino) |
+| GitHub | [MarcoVanzo/sito_savino](https://github.com/MarcoVanzo/sito_savino) (pubblico) |
 | Branch produzione | `main` |
 | Deploy | Gated: push a `main` → workflow CI → job `deploy` solo se i test passano (`deploy_on_push: false` nello spec) |
 
@@ -129,6 +146,8 @@ Tutti i servizi sono nella **stessa region** (Frankfurt, Germania) per minimizza
 3. php artisan storage:link             → Crea symlink storage/
 4. php artisan cache:clear              → Pulisce cache vecchia (cancella anche il
                                           battito dello scheduler, vedi health check)
+   php artisan gallery:riscalda-cache   → Accoda la ricostruzione dell'archivio foto
+                                          (12.000 foto): non la paga il primo visitatore
 5. php artisan config:cache             → Solo se le credenziali AWS sono presenti
                                           (altrimenti config:clear, per non congelare
                                           valori S3 vuoti)
@@ -165,18 +184,29 @@ delay più corto metterebbe l'istanza in ciclo di riavvio.
 **Comportamento:**
 - Processa le code `default` e `ai` (in quest'ordine di priorità)
 - Controlla la tabella `jobs` ogni **3 secondi**
-- Se un job fallisce, **riprova fino a 3 volte** (con backoff di 30s, 60s)
-- Si riavvia ogni **3600 secondi** (1 ora) per prevenire memory leak
-- Timeout per singolo job: **120 secondi**
+- Se un job fallisce, **riprova fino a 3 volte**; attese e timeout li decide il
+  singolo job (`AnalyzeGalleryImageJob`: 120 s, backoff 30/60 s; newsletter:
+  backoff 10/30/90 s). Senza un valore proprio vale il timeout di serie di
+  `queue:work`, **60 s**: il comando non passa `--timeout`
+- Si riavvia dopo **1 ora**, **100 job** o **384 MB** per prevenire memory leak
+- `retry_after` della coda database è **1860 s** (`config/queue.php`), sopra il
+  job più lungo (import della gallery storica e anteprime, 1800 s). Era 180 s:
+  con un solo worker innocuo, con due un job ancora in corsa sarebbe stato
+  ripreso dall'altro e avrebbe girato **due volte in parallelo**. Il prezzo è
+  che un job rimasto orfano (worker ucciso a metà) torna in coda dopo mezz'ora.
+  Un job nuovo con un timeout più lungo fa fallire
+  `tests/Unit/RetryAfterDellaCodaTest.php`
 
 **Job processati:**
 
 | Job | Trigger | Cosa fa |
 |-----|---------|---------|
-| `AnalyzeGalleryImageJob` | Upload foto nel CMS (Galleria) | Scarica l'immagine da S3, la invia a CompreFace per riconoscimento facciale, salva i risultati nel DB (coda `ai`) |
+| `AnalyzeGalleryImageJob` | Upload foto nel CMS (Galleria), oppure `gallery:analyze --pending` ogni ora per le foto entrate da altre vie | Scarica l'immagine da S3, la invia a CompreFace per riconoscimento facciale, salva i tag nel DB (coda `ai`) |
+| `RicostruisciLaCacheDellaGallery` | Modifica di foto/album/atlete, avvio del web, ogni ora | Rigenera la cache dell'archivio foto invece di cancellarla (job unico) |
+| `PerformConversionsJob` (Spatie) | Upload di un media | Conversioni immagine; richiede GD (§3.5) |
 | `SyncNewsletterToActiveCampaign` | Iscrizione newsletter | Sincronizza il contatto su ActiveCampaign (coda `default`) |
 | `UnsubscribeNewsletterFromActiveCampaign` | Disiscrizione o cancellazione di un iscritto | Porta la revoca su ActiveCampaign: status 2 sulla lista, oppure cancellazione del contatto se la richiesta è di cancellazione dati (coda `default`) |
-| Mail transazionali | Ordini, aste, rimborsi | `Mail::to(...)->queue(...)` — richiedono un mailer configurato (vedi §5) |
+| Mail transazionali | Ordini, aste, rimborsi | `Mail::to(...)->queue(...)` — oggi finiscono nel log: nessun mailer configurato (vedi §5) |
 
 **Flusso:**
 
@@ -223,27 +253,30 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 | Nodi | 1 (singolo, no replica) |
 | Region | `fra1` (Frankfurt) |
 | Tipo | Managed (DigitalOcean gestisce backup, aggiornamenti, monitoring) |
-| Connessione | Rete privata (non esposta a internet) |
+| Connessione | Endpoint pubblico TLS (porta 25060) filtrato dalle **Trusted Sources**: l'app `sito-savino` e l'IP di sviluppo. Il backup aggiunge l'IP del runner GitHub per la durata del dump e lo rimuove alla fine, anche su errore |
 | Nome cluster | `sito-savino-db` |
 
 **Dati contenuti (principali):**
 
 | Categoria | Tabelle | Esempi |
 |-----------|---------|--------|
-| Contenuti | posts, pages, categories, hero_slides | News, pagine statiche, slider |
-| Squadra | players, staff_members, rosters, player_stats | Rose, statistiche, organigramma |
-| Partite | games, seasons, teams | Calendario, risultati, classifiche |
-| Galleria | gallery_events, gallery_images | Eventi foto, analisi facciale |
-| Shop | products, product_categories, orders, stock_movements | Prodotti, ordini, magazzino |
+| Contenuti | posts, pages, categories, hero_slides, site_settings | News (941 storiche + import orario da WordPress), pagine CMS, impostazioni |
+| Squadra | players, staff_members, rosters, player_stats, game_player_stats | Rose, statistiche stagionali ricostruite dai tabellini |
+| Partite | games, seasons, teams, team_lvf_club_ids | Calendario, risultati, classifiche (sync Lega) |
+| Galleria | gallery_events, gallery_images, gallery_image_person | Eventi foto, tag delle atlete (manuali e AI) |
+| Shop | products, product_categories, orders, coupons, shipping_zones, stock_movements | Prodotti, ordini, codici sconto, fasce di peso |
+| Aste | auctions, bids | Aste benefiche e offerte |
 | Sponsor | sponsors | Loghi e link partner |
-| Sistema | users, activity_log, jobs, sessions, menu_items | Utenti, log, code, navigazione |
+| Analytics | web_analytics_daily, social_insights_daily, social_accounts | Serie giornaliere GA4 e Meta (`docs/ANALYTICS.md`) |
+| Privacy | consensi_cookie, contact_messages | Prove di consenso (12 mesi), messaggi e accrediti (24 mesi) |
+| Sistema | users, activity_logs, jobs, job_batches, cache, sessions, menu_items | Utenti, log, code, navigazione |
 | Media | media (Spatie) | Metadati file caricati |
 
-**Backup:** Automatici giornalieri gestiti da DigitalOcean (inclusi nel costo).
+**Backup:** giornaliero gestito da DigitalOcean, più il dump cifrato su Spaces e R2 (§9).
 
 ---
 
-### 3.5 📦 Spaces S3 + CDN — $5/mese
+### 3.5 📦 Spaces S3 — $5/mese
 
 **Cosa fa:** Storage dei file (immagini, media, documenti). È un servizio di object storage compatibile con Amazon S3, quindi Laravel lo usa come se fosse AWS S3.
 
@@ -253,9 +286,8 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 | Region | `fra1` (Frankfurt) |
 | Storage incluso | 250 GB |
 | Transfer incluso | 1 TB/mese |
-| CDN | Attivo (incluso nel costo) |
-| URL diretto | `sito-savino-assets-2026.fra1.digitaloceanspaces.com` |
-| URL CDN | `sito-savino-assets-2026.fra1.cdn.digitaloceanspaces.com` |
+| URL usato dal sito | `sito-savino-assets-2026.fra1.digitaloceanspaces.com` (`AWS_URL`: origine, **non** CDN) |
+| URL CDN | `sito-savino-assets-2026.fra1.cdn.digitaloceanspaces.com` — non referenziato da nessuna parte nel codice né nello spec |
 | Protocollo | S3 API v4 (compatibile AWS SDK) |
 
 **File contenuti:**
@@ -270,12 +302,19 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 | Sponsor | Loghi partner |
 | Media Library | Conversioni Spatie (thumbnail, webp, responsive) |
 
-**Come funziona il CDN:**
+**Come arriva un'immagine al browser:**
 1. L'admin carica un'immagine nel CMS
 2. Laravel la salva su Spaces via API S3
-3. Spatie Media Library genera le conversioni (thumbnail, webp)
-4. Il sito pubblico richiede l'immagine dal CDN
-5. Il CDN serve la copia più vicina all'utente (cache edge)
+3. Spatie Media Library genera le conversioni in coda (thumbnail, webp)
+4. Il sito pubblico la chiede **direttamente all'origine di Frankfurt**: gli
+   indirizzi nascono da `AWS_URL`, che punta all'endpoint non-CDN. Il
+   `Cache-Control` che `media:fix-remote-metadata` scrive sui file vale per la
+   cache del browser, non per un edge.
+
+Passare al CDN significa cambiare `AWS_URL` sullo spec (web, worker e
+scheduler) e verificare che l'endpoint CDN sia attivo sul bucket; gli indirizzi
+già salvati in chiaro nei contenuti (HTML delle notizie) resterebbero
+sull'origine.
 
 > ⚠️ Le conversioni richiedono **GD**, che il buildpack `heroku/php` non abilita
 > per impostazione predefinita: va richiesto con `"ext-gd": "*"` fra i `require`
@@ -299,9 +338,13 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 | RAM | 4 GB |
 | Disco | 80 GB SSD |
 | Region | `fra1` (Frankfurt) |
-| IP | 157.230.98.6 |
-| Porta API | 8000 |
+| IP privato (VPC) | 10.114.0.3 |
+| Porta API | 8000, aperta alla sola VPC `10.114.0.0/20` (cloud firewall `compreface-fw`) |
 | ID Droplet | 580932690 |
+
+Chiave API vera nel Postgres interno di CompreFace, copia cifrata in
+`COMPREFACE_KEY`. Le regole sugli esempi di addestramento (volto minimo 90 px,
+soglie di tag e di "da rivedere") stanno in `CLAUDE.md` §12-ter.
 
 **Funzionalità:**
 
@@ -322,7 +365,8 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 6. CompreFace analizza i volti e restituisce:
    - Coordinate dei volti (bounding box)
    - Identità matchate (nome giocatrice, % confidenza)
-7. Worker salva i risultati nel DB (tabella gallery_images)
+7. Worker salva i tag in gallery_image_person (con confidence_score) e segna
+   ai_analyzed_at su gallery_images
 ```
 
 **Perché 4GB RAM:** CompreFace è un'applicazione Java (Spring Boot) che carica in memoria modelli di deep learning per il riconoscimento facciale. Il modello + JVM + API server richiedono circa 2-3 GB di RAM operativa.
@@ -334,21 +378,29 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 ### 4.1 Visita sito pubblico (es. `/news`)
 
 ```
-Utente → HTTPS → App Web → Cache check (CachePublicResponse)
+Utente → HTTPS → App Web → CachePublicResponse
                               │
-                    ┌─────────┴──────────┐
-                    │                    │
-              Cache HIT             Cache MISS
-              (< 5ms)                   │
-                    │              Query MySQL
-                    │              Render Inertia (no SSR)
-                    │              Salva in cache
-                    │                    │
-                    ▼                    ▼
-              HTML response        HTML response
-                    │
-              Immagini → CDN Spaces → Browser
+          ┌───────────────────┴────────────────────┐
+          │ GET anonimo, senza cookie di sessione, │  tutto il resto
+          │ non Inertia, non crawler social        │  (navigazione Inertia,
+          │                                        │   visitatore con sessione,
+     HIT (TTL 60 s)          MISS                  │   admin, POST, crawler)
+          │            query MySQL + render        │
+          │            salva in cache              │  query MySQL + render
+          ▼                    ▼                   ▼
+                        HTML / JSON Inertia
+                              │
+              Immagini → Spaces (origine fra1) → Browser
 ```
+
+**La cache full-page copre poco del traffico umano.** Il middleware gira prima
+di `StartSession` e, per non servire a un anonimo la pagina di un utente
+loggato, salta ogni richiesta che porta il cookie di sessione — che Laravel
+imposta alla prima risposta. Salta anche le richieste `X-Inertia`, cioè ogni
+clic interno. In pratica la cache serve la **prima pagina** di un visitatore
+senza cookie e i bot; tutto il resto passa dalle cache applicative (archivio
+gallery, sponsor, feed, menu). I TTFB del §7 misurati con `curl` senza cookie
+sono quindi il caso migliore, non quello tipico.
 
 ### 4.2 Azione CMS (es. carica foto galleria)
 
@@ -362,7 +414,7 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 7. Worker                     → Scarica immagine da S3
 8. Worker                     → POST a CompreFace (:8000)
 9. CompreFace                 → Analizza volti, restituisce risultati
-10. Worker                    → UPDATE gallery_images con risultati
+10. Worker                    → Tag in gallery_image_person, ai_analyzed_at su gallery_images
 11. Worker                    → DELETE job (completato)
 ```
 
@@ -377,7 +429,7 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 | `APP_ENV` | `production` | Ambiente di esecuzione |
 | `APP_DEBUG` | `false` | Debug disattivato |
 | `APP_KEY` | 🔒 secret | Chiave di cifratura Laravel |
-| `APP_URL` | URL pubblico | URL base dell'applicazione |
+| `APP_URL` | `https://${APP_DOMAIN}` | URL base. Segue il dominio della spec: per questo `domains:` si aggiunge solo il giorno del passaggio (`docs/GO_LIVE.md`) |
 | `APP_LOCALE` | `it` | Lingua predefinita |
 | `DB_CONNECTION` | `mysql` | Driver database |
 | `DB_HOST` | `${sito-savino-db.HOSTNAME}` | Host DB (injected da DO) |
@@ -387,11 +439,13 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 | `DB_PASSWORD` | 🔒 `${sito-savino-db.PASSWORD}` | Password DB |
 | `CACHE_STORE` | `database` | Driver cache (tabella MySQL `cache`) |
 | `SESSION_DRIVER` | `database` | Sessioni salvate in MySQL |
+| `SESSION_LIFETIME` | `480` | Otto ore: con i 120 minuti di default un salvataggio lungo nel pannello tornava 419 |
 | `SESSION_ENCRYPT` | (attivo) | Sessioni cifrate |
 | `SESSION_SECURE_COOKIE` | (attivo) | Cookie solo HTTPS |
 | `QUEUE_CONNECTION` | `database` | Code via tabella MySQL `jobs` |
 | `FILESYSTEM_DISK` | `s3` | Storage file su Spaces |
 | `MEDIA_DISK` | `s3` | Media Library su Spaces |
+| `FILAMENT_FILESYSTEM_DISK` | `s3` | Upload del pannello su Spaces: Filament non segue `FILESYSTEM_DISK` e di serie scriverebbe sul container effimero |
 | `AWS_ACCESS_KEY_ID` | 🔒 secret | Credenziali Spaces |
 | `AWS_SECRET_ACCESS_KEY` | 🔒 secret | Credenziali Spaces |
 | `AWS_DEFAULT_REGION` | `fra1` | Region Spaces |
@@ -404,23 +458,45 @@ Utente → HTTPS → App Web → Cache check (CachePublicResponse)
 | `SENTRY_LARAVEL_DSN` | `""` (vuoto) | Error tracking — **spento** finché il DSN non viene valorizzato (cifrato, vedi commento nello spec) |
 | `SENTRY_ENVIRONMENT` | `production` | Ambiente riportato a Sentry |
 | `SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Campionamento performance tracing |
-| `PREVIEW_AUTH_USER` / `PREVIEW_AUTH_PASS` | 🔒 secret | Basic auth su tutto il sito (fase di pre-lancio) |
+| `PREVIEW_AUTH_ENABLED` | `false` | Basic auth di pre-lancio **spenta**: il sito è pubblico |
+| `PREVIEW_AUTH_USER` / `PREVIEW_AUTH_PASS` | 🔒 secret | Credenziali pronte per richiuderlo (con la protezione accesa e i segreti vuoti il sito risponde 503) |
 | `COMPREFACE_HOST` | `http://10.114.0.3:8000` | URL server CompreFace (rete privata VPC) |
-| `COMPREFACE_KEY` | in chiaro nello spec | API key CompreFace — attualmente il valore di default `0000…0001`, da rigenerare e cifrare |
+| `COMPREFACE_KEY` | 🔒 secret cifrato | API key CompreFace |
 | `ACTIVECAMPAIGN_URL` / `ACTIVECAMPAIGN_LIST_ID` | in chiaro | Endpoint e lista newsletter |
-| `ACTIVECAMPAIGN_API_KEY` | ⚠️ in chiaro nello spec | Marcata `SECRET` ma il valore **non è cifrato** (niente formato `EV[1:…]`): va ruotata e ricifrata |
+| `ACTIVECAMPAIGN_API_KEY` | 🔒 secret cifrato | Oggi cifrata (`EV[1:…]`); il commento nello spec la dà ancora da **ruotare**, perché il valore è stato in chiaro nel repository |
+| `GA4_SERVICE_ACCOUNT_JSON` | 🔒 secret cifrato | Service account Google (base64) per la GA4 Data API |
+| `META_APP_ID` / `META_CONFIG_ID` | in chiaro | App Meta e configurazione Login for Business (non segreti) |
+| `META_APP_SECRET` | 🔒 secret, **a livello di app** | Unica variabile dichiarata sopra i componenti: vale per web, worker e scheduler |
+| `PAYPAL_CLIENT_ID` / `PAYPAL_MODE` | in chiaro / `live` | Credenziale pubblica e ambiente |
+| `PAYPAL_CLIENT_SECRET` | 🔒 secret cifrato | |
+| `PAYPAL_WEBHOOK_ID` | in chiaro | Entra nella verifica della firma: al cambio di dominio si **modifica l'URL** del webhook esistente, non se ne crea uno nuovo |
 
-> ⚠️ **Variabili mancanti nello spec** (`.do/app.yaml`): nessuna variabile
-> `MAIL_*` / `RESEND_API_KEY`, `STRIPE_*`, `PAYPAL_*`. Poiché il deploy applica
-> lo spec del repository, eventuali valori aggiunti a mano dal pannello DO
-> vengono sovrascritti ad ogni rilascio. Vanno aggiunti allo spec come `SECRET`.
+> ⚠️ **Variabili ancora assenti dallo spec** (`.do/app.yaml`):
+> - `MAIL_MAILER` / `RESEND_API_KEY` / `MAIL_FROM_*`: senza, `config/mail.php`
+>   cade su `log` e **nessuna email esce** (ordini, aste, rimborsi, reset password).
+>   Oltre alle variabili serve il DKIM di Resend sul DNS della Spa, che pubblica
+>   `DMARC p=reject`: procedura in `docs/GO_LIVE.md` §1.
+> - `STRIPE_*`: il gateway resta nascosto al checkout finché non ci sono.
+>
+> Il deploy applica lo spec del repository: un valore aggiunto solo dal pannello
+> DO viene cancellato al rilascio successivo. I segreti si scrivono dal pannello
+> con "Encrypt" e si ricopiano nello spec nella forma `EV[1:…]`.
 
 ### Worker e Scheduler
 
-Worker e scheduler replicano le stesse variabili del web (incluse `AWS_*`,
-`COMPREFACE_*`, `ACTIVECAMPAIGN_*`, Sentry), con in più `APP_URL` esplicito:
-senza, le email in coda (es. link di checkout al vincitore d'asta) uscivano
-con host `http://localhost`.
+Web, worker e scheduler sono **tre ambienti distinti**: una variabile scritta solo
+sotto `services:` non arriva alla coda né allo scheduler. Worker e scheduler
+ripetono quindi le variabili del web (`APP_KEY`, `APP_URL`, `AWS_*`,
+`FILAMENT_FILESYSTEM_DISK`, `COMPREFACE_*`, `ACTIVECAMPAIGN_*`, `GA4_*`, `META_*`,
+`PAYPAL_*`, Sentry).
+
+Due casi reali: senza `APP_URL` le email in coda uscivano con host
+`http://localhost`; con un `APP_KEY` che si decifrava in stringa vuota (trovato
+il 23/09/2026) `social:sync-meta` falliva ogni notte senza lasciare traccia. Ora
+l'allineamento lo verifica `tests/Unit/VariabiliAllineateFraIComponentiTest.php`,
+che elenca una per una, col motivo, le sole eccezioni (variabili che vivono dentro
+una richiesta HTTP). Controllo manuale su ciascun componente:
+`doctl apps console <app> <componente>` → `php -r 'echo strlen(getenv("APP_KEY"));'`.
 
 ---
 
@@ -430,7 +506,7 @@ con host `http://localhost`.
 
 ```
 git push main → GitHub Actions (CI: lint, PHPStan, test) → job "deploy"
-              → digitalocean/app_action con lo spec .do/app.yaml → Build Web + Worker → ACTIVE
+              → digitalocean/app_action con lo spec .do/app.yaml → Build Web + Worker + Scheduler → ACTIVE
 ```
 
 Lo spec `.do/app.yaml` del repository **sovrascrive** la configurazione dell'app
@@ -448,13 +524,13 @@ composer install --optimize-autoloader --no-dev && npm ci --include=dev && npm r
    lo script `build:ssr` esiste in `package.json` ma non è usato e manca
    l'entrypoint `resources/js/ssr.js`.
 
-### Build Worker
+### Build Worker e Scheduler
 
 ```bash
 composer install --optimize-autoloader --no-dev
 ```
 
-Solo dipendenze PHP (il worker non serve frontend).
+Solo dipendenze PHP (nessuno dei due serve frontend).
 
 ### Avvio Web (`start.sh`)
 
@@ -463,7 +539,7 @@ Solo dipendenze PHP (il worker non serve frontend).
 | 1/6 | `migrate --force` | Applica nuove migrazioni DB (senza `\|\| true`: uno schema disallineato deve fermare l'avvio) |
 | 2/6 | `db:seed SiteSettingSeeder` + `db:seed CorporateGovernanceSeeder` | Seeder idempotenti: garantiscono le impostazioni di base (un fallimento ferma l'avvio) |
 | 3/6 | `storage:link` | Symlink `public/storage → storage/app/public` |
-| 4/6 | `cache:clear` | Svuota cache del deploy precedente (cancella anche il battito dello scheduler) |
+| 4/6 | `cache:clear` + `gallery:riscalda-cache` | Svuota cache del deploy precedente (cancella anche il battito dello scheduler) e accoda la ricostruzione dell'archivio foto; un fallimento di quest'ultima non ferma l'avvio |
 | 5/6 | `config:cache` (solo con credenziali AWS) + `route:cache` + `view:cache` + `event:cache` | Pre-compila config, route, Blade templates, event map |
 | 6/6 | `filament:optimize` | Cachea componenti, icone Filament |
 
@@ -483,6 +559,8 @@ php artisan scheduler:beat && php artisan schedule:work --no-interaction
 ```
 
 Un battito immediato (per l'health check del web), poi il ciclo del pianificatore.
+`schedule:work` manda l'output dei comandi in `/dev/null` e Sentry è spento: un
+comando che fallisce ogni notte non lascia traccia nei log di App Platform.
 
 ---
 
@@ -513,6 +591,10 @@ Un battito immediato (per l'health check del web), poi il ciclo del pianificator
 
 ### Benchmark TTFB (cache calde, 2 luglio 2026)
 
+> Misure di luglio, con `curl` senza cookie: per il sito pubblico sono
+> probabilmente cache HIT di `CachePublicResponse` (§4.1), non il tempo di una
+> navigazione reale. Da rimisurare dopo il passaggio del dominio.
+
 | Pagina | TTFB |
 |--------|------|
 | CMS Admin `/admin/login` | **0.18s** |
@@ -529,8 +611,9 @@ Un battito immediato (per l'health check del web), poi il ciclo del pianificator
 | OPcache + JIT | Bytecode → machine code | Tutte le pagine PHP |
 | Laravel config/route/view cache | File serializzati | Boot framework |
 | Filament optimize | Componenti cachati | CMS admin |
-| `CachePublicResponse` middleware | Full-page HTML cache | Solo sito pubblico (esclude `/admin`) |
-| Spaces CDN | Edge cache immagini | Immagini/media |
+| `CachePublicResponse` middleware | Full-page HTML cache, 60 s | Solo GET anonimi senza cookie di sessione e non Inertia (§4.1) |
+| Cache applicative (store `database`) | Home, news, rose, shop, archivio gallery (1 giorno, rigenerato in coda), sponsor, feed RSS (30 min), menu | Invalidate al salvataggio (`CacheInvalidationObserver`; il menu da `MenuItem`) |
+| `Cache-Control` sui file Spaces | Cache del browser | Immagini/media (nessun CDN, §3.5) |
 
 ---
 
@@ -545,10 +628,22 @@ Un battito immediato (per l'health check del web), poi il ciclo del pianificator
 | 3 | 🌐 App Web | `apps-s-1vcpu-1gb-fixed`, fra | **$10.00** |
 | 4 | ⚙️ Worker | `apps-s-1vcpu-0.5gb`, fra | **$5.00** |
 | 5 | ⏱️ Scheduler | `apps-s-1vcpu-0.5gb`, fra | **$5.00** |
-| 6 | 📦 Spaces + CDN | 250 GB, fra1 | **$5.00** |
+| 6 | 📦 Spaces | abbonamento: 250 GB + 1 TB di traffico, **per tutti i bucket** dell'account | **$5.00** |
 | | | **TOTALE** | **$64.23/mese** |
 | | | | **~€59/mese** |
 | | | | **~€710/anno** |
+
+Cifre di listino: la fatturazione non è leggibile con il token di sola lettura
+(403), quindi il totale non è confrontato con una fattura.
+
+Voci variabili, fuori dal totale:
+- **Spaces oltre i 250 GB** ($0.02/GB): il bucket di backup
+  `sito-savino-backups` sta nello stesso abbonamento del bucket degli asset, e i
+  media vi sono copiati per intero. Con dodicimila foto più le conversioni, la
+  somma dei due bucket va controllata dal pannello prima di darla per inclusa.
+- **Cloudflare R2**: 10 GB gratuiti, poi a consumo; contiene dump e media.
+- **GitHub Actions**: gratuito, il repository è pubblico. Cookiebot è stato scartato
+(~30 €/mese per 1958 pagine): consenso e scansione dei cookie sono fatti in casa.
 
 ---
 
@@ -558,25 +653,35 @@ Un battito immediato (per l'health check del web), poi il ciclo del pianificator
 
 | Componente | Backup | Frequenza | Gestione |
 |-----------|--------|-----------|----------|
-| Database MySQL | ✅ Automatico | Giornaliero | DigitalOcean managed |
-| Spaces S3 | ✅ Persistente | In tempo reale | Object storage durabile |
+| Database MySQL | ✅ Managed | Giornaliero, ultimi 7 giorni (verificato 23/09: 8 copie, ~0,56 GB) | DigitalOcean |
+| Database MySQL | ✅ Dump GPG | Giornaliero 03:00 UTC (`backup-db.yml`) | Bucket `sito-savino-backups` (90 giorni) + copia su Cloudflare R2 |
+| Media Spaces | ✅ Copia | Settimanale, domenica 04:00 UTC (`backup-media.yml`) | Bucket `sito-savino-backups` (30 giorni) + copia su Cloudflare R2, con manifest dei file (20/09: 81.308 file) |
+| Verifica restore | ✅ Automatica | Lunedì 04:30 UTC (`verifica-restore.yml`) | Ripristina l'ultimo dump in un MySQL usa e getta; apre una issue se non torna su |
 | Codice sorgente | ✅ Git | Ad ogni push | GitHub |
-| Droplet CompreFace | ⚠️ Manuale | Da configurare | Snapshot DigitalOcean |
+| Droplet CompreFace | ❌ Nessuno | — | Backup del droplet non attivi (verificato 23/09; si accendono con `doctl compute droplet-action enable-backups 580932690`, $4,80/mese per i settimanali). La face collection, cioè gli esempi appresi, sta solo lì: le foto di addestramento non vengono conservate (`CLAUDE.md` §12-ter), quindi un droplet perso significa riaddestrare da capo |
+
+Il bucket di backup ha una policy che nega la cancellazione ma non la
+sovrascrittura. La copia su R2 sta fuori dal perimetro dell'account DigitalOcean
+e i giri di settembre la scrivono davvero (`R2_CHIAVI_PRESENTI: true`); che sia
+anche **immutabile** dipende dal bucket lock, che si configura su Cloudflare e
+da qui non è verificabile. Dettagli, setup e restore in [`BACKUP.md`](../BACKUP.md).
 
 ### Sicurezza
 
 | Misura | Stato |
 |--------|-------|
 | HTTPS (TLS) | ✅ Automatico (App Platform) |
-| DB su rete privata | ✅ Non esposto a internet |
+| Accesso al DB | ✅ Trusted Sources: l'app e l'IP di chi sviluppa, più il runner del backup per la durata del dump. L'IP di sviluppo cambia spesso: quando se ne aggiunge uno nuovo il vecchio va tolto, perché resta autorizzato anche dopo che la linea l'ha riassegnato a qualcun altro. L'endpoint chiede comunque utente, password e TLS |
+| CompreFace | ✅ API solo dalla VPC (cloud firewall `compreface-fw`). SSH aperta a internet per scelta: solo chiave (password e keyboard-interactive disattivate), fail2ban attivo. Limitarla a un IP non regge, con un IP di sviluppo che cambia più volte al giorno |
+| Content Security Policy | ✅ `SecurityHeadersMiddleware`: sito pubblico con nonce, senza `unsafe-inline`/`unsafe-eval`; il pannello li mantiene per Alpine |
+| Terze parti prima del consenso | ✅ Font serviti dal sito; GA4 e Pixel Meta solo dopo il consenso. ⚠️ Mappa e video incorporati partono ancora prima (`docs/PRIVACY.md`) |
 | Sessioni cifrate | ✅ `SESSION_ENCRYPT` attivo |
 | Cookie sicuri | ✅ `SESSION_SECURE_COOKIE` attivo |
 | Debug disattivato | ✅ `APP_DEBUG=false` |
-| Secret in env vars | ⚠️ Quasi tutti cifrati (`EV[1:…]`) in `.do/app.yaml`, ma `ACTIVECAMPAIGN_API_KEY` è in chiaro nel repository pubblico: va **ruotata** e ricifrata. Anche `COMPREFACE_KEY` è il default in chiaro |
+| Secret in env vars | ✅ Tutti cifrati (`EV[1:…]`) in `.do/app.yaml`. ⚠️ `ACTIVECAMPAIGN_API_KEY` è stata in chiaro nel repository pubblico: va ancora **ruotata** |
+| Error tracking | ⚠️ Sentry spento (`SENTRY_LARAVEL_DSN` vuoto) e `LOG_LEVEL=error`: i warning non si vedono da nessuna parte |
 | Trust proxies | ✅ Configurato per App Platform |
-| Log level | ✅ `error` (niente info/debug in prod) |
 | Health check | ✅ `/up` verifica database e cache; segnala (senza far fallire) uno scheduler fermo |
-| OPcache validate_timestamps | ✅ Disabilitato (previene code injection) |
 
 ### Task schedulati
 
@@ -588,13 +693,32 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 |---------|-----------|-------|
 | `scheduler:beat` | Ogni minuto | Battito letto dall'health check `/up`: rileva uno scheduler morto |
 | `lvf:sync` | Ogni ora | Calendario, risultati e classifica dal sito della Lega (fallimenti contati da `LvfSyncHealth`, alert ai Super Admin) |
+| `news:importa-dal-vecchio-sito` | Ogni ora | Comunicati pubblicati sul vecchio WordPress (`wp-json`); si spegne da solo il 2/10/2026 (`services.vecchio_sito.leggibile_fino_a`) |
 | `sitemap:generate` | Giornaliero (04:00) | Genera sitemap XML per SEO |
 | `media:fix-remote-metadata --since="3 days ago"` | Giornaliero (04:30) | Ripassa Content-Type e Cache-Control sui file recenti caricati su Spaces |
+| `social:sync-meta --days=90` | Giornaliero (03:30) | Insight Facebook/Instagram, max 120 chiamate |
+| `analytics:sync-ga4 --days=90` | Giornaliero (05:00) | Serie giornaliera del traffico GA4 |
+| `RicostruisciLaCacheDellaGallery` (job) | Ogni ora (:17) | Rigenera la cache dell'archivio foto |
+| `gallery:analyze --pending --limit=600` | Ogni ora (:37) | Riconoscimento volti sulle foto non ancora analizzate |
+| `volti:riconcilia-contatori` | Giornaliero (04:15) | Riallinea `players.ai_face_examples` a CompreFace |
 | `activity-log:prune --days=180` | Settimanale | Pulisce log attività > 6 mesi |
+| `consensi:pota` | Settimanale | Prove di consenso cookie oltre i 12 mesi |
+| `messaggi:pota` | Settimanale | Messaggi e accrediti oltre i 24 mesi (dalla data del messaggio) |
 | `model:prune` | Giornaliero | Pulisce modelli scaduti |
+| `queue:prune-batches` / `queue:prune-failed` | Giornaliero | Batch rimasti aperti (72 h) e job falliti (30 giorni) |
 | `carts:prune-expired` | Giornaliero (03:00) | Elimina i carrelli scaduti |
 | `order:check-unpaid` | Ogni 10 minuti | Annulla ordini non pagati e rilascia lo stock |
 | `auction:activate` | Ogni minuto | Attiva le aste programmate |
 | `auction:close` | Ogni minuto | Chiude le aste scadute e notifica i vincitori |
 | `auction:check-payments` | Oraria | Verifica i pagamenti dei vincitori d'asta |
 | `sync:legavolley` | Giornaliero | Dati **simulati**, solo in ambienti **non** di produzione |
+
+### Workflow GitHub Actions
+
+| Workflow | Quando | Scopo |
+|----------|--------|-------|
+| `ci.yml` | Push e PR; lunedì 05:00 UTC | Lint, PHPStan, test, SonarCloud; su `main` il job `deploy` applica lo spec |
+| `backup-db.yml` | Ogni giorno 03:00 UTC | Dump cifrato del database (§9) |
+| `backup-media.yml` | Domenica 04:00 UTC | Copia dei media di Spaces (§9) |
+| `verifica-restore.yml` | Lunedì 04:30 UTC | Prova di ripristino dell'ultimo dump |
+| `scansione-cookie.yml` | Lunedì 04:30 UTC | Playwright sul sito: aggiorna `database/data/cookie_rilevati.json` e va in rosso se qualcosa parte prima del consenso |

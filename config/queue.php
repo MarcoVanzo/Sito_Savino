@@ -40,7 +40,14 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 180),
+            // Deve superare il timeout del job più lungo (import della gallery
+            // storica e anteprime: 1800 s). Sotto quella soglia un job ancora in
+            // corsa viene considerato perso e ripreso da un altro processo, e
+            // gira due volte in parallelo. Con un solo worker non si vede; si
+            // vedrebbe il giorno in cui si alza instance_count. Il rovescio è
+            // che un job morto con il worker torna in coda solo dopo mezz'ora.
+            // Il vincolo lo verifica tests/Unit/RetryAfterDellaCodaTest.php.
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 1860),
             'after_commit' => false,
         ],
 
