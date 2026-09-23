@@ -178,16 +178,6 @@
       "fornitore": "Meta Platforms Ireland Ltd."
     },
     {
-      "host": "fonts.googleapis.com",
-      "categoria": "necessari",
-      "fornitore": "Google Ireland Ltd."
-    },
-    {
-      "host": "fonts.gstatic.com",
-      "categoria": "necessari",
-      "fornitore": "Google Ireland Ltd."
-    },
-    {
       "host": "www.youtube.com",
       "categoria": "marketing",
       "fornitore": "Google Ireland Ltd. (YouTube)"

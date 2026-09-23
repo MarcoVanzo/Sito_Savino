@@ -85,10 +85,11 @@
         <link rel="icon" href="/favicon.ico" type="image/x-icon">
         <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,700;1,400&display=swap">
+        {{-- I caratteri li serve il sito: i @font-face stanno in resources/css/app.css,
+             i file in public/fonts. Prima arrivavano dal CDN di Google, che vedeva
+             l'IP di ogni visitatore prima ancora della scelta sui cookie. --}}
+        <link rel="preload" href="/fonts/montserrat-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+        <link rel="preload" href="/fonts/playfair-display-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 
         <!-- Scripts -->
         @routes(null, $cspNonce)
