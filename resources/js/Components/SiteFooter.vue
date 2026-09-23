@@ -182,9 +182,16 @@ const socialLinks = computed(() => {
                     <span v-html="copyrightText"></span>
                     <span v-if="footerPiva" class="block sm:inline sm:ml-2">P.IVA {{ footerPiva }}</span>
                 </div>
-                <div class="flex items-center gap-6">
-                    <a :href="safeUrl(legalDocs.privacy_policy, '/privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.privacy_policy') }}</a>
-                    <a :href="safeUrl(legalDocs.cookie_policy, '/cookie-policy')" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.cookie_policy') }}</a>
+                <!-- Le voci vanno a capo invece di schiacciarsi: sul telefono sono
+                     quattro, e senza wrap ciascuna spezzava il proprio testo. -->
+                <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                    <!-- Privacy e cookie sono pagine, non documenti: sono quelle che la
+                         redazione mantiene e che i moduli fanno accettare. Finche' qui
+                         c'era `legalDocs.privacy_policy`, un PDF caricato vinceva sulla
+                         pagina e il footer serviva l'informativa del vecchio sito. -->
+                    <Link :href="route('pages.show', 'privacy-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.privacy_policy') }}</Link>
+                    <Link :href="route('pages.show', 'cookie-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.cookie_policy') }}</Link>
+                    <a v-if="safeUrl(legalDocs.informativa_promozionale)" :href="safeUrl(legalDocs.informativa_promozionale)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.promotional_policy') }}</a>
                     <a v-if="safeUrl(legalDocs.informativa_fornitori)" :href="safeUrl(legalDocs.informativa_fornitori)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.supplier_policy') }}</a>
                 </div>
             </div>
