@@ -629,9 +629,10 @@ comando che fallisce ogni notte non lascia traccia nei log di App Platform.
 | 4 | ⚙️ Worker | `apps-s-1vcpu-0.5gb`, fra | **$5.00** |
 | 5 | ⏱️ Scheduler | `apps-s-1vcpu-0.5gb`, fra | **$5.00** |
 | 6 | 📦 Spaces | abbonamento: 250 GB + 1 TB di traffico, **per tutti i bucket** dell'account | **$5.00** |
-| | | **TOTALE** | **$64.23/mese** |
-| | | | **~€59/mese** |
-| | | | **~€710/anno** |
+| 7 | 💾 Backup droplet CompreFace | settimanali, 20% del droplet | **$4.80** |
+| | | **TOTALE** | **$69.03/mese** |
+| | | | **~€63/mese** |
+| | | | **~€760/anno** |
 
 Cifre di listino: la fatturazione non è leggibile con il token di sola lettura
 (403), quindi il totale non è confrontato con una fattura.
@@ -658,7 +659,7 @@ Voci variabili, fuori dal totale:
 | Media Spaces | ✅ Copia | Settimanale, domenica 04:00 UTC (`backup-media.yml`) | Bucket `sito-savino-backups` (30 giorni) + copia su Cloudflare R2, con manifest dei file (20/09: 81.308 file) |
 | Verifica restore | ✅ Automatica | Lunedì 04:30 UTC (`verifica-restore.yml`) | Ripristina l'ultimo dump in un MySQL usa e getta; apre una issue se non torna su |
 | Codice sorgente | ✅ Git | Ad ogni push | GitHub |
-| Droplet CompreFace | ❌ Nessuno | — | Backup del droplet non attivi (verificato 23/09; si accendono con `doctl compute droplet-action enable-backups 580932690`, $4,80/mese per i settimanali). La face collection, cioè gli esempi appresi, sta solo lì: le foto di addestramento non vengono conservate (`CLAUDE.md` §12-ter), quindi un droplet perso significa riaddestrare da capo |
+| Droplet CompreFace | ✅ Backup DigitalOcean | Settimanale (attivati il 23/09/2026, ~$4,80/mese) | Immagine intera del droplet. È l'unica copia della face collection, cioè degli esempi appresi: le foto di addestramento non vengono conservate (`CLAUDE.md` §12-ter), e senza backup un droplet perso significherebbe riaddestrare da capo |
 
 Il bucket di backup ha una policy che nega la cancellazione ma non la
 sovrascrittura. La copia su R2 sta fuori dal perimetro dell'account DigitalOcean
