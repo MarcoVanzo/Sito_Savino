@@ -198,4 +198,33 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('face recognition', $this->testo('privacy-policy', 'en'));
         $this->assertStringContainsString('mappa del palazzetto', $this->testo('cookie-policy'));
     }
+
+    // --- Il titolare e' la ragione sociale ---
+
+    public function test_il_titolare_e_la_ragione_sociale_per_esteso(): void
+    {
+        // Il nome con cui la squadra gioca non e' la denominazione di nessuno:
+        // i diritti si esercitano verso la persona giuridica.
+        $this->scriviIlTesto('privacy-policy', [
+            'it' => '<p>Savino Del Bene Volley S.S.D. a r.l. — Via Benozzo Gozzoli 5/6</p>',
+            'en' => '<p>Savino Del Bene Volley S.S.D. a r.l.</p>',
+        ]);
+
+        (require database_path('migrations/2026_09_23_150000_il_titolare_e_la_ragione_sociale.php'))->up();
+
+        foreach (['it', 'en'] as $lingua) {
+            $testo = $this->testo('privacy-policy', $lingua);
+
+            $this->assertStringNotContainsString('S.S.D. a r.l.', $testo);
+            $this->assertStringContainsString('Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata', $testo);
+            $this->assertStringContainsString('Via Benozzo Gozzoli, 5/6', $testo);
+            $this->assertStringContainsString('94217750481', $testo);
+            $this->assertStringContainsString('pallavoloscandicci@legalmail.it', $testo);
+
+            // I diritti si esercitano alla casella della privacy, non al
+            // recapito generale del sito.
+            $this->assertStringContainsString('privacy@savinodelbenevolley.it', $testo);
+            $this->assertStringNotContainsString('mailto:info@savinodelbenevolley.it', $testo);
+        }
+    }
 }

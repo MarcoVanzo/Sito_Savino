@@ -16,6 +16,14 @@
  * migrazione vecchia che gira su un database nuovo non riconoscerebbe più
  * niente da correggere.
  *
+ * Il titolare è la **ragione sociale**, non il nome con cui la squadra gioca:
+ * «Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a
+ * Responsabilità Limitata». Fino al 23 settembre 2026 qui c'era «Savino Del
+ * Bene Volley S.S.D. a r.l.», che non è la denominazione di nessuno: in
+ * un'informativa il titolare va indicato per esteso, perché è la persona
+ * giuridica verso cui si esercitano i diritti. Il copyright del footer usa
+ * invece il nome d'uso, ed è giusto così.
+ *
  * Revisione del 23 settembre 2026: la versione precedente descriveva il sito
  * fino ai cookie e si fermava lì. Mancavano il riconoscimento dei volti
  * sull'archivio fotografico (che è un trattamento biometrico e non era
@@ -34,8 +42,12 @@
  * della scelta sui cookie. La seconda è detta al visitatore così com'è; la
  * prima no, quindi va mantenuta.
  */
-$sede = 'Via Benozzo Gozzoli 5/6 — 50018 Scandicci (FI)';
-$email = 'info@savinodelbenevolley.it';
+$societa = 'Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata';
+$sede = 'Via Benozzo Gozzoli, 5/6 — 50018 Scandicci (FI)';
+// La casella a cui si esercitano i diritti: non e' `contact.email` del sito
+// (`info@`), che risponde a tutt'altro, ed e' la stessa che indicano
+// l'informativa fornitori e quella promozionale.
+$email = 'privacy@savinodelbenevolley.it';
 $pec = 'pallavoloscandicci@legalmail.it';
 $piva = '06271460484';
 $cf = '94217750481';
@@ -49,6 +61,9 @@ return [
             // Prima riscrittura, 22 settembre 2026.
             'aggiornata al 22 settembre 2026',
             'Last updated 22 September 2026',
+            // Ragione sociale sbagliata, fino al 23 settembre 2026.
+            'Savino Del Bene Volley S.S.D. a r.l.',
+            'mailto:info@savinodelbenevolley.it',
         ],
         'contenuto' => [
             'it' => <<<HTML
@@ -56,7 +71,7 @@ return [
             <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 23 settembre 2026.</p>
 
             <h3>Titolare del trattamento</h3>
-            <p>Savino Del Bene Volley S.S.D. a r.l. — {$sede}<br />
+            <p>{$societa} — {$sede}<br />
             P. IVA {$piva} — C.F. {$cf}<br />
             Email: <a href="mailto:{$email}">{$email}</a> — PEC: <a href="mailto:{$pec}">{$pec}</a></p>
 
@@ -113,7 +128,7 @@ return [
             <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 23 September 2026.</p>
 
             <h3>Data controller</h3>
-            <p>Savino Del Bene Volley S.S.D. a r.l. — {$sede}, Italy<br />
+            <p>{$societa} — {$sede}, Italy<br />
             VAT {$piva} — Tax code {$cf}<br />
             Email: <a href="mailto:{$email}">{$email}</a> — Certified email: <a href="mailto:{$pec}">{$pec}</a></p>
 
