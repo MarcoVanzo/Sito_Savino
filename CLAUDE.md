@@ -205,7 +205,14 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   vinte e reimpostazioni della password vengono scritte nel log e non spedite.
   Finche' il sito sta su un indirizzo che nessuno usa non si nota; dal giorno del
   passaggio significa che un cliente paga e non riceve niente. Le variabili vanno
-  su **web e worker** — le email partono dalla coda.
+  su **web e worker** — le email partono dalla coda. Non e' pero' solo una
+  questione di variabili: il DNS del dominio e' della Spa (`dns*.sdb.it`, MX
+  Proofpoint davanti a Microsoft 365) e pubblica `DMARC p=reject` con SPF
+  `-all`. Finche' li' non c'e' il DKIM di Resend, una email spedita da
+  `@savinodelbenevolley.it` non finisce in spam: viene **rifiutata**. E' la
+  cosa con il tempo di attesa piu' lungo di tutto il passaggio, non dipende dal
+  dominio e si avvia subito; la procedura, sottodominio d'invio compreso, sta
+  in `docs/GO_LIVE.md` §1.
 - **Il webhook di PayPal si modifica, non si ricrea.** L'id in
   `PAYPAL_WEBHOOK_ID` entra nella verifica della firma: creando un webhook nuovo
   per il dominio nuovo si apre una finestra in cui le notifiche arrivano a un

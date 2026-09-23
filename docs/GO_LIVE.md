@@ -66,6 +66,49 @@ e generazione della chiave. La chiave si inserisce dal pannello DO con
 "Encrypt", poi si recupera il blob cifrato con `doctl apps spec get` e si
 committa — vedi `docs/INFRASTRUCTURE.md` sulla spec autorevole.
 
+#### Il DNS non e' nostro, e oggi rifiuta Resend
+
+Questa e' la parte con il tempo di attesa piu' lungo, e **non dipende dal
+passaggio del dominio**: si puo' — si deve — avviare subito. Com'e' il DNS di
+`savinodelbenevolley.it` oggi (verificato il 23/09/2026):
+
+| | |
+| --- | --- |
+| Nameserver | `dns2/dns4/dnsusa.sdb.it` — il DNS e' della Spa, non nostro |
+| MX | Proofpoint (`*.pphosted.com`), davanti a Microsoft 365 |
+| SPF | `v=spf1 include:spf.protection.outlook.com include:spf-0067d401.pphosted.com include:servers.mcsv.net -all` |
+| DMARC | `v=DMARC1; p=reject; …` con rapporti a Proofpoint |
+| DKIM Resend | assente |
+
+`p=reject` con `-all` non significa "finisce in spam": significa che una email
+spedita via Resend da `@savinodelbenevolley.it` viene **rifiutata** dal
+destinatario. Impostare `MAIL_MAILER=resend` senza prima passare dal DNS
+sostituisce quindi un guasto silenzioso (la posta nel log) con uno rumoroso, e
+non manda niente lo stesso.
+
+L'ordine e' obbligato, perche' i valori da chiedere non esistono prima del
+primo passo:
+
+1. **Creare il dominio su Resend** (o meglio il sottodominio d'invio, sotto).
+   Resend genera allora i record esatti da inserire: e' l'unico modo di avere i
+   valori veri, e lo si puo' fare oggi.
+2. **Chiedere alla Spa di aggiungerli.** Conviene chiedere un **sottodominio
+   d'invio** — `send.savinodelbenevolley.it` — invece dell'apex: i record
+   nascono sotto un nome che non esiste ancora, l'SPF dell'apex (che e' la posta
+   aziendale, Microsoft 365 dietro Proofpoint) **non si tocca**, e la richiesta
+   diventa innocua da approvare. Il mittente resta
+   `noreply@savinodelbenevolley.it`: DMARC si accontenta dell'allineamento del
+   DKIM, che e' sullo stesso dominio organizzativo.
+3. **Verificare il dominio su Resend** quando i record sono propagati, generare
+   la chiave e solo allora mettere le variabili nella spec.
+
+Alla stessa richiesta conviene allegare l'altra cosa che serve dalla Spa, e che
+va chiesta con qualche giorno d'anticipo: **abbassare il TTL** dei record `A` di
+`savinodelbenevolley.it` e `www` a 300 secondi. Oggi e' di due ore: lasciato
+com'e', il giorno del passaggio una parte dei visitatori continua a vedere il
+vecchio sito per ore dopo lo spostamento, e non c'e' modo di accorciare
+l'attesa a posteriori.
+
 > **Non committare `MAIL_MAILER=resend` senza la chiave.** L'invio fallirebbe
 > con un errore invece di ricadere sul log, che almeno non perde il messaggio.
 
