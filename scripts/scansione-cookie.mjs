@@ -78,6 +78,29 @@ async function pagineDaVisitare() {
     return [...perFamiglia.values()].slice(0, quantePagine);
 }
 
+/**
+ * La versione dell'informativa che il sito sta servendo.
+ *
+ * Da quando il consenso porta con sé la versione, un consenso salvato con una
+ * versione diversa vale come nessun consenso: scrivendo `null`, la passata
+ * "con tutto accettato" non faceva partire niente e la scansione dichiarava
+ * due cookie invece di cinque — cioè meno di quello che il sito fa davvero.
+ * Va letta da lui, non indovinata.
+ */
+async function versioneDellInformativa() {
+    const risposta = await fetch(base);
+    const html = await risposta.text();
+    const dati = html.match(/data-page="([^"]+)"/);
+
+    if (! dati) {
+        return null;
+    }
+
+    const props = JSON.parse(dati[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#039;/g, "'"));
+
+    return props?.props?.consensoCookie?.versione ?? null;
+}
+
 function ospite(indirizzo) {
     try {
         return new URL(indirizzo).hostname;
@@ -121,7 +144,7 @@ function classificaHost(host) {
  * Una passata sul sito. `conConsenso` scrive la scelta nel browser prima che
  * la pagina si carichi, come se il visitatore avesse già accettato tutto.
  */
-async function passata(browser, pagine, conConsenso) {
+async function passata(browser, pagine, conConsenso, versione = null) {
     const contesto = await browser.newContext({ locale: 'it-IT' });
 
     if (conConsenso) {
@@ -137,7 +160,7 @@ async function passata(browser, pagine, conConsenso) {
             statistiche: true,
             marketing: true,
             analytics: true,
-            versione: opzioni.versione ?? null,
+            versione,
             data: new Date().toISOString(),
         })]);
     }
@@ -217,8 +240,22 @@ try {
     console.log('· senza consenso');
     const prima = riassumi(await passata(browser, pagine, false), false);
 
-    console.log('· con tutto accettato');
-    const dopo = riassumi(await passata(browser, pagine, true), true);
+    const versione = await versioneDellInformativa();
+
+    if (! versione) {
+        console.error('Non riesco a leggere la versione dell\'informativa dalla pagina: senza, il consenso simulato non varrebbe e la scansione direbbe meno di quello che il sito fa.');
+        process.exit(2);
+    }
+
+    console.log(`· con tutto accettato (informativa ${versione})`);
+    const dopo = riassumi(await passata(browser, pagine, true, versione), true);
+
+    // Una passata con consenso che non trova niente in più di quella senza, su
+    // un sito che dichiara una misurazione, vuol dire che il consenso simulato
+    // non ha funzionato: meglio fermarsi che pubblicare un elenco monco.
+    if (dopo.cookie.length === prima.cookie.length && dopo.host.length === prima.host.length) {
+        console.warn('Attenzione: accettare tutto non ha cambiato niente. Se il sito ha una misurazione configurata, questa scansione non è attendibile.');
+    }
 
     // Chi c'era già prima del consenso non si conta due volte.
     const nomiPrima = new Set(prima.cookie.map((c) => c.nome));
