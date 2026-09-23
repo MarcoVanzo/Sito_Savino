@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -111,5 +112,90 @@ class InformativeMigrationTest extends TestCase
         // L'heredoc del file dati è indentato per leggibilità: quegli spazi non
         // devono finire nell'editor del pannello.
         $this->assertDoesNotMatchRegularExpression('/^[ \t]+</m', $this->testo('privacy-policy'));
+    }
+
+    // --- Revisione del 23 settembre 2026 ---
+
+    private function eseguiLaRevisione(): void
+    {
+        (require database_path('migrations/2026_09_23_110000_le_informative_dicono_anche_dei_volti.php'))->up();
+    }
+
+    public function test_la_revisione_riscrive_il_testo_della_versione_precedente(): void
+    {
+        // Il testo del 22 settembre: vero ma incompleto. La firma che lo
+        // riconosce è la data di aggiornamento che portava scritta.
+        $this->scriviIlTesto('privacy-policy', [
+            'it' => '<p>È aggiornata al 22 settembre 2026.</p>',
+            'en' => '<p>Last updated 22 September 2026.</p>',
+        ]);
+
+        $this->eseguiLaRevisione();
+
+        $italiano = $this->testo('privacy-policy');
+
+        $this->assertStringContainsString('riconoscimento dei volti', $italiano);
+        $this->assertStringContainsString('Resend', $italiano);
+        $this->assertStringContainsString('codice fiscale', $italiano);
+        $this->assertStringContainsString('face recognition', $this->testo('privacy-policy', 'en'));
+    }
+
+    public function test_la_cookie_policy_dice_dei_contenuti_incorporati(): void
+    {
+        $this->scriviIlTesto('cookie-policy', [
+            'it' => '<p>quelli di marketing di Meta Platforms Ireland Ltd.</p>',
+            'en' => '<p>marketing cookies to Meta Platforms Ireland Ltd.</p>',
+        ]);
+
+        $this->eseguiLaRevisione();
+
+        // Mappa e video partono con la pagina: finché è così, va scritto.
+        $this->assertStringContainsString('mappa del palazzetto', $this->testo('cookie-policy'));
+        $this->assertStringContainsString('YouTube', $this->testo('cookie-policy'));
+        $this->assertStringContainsString('arena map', $this->testo('cookie-policy', 'en'));
+    }
+
+    public function test_la_revisione_non_passa_sopra_alla_redazione(): void
+    {
+        $suo = '<p>Informativa curata dallo studio legale, da non toccare.</p>';
+
+        $this->scriviIlTesto('privacy-policy', ['it' => $suo, 'en' => $suo]);
+
+        $this->eseguiLaRevisione();
+
+        $this->assertSame($suo, $this->testo('privacy-policy'));
+    }
+
+    public function test_le_firme_riconoscono_anche_il_testo_originale(): void
+    {
+        // Le firme sono cumulative: un database che si ferma al testo del 2025
+        // — un ambiente nuovo, o uno rimasto indietro — deve essere riscritto
+        // dalla revisione anche senza passare dalla migrazione di mezzo.
+        $this->scriviIlTesto('privacy-policy', [
+            'it' => '<p>Il sito raccoglie esclusivamente dati tecnici necessari alla navigazione.</p>',
+            'en' => '<p>Only technical data.</p>',
+        ]);
+
+        $this->eseguiLaRevisione();
+
+        $this->assertStringContainsString('riconoscimento dei volti', $this->testo('privacy-policy'));
+    }
+
+    public function test_il_seeder_non_fa_nascere_una_pagina_col_testo_vecchio(): void
+    {
+        // La copia nel seeder diceva "esclusivamente dati tecnici" e riportava
+        // un indirizzo che non è la sede: ogni ambiente nuovo, e il database
+        // dei test, nascevano con quella.
+        DB::table('pages')->whereIn('slug', ['privacy-policy', 'cookie-policy'])->delete();
+
+        $this->seed(PageSeeder::class);
+
+        $italiano = $this->testo('privacy-policy');
+
+        $this->assertStringNotContainsString('esclusivamente dati tecnici', $italiano);
+        $this->assertStringNotContainsString('Via di Scandicci', $italiano);
+        $this->assertStringContainsString('riconoscimento dei volti', $italiano);
+        $this->assertStringContainsString('face recognition', $this->testo('privacy-policy', 'en'));
+        $this->assertStringContainsString('mappa del palazzetto', $this->testo('cookie-policy'));
     }
 }

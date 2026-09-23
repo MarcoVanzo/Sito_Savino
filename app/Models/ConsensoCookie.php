@@ -24,8 +24,13 @@ class ConsensoCookie extends Model
      * nuovo, una finalità diversa: i consensi raccolti su una versione
      * precedente restano validi come prova di ciò che è stato chiesto allora,
      * e il banner torna a mostrarsi.
+     *
+     * 2026-09-23: la Cookie Policy dice adesso che mappa e video incorporati si
+     * caricano insieme alla pagina e fanno arrivare l'IP a chi li ospita, e che
+     * i caratteri tipografici non arrivano più dal CDN di Google. Cambia ciò
+     * che si dichiara, quindi la scelta va richiesta.
      */
-    public const VERSIONE = '2026-09-22';
+    public const VERSIONE = '2026-09-23';
 
     protected $fillable = [
         'riferimento',

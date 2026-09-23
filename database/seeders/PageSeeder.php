@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Page;
+use App\Support\TestiDelleInformative;
 use Illuminate\Database\Seeder;
 
 class PageSeeder extends Seeder
@@ -20,30 +21,27 @@ class PageSeeder extends Seeder
             ['title' => 'Comunicazione', 'slug' => 'comunicazione', 'template' => 'Public/Comunicazione'],
             ['title' => 'Contatti', 'slug' => 'contatti', 'template' => 'Public/Contatti'],
             ['title' => 'Shop', 'slug' => 'shop', 'template' => 'Public/Shop'],
-            [
-                'title' => 'Privacy Policy',
-                'slug' => 'privacy-policy',
-                'template' => 'Public/ContentPage',
-                'content' => '<h2>Informativa sulla Privacy</h2><p>Ai sensi dell\'art. 13 del Regolamento UE 2016/679 (GDPR), Savino Del Bene Volley informa che i dati personali raccolti tramite questo sito sono trattati nel rispetto della normativa vigente in materia di protezione dei dati personali.</p><h3>Titolare del Trattamento</h3><p>Savino Del Bene Volley S.S.D. a r.l. — Via di Scandicci, 50142 Firenze (FI)</p><h3>Dati raccolti</h3><p>Il sito raccoglie esclusivamente dati tecnici necessari alla navigazione (cookie tecnici, dati di sessione). Nessun dato di profilazione viene raccolto senza il consenso esplicito dell\'utente.</p><h3>Diritti dell\'interessato</h3><p>L\'utente può esercitare i diritti di cui agli artt. 15-22 del GDPR scrivendo a: privacy@savinodelbenevolley.it</p>',
-            ],
-            [
-                'title' => 'Cookie Policy',
-                'slug' => 'cookie-policy',
-                'template' => 'Public/ContentPage',
-                'content' => '<h2>Informativa sui Cookie</h2><p>Questo sito utilizza esclusivamente cookie tecnici necessari al funzionamento del sito web.</p><h3>Cookie tecnici</h3><p>Questi cookie sono essenziali per il corretto funzionamento del sito e non possono essere disabilitati. Includono cookie di sessione (XSRF-TOKEN, laravel_session) che garantiscono la sicurezza della navigazione.</p><h3>Cookie di terze parti</h3><p>Il sito non utilizza cookie di profilazione o di tracciamento di terze parti.</p><h3>Come gestire i cookie</h3><p>L\'utente può gestire le preferenze sui cookie attraverso le impostazioni del proprio browser.</p>',
-            ],
+            ['title' => 'Privacy Policy', 'slug' => 'privacy-policy', 'template' => 'Public/ContentPage'],
+            ['title' => 'Cookie Policy', 'slug' => 'cookie-policy', 'template' => 'Public/ContentPage'],
         ];
 
         foreach ($pages as $pageData) {
-            Page::firstOrCreate(
+            $pagina = Page::firstOrCreate(
                 ['slug' => $pageData['slug']],
                 [
                     'title' => $pageData['title'],
                     'template' => $pageData['template'],
                     'status' => 'publish',
-                    'content' => $pageData['content'] ?? null,
                 ]
             );
+
+            // Privacy Policy e Cookie Policy non hanno un testo cablato qui: lo
+            // prendono dal file delle informative, insieme alla sua traduzione,
+            // così un ambiente nuovo e il database dei test nascono con quella
+            // pubblicata e non con una copia che invecchia nel seeder.
+            if ($pagina->wasRecentlyCreated && $testi = TestiDelleInformative::contenuto($pageData['slug'])) {
+                $pagina->setTranslations('content', $testi)->save();
+            }
         }
     }
 }
