@@ -63,23 +63,6 @@ return function (string $namePrefix): void {
         return redirect()->route($namePrefix.'stagione.classifica');
     })->name('classifica');
 
-    // --- Redirect SEO Legacy (Dal Vecchio Sito) ---
-    Route::get('/campionato-{year}-andata', function () use ($namePrefix) {
-        return redirect()->route($namePrefix.'stagione.risultati', [], 301);
-    })->where('year', '.*');
-    Route::get('/campionato-{year}-ritorno', function () use ($namePrefix) {
-        return redirect()->route($namePrefix.'stagione.risultati', [], 301);
-    })->where('year', '.*');
-    Route::get('/classifica-{year}', function () use ($namePrefix) {
-        return redirect()->route($namePrefix.'stagione.classifica', [], 301);
-    })->where('year', '.*');
-    Route::get('/cev-champions-league-{year}', function () use ($namePrefix) {
-        return redirect()->route($namePrefix.'stagione.cev', [], 301);
-    })->where('year', '.*');
-    Route::get('/news-c/{any}', function () use ($namePrefix) {
-        return redirect()->route($namePrefix.'news.index', [], 301);
-    })->where('any', '.*');
-
     Route::get('/gallery', [GalleryController::class, 'gallery'])->name('gallery');
     // Resto dell'archivio, caricato dal client dopo il primo render
     Route::get('/gallery/data', [GalleryController::class, 'galleryData'])->name('gallery.data');

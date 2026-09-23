@@ -19,6 +19,7 @@ use App\Models\Team;
 use App\Services\PalmaresPresenter;
 use App\Services\SponsorDirectory;
 use App\Support\LiveStream;
+use App\Support\PermalinkVecchioSito;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -32,6 +33,22 @@ class PublicController extends Controller
 
     public function home()
     {
+        // `/?p=41558` è la forma con cui WordPress indirizza un post senza
+        // passare dallo slug, ed è quella che il vecchio feed pubblicava come
+        // `guid`: chi ha salvato il guid come link — un aggregatore, un lettore
+        // RSS — arriva sulla home con quella query invece che sulla notizia.
+        // Si guarda prima di costruire la pagina, che costa una cache e sei
+        // query.
+        $wpId = request()->integer('p');
+
+        if ($wpId > 0) {
+            $permalink = PermalinkVecchioSito::perWpId($wpId);
+
+            if ($permalink !== null) {
+                return redirect()->to($permalink, 301);
+            }
+        }
+
         $locale = app()->getLocale();
         $data = Cache::remember("public:home:{$locale}", now()->addMinutes(5), function () {
             // Prossima partita programmata **della società**: il calendario

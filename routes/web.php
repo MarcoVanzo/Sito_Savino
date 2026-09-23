@@ -45,9 +45,14 @@ foreach ($locales as $loc) {
         ServeSocialCrawlerMeta::class,
         SetLocale::class.':'.$loc,
     ])->prefix($prefix)->name($namePrefix)->group(function () use ($loc, $namePrefix) {
-        // I due file restituiscono una funzione: la lingua e il prefisso dei nomi
+        // I tre file restituiscono una funzione: la lingua e il prefisso dei nomi
         // si passano, non si ereditano dallo scope di chi include.
+        // L'ordine conta. `legacy.php` sta in mezzo: dopo le rotte vere, che
+        // devono vincere sugli indirizzi del vecchio sito che hanno lo stesso
+        // prefisso, e prima di `shop.php`, che chiude con la rotta generica
+        // `/{slug}` — dopo quella un redirect a un segmento non si raggiunge.
         (require __DIR__.'/pubbliche/sito.php')($namePrefix);
+        (require __DIR__.'/pubbliche/legacy.php')($namePrefix);
         (require __DIR__.'/pubbliche/shop.php')($loc, $namePrefix);
     });
 }
