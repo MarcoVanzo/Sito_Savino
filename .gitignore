@@ -39,6 +39,8 @@ proposta_tecnica_sdb.html
 mockups_block.html
 Pantone colori.jpeg
 *.py
+# Eccezione: genera docs/INFRASTRUCTURE.html dal Markdown.
+!scripts/genera-infrastructure-html.py
 
 # File temporanei/auto-generati
 current_app.json
