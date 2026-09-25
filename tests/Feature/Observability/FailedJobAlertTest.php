@@ -36,10 +36,11 @@ class FailedJobAlertTest extends TestCase
         return $user;
     }
 
-    private function fireFailure(string $jobName = 'App\\Jobs\\SendOrderConfirmation'): void
+    private function fireFailure(string $jobName = 'App\\Jobs\\SendOrderConfirmation', string $queue = 'default'): void
     {
         $job = $this->createMock(Job::class);
         $job->method('resolveName')->willReturn($jobName);
+        $job->method('getQueue')->willReturn($queue);
 
         app(AlertOnFailedJob::class)->handle(
             new JobFailed('database', $job, new RuntimeException('SMTP irraggiungibile')),
@@ -95,5 +96,32 @@ class FailedJobAlertTest extends TestCase
         $this->fireFailure();
 
         $this->assertDatabaseCount('notifications', 2);
+    }
+
+    #[Test]
+    public function avvisa_anche_per_email(): void
+    {
+        config(['services.avvisi.email' => 'marco@example.com']);
+
+        $this->fireFailure();
+
+        $this->assertSame(
+            '[Sito Savino] Job in coda fallito: SendOrderConfirmation',
+            AvvisoTecnicoTest::inviate()->sole()->getOriginalMessage()->getSubject(),
+        );
+    }
+
+    #[Test]
+    public function la_coda_ai_resta_nel_pannello(): void
+    {
+        // L'analisi dei volti dipende da CompreFace e si recupera da sola al
+        // giro orario: un servizio lento non deve riempire la casella.
+        config(['services.avvisi.email' => 'marco@example.com']);
+        $this->superAdmin();
+
+        $this->fireFailure('App\\Jobs\\AnalyzeGalleryImageJob', 'ai');
+
+        $this->assertDatabaseCount('notifications', 1);
+        $this->assertCount(0, AvvisoTecnicoTest::inviate());
     }
 }

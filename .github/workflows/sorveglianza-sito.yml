@@ -1,0 +1,63 @@
+# Il sito visto da fuori.
+#
+# Tutti gli altri avvisi (AvvisoTecnico, `shop:sorveglia`, gli alert di
+# DigitalOcean) partono dall'app o dalla sua piattaforma: se l'app è giù del
+# tutto, o è irraggiungibile da internet mentre DigitalOcean la vede sana, non
+# parte niente. Questo controllo gira su GitHub, fuori da tutto quello che
+# controlla, e fallisce quando il sito non risponde. GitHub manda l'email di
+# "workflow fallito" a chi ha modificato per ultimo questo file.
+#
+# Limite da sapere: GitHub non garantisce la puntualità dei cron, e nelle ore
+# di punta un giro può slittare di dieci-quindici minuti. È una rete di
+# sicurezza, non un monitor al minuto; per quello serve un servizio dedicato
+# (UptimeRobot, Better Stack) puntato sugli stessi indirizzi.
+name: Sorveglianza sito
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sorveglianza-sito
+  cancel-in-progress: true
+
+jobs:
+  controllo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Pagine principali
+        env:
+          # Lo stesso indirizzo della scansione dei cookie: dal passaggio del
+          # dominio si cambia la variabile del repository, non questo file.
+          URL_SITO: ${{ vars.URL_SITO || 'https://seashell-app-47mmf.ondigitalocean.app' }}
+        run: |
+          # /up: database e cache (VerifyApplicationHealth).
+          # / e /shop: Laravel disegna davvero una pagina — `data-page` è il
+          # payload di Inertia, assente in una pagina d'errore del proxy. A
+          # negozio chiuso /shop risponde comunque 200 con la pagina di
+          # manutenzione: quel caso lo segnala `shop:sorveglia`, non questo.
+          guasti=0
+          for percorso in /up / /shop; do
+            corpo=$(mktemp)
+            stato=$(curl -sS -o "$corpo" -w '%{http_code}' \
+              --retry 2 --retry-delay 20 --retry-all-errors \
+              --max-time 20 -A 'SorveglianzaSito/1.0 (GitHub Actions)' \
+              "${URL_SITO}${percorso}" || echo 000)
+
+            if [ "$stato" != "200" ]; then
+              echo "::error::${percorso} risponde ${stato}"
+              guasti=1
+            elif [ "$percorso" != "/up" ] && ! grep -q 'data-page' "$corpo"; then
+              echo "::error::${percorso} risponde 200 ma non è una pagina del sito"
+              guasti=1
+            else
+              echo "${percorso}: ok"
+            fi
+          done
+          exit $guasti

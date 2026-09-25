@@ -73,6 +73,7 @@ class HealthCheckTest extends TestCase
     #[Test]
     public function un_pianificatore_fermo_avvisa_i_super_admin(): void
     {
+        config(['services.avvisi.email' => 'marco@example.com']);
         $admin = User::factory()->create();
         $admin->forceFill(['role' => UserRole::SuperAdmin->value])->save();
 
@@ -88,6 +89,12 @@ class HealthCheckTest extends TestCase
         $this->assertSame(
             1,
             $admin->notifications()->whereJsonContains('data->title', 'Il pianificatore si è fermato')->count(),
+        );
+
+        // E per email: la campanella si vede solo entrando nel pannello.
+        $this->assertSame(
+            '[Sito Savino] Il pianificatore si è fermato',
+            AvvisoTecnicoTest::inviate()->sole()->getOriginalMessage()->getSubject(),
         );
     }
 

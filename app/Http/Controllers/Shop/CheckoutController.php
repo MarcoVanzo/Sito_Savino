@@ -11,7 +11,6 @@ use App\Mail\OrderConfirmation;
 use App\Models\Order;
 use App\Models\ShippingZone;
 use App\Models\ShopEvent;
-use App\Models\SiteSetting;
 use App\Services\AdminNotificationService;
 use App\Services\CartService;
 use App\Services\CheckoutService;
@@ -78,19 +77,14 @@ class CheckoutController extends Controller
             ])
             ->values();
 
-        // Payment gateways attivi dalla configurazione
-        $activeGateways = SiteSetting::get('shop.active_payment_gateways', 'stripe,paypal,bank_transfer');
-        $paymentGateways = collect(explode(',', $activeGateways))
-            ->map(fn ($g) => trim($g))
-            ->filter(fn ($g) => PaymentGateway::tryFrom($g) !== null)
-            // Un gateway senza credenziali non si mostra: l'ordine verrebbe
-            // creato e la merce riservata, e solo dopo il cliente finirebbe
-            // sull'errore generico del checkout.
-            ->filter(fn ($g) => PaymentGateway::from($g)->configurato())
-            ->map(fn ($g) => [
-                'value' => $g,
-                'label' => PaymentGateway::from($g)->getLabel(),
-                'icon' => PaymentGateway::from($g)->getIcon(),
+        // Un gateway senza credenziali non si mostra: l'ordine verrebbe creato
+        // e la merce riservata, e solo dopo il cliente finirebbe sull'errore
+        // generico del checkout (PaymentGateway::offertiAlCheckout).
+        $paymentGateways = collect(PaymentGateway::offertiAlCheckout())
+            ->map(fn (PaymentGateway $g) => [
+                'value' => $g->value,
+                'label' => $g->getLabel(),
+                'icon' => $g->getIcon(),
             ])
             ->values();
 

@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use App\Models\SiteSetting;
 use Filament\Support\Contracts\HasLabel;
 
 enum PaymentGateway: string implements HasLabel
@@ -44,6 +45,24 @@ enum PaymentGateway: string implements HasLabel
                 && filled(config('services.paypal.client_secret')),
             self::BankTransfer => true,
         };
+    }
+
+    /**
+     * I metodi che il checkout mostra davvero: attivi dal pannello
+     * (`shop.active_payment_gateways`) e con le credenziali nell'ambiente.
+     *
+     * @return list<self>
+     */
+    public static function offertiAlCheckout(): array
+    {
+        $attivi = (string) SiteSetting::get('shop.active_payment_gateways', 'stripe,paypal,bank_transfer');
+
+        return collect(explode(',', $attivi))
+            ->map(fn (string $g): ?self => self::tryFrom(trim($g)))
+            ->filter(fn (?self $g): bool => $g !== null && $g->configurato())
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function getIcon(): string
