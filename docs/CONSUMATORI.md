@@ -71,9 +71,9 @@ lo stesso slug scritta dalla redazione vince sempre.
    fiscale, capitale € 150.000,00 versato. Stanno nelle impostazioni del
    gruppo `contact` (`legal_rea`, `legal_capitale`, `legal_ragione_sociale`).
 6. **Corriere**: resta «corriere tracciato»; il vecchio shop diceva Bartolini.
-7. **Conservazione delle dichiarazioni di recesso**: nessun comando le pota.
-   Vanno tenute almeno quanto l'ordine a cui si riferiscono (dieci anni);
-   deciderlo e scriverlo nell'informativa.
+7. **Conservazione delle dichiarazioni di recesso (deciso il 25/09/2026):**
+   12 mesi dall'invio, dichiarati nell'informativa e applicati da
+   `model:prune`. Il rimborso resta registrato sull'ordine.
 8. **La newsletter richiede la conferma per email**: finché la posta non esce
    nessuno riesce a completare un'iscrizione nuova.
 9. **La posta non esce** finché `MAIL_MAILER` non è configurato (vedi

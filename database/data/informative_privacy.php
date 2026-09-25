@@ -72,6 +72,10 @@ return [
             // browser arrivassero a Sentry (resources/js/diagnostica.js).
             'senza indirizzo IP né identità di chi navigava',
             'with no IP address and no identity of whoever was browsing',
+            // Revisione del 25 settembre 2026, prima del recesso online
+            // (`/recesso`, art. 54-bis): le dichiarazioni non erano nominate.
+            "ordini, offerte): servono a concludere e gestire l'acquisto e a rispettare gli obblighi fiscali.",
+            'orders, bids): used to complete and manage the purchase and to meet tax obligations.',
         ],
         'contenuto' => [
             'it' => <<<HTML
@@ -88,7 +92,7 @@ return [
                 <li><strong>Dati di navigazione</strong> (indirizzo IP, pagina richiesta, browser, momento della visita): li registra il server per far funzionare il sito e per la sicurezza. Finché la tua sessione resta aperta, indirizzo IP e browser restano anche nella tabella delle sessioni, che è ciò che tiene in piedi carrello e area riservata. Base giuridica: legittimo interesse del titolare a erogare e proteggere il servizio.</li>
                 <li><strong>Modulo contatti e richieste di accredito stampa</strong> (nome, email, telefono, testo del messaggio, e per gli accrediti testata, ruolo e gara): servono a risponderti. Base giuridica: riscontro alla tua richiesta.</li>
                 <li><strong>Iscrizione alla newsletter</strong> (email, e il nome se lo scrivi): solo se la chiedi. Base giuridica: consenso, revocabile in ogni momento dal link in fondo a ogni messaggio.</li>
-                <li><strong>Acquisti nello shop e partecipazione alle aste</strong> (nome, indirizzo di spedizione e fatturazione, telefono, codice fiscale se lo indichi, ordini, offerte): servono a concludere e gestire l'acquisto e a rispettare gli obblighi fiscali. Base giuridica: esecuzione del contratto e obbligo di legge.</li>
+                <li><strong>Acquisti nello shop e partecipazione alle aste</strong> (nome, indirizzo di spedizione e fatturazione, telefono, codice fiscale se lo indichi, ordini, offerte, e le dichiarazioni di recesso che invii dal sito): servono a concludere e gestire l'acquisto, a dare seguito al recesso e a rispettare gli obblighi fiscali. Base giuridica: esecuzione del contratto e obbligo di legge.</li>
                 <li><strong>Account del negozio</strong> (email, password cifrata, storico ordini): solo se ti registri. Teniamo anche l'impronta delle password che hai usato prima, per impedire che tu ne riusi una. Base giuridica: esecuzione del contratto.</li>
                 <li><strong>Statistiche di lettura del sito</strong> (Google Analytics 4): solo con il tuo consenso ai cookie statistici.</li>
                 <li><strong>Misurazione delle campagne pubblicitarie</strong> (pixel di Meta): solo con il tuo consenso ai cookie di marketing.</li>
@@ -115,6 +119,7 @@ return [
                 <li>Messaggi e richieste di accredito: 24 mesi dall'ultimo contatto.</li>
                 <li>Iscrizione alla newsletter: fino alla disiscrizione.</li>
                 <li>Ordini e documenti fiscali: 10 anni, come impone la legge.</li>
+                <li>Dichiarazioni di recesso inviate dal sito: 12 mesi dall'invio. Il rimborso che ne segue resta registrato sull'ordine.</li>
                 <li>Account del negozio: finché resta attivo; alla cancellazione restano solo i documenti fiscali.</li>
                 <li>Carrelli lasciati a metà: 7 giorni.</li>
                 <li>Sessione di navigazione: 2 ore dall'ultima pagina aperta.</li>
@@ -145,7 +150,7 @@ return [
                 <li><strong>Browsing data</strong> (IP address, requested page, browser, time of visit): recorded by the server to run and protect the site. While your session is open, IP address and browser are also held in the sessions table, which is what keeps the cart and the account area working. Legal basis: the controller's legitimate interest in providing and securing the service.</li>
                 <li><strong>Contact form and press accreditation requests</strong> (name, email, phone, message, and for accreditations the outlet, role and match): used to reply to you. Legal basis: responding to your request.</li>
                 <li><strong>Newsletter subscription</strong> (email, and your first name if you give it): only if you ask for it. Legal basis: consent, which you can withdraw at any time from the link at the bottom of every message.</li>
-                <li><strong>Shop purchases and auction bids</strong> (name, shipping and billing address, phone, Italian tax code if you provide it, orders, bids): used to complete and manage the purchase and to meet tax obligations. Legal basis: performance of the contract and legal obligation.</li>
+                <li><strong>Shop purchases and auction bids</strong> (name, shipping and billing address, phone, Italian tax code if you provide it, orders, bids, and any withdrawal notices you send from the site): used to complete and manage the purchase, to handle withdrawal and to meet tax obligations. Legal basis: performance of the contract and legal obligation.</li>
                 <li><strong>Shop account</strong> (email, hashed password, order history): only if you register. We also keep a fingerprint of the passwords you used before, to stop you reusing one. Legal basis: performance of the contract.</li>
                 <li><strong>Site statistics</strong> (Google Analytics 4): only with your consent to statistics cookies.</li>
                 <li><strong>Advertising measurement</strong> (Meta pixel): only with your consent to marketing cookies.</li>
@@ -172,6 +177,7 @@ return [
                 <li>Messages and accreditation requests: 24 months from the last contact.</li>
                 <li>Newsletter subscription: until you unsubscribe.</li>
                 <li>Orders and tax documents: 10 years, as required by law.</li>
+                <li>Withdrawal notices sent from the site: 12 months from sending. Any resulting refund stays recorded on the order.</li>
                 <li>Shop account: as long as it is active; after deletion only tax documents remain.</li>
                 <li>Carts left halfway: 7 days.</li>
                 <li>Browsing session: 2 hours from the last page opened.</li>

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -15,6 +17,17 @@ use Illuminate\Support\Carbon;
  */
 class RichiestaDiRecesso extends Model
 {
+    use MassPrunable;
+
+    /**
+     * Quanto si tiene una dichiarazione: dodici mesi dall'invio, come dice
+     * l'informativa. Il recesso si chiude in poche settimane — 14 giorni per
+     * rispedire, 14 per rimborsare — e il rimborso resta registrato
+     * sull'ordine, che ha la sua conservazione fiscale. Le toglie
+     * `model:prune`, ogni notte: dal pannello non si cancellano.
+     */
+    public const MESI_DI_CONSERVAZIONE = 12;
+
     protected $table = 'richieste_di_recesso';
 
     protected $fillable = [
@@ -30,5 +43,10 @@ class RichiestaDiRecesso extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function prunable(): Builder
+    {
+        return static::where('inviata_il', '<', now()->subMonths(self::MESI_DI_CONSERVAZIONE));
     }
 }
