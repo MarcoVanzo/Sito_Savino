@@ -42,13 +42,36 @@ jobs:
           # payload di Inertia, assente in una pagina d'errore del proxy. A
           # negozio chiuso /shop risponde comunque 200 con la pagina di
           # manutenzione: quel caso lo segnala `shop:sorveglia`, non questo.
+          #
+          # Lentezza: oltre LENTO secondi la pagina si richiede una seconda
+          # volta, e solo se è lenta anche allora il controllo fallisce. Una
+          # richiesta isolata lenta è una cache appena scaduta (la gallery si
+          # ricostruisce in una decina di secondi), due di fila no. Di norma
+          # le tre pagine rispondono in meno di un secondo.
+          LENTO=6
           guasti=0
+
+          richiedi() {
+            curl -sS -o "$corpo" -w '%{http_code} %{time_total}' \
+              --retry 2 --retry-delay 20 --retry-all-errors \
+              --max-time 30 -A 'SorveglianzaSito/1.0 (GitHub Actions)' \
+              "${URL_SITO}$1" || echo "000 0"
+          }
+
           for percorso in /up / /shop; do
             corpo=$(mktemp)
-            stato=$(curl -sS -o "$corpo" -w '%{http_code}' \
-              --retry 2 --retry-delay 20 --retry-all-errors \
-              --max-time 20 -A 'SorveglianzaSito/1.0 (GitHub Actions)' \
-              "${URL_SITO}${percorso}" || echo 000)
+            read -r stato tempo <<< "$(richiedi "$percorso")"
+
+            if [ "$stato" = "200" ] && awk "BEGIN{exit !($tempo > $LENTO)}"; then
+              echo "::warning::${percorso} lento (${tempo}s), riprovo"
+              read -r stato tempo <<< "$(richiedi "$percorso")"
+
+              if [ "$stato" = "200" ] && awk "BEGIN{exit !($tempo > $LENTO)}"; then
+                echo "::error::${percorso} risponde in ${tempo}s due volte di fila (soglia ${LENTO}s)"
+                guasti=1
+                continue
+              fi
+            fi
 
             if [ "$stato" != "200" ]; then
               echo "::error::${percorso} risponde ${stato}"
@@ -57,7 +80,7 @@ jobs:
               echo "::error::${percorso} risponde 200 ma non è una pagina del sito"
               guasti=1
             else
-              echo "${percorso}: ok"
+              echo "${percorso}: ok (${tempo}s)"
             fi
           done
           exit $guasti

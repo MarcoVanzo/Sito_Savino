@@ -724,7 +724,7 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 | `backup-media.yml` | Domenica 04:00 UTC | Copia dei media di Spaces (§9) |
 | `verifica-restore.yml` | Lunedì 04:30 UTC | Prova di ripristino dell'ultimo dump |
 | `scansione-cookie.yml` | Lunedì 04:30 UTC | Playwright sul sito: aggiorna `database/data/cookie_rilevati.json` e va in rosso se qualcosa parte prima del consenso |
-| `sorveglianza-sito.yml` | Ogni 10 minuti (puntualità non garantita da GitHub) | `/up`, `/` e `/shop` da fuori DigitalOcean; in rosso se il sito non risponde (§9, Avvisi) |
+| `sorveglianza-sito.yml` | Ogni 10 minuti (puntualità non garantita da GitHub) | `/up`, `/` e `/shop` da fuori DigitalOcean; in rosso se il sito non risponde o resta sopra i 6 s per due richieste di fila (§9, Avvisi) |
 
 ### Avvisi
 
@@ -732,10 +732,12 @@ Quattro livelli, ciascuno per ciò che gli altri non possono vedere:
 
 | Livello | Vede | Arriva a |
 |---------|------|----------|
-| `sorveglianza-sito.yml` (GitHub) | Sito irraggiungibile o giù del tutto | Email di GitHub a chi ha modificato per ultimo il workflow |
+| `sorveglianza-sito.yml` (GitHub) | Sito irraggiungibile, giù del tutto o lento | Email di GitHub a chi ha modificato per ultimo il workflow |
+| Monitoring DO sul database | CPU e memoria oltre il 90%, disco oltre l'80% | `marco@` (`doctl monitoring alert list`) |
+| Webhook di Resend (`/api/webhooks/resend`) | Email ai clienti rimbalzate, segnalate come spam o non spedite | AvvisoTecnico → `allarmi@` |
 | Alert di App Platform (`alerts:` nella spec) | Deploy fallito, dominio non attivo, container che riparte in ciclo, memoria del web | Destinazioni impostate con `doctl apps update-alert-destinations` |
 | `App\Services\AvvisoTecnico` | Pianificatore fermo, job falliti (non coda `ai`), ordini da rivedere, `shop:sorveglia` | `AVVISI_EMAIL` (spec, livello d'app) via Resend |
-| Sentry | Eccezioni | Regole di alert del progetto Sentry |
+| Sentry | Eccezioni del server e errori JavaScript del browser (via `/api/diagnostica`) | Regola del progetto: issue nuove, regressioni, alta priorità → `allarmi@` (email routing dell'account) |
 
 Le regole di App Platform stanno nella spec, gli indirizzi no: dopo un
 deploy che aggiunge una regola se ne leggono gli id con

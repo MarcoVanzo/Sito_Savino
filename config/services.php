@@ -20,6 +20,9 @@ return [
 
     'resend' => [
         'key' => env('RESEND_API_KEY'),
+        // Segreto `whsec_…` del webhook delle email non consegnate
+        // (ResendWebhookController). Vuoto, ogni notifica viene rifiutata.
+        'webhook_secret' => env('RESEND_WEBHOOK_SECRET'),
     ],
 
     // Chi riceve per email gli avvisi tecnici (App\Services\AvvisoTecnico):

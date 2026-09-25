@@ -1266,4 +1266,14 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
 - **Le destinazioni degli alert di DigitalOcean non stanno nella spec**: una
   regola nuova in `alerts:` non arriva a nessuno finché non le si imposta con
   `doctl apps update-alert-destinations`.
+- **Gli errori JavaScript passano dal tunnel `/api/diagnostica`**
+  (`resources/js/diagnostica.js`, `SentryTunnelController`): il browser non
+  contatta Sentry, che quindi non riceve l'IP del visitatore — è ciò che
+  l'informativa promette. Mandarli direttamente a `sentry.io` la renderebbe
+  falsa. Solo gli script del sito (`allowUrls`), niente BrowserSession: ogni
+  issue nuova è un'email in `allarmi@`.
+- **Il webhook di Resend punta all'indirizzo `ondigitalocean.app`**, non al
+  dominio: resta valido dopo il 1 ottobre. La firma è Svix con
+  `RESEND_WEBHOOK_SECRET` (livello d'app); senza segreto ogni notifica è
+  rifiutata.
 

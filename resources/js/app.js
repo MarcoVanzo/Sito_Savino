@@ -9,6 +9,7 @@ import { createTranslations } from './i18n/index.js';
 import { initAnalytics, trackPageView } from './analytics.js';
 import { initMetaPixel, trackPageView as trackPixelPageView } from './meta-pixel.js';
 import { leggiIlConsenso } from './consenso.js';
+import { avviaLaDiagnostica } from './diagnostica.js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
@@ -91,6 +92,10 @@ createInertiaApp({
 
             router.on('navigate', () => window.setTimeout(trackPixelPageView, 0));
         }
+
+        // Errori JavaScript verso Sentry, senza consenso perché non scrive nel
+        // browser e passa dal nostro server (vedi diagnostica.js).
+        avviaLaDiagnostica(app, props.initialPage.props.diagnostica);
 
         return app.mount(el);
     },
