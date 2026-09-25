@@ -135,12 +135,17 @@ primo passo:
    > | Tipo | Nome | Serve a |
    > | --- | --- | --- |
    > | TXT | `resend._domainkey` | la firma DKIM (una chiave RSA di 218 caratteri) |
-   > | CNAME | `rsend` | il percorso d'uscita (`…forge.rmta.net`) |
+   > | CNAME | `rsend` | il percorso d'uscita |
+   > | CNAME | `send` | l'altra meta' dello stesso percorso |
    >
-   > Resend ne propone un terzo, il CNAME `send`, ma sta sotto *Enable
-   > Receiving*: serve a **ricevere** posta su questo dominio, cosa che qui non
-   > si fa mai — la posta di `savinodelbenevolley.it` e' Microsoft 365. Non va
-   > chiesto: e' un record in meno da far approvare a chi tiene la zona.
+   > **Sono tre, e vanno chiesti insieme.** Nel pannello i due CNAME stanno
+   > sotto l'intestazione `SPF`, dentro *Enable Sending*; *Enable Receiving* e'
+   > la sezione **successiva**, e a colpo d'occhio sembra invece che il secondo
+   > CNAME appartenga a quella. Chiesti solo i primi due (e' successo il
+   > 25/09/2026) il dominio arriva a `Partially Verified` — DKIM e `rsend`
+   > verificati — ma l'invio resta spento, con l'avviso "Missing SPF records:
+   > add them to enable sending", e chi tiene la zona va disturbato una seconda
+   > volta.
    >
    > I valori non stanno qui, si leggono dal pannello. Quello del DKIM **non si
    > copia da uno screenshot ne' dal testo della pagina**: il pannello lo taglia
