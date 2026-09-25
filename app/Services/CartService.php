@@ -52,7 +52,12 @@ class CartService
 
     /**
      * Aggiunge un prodotto al carrello.
-     * Se l'item esiste già (stesso prodotto+variante), aggiorna la quantità.
+     * Se l'item esiste già (stesso prodotto+variante+personalizzazione),
+     * aggiorna la quantità.
+     *
+     * La stessa taglia puo' stare su due righe, con e senza personalizzazione:
+     * giacenza e limite per prodotto si contano sulla somma delle due, perche'
+     * il pezzo in magazzino e' uno solo.
      *
      * Restituisce l'item aggiornato, o null se nel frattempo è sparito
      * (la firma dichiarava CartItem ma fresh() può restituire null).
@@ -60,27 +65,32 @@ class CartService
      * @throws \InvalidArgumentException
      * @throws \OverflowException
      */
-    public function addItem(int $productId, int $quantity = 1, ?int $variantId = null): ?CartItem
+    public function addItem(int $productId, int $quantity = 1, ?int $variantId = null, bool $conPersonalizzazione = false): ?CartItem
     {
-        return DB::transaction(function () use ($productId, $quantity, $variantId) {
+        return DB::transaction(function () use ($productId, $quantity, $variantId, $conPersonalizzazione) {
             $product = Product::lockForUpdate()->findOrFail($productId);
             $this->verificaCheSiPossaAggiungere($product);
+
+            if ($conPersonalizzazione && ! $product->offrePersonalizzazione()) {
+                throw new \InvalidArgumentException(__('messages.cart.personalization_unavailable'));
+            }
 
             $variant = $this->varianteDelProdotto($product, $variantId);
 
             $cart = $this->getOrCreateCart();
 
-            // Cerca item esistente con stesso prodotto+variante
+            // Cerca item esistente con stesso prodotto+variante+personalizzazione
             $existingItem = $cart->items()
                 ->where('product_id', $productId)
                 ->where('product_variant_id', $variantId)
+                ->where('con_personalizzazione', $conPersonalizzazione)
                 ->first();
 
-            $newQty = ($existingItem ? $existingItem->quantity : 0) + $quantity;
+            $newQty = $this->quantitaNelCarrello($cart, $productId, $variantId) + $quantity;
             $this->verificaLaQuantita($newQty, $this->getAvailableStock($product, $variant));
 
             if ($existingItem) {
-                $existingItem->update(['quantity' => $newQty]);
+                $existingItem->update(['quantity' => $existingItem->quantity + $quantity]);
                 $this->invalidateCache();
 
                 return $existingItem->fresh();
@@ -89,6 +99,7 @@ class CartService
             $cartItem = $cart->items()->create([
                 'product_id' => $productId,
                 'product_variant_id' => $variantId,
+                'con_personalizzazione' => $conPersonalizzazione,
                 'quantity' => $quantity,
             ]);
 
@@ -127,20 +138,8 @@ class CartService
                 ? ProductVariant::lockForUpdate()->findOrFail($item->product_variant_id)
                 : null;
 
-            $maxQty = (int) SiteSetting::get('shop.max_qty_per_product', 10);
-            $availableStock = $this->getAvailableStock($product, $variant);
-
-            if ($quantity > $maxQty) {
-                throw new \OverflowException(
-                    __('messages.cart.max_qty', ['qty' => $maxQty])
-                );
-            }
-
-            if ($quantity > $availableStock) {
-                throw new \OverflowException(
-                    __('messages.cart.out_of_stock', ['stock' => $availableStock])
-                );
-            }
+            $sulleAltreRighe = $this->quantitaNelCarrello($cart, $item->product_id, $item->product_variant_id) - $item->quantity;
+            $this->verificaLaQuantita($sulleAltreRighe + $quantity, $this->getAvailableStock($product, $variant));
 
             $item->update(['quantity' => $quantity]);
 
@@ -194,9 +193,7 @@ class CartService
         $total = 0.0;
 
         foreach ($cart->items as $item) {
-            $effectivePrice = $item->product->effectivePrice();
-            $modifier = $item->variant ? (float) $item->variant->price_modifier : 0.0;
-            $total += ($effectivePrice + $modifier) * $item->quantity;
+            $total += $item->prezzoUnitario() * $item->quantity;
         }
 
         return round($total, 2);
@@ -330,15 +327,17 @@ class CartService
         }
 
         $issues = [];
+        $richiesti = self::quantitaPerPezzo($cart->items);
 
         foreach ($cart->items as $item) {
             $availableStock = $this->getAvailableStock($item->product, $item->variant);
+            $requested = $richiesti[self::chiaveDelPezzo($item->product_id, $item->product_variant_id)];
 
-            if ($item->quantity > $availableStock) {
+            if ($requested > $availableStock) {
                 $issues[] = [
                     'item' => $item,
                     'available' => $availableStock,
-                    'requested' => $item->quantity,
+                    'requested' => $requested,
                 ];
             }
         }
@@ -460,6 +459,43 @@ class CartService
     }
 
     /**
+     * Quanti pezzi di questo prodotto/taglia sono gia' nel carrello, sommando
+     * le righe con e senza personalizzazione.
+     */
+    private function quantitaNelCarrello(Cart $cart, int $productId, ?int $variantId): int
+    {
+        return (int) $cart->items()
+            ->where('product_id', $productId)
+            ->where('product_variant_id', $variantId)
+            ->sum('quantity');
+    }
+
+    /**
+     * Le quantita' richieste per ogni pezzo di magazzino (prodotto/taglia),
+     * sommando le righe che differiscono solo per la personalizzazione.
+     * Usata anche dal checkout, che rivaluta la giacenza sotto lock.
+     *
+     * @param  iterable<CartItem>  $items
+     * @return array<string, int>
+     */
+    public static function quantitaPerPezzo(iterable $items): array
+    {
+        $totali = [];
+
+        foreach ($items as $item) {
+            $chiave = self::chiaveDelPezzo($item->product_id, $item->product_variant_id);
+            $totali[$chiave] = ($totali[$chiave] ?? 0) + (int) $item->quantity;
+        }
+
+        return $totali;
+    }
+
+    public static function chiaveDelPezzo(int $productId, ?int $variantId): string
+    {
+        return $productId.':'.($variantId ?? '');
+    }
+
+    /**
      * La quantita' sta sotto il limite per prodotto e sotto la giacenza.
      */
     private function verificaLaQuantita(int $quantita, int $disponibili): void
@@ -497,7 +533,13 @@ class CartService
         $existingItem = $userCart->items()
             ->where('product_id', $sessionItem->product_id)
             ->where('product_variant_id', $sessionItem->product_variant_id)
+            ->where('con_personalizzazione', $sessionItem->con_personalizzazione)
             ->first();
+
+        // Lo stesso pezzo puo' gia' stare su un'altra riga dell'utente (con o
+        // senza personalizzazione): quella quantita' toglie posto a questa.
+        $maxAllowed -= $this->quantitaNelCarrello($userCart, $sessionItem->product_id, $sessionItem->product_variant_id)
+            - ($existingItem->quantity ?? 0);
 
         if (! $existingItem) {
             $qty = min($sessionItem->quantity, $maxAllowed);
@@ -506,6 +548,7 @@ class CartService
                 $userCart->items()->create([
                     'product_id' => $sessionItem->product_id,
                     'product_variant_id' => $sessionItem->product_variant_id,
+                    'con_personalizzazione' => $sessionItem->con_personalizzazione,
                     'quantity' => $qty,
                 ]);
             }

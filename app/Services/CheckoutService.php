@@ -196,16 +196,16 @@ class CheckoutService
             // 8. Crea OrderItems con snapshot dei prezzi e riserva lo stock:
             // le due scritture stanno insieme in Order::registraArticolo().
             foreach ($cart->items as $cartItem) {
-                $effectivePrice = $cartItem->product->effectivePrice();
-                $modifier = $cartItem->variant ? (float) $cartItem->variant->price_modifier : 0.0;
-                $unitPrice = $effectivePrice + $modifier;
+                $personalizzata = $cartItem->personalizzata();
 
                 $order->registraArticolo(
                     $cartItem->product_id,
                     $cartItem->product_variant_id,
                     $cartItem->quantity,
-                    $unitPrice,
+                    $cartItem->prezzoUnitario(),
                     'vendita (riservato al checkout)',
+                    $personalizzata ? $cartItem->product->getTranslations('personalizzazione_nome') : null,
+                    $cartItem->supplementoPersonalizzazione(),
                 );
             }
 
@@ -329,14 +329,12 @@ class CheckoutService
     }
 
     /**
-     * Quanto vale una riga del carrello: prezzo effettivo del prodotto piu'
-     * la variazione della variante, per la quantita'.
+     * Quanto vale una riga del carrello: il prezzo di un pezzo
+     * (CartItem::prezzoUnitario) per la quantita'.
      */
     private function importoDellaRiga(CartItem $item): float
     {
-        $modifier = $item->variant ? (float) $item->variant->price_modifier : 0.0;
-
-        return ($item->product->effectivePrice() + $modifier) * $item->quantity;
+        return $item->prezzoUnitario() * $item->quantity;
     }
 
     /**
@@ -371,9 +369,19 @@ class CheckoutService
                 ->keyBy('id');
         }
 
-        // Valida stock per ogni item del carrello
+        // Valida stock per ogni pezzo di magazzino: la stessa taglia puo'
+        // stare su due righe, con e senza personalizzazione.
         $errors = [];
+        $richiesti = CartService::quantitaPerPezzo($items);
+        $controllati = [];
         foreach ($items as $item) {
+            $chiave = CartService::chiaveDelPezzo($item->product_id, $item->product_variant_id);
+            if (isset($controllati[$chiave])) {
+                continue;
+            }
+            $controllati[$chiave] = true;
+            $richiesto = $richiesti[$chiave];
+
             $product = $lockedProducts->get($item->product_id);
             $variant = $item->product_variant_id
                 ? $lockedVariants->get($item->product_variant_id)
@@ -383,12 +391,12 @@ class CheckoutService
                 ? (int) $variant->stock
                 : (int) ($product->stock ?? 0);
 
-            if ($item->quantity > $availableStock) {
+            if ($richiesto > $availableStock) {
                 $productName = $product->name ?? 'Unknown';
                 $errors[] = __('messages.checkout.stock_issue', [
                     'product' => $productName,
                     'available' => $availableStock,
-                    'requested' => $item->quantity,
+                    'requested' => $richiesto,
                 ]);
             }
         }

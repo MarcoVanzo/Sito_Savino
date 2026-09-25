@@ -187,6 +187,7 @@ onUnmounted(() => {
                             <p v-if="item.variant_name || item.variant" class="text-gray-400 text-xs mt-0.5">
                                 {{ item.variant_name || item.variant }}
                             </p>
+                            <p v-if="item.personalizzazione" class="text-xs text-savino-fucsia font-semibold mt-0.5">+ {{ item.personalizzazione }}</p>
                             <p class="text-savino-red font-bold text-sm mt-1">
                                 {{ formatPrice(item.price) }}
                             </p>

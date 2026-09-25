@@ -25,9 +25,10 @@ class Product extends Model implements HasMedia
         'product_category_id', 'name', 'slug', 'description', 'price',
         'stock', 'sku', 'is_active', 'type', 'sale_price', 'sale_start',
         'sale_end', 'short_description', 'weight', 'size_guide',
+        'etichette', 'personalizzazione_nome', 'personalizzazione_prezzo',
     ];
 
-    public $translatable = ['name', 'description', 'short_description'];
+    public $translatable = ['name', 'description', 'short_description', 'personalizzazione_nome'];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -37,6 +38,8 @@ class Product extends Model implements HasMedia
         'sale_start' => 'datetime',
         'sale_end' => 'datetime',
         'weight' => 'decimal:2',
+        'etichette' => 'array',
+        'personalizzazione_prezzo' => 'decimal:2',
     ];
 
     public function category(): BelongsTo
@@ -78,7 +81,11 @@ class Product extends Model implements HasMedia
             return (int) $this->stock;
         }
 
-        $aggregated = $this->getAttribute('variants_sum_stock');
+        // Con Model::shouldBeStrict() (fuori produzione) leggere un attributo
+        // non caricato lancia: si guarda prima se la query l'ha portato.
+        $aggregated = array_key_exists('variants_sum_stock', $this->getAttributes())
+            ? $this->getAttribute('variants_sum_stock')
+            : null;
 
         if ($aggregated !== null) {
             return (int) $aggregated;
@@ -168,6 +175,15 @@ class Product extends Model implements HasMedia
     public function effectivePrice(): float
     {
         return $this->isOnSale() ? (float) $this->sale_price : (float) $this->price;
+    }
+
+    /**
+     * Il prodotto offre la personalizzazione (di solito la firma della
+     * giocatrice)? Si accende dando un nome all'aggiunta nel pannello.
+     */
+    public function offrePersonalizzazione(): bool
+    {
+        return trim((string) $this->getTranslation('personalizzazione_nome', config('app.fallback_locale'), false)) !== '';
     }
 
     /**

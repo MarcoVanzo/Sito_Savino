@@ -1053,6 +1053,23 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   test (`SiteSettingTest`, `BidServiceTest`, `ShopCorrectnessAuditTest`) usano
   la forma nuda proprio per questo.
 
+- **Le etichette sulla foto dei prodotti le sceglie la redazione**
+  (`products.etichette`, sezione "Etichette in vetrina"): nullo vale
+  "automatiche" (NUOVO nei primi 30 giorni, IN OFFERTA durante lo sconto), un
+  elenco anche vuoto e' la scelta a mano. Al massimo due, decise da
+  `App\Support\EtichetteDelProdotto`. **IN OFFERTA e ULTIMO RIMASTO compaiono
+  solo mentre sono vere** (sconto annunciabile, cioè con il prezzo di riferimento dei 30 giorni come il barrato; un pezzo per ogni taglia rimasta),
+  qualunque cosa dica il pannello: un'offerta o una scarsita' finte sono
+  pratiche ingannevoli (Codice del consumo, artt. 21 e 23).
+- **La personalizzazione (la firma della giocatrice) non e' una variante.** E'
+  un'aggiunta facoltativa del prodotto (`personalizzazione_nome`, tradotto, e
+  `personalizzazione_prezzo`) e un flag sulla riga del carrello: il pezzo in
+  magazzino e' uno, quindi giacenza e limite per prodotto si contano sulla
+  somma delle righe con e senza firma (`CartService::quantitaPerPezzo`, usato
+  anche dal checkout sotto lock). La riga d'ordine ne fotografa nome e
+  supplemento. Il prezzo di una riga si compone solo in
+  `CartItem::prezzoUnitario()`.
+
 ---
 
 ## 21. Cookie, consenso e informative

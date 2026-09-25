@@ -78,6 +78,7 @@ class CartController extends Controller
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1'],
             'variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
+            'personalizzazione' => ['sometimes', 'boolean'],
         ]);
 
         try {
@@ -85,6 +86,7 @@ class CartController extends Controller
                 $validated['product_id'],
                 $validated['quantity'],
                 $validated['variant_id'] ?? null,
+                (bool) ($validated['personalizzazione'] ?? false),
             );
 
             return back()->with('success', __('messages.cart.added'));
@@ -161,13 +163,7 @@ class CartController extends Controller
         $items = $cart?->items?->map(fn ($item) => $this->mapCartItem($item)) ?? collect();
 
         // Calcola totale e conteggio in-memory invece di ri-fetchare il cart
-        $total = $cart?->items?->sum(function ($item) {
-            if (! $item->product) {
-                return 0;
-            }
-
-            return ($item->product->effectivePrice() + ($item->variant->price_modifier ?? 0)) * $item->quantity;
-        }) ?? 0;
+        $total = $cart?->items?->sum(fn ($item) => $item->prezzoUnitario() * $item->quantity) ?? 0;
 
         $count = $cart?->items?->sum('quantity') ?? 0;
 
@@ -199,7 +195,8 @@ class CartController extends Controller
             'quantity' => $item->quantity,
             'name' => $item->product?->name,
             'slug' => $item->product?->slug,
-            'price' => $item->product ? ($item->product->effectivePrice() + ($item->variant->price_modifier ?? 0)) : null,
+            'price' => $item->product ? $item->prezzoUnitario() : null,
+            'personalizzazione' => $item->personalizzazione,
             'variant' => $variantStr,
             'variant_name' => $variantStr,
             'image' => $item->product?->getImageUrl('card'),
