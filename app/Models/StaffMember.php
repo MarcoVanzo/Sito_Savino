@@ -33,6 +33,20 @@ class StaffMember extends Model implements HasMedia
 
     protected $appends = ['full_name'];
 
+    /**
+     * Un membro nuovo va in fondo. Il modulo non chiede la posizione e la
+     * colonna parte da 0, cioè prima di tutti: Team Manager e Logistic
+     * Manager erano finiti in cima all'organigramma, sopra il Presidente.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $member): void {
+            if (! $member->sort_order) {
+                $member->sort_order = (int) static::query()->max('sort_order') + 1;
+            }
+        });
+    }
+
     public function getFullNameAttribute()
     {
         return "{$this->first_name} {$this->last_name}";

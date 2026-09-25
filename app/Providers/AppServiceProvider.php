@@ -35,6 +35,8 @@ use App\Services\Analytics\WebAnalyticsService;
 use App\Services\Social\SocialAnalyticsService;
 use App\Services\Wikipedia\WikipediaClient;
 use Filament\SpatieLaravelTranslatableContentDriver;
+use Filament\Tables\Actions\Action as TableAction;
+use Filament\Tables\Table;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -80,6 +82,17 @@ class AppServiceProvider extends ServiceProvider
         // In sviluppo: segnala lazy loading, mass assignment silenzioso,
         // e accesso ad attributi inesistenti
         Model::shouldBeStrict(! app()->isProduction());
+
+        // Il riordino delle tabelle si accende da un'icona senza testo in
+        // cima all'elenco, e la redazione non l'ha mai trovata: "non riesco a
+        // spostare l'ordinamento" (organigramma, 25/09/2026). Un pulsante con
+        // la parola vale per tutte le tabelle riordinabili del pannello.
+        Table::configureUsing(fn (Table $table) => $table->reorderRecordsTriggerAction(
+            fn (TableAction $action, bool $isReordering) => $action
+                ->button()
+                ->label($isReordering ? 'Fine riordino' : 'Riordina')
+                ->icon($isReordering ? 'heroicon-o-check' : 'heroicon-o-arrows-up-down'),
+        ));
 
         // Requisiti minimi di robustezza, applicati ovunque si usi
         // Rules\Password::defaults(). `uncompromised()` interroga l'API di

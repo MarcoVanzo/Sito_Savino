@@ -76,7 +76,7 @@ class CacheInvalidationObserver
         // `public:home`, e la redazione ricaricava senza vedere niente.
         HeroSlide::class => ['public:home'],
         Standing::class => ['public:risultati'],
-        StaffMember::class => ['public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],
+        StaffMember::class => [...self::CHIAVI_STAGIONE, 'public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],
         GalleryEvent::class => ['public:gallery_images'],
         GalleryImage::class => ['public:gallery_images', 'public:gallery_athletes'],
     ];
