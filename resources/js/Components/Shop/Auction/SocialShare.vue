@@ -38,6 +38,7 @@ const shareLinks = [
             target="_blank"
             rel="noopener noreferrer"
             :title="link.name"
+            :aria-label="link.name"
             :class="[
                 'w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 transition-all duration-300',
                 link.color,

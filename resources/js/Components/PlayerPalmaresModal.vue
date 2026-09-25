@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
             <div
                 ref="panel"
                 tabindex="-1"
-                class="relative w-full sm:max-w-4xl max-h-[92vh] sm:max-h-[88vh] flex flex-col bg-white rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl outline-none palmares-panel"
+                class="relative w-full sm:max-w-4xl max-h-[92vh] sm:max-h-[88vh] flex flex-col bg-white rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl outline-none palmares-panel focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
             >
                 <!-- Chiusura -->
                 <button

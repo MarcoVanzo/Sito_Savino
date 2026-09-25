@@ -109,7 +109,7 @@ const socialLinks = computed(() => {
 </script>
 
 <template>
-    <footer role="contentinfo" class="bg-gray-900 mt-auto">
+    <footer class="bg-gray-900 mt-auto">
         <!-- Main Footer -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 lg:gap-8">
@@ -175,7 +175,7 @@ const socialLinks = computed(() => {
                                 :href="safeUrl(link.url || link.href, '#')"
                                 :target="link.target"
                                 :rel="link.target === '_blank' ? 'noopener noreferrer' : null"
-                                class="text-gray-400 text-sm hover:text-savino-fucsia transition-colors duration-200"
+                                class="text-gray-400 text-sm hover:text-savino-fucsia-chiaro transition-colors duration-200"
                             >
                                 {{ link.label }}
                             </component>
@@ -201,18 +201,19 @@ const socialLinks = computed(() => {
                          redazione mantiene e che i moduli fanno accettare. Finche' qui
                          c'era `legalDocs.privacy_policy`, un PDF caricato vinceva sulla
                          pagina e il footer serviva l'informativa del vecchio sito. -->
-                    <Link :href="route('pages.show', 'privacy-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.privacy_policy') }}</Link>
-                    <Link :href="route('pages.show', 'cookie-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.cookie_policy') }}</Link>
-                    <Link :href="route('pages.show', 'condizioni-di-vendita')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.terms_of_sale') }}</Link>
-                    <Link :href="route('pages.show', 'diritto-di-recesso')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.withdrawal') }}</Link>
-                    <Link :href="route('pages.show', 'spedizioni')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.shipping') }}</Link>
-                    <Link :href="route('pages.show', 'resi-e-rimborsi')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.returns') }}</Link>
+                    <Link :href="route('pages.show', 'privacy-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.privacy_policy') }}</Link>
+                    <Link :href="route('pages.show', 'cookie-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.cookie_policy') }}</Link>
+                    <Link :href="route('pages.show', 'condizioni-di-vendita')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.terms_of_sale') }}</Link>
+                    <Link :href="route('pages.show', 'diritto-di-recesso')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.withdrawal') }}</Link>
+                    <Link :href="route('pages.show', 'spedizioni')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.shipping') }}</Link>
+                    <Link :href="route('pages.show', 'resi-e-rimborsi')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.returns') }}</Link>
                     <!-- L'art. 54-bis del Codice del Consumo vuole il recesso online "ben
                          visibile e accessibile in modo continuativo": sta qui, in ogni
                          pagina, e non solo dentro lo shop. -->
-                    <Link :href="route('recesso')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.withdraw') }}</Link>
-                    <a v-if="safeUrl(legalDocs.informativa_promozionale)" :href="safeUrl(legalDocs.informativa_promozionale)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.promotional_policy') }}</a>
-                    <a v-if="safeUrl(legalDocs.informativa_fornitori)" :href="safeUrl(legalDocs.informativa_fornitori)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.supplier_policy') }}</a>
+                    <Link :href="route('pages.show', 'dichiarazione-di-accessibilita')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.accessibility') }}</Link>
+                    <Link :href="route('recesso')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.withdraw') }}</Link>
+                    <a v-if="safeUrl(legalDocs.informativa_promozionale)" :href="safeUrl(legalDocs.informativa_promozionale)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.promotional_policy') }}</a>
+                    <a v-if="safeUrl(legalDocs.informativa_fornitori)" :href="safeUrl(legalDocs.informativa_fornitori)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.supplier_policy') }}</a>
                 </div>
             </div>
         </div>

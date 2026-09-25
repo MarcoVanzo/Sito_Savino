@@ -114,6 +114,34 @@ const previousSlide = ref(-1);
 const isTransitioning = ref(false);
 const slidesContainer = ref(null);
 let slideInterval;
+
+// Pausa del movimento della hero (WCAG 2.2.2): slideshow, video e particelle
+// si muovono da soli per piu' di cinque secondi, quindi serve un modo per
+// fermarli. Parte gia' fermo per chi ha chiesto meno movimento al sistema.
+const movimentoFermo = ref(false);
+const heroVideo = ref(null);
+let ripartiParticelle = null;
+
+const avviaSlideshow = () => {
+    clearInterval(slideInterval);
+
+    if (!movimentoFermo.value && slides.value.length > 1) {
+        slideInterval = setInterval(nextSlideAuto, 6000);
+    }
+};
+
+const alternaMovimento = () => {
+    movimentoFermo.value = !movimentoFermo.value;
+
+    if (movimentoFermo.value) {
+        clearInterval(slideInterval);
+        heroVideo.value?.pause();
+    } else {
+        avviaSlideshow();
+        heroVideo.value?.play()?.catch(() => {});
+        ripartiParticelle?.();
+    }
+};
 let cleanupTimeout = null; // Fallback safety timer
 
 // Cleanup: chiamato quando il fade-in della slide corrente è completato
@@ -158,12 +186,8 @@ const nextSlideAuto = () => {
 const goToSlide = (index) => {
     if (index === currentSlide.value || isTransitioning.value) return;
     doTransition(index);
-    // Reset timer auto
-    clearInterval(slideInterval);
-
-    if (slides.value.length > 1) {
-        slideInterval = setInterval(nextSlideAuto, 6000);
-    }
+    // Reset timer auto (resta fermo se il visitatore ha messo in pausa)
+    avviaSlideshow();
 };
 
 // Slide class helper: 3 stati distinti
@@ -268,13 +292,20 @@ const initParticles = () => {
     let isAnimating = false;
 
     const animate = () => {
-        if (!isAnimating) return;
+        if (!isAnimating || movimentoFermo.value) {
+            particleAnimId = null;
+            return;
+        }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles.forEach(p => {
             p.update(canvas.width, canvas.height);
             p.draw(ctx);
         });
         particleAnimId = requestAnimationFrame(animate);
+    };
+
+    ripartiParticelle = () => {
+        if (isAnimating && !particleAnimId) animate();
     };
 
     if (typeof IntersectionObserver !== 'undefined') {
@@ -333,15 +364,19 @@ const getCachedTiltHandlers = (index) => {
 
 // === LIFECYCLE ===
 onMounted(async () => {
+    movimentoFermo.value = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
     // Slideshow — transitionend per cleanup senza scatti
     if (!heroVideoUrl.value) {
         if (slidesContainer.value) {
             slidesContainer.value.addEventListener('transitionend', onSlideTransitionEnd);
         }
 
-        if (slides.value.length > 1) {
-            slideInterval = setInterval(nextSlideAuto, 6000);
-        }
+        avviaSlideshow();
+    } else if (!movimentoFermo.value) {
+        // Niente attributo autoplay: il video parte da qui, e solo se il
+        // visitatore non ha chiesto di ridurre il movimento.
+        heroVideo.value?.play()?.catch(() => {});
     }
 
     // Parallax
@@ -433,7 +468,7 @@ const ogMeta = useOgMeta({
                 <!-- Video Background Fallback se heroVideoUrl è presente -->
                 <div v-if="heroVideoUrl" class="absolute inset-0 w-full h-full z-[1]">
                     <video 
-                        autoplay 
+                        ref="heroVideo"
                         loop 
                         muted 
                         playsinline 
@@ -488,6 +523,19 @@ const ogMeta = useOgMeta({
                 <div class="absolute inset-0 opacity-[0.03] mix-blend-overlay" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E');"></div>
             </div>
             
+            <!-- Pausa del movimento (WCAG 2.2.2) -->
+            <button
+                v-if="heroVideoUrl || slides.length > 1"
+                type="button"
+                class="absolute bottom-6 left-4 sm:left-6 z-20 inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 text-xs font-semibold text-white hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                :aria-pressed="movimentoFermo"
+                @click="alternaMovimento"
+            >
+                <svg v-if="!movimentoFermo" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+                <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                {{ movimentoFermo ? $t('accessibilita.resume_motion') : $t('accessibilita.pause_motion') }}
+            </button>
+
             <!-- Slide Indicators -->
             <div v-if="!heroVideoUrl" class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
                 <button type="button" 
@@ -765,7 +813,7 @@ const ogMeta = useOgMeta({
         <!-- GALLERY HIGHLIGHTS STRIP -->
         <section class="py-12 bg-gray-900 overflow-hidden">
             <div class="text-center mb-8">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.gallery_subtitle') }}</span>
+                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.gallery_subtitle') }}</span>
                 <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mt-2">{{ $t('home.gallery_title') }}</h2>
             </div>
             <div class="marquee-container">

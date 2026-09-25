@@ -1,4 +1,5 @@
 <script setup>
+import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
@@ -234,6 +235,7 @@ const orderTotal = computed(() => {
 const submitOrder = () => {
     form.post(route('shop.checkout.store'), {
         preserveScroll: true,
+        onError: vaiAlPrimoErrore,
     });
 };
 
@@ -408,36 +410,42 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-guest-name"
                                         v-model="form.guest_name"
+                                :aria-invalid="!!form.errors.guest_name"
+                                :aria-describedby="form.errors.guest_name ? 'errore-guest_name' : undefined"
                                         type="text"
                                         autocomplete="name"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_fullname')"
                                     />
-                                    <p v-if="form.errors.guest_name" class="mt-1 text-sm text-red-500">{{ form.errors.guest_name }}</p>
+                                    <p v-if="form.errors.guest_name" id="errore-guest_name" class="mt-1 text-sm text-red-700">{{ form.errors.guest_name }}</p>
                                 </div>
                                 <div>
                                     <label for="checkout-email" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_email') }}</label>
                                     <input
                                         id="checkout-email"
                                         v-model="form.guest_email"
+                                :aria-invalid="!!form.errors.guest_email"
+                                :aria-describedby="form.errors.guest_email ? 'errore-guest_email' : undefined"
                                         type="email"
                                         autocomplete="email"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_email')"
                                     />
-                                    <p v-if="form.errors.guest_email" class="mt-1 text-sm text-red-500">{{ form.errors.guest_email }}</p>
+                                    <p v-if="form.errors.guest_email" id="errore-guest_email" class="mt-1 text-sm text-red-700">{{ form.errors.guest_email }}</p>
                                 </div>
                                 <div>
                                     <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }}</label>
                                     <input
                                         id="checkout-phone"
                                         v-model="form.guest_phone"
+                                :aria-invalid="!!form.errors.guest_phone"
+                                :aria-describedby="form.errors.guest_phone ? 'errore-guest_phone' : undefined"
                                         type="tel"
                                         autocomplete="tel"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_phone')"
                                     />
-                                    <p v-if="form.errors.guest_phone" class="mt-1 text-sm text-red-500">{{ form.errors.guest_phone }}</p>
+                                    <p v-if="form.errors.guest_phone" id="errore-guest_phone" class="mt-1 text-sm text-red-700">{{ form.errors.guest_phone }}</p>
                                 </div>
                             </div>
                         </div>
@@ -457,12 +465,14 @@ const ogMeta = useOgMeta({
                                 <input
                                     id="checkout-auth-phone"
                                     v-model="form.phone"
+                                :aria-invalid="!!form.errors.phone"
+                                :aria-describedby="form.errors.phone ? 'errore-phone' : undefined"
                                     type="tel"
                                     autocomplete="tel"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                     :placeholder="$t('shop_checkout.placeholder_phone')"
                                 />
-                                <p v-if="form.errors.phone" class="mt-1 text-sm text-red-500">{{ form.errors.phone }}</p>
+                                <p v-if="form.errors.phone" id="errore-phone" class="mt-1 text-sm text-red-700">{{ form.errors.phone }}</p>
                                 <p class="mt-1 text-xs text-gray-400">{{ $t('shop_checkout.phone_shipping_note') }}</p>
                             </div>
                         </div>
@@ -480,12 +490,14 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-first-name"
                                         v-model="form.shipping_first_name"
+                                :aria-invalid="!!form.errors.shipping_first_name"
+                                :aria-describedby="form.errors.shipping_first_name ? 'errore-shipping_first_name' : undefined"
                                         type="text"
                                         autocomplete="given-name"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_first_name')"
                                     />
-                                    <p v-if="form.errors.shipping_first_name" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_first_name }}</p>
+                                    <p v-if="form.errors.shipping_first_name" id="errore-shipping_first_name" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_first_name }}</p>
                                 </div>
                                 <!-- Last Name -->
                                 <div>
@@ -493,12 +505,14 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-last-name"
                                         v-model="form.shipping_last_name"
+                                :aria-invalid="!!form.errors.shipping_last_name"
+                                :aria-describedby="form.errors.shipping_last_name ? 'errore-shipping_last_name' : undefined"
                                         type="text"
                                         autocomplete="family-name"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_last_name')"
                                     />
-                                    <p v-if="form.errors.shipping_last_name" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_last_name }}</p>
+                                    <p v-if="form.errors.shipping_last_name" id="errore-shipping_last_name" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_last_name }}</p>
                                 </div>
                                 <!-- Street Address with Autocomplete (full width) -->
                                 <div class="sm:col-span-2">
@@ -515,7 +529,7 @@ const ogMeta = useOgMeta({
                                             form.shipping_province = addr.province;
                                         }"
                                     />
-                                    <p v-if="form.errors.shipping_street" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_street }}</p>
+                                    <p v-if="form.errors.shipping_street" id="errore-shipping_street" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_street }}</p>
                                 </div>
                                 <!-- City -->
                                 <div>
@@ -523,12 +537,14 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-city"
                                         v-model="form.shipping_city"
+                                :aria-invalid="!!form.errors.shipping_city"
+                                :aria-describedby="form.errors.shipping_city ? 'errore-shipping_city' : undefined"
                                         type="text"
                                         autocomplete="address-level2"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_city')"
                                     />
-                                    <p v-if="form.errors.shipping_city" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_city }}</p>
+                                    <p v-if="form.errors.shipping_city" id="errore-shipping_city" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_city }}</p>
                                 </div>
                                 <!-- ZIP Code -->
                                 <div>
@@ -536,12 +552,14 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-zip"
                                         v-model="form.shipping_zip_code"
+                                :aria-invalid="!!form.errors.shipping_zip_code"
+                                :aria-describedby="form.errors.shipping_zip_code ? 'errore-shipping_zip_code' : undefined"
                                         type="text"
                                         autocomplete="postal-code"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_zip_code')"
                                     />
-                                    <p v-if="form.errors.shipping_zip_code" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_zip_code }}</p>
+                                    <p v-if="form.errors.shipping_zip_code" id="errore-shipping_zip_code" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_zip_code }}</p>
                                 </div>
                                 <!-- Province -->
                                 <div>
@@ -549,23 +567,27 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-province"
                                         v-model="form.shipping_province"
+                                :aria-invalid="!!form.errors.shipping_province"
+                                :aria-describedby="form.errors.shipping_province ? 'errore-shipping_province' : undefined"
                                         type="text"
                                         autocomplete="address-level1"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_province')"
                                     />
-                                    <p v-if="form.errors.shipping_province" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_province }}</p>
+                                    <p v-if="form.errors.shipping_province" id="errore-shipping_province" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_province }}</p>
                                 </div>
                                 <!-- Country -->
                                 <div>
                                     <label for="checkout-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_country') }}</label>
-                                    <select id="checkout-country" v-model="form.country" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
+                                    <select id="checkout-country" v-model="form.country"
+                                :aria-invalid="!!form.errors.country"
+                                :aria-describedby="form.errors.country ? 'errore-country' : undefined" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
                                         <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
                                         <option v-for="c in availableCountries" :key="c.code" :value="c.code">
                                             {{ c.name }}
                                         </option>
                                     </select>
-                                    <p v-if="form.errors.country" class="mt-1 text-sm text-red-500">{{ form.errors.country }}</p>
+                                    <p v-if="form.errors.country" id="errore-country" class="mt-1 text-sm text-red-700">{{ form.errors.country }}</p>
                                 </div>
 
                                 <!-- Codice Fiscale (obbligatorio per Italia) -->
@@ -574,13 +596,15 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-cf"
                                         v-model="form.codice_fiscale"
+                                :aria-invalid="!!form.errors.codice_fiscale"
+                                :aria-describedby="form.errors.codice_fiscale ? 'errore-codice_fiscale' : undefined"
                                         type="text"
                                         maxlength="16"
                                         class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm uppercase"
                                         :placeholder="$t('shop_checkout.placeholder_codice_fiscale')"
                                         @input="form.codice_fiscale = form.codice_fiscale.toUpperCase()"
                                     />
-                                    <p v-if="form.errors.codice_fiscale" class="mt-1 text-sm text-red-500">{{ form.errors.codice_fiscale }}</p>
+                                    <p v-if="form.errors.codice_fiscale" id="errore-codice_fiscale" class="mt-1 text-sm text-red-700">{{ form.errors.codice_fiscale }}</p>
                                 </div>
                             </div>
 
@@ -598,43 +622,57 @@ const ogMeta = useOgMeta({
                                 <div class="grid sm:grid-cols-2 gap-4">
                                     <div>
                                         <label for="billing-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_first_name') }} *</label>
-                                        <input id="billing-first-name" v-model="form.billing_first_name" type="text" autocomplete="given-name" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_first_name')" />
-                                        <p v-if="form.errors.billing_first_name" class="mt-1 text-sm text-red-500">{{ form.errors.billing_first_name }}</p>
+                                        <input id="billing-first-name" v-model="form.billing_first_name"
+                                :aria-invalid="!!form.errors.billing_first_name"
+                                :aria-describedby="form.errors.billing_first_name ? 'errore-billing_first_name' : undefined" type="text" autocomplete="given-name" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_first_name')" />
+                                        <p v-if="form.errors.billing_first_name" id="errore-billing_first_name" class="mt-1 text-sm text-red-700">{{ form.errors.billing_first_name }}</p>
                                     </div>
                                     <div>
                                         <label for="billing-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_last_name') }} *</label>
-                                        <input id="billing-last-name" v-model="form.billing_last_name" type="text" autocomplete="family-name" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_last_name')" />
-                                        <p v-if="form.errors.billing_last_name" class="mt-1 text-sm text-red-500">{{ form.errors.billing_last_name }}</p>
+                                        <input id="billing-last-name" v-model="form.billing_last_name"
+                                :aria-invalid="!!form.errors.billing_last_name"
+                                :aria-describedby="form.errors.billing_last_name ? 'errore-billing_last_name' : undefined" type="text" autocomplete="family-name" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_last_name')" />
+                                        <p v-if="form.errors.billing_last_name" id="errore-billing_last_name" class="mt-1 text-sm text-red-700">{{ form.errors.billing_last_name }}</p>
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label for="billing-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
-                                        <input id="billing-street" v-model="form.billing_street" type="text" autocomplete="address-line1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_street')" />
-                                        <p v-if="form.errors.billing_street" class="mt-1 text-sm text-red-500">{{ form.errors.billing_street }}</p>
+                                        <input id="billing-street" v-model="form.billing_street"
+                                :aria-invalid="!!form.errors.billing_street"
+                                :aria-describedby="form.errors.billing_street ? 'errore-billing_street' : undefined" type="text" autocomplete="address-line1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_street')" />
+                                        <p v-if="form.errors.billing_street" id="errore-billing_street" class="mt-1 text-sm text-red-700">{{ form.errors.billing_street }}</p>
                                     </div>
                                     <div>
                                         <label for="billing-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }} *</label>
-                                        <input id="billing-city" v-model="form.billing_city" type="text" autocomplete="address-level2" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_city')" />
-                                        <p v-if="form.errors.billing_city" class="mt-1 text-sm text-red-500">{{ form.errors.billing_city }}</p>
+                                        <input id="billing-city" v-model="form.billing_city"
+                                :aria-invalid="!!form.errors.billing_city"
+                                :aria-describedby="form.errors.billing_city ? 'errore-billing_city' : undefined" type="text" autocomplete="address-level2" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_city')" />
+                                        <p v-if="form.errors.billing_city" id="errore-billing_city" class="mt-1 text-sm text-red-700">{{ form.errors.billing_city }}</p>
                                     </div>
                                     <div>
                                         <label for="billing-zip" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_zip_code') }} *</label>
-                                        <input id="billing-zip" v-model="form.billing_zip_code" type="text" autocomplete="postal-code" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
-                                        <p v-if="form.errors.billing_zip_code" class="mt-1 text-sm text-red-500">{{ form.errors.billing_zip_code }}</p>
+                                        <input id="billing-zip" v-model="form.billing_zip_code"
+                                :aria-invalid="!!form.errors.billing_zip_code"
+                                :aria-describedby="form.errors.billing_zip_code ? 'errore-billing_zip_code' : undefined" type="text" autocomplete="postal-code" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
+                                        <p v-if="form.errors.billing_zip_code" id="errore-billing_zip_code" class="mt-1 text-sm text-red-700">{{ form.errors.billing_zip_code }}</p>
                                     </div>
                                     <div>
                                         <label for="billing-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }}</label>
-                                        <input id="billing-province" v-model="form.billing_province" type="text" autocomplete="address-level1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_province')" />
-                                        <p v-if="form.errors.billing_province" class="mt-1 text-sm text-red-500">{{ form.errors.billing_province }}</p>
+                                        <input id="billing-province" v-model="form.billing_province"
+                                :aria-invalid="!!form.errors.billing_province"
+                                :aria-describedby="form.errors.billing_province ? 'errore-billing_province' : undefined" type="text" autocomplete="address-level1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_province')" />
+                                        <p v-if="form.errors.billing_province" id="errore-billing_province" class="mt-1 text-sm text-red-700">{{ form.errors.billing_province }}</p>
                                     </div>
                                     <div>
                                         <label for="billing-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_billing_country') }}</label>
-                                        <select id="billing-country" v-model="form.billing_country" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
+                                        <select id="billing-country" v-model="form.billing_country"
+                                :aria-invalid="!!form.errors.billing_country"
+                                :aria-describedby="form.errors.billing_country ? 'errore-billing_country' : undefined" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">
                                             <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
                                             <option v-for="c in availableCountries" :key="c.code" :value="c.code">
                                                 {{ c.name }}
                                             </option>
                                         </select>
-                                        <p v-if="form.errors.billing_country" class="mt-1 text-sm text-red-500">{{ form.errors.billing_country }}</p>
+                                        <p v-if="form.errors.billing_country" id="errore-billing_country" class="mt-1 text-sm text-red-700">{{ form.errors.billing_country }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -675,6 +713,8 @@ const ogMeta = useOgMeta({
                                         type="radio"
                                         :value="gateway.value"
                                         v-model="form.payment_gateway"
+                                :aria-invalid="!!form.errors.payment_gateway"
+                                :aria-describedby="form.errors.payment_gateway ? 'errore-payment_gateway' : undefined"
                                         class="w-5 h-5 text-savino-blue border-gray-300 focus:ring-savino-blue/20"
                                     />
                                     <div class="flex-1">
@@ -683,7 +723,7 @@ const ogMeta = useOgMeta({
                                 </label>
                             </div>
                             <p v-if="!paymentGateways.length" class="text-gray-400 text-sm text-center py-4">{{ $t('shop_checkout.no_gateways') }}</p>
-                            <p v-if="form.errors.payment_gateway" class="mt-2 text-sm text-red-500">{{ form.errors.payment_gateway }}</p>
+                            <p v-if="form.errors.payment_gateway" id="errore-payment_gateway" class="mt-2 text-sm text-red-700">{{ form.errors.payment_gateway }}</p>
                         </div>
 
                         <!-- Coupon Code -->

@@ -1,6 +1,7 @@
 <script setup>
 import { isExternalLink, externalLinkAttrs } from '@/Support/menuLinks.js';
-import { watch, onBeforeUnmount } from 'vue';
+import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import { useTrappolaDelFocus } from '@/Composables/useTrappolaDelFocus.js';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import CartBadge from '@/Components/Shop/CartBadge.vue';
@@ -31,6 +32,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['toggle', 'toggle-item']);
+
+// Menu aperto = pannello a tutto schermo: il focus resta fra il pulsante di
+// chiusura e le voci, e alla chiusura torna al pulsante (WCAG 2.4.3).
+const menuMobile = ref(null);
+useTrappolaDelFocus(menuMobile, computed(() => props.isOpen));
 
 // Serve un link alla pagina della sezione solo quando nessuna sottovoce ci
 // porta già (a parità di indirizzo, barra finale a parte). Vale per la voce
@@ -68,7 +74,7 @@ onBeforeUnmount(() => {
 
 <template>
     <!-- MOBILE MENU BUTTON -->
-    <div v-show="visible" class="flex items-center z-50 gap-1">
+    <div v-show="visible" ref="menuMobile" class="flex items-center z-50 gap-1">
         <!-- Language Switcher slot (mobile) -->
         <slot name="language-switcher" />
 
@@ -78,7 +84,7 @@ onBeforeUnmount(() => {
         <!-- Cart Badge (mobile) -->
         <CartBadge />
 
-        <button @click="emit('toggle')" type="button" :aria-label="isOpen ? $t('common.close') : $t('common.open_menu')" :aria-expanded="isOpen" class="text-white hover:text-savino-red focus:outline-none p-3 min-w-[44px] min-h-[44px] flex items-center justify-center">
+        <button @click="emit('toggle')" type="button" :aria-label="isOpen ? $t('common.close') : $t('common.open_menu')" :aria-expanded="isOpen" class="text-white hover:text-savino-fucsia-chiaro focus:outline-none p-3 min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
             <svg v-if="!isOpen" class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -109,8 +115,8 @@ onBeforeUnmount(() => {
                         v-if="!item.children?.length"
                         :href="item.href"
                         v-bind="externalLinkAttrs(item.href)"
-                        class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none"
-                        :class="{'text-savino-red': $page.url.startsWith(item.href), 'text-[#ED028C]': item.isHighlight}"
+                        class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                        :class="{'text-savino-fucsia-chiaro': $page.url.startsWith(item.href), 'text-savino-fucsia-chiaro': item.isHighlight}"
                     >
                         <span>{{ item.label }}</span>
                     </component>
@@ -119,8 +125,8 @@ onBeforeUnmount(() => {
                         @click="emit('toggle-item', index)"
                         aria-haspopup="true"
                         :aria-expanded="activeIndex === index"
-                        class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none"
-                        :class="{'text-savino-red': $page.url.startsWith(item.href) || activeIndex === index, 'text-[#ED028C]': item.isHighlight}"
+                        class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+                        :class="{'text-savino-fucsia-chiaro': $page.url.startsWith(item.href) || activeIndex === index, 'text-savino-fucsia-chiaro': item.isHighlight}"
                     >
                         <span>{{ item.label }}</span>
                         <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': activeIndex === index}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
@@ -137,7 +143,7 @@ onBeforeUnmount(() => {
                             v-if="portaAllaSezione(item)"
                             :href="item.href"
                             v-bind="externalLinkAttrs(item.href)"
-                            class="block py-3 text-sm font-bold uppercase tracking-widest text-white hover:text-savino-fucsia min-h-[44px] flex items-center justify-center"
+                            class="block py-3 text-sm font-bold uppercase tracking-widest text-white hover:text-savino-fucsia-chiaro min-h-[44px] flex items-center justify-center"
                         >
                             {{ $t('nav.go_to_section', { label: item.label }) }}
                         </component>
@@ -164,7 +170,7 @@ onBeforeUnmount(() => {
                 <template v-if="!user()">
                     <Link
                         :href="route('login')"
-                        class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-savino-fucsia hover:text-white transition-colors min-h-[44px]"
+                        class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-savino-fucsia-chiaro hover:text-white transition-colors min-h-[44px]"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
@@ -189,7 +195,7 @@ onBeforeUnmount(() => {
                     </p>
                     <Link
                         :href="route('shop.orders')"
-                        class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-savino-fucsia hover:text-white transition-colors min-h-[44px]"
+                        class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-savino-fucsia-chiaro hover:text-white transition-colors min-h-[44px]"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -198,7 +204,7 @@ onBeforeUnmount(() => {
                     </Link>
                     <Link
                         :href="route('shop.account')"
-                        class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-savino-fucsia hover:text-white transition-colors min-h-[44px]"
+                        class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-savino-fucsia-chiaro hover:text-white transition-colors min-h-[44px]"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />

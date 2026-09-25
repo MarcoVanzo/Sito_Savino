@@ -90,6 +90,10 @@ const ogMeta = useOgMeta({
     </Head>
 
     <PublicLayout>
+        <!-- Titolo della pagina per gli screen reader (WCAG 1.3.1, 2.4.6): il
+             tabellone qui sotto mostra le squadre come loghi e nomi separati,
+             senza un'intestazione di primo livello. -->
+        <h1 class="sr-only">{{ game.home.name }} - {{ game.away.name }}</h1>
         <!-- Intestazione con le due squadre e il punteggio in set -->
         <section class="relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>

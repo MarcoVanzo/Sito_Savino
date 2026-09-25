@@ -66,9 +66,9 @@ const countByStatus = (status) => {
                      solo dalla pagina di un'asta, ma qui si decide di partecipare. -->
                 <p class="text-center text-sm text-gray-300 mb-8">
                     {{ $t('auctions.rules_intro') }}
-                    <Link :href="route('pages.show', 'regolamento-aste')" class="text-white underline hover:text-savino-fucsia">{{ $t('auctions.rules_link') }}</Link>
+                    <Link :href="route('pages.show', 'regolamento-aste')" class="text-white underline hover:text-savino-fucsia-chiaro">{{ $t('auctions.rules_link') }}</Link>
                     ·
-                    <Link :href="route('pages.show', 'condizioni-di-vendita')" class="text-white underline hover:text-savino-fucsia">{{ $t('footer.terms_of_sale') }}</Link>
+                    <Link :href="route('pages.show', 'condizioni-di-vendita')" class="text-white underline hover:text-savino-fucsia-chiaro">{{ $t('footer.terms_of_sale') }}</Link>
                 </p>
 
                 <!-- Filter Tabs -->
@@ -80,7 +80,7 @@ const countByStatus = (status) => {
                         :class="[
                             'px-5 py-2.5 rounded-full text-sm font-bold uppercase tracking-wider transition-all duration-300',
                             activeFilter === filter.key
-                                ? 'bg-savino-fucsia text-gray-900'
+                                ? 'bg-savino-fucsia text-white'
                                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white',
                         ]"
                     >
@@ -117,7 +117,7 @@ const countByStatus = (status) => {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                     <h3 class="text-white font-bold text-lg mb-2">{{ $t('auctions.empty_title') }}</h3>
-                    <p class="text-gray-500 text-sm">
+                    <p class="text-gray-400 text-sm">
                         {{ $t('auctions.empty_description') }}
                     </p>
                 </div>
@@ -130,7 +130,7 @@ const countByStatus = (status) => {
                     <h3 class="text-2xl font-black text-white uppercase tracking-tight">📯 {{ $t('auctions.shop_cta_title') }}</h3>
                     <p class="text-white/80 mt-1">{{ $t('auctions.shop_cta_description') }}</p>
                 </div>
-                <Link :href="route('shop')" class="inline-flex items-center px-8 py-3 bg-savino-fucsia text-savino-blue font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
+                <Link :href="route('shop')" class="inline-flex items-center px-8 py-3 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm rounded-xl hover:bg-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
                     {{ $t('auctions.shop_cta_button') }}
                 </Link>
             </div>

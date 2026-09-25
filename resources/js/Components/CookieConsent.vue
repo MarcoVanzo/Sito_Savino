@@ -183,9 +183,9 @@ defineExpose({ show: apriIlBanner });
                         <h4 class="text-sm font-bold mb-1">{{ $t('cookie.title') }}</h4>
                         <p class="text-xs text-gray-400 leading-relaxed">
                             {{ $t('cookie.description') }}
-                            <Link :href="route('pages.show', 'privacy-policy')" class="text-savino-fucsia hover:underline">{{ $t('footer.privacy_policy') }}</Link>
+                            <Link :href="route('pages.show', 'privacy-policy')" class="text-savino-fucsia-chiaro underline hover:text-white">{{ $t('footer.privacy_policy') }}</Link>
                             {{ $t('cookie.and_the') }}
-                            <Link :href="route('pages.show', 'cookie-policy')" class="text-savino-fucsia hover:underline">{{ $t('footer.cookie_policy') }}</Link>.
+                            <Link :href="route('pages.show', 'cookie-policy')" class="text-savino-fucsia-chiaro underline hover:text-white">{{ $t('footer.cookie_policy') }}</Link>.
                         </p>
                     </div>
                     <div class="flex gap-2 flex-shrink-0 flex-wrap">
@@ -209,7 +209,7 @@ type="button"
                         </button>
                         <button
 type="button"
-                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200 shadow-lg"
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-white hover:bg-yellow-400 rounded-lg transition-all duration-200 shadow-lg"
                             @click="acceptAll"
                         >
                             {{ $t('cookie.accept_all') }}
@@ -280,7 +280,7 @@ id="cookie-necessary" type="checkbox" checked disabled
                             <div class="pt-2 flex justify-end">
                                 <button
 type="button"
-                                    class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-savino-blue hover:bg-yellow-400 rounded-lg transition-all duration-200"
+                                    class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-white hover:bg-yellow-400 rounded-lg transition-all duration-200"
                                     @click="saveConsent"
                                 >
                                     {{ $t('cookie.save_preferences') }}

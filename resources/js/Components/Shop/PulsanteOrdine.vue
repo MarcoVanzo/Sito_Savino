@@ -24,7 +24,7 @@ defineEmits(['click']);
     <button
         type="button"
         :disabled="disabilitato"
-        class="w-full mt-8 bg-savino-fucsia text-savino-blue font-bold uppercase tracking-wider text-sm px-4 py-3 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+        class="w-full mt-8 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-4 py-3 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         @click="$emit('click')"
     >
         <svg v-if="inCorso" class="animate-spin w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24">

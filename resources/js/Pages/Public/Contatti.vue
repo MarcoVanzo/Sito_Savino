@@ -1,4 +1,5 @@
 <script setup>
+import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import NotaInformativaModulo from '@/Components/NotaInformativaModulo.vue'
@@ -41,6 +42,7 @@ const sent = ref(false)
 function handleSubmit() {
     form.post(route('contatti.submit'), {
         preserveScroll: true,
+        onError: vaiAlPrimoErrore,
         onSuccess: () => {
             form.reset()
             sent.value = true
@@ -357,7 +359,7 @@ const ogMeta = useOgMeta({
                 <!-- Dynamic Contact Directory / Rubrica -->
                 <div v-if="cd.contacts_list && cd.contacts_list.length > 0" class="mb-24">
                     <div class="text-center mb-12">
-                        <span class="text-savino-pink text-xs font-black uppercase tracking-[0.3em] bg-savino-pink/10 px-4 py-2 rounded-full">{{ $t('contatti.directory_badge') }}</span>
+                        <span class="text-savino-pink text-xs font-black uppercase tracking-[0.3em] bg-savino-pink/5 px-4 py-2 rounded-full">{{ $t('contatti.directory_badge') }}</span>
                         <h2 class="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tight mt-6">{{ $t('contatti.directory_title') }}</h2>
                         <div class="w-16 h-1.5 bg-savino-pink mx-auto mt-4 rounded-full"></div>
                     </div>
@@ -424,7 +426,7 @@ const ogMeta = useOgMeta({
                                     class="bg-white rounded-2xl p-6 border border-gray-100 hover:border-savino-blue/30 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
                                 >
                                     <div>
-                                        <span class="inline-block text-[10px] font-black text-savino-fucsia uppercase tracking-[0.2em] mb-3 bg-savino-fucsia/10 px-2.5 py-1 rounded">{{ item.role }}</span>
+                                        <span class="inline-block text-[10px] font-black text-savino-fucsia uppercase tracking-[0.2em] mb-3 bg-savino-fucsia/5 px-2.5 py-1 rounded">{{ item.role }}</span>
                                         <h4 v-if="item.name" class="text-lg font-black text-gray-900 uppercase tracking-tight mb-4 group-hover:text-savino-blue transition-colors">
                                             {{ item.name }}
                                         </h4>
@@ -482,16 +484,18 @@ const ogMeta = useOgMeta({
 
                         <!-- Form -->
                         <form v-else @submit.prevent="handleSubmit" class="space-y-6">
-                            <div v-if="Object.keys(form.errors).length > 0" class="bg-savino-red/10 border-l-4 border-savino-red rounded-r-xl p-4 text-savino-red text-sm font-bold shadow-sm">
+                            <div v-if="Object.keys(form.errors).length > 0" id="errori-contatti" role="alert" class="bg-savino-red/10 border-l-4 border-savino-red rounded-r-xl p-4 text-savino-red text-sm font-bold shadow-sm">
                                 <p v-for="(error, field) in form.errors" :key="field">{{ error }}</p>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label for="contact-name" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_name }} *</label>
-                                    <input
+                                    <input autocomplete="name"
                                         id="contact-name"
                                         v-model="form.name"
+                                        :aria-invalid="!!form.errors.name"
+                                        :aria-describedby="form.errors.name ? 'errori-contatti' : undefined"
                                         type="text"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium"
                                         :placeholder="cd.form_placeholder_name"
@@ -500,9 +504,11 @@ const ogMeta = useOgMeta({
                                 </div>
                                 <div>
                                     <label for="contact-email" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_email }} *</label>
-                                    <input
+                                    <input autocomplete="email"
                                         id="contact-email"
                                         v-model="form.email"
+                                        :aria-invalid="!!form.errors.email"
+                                        :aria-describedby="form.errors.email ? 'errori-contatti' : undefined"
                                         type="email"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium"
                                         :placeholder="cd.form_placeholder_email"
@@ -518,6 +524,8 @@ const ogMeta = useOgMeta({
                                     <select
                                         id="contact-subject"
                                         v-model="form.subject"
+                                        :aria-invalid="!!form.errors.subject"
+                                        :aria-describedby="form.errors.subject ? 'errori-contatti' : undefined"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium appearance-none cursor-pointer"
                                     >
                                         <option value="" disabled selected>{{ $t('contatti.select_subject') }}</option>
@@ -556,6 +564,8 @@ const ogMeta = useOgMeta({
                                 <textarea
                                     id="contact-message"
                                     v-model="form.message"
+                                        :aria-invalid="!!form.errors.message"
+                                        :aria-describedby="form.errors.message ? 'errori-contatti' : undefined"
                                     rows="5"
                                     class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all resize-none font-medium"
                                     :placeholder="cd.form_placeholder_message"

@@ -1,0 +1,68 @@
+# La scansione settimanale di accessibilita' del sito.
+#
+# Lo shop deve rispettare l'European Accessibility Act (D.Lgs. 82/2022,
+# EN 301 549 / WCAG 2.1 AA). axe-core, in un browser vero, controlla le pagine
+# principali e lo shop e **fallisce** se trova violazioni gravi o critiche:
+# un colore nuovo sotto il contrasto minimo o un pulsante senza nome
+# diventano una run rossa invece di una regressione che nessuno vede.
+#
+# Non sostituisce la prova con tastiera e screen reader: impedisce di tornare
+# indietro su quello che si puo' misurare. Il rapporto completo resta fra gli
+# artefatti della run.
+name: Scansione accessibilità
+
+on:
+  schedule:
+    - cron: '0 5 * * 1' # lunedì 05:00 UTC, dopo la scansione dei cookie
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Indirizzo da scansionare (vuoto: quello configurato)"
+        required: false
+      pagine:
+        description: 'Quante pagine visitare'
+        required: false
+        default: '30'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scansione-accessibilita
+  cancel-in-progress: false
+
+jobs:
+  scansione:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      # Come per i cookie: Playwright e axe non stanno fra le dipendenze del
+      # progetto (scaricherebbero un browser a ogni `npm ci`), versioni fissate
+      # e niente script di installazione.
+      - name: Installa Playwright e axe-core
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.0 axe-core@4.10.3
+          ./node_modules/.bin/playwright install --with-deps chromium
+
+      - name: Scansiona il sito
+        run: |
+          node scripts/scansione-accessibilita.mjs \
+            --url="${{ github.event.inputs.url || vars.URL_SITO || 'https://seashell-app-47mmf.ondigitalocean.app' }}" \
+            --pagine="${{ github.event.inputs.pagine || '30' }}" \
+            --rapporto=rapporto-accessibilita.json
+
+      - name: Conserva il rapporto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapporto-accessibilita
+          path: rapporto-accessibilita.json
+          if-no-files-found: ignore
+          retention-days: 30

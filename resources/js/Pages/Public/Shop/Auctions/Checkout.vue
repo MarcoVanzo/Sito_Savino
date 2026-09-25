@@ -1,4 +1,5 @@
 <script setup>
+import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
 import { computed, nextTick, watch } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
@@ -117,6 +118,7 @@ const submitOrder = () => {
     if (!checkoutToken.value) return;
     form.post(route('shop.auction-checkout.store', { token: checkoutToken.value }), {
         preserveScroll: true,
+        onError: vaiAlPrimoErrore,
     });
 };
 
@@ -213,12 +215,14 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                             <input
                                 id="auction-phone"
                                 v-model="form.phone"
+                                :aria-invalid="!!form.errors.phone"
+                                :aria-describedby="form.errors.phone ? 'errore-phone' : undefined"
                                 type="tel"
                                 autocomplete="tel"
                                 :class="inputClass"
                                 :placeholder="$t('shop_checkout.placeholder_phone')"
                             />
-                            <p v-if="form.errors.phone" class="mt-1 text-sm text-red-500">{{ form.errors.phone }}</p>
+                            <p v-if="form.errors.phone" id="errore-phone" class="mt-1 text-sm text-red-700">{{ form.errors.phone }}</p>
                             <p class="mt-1 text-xs text-gray-400">{{ $t('shop_checkout.phone_shipping_note') }}</p>
                         </div>
 
@@ -234,13 +238,17 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                             <div class="grid sm:grid-cols-2 gap-4">
                                 <div>
                                     <label for="auction-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_first_name') }} *</label>
-                                    <input id="auction-first-name" v-model="form.shipping_first_name" type="text" autocomplete="given-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_first_name')" />
-                                    <p v-if="form.errors.shipping_first_name" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_first_name }}</p>
+                                    <input id="auction-first-name" v-model="form.shipping_first_name"
+                                :aria-invalid="!!form.errors.shipping_first_name"
+                                :aria-describedby="form.errors.shipping_first_name ? 'errore-shipping_first_name' : undefined" type="text" autocomplete="given-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_first_name')" />
+                                    <p v-if="form.errors.shipping_first_name" id="errore-shipping_first_name" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_first_name }}</p>
                                 </div>
                                 <div>
                                     <label for="auction-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_last_name') }} *</label>
-                                    <input id="auction-last-name" v-model="form.shipping_last_name" type="text" autocomplete="family-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_last_name')" />
-                                    <p v-if="form.errors.shipping_last_name" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_last_name }}</p>
+                                    <input id="auction-last-name" v-model="form.shipping_last_name"
+                                :aria-invalid="!!form.errors.shipping_last_name"
+                                :aria-describedby="form.errors.shipping_last_name ? 'errore-shipping_last_name' : undefined" type="text" autocomplete="family-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_last_name')" />
+                                    <p v-if="form.errors.shipping_last_name" id="errore-shipping_last_name" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_last_name }}</p>
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label for="auction-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
@@ -256,43 +264,53 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                             form.shipping_province = addr.province;
                                         }"
                                     />
-                                    <p v-if="form.errors.shipping_street" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_street }}</p>
+                                    <p v-if="form.errors.shipping_street" id="errore-shipping_street" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_street }}</p>
                                 </div>
                                 <div>
                                     <label for="auction-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }} *</label>
-                                    <input id="auction-city" v-model="form.shipping_city" type="text" autocomplete="address-level2" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_city')" />
-                                    <p v-if="form.errors.shipping_city" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_city }}</p>
+                                    <input id="auction-city" v-model="form.shipping_city"
+                                :aria-invalid="!!form.errors.shipping_city"
+                                :aria-describedby="form.errors.shipping_city ? 'errore-shipping_city' : undefined" type="text" autocomplete="address-level2" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_city')" />
+                                    <p v-if="form.errors.shipping_city" id="errore-shipping_city" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_city }}</p>
                                 </div>
                                 <div>
                                     <label for="auction-zip" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_zip_code') }} *</label>
-                                    <input id="auction-zip" v-model="form.shipping_zip_code" type="text" autocomplete="postal-code" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
-                                    <p v-if="form.errors.shipping_zip_code" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_zip_code }}</p>
+                                    <input id="auction-zip" v-model="form.shipping_zip_code"
+                                :aria-invalid="!!form.errors.shipping_zip_code"
+                                :aria-describedby="form.errors.shipping_zip_code ? 'errore-shipping_zip_code' : undefined" type="text" autocomplete="postal-code" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
+                                    <p v-if="form.errors.shipping_zip_code" id="errore-shipping_zip_code" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_zip_code }}</p>
                                 </div>
                                 <div>
                                     <label for="auction-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }} *</label>
-                                    <input id="auction-province" v-model="form.shipping_province" type="text" autocomplete="address-level1" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_province')" />
-                                    <p v-if="form.errors.shipping_province" class="mt-1 text-sm text-red-500">{{ form.errors.shipping_province }}</p>
+                                    <input id="auction-province" v-model="form.shipping_province"
+                                :aria-invalid="!!form.errors.shipping_province"
+                                :aria-describedby="form.errors.shipping_province ? 'errore-shipping_province' : undefined" type="text" autocomplete="address-level1" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_province')" />
+                                    <p v-if="form.errors.shipping_province" id="errore-shipping_province" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_province }}</p>
                                 </div>
                                 <div>
                                     <label for="auction-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_country') }}</label>
-                                    <select id="auction-country" v-model="form.country" autocomplete="country" :class="inputClass">
+                                    <select id="auction-country" v-model="form.country"
+                                :aria-invalid="!!form.errors.country"
+                                :aria-describedby="form.errors.country ? 'errore-country' : undefined" autocomplete="country" :class="inputClass">
                                         <option value="" disabled>{{ $t('shop_checkout.select_country') }}</option>
                                         <option v-for="c in availableCountries" :key="c.code" :value="c.code">{{ c.name }}</option>
                                     </select>
-                                    <p v-if="form.errors.country" class="mt-1 text-sm text-red-500">{{ form.errors.country }}</p>
+                                    <p v-if="form.errors.country" id="errore-country" class="mt-1 text-sm text-red-700">{{ form.errors.country }}</p>
                                 </div>
                                 <div v-if="form.country === 'IT'" class="sm:col-span-2">
                                     <label for="auction-cf" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_codice_fiscale') }} *</label>
                                     <input
                                         id="auction-cf"
                                         v-model="form.codice_fiscale"
+                                :aria-invalid="!!form.errors.codice_fiscale"
+                                :aria-describedby="form.errors.codice_fiscale ? 'errore-codice_fiscale' : undefined"
                                         type="text"
                                         maxlength="16"
                                         :class="[inputClass, 'uppercase']"
                                         :placeholder="$t('shop_checkout.placeholder_codice_fiscale')"
                                         @input="form.codice_fiscale = form.codice_fiscale.toUpperCase()"
                                     />
-                                    <p v-if="form.errors.codice_fiscale" class="mt-1 text-sm text-red-500">{{ form.errors.codice_fiscale }}</p>
+                                    <p v-if="form.errors.codice_fiscale" id="errore-codice_fiscale" class="mt-1 text-sm text-red-700">{{ form.errors.codice_fiscale }}</p>
                                 </div>
                             </div>
 
@@ -309,33 +327,45 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 <div class="grid sm:grid-cols-2 gap-4">
                                     <div>
                                         <label for="auction-billing-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_first_name') }} *</label>
-                                        <input id="auction-billing-first-name" v-model="form.billing_first_name" type="text" autocomplete="given-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_first_name')" />
-                                        <p v-if="form.errors.billing_first_name" class="mt-1 text-sm text-red-500">{{ form.errors.billing_first_name }}</p>
+                                        <input id="auction-billing-first-name" v-model="form.billing_first_name"
+                                :aria-invalid="!!form.errors.billing_first_name"
+                                :aria-describedby="form.errors.billing_first_name ? 'errore-billing_first_name' : undefined" type="text" autocomplete="given-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_first_name')" />
+                                        <p v-if="form.errors.billing_first_name" id="errore-billing_first_name" class="mt-1 text-sm text-red-700">{{ form.errors.billing_first_name }}</p>
                                     </div>
                                     <div>
                                         <label for="auction-billing-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_last_name') }} *</label>
-                                        <input id="auction-billing-last-name" v-model="form.billing_last_name" type="text" autocomplete="family-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_last_name')" />
-                                        <p v-if="form.errors.billing_last_name" class="mt-1 text-sm text-red-500">{{ form.errors.billing_last_name }}</p>
+                                        <input id="auction-billing-last-name" v-model="form.billing_last_name"
+                                :aria-invalid="!!form.errors.billing_last_name"
+                                :aria-describedby="form.errors.billing_last_name ? 'errore-billing_last_name' : undefined" type="text" autocomplete="family-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_last_name')" />
+                                        <p v-if="form.errors.billing_last_name" id="errore-billing_last_name" class="mt-1 text-sm text-red-700">{{ form.errors.billing_last_name }}</p>
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label for="auction-billing-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
-                                        <input id="auction-billing-street" v-model="form.billing_street" type="text" autocomplete="address-line1" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_street')" />
-                                        <p v-if="form.errors.billing_street" class="mt-1 text-sm text-red-500">{{ form.errors.billing_street }}</p>
+                                        <input id="auction-billing-street" v-model="form.billing_street"
+                                :aria-invalid="!!form.errors.billing_street"
+                                :aria-describedby="form.errors.billing_street ? 'errore-billing_street' : undefined" type="text" autocomplete="address-line1" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_street')" />
+                                        <p v-if="form.errors.billing_street" id="errore-billing_street" class="mt-1 text-sm text-red-700">{{ form.errors.billing_street }}</p>
                                     </div>
                                     <div>
                                         <label for="auction-billing-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }} *</label>
-                                        <input id="auction-billing-city" v-model="form.billing_city" type="text" autocomplete="address-level2" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_city')" />
-                                        <p v-if="form.errors.billing_city" class="mt-1 text-sm text-red-500">{{ form.errors.billing_city }}</p>
+                                        <input id="auction-billing-city" v-model="form.billing_city"
+                                :aria-invalid="!!form.errors.billing_city"
+                                :aria-describedby="form.errors.billing_city ? 'errore-billing_city' : undefined" type="text" autocomplete="address-level2" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_city')" />
+                                        <p v-if="form.errors.billing_city" id="errore-billing_city" class="mt-1 text-sm text-red-700">{{ form.errors.billing_city }}</p>
                                     </div>
                                     <div>
                                         <label for="auction-billing-zip" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_zip_code') }} *</label>
-                                        <input id="auction-billing-zip" v-model="form.billing_zip_code" type="text" autocomplete="postal-code" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
-                                        <p v-if="form.errors.billing_zip_code" class="mt-1 text-sm text-red-500">{{ form.errors.billing_zip_code }}</p>
+                                        <input id="auction-billing-zip" v-model="form.billing_zip_code"
+                                :aria-invalid="!!form.errors.billing_zip_code"
+                                :aria-describedby="form.errors.billing_zip_code ? 'errore-billing_zip_code' : undefined" type="text" autocomplete="postal-code" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
+                                        <p v-if="form.errors.billing_zip_code" id="errore-billing_zip_code" class="mt-1 text-sm text-red-700">{{ form.errors.billing_zip_code }}</p>
                                     </div>
                                     <div>
                                         <label for="auction-billing-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }} *</label>
-                                        <input id="auction-billing-province" v-model="form.billing_province" type="text" autocomplete="address-level1" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_province')" />
-                                        <p v-if="form.errors.billing_province" class="mt-1 text-sm text-red-500">{{ form.errors.billing_province }}</p>
+                                        <input id="auction-billing-province" v-model="form.billing_province"
+                                :aria-invalid="!!form.errors.billing_province"
+                                :aria-describedby="form.errors.billing_province ? 'errore-billing_province' : undefined" type="text" autocomplete="address-level1" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_province')" />
+                                        <p v-if="form.errors.billing_province" id="errore-billing_province" class="mt-1 text-sm text-red-700">{{ form.errors.billing_province }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -347,12 +377,14 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                             <textarea
                                 id="auction-notes"
                                 v-model="form.notes"
+                                :aria-invalid="!!form.errors.notes"
+                                :aria-describedby="form.errors.notes ? 'errore-notes' : undefined"
                                 rows="3"
                                 maxlength="1000"
                                 :class="[inputClass, 'resize-none']"
                                 :placeholder="$t('shop_checkout.placeholder_notes')"
                             ></textarea>
-                            <p v-if="form.errors.notes" class="mt-1 text-sm text-red-500">{{ form.errors.notes }}</p>
+                            <p v-if="form.errors.notes" id="errore-notes" class="mt-1 text-sm text-red-700">{{ form.errors.notes }}</p>
                         </div>
 
                         <!-- Condizioni di vendita, recesso e privacy -->

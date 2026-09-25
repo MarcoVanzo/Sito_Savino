@@ -489,7 +489,7 @@ const ogMeta = useOgMeta({
                     >{{ $t('risultati.full_standings') }}</Link>
                 </p>
 
-                <p class="text-xs text-gray-400 mt-4 text-center">{{ $t('risultati.legend') }}</p>
+                <p class="text-xs text-gray-500 mt-4 text-center">{{ $t('risultati.legend') }}</p>
             </div>
         </section>
 

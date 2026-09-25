@@ -51,5 +51,9 @@ class PageSeeder extends Seeder
 
         // Spedizioni, resi e regolamento aste, dal vecchio negozio WooCommerce.
         PagineLegaliDelloShop::creaQuelleCheMancano();
+
+        // Dichiarazione di accessibilita' (European Accessibility Act): la
+        // crea la migrazione omonima, qui si ripete per gli ambienti nuovi.
+        (require database_path('migrations/2026_09_26_100000_dichiarazione_di_accessibilita.php'))->up();
     }
 }
