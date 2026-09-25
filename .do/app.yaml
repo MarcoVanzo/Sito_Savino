@@ -175,7 +175,15 @@ services:
   # li rifiuterebbe dentro boot() impedendo l'avvio dell'applicazione.
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
-    value: ""
+    value: https://577826fc034dcc96ebafbb5b8ebeccfc@o4512147655753728.ingest.de.sentry.io/4512147680460880
+  # Quanto Sentry riceve e' una scelta dichiarata nell'informativa, non un
+  # predefinito del pacchetto: senza PII non partono l'indirizzo IP ne'
+  # l'identita' di chi stava navigando, e i parametri delle query restano fuori
+  # dalla traccia (`sql_bindings`, gia' false in config/sentry.php). Cambiare
+  # questi valori vuol dire cambiare prima la Privacy Policy.
+  - key: SENTRY_SEND_DEFAULT_PII
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
   - key: SENTRY_ENVIRONMENT
     scope: RUN_AND_BUILD_TIME
     value: production
@@ -359,7 +367,15 @@ workers:
   # Stesso DSN cifrato del componente web (vedi la nota lì).
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
-    value: ""
+    value: https://577826fc034dcc96ebafbb5b8ebeccfc@o4512147655753728.ingest.de.sentry.io/4512147680460880
+  # Quanto Sentry riceve e' una scelta dichiarata nell'informativa, non un
+  # predefinito del pacchetto: senza PII non partono l'indirizzo IP ne'
+  # l'identita' di chi stava navigando, e i parametri delle query restano fuori
+  # dalla traccia (`sql_bindings`, gia' false in config/sentry.php). Cambiare
+  # questi valori vuol dire cambiare prima la Privacy Policy.
+  - key: SENTRY_SEND_DEFAULT_PII
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
   - key: SENTRY_ENVIRONMENT
     scope: RUN_AND_BUILD_TIME
     value: production
@@ -550,7 +566,15 @@ workers:
   # Stesso DSN cifrato del componente web (vedi la nota lì).
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
-    value: ""
+    value: https://577826fc034dcc96ebafbb5b8ebeccfc@o4512147655753728.ingest.de.sentry.io/4512147680460880
+  # Quanto Sentry riceve e' una scelta dichiarata nell'informativa, non un
+  # predefinito del pacchetto: senza PII non partono l'indirizzo IP ne'
+  # l'identita' di chi stava navigando, e i parametri delle query restano fuori
+  # dalla traccia (`sql_bindings`, gia' false in config/sentry.php). Cambiare
+  # questi valori vuol dire cambiare prima la Privacy Policy.
+  - key: SENTRY_SEND_DEFAULT_PII
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
   - key: SENTRY_ENVIRONMENT
     scope: RUN_AND_BUILD_TIME
     value: production

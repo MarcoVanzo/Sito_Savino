@@ -64,11 +64,15 @@ return [
             // Ragione sociale sbagliata, fino al 23 settembre 2026.
             'Savino Del Bene Volley S.S.D. a r.l.',
             'mailto:info@savinodelbenevolley.it',
+            // Revisione del 23 settembre 2026, fino al 25: senza Sentry
+            // fra i responsabili, perche' la diagnostica era spenta.
+            'aggiornata al 23 settembre 2026',
+            'Last updated 23 September 2026',
         ],
         'contenuto' => [
             'it' => <<<HTML
             <h2>Informativa sul trattamento dei dati personali</h2>
-            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 23 settembre 2026.</p>
+            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 25 settembre 2026.</p>
 
             <h3>Titolare del trattamento</h3>
             <p>{$societa} — {$sede}<br />
@@ -96,11 +100,11 @@ return [
             <p>Se compari in una fotografia e non vuoi comparire, o non vuoi che il tuo nome le resti associato, scrivi a <a href="mailto:{$email}">{$email}</a>: togliamo l'immagine o l'associazione.</p>
 
             <h3>A chi comunichiamo i dati</h3>
-            <p>I dati restano alla società e ai fornitori che ci permettono di far funzionare il servizio, nominati responsabili del trattamento: DigitalOcean (hosting, database e archiviazione dei file, data center di Francoforte), PayPal e — quando è attivo — Stripe (pagamenti dello shop e delle aste), Resend (invio delle email di servizio: conferme d'ordine, spedizioni, rimborsi, aste, reimpostazione della password), ActiveCampaign (invio della newsletter), Google Ireland (statistiche del sito), Meta Platforms Ireland (misurazione delle inserzioni), oltre al corriere incaricato delle spedizioni. Non vendiamo e non cediamo i dati a nessun altro.</p>
+            <p>I dati restano alla società e ai fornitori che ci permettono di far funzionare il servizio, nominati responsabili del trattamento: DigitalOcean (hosting, database e archiviazione dei file, data center di Francoforte), PayPal e — quando è attivo — Stripe (pagamenti dello shop e delle aste), Resend (invio delle email di servizio: conferme d'ordine, spedizioni, rimborsi, aste, reimpostazione della password), ActiveCampaign (invio della newsletter), Sentry (diagnostica degli errori del sito: indirizzo della pagina e traccia tecnica del guasto, senza indirizzo IP né identità di chi navigava), Google Ireland (statistiche del sito), Meta Platforms Ireland (misurazione delle inserzioni), oltre al corriere incaricato delle spedizioni. Non vendiamo e non cediamo i dati a nessun altro.</p>
             <p>Alcune pagine contengono inoltre contenuti ospitati altrove — la mappa del palazzetto, i video delle dirette: aprendole, il tuo indirizzo IP arriva a chi li ospita. È spiegato nella <a href="/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Trasferimenti fuori dall'Unione Europea</h3>
-            <p>Google, Meta, ActiveCampaign, Resend, Stripe e PayPal possono trattare i dati anche negli Stati Uniti. Il trasferimento avviene sulla base delle clausole contrattuali standard della Commissione europea e, dove applicabile, dell'EU-US Data Privacy Framework. Il sito, il suo database, l'archivio fotografico e il riconoscimento dei volti restano invece su server europei.</p>
+            <p>Google, Meta, ActiveCampaign, Resend, Stripe e PayPal possono trattare i dati anche negli Stati Uniti. Il trasferimento avviene sulla base delle clausole contrattuali standard della Commissione europea e, dove applicabile, dell'EU-US Data Privacy Framework. Il sito, il suo database, l'archivio fotografico, il riconoscimento dei volti e la diagnostica degli errori restano invece su server europei.</p>
 
             <h3>Per quanto tempo li conserviamo</h3>
             <ul>
@@ -125,7 +129,7 @@ return [
             HTML,
             'en' => <<<HTML
             <h2>Privacy notice</h2>
-            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 23 September 2026.</p>
+            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 25 September 2026.</p>
 
             <h3>Data controller</h3>
             <p>{$societa} — {$sede}, Italy<br />
@@ -153,11 +157,11 @@ return [
             <p>If you appear in a photograph and would rather not, or would rather your name were not attached to it, write to <a href="mailto:{$email}">{$email}</a>: we will remove the image or the link.</p>
 
             <h3>Who we share data with</h3>
-            <p>Data stays with the club and with the providers that keep the service running, appointed as data processors: DigitalOcean (hosting, database and file storage, Frankfurt data centre), PayPal and — when enabled — Stripe (shop and auction payments), Resend (service emails: order confirmations, shipments, refunds, auctions, password resets), ActiveCampaign (newsletter delivery), Google Ireland (site statistics), Meta Platforms Ireland (advertising measurement), and the courier handling shipments. We do not sell or otherwise pass data to anyone else.</p>
+            <p>Data stays with the club and with the providers that keep the service running, appointed as data processors: DigitalOcean (hosting, database and file storage, Frankfurt data centre), PayPal and — when enabled — Stripe (shop and auction payments), Resend (service emails: order confirmations, shipments, refunds, auctions, password resets), ActiveCampaign (newsletter delivery), Sentry (error diagnostics: the page address and the technical trace of the fault, with no IP address and no identity of whoever was browsing), Google Ireland (site statistics), Meta Platforms Ireland (advertising measurement), and the courier handling shipments. We do not sell or otherwise pass data to anyone else.</p>
             <p>Some pages also carry content hosted elsewhere — the arena map, the live stream videos: opening them sends your IP address to whoever hosts them. This is explained in the <a href="/en/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Transfers outside the European Union</h3>
-            <p>Google, Meta, ActiveCampaign, Resend, Stripe and PayPal may also process data in the United States, on the basis of the European Commission's standard contractual clauses and, where applicable, the EU-US Data Privacy Framework. The site itself, its database, the photo archive and the face recognition service stay on European servers.</p>
+            <p>Google, Meta, ActiveCampaign, Resend, Stripe and PayPal may also process data in the United States, on the basis of the European Commission's standard contractual clauses and, where applicable, the EU-US Data Privacy Framework. The site itself, its database, the photo archive, the face recognition service and the error diagnostics stay on European servers.</p>
 
             <h3>How long we keep it</h3>
             <ul>

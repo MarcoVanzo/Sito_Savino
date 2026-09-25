@@ -153,11 +153,19 @@ consenso (art. 7 §1), non un registro statistico: non aggiungerci altro.
 | DigitalOcean | hosting, database, file (Spaces, `fra1`) | `.do/app.yaml` |
 | PayPal | pagamenti | `config/services.php` → `paypal` |
 | Stripe | pagamenti, **quando ha le chiavi** — in produzione non le ha, e senza credenziali il metodo non viene nemmeno offerto (`PaymentGateway::configurato()`) | `services.stripe` |
-| Resend | email di servizio, dal go-live | `services.resend`, `MAIL_MAILER` |
+| Resend | email di servizio, **attivo dal 25/09/2026** | `services.resend`, `MAIL_MAILER` |
+| Sentry | diagnostica degli errori: indirizzo della pagina e traccia tecnica del guasto. **Non** l'IP né l'utente (`send_default_pii` a `false`), **non** i parametri delle query (`sql_bindings` a `false`). Progetto nella regione europea | `config/sentry.php`, `SENTRY_LARAVEL_DSN` |
 | ActiveCampaign | newsletter | `services.activecampaign` |
 | Google Ireland | GA4, **solo dopo il consenso statistico** | `resources/js/analytics.js` |
 | Meta Platforms Ireland | pixel, **solo dopo il consenso marketing** (`META_PIXEL_REQUIRES_CONSENT`, predefinito `true`) | `resources/js/meta-pixel.js` |
 | Google (Maps), YouTube, Vimeo | l'IP di chi apre una pagina con la mappa o un video, **senza consenso** (§5) | `Societa/Palazzetto.vue`, `LiveStreamModal.vue`, `PageMediaTail.vue` |
+
+**Il poco che riceve Sentry è configurazione, non fortuna.** `send_default_pii`
+e `sql_bindings` sono due `env()` con predefinito `false`: restano spenti finché
+nessuno li accende, e l'informativa promette esattamente quello che quei due
+valori garantiscono. Accenderli — o mandare a Sentry i log di un'applicazione
+che nei log scrive indirizzi email — significa cambiare prima la pagina, non
+dopo.
 
 **I caratteri tipografici non sono più fra questi.** Montserrat e Playfair
 Display arrivavano da `fonts.googleapis.com` su ogni pagina pubblica: l'IP del
