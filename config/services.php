@@ -22,6 +22,14 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    // Chi riceve per email gli avvisi tecnici (App\Services\AvvisoTecnico):
+    // indirizzi separati da virgola. Non sono i Super Admin — in produzione lo
+    // è tutta la redazione, che non deve ricevere "coda ferma" alle tre di
+    // notte. Vuoto, gli avvisi restano nella campanella del pannello.
+    'avvisi' => [
+        'email' => env('AVVISI_EMAIL'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

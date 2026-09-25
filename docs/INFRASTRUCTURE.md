@@ -693,6 +693,7 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 | Comando | Frequenza | Scopo |
 |---------|-----------|-------|
 | `scheduler:beat` | Ogni minuto | Battito letto dall'health check `/up`: rileva uno scheduler morto |
+| `shop:sorveglia` | Ogni 5 minuti | Negozio/aste spenti, checkout senza metodi di pagamento, coda `default` ferma, PayPal (orario): email quando cambia (§9, Avvisi) |
 | `lvf:sync` | Ogni ora | Calendario, risultati e classifica dal sito della Lega (fallimenti contati da `LvfSyncHealth`, alert ai Super Admin) |
 | `news:importa-dal-vecchio-sito` | Ogni ora | Comunicati pubblicati sul vecchio WordPress (`wp-json`); si spegne da solo il 2/10/2026 (`services.vecchio_sito.leggibile_fino_a`) |
 | `sitemap:generate` | Giornaliero (04:00) | Genera sitemap XML per SEO |
@@ -723,3 +724,25 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 | `backup-media.yml` | Domenica 04:00 UTC | Copia dei media di Spaces (§9) |
 | `verifica-restore.yml` | Lunedì 04:30 UTC | Prova di ripristino dell'ultimo dump |
 | `scansione-cookie.yml` | Lunedì 04:30 UTC | Playwright sul sito: aggiorna `database/data/cookie_rilevati.json` e va in rosso se qualcosa parte prima del consenso |
+| `sorveglianza-sito.yml` | Ogni 10 minuti (puntualità non garantita da GitHub) | `/up`, `/` e `/shop` da fuori DigitalOcean; in rosso se il sito non risponde (§9, Avvisi) |
+
+### Avvisi
+
+Quattro livelli, ciascuno per ciò che gli altri non possono vedere:
+
+| Livello | Vede | Arriva a |
+|---------|------|----------|
+| `sorveglianza-sito.yml` (GitHub) | Sito irraggiungibile o giù del tutto | Email di GitHub a chi ha modificato per ultimo il workflow |
+| Alert di App Platform (`alerts:` nella spec) | Deploy fallito, dominio non attivo, container che riparte in ciclo, memoria del web | Destinazioni impostate con `doctl apps update-alert-destinations` |
+| `App\Services\AvvisoTecnico` | Pianificatore fermo, job falliti (non coda `ai`), ordini da rivedere, `shop:sorveglia` | `AVVISI_EMAIL` (spec, livello d'app) via Resend |
+| Sentry | Eccezioni | Regole di alert del progetto Sentry |
+
+Le regole di App Platform stanno nella spec, gli indirizzi no: dopo un
+deploy che aggiunge una regola se ne leggono gli id con
+`doctl apps list-alerts <app>` e si imposta la destinazione con
+`doctl apps update-alert-destinations <app> <alert> --app-alert-destinations destinazioni.json`
+(`{"emails": ["…"]}`). L'email deve essere di un membro del team DigitalOcean.
+
+AvvisoTecnico manda in modo **sincrono** (non in coda: la coda ferma è uno dei
+guasti da segnalare) e non lancia mai: un Resend irraggiungibile non deve far
+fallire un webhook di pagamento.

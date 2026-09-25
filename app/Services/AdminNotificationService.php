@@ -12,6 +12,10 @@ use RuntimeException;
 
 class AdminNotificationService
 {
+    public function __construct(
+        private readonly AvvisoTecnico $avviso = new AvvisoTecnico,
+    ) {}
+
     /**
      * Notifica gli admin di un nuovo ordine ricevuto.
      */
@@ -77,9 +81,8 @@ class AdminNotificationService
      * a fallire.
      *
      * Va solo ai Super Admin: è un guasto di integrazione, non una questione di
-     * shop. Resta una notifica del pannello, come tutte le altre di questo
-     * servizio, e non una mail: l'invio SMTP non è ancora configurato in
-     * produzione, quindi una mail sarebbe un avviso che non arriva a nessuno.
+     * shop. Resta nel solo pannello: un calendario fermo qualche ora non è
+     * un'urgenza da email, a differenza dei casi che passano da AvvisoTecnico.
      *
      * @param  int  $consecutiveFailures  giri a vuoto consecutivi
      * @param  string  $reason  ultimo errore incontrato
@@ -121,6 +124,12 @@ class AdminNotificationService
         report(new RuntimeException(
             "Ordine #{$order->order_number} richiede revisione manuale ({$reason}): {$message}"
         ));
+
+        $this->avviso->invia(
+            "Ordine #{$order->order_number} da verificare",
+            "L'ordine #{$order->order_number} richiede un intervento manuale ({$reason}).\n\n{$message}",
+            "ordine-{$order->id}-{$reason}",
+        );
     }
 
     /**
@@ -130,11 +139,25 @@ class AdminNotificationService
      * `failed_jobs`, una tabella che nessuno apre. Fra i job ci sono l'invio
      * delle conferme d'ordine e le email ai vincitori d'asta.
      *
+     * Per email solo fuori dalla coda `ai`: l'analisi dei volti dipende da
+     * CompreFace e si recupera da sola al giro orario di `gallery:analyze`,
+     * mentre sulla coda `default` ci sono le email ai clienti.
+     *
      * @param  string  $jobName  classe del job
      * @param  string  $reason  messaggio dell'eccezione
+     * @param  string|null  $queue  coda da cui arriva il job
      */
-    public function notifyJobFailed(string $jobName, string $reason): void
+    public function notifyJobFailed(string $jobName, string $reason, ?string $queue = null): void
     {
+        if ($queue !== 'ai') {
+            $this->avviso->invia(
+                'Job in coda fallito: '.class_basename($jobName),
+                class_basename($jobName)." ha esaurito i tentativi.\n\n".Str::limit($reason, 1000)
+                    ."\n\nI dettagli sono su Sentry; il job resta in failed_jobs (php artisan queue:retry).",
+                'job-fallito:'.Str::slug(str_replace('\\', '-', $jobName)),
+            );
+        }
+
         $this->sendToAdmins(
             Notification::make()
                 ->title('Job in coda fallito')
@@ -168,6 +191,16 @@ class AdminNotificationService
                 ->icon('heroicon-o-clock')
                 ->iconColor('danger'),
             [UserRole::SuperAdmin->value],
+        );
+
+        // Il silenziatore orario sta già in VerifyApplicationHealth: finché il
+        // guasto dura arriva una email all'ora, che fa anche da promemoria.
+        $this->avviso->invia(
+            'Il pianificatore si è fermato',
+            $when.' Aste, sblocco degli ordini non pagati, sorveglianza dello shop e sincronizzazione con la Lega sono fermi.'
+                ."\n\nSi riavvia il componente `scheduler` da DigitalOcean.",
+            'pianificatore-fermo',
+            0,
         );
     }
 

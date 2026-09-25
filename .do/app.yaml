@@ -48,6 +48,23 @@ envs:
   scope: RUN_AND_BUILD_TIME
   type: SECRET
   value: EV[1:L87v4j9ELpnhItK5GrlHxfgq6pLVT/ex:ja0V8XIaHSpYQBHGN4IDRcm+KrS8y5t2d1rCjPkYEvSxRRJFr58pI2/vk6Wja5GS/z+x7g==]
+# Chi riceve gli avvisi tecnici per email (App\Services\AvvisoTecnico):
+# pianificatore fermo, worker fermo, job falliti, pagamenti da rivedere, negozio
+# spento, checkout senza metodi di pagamento. A livello d'app perche' li mandano
+# tutti e tre i componenti: il web dall'health check e dai webhook, il worker
+# dai job falliti, lo scheduler da `shop:sorveglia`.
+- key: AVVISI_EMAIL
+  scope: RUN_TIME
+  value: allarmi@mv-consulting.it
+# Avvisi di DigitalOcean, per cio' che il codice non puo' vedere da dentro:
+# un rilascio fallito, un dominio che non si attiva (il giorno del passaggio) e
+# un container che riparte in ciclo — il crash di FPM delle pagine Comunicazione
+# era esattamente questo, e dava 503 senza una riga di log. Le regole stanno qui
+# perche' la spec e' autorevole; gli indirizzi a cui arrivano no: si impostano
+# con `doctl apps update-alert-destinations` (docs/INFRASTRUCTURE.md).
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
 ingress:
   rules:
   - component:
@@ -317,6 +334,18 @@ services:
     failure_threshold: 3
     success_threshold: 1
   http_port: 8080
+  # Riavvii ripetuti: l'health check fallisce o il processo muore. Un riavvio
+  # isolato e' normale (un rilascio, una lentezza del database), tre in dieci
+  # minuti sono un ciclo.
+  alerts:
+  - rule: RESTART_COUNT
+    operator: GREATER_THAN
+    value: 2
+    window: TEN_MINUTES
+  - rule: MEM_UTILIZATION
+    operator: GREATER_THAN
+    value: 90
+    window: TEN_MINUTES
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-1gb-fixed
   name: web
@@ -507,6 +536,11 @@ workers:
     # non gated che avvenivano con deploy_on_push: true.
     deploy_on_push: false
     repo: MarcoVanzo/sito_savino
+  alerts:
+  - rule: RESTART_COUNT
+    operator: GREATER_THAN
+    value: 2
+    window: TEN_MINUTES
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
   name: worker
@@ -706,6 +740,11 @@ workers:
     # non gated che avvenivano con deploy_on_push: true.
     deploy_on_push: false
     repo: MarcoVanzo/sito_savino
+  alerts:
+  - rule: RESTART_COUNT
+    operator: GREATER_THAN
+    value: 2
+    window: TEN_MINUTES
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-0.5gb
   name: scheduler

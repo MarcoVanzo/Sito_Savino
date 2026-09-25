@@ -1244,3 +1244,26 @@ I vecchi indirizzi del feed (`/feed/atom/`, `/comments/feed/`,
 di una pagina.
 
 Test in `tests/Feature/PermalinkVecchioSitoTest.php`.
+
+---
+
+## 24. Avvisi per email
+
+Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
+
+- **Gli avvisi urgenti passano da `App\Services\AvvisoTecnico`**, non dalla sola
+  campanella del pannello, che si vede solo entrando. I destinatari sono
+  `AVVISI_EMAIL`, non i Super Admin: in produzione lo è tutta la redazione.
+- **Invio sincrono, mai in coda, mai un'eccezione verso chi chiama**: fra i
+  guasti da segnalare ci sono la coda ferma e i job falliti, e l'avviso parte
+  anche da webhook di pagamento e health check.
+- **`shop:sorveglia` guarda lo stato, non gli errori** (negozio spento, checkout
+  senza metodi di pagamento, worker fermo, PayPal) e avvisa quando la
+  condizione cambia, non a ogni giro. Non guarda gli ordini in attesa: sono
+  checkout abbandonati, e un incasso che non torna avvisa già da sé.
+- **I job falliti della coda `ai` non vanno per email**: dipendono da
+  CompreFace e si recuperano da soli al giro orario.
+- **Le destinazioni degli alert di DigitalOcean non stanno nella spec**: una
+  regola nuova in `alerts:` non arriva a nessuno finché non le si imposta con
+  `doctl apps update-alert-destinations`.
+

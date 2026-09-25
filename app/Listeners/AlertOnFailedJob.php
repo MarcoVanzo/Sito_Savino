@@ -16,7 +16,8 @@ use Illuminate\Support\Str;
  * cliente che non riceve nulla e scrive per sapere perché.
  *
  * L'eccezione arriva già a Sentry tramite l'integrazione con le code: qui si
- * aggiunge la notifica nel pannello, che è dove Marco guarda per primo.
+ * aggiunge la notifica nel pannello e, fuori dalla coda `ai`, l'email di
+ * AvvisoTecnico.
  */
 class AlertOnFailedJob
 {
@@ -54,6 +55,6 @@ class AlertOnFailedJob
             return;
         }
 
-        $this->notifications->notifyJobFailed($jobName, $event->exception->getMessage());
+        $this->notifications->notifyJobFailed($jobName, $event->exception->getMessage(), $event->job->getQueue());
     }
 }
