@@ -21,7 +21,7 @@ Route::prefix('webhooks')->middleware('throttle:60,1')->group(function () {
     // su PayPal con quello di questo sito.
     Route::post('/paypal', [PayPalWebhookController::class, 'handle'])->name('paypal.webhook');
     // Email non consegnate (rimbalzi, spam, invii falliti): diventano avvisi.
-    Route::post('/resend', ResendWebhookController::class)->name('resend.webhook');
+    Route::post('/resend', ResendWebhookController::class)->name('webhooks.resend');
 });
 
 /*
