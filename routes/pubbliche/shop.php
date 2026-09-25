@@ -77,19 +77,19 @@ return function (string $loc, string $namePrefix): void {
 
         // Cart (web routes with CSRF)
         Route::get('/'.$shopSlugs['carrello'], [CartController::class, 'index'])->name('shop.cart');
-        Route::post('/'.$shopSlugs['carrello'], [CartController::class, 'store'])->middleware('throttle:30,1')->name('shop.cart.store');
-        Route::patch('/'.$shopSlugs['carrello'].'/{cartItem}', [CartController::class, 'update'])->middleware('throttle:30,1')->name('shop.cart.update');
-        Route::delete('/'.$shopSlugs['carrello'].'/{cartItem}', [CartController::class, 'destroy'])->middleware('throttle:30,1')->name('shop.cart.destroy');
+        Route::post('/'.$shopSlugs['carrello'], [CartController::class, 'store'])->middleware('throttle:30,1,shop.cart.store')->name('shop.cart.store');
+        Route::patch('/'.$shopSlugs['carrello'].'/{cartItem}', [CartController::class, 'update'])->middleware('throttle:30,1,shop.cart.update')->name('shop.cart.update');
+        Route::delete('/'.$shopSlugs['carrello'].'/{cartItem}', [CartController::class, 'destroy'])->middleware('throttle:30,1,shop.cart.destroy')->name('shop.cart.destroy');
         Route::get('/'.$shopSlugs['carrello'].'/count', [CartController::class, 'count'])->name('shop.cart.count');
         Route::get('/'.$shopSlugs['carrello'].'/data', [CartController::class, 'data'])->name('shop.cart.data');
 
         // Checkout
         Route::get('/checkout', [CheckoutController::class, 'show'])->name('shop.checkout');
-        Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:5,1')->name('shop.checkout.store');
-        Route::post('/checkout/validate-coupon', ValidateCouponController::class)->middleware('throttle:10,1')->name('shop.checkout.validate-coupon');
+        Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:5,1,shop.checkout.store')->name('shop.checkout.store');
+        Route::post('/checkout/validate-coupon', ValidateCouponController::class)->middleware('throttle:10,1,shop.checkout.validate-coupon')->name('shop.checkout.validate-coupon');
         Route::get('/checkout/'.$shopSlugs['conferma'].'/{orderToken}', [CheckoutController::class, 'success'])->name('shop.checkout.success');
         Route::get('/checkout/'.$shopSlugs['annullato'].'/{orderToken}', [CheckoutController::class, 'cancel'])->name('shop.checkout.cancel');
-        Route::post('/checkout/retry/{orderToken}', [CheckoutController::class, 'retryPayment'])->middleware('throttle:5,1')->name('shop.checkout.retry');
+        Route::post('/checkout/retry/{orderToken}', [CheckoutController::class, 'retryPayment'])->middleware('throttle:5,1,shop.checkout.retry')->name('shop.checkout.retry');
 
         // Order tracking (guest via token)
         Route::get('/'.$shopSlugs['ordine'].'/{orderNumber}', [OrderController::class, 'show'])->name('shop.order.show');
@@ -103,17 +103,17 @@ return function (string $loc, string $namePrefix): void {
             // cancellazione (art. 17). Vedi AccountController.
             Route::get('/account', [AccountController::class, 'show'])->name('shop.account');
             Route::get('/account/'.$shopSlugs['i-miei-dati'], [AccountController::class, 'esporta'])
-                ->middleware('throttle:5,1')
+                ->middleware('throttle:5,1,shop.account.export')
                 ->name('shop.account.export');
             Route::delete('/account', [AccountController::class, 'cancella'])
-                ->middleware('throttle:5,1')
+                ->middleware('throttle:5,1,shop.account.destroy')
                 ->name('shop.account.destroy');
         });
 
         // Shop registration
         Route::middleware('guest')->group(function () use ($shopSlugs) {
             Route::get('/'.$shopSlugs['registrati'], [ShopAuthController::class, 'showRegister'])->name('shop.register');
-            Route::post('/'.$shopSlugs['registrati'], [ShopAuthController::class, 'register'])->middleware('throttle:5,1')->name('shop.register.store');
+            Route::post('/'.$shopSlugs['registrati'], [ShopAuthController::class, 'register'])->middleware('throttle:5,1,shop.register.store')->name('shop.register.store');
         });
 
         // Aste (public)
@@ -124,7 +124,7 @@ return function (string $loc, string $namePrefix): void {
             // Bidding (auth + carta verificata)
             Route::middleware(['auth', 'verified.payment'])->group(function () {
                 Route::post('/{auction}/bid', [AuctionController::class, 'bid'])
-                    ->middleware('throttle:12,1')
+                    ->middleware('throttle:12,1,shop.auctions.bid')
                     ->name('shop.auctions.bid');
             });
         });
@@ -133,7 +133,7 @@ return function (string $loc, string $namePrefix): void {
         Route::middleware(['auth', 'auctions.enabled'])->group(function () {
             Route::get('/checkout/asta/{token}', [AuctionCheckoutController::class, 'show'])->name('shop.auction-checkout.show');
             Route::post('/checkout/asta/{token}', [AuctionCheckoutController::class, 'store'])
-                ->middleware('throttle:3,1')
+                ->middleware('throttle:3,1,shop.auction-checkout.store')
                 ->name('shop.auction-checkout.store');
             Route::get('/checkout/asta/{token}/conferma', [AuctionCheckoutController::class, 'success'])->name('shop.auction-checkout.success');
             Route::get('/checkout/asta/{token}/annullato', [AuctionCheckoutController::class, 'cancel'])->name('shop.auction-checkout.cancel');
@@ -147,12 +147,18 @@ return function (string $loc, string $namePrefix): void {
     // da chi compila, con testo suo dentro. Tre dichiarazioni ogni dieci
     // minuti bastano a chiunque receda davvero, e non fanno del modulo un
     // modo per spedire posta a nome della societa'.
-    Route::post('/recesso', [RecessoController::class, 'store'])->middleware('throttle:3,10')->name('recesso.store');
+    Route::post('/recesso', [RecessoController::class, 'store'])->middleware('throttle:3,10,recesso.store')->name('recesso.store');
+    // La ricevuta ha un indirizzo suo, firmato: ricaricando la pagina dopo
+    // l'invio si rilegge la ricevuta invece di ritrovarsi il modulo vuoto (e
+    // mandare una seconda dichiarazione).
+    Route::get('/recesso/ricevuta/{richiesta}', [RecessoController::class, 'ricevuta'])
+        ->middleware('signed')
+        ->name('recesso.ricevuta');
 
     Route::get('/'.$shopSlugs['contatti'], [PublicController::class, 'contatti'])->name('contatti');
-    Route::post('/'.$shopSlugs['contatti'], [ContactController::class, 'submit'])->middleware('throttle:5,1')->name('contatti.submit');
+    Route::post('/'.$shopSlugs['contatti'], [ContactController::class, 'submit'])->middleware('throttle:5,1,contatti.submit')->name('contatti.submit');
     Route::post('/newsletter', [NewsletterController::class, 'subscribe'])
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:5,1,newsletter.subscribe')
         ->name('newsletter.subscribe');
 
     // Il registro delle scelte fatte sul banner dei cookie. L'indirizzo non si
@@ -160,7 +166,7 @@ return function (string $loc, string $namePrefix): void {
     // perché una persona sola può cambiare idea più volte di seguito, e un
     // consenso rifiutato per troppe richieste sarebbe una prova persa.
     Route::post('/consenso-cookie', [ConsensoCookieController::class, 'registra'])
-        ->middleware('throttle:20,1')
+        ->middleware('throttle:20,1,consenso-cookie.registra')
         ->name('consenso-cookie.registra');
 
     // Disiscrizione: l'URL è firmato, non serve autenticazione. Il GET
@@ -170,7 +176,7 @@ return function (string $loc, string $namePrefix): void {
         ->middleware('signed')
         ->name('newsletter.unsubscribe.show');
     Route::post('/newsletter/'.$disiscriviti.'/{subscriber}', [NewsletterController::class, 'unsubscribe'])
-        ->middleware(['signed', 'throttle:10,1'])
+        ->middleware(['signed', 'throttle:10,1,newsletter.unsubscribe'])
         ->name('newsletter.unsubscribe');
 
     // Doppio opt-in: il link dell'email di conferma porta a una pagina con un
@@ -181,7 +187,7 @@ return function (string $loc, string $namePrefix): void {
         ->middleware('signed')
         ->name('newsletter.conferma.show');
     Route::post('/newsletter/'.$conferma.'/{subscriber}', [NewsletterController::class, 'conferma'])
-        ->middleware(['signed', 'throttle:10,1'])
+        ->middleware(['signed', 'throttle:10,1,newsletter.conferma'])
         ->name('newsletter.conferma');
     Route::get('/in-costruzione', [PublicController::class, 'underConstruction'])->name('in-costruzione');
 

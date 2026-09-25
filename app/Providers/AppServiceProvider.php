@@ -37,6 +37,7 @@ use App\Services\Wikipedia\WikipediaClient;
 use Filament\SpatieLaravelTranslatableContentDriver;
 use Filament\Tables\Actions\Action as TableAction;
 use Filament\Tables\Table;
+use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -45,6 +46,13 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Resend\Client as ResendClient;
+use Resend\Contracts\Client as ResendClientContract;
+use Resend\Laravel\Exceptions\ApiKeyIsMissing;
+use Resend\Transporters\HttpTransporter;
+use Resend\ValueObjects\ApiKey;
+use Resend\ValueObjects\Transporter\BaseUri;
+use Resend\ValueObjects\Transporter\Headers;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -58,6 +66,25 @@ class AppServiceProvider extends ServiceProvider
         // HasActiveLocaleSwitcher: rimpiazzarlo qui è l'unico punto d'aggancio che
         // non richieda di sovrascrivere ogni pagina di ogni risorsa.
         $this->app->bind(SpatieLaravelTranslatableContentDriver::class, TranslatableContentDriver::class);
+
+        // Il client di Resend nasce con un Guzzle senza timeout: un invio
+        // sincrono (AvvisoTecnico, ricevuta di recesso, reset della password)
+        // poteva restare appeso a tempo indefinito, anche dentro l'health
+        // check o con un lock sull'ordine. Stesso client del pacchetto, con i
+        // limiti.
+        $this->app->singleton(ResendClientContract::class, static function (): ResendClient {
+            $chiave = config('resend.api_key') ?? config('services.resend.key');
+
+            if (! is_string($chiave)) {
+                throw ApiKeyIsMissing::create();
+            }
+
+            return new ResendClient(new HttpTransporter(
+                new GuzzleClient(['timeout' => 10, 'connect_timeout' => 5]),
+                BaseUri::from(getenv('RESEND_BASE_URL') ?: 'api.resend.com'),
+                Headers::withAuthorization(ApiKey::from($chiave)),
+            ));
+        });
 
         // I servizi di analytics tengono una memoria interna per richiesta: la
         // pagina e i suoi widget sono componenti Livewire distinti che chiedono

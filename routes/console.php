@@ -25,7 +25,7 @@ Schedule::command('scheduler:beat')->everyMinute();
 // Guasti dello shop che non sono errori: negozio o aste spenti, checkout senza
 // metodi di pagamento, worker fermo, PayPal configurato male. Avvisa per email
 // (AvvisoTecnico) quando la condizione cambia, non a ogni giro.
-Schedule::command('shop:sorveglia')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('shop:sorveglia')->everyFiveMinutes()->withoutOverlapping(10);
 
 // Calendario, risultati e classifica dal sito della Lega. Ogni ora: i referti
 // arrivano a fine gara e la classifica si aggiorna subito dopo. I fallimenti

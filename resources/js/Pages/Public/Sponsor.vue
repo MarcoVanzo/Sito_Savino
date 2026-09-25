@@ -89,7 +89,7 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.04]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Crect x=&quot;10&quot; y=&quot;10&quot; width=&quot;40&quot; height=&quot;40&quot; rx=&quot;4&quot; fill=&quot;none&quot; stroke=&quot;%23C5A55A&quot; stroke-width=&quot;1&quot;/%3E%3C/svg%3E'); background-size: 60px 60px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span v-if="cd.hero_subtitle" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle }}</span>
+                <span v-if="cd.hero_subtitle" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ page?.title ?? $t('sponsor.og_title') }}
                 </h1>
@@ -153,7 +153,7 @@ const ogMeta = useOgMeta({
         <!-- BECOME A SPONSOR CTA -->
         <section class="py-20 px-4 sm:px-6 lg:px-8 bg-savino-blue">
             <div class="max-w-4xl mx-auto text-center">
-                <span v-if="cd.cta_subtitle" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.cta_subtitle }}</span>
+                <span v-if="cd.cta_subtitle" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.2em]">{{ cd.cta_subtitle }}</span>
                 <h2 v-if="cd.cta_title" class="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter mt-3">
                     {{ cd.cta_title }}
                 </h2>
@@ -167,7 +167,7 @@ const ogMeta = useOgMeta({
                         :key="index"
                         class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6"
                     >
-                        <div class="text-savino-fucsia text-3xl font-black">{{ stat.value }}</div>
+                        <div class="text-savino-fucsia-chiaro text-3xl font-black">{{ stat.value }}</div>
                         <div class="text-white/60 text-sm font-medium mt-1">{{ stat.label }}</div>
                     </div>
                 </div>

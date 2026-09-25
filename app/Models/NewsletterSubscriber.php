@@ -6,6 +6,7 @@ use App\Jobs\SyncNewsletterToActiveCampaign;
 use App\Jobs\UnsubscribeNewsletterFromActiveCampaign;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -13,6 +14,23 @@ use Illuminate\Support\Facades\URL;
 class NewsletterSubscriber extends Model
 {
     use HasFactory;
+    use MassPrunable;
+
+    /**
+     * Una richiesta d'iscrizione mai confermata si tiene trenta giorni: il
+     * link vale sette, il resto è margine per chi scrive per chiedere un
+     * nuovo invio. Oltre è solo un indirizzo (e un IP) di qualcuno che non ha
+     * detto di sì — spesso di chi non sa nemmeno di essere stato scritto nel
+     * modulo. Restano fuori le righe già passate da ActiveCampaign.
+     */
+    public const GIORNI_PER_CONFERMARE = 30;
+
+    public function prunable(): Builder
+    {
+        return static::whereNull('confermato_il')
+            ->whereNull('ac_contact_id')
+            ->where('subscribed_at', '<', now()->subDays(self::GIORNI_PER_CONFERMARE));
+    }
 
     protected $fillable = [
         'email',
@@ -129,11 +147,15 @@ class NewsletterSubscriber extends Model
      */
     public function conferma(): bool
     {
-        if ($this->haConfermato()) {
+        if ($this->haConfermato() && $this->isSubscribed()) {
             return false;
         }
 
-        $this->update(['confermato_il' => now()]);
+        // Chi si era disiscritto rientra solo qui, al click: la richiesta
+        // d'iscrizione da sola non cancella la disiscrizione, altrimenti
+        // chiunque scrivendo l'indirizzo nel modulo cancellerebbe la prova
+        // che il titolare era uscito dalla lista.
+        $this->update(['confermato_il' => now(), 'unsubscribed_at' => null]);
 
         SyncNewsletterToActiveCampaign::dispatch($this);
 

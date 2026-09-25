@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Enums\PaymentGateway;
-use App\Models\SiteSetting;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -106,15 +105,9 @@ class StoreCheckoutRequest extends FormRequest
      */
     private function gatewayAttivi(): array
     {
-        $attivi = SiteSetting::get('shop.active_payment_gateways', 'stripe,paypal,bank_transfer');
-
-        // Lo stesso filtro della pagina di checkout: un gateway senza
-        // credenziali non e' un'opzione valida, e accettarlo qui vorrebbe dire
-        // creare l'ordine per poi non poterlo far pagare.
-        return array_values(array_filter(
-            array_map('trim', explode(',', (string) $attivi)),
-            fn (string $gateway) => PaymentGateway::tryFrom($gateway)?->configurato() === true,
-        ));
+        // La stessa regola della pagina di checkout, scritta una volta sola:
+        // un gateway senza credenziali non e' un'opzione valida.
+        return array_map(fn (PaymentGateway $gateway) => $gateway->value, PaymentGateway::offertiAlCheckout());
     }
 
     public function withValidator($validator): void

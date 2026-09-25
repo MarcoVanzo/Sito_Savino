@@ -43,4 +43,19 @@ describe('annunciaIlCambioDiPagina', () => {
 
         expect(document.activeElement.id).toBe('link');
     });
+
+    it('annuncia anche una pagina con lo stesso titolo della precedente', () => {
+        const router = routerFinto();
+        annunciaIlCambioDiPagina(router);
+        const regione = document.querySelector('[data-annuncio-pagina]');
+
+        router.naviga('/news/uno');
+        vi.runAllTimers();
+        expect(regione.textContent).toBe('Home');
+
+        router.naviga('/news/due');
+        expect(regione.textContent).toBe('');
+        vi.runAllTimers();
+        expect(regione.textContent).toBe('Home');
+    });
 });

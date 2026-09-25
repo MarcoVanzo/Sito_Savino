@@ -212,7 +212,13 @@ class AuctionService
      */
     private function classificaOfferte(Auction $auction): Collection
     {
-        return $auction->validBids()->get()->unique('user_id')->values();
+        // Un'offerta senza utente (account cancellato: bids.user_id va a NULL)
+        // non ha nessuno a cui assegnare l'asta: la riassegnazione finirebbe su
+        // un vincitore nullo, che nessun giro successivo rivede piu'.
+        return $auction->validBids()->get()
+            ->filter(fn (Bid $bid) => $bid->user_id !== null)
+            ->unique('user_id')
+            ->values();
     }
 
     /**

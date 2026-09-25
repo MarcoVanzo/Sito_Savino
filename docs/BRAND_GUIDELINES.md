@@ -70,6 +70,8 @@ Stemma circolare composto da:
 | Colore | CMYK | RGB | HEX | Uso |
 |--------|------|-----|-----|-----|
 | **Rosso SDB** | — | 223, 51, 143 | `#DF338F` | Accento primario, CTA |
+| **Fucsia SDB** | — | 248, 38, 156 | `#F8269C` | Accento (Style Guide 2026-2027) |
+| **Rosa SDB** | — | 237, 2, 140 | `#ED028C` | Accento (Style Guide 2026-2027) |
 | **Blu Navy SDB** | 100 / 70 / 0 / 50 | 0, 48, 99 | `#003063` | Colore istituzionale, sfondi |
 | **Bianco** | 0 / 0 / 0 / 0 | 255, 255, 255 | `#FFFFFF` | Testo su fondo scuro |
 
@@ -174,14 +176,31 @@ Il logo digitale RGB con payoff è disponibile in 4 formati:
 
 ## 5. Palette Colori Consolidata
 
-Riepilogo di tutti i colori utilizzati nel progetto, come definiti in `tailwind.config.js`:
+Riepilogo di tutti i colori utilizzati nel progetto, come definiti in `tailwind.config.js`.
 
-| Token Tailwind | HEX | RGB | Origine | Uso nel Sito |
-|----------------|-----|-----|---------|--------------|
-| `savino-blue` | `#003063` | 0, 48, 99 | Brand Book SDB Volley | Navbar, sidebar, sfondi, bottoni primari |
-| `savino-red` | `#DF338F` | 223, 51, 143 | Pantone DF338F | CTA, accenti, pulsanti danger |
-| `savino-gold` | `#C9A84C` | 201, 168, 76 | Design interno | Accenti premium, elementi decorativi |
-| `savino-pink` | `#ED028C` | 237, 2, 140 | Approssimazione LVF | Accenti correlati alla Lega |
+Lo shop deve rispettare le WCAG 2.1 AA (European Accessibility Act): il testo
+normale vuole un contrasto di almeno 4,5:1. Le tinte ufficiali di rosso, fucsia
+e rosa non ci arrivano (3,6-4,2:1 su bianco e sotto un testo bianco), quindi i
+token d'uso sono **scuriti** e le tinte ufficiali restano come `*-brand` per gli
+usi solo decorativi (fasce, sfondi senza testo sopra).
+
+| Token Tailwind | HEX | Origine | Uso nel Sito |
+|----------------|-----|---------|--------------|
+| `savino-blue` | `#003063` | Brand Book SDB Volley | Navbar, sfondi, bottoni primari |
+| `savino-red` | `#C91F7A` | `#DF338F` scurito | Testi e fondi di pulsanti con testo bianco |
+| `savino-fucsia` | `#D00778` | `#F8269C` scurito | Accenti, testo fucsia su fondo chiaro, pulsanti con testo bianco |
+| `savino-pink` | `#D0027B` | `#ED028C` scurito | Accenti |
+| `savino-fucsia-chiaro` | `#FA5FB6` | Variante per fondo scuro | Testo fucsia su blu, gray-800/900, foto e gradienti scuri |
+| `savino-red-brand` | `#DF338F` | Style Guide (ufficiale) | Solo decorativo |
+| `savino-fucsia-brand` | `#F8269C` | Style Guide (ufficiale) | Solo decorativo |
+| `savino-pink-brand` | `#ED028C` | Style Guide (ufficiale) | Solo decorativo |
+
+Regole pratiche:
+
+- Sopra un fondo fucsia il testo è **bianco** (5,3:1), mai blu (2,5:1) né grigio scuro (3,4:1), anche negli stati `hover:`.
+- Sulle tinte chiare di fucsia (`bg-savino-fucsia/10`) e sul grigio `#e8eaef` della home il fucsia scurito si ferma a 4,4:1: lì il testo è `#B8066A` (`text-[#B8066A]`).
+- Nelle email i pulsanti con testo bianco e i testi fucsia usano `#D00778`.
+- Il token `savino-gold` (`#C9A84C`) non esiste più: l'oro era fuori dalla palette della Style Guide 2026-2027. Resta solo nelle serie dei grafici del pannello, dove distingue un dato.
 
 ### Colori aggiuntivi nel CSS (non in Tailwind)
 
@@ -295,12 +314,12 @@ I loghi per il web sono in `public/images/`:
 
 ## 9. Note e Discrepanze
 
-> [!WARNING]
-> ### Magenta LVF — Discrepanza di colore
-> Il brand book LVF specifica il magenta come **`#FF23B0`** (RGB 255, 35, 176).
-> Nel `tailwind.config.js` il token `savino-pink` è impostato a **`#ED028C`** (RGB 237, 2, 140).
->
-> Queste sono due tonalità diverse di magenta/fucsia. Verificare se il colore nel tailwind deve essere aggiornato per allinearsi al brand book ufficiale LVF 2026/27.
+### Magenta LVF
+
+Il brand book LVF specifica il magenta come **`#FF23B0`** (RGB 255, 35, 176). È il
+colore della Lega e compare solo nel suo logo: non è un token del sito. Il rosa della
+Style Guide SDB è `savino-pink-brand` (`#ED028C`), e per il testo si usa la versione
+scurita `savino-pink` (§5).
 
 ### Logo LVF
 

@@ -195,6 +195,14 @@ return [
     |
     */
 
-    'attributes' => [],
+    'zip_code_it' => 'An Italian postcode has 5 digits.',
+
+    'attributes' => [
+        'nome' => 'name',
+        'numero_ordine' => 'order number',
+        'articoli' => 'items',
+        'conferma' => 'confirmation',
+        'codice_fiscale' => 'tax code',
+    ],
 
 ];

@@ -41,16 +41,31 @@ class AvvisoTecnico
             return false;
         }
 
-        if ($silenzioSecondi > 0 && ! Cache::add('avviso-tecnico:'.$chiave, true, $silenzioSecondi)) {
-            return false;
-        }
+        $silenziatore = 'avviso-tecnico:'.$chiave;
 
+        // Anche il silenziatore sta dentro il try: con la cache su database
+        // `add()` può lanciare, e chi chiama non deve accorgersene.
         try {
+            if ($silenzioSecondi > 0 && ! Cache::add($silenziatore, true, $silenzioSecondi)) {
+                return false;
+            }
+
             Mail::raw($testo."\n\n— ".config('app.url'), function (Message $message) use ($destinatari, $oggetto): void {
                 $message->to($destinatari)->subject('[Sito Savino] '.$oggetto);
             });
         } catch (Throwable $e) {
             report($e);
+
+            // Un invio fallito non conta: altrimenti il silenziatore
+            // tacerebbe la stessa condizione per tutta la finestra, proprio
+            // quando la posta torna a funzionare.
+            if ($silenzioSecondi > 0) {
+                try {
+                    Cache::forget($silenziatore);
+                } catch (Throwable) {
+                    // la cache è giù: niente da liberare
+                }
+            }
 
             return false;
         }

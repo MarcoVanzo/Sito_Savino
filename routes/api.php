@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 | Non protette da CSRF (gestito via firma del payload).
 */
 
-Route::prefix('webhooks')->middleware('throttle:60,1')->group(function () {
+Route::prefix('webhooks')->middleware('throttle:60,1,webhooks')->group(function () {
     Route::post('/stripe', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
     // Il nome serve a `paypal:verifica`, che confronta l'indirizzo registrato
     // su PayPal con quello di questo sito.
@@ -34,7 +34,7 @@ Route::prefix('webhooks')->middleware('throttle:60,1')->group(function () {
 */
 
 Route::post('/diagnostica', SentryTunnelController::class)
-    ->middleware('throttle:30,1')
+    ->middleware('throttle:30,1,diagnostica')
     ->name('diagnostica');
 
 /*
@@ -44,7 +44,7 @@ Route::post('/diagnostica', SentryTunnelController::class)
 | Endpoint leggero per aggiornamenti real-time via polling AJAX.
 */
 
-Route::middleware('throttle:60,1')->group(function () {
+Route::middleware('throttle:60,1,api.aste')->group(function () {
     Route::get('/aste/{auction}/status', [AuctionController::class, 'status'])
         ->name('api.auctions.status');
 });

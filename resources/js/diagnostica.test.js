@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const init = vi.fn();
 vi.mock('@sentry/vue', () => ({ init }));
 
-const { avviaLaDiagnostica, opzioniDiSentry, TUNNEL } = await import('./diagnostica.js');
+const { avviaLaDiagnostica, opzioniDiSentry, ripulisciIndirizzo, TUNNEL } = await import('./diagnostica.js');
 
 describe('diagnostica', () => {
     beforeEach(() => init.mockClear());
@@ -57,5 +57,30 @@ describe('diagnostica', () => {
         });
 
         expect(opzioni.allowUrls).toEqual(['https://sito.test']);
+    });
+
+    it('non manda token ed email contenuti negli indirizzi', () => {
+        expect(ripulisciIndirizzo('https://sito.test/reset-password/abc123?email=a%40b.it')).toBe(
+            'https://sito.test/reset-password/[nascosto]',
+        );
+        expect(ripulisciIndirizzo('/shop/checkout/conferma/9f8e?token=PAYPAL&PayerID=X')).toBe(
+            '/shop/checkout/conferma/[nascosto]',
+        );
+        expect(ripulisciIndirizzo('/en/shop/order/tok/receipt')).toBe('/en/shop/order/[nascosto]/receipt');
+        expect(ripulisciIndirizzo('/shop/checkout/asta/uuid-1/annullato')).toBe('/shop/checkout/asta/[nascosto]/annullato');
+        expect(ripulisciIndirizzo('/verify-email/12/0123456789abcdef0123456789abcdef')).toBe('/verify-email/[nascosto]');
+        expect(ripulisciIndirizzo('/news/una-notizia')).toBe('/news/una-notizia');
+    });
+
+    it('ripulisce URL della pagina e breadcrumb prima di spedire', () => {
+        const opzioni = opzioniDiSentry({ app: {}, dsn: 'x', environment: 'test', origine: 'https://sito.test' });
+
+        const evento = opzioni.beforeSend({
+            request: { url: 'https://sito.test/reset-password/abc?email=x', query_string: 'email=x', headers: { Referer: 'r' } },
+        });
+        expect(evento.request).toEqual({ url: 'https://sito.test/reset-password/[nascosto]', headers: {} });
+
+        const briciola = opzioni.beforeBreadcrumb({ category: 'navigation', data: { from: '/shop/ordine/t/ricevuta', to: '/?p=1' } });
+        expect(briciola.data).toEqual({ from: '/shop/ordine/[nascosto]/ricevuta', to: '/' });
     });
 });

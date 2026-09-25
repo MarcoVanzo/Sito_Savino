@@ -30,6 +30,16 @@ Route::get('/sitemap.xml', function (SitemapBuilder $builder) {
     ]);
 })->name('sitemap');
 
+// Il cookie XSRF per chi è arrivato su una pagina servita dalla cache
+// (CachePublicResponse toglie i Set-Cookie): senza, il primo invio di un
+// modulo — newsletter nel footer, contatti, recesso, conferma della
+// newsletter aperta dal link dell'email — rispondeva 419. Lo chiede
+// resources/js/bootstrap.js prima di una richiesta che scrive, solo se il
+// cookie manca. Risponde 204, che la cache delle pagine non memorizza.
+Route::get('/csrf-cookie', fn () => response()->noContent()->header('Cache-Control', 'no-store'))
+    ->middleware('throttle:30,1,csrf-cookie')
+    ->name('csrf-cookie');
+
 // Le lingue si leggono dalla configurazione, non si riscrivono qui: aggiungerne
 // una in `config/app.php` deve generarne le rotte, altrimenti il resto del
 // sito la conosce e l'indirizzo non esiste. Quella predefinita non ha prefisso.
@@ -92,7 +102,7 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     // Throttle stretto: la POST apre una sessione di pagamento verso Stripe,
     // senza limite sarebbe sfruttabile per card testing.
     Route::post('/account/verifica-pagamento', [PaymentVerificationController::class, 'store'])
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:5,1,account.payment-verification.store')
         ->name('account.payment-verification.store');
     Route::get('/account/verifica-pagamento/completata', [PaymentVerificationController::class, 'success'])->name('account.payment-verification.success');
 });

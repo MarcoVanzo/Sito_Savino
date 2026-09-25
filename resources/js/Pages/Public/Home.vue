@@ -115,9 +115,11 @@ const isTransitioning = ref(false);
 const slidesContainer = ref(null);
 let slideInterval;
 
-// Pausa del movimento della hero (WCAG 2.2.2): slideshow, video e particelle
-// si muovono da soli per piu' di cinque secondi, quindi serve un modo per
-// fermarli. Parte gia' fermo per chi ha chiesto meno movimento al sistema.
+// Pausa del movimento della pagina (WCAG 2.2.2): slideshow, video, particelle,
+// la striscia delle foto e i bagliori dei pulsanti si muovono da soli per piu'
+// di cinque secondi, quindi serve un modo per fermarli. Le animazioni CSS si
+// fermano con la classe `movimento-fermo` sulla radice (animation-play-state).
+// Parte gia' fermo per chi ha chiesto meno movimento al sistema.
 const movimentoFermo = ref(false);
 const heroVideo = ref(null);
 let ripartiParticelle = null;
@@ -460,7 +462,7 @@ const ogMeta = useOgMeta({
         <meta property="og:type" :content="ogMeta.type" />
         <link v-if="slides.length" rel="preload" as="image" :href="slides[0]" fetchpriority="high" />
     </Head>
-    <PublicLayout>
+    <PublicLayout :class="{ 'movimento-fermo': movimentoFermo }">
         <!-- HERO SECTION -->
         <div class="hero-wrapper relative w-full min-h-screen flex items-center bg-gray-900 overflow-hidden">
             <!-- Background Images (Cinematic Ken Burns Crossfade) with Parallax -->
@@ -489,7 +491,7 @@ const ogMeta = useOgMeta({
                         <img 
                             v-if="index === 0"
                             :src="slide"
-                            :alt="'Savino Del Bene Volley — slide ' + (index + 1)"
+                            alt=""
                             fetchpriority="high"
                             decoding="sync"
                             class="absolute inset-0 w-full h-full object-cover object-center hero-slide-inner"
@@ -523,12 +525,13 @@ const ogMeta = useOgMeta({
                 <div class="absolute inset-0 opacity-[0.03] mix-blend-overlay" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E');"></div>
             </div>
             
-            <!-- Pausa del movimento (WCAG 2.2.2) -->
+            <!-- Pausa del movimento (WCAG 2.2.2). Sempre presente: le particelle
+                 e i bagliori si muovono anche con una slide sola. L'etichetta
+                 cambia con lo stato, quindi niente aria-pressed (lo screen
+                 reader leggerebbe "Riprendi, premuto"). -->
             <button
-                v-if="heroVideoUrl || slides.length > 1"
                 type="button"
-                class="absolute bottom-6 left-4 sm:left-6 z-20 inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 text-xs font-semibold text-white hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                :aria-pressed="movimentoFermo"
+                class="absolute bottom-20 right-4 sm:bottom-6 sm:right-6 z-20 inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 text-xs font-semibold text-white hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 @click="alternaMovimento"
             >
                 <svg v-if="!movimentoFermo" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
@@ -544,7 +547,8 @@ const ogMeta = useOgMeta({
                     @click="goToSlide(index)"
                     class="group relative h-1 rounded-full transition-all duration-700 overflow-hidden py-5 -my-5"
                     :class="currentSlide === index ? 'w-12 bg-white/30' : 'w-6 bg-white/20 hover:bg-white/30'"
-                    :aria-label="'Slide ' + (index + 1)"
+                    :aria-label="$t('accessibilita.go_to_slide', { n: index + 1, total: slides.length })"
+                    :aria-current="currentSlide === index ? 'true' : undefined"
                 >
                     <span 
                         v-if="currentSlide === index"
@@ -561,8 +565,8 @@ const ogMeta = useOgMeta({
                         class="badge-campioni inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full border border-savino-fucsia/40 bg-savino-fucsia/10 backdrop-blur-sm"
                         :class="{ 'badge-revealed': heroRevealed }"
                     >
-                        <span class="badge-icon text-lg">🏆</span>
-                        <span class="text-savino-fucsia text-xs sm:text-sm font-bold uppercase tracking-[0.2em]">
+                        <span class="badge-icon text-lg" aria-hidden="true">🏆</span>
+                        <span class="text-savino-fucsia-chiaro text-xs sm:text-sm font-bold uppercase tracking-[0.2em]">
                             {{ $t('home.world_champions') }}
                         </span>
                         <span class="badge-glow"></span>
@@ -577,7 +581,7 @@ const ogMeta = useOgMeta({
                             {{ heroTitle }}
                         </span>
                         <span 
-                            class="hero-text-reveal hero-text-delay block text-savino-red mt-2" 
+                            class="hero-text-reveal hero-text-delay block text-savino-fucsia-chiaro mt-2" 
                             :class="{ 'revealed': heroRevealed }"
                         >
                             {{ heroSubtitle }}
@@ -602,7 +606,7 @@ const ogMeta = useOgMeta({
                             :is="isExternalLink(heroCta1Url) ? 'a' : Link"
                             v-bind="externalLinkAttrs(heroCta1Url)"
                             :href="heroCta1Url" 
-                            class="cta-glow-gold inline-flex items-center justify-center px-8 py-4 border-2 border-savino-fucsia bg-gray-900/40 hover:bg-savino-fucsia text-white hover:text-gray-900 text-sm font-bold uppercase tracking-widest transition-all duration-300 backdrop-blur-sm"
+                            class="cta-glow-gold inline-flex items-center justify-center px-8 py-4 border-2 border-savino-fucsia bg-gray-900/40 hover:bg-savino-fucsia text-white hover:text-white text-sm font-bold uppercase tracking-widest transition-all duration-300 backdrop-blur-sm"
                         >
                             {{ heroCta1Label }}
                         </component>
@@ -631,7 +635,7 @@ const ogMeta = useOgMeta({
             </div>
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-14" data-reveal>
-                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.next_match_subtitle') }}</span>
+                    <span class="text-[#B8066A] text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.next_match_subtitle') }}</span>
                     <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">
                         {{ $t('home.next_match_title') }}
                     </h2>
@@ -653,13 +657,13 @@ const ogMeta = useOgMeta({
                                     align-class="mx-auto md:ml-auto md:mr-0"
                                 />
                                 <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words min-h-[3.5rem] flex items-start justify-center md:justify-end">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
-                                <span class="text-savino-fucsia text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.home_team') }}</span>
+                                <span class="text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.home_team') }}</span>
                             </div>
                             <!-- VS -->
                             <div class="text-center px-8 md:pt-10">
                                 <div class="text-white/10 text-6xl md:text-8xl lg:text-9xl font-black leading-none select-none">VS</div>
                                 <div class="-mt-4 bg-savino-fucsia/15 backdrop-blur-sm rounded-lg px-6 py-3 relative">
-                                    <div class="text-savino-fucsia text-xs font-bold uppercase tracking-widest">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
+                                    <div class="text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-widest">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
                                     <div class="text-white text-sm font-bold mt-1">{{ formattedMatchDate ?? $t('common.tbd') }}</div>
                                 </div>
                             </div>
@@ -716,7 +720,7 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E');"></div>
             <div ref="statsContainer" class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-16" data-reveal>
-                    <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ statsSubtitle }}</span>
+                    <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ statsSubtitle }}</span>
                     <h2 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mt-3">
                         {{ statsTitle }}
                     </h2>
@@ -724,12 +728,12 @@ const ogMeta = useOgMeta({
                 </div>
                 <div class="stats-grid grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-0">
                     <div v-for="(stat, index) in stats" :key="stat.label" class="stat-column text-center py-4 px-4 md:px-8" data-reveal>
-                        <div class="text-4xl mb-4">{{ stat.icon }}</div>
+                        <div class="text-4xl mb-4" aria-hidden="true">{{ stat.icon }}</div>
                         <div class="text-white text-5xl md:text-7xl font-black tracking-tighter countup-value leading-none">
                             <template v-if="statsRevealed">{{ displayValues[index] ?? stat.value }}</template>
                             <span v-else class="invisible">{{ stat.value }}</span>
                         </div>
-                        <div class="text-savino-fucsia/70 text-[10px] font-bold uppercase tracking-[0.25em] mt-5">{{ stat.label }}</div>
+                        <div class="text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-[0.25em] mt-5">{{ stat.label }}</div>
                     </div>
                 </div>
             </div>
@@ -748,11 +752,11 @@ const ogMeta = useOgMeta({
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-14" data-reveal>
                     <div>
-                        <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.latest_news_subtitle') }}</span>
+                        <span class="text-[#B8066A] text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.latest_news_subtitle') }}</span>
                         <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">{{ $t('home.latest_news_title') }}</h2>
                         <div class="w-16 h-1 bg-savino-fucsia mt-4"></div>
                     </div>
-                    <Link :href="route('news.index')" class="mt-6 sm:mt-0 inline-flex items-center gap-2 text-savino-blue font-bold text-sm uppercase tracking-wider hover:text-savino-fucsia transition-colors">
+                    <Link :href="route('news.index')" class="mt-6 sm:mt-0 inline-flex items-center gap-2 text-savino-blue font-bold text-sm uppercase tracking-wider hover:text-[#B8066A] transition-colors">
                         {{ $t('common.all_news') }}
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                     </Link>
@@ -816,19 +820,30 @@ const ogMeta = useOgMeta({
                 <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.gallery_subtitle') }}</span>
                 <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mt-2">{{ $t('home.gallery_title') }}</h2>
             </div>
-            <div class="marquee-container">
+            <div v-if="slides.length" class="flex justify-center mb-6">
+                <button
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    @click="alternaMovimento"
+                >
+                    <svg v-if="!movimentoFermo" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+                    <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                    {{ movimentoFermo ? $t('accessibilita.resume_motion') : $t('accessibilita.pause_motion') }}
+                </button>
+            </div>
+            <div class="marquee-container" role="group" :aria-label="$t('accessibilita.gallery_label')">
                 <div class="marquee-track">
                     <!-- Primo set (originale) -->
                     <div v-for="(slide, i) in slides" :key="'marquee-a-' + i" class="marquee-item">
                         <div class="w-72 h-44 md:w-96 md:h-56 rounded-xl overflow-hidden shadow-lg mx-3 relative group">
-                            <img :src="slide" :alt="'Highlight ' + (i+1)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
+                            <img :src="slide" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
                             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                     </div>
                     <!-- Secondo set (duplicato per loop continuo) -->
-                    <div v-for="(slide, i) in slides" :key="'marquee-b-' + i" class="marquee-item">
+                    <div v-for="(slide, i) in slides" :key="'marquee-b-' + i" class="marquee-item" aria-hidden="true">
                         <div class="w-72 h-44 md:w-96 md:h-56 rounded-xl overflow-hidden shadow-lg mx-3 relative group">
-                            <img :src="slide" :alt="'Highlight ' + (i+1)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
+                            <img :src="slide" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
                             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                     </div>
@@ -845,10 +860,10 @@ const ogMeta = useOgMeta({
                 <component :is="isExternalLink(ctaTicketingUrl) ? 'a' : Link" :href="ctaTicketingUrl" v-bind="externalLinkAttrs(ctaTicketingUrl)" class="group relative bg-savino-blue py-16 px-8 text-center hover:bg-savino-blue/90 transition-colors duration-300 overflow-hidden" data-reveal>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div class="relative">
-                        <svg class="w-10 h-10 text-savino-fucsia mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                        <svg class="w-10 h-10 text-savino-fucsia-chiaro mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                         <h3 class="text-white text-2xl font-black uppercase tracking-tight">{{ ctaTicketingTitle }}</h3>
                         <p class="text-white/60 text-sm mt-2">{{ ctaTicketingText }}</p>
-                        <span class="inline-flex items-center gap-1 text-savino-fucsia text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
+                        <span class="inline-flex items-center gap-1 text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
                             {{ $t('common.discover') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
@@ -857,10 +872,10 @@ const ogMeta = useOgMeta({
                 <component :is="isExternalLink(ctaShopUrl) ? 'a' : Link" :href="ctaShopUrl" v-bind="externalLinkAttrs(ctaShopUrl)" class="group relative bg-gray-900 py-16 px-8 text-center hover:bg-gray-800 transition-colors duration-300 overflow-hidden" data-reveal>
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                     <div class="relative">
-                        <svg class="w-10 h-10 text-savino-fucsia mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                        <svg class="w-10 h-10 text-savino-fucsia-chiaro mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         <h3 class="text-white text-2xl font-black uppercase tracking-tight">{{ ctaShopTitle }}</h3>
                         <p class="text-white/60 text-sm mt-2">{{ ctaShopText }}</p>
-                        <span class="inline-flex items-center gap-1 text-savino-fucsia text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
+                        <span class="inline-flex items-center gap-1 text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-wider mt-4 group-hover:gap-3 transition-all">
                             {{ $t('common.go_to_shop') }}
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </span>
@@ -1133,6 +1148,18 @@ const ogMeta = useOgMeta({
 /* === COUNT UP VALUE — subtle spring bounce === */
 .countup-value {
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* === PAUSA DEL MOVIMENTO (pulsante) === */
+.movimento-fermo .badge-glow,
+.movimento-fermo .badge-icon,
+.movimento-fermo .cta-glow-gold,
+.movimento-fermo .cta-glow-red,
+.movimento-fermo .match-card-gradient,
+.movimento-fermo .marquee-track,
+.movimento-fermo .hero-slide-inner,
+.movimento-fermo .slide-progress {
+    animation-play-state: paused !important;
 }
 
 /* === REDUCED MOTION === */

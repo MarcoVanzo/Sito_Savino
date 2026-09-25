@@ -108,13 +108,13 @@ onUnmounted(() => {
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
                 <!-- Breadcrumb -->
                 <nav aria-label="Breadcrumb" class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
-                    <Link :href="route('home')" class="hover:text-savino-fucsia transition-colors">{{ $t('common.home') }}</Link>
+                    <Link :href="route('home')" class="hover:text-savino-fucsia-chiaro transition-colors">{{ $t('common.home') }}</Link>
                     <span aria-hidden="true">/</span>
-                    <Link :href="route('shop')" class="hover:text-savino-fucsia transition-colors">{{ $t('common.shop') }}</Link>
+                    <Link :href="route('shop')" class="hover:text-savino-fucsia-chiaro transition-colors">{{ $t('common.shop') }}</Link>
                     <span aria-hidden="true">/</span>
-                    <span class="text-savino-fucsia" aria-current="page">{{ category?.name }}</span>
+                    <span class="text-savino-fucsia-chiaro" aria-current="page">{{ category?.name }}</span>
                 </nav>
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.category_label') }}</span>
+                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.category_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ category?.name }}
                 </h1>
@@ -188,7 +188,7 @@ onUnmounted(() => {
                 <div v-else class="text-center py-20">
                     <div class="max-w-lg mx-auto">
                         <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-savino-blue to-gray-900 flex items-center justify-center shadow-xl">
-                            <svg class="w-10 h-10 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+                            <svg class="w-10 h-10 text-savino-fucsia-chiaro" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-2.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
                         </div>
                         <h2 class="text-2xl font-black text-savino-blue uppercase tracking-tight mb-3">
                             {{ $t('shop.no_products_title') }}
@@ -197,7 +197,7 @@ onUnmounted(() => {
                         <p class="text-gray-600 leading-relaxed mb-6">
                             {{ $t('shop.no_products_category') }}
                         </p>
-                        <Link :href="route('shop')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-fucsia hover:text-savino-blue transition-all duration-300">
+                        <Link :href="route('shop')" class="inline-flex items-center gap-2 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-xl hover:bg-savino-fucsia hover:text-white transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                             {{ $t('shop.back_to_shop') }}
                         </Link>

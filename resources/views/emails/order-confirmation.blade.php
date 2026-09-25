@@ -17,7 +17,7 @@
             <td style="padding: 16px 20px; border-bottom: 1px solid #e9ecef;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.order_number') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.order_number') }}</td>
                         <td align="right" style="color: #003063; font-size: 15px; font-weight: 700;">{{ $order->order_number }}</td>
                     </tr>
                 </table>
@@ -27,7 +27,7 @@
             <td style="padding: 12px 20px; border-bottom: 1px solid #e9ecef;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.date') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.date') }}</td>
                         <td align="right" style="color: #333333; font-size: 14px;">{{ $order->created_at->format('d/m/Y H:i') }}</td>
                     </tr>
                 </table>
@@ -37,7 +37,7 @@
             <td style="padding: 12px 20px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.status') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.status') }}</td>
                         <td align="right" style="color: #333333; font-size: 14px;">{{ $order->status->getLabel() }}</td>
                     </tr>
                 </table>
@@ -61,7 +61,7 @@
                 <td style="padding: 12px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">
                     {{ $item->product?->name ?? __('emails.common.removed_product') }}
                     @if($item->variant)
-                        <br><span style="font-size: 12px; color: #888888;">
+                        <br><span style="font-size: 12px; color: #666666;">
                             {{ collect(array_filter([$item->variant->size, $item->variant->color]))->implode(' / ') }}
                         </span>
                     @endif
@@ -105,8 +105,8 @@
                 <td style="padding: 12px 20px; border-bottom: 1px solid #e9ecef;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                         <tr>
-                            <td style="color: #F8269C; font-size: 14px;">{{ __('emails.confirmation.coupon_discount') }}</td>
-                            <td align="right" style="color: #F8269C; font-size: 14px;">-€{{ number_format($order->coupon_discount, 2, ',', '.') }}</td>
+                            <td style="color: #D00778; font-size: 14px;">{{ __('emails.confirmation.coupon_discount') }}</td>
+                            <td align="right" style="color: #D00778; font-size: 14px;">-€{{ number_format($order->coupon_discount, 2, ',', '.') }}</td>
                         </tr>
                     </table>
                 </td>
@@ -135,7 +135,7 @@
                 <strong>{{ __('emails.confirmation.bank_iban') }}</strong> {{ \App\Models\SiteSetting::get('shop.bank_transfer_iban', '-') }}<br>
                 <strong>{{ __('emails.confirmation.bank_reason') }}</strong> {{ __('emails.confirmation.bank_reason_value', ['number' => $order->order_number]) }}
             </p>
-            <p style="color: #888888; font-size: 13px; margin: 8px 0 0; font-style: italic;">
+            <p style="color: #666666; font-size: 13px; margin: 8px 0 0; font-style: italic;">
                 {{ __('emails.confirmation.bank_deadline', ['days' => \App\Models\SiteSetting::get('shop.bank_transfer_expiry_days', 7)]) }}
             </p>
         </div>

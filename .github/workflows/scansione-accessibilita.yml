@@ -51,11 +51,17 @@ jobs:
           npm install --no-save --ignore-scripts playwright@1.56.0 axe-core@4.10.3
           ./node_modules/.bin/playwright install --with-deps chromium
 
+      # Gli input del lancio manuale passano da variabili d'ambiente, non
+      # interpolati nello script: un valore con virgolette o `$(...)` verrebbe
+      # eseguito dalla shell del runner.
       - name: Scansiona il sito
+        env:
+          URL_DA_SCANSIONARE: ${{ github.event.inputs.url || vars.URL_SITO || 'https://seashell-app-47mmf.ondigitalocean.app' }}
+          PAGINE: ${{ github.event.inputs.pagine || '30' }}
         run: |
           node scripts/scansione-accessibilita.mjs \
-            --url="${{ github.event.inputs.url || vars.URL_SITO || 'https://seashell-app-47mmf.ondigitalocean.app' }}" \
-            --pagine="${{ github.event.inputs.pagine || '30' }}" \
+            --url="$URL_DA_SCANSIONARE" \
+            --pagine="$PAGINE" \
             --rapporto=rapporto-accessibilita.json
 
       - name: Conserva il rapporto

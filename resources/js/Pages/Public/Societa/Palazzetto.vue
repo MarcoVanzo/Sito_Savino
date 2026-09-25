@@ -72,7 +72,7 @@ const services = computed(() => Array.isArray(cd.value?.services) ? cd.value.ser
                     
                     <!-- Text Content -->
                     <div class="order-2 lg:order-1">
-                        <div class="inline-block px-4 py-1.5 bg-savino-fucsia/10 text-savino-fucsia font-bold rounded-full text-sm tracking-wide mb-6">
+                        <div class="inline-block px-4 py-1.5 bg-savino-fucsia/10 text-[#B8066A] font-bold rounded-full text-sm tracking-wide mb-6">
                             {{ $t('societa.palazzetto_hero_title') }}
                         </div>
                         <h2 class="text-4xl md:text-5xl font-black text-savino-blue tracking-tight mb-8">{{ venueName }}</h2>

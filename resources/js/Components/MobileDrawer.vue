@@ -34,9 +34,15 @@ const props = defineProps({
 const emit = defineEmits(['toggle', 'toggle-item']);
 
 // Menu aperto = pannello a tutto schermo: il focus resta fra il pulsante di
-// chiusura e le voci, e alla chiusura torna al pulsante (WCAG 2.4.3).
-const menuMobile = ref(null);
-useTrappolaDelFocus(menuMobile, computed(() => props.isOpen));
+// chiusura e le voci, e alla chiusura torna al pulsante (WCAG 2.4.3). La barra
+// (lingua, account, carrello, chiusura) e il pannello delle voci sono fratelli:
+// la trappola li tiene entrambi, e all'apertura parte dalla prima voce.
+const barraMobile = ref(null);
+const pannelloMobile = ref(null);
+useTrappolaDelFocus([barraMobile, pannelloMobile], computed(() => props.isOpen), { iniziale: pannelloMobile });
+
+// La voce della pagina in cui ci si trova: evidenziata e annunciata come tale.
+const voceCorrente = (item) => !!item.href && page.url.startsWith(item.href);
 
 // Serve un link alla pagina della sezione solo quando nessuna sottovoce ci
 // porta già (a parità di indirizzo, barra finale a parte). Vale per la voce
@@ -74,7 +80,7 @@ onBeforeUnmount(() => {
 
 <template>
     <!-- MOBILE MENU BUTTON -->
-    <div v-show="visible" ref="menuMobile" class="flex items-center z-50 gap-1">
+    <div v-show="visible" ref="barraMobile" class="flex items-center z-50 gap-1">
         <!-- Language Switcher slot (mobile) -->
         <slot name="language-switcher" />
 
@@ -105,7 +111,7 @@ onBeforeUnmount(() => {
     >
         <!-- pt-24: lo spazio riservato all'header, ora che sui telefoni il
              logo è alto 64px invece di 125px -->
-        <div v-show="isOpen && visible" class="absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-24 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
+        <div v-show="isOpen && visible" ref="pannelloMobile" class="absolute top-0 left-0 w-full bg-savino-blue border-t border-white/10 pt-24 pb-6 px-4 shadow-xl z-40 h-[100dvh] overflow-y-auto">
             <nav role="navigation" :aria-label="$t('nav.mobile_menu')" class="flex flex-col space-y-2 text-center pb-10">
                 <div v-for="(item, index) in navigation" :key="item.label" class="border-b border-white/10 last:border-0">
                     <!-- Una voce senza sottovoci è un link: il pulsante apriva
@@ -116,7 +122,8 @@ onBeforeUnmount(() => {
                         :href="item.href"
                         v-bind="externalLinkAttrs(item.href)"
                         class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
-                        :class="{'text-savino-fucsia-chiaro': $page.url.startsWith(item.href), 'text-savino-fucsia-chiaro': item.isHighlight}"
+                        :class="{'text-savino-fucsia-chiaro': voceCorrente(item) || item.isHighlight}"
+                        :aria-current="voceCorrente(item) ? 'page' : undefined"
                     >
                         <span>{{ item.label }}</span>
                     </component>
@@ -126,7 +133,7 @@ onBeforeUnmount(() => {
                         aria-haspopup="true"
                         :aria-expanded="activeIndex === index"
                         class="w-full flex items-center justify-between py-4 px-4 text-[14px] font-bold uppercase tracking-widest text-white focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
-                        :class="{'text-savino-fucsia-chiaro': $page.url.startsWith(item.href) || activeIndex === index, 'text-savino-fucsia-chiaro': item.isHighlight}"
+                        :class="{'text-savino-fucsia-chiaro': voceCorrente(item) || activeIndex === index || item.isHighlight}"
                     >
                         <span>{{ item.label }}</span>
                         <svg class="w-4 h-4 transition-transform" :class="{'rotate-180': activeIndex === index}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
@@ -156,6 +163,7 @@ onBeforeUnmount(() => {
                             :key="sub.label"
                             :href="sub.href"
                             v-bind="externalLinkAttrs(sub.href)"
+                            :aria-current="voceCorrente(sub) ? 'page' : undefined"
                             class="block py-3 text-sm font-semibold uppercase tracking-widest text-gray-300 hover:text-white min-h-[44px] flex items-center justify-center"
                         >
                             {{ sub.label }}

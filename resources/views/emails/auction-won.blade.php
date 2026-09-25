@@ -17,7 +17,7 @@
             <td style="padding: 16px 20px; border-bottom: 1px solid #e9ecef;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.auction_won.auction') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.auction_won.auction') }}</td>
                         <td style="color: #1a1a1a; font-size: 15px; font-weight: 600; text-align: right;">{{ $auction->title }}</td>
                     </tr>
                 </table>
@@ -27,7 +27,7 @@
             <td style="padding: 16px 20px; border-bottom: 1px solid #e9ecef;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.auction_won.winning_amount') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.auction_won.winning_amount') }}</td>
                         {{-- $winningAmount è l'offerta del vincitore corrente (AuctionService::winningAmountFor):
                              current_bid non viene aggiornato alla riassegnazione ed è solo un fallback
                              per i job già in coda prima di questa modifica. --}}
@@ -40,8 +40,8 @@
             <td style="padding: 16px 20px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.auction_won.payment_deadline') }}</td>
-                        <td style="color: #DF338F; font-size: 15px; font-weight: 600; text-align: right;">{{ $auction->winner_checkout_deadline->format('d/m/Y H:i') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.auction_won.payment_deadline') }}</td>
+                        <td style="color: #D00778; font-size: 15px; font-weight: 600; text-align: right;">{{ $auction->winner_checkout_deadline->format('d/m/Y H:i') }}</td>
                     </tr>
                 </table>
             </td>

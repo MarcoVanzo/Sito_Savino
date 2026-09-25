@@ -143,6 +143,35 @@ class AuctionPaymentDeadlineTest extends TestCase
         $this->assertSame(OrderStatus::Pending, $order->fresh()->status, "L'ordine ancora pagabile non va annullato.");
     }
 
+    public function test_un_offerta_rimasta_senza_utente_non_riceve_l_asta(): void
+    {
+        // Un account cancellato lascia le offerte con user_id NULL: la
+        // riassegnazione le sceglieva, e l'asta restava a un vincitore nullo
+        // che nessun giro rivedeva più.
+        $first = User::factory()->create();
+        $third = User::factory()->create();
+
+        $auction = Auction::factory()->ended()->create(['current_bid' => 200]);
+
+        Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $first->id, 'amount' => 200]);
+        $orfana = Bid::factory()->create(['auction_id' => $auction->id, 'amount' => 150]);
+        $orfana->forceFill(['user_id' => null])->save();
+        Bid::factory()->create(['auction_id' => $auction->id, 'user_id' => $third->id, 'amount' => 100]);
+
+        $auction->forceFill([
+            'winner_user_id' => $first->id,
+            'winner_checkout_token' => Str::uuid()->toString(),
+            'winner_checkout_deadline' => now()->addHours(48),
+            'current_winner_attempt' => 1,
+        ])->save();
+
+        $this->travel(49)->hours();
+
+        app(AuctionService::class)->checkWinnerPayments();
+
+        $this->assertSame($third->id, $auction->fresh()->winner_user_id);
+    }
+
     public function test_pending_order_does_not_block_reassignment_to_the_next_bidder(): void
     {
         $first = User::factory()->create();

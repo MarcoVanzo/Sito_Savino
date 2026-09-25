@@ -37,7 +37,7 @@ return [
             'it' => <<<'HTML'
 <p>Spediamo con corriere espresso in Italia, nei Paesi europei elencati e nel resto del mondo. Costi e tempi dipendono dalla zona di consegna e sono riportati nella tabella in fondo alla pagina; il costo esatto del tuo ordine è sempre mostrato nel riepilogo, prima della conferma.</p>
 <h2>Tempi di consegna</h2>
-<p>Gli ordini pagati con PayPal o carta vengono preparati in 1-2 giorni lavorativi; quelli pagati con bonifico dopo l'accredito. I tempi indicati in tabella sono in giorni lavorativi dalla spedizione e sono indicativi: possono allungarsi nei periodi di festività o per disservizi del corriere. In ogni caso la consegna avviene entro 30 giorni dall'ordine, come previsto dalle <a href="/condizioni-di-vendita">Condizioni di vendita</a>.</p>
+<p>Gli ordini pagati con PayPal o carta vengono preparati in 1-2 giorni lavorativi; quelli pagati con bonifico dopo l'accredito. I tempi indicati in tabella sono in giorni lavorativi dalla spedizione (a cui si aggiungono i giorni di preparazione, che partono dalla ricezione del pagamento) e sono indicativi: possono allungarsi nei periodi di festività o per disservizi del corriere. In ogni caso la consegna avviene entro 30 giorni dall'ordine, come previsto dalle <a href="/condizioni-di-vendita">Condizioni di vendita</a>.</p>
 <p>Alla spedizione ricevi via email il codice di tracciamento. Il corriere tenta la consegna due volte e poi prova a contattarti: indica un numero di telefono corretto e un indirizzo dove qualcuno possa ritirare il pacco, con il nome presente sul citofono. Non è possibile scegliere il giorno o l'ora della consegna.</p>
 <p>Se il pacco arriva visibilmente danneggiato, accettalo "con riserva" annotandolo sul documento del corriere oppure rifiutalo, e scrivici. Se dopo i tempi indicati non hai ancora ricevuto nulla, scrivi a <a href="mailto:info@savinodelbenevolley.it">info@savinodelbenevolley.it</a> o chiama il +39 055 721503.</p>
 <h2>Spedizioni fuori dall'Unione europea</h2>
@@ -48,7 +48,7 @@ HTML,
             'en' => <<<'HTML'
 <p>We ship by express courier to Italy, to the European countries listed and to the rest of the world. Costs and times depend on the delivery area and are shown in the table at the bottom of this page; the exact cost of your order is always shown in the summary before you confirm.</p>
 <h2>Delivery times</h2>
-<p>Orders paid by PayPal or card are prepared within 1-2 working days; those paid by bank transfer once the payment is received. The times in the table are working days from dispatch and are indicative: they may be longer during holidays or because of courier disruptions. In any case delivery takes place within 30 days of the order, as stated in the <a href="/en/condizioni-di-vendita">Terms of sale</a>.</p>
+<p>Orders paid by PayPal or card are prepared within 1-2 working days; those paid by bank transfer once the payment is received. The times in the table are working days from dispatch (plus the preparation days, which start when payment is received) and are indicative: they may be longer during holidays or because of courier disruptions. In any case delivery takes place within 30 days of the order, as stated in the <a href="/en/condizioni-di-vendita">Terms of sale</a>.</p>
 <p>You receive the tracking code by email on dispatch. The courier attempts delivery twice and then tries to contact you: please give a correct phone number and an address where someone can receive the parcel, with the name shown on the doorbell. Delivery day and time cannot be chosen.</p>
 <p>If the parcel arrives visibly damaged, accept it "with reservation" noting this on the courier's document or refuse it, and write to us. If you have not received anything after the times shown, write to <a href="mailto:info@savinodelbenevolley.it">info@savinodelbenevolley.it</a> or call +39 055 721503.</p>
 <h2>Shipping outside the European Union</h2>
@@ -76,7 +76,7 @@ HTML,
 <h2>3. Ricevi il rimborso</h2>
 <p>Ti rimborsiamo il prezzo e le spese di consegna standard entro 14 giorni dalla tua comunicazione, con lo stesso metodo di pagamento che hai usato e senza costi. Possiamo attendere di ricevere i prodotti, o la prova che li hai spediti, prima di effettuarlo.</p>
 <h2>Prodotti esclusi</h2>
-<p>Non si possono restituire per recesso i prodotti personalizzati su tua richiesta (per esempio con nome e numero a tua scelta) e i prodotti sigillati per motivi igienici aperti dopo la consegna. La scheda del prodotto lo indica prima dell'acquisto.</p>
+<p>Non si possono restituire per recesso i prodotti personalizzati su tua richiesta, per esempio una maglia con nome e numero a tua scelta: la personalizzazione la chiedi tu prima dell'acquisto, e solo quegli articoli sono esclusi.</p>
 <h2>Prodotto difettoso o diverso da quello ordinato?</h2>
 <p>Non è un reso per recesso: si applica la garanzia legale di conformità di due anni. Scrivici entro due mesi da quando hai scoperto il difetto, con il numero d'ordine e una foto: ripariamo o sostituiamo il prodotto a nostre spese, oppure, se non è possibile, riduciamo il prezzo o ti rimborsiamo. I dettagli sono al punto 7 delle <a href="/condizioni-di-vendita">Condizioni di vendita</a>.</p>
 <h2>Modificare o annullare un ordine</h2>
@@ -91,7 +91,7 @@ HTML,
 <h2>3. Get your refund</h2>
 <p>We refund the price and the standard delivery cost within 14 days of your communication, using the payment method you used and at no cost to you. We may wait until we receive the products, or proof that you have sent them, before refunding.</p>
 <h2>Excluded products</h2>
-<p>Products personalised at your request (for example with a name and number of your choice) and sealed products unsealed after delivery for hygiene reasons cannot be returned on withdrawal. The product page says so before purchase.</p>
+<p>Products personalised at your request, for example a shirt with a name and number of your choice, cannot be returned on withdrawal: you ask for the personalisation before purchase, and only those items are excluded.</p>
 <h2>Faulty product, or not what you ordered?</h2>
 <p>That is not a withdrawal: the two-year legal guarantee of conformity applies. Write to us within two months of discovering the defect, with your order number and a photo: we repair or replace the product at our expense or, if that is not possible, reduce the price or refund you. Details are in section 7 of the <a href="/en/condizioni-di-vendita">Terms of sale</a>.</p>
 <h2>Changing or cancelling an order</h2>
@@ -100,9 +100,8 @@ HTML,
         ],
     ],
 
-    // Il regolamento delle aste non e' una pagina ma un'impostazione
-    // (`auctions.rules_text`), mostrata nella pagina di ogni asta: si
-    // pubblica con la stessa regola a guardia delle pagine.
+    // Il regolamento delle aste e' una pagina come le altre; l'impostazione
+    // `auctions.rules_text` resta solo come ripiego.
     'regolamento-aste' => [
         'titolo' => ['it' => 'Regolamento aste', 'en' => 'Auction rules'],
         'descrizione' => ['it' => '', 'en' => ''],

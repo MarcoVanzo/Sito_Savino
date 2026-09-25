@@ -114,19 +114,22 @@ const validateStep1 = () => {
             { field: 'guest_email', value: form.guest_email },
         );
     }
-    const missing = required.filter(r => !r.value?.trim());
-    if (missing.length > 0) {
-        stepValidationError.value = $t('shop_checkout.step_validation_required');
-        return false;
-    }
-    // Validate billing fields when billing address differs from shipping
+    // Anche la fatturazione, quando e' diversa dalla spedizione
     if (!form.billing_same_as_shipping) {
-        const billingRequired = ['billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code'];
-        const missingBilling = billingRequired.filter(f => !form[f]?.toString().trim());
-        if (missingBilling.length > 0) {
-            stepValidationError.value = $t('shop_checkout.step_validation_required');
-            return false;
-        }
+        ['billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code']
+            .forEach((field) => required.push({ field, value: form[field] }));
+    }
+
+    // Ogni campo vuoto riceve il proprio errore (aria-invalid + messaggio
+    // sotto il campo) e il focus va sul primo: un solo avviso generico in cima
+    // non diceva a chi usa uno screen reader quale campo mancasse (WCAG 3.3.1).
+    const missing = required.filter(r => !r.value?.toString().trim()).map(r => r.field);
+    form.clearErrors(...required.map(r => r.field));
+    if (missing.length > 0) {
+        missing.forEach((field) => form.setError(field, $t('shop_checkout.field_required')));
+        stepValidationError.value = $t('shop_checkout.step_validation_required');
+        vaiAlPrimoErrore();
+        return false;
     }
     stepValidationError.value = '';
     return true;
@@ -232,13 +235,6 @@ const orderTotal = computed(() => {
     return Math.max(0, subtotal + shippingCost.value - discount).toFixed(2);
 });
 
-const submitOrder = () => {
-    form.post(route('shop.checkout.store'), {
-        preserveScroll: true,
-        onError: vaiAlPrimoErrore,
-    });
-};
-
 // Fix #9: Riporta allo Step 1 se il backend ritorna errori su campi dello Step 1
 const step1Fields = ['shipping_first_name', 'shipping_last_name', 'shipping_street',
     'shipping_city', 'shipping_zip_code', 'shipping_province',
@@ -246,6 +242,29 @@ const step1Fields = ['shipping_first_name', 'shipping_last_name', 'shipping_stre
     'billing_first_name', 'billing_last_name', 'billing_street',
     'billing_city', 'billing_zip_code', 'billing_province',
     'billing_country', 'codice_fiscale', 'phone'];
+
+// Gli errori che il server lega a un campo del modulo si vedono sotto il
+// campo; gli altri (merce esaurita, carrello cambiato, coupon non piu' valido)
+// non hanno un posto dove comparire e finiscono nel riquadro sopra il pulsante.
+const riquadroErrori = ref(null);
+const campiDelModulo = computed(() => [...step1Fields, 'payment_gateway', 'privacy_accepted', 'notes']);
+const erroriGenerali = computed(() => Object.entries(form.errors)
+    .filter(([campo]) => !campiDelModulo.value.includes(campo))
+    .map(([, messaggio]) => messaggio));
+
+const submitOrder = () => {
+    form.post(route('shop.checkout.store'), {
+        preserveScroll: true,
+        onError: (errori) => {
+            if (Object.keys(errori).some((campo) => campiDelModulo.value.includes(campo))) {
+                vaiAlPrimoErrore();
+            } else {
+                nextTick(() => riquadroErrori.value?.focus());
+            }
+        },
+    });
+};
+
 
 // Reset billing fields when billing_same_as_shipping is toggled back to true
 watch(() => form.billing_same_as_shipping, (isSame) => {
@@ -260,21 +279,12 @@ watch(() => form.billing_same_as_shipping, (isSame) => {
     }
 });
 
+// Il focus sul primo campo in errore lo porta vaiAlPrimoErrore (onError):
+// qui si torna solo al passo 1 quando l'errore sta li'.
 watch(() => form.errors, (errors) => {
     if (currentStep.value === 2 && step1Fields.some(f => errors[f])) {
         currentStep.value = 1;
     }
-    // Scroll to first error field
-    nextTick(() => {
-        const errorKeys = Object.keys(errors);
-        if (errorKeys.length > 0) {
-            const firstErrorEl = document.querySelector(`[id*="${errorKeys[0].replaceAll('_', '-')}"]`)
-                || document.querySelector(`.text-red-500`);
-            if (firstErrorEl) {
-                firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-    });
 }, { deep: true });
 
 const ogMeta = useOgMeta({
@@ -301,7 +311,7 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_checkout.hero_label') }}</span>
+            <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop_checkout.hero_label') }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ $t('shop_checkout.og_title') }}
             </h1>
@@ -379,8 +389,8 @@ const ogMeta = useOgMeta({
             </div>
 
             <!-- Validation Error -->
-            <div v-if="stepValidationError" class="mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div v-if="stepValidationError" role="alert" class="mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                 </svg>
                 <p class="text-sm text-red-700 font-medium">{{ stepValidationError }}</p>
@@ -410,6 +420,7 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-guest-name"
                                         v-model="form.guest_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.guest_name"
                                 :aria-describedby="form.errors.guest_name ? 'errore-guest_name' : undefined"
                                         type="text"
@@ -424,6 +435,7 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-email"
                                         v-model="form.guest_email"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.guest_email"
                                 :aria-describedby="form.errors.guest_email ? 'errore-guest_email' : undefined"
                                         type="email"
@@ -465,6 +477,7 @@ const ogMeta = useOgMeta({
                                 <input
                                     id="checkout-auth-phone"
                                     v-model="form.phone"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.phone"
                                 :aria-describedby="form.errors.phone ? 'errore-phone' : undefined"
                                     type="tel"
@@ -490,6 +503,7 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-first-name"
                                         v-model="form.shipping_first_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_first_name"
                                 :aria-describedby="form.errors.shipping_first_name ? 'errore-shipping_first_name' : undefined"
                                         type="text"
@@ -505,6 +519,7 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-last-name"
                                         v-model="form.shipping_last_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_last_name"
                                 :aria-describedby="form.errors.shipping_last_name ? 'errore-shipping_last_name' : undefined"
                                         type="text"
@@ -520,6 +535,10 @@ const ogMeta = useOgMeta({
                                     <AddressAutocomplete
                                         id="checkout-street"
                                         v-model="form.shipping_street"
+                                        required
+                                        aria-required="true"
+                                        :aria-invalid="!!form.errors.shipping_street"
+                                        :aria-describedby="form.errors.shipping_street ? 'errore-shipping_street' : undefined"
                                         :placeholder="$t('shop_checkout.placeholder_street')"
                                         :country="form.country"
                                         @address-selected="(addr) => {
@@ -537,6 +556,7 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-city"
                                         v-model="form.shipping_city"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_city"
                                 :aria-describedby="form.errors.shipping_city ? 'errore-shipping_city' : undefined"
                                         type="text"
@@ -552,6 +572,7 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-zip"
                                         v-model="form.shipping_zip_code"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_zip_code"
                                 :aria-describedby="form.errors.shipping_zip_code ? 'errore-shipping_zip_code' : undefined"
                                         type="text"
@@ -567,6 +588,7 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-province"
                                         v-model="form.shipping_province"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_province"
                                 :aria-describedby="form.errors.shipping_province ? 'errore-shipping_province' : undefined"
                                         type="text"
@@ -596,6 +618,7 @@ const ogMeta = useOgMeta({
                                     <input
                                         id="checkout-cf"
                                         v-model="form.codice_fiscale"
+                                :required="form.country === 'IT'" :aria-required="form.country === 'IT' ? 'true' : undefined"
                                 :aria-invalid="!!form.errors.codice_fiscale"
                                 :aria-describedby="form.errors.codice_fiscale ? 'errore-codice_fiscale' : undefined"
                                         type="text"
@@ -623,6 +646,7 @@ const ogMeta = useOgMeta({
                                     <div>
                                         <label for="billing-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_first_name') }} *</label>
                                         <input id="billing-first-name" v-model="form.billing_first_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_first_name"
                                 :aria-describedby="form.errors.billing_first_name ? 'errore-billing_first_name' : undefined" type="text" autocomplete="given-name" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_first_name')" />
                                         <p v-if="form.errors.billing_first_name" id="errore-billing_first_name" class="mt-1 text-sm text-red-700">{{ form.errors.billing_first_name }}</p>
@@ -630,6 +654,7 @@ const ogMeta = useOgMeta({
                                     <div>
                                         <label for="billing-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_last_name') }} *</label>
                                         <input id="billing-last-name" v-model="form.billing_last_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_last_name"
                                 :aria-describedby="form.errors.billing_last_name ? 'errore-billing_last_name' : undefined" type="text" autocomplete="family-name" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_last_name')" />
                                         <p v-if="form.errors.billing_last_name" id="errore-billing_last_name" class="mt-1 text-sm text-red-700">{{ form.errors.billing_last_name }}</p>
@@ -637,6 +662,7 @@ const ogMeta = useOgMeta({
                                     <div class="sm:col-span-2">
                                         <label for="billing-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
                                         <input id="billing-street" v-model="form.billing_street"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_street"
                                 :aria-describedby="form.errors.billing_street ? 'errore-billing_street' : undefined" type="text" autocomplete="address-line1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_street')" />
                                         <p v-if="form.errors.billing_street" id="errore-billing_street" class="mt-1 text-sm text-red-700">{{ form.errors.billing_street }}</p>
@@ -644,6 +670,7 @@ const ogMeta = useOgMeta({
                                     <div>
                                         <label for="billing-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }} *</label>
                                         <input id="billing-city" v-model="form.billing_city"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_city"
                                 :aria-describedby="form.errors.billing_city ? 'errore-billing_city' : undefined" type="text" autocomplete="address-level2" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_city')" />
                                         <p v-if="form.errors.billing_city" id="errore-billing_city" class="mt-1 text-sm text-red-700">{{ form.errors.billing_city }}</p>
@@ -651,6 +678,7 @@ const ogMeta = useOgMeta({
                                     <div>
                                         <label for="billing-zip" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_zip_code') }} *</label>
                                         <input id="billing-zip" v-model="form.billing_zip_code"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_zip_code"
                                 :aria-describedby="form.errors.billing_zip_code ? 'errore-billing_zip_code' : undefined" type="text" autocomplete="postal-code" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
                                         <p v-if="form.errors.billing_zip_code" id="errore-billing_zip_code" class="mt-1 text-sm text-red-700">{{ form.errors.billing_zip_code }}</p>
@@ -702,7 +730,8 @@ const ogMeta = useOgMeta({
                                 <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">2</span>
                                 <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.payment_title') }}</h2>
                             </div>
-                            <div class="space-y-3">
+                            <fieldset class="space-y-3" :aria-describedby="form.errors.payment_gateway ? 'errore-payment_gateway' : undefined">
+                                <legend class="sr-only">{{ $t('shop_checkout.payment_title') }}</legend>
                                 <label
                                     v-for="gateway in paymentGateways"
                                     :key="gateway.value"
@@ -711,17 +740,17 @@ const ogMeta = useOgMeta({
                                 >
                                     <input
                                         type="radio"
+                                        name="payment_gateway"
                                         :value="gateway.value"
                                         v-model="form.payment_gateway"
-                                :aria-invalid="!!form.errors.payment_gateway"
-                                :aria-describedby="form.errors.payment_gateway ? 'errore-payment_gateway' : undefined"
+                                        :aria-invalid="!!form.errors.payment_gateway"
                                         class="w-5 h-5 text-savino-blue border-gray-300 focus:ring-savino-blue/20"
                                     />
                                     <div class="flex-1">
                                         <span class="font-bold text-gray-900">{{ gateway.label }}</span>
                                     </div>
                                 </label>
-                            </div>
+                            </fieldset>
                             <p v-if="!paymentGateways.length" class="text-gray-400 text-sm text-center py-4">{{ $t('shop_checkout.no_gateways') }}</p>
                             <p v-if="form.errors.payment_gateway" id="errore-payment_gateway" class="mt-2 text-sm text-red-700">{{ form.errors.payment_gateway }}</p>
                         </div>
@@ -761,13 +790,13 @@ const ogMeta = useOgMeta({
                                     <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                     </svg>
-                                    <span class="text-sm font-medium text-green-800">{{ couponMessage }}</span>
+                                    <span class="text-sm font-medium text-green-800" role="status">{{ couponMessage }}</span>
                                 </div>
-                                <button type="button" @click="removeCoupon" class="text-sm text-red-500 hover:text-red-700 font-medium">
+                                <button type="button" @click="removeCoupon" class="text-sm text-red-700 hover:text-red-800 underline-offset-2 hover:underline font-medium">
                                     {{ $t('shop_checkout.coupon_remove') }}
                                 </button>
                             </div>
-                            <p v-if="couponStatus === 'invalid'" class="mt-2 text-sm text-red-500">{{ couponMessage }}</p>
+                            <p role="status" class="mt-2 text-sm text-red-700" :class="{ 'sr-only': couponStatus !== 'invalid' }">{{ couponStatus === 'invalid' ? couponMessage : '' }}</p>
                         </div>
 
                         <!-- Notes -->
@@ -875,6 +904,22 @@ const ogMeta = useOgMeta({
                                     {{ formatPrice(orderTotal) }}
                                 </span>
                             </div>
+                        </div>
+
+                        <!-- Errori senza un campo a cui appoggiarsi (merce esaurita,
+                             carrello cambiato, coupon): prende il focus dopo
+                             l'invio, altrimenti non li vedrebbe nessuno. -->
+                        <div
+                            v-if="currentStep === 2 && erroriGenerali.length"
+                            ref="riquadroErrori"
+                            role="alert"
+                            tabindex="-1"
+                            class="mt-8 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+                        >
+                            <p class="font-bold">{{ $t('shop_checkout.order_errors_title') }}</p>
+                            <ul class="mt-1 list-disc pl-5 space-y-1">
+                                <li v-for="(messaggio, i) in erroriGenerali" :key="i">{{ messaggio }}</li>
+                            </ul>
                         </div>
 
                         <!-- CTA (only on step 2) -->

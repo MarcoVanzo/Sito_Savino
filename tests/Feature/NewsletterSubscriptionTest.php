@@ -98,17 +98,61 @@ class NewsletterSubscriptionTest extends TestCase
 
     public function test_nel_log_non_finiscono_email_e_ip(): void
     {
-        Log::spy();
+        // Un canale vero che scrive in memoria: con Log::spy() la chiamata a
+        // channel() restituiva null, il controller andava in errore e
+        // l'asserzione sull'assenza era vera per forza.
+        $righe = [];
+        Log::shouldReceive('channel')->with('daily')->andReturnSelf();
+        Log::shouldReceive('info')->andReturnUsing(function ($messaggio, $contesto = []) use (&$righe) {
+            $righe[] = $messaggio.' '.json_encode($contesto);
+        });
 
         $this->post(route('newsletter.subscribe'), [
             'email' => 'riservato@example.com',
             'honeypot' => '',
             'privacy_accepted' => true,
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $this->assertNotEmpty($righe, 'L\'iscrizione deve lasciare una riga nel log');
+        foreach ($righe as $riga) {
+            $this->assertStringNotContainsString('riservato@example.com', $riga);
+            $this->assertStringNotContainsString('127.0.0.1', $riga);
+        }
+    }
+
+    public function test_una_richiesta_mai_confermata_si_cancella_dopo_trenta_giorni(): void
+    {
+        $vecchia = NewsletterSubscriber::factory()->nonConfermato()->create(['subscribed_at' => now()->subDays(31)]);
+        $recente = NewsletterSubscriber::factory()->nonConfermato()->create(['subscribed_at' => now()->subDays(5)]);
+        $confermata = NewsletterSubscriber::factory()->create(['subscribed_at' => now()->subDays(90), 'confermato_il' => now()->subDays(89)]);
+
+        $this->artisan('model:prune', ['--model' => [NewsletterSubscriber::class]])->assertSuccessful();
+
+        $this->assertModelMissing($vecchia);
+        $this->assertModelExists($recente);
+        $this->assertModelExists($confermata);
+    }
+
+    public function test_la_richiesta_di_un_disiscritto_non_cancella_la_disiscrizione_finche_non_conferma(): void
+    {
+        Queue::fake();
+
+        $uscito = NewsletterSubscriber::factory()->create([
+            'email' => 'uscito@example.com',
+            'confermato_il' => now()->subMonths(3),
+            'unsubscribed_at' => now()->subMonth(),
         ]);
 
-        Log::shouldHaveReceived('channel')->with('daily');
-        Log::shouldNotHaveReceived('info', fn ($messaggio, $contesto = []) => str_contains(json_encode($contesto), 'riservato@example.com')
-            || str_contains(json_encode($contesto), '127.0.0.1'));
+        $this->post(route('newsletter.subscribe'), [
+            'email' => 'uscito@example.com',
+            'honeypot' => '',
+            'privacy_accepted' => true,
+        ]);
+
+        $this->assertNotNull($uscito->fresh()->unsubscribed_at);
+
+        $this->assertTrue($uscito->fresh()->conferma());
+        $this->assertNull($uscito->fresh()->unsubscribed_at);
     }
 
     public function test_duplicate_email_returns_info_message(): void
@@ -207,11 +251,12 @@ class NewsletterSubscriptionTest extends TestCase
         // Deve riattivare, non creare un duplicato
         $this->assertDatabaseCount('newsletter_subscribers', 1);
 
-        // Il record deve essere aggiornato
+        // Il record deve essere aggiornato; la disiscrizione resta finché il
+        // titolare non conferma dal link.
+        $this->assertNotNull(NewsletterSubscriber::sole()->unsubscribed_at);
         $this->assertDatabaseHas('newsletter_subscribers', [
             'email' => 'resubscribe@example.com',
             'first_name' => 'Nuovo',
-            'unsubscribed_at' => null,
             'confermato_il' => null, // la conferma si richiede
             'synced_to_ac' => false, // deve risincronizzare, dopo la conferma
         ]);

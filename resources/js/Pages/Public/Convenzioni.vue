@@ -48,7 +48,7 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span v-if="cd.hero_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
+                <span v-if="cd.hero_label" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('convenzioni.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p v-if="cd.hero_subtitle" class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_subtitle }}</p>
@@ -91,7 +91,7 @@ const ogMeta = useOgMeta({
                                     <a v-if="partner.url" :href="partner.url" target="_blank" rel="noopener noreferrer" class="hover:text-savino-fucsia transition-colors">{{ partner.name }}</a>
                                     <template v-else>{{ partner.name }}</template>
                                 </h3>
-                                <span v-if="partner.discount" class="inline-block mt-2 bg-savino-fucsia/10 text-savino-fucsia text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">{{ partner.discount }}</span>
+                                <span v-if="partner.discount" class="inline-block mt-2 bg-savino-fucsia/10 text-[#B8066A] text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full">{{ partner.discount }}</span>
                             </div>
                         </div>
 

@@ -27,7 +27,13 @@ che non può sapere lo dice: il webhook di PayPal va chiesto a PayPal con
 
 ## Prima del giorno X
 
-### 1. La posta — è il blocco vero
+### 1. La posta — risolto il 25/09/2026
+
+> **Stato:** dal 25/09/2026 (commit `15a6360`) `MAIL_MAILER=resend` è nella
+> spec a livello d'app e il dominio è verificato su Resend (DKIM e record
+> d'invio sul DNS della Spa). Quello che segue è la storia di come ci si è
+> arrivati e i record da non far togliere: resta utile se la Spa ritocca il
+> DNS.
 
 `MAIL_MAILER` non è nella spec, quindi `config/mail.php` cade sul valore di
 serie `log`: **le email vengono scritte nel log e non spedite**. Finché il sito

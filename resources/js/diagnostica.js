@@ -26,6 +26,52 @@
 export const TUNNEL = '/api/diagnostica';
 
 /**
+ * Alcuni indirizzi del sito sono credenziali: il token del reset della
+ * password, quello dell'ordine (apre indirizzi e articoli), quello del
+ * checkout dell'asta, il link di verifica dell'email. La query porta email,
+ * firme e il token di PayPal. Sentry li riceverebbe con l'URL della pagina e
+ * con i breadcrumb di navigazione e di rete: l'informativa dice di no.
+ */
+const SEGMENTI_SEGRETI =
+    /\/(reset-password|asta|conferma|confirmed|annullato|cancelled|ordine|order|verify-email)\/[^/?#]+(\/[0-9a-f]{20,})?/gi;
+
+export function ripulisciIndirizzo(indirizzo) {
+    if (typeof indirizzo !== 'string' || indirizzo === '') {
+        return indirizzo;
+    }
+
+    return indirizzo
+        .replace(/[?#].*$/, '')
+        .replace(SEGMENTI_SEGRETI, (_, segmento) => `/${segmento}/[nascosto]`);
+}
+
+function ripulisciEvento(evento) {
+    if (evento.request) {
+        evento.request.url = ripulisciIndirizzo(evento.request.url);
+        delete evento.request.query_string;
+        delete evento.request.cookies;
+        if (evento.request.headers) {
+            delete evento.request.headers.Referer;
+            delete evento.request.headers.referer;
+        }
+    }
+
+    return evento;
+}
+
+function ripulisciBreadcrumb(breadcrumb) {
+    if (breadcrumb.data) {
+        for (const campo of ['url', 'from', 'to']) {
+            if (campo in breadcrumb.data) {
+                breadcrumb.data[campo] = ripulisciIndirizzo(breadcrumb.data[campo]);
+            }
+        }
+    }
+
+    return breadcrumb;
+}
+
+/**
  * Filtri condivisi con i test.
  */
 export function opzioniDiSentry({ app, dsn, environment, origine }) {
@@ -45,6 +91,9 @@ export function opzioniDiSentry({ app, dsn, environment, origine }) {
             /^AbortError/,
         ],
         integrations: (predefinite) => predefinite.filter((i) => i.name !== 'BrowserSession'),
+        beforeSend: ripulisciEvento,
+        beforeSendTransaction: ripulisciEvento,
+        beforeBreadcrumb: ripulisciBreadcrumb,
     };
 }
 

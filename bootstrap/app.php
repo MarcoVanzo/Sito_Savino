@@ -12,6 +12,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Inertia\Inertia;
 use Sentry\Laravel\Integration;
@@ -134,13 +135,33 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
+            // Sessione scaduta o troppi invii da un modulo del sito: si torna
+            // alla pagina, con il modulo ancora compilato e un messaggio,
+            // invece della finestra con l'HTML grezzo che Inertia mostra per
+            // una risposta che non è una pagina. La risposta al 419 porta già
+            // la sessione nuova, quindi il secondo invio passa.
+            if (in_array($response->getStatusCode(), [419, 429], true)
+                && $request->header('X-Inertia')
+                && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
+            ) {
+                return back()->with('error', __($response->getStatusCode() === 419
+                    ? 'messages.errori.pagina_scaduta'
+                    : 'messages.errori.troppi_tentativi'));
+            }
+
             // Renderizza errori HTTP come pagine Inertia con il design del sito
-            if (in_array($response->getStatusCode(), [403, 404, 500, 503])
+            if (in_array($response->getStatusCode(), [403, 404, 419, 429, 500, 503])
                 && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
                 && ! app()->environment('local')
             ) {
                 return Inertia::render('Error', [
                     'status' => $response->getStatusCode(),
+                    // Un link firmato scaduto o alterato (conferma della
+                    // newsletter, disiscrizione, ricevuta di recesso) non è un
+                    // "accesso negato": chi lo apre deve sapere cosa fare.
+                    'messaggio' => $exception instanceof InvalidSignatureException
+                        ? __('messages.errori.link_scaduto')
+                        : null,
                 ])
                     ->toResponse($request)
                     ->setStatusCode($response->getStatusCode());

@@ -53,7 +53,7 @@ envs:
 # ruota rigenerandolo su Resend, riscrivendolo dal pannello e ricopiando qui il
 # nuovo valore cifrato.
 - key: RESEND_WEBHOOK_SECRET
-  scope: RUN_AND_BUILD_TIME
+  scope: RUN_TIME
   type: SECRET
   value: EV[1:reDPW2TFI0teX5wv5de6b/XcT7wE6r7x:AvffIDQGTTmtzdZ2L3vZDg4WChO0+YHTvd7qZ9pTr4W8/5nBipISY5xaNFGLY/U4c6zWc26G]
 # Chi riceve gli avvisi tecnici per email (App\Services\AvvisoTecnico):

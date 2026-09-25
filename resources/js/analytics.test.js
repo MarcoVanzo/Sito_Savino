@@ -82,6 +82,20 @@ describe('analytics', () => {
         expect(updates.at(-1)[2].analytics_storage).toBe('denied');
     });
 
+    it('la revoca cancella i cookie _ga e _ga_<id>, e lascia gli altri', async () => {
+        const { initAnalytics, updateAnalyticsConsent } = await freshModule();
+        document.cookie = '_ga=GA1.1.123.456; path=/';
+        document.cookie = '_ga_TEST12345=GS1.1.789; path=/';
+        document.cookie = 'altro=1; path=/';
+
+        initAnalytics('G-TEST12345', true);
+        updateAnalyticsConsent(false);
+
+        expect(document.cookie).not.toContain('_ga');
+        expect(document.cookie).toContain('altro=1');
+        document.cookie = 'altro=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    });
+
     it('dopo la revoca non manda piu visualizzazioni', async () => {
         const { initAnalytics, updateAnalyticsConsent, trackPageView } = await freshModule();
 

@@ -32,6 +32,11 @@ export function annunciaIlCambioDiPagina(router, documento = document) {
 
         percorsoPrecedente = percorso;
 
+        // Svuotata subito e riscritta dopo: due pagine con lo stesso titolo
+        // lascerebbero il testo identico, e una regione che non cambia non
+        // viene riletta.
+        regione.textContent = '';
+
         // Il titolo lo aggiorna <Head> un attimo dopo il cambio del componente.
         window.setTimeout(() => {
             const contenuto = documento.getElementById('contenuto');

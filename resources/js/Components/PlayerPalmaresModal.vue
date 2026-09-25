@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
                                 <span v-if="item.jersey_number" class="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 rounded-full bg-white text-savino-blue font-black text-sm">
                                     {{ item.jersey_number }}
                                 </span>
-                                <span class="text-savino-fucsia text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em]">
+                                <span class="text-savino-fucsia-chiaro text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em]">
                                     {{ displayRole(item.role, $t) }}
                                 </span>
                             </div>

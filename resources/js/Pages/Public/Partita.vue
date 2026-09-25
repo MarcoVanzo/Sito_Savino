@@ -98,7 +98,7 @@ const ogMeta = useOgMeta({
         <section class="relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-                <p class="text-center text-savino-fucsia text-xs font-bold uppercase tracking-[0.3em]">
+                <p class="text-center text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-[0.3em]">
                     {{ game.competitionLabel }}<span v-if="game.matchdayLabel"> · {{ game.matchdayLabel }}</span>
                 </p>
 
@@ -107,7 +107,7 @@ const ogMeta = useOgMeta({
                         <TeamLogo :src="game.home.logo" :name="game.home.name" size="lg" class="mx-auto" />
                         <p
                             class="mt-3 text-sm md:text-lg font-black uppercase tracking-tight"
-                            :class="game.home.isOwn ? 'text-savino-fucsia' : 'text-white'"
+                            :class="game.home.isOwn ? 'text-savino-fucsia-chiaro' : 'text-white'"
                         >{{ game.home.name }}</p>
                     </div>
                     <div class="flex items-center gap-2 md:gap-4">
@@ -119,7 +119,7 @@ const ogMeta = useOgMeta({
                         <TeamLogo :src="game.away.logo" :name="game.away.name" size="lg" class="mx-auto" />
                         <p
                             class="mt-3 text-sm md:text-lg font-black uppercase tracking-tight"
-                            :class="game.away.isOwn ? 'text-savino-fucsia' : 'text-white'"
+                            :class="game.away.isOwn ? 'text-savino-fucsia-chiaro' : 'text-white'"
                         >{{ game.away.name }}</p>
                     </div>
                 </div>
@@ -133,7 +133,7 @@ const ogMeta = useOgMeta({
                 <div class="mt-6 text-center">
                     <Link
                         :href="route('stagione.risultati')"
-                        class="inline-block text-xs font-bold uppercase tracking-wider text-savino-fucsia hover:text-white transition-colors"
+                        class="inline-block text-xs font-bold uppercase tracking-wider text-savino-fucsia-chiaro hover:text-white transition-colors"
                     >&larr; {{ $t('partita.back_to_results') }}</Link>
                 </div>
             </div>

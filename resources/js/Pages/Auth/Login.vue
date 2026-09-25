@@ -121,7 +121,7 @@ const submit = () => {
             <!-- Register link -->
             <div class="text-center mt-6 text-sm text-white/60">
                 {{ $t('shop.no_account') }}
-                <Link :href="route('shop.register')" class="font-bold text-savino-fucsia hover:text-white transition-colors ml-1">
+                <Link :href="route('shop.register')" class="font-bold text-savino-fucsia-chiaro hover:text-white transition-colors ml-1">
                     {{ $t('shop.register_link') }}
                 </Link>
             </div>

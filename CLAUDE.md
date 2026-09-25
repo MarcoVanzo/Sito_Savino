@@ -200,19 +200,15 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   generato fuori da una richiesta (link nelle email in coda, sitemap, feed RSS,
   ritorni dei pagamenti) punta al dominio nuovo mentre li' risponde ancora
   WordPress. Si aggiunge quando si sposta il DNS, non prima.
-- **La posta oggi non esce.** `MAIL_MAILER` non e' nella spec, quindi
-  `config/mail.php` cade su `log`: conferme d'ordine, spedizioni, rimborsi, aste
-  vinte e reimpostazioni della password vengono scritte nel log e non spedite.
-  Finche' il sito sta su un indirizzo che nessuno usa non si nota; dal giorno del
-  passaggio significa che un cliente paga e non riceve niente. Le variabili vanno
-  su **web e worker** — le email partono dalla coda. Non e' pero' solo una
-  questione di variabili: il DNS del dominio e' della Spa (`dns*.sdb.it`, MX
-  Proofpoint davanti a Microsoft 365) e pubblica `DMARC p=reject` con SPF
-  `-all`. Finche' li' non c'e' il DKIM di Resend, una email spedita da
-  `@savinodelbenevolley.it` non finisce in spam: viene **rifiutata**. E' la
-  cosa con il tempo di attesa piu' lungo di tutto il passaggio, non dipende dal
-  dominio e si avvia subito; la procedura, sottodominio d'invio compreso, sta
-  in `docs/GO_LIVE.md` §1.
+- **La posta esce dal 25/09/2026, via Resend.** Fino ad allora `MAIL_MAILER`
+  non era nella spec e `config/mail.php` cadeva su `log`: conferme d'ordine,
+  rimborsi, aste vinte e reset delle password finivano nel log. Le variabili
+  (`MAIL_MAILER`, `MAIL_FROM_*`, `RESEND_API_KEY`) stanno a **livello d'app**
+  nella spec, così le ereditano web, worker e scheduler. Il DNS del dominio
+  resta della Spa (`dns*.sdb.it`, MX Proofpoint, `DMARC p=reject` con SPF
+  `-all`): il mittente funziona perche' su Resend il dominio e' verificato con
+  DKIM. Se quei record spariscono dal DNS della Spa, le email non vanno in
+  spam: vengono **rifiutate**. Storia e record in `docs/GO_LIVE.md` §1.
 - **Il webhook di PayPal si modifica, non si ricrea.** L'id in
   `PAYPAL_WEBHOOK_ID` entra nella verifica della firma: creando un webhook nuovo
   per il dominio nuovo si apre una finestra in cui le notifiche arrivano a un
@@ -255,7 +251,12 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   più di 300 testi illeggibili. Le tinte ufficiali restano come `*-brand` per
   gli usi solo decorativi. **Testo fucsia su fondo blu o grigio scuro** va
   scritto `text-savino-fucsia-chiaro` (#FA5FB6): il fucsia scurito lì non
-  basta. Sopra un fondo fucsia il testo è bianco, non blu (3,6:1). Il controllo
+  basta (3,2:1 su gray-900, 2,5:1 sul blu), e vale anche per le foto, i
+  gradienti scuri e gli stati `hover:`. Sulle tinte chiare di fucsia
+  (`bg-savino-fucsia/10`, il grigio #e8eaef della home) il fucsia scurito si
+  ferma a 4,4:1: lì il testo è `text-[#B8066A]`. Sopra un fondo fucsia il testo
+  è bianco, non blu né grigio scuro (2,5 e 3,4:1). Nelle email i pulsanti con
+  testo bianco e i testi fucsia usano #D00778, come il token. Il controllo
   è automatico: `scripts/scansione-accessibilita.mjs` (axe-core) gira ogni
   lunedì in `scansione-accessibilita.yml` e fallisce sulle violazioni gravi; il
   lint ha `eslint-plugin-vuejs-accessibility`. La dichiarazione di
@@ -300,8 +301,9 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   `Lega/`, `SDB Azienda/`, `SDB Volley/`.
 - **Logo LVF stagione 2026/27**: brand book provvisorio in attesa di nuovo Title Sponsor.
   Usare la versione con dicitura "SERIE A". NON modificare colori, cornice o lettering LVF.
-- **Magenta LVF ufficiale**: `#FF23B0` (da brand book). Il token `savino-pink` in Tailwind
-  è `#ED028C` — discrepanza nota da valutare.
+- **Magenta LVF ufficiale**: `#FF23B0` (da brand book LVF): è il colore della Lega e
+  sta solo nel suo logo, non è un token del sito. Il rosa della Style Guide SDB è
+  `savino-pink-brand` (#ED028C).
 - **Font**: Montserrat (sans, primario) e Playfair Display (serif, secondario) — scelte
   progettuali, non imposte dai brand book.
 
@@ -921,6 +923,18 @@ cache hit) lascerebbe la pagina senza script, in silenzio.
 `frame-src` e l'elenco di `LiveStream::embedUrl()` vanno tenuti allineati (§16).
 Test in `tests/Feature/SecurityHeadersTest.php`.
 
+**Ogni `throttle:N,M` ha il suo terzo parametro** (`throttle:5,1,shop.checkout.store`).
+Senza, la chiave è solo l'IP (o l'utente) e tutti i limiti numerici contano
+sullo stesso contatore: cinque errori JavaScript mandati al tunnel di Sentry
+bastavano a dare 429 al checkout di un ospite. Lo verifica
+`tests/Feature/LimitiDelleRotteSeparatiTest.php`.
+
+**Le pagine servite da `CachePublicResponse` non portano Set-Cookie**, quindi
+chi apre il sito direttamente su una di quelle non ha il cookie `XSRF-TOKEN`.
+Prima di una richiesta che scrive, `resources/js/bootstrap.js` lo chiede a
+`/csrf-cookie` se manca; un 419 o un 429 su una richiesta Inertia torna alla
+pagina con un messaggio (`bootstrap/app.php`), con il modulo ancora compilato.
+
 ---
 
 ## 19. Anteprime social (WhatsApp, Facebook, Telegram…)
@@ -1272,9 +1286,16 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   guasti da segnalare ci sono la coda ferma e i job falliti, e l'avviso parte
   anche da webhook di pagamento e health check.
 - **`shop:sorveglia` guarda lo stato, non gli errori** (negozio spento, checkout
-  senza metodi di pagamento, worker fermo, PayPal) e avvisa quando la
-  condizione cambia, non a ogni giro. Non guarda gli ordini in attesa: sono
-  checkout abbandonati, e un incasso che non torna avvisa già da sé.
+  senza metodi di pagamento, aste accese senza Stripe — il loro checkout passa
+  solo da lì —, worker fermo, PayPal) e avvisa quando la condizione cambia,
+  non a ogni giro. Il primo giro dopo un rilascio (cache svuotata) avvisa se
+  trova il negozio spento, al massimo una volta al giorno; un errore di rete
+  verso PayPal non vale né come guasto né come guarigione. Non guarda gli
+  ordini in attesa: sono checkout abbandonati, e un incasso che non torna
+  avvisa già da sé.
+- **Un invio fallito non consuma il silenziatore** di `AvvisoTecnico`, e il
+  client di Resend ha un timeout (10 s, in `AppServiceProvider`): gli invii
+  sincroni partono anche dall'health check e dai webhook di pagamento.
 - **I job falliti della coda `ai` non vanno per email**: dipendono da
   CompreFace e si recuperano da soli al giro orario.
 - **Le destinazioni degli alert di DigitalOcean non stanno nella spec**: una

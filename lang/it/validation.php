@@ -107,6 +107,8 @@ return [
 
     'custom' => [],
 
+    'zip_code_it' => 'Il CAP italiano è di 5 cifre.',
+
     // Nomi leggibili dei campi, usati al posto di :attribute.
     'attributes' => [
         'name' => 'nome',
@@ -116,6 +118,10 @@ return [
         'current_password' => 'password attuale',
         'phone' => 'telefono',
         'address' => 'indirizzo',
+        'nome' => 'nome',
+        'numero_ordine' => 'numero d\'ordine',
+        'articoli' => 'articoli',
+        'conferma' => 'conferma',
     ],
 
 ];

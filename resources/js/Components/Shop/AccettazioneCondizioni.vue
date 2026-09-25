@@ -20,6 +20,10 @@ const accettato = defineModel({ type: Boolean, default: false });
 defineProps({
     errore: { type: String, default: null },
 });
+
+// L'errore e' legato alla casella (aria-describedby): chi usa uno screen
+// reader lo sente arrivandoci, e vaiAlPrimoErrore la trova da aria-invalid.
+const idErrore = 'errore-privacy_accepted';
 </script>
 
 <template>
@@ -28,6 +32,9 @@ defineProps({
             <input
                 v-model="accettato"
                 type="checkbox"
+                aria-required="true"
+                :aria-invalid="errore ? 'true' : undefined"
+                :aria-describedby="errore ? idErrore : undefined"
                 class="mt-1 w-4 h-4 text-savino-blue border-gray-300 rounded focus:ring-savino-blue/20"
             />
             <span class="text-sm text-gray-600 leading-relaxed">
@@ -38,7 +45,7 @@ defineProps({
                 <a :href="route('pages.show', 'privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>.
             </span>
         </label>
-        <p v-if="errore" class="mt-1 text-sm text-red-500">{{ errore }}</p>
+        <p v-if="errore" :id="idErrore" class="mt-1 text-sm text-red-700">{{ errore }}</p>
         <!-- L'avviso UE sulla garanzia legale va mostrato prima dell'acquisto:
              il checkout e' uno dei punti indicati dalle linee guida. -->
         <div class="mt-3 text-xs text-gray-600"><AvvisoGaranziaLegale /></div>

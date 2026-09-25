@@ -128,7 +128,7 @@ function formatCell(value, format) {
                         <th scope="col" class="px-4 py-3 text-xs font-bold uppercase tracking-wider" :aria-sort="ariaSort('name')">
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-savino-fucsia transition-colors"
+                                class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-savino-fucsia-chiaro transition-colors"
                                 @click="toggleSort('name')"
                             >
                                 {{ $t('stagione.stats_col_player') }}
@@ -144,7 +144,7 @@ function formatCell(value, format) {
                         >
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-savino-fucsia transition-colors"
+                                class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-savino-fucsia-chiaro transition-colors"
                                 @click="toggleSort(column.key)"
                             >
                                 {{ $t(column.label) }}

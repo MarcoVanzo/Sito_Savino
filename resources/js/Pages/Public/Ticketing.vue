@@ -85,7 +85,7 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span v-if="cd.hero_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
+                <span v-if="cd.hero_label" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('ticketing.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p v-if="cd.hero_subtitle" class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_subtitle }}</p>
@@ -197,7 +197,7 @@ const ogMeta = useOgMeta({
 
                         <div class="p-8">
                             <!-- Plan Name -->
-                            <h3 class="text-sm font-bold uppercase tracking-wider mb-4 text-savino-fucsia">{{ plan.name }}</h3>
+                            <h3 class="text-sm font-bold uppercase tracking-wider mb-4" :class="plan.highlight ? 'text-savino-fucsia-chiaro' : 'text-savino-fucsia'">{{ plan.name }}</h3>
 
                             <!-- Price -->
                             <div class="flex items-baseline gap-1 mb-6">
@@ -219,7 +219,7 @@ const ogMeta = useOgMeta({
                             <!-- Features -->
                             <ul v-if="plan.features.length" class="space-y-3 mb-8">
                                 <li v-for="vantaggio in plan.features" :key="vantaggio" class="flex items-start gap-3 text-sm">
-                                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" :class="plan.highlight ? 'text-savino-fucsia' : 'text-savino-blue'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" :class="plan.highlight ? 'text-savino-fucsia-chiaro' : 'text-savino-blue'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                     </svg>
                                     <span :class="plan.highlight ? 'text-white/90' : 'text-gray-600'">{{ vantaggio }}</span>
@@ -305,7 +305,7 @@ const ogMeta = useOgMeta({
                         />
                     </div>
                     <div :class="giftCard.image ? 'md:col-span-7' : 'max-w-3xl mx-auto text-center'">
-                        <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('ticketing.gift_card_label') }}</span>
+                        <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ $t('ticketing.gift_card_label') }}</span>
                         <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-3">{{ giftCard.title }}</h2>
                         <div class="w-16 h-1 bg-savino-fucsia mt-4 mb-6" :class="giftCard.image ? '' : 'mx-auto'"></div>
                         <p v-if="giftCard.text" class="text-white/80 text-lg leading-relaxed whitespace-pre-line">{{ giftCard.text }}</p>

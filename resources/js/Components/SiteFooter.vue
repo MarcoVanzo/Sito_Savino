@@ -201,19 +201,23 @@ const socialLinks = computed(() => {
                          redazione mantiene e che i moduli fanno accettare. Finche' qui
                          c'era `legalDocs.privacy_policy`, un PDF caricato vinceva sulla
                          pagina e il footer serviva l'informativa del vecchio sito. -->
-                    <Link :href="route('pages.show', 'privacy-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.privacy_policy') }}</Link>
-                    <Link :href="route('pages.show', 'cookie-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.cookie_policy') }}</Link>
-                    <Link :href="route('pages.show', 'condizioni-di-vendita')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.terms_of_sale') }}</Link>
-                    <Link :href="route('pages.show', 'diritto-di-recesso')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.withdrawal') }}</Link>
-                    <Link :href="route('pages.show', 'spedizioni')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.shipping') }}</Link>
-                    <Link :href="route('pages.show', 'resi-e-rimborsi')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.returns') }}</Link>
+                    <Link :href="route('pages.show', 'privacy-policy')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.privacy_policy') }}</Link>
+                    <Link :href="route('pages.show', 'cookie-policy')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.cookie_policy') }}</Link>
+                    <Link :href="route('pages.show', 'condizioni-di-vendita')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.terms_of_sale') }}</Link>
+                    <Link :href="route('pages.show', 'diritto-di-recesso')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.withdrawal') }}</Link>
+                    <Link :href="route('pages.show', 'spedizioni')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.shipping') }}</Link>
+                    <Link :href="route('pages.show', 'resi-e-rimborsi')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.returns') }}</Link>
+                    <Link :href="route('pages.show', 'dichiarazione-di-accessibilita')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.accessibility') }}</Link>
                     <!-- L'art. 54-bis del Codice del Consumo vuole il recesso online "ben
                          visibile e accessibile in modo continuativo": sta qui, in ogni
-                         pagina, e non solo dentro lo shop. -->
-                    <Link :href="route('pages.show', 'dichiarazione-di-accessibilita')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.accessibility') }}</Link>
-                    <Link :href="route('recesso')" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.withdraw') }}</Link>
-                    <a v-if="safeUrl(legalDocs.informativa_promozionale)" :href="safeUrl(legalDocs.informativa_promozionale)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.promotional_policy') }}</a>
-                    <a v-if="safeUrl(legalDocs.informativa_fornitori)" :href="safeUrl(legalDocs.informativa_fornitori)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.supplier_policy') }}</a>
+                         pagina, e non solo dentro lo shop. Per questo non e' una voce
+                         grigia fra le altre: grassetto, chiaro e con un'icona. -->
+                    <Link :href="route('recesso')" class="inline-flex items-center gap-1.5 min-h-[24px] text-gray-100 text-xs font-bold hover:text-savino-fucsia-chiaro transition-colors">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
+                        {{ $t('footer.withdraw') }}
+                    </Link>
+                    <a v-if="safeUrl(legalDocs.informativa_promozionale)" :href="safeUrl(legalDocs.informativa_promozionale)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.promotional_policy') }}</a>
+                    <a v-if="safeUrl(legalDocs.informativa_fornitori)" :href="safeUrl(legalDocs.informativa_fornitori)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.supplier_policy') }}</a>
                 </div>
             </div>
         </div>

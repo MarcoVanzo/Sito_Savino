@@ -2,7 +2,7 @@ Dichiarazione di recesso ricevuta dalla funzione online del sito.
 
 Ordine indicato: {{ $richiesta->numero_ordine }}{{ $richiesta->order_id ? '' : ' (non trovato fra gli ordini: verificare)' }}
 Nome: {{ $richiesta->nome }}
-Email: {{ $richiesta->email }}
+Email: {{ $richiesta->email }}{{ $richiesta->emailDiversaDaQuellaDellOrdine() ? ' — ATTENZIONE: l\'ordine e\' intestato a '.$richiesta->emailDellOrdine().', verificare prima di rimborsare' : '' }}
 Articoli: {{ $richiesta->articoli ?: 'tutti quelli dell\'ordine' }}
 Inviata il: {{ $richiesta->inviata_il->timezone(config('app.timezone'))->format('d/m/Y H:i:s') }}
 

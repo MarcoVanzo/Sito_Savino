@@ -20,8 +20,11 @@ class SentryTunnelTest extends TestCase
         parent::setUp();
 
         config(['sentry.dsn' => self::DSN]);
-        Http::fake(['*' => Http::response('{}', 200)]);
+        Http::fake(['*' => fn () => $this->rispostaDiSentry ?? Http::response('{}', 200)]);
     }
+
+    /** Quello che risponde Sentry, se non il 200 di serie. */
+    private $rispostaDiSentry = null;
 
     private function busta(string $dsn = self::DSN): string
     {
@@ -60,8 +63,23 @@ class SentryTunnelTest extends TestCase
     {
         $this->manda('')->assertStatus(400);
         $this->manda($this->busta().str_repeat('x', 250 * 1024))->assertStatus(400);
+        $this->call('POST', '/api/diagnostica', [], [], [], ['CONTENT_TYPE' => 'text/plain', 'CONTENT_LENGTH' => (string) (250 * 1024)], $this->busta())
+            ->assertStatus(413);
 
         Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function il_limite_di_sentry_torna_al_browser(): void
+    {
+        // Senza il 429 l'SDK non rallenta e un browser in un ciclo d'errore
+        // consuma la quota condivisa con gli errori del server.
+        $this->rispostaDiSentry = Http::response('', 429, ['X-Sentry-Rate-Limits' => '60:error:key', 'Retry-After' => '60']);
+
+        $this->manda($this->busta())
+            ->assertStatus(429)
+            ->assertHeader('X-Sentry-Rate-Limits', '60:error:key')
+            ->assertHeader('Retry-After', '60');
     }
 
     #[Test]

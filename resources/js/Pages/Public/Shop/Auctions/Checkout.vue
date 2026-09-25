@@ -1,6 +1,6 @@
 <script setup>
 import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
-import { computed, nextTick, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import AddressAutocomplete from '@/Components/Shop/AddressAutocomplete.vue';
@@ -101,24 +101,57 @@ const shippingCost = computed(() => costoDiSpedizione(selectedZone.value, {
 
 const orderTotal = computed(() => bidAmount.value + shippingCost.value);
 
-const isSubmittable = computed(() =>
-    !form.processing
-    && form.privacy_accepted
-    && !!form.shipping_first_name?.trim()
-    && !!form.shipping_last_name?.trim()
-    && !!form.shipping_street?.trim()
-    && !!form.shipping_city?.trim()
-    && !!form.shipping_zip_code?.trim()
-    && !!form.shipping_province?.trim()
-    && !!form.phone?.trim()
-    && (form.country !== 'IT' || !!form.codice_fiscale?.trim())
-);
+// I campi da compilare prima di pagare. Il pulsante resta attivo: spento non
+// diceva perche', e chi usa la tastiera o uno screen reader non aveva modo di
+// scoprirlo. Al clic ogni campo vuoto riceve il suo errore e il focus va al
+// primo (WCAG 3.3.1).
+const campiObbligatori = () => {
+    const campi = ['phone', 'shipping_first_name', 'shipping_last_name', 'shipping_street',
+        'shipping_city', 'shipping_zip_code', 'shipping_province'];
+    if (form.country === 'IT') campi.push('codice_fiscale');
+    if (!form.billing_same_as_shipping) {
+        campi.push('billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code');
+    }
+    return campi;
+};
+
+const validaIlModulo = () => {
+    const campi = campiObbligatori();
+    form.clearErrors(...campi, 'privacy_accepted');
+    const mancanti = campi.filter((campo) => !form[campo]?.toString().trim());
+    mancanti.forEach((campo) => form.setError(campo, $t('shop_checkout.field_required')));
+    if (!form.privacy_accepted) {
+        form.setError('privacy_accepted', $t('shop_checkout.terms_required'));
+    }
+    return mancanti.length === 0 && form.privacy_accepted;
+};
+
+// Gli errori che il server non lega a un campo del modulo (`general` e simili)
+// stanno nel riquadro sopra il pulsante, che prende il focus dopo l'invio.
+const campiDelModulo = ['phone', 'shipping_first_name', 'shipping_last_name', 'shipping_street',
+    'shipping_city', 'shipping_zip_code', 'shipping_province', 'country', 'codice_fiscale',
+    'billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code',
+    'billing_province', 'notes', 'privacy_accepted'];
+const riquadroErrori = ref(null);
+const erroriGenerali = computed(() => Object.entries(form.errors)
+    .filter(([campo]) => !campiDelModulo.includes(campo))
+    .map(([, messaggio]) => messaggio));
 
 const submitOrder = () => {
-    if (!checkoutToken.value) return;
+    if (!checkoutToken.value || form.processing) return;
+    if (!validaIlModulo()) {
+        vaiAlPrimoErrore();
+        return;
+    }
     form.post(route('shop.auction-checkout.store', { token: checkoutToken.value }), {
         preserveScroll: true,
-        onError: vaiAlPrimoErrore,
+        onError: (errori) => {
+            if (Object.keys(errori).some((campo) => campiDelModulo.includes(campo))) {
+                vaiAlPrimoErrore();
+            } else {
+                nextTick(() => riquadroErrori.value?.focus());
+            }
+        },
     });
 };
 
@@ -132,16 +165,6 @@ watch(() => form.billing_same_as_shipping, (isSame) => {
     form.billing_zip_code = '';
     form.billing_province = '';
 });
-
-watch(() => form.errors, (errors) => {
-    nextTick(() => {
-        const keys = Object.keys(errors ?? {});
-        if (keys.length === 0) return;
-        const el = document.querySelector(`[id*="${keys[0].replaceAll('_', '-')}"]`)
-            || document.querySelector('.text-red-500');
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-}, { deep: true });
 
 const ogMeta = useOgMeta({
     title: $t('auction_checkout.og_title'),
@@ -163,7 +186,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
         <section class="relative min-h-[35vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">
+                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">
                     {{ $t('auction_checkout.hero_label') }}
                 </span>
                 <h1 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mt-4">
@@ -194,11 +217,6 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                     </div>
                 </div>
 
-                <!-- Errore generico dal backend -->
-                <div v-if="form.errors.general" class="mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                    <p class="text-sm text-red-700 font-medium">{{ form.errors.general }}</p>
-                </div>
-
                 <div class="grid lg:grid-cols-3 gap-8">
 
                     <!-- FORM -->
@@ -215,6 +233,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                             <input
                                 id="auction-phone"
                                 v-model="form.phone"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.phone"
                                 :aria-describedby="form.errors.phone ? 'errore-phone' : undefined"
                                 type="tel"
@@ -239,6 +258,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 <div>
                                     <label for="auction-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_first_name') }} *</label>
                                     <input id="auction-first-name" v-model="form.shipping_first_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_first_name"
                                 :aria-describedby="form.errors.shipping_first_name ? 'errore-shipping_first_name' : undefined" type="text" autocomplete="given-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_first_name')" />
                                     <p v-if="form.errors.shipping_first_name" id="errore-shipping_first_name" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_first_name }}</p>
@@ -246,6 +266,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 <div>
                                     <label for="auction-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_last_name') }} *</label>
                                     <input id="auction-last-name" v-model="form.shipping_last_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_last_name"
                                 :aria-describedby="form.errors.shipping_last_name ? 'errore-shipping_last_name' : undefined" type="text" autocomplete="family-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_last_name')" />
                                     <p v-if="form.errors.shipping_last_name" id="errore-shipping_last_name" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_last_name }}</p>
@@ -255,6 +276,10 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                     <AddressAutocomplete
                                         id="auction-street"
                                         v-model="form.shipping_street"
+                                        required
+                                        aria-required="true"
+                                        :aria-invalid="!!form.errors.shipping_street"
+                                        :aria-describedby="form.errors.shipping_street ? 'errore-shipping_street' : undefined"
                                         :placeholder="$t('shop_checkout.placeholder_street')"
                                         :country="form.country"
                                         @address-selected="(addr) => {
@@ -269,6 +294,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 <div>
                                     <label for="auction-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }} *</label>
                                     <input id="auction-city" v-model="form.shipping_city"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_city"
                                 :aria-describedby="form.errors.shipping_city ? 'errore-shipping_city' : undefined" type="text" autocomplete="address-level2" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_city')" />
                                     <p v-if="form.errors.shipping_city" id="errore-shipping_city" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_city }}</p>
@@ -276,6 +302,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 <div>
                                     <label for="auction-zip" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_zip_code') }} *</label>
                                     <input id="auction-zip" v-model="form.shipping_zip_code"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_zip_code"
                                 :aria-describedby="form.errors.shipping_zip_code ? 'errore-shipping_zip_code' : undefined" type="text" autocomplete="postal-code" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
                                     <p v-if="form.errors.shipping_zip_code" id="errore-shipping_zip_code" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_zip_code }}</p>
@@ -283,6 +310,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 <div>
                                     <label for="auction-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }} *</label>
                                     <input id="auction-province" v-model="form.shipping_province"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.shipping_province"
                                 :aria-describedby="form.errors.shipping_province ? 'errore-shipping_province' : undefined" type="text" autocomplete="address-level1" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_province')" />
                                     <p v-if="form.errors.shipping_province" id="errore-shipping_province" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_province }}</p>
@@ -302,6 +330,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                     <input
                                         id="auction-cf"
                                         v-model="form.codice_fiscale"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.codice_fiscale"
                                 :aria-describedby="form.errors.codice_fiscale ? 'errore-codice_fiscale' : undefined"
                                         type="text"
@@ -328,6 +357,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                     <div>
                                         <label for="auction-billing-first-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_first_name') }} *</label>
                                         <input id="auction-billing-first-name" v-model="form.billing_first_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_first_name"
                                 :aria-describedby="form.errors.billing_first_name ? 'errore-billing_first_name' : undefined" type="text" autocomplete="given-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_first_name')" />
                                         <p v-if="form.errors.billing_first_name" id="errore-billing_first_name" class="mt-1 text-sm text-red-700">{{ form.errors.billing_first_name }}</p>
@@ -335,6 +365,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                     <div>
                                         <label for="auction-billing-last-name" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_last_name') }} *</label>
                                         <input id="auction-billing-last-name" v-model="form.billing_last_name"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_last_name"
                                 :aria-describedby="form.errors.billing_last_name ? 'errore-billing_last_name' : undefined" type="text" autocomplete="family-name" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_last_name')" />
                                         <p v-if="form.errors.billing_last_name" id="errore-billing_last_name" class="mt-1 text-sm text-red-700">{{ form.errors.billing_last_name }}</p>
@@ -342,6 +373,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                     <div class="sm:col-span-2">
                                         <label for="auction-billing-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
                                         <input id="auction-billing-street" v-model="form.billing_street"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_street"
                                 :aria-describedby="form.errors.billing_street ? 'errore-billing_street' : undefined" type="text" autocomplete="address-line1" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_street')" />
                                         <p v-if="form.errors.billing_street" id="errore-billing_street" class="mt-1 text-sm text-red-700">{{ form.errors.billing_street }}</p>
@@ -349,6 +381,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                     <div>
                                         <label for="auction-billing-city" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_city') }} *</label>
                                         <input id="auction-billing-city" v-model="form.billing_city"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_city"
                                 :aria-describedby="form.errors.billing_city ? 'errore-billing_city' : undefined" type="text" autocomplete="address-level2" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_city')" />
                                         <p v-if="form.errors.billing_city" id="errore-billing_city" class="mt-1 text-sm text-red-700">{{ form.errors.billing_city }}</p>
@@ -356,6 +389,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                     <div>
                                         <label for="auction-billing-zip" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_zip_code') }} *</label>
                                         <input id="auction-billing-zip" v-model="form.billing_zip_code"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.billing_zip_code"
                                 :aria-describedby="form.errors.billing_zip_code ? 'errore-billing_zip_code' : undefined" type="text" autocomplete="postal-code" :class="inputClass" :placeholder="$t('shop_checkout.placeholder_zip_code')" />
                                         <p v-if="form.errors.billing_zip_code" id="errore-billing_zip_code" class="mt-1 text-sm text-red-700">{{ form.errors.billing_zip_code }}</p>
@@ -435,10 +469,23 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 </div>
                             </div>
 
+                            <div
+                                v-if="erroriGenerali.length"
+                                ref="riquadroErrori"
+                                role="alert"
+                                tabindex="-1"
+                                class="mt-8 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+                            >
+                                <p class="font-bold">{{ $t('shop_checkout.order_errors_title') }}</p>
+                                <ul class="mt-1 list-disc pl-5 space-y-1">
+                                    <li v-for="(messaggio, i) in erroriGenerali" :key="i">{{ messaggio }}</li>
+                                </ul>
+                            </div>
+
                             <PulsanteOrdine
                                 :etichetta="$t('auction_checkout.pay_now')"
                                 :in-corso="form.processing"
-                                :disabilitato="!isSubmittable"
+                                :disabilitato="form.processing"
                                 @click="submitOrder"
                             />
 

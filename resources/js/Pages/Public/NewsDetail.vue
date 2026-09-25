@@ -86,11 +86,11 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[35vh] flex items-end bg-gradient-to-br from-gray-900 via-[#0B1521] to-gray-800">
             <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
                 <div class="mb-4">
-                    <Link :href="route('news.index')" class="inline-flex items-center min-h-[44px] text-savino-fucsia hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
+                    <Link :href="route('news.index')" class="inline-flex items-center min-h-[44px] text-savino-fucsia-chiaro hover:text-white text-sm font-bold uppercase tracking-wider transition-colors">
                         ← {{ $t('news_detail.back_to_news') }}
                     </Link>
                 </div>
-                <time v-if="formattedDate" class="text-savino-fucsia text-sm font-semibold uppercase tracking-wider">
+                <time v-if="formattedDate" class="text-savino-fucsia-chiaro text-sm font-semibold uppercase tracking-wider">
                     {{ formattedDate }}
                 </time>
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mt-2">

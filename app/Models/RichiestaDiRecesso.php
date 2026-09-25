@@ -40,9 +40,36 @@ class RichiestaDiRecesso extends Model
         'gestita_il' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<Order, $this>
+     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * L'indirizzo a cui è intestato l'ordine agganciato, se c'è.
+     */
+    public function emailDellOrdine(): ?string
+    {
+        $ordine = $this->order;
+
+        return $ordine ? ($ordine->guest_email ?: $ordine->user?->email) : null;
+    }
+
+    /**
+     * La dichiarazione arriva da un indirizzo diverso da quello dell'ordine.
+     *
+     * Non la invalida (la legge non chiede di dimostrare chi si è), ma chi la
+     * gestisce deve saperlo prima di rimborsare: chiunque conosca un numero
+     * d'ordine può scriverlo nel modulo.
+     */
+    public function emailDiversaDaQuellaDellOrdine(): bool
+    {
+        $email = $this->emailDellOrdine();
+
+        return $email !== null && strcasecmp(trim($email), trim($this->email)) !== 0;
     }
 
     public function prunable(): Builder

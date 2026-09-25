@@ -77,7 +77,7 @@ const priceLabel = computed(() => {
             <div
                 class="absolute inset-0 bg-savino-blue/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-center"
             >
-                <span class="text-white text-xs font-bold uppercase tracking-wider border-2 border-savino-fucsia px-5 py-2.5 hover:bg-savino-fucsia hover:text-gray-900 transition-colors">
+                <span class="text-white text-xs font-bold uppercase tracking-wider border-2 border-savino-fucsia px-5 py-2.5 hover:bg-savino-fucsia hover:text-white transition-colors">
                     {{ $t('shop.product_details') || 'Dettagli' }}
                 </span>
             </div>

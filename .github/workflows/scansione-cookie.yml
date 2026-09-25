@@ -69,10 +69,15 @@ jobs:
       - name: Scansiona il sito
         id: scansione
         continue-on-error: true
+        # Gli input del lancio manuale passano da env, non interpolati nello
+        # script: un valore con virgolette o `$( )` verrebbe eseguito.
+        env:
+          URL_DA_SCANSIONARE: ${{ github.event.inputs.url || vars.URL_SITO || 'https://seashell-app-47mmf.ondigitalocean.app' }}
+          PAGINE: ${{ github.event.inputs.pagine || '14' }}
         run: |
           node scripts/scansione-cookie.mjs \
-            --url="${{ github.event.inputs.url || vars.URL_SITO || 'https://seashell-app-47mmf.ondigitalocean.app' }}" \
-            --pagine="${{ github.event.inputs.pagine || '14' }}" \
+            --url="$URL_DA_SCANSIONARE" \
+            --pagine="$PAGINE" \
             --scrivi
 
       - name: Pubblica il risultato

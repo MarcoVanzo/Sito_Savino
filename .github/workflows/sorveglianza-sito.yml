@@ -28,7 +28,11 @@ concurrency:
 jobs:
   controllo:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Caso peggiore: tre pagine, due richieste l'una (la seconda solo se
+    # lenta), ciascuna con un tentativo in più: 3 × 2 × (15 + 10 + 15) s =
+    # 4 minuti. Il limite deve starne sopra, o proprio a sito appeso il job
+    # verrebbe ucciso prima di arrivare all'esito.
+    timeout-minutes: 8
 
     steps:
       - name: Pagine principali
@@ -51,11 +55,17 @@ jobs:
           LENTO=6
           guasti=0
 
+          # `-w` scrive codice e tempo anche quando curl fallisce (000):
+          # l'unica fonte è quella, e il ripiego serve solo se non scrive
+          # niente.
           richiedi() {
-            curl -sS -o "$corpo" -w '%{http_code} %{time_total}' \
-              --retry 2 --retry-delay 20 --retry-all-errors \
-              --max-time 30 -A 'SorveglianzaSito/1.0 (GitHub Actions)' \
-              "${URL_SITO}$1" || echo "000 0"
+            local esito
+            esito=$(curl -sS -o "$corpo" -w '%{http_code} %{time_total}' \
+              --retry 1 --retry-delay 10 --retry-all-errors \
+              --connect-timeout 10 --max-time 15 \
+              -A 'SorveglianzaSito/1.0 (GitHub Actions)' \
+              "${URL_SITO}$1" 2>/dev/null) || true
+            echo "${esito:-000 0}"
           }
 
           for percorso in /up / /shop; do
