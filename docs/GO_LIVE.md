@@ -92,6 +92,66 @@ primo passo:
 1. **Creare il dominio su Resend** (o meglio il sottodominio d'invio, sotto).
    Resend genera allora i record esatti da inserire: e' l'unico modo di avere i
    valori veri, e lo si puo' fare oggi.
+
+   > **Il dominio va prima reclamato, e non e' il passo che ci si aspetta.**
+   > Il pannello e' quello della Spa (team `savinodelbene`, account di Sandra
+   > Leoncini, che l'ha affidato a noi per la configurazione). Li'
+   > `savinodelbenevolley.it` e' stato aggiunto il 23/09/2026 ma resta fermo su
+   > **"Claim domain"**, con l'avviso che il dominio *e' gia' in uso da un altro
+   > team Resend* e che verificarne la proprieta' lo trasferisce a questo team
+   > **revocando l'accesso all'altro**. Quale sia l'altro team dal pannello non
+   > si vede. Marco ha confermato il 25/09/2026 che non lo usa nessuno e che si
+   > procede col trasferimento.
+   >
+   > La conseguenza pratica e' sull'ordine dei record: **il primo TXT da
+   > mettere in zona non e' il DKIM, e' la verifica di proprieta'** — tipo TXT,
+   > nome `@` (l'apex, non un sottodominio), contenuto
+   > `resend-domain-verification=…` come lo mostra il pannello. I record
+   > d'invio (DKIM, e l'SPF/MX del sottodominio) compaiono **solo dopo** che il
+   > claim e' andato a buon fine: chiederli tutti insieme alla Spa significa
+   > chiedere valori che ancora non esistono.
+   >
+   > Il claim non e' un pulsante: e' il pulsante *dopo* che il TXT e' in zona.
+   > Premuto senza, Resend segna "Checking DNS" negli eventi del dominio e lo
+   > stato resta `Not Started`, senza dire altro.
+   >
+   > **`resend-domain-verification=<token>` e' tutto contenuto, non
+   > nome=valore.** Va su `@` — cioe' il TXT dell'apex, accanto a `MS=…` e
+   > all'SPF — con la stringa intera, segno di uguale compreso. Il 25/09/2026
+   > e' stato inserito invece come sottodominio,
+   > `_resend-domain-verification.savinodelbenevolley.it` con valore il solo
+   > token: leggibile con `dig` e apparentemente a posto, ma Resend non lo
+   > trova e lo stato resta `Not Started` senza spiegare perche'. L'equivoco e'
+   > comprensibile, perche' molti altri servizi usano davvero un
+   > `_qualcosa.dominio`: e' il tipo di errore che costa un giro di richieste
+   > se non lo si nomina in anticipo. Si controlla con
+   > `dig +short TXT savinodelbenevolley.it`, che deve stampare **tre** righe.
+
+   > **Esito (25/09/2026): il claim e' riuscito.** Corretto il record, il
+   > dominio e' passato al team `savinodelbene`, regione **Ireland
+   > (eu-west-1)**, stato `Pending`. Solo allora Resend ha mostrato i record
+   > d'invio, che sono due:
+   >
+   > | Tipo | Nome | Serve a |
+   > | --- | --- | --- |
+   > | TXT | `resend._domainkey` | la firma DKIM (una chiave RSA di 218 caratteri) |
+   > | CNAME | `rsend` | il percorso d'uscita |
+   > | CNAME | `send` | l'altra meta' dello stesso percorso |
+   >
+   > **Sono tre, e vanno chiesti insieme.** Nel pannello i due CNAME stanno
+   > sotto l'intestazione `SPF`, dentro *Enable Sending*; *Enable Receiving* e'
+   > la sezione **successiva**, e a colpo d'occhio sembra invece che il secondo
+   > CNAME appartenga a quella. Chiesti solo i primi due (e' successo il
+   > 25/09/2026) il dominio arriva a `Partially Verified` — DKIM e `rsend`
+   > verificati — ma l'invio resta spento, con l'avviso "Missing SPF records:
+   > add them to enable sending", e chi tiene la zona va disturbato una seconda
+   > volta.
+   >
+   > I valori non stanno qui, si leggono dal pannello. Quello del DKIM **non si
+   > copia da uno screenshot ne' dal testo della pagina**: il pannello lo taglia
+   > con un `[…]` in mezzo e il nome del pulsante di copia si ferma a cento
+   > caratteri. Va preso dall'`aria-label` intero, o con il pulsante Copia. Un
+   > carattere sbagliato non da' errore: da' firme che non si verificano.
 2. **Chiedere alla Spa di aggiungerli.** Conviene chiedere un **sottodominio
    d'invio** — `send.savinodelbenevolley.it` — invece dell'apex: i record
    nascono sotto un nome che non esiste ancora, l'SPF dell'apex (che e' la posta
