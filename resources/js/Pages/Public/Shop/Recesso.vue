@@ -29,12 +29,21 @@ const form = useForm({
 
 const passaggio = ref('dati');
 const titoloRiepilogo = ref(null);
+const riquadroErrori = ref(null);
 
 const erroriLocali = ref({});
 
 const errori = computed(() => ({ ...erroriLocali.value, ...form.errors }));
 
 const idErrore = (campo) => `recesso-errore-${campo}`;
+
+// Gli errori che non stanno sotto un campo visibile: la conferma mancante o
+// un rifiuto del server (es. troppe dichiarazioni dallo stesso indirizzo).
+const erroreGenerale = computed(() => form.errors.conferma ?? null);
+
+function stampa() {
+    window.print();
+}
 
 function continua() {
     const mancanti = {};
@@ -65,9 +74,13 @@ function conferma() {
     form.conferma = true;
     form.post(route('recesso.store'), {
         preserveScroll: false,
-        onError: () => {
+        onError: (errors) => {
             form.conferma = false;
             passaggio.value = 'dati';
+            // Il primo campo con un errore dal server riceve il focus, come
+            // per gli errori del passaggio 1; senza campo, il riquadro.
+            const primo = ['nome', 'email', 'numero_ordine', 'articoli'].find((campo) => errors[campo]);
+            nextTick(() => (primo ? document.getElementById(`recesso-${primo}`) : riquadroErrori.value)?.focus());
         },
     });
 }
@@ -105,9 +118,14 @@ function conferma() {
                         <dd class="sm:col-span-2">{{ ricevuta.inviata_il }}</dd>
                     </dl>
                     <p class="text-sm text-gray-700 mt-4">{{ $t('recesso.next_steps') }}</p>
-                    <Link :href="route('pages.show', 'resi-e-rimborsi')" class="inline-block mt-4 text-savino-blue font-semibold underline">
-                        {{ $t('recesso.returns_link') }}
-                    </Link>
+                    <div class="mt-4 flex flex-wrap items-center gap-4 print:hidden">
+                        <button type="button" class="px-5 py-2 border border-green-800 text-green-900 font-semibold rounded-lg hover:bg-green-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-800" @click="stampa">
+                            {{ $t('recesso.print') }}
+                        </button>
+                        <Link :href="route('pages.show', 'resi-e-rimborsi')" class="text-savino-blue font-semibold underline">
+                            {{ $t('recesso.returns_link') }}
+                        </Link>
+                    </div>
                 </div>
 
                 <template v-else>
@@ -119,6 +137,9 @@ function conferma() {
 
                     <!-- Passaggio 1: i dati -->
                     <form v-if="passaggio === 'dati'" novalidate class="space-y-6" @submit.prevent="continua">
+                        <div v-if="erroreGenerale" ref="riquadroErrori" tabindex="-1" role="alert" class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                            {{ erroreGenerale }}
+                        </div>
                         <div>
                             <label for="recesso-nome" class="block text-sm font-semibold text-gray-800 mb-1">{{ $t('recesso.name') }} *</label>
                             <input id="recesso-nome" v-model="form.nome" type="text" autocomplete="name" required
@@ -145,9 +166,10 @@ function conferma() {
                         <div>
                             <label for="recesso-articoli" class="block text-sm font-semibold text-gray-800 mb-1">{{ $t('recesso.items_label') }}</label>
                             <textarea id="recesso-articoli" v-model="form.articoli" rows="3" maxlength="2000"
-                                aria-describedby="recesso-articoli-aiuto"
+                                :aria-invalid="!!errori.articoli" :aria-describedby="errori.articoli ? idErrore('articoli') : 'recesso-articoli-aiuto'"
                                 class="w-full rounded-lg border-gray-300 focus:border-savino-blue focus:ring-savino-blue"></textarea>
                             <p id="recesso-articoli-aiuto" class="mt-1 text-xs text-gray-600">{{ $t('recesso.items_help') }}</p>
+                            <p v-if="errori.articoli" :id="idErrore('articoli')" class="mt-1 text-sm text-red-700">{{ errori.articoli }}</p>
                         </div>
                         <button type="submit" class="px-8 py-3 bg-savino-blue text-white font-bold rounded-lg hover:bg-savino-blue/90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-savino-blue">
                             {{ $t('recesso.continue') }}
@@ -169,7 +191,7 @@ function conferma() {
                             </dl>
                         </div>
                         <div class="flex flex-wrap gap-4">
-                            <button type="button" :disabled="form.processing" class="px-8 py-3 bg-savino-blue text-white font-bold rounded-lg hover:bg-savino-blue/90 disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-savino-blue" @click="conferma">
+                            <button type="button" :disabled="form.processing" :aria-busy="form.processing" class="px-8 py-3 bg-savino-blue text-white font-bold rounded-lg hover:bg-savino-blue/90 disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-savino-blue" @click="conferma">
                                 {{ $t('recesso.confirm') }}
                             </button>
                             <button type="button" class="px-6 py-3 border border-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-50" @click="modifica">

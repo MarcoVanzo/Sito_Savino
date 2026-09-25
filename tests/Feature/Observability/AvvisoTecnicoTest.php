@@ -68,4 +68,19 @@ class AvvisoTecnicoTest extends TestCase
 
         $this->assertFalse(app(AvvisoTecnico::class)->invia('A', 'x', 'rotto'));
     }
+
+    #[Test]
+    public function un_invio_fallito_non_silenzia_il_successivo(): void
+    {
+        // Resend giù per dieci minuti non deve tacere la stessa condizione per
+        // tutta l'ora del silenziatore.
+        config(['services.avvisi.email' => 'uno@example.com']);
+        Mail::shouldReceive('raw')->once()->andThrow(new RuntimeException('Resend irraggiungibile'));
+        Mail::shouldReceive('raw')->once();
+
+        $avviso = app(AvvisoTecnico::class);
+
+        $this->assertFalse($avviso->invia('A', 'x', 'intermittente'));
+        $this->assertTrue($avviso->invia('A', 'x', 'intermittente'));
+    }
 }

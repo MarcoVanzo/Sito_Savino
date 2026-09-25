@@ -99,6 +99,14 @@ const activeVariant = computed(() => {
 });
 
 // --- Price ---
+// Il barrato lo decide il backend (ShopController::prezzi): con il flag acceso
+// `price` e' il prezzo piu' basso dei 30 giorni prima dello sconto e
+// `sale_price` quello che si paga; spento, `price` e' gia' il prezzo da pagare.
+const scontoAnnunciabile = computed(() => props.product?.prezzo_piu_basso_30_giorni === true
+    && props.product?.sale_price != null);
+
+const modificatoreVariante = computed(() => Number.parseFloat(activeVariant.value?.price_modifier || 0) || 0);
+
 // --- Personalizzazione (di solito la firma della giocatrice) ---
 // Facoltativa, con un supplemento: non e' una taglia e non ha giacenza propria.
 const conPersonalizzazione = ref(false);
@@ -109,21 +117,16 @@ const supplemento = computed(() => (
 ));
 
 const displayPrice = computed(() => {
-    const basePrice = Number.parseFloat(props.product?.sale_price ?? props.product?.price ?? 0);
-    const modifier = activeVariant.value ? Number.parseFloat(activeVariant.value.price_modifier || 0) : 0;
-    return basePrice + modifier + supplemento.value;
+    const basePrice = scontoAnnunciabile.value ? props.product.sale_price : (props.product?.price ?? 0);
+    return Number.parseFloat(basePrice) + modificatoreVariante.value + supplemento.value;
 });
 
-const originalPrice = computed(() => {
-    if (props.product?.sale_price && Number(props.product.price) > Number(props.product.sale_price)) {
-        return props.product.price;
-    }
-    return null;
-});
+const originalPrice = computed(() => (scontoAnnunciabile.value ? props.product.price : null));
 
-const hasSale = computed(() => {
-    return !activeVariant.value && originalPrice.value !== null;
-});
+// Il riferimento dei 30 giorni vale per il prezzo del prodotto: resta anche
+// dopo la scelta di una taglia che non cambia il prezzo. Una variante con un
+// sovrapprezzo ha un prezzo suo, per cui quel riferimento non e' calcolato.
+const hasSale = computed(() => scontoAnnunciabile.value && modificatoreVariante.value === 0 && supplemento.value === 0);
 
 // --- Stock ---
 const currentStock = computed(() => {
@@ -248,17 +251,17 @@ const structuredData = computed(() => {
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
                 <!-- Breadcrumb -->
                 <nav class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
-                    <Link :href="route('home')" class="hover:text-savino-fucsia transition-colors">{{ $t('common.home') }}</Link>
+                    <Link :href="route('home')" class="hover:text-savino-fucsia-chiaro transition-colors">{{ $t('common.home') }}</Link>
                     <span>/</span>
-                    <Link :href="route('shop')" class="hover:text-savino-fucsia transition-colors">{{ $t('common.shop') }}</Link>
+                    <Link :href="route('shop')" class="hover:text-savino-fucsia-chiaro transition-colors">{{ $t('common.shop') }}</Link>
                     <template v-if="product?.category">
                         <span>/</span>
-                        <Link :href="route('shop.category', product.category.slug)" class="hover:text-savino-fucsia transition-colors">{{ product.category.name }}</Link>
+                        <Link :href="route('shop.category', product.category.slug)" class="hover:text-savino-fucsia-chiaro transition-colors">{{ product.category.name }}</Link>
                     </template>
                     <span>/</span>
-                    <span class="text-savino-fucsia">{{ product?.name }}</span>
+                    <span class="text-savino-fucsia-chiaro">{{ product?.name }}</span>
                 </nav>
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ product?.category?.name ?? $t('shop.hero_label') }}</span>
+                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ product?.category?.name ?? $t('shop.hero_label') }}</span>
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ product?.name }}
                 </h1>
@@ -336,9 +339,9 @@ const structuredData = computed(() => {
                         <div class="mb-6">
                             <div class="flex items-baseline gap-3">
                                 <span class="text-3xl font-black text-savino-red">{{ formatPrice(displayPrice) }}</span>
-                                <span v-if="hasSale" class="text-lg text-gray-400 line-through">{{ formatPrice(originalPrice) }}</span>
+                                <span v-if="hasSale" class="text-lg text-gray-600 line-through">{{ formatPrice(originalPrice) }}</span>
                             </div>
-                            <p v-if="hasSale" class="text-xs text-gray-500 mt-1">
+                            <p v-if="hasSale" class="text-sm text-gray-600 mt-1">
                                 {{ $t('shop.lowest_price_30_days', { price: formatPrice(originalPrice) }) }}
                             </p>
                         </div>
@@ -434,7 +437,7 @@ const structuredData = computed(() => {
                             class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl text-white font-bold uppercase tracking-wider text-sm transition-all duration-300 shadow-lg"
                             :class="isOutOfStock
                                 ? 'bg-gray-300 cursor-not-allowed shadow-none'
-                                : 'bg-savino-blue hover:bg-savino-fucsia hover:text-savino-blue hover:shadow-xl transform hover:-translate-y-0.5'"
+                                : 'bg-savino-blue hover:bg-savino-fucsia hover:text-white hover:shadow-xl transform hover:-translate-y-0.5'"
                         >
                             <svg v-if="!isAdding" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             <svg v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>

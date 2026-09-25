@@ -129,11 +129,11 @@ Gli altri dati del titolare stanno nelle impostazioni, gruppo `contact`
 | IP, browser, pagina | log del server; `sessions.ip_address`, `sessions.user_agent` | Laravel | sessione: 2 h di inattività (`SESSION_LIFETIME`) |
 | Messaggi del modulo contatti | `contact_messages` | `ContactRequest` | 24 mesi dalla data del messaggio (`messaggi:pota`, settimanale) |
 | Accrediti stampa (nome, telefono, testata, ruolo, gara) | `contact_messages` + `extra_data` | `PressAccreditationRequest` | idem, riga intera |
-| Iscritti alla newsletter (email, nome, IP della richiesta, data di conferma) | `newsletter_subscribers`, poi ActiveCampaign **solo dopo la conferma** (doppio opt-in, `confermato_il`) | `NewsletterRequest`, `NewsletterSubscriber::conferma`, `SyncNewsletterToActiveCampaign` | fino alla disiscrizione |
+| Iscritti alla newsletter (email, nome, IP della richiesta, data di conferma) | `newsletter_subscribers`, poi ActiveCampaign **solo dopo la conferma** (doppio opt-in, `confermato_il`) | `NewsletterRequest`, `NewsletterSubscriber::conferma`, `SyncNewsletterToActiveCampaign` | fino alla disiscrizione; una richiesta mai confermata 30 giorni (`model:prune`, `NewsletterSubscriber::prunable`) |
 | Ordini: nome, indirizzi, telefono, codice fiscale | `orders`, `order_items` | `StoreCheckoutRequest` | 10 anni (obbligo fiscale) |
 | Dichiarazioni di recesso (nome, email, numero d'ordine, articoli, data e ora) | `richieste_di_recesso` | `RecessoController` (art. 54-bis) | 12 mesi dall'invio (`model:prune`, `RichiestaDiRecesso::prunable`); il rimborso resta sull'ordine |
 | Offerte d'asta | `bids` | `BidService` | con l'asta; in pagina il nome esce abbreviato (`AuctionService::maskUsername`) |
-| Account dello shop | `users`, `password_histories` | registrazione | finché attivo; il cliente lo esporta e lo cancella da `/shop/account` (`AccountController`, `DatiDelCliente`) |
+| Account dello shop | `users`, `password_histories` | registrazione | finché attivo; il cliente lo esporta e lo cancella da `/shop/account` (`AccountController`, `DatiDelCliente`). Alla cancellazione le righe di `activity_logs` che lo riguardano perdono dati e IP (`DatiDelCliente::cancella`) |
 | Carrelli | `carts`, `cart_items` | | 7 giorni (`carts:prune-expired`, `Cart::prunable`) |
 | Prova del consenso ai cookie | `consensi_cookie` | `ConsensoCookieController` | 12 mesi (`consensi:pota`, settimanale) |
 | Chi ha modificato cosa nel pannello | `activity_logs` | `LogsActivity` | 180 giorni (`activity-log:prune`) |

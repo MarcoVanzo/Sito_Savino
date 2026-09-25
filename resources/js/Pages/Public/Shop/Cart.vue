@@ -103,7 +103,7 @@ const handleRemoveItem = (itemId) => {
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.hero_label') }}</span>
+                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.hero_label') }}</span>
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ $t('shop.your_cart') }}
                 </h1>
@@ -281,7 +281,7 @@ const handleRemoveItem = (itemId) => {
                             <Link
                                 v-if="!hasStockWarnings"
                                 :href="route('shop.checkout')"
-                                class="block w-full text-center bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-xl hover:bg-savino-fucsia hover:text-savino-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                class="block w-full text-center bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-xl hover:bg-savino-fucsia hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                             >
                                 {{ $t('shop.proceed_to_checkout') }}
                             </Link>
@@ -304,7 +304,7 @@ const handleRemoveItem = (itemId) => {
                 <div v-else class="text-center py-20">
                     <div class="max-w-lg mx-auto">
                         <div class="w-32 h-32 mx-auto mb-8 rounded-full bg-gradient-to-br from-savino-blue to-gray-900 flex items-center justify-center shadow-2xl">
-                            <svg class="w-14 h-14 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            <svg class="w-14 h-14 text-savino-fucsia-chiaro" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                         </div>
                         <h2 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mb-4">
                             {{ $t('shop.empty_cart_title') }}
@@ -313,7 +313,7 @@ const handleRemoveItem = (itemId) => {
                         <p class="text-gray-600 text-lg leading-relaxed mb-8">
                             {{ $t('shop.empty_cart_description') }}
                         </p>
-                        <Link :href="route('shop')" class="inline-flex items-center gap-3 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-xl hover:bg-savino-fucsia hover:text-savino-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                        <Link :href="route('shop')" class="inline-flex items-center gap-3 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-xl hover:bg-savino-fucsia hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             {{ $t('shop.explore_shop') }}
                         </Link>

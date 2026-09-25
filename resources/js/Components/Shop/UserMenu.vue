@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
         <!-- Trigger Button -->
         <button type="button"
             @click="toggleMenu"
-            class="relative p-2 text-gray-300 hover:text-savino-fucsia transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-savino-fucsia/50 rounded-lg"
+            class="relative p-2 text-gray-300 hover:text-savino-fucsia-chiaro transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-savino-fucsia/50 rounded-lg"
             :aria-label="user() ? $t('shop.my_account') : $t('shop.login')"
             :aria-expanded="isOpen"
             aria-haspopup="true"

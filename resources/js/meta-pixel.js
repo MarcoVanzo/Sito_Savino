@@ -68,9 +68,10 @@ function allowed() {
 /**
  * Prepara il pixel.
  *
- * `needsConsent` arriva dalla configurazione: oggi il pixel parte per tutti,
- * ma il giorno in cui va subordinato al consenso marketing si cambia una
- * variabile d'ambiente e questo file non si tocca.
+ * `needsConsent` arriva dalla configurazione (`META_PIXEL_REQUIRES_CONSENT`,
+ * vero per impostazione predefinita e non sovrascritto nella spec): il pixel
+ * parte solo con il consenso di marketing del banner. Spegnerlo resta
+ * possibile da variabile d'ambiente, senza toccare questo file.
  */
 export function initMetaPixel(id, { needsConsent = false, hasConsent = false } = {}) {
     if (!id) return;
@@ -125,10 +126,13 @@ function cancellaICookieDelPixel() {
     }
 }
 
+/** @returns {boolean} se l'evento e' partito davvero */
 function track(event, params) {
-    if (!pixelId || !scriptLoaded || !window.fbq || !allowed()) return;
+    if (!pixelId || !scriptLoaded || !window.fbq || !allowed()) return false;
 
     params === undefined ? window.fbq('track', event) : window.fbq('track', event, params);
+
+    return true;
 }
 
 export function trackPageView() {
@@ -171,6 +175,11 @@ export function trackInitiateCheckout({ value, numItems, currency = 'EUR' }) {
  * Ordine concluso. Il blocco è per numero d'ordine e vive nella sessione del
  * browser: ricaricare la pagina di conferma non deve produrre una seconda
  * conversione.
+ *
+ * L'ordine si segna come tracciato solo se l'evento e' partito: senza
+ * consenso (o prima che lo script sia pronto) `track` non manda nulla, e
+ * segnarlo lo stesso impedirebbe di contarlo se il cliente accetta i cookie
+ * di marketing sulla pagina di conferma, che si ricarica da sola.
  */
 export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR' }) {
     if (!pixelId || !orderNumber) return;
@@ -179,13 +188,12 @@ export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR'
 
     try {
         if (sessionStorage.getItem(key)) return;
-        sessionStorage.setItem(key, '1');
     } catch {
         // Storage non disponibile (navigazione privata, storage pieno): meglio
         // un evento in più che una conversione persa.
     }
 
-    track('Purchase', {
+    const inviato = track('Purchase', {
         content_ids: items.map((item) => String(item.id)),
         contents: items.map((item) => ({ id: String(item.id), quantity: Number(item.quantity) || 1 })),
         content_type: 'product',
@@ -193,4 +201,12 @@ export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR'
         value: Number(value) || 0,
         currency,
     });
+
+    if (!inviato) return;
+
+    try {
+        sessionStorage.setItem(key, '1');
+    } catch {
+        // Come sopra: senza storage si rinuncia alla deduplica.
+    }
 }

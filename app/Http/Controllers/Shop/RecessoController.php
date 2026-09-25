@@ -8,9 +8,13 @@ use App\Mail\RicevutaDiRecesso;
 use App\Models\Order;
 use App\Models\RichiestaDiRecesso;
 use App\Models\SiteSetting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,7 +49,7 @@ class RecessoController extends Controller
         ]);
     }
 
-    public function store(Request $request): Response
+    public function store(Request $request): RedirectResponse
     {
         $dati = $request->validate([
             'nome' => ['required', 'string', 'max:255'],
@@ -54,6 +58,15 @@ class RecessoController extends Controller
             'articoli' => ['nullable', 'string', 'max:2000'],
             'conferma' => ['accepted'],
         ]);
+
+        // Il limite per IP della rotta non ferma chi cambia indirizzo: la
+        // ricevuta parte verso l'email scritta nel modulo, quindi si limita
+        // anche per destinatario.
+        $chiave = 'recesso:'.strtolower(trim($dati['email']));
+        if (RateLimiter::tooManyAttempts($chiave, 3)) {
+            throw ValidationException::withMessages(['email' => __('messages.recesso.troppi_invii')]);
+        }
+        RateLimiter::hit($chiave, 86400);
 
         $numero = trim($dati['numero_ordine']);
 
@@ -76,6 +89,17 @@ class RecessoController extends Controller
             Log::error('Ricevuta di recesso non inviata', ['richiesta' => $richiesta->id, 'errore' => $e->getMessage()]);
         }
 
+        // Chi conosce il numero di un ordine altrui può dichiarare il recesso a
+        // nome di un altro: il titolare dell'ordine riceve una copia, così lo
+        // sa subito invece di scoprirlo al rimborso.
+        if ($richiesta->emailDiversaDaQuellaDellOrdine()) {
+            try {
+                Mail::to($richiesta->emailDellOrdine())->send(new RicevutaDiRecesso($richiesta));
+            } catch (\Throwable $e) {
+                Log::error('Copia della ricevuta di recesso non inviata', ['richiesta' => $richiesta->id, 'errore' => $e->getMessage()]);
+            }
+        }
+
         $casella = SiteSetting::get('shop.support_email') ?: config('mail.from.address');
 
         try {
@@ -84,8 +108,16 @@ class RecessoController extends Controller
             Log::error('Avviso di recesso allo shop non accodato', ['richiesta' => $richiesta->id, 'errore' => $e->getMessage()]);
         }
 
-        // La ricevuta si mostra anche a schermo, subito: la risposta alla POST
-        // e' la pagina stessa, cosi' non passa dalla sessione.
+        // La ricevuta si mostra anche a schermo, subito, su un indirizzo suo:
+        // ricaricare non rimanda la dichiarazione.
+        $lingua = app()->getLocale();
+        $rotta = $lingua === config('app.fallback_locale', 'it') ? 'recesso.ricevuta' : $lingua.'.recesso.ricevuta';
+
+        return redirect()->to(URL::temporarySignedRoute($rotta, now()->addDays(90), ['richiesta' => $richiesta->id]));
+    }
+
+    public function ricevuta(RichiestaDiRecesso $richiesta): Response
+    {
         return Inertia::render('Public/Shop/Recesso', [
             'precompilato' => ['numero_ordine' => '', 'nome' => '', 'email' => ''],
             'ricevuta' => [

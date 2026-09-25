@@ -55,7 +55,7 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span v-if="cd.hero_subtitle" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle }}</span>
+                <span v-if="cd.hero_subtitle" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_subtitle }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ page?.title ?? $t('youth.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p v-if="cd.hero_description" class="text-white/70 text-lg max-w-2xl mx-auto">{{ cd.hero_description }}</p>
@@ -129,7 +129,7 @@ const ogMeta = useOgMeta({
         <!-- Talent Scouting -->
         <section class="py-16 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <span v-if="cd.scouting_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.scouting_label }}</span>
+                <span v-if="cd.scouting_label" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ cd.scouting_label }}</span>
                 <h2 v-if="cd.scouting_title" class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-4 mb-4">{{ cd.scouting_title }}</h2>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-8"></div>
                 <p v-if="cd.scouting_description" class="text-white/70 text-lg leading-relaxed max-w-2xl mx-auto mb-6">

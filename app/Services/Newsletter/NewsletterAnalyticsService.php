@@ -72,13 +72,17 @@ class NewsletterAnalyticsService
     {
         return [
             'total' => NewsletterSubscriber::query()->count(),
-            'active' => NewsletterSubscriber::query()->whereNull('unsubscribed_at')->count(),
+            // Attivo = ha confermato: una richiesta in attesa del click non
+            // riceve niente e non arriva ad ActiveCampaign.
+            'active' => NewsletterSubscriber::query()->active()->confermati()->count(),
+            'in_attesa_di_conferma' => NewsletterSubscriber::query()->whereNull('confermato_il')->count(),
             'unsubscribed' => NewsletterSubscriber::query()->whereNotNull('unsubscribed_at')->count(),
             'new_in_period' => NewsletterSubscriber::query()->where('created_at', '>=', $from)->count(),
             // Un iscritto non sincronizzato è un contatto che non riceverà la
             // prossima campagna: è un guasto da vedere, non una statistica.
             'not_synced' => NewsletterSubscriber::query()
-                ->whereNull('unsubscribed_at')
+                ->active()
+                ->confermati()
                 ->where('synced_to_ac', false)
                 ->count(),
         ];

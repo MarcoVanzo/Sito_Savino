@@ -11,8 +11,11 @@
  *
  * Come per i cookie, le pagine vengono dalla sitemap (una per famiglia) più
  * quelle dello shop, che nella sitemap non stanno tutte. Il comando esce con
- * un errore se trova violazioni gravi o critiche: in GitHub Actions diventa
- * una run rossa.
+ * 1 se trova violazioni gravi o critiche e con 2 se una pagina non si e'
+ * potuta esaminare (timeout, stato HTTP >= 400): in GitHub Actions diventano
+ * entrambe una run rossa. I contrasti che axe non riesce a decidere da solo
+ * (testo su immagini o gradienti, `incomplete`) finiscono nel rapporto come
+ * avvisi da guardare a occhio, senza far fallire la run.
  *
  *   node scripts/scansione-accessibilita.mjs --url=https://... [--pagine=20] [--rapporto=file.json] [--tutte]
  *
@@ -50,6 +53,26 @@ const TAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 /** La chiave con cui il sito ricorda la scelta fatta sul banner dei cookie. */
 const CHIAVE_CONSENSO = 'cookie-consent-v2';
 
+/**
+ * La versione dell'informativa che il sito sta servendo, letta dalle props
+ * della pagina come fa la scansione dei cookie: un consenso salvato senza la
+ * versione giusta vale come nessun consenso, e il banner resterebbe aperto
+ * sopra ogni pagina esaminata.
+ */
+async function versioneDellInformativa() {
+    const risposta = await fetch(`${base}/`);
+    const html = await risposta.text();
+    const dati = html.match(/data-page="([^"]+)"/);
+
+    if (! dati) {
+        return null;
+    }
+
+    const props = JSON.parse(dati[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#039;/g, "'"));
+
+    return props?.props?.consensoCookie?.versione ?? null;
+}
+
 /** Pagine dello shop e dei servizi che la sitemap non elenca. */
 const SEMPRE = ['/shop', '/shop/carrello', '/shop/aste', '/login', '/shop/registrati', '/contatti'];
 
@@ -79,6 +102,13 @@ async function pagineDaVisitare() {
 }
 
 async function main() {
+    const versione = await versioneDellInformativa();
+
+    if (! versione) {
+        console.error('Non riesco a leggere la versione dell\'informativa dalla pagina: senza, il banner dei cookie resterebbe aperto e la scansione misurerebbe sempre lui.');
+        process.exit(2);
+    }
+
     const pagine = await pagineDaVisitare();
     const axe = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
     const browser = await chromium.launch(opzioni.canale ? { channel: opzioni.canale } : {});
@@ -93,39 +123,64 @@ async function main() {
     // parte, sulla prima pagina, senza scelta salvata.
     await contesto.addInitScript(([chiave, valore]) => {
         try { window.localStorage.setItem(chiave, valore); } catch { /* vedi sopra */ }
-    }, [CHIAVE_CONSENSO, JSON.stringify({ necessary: true, statistiche: false, marketing: false, analytics: false, data: new Date().toISOString() })]);
+    }, [CHIAVE_CONSENSO, JSON.stringify({ necessary: true, statistiche: false, marketing: false, analytics: false, versione, data: new Date().toISOString() })]);
 
     const risultati = [];
+    // Pagine che non si sono potute esaminare: non sono pagine pulite.
+    const errori = [];
 
     const esamina = async (scheda, indirizzo, etichetta = indirizzo) => {
         await scheda.addScriptTag({ content: axe });
         const esito = await scheda.evaluate(async (tag) => {
             // eslint-disable-next-line no-undef
-            const r = await axe.run(document, { runOnly: { type: 'tag', values: tag }, resultTypes: ['violations'] });
-            return r.violations.map((v) => ({
+            const r = await axe.run(document, { runOnly: { type: 'tag', values: tag }, resultTypes: ['violations', 'incomplete'] });
+            const voce = (v) => ({
                 regola: v.id,
                 impatto: v.impact,
                 descrizione: v.help,
                 aiuto: v.helpUrl,
                 nodi: v.nodes.slice(0, 50).map((n) => ({ selettore: n.target.join(' '), html: n.html.slice(0, 200), sintesi: n.failureSummary })),
                 quanti: v.nodes.length,
-            }));
+            });
+            return {
+                violazioni: r.violations.map(voce),
+                // Solo il contrasto: gli altri `incomplete` sono per lo piu'
+                // rumore (regole che non si applicano alla pagina).
+                daVerificare: r.incomplete.filter((v) => v.id === 'color-contrast').map(voce),
+            };
         }, TAG);
 
-        risultati.push({ pagina: etichetta, violazioni: esito });
-        const gravi = esito.filter((v) => GRAVI.includes(v.impatto));
-        console.log(`${gravi.length ? '✗' : '✓'} ${etichetta}${esito.length ? ` — ${esito.map((v) => `${v.regola}(${v.quanti})`).join(', ')}` : ''}`);
+        risultati.push({ pagina: etichetta, violazioni: esito.violazioni, contrasti_da_verificare: esito.daVerificare });
+        const gravi = esito.violazioni.filter((v) => GRAVI.includes(v.impatto));
+        const avvisi = esito.daVerificare.reduce((n, v) => n + v.quanti, 0);
+        console.log(`${gravi.length ? '✗' : '✓'} ${etichetta}${esito.violazioni.length ? ` — ${esito.violazioni.map((v) => `${v.regola}(${v.quanti})`).join(', ')}` : ''}${avvisi ? ` · contrasti da verificare: ${avvisi}` : ''}`);
+    };
+
+    // Apre la pagina e la esamina; una pagina che non risponde, va in timeout o
+    // torna un errore HTTP e' un errore della scansione, non una pagina pulita.
+    const visita = async (scheda, indirizzo, etichetta = indirizzo) => {
+        try {
+            const risposta = await scheda.goto(indirizzo, { waitUntil: 'networkidle', timeout: 45000 });
+            const stato = risposta?.status() ?? 0;
+
+            if (stato === 0 || stato >= 400) {
+                throw new Error(`stato HTTP ${stato || 'assente'}`);
+            }
+
+            await scheda.waitForTimeout(1000);
+            await esamina(scheda, indirizzo, etichetta);
+        } catch (errore) {
+            const motivo = errore.message.split('\n')[0];
+            errori.push({ pagina: etichetta, motivo });
+            console.error(`  ! ${etichetta}: ${motivo}`);
+        }
     };
 
     for (const indirizzo of pagine) {
         const scheda = await contesto.newPage();
 
         try {
-            await scheda.goto(indirizzo, { waitUntil: 'networkidle', timeout: 45000 });
-            await scheda.waitForTimeout(1000);
-            await esamina(scheda, indirizzo);
-        } catch (errore) {
-            console.warn(`  ! ${indirizzo}: ${errore.message.split('\n')[0]}`);
+            await visita(scheda, indirizzo);
         } finally {
             await scheda.close();
         }
@@ -135,18 +190,12 @@ async function main() {
     const senzaScelta = await browser.newContext(impostazioni);
     const primaVisita = await senzaScelta.newPage();
 
-    try {
-        await primaVisita.goto(`${base}/`, { waitUntil: 'networkidle', timeout: 45000 });
-        await primaVisita.waitForTimeout(1000);
-        await esamina(primaVisita, `${base}/`, `${base}/ (banner cookie)`);
-    } catch (errore) {
-        console.warn(`  ! banner: ${errore.message.split('\n')[0]}`);
-    }
+    await visita(primaVisita, `${base}/`, `${base}/ (banner cookie)`);
 
     await browser.close();
 
     if (opzioni.rapporto) {
-        writeFileSync(opzioni.rapporto, JSON.stringify({ sito: base, data: new Date().toISOString(), risultati }, null, 2) + '\n');
+        writeFileSync(opzioni.rapporto, JSON.stringify({ sito: base, data: new Date().toISOString(), informativa: versione, errori, risultati }, null, 2) + '\n');
     }
 
     // Una scansione che non ha controllato niente non e' una scansione pulita.
@@ -173,10 +222,28 @@ async function main() {
         console.log(`    es. ${v.nodi[0]?.selettore}`);
     }
 
+    const daVerificare = risultati.flatMap(({ pagina, contrasti_da_verificare: c }) => (c ?? []).map((v) => ({ pagina, ...v })));
+
+    if (daVerificare.length) {
+        const totale = daVerificare.reduce((n, v) => n + v.quanti, 0);
+        console.warn(`\nAvviso: ${totale} contrasti che axe non sa decidere (testo su foto o gradienti) in ${new Set(daVerificare.map((v) => v.pagina)).size} pagine: vanno guardati a occhio, l'elenco e' nel rapporto.`);
+    }
+
     const gravi = [...perRegola.values()].filter((v) => GRAVI.includes(v.impatto));
+
+    if (errori.length) {
+        console.error(`\n${errori.length} pagine non esaminate: ${errori.map((e) => e.pagina).join(', ')}.`);
+    }
 
     if (gravi.length) {
         console.error(`\n${gravi.length} regole violate con impatto ${GRAVI.join('/')}.`);
+    }
+
+    if (errori.length) {
+        process.exit(2);
+    }
+
+    if (gravi.length) {
         process.exit(1);
     }
 

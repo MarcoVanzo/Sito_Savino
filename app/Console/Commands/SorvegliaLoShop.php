@@ -60,9 +60,18 @@ class SorvegliaLoShop extends Command
         $this->controlla('metodi-di-pagamento', $this->problemaDeiPagamenti(), 'Il checkout non offre nessun metodo di pagamento');
         $this->controlla('coda', $this->problemaDellaCoda(), 'La coda dei job è ferma');
 
+        $this->controlla('pagamento-aste', $this->problemaDelleAste(), 'Le aste non si possono pagare');
+
         if ($this->negozioAperto() && in_array(PaymentGateway::PayPal, PaymentGateway::offertiAlCheckout(), true)
             && Cache::add('sorveglianza:paypal-controllato', true, self::PAYPAL_OGNI_SECONDI)) {
-            $this->controlla('paypal', $this->problemaDiPayPal(), 'PayPal non è configurato correttamente');
+            $paypal = $this->problemaDiPayPal();
+
+            // `false` = la verifica non ha potuto rispondere (rete, timeout):
+            // non è un guasto e nemmeno una guarigione, quindi niente email in
+            // nessuna delle due direzioni.
+            if ($paypal !== false) {
+                $this->controlla('paypal', $paypal, 'PayPal non è configurato correttamente');
+            }
         }
 
         return self::SUCCESS;
@@ -72,7 +81,7 @@ class SorvegliaLoShop extends Command
      * Gli interruttori si possono spegnere apposta: qui si avvisa del cambio,
      * in entrambe le direzioni, perché chi riceve l'email possa dire "sì, l'ho
      * chiesto io" o accorgersi che non l'ha chiesto nessuno. Il primo giro
-     * dopo un rilascio registra lo stato senza scrivere.
+     * dopo un rilascio scrive solo se trova l'interruttore spento.
      */
     private function interruttore(string $nome, string $chiave, string $spento, string $acceso): void
     {
@@ -83,7 +92,27 @@ class SorvegliaLoShop extends Command
         Cache::forever($chiaveCache, $ora);
         $this->line(ucfirst($nome).': '.($ora ? 'acceso' : 'spento'));
 
-        if ($prima === null || (bool) $prima === $ora) {
+        if ($prima === null) {
+            // Primo giro dopo un rilascio (start.sh svuota la cache): lo stato
+            // precedente non si conosce. Un interruttore acceso non merita
+            // un'email; uno spento sì, perché il Salva che lo ha spento può
+            // essere caduto proprio fra l'ultimo giro e il deploy — è il caso
+            // del 21/09. Il silenziatore di un giorno evita che ogni rilascio
+            // lo riannunci.
+            if (! $ora) {
+                $this->avviso->invia(
+                    $spento,
+                    $spento.".\n\nL'impostazione `{$chiave}` risulta spenta al primo controllo dopo un rilascio. "
+                        .'Se non è voluto, si riaccende da Impostazioni Shop & Aste o con `php artisan shop:stato`.',
+                    'interruttore:'.$nome.':0:dopo-rilascio',
+                    86400,
+                );
+            }
+
+            return;
+        }
+
+        if ((bool) $prima === $ora) {
             return;
         }
 
@@ -142,6 +171,23 @@ class SorvegliaLoShop extends Command
             .'Controllare `shop.active_payment_gateways` (Impostazioni Shop & Aste) e le credenziali dei gateway nella spec.';
     }
 
+    /**
+     * Il checkout delle aste passa solo da Stripe (AuctionCheckoutController):
+     * con le aste accese e Stripe senza credenziali il vincitore arriva in
+     * fondo, l'ordine si crea e il pagamento non parte.
+     */
+    private function problemaDelleAste(): ?string
+    {
+        $asteAccese = filter_var(SiteSetting::get('auctions.enabled', true), FILTER_VALIDATE_BOOLEAN);
+
+        if (! $asteAccese || PaymentGateway::Stripe->configurato()) {
+            return null;
+        }
+
+        return 'Le aste sono accese ma Stripe non ha le credenziali: il checkout delle aste passa solo da Stripe, '
+            .'quindi un vincitore non può pagare. Impostare le chiavi di Stripe nella spec o sospendere le aste.';
+    }
+
     private function problemaDellaCoda(): ?string
     {
         $soglia = now()->subMinutes(self::CODA_FERMA_DOPO_MINUTI)->getTimestamp();
@@ -165,14 +211,17 @@ class SorvegliaLoShop extends Command
      * `paypal:verifica` sa già rispondere: credenziali, webhook esistente,
      * indirizzo e eventi. Qui se ne prende l'esito e il testo.
      */
-    private function problemaDiPayPal(): ?string
+    private function problemaDiPayPal(): string|false|null
     {
         try {
             $esito = Artisan::call('paypal:verifica');
         } catch (\Throwable $e) {
             report($e);
 
-            return null;
+            // Si riprova al giro dopo invece di aspettare un'ora.
+            Cache::forget('sorveglianza:paypal-controllato');
+
+            return false;
         }
 
         if ($esito === self::SUCCESS) {

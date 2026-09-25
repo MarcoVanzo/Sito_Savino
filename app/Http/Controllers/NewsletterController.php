@@ -46,8 +46,9 @@ class NewsletterController extends Controller
             // Disiscritto, o mai confermato: si riparte dalla richiesta, e la
             // conferma va chiesta di nuovo. Un "sì" di mesi fa non vale per
             // una lista da cui la persona era uscita.
+            // `unsubscribed_at` resta com'è finché il titolare non clicca
+            // (NewsletterSubscriber::conferma).
             $existing->update([
-                'unsubscribed_at' => null,
                 'confermato_il' => null,
                 'first_name' => $validated['first_name'] ?? $existing->first_name,
                 'ip_address' => $request->ip(),
@@ -105,7 +106,9 @@ class NewsletterController extends Controller
             // per un URL preciso (e la sua scadenza viaggia con lui).
             'confermaUrl' => URL::temporarySignedRoute(
                 $this->prefissoRotta().'newsletter.conferma',
-                now()->addHour(),
+                // La stessa finestra del link ricevuto per email: una scheda
+                // lasciata aperta non deve scadere prima del link.
+                now()->addDays(7),
                 ['subscriber' => $subscriber->id],
             ),
         ]);
@@ -113,9 +116,7 @@ class NewsletterController extends Controller
 
     public function conferma(NewsletterSubscriber $subscriber): RedirectResponse
     {
-        if ($subscriber->isSubscribed()) {
-            $subscriber->conferma();
-        }
+        $subscriber->conferma();
 
         return back()->with('success', __('messages.newsletter.success'));
     }

@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -125,11 +126,15 @@ class AdminNotificationService
             "Ordine #{$order->order_number} richiede revisione manuale ({$reason}): {$message}"
         ));
 
-        $this->avviso->invia(
+        // Il webhook chiama da dentro una transazione con la riga dell'ordine
+        // bloccata: un invio lento terrebbe il lock e farebbe andare in
+        // timeout l'altra strada della cattura (il ritorno del cliente, §17).
+        // Fuori da una transazione afterCommit esegue subito.
+        DB::afterCommit(fn () => $this->avviso->invia(
             "Ordine #{$order->order_number} da verificare",
             "L'ordine #{$order->order_number} richiede un intervento manuale ({$reason}).\n\n{$message}",
             "ordine-{$order->id}-{$reason}",
-        );
+        ));
     }
 
     /**

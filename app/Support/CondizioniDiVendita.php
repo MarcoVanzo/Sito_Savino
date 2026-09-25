@@ -133,8 +133,13 @@ class CondizioniDiVendita
 
     /**
      * Il testo intero delle due pagine in una lingua, per l'allegato PDF della
-     * conferma d'ordine: è quello che il file dati dice oggi, e la versione
-     * accettata è scritta sull'ordine.
+     * conferma d'ordine.
+     *
+     * È il testo **pubblicato**, non quello del file dati: il cliente accetta
+     * la pagina che legge, e la redazione può averla ritoccata dal pannello
+     * dopo la creazione (le pagine da lì in poi sono sue). Il file dati resta
+     * il ripiego per una pagina che manca o è vuota in quella lingua. I link
+     * diventano assoluti: dentro un PDF `/recesso` non porta da nessuna parte.
      *
      * @return array<string, array{titolo: string, contenuto: string}>
      */
@@ -144,14 +149,41 @@ class CondizioniDiVendita
 
         foreach (self::tutte() as $slug => $pagina) {
             $testi = self::contenuto($slug);
+            $pubblicata = self::testoPubblicato($slug, $lingua);
 
             $pagine[$slug] = [
                 'titolo' => $pagina['titolo'][$lingua] ?? $pagina['titolo']['it'],
-                'contenuto' => $testi[$lingua] ?? $testi['it'],
+                'contenuto' => self::linkAssoluti($pubblicata ?? $testi[$lingua] ?? $testi['it']),
             ];
         }
 
         return $pagine;
+    }
+
+    /**
+     * Il contenuto della pagina com'è nel database, o null se non c'è. Letto
+     * con DB e json_decode, non con spatie: una riga in testo semplice
+     * sarebbe restituita come vuota (§9 del CLAUDE.md).
+     */
+    private static function testoPubblicato(string $slug, string $lingua): ?string
+    {
+        $grezzo = DB::table('pages')->where('slug', $slug)->where('status', 'publish')->value('content');
+
+        if (! is_string($grezzo) || $grezzo === '') {
+            return null;
+        }
+
+        $tradotto = json_decode($grezzo, true);
+        $testo = is_array($tradotto) ? ($tradotto[$lingua] ?? $tradotto['it'] ?? null) : $grezzo;
+
+        return is_string($testo) && trim(strip_tags($testo)) !== '' ? $testo : null;
+    }
+
+    private static function linkAssoluti(string $html): string
+    {
+        $base = rtrim((string) config('app.url'), '/');
+
+        return preg_replace('/\bhref="\/(?!\/)/', 'href="'.$base.'/', $html) ?? $html;
     }
 
     /**

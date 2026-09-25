@@ -50,7 +50,10 @@ class RichiestaDiRecessoResource extends Resource
                     Forms\Components\TextInput::make('numero_ordine')->label('Numero d\'ordine')->disabled(),
                     Forms\Components\DateTimePicker::make('inviata_il')->label('Inviata il')->seconds()->disabled(),
                     Forms\Components\TextInput::make('nome')->label('Nome')->disabled(),
-                    Forms\Components\TextInput::make('email')->label('Email')->disabled(),
+                    Forms\Components\TextInput::make('email')->label('Email')->disabled()
+                        ->helperText(fn (?RichiestaDiRecesso $record) => $record?->emailDiversaDaQuellaDellOrdine()
+                            ? 'Diversa da quella dell\'ordine ('.$record->emailDellOrdine().'): verificare chi ha inviato la dichiarazione prima di rimborsare.'
+                            : null),
                     Forms\Components\Textarea::make('articoli')->label('Articoli')->placeholder('Tutto l\'ordine')->disabled()->columnSpanFull(),
                 ])->columns(2),
             Forms\Components\Section::make('Gestione')
@@ -66,13 +69,16 @@ class RichiestaDiRecessoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('order.user'))
             ->defaultSort('inviata_il', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('inviata_il')->label('Inviata il')->dateTime('d/m/Y H:i')->sortable(),
                 Tables\Columns\TextColumn::make('numero_ordine')->label('Ordine')->searchable()
                     ->description(fn (RichiestaDiRecesso $r) => $r->order_id ? null : 'non trovato fra gli ordini'),
                 Tables\Columns\TextColumn::make('nome')->label('Cliente')->searchable()
-                    ->description(fn (RichiestaDiRecesso $r) => $r->email),
+                    ->description(fn (RichiestaDiRecesso $r) => $r->emailDiversaDaQuellaDellOrdine()
+                        ? $r->email.' — diversa da quella dell\'ordine ('.$r->emailDellOrdine().')'
+                        : $r->email),
                 Tables\Columns\TextColumn::make('scadenza')
                     ->label('Scadenza rimborso')
                     ->state(fn (RichiestaDiRecesso $r) => $r->inviata_il->copy()->addDays(14))

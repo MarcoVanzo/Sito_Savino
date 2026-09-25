@@ -47,4 +47,17 @@ class CachePublicResponseTest extends TestCase
             ->assertOk()
             ->assertHeaderMissing('X-Page-Cache');
     }
+
+    public function test_chi_arriva_da_una_pagina_in_cache_puo_chiedere_il_cookie_csrf(): void
+    {
+        // Le pagine servite dalla cache non portano Set-Cookie: il frontend
+        // (resources/js/bootstrap.js) chiede il cookie qui prima di un invio,
+        // altrimenti il primo modulo risponderebbe 419.
+        $risposta = $this->get('/csrf-cookie');
+
+        $risposta->assertNoContent();
+        $risposta->assertHeaderMissing('X-Page-Cache');
+        $this->assertNotNull($risposta->getCookie('XSRF-TOKEN', false));
+        $this->get('/csrf-cookie')->assertHeaderMissing('X-Page-Cache');
+    }
 }

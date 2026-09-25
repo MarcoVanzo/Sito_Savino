@@ -18,7 +18,7 @@ Ultima verifica sul codice: **25 settembre 2026**.
 | Pulsante «Ordine con obbligo di pagamento» (art. 51 c. 2) | checkout dello shop e delle aste, seconda riga del pulsante | `resources/js/Components/Shop/PulsanteOrdine.vue` |
 | Accettazione delle condizioni, con la versione | casella del checkout | `AccettazioneCondizioni.vue`; `orders.condizioni_versione` = `CondizioniDiVendita::VERSIONE` |
 | Conferma su supporto durevole (art. 51 c. 7) | email di conferma: venditore, recesso, modulo, garanzia, e il PDF delle condizioni in allegato | `App\Mail\OrderConfirmation::attachments()`, `resources/views/pdf/condizioni-di-vendita.blade.php` |
-| Funzione di recesso online (art. 54-bis, dal 19/06/2026) | `/recesso`, dal footer e dal dettaglio ordine: due passaggi, ricevuta a schermo e per email subito | `RecessoController`, tabella `richieste_di_recesso`, risorsa Filament «Richieste di recesso» (non si cancellano) |
+| Funzione di recesso online (art. 54-bis, dal 19/06/2026) | `/recesso`, dal footer e dal dettaglio ordine: due passaggi, ricevuta su un indirizzo firmato (stampabile) e per email subito; se l'email non è quella dell'ordine, copia al titolare e avviso nel pannello; al massimo tre dichiarazioni al giorno per indirizzo | `RecessoController`, tabella `richieste_di_recesso`, risorsa Filament «Richieste di recesso» (non si cancellano) |
 | Pagine pratiche: spedizioni (con la tabella delle zone), resi e rimborsi, regolamento aste | `/spedizioni`, `/resi-e-rimborsi`, `/regolamento-aste`; i vecchi indirizzi WooCommerce ci portano con un 301 | `database/data/condizioni_shop.php`, `App\Support\PagineLegaliDelloShop`, `routes/pubbliche/legacy.php` |
 | Avviso armonizzato UE sulla garanzia legale | sotto la casella del checkout, nella scheda prodotto e nell'email di conferma | `AvvisoGaranziaLegale.vue`, `public/images/garanzia/` (pagina 1 dei PDF della Commissione) |
 | Prezzo precedente negli sconti (art. 17-bis, Omnibus) | il barrato è il prezzo più basso dei 30 giorni prima della riduzione, con la didascalia | `App\Services\StoricoPrezzi`, tabella `storico_prezzi`, `ShopController::prezzi()`; `prezzi:registra` ogni ora |
@@ -28,9 +28,10 @@ Ultima verifica sul codice: **25 settembre 2026**.
 `CondizioniDiVendita::VERSIONE` è la data della versione in vigore e finisce
 su ogni ordine. **Si alza quando cambia la sostanza** (recesso, garanzia,
 pagamenti, consegna), non a ogni ritocco. Il PDF allegato alla conferma è il
-testo del file dati, non quello della pagina: se la redazione riscrive la
-pagina dal pannello, il file dati va aggiornato con lo stesso testo, o
-l'allegato continuerà a mandare il vecchio.
+testo **pubblicato** della pagina (il cliente accetta quello che legge), con
+i link resi assoluti; il file dati serve solo se la pagina manca o è vuota in
+quella lingua. Se la redazione cambia la sostanza, va comunque alzata
+`VERSIONE`, che è ciò che resta scritto sull'ordine.
 
 Le pagine si creano solo se mancano (`creaLePagineMancanti`): una pagina con
 lo stesso slug scritta dalla redazione vince sempre.
@@ -74,8 +75,7 @@ lo stesso slug scritta dalla redazione vince sempre.
 7. **Conservazione delle dichiarazioni di recesso (deciso il 25/09/2026):**
    12 mesi dall'invio, dichiarati nell'informativa e applicati da
    `model:prune`. Il rimborso resta registrato sull'ordine.
-8. **La newsletter richiede la conferma per email**: finché la posta non esce
-   nessuno riesce a completare un'iscrizione nuova.
-9. **La posta non esce** finché `MAIL_MAILER` non è configurato (vedi
-   `docs/GO_LIVE.md`): tutto quello che questo file dice dell'email di
-   conferma oggi finisce nel log.
+8. **La newsletter richiede la conferma per email**; le richieste mai
+   confermate si cancellano dopo 30 giorni (`model:prune`).
+9. **La posta esce dal 25/09/2026** (Resend, vedi `docs/GO_LIVE.md` §1): le
+   conferme d'ordine con il PDF e le ricevute di recesso partono davvero.

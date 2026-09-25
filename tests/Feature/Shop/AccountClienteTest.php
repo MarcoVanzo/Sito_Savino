@@ -2,9 +2,15 @@
 
 namespace Tests\Feature\Shop;
 
+use App\Enums\AuctionStatus;
 use App\Enums\UserRole;
+use App\Models\ActivityLog;
+use App\Models\Auction;
+use App\Models\Bid;
+use App\Models\ContactMessage;
 use App\Models\NewsletterSubscriber;
 use App\Models\Order;
+use App\Models\RichiestaDiRecesso;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -56,6 +62,61 @@ class AccountClienteTest extends TestCase
         $risposta->assertJsonPath('ordini.0.numero', $ordine->order_number);
         $risposta->assertJsonPath('newsletter.email', $cliente->email);
         $this->assertStringNotContainsString('password', strtolower($risposta->getContent()));
+    }
+
+    public function test_l_esportazione_contiene_recessi_e_messaggi_con_lo_stesso_indirizzo(): void
+    {
+        $cliente = $this->cliente();
+        RichiestaDiRecesso::create([
+            'numero_ordine' => 'SDB-1', 'nome' => $cliente->name, 'email' => $cliente->email,
+            'lingua' => 'it', 'inviata_il' => now(),
+        ]);
+        ContactMessage::create(['name' => $cliente->name, 'email' => $cliente->email, 'subject' => 'Domanda', 'message' => 'Testo']);
+
+        $this->actingAs($cliente)->get(route('shop.account.export'))
+            ->assertOk()
+            ->assertJsonPath('dichiarazioni_di_recesso.0.ordine', 'SDB-1')
+            ->assertJsonPath('messaggi.0.oggetto', 'Domanda');
+    }
+
+    public function test_chi_puo_ancora_ricevere_un_asta_non_pagata_non_si_cancella(): void
+    {
+        // Il secondo in classifica di un'asta chiusa e non pagata può ancora
+        // riceverla: cancellandosi, l'asta finiva a un vincitore nullo che
+        // nessun giro rivedeva più.
+        $vincitore = $this->cliente();
+        $secondo = $this->cliente();
+        $asta = Auction::factory()->create([
+            'status' => AuctionStatus::Ended,
+            'winner_user_id' => $vincitore->id,
+            'winner_checkout_deadline' => now()->subMinute(),
+        ]);
+        Bid::factory()->create(['auction_id' => $asta->id, 'user_id' => $vincitore->id, 'amount' => 200, 'is_valid' => true]);
+        Bid::factory()->create(['auction_id' => $asta->id, 'user_id' => $secondo->id, 'amount' => 150, 'is_valid' => true]);
+
+        foreach ([$vincitore, $secondo] as $utente) {
+            $this->actingAs($utente)
+                ->delete(route('shop.account.destroy'), ['password' => 'password'])
+                ->assertSessionHasErrors('password');
+            $this->assertModelExists($utente);
+        }
+    }
+
+    public function test_cancellato_l_account_il_registro_non_ne_tiene_i_dati(): void
+    {
+        $cliente = $this->cliente();
+        $cliente->update(['name' => 'Nome Riservato']);
+
+        $this->actingAs($cliente)
+            ->delete(route('shop.account.destroy'), ['password' => 'password'])
+            ->assertRedirect();
+
+        $righe = ActivityLog::where('model_type', User::class)->where('model_id', $cliente->id)->get();
+        $this->assertNotEmpty($righe);
+        foreach ($righe as $riga) {
+            $this->assertNull($riga->changes);
+            $this->assertStringNotContainsString('Riservato', (string) $riga->model_label);
+        }
     }
 
     public function test_la_cancellazione_chiede_la_password(): void

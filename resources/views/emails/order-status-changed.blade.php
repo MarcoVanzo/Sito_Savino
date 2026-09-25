@@ -52,7 +52,7 @@
             <td style="padding: 16px 20px; border-bottom: 1px solid #e9ecef;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.order_number') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.order_number') }}</td>
                         <td align="right" style="color: #003063; font-size: 15px; font-weight: 700;">{{ $order->order_number }}</td>
                     </tr>
                 </table>
@@ -62,7 +62,7 @@
             <td style="padding: 12px 20px; border-bottom: 1px solid #e9ecef;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.order_date') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.order_date') }}</td>
                         <td align="right" style="color: #333333; font-size: 14px;">{{ $order->created_at->format('d/m/Y H:i') }}</td>
                     </tr>
                 </table>
@@ -72,7 +72,7 @@
             <td style="padding: 12px 20px; border-bottom: 1px solid #e9ecef;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.status') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.status') }}</td>
                         <td align="right" style="color: #333333; font-size: 14px; font-weight: 600;">{{ $order->status->getLabel() }}</td>
                     </tr>
                 </table>
@@ -82,7 +82,7 @@
             <td style="padding: 12px 20px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td style="color: #888888; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.total') }}</td>
+                        <td style="color: #666666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">{{ __('emails.common.total') }}</td>
                         <td align="right" style="color: #003063; font-size: 16px; font-weight: 700;">€{{ number_format($order->total_price, 2, ',', '.') }}</td>
                     </tr>
                 </table>

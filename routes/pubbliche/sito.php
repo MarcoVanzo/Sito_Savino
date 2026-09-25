@@ -157,7 +157,7 @@ return function (string $namePrefix): void {
     // Le richieste di accredito arrivano dal modulo nella pagina Comunicazione
     // e finiscono in "Richieste Accrediti" nel pannello, oltre che a press@.
     Route::post('/comunicazione/accrediti', [PressAccreditationController::class, 'submit'])
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:5,1,comunicazione.accrediti.submit')
         ->name('comunicazione.accrediti.submit');
     Route::get('/comunicazione/{slug}', [PageController::class, 'show'])->name('comunicazione.page');
     Route::get('/news', [NewsController::class, 'index'])->name('news.index');

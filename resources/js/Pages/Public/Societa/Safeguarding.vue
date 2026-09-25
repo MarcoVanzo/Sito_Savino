@@ -120,7 +120,7 @@ const documents = computed(() => Array.isArray(cd.value?.documents) ? cd.value.d
                              copia; resta cliccabile per chi la posta ce l'ha. -->
                         <div v-if="reportEmail" class="flex-shrink-0 w-full md:w-auto text-center md:text-right">
                             <span class="block text-blue-200 text-xs font-bold uppercase tracking-[0.2em] mb-2">{{ $t('societa.safeguarding_report_email_label') }}</span>
-                            <a :href="'mailto:' + reportEmail" class="inline-block text-white text-lg md:text-xl font-black break-all hover:text-savino-fucsia transition-colors">
+                            <a :href="'mailto:' + reportEmail" class="inline-block text-white text-lg md:text-xl font-black break-all hover:text-savino-fucsia-chiaro transition-colors">
                                 {{ reportEmail }}
                             </a>
                         </div>

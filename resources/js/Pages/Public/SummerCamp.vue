@@ -54,7 +54,7 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span v-if="cd.hero_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
+            <span v-if="cd.hero_label" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ page?.title ?? $t('summer_camp.og_title') }}
             </h1>
@@ -159,10 +159,10 @@ const ogMeta = useOgMeta({
                     <span
                         class="text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full"
                         :class="dateInfo.status === $t('summer_camp.status_limited')
-                            ? 'bg-savino-red/10 text-savino-red'
+                            ? 'bg-savino-red/10 text-[#B8066A]'
                             : dateInfo.status === $t('summer_camp.status_coming_soon')
-                                ? 'bg-gray-200 text-gray-500'
-                                : 'bg-savino-fucsia/10 text-savino-fucsia'"
+                                ? 'bg-gray-200 text-gray-700'
+                                : 'bg-savino-fucsia/10 text-[#B8066A]'"
                        
                     >
                         {{ dateInfo.status }}

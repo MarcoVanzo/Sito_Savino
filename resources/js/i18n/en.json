@@ -127,7 +127,9 @@
         "confirm_intro": "You are about to subscribe this address to the Savino Del Bene Volley newsletter:",
         "confirm_button": "Confirm my subscription",
         "confirm_done_title": "Subscription confirmed",
-        "confirm_done_text": "Thank you! From now on you will receive the newsletter at this address:"
+        "confirm_done_text": "Thank you! From now on you will receive the newsletter at this address:",
+        "check_inbox_title": "Check your inbox",
+        "check_inbox_text": "We have sent you a link to confirm your subscription. If you cannot find it, check your spam folder too."
     },
     "lang": {
         "switch_to": "Switch to {lang}",
@@ -672,11 +674,11 @@
         "subcategory_all": "All",
         "lowest_price_30_days": "Lowest price in the 30 days before the discount: {price}",
         "lowest_price_30_days_short": "Struck-through: lowest price in the last 30 days",
-        "guarantee_link": "your legal guarantee rights",
-        "guarantee_url": "https://europa.eu/youreurope/guarantees",
-        "guarantee_rights": "Your legal guarantee rights (2 years)",
         "show_password": "Show password",
-        "hide_password": "Hide password"
+        "hide_password": "Hide password",
+        "decrease_quantity_of": "Decrease the quantity of {name}",
+        "increase_quantity_of": "Increase the quantity of {name}",
+        "remove_item_named": "Remove {name} from the cart"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Order submitted! (placeholder)",
@@ -757,7 +759,11 @@
         "terms_link": "Terms of sale",
         "terms_accept_2": "and the information on the",
         "withdrawal_link": "right of withdrawal",
-        "terms_accept_3": ", and I have read the"
+        "terms_accept_3": ", and I have read the",
+        "field_required": "This field is required",
+        "address_suggestions": "{count} suggested addresses: use the arrow keys to choose one and Enter to confirm",
+        "order_errors_title": "The order was not placed",
+        "terms_required": "To order you must accept the terms of sale"
     },
     "countries": {
         "IT": "Italy",
@@ -908,7 +914,12 @@
         "503_desc": "The site is under maintenance. We'll be back shortly.",
         "generic_desc": "An unexpected error occurred.",
         "back_home": "Back to Home",
-        "retry": "Retry"
+        "retry": "Retry",
+        "419_title": "Page expired",
+        "419_desc": "This page has expired: reload it and try again.",
+        "429_title": "Too many attempts",
+        "429_desc": "Too many attempts: please try again in a few minutes.",
+        "reload": "Reload the page"
     },
     "checkout_success": {
         "og_title": "Order Confirmed - Savino Del Bene Volley",
@@ -1187,7 +1198,8 @@
         "delete_button": "Delete my account",
         "delete_password": "To confirm, enter your password",
         "delete_confirm": "Delete permanently",
-        "delete_cancel": "Cancel"
+        "delete_cancel": "Cancel",
+        "export_note": "The download starts straight away: it is a JSON file."
     },
     "recesso": {
         "title": "Withdraw from contract",
@@ -1215,7 +1227,8 @@
         "received_intro": "We have recorded your statement and sent the receipt to {email}.",
         "sent_at": "Date and time sent",
         "next_steps": "Send the products back within 14 days quoting the order number: we refund the price and standard delivery costs within 14 days.",
-        "returns_link": "How to return the products"
+        "returns_link": "How to return the products",
+        "print": "Print or save as PDF"
     },
     "spedizioni": {
         "table_title": "Costs and times by area",
@@ -1228,7 +1241,8 @@
         "over": "over {kg}",
         "free_from": "on orders from {amount}",
         "days": "{min}-{max} working days",
-        "table_note": "The cost depends on the total weight of the order; the exact amount is always shown in the summary before you confirm."
+        "table_note": "The cost depends on the total weight of the order; the exact amount is always shown in the summary before you confirm.",
+        "any_weight": "Any weight"
     },
     "garanzia_legale": {
         "link": "Your legal guarantee rights",
@@ -1241,7 +1255,9 @@
     },
     "accessibilita": {
         "skip_to_content": "Skip to content",
-        "pause_motion": "Pause",
-        "resume_motion": "Play"
+        "pause_motion": "Pause animations",
+        "resume_motion": "Resume animations",
+        "go_to_slide": "Image {n} of {total}",
+        "gallery_label": "Scrolling photos"
     }
 }

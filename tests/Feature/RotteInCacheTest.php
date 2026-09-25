@@ -18,10 +18,21 @@ class RotteInCacheTest extends TestCase
     #[Test]
     public function le_rotte_si_mettono_in_cache(): void
     {
+        // Il file va in una cartella temporanea, non in bootstrap/cache: il
+        // working tree è condiviso fra più sessioni, e un'esecuzione
+        // interrotta lascerebbe a tutte le rotte vecchie in cache.
+        $percorso = sys_get_temp_dir().'/rotte-in-cache-'.getmypid().'.php';
+        putenv('APP_ROUTES_CACHE='.$percorso);
+        $_ENV['APP_ROUTES_CACHE'] = $_SERVER['APP_ROUTES_CACHE'] = $percorso;
+
         try {
             $this->assertSame(0, Artisan::call('route:cache'));
+            $this->assertFileExists($percorso);
         } finally {
             Artisan::call('route:clear');
+            putenv('APP_ROUTES_CACHE');
+            unset($_ENV['APP_ROUTES_CACHE'], $_SERVER['APP_ROUTES_CACHE']);
+            @unlink($percorso);
         }
     }
 }

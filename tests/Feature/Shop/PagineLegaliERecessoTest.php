@@ -132,18 +132,23 @@ class PagineLegaliERecessoTest extends TestCase
         $user = User::factory()->create();
         $ordine = Order::factory()->create(['user_id' => $user->id]);
 
-        $this->post(route('recesso.store'), [
+        $risposta = $this->post(route('recesso.store'), [
             'nome' => 'Maria Bianchi',
             'email' => 'maria@example.com',
             'numero_ordine' => $ordine->order_number,
             'articoli' => 'Maglia home taglia M',
             'conferma' => true,
-        ])
+        ])->assertRedirect();
+
+        // La ricevuta sta su un indirizzo firmato: ricaricarla la rilegge,
+        // non rimanda la dichiarazione.
+        $this->get($risposta->headers->get('Location'))
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $pagina) => $pagina
                 ->component('Public/Shop/Recesso')
                 ->where('ricevuta.numero_ordine', $ordine->order_number)
                 ->has('ricevuta.inviata_il'));
+        $this->get(route('recesso.ricevuta', ['richiesta' => RichiestaDiRecesso::sole()->id]))->assertForbidden();
 
         $richiesta = RichiestaDiRecesso::sole();
         $this->assertSame($ordine->id, $richiesta->order_id);
@@ -152,6 +157,32 @@ class PagineLegaliERecessoTest extends TestCase
         // La ricevuta parte subito (send, non queue); l'avviso allo shop in coda.
         Mail::assertSent(RicevutaDiRecesso::class, fn ($mail) => $mail->hasTo('maria@example.com'));
         Mail::assertQueued(AvvisoDiRecessoAlloShop::class);
+
+        // L'ordine è intestato a un altro indirizzo: il titolare riceve una
+        // copia, e il pannello lo segnala.
+        Mail::assertSent(RicevutaDiRecesso::class, fn ($mail) => $mail->hasTo($user->email));
+        $this->assertTrue($richiesta->emailDiversaDaQuellaDellOrdine());
+    }
+
+    #[Test]
+    public function lo_stesso_indirizzo_non_riceve_piu_di_tre_ricevute_al_giorno(): void
+    {
+        // Il limite per IP della rotta non ferma chi cambia indirizzo IP: la
+        // ricevuta va all'email scritta nel modulo.
+        Mail::fake();
+
+        foreach (range(1, 4) as $volta) {
+            $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.'.$volta])
+                ->post(route('recesso.store'), [
+                    'nome' => 'Chiunque',
+                    'email' => 'vittima@example.com',
+                    'numero_ordine' => 'X-'.$volta,
+                    'conferma' => true,
+                ]);
+        }
+
+        $this->assertSame(3, RichiestaDiRecesso::count());
+        Mail::assertSentCount(3);
     }
 
     #[Test]
@@ -164,7 +195,7 @@ class PagineLegaliERecessoTest extends TestCase
             'email' => 'maria@example.com',
             'numero_ordine' => 'NON-ESISTE',
             'conferma' => true,
-        ])->assertOk();
+        ])->assertRedirect();
 
         $this->assertNull(RichiestaDiRecesso::sole()->order_id);
     }
@@ -208,5 +239,22 @@ class PagineLegaliERecessoTest extends TestCase
         $condizioni = Page::where('slug', 'condizioni-di-vendita')->first()->getTranslation('content', 'it');
         $this->assertStringContainsString('REA FI-624279', $condizioni);
         $this->assertStringContainsString('150.000,00', $condizioni);
+    }
+
+    #[Test]
+    public function troppi_invii_da_inertia_tornano_alla_pagina_con_un_messaggio(): void
+    {
+        // Un 429 grezzo a una richiesta Inertia apriva la finestra con l'HTML
+        // di Laravel: ora si torna indietro con il modulo compilato.
+
+        foreach (range(1, 3) as $volta) {
+            $this->post(route('recesso.store'), []);
+        }
+
+        $this->from(route('recesso'))
+            ->withHeaders(['X-Inertia' => 'true'])
+            ->post(route('recesso.store'), [])
+            ->assertRedirect(route('recesso'))
+            ->assertSessionHas('error', __('messages.errori.troppi_tentativi'));
     }
 }

@@ -127,7 +127,9 @@
         "confirm_intro": "Stai per iscrivere questo indirizzo alla newsletter della Savino Del Bene Volley:",
         "confirm_button": "Confermo l'iscrizione",
         "confirm_done_title": "Iscrizione confermata",
-        "confirm_done_text": "Grazie! Da ora riceverai la newsletter a questo indirizzo:"
+        "confirm_done_text": "Grazie! Da ora riceverai la newsletter a questo indirizzo:",
+        "check_inbox_title": "Controlla la tua email",
+        "check_inbox_text": "Ti abbiamo mandato il link per confermare l’iscrizione. Se non lo trovi, guarda anche nella cartella dello spam."
     },
     "lang": {
         "switch_to": "Passa a {lang}",
@@ -672,11 +674,11 @@
         "subcategory_all": "Tutti",
         "lowest_price_30_days": "Prezzo più basso degli ultimi 30 giorni prima dello sconto: {price}",
         "lowest_price_30_days_short": "Barrato: prezzo più basso ultimi 30 giorni",
-        "guarantee_link": "i tuoi diritti di garanzia legale",
-        "guarantee_url": "https://europa.eu/youreurope/garanzie",
-        "guarantee_rights": "I tuoi diritti di garanzia legale (2 anni)",
         "show_password": "Mostra la password",
-        "hide_password": "Nascondi la password"
+        "hide_password": "Nascondi la password",
+        "decrease_quantity_of": "Diminuisci la quantità di {name}",
+        "increase_quantity_of": "Aumenta la quantità di {name}",
+        "remove_item_named": "Rimuovi {name} dal carrello"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Ordine inviato! (placeholder)",
@@ -757,7 +759,11 @@
         "terms_link": "Condizioni di vendita",
         "terms_accept_2": "e l'informativa sul",
         "withdrawal_link": "diritto di recesso",
-        "terms_accept_3": ", e ho letto la"
+        "terms_accept_3": ", e ho letto la",
+        "field_required": "Campo obbligatorio",
+        "address_suggestions": "{count} indirizzi suggeriti: usa le frecce per sceglierne uno e Invio per confermare",
+        "order_errors_title": "L’ordine non è partito",
+        "terms_required": "Per ordinare devi accettare le condizioni di vendita"
     },
     "countries": {
         "IT": "Italia",
@@ -908,7 +914,12 @@
         "503_desc": "Il sito è in manutenzione. Torneremo operativi a breve.",
         "generic_desc": "Si è verificato un errore imprevisto.",
         "back_home": "Torna alla Home",
-        "retry": "Riprova"
+        "retry": "Riprova",
+        "419_title": "Pagina scaduta",
+        "419_desc": "La pagina è scaduta: ricaricala e riprova.",
+        "429_title": "Troppi tentativi",
+        "429_desc": "Troppi tentativi: riprova fra qualche minuto.",
+        "reload": "Ricarica la pagina"
     },
     "checkout_success": {
         "og_title": "Ordine Confermato - Savino Del Bene Volley",
@@ -1187,7 +1198,8 @@
         "delete_button": "Cancella il mio account",
         "delete_password": "Per confermare, scrivi la tua password",
         "delete_confirm": "Cancella definitivamente",
-        "delete_cancel": "Annulla"
+        "delete_cancel": "Annulla",
+        "export_note": "Il download parte subito: è un file JSON."
     },
     "recesso": {
         "title": "Recedi dal contratto",
@@ -1215,7 +1227,8 @@
         "received_intro": "Abbiamo registrato la tua dichiarazione e ti abbiamo inviato la ricevuta a {email}.",
         "sent_at": "Data e ora di invio",
         "next_steps": "Rispedisci i prodotti entro 14 giorni indicando il numero d'ordine: ti rimborsiamo prezzo e spese di consegna standard entro 14 giorni.",
-        "returns_link": "Come restituire i prodotti"
+        "returns_link": "Come restituire i prodotti",
+        "print": "Stampa o salva in PDF"
     },
     "spedizioni": {
         "table_title": "Costi e tempi per zona",
@@ -1228,7 +1241,8 @@
         "over": "oltre {kg}",
         "free_from": "da {amount} di spesa",
         "days": "{min}-{max} giorni lavorativi",
-        "table_note": "Il costo dipende dal peso totale dell'ordine; il conto esatto è sempre nel riepilogo prima della conferma."
+        "table_note": "Il costo dipende dal peso totale dell'ordine; il conto esatto è sempre nel riepilogo prima della conferma.",
+        "any_weight": "Qualsiasi peso"
     },
     "garanzia_legale": {
         "link": "I tuoi diritti di garanzia legale",
@@ -1241,7 +1255,9 @@
     },
     "accessibilita": {
         "skip_to_content": "Vai al contenuto",
-        "pause_motion": "Metti in pausa",
-        "resume_motion": "Riprendi"
+        "pause_motion": "Ferma le animazioni",
+        "resume_motion": "Riprendi le animazioni",
+        "go_to_slide": "Immagine {n} di {total}",
+        "gallery_label": "Scorrimento delle foto"
     }
 }

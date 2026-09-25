@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Page;
 use App\Support\CondizioniDiVendita;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -73,5 +74,23 @@ class CondizioniDiVenditaTest extends TestCase
             fn ($dati) => $dati(),
         );
         $this->assertStringStartsWith('%PDF', $pdf);
+    }
+
+    public function test_l_allegato_riporta_il_testo_pubblicato_con_i_link_assoluti(): void
+    {
+        // Il cliente accetta la pagina che legge: se la redazione l'ha
+        // ritoccata, il PDF deve essere quella, non il file dati.
+        CondizioniDiVendita::creaLePagineMancanti();
+        DB::table('pages')->where('slug', 'condizioni-di-vendita')->update([
+            'content' => json_encode(['it' => '<p>Testo ritoccato. <a href="/recesso">Recedi</a></p>', 'en' => '']),
+        ]);
+
+        $pagine = CondizioniDiVendita::perLAllegato('it');
+
+        $this->assertStringContainsString('Testo ritoccato', $pagine['condizioni-di-vendita']['contenuto']);
+        $this->assertStringContainsString('href="'.rtrim(config('app.url'), '/').'/recesso"', $pagine['condizioni-di-vendita']['contenuto']);
+
+        // Vuota in inglese: il testo del file dati, non una pagina bianca.
+        $this->assertNotSame('', trim(strip_tags(CondizioniDiVendita::perLAllegato('en')['condizioni-di-vendita']['contenuto'])));
     }
 }

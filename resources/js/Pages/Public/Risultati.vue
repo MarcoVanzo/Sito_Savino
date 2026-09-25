@@ -234,7 +234,7 @@ const ogMeta = useOgMeta({
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-br" :class="theme.bgGradient"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('risultati.current_season') }}</span>
+                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ seasonName || $t('risultati.current_season') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">{{ pageTitle || page?.title || $t('risultati.og_title') }}</h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
                 <p class="text-white/70 text-lg max-w-2xl mx-auto">{{ $t('risultati.hero_subtitle') }}</p>
@@ -468,7 +468,7 @@ const ogMeta = useOgMeta({
                                 </td>
                                 <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.played }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-green-600 font-semibold">{{ row.won }}</td>
-                                <td class="px-4 py-3 text-sm text-center text-savino-red font-semibold">{{ row.lost }}</td>
+                                <td class="px-4 py-3 text-sm text-center text-[#B8066A] font-semibold">{{ row.lost }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.setWon }}</td>
                                 <td class="px-4 py-3 text-sm text-center text-gray-600">{{ row.setLost }}</td>
                                 <td class="px-4 py-3 text-center">

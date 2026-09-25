@@ -41,7 +41,7 @@
                         <td style="background-color: #f5f5f5; padding: 24px 28px; font-family: 'Montserrat', Arial, sans-serif;">
                             @yield('footer_extra')
 
-                            <p style="color: #888888; font-size: 13px; margin: 0 0 8px; text-align: center; line-height: 1.5;">
+                            <p style="color: #666666; font-size: 13px; margin: 0 0 8px; text-align: center; line-height: 1.5;">
                                 <strong>Savino Del Bene Volley</strong> | Firenze<br>
                                 @if(\App\Models\SiteSetting::get('shop.contact_email'))
                                     <a href="mailto:{{ \App\Models\SiteSetting::get('shop.contact_email') }}" style="color: #003063; text-decoration: none;">
@@ -51,7 +51,7 @@
                                 &copy; {{ date('Y') }} Savino Del Bene Volley
                             </p>
 
-                            <p style="color: #aaaaaa; font-size: 11px; margin: 16px 0 0; text-align: center; border-top: 1px solid #e0e0e0; padding-top: 16px; line-height: 1.4;">
+                            <p style="color: #666666; font-size: 11px; margin: 16px 0 0; text-align: center; border-top: 1px solid #e0e0e0; padding-top: 16px; line-height: 1.4;">
                                 {{ __('emails.layout.auto_generated') }}
                             </p>
                         </td>

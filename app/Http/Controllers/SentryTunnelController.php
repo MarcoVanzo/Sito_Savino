@@ -26,6 +26,11 @@ class SentryTunnelController extends Controller
 
     public function __invoke(Request $request): Response
     {
+        // Il corpo si legge solo dopo aver guardato quanto dichiara di pesare.
+        if ((int) $request->header('Content-Length', '0') > self::DIMENSIONE_MASSIMA) {
+            return response('', 413);
+        }
+
         $dsn = (string) config('sentry.dsn');
         $busta = $request->getContent();
 
@@ -54,6 +59,17 @@ class SentryTunnelController extends Controller
             // Sentry irraggiungibile: il browser non ha niente da fare con un
             // errore, e riprovare lo spedirebbe due volte.
             return response('', 202);
+        }
+
+        // Il 429 di Sentry torna al browser con le sue intestazioni: è così
+        // che l'SDK rallenta. Mascherato da 202, un browser in un ciclo
+        // d'errore continuerebbe a spedire e a consumare la quota del
+        // progetto, che è la stessa degli errori del server.
+        if ($risposta->status() === 429) {
+            return response('', 429)->withHeaders(array_filter([
+                'X-Sentry-Rate-Limits' => $risposta->header('X-Sentry-Rate-Limits'),
+                'Retry-After' => $risposta->header('Retry-After'),
+            ]));
         }
 
         return response('', $risposta->successful() ? 200 : 202);

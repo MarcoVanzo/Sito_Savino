@@ -28,7 +28,7 @@ const showPasswordConfirm = ref(false);
 
 const passwordStrength = computed(() => {
     const p = form.password;
-    if (!p) return { score: 0, label: '', color: '' };
+    if (!p) return { score: 0, label: '', color: '', testo: '' };
     let score = 0;
     if (p.length >= 8) score++;
     if (p.length >= 12) score++;
@@ -36,11 +36,11 @@ const passwordStrength = computed(() => {
     if (/\d/.test(p)) score++;
     if (/[^A-Za-z0-9]/.test(p)) score++;
 
-    if (score <= 1) return { score: 1, label: $t('shop.password_strength_weak') || 'Debole', color: 'bg-red-500' };
-    if (score <= 2) return { score: 2, label: $t('shop.password_strength_fair') || 'Discreta', color: 'bg-orange-500' };
-    if (score <= 3) return { score: 3, label: $t('shop.password_strength_good') || 'Buona', color: 'bg-yellow-500' };
-    if (score <= 4) return { score: 4, label: $t('shop.password_strength_strong') || 'Forte', color: 'bg-emerald-500' };
-    return { score: 5, label: $t('shop.password_strength_excellent') || 'Eccellente', color: 'bg-emerald-400' };
+    if (score <= 1) return { score: 1, label: $t('shop.password_strength_weak') || 'Debole', color: 'bg-red-500', testo: 'text-red-300' };
+    if (score <= 2) return { score: 2, label: $t('shop.password_strength_fair') || 'Discreta', color: 'bg-orange-500', testo: 'text-orange-300' };
+    if (score <= 3) return { score: 3, label: $t('shop.password_strength_good') || 'Buona', color: 'bg-yellow-500', testo: 'text-yellow-300' };
+    if (score <= 4) return { score: 4, label: $t('shop.password_strength_strong') || 'Forte', color: 'bg-emerald-500', testo: 'text-emerald-300' };
+    return { score: 5, label: $t('shop.password_strength_excellent') || 'Eccellente', color: 'bg-emerald-400', testo: 'text-emerald-300' };
 });
 
 const submit = () => {
@@ -120,7 +120,7 @@ const submit = () => {
                                     :placeholder="$t('shop.full_name')"
                                 />
                             </div>
-                            <InputError id="errore-name" class="mt-2" :message="form.errors.name" />
+                            <InputError scuro id="errore-name" class="mt-2" :message="form.errors.name" />
                         </div>
 
                         <!-- Email -->
@@ -146,7 +146,7 @@ const submit = () => {
                                     :placeholder="$t('shop.email_placeholder')"
                                 />
                             </div>
-                            <InputError id="errore-email" class="mt-2" :message="form.errors.email" />
+                            <InputError scuro id="errore-email" class="mt-2" :message="form.errors.email" />
                         </div>
 
                         <!-- Password -->
@@ -175,7 +175,6 @@ const submit = () => {
                                     type="button"
                                     @click="showPassword = !showPassword"
                                     :aria-label="showPassword ? $t('shop.hide_password') : $t('shop.show_password')"
-                                    :aria-pressed="showPassword"
                                     class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-300 transition-colors"
                                 >
                                     <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,11 +196,11 @@ const submit = () => {
                                         :class="i <= passwordStrength.score ? passwordStrength.color : 'bg-gray-700'"
                                     ></div>
                                 </div>
-                                <p class="text-xs mt-1.5" :class="passwordStrength.color.replace('bg-', 'text-')">
+                                <p class="text-xs mt-1.5" :class="passwordStrength.testo">
                                     {{ passwordStrength.label }}
                                 </p>
                             </div>
-                            <InputError id="errore-password" class="mt-2" :message="form.errors.password" />
+                            <InputError scuro id="errore-password" class="mt-2" :message="form.errors.password" />
                         </div>
 
                         <!-- Conferma Password -->
@@ -230,7 +229,6 @@ const submit = () => {
                                     type="button"
                                     @click="showPasswordConfirm = !showPasswordConfirm"
                                     :aria-label="showPasswordConfirm ? $t('shop.hide_password') : $t('shop.show_password')"
-                                    :aria-pressed="showPasswordConfirm"
                                     class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-300 transition-colors"
                                 >
                                     <svg v-if="!showPasswordConfirm" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,7 +248,7 @@ const submit = () => {
                             >
                                 {{ form.password === form.password_confirmation ? $t('shop.password_match') || '✓ Le password coincidono' : $t('shop.password_mismatch') || '✗ Le password non coincidono' }}
                             </p>
-                            <InputError id="errore-password_confirmation" class="mt-2" :message="form.errors.password_confirmation" />
+                            <InputError scuro id="errore-password_confirmation" class="mt-2" :message="form.errors.password_confirmation" />
                         </div>
 
                         <!-- Divider -->
@@ -260,7 +258,14 @@ const submit = () => {
                         <div>
                             <label for="privacy_accepted" class="flex items-start gap-3 cursor-pointer group">
                                 <div class="mt-0.5">
-                                    <Checkbox id="privacy_accepted" name="privacy_accepted" v-model:checked="form.privacy_accepted" required />
+                                    <Checkbox
+                                        id="privacy_accepted"
+                                        name="privacy_accepted"
+                                        v-model:checked="form.privacy_accepted"
+                                        required
+                                        :aria-invalid="!!form.errors.privacy_accepted"
+                                        :aria-describedby="form.errors.privacy_accepted ? 'errore-privacy_accepted' : undefined"
+                                    />
                                 </div>
                                 <span class="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors">
                                     {{ $t('shop.accept_privacy_1') }}
@@ -272,7 +277,7 @@ const submit = () => {
                                     >{{ $t('shop.accept_privacy_2') }}</a>
                                 </span>
                             </label>
-                            <InputError id="errore-privacy_accepted" class="mt-2" :message="form.errors.privacy_accepted" />
+                            <InputError scuro id="errore-privacy_accepted" class="mt-2" :message="form.errors.privacy_accepted" />
                         </div>
 
                         <!-- Submit Button -->
@@ -282,7 +287,7 @@ const submit = () => {
                                 class="w-full relative overflow-hidden py-3.5 px-6 rounded-lg text-base font-bold uppercase tracking-wider transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-savino-fucsia/50 focus:ring-offset-2 focus:ring-offset-gray-800"
                                 :class="form.processing
                                     ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-savino-fucsia to-yellow-600 text-gray-900 hover:from-yellow-500 hover:to-savino-fucsia hover:shadow-lg hover:shadow-savino-fucsia/20 active:scale-[0.98]'"
+                                    : 'bg-gradient-to-r from-savino-fucsia to-savino-pink text-white hover:from-savino-pink hover:to-savino-fucsia hover:shadow-lg hover:shadow-savino-fucsia/20 active:scale-[0.98]'"
                                 :disabled="form.processing"
                             >
                                 <span v-if="form.processing" class="flex items-center justify-center gap-2">

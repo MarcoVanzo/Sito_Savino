@@ -90,7 +90,7 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[45vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span v-if="cd.hero_label" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
+            <span v-if="cd.hero_label" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_label }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ page?.title }}
             </h1>
@@ -123,8 +123,8 @@ const ogMeta = useOgMeta({
                     <span class="text-gray-700 flex-grow">{{ stage.place }}</span>
                     <span
                         v-if="stage.status"
-                        class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full self-start sm:self-auto sm:flex-shrink-0"
-                        :class="stage.sold_out ? 'bg-gray-100 text-gray-500' : 'bg-savino-fucsia/10 text-savino-fucsia'"
+                        class="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full self-start sm:self-auto sm:flex-shrink-0"
+                        :class="stage.sold_out ? 'bg-gray-100 text-gray-700' : 'bg-savino-fucsia/10 text-[#B8066A]'"
                     >
                         {{ stage.status }}
                     </span>

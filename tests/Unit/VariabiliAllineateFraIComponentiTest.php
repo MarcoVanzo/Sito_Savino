@@ -119,6 +119,7 @@ class VariabiliAllineateFraIComponentiTest extends TestCase
         $componenti = [];
         $dentro = false;
         $corrente = null;
+        $inEnvs = false;
 
         foreach ($righe as $riga) {
             // Sezioni di primo livello: solo services/workers/jobs contengono
@@ -136,6 +137,7 @@ class VariabiliAllineateFraIComponentiTest extends TestCase
             if (str_starts_with($riga, '- ')) {
                 $componenti[] = ['nome' => null, 'envs' => []];
                 $corrente = array_key_last($componenti);
+                $inEnvs = false;
             }
 
             if ($corrente === null) {
@@ -144,6 +146,16 @@ class VariabiliAllineateFraIComponentiTest extends TestCase
 
             if (preg_match('/^  name: (\S+)/', $riga, $m)) {
                 $componenti[$corrente]['nome'] = $m[1];
+            }
+
+            // Solo dentro `envs:` del componente: anche `alerts:` ha righe
+            // `value:`, che altrimenti riscriverebbero l'ultima variabile.
+            if (preg_match('/^[- ] ([a-z_]+):/', $riga, $m)) {
+                $inEnvs = $m[1] === 'envs';
+            }
+
+            if (! $inEnvs) {
+                continue;
             }
 
             if (preg_match('/^  - key: (\S+)/', $riga, $m)) {

@@ -80,7 +80,7 @@ class AccountController extends Controller
 
         Auth::logout();
 
-        $utente->delete();
+        $this->dati->cancella($utente);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

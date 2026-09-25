@@ -142,4 +142,20 @@ describe('meta pixel', () => {
 
         expect(calls().filter((call) => call[1] === 'Purchase')).toHaveLength(0);
     });
+
+    it('un Purchase non partito per mancanza di consenso non blocca quello successivo', async () => {
+        const { initMetaPixel, updateMarketingConsent, trackPurchase } = await freshModule();
+
+        initMetaPixel('2048882385693445', { needsConsent: true, hasConsent: false });
+        const ordine = { orderNumber: 'SDB-2026-0003', value: 30 };
+
+        trackPurchase(ordine);
+        expect(sessionStorage.getItem('meta-pixel-purchase-SDB-2026-0003')).toBeNull();
+
+        updateMarketingConsent(true);
+        trackPurchase(ordine);
+
+        expect(calls().filter((call) => call[1] === 'Purchase')).toHaveLength(1);
+        expect(sessionStorage.getItem('meta-pixel-purchase-SDB-2026-0003')).toBe('1');
+    });
 });

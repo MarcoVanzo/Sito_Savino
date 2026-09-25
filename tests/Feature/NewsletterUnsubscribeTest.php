@@ -122,6 +122,12 @@ class NewsletterUnsubscribeTest extends TestCase
             'privacy_accepted' => true,
         ])->assertSessionHas('success');
 
+        // La richiesta da sola non cancella la disiscrizione: chiunque può
+        // scrivere l'indirizzo nel modulo. Si rientra al click sul link.
+        $this->assertFalse($subscriber->fresh()->isSubscribed());
+
+        $subscriber->fresh()->conferma();
+
         $this->assertTrue($subscriber->fresh()->isSubscribed());
     }
 }

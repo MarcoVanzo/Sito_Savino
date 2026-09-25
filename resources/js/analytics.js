@@ -69,8 +69,14 @@ export function initAnalytics(id, hasConsent) {
 
 /**
  * Da chiamare quando l'utente accetta o revoca i cookie di statistica.
+ *
+ * La revoca cancella anche `_ga` e `_ga_<id>` gia' scritti, come il pixel fa
+ * con `_fbp`: `analytics_storage: denied` impedisce a gtag di scriverne di
+ * nuovi, ma quelli che ci sono resterebbero per due anni.
  */
 export function updateAnalyticsConsent(granted) {
+    if (!granted) cancellaICookieDiAnalytics();
+
     if (!measurementId) return;
 
     ensureDataLayer();
@@ -96,4 +102,32 @@ export function trackPageView() {
         page_path: window.location.pathname + window.location.search,
         page_title: document.title,
     });
+}
+
+/**
+ * GA4 scrive i suoi cookie sul dominio piu' alto che il browser gli concede
+ * (`.savinodelbenevolley.it` anche visitando `www.`), con o senza il punto:
+ * si cancellano sul nome dell'host e su ciascuno dei domini che lo contengono.
+ */
+function cancellaICookieDiAnalytics() {
+    if (typeof document === 'undefined') return;
+
+    const nomi = document.cookie
+        .split(';')
+        .map((coppia) => coppia.split('=')[0].trim())
+        .filter((nome) => nome === '_ga' || nome.startsWith('_ga_'));
+
+    if (nomi.length === 0) return;
+
+    const parti = window.location.hostname.split('.');
+    const domini = parti.map((_, i) => parti.slice(i).join('.')).filter((d) => d.includes('.'));
+    const scadenza = 'expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+
+    for (const nome of nomi) {
+        document.cookie = `${nome}=; ${scadenza}`;
+        for (const dominio of domini) {
+            document.cookie = `${nome}=; ${scadenza}; domain=${dominio}`;
+            document.cookie = `${nome}=; ${scadenza}; domain=.${dominio}`;
+        }
+    }
 }

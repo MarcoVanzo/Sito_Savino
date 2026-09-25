@@ -4,6 +4,7 @@ namespace Tests\Feature\Observability;
 
 use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -25,7 +26,9 @@ class SorvegliaLoShopTest extends TestCase
             // PayPal fuori dal giro: interrogherebbe l'API vera.
             'services.paypal.client_id' => null,
             'services.paypal.client_secret' => null,
-            'services.stripe.secret' => null,
+            // Stripe con una chiave finta: le aste pagano solo con Stripe, e
+            // senza avviserebbero in ogni test (c'è un test apposta).
+            'services.stripe.secret' => 'sk_test_finto',
         ]);
     }
 
@@ -73,13 +76,30 @@ class SorvegliaLoShopTest extends TestCase
     }
 
     #[Test]
-    public function un_negozio_gia_chiuso_al_primo_giro_non_avvisa(): void
+    public function un_negozio_gia_chiuso_al_primo_giro_avvisa_una_volta_al_giorno(): void
     {
+        // Dopo un rilascio la cache è vuota: un negozio spento da un Salva
+        // caduto fra l'ultimo giro e il deploy non deve passare in silenzio.
+        // Lo stesso stato ritrovato a ogni rilascio non si riannuncia.
         SiteSetting::set('shop.enabled', '0');
 
         $this->giro();
+        Cache::forget('sorveglianza:interruttore:negozio');
+        $this->giro();
 
-        $this->assertSame([], $this->oggetti());
+        $this->assertSame(['[Sito Savino] Il negozio è chiuso'], $this->oggetti());
+    }
+
+    #[Test]
+    public function aste_accese_senza_stripe_avvisa(): void
+    {
+        config(['services.stripe.secret' => null]);
+        SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');
+
+        $this->giro();
+        $this->giro();
+
+        $this->assertSame(['[Sito Savino] Le aste non si possono pagare'], $this->oggetti());
     }
 
     #[Test]
@@ -104,7 +124,10 @@ class SorvegliaLoShopTest extends TestCase
     #[Test]
     public function un_gateway_attivo_ma_senza_credenziali_non_conta(): void
     {
+        config(['services.stripe.secret' => null]);
+        SiteSetting::set('auctions.enabled', '0');
         SiteSetting::set('shop.active_payment_gateways', 'stripe');
+        Cache::forever('sorveglianza:interruttore:aste', false);
 
         $this->giro();
 
@@ -116,6 +139,8 @@ class SorvegliaLoShopTest extends TestCase
     {
         SiteSetting::set('shop.enabled', '0');
         SiteSetting::set('shop.active_payment_gateways', '');
+        // Chiuso già al giro precedente: nessun cambio da annunciare.
+        Cache::forever('sorveglianza:interruttore:negozio', false);
 
         $this->giro();
 

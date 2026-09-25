@@ -69,6 +69,19 @@ return [
         'delete_blocked_staff' => 'This is an editorial account: it is managed from the admin panel.',
         'delete_blocked_auction' => 'You have an auction in progress or a won auction to pay for: you can delete your account once it is over.',
     ],
+    'recesso' => [
+        'troppi_invii' => 'Three statements have already been sent from this address today and we have recorded them. For anything else, write to info@savinodelbenevolley.it.',
+    ],
+    'auction_checkout' => [
+        'not_winner' => 'This payment is not in your name: the link is reserved for the winner of the auction.',
+        'already_ordered' => 'You have already completed the order for this auction.',
+        'deadline_expired' => 'The time to pay for this auction has expired: it has passed to the next bidder.',
+    ],
+    'errori' => [
+        'pagina_scaduta' => 'The page was open for too long: we have renewed your session, please submit again.',
+        'troppi_tentativi' => 'Too many attempts in a short time: please try again in a few minutes.',
+        'link_scaduto' => 'The link has expired or is incomplete. If you were confirming your newsletter subscription, subscribe again at the bottom of the page: we will send you a new link.',
+    ],
     'newsletter' => [
         'already_subscribed' => 'This email is already subscribed to the newsletter.',
         'success' => 'Subscription confirmed! Thank you for subscribing.',

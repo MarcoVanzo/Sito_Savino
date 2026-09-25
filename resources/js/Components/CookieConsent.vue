@@ -1,9 +1,10 @@
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount, computed, nextTick } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { updateAnalyticsConsent } from '../analytics.js';
 import { updateMarketingConsent } from '../meta-pixel.js';
 import { leggiIlConsenso, salvaIlConsenso, registraIlConsenso, consensoInAttesa } from '../consenso.js';
+import { useTrappolaDelFocus } from '@/Composables/useTrappolaDelFocus.js';
 
 /**
  * L'evento con cui il footer, la cookie policy o qualunque altro punto del sito
@@ -50,6 +51,48 @@ const apriIlBanner = () => {
     showSettings.value = true;
 };
 
+// Riaperto dall'icona o da un link, il pannello e' una finestra: il focus ci
+// entra e non esce col Tab, l'Esc lo chiude (WCAG 2.4.3). Al primo accesso
+// resta un banner che non blocca la pagina.
+const riaperto = computed(() => showBanner.value && sceltaFatta.value);
+const pannello = ref(null);
+const iconaCookie = ref(null);
+useTrappolaDelFocus(pannello, riaperto);
+
+// Chiusura senza salvare, per chi ha gia' scelto: la X non deve revocare
+// una scelta solo perche' si e' riaperto il pannello per guardarla. Le caselle
+// toccate e non salvate tornano come erano.
+const chiudiSenzaSalvare = () => {
+    const salvato = leggiIlConsenso(versione.value);
+    consent.analytics = salvato.statistiche;
+    consent.marketing = salvato.marketing;
+    showBanner.value = false;
+    showSettings.value = false;
+};
+
+const suEsc = (evento) => {
+    if (evento.key === 'Escape' && riaperto.value) {
+        chiudiSenzaSalvare();
+    }
+};
+
+// Il pulsante che aveva riaperto il pannello (l'icona) nel frattempo e'
+// sparito: se il focus non e' tornato altrove, va sull'icona ricomparsa.
+const riportaIlFocus = () => nextTick(() => {
+    if (!document.activeElement || document.activeElement === document.body) {
+        iconaCookie.value?.focus();
+    }
+});
+
+const suX = () => {
+    if (sceltaFatta.value) {
+        chiudiSenzaSalvare();
+        riportaIlFocus();
+    } else {
+        rejectAll();
+    }
+};
+
 onMounted(() => {
     const salvato = leggiIlConsenso(versione.value);
 
@@ -79,9 +122,13 @@ onMounted(() => {
     }
 
     window.addEventListener(EVENTO_APERTURA, apriIlBanner);
+    document.addEventListener('keydown', suEsc);
 });
 
-onBeforeUnmount(() => window.removeEventListener(EVENTO_APERTURA, apriIlBanner));
+onBeforeUnmount(() => {
+    window.removeEventListener(EVENTO_APERTURA, apriIlBanner);
+    document.removeEventListener('keydown', suEsc);
+});
 
 async function registra(statistiche, marketing) {
     const esito = await registraIlConsenso(
@@ -109,6 +156,8 @@ async function registra(statistiche, marketing) {
 }
 
 const saveConsent = () => {
+    const eraRiaperto = riaperto.value;
+
     salvaIlConsenso({
         statistiche: consent.analytics,
         marketing: consent.marketing,
@@ -129,6 +178,10 @@ const saveConsent = () => {
     sceltaFatta.value = true;
     showBanner.value = false;
     showSettings.value = false;
+
+    if (eraRiaperto) {
+        riportaIlFocus();
+    }
 };
 
 const acceptAll = () => {
@@ -161,16 +214,22 @@ defineExpose({ show: apriIlBanner });
         leave-to-class="translate-y-full opacity-0"
     >
         <div v-if="showBanner" class="fixed bottom-0 left-0 right-0 z-[100] p-4">
-            <div class="relative max-w-4xl mx-auto bg-gray-900/95 backdrop-blur-lg text-white rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden">
+            <div
+                ref="pannello"
+                :role="riaperto ? 'dialog' : 'region'"
+                :aria-modal="riaperto ? 'true' : undefined"
+                aria-labelledby="cookie-titolo"
+                class="relative max-w-4xl mx-auto bg-gray-900/95 backdrop-blur-lg text-white rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden">
                 <!-- La X chiude il banner rifiutando: è ciò che le linee guida
                      del Garante chiedono, perché chiudere non può valere come
-                     un sì né lasciare il banner a insistere. -->
+                     un sì né lasciare il banner a insistere. Con la scelta già
+                     fatta (pannello riaperto) chiude e basta. -->
                 <button
                     type="button"
                     class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-savino-fucsia"
-                    :aria-label="$t('cookie.close_reject')"
-                    :title="$t('cookie.close_reject')"
-                    @click="rejectAll"
+                    :aria-label="sceltaFatta ? $t('common.close') : $t('cookie.close_reject')"
+                    :title="sceltaFatta ? $t('common.close') : $t('cookie.close_reject')"
+                    @click="suX"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -180,7 +239,7 @@ defineExpose({ show: apriIlBanner });
                 <!-- Banner principale -->
                 <div class="p-6 pr-12 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div class="flex-1">
-                        <h4 class="text-sm font-bold mb-1">{{ $t('cookie.title') }}</h4>
+                        <h2 id="cookie-titolo" class="text-sm font-bold mb-1">{{ $t('cookie.title') }}</h2>
                         <p class="text-xs text-gray-400 leading-relaxed">
                             {{ $t('cookie.description') }}
                             <Link :href="route('pages.show', 'privacy-policy')" class="text-savino-fucsia-chiaro underline hover:text-white">{{ $t('footer.privacy_policy') }}</Link>
@@ -209,7 +268,7 @@ type="button"
                         </button>
                         <button
 type="button"
-                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-white hover:bg-yellow-400 rounded-lg transition-all duration-200 shadow-lg"
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-white hover:bg-yellow-400 hover:text-savino-blue rounded-lg transition-all duration-200 shadow-lg"
                             @click="acceptAll"
                         >
                             {{ $t('cookie.accept_all') }}
@@ -232,7 +291,7 @@ type="button"
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-sm font-bold">{{ $t('cookie.necessary_title') }}</p>
-                                    <p class="text-xs text-gray-500">{{ $t('cookie.necessary_desc') }}</p>
+                                    <p class="text-xs text-gray-400">{{ $t('cookie.necessary_desc') }}</p>
                                 </div>
                                 <div class="relative">
                                     <input
@@ -246,7 +305,7 @@ id="cookie-necessary" type="checkbox" checked disabled
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-sm font-bold">{{ $t('cookie.analytics_title') }}</p>
-                                    <p class="text-xs text-gray-500">{{ $t('cookie.analytics_desc') }}</p>
+                                    <p class="text-xs text-gray-400">{{ $t('cookie.analytics_desc') }}</p>
                                 </div>
                                 <label for="cookie-analytics" class="relative inline-flex items-center cursor-pointer">
                                     <input id="cookie-analytics" v-model="consent.analytics" type="checkbox" class="sr-only peer" :aria-label="$t('cookie.analytics_title')" />
@@ -259,7 +318,7 @@ id="cookie-necessary" type="checkbox" checked disabled
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-sm font-bold">{{ $t('cookie.marketing_title') }}</p>
-                                    <p class="text-xs text-gray-500">{{ $t('cookie.marketing_desc') }}</p>
+                                    <p class="text-xs text-gray-400">{{ $t('cookie.marketing_desc') }}</p>
                                 </div>
                                 <label for="cookie-marketing" class="relative inline-flex items-center cursor-pointer">
                                     <input id="cookie-marketing" v-model="consent.marketing" type="checkbox" class="sr-only peer" :aria-label="$t('cookie.marketing_title')" />
@@ -271,16 +330,16 @@ id="cookie-necessary" type="checkbox" checked disabled
                             <!-- Il riferimento della scelta gia' registrata: e' il
                                  numero che il visitatore cita se ci scrive per
                                  chiedere conto del proprio consenso. -->
-                            <p v-if="riferimento" class="text-[11px] text-gray-500 leading-relaxed border-t border-white/10 pt-3">
+                            <p v-if="riferimento" class="text-xs text-gray-400 leading-relaxed border-t border-white/10 pt-3">
                                 {{ $t('cookie.reference_label') }}
-                                <span class="font-mono text-gray-400 break-all">{{ riferimento }}</span>
+                                <span class="font-mono text-gray-300 break-all">{{ riferimento }}</span>
                                 <template v-if="dataLeggibile"> &middot; {{ dataLeggibile }}</template>
                             </p>
 
                             <div class="pt-2 flex justify-end">
                                 <button
 type="button"
-                                    class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-white hover:bg-yellow-400 rounded-lg transition-all duration-200"
+                                    class="px-6 py-2 text-xs font-bold uppercase tracking-wider bg-savino-fucsia text-white hover:bg-yellow-400 hover:text-savino-blue rounded-lg transition-all duration-200"
                                     @click="saveConsent"
                                 >
                                     {{ $t('cookie.save_preferences') }}
@@ -304,6 +363,7 @@ type="button"
     >
         <button
             v-if="sceltaFatta && !showBanner"
+            ref="iconaCookie"
             type="button"
             :aria-label="$t('cookie.manage_aria')"
             :title="$t('cookie.manage_aria')"

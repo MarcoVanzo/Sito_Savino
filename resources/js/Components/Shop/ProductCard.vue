@@ -22,7 +22,11 @@ const props = defineProps({
 });
 
 const isOutOfStock = computed(() => props.product.stock !== undefined && props.product.stock !== null && props.product.stock <= 0);
-const hasSalePrice = computed(() => props.product.sale_price && Number(props.product.sale_price) < Number(props.product.price));
+// Se barrare lo decide il backend (ShopController::prezzi): `price` e' il prezzo
+// piu' basso dei 30 giorni prima dello sconto solo quando il flag e' acceso.
+// Confrontare qui sale_price con price barrerebbe anche uno sconto senza un
+// prezzo precedente praticato, che l'art. 17-bis non consente di annunciare.
+const hasSalePrice = computed(() => props.product.prezzo_piu_basso_30_giorni === true && props.product.sale_price != null);
 
 const isAdding = ref(false);
 const cartError = ref('');
@@ -99,7 +103,7 @@ const handleAddToCart = () => {
                     v-if="!isOutOfStock"
                     class="absolute inset-0 bg-savino-blue/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden sm:flex items-center justify-center"
                 >
-                    <span class="text-white text-xs font-bold uppercase tracking-wider border-2 border-savino-fucsia px-5 py-2.5 hover:bg-savino-fucsia hover:text-gray-900 transition-colors">
+                    <span class="text-white text-xs font-bold uppercase tracking-wider border-2 border-savino-fucsia px-5 py-2.5 hover:bg-savino-fucsia hover:text-white transition-colors">
                         {{ $t('shop.product_details') || 'Dettagli' }}
                     </span>
                 </div>
@@ -110,7 +114,7 @@ const handleAddToCart = () => {
                 <!-- Category -->
                 <span
                     v-if="product.category"
-                    class="text-savino-fucsia-chiaro text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
+                    class="text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-[0.2em] mb-2"
                 >
                     {{ typeof product.category === 'string' ? product.category : product.category.name }}
                 </span>
@@ -135,7 +139,7 @@ const handleAddToCart = () => {
                             {{ formatPrice(hasSalePrice ? product.sale_price : product.price) }}
                         </span>
                     </div>
-                    <p v-if="hasSalePrice" class="text-[10px] text-gray-400 mt-0.5">
+                    <p v-if="hasSalePrice" class="text-xs text-gray-300 mt-0.5">
                         {{ $t('shop.lowest_price_30_days_short') }}
                     </p>
                 </div>

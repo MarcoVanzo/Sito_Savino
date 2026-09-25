@@ -69,6 +69,19 @@ return [
         'delete_blocked_staff' => 'Questo è un account della redazione: si gestisce dal pannello di amministrazione.',
         'delete_blocked_auction' => 'Hai un\'asta in corso o un\'asta vinta da pagare: potrai cancellare l\'account quando si sarà conclusa.',
     ],
+    'recesso' => [
+        'troppi_invii' => 'Da questo indirizzo sono già arrivate tre dichiarazioni oggi: le abbiamo registrate. Per altro scrivi a info@savinodelbenevolley.it.',
+    ],
+    'auction_checkout' => [
+        'not_winner' => 'Questo pagamento non è a tuo nome: il link è riservato a chi ha vinto l\'asta.',
+        'already_ordered' => 'Hai già completato l\'ordine per quest\'asta.',
+        'deadline_expired' => 'Il tempo per pagare quest\'asta è scaduto: l\'asta è passata all\'offerente successivo.',
+    ],
+    'errori' => [
+        'pagina_scaduta' => 'La pagina era aperta da troppo tempo: abbiamo rinnovato la sessione, riprova a inviare.',
+        'troppi_tentativi' => 'Troppi tentativi in poco tempo: riprova fra qualche minuto.',
+        'link_scaduto' => 'Il link è scaduto o non è completo. Se stavi confermando l\'iscrizione alla newsletter, iscriviti di nuovo dal fondo della pagina: ti mandiamo un link nuovo.',
+    ],
     'newsletter' => [
         'already_subscribed' => 'Questa email è già iscritta alla newsletter.',
         'success' => 'Iscrizione confermata! Grazie per esserti iscritto.',

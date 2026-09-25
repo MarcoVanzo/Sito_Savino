@@ -40,7 +40,6 @@ const itemCount = computed(() => items.value.reduce((sum, item) => sum + (item.q
 const isEmpty = computed(() => items.value.length === 0);
 const hasStockWarnings = computed(() => cart.value?.items?.some(item => item.stock_warning) ?? false);
 
-// Blocca lo scroll del body quando il drawer è aperto
 // Il carrello e' una finestra modale: il focus entra, non esce col Tab e
 // torna al pulsante che l'ha aperto (WCAG 2.4.3). L'Esc c'era gia'.
 const pannello = ref(null);
@@ -122,7 +121,7 @@ onUnmounted(() => {
                 <!-- Header -->
                 <div class="flex items-center justify-between px-6 py-5 border-b border-gray-800">
                     <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6 text-savino-fucsia-chiaro" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                         <h2 id="carrello-titolo" class="text-white font-bold text-lg uppercase tracking-wider">
@@ -187,8 +186,8 @@ onUnmounted(() => {
                             <p v-if="item.variant_name || item.variant" class="text-gray-400 text-xs mt-0.5">
                                 {{ item.variant_name || item.variant }}
                             </p>
-                            <p v-if="item.personalizzazione" class="text-xs text-savino-fucsia font-semibold mt-0.5">+ {{ item.personalizzazione }}</p>
-                            <p class="text-savino-red font-bold text-sm mt-1">
+                            <p v-if="item.personalizzazione" class="text-xs text-savino-fucsia-chiaro font-semibold mt-0.5">+ {{ item.personalizzazione }}</p>
+                            <p class="text-savino-fucsia-chiaro font-bold text-sm mt-1">
                                 {{ formatPrice(item.price) }}
                             </p>
 
@@ -196,17 +195,19 @@ onUnmounted(() => {
                             <div class="flex items-center gap-2 mt-2">
                                 <button type="button"
                                     @click="() => { loadingItems.add(item.id); updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1), { onFinish: () => { loadingItems.delete(item.id); } }); }"
-                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold"
+                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-white transition-colors flex items-center justify-center text-sm font-bold"
+                                    :aria-label="$t('shop.decrease_quantity_of', { name: item.product?.name || item.name })"
                                     :disabled="item.quantity <= 1 || loadingItems.has(item.id)"
                                 >
                                     −
                                 </button>
-                                <span class="text-white text-sm font-bold w-8 text-center">
-                                    {{ item.quantity || 1 }}
+                                <span class="text-white text-sm font-bold w-8 text-center" aria-live="polite">
+                                    <span class="sr-only">{{ $t('shop.quantity') }}: </span>{{ item.quantity || 1 }}
                                 </span>
                                 <button type="button"
                                     @click="() => { loadingItems.add(item.id); updateQuantity(item.id, (item.quantity || 1) + 1, { onFinish: () => { loadingItems.delete(item.id); } }); }"
-                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-gray-900 transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
+                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-white transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
+                                    :aria-label="$t('shop.increase_quantity_of', { name: item.product?.name || item.name })"
                                     :disabled="item.quantity >= (item.stock ?? item.product?.stock ?? 99) || loadingItems.has(item.id)"
                                 >
                                     +
@@ -215,11 +216,11 @@ onUnmounted(() => {
                                 <!-- Remove Button -->
                                 <button type="button"
                                     @click="() => { loadingItems.add(item.id); removeItem(item.id, { onFinish: () => { loadingItems.delete(item.id); } }); }"
-                                    class="ml-auto text-gray-500 hover:text-red-400 transition-colors p-1"
-                                    :aria-label="$t('shop.remove_item') || 'Rimuovi'"
+                                    class="ml-auto text-gray-400 hover:text-red-400 transition-colors p-1"
+                                    :aria-label="$t('shop.remove_item_named', { name: item.product?.name || item.name })"
                                     :disabled="loadingItems.has(item.id)"
                                 >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                 </button>
@@ -238,7 +239,7 @@ onUnmounted(() => {
                     <p class="text-gray-400 text-lg font-bold mb-2">
                         {{ $t('shop.cart_empty_title') || 'Il tuo carrello è vuoto' }}
                     </p>
-                    <p class="text-gray-500 text-sm mb-6">
+                    <p class="text-gray-400 text-sm mb-6">
                         {{ $t('shop.cart_empty_description') || 'Scopri i prodotti ufficiali della squadra' }}
                     </p>
                     <Link

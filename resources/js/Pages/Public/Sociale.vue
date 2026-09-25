@@ -59,7 +59,7 @@ const ogMeta = useOgMeta({
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-            <span v-if="cd.hero_badge" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge }}</span>
+            <span v-if="cd.hero_badge" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ cd.hero_badge }}</span>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                 {{ page?.title ?? $t('sociale.og_title') }}
             </h1>
@@ -112,9 +112,9 @@ const ogMeta = useOgMeta({
                             class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full"
                             :class="{
                                 'bg-savino-blue/10 text-savino-blue': project.color === 'savino-blue',
-                                'bg-savino-fucsia/10 text-savino-fucsia': project.color === 'savino-fucsia',
-                                'bg-savino-red/10 text-savino-red': project.color === 'savino-red',
-                                'bg-savino-pink/10 text-savino-pink': project.color === 'savino-pink'
+                                'bg-savino-fucsia/10 text-[#B8066A]': project.color === 'savino-fucsia',
+                                'bg-savino-red/10 text-[#B8066A]': project.color === 'savino-red',
+                                'bg-savino-pink/10 text-[#B8066A]': project.color === 'savino-pink'
                             }"
                            
                         >
@@ -147,7 +147,7 @@ const ogMeta = useOgMeta({
     <section v-if="impactNumbers.length" class="py-20 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <span v-if="cd.results_badge" class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.2em]">{{ cd.results_badge }}</span>
+                <span v-if="cd.results_badge" class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.2em]">{{ cd.results_badge }}</span>
                 <h2 v-if="cd.impact_title" class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight mt-2">
                     {{ cd.impact_title }}
                 </h2>
@@ -159,7 +159,7 @@ const ogMeta = useOgMeta({
                     :key="index"
                     class="text-center"
                 >
-                    <div class="text-4xl md:text-5xl font-black text-savino-fucsia mb-2">
+                    <div class="text-4xl md:text-5xl font-black text-savino-fucsia-chiaro mb-2">
                         {{ stat.value }}
                     </div>
                     <div class="text-white/70 text-sm font-medium uppercase tracking-wider">

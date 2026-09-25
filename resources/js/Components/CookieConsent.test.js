@@ -91,6 +91,22 @@ describe('CookieConsent', () => {
         expect(banner.text()).not.toContain('cookie.title');
     });
 
+    it('riaperto dall\'icona, la X chiude senza revocare la scelta', async () => {
+        salvaIlConsenso({ statistiche: true, marketing: true, versione: VERSIONE });
+        const banner = montaIlBanner();
+        await flushPromises();
+
+        await banner.find('button[aria-label="cookie.manage_aria"]').trigger('click');
+        expect(banner.find('[role="dialog"]').exists()).toBe(true);
+
+        await banner.find('#cookie-analytics').setValue(false);
+        await banner.find('button[aria-label="common.close"]').trigger('click');
+
+        expect(banner.text()).not.toContain('cookie.title');
+        expect(leggiIlConsenso(VERSIONE)).toMatchObject({ statistiche: true, marketing: true });
+        expect(aggiornaStatistiche).not.toHaveBeenCalledWith(false);
+    });
+
     it('una scelta più vecchia di dodici mesi si richiede, e intanto non misura', async () => {
         salvaIlConsenso({ statistiche: true, marketing: true, versione: VERSIONE, data: '2025-09-01T10:00:00.000Z' });
 

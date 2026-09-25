@@ -21,7 +21,7 @@
         </tr>
     </table>
 
-    <p style="color: #888888; font-size: 13px; text-align: center; margin: 0; line-height: 1.6;">
+    <p style="color: #666666; font-size: 13px; text-align: center; margin: 0; line-height: 1.6;">
         {{ __('emails.newsletter_conferma.ignore') }}
     </p>
 @endsection

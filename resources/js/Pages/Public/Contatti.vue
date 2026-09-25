@@ -223,7 +223,7 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent z-0"></div>
             
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24 animate-fade-in-up">
-                <span v-if="cd.hero_subtitle" class="text-savino-fucsia text-sm font-black uppercase tracking-[0.4em] mb-4 block drop-shadow-sm">{{ cd.hero_subtitle }}</span>
+                <span v-if="cd.hero_subtitle" class="text-savino-fucsia-chiaro text-sm font-black uppercase tracking-[0.4em] mb-4 block drop-shadow-sm">{{ cd.hero_subtitle }}</span>
                 <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter drop-shadow-lg">{{ page?.title ?? $t('contatti.og_title') ?? 'Contatti' }}</h1>
                 <div class="w-24 h-1.5 bg-savino-fucsia mx-auto mt-6 mb-8 rounded-full shadow-[0_0_15px_rgba(201,168,76,0.5)]"></div>
                 <p v-if="cd.hero_description" class="text-white/90 text-xl font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-md">{{ cd.hero_description }}</p>

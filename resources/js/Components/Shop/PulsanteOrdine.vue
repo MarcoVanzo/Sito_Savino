@@ -24,14 +24,15 @@ defineEmits(['click']);
     <button
         type="button"
         :disabled="disabilitato"
+        :aria-busy="inCorso ? 'true' : undefined"
         class="w-full mt-8 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-4 py-3 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         @click="$emit('click')"
     >
-        <svg v-if="inCorso" class="animate-spin w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+        <svg v-if="inCorso" class="animate-spin w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>
-        <svg v-else class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg v-else class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
         <span class="flex flex-col items-center leading-tight">
