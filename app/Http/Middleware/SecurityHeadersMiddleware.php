@@ -100,6 +100,8 @@ class SecurityHeadersMiddleware
         // ogni `:style` del frontend.
         $fogliDiStile = [self::SELF, "'unsafe-inline'"];
         $font = [self::SELF];
+        $immagini = [self::SELF, 'data:', 'https:'];
+        $connessioni = [];
 
         if ($pannello) {
             $scriptSrc = [self::SELF, "'unsafe-inline'", "'unsafe-eval'"];
@@ -110,6 +112,15 @@ class SecurityHeadersMiddleware
             // viene bloccato e il pannello si disegna col font di ripiego.
             $fogliDiStile[] = 'https://fonts.bunny.net';
             $font[] = 'https://fonts.bunny.net';
+
+            // Aprendo una scheda, il campo di upload (FilePond) scarica con
+            // `fetch` i file già caricati per mostrarli: stanno su Spaces, e
+            // con il solo `'self'` in `connect-src` la richiesta veniva
+            // rifiutata e le foto restavano in "Caricamento" per sempre —
+            // nessun prodotto si poteva più modificare nelle immagini. Le
+            // anteprime le disegna poi da un `blob:`.
+            $connessioni = self::originiDeiDischi();
+            $immagini[] = 'blob:';
         } else {
             $nonce = Vite::cspNonce();
 
@@ -126,7 +137,7 @@ class SecurityHeadersMiddleware
             'script-src '.implode(' ', $scriptSrc),
             'style-src '.implode(' ', $fogliDiStile),
             'font-src '.implode(' ', $font),
-            "img-src 'self' data: https:",
+            'img-src '.implode(' ', $immagini),
             // Dove le due misurazioni spediscono i dati raccolti. Senza,
             // caricare lo script non sarebbe comunque servito a niente.
             'connect-src '.implode(' ', [
@@ -137,6 +148,7 @@ class SecurityHeadersMiddleware
                 'https://www.googletagmanager.com',
                 'https://connect.facebook.net',
                 self::PIXEL_DI_META,
+                ...$connessioni,
             ]),
             // Gli unici host che possono finire dentro un iframe: Google Maps
             // per la pagina Palazzetto e le quattro piattaforme di diretta che
@@ -169,6 +181,33 @@ class SecurityHeadersMiddleware
             // una pagina di questo sito può inviare un modulo.
             'form-action '.implode(' ', [self::SELF, self::PIXEL_DI_META]),
         ]);
+    }
+
+    /**
+     * L'origine pubblica dei dischi su cui il pannello legge i file: quello
+     * della media library e quello dei campi di upload di Filament.
+     *
+     * @return list<string>
+     */
+    private static function originiDeiDischi(): array
+    {
+        $dischi = array_unique([
+            (string) config('media-library.disk_name'),
+            (string) config('filament.default_filesystem_disk'),
+        ]);
+
+        $origini = [];
+
+        foreach ($dischi as $disco) {
+            $url = (string) config("filesystems.disks.{$disco}.url");
+            $host = parse_url($url, PHP_URL_HOST);
+
+            if (is_string($host) && str_starts_with($url, 'https://')) {
+                $origini[] = 'https://'.$host;
+            }
+        }
+
+        return array_values(array_unique($origini));
     }
 
     private function indexable(Request $request): bool
