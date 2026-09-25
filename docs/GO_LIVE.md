@@ -126,6 +126,27 @@ primo passo:
    > `_qualcosa.dominio`: e' il tipo di errore che costa un giro di richieste
    > se non lo si nomina in anticipo. Si controlla con
    > `dig +short TXT savinodelbenevolley.it`, che deve stampare **tre** righe.
+
+   > **Esito (25/09/2026): il claim e' riuscito.** Corretto il record, il
+   > dominio e' passato al team `savinodelbene`, regione **Ireland
+   > (eu-west-1)**, stato `Pending`. Solo allora Resend ha mostrato i record
+   > d'invio, che sono due:
+   >
+   > | Tipo | Nome | Serve a |
+   > | --- | --- | --- |
+   > | TXT | `resend._domainkey` | la firma DKIM (una chiave RSA di 218 caratteri) |
+   > | CNAME | `rsend` | il percorso d'uscita (`…forge.rmta.net`) |
+   >
+   > Resend ne propone un terzo, il CNAME `send`, ma sta sotto *Enable
+   > Receiving*: serve a **ricevere** posta su questo dominio, cosa che qui non
+   > si fa mai — la posta di `savinodelbenevolley.it` e' Microsoft 365. Non va
+   > chiesto: e' un record in meno da far approvare a chi tiene la zona.
+   >
+   > I valori non stanno qui, si leggono dal pannello. Quello del DKIM **non si
+   > copia da uno screenshot ne' dal testo della pagina**: il pannello lo taglia
+   > con un `[…]` in mezzo e il nome del pulsante di copia si ferma a cento
+   > caratteri. Va preso dall'`aria-label` intero, o con il pulsante Copia. Un
+   > carattere sbagliato non da' errore: da' firme che non si verificano.
 2. **Chiedere alla Spa di aggiungerli.** Conviene chiedere un **sottodominio
    d'invio** — `send.savinodelbenevolley.it` — invece dell'apex: i record
    nascono sotto un nome che non esiste ancora, l'SPF dell'apex (che e' la posta
