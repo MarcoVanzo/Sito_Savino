@@ -188,7 +188,7 @@ const ogMeta = useOgMeta({
                         </Link>
                         <span
                             v-else
-                            class="px-4 py-2.5 min-h-[44px] flex items-center text-sm text-gray-400 border border-gray-200 rounded-md"
+                            class="px-4 py-2.5 min-h-[44px] flex items-center text-sm text-gray-500 border border-gray-200 rounded-md"
                             v-html="sanitize(link.label)"
                         />
                     </template>

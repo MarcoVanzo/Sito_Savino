@@ -1,5 +1,6 @@
 import '../css/app.css';
 import './bootstrap';
+import { annunciaIlCambioDiPagina } from './Support/annuncioCambioPagina.js';
 
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -70,6 +71,10 @@ createInertiaApp({
         // partire niente. Valore illeggibile o scaduto: si riparte dal non
         // consenso e il banner tornerà a chiedere.
         const consenso = leggiIlConsenso(props.initialPage.props.consensoCookie?.versione ?? null);
+
+        // Accessibilita': a ogni cambio di pagina il focus va al contenuto e
+        // il titolo nuovo viene letto dallo screen reader (WCAG 2.4.3, 4.1.3).
+        annunciaIlCambioDiPagina(router);
 
         if (measurementId) {
             initAnalytics(measurementId, consenso.scelto && consenso.statistiche);

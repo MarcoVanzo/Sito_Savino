@@ -199,7 +199,7 @@ const ogMeta = useOgMeta({
                     <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-50 to-transparent pointer-events-none rounded-r-xl md:hidden"></div>
                 </div>
 
-                <p v-if="standings.length" class="text-xs text-gray-400 mt-4">{{ $t('risultati.legend') }}</p>
+                <p v-if="standings.length" class="text-xs text-gray-500 mt-4">{{ $t('risultati.legend') }}</p>
                 <p v-if="standings.length && hasRatios" class="text-xs text-gray-400 mt-1">{{ $t('classifica.legend_ratios') }}</p>
                 <p v-if="standings.length && hasBreakdown" class="text-xs text-gray-400 mt-1">{{ $t('classifica.legend_breakdown') }}</p>
             </div>

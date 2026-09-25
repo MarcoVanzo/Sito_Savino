@@ -1258,7 +1258,7 @@ const ogMeta = useOgMeta({
     margin: 0.5rem auto 0;
     padding: 0 1.5rem;
     font-size: 0.75rem;
-    color: #9ca3af;
+    color: #6b7280;
 }
 
 .gallery-filters__count span {

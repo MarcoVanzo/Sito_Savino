@@ -1,4 +1,5 @@
 <script setup>
+import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
@@ -44,6 +45,7 @@ const passwordStrength = computed(() => {
 
 const submit = () => {
     form.post(route('shop.register.store'), {
+        onError: vaiAlPrimoErrore,
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
@@ -60,7 +62,7 @@ const submit = () => {
             <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">Shop</span>
+                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">Shop</span>
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ $t('shop.register') }}
                 </h1>
@@ -73,8 +75,8 @@ const submit = () => {
             <div class="max-w-lg mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Breadcrumbs -->
                 <nav class="mb-8 text-sm">
-                    <ol class="flex items-center gap-2 text-gray-500">
-                        <li><Link :href="route('shop')" class="hover:text-savino-fucsia transition-colors">Shop</Link></li>
+                    <ol class="flex items-center gap-2 text-gray-400">
+                        <li><Link :href="route('shop')" class="hover:text-savino-fucsia-chiaro transition-colors">Shop</Link></li>
                         <li>/</li>
                         <li class="text-white">{{ $t('shop.register') }}</li>
                     </ol>
@@ -85,12 +87,12 @@ const submit = () => {
                     <!-- Card Header -->
                     <div class="text-center mb-8">
                         <div class="w-16 h-16 rounded-full bg-savino-fucsia/10 flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-8 h-8 text-savino-fucsia-chiaro" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                             </svg>
                         </div>
                         <h2 class="text-white text-xl font-bold">{{ $t('shop.create_account') }}</h2>
-                        <p class="text-gray-500 text-sm mt-1">{{ $t('shop.register_description') }}</p>
+                        <p class="text-gray-400 text-sm mt-1">{{ $t('shop.register_description') }}</p>
                     </div>
 
                     <form @submit.prevent="submit" class="space-y-5">
@@ -101,7 +103,7 @@ const submit = () => {
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                     </svg>
                                 </div>
@@ -109,6 +111,8 @@ const submit = () => {
                                     id="name"
                                     type="text"
                                     v-model="form.name"
+                                    :aria-invalid="!!form.errors.name"
+                                    :aria-describedby="form.errors.name ? 'errore-name' : undefined"
                                     required
                                     autofocus
                                     autocomplete="name"
@@ -116,7 +120,7 @@ const submit = () => {
                                     :placeholder="$t('shop.full_name')"
                                 />
                             </div>
-                            <InputError class="mt-2" :message="form.errors.name" />
+                            <InputError id="errore-name" class="mt-2" :message="form.errors.name" />
                         </div>
 
                         <!-- Email -->
@@ -126,7 +130,7 @@ const submit = () => {
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                                     </svg>
                                 </div>
@@ -134,13 +138,15 @@ const submit = () => {
                                     id="email"
                                     type="email"
                                     v-model="form.email"
+                                    :aria-invalid="!!form.errors.email"
+                                    :aria-describedby="form.errors.email ? 'errore-email' : undefined"
                                     required
                                     autocomplete="username"
                                     class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia transition-colors duration-200"
                                     :placeholder="$t('shop.email_placeholder')"
                                 />
                             </div>
-                            <InputError class="mt-2" :message="form.errors.email" />
+                            <InputError id="errore-email" class="mt-2" :message="form.errors.email" />
                         </div>
 
                         <!-- Password -->
@@ -150,7 +156,7 @@ const submit = () => {
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                     </svg>
                                 </div>
@@ -158,6 +164,8 @@ const submit = () => {
                                     id="password"
                                     :type="showPassword ? 'text' : 'password'"
                                     v-model="form.password"
+                                    :aria-invalid="!!form.errors.password"
+                                    :aria-describedby="form.errors.password ? 'errore-password' : undefined"
                                     required
                                     autocomplete="new-password"
                                     class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-12 py-3 text-white placeholder-gray-500 focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia transition-colors duration-200"
@@ -166,7 +174,9 @@ const submit = () => {
                                 <button
                                     type="button"
                                     @click="showPassword = !showPassword"
-                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
+                                    :aria-label="showPassword ? $t('shop.hide_password') : $t('shop.show_password')"
+                                    :aria-pressed="showPassword"
+                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-300 transition-colors"
                                 >
                                     <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -191,7 +201,7 @@ const submit = () => {
                                     {{ passwordStrength.label }}
                                 </p>
                             </div>
-                            <InputError class="mt-2" :message="form.errors.password" />
+                            <InputError id="errore-password" class="mt-2" :message="form.errors.password" />
                         </div>
 
                         <!-- Conferma Password -->
@@ -201,7 +211,7 @@ const submit = () => {
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                                     </svg>
                                 </div>
@@ -209,6 +219,8 @@ const submit = () => {
                                     id="password_confirmation"
                                     :type="showPasswordConfirm ? 'text' : 'password'"
                                     v-model="form.password_confirmation"
+                                    :aria-invalid="!!form.errors.password_confirmation"
+                                    :aria-describedby="form.errors.password_confirmation ? 'errore-password_confirmation' : undefined"
                                     required
                                     autocomplete="new-password"
                                     class="w-full bg-gray-900/50 border border-gray-600 rounded-lg pl-11 pr-12 py-3 text-white placeholder-gray-500 focus:border-savino-fucsia focus:ring-1 focus:ring-savino-fucsia transition-colors duration-200"
@@ -217,7 +229,9 @@ const submit = () => {
                                 <button
                                     type="button"
                                     @click="showPasswordConfirm = !showPasswordConfirm"
-                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
+                                    :aria-label="showPasswordConfirm ? $t('shop.hide_password') : $t('shop.show_password')"
+                                    :aria-pressed="showPasswordConfirm"
+                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-300 transition-colors"
                                 >
                                     <svg v-if="!showPasswordConfirm" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -236,7 +250,7 @@ const submit = () => {
                             >
                                 {{ form.password === form.password_confirmation ? $t('shop.password_match') || '✓ Le password coincidono' : $t('shop.password_mismatch') || '✗ Le password non coincidono' }}
                             </p>
-                            <InputError class="mt-2" :message="form.errors.password_confirmation" />
+                            <InputError id="errore-password_confirmation" class="mt-2" :message="form.errors.password_confirmation" />
                         </div>
 
                         <!-- Divider -->
@@ -254,11 +268,11 @@ const submit = () => {
                                         :href="route('pages.show', 'privacy-policy')"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        class="text-savino-fucsia hover:underline font-medium"
+                                        class="text-savino-fucsia-chiaro underline font-medium"
                                     >{{ $t('shop.accept_privacy_2') }}</a>
                                 </span>
                             </label>
-                            <InputError class="mt-2" :message="form.errors.privacy_accepted" />
+                            <InputError id="errore-privacy_accepted" class="mt-2" :message="form.errors.privacy_accepted" />
                         </div>
 
                         <!-- Submit Button -->
@@ -284,11 +298,11 @@ const submit = () => {
 
                         <!-- Login Link -->
                         <div class="text-center pt-4 pb-2">
-                            <p class="text-sm text-gray-500">
+                            <p class="text-sm text-gray-400">
                                 {{ $t('shop.already_have_account') }}
                                 <Link
                                     :href="route('login')"
-                                    class="font-bold text-savino-fucsia hover:text-yellow-400 transition-colors"
+                                    class="font-bold text-savino-fucsia-chiaro underline hover:text-yellow-400 transition-colors"
                                 >
                                     {{ $t('shop.login_now') }}
                                 </Link>
@@ -298,7 +312,7 @@ const submit = () => {
                 </div>
 
                 <!-- Security Note -->
-                <div class="mt-6 flex items-center justify-center gap-2 text-gray-600 text-xs">
+                <div class="mt-6 flex items-center justify-center gap-2 text-gray-400 text-xs">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>

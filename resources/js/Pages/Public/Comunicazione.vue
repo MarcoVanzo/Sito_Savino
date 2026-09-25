@@ -1,4 +1,5 @@
 <script setup>
+import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import NotaInformativaModulo from '@/Components/NotaInformativaModulo.vue'
@@ -51,6 +52,7 @@ const accreditationForm = useForm({
 function submitAccreditation() {
     accreditationForm.post(route('comunicazione.accrediti.submit'), {
         preserveScroll: true,
+        onError: vaiAlPrimoErrore,
         onSuccess: () => {
             accreditationSent.value = true
             accreditationForm.reset()
@@ -195,61 +197,79 @@ const ogMeta = useOgMeta({
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="acc-first-name" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_first_name') }}</label>
-                                <input id="acc-first-name" v-model="accreditationForm.first_name" type="text" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
-                                <p v-if="accreditationForm.errors.first_name" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.first_name }}</p>
+                                <input autocomplete="given-name" id="acc-first-name" v-model="accreditationForm.first_name"
+                                :aria-invalid="!!accreditationForm.errors.first_name"
+                                :aria-describedby="accreditationForm.errors.first_name ? 'errore-first_name' : undefined" type="text" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
+                                <p v-if="accreditationForm.errors.first_name" id="errore-first_name" class="text-red-700 text-xs mt-1">{{ accreditationForm.errors.first_name }}</p>
                             </div>
                             <div>
                                 <label for="acc-last-name" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_last_name') }}</label>
-                                <input id="acc-last-name" v-model="accreditationForm.last_name" type="text" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
-                                <p v-if="accreditationForm.errors.last_name" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.last_name }}</p>
+                                <input autocomplete="family-name" id="acc-last-name" v-model="accreditationForm.last_name"
+                                :aria-invalid="!!accreditationForm.errors.last_name"
+                                :aria-describedby="accreditationForm.errors.last_name ? 'errore-last_name' : undefined" type="text" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
+                                <p v-if="accreditationForm.errors.last_name" id="errore-last_name" class="text-red-700 text-xs mt-1">{{ accreditationForm.errors.last_name }}</p>
                             </div>
                         </div>
 
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="acc-email" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_email') }}</label>
-                                <input id="acc-email" v-model="accreditationForm.email" type="email" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
-                                <p v-if="accreditationForm.errors.email" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.email }}</p>
+                                <input autocomplete="email" id="acc-email" v-model="accreditationForm.email"
+                                :aria-invalid="!!accreditationForm.errors.email"
+                                :aria-describedby="accreditationForm.errors.email ? 'errore-email' : undefined" type="email" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
+                                <p v-if="accreditationForm.errors.email" id="errore-email" class="text-red-700 text-xs mt-1">{{ accreditationForm.errors.email }}</p>
                             </div>
                             <div>
                                 <label for="acc-phone" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_phone') }}</label>
-                                <input id="acc-phone" v-model="accreditationForm.phone" type="tel" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
-                                <p v-if="accreditationForm.errors.phone" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.phone }}</p>
+                                <input autocomplete="tel" id="acc-phone" v-model="accreditationForm.phone"
+                                :aria-invalid="!!accreditationForm.errors.phone"
+                                :aria-describedby="accreditationForm.errors.phone ? 'errore-phone' : undefined" type="tel" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
+                                <p v-if="accreditationForm.errors.phone" id="errore-phone" class="text-red-700 text-xs mt-1">{{ accreditationForm.errors.phone }}</p>
                             </div>
                         </div>
 
                         <div>
                             <label for="acc-outlet" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_outlet') }}</label>
-                            <input id="acc-outlet" v-model="accreditationForm.outlet" type="text" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
-                            <p v-if="accreditationForm.errors.outlet" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.outlet }}</p>
+                            <input autocomplete="organization" id="acc-outlet" v-model="accreditationForm.outlet"
+                                :aria-invalid="!!accreditationForm.errors.outlet"
+                                :aria-describedby="accreditationForm.errors.outlet ? 'errore-outlet' : undefined" type="text" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
+                            <p v-if="accreditationForm.errors.outlet" id="errore-outlet" class="text-red-700 text-xs mt-1">{{ accreditationForm.errors.outlet }}</p>
                         </div>
 
                         <div>
                             <label for="acc-role" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_role') }}</label>
-                            <select id="acc-role" v-model="accreditationForm.role" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue">
+                            <select id="acc-role" v-model="accreditationForm.role"
+                                :aria-invalid="!!accreditationForm.errors.role"
+                                :aria-describedby="accreditationForm.errors.role ? 'errore-role' : undefined" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue">
                                 <option value="giornalista">{{ $t('comunicazione.accreditation_role_journalist') }}</option>
                                 <option value="fotografo">{{ $t('comunicazione.accreditation_role_photographer') }}</option>
                                 <option value="operatore">{{ $t('comunicazione.accreditation_role_operator') }}</option>
                             </select>
-                            <p v-if="accreditationForm.errors.role" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.role }}</p>
+                            <p v-if="accreditationForm.errors.role" id="errore-role" class="text-red-700 text-xs mt-1">{{ accreditationForm.errors.role }}</p>
                         </div>
 
                         <div>
                             <label for="acc-match" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_match') }}</label>
                             <!-- Con il calendario in archivio si sceglie fra le prossime
                                  gare in casa; senza, resta il campo libero. -->
-                            <select v-if="upcomingHomeGames.length" id="acc-match" v-model="accreditationForm.match" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue">
+                            <select v-if="upcomingHomeGames.length" id="acc-match" v-model="accreditationForm.match"
+                                :aria-invalid="!!accreditationForm.errors.match"
+                                :aria-describedby="accreditationForm.errors.match ? 'errore-match' : undefined" required class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue">
                                 <option value="" disabled>{{ $t('comunicazione.accreditation_field_match_choose') }}</option>
                                 <option v-for="gara in upcomingHomeGames" :key="gara.value" :value="gara.value">{{ gara.label }}</option>
                             </select>
-                            <input v-else id="acc-match" v-model="accreditationForm.match" type="text" required :placeholder="$t('comunicazione.accreditation_field_match_placeholder')" class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
-                            <p v-if="accreditationForm.errors.match" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.match }}</p>
+                            <input v-else id="acc-match" v-model="accreditationForm.match"
+                                :aria-invalid="!!accreditationForm.errors.match"
+                                :aria-describedby="accreditationForm.errors.match ? 'errore-match' : undefined" type="text" required :placeholder="$t('comunicazione.accreditation_field_match_placeholder')" class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue" />
+                            <p v-if="accreditationForm.errors.match" id="errore-match" class="text-red-700 text-xs mt-1">{{ accreditationForm.errors.match }}</p>
                         </div>
 
                         <div>
                             <label for="acc-notes" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">{{ $t('comunicazione.accreditation_field_notes') }}</label>
-                            <textarea id="acc-notes" v-model="accreditationForm.notes" rows="3" class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue"></textarea>
-                            <p v-if="accreditationForm.errors.notes" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.notes }}</p>
+                            <textarea id="acc-notes" v-model="accreditationForm.notes"
+                                :aria-invalid="!!accreditationForm.errors.notes"
+                                :aria-describedby="accreditationForm.errors.notes ? 'errore-notes' : undefined" rows="3" class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue"></textarea>
+                            <p v-if="accreditationForm.errors.notes" id="errore-notes" class="text-red-700 text-xs mt-1">{{ accreditationForm.errors.notes }}</p>
                         </div>
 
                         <NotaInformativaModulo />

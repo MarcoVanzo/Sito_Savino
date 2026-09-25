@@ -44,7 +44,7 @@ defineProps({
         <div class="absolute inset-0 bg-gradient-to-t from-savino-blue/80 to-transparent"></div>
         <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
             <div v-if="subtitle" class="inline-block mb-6">
-                <span class="text-savino-fucsia text-sm font-bold uppercase tracking-[0.3em]">{{ subtitle }}</span>
+                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ subtitle }}</span>
             </div>
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mb-6">
                 {{ title }}

@@ -246,8 +246,22 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
 
 - **Documentazione completa**: `docs/BRAND_GUIDELINES.md` per palette colori, varianti
   logo, regole di utilizzo e dimensioni minime.
-- **Colori ufficiali** (da `tailwind.config.js`): `savino-blue` (#003063),
-  `savino-red` (#DF338F), `savino-fucsia` (#F8269C), `savino-pink` (#ED028C).
+- **Colori ufficiali** della Style Guide: blu #003063, rosso #DF338F, fucsia
+  #F8269C, rosa #ED028C. **Nei token Tailwind fucsia, rosa e rosso sono
+  scuriti** (`savino-fucsia` #D00778, `savino-pink` #D0027B, `savino-red`
+  #C91F7A) perché le tinte ufficiali non arrivano al contrasto 4,5:1 delle WCAG
+  2.1 AA, che lo shop deve rispettare per l'European Accessibility Act (la
+  società fattura circa 10 M€, non è microimpresa): su 25 pagine axe contava
+  più di 300 testi illeggibili. Le tinte ufficiali restano come `*-brand` per
+  gli usi solo decorativi. **Testo fucsia su fondo blu o grigio scuro** va
+  scritto `text-savino-fucsia-chiaro` (#FA5FB6): il fucsia scurito lì non
+  basta. Sopra un fondo fucsia il testo è bianco, non blu (3,6:1). Il controllo
+  è automatico: `scripts/scansione-accessibilita.mjs` (axe-core) gira ogni
+  lunedì in `scansione-accessibilita.yml` e fallisce sulle violazioni gravi; il
+  lint ha `eslint-plugin-vuejs-accessibility`. La dichiarazione di
+  accessibilità è la pagina `dichiarazione-di-accessibilita` (testo iniziale in
+  `database/data/dichiarazione_accessibilita.php`): i limiti noti elencati lì
+  vanno tolti quando si risolvono.
   Il token `savino-gold` (#C9A84C) non esiste più: l'oro era fuori dalla palette
   della Brand & Digital Style Guide 2026-2027 e ogni suo uso è passato al fucsia
   ufficiale. Restano d'oro solo le serie dei grafici del pannello, dove il colore

@@ -5,6 +5,7 @@ import { Link } from '@inertiajs/vue3';
 import { useCart } from '@/Composables/useCart.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
+import { useTrappolaDelFocus } from '@/Composables/useTrappolaDelFocus.js';
 
 const $t = useTranslations();
 
@@ -40,6 +41,11 @@ const isEmpty = computed(() => items.value.length === 0);
 const hasStockWarnings = computed(() => cart.value?.items?.some(item => item.stock_warning) ?? false);
 
 // Blocca lo scroll del body quando il drawer è aperto
+// Il carrello e' una finestra modale: il focus entra, non esce col Tab e
+// torna al pulsante che l'ha aperto (WCAG 2.4.3). L'Esc c'era gia'.
+const pannello = ref(null);
+useTrappolaDelFocus(pannello, isCartOpen);
+
 watch(isCartOpen, (open) => {
     if (typeof document !== 'undefined') {
         document.body.style.overflow = open ? 'hidden' : '';
@@ -107,6 +113,10 @@ onUnmounted(() => {
         >
             <div
                 v-if="isCartOpen"
+                ref="pannello"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="carrello-titolo"
                 class="fixed inset-y-0 right-0 z-[90] w-full max-w-md bg-gray-900 shadow-2xl flex flex-col transform transition-transform"
             >
                 <!-- Header -->
@@ -115,12 +125,12 @@ onUnmounted(() => {
                         <svg class="w-6 h-6 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
-                        <h2 class="text-white font-bold text-lg uppercase tracking-wider">
+                        <h2 id="carrello-titolo" class="text-white font-bold text-lg uppercase tracking-wider">
                             {{ $t('shop.cart_title') || 'Carrello' }}
                         </h2>
                         <span
                             v-if="itemCount > 0"
-                            class="bg-savino-fucsia/20 text-savino-fucsia text-xs font-bold px-2.5 py-0.5 rounded-full"
+                            class="bg-savino-fucsia/20 text-savino-fucsia-chiaro text-xs font-bold px-2.5 py-0.5 rounded-full"
                         >
                             {{ itemCount }}
                         </span>
@@ -167,7 +177,7 @@ onUnmounted(() => {
                                 v-if="item.slug || item.product?.slug"
                                 :href="route('shop.product', item.slug || item.product?.slug)"
                                 @click="closeCart"
-                                class="text-white text-sm font-bold leading-tight truncate block hover:text-savino-fucsia transition-colors"
+                                class="text-white text-sm font-bold leading-tight truncate block hover:text-savino-fucsia-chiaro transition-colors"
                             >
                                 {{ item.product?.name || item.name }}
                             </Link>
@@ -232,7 +242,7 @@ onUnmounted(() => {
                     </p>
                     <Link
                         :href="route('shop')"
-                        class="inline-flex items-center gap-2 bg-savino-fucsia text-gray-900 text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-fucsia/90 transition-colors"
+                        class="inline-flex items-center gap-2 bg-savino-fucsia text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-lg hover:bg-savino-fucsia/90 transition-colors"
                         @click="closeCart"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -259,7 +269,7 @@ onUnmounted(() => {
                         <Link
                             v-if="!hasStockWarnings"
                             :href="route('shop.checkout')"
-                            class="w-full bg-savino-fucsia text-savino-blue text-sm font-black uppercase tracking-wider py-3.5 rounded-lg hover:bg-savino-fucsia/90 transition-colors text-center"
+                            class="w-full bg-savino-fucsia text-white text-sm font-black uppercase tracking-wider py-3.5 rounded-lg hover:bg-savino-fucsia/90 transition-colors text-center"
                             @click="closeCart"
                         >
                             {{ $t('shop.proceed_checkout') || 'Procedi al checkout' }}

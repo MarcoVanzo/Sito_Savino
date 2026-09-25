@@ -174,7 +174,7 @@ const ogMeta = useOgMeta({
                 <a
                     v-if="sponsorMailto && cd.cta_button_text"
                     :href="sponsorMailto"
-                    class="inline-flex items-center gap-2 bg-savino-fucsia text-savino-blue px-8 py-4 font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-savino-fucsia/90 transition-colors"
+                    class="inline-flex items-center gap-2 bg-savino-fucsia text-white px-8 py-4 font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-savino-fucsia/90 transition-colors"
                 >
                     {{ cd.cta_button_text }}
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>

@@ -103,6 +103,11 @@ watch(desktopNav, (isDesktop) => {
 
 <template>
     <div class="site-shell min-h-screen bg-gray-900 flex flex-col font-sans overflow-x-hidden">
+        <!-- Salta il menu (WCAG 2.4.1): e' il primo elemento raggiungibile con
+             il Tab, invisibile finche' non riceve il focus. -->
+        <a href="#contenuto" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-md focus:bg-white focus:text-savino-blue focus:font-bold focus:shadow-lg focus:outline focus:outline-2 focus:outline-savino-blue">
+            {{ $t('accessibilita.skip_to_content') }}
+        </a>
         <PasswordExpiryBanner />
 
         <!-- HEADER STICKY -->
@@ -221,7 +226,7 @@ watch(desktopNav, (isDesktop) => {
         </header>
 
         <!-- MAIN CONTENT -->
-        <main class="flex-grow bg-gray-50">
+        <main id="contenuto" tabindex="-1" class="flex-grow bg-gray-50 focus:outline-none">
             <slot />
         </main>
 

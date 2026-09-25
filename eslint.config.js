@@ -1,5 +1,6 @@
 import js from '@eslint/js';
 import pluginVue from 'eslint-plugin-vue';
+import pluginVueA11y from 'eslint-plugin-vuejs-accessibility';
 import globals from 'globals';
 import prettier from 'eslint-config-prettier';
 
@@ -15,6 +16,7 @@ export default [
     },
     js.configs.recommended,
     ...pluginVue.configs['flat/recommended'],
+    ...pluginVueA11y.configs['flat/recommended'],
     prettier,
     {
         files: ['resources/js/**/*.{js,vue}'],
@@ -46,6 +48,26 @@ export default [
             'no-console': ['warn', { allow: ['warn', 'error'] }],
             'no-debugger': 'error',
             eqeqeq: ['error', 'smart'],
+
+            // Accessibilita' (European Accessibility Act, WCAG 2.1 AA): le
+            // regole del plugin sono errori, cosi' la CI si ferma. Un'etichetta
+            // puo' contenere il campo o puntarlo con for/id: basta una delle
+            // due, non servono entrambe.
+            'vuejs-accessibility/label-has-for': ['error', {
+                required: { some: ['nesting', 'id'] },
+            }],
+
+            // Avvisi e non errori, perche' oggi danno soprattutto falsi
+            // positivi: il clic sullo sfondo di una finestra (che si chiude
+            // anche con Esc), i <Link> di Inertia presi per elementi non
+            // interattivi, l'autofocus del login. Restano visibili nel lint:
+            // chi tocca quei file li guarda.
+            'vuejs-accessibility/no-static-element-interactions': 'warn',
+            'vuejs-accessibility/click-events-have-key-events': 'warn',
+            'vuejs-accessibility/aria-unsupported-elements': 'warn',
+            'vuejs-accessibility/interactive-supports-focus': 'warn',
+            'vuejs-accessibility/mouse-events-have-key-events': 'warn',
+            'vuejs-accessibility/no-autofocus': 'warn',
         },
     },
     {
