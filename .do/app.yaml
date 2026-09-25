@@ -22,6 +22,32 @@ envs:
   scope: RUN_AND_BUILD_TIME
   type: SECRET
   value: EV[1:xuY5u2kyLv789WXxYgzt0++SIZJDacim:/faML89QUfH/adwTcFfKE0hH/GAzdseIoVigmSjA69C/irVc+F1NXu7C0Oy2BeAx]
+# La posta transazionale. Stanno qui, a livello di app, e non sotto i singoli
+# componenti perche' servono a tutti e tre: il web manda la reimpostazione
+# della password, il worker tutte le altre (sono Mailable ShouldQueue) e lo
+# scheduler quelle dei comandi notturni. Una variabile d'app la ereditano tutti,
+# come META_APP_SECRET.
+#
+# Fino al 25/09/2026 MAIL_MAILER non era nella spec e config/mail.php cadeva su
+# 'log': le email venivano scritte nel log e non spedite. Non si notava, perche'
+# il sito risponde su un indirizzo che non guarda nessuno.
+- key: MAIL_MAILER
+  scope: RUN_AND_BUILD_TIME
+  value: resend
+# Il mittente deve stare su un dominio verificato su Resend, o l'invio viene
+# rifiutato: savinodelbenevolley.it lo e' dal 25/09/2026 (DKIM + i due CNAME).
+- key: MAIL_FROM_ADDRESS
+  scope: RUN_AND_BUILD_TIME
+  value: noreply@savinodelbenevolley.it
+- key: MAIL_FROM_NAME
+  scope: RUN_AND_BUILD_TIME
+  value: Savino Del Bene Volley
+# Chiave con permesso di solo invio, limitata a questo dominio: non puo'
+# leggere né amministrare nulla. Cifrata dal pannello DO.
+- key: RESEND_API_KEY
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:L87v4j9ELpnhItK5GrlHxfgq6pLVT/ex:ja0V8XIaHSpYQBHGN4IDRcm+KrS8y5t2d1rCjPkYEvSxRRJFr58pI2/vk6Wja5GS/z+x7g==]
 ingress:
   rules:
   - component:
