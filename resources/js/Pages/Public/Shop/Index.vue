@@ -186,7 +186,7 @@ const loadMore = () => {
                             : 'bg-white text-gray-600 border-gray-200 hover:border-savino-blue/30 hover:text-savino-blue'"
                     >
                         {{ $t('shop.all_categories') || 'Tutti' }}
-                        <span class="ml-1.5 text-xs opacity-70">({{ allProducts.length }})</span>
+                        <span class="ml-1.5 text-xs">({{ allProducts.length }})</span>
                     </button>
                     <button type="button"
                         v-for="cat in categories"
@@ -199,7 +199,7 @@ const loadMore = () => {
                             : 'bg-white text-gray-600 border-gray-200 hover:border-savino-blue/30 hover:text-savino-blue'"
                     >
                         {{ cat.name }}
-                        <span v-if="cat.products_count" class="ml-1.5 text-xs opacity-70">({{ cat.products_count }})</span>
+                        <span v-if="cat.products_count" class="ml-1.5 text-xs">({{ cat.products_count }})</span>
                     </button>
                 </fieldset>
 
