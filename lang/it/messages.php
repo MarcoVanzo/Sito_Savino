@@ -29,6 +29,7 @@ return [
         'product_unavailable' => 'Il prodotto non è disponibile.',
         'auction_not_allowed' => 'I prodotti asta non possono essere aggiunti al carrello.',
         'invalid_variant' => 'La variante non appartiene a questo prodotto.',
+        'personalization_unavailable' => 'La personalizzazione non è disponibile per questo prodotto.',
         'max_qty' => 'La quantità massima per prodotto è :qty.',
         'out_of_stock' => 'Disponibilità insufficiente. Stock disponibile: :stock.',
         'not_found' => 'Carrello non trovato.',

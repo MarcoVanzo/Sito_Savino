@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,11 +26,54 @@ class OrderItem extends Model
 
     protected $fillable = [
         'order_id', 'product_id', 'product_variant_id', 'quantity', 'price_at_time_of_purchase',
+        'personalizzazione', 'supplemento_personalizzazione',
     ];
 
+    /**
+     * `personalizzazione` e' il nome dell'aggiunta com'era al momento
+     * dell'acquisto, per lingua ({"it": "Firma della giocatrice", …}): la
+     * redazione puo' rinominarla o toglierla dal prodotto, l'ordine deve
+     * continuare a dire cosa e' stato pagato. Nulla = riga senza aggiunta.
+     * Il supplemento e' gia' dentro `price_at_time_of_purchase`.
+     */
     protected $casts = [
         'price_at_time_of_purchase' => 'decimal:2',
+        'personalizzazione' => 'array',
+        'supplemento_personalizzazione' => 'decimal:2',
     ];
+
+    protected $appends = ['nome_personalizzazione'];
+
+    /**
+     * Il nome della personalizzazione nella lingua corrente, per il
+     * frontend (pagina dell'ordine).
+     *
+     * @return Attribute<string|null, never>
+     */
+    protected function nomePersonalizzazione(): Attribute
+    {
+        return Attribute::make(get: fn (): ?string => $this->personalizzazioneIn());
+    }
+
+    /**
+     * Il nome della personalizzazione nella lingua richiesta, con ripiego
+     * sull'italiano.
+     */
+    public function personalizzazioneIn(?string $locale = null): ?string
+    {
+        if (! is_array($this->personalizzazione)) {
+            return null;
+        }
+
+        $locale ??= app()->getLocale();
+        $nome = $this->personalizzazione[$locale] ?? null;
+
+        if (! is_string($nome) || trim($nome) === '') {
+            $nome = $this->personalizzazione[config('app.fallback_locale')] ?? null;
+        }
+
+        return is_string($nome) && trim($nome) !== '' ? $nome : null;
+    }
 
     public function order(): BelongsTo
     {

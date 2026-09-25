@@ -151,7 +151,7 @@ onUnmounted(() => {
                         :aria-current="activeSubcategory === sub.slug ? 'page' : undefined"
                     >
                         {{ sub.name }}
-                        <span class="ml-2 text-[10px] opacity-60">{{ sub.products_count }}</span>
+                        <span class="ml-2 text-[10px]">{{ sub.products_count }}</span>
                     </Link>
                 </nav>
 

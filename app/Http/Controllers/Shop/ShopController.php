@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\SiteSetting;
 use App\Services\StoricoPrezzi;
+use App\Support\EtichetteDelProdotto;
 use App\Support\GuidaTaglie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -30,17 +31,23 @@ class ShopController extends Controller
             $media = $p->getMedia('images');
         }
 
+        $prezzi = $this->prezzi($p);
+
         return [
             'id' => $p->id,
             'name' => $p->name,
             'slug' => $p->slug,
             'description' => $p->description,
             'short_description' => $p->short_description,
-            ...$this->prezzi($p),
+            ...$prezzi,
             'stock' => $p->availableStock(),
             'sku' => $p->sku,
             'is_active' => $p->is_active,
-            'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
+            'etichette' => EtichetteDelProdotto::per($p, $prezzi['prezzo_piu_basso_30_giorni']),
+            'personalizzazione' => $p->offrePersonalizzazione() ? [
+                'nome' => $p->personalizzazione_nome,
+                'prezzo' => (float) $p->personalizzazione_prezzo,
+            ] : null,
             'type' => $p->type->value ?? $p->type,
             'category' => $p->category ? [
                 'id' => $p->category->id,
@@ -97,14 +104,16 @@ class ShopController extends Controller
      */
     private function mapProductCard(Product $p): array
     {
+        $prezzi = $this->prezzi($p);
+
         return [
             'id' => $p->id,
             'name' => $p->name,
             'slug' => $p->slug,
-            ...$this->prezzi($p),
+            ...$prezzi,
             'stock' => $p->availableStock(),
             'type' => $p->type->value ?? $p->type,
-            'is_new' => $p->created_at?->greaterThan(now()->subDays(30)),
+            'etichette' => EtichetteDelProdotto::per($p, $prezzi['prezzo_piu_basso_30_giorni']),
             'category' => $p->category ? [
                 'id' => $p->category->id,
                 'name' => $p->category->name,
@@ -128,6 +137,7 @@ class ShopController extends Controller
             $allProducts = Product::shoppable()
                 ->with(['category', 'media'])
                 ->withSum('variants', 'stock')
+                ->withMax('variants', 'stock')
                 ->orderBy('sort_order')
                 ->get()
                 ->map(fn ($p) => $this->mapProductCard($p))
@@ -193,6 +203,7 @@ class ShopController extends Controller
             ->shoppable()
             ->with(['media', 'category'])
             ->withSum('variants', 'stock')
+            ->withMax('variants', 'stock')
             ->orderBy('sort_order')
             ->get();
 
@@ -208,6 +219,7 @@ class ShopController extends Controller
                 ->where('id', '!=', $product->id)
                 ->with(['media', 'category'])
                 ->withSum('variants', 'stock')
+                ->withMax('variants', 'stock')
                 ->orderByRaw('RAND(?)', [$product->id])
                 ->take(4)
                 ->get()
@@ -269,6 +281,7 @@ class ShopController extends Controller
             ->whereIn('product_category_id', $categorieMostrate)
             ->with(['media', 'category'])
             ->withSum('variants', 'stock')
+            ->withMax('variants', 'stock')
             ->orderBy($sortColumn, $sortDirection)
             ->paginate(12)
             ->withQueryString();
@@ -309,6 +322,7 @@ class ShopController extends Controller
                 })
                 ->with(['media', 'category'])
                 ->withSum('variants', 'stock')
+                ->withMax('variants', 'stock')
                 ->latest()
                 ->paginate(12)
                 ->withQueryString();

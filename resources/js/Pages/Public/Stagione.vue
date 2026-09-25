@@ -278,7 +278,7 @@ v-for="role in roles"
                     <p class="text-sm text-gray-500 mb-4">{{ $t('stagione.stats_sort_hint') }}</p>
                     <SeasonStatsTable :rows="seasonStats" />
                     <p class="text-xs text-gray-500 mt-4">{{ $t('stagione.stats_legend') }}</p>
-                    <p class="text-xs text-gray-400 mt-1">{{ $t('stagione.stats_note') }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ $t('stagione.stats_note') }}</p>
                 </template>
             </div>
         </section>

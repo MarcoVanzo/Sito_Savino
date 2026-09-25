@@ -111,7 +111,7 @@ const ogMeta = useOgMeta({
                         :aria-current="activeCategory === category.slug ? 'page' : undefined"
                     >
                         {{ category.name }}
-                        <span class="ml-2 text-[10px] opacity-60">{{ category.count }}</span>
+                        <span class="ml-2 text-[10px]">{{ category.count }}</span>
                     </Link>
                     <button
                         v-if="hiddenCategoriesCount > 0"
@@ -120,7 +120,7 @@ const ogMeta = useOgMeta({
                         @click="showAllCategories = true"
                     >
                         {{ $t('news.filter_show_all') }}
-                        <span class="ml-2 text-[10px] opacity-60">+{{ hiddenCategoriesCount }}</span>
+                        <span class="ml-2 text-[10px]">+{{ hiddenCategoriesCount }}</span>
                     </button>
                 </nav>
 

@@ -324,6 +324,9 @@
                                 {{ collect(array_filter([$item->variant->size, $item->variant->color]))->implode(' / ') }}
                             </div>
                         @endif
+                        @if($item->nome_personalizzazione)
+                            <div class="item-variant">+ {{ $item->nome_personalizzazione }}</div>
+                        @endif
                     </td>
                     <td>{{ $item->quantity }}</td>
                     <td>€{{ number_format($item->price_at_time_of_purchase, 2, ',', '.') }}</td>

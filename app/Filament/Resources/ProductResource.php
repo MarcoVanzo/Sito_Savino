@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\EtichettaProdotto;
 use App\Enums\ProductType;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Product;
+use App\Support\EtichetteDelProdotto;
 use App\Support\GuidaTaglie;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -44,6 +46,28 @@ class ProductResource extends Resource
     protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'shop/products';
+
+    /**
+     * Dal modulo alla colonna: con le etichette automatiche `etichette` torna
+     * nulla. La lista nascosta non viene deidratata, quindi senza questo
+     * passaggio riaccendere "Automatiche" lascerebbe in archivio l'ultima
+     * scelta a mano.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function etichetteDalModulo(array $data): array
+    {
+        if (array_key_exists('etichette_automatiche', $data)) {
+            $data['etichette'] = $data['etichette_automatiche']
+                ? null
+                : array_values($data['etichette'] ?? []);
+        }
+
+        unset($data['etichette_automatiche']);
+
+        return $data;
+    }
 
     public static function form(Form $form): Form
     {
@@ -172,6 +196,51 @@ class ProductResource extends Resource
                             ->options(GuidaTaglie::opzioni())
                             ->placeholder('Quella generale (tutti i documenti)')
                             ->helperText('La voce sotto le taglie, nella scheda del prodotto. Scegli "Nessuna guida" per i prodotti per cui non ne esiste una.'),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Etichette in vetrina')
+                    ->description('Le scritte sulla foto del prodotto, nella griglia dello shop e nella scheda. Al massimo due: la prima va a sinistra, la seconda a destra.')
+                    ->schema([
+                        // Non e' una colonna: dice se `etichette` resta nulla
+                        // (automatiche). Si traduce in ProductResource::etichetteDalModulo.
+                        Forms\Components\Toggle::make('etichette_automatiche')
+                            ->label('Automatiche')
+                            ->helperText('"Nuovo" nei primi 30 giorni e "In offerta" durante lo sconto. Spegnila per sceglierle tu.')
+                            ->default(true)
+                            ->live()
+                            ->afterStateHydrated(function (Forms\Components\Toggle $component, ?Product $record): void {
+                                if ($record !== null) {
+                                    $component->state($record->etichette === null);
+                                }
+                            }),
+                        Forms\Components\CheckboxList::make('etichette')
+                            ->label('Etichette da mostrare')
+                            ->options(collect(EtichettaProdotto::cases())->mapWithKeys(fn (EtichettaProdotto $e) => [$e->value => $e->getLabel()])->all())
+                            ->descriptions(collect(EtichettaProdotto::cases())
+                                ->filter(fn (EtichettaProdotto $e) => $e->descrizioneNelPannello() !== null)
+                                ->mapWithKeys(fn (EtichettaProdotto $e) => [$e->value => $e->descrizioneNelPannello()])
+                                ->all())
+                            ->maxItems(EtichetteDelProdotto::MASSIMO)
+                            ->columns(2)
+                            ->helperText('Nessuna selezionata: il prodotto non mostra etichette.')
+                            ->hidden(fn (Forms\Get $get): bool => (bool) $get('etichette_automatiche')),
+                    ]),
+
+                Forms\Components\Section::make('Personalizzazione')
+                    ->description('Un\'aggiunta facoltativa che il cliente sceglie nella scheda, di solito la firma della giocatrice. Non tocca le giacenze: il pezzo in magazzino resta lo stesso.')
+                    ->schema([
+                        Forms\Components\TextInput::make('personalizzazione_nome')
+                            ->label('Nome dell\'aggiunta')
+                            ->placeholder('Firma della giocatrice')
+                            ->maxLength(120)
+                            ->helperText('Vuoto: il prodotto non la offre. Si attiva dal nome in italiano; in inglese si traduce cambiando lingua in alto.'),
+                        Forms\Components\TextInput::make('personalizzazione_prezzo')
+                            ->label('Supplemento (€)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->default(0)
+                            ->prefix('€')
+                            ->helperText('Si somma al prezzo del pezzo. 0: inclusa nel prezzo.'),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Articoli collegati')

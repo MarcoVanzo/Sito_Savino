@@ -42,10 +42,12 @@ export function useCart() {
      */
     const addToCart = (productIdOrOptions, quantity = 1, variantId = null, callbacks = {}) => {
         let productId, qty, variant;
+        let personalizzazione = false;
         if (typeof productIdOrOptions === 'object' && productIdOrOptions !== null) {
             productId = productIdOrOptions.product_id;
             qty = productIdOrOptions.quantity || 1;
             variant = productIdOrOptions.variant_id || null;
+            personalizzazione = Boolean(productIdOrOptions.personalizzazione);
             // When called with a single options object, the second arg is callbacks
             if (typeof quantity === 'object' && quantity !== null) {
                 callbacks = quantity;
@@ -62,6 +64,7 @@ export function useCart() {
             product_id: productId,
             quantity: qty,
             variant_id: variant,
+            personalizzazione,
         }, {
             preserveScroll: true,
             preserveState: true,

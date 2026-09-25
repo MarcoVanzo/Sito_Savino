@@ -12,6 +12,11 @@ class CreateProduct extends CreateRecord
 
     protected static string $resource = ProductResource::class;
 
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        return ProductResource::etichetteDalModulo($data);
+    }
+
     // L'invalidazione della cache shop è a carico di CacheInvalidationObserver,
     // che osserva Product: farla anche qui creava una seconda sorgente di verità
     // sulle chiavi, già divergente rispetto ai suffissi di lingua.
