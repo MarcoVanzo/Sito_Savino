@@ -22,7 +22,14 @@ class NewsletterSubscriberFactory extends Factory
             'synced_to_ac' => true,
             'ac_contact_id' => $this->faker->numberBetween(1, 99999),
             'subscribed_at' => now(),
+            'confermato_il' => now(),
         ];
+    }
+
+    /** Ha chiesto l'iscrizione ma non ha ancora cliccato il link di conferma. */
+    public function nonConfermato(): static
+    {
+        return $this->state(fn () => ['confermato_il' => null, 'synced_to_ac' => false, 'ac_contact_id' => null]);
     }
 
     /** Iscritto che ActiveCampaign non ha ancora ricevuto. */

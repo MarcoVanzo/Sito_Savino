@@ -153,7 +153,7 @@ class ProductResource extends Resource
                             // impedendo di salvare il prodotto intero (sconto,
                             // SKU, peso e date comprese).
                             ->lte('price')
-                            ->helperText('Per codici promozionali al checkout, vai a Codici Promozionali nel menu Shop.'),
+                            ->helperText('Sul sito il prezzo barrato è il più basso praticato nei 30 giorni prima dello sconto (obbligo di legge), non il listino: un prodotto nato già scontato si vende al prezzo scontato senza barrato. Per codici promozionali al checkout, vai a Codici Promozionali nel menu Shop.'),
                         Forms\Components\DateTimePicker::make('sale_start')
                             ->label('Inizio Sconto'),
                         Forms\Components\DateTimePicker::make('sale_end')

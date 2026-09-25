@@ -62,6 +62,15 @@ const countByStatus = (status) => {
         <!-- Content -->
         <section class="bg-gray-950 py-16">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Il regolamento va letto prima della prima offerta: si offre
+                     solo dalla pagina di un'asta, ma qui si decide di partecipare. -->
+                <p class="text-center text-sm text-gray-300 mb-8">
+                    {{ $t('auctions.rules_intro') }}
+                    <Link :href="route('pages.show', 'regolamento-aste')" class="text-white underline hover:text-savino-fucsia">{{ $t('auctions.rules_link') }}</Link>
+                    ·
+                    <Link :href="route('pages.show', 'condizioni-di-vendita')" class="text-white underline hover:text-savino-fucsia">{{ $t('footer.terms_of_sale') }}</Link>
+                </p>
+
                 <!-- Filter Tabs -->
                 <div class="flex flex-wrap gap-2 mb-10 justify-center">
                     <button type="button"

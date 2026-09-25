@@ -67,10 +67,39 @@ describe('CookieConsent', () => {
         window.axios = { post: vi.fn().mockResolvedValue({ data: {} }) };
         globalThis.route = (nome) => `/${nome}`;
         pagina.props = { consensoCookie: { versione: VERSIONE }, locale: 'it' };
+        // Le scelte scadono dopo dodici mesi (consenso.js): con l'orologio vero,
+        // i consensi datati settembre 2026 di questi test scadrebbero da soli
+        // nel settembre 2027. Si ferma solo Date, non i timer del banner.
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-09-25T12:00:00Z'));
     });
 
     afterEach(() => {
         delete globalThis.route;
+        vi.useRealTimers();
+    });
+
+    it('la X chiude il banner rifiutando', async () => {
+        const banner = montaIlBanner();
+        await flushPromises();
+
+        await banner.find('button[aria-label="cookie.close_reject"]').trigger('click');
+
+        expect(leggiIlConsenso(VERSIONE)).toMatchObject({ scelto: true, statistiche: false, marketing: false });
+        expect(aggiornaStatistiche).toHaveBeenLastCalledWith(false);
+        expect(aggiornaMarketing).toHaveBeenLastCalledWith(false);
+        expect(banner.text()).not.toContain('cookie.title');
+    });
+
+    it('una scelta più vecchia di dodici mesi si richiede, e intanto non misura', async () => {
+        salvaIlConsenso({ statistiche: true, marketing: true, versione: VERSIONE, data: '2025-09-01T10:00:00.000Z' });
+
+        const banner = montaIlBanner();
+        await flushPromises();
+
+        expect(banner.text()).toContain('cookie.title');
+        expect(aggiornaStatistiche).toHaveBeenCalledWith(false);
+        expect(aggiornaMarketing).toHaveBeenCalledWith(false);
     });
 
     it('a chi non ha ancora scelto si mostra', async () => {

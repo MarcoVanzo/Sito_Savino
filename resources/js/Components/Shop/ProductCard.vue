@@ -132,17 +132,24 @@ const handleAddToCart = () => {
                     {{ product.name }}
                 </h3>
 
-                <!-- Price -->
-                <div class="mt-auto flex items-baseline gap-2">
-                    <span
-                        v-if="hasSalePrice"
-                        class="text-gray-500 text-sm line-through"
-                    >
-                        {{ formatPrice(product.price) }}
-                    </span>
-                    <span class="text-savino-fucsia font-black text-xl">
-                        {{ formatPrice(hasSalePrice ? product.sale_price : product.price) }}
-                    </span>
+                <!-- Price: il barrato è il prezzo più basso dei 30 giorni prima
+                     dello sconto (art. 17-bis Codice del consumo), non il listino:
+                     lo decide il backend (ShopController::prezzi). -->
+                <div class="mt-auto">
+                    <div class="flex items-baseline gap-2">
+                        <span
+                            v-if="hasSalePrice"
+                            class="text-gray-500 text-sm line-through"
+                        >
+                            {{ formatPrice(product.price) }}
+                        </span>
+                        <span class="text-savino-fucsia font-black text-xl">
+                            {{ formatPrice(hasSalePrice ? product.sale_price : product.price) }}
+                        </span>
+                    </div>
+                    <p v-if="hasSalePrice" class="text-[10px] text-gray-400 mt-0.5">
+                        {{ $t('shop.lowest_price_30_days_short') }}
+                    </p>
                 </div>
             </div>
         </Link>

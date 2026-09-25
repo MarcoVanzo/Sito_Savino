@@ -18,7 +18,9 @@
         "coming_soon": "Coming soon",
         "tbd": "Date to be confirmed",
         "home": "Home",
-        "shop": "Shop"
+        "shop": "Shop",
+        "form_privacy_notice": "We use the data you enter only to reply to your request and keep it for 24 months. To find out how we process it and what your rights are, read the",
+        "form_privacy_link": "privacy notice"
     },
     "nav": {
         "main_navigation": "Main navigation",
@@ -75,7 +77,13 @@
         "contacts": "Contacts",
         "communication": "Media",
         "standings": "Standings",
-        "supplier_policy": "Supplier Policy"
+        "supplier_policy": "Supplier Policy",
+        "terms_of_sale": "Terms of sale",
+        "withdrawal": "Right of withdrawal",
+        "shipping": "Shipping",
+        "returns": "Returns and refunds",
+        "withdraw": "Withdraw from contract",
+        "share_capital": "Share capital"
     },
     "cookie": {
         "title": "🍪 Cookie Settings",
@@ -92,7 +100,8 @@
         "marketing_desc": "Used to personalise ads based on your interests.",
         "save_preferences": "Save preferences",
         "reference_label": "Consent reference:",
-        "manage_aria": "Manage cookie consent"
+        "manage_aria": "Manage cookie consent",
+        "close_reject": "Close and reject non-essential cookies"
     },
     "newsletter": {
         "title": "Don't miss a thing",
@@ -102,7 +111,7 @@
         "subscribe": "Subscribe",
         "privacy_consent": "I accept the data processing according to the",
         "privacy_link": "Privacy Policy",
-        "success": "Subscription complete! Check your email.",
+        "success": "Almost there: check your email and confirm your subscription.",
         "already_subscribed": "This email is already subscribed.",
         "error": "An error occurred. Please try again later.",
         "footer_title": "Newsletter",
@@ -112,7 +121,12 @@
         "unsubscribe_cancel": "Stay subscribed",
         "unsubscribe_done_title": "Unsubscribed",
         "unsubscribe_done_text": "We will no longer send the newsletter to this address:",
-        "unsubscribe_link": "Unsubscribe"
+        "unsubscribe_link": "Unsubscribe",
+        "confirm_title": "Confirm your subscription",
+        "confirm_intro": "You are about to subscribe this address to the Savino Del Bene Volley newsletter:",
+        "confirm_button": "Confirm my subscription",
+        "confirm_done_title": "Subscription confirmed",
+        "confirm_done_text": "Thank you! From now on you will receive the newsletter at this address:"
     },
     "lang": {
         "switch_to": "Switch to {lang}",
@@ -165,7 +179,9 @@
         "copied": "Copied!",
         "filter_all": "All",
         "headquarters": "Administrative Office",
-        "search_placeholder": "Search by name, role or email..."
+        "search_placeholder": "Search by name, role or email...",
+        "rea": "REA number",
+        "share_capital": "Share capital"
     },
     "societa": {
         "og_title": "About the Club",
@@ -638,14 +654,19 @@
         "size_guide": "Size Guide",
         "trust_secure": "Secure Payment",
         "trust_shipping": "Tracked Shipping",
-        "trust_returns": "Easy Returns",
+        "trust_returns": "14-day returns",
         "load_more": "Load more products",
         "remaining": "remaining",
         "sort_default": "Sort by",
         "loading_products": "Loading products",
         "cart_error_generic": "Something went wrong while adding to the cart",
         "your_bid": "Your bid",
-        "subcategory_all": "All"
+        "subcategory_all": "All",
+        "lowest_price_30_days": "Lowest price in the 30 days before the discount: {price}",
+        "lowest_price_30_days_short": "Struck-through: lowest price in the last 30 days",
+        "guarantee_link": "your legal guarantee rights",
+        "guarantee_url": "https://europa.eu/youreurope/guarantees",
+        "guarantee_rights": "Your legal guarantee rights (2 years)"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Order submitted! (placeholder)",
@@ -720,7 +741,13 @@
         "label_codice_fiscale": "Tax ID (Codice Fiscale)",
         "placeholder_codice_fiscale": "RSSMRA85T10A562S",
         "label_contact_phone": "Phone Contact",
-        "phone_shipping_note": "Required to contact you in case of delivery issues."
+        "phone_shipping_note": "Required to contact you in case of delivery issues.",
+        "payment_obligation": "Order with obligation to pay",
+        "terms_accept_1": "I have read and accept the",
+        "terms_link": "Terms of sale",
+        "terms_accept_2": "and the information on the",
+        "withdrawal_link": "right of withdrawal",
+        "terms_accept_3": ", and I have read the"
     },
     "countries": {
         "IT": "Italy",
@@ -1027,7 +1054,9 @@
         "shop_cta_description": "Discover the full collection of official Savino Del Bene Volley products.",
         "shop_cta_button": "Go to Shop",
         "min_short": "Min:",
-        "max_short": "Max:"
+        "max_short": "Max:",
+        "rules_intro": "Before bidding, please read the",
+        "rules_link": "Auction rules"
     },
     "auction_checkout": {
         "og_title": "Auction Checkout",
@@ -1130,5 +1159,74 @@
             "marketing": "Marketing",
             "non classificati": "Not yet classified"
         }
+    },
+    "account": {
+        "title": "My account",
+        "menu": "My account",
+        "data_title": "Your data",
+        "name": "Name",
+        "email": "Email",
+        "member_since": "Customer since",
+        "orders": "Orders",
+        "export_title": "Download your data",
+        "export_text": "A file with everything we keep about you: account details, orders with addresses and items, auction bids and any newsletter subscription. It is in JSON format, readable by a program and by a text editor.",
+        "export_button": "Download my data",
+        "delete_title": "Delete account",
+        "delete_text": "Once your account is deleted you will no longer be able to log in or see your order history here. Orders remain archived for ten years, as tax law requires, but no longer linked to your account.",
+        "delete_newsletter": "The newsletter subscription is separate: to leave it as well, use the link at the bottom of every message.",
+        "delete_button": "Delete my account",
+        "delete_password": "To confirm, enter your password",
+        "delete_confirm": "Delete permanently",
+        "delete_cancel": "Cancel"
+    },
+    "recesso": {
+        "title": "Withdraw from contract",
+        "meta_description": "Exercise online your right of withdrawal from purchases made on the Savino Del Bene Volley Shop.",
+        "intro": "Here you can withdraw from a purchase made on our Shop, within 14 days of delivery, without giving any reason. You do not need an account.",
+        "intro_terms": "After confirming you immediately receive a receipt by email with the date and time. The rules on returns and refunds are in the",
+        "terms_link": "Terms of sale",
+        "name": "Full name",
+        "email": "Email",
+        "email_help": "We send the withdrawal receipt to this address.",
+        "order_number": "Order number",
+        "order_help": "You find it in the confirmation email and under \"My orders\".",
+        "items_label": "Items to return (optional)",
+        "items_help": "Leave empty if you are withdrawing from the whole order.",
+        "required": "Required field.",
+        "invalid_email": "Invalid email address.",
+        "continue": "Continue",
+        "summary_title": "Check and confirm",
+        "statement": "I hereby give notice that I withdraw from the contract of sale relating to order {number}.",
+        "items": "Items",
+        "all_items": "all items in the order",
+        "confirm": "Confirm withdrawal",
+        "edit": "Edit details",
+        "received_title": "Withdrawal sent",
+        "received_intro": "We have recorded your statement and sent the receipt to {email}.",
+        "sent_at": "Date and time sent",
+        "next_steps": "Send the products back within 14 days quoting the order number: we refund the price and standard delivery costs within 14 days.",
+        "returns_link": "How to return the products"
+    },
+    "spedizioni": {
+        "table_title": "Costs and times by area",
+        "col_zone": "Area",
+        "col_cost": "Cost (VAT included)",
+        "col_free": "Free shipping",
+        "col_days": "Indicative times",
+        "other_countries": "all other countries",
+        "up_to": "up to {kg}",
+        "over": "over {kg}",
+        "free_from": "on orders from {amount}",
+        "days": "{min}-{max} working days",
+        "table_note": "The cost depends on the total weight of the order; the exact amount is always shown in the summary before you confirm."
+    },
+    "garanzia_legale": {
+        "link": "Your legal guarantee rights",
+        "title": "Legal guarantee",
+        "close": "Close",
+        "alt": "European Union harmonised notice on the legal guarantee",
+        "url": "https://europa.eu/youreurope/guarantees",
+        "url_label": "europa.eu/youreurope/guarantees",
+        "transcript": "Minimum two-year legal guarantee protection for goods sold in the European Union. Consumers can claim their rights under the legal guarantee of conformity, for example if goods do not match the description or do not function as intended. Sellers are liable for any lack of conformity which existed when the goods were delivered, and which becomes apparent within the legal guarantee period. Sellers in such a situation are required to offer free repair or free replacement; in some cases, a price reduction or full reimbursement. Some countries have a longer legal guarantee period. For second-hand goods, a shorter period may apply, but not less than one year. For more information on your rights in a specific country, scan the QR code or ask the seller: europa.eu/youreurope/guarantees. What to do if you receive non-conforming goods: 1. contact the seller as soon as possible to report the issue; 2. provide proof of purchase, such as a receipt, invoice, or bank statement. Sellers and producers may also offer commercial guarantees, which apply independently from the legal guarantee. For example, the GARAN label represents a commercial guarantee of durability offered by the producer at no additional cost and covering the entire good."
     }
 }

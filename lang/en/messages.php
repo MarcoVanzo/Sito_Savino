@@ -63,9 +63,15 @@ return [
         'already_have_account' => 'Already have an account?',
         'login_now' => 'Login now',
     ],
+    'account' => [
+        'deleted' => 'Your account has been deleted. Orders remain archived for tax purposes, no longer linked to the account.',
+        'delete_blocked_staff' => 'This is an editorial account: it is managed from the admin panel.',
+        'delete_blocked_auction' => 'You have an auction in progress or a won auction to pay for: you can delete your account once it is over.',
+    ],
     'newsletter' => [
         'already_subscribed' => 'This email is already subscribed to the newsletter.',
-        'success' => 'Subscription completed! Thank you for subscribing.',
+        'success' => 'Subscription confirmed! Thank you for subscribing.',
+        'confirm_sent' => 'Almost there: we have sent you an email with a link to confirm your subscription.',
         'unsubscribed' => 'You have been unsubscribed. You will no longer receive the newsletter.',
     ],
     'auction' => [

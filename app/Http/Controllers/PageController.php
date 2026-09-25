@@ -9,10 +9,12 @@ use App\Models\Game;
 use App\Models\Page;
 use App\Models\Roster;
 use App\Models\Season;
+use App\Models\ShippingZone;
 use App\Models\StaffMember;
 use App\Models\Team;
 use App\Services\SponsorDirectory;
 use App\Support\DichiarazioneCookie;
+use App\Support\PagineLegaliDelloShop;
 use App\Support\PermalinkVecchioSito;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
@@ -184,6 +186,24 @@ class PageController extends Controller
         // altre pagine di solo testo.
         if ($page->slug === 'cookie-policy') {
             $extra['dichiarazioneCookie'] = DichiarazioneCookie::perIlFrontend();
+        }
+
+        // La pagina Spedizioni non scrive a mano costi e tempi: li legge dalle
+        // zone di spedizione del pannello, le stesse con cui il checkout fa il
+        // conto. Due copie avrebbero finito per dire cose diverse, come gia'
+        // succedeva sul vecchio negozio (24-48 ore in una pagina, 48-72
+        // nell'altra).
+        if ($page->slug === PagineLegaliDelloShop::SPEDIZIONI) {
+            $extra['zoneDiSpedizione'] = ShippingZone::active()->ordered()->get()
+                ->map(fn (ShippingZone $zona) => [
+                    'nome' => $zona->getTranslation('name', app()->getLocale()),
+                    'paesi' => $zona->countries,
+                    'tariffa' => (float) $zona->flat_rate,
+                    'fasce' => $zona->fasceOrdinate(),
+                    'soglia_gratuita' => $zona->free_threshold !== null ? (float) $zona->free_threshold : null,
+                    'giorni_min' => $zona->estimated_days_min,
+                    'giorni_max' => $zona->estimated_days_max,
+                ])->values()->all();
         }
 
         // I file caricati dal pannello dentro `content_data` (press kit,

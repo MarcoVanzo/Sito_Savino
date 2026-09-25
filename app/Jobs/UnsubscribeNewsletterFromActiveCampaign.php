@@ -50,7 +50,6 @@ class UnsubscribeNewsletterFromActiveCampaign implements ShouldQueue
     {
         Log::critical('ActiveCampaign: disiscrizione fallita permanentemente', [
             'contact_id' => $this->contactId,
-            'email' => $this->email,
             'error' => $exception->getMessage(),
         ]);
     }

@@ -3,6 +3,7 @@ import { useTranslations } from '@/Composables/useTranslations.js';
 import { useSanitize } from '@/Composables/useSanitize.js';
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import AvvisoGaranziaLegale from '@/Components/Shop/AvvisoGaranziaLegale.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { useCart } from '@/Composables/useCart.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
@@ -321,10 +322,18 @@ const structuredData = computed(() => {
                             {{ product?.name }}
                         </h2>
 
-                        <!-- Price -->
-                        <div class="flex items-baseline gap-3 mb-6">
-                            <span class="text-3xl font-black text-savino-red">{{ formatPrice(displayPrice) }}</span>
-                            <span v-if="hasSale" class="text-lg text-gray-400 line-through">{{ formatPrice(originalPrice) }}</span>
+                        <!-- Price: il barrato è il prezzo più basso dei 30 giorni prima
+                             dello sconto (art. 17-bis Codice del consumo), e va detto
+                             accanto: senza la didascalia il cliente lo leggerebbe come
+                             il listino. -->
+                        <div class="mb-6">
+                            <div class="flex items-baseline gap-3">
+                                <span class="text-3xl font-black text-savino-red">{{ formatPrice(displayPrice) }}</span>
+                                <span v-if="hasSale" class="text-lg text-gray-400 line-through">{{ formatPrice(originalPrice) }}</span>
+                            </div>
+                            <p v-if="hasSale" class="text-xs text-gray-500 mt-1">
+                                {{ $t('shop.lowest_price_30_days', { price: formatPrice(originalPrice) }) }}
+                            </p>
                         </div>
 
                         <!-- Short Description -->
@@ -416,13 +425,20 @@ const structuredData = computed(() => {
                                 </div>
                                 <div class="flex flex-col items-center gap-1.5">
                                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                                    <span class="text-xs font-medium text-gray-600">{{ $t('shop.trust_shipping') }}</span>
+                                    <Link :href="route('pages.show', 'spedizioni')" class="text-xs font-medium text-gray-600 underline decoration-dotted underline-offset-2 hover:text-savino-blue">{{ $t('shop.trust_shipping') }}</Link>
                                 </div>
-                                <div class="flex flex-col items-center gap-1.5">
+                                <!-- Il reso ha una regola scritta dietro: 14 giorni dalla
+                                     consegna, spese di restituzione a carico del cliente,
+                                     esclusi i prodotti personalizzati. Prima diceva
+                                     "Reso Facile" e non portava da nessuna parte. -->
+                                <a :href="route('pages.show', 'diritto-di-recesso')" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center gap-1.5 group">
                                     <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-                                    <span class="text-xs font-medium text-gray-600">{{ $t('shop.trust_returns') }}</span>
-                                </div>
+                                    <span class="text-xs font-medium text-gray-600 underline decoration-dotted underline-offset-2 group-hover:text-savino-blue">{{ $t('shop.trust_returns') }}</span>
+                                </a>
                             </div>
+                            <!-- Avviso UE sulla garanzia legale (Reg. 2025/1960): in scheda
+                                 prodotto, raggiungibile con un click prima dell'acquisto. -->
+                            <div class="mt-4 text-center text-xs text-gray-600"><AvvisoGaranziaLegale /></div>
                         </div>
                     </div>
                 </div>

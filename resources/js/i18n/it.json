@@ -18,7 +18,9 @@
         "coming_soon": "In arrivo",
         "tbd": "Data da definire",
         "home": "Home",
-        "shop": "Shop"
+        "shop": "Shop",
+        "form_privacy_notice": "Usiamo i dati che inserisci solo per rispondere alla tua richiesta e li conserviamo per 24 mesi. Per sapere come li trattiamo e quali diritti hai, leggi",
+        "form_privacy_link": "l'informativa privacy"
     },
     "nav": {
         "main_navigation": "Navigazione principale",
@@ -75,7 +77,13 @@
         "contacts": "Contatti",
         "communication": "Comunicazione",
         "standings": "Classifica",
-        "supplier_policy": "Informativa Fornitori"
+        "supplier_policy": "Informativa Fornitori",
+        "terms_of_sale": "Condizioni di vendita",
+        "withdrawal": "Diritto di recesso",
+        "shipping": "Spedizioni",
+        "returns": "Resi e rimborsi",
+        "withdraw": "Recedi dal contratto",
+        "share_capital": "Cap. soc."
     },
     "cookie": {
         "title": "🍪 Gestione Cookie",
@@ -92,7 +100,8 @@
         "marketing_desc": "Personalizzano la pubblicità in base ai tuoi interessi.",
         "save_preferences": "Salva preferenze",
         "reference_label": "Riferimento del consenso:",
-        "manage_aria": "Gestisci il consenso ai cookie"
+        "manage_aria": "Gestisci il consenso ai cookie",
+        "close_reject": "Chiudi e rifiuta i cookie non necessari"
     },
     "newsletter": {
         "title": "Non perderti nulla",
@@ -102,7 +111,7 @@
         "subscribe": "Iscriviti",
         "privacy_consent": "Accetto il trattamento dei dati secondo la",
         "privacy_link": "Privacy Policy",
-        "success": "Iscrizione completata! Controlla la tua email.",
+        "success": "Ci sei quasi: controlla la tua email e conferma l'iscrizione.",
         "already_subscribed": "Questa email è già iscritta alla newsletter.",
         "error": "Si è verificato un errore. Riprova più tardi.",
         "footer_title": "Newsletter",
@@ -112,7 +121,12 @@
         "unsubscribe_cancel": "Resta iscritto",
         "unsubscribe_done_title": "Iscrizione annullata",
         "unsubscribe_done_text": "Non invieremo più la newsletter a questo indirizzo:",
-        "unsubscribe_link": "Annulla iscrizione"
+        "unsubscribe_link": "Annulla iscrizione",
+        "confirm_title": "Conferma l'iscrizione",
+        "confirm_intro": "Stai per iscrivere questo indirizzo alla newsletter della Savino Del Bene Volley:",
+        "confirm_button": "Confermo l'iscrizione",
+        "confirm_done_title": "Iscrizione confermata",
+        "confirm_done_text": "Grazie! Da ora riceverai la newsletter a questo indirizzo:"
     },
     "lang": {
         "switch_to": "Passa a {lang}",
@@ -165,7 +179,9 @@
         "copied": "Copiato!",
         "filter_all": "Tutti",
         "headquarters": "Sede Amministrativa",
-        "search_placeholder": "Cerca per nome, ruolo o email..."
+        "search_placeholder": "Cerca per nome, ruolo o email...",
+        "rea": "Numero REA",
+        "share_capital": "Capitale sociale"
     },
     "societa": {
         "og_title": "La Società",
@@ -638,14 +654,19 @@
         "size_guide": "Guida alle taglie",
         "trust_secure": "Pagamento Sicuro",
         "trust_shipping": "Spedizione Tracciata",
-        "trust_returns": "Reso Facile",
+        "trust_returns": "Reso entro 14 giorni",
         "load_more": "Mostra altri prodotti",
         "remaining": "rimanenti",
         "sort_default": "Ordina per",
         "loading_products": "Caricamento prodotti",
         "cart_error_generic": "Errore durante l'aggiunta al carrello",
         "your_bid": "La tua offerta",
-        "subcategory_all": "Tutti"
+        "subcategory_all": "Tutti",
+        "lowest_price_30_days": "Prezzo più basso degli ultimi 30 giorni prima dello sconto: {price}",
+        "lowest_price_30_days_short": "Barrato: prezzo più basso ultimi 30 giorni",
+        "guarantee_link": "i tuoi diritti di garanzia legale",
+        "guarantee_url": "https://europa.eu/youreurope/garanzie",
+        "guarantee_rights": "I tuoi diritti di garanzia legale (2 anni)"
     },
     "shop_checkout": {
         "order_submitted_placeholder": "Ordine inviato! (placeholder)",
@@ -720,7 +741,13 @@
         "label_codice_fiscale": "Codice Fiscale",
         "placeholder_codice_fiscale": "RSSMRA85T10A562S",
         "label_contact_phone": "Contatto Telefonico",
-        "phone_shipping_note": "Necessario per contattarti in caso di problemi con la spedizione."
+        "phone_shipping_note": "Necessario per contattarti in caso di problemi con la spedizione.",
+        "payment_obligation": "Ordine con obbligo di pagamento",
+        "terms_accept_1": "Ho letto e accetto le",
+        "terms_link": "Condizioni di vendita",
+        "terms_accept_2": "e l'informativa sul",
+        "withdrawal_link": "diritto di recesso",
+        "terms_accept_3": ", e ho letto la"
     },
     "countries": {
         "IT": "Italia",
@@ -1027,7 +1054,9 @@
         "shop_cta_description": "Scopri la collezione completa dei prodotti ufficiali Savino Del Bene Volley.",
         "shop_cta_button": "Vai allo Shop",
         "min_short": "Min:",
-        "max_short": "Max:"
+        "max_short": "Max:",
+        "rules_intro": "Prima di fare un'offerta leggi il",
+        "rules_link": "Regolamento aste"
     },
     "auction_checkout": {
         "og_title": "Checkout Asta",
@@ -1130,5 +1159,74 @@
             "marketing": "Marketing",
             "non classificati": "Non ancora classificati"
         }
+    },
+    "account": {
+        "title": "Il mio account",
+        "menu": "Il mio account",
+        "data_title": "I tuoi dati",
+        "name": "Nome",
+        "email": "Email",
+        "member_since": "Cliente dal",
+        "orders": "Ordini",
+        "export_title": "Scarica i tuoi dati",
+        "export_text": "Un file con tutto quello che conserviamo di te: i dati dell'account, gli ordini con indirizzi e articoli, le offerte alle aste e l'eventuale iscrizione alla newsletter. È in formato JSON, leggibile da un programma e da un editor di testo.",
+        "export_button": "Scarica i miei dati",
+        "delete_title": "Cancella l'account",
+        "delete_text": "Cancellando l'account non potrai più accedere né vedere lo storico ordini da qui. Gli ordini restano archiviati per dieci anni, come impone la legge fiscale, ma senza più legame con il tuo account.",
+        "delete_newsletter": "L'iscrizione alla newsletter è separata: se vuoi uscire anche da quella, usa il link in fondo a ogni messaggio.",
+        "delete_button": "Cancella il mio account",
+        "delete_password": "Per confermare, scrivi la tua password",
+        "delete_confirm": "Cancella definitivamente",
+        "delete_cancel": "Annulla"
+    },
+    "recesso": {
+        "title": "Recedi dal contratto",
+        "meta_description": "Esercita online il diritto di recesso dagli acquisti fatti sullo Shop Savino Del Bene Volley.",
+        "intro": "Da qui puoi recedere da un acquisto fatto sul nostro Shop, entro 14 giorni dalla consegna, senza dover indicare il motivo. Non serve essere registrati.",
+        "intro_terms": "Dopo la conferma ricevi subito via email una ricevuta con data e ora. Le regole su restituzione e rimborso sono nelle",
+        "terms_link": "Condizioni di vendita",
+        "name": "Nome e cognome",
+        "email": "Email",
+        "email_help": "Ti mandiamo qui la ricevuta del recesso.",
+        "order_number": "Numero d'ordine",
+        "order_help": "Lo trovi nell'email di conferma e nella sezione \"I miei ordini\".",
+        "items_label": "Articoli da restituire (facoltativo)",
+        "items_help": "Lascia vuoto se recedi dall'intero ordine.",
+        "required": "Campo obbligatorio.",
+        "invalid_email": "Indirizzo email non valido.",
+        "continue": "Continua",
+        "summary_title": "Controlla e conferma",
+        "statement": "Con la presente notifico il recesso dal contratto di vendita relativo all'ordine {number}.",
+        "items": "Articoli",
+        "all_items": "tutti gli articoli dell'ordine",
+        "confirm": "Conferma recesso",
+        "edit": "Modifica i dati",
+        "received_title": "Recesso inviato",
+        "received_intro": "Abbiamo registrato la tua dichiarazione e ti abbiamo inviato la ricevuta a {email}.",
+        "sent_at": "Data e ora di invio",
+        "next_steps": "Rispedisci i prodotti entro 14 giorni indicando il numero d'ordine: ti rimborsiamo prezzo e spese di consegna standard entro 14 giorni.",
+        "returns_link": "Come restituire i prodotti"
+    },
+    "spedizioni": {
+        "table_title": "Costi e tempi per zona",
+        "col_zone": "Zona",
+        "col_cost": "Costo (IVA inclusa)",
+        "col_free": "Spedizione gratuita",
+        "col_days": "Tempi indicativi",
+        "other_countries": "tutti gli altri Paesi",
+        "up_to": "fino a {kg}",
+        "over": "oltre {kg}",
+        "free_from": "da {amount} di spesa",
+        "days": "{min}-{max} giorni lavorativi",
+        "table_note": "Il costo dipende dal peso totale dell'ordine; il conto esatto è sempre nel riepilogo prima della conferma."
+    },
+    "garanzia_legale": {
+        "link": "I tuoi diritti di garanzia legale",
+        "title": "Garanzia legale",
+        "close": "Chiudi",
+        "alt": "Avviso armonizzato dell'Unione europea sulla garanzia legale",
+        "url": "https://europa.eu/youreurope/garanzie",
+        "url_label": "europa.eu/youreurope/garanzie",
+        "transcript": "Garanzia legale minima di due anni per i beni venduti nell'Unione europea. I consumatori possono far valere i loro diritti nell'ambito della garanzia legale di conformità, ad esempio se i beni non corrispondono alla descrizione o non funzionano come previsto. I venditori sono responsabili di qualsiasi difetto di conformità esistente al momento della consegna dei beni e che si manifesta entro il periodo della garanzia legale. In tal caso i venditori sono tenuti a offrire la riparazione o sostituzione gratuita; in alcuni casi, una riduzione del prezzo o il rimborso integrale. Alcuni paesi prevedono un periodo di garanzia legale più lungo. Per i beni di seconda mano può valere un periodo più breve, ma non inferiore a un anno. Per saperne di più sui propri diritti in un determinato paese, scansionare il codice QR o chiedere informazioni al venditore: europa.eu/youreurope/garanzie. Cosa fare se si ricevono beni non conformi: 1. contattare quanto prima il venditore per segnalare il problema; 2. fornire la prova dell'acquisto, ad esempio una ricevuta, una fattura o un estratto conto bancario. I venditori e i produttori possono anche offrire garanzie commerciali, che si applicano indipendentemente dalla garanzia legale. Ad esempio, l'etichetta GARAN rappresenta una garanzia commerciale di durabilità offerta dal produttore senza costi aggiuntivi, che copre il bene nel suo complesso."
     }
 }

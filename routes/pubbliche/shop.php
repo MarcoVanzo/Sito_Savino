@@ -14,11 +14,13 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\Shop\AccountController;
 use App\Http\Controllers\Shop\AuctionCheckoutController;
 use App\Http\Controllers\Shop\AuctionController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\OrderController;
+use App\Http\Controllers\Shop\RecessoController;
 use App\Http\Controllers\Shop\ShopAuthController;
 use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\ValidateCouponController;
@@ -38,6 +40,7 @@ return function (string $loc, string $namePrefix): void {
         'annullato' => $loc === 'en' ? 'cancelled' : 'annullato',
         'ordine' => $loc === 'en' ? 'order' : 'ordine',
         'ricevuta' => $loc === 'en' ? 'receipt' : 'ricevuta',
+        'i-miei-dati' => $loc === 'en' ? 'my-data' : 'i-miei-dati',
         'ordini' => $loc === 'en' ? 'orders' : 'ordini',
         'registrati' => $loc === 'en' ? 'register' : 'registrati',
         'contatti' => $loc === 'en' ? 'contacts' : 'contatti',
@@ -95,6 +98,16 @@ return function (string $loc, string $namePrefix): void {
         // Auth-only shop routes
         Route::middleware('auth')->group(function () use ($shopSlugs) {
             Route::get('/'.$shopSlugs['ordini'], [OrderController::class, 'index'])->name('shop.orders');
+
+            // Il mio account: dati, esportazione (art. 20 GDPR) e
+            // cancellazione (art. 17). Vedi AccountController.
+            Route::get('/account', [AccountController::class, 'show'])->name('shop.account');
+            Route::get('/account/'.$shopSlugs['i-miei-dati'], [AccountController::class, 'esporta'])
+                ->middleware('throttle:5,1')
+                ->name('shop.account.export');
+            Route::delete('/account', [AccountController::class, 'cancella'])
+                ->middleware('throttle:5,1')
+                ->name('shop.account.destroy');
         });
 
         // Shop registration
@@ -126,6 +139,16 @@ return function (string $loc, string $namePrefix): void {
             Route::get('/checkout/asta/{token}/annullato', [AuctionCheckoutController::class, 'cancel'])->name('shop.auction-checkout.cancel');
         });
     });
+    // Recesso online (art. 54-bis Codice del Consumo): fuori dal prefisso
+    // /shop perche' il link sta nel footer di tutto il sito, e prima della
+    // rotta generica delle pagine CMS che chiude questo file.
+    Route::get('/recesso', [RecessoController::class, 'show'])->name('recesso');
+    // Limite stretto: la POST manda subito un'email a un indirizzo scritto
+    // da chi compila, con testo suo dentro. Tre dichiarazioni ogni dieci
+    // minuti bastano a chiunque receda davvero, e non fanno del modulo un
+    // modo per spedire posta a nome della societa'.
+    Route::post('/recesso', [RecessoController::class, 'store'])->middleware('throttle:3,10')->name('recesso.store');
+
     Route::get('/'.$shopSlugs['contatti'], [PublicController::class, 'contatti'])->name('contatti');
     Route::post('/'.$shopSlugs['contatti'], [ContactController::class, 'submit'])->middleware('throttle:5,1')->name('contatti.submit');
     Route::post('/newsletter', [NewsletterController::class, 'subscribe'])
@@ -149,6 +172,17 @@ return function (string $loc, string $namePrefix): void {
     Route::post('/newsletter/'.$disiscriviti.'/{subscriber}', [NewsletterController::class, 'unsubscribe'])
         ->middleware(['signed', 'throttle:10,1'])
         ->name('newsletter.unsubscribe');
+
+    // Doppio opt-in: il link dell'email di conferma porta a una pagina con un
+    // pulsante (GET), e la conferma avviene in POST — stesso schema della
+    // disiscrizione, per la stessa ragione (vedi NewsletterController).
+    $conferma = $loc === 'en' ? 'confirm' : 'conferma';
+    Route::get('/newsletter/'.$conferma.'/{subscriber}', [NewsletterController::class, 'showConferma'])
+        ->middleware('signed')
+        ->name('newsletter.conferma.show');
+    Route::post('/newsletter/'.$conferma.'/{subscriber}', [NewsletterController::class, 'conferma'])
+        ->middleware(['signed', 'throttle:10,1'])
+        ->name('newsletter.conferma');
     Route::get('/in-costruzione', [PublicController::class, 'underConstruction'])->name('in-costruzione');
 
     // Rotta dinamica per le pagine del CMS (CATCH-ALL)

@@ -3,10 +3,22 @@
 namespace App\Observers;
 
 use App\Models\Product;
+use App\Services\StoricoPrezzi;
 use Illuminate\Support\Facades\Log;
 
 class ProductObserver
 {
+    /**
+     * Ogni salvataggio che cambia il prezzo effettivo apre una riga dello
+     * storico: è da lì che si calcola il prezzo da barrare accanto a uno
+     * sconto (StoricoPrezzi). Gli sconti programmati li registra
+     * `prezzi:registra`, ogni ora.
+     */
+    public function saved(Product $product): void
+    {
+        app(StoricoPrezzi::class)->registra($product);
+    }
+
     /**
      * Handle the Product "updated" event.
      * Se il prodotto viene disattivato, rimuove tutti i CartItem associati.

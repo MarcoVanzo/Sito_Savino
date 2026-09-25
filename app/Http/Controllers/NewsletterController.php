@@ -4,16 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\NewsletterRequest;
 use App\Jobs\SyncNewsletterToActiveCampaign;
+use App\Mail\ConfermaIscrizioneNewsletter;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class NewsletterController extends Controller
 {
+    /**
+     * Richiesta d'iscrizione: registra l'indirizzo e manda il link di
+     * conferma. L'iscrizione vale — e il contatto arriva ad ActiveCampaign —
+     * solo dopo il click (doppio opt-in, NewsletterSubscriber::conferma).
+     *
+     * Nel log non finiscono né l'email né l'indirizzo IP: il log non ha la
+     * conservazione dell'archivio, e fino al 25 settembre 2026 teneva
+     * entrambi per ogni iscrizione.
+     */
     public function subscribe(NewsletterRequest $request)
     {
         $validated = $request->validated();
@@ -22,8 +33,8 @@ class NewsletterController extends Controller
         $existing = NewsletterSubscriber::where('email', $validated['email'])->first();
 
         if ($existing) {
-            // Se è attivo → già iscritto
-            if ($existing->unsubscribed_at === null) {
+            // Attivo e confermato → già iscritto
+            if ($existing->isSubscribed() && $existing->haConfermato()) {
                 // Self-healing: se per qualche motivo era fallita la sincronizzazione, la riavviamo
                 if (! $existing->synced_to_ac) {
                     SyncNewsletterToActiveCampaign::dispatch($existing);
@@ -32,9 +43,12 @@ class NewsletterController extends Controller
                 return back()->with('newsletter_info', __('messages.newsletter.already_subscribed'));
             }
 
-            // Se era disiscritto → riattiva
+            // Disiscritto, o mai confermato: si riparte dalla richiesta, e la
+            // conferma va chiesta di nuovo. Un "sì" di mesi fa non vale per
+            // una lista da cui la persona era uscita.
             $existing->update([
                 'unsubscribed_at' => null,
+                'confermato_il' => null,
                 'first_name' => $validated['first_name'] ?? $existing->first_name,
                 'ip_address' => $request->ip(),
                 'synced_to_ac' => false,
@@ -42,14 +56,13 @@ class NewsletterController extends Controller
                 'subscribed_at' => now(),
             ]);
 
-            Log::channel('daily')->info('Re-iscrizione newsletter', [
-                'email' => $existing->email,
-                'ip' => $request->ip(),
+            Log::channel('daily')->info('Nuova richiesta di iscrizione newsletter', [
+                'subscriber_id' => $existing->id,
             ]);
 
-            SyncNewsletterToActiveCampaign::dispatch($existing);
+            $this->mandaLaConferma($existing);
 
-            return back()->with('success', __('messages.newsletter.success'));
+            return back()->with('success', __('messages.newsletter.confirm_sent'));
         }
 
         // Nuovo iscritto — try/catch per race condition su UNIQUE constraint
@@ -66,14 +79,57 @@ class NewsletterController extends Controller
             return back()->with('newsletter_info', __('messages.newsletter.already_subscribed'));
         }
 
-        Log::channel('daily')->info('Nuova iscrizione newsletter', [
-            'email' => $subscriber->email,
-            'ip' => $subscriber->ip_address,
+        Log::channel('daily')->info('Nuova richiesta di iscrizione newsletter', [
+            'subscriber_id' => $subscriber->id,
         ]);
 
-        SyncNewsletterToActiveCampaign::dispatch($subscriber);
+        $this->mandaLaConferma($subscriber);
+
+        return back()->with('success', __('messages.newsletter.confirm_sent'));
+    }
+
+    /**
+     * Pagina della conferma d'iscrizione, dal link ricevuto per email.
+     *
+     * Come per la disiscrizione, la conferma vera avviene in POST: un GET che
+     * conferma verrebbe eseguito anche dai filtri dei client di posta che
+     * aprono i link per controllarli, e l'iscrizione risulterebbe voluta da
+     * chi non ha cliccato nulla.
+     */
+    public function showConferma(NewsletterSubscriber $subscriber): Response
+    {
+        return Inertia::render('Public/NewsletterConferma', [
+            'email' => $subscriber->email,
+            'giaConfermata' => $subscriber->haConfermato() && $subscriber->isSubscribed(),
+            // Stesso indirizzo firmato del GET, verso la POST: la firma vale
+            // per un URL preciso (e la sua scadenza viaggia con lui).
+            'confermaUrl' => URL::temporarySignedRoute(
+                $this->prefissoRotta().'newsletter.conferma',
+                now()->addHour(),
+                ['subscriber' => $subscriber->id],
+            ),
+        ]);
+    }
+
+    public function conferma(NewsletterSubscriber $subscriber): RedirectResponse
+    {
+        if ($subscriber->isSubscribed()) {
+            $subscriber->conferma();
+        }
 
         return back()->with('success', __('messages.newsletter.success'));
+    }
+
+    private function mandaLaConferma(NewsletterSubscriber $subscriber): void
+    {
+        Mail::to($subscriber->email)->queue(new ConfermaIscrizioneNewsletter($subscriber, app()->getLocale()));
+    }
+
+    private function prefissoRotta(): string
+    {
+        $locale = app()->getLocale();
+
+        return $locale === config('app.fallback_locale', 'it') ? '' : $locale.'.';
     }
 
     /**

@@ -109,6 +109,11 @@ Schedule::command('queue:prune-batches --hours=48 --unfinished=72 --cancelled=72
 Schedule::command('queue:prune-failed --hours=720')->daily()->withoutOverlapping();
 Schedule::command('carts:prune-expired')->daily()->at('03:00')->withoutOverlapping();
 
+// Lo storico dei prezzi per il prezzo barrato degli sconti (art. 17-bis del
+// Codice del consumo): gli sconti programmati cambiano il prezzo senza che
+// nessuno salvi il prodotto, e l'observer da solo non li vedrebbe.
+Schedule::command('prezzi:registra')->hourlyAt(5)->withoutOverlapping();
+
 // Controllo ordini non pagati: cancella Stripe/PayPal abbandonati (1h) e bonifici scaduti (7gg)
 // Frequenza alta per rilasciare stock bloccato da checkout abbandonati il prima possibile
 Schedule::command('order:check-unpaid')->everyTenMinutes()->withoutOverlapping();

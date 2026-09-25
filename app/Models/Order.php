@@ -49,6 +49,7 @@ class Order extends Model
         'shipped_at', 'tracking_number', 'tracking_url',
         'shipping_cost', 'coupon_id', 'coupon_discount', 'notes',
         'privacy_accepted_at',
+        'condizioni_versione',
     ];
 
     protected $casts = [
@@ -95,6 +96,7 @@ class Order extends Model
         return $this->belongsTo(Auction::class);
     }
 
+    /** @return HasMany<OrderItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);

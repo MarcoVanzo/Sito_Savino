@@ -196,6 +196,15 @@ onBeforeUnmount(() => {
                         </svg>
                         {{ $t('shop.my_orders') }}
                     </Link>
+                    <Link
+                        :href="route('shop.account')"
+                        class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-savino-fucsia hover:text-white transition-colors min-h-[44px]"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                        {{ $t('account.menu') }}
+                    </Link>
                     <button type="button"
                         @click="handleLogout"
                         class="flex items-center justify-center gap-3 w-full py-4 px-4 text-sm font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors min-h-[44px]"

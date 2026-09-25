@@ -38,6 +38,19 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
 
     public function handle(ActiveCampaignService $service): void
     {
+        // Doppio opt-in: finché il proprietario della casella non ha cliccato
+        // il link di conferma, l'indirizzo non esce dal sito. È il controllo
+        // di ultima istanza — lo rispettano già il modulo, il comando di
+        // risincronizzazione e il pannello — perché qualunque strada nuova
+        // che accodi questo job passi di qui.
+        if (! $this->subscriber->fresh()?->haConfermato()) {
+            Log::info('Newsletter: iscrizione non confermata, sincronizzazione saltata', [
+                'subscriber_id' => $this->subscriber->id,
+            ]);
+
+            return;
+        }
+
         if (! $service->isConfigured()) {
             Log::info('ActiveCampaign non configurato, sincronizzazione saltata', [
                 'subscriber_id' => $this->subscriber->id,
@@ -55,7 +68,6 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
         if (! $contactId) {
             Log::error('ActiveCampaign: impossibile creare/aggiornare contatto', [
                 'subscriber_id' => $this->subscriber->id,
-                'email' => $this->subscriber->email,
             ]);
 
             throw new ActiveCampaignException('Impossibile sincronizzare il contatto con ActiveCampaign');
@@ -92,7 +104,6 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
     {
         Log::critical('ActiveCampaign: sincronizzazione fallita permanentemente', [
             'subscriber_id' => $this->subscriber->id,
-            'email' => $this->subscriber->email,
             'error' => $exception->getMessage(),
         ]);
     }
