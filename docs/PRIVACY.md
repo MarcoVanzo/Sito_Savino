@@ -131,7 +131,7 @@ Gli altri dati del titolare stanno nelle impostazioni, gruppo `contact`
 | Accrediti stampa (nome, telefono, testata, ruolo, gara) | `contact_messages` + `extra_data` | `PressAccreditationRequest` | idem, riga intera |
 | Iscritti alla newsletter (email, nome, IP della richiesta, data di conferma) | `newsletter_subscribers`, poi ActiveCampaign **solo dopo la conferma** (doppio opt-in, `confermato_il`) | `NewsletterRequest`, `NewsletterSubscriber::conferma`, `SyncNewsletterToActiveCampaign` | fino alla disiscrizione |
 | Ordini: nome, indirizzi, telefono, codice fiscale | `orders`, `order_items` | `StoreCheckoutRequest` | 10 anni (obbligo fiscale) |
-| Dichiarazioni di recesso (nome, email, numero d'ordine, articoli, data e ora) | `richieste_di_recesso` | `RecessoController` (art. 54-bis) | **non definita**: sono la prova del recesso e seguono l'ordine; nessun comando le pota (punto aperto in `docs/CONSUMATORI.md`) |
+| Dichiarazioni di recesso (nome, email, numero d'ordine, articoli, data e ora) | `richieste_di_recesso` | `RecessoController` (art. 54-bis) | 12 mesi dall'invio (`model:prune`, `RichiestaDiRecesso::prunable`); il rimborso resta sull'ordine |
 | Offerte d'asta | `bids` | `BidService` | con l'asta; in pagina il nome esce abbreviato (`AuctionService::maskUsername`) |
 | Account dello shop | `users`, `password_histories` | registrazione | finché attivo; il cliente lo esporta e lo cancella da `/shop/account` (`AccountController`, `DatiDelCliente`) |
 | Carrelli | `carts`, `cart_items` | | 7 giorni (`carts:prune-expired`, `Cart::prunable`) |
