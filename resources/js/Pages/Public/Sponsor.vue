@@ -167,7 +167,7 @@ const ogMeta = useOgMeta({
                         :key="index"
                         class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6"
                     >
-                        <div class="text-savino-fucsia text-3xl font-black">{{ stat.value }}</div>
+                        <div class="text-savino-fucsia-chiaro text-3xl font-black">{{ stat.value }}</div>
                         <div class="text-white/60 text-sm font-medium mt-1">{{ stat.label }}</div>
                     </div>
                 </div>

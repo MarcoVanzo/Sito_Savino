@@ -110,7 +110,7 @@ const handleAddToCart = () => {
                 <!-- Category -->
                 <span
                     v-if="product.category"
-                    class="text-savino-fucsia text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
+                    class="text-savino-fucsia-chiaro text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
                 >
                     {{ typeof product.category === 'string' ? product.category : product.category.name }}
                 </span>
@@ -127,7 +127,7 @@ const handleAddToCart = () => {
                     <div class="flex items-baseline gap-2">
                         <span
                             v-if="hasSalePrice"
-                            class="text-gray-500 text-sm line-through"
+                            class="text-gray-300 text-sm line-through"
                         >
                             {{ formatPrice(product.price) }}
                         </span>

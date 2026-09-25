@@ -200,8 +200,8 @@ const ogMeta = useOgMeta({
                 </div>
 
                 <p v-if="standings.length" class="text-xs text-gray-500 mt-4">{{ $t('risultati.legend') }}</p>
-                <p v-if="standings.length && hasRatios" class="text-xs text-gray-400 mt-1">{{ $t('classifica.legend_ratios') }}</p>
-                <p v-if="standings.length && hasBreakdown" class="text-xs text-gray-400 mt-1">{{ $t('classifica.legend_breakdown') }}</p>
+                <p v-if="standings.length && hasRatios" class="text-xs text-gray-500 mt-1">{{ $t('classifica.legend_ratios') }}</p>
+                <p v-if="standings.length && hasBreakdown" class="text-xs text-gray-500 mt-1">{{ $t('classifica.legend_breakdown') }}</p>
             </div>
         </section>
     </PublicLayout>
