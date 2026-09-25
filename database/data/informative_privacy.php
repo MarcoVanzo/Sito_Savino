@@ -68,6 +68,10 @@ return [
             // fra i responsabili, perche' la diagnostica era spenta.
             'aggiornata al 23 settembre 2026',
             'Last updated 23 September 2026',
+            // Revisione del 25 settembre 2026, prima che anche gli errori del
+            // browser arrivassero a Sentry (resources/js/diagnostica.js).
+            'senza indirizzo IP né identità di chi navigava',
+            'with no IP address and no identity of whoever was browsing',
         ],
         'contenuto' => [
             'it' => <<<HTML
@@ -100,7 +104,7 @@ return [
             <p>Se compari in una fotografia e non vuoi comparire, o non vuoi che il tuo nome le resti associato, scrivi a <a href="mailto:{$email}">{$email}</a>: togliamo l'immagine o l'associazione.</p>
 
             <h3>A chi comunichiamo i dati</h3>
-            <p>I dati restano alla società e ai fornitori che ci permettono di far funzionare il servizio, nominati responsabili del trattamento: DigitalOcean (hosting, database e archiviazione dei file, data center di Francoforte), PayPal e — quando è attivo — Stripe (pagamenti dello shop e delle aste), Resend (invio delle email di servizio: conferme d'ordine, spedizioni, rimborsi, aste, reimpostazione della password), ActiveCampaign (invio della newsletter), Sentry (diagnostica degli errori del sito: indirizzo della pagina e traccia tecnica del guasto, senza indirizzo IP né identità di chi navigava), Google Ireland (statistiche del sito), Meta Platforms Ireland (misurazione delle inserzioni), oltre al corriere incaricato delle spedizioni. Non vendiamo e non cediamo i dati a nessun altro.</p>
+            <p>I dati restano alla società e ai fornitori che ci permettono di far funzionare il servizio, nominati responsabili del trattamento: DigitalOcean (hosting, database e archiviazione dei file, data center di Francoforte), PayPal e — quando è attivo — Stripe (pagamenti dello shop e delle aste), Resend (invio delle email di servizio: conferme d'ordine, spedizioni, rimborsi, aste, reimpostazione della password), ActiveCampaign (invio della newsletter), Sentry (diagnostica degli errori del sito: indirizzo della pagina, tipo di browser e traccia tecnica del guasto; anche gli errori che avvengono nel tuo browser passano dal nostro server prima di arrivare a Sentry, che quindi non riceve il tuo indirizzo IP né la tua identità), Google Ireland (statistiche del sito), Meta Platforms Ireland (misurazione delle inserzioni), oltre al corriere incaricato delle spedizioni. Non vendiamo e non cediamo i dati a nessun altro.</p>
             <p>Alcune pagine contengono inoltre contenuti ospitati altrove — la mappa del palazzetto, i video delle dirette: aprendole, il tuo indirizzo IP arriva a chi li ospita. È spiegato nella <a href="/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Trasferimenti fuori dall'Unione Europea</h3>
@@ -157,7 +161,7 @@ return [
             <p>If you appear in a photograph and would rather not, or would rather your name were not attached to it, write to <a href="mailto:{$email}">{$email}</a>: we will remove the image or the link.</p>
 
             <h3>Who we share data with</h3>
-            <p>Data stays with the club and with the providers that keep the service running, appointed as data processors: DigitalOcean (hosting, database and file storage, Frankfurt data centre), PayPal and — when enabled — Stripe (shop and auction payments), Resend (service emails: order confirmations, shipments, refunds, auctions, password resets), ActiveCampaign (newsletter delivery), Sentry (error diagnostics: the page address and the technical trace of the fault, with no IP address and no identity of whoever was browsing), Google Ireland (site statistics), Meta Platforms Ireland (advertising measurement), and the courier handling shipments. We do not sell or otherwise pass data to anyone else.</p>
+            <p>Data stays with the club and with the providers that keep the service running, appointed as data processors: DigitalOcean (hosting, database and file storage, Frankfurt data centre), PayPal and — when enabled — Stripe (shop and auction payments), Resend (service emails: order confirmations, shipments, refunds, auctions, password resets), ActiveCampaign (newsletter delivery), Sentry (error diagnostics: the page address, the browser type and the technical trace of the fault; errors that happen in your browser also go through our server before reaching Sentry, which therefore receives neither your IP address nor your identity), Google Ireland (site statistics), Meta Platforms Ireland (advertising measurement), and the courier handling shipments. We do not sell or otherwise pass data to anyone else.</p>
             <p>Some pages also carry content hosted elsewhere — the arena map, the live stream videos: opening them sends your IP address to whoever hosts them. This is explained in the <a href="/en/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Transfers outside the European Union</h3>

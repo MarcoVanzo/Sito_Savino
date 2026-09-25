@@ -154,7 +154,7 @@ consenso (art. 7 §1), non un registro statistico: non aggiungerci altro.
 | PayPal | pagamenti | `config/services.php` → `paypal` |
 | Stripe | pagamenti, **quando ha le chiavi** — in produzione non le ha, e senza credenziali il metodo non viene nemmeno offerto (`PaymentGateway::configurato()`) | `services.stripe` |
 | Resend | email di servizio, **attivo dal 25/09/2026** | `services.resend`, `MAIL_MAILER` |
-| Sentry | diagnostica degli errori: indirizzo della pagina e traccia tecnica del guasto. **Non** l'IP né l'utente (`send_default_pii` a `false`), **non** i parametri delle query (`sql_bindings` a `false`). Progetto nella regione europea | `config/sentry.php`, `SENTRY_LARAVEL_DSN` |
+| Sentry | diagnostica degli errori: indirizzo della pagina, tipo di browser e traccia tecnica del guasto, del server e (dal 25/09/2026) del browser. **Non** l'IP né l'utente (`send_default_pii` a `false`, `sendDefaultPii: false`), **non** i parametri delle query (`sql_bindings` a `false`). Gli errori del browser passano dal tunnel `/api/diagnostica`: il browser non contatta Sentry, che vede solo l'IP del server. Nessun cookie né storage, quindi niente consenso. Progetto nella regione europea | `config/sentry.php`, `SENTRY_LARAVEL_DSN`, `resources/js/diagnostica.js`, `SentryTunnelController` |
 | ActiveCampaign | newsletter | `services.activecampaign` |
 | Google Ireland | GA4, **solo dopo il consenso statistico** | `resources/js/analytics.js` |
 | Meta Platforms Ireland | pixel, **solo dopo il consenso marketing** (`META_PIXEL_REQUIRES_CONSENT`, predefinito `true`) | `resources/js/meta-pixel.js` |
@@ -165,7 +165,9 @@ e `sql_bindings` sono due `env()` con predefinito `false`: restano spenti finch�
 nessuno li accende, e l'informativa promette esattamente quello che quei due
 valori garantiscono. Accenderli — o mandare a Sentry i log di un'applicazione
 che nei log scrive indirizzi email — significa cambiare prima la pagina, non
-dopo.
+dopo. Lo stesso vale per il tunnel: se un giorno il browser mandasse gli
+eventi direttamente a `sentry.io`, Sentry riceverebbe l'IP del visitatore e la
+frase dell'informativa diventerebbe falsa.
 
 **I caratteri tipografici non sono più fra questi.** Montserrat e Playfair
 Display arrivavano da `fonts.googleapis.com` su ogni pagina pubblica: l'IP del

@@ -60,6 +60,13 @@ class HandleInertiaRequests extends Middleware
             // quella salvata nel browser e, se è cambiata, torna a chiedere
             // invece di dare per buono un sì raccolto su un'altra informativa.
             'consensoCookie' => ['versione' => ConsensoCookie::VERSIONE],
+            // Il DSN di Sentry non è un segreto: dice dove spedire, non
+            // autorizza a leggere. Gli eventi passano comunque dal nostro
+            // server (SentryTunnelController), che accetta solo questo DSN.
+            'diagnostica' => [
+                'dsn' => config('sentry.dsn'),
+                'environment' => config('sentry.environment') ?? app()->environment(),
+            ],
         ];
     }
 
