@@ -65,6 +65,9 @@
                             {{ collect(array_filter([$item->variant->size, $item->variant->color]))->implode(' / ') }}
                         </span>
                     @endif
+                    @if($item->nome_personalizzazione)
+                        <br><span style="font-size: 12px; color: #DF338F; font-weight: 600;">+ {{ $item->nome_personalizzazione }}</span>
+                    @endif
                 </td>
                 <td align="center" style="padding: 12px 8px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">{{ $item->quantity }}</td>
                 <td align="right" style="padding: 12px 8px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">€{{ number_format($item->price_at_time_of_purchase, 2, ',', '.') }}</td>

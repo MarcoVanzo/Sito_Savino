@@ -9,6 +9,7 @@ import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
+import EtichetteProdotto from '@/Components/Shop/EtichetteProdotto.vue';
 import { trackViewContent, trackAddToCart } from '@/meta-pixel.js';
 
 
@@ -97,12 +98,19 @@ const activeVariant = computed(() => {
 });
 
 // --- Price ---
+// --- Personalizzazione (di solito la firma della giocatrice) ---
+// Facoltativa, con un supplemento: non e' una taglia e non ha giacenza propria.
+const conPersonalizzazione = ref(false);
+const supplemento = computed(() => (
+    conPersonalizzazione.value && props.product?.personalizzazione
+        ? Number.parseFloat(props.product.personalizzazione.prezzo || 0)
+        : 0
+));
+
 const displayPrice = computed(() => {
-    const basePrice = props.product?.sale_price ?? props.product?.price ?? 0;
-    if (activeVariant.value) {
-        return Number.parseFloat(basePrice) + Number.parseFloat(activeVariant.value.price_modifier || 0);
-    }
-    return basePrice;
+    const basePrice = Number.parseFloat(props.product?.sale_price ?? props.product?.price ?? 0);
+    const modifier = activeVariant.value ? Number.parseFloat(activeVariant.value.price_modifier || 0) : 0;
+    return basePrice + modifier + supplemento.value;
 });
 
 const originalPrice = computed(() => {
@@ -182,6 +190,7 @@ const handleAddToCart = () => {
         product_id: props.product.id,
         variant_id: selectedVariant.value,
         quantity: quantity.value,
+        personalizzazione: conPersonalizzazione.value,
     }, {
         onFinish: () => { isAdding.value = false; },
         onError: (errors) => {
@@ -281,10 +290,8 @@ const structuredData = computed(() => {
                             <div v-else class="w-full h-full flex items-center justify-center">
                                 <svg class="w-20 h-20 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             </div>
-                            <!-- Sale Badge -->
-                            <div v-if="hasSale" class="absolute top-4 left-4 bg-savino-red text-white text-xs font-bold uppercase px-3 py-1.5 rounded-full shadow-lg">
-                                {{ $t('shop.sale') }}
-                            </div>
+                            <!-- Etichette scelte dalla redazione (EtichetteDelProdotto) -->
+                            <EtichetteProdotto :etichette="product?.etichette" grandi />
                             <!-- Out of Stock Overlay -->
                             <div v-if="isOutOfStock" class="absolute inset-0 bg-black/40 flex items-center justify-center">
                                 <span class="bg-white text-gray-900 font-bold text-lg px-6 py-3 rounded-full">{{ $t('shop.out_of_stock') }}</span>
@@ -360,6 +367,27 @@ const structuredData = computed(() => {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                             {{ $t('shop.size_guide') }}
                         </a>
+
+                        <!-- Personalizzazione facoltativa -->
+                        <label
+                            v-if="product?.personalizzazione"
+                            class="mt-6 mb-6 flex items-center gap-3 cursor-pointer rounded-xl border-2 px-4 py-3 transition-colors"
+                            :class="conPersonalizzazione ? 'border-savino-fucsia bg-savino-fucsia/10' : 'border-gray-200 hover:border-savino-blue/30'"
+                        >
+                            <input
+                                v-model="conPersonalizzazione"
+                                type="checkbox"
+                                class="h-5 w-5 rounded border-gray-300 text-savino-fucsia focus:ring-savino-fucsia"
+                            />
+                            <span class="text-sm font-semibold text-savino-blue">
+                                {{ $t('shop.personalization_add', { name: product.personalizzazione.nome }) }}
+                            </span>
+                            <span class="ml-auto text-sm font-bold text-savino-red whitespace-nowrap">
+                                {{ Number(product.personalizzazione.prezzo) > 0
+                                    ? $t('shop.personalization_surcharge', { price: formatPrice(product.personalizzazione.prezzo) })
+                                    : $t('shop.personalization_included') }}
+                            </span>
+                        </label>
 
                         <!-- Quantity Selector -->
                         <div class="mb-8">

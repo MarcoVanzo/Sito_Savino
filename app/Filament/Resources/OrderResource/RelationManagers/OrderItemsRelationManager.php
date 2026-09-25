@@ -73,6 +73,16 @@ class OrderItemsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('variant.sku')
                     ->label('Variante SKU')
                     ->placeholder('—'),
+                // Chi prepara il pacco deve sapere che la maglia va firmata.
+                Tables\Columns\TextColumn::make('personalizzazione')
+                    ->label('Personalizzazione')
+                    ->state(fn ($record) => $record->personalizzazioneIn('it'))
+                    ->description(fn ($record) => (float) $record->supplemento_personalizzazione > 0
+                        ? '+ € '.number_format((float) $record->supplemento_personalizzazione, 2, ',', '.')
+                        : null)
+                    ->badge()
+                    ->color('danger')
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('quantity')
                     ->label('Quantità')
                     ->numeric(),

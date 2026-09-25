@@ -6,6 +6,7 @@ import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useCart } from '@/Composables/useCart.js';
 import { trackAddToCart } from '@/meta-pixel.js';
+import EtichetteProdotto from '@/Components/Shop/EtichetteProdotto.vue';
 
 const $t = useTranslations();
 
@@ -80,21 +81,8 @@ const handleAddToCart = () => {
                     </svg>
                 </div>
 
-                <!-- "Nuovo" Badge -->
-                <div
-                    v-if="product.is_new"
-                    class="absolute top-3 left-3 bg-savino-fucsia text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-lg"
-                >
-                    {{ $t('shop.badge_new') || 'Nuovo' }}
-                </div>
-
-                <!-- Sale Badge -->
-                <div
-                    v-if="hasSalePrice && !isOutOfStock"
-                    class="absolute top-3 right-3 bg-savino-red text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-lg"
-                >
-                    {{ $t('shop.sale') || 'Saldi' }}
-                </div>
+                <!-- Etichette scelte dalla redazione (EtichetteDelProdotto) -->
+                <EtichetteProdotto :etichette="product.etichette" />
 
                 <!-- "Esaurito" Overlay -->
                 <div

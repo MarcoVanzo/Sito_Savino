@@ -126,6 +126,8 @@ class Order extends Model
         int $quantity,
         float $unitPrice,
         string $causale,
+        ?array $personalizzazione = null,
+        float $supplementoPersonalizzazione = 0.0,
     ): OrderItem {
         $item = OrderItem::create([
             'order_id' => $this->id,
@@ -133,6 +135,8 @@ class Order extends Model
             'product_variant_id' => $productVariantId,
             'quantity' => $quantity,
             'price_at_time_of_purchase' => round($unitPrice, 2),
+            'personalizzazione' => $personalizzazione,
+            'supplemento_personalizzazione' => round($supplementoPersonalizzazione, 2),
         ]);
 
         StockMovement::create([
