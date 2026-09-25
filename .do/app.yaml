@@ -48,6 +48,14 @@ envs:
   scope: RUN_AND_BUILD_TIME
   type: SECRET
   value: EV[1:L87v4j9ELpnhItK5GrlHxfgq6pLVT/ex:ja0V8XIaHSpYQBHGN4IDRcm+KrS8y5t2d1rCjPkYEvSxRRJFr58pI2/vk6Wja5GS/z+x7g==]
+# Segreto del webhook di Resend (ResendWebhookController): verifica la firma
+# delle notifiche sulle email non consegnate. Cifrato dal pannello DO; si
+# ruota rigenerandolo su Resend, riscrivendolo dal pannello e ricopiando qui il
+# nuovo valore cifrato.
+- key: RESEND_WEBHOOK_SECRET
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:reDPW2TFI0teX5wv5de6b/XcT7wE6r7x:AvffIDQGTTmtzdZ2L3vZDg4WChO0+YHTvd7qZ9pTr4W8/5nBipISY5xaNFGLY/U4c6zWc26G]
 # Chi riceve gli avvisi tecnici per email (App\Services\AvvisoTecnico):
 # pianificatore fermo, worker fermo, job falliti, pagamenti da rivedere, negozio
 # spento, checkout senza metodi di pagamento. A livello d'app perche' li mandano
