@@ -23,7 +23,6 @@ const settings = computed(() => page.props.siteSettings ?? {});
 const general = computed(() => settings.value.general ?? {});
 const social = computed(() => settings.value.social ?? {});
 const footerSettings = computed(() => settings.value.footer ?? {});
-const legalDocs = computed(() => settings.value.legal ?? {});
 
 // Footer menu dal backend (struttura gerarchica: parent → children)
 const footerMenuItems = computed(() => page.props.footerMenu ?? []);
@@ -216,8 +215,8 @@ const socialLinks = computed(() => {
                         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
                         {{ $t('footer.withdraw') }}
                     </Link>
-                    <a v-if="safeUrl(legalDocs.informativa_promozionale)" :href="safeUrl(legalDocs.informativa_promozionale)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.promotional_policy') }}</a>
-                    <a v-if="safeUrl(legalDocs.informativa_fornitori)" :href="safeUrl(legalDocs.informativa_fornitori)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.supplier_policy') }}</a>
+                    <Link :href="route('pages.show', 'informativa-comunicazioni-promozionali')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.promotional_policy') }}</Link>
+                    <Link :href="route('pages.show', 'informativa-fornitori')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.supplier_policy') }}</Link>
                 </div>
             </div>
         </div>

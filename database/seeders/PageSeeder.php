@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Page;
 use App\Support\CondizioniDiVendita;
+use App\Support\InformativeDaDocumento;
 use App\Support\PagineLegaliDelloShop;
 use App\Support\TestiDelleInformative;
 use Illuminate\Database\Seeder;
@@ -55,5 +56,8 @@ class PageSeeder extends Seeder
         // Dichiarazione di accessibilita' (European Accessibility Act): la
         // crea la migrazione omonima, qui si ripete per gli ambienti nuovi.
         (require database_path('migrations/2026_09_26_100000_dichiarazione_di_accessibilita.php'))->up();
+
+        // Informativa promozionale e fornitori: erano PDF, ora pagine.
+        InformativeDaDocumento::creaQuelleCheMancano();
     }
 }
