@@ -92,6 +92,28 @@ primo passo:
 1. **Creare il dominio su Resend** (o meglio il sottodominio d'invio, sotto).
    Resend genera allora i record esatti da inserire: e' l'unico modo di avere i
    valori veri, e lo si puo' fare oggi.
+
+   > **Il dominio va prima reclamato, e non e' il passo che ci si aspetta.**
+   > Il pannello e' quello della Spa (team `savinodelbene`, account di Sandra
+   > Leoncini, che l'ha affidato a noi per la configurazione). Li'
+   > `savinodelbenevolley.it` e' stato aggiunto il 23/09/2026 ma resta fermo su
+   > **"Claim domain"**, con l'avviso che il dominio *e' gia' in uso da un altro
+   > team Resend* e che verificarne la proprieta' lo trasferisce a questo team
+   > **revocando l'accesso all'altro**. Quale sia l'altro team dal pannello non
+   > si vede. Marco ha confermato il 25/09/2026 che non lo usa nessuno e che si
+   > procede col trasferimento.
+   >
+   > La conseguenza pratica e' sull'ordine dei record: **il primo TXT da
+   > mettere in zona non e' il DKIM, e' la verifica di proprieta'** — tipo TXT,
+   > nome `@` (l'apex, non un sottodominio), contenuto
+   > `resend-domain-verification=…` come lo mostra il pannello. I record
+   > d'invio (DKIM, e l'SPF/MX del sottodominio) compaiono **solo dopo** che il
+   > claim e' andato a buon fine: chiederli tutti insieme alla Spa significa
+   > chiedere valori che ancora non esistono.
+   >
+   > Il claim non e' un pulsante: e' il pulsante *dopo* che il TXT e' in zona.
+   > Premuto senza, Resend segna "Checking DNS" negli eventi del dominio e lo
+   > stato resta `Not Started`, senza dire altro.
 2. **Chiedere alla Spa di aggiungerli.** Conviene chiedere un **sottodominio
    d'invio** — `send.savinodelbenevolley.it` — invece dell'apex: i record
    nascono sotto un nome che non esiste ancora, l'SPF dell'apex (che e' la posta
