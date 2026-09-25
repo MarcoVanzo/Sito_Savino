@@ -114,6 +114,18 @@ primo passo:
    > Il claim non e' un pulsante: e' il pulsante *dopo* che il TXT e' in zona.
    > Premuto senza, Resend segna "Checking DNS" negli eventi del dominio e lo
    > stato resta `Not Started`, senza dire altro.
+   >
+   > **`resend-domain-verification=<token>` e' tutto contenuto, non
+   > nome=valore.** Va su `@` — cioe' il TXT dell'apex, accanto a `MS=…` e
+   > all'SPF — con la stringa intera, segno di uguale compreso. Il 25/09/2026
+   > e' stato inserito invece come sottodominio,
+   > `_resend-domain-verification.savinodelbenevolley.it` con valore il solo
+   > token: leggibile con `dig` e apparentemente a posto, ma Resend non lo
+   > trova e lo stato resta `Not Started` senza spiegare perche'. L'equivoco e'
+   > comprensibile, perche' molti altri servizi usano davvero un
+   > `_qualcosa.dominio`: e' il tipo di errore che costa un giro di richieste
+   > se non lo si nomina in anticipo. Si controlla con
+   > `dig +short TXT savinodelbenevolley.it`, che deve stampare **tre** righe.
 2. **Chiedere alla Spa di aggiungerli.** Conviene chiedere un **sottodominio
    d'invio** — `send.savinodelbenevolley.it` — invece dell'apex: i record
    nascono sotto un nome che non esiste ancora, l'SPF dell'apex (che e' la posta
