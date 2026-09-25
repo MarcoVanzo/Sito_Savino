@@ -1,6 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
+import NotaInformativaModulo from '@/Components/NotaInformativaModulo.vue'
 import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
@@ -293,6 +294,8 @@ const ogMeta = useOgMeta({
                             <!-- Helper for Clipboard Items -->
                             <template v-for="field in [
                                 { id: 'piva', label: $t('contatti.vat_number'), val: contact.legal_piva },
+                                { id: 'rea', label: $t('contatti.rea'), val: contact.legal_rea },
+                                { id: 'capitale', label: $t('contatti.share_capital'), val: contact.legal_capitale },
                                 { id: 'cf', label: $t('contatti.fiscal_code'), val: contact.legal_cf },
                                 { id: 'fipav', label: $t('contatti.fipav_code'), val: contact.legal_fipav },
                                 { id: 'sdi', label: $t('contatti.sdi_code'), val: contact.legal_sdi }
@@ -564,6 +567,8 @@ const ogMeta = useOgMeta({
                                 <input type="text" v-model="form.honeypot" tabindex="-1" autocomplete="off" aria-label="Lascia vuoto" />
                             </div>
                             
+                            <NotaInformativaModulo allineamento="text-center" />
+
                             <div class="pt-4 flex justify-center">
                                 <button
                                     type="submit"

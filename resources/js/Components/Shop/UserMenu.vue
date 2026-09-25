@@ -135,6 +135,18 @@ onBeforeUnmount(() => {
                             {{ $t('shop.my_orders') }}
                         </Link>
 
+                        <Link
+                            :href="route('shop.account')"
+                            @click="closeMenu"
+                            role="menuitem"
+                            class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-savino-blue hover:bg-savino-blue/5 rounded-lg transition-colors"
+                        >
+                            <svg class="w-5 h-5 text-savino-fucsia" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                            {{ $t('account.menu') }}
+                        </Link>
+
                         <!-- Divider -->
                         <div class="my-1 border-t border-gray-100"></div>
 

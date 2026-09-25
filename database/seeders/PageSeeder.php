@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Page;
+use App\Support\CondizioniDiVendita;
+use App\Support\PagineLegaliDelloShop;
 use App\Support\TestiDelleInformative;
 use Illuminate\Database\Seeder;
 
@@ -43,5 +45,11 @@ class PageSeeder extends Seeder
                 $pagina->setTranslations('content', $testi)->save();
             }
         }
+
+        // Condizioni di vendita e recesso: stessa regola, testi dal loro file.
+        CondizioniDiVendita::creaLePagineMancanti();
+
+        // Spedizioni, resi e regolamento aste, dal vecchio negozio WooCommerce.
+        PagineLegaliDelloShop::creaQuelleCheMancano();
     }
 }

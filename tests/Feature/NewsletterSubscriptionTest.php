@@ -3,15 +3,32 @@
 namespace Tests\Feature;
 
 use App\Jobs\SyncNewsletterToActiveCampaign;
+use App\Mail\ConfermaIscrizioneNewsletter;
 use App\Models\NewsletterSubscriber;
+use App\Services\ActiveCampaignService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class NewsletterSubscriptionTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
+
+    /**
+     * Doppio opt-in: la richiesta registra l'indirizzo e manda il link di
+     * conferma, ma ad ActiveCampaign non arriva niente finché il proprietario
+     * della casella non clicca.
+     */
     public function test_user_can_subscribe_to_newsletter(): void
     {
         Queue::fake();
@@ -30,9 +47,68 @@ class NewsletterSubscriptionTest extends TestCase
             'email' => 'tifoso@example.com',
             'first_name' => 'Marco',
             'source' => 'website',
+            'confermato_il' => null,
         ]);
 
+        Mail::assertQueued(ConfermaIscrizioneNewsletter::class, fn ($mail) => $mail->hasTo('tifoso@example.com'));
+        Queue::assertNotPushed(SyncNewsletterToActiveCampaign::class);
+    }
+
+    public function test_la_conferma_dal_link_attiva_l_iscrizione_e_la_manda_ad_activecampaign(): void
+    {
+        Queue::fake();
+
+        $iscritto = NewsletterSubscriber::factory()->nonConfermato()->create();
+
+        $pagina = URL::temporarySignedRoute('newsletter.conferma.show', now()->addDay(), ['subscriber' => $iscritto->id]);
+
+        // Aprire il link non conferma: lo fanno anche i filtri della posta.
+        $this->get($pagina)->assertOk();
+        $this->assertNull($iscritto->fresh()->confermato_il);
+        Queue::assertNotPushed(SyncNewsletterToActiveCampaign::class);
+
+        $conferma = URL::temporarySignedRoute('newsletter.conferma', now()->addHour(), ['subscriber' => $iscritto->id]);
+        $this->post($conferma)->assertRedirect();
+
+        $this->assertNotNull($iscritto->fresh()->confermato_il);
         Queue::assertPushed(SyncNewsletterToActiveCampaign::class);
+    }
+
+    public function test_il_link_di_conferma_scade(): void
+    {
+        $iscritto = NewsletterSubscriber::factory()->nonConfermato()->create();
+
+        $link = URL::temporarySignedRoute('newsletter.conferma.show', now()->subMinute(), ['subscriber' => $iscritto->id]);
+
+        $this->get($link)->assertForbidden();
+    }
+
+    public function test_un_iscritto_non_confermato_non_arriva_ad_activecampaign(): void
+    {
+        $iscritto = NewsletterSubscriber::factory()->nonConfermato()->create();
+
+        $servizio = $this->mock(ActiveCampaignService::class);
+        $servizio->shouldReceive('isConfigured')->andReturn(true);
+        $servizio->shouldNotReceive('syncContact');
+
+        (new SyncNewsletterToActiveCampaign($iscritto))->handle($servizio);
+
+        $this->assertFalse($iscritto->fresh()->synced_to_ac);
+    }
+
+    public function test_nel_log_non_finiscono_email_e_ip(): void
+    {
+        Log::spy();
+
+        $this->post(route('newsletter.subscribe'), [
+            'email' => 'riservato@example.com',
+            'honeypot' => '',
+            'privacy_accepted' => true,
+        ]);
+
+        Log::shouldHaveReceived('channel')->with('daily');
+        Log::shouldNotHaveReceived('info', fn ($messaggio, $contesto = []) => str_contains(json_encode($contesto), 'riservato@example.com')
+            || str_contains(json_encode($contesto), '127.0.0.1'));
     }
 
     public function test_duplicate_email_returns_info_message(): void
@@ -43,6 +119,7 @@ class NewsletterSubscriptionTest extends TestCase
             'email' => 'existing@example.com',
             'source' => 'website',
             'subscribed_at' => now(),
+            'confermato_il' => now(),
             'synced_to_ac' => true,
         ]);
 
@@ -135,10 +212,12 @@ class NewsletterSubscriptionTest extends TestCase
             'email' => 'resubscribe@example.com',
             'first_name' => 'Nuovo',
             'unsubscribed_at' => null,
-            'synced_to_ac' => false, // deve risincronizzare
+            'confermato_il' => null, // la conferma si richiede
+            'synced_to_ac' => false, // deve risincronizzare, dopo la conferma
         ]);
 
-        Queue::assertPushed(SyncNewsletterToActiveCampaign::class);
+        Mail::assertQueued(ConfermaIscrizioneNewsletter::class);
+        Queue::assertNotPushed(SyncNewsletterToActiveCampaign::class);
     }
 
     public function test_email_is_normalized_to_lowercase(): void
@@ -193,6 +272,7 @@ class NewsletterSubscriptionTest extends TestCase
             'email' => 'unsynced@example.com',
             'source' => 'website',
             'subscribed_at' => now(),
+            'confermato_il' => now(),
             'synced_to_ac' => false,
         ]);
 

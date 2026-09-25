@@ -51,6 +51,27 @@ describe('meta pixel', () => {
         expect(calls()[1]).toEqual(['track', 'PageView']);
     });
 
+    it('dopo la revoca non manda più eventi, e lo dice allo script', async () => {
+        const { initMetaPixel, updateMarketingConsent, trackPageView, trackAddToCart } = await freshModule();
+
+        initMetaPixel('2048882385693445', { needsConsent: true, hasConsent: true });
+        document.cookie = '_fbp=fb.1.123.456; path=/';
+
+        updateMarketingConsent(false);
+        const primaDellaRevoca = calls().length;
+
+        trackPageView();
+        trackAddToCart({ id: 1, name: 'Maglia', value: 50 });
+
+        expect(calls().slice(primaDellaRevoca - 1)).toEqual([['consent', 'revoke']]);
+        expect(document.cookie).not.toContain('_fbp=');
+
+        updateMarketingConsent(true);
+        trackPageView();
+
+        expect(calls().slice(-2)).toEqual([['consent', 'grant'], ['track', 'PageView']]);
+    });
+
     it('con il consenso richiesto aspetta il consenso', async () => {
         const { initMetaPixel, updateMarketingConsent } = await freshModule();
 

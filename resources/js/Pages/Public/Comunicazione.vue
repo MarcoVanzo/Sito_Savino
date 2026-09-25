@@ -1,6 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
+import NotaInformativaModulo from '@/Components/NotaInformativaModulo.vue'
 import { Head, useForm, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
@@ -250,6 +251,8 @@ const ogMeta = useOgMeta({
                             <textarea id="acc-notes" v-model="accreditationForm.notes" rows="3" class="w-full rounded-lg border-gray-200 text-sm focus:border-savino-blue focus:ring-savino-blue"></textarea>
                             <p v-if="accreditationForm.errors.notes" class="text-red-600 text-xs mt-1">{{ accreditationForm.errors.notes }}</p>
                         </div>
+
+                        <NotaInformativaModulo />
 
                         <button
                             type="submit"

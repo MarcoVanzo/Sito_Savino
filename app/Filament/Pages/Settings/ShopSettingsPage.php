@@ -3,12 +3,15 @@
 namespace App\Filament\Pages\Settings;
 
 use App\Enums\PaymentGateway;
+use App\Filament\Resources\PageResource;
 use App\Models\SiteSetting;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Illuminate\Support\HtmlString;
 
 /**
  * Impostazioni operative dello Shop e delle Aste.
@@ -172,10 +175,16 @@ class ShopSettingsPage extends BaseSettingsPage
                             ->label('Anti-sniping (minuti)')
                             ->numeric()
                             ->minValue(0),
-                        Textarea::make('auctions.rules_text')
+                        // Il regolamento e' diventato una pagina (Pagine > Regolamento
+                        // aste): tradotta, con l'editor, e linkabile dall'elenco
+                        // delle aste. L'impostazione resta solo come ripiego.
+                        Placeholder::make('regolamento_aste')
                             ->label('Regolamento aste')
-                            ->helperText('Testo completo mostrato nella pagina delle aste.')
-                            ->rows(6)
+                            ->content(fn () => new HtmlString(
+                                'Il regolamento si modifica come le altre pagine legali dello shop, in '
+                                .'<a href="'.e(PageResource::getUrl('index')).'" class="underline text-primary-600">Pagine</a>'
+                                .' (Regolamento aste, Condizioni di vendita, Spedizioni, Resi e rimborsi).'
+                            ))
                             ->columnSpanFull(),
                     ])->columns(2),
             ])

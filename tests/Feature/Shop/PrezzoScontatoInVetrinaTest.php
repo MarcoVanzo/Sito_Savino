@@ -29,15 +29,21 @@ class PrezzoScontatoInVetrinaTest extends TestCase
 
     public function test_lo_sconto_in_corso_arriva_alla_pagina(): void
     {
-        $prodotto = $this->prodotto([
+        // Prima al prezzo pieno, poi scontato: senza un prezzo praticato prima
+        // lo sconto non si annuncia (art. 17-bis, StoricoPrezziTest).
+        $this->travelTo(now()->subWeek());
+        $prodotto = $this->prodotto([]);
+        $this->travelBack();
+
+        $prodotto->update([
             'sale_price' => 5,
-            'sale_start' => now()->subDay(),
+            'sale_start' => now()->subMinute(),
             'sale_end' => now()->addMonth(),
         ]);
 
         $this->get(route('shop.product', $prodotto))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->where('product.sale_price', '5.00'));
+            ->assertInertia(fn ($page) => $page->where('product.sale_price', '5.00')->where('product.price', '20.00'));
     }
 
     public function test_uno_sconto_futuro_non_si_vede(): void

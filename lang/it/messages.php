@@ -63,9 +63,15 @@ return [
         'already_have_account' => 'Hai già un account?',
         'login_now' => 'Accedi ora',
     ],
+    'account' => [
+        'deleted' => 'Il tuo account è stato cancellato. Gli ordini restano archiviati per gli obblighi fiscali, senza più legame con l\'account.',
+        'delete_blocked_staff' => 'Questo è un account della redazione: si gestisce dal pannello di amministrazione.',
+        'delete_blocked_auction' => 'Hai un\'asta in corso o un\'asta vinta da pagare: potrai cancellare l\'account quando si sarà conclusa.',
+    ],
     'newsletter' => [
         'already_subscribed' => 'Questa email è già iscritta alla newsletter.',
-        'success' => 'Iscrizione completata! Grazie per esserti iscritto.',
+        'success' => 'Iscrizione confermata! Grazie per esserti iscritto.',
+        'confirm_sent' => 'Ci sei quasi: ti abbiamo mandato un\'email con il link per confermare l\'iscrizione.',
         'unsubscribed' => 'Iscrizione annullata. Non riceverai più la newsletter.',
     ],
     'auction' => [

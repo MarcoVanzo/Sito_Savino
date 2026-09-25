@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Shop;
 
+use App\Enums\PostStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Auction;
+use App\Models\Page;
 use App\Models\SiteSetting;
 use App\Services\AuctionService;
 use App\Services\BidService;
+use App\Support\PagineLegaliDelloShop;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,7 +35,7 @@ class AuctionController extends Controller
 
         return Inertia::render('Public/Shop/Auctions/Index', [
             'auctions' => $auctions,
-            'rulesText' => SiteSetting::get('auctions.rules_text'),
+            'rulesText' => $this->regolamento(),
         ]);
     }
 
@@ -62,7 +65,7 @@ class AuctionController extends Controller
             ]),
             'userIsHighestBidder' => $userIsHighestBidder,
             'hasVerifiedPayment' => $user->has_verified_payment_method ?? false,
-            'rulesText' => SiteSetting::get('auctions.rules_text'),
+            'rulesText' => $this->regolamento(),
         ]);
     }
 
@@ -187,5 +190,30 @@ class AuctionController extends Controller
             'product_description' => $product?->description,
             'product_size' => $productSize,
         ];
+    }
+
+    /**
+     * Il regolamento delle aste e' una pagina del CMS (`regolamento-aste`),
+     * tradotta e modificabile dal pannello come le altre pagine legali dello
+     * shop. L'impostazione `auctions.rules_text` resta come ripiego per un
+     * ambiente in cui la pagina non c'e' o e' in bozza: era un testo semplice
+     * senza tag, che mostrato come HTML perdeva tutti gli a capo, e per questo
+     * passa da `nl2br`.
+     */
+    private function regolamento(): ?string
+    {
+        $pagina = Page::where('slug', PagineLegaliDelloShop::REGOLAMENTO_ASTE)
+            ->where('status', PostStatus::Published)
+            ->first();
+
+        $testo = $pagina?->getTranslation('content', app()->getLocale());
+
+        if (filled($testo)) {
+            return $testo;
+        }
+
+        $ripiego = SiteSetting::get('auctions.rules_text');
+
+        return filled($ripiego) ? nl2br(e($ripiego)) : null;
     }
 }

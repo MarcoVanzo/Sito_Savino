@@ -238,6 +238,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(ActivityLog::class);
     }
 
+    /** @return HasMany<Bid, $this> */
     public function bids(): HasMany
     {
         return $this->hasMany(Bid::class);

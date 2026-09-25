@@ -25,6 +25,7 @@ class RetryFailedNewsletterSync extends Command
 
         $subscribers = NewsletterSubscriber::unsynced()
             ->active()
+            ->confermati()
             ->orderBy('created_at')
             ->limit($limit)
             ->get();
@@ -39,7 +40,7 @@ class RetryFailedNewsletterSync extends Command
 
         foreach ($subscribers as $subscriber) {
             SyncNewsletterToActiveCampaign::dispatch($subscriber);
-            $this->line("  → Dispatched: {$subscriber->email}");
+            $this->line("  → Dispatched: #{$subscriber->id}");
         }
 
         $this->info('Job di sincronizzazione accodati con successo.');
