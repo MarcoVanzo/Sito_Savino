@@ -116,7 +116,7 @@ const handleAddToCart = () => {
                 </span>
 
                 <!-- Product Name -->
-                <h3 class="text-white font-bold text-base mb-3 leading-tight group-hover:text-savino-fucsia transition-colors duration-300 line-clamp-2">
+                <h3 class="text-white font-bold text-base mb-3 leading-tight group-hover:text-savino-fucsia-chiaro transition-colors duration-300 line-clamp-2">
                     {{ product.name }}
                 </h3>
 
@@ -131,7 +131,7 @@ const handleAddToCart = () => {
                         >
                             {{ formatPrice(product.price) }}
                         </span>
-                        <span class="text-savino-fucsia font-black text-xl">
+                        <span class="text-savino-fucsia-chiaro font-black text-xl">
                             {{ formatPrice(hasSalePrice ? product.sale_price : product.price) }}
                         </span>
                     </div>
