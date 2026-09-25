@@ -1177,9 +1177,12 @@ di pagine e il sito ne ha 1958 (941 notizie, più altrettante in inglese), cioè
   mancava: i PDF c'erano, quindi da ogni pagina il link apriva l'informativa
   cookie del vecchio WordPress (plugin GDPR Cookie Consent, AddThis, Universal
   Analytics — nessuno dei quali esiste qui) mentre il banner e le caselle dei
-  moduli facevano accettare la pagina. In Documenti Legali restano le sole
-  informative **che esistono solo come documento** (promozionale, fornitori) e
-  i protocolli di governance; l'elenco commentato sta in `docs/PRIVACY.md` §1.
+  moduli facevano accettare la pagina. **Tutte le voci legali del footer sono
+  pagine** (Pagine nel pannello): dal 26/09/2026 anche l'informativa
+  promozionale e quella fornitori, che erano PDF e si aprivano in una scheda
+  nuova (testi iniziali in `database/data/informative_da_documento.php`). In
+  Documenti Legali restano solo i protocolli di governance; l'elenco
+  commentato sta in `docs/PRIVACY.md` §1.
 - **`docs/PRIVACY.md` è la mappa tecnica**: dove ogni frase dell'informativa
   diventa vera nel codice, quali conservazioni hanno davvero un comando che le
   applica, e i tre punti aperti. Aggiungendo un trattamento si aggiorna quello

@@ -293,6 +293,10 @@ class PageResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            // Dieci righe per volta nascondevano le pagine legali in quarta
+            // pagina: il sito ne ha una quarantina, stanno tutte in una.
+            ->paginationPageOptions([50, 100, 'all'])
+            ->defaultPaginationPageOption(50)
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->label('Titolo')

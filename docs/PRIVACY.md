@@ -58,16 +58,19 @@ del plugin GDPR Cookie Consent, di AddThis e di Universal Analytics
 (`_gat_gtag_UA_80836627_23`), che qui non esistono, e non nominava il pixel di
 Meta, che invece c'è.
 
-Dal 23/09/2026 `SiteFooter.vue` punta sempre alle pagine, e in Documenti Legali
-restano solo le informative **che esistono solo come documento**.
+Dal 23/09/2026 `SiteFooter.vue` punta sempre alle pagine. Dal 26/09/2026 anche
+l'informativa promozionale e quella fornitori sono pagine
+(`/informativa-comunicazioni-promozionali`, `/informativa-fornitori`, testi in
+`database/data/informative_da_documento.php`): in Documenti Legali restano solo
+i documenti di governance.
 
 ### I documenti in `legal/`, uno per uno
 
 | File | Che cos'è | Stato |
 | --- | --- | --- |
 | `Informativa Cookie.pdf` | cookie del vecchio sito WordPress | **ritirata** dal pannello; il file resta su Spaces, non lo linka più nessuno |
-| `Informativa generale Privacy.pdf` | invio di informazioni e promozioni via email, social, WhatsApp | valida; ora sotto il nome giusto, `legal.informativa_promozionale` |
-| `Informativa-Fornitori.pdf` | informativa privacy per clienti e fornitori | valida, coerente, resta dov'era |
+| `Informativa generale Privacy.pdf` | invio di informazioni e promozioni via email, social, WhatsApp | dal 26/09/2026 è la pagina `informativa-comunicazioni-promozionali`; il PDF resta su Spaces come originale |
+| `Informativa-Fornitori.pdf` | informativa privacy per clienti e fornitori | dal 26/09/2026 è la pagina `informativa-fornitori` (senza il modulo di firma); il PDF resta su Spaces come originale |
 | `Protocollo-1-Codice-di-condotta.pdf` | codice di condotta e tutela minori | valido; è anche il documento che disciplina immagini e dati biometrici (sotto) |
 | `Protocollo-2-…`, `Protocollo-3-…`, `Modello-Organizzativo_compressed.pdf` | governance | validi, non riguardano il sito |
 

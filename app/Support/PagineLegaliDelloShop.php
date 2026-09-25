@@ -39,7 +39,7 @@ class PagineLegaliDelloShop
     {
         $create = [];
 
-        foreach (self::tutte() as $slug => $pagina) {
+        foreach (static::tutte() as $slug => $pagina) {
             if (DB::table('pages')->where('slug', $slug)->exists()) {
                 continue;
             }

@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Storage;
  *
  * Sono i PDF di Corporate Governance che il footer offre: modello
  * organizzativo, codice di tutela dei minori, protocollo bullismo, protocollo
- * razzismo, informativa fornitori. In archivio le impostazioni `legal.*` sono
+ * razzismo. In archivio le impostazioni `legal.*` sono
  * vuote — i file erano spariti col passaggio a Spaces e la migrazione del 21
  * agosto ha azzerato i percorsi che non aprivano piu' niente.
  *
  * Le voci che puntano a un documento mancante spariscono dal menu, quindi non
- * si vedono link rotti; l'informativa fornitori invece ripiega su
- * `/informativa-fornitori`, che non e' una rotta e da' 404.
+ * si vedono link rotti. L'informativa fornitori non e' piu' un documento: e'
+ * la pagina `/informativa-fornitori`.
  *
  * I documenti sono ancora pubblicati sul sito precedente, che resta online:
  * si scaricano da li' invece di aspettare che qualcuno li ricarichi a mano.
@@ -37,7 +37,7 @@ class ImportaIDocumentiLegali extends Command
     /**
      * Impostazione => indirizzo del PDF sul sito precedente.
      *
-     * Privacy e cookie policy non ci sono: sul sito nuovo sono pagine del CMS,
+     * Privacy, cookie policy e informativa fornitori non ci sono: sul sito nuovo sono pagine del CMS,
      * non allegati. Le linee guida Safeguarding non hanno un'impostazione
      * propria — stanno nell'elenco `documents` della pagina omonima.
      */
@@ -46,7 +46,6 @@ class ImportaIDocumentiLegali extends Command
         'legal.codice_tutela_minori' => 'https://savinodelbenevolley.it/wp-content/uploads/2025/01/Protocollo-1-Codice-di-condotta.pdf',
         'legal.protocollo_bullismo' => 'https://savinodelbenevolley.it/wp-content/uploads/2025/01/Protocollo-2-Bullismo-e-cyberbullismo.pdf',
         'legal.protocollo_razzismo' => 'https://savinodelbenevolley.it/wp-content/uploads/2025/01/Protocollo-3-Razzismo-e-xenofobia.pdf',
-        'legal.informativa_fornitori' => 'https://savinodelbenevolley.it/wp-content/uploads/2021/06/Informativa-Fornitori.pdf',
     ];
 
     /** La stessa cartella che usa il campo di upload del pannello. */
