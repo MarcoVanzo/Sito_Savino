@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\SiteSetting;
+use App\Services\StoricoPrezzi;
 use App\Support\EtichetteDelProdotto;
 use App\Support\GuidaTaglie;
 use Illuminate\Http\Request;
@@ -30,23 +31,19 @@ class ShopController extends Controller
             $media = $p->getMedia('images');
         }
 
+        $prezzi = $this->prezzi($p);
+
         return [
             'id' => $p->id,
             'name' => $p->name,
             'slug' => $p->slug,
             'description' => $p->description,
             'short_description' => $p->short_description,
-            'price' => $p->price,
-            // Lo sconto si annuncia solo mentre e' in corso: `sale_price`
-            // da sola ignora la finestra sale_start/sale_end, e in vetrina un
-            // ribasso programmato per il mese prossimo si vedeva gia' oggi
-            // mentre il carrello — che passa da effectivePrice() — faceva
-            // pagare il prezzo pieno.
-            'sale_price' => $p->isOnSale() ? $p->sale_price : null,
+            ...$prezzi,
             'stock' => $p->availableStock(),
             'sku' => $p->sku,
             'is_active' => $p->is_active,
-            'etichette' => EtichetteDelProdotto::per($p),
+            'etichette' => EtichetteDelProdotto::per($p, $prezzi['prezzo_piu_basso_30_giorni']),
             'personalizzazione' => $p->offrePersonalizzazione() ? [
                 'nome' => $p->personalizzazione_nome,
                 'prezzo' => (float) $p->personalizzazione_prezzo,
@@ -68,25 +65,55 @@ class ShopController extends Controller
     }
 
     /**
+     * Il prezzo come lo vede il cliente: `price` è quello barrato quando c'è
+     * uno sconto annunciabile, `sale_price` quello che si paga.
+     *
+     * Lo sconto si annuncia solo mentre e' in corso (`sale_price` da sola
+     * ignora la finestra sale_start/sale_end: un ribasso programmato si
+     * vedeva gia' oggi e il carrello faceva pagare il prezzo pieno) e solo
+     * con un prezzo precedente vero: il più basso dei 30 giorni prima della
+     * riduzione (art. 17-bis del Codice del consumo, StoricoPrezzi). Prima si
+     * barrava il listino. Senza un prezzo precedente praticato lo sconto non
+     * si annuncia, ma si applica: `price` diventa il prezzo scontato, che è
+     * quello che il carrello fa pagare.
+     *
+     * @return array{price: mixed, sale_price: mixed, prezzo_piu_basso_30_giorni: bool}
+     */
+    private function prezzi(Product $p): array
+    {
+        $riferimento = app(StoricoPrezzi::class)->prezzoDiRiferimento($p);
+
+        if ($riferimento !== null) {
+            return [
+                'price' => number_format($riferimento, 2, '.', ''),
+                'sale_price' => $p->sale_price,
+                'prezzo_piu_basso_30_giorni' => true,
+            ];
+        }
+
+        return [
+            'price' => number_format($p->effectivePrice(), 2, '.', ''),
+            'sale_price' => null,
+            'prezzo_piu_basso_30_giorni' => false,
+        ];
+    }
+
+    /**
      * Mapper leggero per la griglia prodotti (card).
      * Evita di mandare description, images[], variants al client per ogni prodotto.
      */
     private function mapProductCard(Product $p): array
     {
+        $prezzi = $this->prezzi($p);
+
         return [
             'id' => $p->id,
             'name' => $p->name,
             'slug' => $p->slug,
-            'price' => $p->price,
-            // Lo sconto si annuncia solo mentre e' in corso: `sale_price`
-            // da sola ignora la finestra sale_start/sale_end, e in vetrina un
-            // ribasso programmato per il mese prossimo si vedeva gia' oggi
-            // mentre il carrello — che passa da effectivePrice() — faceva
-            // pagare il prezzo pieno.
-            'sale_price' => $p->isOnSale() ? $p->sale_price : null,
+            ...$prezzi,
             'stock' => $p->availableStock(),
             'type' => $p->type->value ?? $p->type,
-            'etichette' => EtichetteDelProdotto::per($p),
+            'etichette' => EtichetteDelProdotto::per($p, $prezzi['prezzo_piu_basso_30_giorni']),
             'category' => $p->category ? [
                 'id' => $p->category->id,
                 'name' => $p->category->name,

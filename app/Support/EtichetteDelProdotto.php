@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enums\EtichettaProdotto;
 use App\Enums\ProductType;
 use App\Models\Product;
+use App\Services\StoricoPrezzi;
 
 /**
  * Quali etichette mostrare sulla foto di un prodotto.
@@ -26,15 +27,19 @@ final class EtichetteDelProdotto
     private const GIORNI_DA_NUOVO = 30;
 
     /**
+     * @param  bool|null  $scontoAnnunciabile  se il chiamante ha gia' chiesto a
+     *                                         StoricoPrezzi il prezzo di riferimento, per non
+     *                                         rifare la query; null: lo chiede qui
      * @return list<string> i valori di EtichettaProdotto, nell'ordine scelto
      */
-    public static function per(Product $prodotto): array
+    public static function per(Product $prodotto, ?bool $scontoAnnunciabile = null): array
     {
         $esaurito = $prodotto->availableStock() <= 0;
+        $scontoAnnunciabile ??= fn (): bool => app(StoricoPrezzi::class)->prezzoDiRiferimento($prodotto) !== null;
 
         $visibili = array_filter(
             self::scelte($prodotto),
-            fn (EtichettaProdotto $e) => self::eVera($e, $prodotto, $esaurito),
+            fn (EtichettaProdotto $e) => self::eVera($e, $prodotto, $esaurito, $scontoAnnunciabile),
         );
 
         return array_slice(
@@ -61,7 +66,10 @@ final class EtichetteDelProdotto
         )));
     }
 
-    private static function eVera(EtichettaProdotto $etichetta, Product $prodotto, bool $esaurito): bool
+    /**
+     * @param  bool|\Closure(): bool  $scontoAnnunciabile
+     */
+    private static function eVera(EtichettaProdotto $etichetta, Product $prodotto, bool $esaurito, bool|\Closure $scontoAnnunciabile): bool
     {
         if ($esaurito && $etichetta !== EtichettaProdotto::Nuovo) {
             return false;
@@ -73,7 +81,9 @@ final class EtichetteDelProdotto
             EtichettaProdotto::Nuovo => is_array($prodotto->etichette)
                 || ($prodotto->created_at?->greaterThan(now()->subDays(self::GIORNI_DA_NUOVO)) ?? false),
             EtichettaProdotto::HotSales => true,
-            EtichettaProdotto::InOfferta => $prodotto->isOnSale(),
+            // Stessa regola del prezzo barrato: uno sconto si annuncia solo
+            // con un prezzo precedente praticato (art. 17-bis, StoricoPrezzi).
+            EtichettaProdotto::InOfferta => is_bool($scontoAnnunciabile) ? $scontoAnnunciabile : $scontoAnnunciabile(),
             EtichettaProdotto::UltimoRimasto => self::unPezzoPerTaglia($prodotto),
         };
     }

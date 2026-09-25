@@ -79,6 +79,14 @@ return function (string $namePrefix): void {
         'summer-camp-old2' => ['summer-camp', []],
         'mondiale-club-fivb' => ['stagione.risultati', []],
         'cev-challenge-league' => ['stagione.cev', []],
+        // Le pagine legali del vecchio negozio WooCommerce
+        // (shop.savinodelbenevolley.it), che ne aveva due versioni delle
+        // condizioni: qui ce n'e' una sola.
+        'condizioni-generali-di-vendita' => ['pages.show', ['slug' => 'condizioni-di-vendita']],
+        'condizioni-di-vendita-del-negozio-online' => ['pages.show', ['slug' => 'condizioni-di-vendita']],
+        'condizioni-di-spedizione' => ['pages.show', ['slug' => 'spedizioni']],
+        'informativa-sui-rimborsi' => ['pages.show', ['slug' => 'resi-e-rimborsi']],
+        'regolamento-e-privacy-policy-aste' => ['pages.show', ['slug' => 'regolamento-aste']],
     ];
 
     foreach ($pagine as $vecchio => [$rotta, $parametri]) {

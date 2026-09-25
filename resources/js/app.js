@@ -72,7 +72,7 @@ createInertiaApp({
         const consenso = leggiIlConsenso(props.initialPage.props.consensoCookie?.versione ?? null);
 
         if (measurementId) {
-            initAnalytics(measurementId, consenso.statistiche);
+            initAnalytics(measurementId, consenso.scelto && consenso.statistiche);
 
             // Senza questo, in una SPA GA4 attribuirebbe tutto il traffico alla
             // pagina d'ingresso: è proprio la misura pagina per pagina che serve.
@@ -87,7 +87,7 @@ createInertiaApp({
         if (analytics.meta_pixel_id) {
             initMetaPixel(analytics.meta_pixel_id, {
                 needsConsent: analytics.meta_pixel_requires_consent === true,
-                hasConsent: consenso.marketing,
+                hasConsent: consenso.scelto && consenso.marketing,
             });
 
             router.on('navigate', () => window.setTimeout(trackPixelPageView, 0));

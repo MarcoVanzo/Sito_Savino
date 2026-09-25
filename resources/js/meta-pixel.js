@@ -82,15 +82,51 @@ export function initMetaPixel(id, { needsConsent = false, hasConsent = false } =
     loadScript();
 }
 
-/** Da chiamare quando l'utente accetta o revoca i cookie di marketing. */
+/**
+ * Da chiamare quando l'utente accetta o revoca i cookie di marketing.
+ *
+ * La revoca deve fermare il pixel già caricato, non solo impedirgli di
+ * partire: fino al 25 settembre 2026 `track()` guardava soltanto se lo script
+ * c'era, e dopo un "no" dal banner gli eventi continuavano ad arrivare a Meta
+ * fino al ricaricamento della pagina. Ora gli eventi si fermano qui, lo script
+ * riceve `consent revoke` (smette di scrivere e leggere i suoi cookie) e il
+ * cookie `_fbp` già scritto si cancella.
+ */
 export function updateMarketingConsent(granted) {
     consentGranted = Boolean(granted);
 
-    if (allowed()) loadScript();
+    if (scriptLoaded && window.fbq) {
+        window.fbq('consent', allowed() ? 'grant' : 'revoke');
+    }
+
+    if (!allowed()) {
+        cancellaICookieDelPixel();
+
+        return;
+    }
+
+    loadScript();
+}
+
+/**
+ * `_fbp` e `_fbc` stanno sul dominio del sito, con o senza il punto davanti a
+ * seconda di come Meta li ha scritti: si cancellano in tutte e due le forme.
+ */
+function cancellaICookieDelPixel() {
+    if (typeof document === 'undefined') return;
+
+    const dominio = window.location.hostname;
+    const scadenza = 'expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+
+    for (const nome of ['_fbp', '_fbc']) {
+        document.cookie = `${nome}=; ${scadenza}`;
+        document.cookie = `${nome}=; ${scadenza}; domain=${dominio}`;
+        document.cookie = `${nome}=; ${scadenza}; domain=.${dominio}`;
+    }
 }
 
 function track(event, params) {
-    if (!pixelId || !scriptLoaded || !window.fbq) return;
+    if (!pixelId || !scriptLoaded || !window.fbq || !allowed()) return;
 
     params === undefined ? window.fbq('track', event) : window.fbq('track', event, params);
 }

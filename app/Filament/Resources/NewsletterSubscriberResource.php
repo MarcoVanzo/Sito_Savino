@@ -68,6 +68,13 @@ class NewsletterSubscriberResource extends Resource
                     ->label('Iscritto il')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
+                // Doppio opt-in: senza conferma dal link dell'email l'iscritto
+                // non arriva ad ActiveCampaign, qualunque azione si lanci qui.
+                Tables\Columns\TextColumn::make('confermato_il')
+                    ->label('Confermato il')
+                    ->dateTime('d/m/Y H:i')
+                    ->placeholder('In attesa di conferma')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('unsubscribed_at')
                     ->label('Disiscritto il')
                     ->dateTime('d/m/Y H:i')

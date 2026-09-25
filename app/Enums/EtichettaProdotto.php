@@ -38,7 +38,7 @@ enum EtichettaProdotto: string implements HasLabel
     public function descrizioneNelPannello(): ?string
     {
         return match ($this) {
-            self::InOfferta => 'compare solo mentre lo sconto è in corso',
+            self::InOfferta => 'compare solo mentre lo sconto è in corso e si può annunciare (prezzo più basso dei 30 giorni precedenti)',
             self::UltimoRimasto => 'compare solo quando resta un pezzo per taglia',
             default => null,
         };

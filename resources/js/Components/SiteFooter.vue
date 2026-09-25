@@ -62,7 +62,18 @@ const copyrightText = computed(() => sanitize(
         .replace('{year}', currentYear)
         .replace('Savino Del Bene', '<span class="whitespace-nowrap">Savino Del Bene</span>')
 ));
-const footerPiva = computed(() => footerSettings.value.footer_piva || '');
+const footerPiva = computed(() => footerSettings.value.footer_piva || contatti.value.legal_piva || '');
+
+// I dati che una societa' di capitali deve mostrare anche sul sito (art. 2250
+// c.c.): denominazione, sede, REA e capitale versato. Vengono da Impostazioni
+// → Contatti, allineati alla visura camerale; una voce vuota non si mostra.
+const contatti = computed(() => page.props.siteSettings?.contact ?? {});
+const datiSocietari = computed(() => [
+    contatti.value.legal_ragione_sociale,
+    contatti.value.address,
+    contatti.value.legal_rea ? `REA ${contatti.value.legal_rea}` : null,
+    contatti.value.legal_capitale ? `${$t('footer.share_capital')} ${contatti.value.legal_capitale}` : null,
+].filter(Boolean).join(' — '));
 
 // Mappa icone SVG per i social (mantenute le stesse SVG originali)
 const socialIconPaths = {
@@ -181,6 +192,7 @@ const socialLinks = computed(() => {
                 <div class="text-gray-400 text-xs">
                     <span v-html="copyrightText"></span>
                     <span v-if="footerPiva" class="block sm:inline sm:ml-2">P.IVA {{ footerPiva }}</span>
+                    <span v-if="datiSocietari" class="block mt-1">{{ datiSocietari }}</span>
                 </div>
                 <!-- Le voci vanno a capo invece di schiacciarsi: sul telefono sono
                      quattro, e senza wrap ciascuna spezzava il proprio testo. -->
@@ -191,6 +203,14 @@ const socialLinks = computed(() => {
                          pagina e il footer serviva l'informativa del vecchio sito. -->
                     <Link :href="route('pages.show', 'privacy-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.privacy_policy') }}</Link>
                     <Link :href="route('pages.show', 'cookie-policy')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.cookie_policy') }}</Link>
+                    <Link :href="route('pages.show', 'condizioni-di-vendita')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.terms_of_sale') }}</Link>
+                    <Link :href="route('pages.show', 'diritto-di-recesso')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.withdrawal') }}</Link>
+                    <Link :href="route('pages.show', 'spedizioni')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.shipping') }}</Link>
+                    <Link :href="route('pages.show', 'resi-e-rimborsi')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.returns') }}</Link>
+                    <!-- L'art. 54-bis del Codice del Consumo vuole il recesso online "ben
+                         visibile e accessibile in modo continuativo": sta qui, in ogni
+                         pagina, e non solo dentro lo shop. -->
+                    <Link :href="route('recesso')" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.withdraw') }}</Link>
                     <a v-if="safeUrl(legalDocs.informativa_promozionale)" :href="safeUrl(legalDocs.informativa_promozionale)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.promotional_policy') }}</a>
                     <a v-if="safeUrl(legalDocs.informativa_fornitori)" :href="safeUrl(legalDocs.informativa_fornitori)" target="_blank" rel="noopener noreferrer" class="text-gray-400 text-xs hover:text-savino-fucsia transition-colors">{{ $t('footer.supplier_policy') }}</a>
                 </div>

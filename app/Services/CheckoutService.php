@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ShippingZone;
 use App\Models\User;
+use App\Support\CondizioniDiVendita;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -184,6 +185,9 @@ class CheckoutService
                 'codice_fiscale' => $data['codice_fiscale'] ?? null,
                 'phone' => $data['phone'] ?? null,
                 'privacy_accepted_at' => $data['privacy_accepted_at'],
+                // Quale testo delle condizioni valeva quando il cliente le ha
+                // accettate: la pagina cambierà, l'ordine deve ricordarlo.
+                'condizioni_versione' => CondizioniDiVendita::VERSIONE,
             ]);
 
             // status is not mass-assignable (security), set it explicitly

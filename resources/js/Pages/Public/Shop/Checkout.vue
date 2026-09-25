@@ -11,6 +11,8 @@ import { costoDiSpedizione } from '@/Support/spedizione.js'
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
 import AddressAutocomplete from '@/Components/Shop/AddressAutocomplete.vue';
+import AccettazioneCondizioni from '@/Components/Shop/AccettazioneCondizioni.vue';
+import PulsanteOrdine from '@/Components/Shop/PulsanteOrdine.vue';
 
 const page = usePage();
 const user = () => page.props.auth?.user;
@@ -740,20 +742,9 @@ const ogMeta = useOgMeta({
                             ></textarea>
                         </div>
 
-                        <!-- Privacy Checkbox -->
+                        <!-- Condizioni di vendita, recesso e privacy -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                            <label class="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    v-model="form.privacy_accepted"
-                                    class="mt-1 w-4 h-4 text-savino-blue border-gray-300 rounded focus:ring-savino-blue/20"
-                                />
-                                <span class="text-sm text-gray-600">
-                                    {{ $t('shop.accept_privacy_1') }}
-                                    <a :href="route('pages.show', 'privacy-policy')" target="_blank" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>
-                                </span>
-                            </label>
-                            <p v-if="form.errors.privacy_accepted" class="mt-1 text-sm text-red-500">{{ form.errors.privacy_accepted }}</p>
+                            <AccettazioneCondizioni v-model="form.privacy_accepted" :errore="form.errors.privacy_accepted" />
                         </div>
 
                         <!-- Navigation Buttons -->
@@ -848,21 +839,13 @@ const ogMeta = useOgMeta({
                         </div>
 
                         <!-- CTA (only on step 2) -->
-                        <button type="button"
+                        <PulsanteOrdine
                             v-if="currentStep === 2"
+                            :etichetta="$t('shop_checkout.confirm_order')"
+                            :in-corso="form.processing"
+                            :disabilitato="form.processing || cart.items.length === 0 || !form.payment_gateway || !form.privacy_accepted"
                             @click="submitOrder"
-                            :disabled="form.processing || cart.items.length === 0 || !form.payment_gateway || !form.privacy_accepted"
-                            class="w-full mt-8 bg-savino-fucsia text-savino-blue font-bold uppercase tracking-wider text-sm px-8 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            <svg v-if="form.processing" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                            {{ form.processing ? $t('shop_checkout.processing') : $t('shop_checkout.confirm_order') }}
-                        </button>
+                        />
 
                         <p class="text-xs text-gray-400 text-center mt-4">
                             {{ $t('shop_checkout.payment_secure_note') }}

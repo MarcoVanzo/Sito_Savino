@@ -158,4 +158,6 @@
             </td>
         </tr>
     </table>
+
+    @include('emails.partials.informazioni-contrattuali')
 @endsection

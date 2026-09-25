@@ -1044,7 +1044,7 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   "automatiche" (NUOVO nei primi 30 giorni, IN OFFERTA durante lo sconto), un
   elenco anche vuoto e' la scelta a mano. Al massimo due, decise da
   `App\Support\EtichetteDelProdotto`. **IN OFFERTA e ULTIMO RIMASTO compaiono
-  solo mentre sono vere** (sconto in corso; un pezzo per ogni taglia rimasta),
+  solo mentre sono vere** (sconto annunciabile, cioè con il prezzo di riferimento dei 30 giorni come il barrato; un pezzo per ogni taglia rimasta),
   qualunque cosa dica il pannello: un'offerta o una scarsita' finte sono
   pratiche ingannevoli (Codice del consumo, artt. 21 e 23).
 - **La personalizzazione (la firma della giocatrice) non e' una variante.** E'
@@ -1294,3 +1294,44 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   `RESEND_WEBHOOK_SECRET` (livello d'app); senza segreto ogni notifica è
   rifiutata.
 
+---
+
+## 25. Consumatori: condizioni, recesso, prezzi, account
+
+Mappa completa in `docs/CONSUMATORI.md`. Vincoli:
+
+- **Il pulsante che chiude l'ordine dice «Ordine con obbligo di pagamento»**
+  (art. 51 c. 2 del Codice del consumo), sulla seconda riga di
+  `PulsanteOrdine.vue`: senza, il contratto non vincola il cliente. Vale per il
+  checkout dello shop e per quello delle aste. Non spostarla fuori dal pulsante.
+- **Condizioni di vendita e recesso sono pagine CMS con i testi in
+  `database/data/condizioni_di_vendita.php`**, come le informative (§21). La
+  versione accettata finisce su `orders.condizioni_versione`; si alza
+  `CondizioniDiVendita::VERSIONE` quando cambia la sostanza.
+- **La conferma d'ordine porta venditore, recesso con modulo tipo, garanzia e
+  il PDF delle condizioni** (art. 51 c. 7): il partial
+  `emails/partials/informazioni-contrattuali` non si toglie.
+- **Il prezzo barrato non è il listino**: è il più basso dei 30 giorni prima
+  dello sconto (`StoricoPrezzi`, art. 17-bis). Senza storico precedente non si
+  barra niente, e `price` arriva al frontend già scontato. Non tornare a
+  confrontare `sale_price` con `price` per decidere cosa barrare.
+- **Newsletter con doppio opt-in**: `confermato_il` nullo significa che
+  l'indirizzo non esce dal sito. `SyncNewsletterToActiveCampaign` lo verifica
+  da sé, qualunque sia la strada che lo accoda. Nei log l'id, mai email o IP.
+- **Il consenso ai cookie scade dopo 12 mesi** (`DURATA_GIORNI` in
+  `consenso.js`, quello che la Cookie Policy dichiara); la X del banner
+  rifiuta; dopo la revoca il Pixel non manda più eventi e cancella `_fbp`.
+  Chi decide se far partire un tag guarda `scelto && statistiche`, mai la sola
+  casella.
+- **Il recesso online sta su `/recesso`** (art. 54-bis): due passaggi, la
+  ricevuta parte subito e in modo sincrono (è parte dell'obbligo), e le righe
+  di `richieste_di_recesso` non si cancellano dal pannello. Il limite della
+  POST è stretto (3 ogni 10 minuti) perché manda un'email a un indirizzo
+  scritto da chi compila. Il link sta nel footer di ogni pagina: non toglierlo.
+- **L'avviso armonizzato UE sulla garanzia** (`AvvisoGaranziaLegale.vue`) sta
+  sotto la casella del checkout, nella scheda prodotto e nell'email: sono le
+  immagini ufficiali della Commissione, non si ridisegnano.
+- **Il cliente si cancella e scarica i dati da `/shop/account`**
+  (`AccountController`, `DatiDelCliente`). Gli ordini restano con `user_id`
+  nullo (conservazione fiscale); gli account della redazione e chi ha un'asta
+  in corso o da pagare non si cancellano da lì.

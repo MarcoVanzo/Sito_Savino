@@ -276,6 +276,35 @@ class SecurityHeadersTest extends TestCase
     }
 
     /**
+     * Il campo di upload scarica con `fetch` le foto già caricate su Spaces
+     * per mostrarle: senza l'host in `connect-src` restavano in
+     * "Caricamento" e il prodotto non si poteva più modificare.
+     */
+    public function test_il_pannello_puo_leggere_i_file_gia_caricati(): void
+    {
+        config([
+            'media-library.disk_name' => 's3',
+            'filesystems.disks.s3.url' => 'https://bucket.fra1.digitaloceanspaces.com',
+        ]);
+
+        $csp = (string) $this->get('/admin/login')->headers->get('Content-Security-Policy');
+        $direttive = collect(explode('; ', $csp));
+
+        $this->assertStringContainsString(
+            'https://bucket.fra1.digitaloceanspaces.com',
+            (string) $direttive->first(fn (string $d) => str_starts_with($d, 'connect-src')),
+        );
+        $this->assertStringContainsString(
+            'blob:',
+            (string) $direttive->first(fn (string $d) => str_starts_with($d, 'img-src')),
+        );
+
+        // Il sito pubblico non ne ha bisogno.
+        $pubblica = (string) $this->get('/')->headers->get('Content-Security-Policy');
+        $this->assertStringNotContainsString('digitaloceanspaces.com', $pubblica);
+    }
+
+    /**
      * Il sito pubblico invece non ne ha bisogno, e nemmeno degli host di
      * Google: i suoi caratteri li serve lui, da `public/fonts`. Finché quei
      * tre host restano fuori dalla policy, una riga rimessa nel layout si

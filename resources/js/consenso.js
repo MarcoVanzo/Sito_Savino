@@ -18,6 +18,35 @@ export const CHIAVE_CONSENSO = 'cookie-consent-v2';
 export const CHIAVE_IN_ATTESA = 'cookie-consent-da-registrare';
 
 /**
+ * Quanto vale una scelta, in giorni: dodici mesi, poi il banner torna a
+ * chiedere.
+ *
+ * È ciò che la Cookie Policy dichiara («La scelta vale 12 mesi»), ma fino al
+ * 25 settembre 2026 nessuno lo applicava: un sì dato una volta valeva per
+ * sempre. Vale anche per il rifiuto, e resta sopra i sei mesi che le linee
+ * guida del Garante sui cookie (10 giugno 2021) indicano come il tempo minimo
+ * prima di riproporre il banner. Il registro sul server conserva la prova per
+ * lo stesso periodo (`consensi:pota`).
+ */
+export const DURATA_GIORNI = 365;
+
+const GIORNO_IN_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Una scelta senza data (salvata prima che la si registrasse) vale come
+ * scaduta: non si può dire da quanto dura, e chiederla di nuovo costa un click.
+ */
+export function eScaduta(data, adesso = Date.now()) {
+    const quando = data ? new Date(data).getTime() : Number.NaN;
+
+    if (Number.isNaN(quando)) {
+        return true;
+    }
+
+    return adesso - quando > DURATA_GIORNI * GIORNO_IN_MS;
+}
+
+/**
  * Legge la scelta salvata nel browser.
  *
  * Con `versioneAttesa` valorizzata, una scelta fatta su un'informativa
@@ -55,8 +84,18 @@ export function leggiIlConsenso(versioneAttesa = null) {
     const statistiche = salvato.statistiche ?? salvato.analytics === true;
     const marketing = salvato.marketing === true;
 
+    // Una scelta superata (informativa cambiata) o scaduta non autorizza
+    // niente — `scelto` è falso — ma le caselle tornano come il visitatore le
+    // aveva lasciate, così il banner si riapre già compilato. Chi decide se
+    // far partire un tag guarda quindi `scelto && statistiche`, mai la sola
+    // casella: `app.js` guardava la casella, e dopo un cambio d'informativa
+    // faceva partire GA4 prima che il banner tornasse a chiedere.
     if (versioneAttesa && salvato.versione !== versioneAttesa) {
-        return { scelto: false, statistiche, marketing, versioneSuperata: true, riferimento: salvato.riferimento ?? null };
+        return { scelto: false, statistiche: statistiche === true, marketing, versioneSuperata: true, riferimento: salvato.riferimento ?? null };
+    }
+
+    if (eScaduta(salvato.data ?? salvato.timestamp ?? null)) {
+        return { scelto: false, statistiche: statistiche === true, marketing, scaduta: true, riferimento: salvato.riferimento ?? null };
     }
 
     return {

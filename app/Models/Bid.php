@@ -33,6 +33,7 @@ class Bid extends Model
 
     // --- Relazioni ---
 
+    /** @return BelongsTo<Auction, $this> */
     public function auction(): BelongsTo
     {
         return $this->belongsTo(Auction::class);

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     leggiIlConsenso,
     salvaIlConsenso,
@@ -8,6 +8,8 @@ import {
     consensoInAttesa,
     CHIAVE_CONSENSO,
     CHIAVE_IN_ATTESA,
+    DURATA_GIORNI,
+    eScaduta,
 } from './consenso.js';
 
 /**
@@ -16,7 +18,39 @@ import {
  * due si vedrebbe come un tracker che parte senza consenso.
  */
 describe('leggiIlConsenso', () => {
-    beforeEach(() => localStorage.clear());
+    beforeEach(() => {
+        localStorage.clear();
+        // Le date di questi test sono di settembre 2026: senza un orologio
+        // fermo scadrebbero da sole dopo un anno.
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-09-25T12:00:00Z'));
+    });
+
+    afterEach(() => vi.useRealTimers());
+
+    it('una scelta vale dodici mesi, poi si richiede', () => {
+        salvaIlConsenso({ statistiche: true, marketing: true, versione: '2026-09-22', data: '2025-09-20T10:00:00.000Z' });
+
+        const letto = leggiIlConsenso('2026-09-22');
+
+        expect(DURATA_GIORNI).toBe(365);
+        expect(letto.scelto).toBe(false);
+        expect(letto.scaduta).toBe(true);
+        // Il banner si riapre compilato come l'aveva lasciato il visitatore.
+        expect(letto.statistiche).toBe(true);
+    });
+
+    it('vale anche per un rifiuto: dopo un anno si richiede', () => {
+        salvaIlConsenso({ statistiche: false, marketing: false, versione: '2026-09-22', data: '2025-01-01T10:00:00.000Z' });
+
+        expect(leggiIlConsenso('2026-09-22').scelto).toBe(false);
+    });
+
+    it('una scelta senza data vale come scaduta', () => {
+        expect(eScaduta(null)).toBe(true);
+        expect(eScaduta('lunedì')).toBe(true);
+        expect(eScaduta('2026-09-20T10:00:00.000Z')).toBe(false);
+    });
 
     it('senza niente in archivio non dà per scelto niente', () => {
         expect(leggiIlConsenso()).toEqual({ scelto: false, statistiche: false, marketing: false });

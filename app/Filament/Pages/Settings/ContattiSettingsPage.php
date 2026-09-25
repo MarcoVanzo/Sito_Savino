@@ -76,12 +76,17 @@ class ContattiSettingsPage extends BaseSettingsPage
                         TextInput::make('youth_email')->label('Settore giovanile')->email(),
                     ])->columns(2),
 
-                Section::make('Dati fiscali e sportivi')->schema([
-                    TextInput::make('legal_piva')->label('Partita IVA'),
-                    TextInput::make('legal_cf')->label('Codice fiscale'),
-                    TextInput::make('legal_fipav')->label('Codice affiliazione FIPAV'),
-                    TextInput::make('legal_sdi')->label('Codice univoco (SDI)'),
-                ])->columns(2),
+                Section::make('Dati fiscali e sportivi')
+                    ->description('Ragione sociale, REA e capitale sociale compaiono nel footer di ogni pagina (art. 2250 c.c.): vanno tenuti allineati alla visura camerale.')
+                    ->schema([
+                        TextInput::make('legal_ragione_sociale')->label('Ragione sociale')->columnSpanFull(),
+                        TextInput::make('legal_rea')->label('Numero REA')->placeholder('es. FI-624279'),
+                        TextInput::make('legal_capitale')->label('Capitale sociale versato')->placeholder('es. € 150.000,00 i.v.'),
+                        TextInput::make('legal_piva')->label('Partita IVA'),
+                        TextInput::make('legal_cf')->label('Codice fiscale'),
+                        TextInput::make('legal_fipav')->label('Codice affiliazione FIPAV'),
+                        TextInput::make('legal_sdi')->label('Codice univoco (SDI)'),
+                    ])->columns(2),
             ])->statePath('data');
     }
 }

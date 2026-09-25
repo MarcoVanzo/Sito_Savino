@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\SyncNewsletterToActiveCampaign;
 use App\Jobs\UnsubscribeNewsletterFromActiveCampaign;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,7 @@ class NewsletterSubscriber extends Model
         'synced_to_ac',
         'ac_contact_id',
         'subscribed_at',
+        'confermato_il',
         'unsubscribed_at',
     ];
 
@@ -30,6 +32,7 @@ class NewsletterSubscriber extends Model
         return [
             'synced_to_ac' => 'boolean',
             'subscribed_at' => 'datetime',
+            'confermato_il' => 'datetime',
             'unsubscribed_at' => 'datetime',
         ];
     }
@@ -50,8 +53,11 @@ class NewsletterSubscriber extends Model
                 );
             }
 
+            // Nel log l'id, non l'indirizzo: il log non ha la conservazione
+            // dell'archivio e finirebbe per tenere l'email di chi ha chiesto
+            // di essere dimenticato.
             Log::channel('daily')->info('Cancellazione iscritto newsletter', [
-                'email' => $subscriber->email,
+                'subscriber_id' => $subscriber->id,
             ]);
         });
     }
@@ -76,9 +82,66 @@ class NewsletterSubscriber extends Model
         return $query->whereNotNull('unsubscribed_at');
     }
 
+    /**
+     * Solo gli iscritti che hanno confermato dal link ricevuto per email:
+     * sono gli unici che possono arrivare ad ActiveCampaign.
+     */
+    public function scopeConfermati(Builder $query): Builder
+    {
+        return $query->whereNotNull('confermato_il');
+    }
+
     public function isSubscribed(): bool
     {
         return $this->unsubscribed_at === null;
+    }
+
+    public function haConfermato(): bool
+    {
+        return $this->confermato_il !== null;
+    }
+
+    /**
+     * Il link che conferma l'iscrizione (doppio opt-in).
+     *
+     * Firmato e con scadenza di sette giorni: una conferma arrivata mesi dopo
+     * non dimostra più che chi ha chiesto l'iscrizione e chi legge la casella
+     * siano la stessa persona. Porta a una pagina con un pulsante, non esegue
+     * da solo: i client di posta aprono i link per controllarli, e un GET che
+     * conferma verrebbe "cliccato" da un filtro antispam.
+     */
+    public function confermaUrl(?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+
+        if (! in_array($locale, config('app.supported_locales', ['it']), true)) {
+            $locale = 'it';
+        }
+
+        $namePrefix = $locale === 'it' ? '' : $locale.'.';
+
+        return URL::temporarySignedRoute($namePrefix.'newsletter.conferma.show', now()->addDays(7), ['subscriber' => $this->id]);
+    }
+
+    /**
+     * Registra la conferma e manda il contatto ad ActiveCampaign.
+     * Idempotente: una seconda conferma non cambia la data della prima.
+     */
+    public function conferma(): bool
+    {
+        if ($this->haConfermato()) {
+            return false;
+        }
+
+        $this->update(['confermato_il' => now()]);
+
+        SyncNewsletterToActiveCampaign::dispatch($this);
+
+        Log::channel('daily')->info('Conferma iscrizione newsletter', [
+            'subscriber_id' => $this->id,
+        ]);
+
+        return true;
     }
 
     /**
@@ -120,7 +183,7 @@ class NewsletterSubscriber extends Model
         }
 
         Log::channel('daily')->info('Disiscrizione newsletter', [
-            'email' => $this->email,
+            'subscriber_id' => $this->id,
             'reason' => $reason,
         ]);
 

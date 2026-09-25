@@ -61,10 +61,11 @@ onMounted(() => {
     sceltaFatta.value = salvato.scelto;
     showBanner.value = ! salvato.scelto;
 
-    // Il consenso raccolto su un'informativa precedente non vale più: finché
-    // non si risponde al banner nuovo, la misurazione si ferma. Senza questo,
+    // Il consenso raccolto su un'informativa precedente, o più vecchio di dodici
+    // mesi (`DURATA_GIORNI` in consenso.js), non vale più: finché non si
+    // risponde al banner nuovo, la misurazione si ferma. Senza questo,
     // aggiungere un tracker basterebbe a coprirlo con un sì di mesi prima.
-    if (salvato.versioneSuperata) {
+    if (salvato.versioneSuperata || salvato.scaduta) {
         updateAnalyticsConsent(false);
         updateMarketingConsent(false);
     }
@@ -160,9 +161,24 @@ defineExpose({ show: apriIlBanner });
         leave-to-class="translate-y-full opacity-0"
     >
         <div v-if="showBanner" class="fixed bottom-0 left-0 right-0 z-[100] p-4">
-            <div class="max-w-4xl mx-auto bg-gray-900/95 backdrop-blur-lg text-white rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden">
+            <div class="relative max-w-4xl mx-auto bg-gray-900/95 backdrop-blur-lg text-white rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden">
+                <!-- La X chiude il banner rifiutando: è ciò che le linee guida
+                     del Garante chiedono, perché chiudere non può valere come
+                     un sì né lasciare il banner a insistere. -->
+                <button
+                    type="button"
+                    class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-savino-fucsia"
+                    :aria-label="$t('cookie.close_reject')"
+                    :title="$t('cookie.close_reject')"
+                    @click="rejectAll"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
                 <!-- Banner principale -->
-                <div class="p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div class="p-6 pr-12 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div class="flex-1">
                         <h4 class="text-sm font-bold mb-1">{{ $t('cookie.title') }}</h4>
                         <p class="text-xs text-gray-400 leading-relaxed">
@@ -180,9 +196,13 @@ type="button"
                         >
                             {{ $t('cookie.customize') }}
                         </button>
+                        <!-- Rifiuta ha lo stesso peso di Accetta: stessa misura,
+                             stesso pieno, stessa ombra. Prima era un contorno grigio
+                             accanto a un pulsante colorato, e il Garante considera
+                             quella differenza una spinta verso il sì. -->
                         <button
 type="button"
-                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white border border-gray-600 hover:border-white/30 rounded-lg transition-all duration-200"
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-white text-savino-blue hover:bg-gray-200 rounded-lg transition-all duration-200 shadow-lg"
                             @click="rejectAll"
                         >
                             {{ $t('cookie.reject_all') }}

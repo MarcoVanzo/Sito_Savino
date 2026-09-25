@@ -45,7 +45,7 @@ class EtichetteEPersonalizzazioneTest extends TestCase
 
     public function test_senza_scelta_le_etichette_restano_automatiche(): void
     {
-        $nuovo = $this->prodotto(['sale_price' => 15]);
+        $nuovo = $this->scontatoDopoIlPrezzoPieno();
         $vecchio = $this->prodotto();
         $vecchio->forceFill(['created_at' => now()->subMonths(3)])->save();
 
@@ -64,6 +64,15 @@ class EtichetteEPersonalizzazioneTest extends TestCase
     public function test_un_elenco_vuoto_spegne_anche_le_automatiche(): void
     {
         $prodotto = $this->prodotto(['etichette' => [], 'sale_price' => 15]);
+
+        $this->assertSame([], EtichetteDelProdotto::per($prodotto));
+    }
+
+    public function test_in_offerta_senza_prezzo_di_riferimento_non_compare(): void
+    {
+        // Nato gia' scontato: nessun prezzo praticato prima, quindi lo sconto
+        // non si annuncia (art. 17-bis), come il prezzo barrato.
+        $prodotto = $this->prodotto(['etichette' => ['in_offerta'], 'sale_price' => 15]);
 
         $this->assertSame([], EtichetteDelProdotto::per($prodotto));
     }
@@ -240,6 +249,21 @@ class EtichetteEPersonalizzazioneTest extends TestCase
             'stock' => 10,
             ...$attributi,
         ]);
+    }
+
+    /**
+     * Venduto una settimana a prezzo pieno, poi scontato: e' cio' che rende lo
+     * sconto annunciabile (StoricoPrezzi).
+     */
+    private function scontatoDopoIlPrezzoPieno(): Product
+    {
+        $this->travelTo(now()->subWeek());
+        $prodotto = $this->prodotto();
+        $this->travelBack();
+
+        $prodotto->update(['sale_price' => 15, 'sale_start' => now()->subMinute()]);
+
+        return $prodotto->fresh();
     }
 
     private function prodottoConFirma(array $attributi = []): Product
