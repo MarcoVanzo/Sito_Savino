@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\GalleryImageResource\Pages;
 
 use App\Filament\Resources\GalleryImageResource;
+use App\Filament\Traits\InvalidaLaCacheDopoIlRiordino;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
@@ -19,6 +20,8 @@ use Illuminate\Support\Facades\Storage;
 
 class ListGalleryImages extends ListRecords
 {
+    use InvalidaLaCacheDopoIlRiordino;
+
     protected static string $resource = GalleryImageResource::class;
 
     protected function getHeaderActions(): array

@@ -4,12 +4,14 @@ namespace App\Filament\Resources\YouthRosterResource\Pages;
 
 use App\Filament\Resources\YouthRosterResource;
 use App\Filament\Traits\HasFaceSyncMethods;
+use App\Filament\Traits\InvalidaLaCacheDopoIlRiordino;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
 class ListYouthRosters extends ListRecords
 {
     use HasFaceSyncMethods;
+    use InvalidaLaCacheDopoIlRiordino;
 
     protected static string $resource = YouthRosterResource::class;
 

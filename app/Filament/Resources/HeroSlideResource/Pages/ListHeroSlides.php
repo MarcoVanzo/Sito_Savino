@@ -4,12 +4,14 @@ namespace App\Filament\Resources\HeroSlideResource\Pages;
 
 use App\Filament\Pages\Settings\HomepageSettingsPage;
 use App\Filament\Resources\HeroSlideResource;
+use App\Filament\Traits\InvalidaLaCacheDopoIlRiordino;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Pages\ListRecords\Concerns\Translatable;
 
 class ListHeroSlides extends ListRecords
 {
+    use InvalidaLaCacheDopoIlRiordino;
     use Translatable;
 
     protected static string $resource = HeroSlideResource::class;
