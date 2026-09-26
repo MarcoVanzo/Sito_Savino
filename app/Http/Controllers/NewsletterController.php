@@ -175,7 +175,7 @@ class NewsletterController extends Controller
             'alreadyUnsubscribed' => ! $subscriber->isSubscribed(),
             // L'URL firmato va ripassato alla vista: la firma vale per un URL
             // preciso e il form deve inviare esattamente quello.
-            'confirmUrl' => URL::signedRoute('newsletter.unsubscribe', ['subscriber' => $subscriber->id]),
+            'confirmUrl' => URL::signedRoute($this->prefissoRotta().'newsletter.unsubscribe', ['subscriber' => $subscriber->id]),
         ]);
     }
 

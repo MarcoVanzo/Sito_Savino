@@ -330,11 +330,22 @@ class CartService
         $issues = [];
         $richiesti = self::quantitaPerPezzo($cart->items);
 
+        $segnalati = [];
+
         foreach ($cart->items as $item) {
+            $chiave = self::chiaveDelPezzo($item->product_id, $item->product_variant_id);
+
+            // Righe con e senza firma sono lo stesso pezzo: un avviso solo,
+            // non uno per riga con lo stesso totale richiesto.
+            if (isset($segnalati[$chiave])) {
+                continue;
+            }
+
             $availableStock = $this->getAvailableStock($item->product, $item->variant);
-            $requested = $richiesti[self::chiaveDelPezzo($item->product_id, $item->product_variant_id)];
+            $requested = $richiesti[$chiave];
 
             if ($requested > $availableStock) {
+                $segnalati[$chiave] = true;
                 $issues[] = [
                     'item' => $item,
                     'available' => $availableStock,

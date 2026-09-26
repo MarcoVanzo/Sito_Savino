@@ -69,6 +69,8 @@ describe('diagnostica', () => {
         expect(ripulisciIndirizzo('/en/shop/order/tok/receipt')).toBe('/en/shop/order/[nascosto]/receipt');
         expect(ripulisciIndirizzo('/shop/checkout/asta/uuid-1/annullato')).toBe('/shop/checkout/asta/[nascosto]/annullato');
         expect(ripulisciIndirizzo('/verify-email/12/0123456789abcdef0123456789abcdef')).toBe('/verify-email/[nascosto]');
+        // Il «riprova» è una POST col token dell'ordine: finisce nei breadcrumb XHR.
+        expect(ripulisciIndirizzo('/shop/checkout/retry/9f8e-uuid')).toBe('/shop/checkout/retry/[nascosto]');
         expect(ripulisciIndirizzo('/news/una-notizia')).toBe('/news/una-notizia');
     });
 

@@ -10,6 +10,9 @@ const props = defineProps({
     // Su fondo chiaro (checkout dell'asta) le tinte -400 pensate per il blu
     // scuro scendevano a 1,4:1: servono quelle scure.
     chiaro: { type: Boolean, default: false },
+    // Cosa annunciare allo scadere: nel checkout del vincitore non finisce
+    // l'asta, finisce il tempo per pagare.
+    testoAllaScadenza: { type: String, default: null },
 });
 
 const emit = defineEmits(['ending-soon', 'ended']);
@@ -112,7 +115,7 @@ onUnmounted(() => {
             </span>
         </div>
 
-        <p v-else-if="isEnded" class="sr-only">{{ $t('auction.ended') }}</p>
+        <p v-else-if="isEnded" class="sr-only">{{ testoAllaScadenza || $t('auction.ended') }}</p>
         <p v-if="!isEnded" class="sr-only">{{ testoPerScreenReader }}</p>
 
         <div v-if="!(isEnded && !isActive)" aria-hidden="true" class="flex items-center justify-center gap-3 sm:gap-4">

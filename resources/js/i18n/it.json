@@ -1098,6 +1098,7 @@
         "rules_link": "Regolamento aste"
     },
     "auction_checkout": {
+        "deadline_expired": "Il tempo per pagare è scaduto",
         "og_title": "Checkout Asta",
         "og_description": "Completa il pagamento del lotto che hai vinto all'asta Savino Del Bene Volley.",
         "hero_label": "Hai vinto!",

@@ -1098,6 +1098,7 @@
         "rules_link": "Auction rules"
     },
     "auction_checkout": {
+        "deadline_expired": "The time to pay has expired",
         "og_title": "Auction Checkout",
         "og_description": "Complete the payment for the lot you won at the Savino Del Bene Volley auction.",
         "hero_label": "You won!",

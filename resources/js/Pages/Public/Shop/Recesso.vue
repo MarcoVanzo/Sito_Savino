@@ -51,8 +51,9 @@ const errori = computed(() => ({ ...erroriLocali.value, ...form.errors }));
 
 const idErrore = (campo) => `recesso-errore-${campo}`;
 
-// Gli errori che non stanno sotto un campo visibile: la conferma mancante o
-// un rifiuto del server (es. troppe dichiarazioni dallo stesso indirizzo).
+// Gli errori che non stanno sotto un campo visibile: la conferma mancante.
+// Il tetto per indirizzo non arriva qui: ferma solo l'email della ricevuta,
+// la dichiarazione si registra comunque.
 const erroreGenerale = computed(() => form.errors.conferma ?? null);
 
 function stampa() {

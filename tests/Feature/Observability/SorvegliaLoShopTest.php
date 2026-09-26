@@ -138,6 +138,21 @@ class SorvegliaLoShopTest extends TestCase
     }
 
     #[Test]
+    public function un_guasto_trovato_senza_destinatari_si_annuncia_quando_tornano(): void
+    {
+        // Con AVVISI_EMAIL vuota nessuno ha saputo niente: il guasto non
+        // può restare "già annunciato".
+        $this->accoda('default', minutiFa: 20);
+        config(['services.avvisi.email' => '']);
+        $this->giro();
+
+        config(['services.avvisi.email' => 'marco@example.com']);
+        $this->giro();
+
+        $this->assertSame(['[Sito Savino] La coda dei job è ferma'], $this->oggetti());
+    }
+
+    #[Test]
     public function paypal_in_difficolta_non_e_ne_guasto_ne_guarigione(): void
     {
         $this->conPayPal();

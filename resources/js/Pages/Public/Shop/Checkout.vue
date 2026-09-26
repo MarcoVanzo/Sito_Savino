@@ -120,7 +120,7 @@ const validateStep1 = () => {
     }
     // Anche la fatturazione, quando e' diversa dalla spedizione
     if (!form.billing_same_as_shipping) {
-        ['billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code']
+        ['billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code', 'billing_province', 'billing_country']
             .forEach((field) => required.push({ field, value: form[field] }));
     }
 
@@ -723,14 +723,14 @@ const ogMeta = useOgMeta({
                                         <p v-if="form.errors.billing_zip_code" id="errore-billing_zip_code" class="mt-1 text-sm text-red-700">{{ form.errors.billing_zip_code }}</p>
                                     </div>
                                     <div>
-                                        <label for="billing-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }}</label>
+                                        <label for="billing-province" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_province') }} *</label>
                                         <input id="billing-province" v-model="form.billing_province"
                                 :aria-invalid="!!form.errors.billing_province"
                                 :aria-describedby="form.errors.billing_province ? 'errore-billing_province' : undefined" type="text" autocomplete="address-level1" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm" :placeholder="$t('shop_checkout.placeholder_province')" />
                                         <p v-if="form.errors.billing_province" id="errore-billing_province" class="mt-1 text-sm text-red-700">{{ form.errors.billing_province }}</p>
                                     </div>
                                     <div>
-                                        <label for="billing-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_billing_country') }}</label>
+                                        <label for="billing-country" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_billing_country') }} *</label>
                                         <select id="billing-country" v-model="form.billing_country"
                                 :aria-invalid="!!form.errors.billing_country"
                                 :aria-describedby="form.errors.billing_country ? 'errore-billing_country' : undefined" autocomplete="country" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm">

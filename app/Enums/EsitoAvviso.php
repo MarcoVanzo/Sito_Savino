@@ -24,11 +24,13 @@ enum EsitoAvviso
     case Fallito;
 
     /**
-     * Vero se chi chiama può considerare la condizione annunciata. Solo il
-     * fallimento lascia aperta la porta al giro successivo.
+     * Vero se chi chiama può considerare la condizione annunciata. Il
+     * fallimento lascia aperta la porta al giro successivo, e così la
+     * mancanza di destinatari: nessuno ha saputo niente, e quando
+     * `AVVISI_EMAIL` torna il guasto ancora in corso va annunciato.
      */
     public function chiuso(): bool
     {
-        return $this !== self::Fallito;
+        return $this === self::Inviato || $this === self::Silenziato;
     }
 }

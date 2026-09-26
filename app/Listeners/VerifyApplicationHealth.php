@@ -147,12 +147,17 @@ class VerifyApplicationHealth
                     : "ultimo battito {$elapsed}s fa, soglia ".SchedulerHeartbeat::STALE_AFTER_SECONDS.'s',
             ));
 
-            $esito = app(AdminNotificationService::class)->notifySchedulerStalled($elapsed);
+            // Email non partita, o eccezione prima dell'invio (la query dei
+            // destinatari del pannello): il silenziatore si libera, e il
+            // prossimo `/up` riprova invece di tacere per un'ora.
+            $esito = EsitoAvviso::Fallito;
 
-            // Email non partita: il silenziatore si libera, e il prossimo
-            // `/up` riprova invece di tacere per un'ora.
-            if ($esito === EsitoAvviso::Fallito) {
-                AvvisoTecnico::memoria()->forget(self::STALE_ALERT_KEY);
+            try {
+                $esito = app(AdminNotificationService::class)->notifySchedulerStalled($elapsed);
+            } finally {
+                if ($esito === EsitoAvviso::Fallito) {
+                    AvvisoTecnico::memoria()->forget(self::STALE_ALERT_KEY);
+                }
             }
         });
     }

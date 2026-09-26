@@ -47,9 +47,35 @@ class StripePaymentService implements PaymentGatewayInterface
             ],
             'success_url' => $order->successUrl().'?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => $order->cancelUrl(),
+            ...$this->scadenza($order),
         ]);
 
         return $session->url;
+    }
+
+    /**
+     * La sessione di un'asta scade col termine del vincitore.
+     *
+     * Quella predefinita dura 24 ore: aperta poco prima del termine,
+     * restava pagabile per un giorno intero dopo che l'asta era passata al
+     * secondo offerente. Stripe accetta una scadenza fra 30 minuti e 24 ore
+     * da adesso; sotto il minimo il pagamento tardivo lo ferma il webhook
+     * (HandlesPaymentWebhooks::astaPassataAdAltri).
+     *
+     * @return array{expires_at?: int}
+     */
+    private function scadenza(Order $order): array
+    {
+        $termine = $order->auction_id !== null ? $order->auction?->winner_checkout_deadline : null;
+
+        if ($termine === null) {
+            return [];
+        }
+
+        $minimo = now()->addMinutes(31)->getTimestamp();
+        $massimo = now()->addHours(24)->subMinute()->getTimestamp();
+
+        return ['expires_at' => max($minimo, min($massimo, $termine->getTimestamp()))];
     }
 
     /**
