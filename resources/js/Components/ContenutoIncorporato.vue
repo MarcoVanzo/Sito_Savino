@@ -59,7 +59,7 @@ onBeforeUnmount(() => {
 const caricato = computed(() => consensoDato.value || chiestoDalVisitatore.value);
 
 const piattaforma = computed(() => {
-    let host = '';
+    let host;
 
     try {
         host = new URL(props.src).hostname;
