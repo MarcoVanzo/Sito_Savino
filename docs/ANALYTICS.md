@@ -204,7 +204,11 @@ meccanismi paralleli avrebbero dato due verità. L'assetto è questo:
   linkato nel footer dei modelli delle campagne con il tag
   `%FORMS_PREF_CENTER*ID:10%`, accanto alla disiscrizione. **Aperto dal
   footer non precompila i campi**: l'iscritto vede il modulo vuoto, ed è
-  normale.
+  normale. Provato il 26/09/2026 con un invio vero a un solo contatto:
+  salvare senza scegliere **non cancella** un «No» dato prima. Nelle email
+  di prova («Invia test») il link resta `%FORMS_PREF_CENTER*ID:10%` e non si
+  clicca: ActiveCampaign lo genera solo negli invii veri, con il token del
+  contatto. Non è un guasto.
 - **Due segmenti**: «Newsletter - CON tracciamento» (campo 28 diverso da No,
   vuoto compreso) e «Newsletter - SENZA tracciamento» (campo 28 = No).
 
