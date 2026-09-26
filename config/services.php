@@ -83,6 +83,9 @@ return [
         'url' => env('ACTIVECAMPAIGN_URL'),
         'key' => env('ACTIVECAMPAIGN_API_KEY'),
         'list_id' => env('ACTIVECAMPAIGN_LIST_ID'),
+        // Il tag che le automazioni «Double opt-in» e «Welcome Series»
+        // leggono come conferma gia' avvenuta (SyncNewsletterToActiveCampaign).
+        'tag_confermato' => env('ACTIVECAMPAIGN_TAG_CONFERMATO', 'Confermato opt-in'),
     ],
 
     'stripe' => [

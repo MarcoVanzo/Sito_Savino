@@ -192,4 +192,60 @@ class ActiveCampaignService
 
         return false;
     }
+
+    /**
+     * Mette al contatto il tag che le automazioni di ActiveCampaign leggono
+     * come "doppio opt-in gia' fatto" (`services.activecampaign.tag_confermato`).
+     * La conferma l'ha raccolta il sito: senza il tag, iscrivendosi alla lista
+     * il contatto riceverebbe una seconda email di conferma («Double opt-in») e
+     * la Welcome Series lo disiscriverebbe da tutto dopo trenta giorni senza il
+     * clic. Va messo PRIMA dell'iscrizione alla lista, che fa partire le
+     * automazioni. Il tag si cerca per nome e non si crea: se manca, le
+     * automazioni sono cambiate e non va inventato. Idempotente (422 se il
+     * contatto l'ha gia').
+     */
+    public function aggiungiTagConfermato(int $contactId): bool
+    {
+        if (! $this->isConfigured()) {
+            return false;
+        }
+
+        $nome = (string) config('services.activecampaign.tag_confermato', 'Confermato opt-in');
+        $tagId = $this->idDelTag($nome);
+
+        if ($tagId === null) {
+            Log::error('ActiveCampaign: tag del doppio opt-in non trovato', ['tag' => $nome]);
+
+            return false;
+        }
+
+        $response = $this->client()->post($this->baseUrl.'/api/3/contactTags', [
+            'contactTag' => ['contact' => $contactId, 'tag' => $tagId],
+        ]);
+
+        if ($response->successful() || $response->status() === 422) {
+            return true;
+        }
+
+        Log::error('ActiveCampaign: errore aggiungiTagConfermato', [
+            'contact_id' => $contactId,
+            'status' => $response->status(),
+            'body' => mb_substr($response->body(), 0, 500),
+        ]);
+
+        return false;
+    }
+
+    private function idDelTag(string $nome): ?int
+    {
+        $trovati = $this->client()->get($this->baseUrl.'/api/3/tags', ['search' => $nome]);
+
+        foreach ((array) $trovati->json('tags', []) as $tag) {
+            if (($tag['tag'] ?? null) === $nome) {
+                return (int) $tag['id'];
+            }
+        }
+
+        return null;
+    }
 }

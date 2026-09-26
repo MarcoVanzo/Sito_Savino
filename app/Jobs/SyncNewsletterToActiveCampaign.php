@@ -79,7 +79,13 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
             throw new ActiveCampaignException('Impossibile sincronizzare il contatto con ActiveCampaign');
         }
 
-        // Step 2: Iscrivi alla lista
+        // Step 2: il doppio opt-in l'ha gia' fatto il sito. Il tag va messo
+        // prima dell'iscrizione alla lista, che fa partire le automazioni.
+        if (! $service->aggiungiTagConfermato($contactId)) {
+            throw new ActiveCampaignException('Impossibile segnare il contatto come confermato su ActiveCampaign');
+        }
+
+        // Step 3: Iscrivi alla lista
         $subscribed = $service->subscribeToList($contactId);
 
         if (! $subscribed) {
@@ -91,7 +97,7 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
             throw new ActiveCampaignException('Impossibile iscrivere il contatto alla lista ActiveCampaign');
         }
 
-        // Step 3: Aggiorna il record locale
+        // Step 4: Aggiorna il record locale
         $iscritto->update([
             'synced_to_ac' => true,
             'ac_contact_id' => $contactId,

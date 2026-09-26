@@ -266,9 +266,12 @@ services:
     scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: EV[1:5hYulrTHr58XBdSrStn5Tk7/DxTog0Hi:gPF/M0G2B2ys6GGDayu+E619PjpX9riMpaJAJJogznv7K3CGEczu7RbotWR6G4SIHlVX28qN0eUkLuugU+/QsJwTMIrKQ1q3qf7rCUZ0JsiBCdtSPGtrpQ==]
+  # Master Contact List: e' la lista a cui partono campagne e automazioni.
+  # Prima era la 2 («Utenti sito») e chi si iscriveva dal sito non riceveva
+  # le newsletter.
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
-    value: "2"
+    value: "1"
   # Service account Google per la GA4 Data API, in JSON codificato base64.
   # Il valore è cifrato da DigitalOcean (EV[1:...]): può stare in un repository
   # pubblico perché solo App Platform ha la chiave per decifrarlo. Non sostituirlo
@@ -503,9 +506,12 @@ workers:
     scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: EV[1:154oo3OU8n9CrG9XdwB/wI2k2jErtd6V:7Xj4qLPUZ9vYGANuSodv8EtE6E3DPZkC71U5bJWLjYdmEu0I13nIVRfbF67Ibp81Gn+kmWWpPlgMiIPAjw5uYX0lBSEDg18ZOq6IORglNOVYFmMFdrNtWQ==]
+  # Master Contact List: e' la lista a cui partono campagne e automazioni.
+  # Prima era la 2 («Utenti sito») e chi si iscriveva dal sito non riceveva
+  # le newsletter.
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
-    value: "2"
+    value: "1"
   # Service account Google per la GA4 Data API, in JSON codificato base64.
   # Il valore è cifrato da DigitalOcean (EV[1:...]): può stare in un repository
   # pubblico perché solo App Platform ha la chiave per decifrarlo. Non sostituirlo
@@ -713,9 +719,12 @@ workers:
     scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: EV[1:NoAFPtuxUtIILZ1tk9MK8jsnorofncyF:m4fqVPs5knlkaYDL7TTQMPMj+azmdLLUyLFg5L8juBrddY8raKNpfDk8R2fcVIORVQ7o1Dd4sHbE3zitrqE4C5MA/j6KWvuDQY/H3zmHeX0VHcCvxpPbyw==]
+  # Master Contact List: e' la lista a cui partono campagne e automazioni.
+  # Prima era la 2 («Utenti sito») e chi si iscriveva dal sito non riceveva
+  # le newsletter.
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
-    value: "2"
+    value: "1"
   # Service account Google per la GA4 Data API, in JSON codificato base64.
   # Il valore è cifrato da DigitalOcean (EV[1:...]): può stare in un repository
   # pubblico perché solo App Platform ha la chiave per decifrarlo. Non sostituirlo
