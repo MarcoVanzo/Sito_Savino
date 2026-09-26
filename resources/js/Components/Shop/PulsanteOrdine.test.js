@@ -65,3 +65,27 @@ describe('AccettazioneCondizioni', () => {
         expect(casella.props('modelValue')).toBe(true);
     });
 });
+
+describe('axe sui due componenti del checkout', () => {
+    // Importati qui: il resto del file usa mock minimi e non ha bisogno di axe.
+    const opzioni = async () => (await import('@/testing/paginaDiProva.js'));
+
+    it('il pulsante, anche mentre l\'ordine parte, non ha violazioni', async () => {
+        const { violazioniAxe, opzioniGlobali } = await opzioni();
+        const pulsante = mount(PulsanteOrdine, { props: { etichetta: 'Conferma Ordine', inCorso: true }, global: opzioniGlobali(), attachTo: document.body });
+
+        expect(await violazioniAxe(pulsante.element)).toEqual([]);
+        pulsante.unmount();
+    });
+
+    it('la casella delle condizioni con l\'errore non ha violazioni e lo lega a se\'', async () => {
+        const { violazioniAxe, opzioniGlobali } = await opzioni();
+        const casella = mount(AccettazioneCondizioni, { props: { errore: 'Per ordinare devi accettare le condizioni di vendita' }, global: opzioniGlobali(), attachTo: document.body });
+
+        const input = casella.find('input[type="checkbox"]');
+        expect(input.attributes('aria-invalid')).toBe('true');
+        expect(document.getElementById(input.attributes('aria-describedby')).textContent).toContain('accettare le condizioni');
+        expect(await violazioniAxe(casella.element)).toEqual([]);
+        casella.unmount();
+    });
+});

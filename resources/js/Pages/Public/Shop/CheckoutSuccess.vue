@@ -74,17 +74,17 @@ onUnmounted(() => {
 
     <PublicLayout>
         <!-- HERO SECTION -->
-        <section class="relative min-h-[30vh] flex items-center justify-center overflow-hidden bg-green-600">
+        <section class="relative min-h-[30vh] flex items-center justify-center overflow-hidden bg-green-800">
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
                 <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg aria-hidden="true" class="w-10 h-10 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </div>
                 <h1 class="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">
                     {{ $t('checkout_success.title') }}
                 </h1>
-                <p class="mt-4 text-white/90 text-lg">
+                <p class="mt-4 text-white text-lg">
                     {{ $t('checkout_success.thanks') }}
                 </p>
             </div>
@@ -121,13 +121,13 @@ onUnmounted(() => {
                         </template>
                         <template v-else-if="isPaymentConfirmed">
                             <p class="font-medium flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                                 {{ $t('checkout_success.payment_received') }}
                             </p>
                         </template>
                         <template v-else>
                             <p class="font-medium flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                 </svg>

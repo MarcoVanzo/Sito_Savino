@@ -1,7 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { useSanitize } from '@/Composables/useSanitize.js';
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, nextTick, onMounted, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import AvvisoGaranziaLegale from '@/Components/Shop/AvvisoGaranziaLegale.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
@@ -166,25 +166,22 @@ watch(currentStock, (stock) => {
 const isAdding = ref(false);
 const cartError = ref('');
 const variantError = ref(false);
-let cartErrorTimer = null;
-let variantErrorTimer = null;
+// L'errore del carrello resta a schermo fino al tentativo successivo: spariva
+// dopo cinque secondi, troppo pochi per leggerlo (WCAG 2.2.1).
 
-const clearCartError = () => {
-    if (cartErrorTimer) clearTimeout(cartErrorTimer);
-    cartErrorTimer = setTimeout(() => { cartError.value = ''; }, 5000);
-};
-
-// Cleanup on unmount
-onUnmounted(() => {
-    if (cartErrorTimer) clearTimeout(cartErrorTimer);
-    if (variantErrorTimer) clearTimeout(variantErrorTimer);
+// L'errore della taglia mancante resta finche' non se ne sceglie una: spariva
+// dopo tre secondi, prima che uno screen reader finisse di leggerlo e prima
+// che chi ingrandisce lo schermo lo trovasse (WCAG 2.2.1). Il focus va alla
+// prima taglia disponibile, che e' la cosa da fare.
+watch(selectedVariant, (scelta) => {
+    if (scelta) variantError.value = false;
 });
 
 const handleAddToCart = () => {
     if (isOutOfStock.value || isAdding.value) return;
     if (props.product?.variants?.length > 0 && !selectedVariant.value) {
         variantError.value = true;
-        variantErrorTimer = setTimeout(() => { variantError.value = false; }, 3000);
+        nextTick(() => document.querySelector('[data-scelta-taglia] button:not([disabled])')?.focus());
         return;
     }
     variantError.value = false;
@@ -208,7 +205,6 @@ const handleAddToCart = () => {
         onFinish: () => { isAdding.value = false; },
         onError: (errors) => {
             cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || $t('shop.cart_error_generic');
-            clearCartError();
         },
     });
 };
@@ -259,16 +255,18 @@ const structuredData = computed(() => {
             <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
                 <!-- Breadcrumb -->
-                <nav class="flex items-center justify-center gap-2 text-sm text-white/60 mb-6">
+                <!-- Seconda navigazione della pagina: ha un nome suo, le barre
+                     non si leggono e l'ultima voce e' la pagina corrente. -->
+                <nav :aria-label="$t('common.breadcrumb')" class="flex items-center justify-center gap-2 text-sm text-white/80 mb-6">
                     <Link :href="route('home')" class="hover:text-savino-fucsia-chiaro transition-colors">{{ $t('common.home') }}</Link>
-                    <span>/</span>
+                    <span aria-hidden="true">/</span>
                     <Link :href="route('shop')" class="hover:text-savino-fucsia-chiaro transition-colors">{{ $t('common.shop') }}</Link>
                     <template v-if="product?.category">
-                        <span>/</span>
+                        <span aria-hidden="true">/</span>
                         <Link :href="route('shop.category', product.category.slug)" class="hover:text-savino-fucsia-chiaro transition-colors">{{ product.category.name }}</Link>
                     </template>
-                    <span>/</span>
-                    <span class="text-savino-fucsia-chiaro">{{ product?.name }}</span>
+                    <span aria-hidden="true">/</span>
+                    <span aria-current="page" class="text-savino-fucsia-chiaro">{{ product?.name }}</span>
                 </nav>
                 <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ product?.category?.name ?? $t('shop.hero_label') }}</span>
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter mt-4">
@@ -301,7 +299,7 @@ const structuredData = computed(() => {
                                 @error="onImgError"
                             />
                             <div v-else class="w-full h-full flex items-center justify-center">
-                                <svg class="w-20 h-20 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                                <svg aria-hidden="true" class="w-20 h-20 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                             </div>
                             <!-- Etichette scelte dalla redazione (EtichetteDelProdotto) -->
                             <EtichetteProdotto :etichette="product?.etichette" grandi />
@@ -365,11 +363,22 @@ const structuredData = computed(() => {
 
                         <!-- Variant Selector -->
                         <div v-if="product?.variants?.length" :class="['mb-6 transition-all duration-300', variantError ? 'ring-2 ring-red-400 rounded-xl p-3 bg-red-50/50' : '']">
-                            <span class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.select_variant') }}</span>
-                            <div class="flex flex-wrap gap-2">
+                            <span id="etichetta-taglia" class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.select_variant') }}</span>
+                            <!-- Un gruppo con il suo nome e pulsanti a due stati: la
+                                 taglia scelta si distingueva solo dal colore del
+                                 bordo, e uno screen reader leggeva "S, pulsante"
+                                 per tutte (WCAG 1.3.1, 4.1.2). -->
+                            <div
+                                role="group"
+                                aria-labelledby="etichetta-taglia"
+                                :aria-describedby="variantError ? 'errore-taglia' : undefined"
+                                data-scelta-taglia
+                                class="flex flex-wrap gap-2"
+                            >
                                 <button type="button"
                                     v-for="variant in product.variants"
                                     :key="variant.id"
+                                    :aria-pressed="selectedVariant === variant.id ? 'true' : 'false'"
                                     @click="selectedVariant = variant.id"
                                     class="px-5 py-2.5 rounded-lg border-2 text-sm font-semibold transition-all duration-200"
                                     :class="selectedVariant === variant.id
@@ -381,8 +390,8 @@ const structuredData = computed(() => {
                                     <span v-if="variant.stock <= 0" class="ml-1 text-xs text-gray-400">({{ $t('shop.out_of_stock') }})</span>
                                 </button>
                             </div>
-                            <p v-if="variantError" class="text-sm text-red-500 font-medium mt-2 flex items-center gap-1.5 animate-pulse">
-                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            <p v-if="variantError" id="errore-taglia" role="alert" class="text-sm text-red-700 font-medium mt-2 flex items-center gap-1.5">
+                                <svg aria-hidden="true" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                                 {{ $t('shop.select_variant_required') }}
                             </p>
                         </div>
@@ -390,7 +399,7 @@ const structuredData = computed(() => {
                         <!-- Guida alle taglie: il documento scelto in redazione,
                              o la pagina generale. Senza, la voce non compare. -->
                         <a v-if="product?.size_guide_url && product?.variants?.some(v => v.size)" :href="product.size_guide_url" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-sm text-savino-blue hover:text-savino-fucsia transition-colors mt-3">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                             {{ $t('shop.size_guide') }}
                         </a>
 
@@ -426,17 +435,19 @@ const structuredData = computed(() => {
 
                         <!-- Quantity Selector -->
                         <div class="mb-8">
-                            <span class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.quantity') }}</span>
-                            <div class="inline-flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
+                            <span id="etichetta-quantita" class="block text-sm font-bold text-savino-blue uppercase tracking-wider mb-3">{{ $t('shop.quantity') }}</span>
+                            <!-- Il numero fra i due pulsanti si annuncia quando cambia:
+                                 premendo "+" lo screen reader non diceva nulla. -->
+                            <div role="group" aria-labelledby="etichetta-quantita" class="inline-flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
                                 <button type="button"
                                     @click="decrementQty"
                                     :disabled="quantity <= 1"
                                     :aria-label="$t('shop.decrease_quantity')"
                                     class="w-12 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                                    <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
                                 </button>
-                                <span class="w-16 h-12 flex items-center justify-center text-lg font-bold text-savino-blue border-x-2 border-gray-200">
+                                <span aria-live="polite" aria-atomic="true" class="w-16 h-12 flex items-center justify-center text-lg font-bold text-savino-blue border-x-2 border-gray-200">
                                     {{ quantity }}
                                 </span>
                                 <button type="button"
@@ -445,16 +456,17 @@ const structuredData = computed(() => {
                                     :aria-label="$t('shop.increase_quantity')"
                                     class="w-12 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                 >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                    <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                 </button>
                             </div>
-                            <span v-if="currentStock > 0 && currentStock <= 5" class="ml-3 text-sm text-amber-600 font-medium">
+                            <span v-if="currentStock > 0 && currentStock <= 5" class="ml-3 text-sm text-amber-800 font-medium">
                                 {{ $t('shop.low_stock', { count: currentStock }) }}
                             </span>
                         </div>
 
                         <!-- Add to Cart Button -->
                         <button type="button"
+                            data-aggiungi-al-carrello
                             @click="handleAddToCart"
                             :disabled="isOutOfStock || isAdding"
                             class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-10 py-4 rounded-xl text-white font-bold uppercase tracking-wider text-sm transition-all duration-300 shadow-lg"
@@ -462,11 +474,11 @@ const structuredData = computed(() => {
                                 ? 'bg-gray-300 cursor-not-allowed shadow-none'
                                 : 'bg-savino-blue hover:bg-savino-fucsia hover:text-white hover:shadow-xl transform hover:-translate-y-0.5'"
                         >
-                            <svg v-if="!isAdding" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                            <svg v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                            <svg aria-hidden="true" v-if="!isAdding" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            <svg aria-hidden="true" v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" /><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                             {{ isOutOfStock ? $t('shop.out_of_stock') : $t('shop.add_to_cart') }}
                         </button>
-                        <p v-if="cartError" class="text-red-500 text-sm mt-3 font-medium">
+                        <p v-if="cartError" role="alert" class="text-red-700 text-sm mt-3 font-medium">
                             {{ cartError }}
                         </p>
 
@@ -474,11 +486,11 @@ const structuredData = computed(() => {
                         <div class="mt-6 pt-6 border-t border-gray-200">
                             <div class="grid grid-cols-3 gap-4 text-center">
                                 <div class="flex flex-col items-center gap-1.5">
-                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                    <svg aria-hidden="true" class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                                     <span class="text-xs font-medium text-gray-600">{{ $t('shop.trust_secure') }}</span>
                                 </div>
                                 <div class="flex flex-col items-center gap-1.5">
-                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                                    <svg aria-hidden="true" class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                                     <Link :href="route('pages.show', 'spedizioni')" class="text-xs font-medium text-gray-600 underline decoration-dotted underline-offset-2 hover:text-savino-blue">{{ $t('shop.trust_shipping') }}</Link>
                                 </div>
                                 <!-- Il reso ha una regola scritta dietro: 14 giorni dalla
@@ -486,7 +498,7 @@ const structuredData = computed(() => {
                                      esclusi i prodotti personalizzati. Prima diceva
                                      "Reso Facile" e non portava da nessuna parte. -->
                                 <a :href="route('pages.show', 'diritto-di-recesso')" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center gap-1.5 group">
-                                    <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                    <svg aria-hidden="true" class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                     <span class="text-xs font-medium text-gray-600 underline decoration-dotted underline-offset-2 group-hover:text-savino-blue">{{ $t('shop.trust_returns') }}</span>
                                 </a>
                             </div>

@@ -17,7 +17,22 @@
  * (testo su immagini o gradienti, `incomplete`) finiscono nel rapporto come
  * avvisi da guardare a occhio, senza far fallire la run.
  *
+ * Oltre alle pagine si percorrono i passaggi dello shop, perche' e' li' che
+ * stanno i difetti che una pagina vuota non mostra: la scheda prodotto con la
+ * scelta della taglia, il carrello, il checkout con gli errori di validazione
+ * a schermo, la conferma d'ordine, il recesso online (anche con i suoi errori)
+ * e il checkout di un'asta vinta.
+ *
+ * Sul sito vero si fa solo quello che non scrive niente: scheda prodotto,
+ * carrello vuoto e i due passaggi del recesso, che fino alla conferma vivono
+ * nel browser. Carrello pieno, checkout, ordine e asta richiedono scritture —
+ * un articolo nel carrello, un ordine inviato, un'asta vinta — e girano solo
+ * con `--flussi` contro l'app locale seminata con `ScansioneAccessibilitaSeeder`
+ * (lavoro `flussi` del workflow). `--flussi` rifiuta qualunque indirizzo che
+ * non sia locale: nessun ordine parte mai verso produzione.
+ *
  *   node scripts/scansione-accessibilita.mjs --url=https://... [--pagine=20] [--rapporto=file.json] [--tutte]
+ *   node scripts/scansione-accessibilita.mjs --url=http://127.0.0.1:8000 --flussi [--solo-flussi]
  *
  * `--tutte` fa fallire anche sulle violazioni moderate e lievi.
  */
@@ -45,6 +60,31 @@ if (! base) {
 }
 
 const quantePagine = Number.parseInt(opzioni.pagine ?? '20', 10);
+
+/**
+ * I passaggi che scrivono (carrello, ordine, asta) solo in locale: localhost,
+ * 127.0.0.1, [::1] o un nome .test/.localhost. Il controllo guarda l'host
+ * davvero contattato, non un'etichetta passata a mano.
+ */
+const FLUSSI = opzioni.flussi === 'true';
+const hostLocale = (indirizzo) => {
+    const { hostname } = new URL(indirizzo);
+    return ['localhost', '127.0.0.1', '[::1]', '::1'].includes(hostname)
+        || hostname.endsWith('.test') || hostname.endsWith('.localhost');
+};
+
+if (FLUSSI && ! hostLocale(base)) {
+    console.error(`--flussi invia ordini di prova: gira solo sull'app locale, non su ${base}.`);
+    process.exit(2);
+}
+
+/** Dati di prova dell'app locale: gli stessi di ScansioneAccessibilitaSeeder. */
+const PROVA = {
+    prodotto: opzioni.prodotto ?? 'maglia-scansione-accessibilita',
+    email: process.env.SCANSIONE_EMAIL ?? 'scansione-accessibilita@example.test',
+    password: process.env.SCANSIONE_PASSWORD ?? 'Scansione-Accessibilita-2026!',
+    tokenAsta: opzioni['token-asta'] ?? '00000000-0000-4000-8000-000000000a11',
+};
 const GRAVI = opzioni.tutte ? ['minor', 'moderate', 'serious', 'critical'] : ['serious', 'critical'];
 
 /** Le regole delle WCAG 2.0 e 2.1, livelli A e AA: quelle della EN 301 549. */
@@ -74,7 +114,7 @@ async function versioneDellInformativa() {
 }
 
 /** Pagine dello shop e dei servizi che la sitemap non elenca. */
-const SEMPRE = ['/shop', '/shop/carrello', '/shop/aste', '/login', '/shop/registrati', '/contatti'];
+const SEMPRE = ['/shop', '/shop/carrello', '/shop/aste', '/login', '/shop/registrati', '/contatti', '/recesso', '/en/shop'];
 
 async function pagineDaVisitare() {
     const scelte = new Map(SEMPRE.map((p) => [p, `${base}${p}`]));
@@ -130,6 +170,10 @@ async function main() {
     const errori = [];
 
     const esamina = async (scheda, indirizzo, etichetta = indirizzo) => {
+        // Lo scorrimento morbido del sito fa leggere ad axe lo sfondo della
+        // pagina invece di quello degli elementi fuori schermo (il pulsante
+        // dell'ordine risultava bianco su bianco): per la misura si toglie.
+        await scheda.addStyleTag({ content: 'html{scroll-behavior:auto!important}' });
         await scheda.addScriptTag({ content: axe });
         const esito = await scheda.evaluate(async (tag) => {
             // eslint-disable-next-line no-undef
@@ -176,7 +220,7 @@ async function main() {
         }
     };
 
-    for (const indirizzo of pagine) {
+    for (const indirizzo of (opzioni['solo-flussi'] ? [] : pagine)) {
         const scheda = await contesto.newPage();
 
         try {
@@ -187,10 +231,137 @@ async function main() {
     }
 
     // Il banner dei cookie, com'è la prima volta che si entra.
-    const senzaScelta = await browser.newContext(impostazioni);
-    const primaVisita = await senzaScelta.newPage();
+    if (! opzioni['solo-flussi']) {
+        const senzaScelta = await browser.newContext(impostazioni);
+        const primaVisita = await senzaScelta.newPage();
 
-    await visita(primaVisita, `${base}/`, `${base}/ (banner cookie)`);
+        await visita(primaVisita, `${base}/`, `${base}/ (banner cookie)`);
+    }
+
+    // I passaggi: ognuno in una scheda sua, e un passaggio che si rompe e' un
+    // errore della scansione come una pagina che non risponde.
+    const passaggio = async (nome, azioni, ctx = contesto) => {
+        const scheda = await ctx.newPage();
+        try {
+            await azioni(scheda, (etichetta) => esamina(scheda, null, `${nome} · ${etichetta}`));
+        } catch (errore) {
+            const motivo = errore.message.split('\n')[0];
+            errori.push({ pagina: nome, motivo });
+            console.error(`  ! ${nome}: ${motivo}`);
+        } finally {
+            await scheda.close();
+        }
+    };
+    const apri = async (scheda, percorso) => {
+        const risposta = await scheda.goto(`${base}${percorso}`, { waitUntil: 'networkidle', timeout: 45000 });
+        const stato = risposta?.status() ?? 0;
+        if (stato === 0 || stato >= 400) {
+            throw new Error(`${percorso}: stato HTTP ${stato || 'assente'}`);
+        }
+        await scheda.waitForTimeout(500);
+    };
+    const attendi = (scheda) => scheda.waitForLoadState('networkidle').then(() => scheda.waitForTimeout(500));
+
+    // Recesso online: i due passaggi stanno nel browser fino alla conferma,
+    // quindi si provano anche sul sito vero. La conferma non si preme mai.
+    await passaggio('recesso', async (scheda, controlla) => {
+        await apri(scheda, '/recesso');
+        await scheda.locator('form:has(#recesso-nome) button[type="submit"]').click();
+        await attendi(scheda);
+        await controlla('errori del passaggio 1');
+        await scheda.fill('#recesso-nome', 'Prova Accessibilita');
+        await scheda.fill('#recesso-email', 'prova@example.test');
+        await scheda.fill('#recesso-numero_ordine', 'SDB-PROVA');
+        await scheda.locator('form:has(#recesso-nome) button[type="submit"]').click();
+        await attendi(scheda);
+        await controlla('riepilogo prima della conferma');
+    });
+
+    // La scheda prodotto con la scelta della taglia: in produzione il primo
+    // prodotto della vetrina, in locale quello di prova. Il clic su "aggiungi"
+    // senza taglia mostra l'errore e non scrive niente.
+    await passaggio('scheda prodotto', async (scheda, controlla) => {
+        if (FLUSSI) {
+            await apri(scheda, `/shop/prodotto/${PROVA.prodotto}`);
+        } else {
+            await apri(scheda, '/shop');
+            const link = scheda.locator('a[href*="/shop/prodotto/"]').first();
+            if (! await link.count()) {
+                console.warn('  (vetrina vuota o negozio in manutenzione: scheda prodotto saltata)');
+                return;
+            }
+            await apri(scheda, new URL(await link.getAttribute('href'), base).pathname);
+        }
+        await controlla('scheda');
+        const taglie = scheda.locator('[data-scelta-taglia] button');
+        if (await taglie.count()) {
+            await scheda.locator('[data-aggiungi-al-carrello]').click();
+            await scheda.waitForTimeout(300);
+            await controlla('errore taglia mancante');
+        }
+    });
+
+    if (FLUSSI) {
+        await passaggio('checkout shop', async (scheda, controlla) => {
+            await apri(scheda, `/shop/prodotto/${PROVA.prodotto}`);
+            await scheda.locator('[data-scelta-taglia] button:not([disabled])').first().click();
+            await scheda.locator('[data-aggiungi-al-carrello]').click();
+            await attendi(scheda);
+            await apri(scheda, '/shop/carrello');
+            await controlla('carrello');
+            await apri(scheda, '/shop/checkout');
+            await controlla('passaggio 1');
+            await scheda.locator('[data-passaggio-successivo]').click();
+            await scheda.waitForTimeout(400);
+            await controlla('passaggio 1 con errori');
+            for (const [campo, valore] of Object.entries({
+                '#checkout-guest-name': 'Prova Accessibilita',
+                '#checkout-email': 'prova@example.test',
+                '#checkout-phone': '055 000 0000',
+                '#checkout-first-name': 'Prova',
+                '#checkout-last-name': 'Accessibilita',
+                '#checkout-street': 'Via di Prova 1',
+                '#checkout-city': 'Scandicci',
+                '#checkout-zip': '50018',
+                '#checkout-province': 'FI',
+                '#checkout-cf': 'RSSMRA80A01H501U',
+            })) {
+                await scheda.fill(campo, valore);
+            }
+            await scheda.keyboard.press('Escape');
+            await scheda.locator('[data-passaggio-successivo]').click();
+            await scheda.waitForTimeout(400);
+            await controlla('passaggio 2');
+            await scheda.getByRole('button', { name: /obbligo di pagamento/i }).click();
+            await scheda.waitForTimeout(400);
+            await controlla('passaggio 2 con errori');
+            await scheda.locator('input[name="payment_gateway"][value="bank_transfer"]').check();
+            await scheda.locator('input[aria-required="true"][type="checkbox"]').check();
+            await scheda.getByRole('button', { name: /obbligo di pagamento/i }).click();
+            await scheda.waitForURL(/\/checkout\/(conferma|confirmation)\//, { timeout: 30000 });
+            await attendi(scheda);
+            await controlla('conferma ordine (bonifico)');
+        });
+
+        // Il checkout dell'asta chiede il vincitore autenticato.
+        const vincitore = await browser.newContext(impostazioni);
+        await vincitore.addInitScript(([chiave, valore]) => {
+            try { window.localStorage.setItem(chiave, valore); } catch { /* vedi sopra */ }
+        }, [CHIAVE_CONSENSO, JSON.stringify({ necessary: true, statistiche: false, marketing: false, analytics: false, versione, data: new Date().toISOString() })]);
+        await passaggio('checkout asta', async (scheda, controlla) => {
+            await apri(scheda, '/login');
+            await scheda.fill('input[type="email"]', PROVA.email);
+            await scheda.fill('input[type="password"]', PROVA.password);
+            await scheda.locator('form:has(input[type="password"]) button[type="submit"]').click();
+            await attendi(scheda);
+            await apri(scheda, `/shop/checkout/asta/${PROVA.tokenAsta}`);
+            await controlla('modulo');
+            await scheda.getByRole('button', { name: /obbligo di pagamento/i }).click();
+            await scheda.waitForTimeout(400);
+            await controlla('modulo con errori');
+        }, vincitore);
+        await vincitore.close();
+    }
 
     await browser.close();
 

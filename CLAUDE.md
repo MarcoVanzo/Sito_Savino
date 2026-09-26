@@ -259,7 +259,18 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   testo bianco e i testi fucsia usano #D00778, come il token. Il controllo
   è automatico: `scripts/scansione-accessibilita.mjs` (axe-core) gira ogni
   lunedì in `scansione-accessibilita.yml` e fallisce sulle violazioni gravi; il
-  lint ha `eslint-plugin-vuejs-accessibility`. La dichiarazione di
+  lint ha `eslint-plugin-vuejs-accessibility`. **Cosa copre la scansione**: sul
+  sito vero solo letture (pagine, scheda prodotto, carrello vuoto, i due
+  passaggi del recesso senza conferma); carrello pieno, checkout con gli
+  errori, conferma d'ordine e checkout d'asta li percorre il lavoro `flussi`
+  sull'app avviata in CI con `ScansioneAccessibilitaSeeder` (`--flussi`
+  rifiuta host non locali: mai ordini verso produzione). In `npm test` axe e
+  uno screen reader simulato (`@guidepup/virtual-screen-reader`, attrezzi in
+  `resources/js/testing/`) sui percorsi critici; la prova umana con
+  VoiceOver/NVDA ha il suo protocollo in `docs/ACCESSIBILITA.md`. Il pulsante
+  d'ordine non si spegne mai in silenzio: resta attivo e al clic dice cosa
+  manca. I PDF generati passano da `PdfAccessibile` (titolo e `/Lang`). La
+  dichiarazione di
   accessibilità è la pagina `dichiarazione-di-accessibilita` (testo iniziale in
   `database/data/dichiarazione_accessibilita.php`): i limiti noti elencati lì
   vanno tolti quando si risolvono.

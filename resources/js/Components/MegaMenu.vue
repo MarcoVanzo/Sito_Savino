@@ -247,31 +247,37 @@ onBeforeUnmount(() => {
                         <div class="flex bg-white/95 backdrop-blur-xl shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-white/20 rounded-2xl overflow-hidden transition-transform duration-300 ease-out w-[720px] min-h-[320px]" :class="openIndex === index ? 'translate-y-0' : 'translate-y-4 group-hover:translate-y-0'">
                             <!-- Left side with links -->
                             <div class="w-3/5 p-10 flex flex-col">
-                                <div class="mb-8">
+                                <!-- Il nome del sottomenu lo dice gia' aria-label: dentro un
+                                     role="menu" lo screen reader vuole solo le voci. -->
+                                <div class="mb-8" aria-hidden="true">
                                     <h3 class="text-2xl font-black text-savino-blue uppercase tracking-tighter mb-2">{{ item.label }}</h3>
                                     <div class="w-16 h-1 bg-savino-fucsia"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 flex-1 content-start">
                                     <component
                                         :is="isExternalLink(sub.href) ? 'a' : Link"
-                                        v-for="sub in item.children"
+                                        v-for="(sub, j) in item.children"
                                         :key="sub.label"
                                         :href="sub.href"
                                         v-bind="externalLinkAttrs(sub.href)"
                                         :prefetch="isExternalLink(sub.href) ? undefined : true"
                                         role="menuitem"
+                                        :aria-label="sub.label"
+                                        :aria-describedby="`descrizione-menu-${index}-${j}`"
                                         class="flex flex-col p-4 rounded-xl border border-gray-100 hover:border-savino-fucsia/50 bg-gray-50 hover:bg-white hover:shadow-xl transition-all duration-300 group/link"
                                     >
                                         <span class="text-[14px] font-black text-savino-blue uppercase tracking-wider mb-1 flex justify-between items-center">
                                             {{ sub.label }}
-                                            <svg class="w-5 h-5 text-savino-fucsia opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                                            <svg aria-hidden="true" class="w-5 h-5 text-savino-fucsia opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                         </span>
-                                        <span class="text-xs text-gray-500 font-medium">{{ sub.description || $t('common.explore_section') }}</span>
+                                        <span :id="`descrizione-menu-${index}-${j}`" class="text-xs text-gray-500 font-medium">{{ sub.description || $t('common.explore_section') }}</span>
                                     </component>
                                 </div>
                             </div>
                             <!-- Right side — per-topic image with blue overlay -->
-                            <div class="w-2/5 relative overflow-hidden bg-savino-blue">
+                            <!-- Foto e motto sono decorazione: letti dentro il menu
+                                 si mettevano fra una voce e l'altra. -->
+                            <div class="w-2/5 relative overflow-hidden bg-savino-blue" aria-hidden="true">
                                 <!-- Immagine del tema: scaricata alla prima apertura del menu.
                                      `scale-110` fisso ingrandiva la foto anche da ferma e
                                      tagliava fuori dal riquadro tutto cio' che non era
@@ -304,7 +310,7 @@ onBeforeUnmount(() => {
                 </div>
                 
                 <!-- Vertical separator | -->
-                <div v-if="showSeparators && index < navigation.length - 1" class="text-white/20 select-none text-[10px] mx-1">|</div>
+                <div v-if="showSeparators && index < navigation.length - 1" aria-hidden="true" class="text-white/20 select-none text-[10px] mx-1">|</div>
             </template>
         </div>
         

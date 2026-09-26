@@ -41,7 +41,9 @@ export default defineConfig({
             // recuperare: le più pesanti stanno in Ticketing (69), Affiliazioni
             // (44), Convenzioni (40) e ClubRace (35).
             include: ['resources/js/**/*.js'],
-            exclude: ['resources/js/**/*.test.js', 'resources/js/bootstrap.js'],
+            // `testing/` sono gli attrezzi dei test (Inertia finta, axe, lettore
+            // virtuale): non e' codice che arriva al browser.
+            exclude: ['resources/js/**/*.test.js', 'resources/js/bootstrap.js', 'resources/js/testing/**'],
         },
     },
 });

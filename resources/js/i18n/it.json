@@ -1,5 +1,6 @@
 {
     "common": {
+        "breadcrumb": "Percorso",
         "read_more": "Leggi tutto",
         "read_more_alt": "Leggi di più",
         "back": "Indietro",
@@ -693,6 +694,8 @@
         "remove_item_named": "Rimuovi {name} dal carrello"
     },
     "shop_checkout": {
+        "step_of": "Passo {step} di {total}: {name}",
+        "payment_required": "Scegli un metodo di pagamento",
         "order_submitted_placeholder": "Ordine inviato! (placeholder)",
         "og_title": "Checkout",
         "og_description": "Completa il tuo ordine sullo shop ufficiale della Savino Del Bene Volley.",
@@ -1038,6 +1041,7 @@
         "back_to_shop": "Torna allo Shop"
     },
     "auction": {
+        "remaining_sr": "Tempo rimasto: {days} giorni, {hours} ore e {minutes} minuti",
         "bid_placed": "Offerta piazzata con successo! Sei il miglior offerente.",
         "bid_error": "Impossibile piazzare l'offerta. Riprova.",
         "not_active": "Questa asta non è attiva.",
