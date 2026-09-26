@@ -202,17 +202,6 @@ return function (string $loc, string $namePrefix): void {
         ->middleware(['signed', 'throttle:10,1,newsletter.unsubscribe'])
         ->name('newsletter.unsubscribe');
 
-    // Preferenze (linee guida del Garante del 17/04/2026 sui pixel nelle
-    // email): dal link in fondo a ogni newsletter si revoca il solo
-    // tracciamento o tutto. Stesso schema firmato della disiscrizione.
-    $preferenze = $loc === 'en' ? 'preferences' : 'preferenze';
-    Route::get('/newsletter/'.$preferenze.'/{subscriber}', [NewsletterController::class, 'showPreferenze'])
-        ->middleware('signed')
-        ->name('newsletter.preferenze.show');
-    Route::post('/newsletter/'.$preferenze.'/{subscriber}/'.($loc === 'en' ? 'no-tracking' : 'senza-tracciamento'), [NewsletterController::class, 'senzaTracciamento'])
-        ->middleware(['signed', 'throttle:10,1,newsletter.senza-tracciamento'])
-        ->name('newsletter.preferenze.senza-tracciamento');
-
     // Doppio opt-in: il link dell'email di conferma porta a una pagina con un
     // pulsante (GET), e la conferma avviene in POST — stesso schema della
     // disiscrizione, per la stessa ragione (vedi NewsletterController).

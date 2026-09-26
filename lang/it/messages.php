@@ -86,7 +86,6 @@ return [
     ],
     'newsletter' => [
         'already_subscribed' => 'Questa email è già iscritta alla newsletter.',
-        'senza_tracciamento' => 'Fatto: continuerai a ricevere la newsletter, senza la misura di aperture e clic.',
         'success' => 'Iscrizione confermata! Grazie per esserti iscritto.',
         'confirm_sent' => 'Ci sei quasi: ti abbiamo mandato un\'email con il link per confermare l\'iscrizione.',
         'unsubscribed' => 'Iscrizione annullata. Non riceverai più la newsletter.',
