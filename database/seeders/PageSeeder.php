@@ -23,7 +23,7 @@ class PageSeeder extends Seeder
             ['title' => 'Progetti Sociali', 'slug' => 'sociale', 'template' => 'Public/Sociale'],
             ['title' => 'Comunicazione', 'slug' => 'comunicazione', 'template' => 'Public/Comunicazione'],
             ['title' => 'Contatti', 'slug' => 'contatti', 'template' => 'Public/Contatti'],
-            ['title' => 'Shop', 'slug' => 'shop', 'template' => 'Public/Shop'],
+            ['title' => 'Shop', 'slug' => 'shop', 'template' => 'Public/ContentPage'],
             ['title' => 'Privacy Policy', 'slug' => 'privacy-policy', 'template' => 'Public/ContentPage'],
             ['title' => 'Cookie Policy', 'slug' => 'cookie-policy', 'template' => 'Public/ContentPage'],
         ];
