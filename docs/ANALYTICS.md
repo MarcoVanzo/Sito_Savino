@@ -186,10 +186,13 @@ promessa «ricevi senza tracciamento» la mantiene quindi la redazione, così:
 
 1. una volta sola: in ActiveCampaign creare il campo personalizzato
    `PREFERENZE_URL` (testo), metterne l'id in `ACTIVECAMPAIGN_CAMPO_PREFERENZE`
+   (fatto il 26/09/2026: id `27`, nella spec per web, worker e scheduler)
    e rilanciare `php artisan newsletter:retry-sync --tutti --limit=100000`
    dalla console dell'app, così gli iscritti già presenti ricevono il link;
 2. una volta sola: nel footer del modello delle campagne aggiungere il link
-   «Preferenze sul tracciamento» a `%PREFERENZE_URL%`, accanto a quello di
+   «Preferenze sul tracciamento» a `%PREFERENZEURL%` (ActiveCampaign toglie
+   il trattino basso dal tag di personalizzazione: `%PREFERENZE_URL%` resta
+   testo nudo nell'email), accanto a quello di
    disiscrizione;
 3. **a ogni invio, due campagne**: una al segmento *senza* il tag
    `senza-tracciamento`, con il tracciamento come oggi; una al segmento *con*

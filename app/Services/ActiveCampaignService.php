@@ -206,7 +206,7 @@ class ActiveCampaignService
     /**
      * L'id del campo personalizzato in cui sta il link alle preferenze della
      * newsletter (per esempio `PREFERENZE_URL`, che nel modello si scrive
-     * `%PREFERENZE_URL%`). Null se non configurato: il link resta allora solo
+     * `%PREFERENZEURL%`). Null se non configurato: il link resta allora solo
      * quello di disiscrizione di ActiveCampaign.
      */
     public function campoPreferenze(): ?int
