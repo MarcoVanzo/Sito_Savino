@@ -161,6 +161,45 @@ da 5.000.
 `ActiveCampaignReports` (lettura): il primo sta nel percorso di un'iscrizione dal
 sito e non deve crescere con codice che serve solo al pannello.
 
+### Pixel nelle newsletter: la procedura per la redazione
+
+Le linee guida del Garante del 17/04/2026 sui pixel di tracciamento nelle
+email (provv. 284, docweb 10241943, in G.U. il 29/04/2026, **adeguamento entro
+il 29/10/2026**) chiedono tre cose: il consenso al pixel (va bene quello dato
+all'iscrizione, se detto chiaramente — lo dicono modulo, email e pagina di
+conferma), l'informativa (voce newsletter della Privacy Policy) e, **in ogni
+newsletter**, un link che permetta di revocare solo il tracciamento oppure
+tutto. Le email di servizio (Resend) sono esenti.
+
+Dal sito la parte tecnica c'è: la pagina `/newsletter/preferenze/{id}`
+(firmata, `NewsletterSubscriber::preferenzeUrl()`) offre «ricevi senza
+tracciamento» e «disiscriviti»; la prima scrive
+`newsletter_subscribers.tracciamento_revocato_il` e mette al contatto su
+ActiveCampaign il tag `senza-tracciamento`
+(`ACTIVECAMPAIGN_TAG_SENZA_TRACCIAMENTO`). Il link arriva ad ActiveCampaign
+in un campo personalizzato, il cui id va in `ACTIVECAMPAIGN_CAMPO_PREFERENZE`
+(web **e worker**: lo scrive il job in coda).
+
+**ActiveCampaign non permette di spegnere il pixel per un singolo contatto**:
+il tracciamento di aperture e clic si accende o si spegne per campagna. La
+promessa «ricevi senza tracciamento» la mantiene quindi la redazione, così:
+
+1. una volta sola: in ActiveCampaign creare il campo personalizzato
+   `PREFERENZE_URL` (testo), metterne l'id in `ACTIVECAMPAIGN_CAMPO_PREFERENZE`
+   e rilanciare `php artisan newsletter:retry-sync --tutti --limit=100000`
+   dalla console dell'app, così gli iscritti già presenti ricevono il link;
+2. una volta sola: nel footer del modello delle campagne aggiungere il link
+   «Preferenze sul tracciamento» a `%PREFERENZE_URL%`, accanto a quello di
+   disiscrizione;
+3. **a ogni invio, due campagne**: una al segmento *senza* il tag
+   `senza-tracciamento`, con il tracciamento come oggi; una al segmento *con*
+   il tag, con «Track opens» e «Track link clicks» **spenti** nelle
+   impostazioni della campagna. Mandarla a tutti con il tracciamento acceso
+   significa tracciare chi l'ha revocato.
+
+Le statistiche della pagina Newsletter del pannello contano quindi solo gli
+iscritti tracciati: la seconda campagna ha aperture e clic a zero, ed è voluto.
+
 ---
 
 ## 3. Comandi schedulati

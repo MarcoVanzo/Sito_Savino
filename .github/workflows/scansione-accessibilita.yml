@@ -6,9 +6,20 @@
 # un colore nuovo sotto il contrasto minimo o un pulsante senza nome
 # diventano una run rossa invece di una regressione che nessuno vede.
 #
-# Non sostituisce la prova con tastiera e screen reader: impedisce di tornare
-# indietro su quello che si puo' misurare. Il rapporto completo resta fra gli
-# artefatti della run.
+# Non sostituisce la prova con tastiera e screen reader (protocollo in
+# docs/ACCESSIBILITA.md): impedisce di tornare indietro su quello che si puo'
+# misurare. Il rapporto completo resta fra gli artefatti della run.
+#
+# Due lavori:
+# - `scansione` guarda il sito vero, solo in lettura: pagine, scheda prodotto,
+#   carrello vuoto e i due passaggi del recesso (che fino alla conferma non
+#   inviano niente).
+# - `flussi` percorre carrello pieno, checkout con gli errori a schermo,
+#   conferma d'ordine e checkout di un'asta vinta. Servono scritture — un
+#   articolo nel carrello, un ordine, un vincitore — quindi gira contro l'app
+#   avviata qui, su un MySQL usa e getta seminato con
+#   `ScansioneAccessibilitaSeeder`. Lo script rifiuta `--flussi` verso un host
+#   che non sia locale: nessun ordine parte mai verso produzione.
 name: Scansione accessibilità
 
 on:
@@ -70,5 +81,97 @@ jobs:
         with:
           name: rapporto-accessibilita
           path: rapporto-accessibilita.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+  flussi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: sito_savino_scansione
+          MYSQL_USER: sito_savino
+          MYSQL_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, bcmath, curl, pdo, pdo_mysql
+          coverage: none
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Dipendenze e build
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci --ignore-scripts
+          npm run build
+          npm install --no-save --ignore-scripts playwright@1.56.0
+          ./node_modules/.bin/playwright install --with-deps chromium
+
+      # Un ambiente locale vero, non quello dei test: sessioni su file (il
+      # login del vincitore deve sopravvivere fra una richiesta e l'altra),
+      # posta nel log, nessuna chiave dei gateway — il checkout offre il solo
+      # bonifico e l'ordine di prova non esce dalla macchina.
+      - name: Prepara l'app
+        run: |
+          cat > .env <<'ENV'
+          APP_NAME="Savino Del Bene Volley"
+          APP_ENV=local
+          APP_DEBUG=false
+          APP_URL=http://127.0.0.1:8000
+          APP_LOCALE=it
+          APP_FALLBACK_LOCALE=it
+          DB_CONNECTION=mysql
+          DB_HOST=127.0.0.1
+          DB_PORT=3306
+          DB_DATABASE=sito_savino_scansione
+          DB_USERNAME=sito_savino
+          DB_PASSWORD=secret
+          SESSION_DRIVER=file
+          CACHE_STORE=file
+          QUEUE_CONNECTION=sync
+          MAIL_MAILER=log
+          FILESYSTEM_DISK=local
+          ENV
+          php artisan key:generate --force
+          php artisan migrate --seed --force
+          php artisan db:seed --class=ScansioneAccessibilitaSeeder --force
+
+      - name: Percorre carrello, checkout, ordine e asta
+        run: |
+          PHP_CLI_SERVER_WORKERS=4 php artisan serve --host=127.0.0.1 --port=8000 > serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://127.0.0.1:8000/recesso && break; sleep 2; done
+          node scripts/scansione-accessibilita.mjs \
+            --url=http://127.0.0.1:8000 \
+            --flussi --solo-flussi \
+            --rapporto=rapporto-accessibilita-flussi.json
+
+      - name: Conserva il rapporto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapporto-accessibilita-flussi
+          path: |
+            rapporto-accessibilita-flussi.json
+            serve.log
+            storage/logs/laravel.log
           if-no-files-found: ignore
           retention-days: 30

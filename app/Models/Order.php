@@ -139,6 +139,10 @@ class Order extends Model
             'price_at_time_of_purchase' => round($unitPrice, 2),
             'personalizzazione' => $personalizzazione,
             'supplemento_personalizzazione' => round($supplementoPersonalizzazione, 2),
+            // Lo stato di un articolo indossato o autografato si fotografa qui
+            // e non nei chiamanti: shop e aste passano entrambi di qui, e le
+            // maglie da gara si vendono soprattutto all'asta.
+            'stato_articolo' => Product::withTrashed()->find($productId)?->statoArticoloDaFotografare(),
         ]);
 
         StockMovement::create([
@@ -191,8 +195,21 @@ class Order extends Model
         return route('shop.checkout.success', ['orderToken' => $this->order_token]);
     }
 
+    /**
+     * L'ordine di un'asta torna alla pagina dell'asta: il "riprova" dello
+     * shop riaprirebbe il pagamento senza guardare il termine entro cui il
+     * vincitore deve pagare, quello dell'asta passa di nuovo dal checkout che
+     * lo controlla. La conferma resta invece quella dello shop, dove si
+     * incassa il ritorno da PayPal.
+     */
     public function cancelUrl(): string
     {
+        $tokenDellAsta = $this->auction_id !== null ? $this->auction?->winner_checkout_token : null;
+
+        if (filled($tokenDellAsta)) {
+            return route('shop.auction-checkout.cancel', ['token' => $tokenDellAsta]);
+        }
+
         return route('shop.checkout.cancel', ['orderToken' => $this->order_token]);
     }
 

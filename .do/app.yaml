@@ -201,6 +201,12 @@ services:
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
     value: https://577826fc034dcc96ebafbb5b8ebeccfc@o4512147655753728.ingest.de.sentry.io/4512147680460880
+  # Progetto Sentry degli errori JavaScript (SentryDsn::perIlBrowser): quota
+  # separata da quella del server (progetto `sito-savino-browser`, regione UE).
+  # Vuoto, il browser userebbe il DSN qui sopra.
+  - key: SENTRY_BROWSER_DSN
+    scope: RUN_AND_BUILD_TIME
+    value: https://ab207ff4e8b905c0cbef27cc65d6a62d@o4512147655753728.ingest.de.sentry.io/4512149473722448
   # Quanto Sentry riceve e' una scelta dichiarata nell'informativa, non un
   # predefinito del pacchetto: senza PII non partono l'indirizzo IP ne'
   # l'identita' di chi stava navigando, e i parametri delle query restano fuori
@@ -405,6 +411,12 @@ workers:
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
     value: https://577826fc034dcc96ebafbb5b8ebeccfc@o4512147655753728.ingest.de.sentry.io/4512147680460880
+  # Progetto Sentry degli errori JavaScript (SentryDsn::perIlBrowser): quota
+  # separata da quella del server (progetto `sito-savino-browser`, regione UE).
+  # Vuoto, il browser userebbe il DSN qui sopra.
+  - key: SENTRY_BROWSER_DSN
+    scope: RUN_AND_BUILD_TIME
+    value: https://ab207ff4e8b905c0cbef27cc65d6a62d@o4512147655753728.ingest.de.sentry.io/4512149473722448
   # Quanto Sentry riceve e' una scelta dichiarata nell'informativa, non un
   # predefinito del pacchetto: senza PII non partono l'indirizzo IP ne'
   # l'identita' di chi stava navigando, e i parametri delle query restano fuori
@@ -609,6 +621,12 @@ workers:
   - key: SENTRY_LARAVEL_DSN
     scope: RUN_AND_BUILD_TIME
     value: https://577826fc034dcc96ebafbb5b8ebeccfc@o4512147655753728.ingest.de.sentry.io/4512147680460880
+  # Progetto Sentry degli errori JavaScript (SentryDsn::perIlBrowser): quota
+  # separata da quella del server (progetto `sito-savino-browser`, regione UE).
+  # Vuoto, il browser userebbe il DSN qui sopra.
+  - key: SENTRY_BROWSER_DSN
+    scope: RUN_AND_BUILD_TIME
+    value: https://ab207ff4e8b905c0cbef27cc65d6a62d@o4512147655753728.ingest.de.sentry.io/4512149473722448
   # Quanto Sentry riceve e' una scelta dichiarata nell'informativa, non un
   # predefinito del pacchetto: senza PII non partono l'indirizzo IP ne'
   # l'identita' di chi stava navigando, e i parametri delle query restano fuori

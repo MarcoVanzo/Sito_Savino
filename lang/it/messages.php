@@ -70,7 +70,9 @@ return [
         'delete_blocked_auction' => 'Hai un\'asta in corso o un\'asta vinta da pagare: potrai cancellare l\'account quando si sarà conclusa.',
     ],
     'recesso' => [
-        'troppi_invii' => 'Da questo indirizzo sono già arrivate tre dichiarazioni oggi: le abbiamo registrate. Per altro scrivi a info@savinodelbenevolley.it.',
+        'personalizzato_escluso' => 'Gli articoli personalizzati su tua richiesta non si possono restituire per recesso (art. 59 del Codice del consumo).',
+        'righe_non_valide' => 'Gli articoli scelti non appartengono a questo ordine. Ricarica la pagina e riprova.',
+        'nessuna_riga' => 'Scegli almeno un articolo da restituire.',
     ],
     'auction_checkout' => [
         'not_winner' => 'Questo pagamento non è a tuo nome: il link è riservato a chi ha vinto l\'asta.',
@@ -84,6 +86,7 @@ return [
     ],
     'newsletter' => [
         'already_subscribed' => 'Questa email è già iscritta alla newsletter.',
+        'senza_tracciamento' => 'Fatto: continuerai a ricevere la newsletter, senza la misura di aperture e clic.',
         'success' => 'Iscrizione confermata! Grazie per esserti iscritto.',
         'confirm_sent' => 'Ci sei quasi: ti abbiamo mandato un\'email con il link per confermare l\'iscrizione.',
         'unsubscribed' => 'Iscrizione annullata. Non riceverai più la newsletter.',

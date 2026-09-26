@@ -9,7 +9,9 @@ use Illuminate\Console\Command;
 
 class RetryFailedNewsletterSync extends Command
 {
-    protected $signature = 'newsletter:retry-sync {--limit=50 : Numero massimo di contatti da risincronizzare}';
+    protected $signature = 'newsletter:retry-sync
+        {--limit=50 : Numero massimo di contatti da risincronizzare}
+        {--tutti : Anche gli iscritti gia\' sincronizzati (per esempio per mandare ad ActiveCampaign il link alle preferenze)}';
 
     protected $description = 'Ritenta la sincronizzazione con ActiveCampaign per gli iscritti non ancora sincronizzati';
 
@@ -23,7 +25,8 @@ class RetryFailedNewsletterSync extends Command
 
         $limit = (int) $this->option('limit');
 
-        $subscribers = NewsletterSubscriber::unsynced()
+        $subscribers = NewsletterSubscriber::query()
+            ->when(! $this->option('tutti'), fn ($query) => $query->unsynced())
             ->active()
             ->confermati()
             ->orderBy('created_at')

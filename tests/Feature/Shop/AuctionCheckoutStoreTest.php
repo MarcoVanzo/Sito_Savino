@@ -27,6 +27,15 @@ class AuctionCheckoutStoreTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Il vincitore sceglie fra i metodi con le credenziali: qui Stripe,
+        // i casi con PayPal stanno in AuctionCheckoutPayPalTest.
+        config(['services.stripe.secret' => 'sk_test_finto']);
+    }
+
     /** @return array<string, mixed> */
     private function datiValidi(array $sovrascrivi = []): array
     {
@@ -42,6 +51,7 @@ class AuctionCheckoutStoreTest extends TestCase
             'codice_fiscale' => 'RSSNNA85M41D612K',
             'billing_same_as_shipping' => true,
             'privacy_accepted' => true,
+            'payment_gateway' => 'stripe',
             ...$sovrascrivi,
         ];
     }

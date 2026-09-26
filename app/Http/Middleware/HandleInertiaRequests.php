@@ -7,6 +7,7 @@ use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Support\SentryDsn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
@@ -62,9 +63,9 @@ class HandleInertiaRequests extends Middleware
             'consensoCookie' => ['versione' => ConsensoCookie::VERSIONE],
             // Il DSN di Sentry non è un segreto: dice dove spedire, non
             // autorizza a leggere. Gli eventi passano comunque dal nostro
-            // server (SentryTunnelController), che accetta solo questo DSN.
+            // server (SentryTunnelController), che accetta solo i DSN del sito.
             'diagnostica' => [
-                'dsn' => config('sentry.dsn'),
+                'dsn' => SentryDsn::perIlBrowser(),
                 'environment' => config('sentry.environment') ?? app()->environment(),
             ],
         ];

@@ -180,4 +180,33 @@ class SentryTunnelTest extends TestCase
     {
         $this->get('/')->assertInertia(fn ($pagina) => $pagina->where('diagnostica.dsn', self::DSN));
     }
+
+    #[Test]
+    public function con_un_progetto_per_il_browser_inoltra_al_suo_host(): void
+    {
+        $browser = 'https://altra@o2.ingest.de.sentry.io/77';
+        config(['services.sentry.browser_dsn' => $browser]);
+
+        $this->manda($this->busta($browser))->assertOk();
+
+        Http::assertSent(fn (Request $r) => $r->url() === 'https://o2.ingest.de.sentry.io/api/77/envelope/');
+    }
+
+    #[Test]
+    public function con_un_progetto_per_il_browser_accetta_ancora_il_dsn_del_server(): void
+    {
+        // Le pagine in cache di un minuto prima portano ancora il DSN vecchio.
+        config(['services.sentry.browser_dsn' => 'https://altra@o2.ingest.de.sentry.io/77']);
+
+        $this->manda($this->busta())->assertOk();
+    }
+
+    #[Test]
+    public function con_un_progetto_per_il_browser_la_pagina_passa_il_suo_dsn(): void
+    {
+        // Senza SENTRY_BROWSER_DSN ripiega su quello del server: il_dsn_arriva_alle_pagine.
+        config(['services.sentry.browser_dsn' => 'https://altra@o2.ingest.de.sentry.io/77']);
+
+        $this->get('/')->assertInertia(fn ($pagina) => $pagina->where('diagnostica.dsn', 'https://altra@o2.ingest.de.sentry.io/77'));
+    }
 }

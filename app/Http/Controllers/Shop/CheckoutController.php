@@ -306,6 +306,14 @@ class CheckoutController extends Controller
             return redirect()->route('shop.checkout.success', ['orderToken' => $orderToken]);
         }
 
+        // L'ordine di un'asta si ripaga dal checkout dell'asta, che controlla
+        // il termine entro cui il vincitore deve pagare (Order::cancelUrl).
+        $tokenDellAsta = $order->auction_id !== null ? $order->auction?->winner_checkout_token : null;
+
+        if (filled($tokenDellAsta)) {
+            return redirect()->route('shop.auction-checkout.show', ['token' => $tokenDellAsta]);
+        }
+
         try {
             return match ($order->payment_gateway) {
                 PaymentGateway::Stripe => $this->handleStripe($order),

@@ -189,6 +189,9 @@ class AuctionController extends Controller
             'product_name' => $product?->name,
             'product_description' => $product?->description,
             'product_size' => $productSize,
+            // La maglia all'asta e' quasi sempre indossata in gara: lo stato
+            // dichiarato e' lo stesso che l'ordine del vincitore fotografa.
+            'product_stato_articolo' => $product?->statoArticoloPerLaScheda(),
         ];
     }
 

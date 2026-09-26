@@ -69,6 +69,7 @@ class SorvegliaLoShop extends Command
         $this->controlla('coda', $this->problemaDellaCoda(), 'La coda dei job è ferma');
 
         $this->controlla('pagamento-aste', $this->problemaDelleAste(), 'Le aste non si possono pagare');
+        $this->controlla('offerte-aste', $this->problemaDelleOfferte(), 'Le aste non accettano nuovi offerenti');
 
         if (! $this->negozioAperto() || ! in_array(PaymentGateway::PayPal, PaymentGateway::offertiAlCheckout(), true)) {
             // Il controllo non si applica (PayPal tolto dai metodi o negozio
@@ -194,21 +195,43 @@ class SorvegliaLoShop extends Command
             .'Controllare `shop.active_payment_gateways` (Impostazioni Shop & Aste) e le credenziali dei gateway nella spec.';
     }
 
+    private function asteAccese(): bool
+    {
+        return filter_var(SiteSetting::get('auctions.enabled', true), FILTER_VALIDATE_BOOLEAN);
+    }
+
     /**
-     * Il checkout delle aste passa solo da Stripe (AuctionCheckoutController):
-     * con le aste accese e Stripe senza credenziali il vincitore arriva in
-     * fondo, l'ordine si crea e il pagamento non parte.
+     * Il vincitore paga il lotto con Stripe o PayPal
+     * (PaymentGateway::offertiAlleAste, il bonifico non sta nel termine
+     * dell'asta): con le aste accese e nessuno dei due disponibile arriva in
+     * fondo al checkout e non ha con che pagare.
      */
     private function problemaDelleAste(): ?string
     {
-        $asteAccese = filter_var(SiteSetting::get('auctions.enabled', true), FILTER_VALIDATE_BOOLEAN);
-
-        if (! $asteAccese || PaymentGateway::Stripe->configurato()) {
+        if (! $this->asteAccese() || PaymentGateway::offertiAlleAste() !== []) {
             return null;
         }
 
-        return 'Le aste sono accese ma Stripe non ha le credenziali: il checkout delle aste passa solo da Stripe, '
-            .'quindi un vincitore non può pagare. Impostare le chiavi di Stripe nella spec o sospendere le aste.';
+        return 'Le aste sono accese ma il checkout del vincitore non offre nessun metodo di pagamento: '
+            .'servono Stripe o PayPal con le credenziali e attivi in `shop.active_payment_gateways` '
+            .'(Impostazioni Shop & Aste). Altrimenti sospendere le aste.';
+    }
+
+    /**
+     * Per fare un'offerta serve una carta verificata, e la verifica passa da
+     * Stripe (PaymentVerificationController, middleware `verified.payment`):
+     * senza le sue chiavi il vincitore potrebbe pagare con PayPal, ma chi non
+     * ha già una carta verificata non arriva nemmeno a offrire.
+     */
+    private function problemaDelleOfferte(): ?string
+    {
+        if (! $this->asteAccese() || PaymentGateway::Stripe->configurato()) {
+            return null;
+        }
+
+        return 'Le aste sono accese ma Stripe non ha le credenziali: per offrire serve la verifica della carta, '
+            .'che passa da Stripe, quindi chi non l\'ha già fatta non può partecipare. '
+            .'Impostare le chiavi di Stripe nella spec o sospendere le aste.';
     }
 
     private function problemaDellaCoda(): ?string

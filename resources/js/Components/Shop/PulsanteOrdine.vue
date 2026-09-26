@@ -37,7 +37,7 @@ defineEmits(['click']);
         </svg>
         <span class="flex flex-col items-center leading-tight">
             <span>{{ inCorso ? $t('shop_checkout.processing') : etichetta }}</span>
-            <span class="mt-1 text-[11px] font-semibold normal-case tracking-normal opacity-75">
+            <span class="mt-1 text-xs font-semibold normal-case tracking-normal">
                 {{ $t('shop_checkout.payment_obligation') }}
             </span>
         </span>

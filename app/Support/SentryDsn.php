@@ -48,4 +48,33 @@ class SentryDsn
 
         return $dsn;
     }
+
+    /**
+     * Il DSN che usa il browser (resources/js/diagnostica.js).
+     *
+     * Ha un progetto Sentry suo (`SENTRY_BROWSER_DSN`) perché la quota di eventi
+     * è per progetto: un errore JavaScript ripetuto su migliaia di visite la
+     * consumerebbe tutta, e da lì in poi gli errori del server — pagamenti,
+     * webhook, coda — non arriverebbero più. Senza la variabile si ripiega sul
+     * DSN del server, come prima.
+     */
+    public static function perIlBrowser(): ?string
+    {
+        return config('services.sentry.browser_dsn') ?: (config('sentry.dsn') ?: null);
+    }
+
+    /**
+     * I DSN per cui il tunnel accetta una busta: quello del browser e quello
+     * del server, che resta valido per le pagine ancora in cache di un minuto
+     * prima (CachePublicResponse) quando si cambia progetto.
+     *
+     * @return list<string>
+     */
+    public static function ammessiDalTunnel(): array
+    {
+        return array_values(array_unique(array_filter([
+            self::perIlBrowser(),
+            config('sentry.dsn') ?: null,
+        ])));
+    }
 }

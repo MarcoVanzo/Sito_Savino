@@ -42,6 +42,7 @@ class NewsletterSubscriber extends Model
         'ac_contact_id',
         'subscribed_at',
         'confermato_il',
+        'tracciamento_revocato_il',
         'unsubscribed_at',
     ];
 
@@ -51,6 +52,7 @@ class NewsletterSubscriber extends Model
             'synced_to_ac' => 'boolean',
             'subscribed_at' => 'datetime',
             'confermato_il' => 'datetime',
+            'tracciamento_revocato_il' => 'datetime',
             'unsubscribed_at' => 'datetime',
         ];
     }
@@ -184,6 +186,62 @@ class NewsletterSubscriber extends Model
         $namePrefix = $locale === 'it' ? '' : $locale.'.';
 
         return URL::signedRoute($namePrefix.'newsletter.unsubscribe.show', ['subscriber' => $this->id]);
+    }
+
+    /**
+     * La newsletter si puo' ancora misurare per questo iscritto: aperture e
+     * clic del singolo (pixel e link tracciati di ActiveCampaign).
+     */
+    public function tracciamentoAttivo(): bool
+    {
+        return $this->tracciamento_revocato_il === null;
+    }
+
+    /**
+     * La pagina delle preferenze: ricevere la newsletter senza tracciamento,
+     * oppure disiscriversi (linee guida del Garante del 17/04/2026 sui pixel
+     * nelle email). E' il link che il modello di ActiveCampaign mette in fondo
+     * a ogni newsletter, dal campo personalizzato che
+     * `SyncNewsletterToActiveCampaign` riempie.
+     *
+     * Firmato e senza scadenza, come la disiscrizione: una newsletter si
+     * rilegge anche mesi dopo.
+     */
+    public function preferenzeUrl(?string $locale = null): string
+    {
+        $locale ??= app()->getLocale();
+
+        if (! in_array($locale, config('app.supported_locales', ['it']), true)) {
+            $locale = 'it';
+        }
+
+        $namePrefix = $locale === 'it' ? '' : $locale.'.';
+
+        return URL::signedRoute($namePrefix.'newsletter.preferenze.show', ['subscriber' => $this->id]);
+    }
+
+    /**
+     * Revoca il solo tracciamento: la newsletter continua ad arrivare, e
+     * ActiveCampaign riceve il tag che la esclude dalle campagne tracciate.
+     * Idempotente: una seconda revoca non cambia la data della prima.
+     */
+    public function revocaTracciamento(): bool
+    {
+        if (! $this->tracciamentoAttivo()) {
+            return false;
+        }
+
+        $this->update(['tracciamento_revocato_il' => now()]);
+
+        if ($this->haConfermato() && $this->isSubscribed()) {
+            SyncNewsletterToActiveCampaign::dispatch($this);
+        }
+
+        Log::channel('daily')->info('Revoca del tracciamento della newsletter', [
+            'subscriber_id' => $this->id,
+        ]);
+
+        return true;
     }
 
     /**

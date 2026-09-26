@@ -1,5 +1,6 @@
 {
     "common": {
+        "breadcrumb": "Breadcrumb",
         "read_more": "Read more",
         "read_more_alt": "Read more",
         "back": "Back",
@@ -20,8 +21,7 @@
         "home": "Home",
         "shop": "Shop",
         "form_privacy_notice": "We use the data you enter only to reply to your request and keep it for 24 months. To find out how we process it and what your rights are, read the",
-        "form_privacy_link": "privacy notice",
-        "breadcrumb": "Breadcrumb"
+        "form_privacy_link": "privacy notice"
     },
     "nav": {
         "main_navigation": "Main navigation",
@@ -111,7 +111,7 @@
         "placeholder_email": "Your email",
         "placeholder_name": "Your name (optional)",
         "subscribe": "Subscribe",
-        "privacy_consent": "I accept the data processing according to the",
+        "privacy_consent": "I want to receive the newsletter. To understand which content interests readers, we measure each subscriber's opens and clicks; from the link at the bottom of every newsletter you can stop just this measurement or unsubscribe. Details in the",
         "privacy_link": "Privacy Policy",
         "success": "Almost there: check your email and confirm your subscription.",
         "already_subscribed": "This email is already subscribed.",
@@ -130,7 +130,15 @@
         "confirm_done_title": "Subscription confirmed",
         "confirm_done_text": "Thank you! From now on you will receive the newsletter at this address:",
         "check_inbox_title": "Check your inbox",
-        "check_inbox_text": "We have sent you a link to confirm your subscription. If you cannot find it, check your spam folder too."
+        "check_inbox_text": "We have sent you a link to confirm your subscription. If you cannot find it, check your spam folder too.",
+        "confirm_tracking": "The newsletter contains a pixel and tracked links that measure opens and clicks: by confirming you also accept this measurement, which you can stop at any time from the link at the bottom of every newsletter.",
+        "preferences_title": "Newsletter preferences",
+        "preferences_intro": "Choose how to receive the newsletter at this address:",
+        "preferences_tracking_on": "The newsletter currently measures whether you open it and which links you click (pixel and tracked links).",
+        "preferences_tracking_off": "You receive the newsletter without open and click measurement.",
+        "preferences_no_tracking": "Keep receiving it, without tracking",
+        "preferences_unsubscribe": "Unsubscribe from the newsletter",
+        "preferences_not_subscribed": "This address is not subscribed to the newsletter."
     },
     "lang": {
         "switch_to": "Switch to {lang}",
@@ -622,6 +630,9 @@
         "personalization_add": "Add {name}",
         "personalization_surcharge": "+ {price}",
         "personalization_included": "included",
+        "personalization_no_withdrawal": "A personalised item cannot be returned under the right of withdrawal (Art. 59 of the Italian Consumer Code).",
+        "personalization_excluded_short": "Personalised: not covered by withdrawal",
+        "item_condition": "Item condition",
         "badge_new": "New",
         "all_categories": "All categories",
         "product_singular": "product",
@@ -682,6 +693,8 @@
         "remove_item_named": "Remove {name} from the cart"
     },
     "shop_checkout": {
+        "step_of": "Step {step} of {total}: {name}",
+        "payment_required": "Choose a payment method",
         "order_submitted_placeholder": "Order submitted! (placeholder)",
         "og_title": "Checkout",
         "og_description": "Complete your order on the official Savino Del Bene Volley shop.",
@@ -1026,6 +1039,7 @@
         "back_to_shop": "Back to Shop"
     },
     "auction": {
+        "remaining_sr": "Time remaining: {days} days, {hours} hours and {minutes} minutes",
         "bid_placed": "Bid placed successfully! You are the highest bidder.",
         "bid_error": "Unable to place bid. Please try again.",
         "not_active": "This auction is not active.",
@@ -1095,7 +1109,7 @@
         "deadline_title": "Time left to complete the payment",
         "deadline_note": "Once the deadline passes the lot is reassigned to the next bidder.",
         "pay_now": "Pay now",
-        "stripe_note": "You will be redirected to Stripe to complete the payment securely.",
+        "gateway_note": "You will be redirected to the chosen payment provider to complete the payment securely.",
         "back_to_auctions": "Back to auctions",
         "contact_us": "Contact us",
         "success_og_title": "Auction Payment Confirmed",
@@ -1233,7 +1247,12 @@
         "sent_at": "Date and time sent",
         "next_steps": "Send the products back within 14 days quoting the order number: we refund the price and standard delivery costs within 14 days.",
         "returns_link": "How to return the products",
-        "print": "Print or save as PDF"
+        "print": "Print or save as PDF",
+        "items_choose": "Items to return",
+        "items_choose_help": "Untick the items you are keeping.",
+        "personalised_excluded": "Personalised: cannot be returned under the right of withdrawal",
+        "no_items": "Choose at least one item to return.",
+        "none_withdrawable": "All the items in this order were personalised at your request: they are not covered by the right of withdrawal (Art. 59 of the Italian Consumer Code). If in doubt, write to info@savinodelbenevolley.it."
     },
     "spedizioni": {
         "table_title": "Costs and times by area",

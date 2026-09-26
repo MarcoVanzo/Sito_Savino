@@ -95,7 +95,7 @@ l'app è agganciata con la voce `vpc:` della spec.
 | **Predis** | Client Redis (pronto per futuro uso) |
 | **Spatie Translatable** | Contenuti multilingua |
 | **Spatie Sitemap** | Generazione sitemap SEO |
-| **Sentry** | Error tracking (web, worker e scheduler, più gli errori JavaScript via `/api/diagnostica`; attivo dal 25/09/2026 con `SENTRY_LARAVEL_DSN` valorizzato) |
+| **Sentry** | Error tracking (web, worker e scheduler, più gli errori JavaScript via `/api/diagnostica`; attivo dal 25/09/2026 con `SENTRY_LARAVEL_DSN` valorizzato). Gli errori JavaScript vanno al progetto di `SENTRY_BROWSER_DSN` (`sito-savino-browser`), con quota propria; vuoto, ripiegano su quello del server |
 | **PayPal** (REST API, `PayPalPaymentService`) | Pagamenti shop e aste, modalità `live`; `php artisan paypal:verifica` controlla credenziali e webhook |
 | **Stripe** (`stripe/stripe-php`) | Pagamenti shop — chiavi `STRIPE_*` non nello spec: il metodo non viene offerto al checkout (`PaymentGateway::configurato()`) |
 | **ActiveCampaign** | Newsletter (iscrizioni e revoche via coda) |
@@ -728,7 +728,7 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 | Comando | Frequenza | Scopo |
 |---------|-----------|-------|
 | `scheduler:beat` | Ogni minuto | Battito letto dall'health check `/up`: rileva uno scheduler morto |
-| `shop:sorveglia` | Ogni 5 minuti | Negozio/aste spenti, checkout senza metodi di pagamento, coda `default` ferma, PayPal (orario): email quando cambia (§9, Avvisi) |
+| `shop:sorveglia` | Ogni 5 minuti | Negozio/aste spenti, checkout (shop o aste) senza metodi di pagamento, aste senza Stripe per la verifica della carta, coda `default` ferma, PayPal (orario): email quando cambia (§9, Avvisi) |
 | `lvf:sync` | Ogni ora | Calendario, risultati e classifica dal sito della Lega (fallimenti contati da `LvfSyncHealth`, alert ai Super Admin) |
 | `news:importa-dal-vecchio-sito` | Ogni ora | Comunicati pubblicati sul vecchio WordPress (`wp-json`); si spegne da solo il 2/10/2026 (`services.vecchio_sito.leggibile_fino_a`) |
 | `sitemap:generate` | Giornaliero (04:00) | Genera sitemap XML per SEO |

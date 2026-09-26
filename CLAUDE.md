@@ -259,7 +259,18 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   testo bianco e i testi fucsia usano #D00778, come il token. Il controllo
   è automatico: `scripts/scansione-accessibilita.mjs` (axe-core) gira ogni
   lunedì in `scansione-accessibilita.yml` e fallisce sulle violazioni gravi; il
-  lint ha `eslint-plugin-vuejs-accessibility`. La dichiarazione di
+  lint ha `eslint-plugin-vuejs-accessibility`. **Cosa copre la scansione**: sul
+  sito vero solo letture (pagine, scheda prodotto, carrello vuoto, i due
+  passaggi del recesso senza conferma); carrello pieno, checkout con gli
+  errori, conferma d'ordine e checkout d'asta li percorre il lavoro `flussi`
+  sull'app avviata in CI con `ScansioneAccessibilitaSeeder` (`--flussi`
+  rifiuta host non locali: mai ordini verso produzione). In `npm test` axe e
+  uno screen reader simulato (`@guidepup/virtual-screen-reader`, attrezzi in
+  `resources/js/testing/`) sui percorsi critici; la prova umana con
+  VoiceOver/NVDA ha il suo protocollo in `docs/ACCESSIBILITA.md`. Il pulsante
+  d'ordine non si spegne mai in silenzio: resta attivo e al clic dice cosa
+  manca. I PDF generati passano da `PdfAccessibile` (titolo e `/Lang`). La
+  dichiarazione di
   accessibilità è la pagina `dichiarazione-di-accessibilita` (testo iniziale in
   `database/data/dichiarazione_accessibilita.php`): i limiti noti elencati lì
   vanno tolti quando si risolvono.
@@ -865,6 +876,11 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   (ordine, transazione); un ordine già catturato (`ORDER_ALREADY_CAPTURED`) non
   è un errore, si rilegge. Con la sola strada del webhook, una notifica che non
   arriva significava denaro mai incassato e ordine annullato dopo un'ora.
+- **Tutto questo vale anche per le aste**: l'ordine del vincitore è un `Order`,
+  il vincitore sceglie fra `PaymentGateway::offertiAlleAste()` (quelli dello
+  shop meno il bonifico, che non sta nel termine dell'asta) e si incassa sulla
+  stessa conferma e con lo stesso webhook. Solo l'annullo torna all'asta
+  (`Order::cancelUrl()`), perché il «riprova» dello shop ignorerebbe il termine.
 - **Il numero d'ordine non si legge solo dalla risposta della cattura.** Lo
   schema di PayPal dichiara `custom_id` sull'unità d'acquisto e sulla cattura,
   ma non garantisce che la risposta lo riporti: si guarda anche l'ordine
@@ -1088,6 +1104,16 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   anche dal checkout sotto lock). La riga d'ordine ne fotografa nome e
   supplemento. Il prezzo di una riga si compone solo in
   `CartItem::prezzoUnitario()`.
+- **Maglie indossate e autografati hanno uno «Stato dell'articolo».** Le
+  condizioni li vendono «nello stato descritto nella scheda»: acceso il flag
+  `products.usato_o_autografato`, `stato_articolo` (tradotto, `text`) e'
+  obbligatorio in italiano. L'obbligo sta in
+  `ProductResource::verificaStatoDellArticolo` (beforeSave/beforeCreate), non
+  in `->required()`: il plugin translatable rivalida il modulo con i dati di
+  ogni lingua visitata e scarta in silenzio quella che non passa, quindi uno
+  stato non tradotto avrebbe buttato nome e descrizione inglesi. La riga
+  d'ordine lo fotografa in `Order::registraArticolo` (shop e aste), e ordine,
+  email, PDF e pannello leggono `order_items.stato_articolo`, mai la scheda.
 
 ---
 
@@ -1311,8 +1337,9 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   guasti da segnalare ci sono la coda ferma e i job falliti, e l'avviso parte
   anche da webhook di pagamento e health check.
 - **`shop:sorveglia` guarda lo stato, non gli errori** (negozio spento, checkout
-  senza metodi di pagamento, aste accese senza Stripe — il loro checkout passa
-  solo da lì —, worker fermo, PayPal) e avvisa quando la condizione cambia,
+  senza metodi di pagamento, aste accese senza Stripe né PayPal per il
+  vincitore, aste accese senza Stripe — la verifica della carta per offrire
+  passa solo da lì —, worker fermo, PayPal) e avvisa quando la condizione cambia,
   non a ogni giro. Il primo giro senza stato precedente avvisa se trova il
   negozio spento, al massimo una volta al giorno; un errore di rete, un 5xx o
   un 429 di PayPal (`paypal:verifica` esce con `TRANSITORIO`) non valgono né
@@ -1346,6 +1373,11 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   dei componenti (`attachProps: false`): ogni issue nuova è un'email in
   `allarmi@`. Il tunnel inoltra solo gli item `event` e ha il limiter
   `diagnostica` (30/min per IP, 300/min globale).
+- **Il browser ha un progetto Sentry suo** (`SENTRY_BROWSER_DSN`,
+  `SentryDsn::perIlBrowser()`): la quota di eventi è per progetto, e un errore
+  JavaScript ripetuto su migliaia di visite la esaurirebbe, zittendo gli errori
+  del server. Il tunnel accetta solo i due DSN del sito; vuoto, il browser
+  ripiega su quello del server.
 - **Il webhook di Resend punta all'indirizzo `ondigitalocean.app`**, non al
   dominio: resta valido dopo il 1 ottobre. La firma è Svix con
   `RESEND_WEBHOOK_SECRET` (livello d'app); senza segreto ogni notifica è
@@ -1390,6 +1422,23 @@ Mappa completa in `docs/CONSUMATORI.md`. Vincoli:
   di `richieste_di_recesso` non si cancellano dal pannello. Il limite della
   POST è stretto (3 ogni 10 minuti) perché manda un'email a un indirizzo
   scritto da chi compila. Il link sta nel footer di ogni pagina: non toglierlo.
+  In inglese è `/en/withdrawal` (`/en/recesso` fa 301): i link passano da
+  `route('recesso')`. Le dichiarazioni si tengono **10 anni se agganciate a un
+  ordine** (prova del recesso, prescrizione del rimborso), 12 mesi senza. La
+  dichiarazione si registra sempre: il tetto di tre al giorno per indirizzo
+  ferma solo l'email della ricevuta, e al titolare di un ordine altrui va
+  `AvvisoDiRecessoAlTitolare`, senza i dati di chi ha scritto.
+- **Le righe personalizzate (firma della giocatrice) sono escluse dal
+  recesso** (art. 59 c. 1 lett. c): in `/recesso` non si selezionano e
+  `RecessoController` le rifiuta; scheda prodotto, checkout ed email lo
+  dicono. La lista degli articoli compare solo a chi ha il token dell'ordine
+  o l'account: il solo numero d'ordine non basta a leggere un ordine altrui.
+- **Il pixel della newsletter si revoca da solo** (linee guida del Garante
+  del 17/04/2026, adeguamento entro il 29/10/2026): pagina preferenze firmata
+  (`NewsletterSubscriber::preferenzeUrl`), `tracciamento_revocato_il`, tag
+  `senza-tracciamento` su ActiveCampaign. ActiveCampaign non spegne il pixel
+  per contatto: la redazione manda al segmento col tag una campagna con il
+  tracciamento spento (`docs/ANALYTICS.md`).
 - **L'avviso armonizzato UE sulla garanzia** (`AvvisoGaranziaLegale.vue`) sta
   sotto la casella del checkout, nella scheda prodotto e nell'email: sono le
   immagini ufficiali della Commissione, non si ridisegnano.

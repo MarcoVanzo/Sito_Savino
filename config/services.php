@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\SentryDsn;
+
 return [
 
     /*
@@ -16,6 +18,12 @@ return [
 
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
+    ],
+
+    // Progetto Sentry degli errori JavaScript, separato da quello del server
+    // (App\Support\SentryDsn::perIlBrowser). Vuoto: stesso DSN del server.
+    'sentry' => [
+        'browser_dsn' => SentryDsn::sanitize(env('SENTRY_BROWSER_DSN')),
     ],
 
     'resend' => [
@@ -75,6 +83,13 @@ return [
         'url' => env('ACTIVECAMPAIGN_URL'),
         'key' => env('ACTIVECAMPAIGN_API_KEY'),
         'list_id' => env('ACTIVECAMPAIGN_LIST_ID'),
+        // Id del campo personalizzato con il link alle preferenze (pixel
+        // revocabile, linee guida del Garante del 17/04/2026): il modello
+        // delle campagne lo usa nel footer come %PREFERENZE_URL%.
+        'campo_preferenze' => env('ACTIVECAMPAIGN_CAMPO_PREFERENZE'),
+        // Il tag degli iscritti che hanno revocato il tracciamento: le
+        // campagne a questo segmento partono con aperture e clic spenti.
+        'tag_senza_tracciamento' => env('ACTIVECAMPAIGN_TAG_SENZA_TRACCIAMENTO', 'senza-tracciamento'),
     ],
 
     'stripe' => [

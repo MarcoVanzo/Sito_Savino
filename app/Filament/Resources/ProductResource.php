@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ProductResource extends Resource
 {
@@ -67,6 +68,47 @@ class ProductResource extends Resource
         unset($data['etichette_automatiche']);
 
         return $data;
+    }
+
+    /**
+     * Un articolo indossato o autografato non si salva senza lo stato in
+     * italiano: le condizioni di vendita lo vendono «nello stato descritto
+     * nella scheda», e l'inglese ripiega sull'italiano finche' non e' tradotto.
+     *
+     * Non e' un `->required()` sul campo perche' il campo e' tradotto: al
+     * salvataggio il plugin translatable rivalida il modulo con i dati di ogni
+     * altra lingua visitata e, se la validazione fallisce, scarta quella
+     * lingua senza dirlo (EditRecord\Concerns\Translatable::handleRecordUpdate).
+     * Con un obbligo sul campo, uno stato non ancora tradotto in inglese
+     * avrebbe buttato in silenzio anche nome e descrizione inglesi appena
+     * scritti. Qui si guarda solo l'italiano, dovunque stia: nel modulo, nei
+     * dati della lingua lasciata o nell'archivio.
+     *
+     * Da chiamare in beforeCreate/beforeSave delle pagine del prodotto.
+     */
+    public static function verificaStatoDellArticolo(Pages\CreateProduct|Pages\EditProduct $pagina): void
+    {
+        if (! ($pagina->data['usato_o_autografato'] ?? false)) {
+            return;
+        }
+
+        $italiano = config('app.fallback_locale');
+        $inItaliano = $pagina->activeLocale === $italiano;
+
+        $stato = $inItaliano
+            ? ($pagina->data['stato_articolo'] ?? null)
+            : ($pagina->otherLocaleData[$italiano]['stato_articolo']
+                ?? ($pagina->record instanceof Product ? $pagina->record->getTranslation('stato_articolo', $italiano, false) : null));
+
+        if (trim((string) $stato) !== '') {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'data.stato_articolo' => $inItaliano
+                ? 'Obbligatorio per un articolo indossato o autografato: le condizioni di vendita lo vendono nello stato descritto qui.'
+                : 'Obbligatorio per un articolo indossato o autografato: compilalo prima in italiano (l\'inglese ripiega sull\'italiano finché non lo traduci).',
+        ]);
     }
 
     public static function form(Form $form): Form
@@ -248,6 +290,27 @@ class ProductResource extends Resource
                             ->prefix('€')
                             ->helperText('Si somma al prezzo del pezzo. 0: inclusa nel prezzo.'),
                     ])->columns(2),
+
+                Forms\Components\Section::make('Stato dell\'articolo')
+                    ->description('Per maglie indossate in gara e articoli autografati. Le condizioni di vendita li vendono «nello stato descritto nella scheda»: il testo compare accanto al prezzo e viene copiato nell\'ordine al momento dell\'acquisto.')
+                    ->schema([
+                        Forms\Components\Toggle::make('usato_o_autografato')
+                            ->label('Articolo indossato o autografato')
+                            ->helperText('Accesa, lo stato è obbligatorio.')
+                            ->default(false)
+                            ->live(),
+                        // Sempre visibile: un campo nascosto non viene
+                        // deidratato (CLAUDE.md §14). L'obbligo lo verifica
+                        // verificaStatoDellArticolo, non ->required(): vedi li'.
+                        Forms\Components\Textarea::make('stato_articolo')
+                            ->label('Stato dell\'articolo')
+                            ->rows(3)
+                            ->maxLength(2000)
+                            ->markAsRequired(fn (Forms\Get $get): bool => (bool) $get('usato_o_autografato'))
+                            ->placeholder('es. indossata in gara il 12/10/2025 contro Conegliano, segni di gioco sul fronte, non lavata, autografo originale sul numero')
+                            ->helperText('Descrivi com\'è davvero: quando è stata indossata, segni di gioco, se è lavata, autografo originale e dove. In inglese si traduce cambiando lingua in alto; finché manca, il sito mostra l\'italiano.')
+                            ->columnSpanFull(),
+                    ]),
 
                 Forms\Components\Section::make('Articoli collegati')
                     ->description('Compaiono in fondo alla scheda, sotto "Ti potrebbe interessare anche". Lasciando vuoto, il sito continua a proporre da sé quattro articoli della stessa categoria.')

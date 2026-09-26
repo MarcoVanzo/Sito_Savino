@@ -83,6 +83,16 @@ class OrderItemsRelationManager extends RelationManager
                     ->badge()
                     ->color('danger')
                     ->placeholder('—'),
+                // Lo stato dichiarato nella scheda al momento dell'acquisto
+                // (maglie indossate, autografi): e' cio' che e' stato venduto,
+                // anche se la scheda nel frattempo e' cambiata.
+                Tables\Columns\TextColumn::make('stato_articolo')
+                    ->label('Stato dell\'articolo')
+                    ->state(fn ($record) => $record->statoArticoloIn('it'))
+                    ->wrap()
+                    ->limit(160)
+                    ->tooltip(fn ($record) => $record->statoArticoloIn('it'))
+                    ->placeholder('—'),
                 Tables\Columns\TextColumn::make('quantity')
                     ->label('Quantità')
                     ->numeric(),
