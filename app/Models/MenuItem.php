@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\PostStatus;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
-use App\Support\CmsFile;
+use App\Support\DocumentiLegali;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -297,12 +297,7 @@ class MenuItem extends Model implements HasMedia
             return null;
         }
 
-        $documenti = SiteSetting::getAllGrouped()['legal'] ?? [];
-
-        // In archivio c'e' il percorso sul disco, non l'indirizzo: in
-        // produzione i file stanno su Spaces e "legal/Protocollo.pdf" nel
-        // footer diventerebbe un percorso relativo alla pagina aperta.
-        return CmsFile::url($documenti[$chiave] ?? null);
+        return DocumentiLegali::indirizzo($chiave);
     }
 
     /**

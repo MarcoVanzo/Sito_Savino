@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages\Settings;
 
+use App\Support\DocumentiLegali;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
@@ -22,12 +23,13 @@ class LegalSettingsPage extends BaseSettingsPage
     {
         return $form
             ->schema([
-                Section::make('Corporate Governance')->schema([
-                    self::pdfUpload('legal.modello_organizzativo', 'Modello Organizzativo'),
-                    self::pdfUpload('legal.codice_tutela_minori', 'Codice Tutela Minori'),
-                    self::pdfUpload('legal.protocollo_bullismo', 'Protocollo Bullismo'),
-                    self::pdfUpload('legal.protocollo_razzismo', 'Protocollo Razzismo'),
-                ])->columns(2),
+                Section::make('Corporate Governance')
+                    ->description('Questi PDF li pubblicano il footer e la pagina Safeguarding: sostituendo un file qui si aggiornano entrambi.')
+                    ->schema(array_map(
+                        fn (string $chiave, string $etichetta) => self::pdfUpload("legal.{$chiave}", $etichetta),
+                        array_keys(DocumentiLegali::ETICHETTE),
+                        DocumentiLegali::ETICHETTE,
+                    ))->columns(2),
             ])->statePath('data');
     }
 
