@@ -9,6 +9,7 @@ use App\Models\NewsletterSubscriber;
 use App\Services\ActiveCampaignService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -367,6 +368,58 @@ class NewsletterSubscriptionTest extends TestCase
 
         $job->handle($servizio);
         $this->assertTrue(true);
+    }
+
+    /**
+     * La conferma l'ha raccolta il sito: il contatto arriva ad ActiveCampaign
+     * con il tag «Confermato opt-in» PRIMA di entrare nella lista, o le
+     * automazioni gli manderebbero una seconda conferma e lo disiscriverebbero
+     * dopo trenta giorni senza clic.
+     */
+    public function test_il_tag_del_doppio_opt_in_arriva_prima_dell_iscrizione_alla_lista(): void
+    {
+        Http::fake([
+            '*/api/3/contact/sync' => Http::response(['contact' => ['id' => 42]]),
+            '*/api/3/tags*' => Http::response(['tags' => [['id' => 7, 'tag' => 'Confermato opt-in']]]),
+            '*/api/3/contactTags' => Http::response(['contactTag' => ['id' => 1]]),
+            '*/api/3/contactLists' => Http::response(['contactList' => ['id' => 1]]),
+        ]);
+
+        $iscritto = NewsletterSubscriber::factory()->create(['confermato_il' => now(), 'unsubscribed_at' => null, 'synced_to_ac' => false]);
+
+        (new SyncNewsletterToActiveCampaign($iscritto))->handle(app(ActiveCampaignService::class));
+
+        $percorsi = collect(Http::recorded())
+            ->map(fn ($coppia) => parse_url($coppia[0]->url(), PHP_URL_PATH))
+            ->values()
+            ->all();
+
+        $this->assertLessThan(
+            array_search('/api/3/contactLists', $percorsi, true),
+            array_search('/api/3/contactTags', $percorsi, true),
+        );
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/api/3/contactTags') && $r['contactTag']['tag'] === 7);
+        $this->assertTrue($iscritto->fresh()->synced_to_ac);
+    }
+
+    public function test_senza_il_tag_del_doppio_opt_in_il_contatto_non_entra_nella_lista(): void
+    {
+        Http::fake([
+            '*/api/3/contact/sync' => Http::response(['contact' => ['id' => 42]]),
+            '*/api/3/tags*' => Http::response(['tags' => []]),
+            '*' => Http::response([], 200),
+        ]);
+
+        $iscritto = NewsletterSubscriber::factory()->create(['confermato_il' => now(), 'unsubscribed_at' => null, 'synced_to_ac' => false]);
+
+        try {
+            (new SyncNewsletterToActiveCampaign($iscritto))->handle(app(ActiveCampaignService::class));
+            $this->fail('Il job doveva fermarsi');
+        } catch (\Throwable) {
+        }
+
+        Http::assertNotSent(fn ($r) => str_ends_with($r->url(), '/api/3/contactLists'));
+        $this->assertFalse($iscritto->fresh()->synced_to_ac);
     }
 
     public function test_le_email_di_conferma_allo_stesso_indirizzo_hanno_un_tetto_giornaliero(): void

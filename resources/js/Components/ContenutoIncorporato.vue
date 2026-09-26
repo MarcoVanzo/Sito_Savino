@@ -59,13 +59,9 @@ onBeforeUnmount(() => {
 const caricato = computed(() => consensoDato.value || chiestoDalVisitatore.value);
 
 const piattaforma = computed(() => {
-    let host;
+    const host = URL.canParse(props.src) ? new URL(props.src).hostname : '';
 
-    try {
-        host = new URL(props.src).hostname;
-    } catch {
-        return '';
-    }
+    if (host === '') return '';
 
     if (/(^|\.)youtube(-nocookie)?\.com$/.test(host)) return 'YouTube';
     if (/(^|\.)vimeo\.com$/.test(host)) return 'Vimeo';
