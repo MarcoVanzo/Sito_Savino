@@ -7,6 +7,7 @@ use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use App\Support\CmsFile;
 use App\Support\ContentData;
+use App\Support\DocumentiLegali;
 use App\Support\LiveStream;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -83,6 +84,7 @@ class Page extends Model implements HasMedia
         }
 
         $dati['content_data'] = $this->conGliElenchiDellaLinguaDiPartenza($dati['content_data']);
+        $dati['content_data'] = DocumentiLegali::risolviNeiDocumenti($dati['content_data']);
         $dati['content_data'] = CmsFile::resolveInContentData($dati['content_data']);
 
         if (isset($dati['content_data']['video_url'])) {

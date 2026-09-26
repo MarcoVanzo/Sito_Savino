@@ -779,11 +779,12 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   tappe `sold_out` (esaurite o concluse) il modulo sparisce e compare
   `talent_day.signup_closed`; torna da solo alla prima tappa aperta. Senza tappe
   in elenco decide la redazione, come prima.
-- **I documenti del Safeguarding possono puntare ai PDF dei Documenti Legali**
-  (`legal/…`): Filament non cancella dal disco un file tolto da un upload
-  (nessun `deleteUploadedFileUsing` nel progetto), quindi toglierlo dalla pagina
-  non rompe il link del footer. Se un giorno si attiva la cancellazione dei
-  file, quei due percorsi condivisi vanno prima duplicati.
+- **I documenti del Safeguarding rimandano a Documenti Legali per chiave**
+  (`documents.*.documento_legale`, risolto da `DocumentiLegali::risolviNeiDocumenti`
+  in `Page::datiPerIlFrontend()`), come le voci `documento:<chiave>` del footer:
+  sostituendo un PDF in Documenti Legali si aggiornano entrambi. Prima la pagina
+  teneva una copia propria del file e restava alla versione vecchia. Il caricamento
+  diretto resta per i documenti che non sono di governance.
 - **I valori senza lingua ripiegano sull'italiano come gli elenchi**: le chiavi
   di `content_data` che finiscono in `_url`, `_image`, `_link`, `_email`, `_src`,
   `_value`, `_file` non hanno traduzione, e in inglese restavano vuote (la

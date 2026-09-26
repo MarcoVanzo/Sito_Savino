@@ -76,9 +76,9 @@ i documenti di governance.
 | `Protocollo-1-Codice-di-condotta.pdf` | codice di condotta e tutela minori | valido; è anche il documento che disciplina immagini e dati biometrici (sotto) |
 | `Protocollo-2-…`, `Protocollo-3-…`, `Modello-Organizzativo_compressed.pdf` | governance | validi, non riguardano il sito |
 
-Il Modello Organizzativo e il Protocollo 1 sono caricati **due volte**, in
-`legal/` e in `safeguarding/`: il footer usa i primi, la pagina Safeguarding i
-secondi. Aggiornandone uno, l'altro resta indietro senza che niente lo segnali.
+Footer e pagina Safeguarding prendono i quattro documenti di governance dallo
+stesso posto, Documenti Legali (dal 26/09/2026; prima Safeguarding ne teneva
+una copia propria, che restava indietro a ogni aggiornamento).
 
 ### Quello che i documenti dicono e l'informativa no
 

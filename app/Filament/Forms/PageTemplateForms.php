@@ -6,6 +6,7 @@ use App\Enums\AffiliateTier;
 use App\Filament\Forms\Templates\ComunicazioneTemplateForm;
 use App\Filament\Forms\Templates\TicketingTemplateForm;
 use App\Filament\Forms\Templates\YouthTemplateForm;
+use App\Support\DocumentiLegali;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
@@ -516,12 +517,23 @@ class PageTemplateForms
                     // che il form scarta, e un solo documento senza PDF bloccava il
                     // salvataggio di tutti gli altri. Senza file il sito non mostra
                     // il pulsante di download.
+                    // I documenti di governance stanno gia' in Documenti Legali, e il
+                    // footer li prende da li'. Caricarli una seconda volta qui
+                    // significava due copie: sostituito il PDF da una parte, l'altra
+                    // restava alla versione vecchia senza che niente lo dicesse.
+                    Forms\Components\Select::make('documento_legale')
+                        ->label('PDF da Documenti Legali')
+                        ->options(DocumentiLegali::ETICHETTE)
+                        ->placeholder('Nessuno: carico un PDF qui')
+                        ->helperText('Scegliendo un documento il link usa il file caricato in Documenti Legali.')
+                        ->live(),
                     Forms\Components\FileUpload::make('file')
                         ->label('File PDF del documento')
                         ->acceptedFileTypes([EtichetteDeiCampi::PDF_MIME])
                         ->directory('safeguarding')
                         ->helperText('Senza PDF il documento compare sul sito senza pulsante di download.')
-                        ->preserveFilenames(),
+                        ->preserveFilenames()
+                        ->hidden(fn (Forms\Get $get) => filled($get('documento_legale'))),
                     Forms\Components\TextInput::make('icon')
                         ->label('Icona SVG (Opzionale)')
                         ->placeholder('es. M12 4.354a4...'),
