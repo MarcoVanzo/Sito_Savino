@@ -76,7 +76,7 @@ HTML,
 <h2>3. Ricevi il rimborso</h2>
 <p>Ti rimborsiamo il prezzo e le spese di consegna standard entro 14 giorni dalla tua comunicazione, con lo stesso metodo di pagamento che hai usato e senza costi. Possiamo attendere di ricevere i prodotti, o la prova che li hai spediti, prima di effettuarlo.</p>
 <h2>Prodotti esclusi</h2>
-<p>Non si possono restituire per recesso i prodotti personalizzati su tua richiesta, per esempio una maglia con nome e numero a tua scelta: la personalizzazione la chiedi tu prima dell'acquisto, e solo quegli articoli sono esclusi.</p>
+<p>Non si possono restituire per recesso i prodotti personalizzati su tua richiesta, per esempio una maglia con nome e numero a tua scelta o un articolo con la firma di una giocatrice aggiunta dalla scheda del prodotto: la personalizzazione la chiedi tu prima dell'acquisto, e solo quegli articoli sono esclusi.</p>
 <h2>Prodotto difettoso o diverso da quello ordinato?</h2>
 <p>Non è un reso per recesso: si applica la garanzia legale di conformità di due anni. Scrivici entro due mesi da quando hai scoperto il difetto, con il numero d'ordine e una foto: ripariamo o sostituiamo il prodotto a nostre spese, oppure, se non è possibile, riduciamo il prezzo o ti rimborsiamo. I dettagli sono al punto 7 delle <a href="/condizioni-di-vendita">Condizioni di vendita</a>.</p>
 <h2>Modificare o annullare un ordine</h2>
@@ -85,13 +85,13 @@ HTML,
             'en' => <<<HTML
 <p><strong>Changed your mind? You have 14 days from delivery to withdraw</strong> from the contract, without giving any reason. This also applies to items won in online auctions.</p>
 <h2>1. Tell us you are withdrawing</h2>
-<p>The easiest way is the <a href="/en/recesso">Withdraw from contract</a> function: enter your name, order number and email and confirm. You immediately receive a receipt by email with the date and time. Alternatively write to <a href="mailto:info@savinodelbenevolley.it">info@savinodelbenevolley.it</a>, also using the model form on the <a href="/en/diritto-di-recesso">Right of withdrawal</a> page.</p>
+<p>The easiest way is the <a href="/en/withdrawal">Withdraw from contract</a> function: enter your name, order number and email and confirm. You immediately receive a receipt by email with the date and time. Alternatively write to <a href="mailto:info@savinodelbenevolley.it">info@savinodelbenevolley.it</a>, also using the model form on the <a href="/en/diritto-di-recesso">Right of withdrawal</a> page.</p>
 <h2>2. Send the products back</h2>
 <p>Within 14 days of your communication, send the products back with a courier of your choice and at your own cost to: <strong>Pallavolo Scandicci Savino Del Bene, {$italiaIndirizzo}, Italy</strong>, quoting your order number. Pack them carefully: you may try them as you would in a shop, but if they come back worn, washed, damaged or without labels we may deduct the loss in value from the refund.</p>
 <h2>3. Get your refund</h2>
 <p>We refund the price and the standard delivery cost within 14 days of your communication, using the payment method you used and at no cost to you. We may wait until we receive the products, or proof that you have sent them, before refunding.</p>
 <h2>Excluded products</h2>
-<p>Products personalised at your request, for example a shirt with a name and number of your choice, cannot be returned on withdrawal: you ask for the personalisation before purchase, and only those items are excluded.</p>
+<p>Products personalised at your request, for example a shirt with a name and number of your choice or an item with a player's signature added from the product page, cannot be returned on withdrawal: you ask for the personalisation before purchase, and only those items are excluded.</p>
 <h2>Faulty product, or not what you ordered?</h2>
 <p>That is not a withdrawal: the two-year legal guarantee of conformity applies. Write to us within two months of discovering the defect, with your order number and a photo: we repair or replace the product at our expense or, if that is not possible, reduce the price or refund you. Details are in section 7 of the <a href="/en/condizioni-di-vendita">Terms of sale</a>.</p>
 <h2>Changing or cancelling an order</h2>
@@ -141,7 +141,7 @@ HTML,
 <h2>Award and payment</h2>
 <p>At closing the item is awarded to the highest bidder, who receives an email with the payment link. The final price is the amount of the winning bid, VAT included, plus the shipping cost shown at checkout; there are no fees. The winner has the time shown on the auction page to pay; if payment is not made in time, the item is offered to the second-highest bidder on the terms of their bid.</p>
 <h2>Shipping, withdrawal and guarantee</h2>
-<p>Items won at auction are subject to the Shop's <a href="/en/condizioni-di-vendita">Terms of sale</a>: shipping is described on the <a href="/en/spedizioni">Shipping</a> page and, as for any online purchase, the winner has 14 days from delivery to withdraw, including through the <a href="/en/recesso">Withdraw from contract</a> function, and benefits from the legal guarantee of conformity.</p>
+<p>Items won at auction are subject to the Shop's <a href="/en/condizioni-di-vendita">Terms of sale</a>: shipping is described on the <a href="/en/spedizioni">Shipping</a> page and, as for any online purchase, the winner has 14 days from delivery to withdraw, including through the <a href="/en/withdrawal">Withdraw from contract</a> function, and benefits from the legal guarantee of conformity.</p>
 <h2>Charity</h2>
 <p>When an auction is for charity, its page states the beneficiary and the share of the proceeds donated.</p>
 <h2>Personal data</h2>

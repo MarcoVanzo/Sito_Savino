@@ -140,6 +140,7 @@ return [
     // Italian Consumer Code): see emails/partials/informazioni-contrattuali.
     'contratto' => [
         'heading' => 'About your purchase',
+        'personalizzato_escluso' => 'Personalised: not covered by the right of withdrawal',
         'seller_heading' => 'The seller',
         'vat' => 'VAT',
         'share_capital' => 'Share capital',
@@ -151,7 +152,7 @@ return [
         'withdrawal_online' => 'You can also withdraw directly on the website, with the Withdraw from contract function: you immediately receive a receipt with the date and time.',
         'withdrawal_online_link' => 'Withdraw from contract',
         'withdrawal_costs' => 'You bear the direct cost of returning the goods.',
-        'withdrawal_exclusions' => 'The right of withdrawal does not apply to products personalised at your request (for example a shirt with a name and number chosen by you). You are only liable for any diminished value resulting from handling beyond what is needed to try them.',
+        'withdrawal_exclusions' => 'The right of withdrawal does not apply to products personalised at your request (for example a shirt with a name and number chosen by you, or an item with a player\'s signature added as a personalisation): in the order they are the ones marked as personalised. You are only liable for any diminished value resulting from handling beyond what is needed to try them.',
         'form_heading' => 'Model withdrawal form',
         'form_to' => 'To: :seller, :address, :email',
         'form_notice' => 'I/We (*) hereby give notice that I/We (*) withdraw from my/our (*) contract of sale of the following goods:',
@@ -179,6 +180,13 @@ return [
         'intro' => 'Someone, hopefully you, asked to subscribe this address to the Savino Del Bene Volley newsletter. To complete your subscription, confirm within 7 days.',
         'button' => 'Confirm my subscription',
         'ignore' => 'If it wasn\'t you, ignore this email: without confirmation the address is not subscribed and you will receive nothing else.',
+        'tracciamento' => 'The newsletter contains a pixel and tracked links that tell us whether you opened it and what you clicked: by confirming you also accept this measurement. From the link at the bottom of every newsletter you can stop just the measurement, and keep receiving it, or unsubscribe.',
+    ],
+    'recesso_titolare' => [
+        'subject' => 'A withdrawal has been declared from your order #:number',
+        'heading' => 'Withdrawal from your order',
+        'body' => 'On :date a withdrawal notice for your order :number was sent from our website, from an email address different from the one on the order.',
+        'not_you' => 'If it was not you, or you do not know who sent it, write to us straight away at info@savinodelbenevolley.it quoting the order number: we check with you before refunding.',
     ],
     'recesso' => [
         'subject' => 'Receipt of your withdrawal from order #:number',

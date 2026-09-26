@@ -45,7 +45,10 @@ class ActiveCampaignService
      * Create or update a contact (idempotent via contact/sync).
      * Returns the contact ID on success, null on failure.
      */
-    public function syncContact(string $email, ?string $firstName = null, ?string $lastName = null): ?int
+    /**
+     * @param  array<int, string>  $campi  valori dei campi personalizzati, per id del campo
+     */
+    public function syncContact(string $email, ?string $firstName = null, ?string $lastName = null, array $campi = []): ?int
     {
         if (! $this->isConfigured()) {
             Log::warning('ActiveCampaign: API non configurata. Skipping syncContact.');
@@ -61,6 +64,13 @@ class ActiveCampaignService
 
         if ($lastName !== null) {
             $contactData['lastName'] = $lastName;
+        }
+
+        if ($campi !== []) {
+            $contactData['fieldValues'] = collect($campi)
+                ->map(fn (string $valore, int $campo) => ['field' => (string) $campo, 'value' => $valore])
+                ->values()
+                ->all();
         }
 
         $response = $this->client()->post($this->baseUrl.'/api/3/contact/sync', [
@@ -191,5 +201,79 @@ class ActiveCampaignService
         ]);
 
         return false;
+    }
+
+    /**
+     * L'id del campo personalizzato in cui sta il link alle preferenze della
+     * newsletter (per esempio `PREFERENZE_URL`, che nel modello si scrive
+     * `%PREFERENZE_URL%`). Null se non configurato: il link resta allora solo
+     * quello di disiscrizione di ActiveCampaign.
+     */
+    public function campoPreferenze(): ?int
+    {
+        $id = (int) config('services.activecampaign.campo_preferenze', 0);
+
+        return $id > 0 ? $id : null;
+    }
+
+    /**
+     * Mette al contatto il tag degli iscritti che hanno revocato il
+     * tracciamento (`services.activecampaign.tag_senza_tracciamento`). Il tag
+     * si cerca per nome e si crea se manca. Idempotente: ActiveCampaign
+     * risponde 422 se il contatto ha gia' il tag, ed e' l'esito voluto.
+     */
+    public function aggiungiTagSenzaTracciamento(int $contactId): bool
+    {
+        if (! $this->isConfigured()) {
+            return false;
+        }
+
+        $nome = (string) config('services.activecampaign.tag_senza_tracciamento', 'senza-tracciamento');
+        $tagId = $this->idDelTag($nome);
+
+        if ($tagId === null) {
+            return false;
+        }
+
+        $response = $this->client()->post($this->baseUrl.'/api/3/contactTags', [
+            'contactTag' => ['contact' => $contactId, 'tag' => $tagId],
+        ]);
+
+        if ($response->successful() || $response->status() === 422) {
+            return true;
+        }
+
+        Log::error('ActiveCampaign: errore aggiungiTagSenzaTracciamento', [
+            'contact_id' => $contactId,
+            'status' => $response->status(),
+            'body' => mb_substr($response->body(), 0, 500),
+        ]);
+
+        return false;
+    }
+
+    private function idDelTag(string $nome): ?int
+    {
+        $trovati = $this->client()->get($this->baseUrl.'/api/3/tags', ['search' => $nome]);
+
+        foreach ((array) $trovati->json('tags', []) as $tag) {
+            if (($tag['tag'] ?? null) === $nome) {
+                return (int) $tag['id'];
+            }
+        }
+
+        $creato = $this->client()->post($this->baseUrl.'/api/3/tags', [
+            'tag' => ['tag' => $nome, 'tagType' => 'contact', 'description' => 'Newsletter senza pixel né link tracciati'],
+        ]);
+
+        $id = $creato->json('tag.id');
+
+        if (! $creato->successful() || ! $id) {
+            Log::error('ActiveCampaign: impossibile creare il tag', ['status' => $creato->status()]);
+
+            return null;
+        }
+
+        return (int) $id;
     }
 }

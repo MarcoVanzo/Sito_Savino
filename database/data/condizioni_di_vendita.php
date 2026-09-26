@@ -20,13 +20,15 @@
  * compilato correttamente è ciò che l'art. 49 c. 4 considera adempimento
  * dell'obbligo di informazione, quindi non va parafrasato.
  *
- * Due scelte sono commerciali e non legali, e le ha fatte il codice in attesa
- * che la società le confermi (sono fra i punti aperti di `docs/CONSUMATORI.md`):
+ * Due scelte sono commerciali e non legali: le ha fatte il codice, e la società
+ * le ha confermate il 26/09/2026 (`docs/CONSUMATORI.md` §2):
  *
  * - le spese di restituzione sono a carico del cliente, come prevede la legge
  *   quando il venditore non dice altro (art. 57 c. 1);
  * - i prodotti personalizzati su richiesta (nome e numero stampati) sono
- *   esclusi dal recesso, come consente l'art. 59 c. 1 lett. c.
+ *   esclusi dal recesso, come consente l'art. 59 c. 1 lett. c; fra questi
+ *   gli articoli con la firma della giocatrice aggiunta dalla scheda prodotto,
+ *   che la funzione `/recesso` non lascia selezionare.
  *
  * Il titolare e i recapiti sono quelli delle informative (§21 del CLAUDE.md):
  * la ragione sociale per esteso, non il nome d'uso della squadra.
@@ -79,7 +81,7 @@ return [
 
             <h3>6. Diritto di recesso</h3>
             <p>Hai 14 giorni dalla consegna per recedere dal contratto senza indicarne le ragioni. Puoi farlo direttamente dal sito con la funzione <a href="/recesso">Recedi dal contratto</a>, raggiungibile dal fondo di ogni pagina e dal dettaglio dell'ordine, che ti manda subito una ricevuta con data e ora. Le modalità, i costi della restituzione, i tempi del rimborso e il modulo tipo sono nella pagina <a href="/diritto-di-recesso">Diritto di recesso</a>; come rispedire i prodotti è spiegato in <a href="/resi-e-rimborsi">Resi e rimborsi</a>.</p>
-            <p>Il recesso non si applica ai prodotti confezionati su misura o chiaramente personalizzati su tua richiesta, per esempio una maglia con nome e numero scelti da te (art. 59 c. 1 lett. c). Resta invece valido per i beni aggiudicati nelle aste online.</p>
+            <p>Il recesso non si applica ai prodotti confezionati su misura o chiaramente personalizzati su tua richiesta, per esempio una maglia con nome e numero scelti da te o un articolo a cui hai aggiunto la firma di una giocatrice scegliendo la personalizzazione nella scheda del prodotto (art. 59 c. 1 lett. c). Sono esclusi solo gli articoli personalizzati: il resto dello stesso ordine si restituisce normalmente. Il recesso resta invece valido per i beni aggiudicati nelle aste online.</p>
 
             <h3>7. Garanzia legale di conformità</h3>
             <p>Tutti i prodotti sono coperti dalla garanzia legale di conformità prevista dagli articoli 128 e seguenti del Codice del consumo: rispondiamo dei difetti di conformità che si manifestano entro <strong>due anni dalla consegna</strong>. Se il prodotto è difettoso hai diritto, senza spese, al ripristino della conformità con la riparazione o la sostituzione, oppure, se queste non sono possibili, a una riduzione del prezzo o alla risoluzione del contratto. Per farla valere scrivi a <a href="mailto:{$email}">{$email}</a> indicando il numero d'ordine e descrivendo il difetto, se possibile con una fotografia. Le informazioni ufficiali dell'Unione europea sui tuoi diritti di garanzia sono su <a href="https://europa.eu/youreurope/garanzie">europa.eu/youreurope/garanzie</a>.</p>
@@ -120,8 +122,8 @@ return [
             <p>When you receive the parcel, check that it is intact: if it is damaged, accept it with a written reservation on the courier's document and write to us.</p>
 
             <h3>6. Right of withdrawal</h3>
-            <p>You have 14 days from delivery to withdraw from the contract without giving any reason. You can do it directly on the site with the <a href="/en/recesso">Withdraw from contract</a> function, available at the bottom of every page and in the order details, which immediately sends you a receipt with the date and time. How to do it, return costs, refund times and the model form are on the <a href="/en/diritto-di-recesso">Right of withdrawal</a> page; how to send the products back is explained in <a href="/en/resi-e-rimborsi">Returns and refunds</a>.</p>
-            <p>The right of withdrawal does not apply to goods made to your specifications or clearly personalised at your request, for example a shirt with a name and number chosen by you. It does apply to items won in online auctions.</p>
+            <p>You have 14 days from delivery to withdraw from the contract without giving any reason. You can do it directly on the site with the <a href="/en/withdrawal">Withdraw from contract</a> function, available at the bottom of every page and in the order details, which immediately sends you a receipt with the date and time. How to do it, return costs, refund times and the model form are on the <a href="/en/diritto-di-recesso">Right of withdrawal</a> page; how to send the products back is explained in <a href="/en/resi-e-rimborsi">Returns and refunds</a>.</p>
+            <p>The right of withdrawal does not apply to goods made to your specifications or clearly personalised at your request, for example a shirt with a name and number chosen by you, or an item to which you added a player's signature by choosing the personalisation on the product page. Only the personalised items are excluded: the rest of the same order can be returned as usual. The right of withdrawal does apply to items won in online auctions.</p>
 
             <h3>7. Legal guarantee of conformity</h3>
             <p>All products are covered by the legal guarantee of conformity under articles 128 et seq. of the Italian Consumer Code: we are liable for any lack of conformity that becomes apparent within <strong>two years of delivery</strong>. If the product is defective you are entitled, free of charge, to have it brought into conformity by repair or replacement or, where that is not possible, to a price reduction or to terminate the contract. To make a claim write to <a href="mailto:{$email}">{$email}</a> with your order number and a description of the defect, with a photo if possible. Official European Union information on your guarantee rights is at <a href="https://europa.eu/youreurope/guarantees">europa.eu/youreurope/guarantees</a>.</p>
@@ -169,7 +171,7 @@ return [
             <p>Sei responsabile solo della diminuzione del valore dei beni che risulti da una manipolazione diversa da quella necessaria per stabilirne la natura, le caratteristiche e il funzionamento: puoi provare una maglia come faresti in negozio, ma se la indossi, la lavi o togli le etichette il rimborso può essere ridotto.</p>
 
             <h3>Quando il recesso non si applica</h3>
-            <p>Il diritto di recesso è escluso per i beni confezionati su misura o chiaramente personalizzati su tua richiesta, per esempio una maglia con nome e numero scelti da te (art. 59 c. 1 lett. c del Codice del consumo).</p>
+            <p>Il diritto di recesso è escluso per i beni confezionati su misura o chiaramente personalizzati su tua richiesta, per esempio una maglia con nome e numero scelti da te o un articolo a cui hai aggiunto la firma di una giocatrice scegliendo la personalizzazione nella scheda del prodotto (art. 59 c. 1 lett. c del Codice del consumo). Sono esclusi solo gli articoli personalizzati: il resto dello stesso ordine si restituisce normalmente.</p>
 
             <h3>Recesso e garanzia sono due cose diverse</h3>
             <p>Il recesso non richiede motivazioni. Se invece il prodotto che hai ricevuto è difettoso o non corrisponde a quello ordinato, vale la garanzia legale di conformità di due anni, senza costi per te: è descritta nelle <a href="/condizioni-di-vendita">Condizioni di vendita</a>.</p>
@@ -196,7 +198,7 @@ return [
             <h3>Right of withdrawal</h3>
             <p>You have the right to withdraw from this contract within 14 days without giving any reason.</p>
             <p>The withdrawal period expires 14 days after the day on which you, or a third party other than the carrier and indicated by you, acquire physical possession of the goods. If you ordered multiple goods in one order and they are delivered separately, the 14 days run from the day you receive the last one.</p>
-            <p>The easiest way is the online <a href="/en/recesso">Withdraw from contract</a> function: enter your name, order number and email, confirm with the "Confirm withdrawal" button and you immediately receive by email a receipt with the content of your statement and the date and time it was sent.</p>
+            <p>The easiest way is the online <a href="/en/withdrawal">Withdraw from contract</a> function: enter your name, order number and email, confirm with the "Confirm withdrawal" button and you immediately receive by email a receipt with the content of your statement and the date and time it was sent.</p>
             <p>Alternatively you can inform us of your decision by an unequivocal statement, for example a letter sent by post or an email, to:</p>
             <p>{$societa}<br />
             {$sede}, Italy<br />
@@ -211,7 +213,7 @@ return [
             <p>You are only liable for any diminished value of the goods resulting from handling other than what is necessary to establish their nature, characteristics and functioning: you can try on a shirt as you would in a shop, but if you wear it, wash it or remove the labels the refund may be reduced.</p>
 
             <h3>When withdrawal does not apply</h3>
-            <p>The right of withdrawal does not apply to goods made to your specifications or clearly personalised at your request, for example a shirt with a name and number chosen by you.</p>
+            <p>The right of withdrawal does not apply to goods made to your specifications or clearly personalised at your request, for example a shirt with a name and number chosen by you, or an item to which you added a player's signature by choosing the personalisation on the product page. Only the personalised items are excluded: the rest of the same order can be returned as usual.</p>
 
             <h3>Withdrawal and warranty are different things</h3>
             <p>Withdrawal requires no reason. If the product you received is faulty or does not match your order, the two-year legal guarantee of conformity applies at no cost to you: it is described in the <a href="/en/condizioni-di-vendita">Terms of sale</a>.</p>

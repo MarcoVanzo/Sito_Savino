@@ -67,6 +67,8 @@
                     @endif
                     @if($item->nome_personalizzazione)
                         <br><span style="font-size: 12px; color: #DF338F; font-weight: 600;">+ {{ $item->nome_personalizzazione }}</span>
+                        {{-- Art. 59 c. 1 lett. c: l'articolo personalizzato esce dal recesso. --}}
+                        <br><span style="font-size: 12px; color: #666666;">{{ __('emails.contratto.personalizzato_escluso') }}</span>
                     @endif
                 </td>
                 <td align="center" style="padding: 12px 8px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">{{ $item->quantity }}</td>

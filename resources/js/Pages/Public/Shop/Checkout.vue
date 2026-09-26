@@ -861,6 +861,7 @@ const ogMeta = useOgMeta({
                                         {{ item.variant.size }}{{ item.variant.color ? ` - ${item.variant.color}` : '' }}
                                     </p>
                                     <p v-if="item.personalizzazione" class="text-xs text-savino-fucsia font-semibold mb-0.5">+ {{ item.personalizzazione }}</p>
+                                    <p v-if="item.personalizzazione" class="text-xs text-gray-600 mb-0.5">{{ $t('shop.personalization_excluded_short') }}</p>
                                     <p class="text-xs text-gray-500">{{ item.quantity ?? 1 }} × {{ formatPrice(item.unit_price) }}</p>
                                 </div>
                                 <span class="text-sm font-bold text-gray-900 flex-shrink-0">

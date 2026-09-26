@@ -59,10 +59,18 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        // Step 1: Sincronizza il contatto
+        // Step 1: Sincronizza il contatto, con il link alle preferenze nel
+        // campo personalizzato che il footer del modello usa.
+        $campi = [];
+        if ($campo = $service->campoPreferenze()) {
+            $campi[$campo] = $this->subscriber->preferenzeUrl('it');
+        }
+
         $contactId = $service->syncContact(
             $this->subscriber->email,
             $this->subscriber->first_name,
+            null,
+            $campi,
         );
 
         if (! $contactId) {
@@ -85,7 +93,14 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
             throw new ActiveCampaignException('Impossibile iscrivere il contatto alla lista ActiveCampaign');
         }
 
-        // Step 3: Aggiorna il record locale
+        // Step 3: chi ha revocato il tracciamento entra nel segmento delle
+        // campagne senza pixel. Un errore qui fa ritentare il job: una
+        // revoca che non arriva ad ActiveCampaign e' una promessa non tenuta.
+        if (! $this->subscriber->fresh()->tracciamentoAttivo() && ! $service->aggiungiTagSenzaTracciamento($contactId)) {
+            throw new ActiveCampaignException('Impossibile segnare il contatto come senza tracciamento');
+        }
+
+        // Step 4: Aggiorna il record locale
         $this->subscriber->update([
             'synced_to_ac' => true,
             'ac_contact_id' => $contactId,

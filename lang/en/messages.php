@@ -70,7 +70,9 @@ return [
         'delete_blocked_auction' => 'You have an auction in progress or a won auction to pay for: you can delete your account once it is over.',
     ],
     'recesso' => [
-        'troppi_invii' => 'Three statements have already been sent from this address today and we have recorded them. For anything else, write to info@savinodelbenevolley.it.',
+        'personalizzato_escluso' => 'Items personalised at your request cannot be returned under the right of withdrawal (Art. 59 of the Italian Consumer Code).',
+        'righe_non_valide' => 'The items chosen do not belong to this order. Reload the page and try again.',
+        'nessuna_riga' => 'Choose at least one item to return.',
     ],
     'auction_checkout' => [
         'not_winner' => 'This payment is not in your name: the link is reserved for the winner of the auction.',
@@ -84,6 +86,7 @@ return [
     ],
     'newsletter' => [
         'already_subscribed' => 'This email is already subscribed to the newsletter.',
+        'senza_tracciamento' => 'Done: you will keep receiving the newsletter, without open and click measurement.',
         'success' => 'Subscription confirmed! Thank you for subscribing.',
         'confirm_sent' => 'Almost there: we have sent you an email with a link to confirm your subscription.',
         'unsubscribed' => 'You have been unsubscribed. You will no longer receive the newsletter.',

@@ -110,7 +110,7 @@
         "placeholder_email": "La tua email",
         "placeholder_name": "Il tuo nome (facoltativo)",
         "subscribe": "Iscriviti",
-        "privacy_consent": "Accetto il trattamento dei dati secondo la",
+        "privacy_consent": "Voglio ricevere la newsletter. Per capire quali contenuti interessano, misuriamo aperture e clic di ogni iscritto; dal link in fondo a ogni newsletter puoi fermare solo questa misura oppure disiscriverti. Dettagli nella",
         "privacy_link": "Privacy Policy",
         "success": "Ci sei quasi: controlla la tua email e conferma l'iscrizione.",
         "already_subscribed": "Questa email è già iscritta alla newsletter.",
@@ -129,7 +129,15 @@
         "confirm_done_title": "Iscrizione confermata",
         "confirm_done_text": "Grazie! Da ora riceverai la newsletter a questo indirizzo:",
         "check_inbox_title": "Controlla la tua email",
-        "check_inbox_text": "Ti abbiamo mandato il link per confermare l’iscrizione. Se non lo trovi, guarda anche nella cartella dello spam."
+        "check_inbox_text": "Ti abbiamo mandato il link per confermare l’iscrizione. Se non lo trovi, guarda anche nella cartella dello spam.",
+        "confirm_tracking": "La newsletter contiene un pixel e link tracciati che misurano aperture e clic: confermando accetti anche questa misura, che puoi fermare in ogni momento dal link in fondo a ogni newsletter.",
+        "preferences_title": "Preferenze della newsletter",
+        "preferences_intro": "Scegli come ricevere la newsletter a questo indirizzo:",
+        "preferences_tracking_on": "Oggi la newsletter misura se la apri e su quali link clicchi (pixel e link tracciati).",
+        "preferences_tracking_off": "Ricevi la newsletter senza la misura di aperture e clic.",
+        "preferences_no_tracking": "Continua a ricevere, senza tracciamento",
+        "preferences_unsubscribe": "Disiscriviti dalla newsletter",
+        "preferences_not_subscribed": "Questo indirizzo non è iscritto alla newsletter."
     },
     "lang": {
         "switch_to": "Passa a {lang}",
@@ -621,6 +629,8 @@
         "personalization_add": "Aggiungi {name}",
         "personalization_surcharge": "+ {price}",
         "personalization_included": "incluso",
+        "personalization_no_withdrawal": "Un articolo personalizzato non si può restituire per recesso (art. 59 del Codice del consumo).",
+        "personalization_excluded_short": "Personalizzato: escluso dal recesso",
         "badge_new": "Nuovo",
         "all_categories": "Tutte le categorie",
         "product_singular": "prodotto",
@@ -1228,7 +1238,12 @@
         "sent_at": "Data e ora di invio",
         "next_steps": "Rispedisci i prodotti entro 14 giorni indicando il numero d'ordine: ti rimborsiamo prezzo e spese di consegna standard entro 14 giorni.",
         "returns_link": "Come restituire i prodotti",
-        "print": "Stampa o salva in PDF"
+        "print": "Stampa o salva in PDF",
+        "items_choose": "Articoli da restituire",
+        "items_choose_help": "Togli la spunta agli articoli che tieni.",
+        "personalised_excluded": "Personalizzato: non si può restituire per recesso",
+        "no_items": "Scegli almeno un articolo da restituire.",
+        "none_withdrawable": "Tutti gli articoli di questo ordine sono personalizzati su tua richiesta: sono esclusi dal recesso (art. 59 del Codice del consumo). Per qualsiasi dubbio scrivi a info@savinodelbenevolley.it."
     },
     "spedizioni": {
         "table_title": "Costi e tempi per zona",

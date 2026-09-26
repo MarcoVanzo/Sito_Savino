@@ -121,12 +121,17 @@ const displayPrice = computed(() => {
     return Number.parseFloat(basePrice) + modificatoreVariante.value + supplemento.value;
 });
 
-const originalPrice = computed(() => (scontoAnnunciabile.value ? props.product.price : null));
+// La firma e' un'aggiunta con il suo prezzo fisso, non scontata: il barrato
+// resta quello del prodotto con lo stesso supplemento sopra, cosi' spuntarla
+// non fa sparire l'annuncio dello sconto.
+const originalPrice = computed(() => (scontoAnnunciabile.value
+    ? Number.parseFloat(props.product.price) + supplemento.value
+    : null));
 
 // Il riferimento dei 30 giorni vale per il prezzo del prodotto: resta anche
 // dopo la scelta di una taglia che non cambia il prezzo. Una variante con un
 // sovrapprezzo ha un prezzo suo, per cui quel riferimento non e' calcolato.
-const hasSale = computed(() => scontoAnnunciabile.value && modificatoreVariante.value === 0 && supplemento.value === 0);
+const hasSale = computed(() => scontoAnnunciabile.value && modificatoreVariante.value === 0);
 
 // --- Stock ---
 const currentStock = computed(() => {
@@ -380,26 +385,35 @@ const structuredData = computed(() => {
                             {{ $t('shop.size_guide') }}
                         </a>
 
-                        <!-- Personalizzazione facoltativa -->
+                        <!-- Personalizzazione facoltativa. L'avviso sul recesso sta
+                             accanto alla casella e le è legato: chi la spunta deve
+                             sapere prima che l'articolo non si restituisce
+                             (art. 59 c. 1 lett. c del Codice del consumo). -->
                         <label
                             v-if="product?.personalizzazione"
-                            class="mt-6 mb-6 flex items-center gap-3 cursor-pointer rounded-xl border-2 px-4 py-3 transition-colors"
+                            class="mt-6 flex items-center gap-3 cursor-pointer rounded-xl border-2 px-4 py-3 transition-colors"
                             :class="conPersonalizzazione ? 'border-savino-fucsia bg-savino-fucsia/10' : 'border-gray-200 hover:border-savino-blue/30'"
                         >
                             <input
                                 v-model="conPersonalizzazione"
                                 type="checkbox"
+                                aria-describedby="personalizzazione-recesso"
                                 class="h-5 w-5 rounded border-gray-300 text-savino-fucsia focus:ring-savino-fucsia"
                             />
                             <span class="text-sm font-semibold text-savino-blue">
                                 {{ $t('shop.personalization_add', { name: product.personalizzazione.nome }) }}
                             </span>
-                            <span class="ml-auto text-sm font-bold text-savino-red whitespace-nowrap">
+                            <!-- Sul fondo fucsia chiaro della casella spuntata il
+                                 rosso del token arriva a 4,4:1: serve #B8066A (§11). -->
+                            <span class="ml-auto text-sm font-bold whitespace-nowrap" :class="conPersonalizzazione ? 'text-[#B8066A]' : 'text-savino-red'">
                                 {{ Number(product.personalizzazione.prezzo) > 0
                                     ? $t('shop.personalization_surcharge', { price: formatPrice(product.personalizzazione.prezzo) })
                                     : $t('shop.personalization_included') }}
                             </span>
                         </label>
+                        <p v-if="product?.personalizzazione" id="personalizzazione-recesso" class="mt-2 mb-6 text-xs text-gray-600">
+                            {{ $t('shop.personalization_no_withdrawal') }}
+                        </p>
 
                         <!-- Quantity Selector -->
                         <div class="mb-8">
