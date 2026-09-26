@@ -429,4 +429,26 @@ class NewsletterSubscriptionTest extends TestCase
 
         $this->assertSame($flash('nuova@example.com'), $flash('iscritta@example.com'));
     }
+
+    /**
+     * Il consenso al pixel e ai link tracciati si dichiara nel modulo e
+     * nell'email di conferma (linee guida del Garante del 17/04/2026).
+     */
+    public function test_il_consenso_dice_del_tracciamento_nel_modulo_e_nell_email_di_conferma(): void
+    {
+        $it = json_decode((string) file_get_contents(resource_path('js/i18n/it.json')), true);
+        $en = json_decode((string) file_get_contents(resource_path('js/i18n/en.json')), true);
+
+        $this->assertStringContainsString('aperture e clic', $it['newsletter']['privacy_consent']);
+        $this->assertStringContainsString('opens and clicks', $en['newsletter']['privacy_consent']);
+
+        $iscritto = NewsletterSubscriber::create([
+            'email' => 'tifoso@example.com',
+            'source' => 'website',
+            'subscribed_at' => now(),
+        ]);
+
+        $html = (new ConfermaIscrizioneNewsletter($iscritto, 'it'))->render();
+        $this->assertStringContainsString('pixel e link tracciati', $html);
+    }
 }

@@ -1444,12 +1444,15 @@ Mappa completa in `docs/CONSUMATORI.md`. Vincoli:
   `RecessoController` le rifiuta; scheda prodotto, checkout ed email lo
   dicono. La lista degli articoli compare solo a chi ha il token dell'ordine
   o l'account: il solo numero d'ordine non basta a leggere un ordine altrui.
-- **Il pixel della newsletter si revoca da solo** (linee guida del Garante
-  del 17/04/2026, adeguamento entro il 29/10/2026): pagina preferenze firmata
-  (`NewsletterSubscriber::preferenzeUrl`), `tracciamento_revocato_il`, tag
-  `senza-tracciamento` su ActiveCampaign. ActiveCampaign non spegne il pixel
-  per contatto: la redazione manda al segmento col tag una campagna con il
-  tracciamento spento (`docs/ANALYTICS.md`).
+- **Il pixel della newsletter si revoca da solo, e la revoca sta tutta in
+  ActiveCampaign** (linee guida del Garante del 17/04/2026, adeguamento entro
+  il 29/10/2026): Preference Center (modulo 10, campo 28 Sì/No) nel footer
+  delle campagne con `%FORMS_PREF_CENTER*ID:10%`. ActiveCampaign non spegne il
+  pixel per contatto: a ogni invio due campagne, al segmento «SENZA
+  tracciamento» con aperture e clic spenti (`docs/ANALYTICS.md`). Il sito non
+  ha più una pagina preferenze né tag propri: non reintrodurli, sarebbero una
+  seconda verità. `newsletter_subscribers.tracciamento_revocato_il` è una
+  colonna morta, lasciata in archivio.
 - **L'avviso armonizzato UE sulla garanzia** (`AvvisoGaranziaLegale.vue`) sta
   sotto la casella del checkout, nella scheda prodotto e nell'email: sono le
   immagini ufficiali della Commissione, non si ridisegnano.

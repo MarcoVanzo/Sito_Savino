@@ -86,7 +86,6 @@ return [
     ],
     'newsletter' => [
         'already_subscribed' => 'This email is already subscribed to the newsletter.',
-        'senza_tracciamento' => 'Done: you will keep receiving the newsletter, without open and click measurement.',
         'success' => 'Subscription confirmed! Thank you for subscribing.',
         'confirm_sent' => 'Almost there: we have sent you an email with a link to confirm your subscription.',
         'unsubscribed' => 'You have been unsubscribed. You will no longer receive the newsletter.',

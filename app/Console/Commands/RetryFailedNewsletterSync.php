@@ -11,7 +11,7 @@ class RetryFailedNewsletterSync extends Command
 {
     protected $signature = 'newsletter:retry-sync
         {--limit=50 : Numero massimo di contatti da risincronizzare}
-        {--tutti : Anche gli iscritti gia\' sincronizzati (per esempio per mandare ad ActiveCampaign il link alle preferenze)}';
+        {--tutti : Anche gli iscritti gia\' sincronizzati (per riallineare i contatti su ActiveCampaign)}';
 
     protected $description = 'Ritenta la sincronizzazione con ActiveCampaign per gli iscritti non ancora sincronizzati';
 

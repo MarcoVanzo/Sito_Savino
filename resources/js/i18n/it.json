@@ -131,14 +131,7 @@
         "confirm_done_text": "Grazie! Da ora riceverai la newsletter a questo indirizzo:",
         "check_inbox_title": "Controlla la tua email",
         "check_inbox_text": "Ti abbiamo mandato il link per confermare l’iscrizione. Se non lo trovi, guarda anche nella cartella dello spam.",
-        "confirm_tracking": "La newsletter contiene un pixel e link tracciati che misurano aperture e clic: confermando accetti anche questa misura, che puoi fermare in ogni momento dal link in fondo a ogni newsletter.",
-        "preferences_title": "Preferenze della newsletter",
-        "preferences_intro": "Scegli come ricevere la newsletter a questo indirizzo:",
-        "preferences_tracking_on": "Oggi la newsletter misura se la apri e su quali link clicchi (pixel e link tracciati).",
-        "preferences_tracking_off": "Ricevi la newsletter senza la misura di aperture e clic.",
-        "preferences_no_tracking": "Continua a ricevere, senza tracciamento",
-        "preferences_unsubscribe": "Disiscriviti dalla newsletter",
-        "preferences_not_subscribed": "Questo indirizzo non è iscritto alla newsletter."
+        "confirm_tracking": "La newsletter contiene un pixel e link tracciati che misurano aperture e clic: confermando accetti anche questa misura, che puoi fermare in ogni momento dal link in fondo a ogni newsletter."
     },
     "lang": {
         "switch_to": "Passa a {lang}",
