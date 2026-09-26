@@ -11,6 +11,7 @@ use App\Models\ShippingZone;
 use App\Services\AuctionService;
 use App\Services\Payments\StripePaymentService;
 use App\Support\CondizioniDiVendita;
+use App\Support\Locale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -362,6 +363,7 @@ class AuctionCheckoutController extends Controller
             'payment_gateway' => PaymentGateway::Stripe,
             'privacy_accepted_at' => now(),
             'condizioni_versione' => CondizioniDiVendita::VERSIONE,
+            'condizioni_impronta' => CondizioniDiVendita::registraIstantanea(Locale::current()),
         ]);
 
         // status e auction_id non sono mass-assignable (sicurezza): vanno

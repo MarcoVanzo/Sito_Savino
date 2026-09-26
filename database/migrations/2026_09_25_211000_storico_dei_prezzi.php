@@ -46,6 +46,14 @@ return new class extends Migration
             return;
         }
 
+        // Il popolamento sta in una transazione: la guardia qui sopra salta
+        // tutto appena trova una riga, quindi un giro interrotto a meta'
+        // lascerebbe per sempre lo storico dei soli primi prodotti.
+        DB::transaction(fn () => $this->popola());
+    }
+
+    private function popola(): void
+    {
         $adesso = now();
 
         DB::table('products')->whereNull('deleted_at')->orderBy('id')->each(function ($prodotto) use ($adesso) {

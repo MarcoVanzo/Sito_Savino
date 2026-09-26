@@ -47,6 +47,23 @@ return [
             'lock_table' => env('DB_CACHE_LOCK_TABLE'),
         ],
 
+        /*
+         * Lo stato degli avvisi: silenziatori di AvvisoTecnico, stato di
+         * `shop:sorveglia`, silenziatori dell'health check e dei job falliti.
+         * Store a parte perché `start.sh` esegue `cache:clear` sullo store
+         * predefinito a ogni avvio: con lo stato lì dentro ogni rilascio
+         * dimenticava gli avvisi già mandati e li rimandava. Nei test il
+         * driver è `array` (phpunit.xml).
+         */
+        'persistente' => [
+            'driver' => env('CACHE_PERSISTENTE_DRIVER', 'database'),
+            'connection' => env('DB_CACHE_CONNECTION'),
+            'table' => 'cache_persistente',
+            'lock_connection' => env('DB_CACHE_LOCK_CONNECTION'),
+            'lock_table' => 'cache_persistente_locks',
+            'serialize' => false,
+        ],
+
         'file' => [
             'driver' => 'file',
             'path' => storage_path('framework/cache/data'),

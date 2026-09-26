@@ -8,8 +8,8 @@ use App\Models\User;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Queue\Events\JobFailed;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\TestCase;
@@ -92,10 +92,22 @@ class FailedJobAlertTest extends TestCase
         $this->superAdmin();
 
         $this->fireFailure();
-        Cache::flush();
+        $this->travel(61)->minutes();
         $this->fireFailure();
 
         $this->assertDatabaseCount('notifications', 2);
+    }
+
+    #[Test]
+    public function un_email_non_partita_non_silenzia_il_fallimento_successivo(): void
+    {
+        config(['services.avvisi.email' => 'marco@example.com']);
+        Mail::shouldReceive('raw')->once()->andThrow(new RuntimeException('Resend irraggiungibile'));
+        Mail::shouldReceive('raw')->once();
+
+        $this->fireFailure();
+        $this->fireFailure();
+        $this->fireFailure();
     }
 
     #[Test]

@@ -43,8 +43,14 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
         // di ultima istanza — lo rispettano già il modulo, il comando di
         // risincronizzazione e il pannello — perché qualunque strada nuova
         // che accodi questo job passi di qui.
-        if (! $this->subscriber->fresh()?->haConfermato()) {
-            Log::info('Newsletter: iscrizione non confermata, sincronizzazione saltata', [
+        // Riletto dal database: fra l'accodamento e l'esecuzione la persona
+        // può essersi disiscritta (o essere stata cancellata), e l'istanza
+        // serializzata nel job non lo saprebbe — la si iscriverebbe ad
+        // ActiveCampaign subito dopo che ne è uscita.
+        $iscritto = $this->subscriber->fresh();
+
+        if (! $iscritto || ! $iscritto->haConfermato() || ! $iscritto->isSubscribed()) {
+            Log::info('Newsletter: iscrizione non confermata o revocata, sincronizzazione saltata', [
                 'subscriber_id' => $this->subscriber->id,
             ]);
 
@@ -61,8 +67,8 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
 
         // Step 1: Sincronizza il contatto
         $contactId = $service->syncContact(
-            $this->subscriber->email,
-            $this->subscriber->first_name,
+            $iscritto->email,
+            $iscritto->first_name,
         );
 
         if (! $contactId) {
@@ -86,7 +92,7 @@ class SyncNewsletterToActiveCampaign implements ShouldBeUnique, ShouldQueue
         }
 
         // Step 3: Aggiorna il record locale
-        $this->subscriber->update([
+        $iscritto->update([
             'synced_to_ac' => true,
             'ac_contact_id' => $contactId,
         ]);

@@ -76,6 +76,52 @@ class CondizioniDiVenditaTest extends TestCase
         $this->assertStringStartsWith('%PDF', $pdf);
     }
 
+    public function test_l_istantanea_e_una_per_testo_e_cambia_con_il_testo(): void
+    {
+        CondizioniDiVendita::creaLePagineMancanti();
+
+        $prima = CondizioniDiVendita::registraIstantanea('it');
+        $this->assertSame($prima, CondizioniDiVendita::registraIstantanea('it'));
+        $this->assertSame(64, strlen($prima));
+        $this->assertSame(1, DB::table('versioni_condizioni')->where('impronta', $prima)->count());
+
+        DB::table('pages')->where('slug', 'condizioni-di-vendita')->update([
+            'content' => json_encode(['it' => '<p>Testo nuovo della redazione</p>']),
+        ]);
+
+        $dopo = CondizioniDiVendita::registraIstantanea('it');
+        $this->assertNotSame($prima, $dopo);
+        $this->assertSame(2, DB::table('versioni_condizioni')->count());
+    }
+
+    public function test_il_pdf_riporta_il_testo_accettato_anche_se_la_pagina_cambia_dopo(): void
+    {
+        // La prova del contratto: la redazione riscrive la pagina dal
+        // pannello, ma l'allegato dell'ordine resta quello accettato.
+        CondizioniDiVendita::creaLePagineMancanti();
+        DB::table('pages')->where('slug', 'condizioni-di-vendita')->update([
+            'content' => json_encode(['it' => '<p>Testo accettato al checkout</p>']),
+        ]);
+        $ordine = Order::factory()->create([
+            'locale' => 'it',
+            'condizioni_impronta' => CondizioniDiVendita::registraIstantanea('it'),
+        ]);
+
+        DB::table('pages')->where('slug', 'condizioni-di-vendita')->update([
+            'content' => json_encode(['it' => '<p>Testo riscritto dopo</p>']),
+        ]);
+
+        $pagine = CondizioniDiVendita::perLAllegatoDellOrdine($ordine);
+
+        $this->assertStringContainsString('Testo accettato al checkout', $pagine['condizioni-di-vendita']['contenuto']);
+        $this->assertStringNotContainsString('Testo riscritto dopo', $pagine['condizioni-di-vendita']['contenuto']);
+        $this->assertStringContainsString('Modulo tipo di recesso', $pagine['diritto-di-recesso']['contenuto']);
+
+        // Un ordine di prima dell'impronta ripiega sul testo di oggi.
+        $vecchio = Order::factory()->create(['locale' => 'it', 'condizioni_impronta' => null]);
+        $this->assertStringContainsString('Testo riscritto dopo', CondizioniDiVendita::perLAllegatoDellOrdine($vecchio)['condizioni-di-vendita']['contenuto']);
+    }
+
     public function test_l_allegato_riporta_il_testo_pubblicato_con_i_link_assoluti(): void
     {
         // Il cliente accetta la pagina che legge: se la redazione l'ha

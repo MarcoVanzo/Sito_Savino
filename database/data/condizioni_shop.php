@@ -32,7 +32,13 @@ return [
             'it' => 'Costi, tempi e modalità di spedizione dei prodotti dello Shop ufficiale Savino Del Bene Volley, in Italia e all\'estero.',
             'en' => 'Shipping costs, times and methods for the Savino Del Bene Volley official shop, in Italy and abroad.',
         ],
-        'firme' => ['Spediamo con corriere espresso in Italia, nei Paesi europei elencati e nel resto del mondo'],
+        // Versione pubblicata il 25/09/2026, prima che i tempi contassero
+        // anche la preparazione. La prima frase della pagina non e' una
+        // firma: c'e' ancora nel testo di oggi (FirmeDeiTestiLegaliTest).
+        'firme' => [
+            'I tempi indicati in tabella sono in giorni lavorativi dalla spedizione e sono indicativi',
+            'The times in the table are working days from dispatch and are indicative',
+        ],
         'contenuto' => [
             'it' => <<<'HTML'
 <p>Spediamo con corriere espresso in Italia, nei Paesi europei elencati e nel resto del mondo. Costi e tempi dipendono dalla zona di consegna e sono riportati nella tabella in fondo alla pagina; il costo esatto del tuo ordine è sempre mostrato nel riepilogo, prima della conferma.</p>
@@ -65,7 +71,12 @@ HTML,
             'it' => 'Come restituire un prodotto dello Shop Savino Del Bene Volley: diritto di recesso entro 14 giorni, rimborso, prodotti difettosi.',
             'en' => 'How to return a product bought on the Savino Del Bene Volley shop: 14-day right of withdrawal, refunds, faulty products.',
         ],
-        'firme' => ['Hai cambiato idea? Hai 14 giorni dalla consegna per recedere'],
+        // Versione pubblicata il 25/09/2026, che escludeva dal recesso
+        // anche i prodotti sigillati per motivi igienici.
+        'firme' => [
+            'e i prodotti sigillati per motivi igienici aperti dopo la consegna',
+            'and sealed products unsealed after delivery for hygiene reasons',
+        ],
         'contenuto' => [
             'it' => <<<HTML
 <p><strong>Hai cambiato idea? Hai 14 giorni dalla consegna per recedere</strong> dal contratto, senza dover spiegare il motivo. Vale anche per gli oggetti aggiudicati nelle aste online.</p>

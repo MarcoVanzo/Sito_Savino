@@ -18,11 +18,13 @@ use App\Models\PlayerStat;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductVariant;
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Sponsor;
 use App\Models\StaffMember;
 use App\Models\Standing;
+use App\Models\StockMovement;
 use App\Models\Team;
 use App\Services\GalleryArchive;
 use App\Services\NewsFeedBuilder;
@@ -66,6 +68,13 @@ class CacheInvalidationObserver
         Team::class => [...self::CHIAVI_STAGIONE, 'public:roster_page', 'public:risultati', 'filament:dashboard:next_match_id'],
         Sponsor::class => ['public:sponsor', 'public:sponsor:tiers'],
         Product::class => ['public:shop'],
+        // La vetrina mostra giacenza ed etichette (ULTIMO RIMASTO): una taglia
+        // cambiata o un pezzo venduto devono arrivarci subito, non fra dieci
+        // minuti. Le giacenze si muovono solo con un movimento di magazzino,
+        // che le scrive con il query builder (StockMovementObserver): nessun
+        // evento del modello, quindi si osserva il movimento.
+        ProductVariant::class => ['public:shop'],
+        StockMovement::class => ['public:shop'],
         ProductCategory::class => ['public:shop'],
         Post::class => ['public:home', 'filament:dashboard:stats'],
         Category::class => ['public:news_categories'],

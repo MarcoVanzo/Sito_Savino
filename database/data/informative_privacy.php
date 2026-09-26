@@ -202,9 +202,13 @@ return [
             // Testo originale, fino al 22 settembre 2026.
             'non utilizza cookie di profilazione',
             'esclusivamente cookie tecnici',
-            // Prima riscrittura, 22 settembre 2026.
-            'quelli di marketing di Meta Platforms Ireland Ltd.',
-            'marketing cookies to Meta Platforms Ireland Ltd.',
+            // Prima riscrittura, 22 settembre 2026. La frase va presa per
+            // intero: il solo 'quelli di marketing di Meta Platforms Ireland
+            // Ltd.' c'e' anche nel testo di oggi, e una firma che compare nel
+            // testo attuale fa sembrare "non toccata" anche la pagina che la
+            // redazione ha riscritto tenendo quella frase.
+            'quelli di marketing di Meta Platforms Ireland Ltd. I loro trattamenti',
+            'marketing cookies to Meta Platforms Ireland Ltd. Their processing',
         ],
         'contenuto' => [
             'it' => <<<'HTML'

@@ -201,9 +201,9 @@ const ogMeta = useOgMeta({
 
                             <!-- Price -->
                             <div class="flex items-baseline gap-1 mb-6">
-                                <span class="text-lg" :class="plan.highlight ? 'text-white/60' : 'text-gray-400'">€</span>
+                                <span class="text-lg" :class="plan.highlight ? 'text-white/60' : 'text-gray-500'">€</span>
                                 <span class="text-5xl font-black">{{ plan.price }}</span>
-                                <span class="text-sm" :class="plan.highlight ? 'text-white/60' : 'text-gray-400'">/{{ plan.period }}</span>
+                                <span class="text-sm" :class="plan.highlight ? 'text-white/60' : 'text-gray-500'">/{{ plan.period }}</span>
                             </div>
 
                             <!-- Tariffe ridotte dello stesso posto -->

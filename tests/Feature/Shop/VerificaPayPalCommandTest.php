@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Shop;
 
+use App\Console\Commands\VerificaPayPal;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -96,5 +98,32 @@ class VerificaPayPalCommandTest extends TestCase
         ]);
 
         $this->artisan('paypal:verifica')->assertFailed();
+    }
+
+    #[Test]
+    public function paypal_in_difficolta_non_e_un_impianto_rotto(): void
+    {
+        // Un 5xx o un 429 sono di PayPal: `shop:sorveglia` non deve
+        // annunciare "non configurato" per un disservizio loro.
+        $this->configura();
+
+        Http::fake(['*/v1/oauth2/token' => Http::response('', 503)]);
+        $this->artisan('paypal:verifica')->assertExitCode(VerificaPayPal::TRANSITORIO);
+
+        Http::fake([
+            '*/v1/oauth2/token' => Http::response(['access_token' => 'tok', 'expires_in' => 3600]),
+            '*/v1/notifications/webhooks' => Http::response('', 429),
+        ]);
+        $this->artisan('paypal:verifica')->assertExitCode(VerificaPayPal::TRANSITORIO);
+    }
+
+    #[Test]
+    public function paypal_irraggiungibile_e_transitorio(): void
+    {
+        $this->configura();
+
+        Http::fake(fn () => throw new ConnectionException('timeout'));
+
+        $this->artisan('paypal:verifica')->assertExitCode(VerificaPayPal::TRANSITORIO);
     }
 }

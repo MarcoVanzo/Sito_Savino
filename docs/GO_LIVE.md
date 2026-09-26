@@ -344,7 +344,20 @@ riconosce l'host e risponde 404 a tutti.
    Finché è in corso, `https://` può dare errore di certificato: è normale,
    non è il sito rotto.
 
-5. **Rilanciare i controlli** dalla console:
+5. **Aprire il bucket Spaces al dominio nuovo (CORS).** Il pannello, servito
+   dal dominio nuovo, scarica da Spaces con `fetch()` le foto già caricate
+   (FilePond): il bucket `sito-savino-assets-2026` oggi ammette solo
+   `https://seashell-app-47mmf.ondigitalocean.app` e `http://localhost:8000`,
+   e a `https://savinodelbenevolley.it` risponde 403. Dal pannello DO
+   (Spaces → `sito-savino-assets-2026` → Settings → CORS) aggiungere
+   `https://savinodelbenevolley.it` e `https://www.savinodelbenevolley.it`
+   alle AllowedOrigins, metodi GET e HEAD, lasciando l'origine
+   `ondigitalocean.app`. La regola non sta nella spec: un deploy non la
+   rimette né la cancella. Senza, il sito funziona ma nel pannello le foto dei
+   prodotti restano in "Caricamento". Dettagli e comando di verifica in
+   `docs/INFRASTRUCTURE.md` §3.5.
+
+6. **Rilanciare i controlli** dalla console:
 
    ```
    php artisan verifica:lancio
@@ -353,7 +366,7 @@ riconosce l'host e risponde 404 a tutti.
    php artisan menu:verifica
    ```
 
-6. **Provare a mano** la cosa che porta soldi: un ordine vero di prova sullo
+7. **Provare a mano** la cosa che porta soldi: un ordine vero di prova sullo
    shop, fino alla mail di conferma. È l'unico controllo che attraversa tutta
    la catena — checkout, webhook, coda, posta.
 

@@ -182,6 +182,9 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertEqualsWithDelta(107.9, (float) $order->total_price, 0.01);
         $this->assertDatabaseHas('order_items', ['order_id' => $order->id, 'quantity' => 1]);
         $this->assertDatabaseHas('stock_movements', ['order_id' => $order->id, 'quantity' => -1]);
+        // Il testo delle condizioni accettate è fotografato sull'ordine.
+        $this->assertNotNull($order->condizioni_impronta);
+        $this->assertDatabaseHas('versioni_condizioni', ['impronta' => $order->condizioni_impronta]);
     }
 
     public function test_un_checkout_abbandonato_riusa_l_ordine_invece_di_duplicarlo(): void

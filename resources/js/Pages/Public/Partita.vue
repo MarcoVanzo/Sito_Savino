@@ -190,11 +190,11 @@ const ogMeta = useOgMeta({
                 <!-- Spettatori e arbitri: mostrati solo se la Lega li ha comunicati -->
                 <dl v-if="spectatorsLabel || game.referees" class="mt-6 grid gap-4 sm:grid-cols-2">
                     <div v-if="spectatorsLabel" class="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4">
-                        <dt class="text-[10px] font-bold uppercase tracking-wider text-gray-400">{{ $t('partita.spectators') }}</dt>
+                        <dt class="text-[10px] font-bold uppercase tracking-wider text-gray-500">{{ $t('partita.spectators') }}</dt>
                         <dd class="mt-1 text-lg font-black text-savino-blue tabular-nums">{{ spectatorsLabel }}</dd>
                     </div>
                     <div v-if="game.referees" class="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4">
-                        <dt class="text-[10px] font-bold uppercase tracking-wider text-gray-400">{{ $t('partita.referees') }}</dt>
+                        <dt class="text-[10px] font-bold uppercase tracking-wider text-gray-500">{{ $t('partita.referees') }}</dt>
                         <dd class="mt-1 text-sm font-semibold text-gray-800">{{ game.referees }}</dd>
                     </div>
                 </dl>
@@ -253,7 +253,7 @@ const ogMeta = useOgMeta({
                                                 >{{ row.name }}</Link>
                                                 <span v-else class="font-semibold text-gray-800">{{ row.name }}</span>
                                                 <span v-if="row.isCaptain" class="ml-2 text-[10px] font-bold uppercase text-savino-fucsia" :title="$t('partita.captain')">(C)</span>
-                                                <span v-if="row.isLibero" class="ml-1 text-[10px] font-bold uppercase text-gray-400" :title="$t('partita.libero')">(L)</span>
+                                                <span v-if="row.isLibero" class="ml-1 text-[10px] font-bold uppercase text-gray-500" :title="$t('partita.libero')">(L)</span>
                                             </td>
                                             <td class="px-3 py-3 text-sm text-center text-gray-600 tabular-nums">{{ num(row.setsPlayed) }}</td>
                                             <td class="px-3 py-3 text-center">
@@ -276,7 +276,7 @@ const ogMeta = useOgMeta({
                     </div>
                 </div>
 
-                <p class="text-xs text-gray-400 mt-6">{{ $t('partita.legend') }}</p>
+                <p class="text-xs text-gray-500 mt-6">{{ $t('partita.legend') }}</p>
             </div>
         </section>
     </PublicLayout>

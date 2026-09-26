@@ -43,10 +43,10 @@ const mainImage = computed(() => {
 
 // OG Meta
 const ogMeta = useOgMeta({
-    title: `${props.auction.title} — Asta Savino Del Bene Volley`,
+    title: $t('auction.og_title', { title: props.auction.title }),
     description: props.auction.current_bid
-        ? `Offerta attuale: ${formatPrice(props.auction.current_bid)}. ${props.auction.description || ''}`
-        : `A partire da ${formatPrice(props.auction.starting_price)}. ${props.auction.description || ''}`,
+        ? `${$t('auction.og_description_current', { price: formatPrice(props.auction.current_bid) })} ${props.auction.description || ''}`
+        : `${$t('auction.og_description_from', { price: formatPrice(props.auction.starting_price) })} ${props.auction.description || ''}`,
     image: props.auction.image,
     type: 'product',
 });
@@ -165,12 +165,12 @@ onUnmounted(() => {
         <section class="relative bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900 pt-24 pb-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Breadcrumb -->
-                <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-                    <Link :href="route('shop')" class="hover:text-savino-fucsia-chiaro transition-colors">Shop</Link>
-                    <span>/</span>
-                    <Link :href="route('shop.auctions.index')" class="hover:text-savino-fucsia-chiaro transition-colors">Aste</Link>
-                    <span>/</span>
-                    <span class="text-gray-300 truncate">{{ currentAuction.title }}</span>
+                <nav :aria-label="$t('common.breadcrumb')" class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+                    <Link :href="route('shop')" class="hover:text-savino-fucsia-chiaro transition-colors">{{ $t('common.shop') }}</Link>
+                    <span aria-hidden="true">/</span>
+                    <Link :href="route('shop.auctions.index')" class="hover:text-savino-fucsia-chiaro transition-colors">{{ $t('auctions.hero_title') }}</Link>
+                    <span aria-hidden="true">/</span>
+                    <span class="text-gray-300 truncate" aria-current="page">{{ currentAuction.title }}</span>
                 </nav>
             </div>
         </section>

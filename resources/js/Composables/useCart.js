@@ -52,6 +52,15 @@ export function useCart() {
             if (typeof quantity === 'object' && quantity !== null) {
                 callbacks = quantity;
             }
+        } else if (typeof quantity === 'object' && quantity !== null) {
+            // addToCart(id, { onFinish, onError }): il secondo argomento sono
+            // le callback, non la quantita'. Letto come quantita' arrivava al
+            // server `quantity: {}`, la validazione lo rifiutava e il pulsante
+            // restava in attesa per sempre.
+            productId = productIdOrOptions;
+            qty = 1;
+            variant = null;
+            callbacks = quantity;
         } else {
             productId = productIdOrOptions;
             qty = quantity;

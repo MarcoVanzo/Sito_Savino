@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\NewsletterController;
 use App\Jobs\SyncNewsletterToActiveCampaign;
 use App\Mail\ConfermaIscrizioneNewsletter;
 use App\Models\NewsletterSubscriber;
 use App\Services\ActiveCampaignService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -329,5 +331,72 @@ class NewsletterSubscriptionTest extends TestCase
 
         $response->assertSessionHas('newsletter_info');
         Queue::assertPushed(SyncNewsletterToActiveCampaign::class);
+    }
+
+    public function test_chi_si_disiscrive_prima_che_il_job_giri_non_arriva_ad_activecampaign(): void
+    {
+        // Il job porta con sé l'istanza di quando è stato accodato: la
+        // disiscrizione arrivata nel frattempo va riletta dal database.
+        $iscritto = NewsletterSubscriber::factory()->create(['confermato_il' => now(), 'unsubscribed_at' => null, 'synced_to_ac' => false]);
+        $job = new SyncNewsletterToActiveCampaign($iscritto);
+
+        NewsletterSubscriber::whereKey($iscritto->id)->update(['unsubscribed_at' => now()]);
+
+        $servizio = $this->mock(ActiveCampaignService::class);
+        $servizio->shouldReceive('isConfigured')->andReturn(true);
+        $servizio->shouldNotReceive('syncContact');
+
+        $job->handle($servizio);
+
+        $this->assertFalse($iscritto->fresh()->synced_to_ac);
+    }
+
+    public function test_un_iscritto_cancellato_prima_che_il_job_giri_non_arriva_ad_activecampaign(): void
+    {
+        $iscritto = NewsletterSubscriber::factory()->create(['confermato_il' => now()]);
+        $job = new SyncNewsletterToActiveCampaign($iscritto);
+        NewsletterSubscriber::whereKey($iscritto->id)->delete();
+
+        $servizio = $this->mock(ActiveCampaignService::class);
+        $servizio->shouldReceive('isConfigured')->andReturn(true);
+        $servizio->shouldNotReceive('syncContact');
+
+        $job->handle($servizio);
+        $this->assertTrue(true);
+    }
+
+    public function test_le_email_di_conferma_allo_stesso_indirizzo_hanno_un_tetto_giornaliero(): void
+    {
+        // Il limite della rotta conta per IP: senza un tetto per indirizzo,
+        // una casella altrui si riempie di conferme cambiando rete.
+        Queue::fake();
+        $this->withoutMiddleware(ThrottleRequests::class);
+
+        for ($i = 0; $i < NewsletterController::CONFERME_AL_GIORNO + 2; $i++) {
+            $this->post(route('newsletter.subscribe'), [
+                'email' => 'Bersaglio@example.com',
+                'honeypot' => '',
+                'privacy_accepted' => true,
+            ])->assertRedirect()->assertSessionHas('success');
+        }
+
+        Mail::assertQueuedCount(NewsletterController::CONFERME_AL_GIORNO);
+
+        // Un altro indirizzo ha il suo contatore.
+        $this->post(route('newsletter.subscribe'), [
+            'email' => 'altro@example.com',
+            'honeypot' => '',
+            'privacy_accepted' => true,
+        ]);
+        Mail::assertQueuedCount(NewsletterController::CONFERME_AL_GIORNO + 1);
+
+        // Domani si riparte.
+        $this->travel(25)->hours();
+        $this->post(route('newsletter.subscribe'), [
+            'email' => 'bersaglio@example.com',
+            'honeypot' => '',
+            'privacy_accepted' => true,
+        ]);
+        Mail::assertQueuedCount(NewsletterController::CONFERME_AL_GIORNO + 2);
     }
 }

@@ -631,7 +631,7 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 60%, rgba(0,48,99,0.06) 0%, transparent 50%);"></div>
             <!-- Large decorative watermark text -->
             <div class="absolute inset-0 flex items-start justify-center pt-8 pointer-events-none select-none overflow-hidden">
-                <span class="text-[10rem] md:text-[14rem] font-black uppercase tracking-tighter text-white/[0.55] leading-none whitespace-nowrap">MATCH DAY</span>
+                <span aria-hidden="true" class="text-[10rem] md:text-[14rem] font-black uppercase tracking-tighter text-white/[0.55] leading-none whitespace-nowrap">MATCH DAY</span>
             </div>
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-14" data-reveal>
@@ -661,7 +661,7 @@ const ogMeta = useOgMeta({
                             </div>
                             <!-- VS -->
                             <div class="text-center px-8 md:pt-10">
-                                <div class="text-white/10 text-6xl md:text-8xl lg:text-9xl font-black leading-none select-none">VS</div>
+                                <div aria-hidden="true" class="text-white/10 text-6xl md:text-8xl lg:text-9xl font-black leading-none select-none">VS</div>
                                 <div class="-mt-4 bg-savino-fucsia/15 backdrop-blur-sm rounded-lg px-6 py-3 relative">
                                     <div class="text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-widest">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
                                     <div class="text-white text-sm font-bold mt-1">{{ formattedMatchDate ?? $t('common.tbd') }}</div>
@@ -675,7 +675,7 @@ const ogMeta = useOgMeta({
                                     align-class="mx-auto md:mr-auto md:ml-0"
                                 />
                                 <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words min-h-[3.5rem] flex items-start justify-center md:justify-start">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>
-                                <span class="text-white/50 text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.away_team') }}</span>
+                                <span class="text-white/70 text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.away_team') }}</span>
                             </div>
                         </div>
                         <!-- CTA -->
@@ -747,7 +747,7 @@ const ogMeta = useOgMeta({
             <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 40%, rgba(0,48,99,0.06) 0%, transparent 50%);"></div>
             <!-- Large decorative watermark text -->
             <div class="absolute inset-0 flex items-start justify-center pt-6 pointer-events-none select-none overflow-hidden">
-                <span class="text-[10rem] md:text-[14rem] font-black uppercase tracking-tighter text-white/[0.55] leading-none whitespace-nowrap">LATEST NEWS</span>
+                <span aria-hidden="true" class="text-[10rem] md:text-[14rem] font-black uppercase tracking-tighter text-white/[0.55] leading-none whitespace-nowrap">LATEST NEWS</span>
             </div>
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-14" data-reveal>

@@ -98,7 +98,9 @@ class NewsletterSubscriberResource extends Resource
                     ->label('Risincronizza')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
-                    ->visible(fn (NewsletterSubscriber $record) => ! $record->synced_to_ac)
+                    // Un disiscritto non si risincronizza: lo rimetterebbe in
+                    // lista su ActiveCampaign contro il consenso revocato.
+                    ->visible(fn (NewsletterSubscriber $record) => ! $record->synced_to_ac && $record->isSubscribed())
                     ->requiresConfirmation()
                     ->action(function (NewsletterSubscriber $record) {
                         SyncNewsletterToActiveCampaign::dispatch($record);
@@ -144,7 +146,7 @@ class NewsletterSubscriberResource extends Resource
                     ->action(function ($records) {
                         $count = 0;
                         foreach ($records as $record) {
-                            if (! $record->synced_to_ac) {
+                            if (! $record->synced_to_ac && $record->isSubscribed()) {
                                 SyncNewsletterToActiveCampaign::dispatch($record);
                                 $count++;
                             }

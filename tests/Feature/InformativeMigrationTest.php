@@ -142,9 +142,12 @@ class InformativeMigrationTest extends TestCase
 
     public function test_la_cookie_policy_dice_dei_contenuti_incorporati(): void
     {
+        // La frase della versione del 22 settembre, per intero: il solo
+        // "quelli di marketing di Meta Platforms Ireland Ltd." c'e' anche nel
+        // testo di oggi, e non e' una firma (FirmeDeiTestiLegaliTest).
         $this->scriviIlTesto('cookie-policy', [
-            'it' => '<p>quelli di marketing di Meta Platforms Ireland Ltd.</p>',
-            'en' => '<p>marketing cookies to Meta Platforms Ireland Ltd.</p>',
+            'it' => '<p>quelli di marketing di Meta Platforms Ireland Ltd. I loro trattamenti, e i trasferimenti fuori dall\'Unione Europea</p>',
+            'en' => '<p>marketing cookies to Meta Platforms Ireland Ltd. Their processing, and transfers outside the European Union</p>',
         ]);
 
         $this->eseguiLaRevisione();

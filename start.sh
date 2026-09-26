@@ -30,6 +30,8 @@ php artisan storage:link 2>/dev/null || true
 # ATTENZIONE: questo cancella anche il battito del pianificatore, che vive
 # nella cache condivisa fra i container. L'health check ne tiene conto con
 # initial_delay_seconds: 120 (vedi .do/app.yaml). Non ridurre quel valore.
+# Svuota solo lo store predefinito: silenziatori e stato degli avvisi stanno
+# nello store `persistente` (config/cache.php) e sopravvivono al rilascio.
 echo "[4/6] Pulizia cache..."
 php artisan cache:clear
 # La gallery (12.000 foto) si ricostruisce in coda invece di farlo pagare

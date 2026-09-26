@@ -5,7 +5,7 @@ negozio rispetta gli obblighi verso i consumatori (Codice del consumo, d.lgs.
 206/2005) e dove non ancora. Non è un parere legale: è quello che va fatto
 leggere a chi segue gli aspetti legali della società.
 
-Ultima verifica sul codice: **25 settembre 2026**.
+Ultima verifica sul codice: **26 settembre 2026**.
 
 ---
 
@@ -16,7 +16,7 @@ Ultima verifica sul codice: **25 settembre 2026**.
 | Condizioni di vendita e informativa sul recesso prima dell'ordine (art. 49) | pagine `/condizioni-di-vendita` e `/diritto-di-recesso`, link nel footer, nella casella del checkout e nel "Reso entro 14 giorni" della scheda prodotto | testi in `database/data/condizioni_di_vendita.php`, letti da `App\Support\CondizioniDiVendita` |
 | Modulo tipo di recesso (Allegato I, parte B) | in fondo a `/diritto-di-recesso` e nell'email di conferma | stesso file dati; `resources/views/emails/partials/informazioni-contrattuali.blade.php` |
 | Pulsante «Ordine con obbligo di pagamento» (art. 51 c. 2) | checkout dello shop e delle aste, seconda riga del pulsante | `resources/js/Components/Shop/PulsanteOrdine.vue` |
-| Accettazione delle condizioni, con la versione | casella del checkout | `AccettazioneCondizioni.vue`; `orders.condizioni_versione` = `CondizioniDiVendita::VERSIONE` |
+| Accettazione delle condizioni, con la versione e il testo esatto | casella del checkout | `AccettazioneCondizioni.vue`; `orders.condizioni_versione` = `CondizioniDiVendita::VERSIONE`; `orders.condizioni_impronta` = sha256 del testo pubblicato, testo in `versioni_condizioni` (`CondizioniDiVendita::registraIstantanea`) |
 | Conferma su supporto durevole (art. 51 c. 7) | email di conferma: venditore, recesso, modulo, garanzia, e il PDF delle condizioni in allegato | `App\Mail\OrderConfirmation::attachments()`, `resources/views/pdf/condizioni-di-vendita.blade.php` |
 | Funzione di recesso online (art. 54-bis, dal 19/06/2026) | `/recesso`, dal footer e dal dettaglio ordine: due passaggi, ricevuta su un indirizzo firmato (stampabile) e per email subito; se l'email non è quella dell'ordine, copia al titolare e avviso nel pannello; al massimo tre dichiarazioni al giorno per indirizzo | `RecessoController`, tabella `richieste_di_recesso`, risorsa Filament «Richieste di recesso» (non si cancellano) |
 | Pagine pratiche: spedizioni (con la tabella delle zone), resi e rimborsi, regolamento aste | `/spedizioni`, `/resi-e-rimborsi`, `/regolamento-aste`; i vecchi indirizzi WooCommerce ci portano con un 301 | `database/data/condizioni_shop.php`, `App\Support\PagineLegaliDelloShop`, `routes/pubbliche/legacy.php` |
@@ -27,11 +27,21 @@ Ultima verifica sul codice: **25 settembre 2026**.
 
 `CondizioniDiVendita::VERSIONE` è la data della versione in vigore e finisce
 su ogni ordine. **Si alza quando cambia la sostanza** (recesso, garanzia,
-pagamenti, consegna), non a ogni ritocco. Il PDF allegato alla conferma è il
-testo **pubblicato** della pagina (il cliente accetta quello che legge), con
-i link resi assoluti; il file dati serve solo se la pagina manca o è vuota in
-quella lingua. Se la redazione cambia la sostanza, va comunque alzata
-`VERSIONE`, che è ciò che resta scritto sull'ordine.
+pagamenti, consegna), non a ogni ritocco. È un'etichetta leggibile, non la
+prova: la redazione modifica le pagine dal pannello senza toccare il codice.
+
+**La prova è l'istantanea (dal 26/09/2026).** Alla creazione dell'ordine,
+shop e aste, `CondizioniDiVendita::registraIstantanea()` prende il testo
+**pubblicato** delle due pagine nella lingua dell'ordine (il cliente accetta
+quello che legge; il file dati solo se la pagina manca o è vuota), con i
+link resi assoluti, e ne salva lo sha256 su `orders.condizioni_impronta`. Il
+testo sta una volta sola in `versioni_condizioni` (impronta unica,
+`insertOrIgnore`): finché nessuno tocca le pagine, tutti gli ordini puntano
+alla stessa riga. Il PDF allegato alla conferma si genera da quella riga
+(`perLAllegatoDellOrdine`), non dalla pagina com'è al momento dell'invio; gli
+ordini senza impronta, nati prima, ripiegano sul testo corrente. Le righe di
+`versioni_condizioni` non si cancellano: sono la prova del contratto per
+tutto il tempo in cui si conserva l'ordine.
 
 Le pagine si creano solo se mancano (`creaLePagineMancanti`): una pagina con
 lo stesso slug scritta dalla redazione vince sempre.

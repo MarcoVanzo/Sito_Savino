@@ -38,9 +38,13 @@ return new class extends Migration
             });
         }
 
+        // Solo le pagine che nessuno ha piu' salvato dopo la creazione: una
+        // pagina modificata dalla redazione e' lavoro suo, e un rollback non
+        // deve cancellarlo (come in pagine_spedizioni_resi_e_regolamento_aste).
         DB::table('pages')
             ->whereIn('slug', [CondizioniDiVendita::SLUG_CONDIZIONI, CondizioniDiVendita::SLUG_RECESSO])
             ->where('template', 'Public/ContentPage')
+            ->whereColumn('updated_at', 'created_at')
             ->delete();
     }
 };

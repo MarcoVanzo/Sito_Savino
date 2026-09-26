@@ -22,12 +22,14 @@ Ultima verifica sul codice: **23 settembre 2026**.
 | Pagine pubbliche | `pages` con slug `privacy-policy` e `cookie-policy`, template `Public/ContentPage` |
 | Elenco dei cookie in fondo alla Cookie Policy | `database/data/cookie_rilevati.json` (scansione) descritto da `database/data/catalogo_cookie.json` |
 | Versione dell'informativa a cui si lega il consenso | `App\Models\ConsensoCookie::VERSIONE` |
-| Documenti PDF (fornitori, promozionale, governance) | Impostazioni → Documenti Legali, gruppo `legal`, file in `legal/` su Spaces |
+| Informativa comunicazioni promozionali e informativa fornitori (it + en) | `database/data/informative_da_documento.php`, letto da `App\Support\InformativeDaDocumento`; pagine `informativa-comunicazioni-promozionali` e `informativa-fornitori` (dal 26/09/2026, prima erano PDF) |
+| Documenti PDF di governance | Impostazioni → Documenti Legali, gruppo `legal`, file in `legal/` su Spaces |
 
 **I testi in produzione si correggono con una migrazione a guardie**, mai con un
 `update` diretto: la redazione può averli già riscritti dal pannello, e in quel
 caso la sua versione vince. La guardia è una delle `firme` del file dati — una
-frase che solo una versione precedente conteneva.
+frase che solo una versione precedente conteneva, e che quindi non compare nel
+testo attuale (lo verifica `tests/Unit/Support/FirmeDeiTestiLegaliTest.php`).
 
 Le `firme` sono **cumulative**: pubblicando una revisione si aggiunge la frase
 della versione che se ne va e non si toglie niente, altrimenti una migrazione
@@ -94,19 +96,25 @@ riconoscimento dei volti (§4):
   necessarie autorizzazioni da coloro che esercitano la responsabilità
   genitoriale».
 
-**Quattro caselle e tre denominazioni.** I documenti non concordano fra loro né
-con il sito su chi contattare e su come si chiama il titolare:
+**Chi contattare e come si chiama il titolare.** Fino al 26/09/2026 i
+documenti non concordavano fra loro né con il sito; da quando l'informativa
+promozionale e quella fornitori sono pagine (testi corretti in
+`database/data/informative_da_documento.php`), la discordanza resta solo nel
+Codice di condotta:
 
 | Dove | Contatto | Titolare |
 | --- | --- | --- |
-| Informativa del sito (pagine) | **`privacy@savinodelbenevolley.it`** | **Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata** |
-| Informativa promozionale, Fornitori | `privacy@savinodelbenevolley.it` | Pallavolo Scandicci Savino Del Bene ssdrl |
-| Codice di condotta | `privacy@pallavoloscandiccissd.it` | PALLAVOLO SCANDICCI VOLLEY SRL |
-| Informativa promozionale (paesi extra-SEE) | `privacy@savinodelbene.com` | — (è il dominio della Spa) |
+| Pagine del sito: Privacy, Cookie, comunicazioni promozionali, fornitori | **`privacy@savinodelbenevolley.it`** | **Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata** |
+| Codice di condotta (PDF) | `privacy@pallavoloscandiccissd.it` | PALLAVOLO SCANDICCI VOLLEY SRL |
+
+I PDF originali delle due informative (su Spaces, non più linkati) scrivevano
+«ssdrl» e, per l'elenco dei paesi extra-SEE del promozionale,
+`privacy@savinodelbene.com`, che è il dominio della Spa: le pagine li hanno
+sostituiti con la ragione sociale per esteso e con la casella del sito.
 
 **La ragione sociale giusta è la prima**, confermata il 23/09/2026: gli altri
-documenti la abbreviano («ssdrl») o la scrivono diversa («PALLAVOLO SCANDICCI
-VOLLEY SRL»). Fino a quel giorno l'informativa del sito diceva «Savino Del Bene
+documenti la abbreviavano («ssdrl», i PDF originali) o la scrivono diversa
+(«PALLAVOLO SCANDICCI VOLLEY SRL», il Codice di condotta). Fino a quel giorno l'informativa del sito diceva «Savino Del Bene
 Volley S.S.D. a r.l.», che è il nome con cui la squadra gioca e non la
 denominazione di nessuno: in un'informativa il titolare va per esteso, perché è
 la persona giuridica verso cui si esercitano i diritti. Il copyright del footer
@@ -115,10 +123,9 @@ continua invece a usare il nome d'uso, e va bene così.
 **La casella dei diritti è `privacy@savinodelbenevolley.it`**, confermata il
 23/09/2026: è la stessa che indicano l'informativa fornitori e quella
 promozionale. Non è `contact.email` (`info@`), che è il recapito generale del
-sito e resta dov'è — footer, pagina Contatti, modulo contatti. Restano fuori
-solo il Codice di condotta, che manda a `privacy@pallavoloscandiccissd.it`, e
-l'elenco dei paesi extra-SEE del PDF promozionale, che manda al dominio della
-Spa: sono PDF, si correggono da dove sono stati scritti.
+sito e resta dov'è — footer, pagina Contatti, modulo contatti. Resta fuori
+solo il Codice di condotta, che manda a `privacy@pallavoloscandiccissd.it`: è
+un PDF, si corregge da dove è stato scritto.
 
 Gli altri dati del titolare stanno nelle impostazioni, gruppo `contact`
 (`legal_cf`, `legal_piva`, `legal_sdi`, `pec`, `address`) e sono corretti.
@@ -132,11 +139,11 @@ Gli altri dati del titolare stanno nelle impostazioni, gruppo `contact`
 | IP, browser, pagina | log del server; `sessions.ip_address`, `sessions.user_agent` | Laravel | sessione: 2 h di inattività (`SESSION_LIFETIME`) |
 | Messaggi del modulo contatti | `contact_messages` | `ContactRequest` | 24 mesi dalla data del messaggio (`messaggi:pota`, settimanale) |
 | Accrediti stampa (nome, telefono, testata, ruolo, gara) | `contact_messages` + `extra_data` | `PressAccreditationRequest` | idem, riga intera |
-| Iscritti alla newsletter (email, nome, IP della richiesta, data di conferma) | `newsletter_subscribers`, poi ActiveCampaign **solo dopo la conferma** (doppio opt-in, `confermato_il`) | `NewsletterRequest`, `NewsletterSubscriber::conferma`, `SyncNewsletterToActiveCampaign` | fino alla disiscrizione; una richiesta mai confermata 30 giorni (`model:prune`, `NewsletterSubscriber::prunable`) |
+| Iscritti alla newsletter (email, nome, IP della richiesta, data di conferma) | `newsletter_subscribers`, poi ActiveCampaign **solo dopo la conferma** (doppio opt-in, `confermato_il`) e mai dopo la disiscrizione (il job rilegge la riga); al massimo tre email di conferma al giorno per indirizzo (chiave con l'impronta dell'email) | `NewsletterRequest`, `NewsletterSubscriber::conferma`, `SyncNewsletterToActiveCampaign` | fino alla disiscrizione; una richiesta mai confermata 30 giorni (`model:prune`, `NewsletterSubscriber::prunable`) |
 | Ordini: nome, indirizzi, telefono, codice fiscale | `orders`, `order_items` | `StoreCheckoutRequest` | 10 anni (obbligo fiscale) |
 | Dichiarazioni di recesso (nome, email, numero d'ordine, articoli, data e ora) | `richieste_di_recesso` | `RecessoController` (art. 54-bis) | 12 mesi dall'invio (`model:prune`, `RichiestaDiRecesso::prunable`); il rimborso resta sull'ordine |
 | Offerte d'asta | `bids` | `BidService` | con l'asta; in pagina il nome esce abbreviato (`AuctionService::maskUsername`) |
-| Account dello shop | `users`, `password_histories` | registrazione | finché attivo; il cliente lo esporta e lo cancella da `/shop/account` (`AccountController`, `DatiDelCliente`). Alla cancellazione le righe di `activity_logs` che lo riguardano perdono dati e IP (`DatiDelCliente::cancella`) |
+| Account dello shop | `users`, `password_histories` | registrazione | finché attivo; il cliente lo esporta e lo cancella da `/shop/account` (`AccountController`, `DatiDelCliente`). Alla cancellazione le righe di `activity_logs` che lo riguardano perdono dati e IP, il cliente Stripe (se c'è) si cancella, e gli ordini — che restano per l'obbligo fiscale — ricevono nome ed email dell'account dove non li avevano (`guest_name`/`guest_email`: l'ordine d'asta non li valorizza), per spedizione, rimborso e recesso (`DatiDelCliente::cancella`). L'esportazione comprende gli ordini da ospite con la stessa email solo se l'email è verificata, e il carrello |
 | Carrelli | `carts`, `cart_items` | | 7 giorni (`carts:prune-expired`, `Cart::prunable`) |
 | Prova del consenso ai cookie | `consensi_cookie` | `ConsensoCookieController` | 12 mesi (`consensi:pota`, settimanale) |
 | Chi ha modificato cosa nel pannello | `activity_logs` | `LogsActivity` | 180 giorni (`activity-log:prune`) |
@@ -241,14 +248,16 @@ ogni settimana.
    può trovare cookie di terze parti prima della scelta: è un difetto vero, non
    un falso positivo, e non va silenziato.
 
-3. **Due PDF mandano i diritti a caselle diverse.** Ragione sociale e casella
-   del sito sono risolte (§1): l'informativa manda a
-   `privacy@savinodelbenevolley.it`, come i PDF fornitori e promozionale. Il
-   Codice di condotta indica però `privacy@pallavoloscandiccissd.it` e il PDF
-   promozionale, per l'elenco dei paesi extra-SEE, `privacy@savinodelbene.com`
-   — che è il dominio della Spa, non della società sportiva. Sono gli indirizzi
-   a cui un interessato scrive per esercitare i propri diritti: o rispondono, o
-   i due documenti vanno corretti da chi li ha scritti. Da qui non si toccano.
+3. **Il Codice di condotta manda i diritti a un'altra casella.** Ragione
+   sociale e casella del sito sono risolte (§1): tutte le informative del sito,
+   comprese dal 26/09/2026 quella promozionale e quella fornitori (ora pagine),
+   mandano a `privacy@savinodelbenevolley.it` — l'indirizzo extra-SEE
+   `privacy@savinodelbene.com` del vecchio PDF promozionale non è più
+   pubblicato. Resta il Codice di condotta, che indica
+   `privacy@pallavoloscandiccissd.it` e il titolare «PALLAVOLO SCANDICCI VOLLEY
+   SRL»: è l'indirizzo a cui un interessato scrive per esercitare i propri
+   diritti, quindi o risponde, o il documento va corretto da chi l'ha scritto.
+   Da qui non si tocca.
 
 ---
 

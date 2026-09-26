@@ -28,7 +28,8 @@ class CartController extends Controller
         $total = $this->cartService->getCartTotal();
         $itemCount = $this->cartService->getItemCount();
 
-        $mappedItems = $cart?->items?->map(fn ($item) => $this->mapCartItem($item)) ?? collect();
+        $richiesti = CartService::quantitaPerPezzo($cart->items ?? []);
+        $mappedItems = $cart?->items?->map(fn ($item) => $this->mapCartItem($item, $richiesti)) ?? collect();
 
         return Inertia::render('Public/Shop/Cart', [
             'cart' => [
@@ -160,7 +161,8 @@ class CartController extends Controller
     {
         $cart = $this->cartService->getCart();
 
-        $items = $cart?->items?->map(fn ($item) => $this->mapCartItem($item)) ?? collect();
+        $richiesti = CartService::quantitaPerPezzo($cart->items ?? []);
+        $items = $cart?->items?->map(fn ($item) => $this->mapCartItem($item, $richiesti)) ?? collect();
 
         // Calcola totale e conteggio in-memory invece di ri-fetchare il cart
         $total = $cart?->items?->sum(fn ($item) => $item->prezzoUnitario() * $item->quantity) ?? 0;
@@ -177,12 +179,22 @@ class CartController extends Controller
     /**
      * Mappa un CartItem in un array normalizzato.
      * Usato sia da index() (Inertia) che da data() (JSON).
+     *
+     * Lo stesso pezzo puo' stare su due righe, con e senza firma, e la
+     * giacenza e' una sola (CartService::quantitaPerPezzo): `disponibili` e'
+     * la quantita' massima che questa riga puo' raggiungere tolte le altre, ed
+     * e' il limite del "+"; `stock_warning` guarda la somma delle righe.
+     *
+     * @param  array<string, int>  $richiesti  pezzi richiesti per prodotto/taglia
      */
-    private function mapCartItem($item): array
+    private function mapCartItem($item, array $richiesti): array
     {
         $availableStock = $item->variant
             ? (int) $item->variant->stock
             : (int) ($item->product->stock ?? 0);
+
+        $sulPezzo = $richiesti[CartService::chiaveDelPezzo($item->product_id, $item->product_variant_id)] ?? $item->quantity;
+        $sulleAltreRighe = $sulPezzo - $item->quantity;
 
         $variantStr = $item->variant
             ? trim(implode(' - ', array_filter([$item->variant->size, $item->variant->color])))
@@ -202,7 +214,8 @@ class CartController extends Controller
             'image' => $item->product?->getImageUrl('card'),
             'image_url' => $item->product?->getImageUrl('card'),
             'stock' => $availableStock,
-            'stock_warning' => $item->quantity > $availableStock,
+            'disponibili' => max(0, $availableStock - $sulleAltreRighe),
+            'stock_warning' => $sulPezzo > $availableStock,
         ];
     }
 }

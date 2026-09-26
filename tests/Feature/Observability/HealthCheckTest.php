@@ -9,9 +9,12 @@ use App\Models\User;
 use App\Support\SchedulerHeartbeat;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -176,6 +179,50 @@ class HealthCheckTest extends TestCase
     }
 
     #[Test]
+    public function il_silenziatore_del_pianificatore_sopravvive_al_rilascio(): void
+    {
+        // `cache:clear` di start.sh non deve far ripartire l'avviso orario.
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => UserRole::SuperAdmin->value])->save();
+
+        $this->app['env'] = 'production';
+        Cache::forget(SchedulerHeartbeat::CACHE_KEY);
+
+        $this->get('/up');
+        $this->travel(3)->minutes();
+        $this->get('/up');
+
+        Artisan::call('cache:clear');
+        $this->get('/up');
+        $this->travel(3)->minutes();
+        $this->get('/up');
+
+        $this->assertSame(
+            1,
+            $admin->notifications()->whereJsonContains('data->title', 'Il pianificatore si è fermato')->count(),
+        );
+    }
+
+    #[Test]
+    public function un_avviso_sul_pianificatore_non_partito_si_ritenta(): void
+    {
+        // Resend giù al momento dell'avviso: il silenziatore si libera e il
+        // controllo successivo riprova, invece di tacere per un'ora.
+        config(['services.avvisi.email' => 'marco@example.com']);
+        Mail::shouldReceive('raw')->once()->andThrow(new RuntimeException('Resend irraggiungibile'));
+        Mail::shouldReceive('raw')->once();
+
+        $this->app['env'] = 'production';
+        Cache::forget(SchedulerHeartbeat::CACHE_KEY);
+
+        $this->get('/up');
+        $this->travel(3)->minutes();
+        $this->get('/up')->assertOk();
+        $this->get('/up')->assertOk();
+        $this->get('/up')->assertOk();
+    }
+
+    #[Test]
     public function con_un_battito_recente_non_avvisa_nessuno(): void
     {
         $admin = User::factory()->create();
@@ -202,7 +249,7 @@ class HealthCheckTest extends TestCase
     #[Test]
     public function un_database_irraggiungibile_fa_fallire_il_controllo(): void
     {
-        DB::shouldReceive('connection')->andThrow(new \RuntimeException('Connection refused'));
+        DB::shouldReceive('connection')->andThrow(new RuntimeException('Connection refused'));
 
         $this->expectException(UnhealthyApplicationException::class);
         $this->expectExceptionMessage('database');

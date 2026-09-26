@@ -2,12 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\EsitoAvviso;
 use App\Enums\PaymentGateway;
 use App\Models\SiteSetting;
 use App\Services\AvvisoTecnico;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -21,9 +22,11 @@ use Illuminate\Support\Facades\DB;
  *
  * Ogni controllo avvisa quando la condizione **cambia** — guasto comparso,
  * guasto rientrato — e non a ogni giro: un negozio chiuso apposta per una
- * settimana produce due email, non mille. Lo stato precedente sta in cache;
- * `start.sh` la svuota a ogni rilascio, quindi un guasto che dura attraversa
- * il deploy e viene ricordato una volta in più. È il comportamento voluto.
+ * settimana produce due email, non mille. Lo stato precedente sta nello store
+ * `persistente` (AvvisoTecnico::memoria()), che il `cache:clear` di `start.sh`
+ * non tocca: un guasto che dura attraversa il rilascio senza essere
+ * riannunciato. Lo stato si scrive solo dopo un invio riuscito (o silenziato,
+ * o senza destinatari): se Resend fallisce, il giro successivo riprova.
  *
  * Non guarda gli ordini in attesa di pagamento: sono quasi sempre checkout
  * abbandonati, `order:check-unpaid` li annulla dopo un'ora, e i casi in cui il
@@ -52,6 +55,11 @@ class SorvegliaLoShop extends Command
         parent::__construct();
     }
 
+    private function memoria(): Repository
+    {
+        return AvvisoTecnico::memoria();
+    }
+
     public function handle(): int
     {
         $this->interruttore('negozio', 'shop.enabled', 'Il negozio è chiuso', 'Il negozio è di nuovo aperto');
@@ -62,13 +70,17 @@ class SorvegliaLoShop extends Command
 
         $this->controlla('pagamento-aste', $this->problemaDelleAste(), 'Le aste non si possono pagare');
 
-        if ($this->negozioAperto() && in_array(PaymentGateway::PayPal, PaymentGateway::offertiAlCheckout(), true)
-            && Cache::add('sorveglianza:paypal-controllato', true, self::PAYPAL_OGNI_SECONDI)) {
+        if (! $this->negozioAperto() || ! in_array(PaymentGateway::PayPal, PaymentGateway::offertiAlCheckout(), true)) {
+            // Il controllo non si applica (PayPal tolto dai metodi o negozio
+            // chiuso): un guasto ricordato da prima non vale più, e se PayPal
+            // torna rotto va riannunciato.
+            $this->memoria()->forget('sorveglianza:guasto:paypal');
+        } elseif ($this->memoria()->add('sorveglianza:paypal-controllato', true, self::PAYPAL_OGNI_SECONDI)) {
             $paypal = $this->problemaDiPayPal();
 
-            // `false` = la verifica non ha potuto rispondere (rete, timeout):
-            // non è un guasto e nemmeno una guarigione, quindi niente email in
-            // nessuna delle due direzioni.
+            // `false` = la verifica non ha potuto rispondere (rete, timeout,
+            // 5xx/429 di PayPal): non è un guasto e nemmeno una guarigione,
+            // quindi niente email in nessuna delle due direzioni.
             if ($paypal !== false) {
                 $this->controlla('paypal', $paypal, 'PayPal non è configurato correttamente');
             }
@@ -81,33 +93,31 @@ class SorvegliaLoShop extends Command
      * Gli interruttori si possono spegnere apposta: qui si avvisa del cambio,
      * in entrambe le direzioni, perché chi riceve l'email possa dire "sì, l'ho
      * chiesto io" o accorgersi che non l'ha chiesto nessuno. Il primo giro
-     * dopo un rilascio scrive solo se trova l'interruttore spento.
+     * senza stato precedente scrive solo se trova l'interruttore spento.
      */
     private function interruttore(string $nome, string $chiave, string $spento, string $acceso): void
     {
         $ora = filter_var(SiteSetting::get($chiave, true), FILTER_VALIDATE_BOOLEAN);
         $chiaveCache = 'sorveglianza:interruttore:'.$nome;
-        $prima = Cache::get($chiaveCache);
+        $prima = $this->memoria()->get($chiaveCache);
 
-        Cache::forever($chiaveCache, $ora);
         $this->line(ucfirst($nome).': '.($ora ? 'acceso' : 'spento'));
 
         if ($prima === null) {
-            // Primo giro dopo un rilascio (start.sh svuota la cache): lo stato
+            // Primo giro in assoluto (o store persistente svuotato): lo stato
             // precedente non si conosce. Un interruttore acceso non merita
             // un'email; uno spento sì, perché il Salva che lo ha spento può
             // essere caduto proprio fra l'ultimo giro e il deploy — è il caso
-            // del 21/09. Il silenziatore di un giorno evita che ogni rilascio
-            // lo riannunci.
-            if (! $ora) {
-                $this->avviso->invia(
-                    $spento,
-                    $spento.".\n\nL'impostazione `{$chiave}` risulta spenta al primo controllo dopo un rilascio. "
-                        .'Se non è voluto, si riaccende da Impostazioni Shop & Aste o con `php artisan shop:stato`.',
-                    'interruttore:'.$nome.':0:dopo-rilascio',
-                    86400,
-                );
-            }
+            // del 21/09. Il silenziatore di un giorno evita di riannunciarlo.
+            $esito = $ora ? null : $this->avviso->invia(
+                $spento,
+                $spento.".\n\nL'impostazione `{$chiave}` risulta spenta al primo controllo della sorveglianza. "
+                    .'Se non è voluto, si riaccende da Impostazioni Shop & Aste o con `php artisan shop:stato`.',
+                'interruttore:'.$nome.':0:dopo-rilascio',
+                86400,
+            );
+
+            $this->ricorda($chiaveCache, $ora, $esito);
 
             return;
         }
@@ -116,13 +126,26 @@ class SorvegliaLoShop extends Command
             return;
         }
 
-        $this->avviso->invia(
+        $esito = $this->avviso->invia(
             $ora ? $acceso : $spento,
             ($ora ? $acceso : $spento).".\n\nL'impostazione `{$chiave}` è cambiata negli ultimi minuti. "
                 .'Se non è stato fatto apposta, si ripristina da Impostazioni Shop & Aste o con `php artisan shop:stato`.',
             'interruttore:'.$nome.':'.($ora ? '1' : '0'),
             0,
         );
+
+        $this->ricorda($chiaveCache, $ora, $esito);
+    }
+
+    /**
+     * Scrive il nuovo stato solo se l'avviso non è fallito: altrimenti il
+     * giro dopo trova ancora lo stato vecchio e riprova.
+     */
+    private function ricorda(string $chiaveCache, bool $ora, ?EsitoAvviso $esito): void
+    {
+        if ($esito === null || $esito->chiuso()) {
+            $this->memoria()->forever($chiaveCache, $ora);
+        }
     }
 
     /**
@@ -131,14 +154,13 @@ class SorvegliaLoShop extends Command
     private function controlla(string $nome, ?string $problema, string $oggetto): void
     {
         $chiaveCache = 'sorveglianza:guasto:'.$nome;
-        $eraGuasto = Cache::get($chiaveCache) === true;
+        $eraGuasto = $this->memoria()->get($chiaveCache) === true;
 
         if ($problema === null) {
             $this->line($nome.': ok');
 
-            if ($eraGuasto) {
-                Cache::forget($chiaveCache);
-                $this->avviso->invia('Risolto: '.lcfirst($oggetto), 'La condizione segnalata in precedenza non si presenta più.', 'risolto:'.$nome, 0);
+            if ($eraGuasto && $this->avviso->invia('Risolto: '.lcfirst($oggetto), 'La condizione segnalata in precedenza non si presenta più.', 'risolto:'.$nome, 0)->chiuso()) {
+                $this->memoria()->forget($chiaveCache);
             }
 
             return;
@@ -150,8 +172,9 @@ class SorvegliaLoShop extends Command
             return;
         }
 
-        Cache::forever($chiaveCache, true);
-        $this->avviso->invia($oggetto, $problema, 'guasto:'.$nome, 0);
+        if ($this->avviso->invia($oggetto, $problema, 'guasto:'.$nome, 0)->chiuso()) {
+            $this->memoria()->forever($chiaveCache, true);
+        }
     }
 
     private function negozioAperto(): bool
@@ -219,7 +242,14 @@ class SorvegliaLoShop extends Command
             report($e);
 
             // Si riprova al giro dopo invece di aspettare un'ora.
-            Cache::forget('sorveglianza:paypal-controllato');
+            $this->memoria()->forget('sorveglianza:paypal-controllato');
+
+            return false;
+        }
+
+        if ($esito === VerificaPayPal::TRANSITORIO) {
+            // PayPal in difficoltà (5xx, 429, timeout): "non so", come sopra.
+            $this->memoria()->forget('sorveglianza:paypal-controllato');
 
             return false;
         }

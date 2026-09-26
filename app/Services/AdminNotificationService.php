@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\EsitoAvviso;
 use App\Enums\UserRole;
 use App\Models\Order;
 use App\Models\Product;
@@ -151,11 +152,14 @@ class AdminNotificationService
      * @param  string  $jobName  classe del job
      * @param  string  $reason  messaggio dell'eccezione
      * @param  string|null  $queue  coda da cui arriva il job
+     * @return EsitoAvviso|null null per la coda `ai`, che non va per email
      */
-    public function notifyJobFailed(string $jobName, string $reason, ?string $queue = null): void
+    public function notifyJobFailed(string $jobName, string $reason, ?string $queue = null): ?EsitoAvviso
     {
+        $esito = null;
+
         if ($queue !== 'ai') {
-            $this->avviso->invia(
+            $esito = $this->avviso->invia(
                 'Job in coda fallito: '.class_basename($jobName),
                 class_basename($jobName)." ha esaurito i tentativi.\n\n".Str::limit($reason, 1000)
                     ."\n\nI dettagli sono su Sentry; il job resta in failed_jobs (php artisan queue:retry).",
@@ -171,6 +175,8 @@ class AdminNotificationService
                 ->iconColor('danger'),
             [UserRole::SuperAdmin->value],
         );
+
+        return $esito;
     }
 
     /**
@@ -183,7 +189,7 @@ class AdminNotificationService
      *
      * @param  int|null  $secondsSinceLastBeat  null se non è mai partito
      */
-    public function notifySchedulerStalled(?int $secondsSinceLastBeat): void
+    public function notifySchedulerStalled(?int $secondsSinceLastBeat): EsitoAvviso
     {
         $when = $secondsSinceLastBeat === null
             ? 'Non è mai partito dall\'ultimo rilascio.'
@@ -200,7 +206,8 @@ class AdminNotificationService
 
         // Il silenziatore orario sta già in VerifyApplicationHealth: finché il
         // guasto dura arriva una email all'ora, che fa anche da promemoria.
-        $this->avviso->invia(
+        // L'esito torna a chi chiama, che su un fallimento lo libera.
+        return $this->avviso->invia(
             'Il pianificatore si è fermato',
             $when.' Aste, sblocco degli ordini non pagati, sorveglianza dello shop e sincronizzazione con la Lega sono fermi.'
                 ."\n\nSi riavvia il componente `scheduler` da DigitalOcean.",

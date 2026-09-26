@@ -95,7 +95,7 @@ l'app è agganciata con la voce `vpc:` della spec.
 | **Predis** | Client Redis (pronto per futuro uso) |
 | **Spatie Translatable** | Contenuti multilingua |
 | **Spatie Sitemap** | Generazione sitemap SEO |
-| **Sentry** | Error tracking (web, worker e scheduler; attivo solo quando `SENTRY_LARAVEL_DSN` è valorizzato — oggi è vuoto, quindi spento) |
+| **Sentry** | Error tracking (web, worker e scheduler, più gli errori JavaScript via `/api/diagnostica`; attivo dal 25/09/2026 con `SENTRY_LARAVEL_DSN` valorizzato) |
 | **PayPal** (REST API, `PayPalPaymentService`) | Pagamenti shop e aste, modalità `live`; `php artisan paypal:verifica` controlla credenziali e webhook |
 | **Stripe** (`stripe/stripe-php`) | Pagamenti shop — chiavi `STRIPE_*` non nello spec: il metodo non viene offerto al checkout (`PaymentGateway::configurato()`) |
 | **ActiveCampaign** | Newsletter (iscrizioni e revoche via coda) |
@@ -145,7 +145,8 @@ l'app è agganciata con la voce `vpc:` della spec.
                                         → Seeder idempotenti di configurazione
 3. php artisan storage:link             → Crea symlink storage/
 4. php artisan cache:clear              → Pulisce cache vecchia (cancella anche il
-                                          battito dello scheduler, vedi health check)
+                                          battito dello scheduler, vedi health check;
+                                          NON tocca lo store `persistente` degli avvisi)
    php artisan gallery:riscalda-cache   → Accoda la ricostruzione dell'archivio foto
                                           (12.000 foto): non la paga il primo visitatore
 5. php artisan config:cache             → Solo se le credenziali AWS sono presenti
@@ -315,6 +316,40 @@ Passare al CDN significa cambiare `AWS_URL` sullo spec (web, worker e
 scheduler) e verificare che l'endpoint CDN sia attivo sul bucket; gli indirizzi
 già salvati in chiaro nei contenuti (HTML delle notizie) resterebbero
 sull'origine.
+
+**CORS del bucket: serve al pannello, non al sito.** Il sito pubblico mostra
+le immagini con `<img>`, che non chiede permessi. Il pannello no: FilePond,
+nei campi di upload di Filament e Media Library, **scarica con `fetch()`** i
+file già caricati per mostrarne l'anteprima, e una richiesta cross-origin
+verso Spaces passa solo se il bucket la ammette. La CSP del pannello
+(`connect-src` con l'host di Spaces, #105) è la metà nostra; l'altra metà è
+la regola CORS del bucket, che **non sta nel repository né nella spec** e si
+cambia dal pannello DigitalOcean (Spaces → `sito-savino-assets-2026` →
+Settings → CORS). Senza, le foto dei prodotti restano in "Caricamento" e non
+si possono modificare, senza nessun errore lato server.
+
+Stato letto il 26/09/2026 con richieste di preflight (`OPTIONS` con
+`Origin`), in sola lettura:
+
+| Origine | Esito |
+| --- | --- |
+| `https://seashell-app-47mmf.ondigitalocean.app` | ammessa (GET, HEAD), `max-age` 86400 |
+| `http://localhost:8000` | ammessa (GET) |
+| `https://savinodelbenevolley.it`, `https://www.savinodelbenevolley.it` | **rifiutate** (403) |
+
+Il giorno del cambio dominio le due origini nuove vanno aggiunte alle
+AllowedOrigins (metodi GET e HEAD, come l'anteprima): è un passo di
+`docs/GO_LIVE.md`. L'origine `ondigitalocean.app` resta, perché l'indirizzo di
+anteprima continua a rispondere. Per verificare dopo la modifica:
+
+```
+curl -s -D - -o /dev/null -X OPTIONS \
+  -H "Origin: https://savinodelbenevolley.it" \
+  -H "Access-Control-Request-Method: GET" \
+  https://sito-savino-assets-2026.fra1.digitaloceanspaces.com/
+```
+
+deve rispondere 200 con `access-control-allow-origin` uguale all'origine.
 
 > ⚠️ Le conversioni richiedono **GD**, che il buildpack `heroku/php` non abilita
 > per impostazione predefinita: va richiesto con `"ext-gd": "*"` fra i `require`
@@ -680,7 +715,7 @@ da qui non è verificabile. Dettagli, setup e restore in [`BACKUP.md`](../BACKUP
 | Cookie sicuri | ✅ `SESSION_SECURE_COOKIE` attivo |
 | Debug disattivato | ✅ `APP_DEBUG=false` |
 | Secret in env vars | ✅ Tutti cifrati (`EV[1:…]`) in `.do/app.yaml`. ⚠️ `ACTIVECAMPAIGN_API_KEY` è stata in chiaro nel repository pubblico: va ancora **ruotata** |
-| Error tracking | ⚠️ Sentry spento (`SENTRY_LARAVEL_DSN` vuoto) e `LOG_LEVEL=error`: i warning non si vedono da nessuna parte |
+| Error tracking | ✅ Sentry attivo dal 25/09/2026 (server ed errori JavaScript). ⚠️ `LOG_LEVEL=error`: i warning restano fuori dai log |
 | Trust proxies | ✅ Configurato per App Platform |
 | Health check | ✅ `/up` verifica database e cache; segnala (senza far fallire) uno scheduler fermo |
 
@@ -728,7 +763,7 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 
 ### Avvisi
 
-Quattro livelli, ciascuno per ciò che gli altri non possono vedere:
+Sei livelli, ciascuno per ciò che gli altri non possono vedere:
 
 | Livello | Vede | Arriva a |
 |---------|------|----------|
@@ -747,4 +782,30 @@ deploy che aggiunge una regola se ne leggono gli id con
 
 AvvisoTecnico manda in modo **sincrono** (non in coda: la coda ferma è uno dei
 guasti da segnalare) e non lancia mai: un Resend irraggiungibile non deve far
-fallire un webhook di pagamento.
+fallire un webhook di pagamento. `invia()` restituisce un `EsitoAvviso`
+(inviato, silenziato, senza destinatari, fallito): chi ricorda di aver già
+avvisato — lo stato di `shop:sorveglia`, il silenziatore dell'health check e
+quello dei job falliti — lo scrive o lo tiene solo se l'invio non è fallito,
+così un Resend giù in quel momento non spegne l'avviso per sempre.
+L'avviso sul pianificatore fermo parte con `defer()`, dopo la risposta di
+`/up` (DigitalOcean aspetta 5 s, l'invio a Resend fino a 10).
+
+**Lo stato degli avvisi sta nello store di cache `persistente`**
+(`config/cache.php`, tabelle `cache_persistente` e `cache_persistente_locks`),
+non in quello predefinito: `start.sh` esegue `cache:clear` a ogni avvio, e con
+silenziatori e stato di `shop:sorveglia` lì dentro ogni rilascio rimandava gli
+avvisi già mandati. Si legge con `AvvisoTecnico::memoria()`; nei test il
+driver è `array` (`CACHE_PERSISTENTE_DRIVER` in `phpunit.xml`).
+
+Il webhook di Resend avvisa solo per i destinatari con un ordine negli ultimi
+30 giorni (email dell'ospite o dell'account), al massimo 10 avvisi l'ora: gli
+altri indirizzi (newsletter, ricevute del recesso) li scrive chiunque, e
+finiscono nel log senza l'indirizzo.
+
+**Limiti di `sorveglianza-sito.yml`.** È una rete di sicurezza, non un
+monitor: GitHub manda un'email a **ogni** run fallita (un sito giù per un'ora
+sono sei email) e **nessuna** alla guarigione; la puntualità del cron non è
+garantita (10-15 minuti di ritardo nelle ore di punta); e GitHub **disattiva i
+workflow schedulati dopo 60 giorni** senza attività nel repository, senza
+avvisare chi li riceve. Conviene affiancargli un monitor esterno dedicato
+(UptimeRobot, Better Stack) su `/up`, con avviso alla caduta e al ritorno.

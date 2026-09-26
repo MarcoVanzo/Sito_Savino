@@ -212,6 +212,16 @@ class PermalinkVecchioSitoTest extends TestCase
     }
 
     #[Test]
+    public function il_pdf_dell_informativa_fornitori_porta_alla_pagina(): void
+    {
+        // Era un PDF nella libreria media di WordPress, linkato dal footer:
+        // dal 26/09/2026 e' una pagina, e il vecchio indirizzo ci arriva.
+        $this->get('/wp-content/uploads/2021/06/Informativa-Fornitori.pdf')
+            ->assertRedirect('/informativa-fornitori')
+            ->assertStatus(301);
+    }
+
+    #[Test]
     public function i_vecchi_indirizzi_del_feed_portano_al_feed(): void
     {
         // WordPress serviva lo stesso feed su piu' indirizzi, e i feed per

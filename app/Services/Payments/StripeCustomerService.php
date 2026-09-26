@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Stripe\Checkout\Session as StripeSession;
 use Stripe\Customer;
+use Stripe\Exception\InvalidRequestException;
 use Stripe\Stripe;
 
 class StripeCustomerService
@@ -37,6 +38,21 @@ class StripeCustomerService
         Log::info("Stripe Customer creato per User #{$user->id}: {$customer->id}");
 
         return $customer->id;
+    }
+
+    /**
+     * Cancella il cliente su Stripe (account cancellato dal titolare, vedi
+     * DatiDelCliente::cancella). Un cliente già cancellato non è un errore.
+     */
+    public function cancellaCustomer(string $idCliente): void
+    {
+        try {
+            Customer::retrieve($idCliente)->delete();
+        } catch (InvalidRequestException $e) {
+            if ($e->getStripeCode() !== 'resource_missing') {
+                throw $e;
+            }
+        }
     }
 
     /**

@@ -2,9 +2,10 @@
 
 namespace App\Listeners;
 
+use App\Enums\EsitoAvviso;
 use App\Services\AdminNotificationService;
+use App\Services\AvvisoTecnico;
 use Illuminate\Queue\Events\JobFailed;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 /**
@@ -48,13 +49,21 @@ class AlertOnFailedJob
 
         // `add()` è atomico: se la chiave esiste già ritorna false senza
         // sovrascriverla. Con get()+put() due worker paralleli passerebbero
-        // entrambi il controllo prima che l'altro scriva.
-        $isFirstOfWindow = Cache::add($key, true, self::THROTTLE_SECONDS);
+        // entrambi il controllo prima che l'altro scriva. Sta nello store
+        // `persistente`, che il `cache:clear` dei rilasci non svuota.
+        $memoria = AvvisoTecnico::memoria();
+        $isFirstOfWindow = $memoria->add($key, true, self::THROTTLE_SECONDS);
 
         if (! $isFirstOfWindow) {
             return;
         }
 
-        $this->notifications->notifyJobFailed($jobName, $event->exception->getMessage(), $event->job->getQueue());
+        $esito = $this->notifications->notifyJobFailed($jobName, $event->exception->getMessage(), $event->job->getQueue());
+
+        // Email non partita: il prossimo fallimento dello stesso job riprova,
+        // invece di tacere per tutta l'ora.
+        if ($esito === EsitoAvviso::Fallito) {
+            $memoria->forget($key);
+        }
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\EsitoAvviso;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -26,6 +28,11 @@ use Throwable;
  * - **Silenziatore per chiave.** La stessa condizione non produce più di una
  *   email nella finestra indicata; `add()` è atomico, quindi regge anche fra
  *   web, worker e scheduler, che condividono la cache.
+ *
+ * Il silenziatore, e ogni altro stato che ricorda un avviso già mandato, sta
+ * nello store `persistente` (self::memoria()), non in quello predefinito:
+ * `start.sh` esegue `cache:clear` a ogni avvio, e con lo stato lì dentro ogni
+ * rilascio rimandava gli avvisi già mandati.
  */
 class AvvisoTecnico
 {
@@ -33,12 +40,12 @@ class AvvisoTecnico
      * @param  string  $chiave  identifica la condizione, per il silenziatore
      * @param  int  $silenzioSecondi  0 = nessun silenziatore
      */
-    public function invia(string $oggetto, string $testo, string $chiave, int $silenzioSecondi = 3600): bool
+    public function invia(string $oggetto, string $testo, string $chiave, int $silenzioSecondi = 3600): EsitoAvviso
     {
         $destinatari = self::destinatari();
 
         if ($destinatari === []) {
-            return false;
+            return EsitoAvviso::SenzaDestinatari;
         }
 
         $silenziatore = 'avviso-tecnico:'.$chiave;
@@ -46,8 +53,8 @@ class AvvisoTecnico
         // Anche il silenziatore sta dentro il try: con la cache su database
         // `add()` può lanciare, e chi chiama non deve accorgersene.
         try {
-            if ($silenzioSecondi > 0 && ! Cache::add($silenziatore, true, $silenzioSecondi)) {
-                return false;
+            if ($silenzioSecondi > 0 && ! self::memoria()->add($silenziatore, true, $silenzioSecondi)) {
+                return EsitoAvviso::Silenziato;
             }
 
             Mail::raw($testo."\n\n— ".config('app.url'), function (Message $message) use ($destinatari, $oggetto): void {
@@ -61,16 +68,25 @@ class AvvisoTecnico
             // quando la posta torna a funzionare.
             if ($silenzioSecondi > 0) {
                 try {
-                    Cache::forget($silenziatore);
+                    self::memoria()->forget($silenziatore);
                 } catch (Throwable) {
                     // la cache è giù: niente da liberare
                 }
             }
 
-            return false;
+            return EsitoAvviso::Fallito;
         }
 
-        return true;
+        return EsitoAvviso::Inviato;
+    }
+
+    /**
+     * Lo store dove vive lo stato degli avvisi: sopravvive al `cache:clear`
+     * dei rilasci (config/cache.php, `persistente`).
+     */
+    public static function memoria(): Repository
+    {
+        return Cache::store('persistente');
     }
 
     /**

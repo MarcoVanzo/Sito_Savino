@@ -160,7 +160,7 @@ const formatDate = (dateString) => {
                                     <p class="whitespace-pre-line">{{ order.shipping_address }}</p>
                                 </template>
                                 <template v-else>
-                                    <p class="text-gray-400 italic">{{ $t('shop.order_detail.no_address') || 'Indirizzo non disponibile' }}</p>
+                                    <p class="text-gray-500 italic">{{ $t('shop.order_detail.no_address') || 'Indirizzo non disponibile' }}</p>
                                 </template>
                             </div>
 

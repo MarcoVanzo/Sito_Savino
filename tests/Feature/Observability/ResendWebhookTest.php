@@ -2,6 +2,11 @@
 
 namespace Tests\Feature\Observability;
 
+use App\Http\Controllers\Webhooks\ResendWebhookController;
+use App\Models\Order;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -11,6 +16,8 @@ use Tests\TestCase;
  */
 class ResendWebhookTest extends TestCase
 {
+    use RefreshDatabase;
+
     private const SEGRETO = 'whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw';
 
     protected function setUp(): void
@@ -21,6 +28,16 @@ class ResendWebhookTest extends TestCase
             'services.resend.webhook_secret' => self::SEGRETO,
             'services.avvisi.email' => 'allarmi@example.com',
         ]);
+
+        $this->ordineDi('cliente@example.com');
+    }
+
+    private function ordineDi(string $email, int $giorniFa = 1): Order
+    {
+        $ordine = Order::factory()->create(['user_id' => null, 'guest_email' => $email]);
+        $ordine->forceFill(['created_at' => now()->subDays($giorniFa)])->save();
+
+        return $ordine;
     }
 
     /**
@@ -74,6 +91,53 @@ class ResendWebhookTest extends TestCase
             'Mailbox does not exist',
             AvvisoTecnicoTest::inviate()->sole()->getOriginalMessage()->getTextBody(),
         );
+    }
+
+    #[Test]
+    public function vale_anche_per_l_email_dell_account(): void
+    {
+        $utente = User::factory()->create(['email' => 'socio@example.com']);
+        Order::factory()->create(['user_id' => $utente->id]);
+
+        $this->notifica($this->rimbalzo('Socio@example.com'))->assertNoContent();
+
+        $this->assertSame(['[Sito Savino] Email rimbalzata: Socio@example.com'], $this->oggetti());
+    }
+
+    #[Test]
+    public function un_indirizzo_senza_ordini_recenti_resta_nel_log_senza_email(): void
+    {
+        // Newsletter e ricevute del recesso vanno a indirizzi scritti da
+        // chiunque: cento indirizzi inesistenti non devono diventare cento
+        // email ad allarmi@. Nel log nemmeno l'indirizzo.
+        $this->ordineDi('vecchio@example.com', giorniFa: 45);
+        Log::spy();
+
+        $this->notifica($this->rimbalzo('iscritto@example.com'))->assertNoContent();
+        $this->notifica($this->rimbalzo('vecchio@example.com'))->assertNoContent();
+
+        $this->assertSame([], $this->oggetti());
+        Log::shouldHaveReceived('warning')->twice()->withArgs(
+            fn (string $messaggio, array $contesto) => ! str_contains($messaggio.json_encode($contesto), '@example.com'),
+        );
+    }
+
+    #[Test]
+    public function gli_avvisi_hanno_un_tetto_orario(): void
+    {
+        for ($i = 0; $i < ResendWebhookController::AVVISI_ALL_ORA + 3; $i++) {
+            $this->ordineDi("cliente{$i}@example.com");
+            $this->notifica($this->rimbalzo("cliente{$i}@example.com"))->assertNoContent();
+        }
+
+        $this->assertCount(ResendWebhookController::AVVISI_ALL_ORA, $this->oggetti());
+
+        // Passata l'ora si torna ad avvisare.
+        $this->travel(61)->minutes();
+        $this->ordineDi('dopo@example.com');
+        $this->notifica($this->rimbalzo('dopo@example.com'));
+
+        $this->assertCount(ResendWebhookController::AVVISI_ALL_ORA + 1, $this->oggetti());
     }
 
     #[Test]

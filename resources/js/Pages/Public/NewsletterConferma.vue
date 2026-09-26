@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 
 /**
  * La conferma dell'iscrizione alla newsletter (doppio opt-in).
@@ -24,8 +24,17 @@ const fatto = computed(() => props.giaConfermata || Boolean(page.props.flash?.su
 
 const form = useForm({});
 
+// Confermata l'iscrizione il pulsante sparisce, e con lui il focus: finirebbe
+// sul <body> e lo screen reader non direbbe nulla. Lo si porta sul titolo, che
+// nel frattempo e' diventato "iscrizione confermata" (WCAG 2.4.3).
+const titolo = ref(null);
+
 function conferma() {
-    form.post(props.confermaUrl, { preserveScroll: true });
+    form.post(props.confermaUrl, {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => nextTick(() => titolo.value?.focus()),
+    });
 }
 </script>
 
@@ -38,7 +47,7 @@ function conferma() {
     <PublicLayout>
         <section class="py-24 px-4 sm:px-6 lg:px-8 bg-white min-h-[60vh] flex flex-col justify-center items-center text-center">
             <div class="max-w-xl mx-auto">
-                <h1 class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mb-4">
+                <h1 ref="titolo" tabindex="-1" class="text-3xl md:text-4xl font-black text-savino-blue uppercase tracking-tighter mb-4 focus:outline-none">
                     {{ fatto ? $t('newsletter.confirm_done_title') : $t('newsletter.confirm_title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mb-8"></div>

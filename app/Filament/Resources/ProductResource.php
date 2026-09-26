@@ -222,7 +222,10 @@ class ProductResource extends Resource
                                 ->all())
                             ->maxItems(EtichetteDelProdotto::MASSIMO)
                             ->columns(2)
-                            ->helperText('Nessuna selezionata: il prodotto non mostra etichette.')
+                            // "Nuovo" scelto a mano non scade: EtichetteDelProdotto lo
+                            // tratta come "Hot sales". Va detto qui, o chi lo spunta
+                            // si aspetta che sparisca da solo come quello automatico.
+                            ->helperText('Nessuna selezionata: il prodotto non mostra etichette. "Nuovo" scelto qui resta finché non lo togli: quello automatico, invece, sparisce da solo dopo 30 giorni.')
                             ->hidden(fn (Forms\Get $get): bool => (bool) $get('etichette_automatiche')),
                     ]),
 
@@ -239,6 +242,9 @@ class ProductResource extends Resource
                             ->numeric()
                             ->minValue(0)
                             ->default(0)
+                            // Svuotato arriverebbe come null a una colonna NOT NULL e
+                            // il prodotto non si salverebbe: vuoto vale "inclusa".
+                            ->dehydrateStateUsing(fn ($state) => blank($state) ? 0 : $state)
                             ->prefix('€')
                             ->helperText('Si somma al prezzo del pezzo. 0: inclusa nel prezzo.'),
                     ])->columns(2),

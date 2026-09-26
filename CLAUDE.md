@@ -1040,7 +1040,12 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   Mettere B sotto A non mette A sotto B (e' il cross-selling di WooCommerce da
   cui arriva la richiesta). La cache di mezz'ora resta solo sul ripiego
   automatico — quattro prodotti a caso della stessa categoria — perche' chi
-  collega un articolo nel pannello deve vederlo comparire subito.
+  collega un articolo nel pannello deve vederlo comparire subito. In cache
+  c'e' solo la scelta degli id: prezzo, etichette e giacenza delle card si
+  leggono a ogni richiesta. La vetrina (`public:shop`) la buttano anche le
+  taglie, i movimenti di magazzino e `prezzi:registra` quando uno sconto
+  programmato comincia o finisce: una card che dice IN OFFERTA o ULTIMO
+  RIMASTO quando non e' piu' vero e' la pratica ingannevole descritta sotto.
 - **La guida alle taglie si sceglie sul prodotto** fra i PDF caricati in
   "Guida Taglie & Contatti" (`App\Support\GuidaTaglie`): uno in particolare, la
   pagina generale con tutti, oppure nessuna e la voce sparisce — serve per le
@@ -1308,14 +1313,26 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
 - **`shop:sorveglia` guarda lo stato, non gli errori** (negozio spento, checkout
   senza metodi di pagamento, aste accese senza Stripe — il loro checkout passa
   solo da lì —, worker fermo, PayPal) e avvisa quando la condizione cambia,
-  non a ogni giro. Il primo giro dopo un rilascio (cache svuotata) avvisa se
-  trova il negozio spento, al massimo una volta al giorno; un errore di rete
-  verso PayPal non vale né come guasto né come guarigione. Non guarda gli
-  ordini in attesa: sono checkout abbandonati, e un incasso che non torna
-  avvisa già da sé.
-- **Un invio fallito non consuma il silenziatore** di `AvvisoTecnico`, e il
-  client di Resend ha un timeout (10 s, in `AppServiceProvider`): gli invii
-  sincroni partono anche dall'health check e dai webhook di pagamento.
+  non a ogni giro. Il primo giro senza stato precedente avvisa se trova il
+  negozio spento, al massimo una volta al giorno; un errore di rete, un 5xx o
+  un 429 di PayPal (`paypal:verifica` esce con `TRANSITORIO`) non valgono né
+  come guasto né come guarigione. Non guarda gli ordini in attesa: sono
+  checkout abbandonati, e un incasso che non torna avvisa già da sé.
+- **Lo stato degli avvisi sta nello store di cache `persistente`**
+  (`AvvisoTecnico::memoria()`, tabella `cache_persistente`), mai in quello
+  predefinito: `start.sh` fa `cache:clear` a ogni avvio, e silenziatori e
+  stato di `shop:sorveglia` lì dentro rimandavano gli avvisi a ogni rilascio.
+  Un silenziatore o uno stato nuovo di un avviso va lì.
+- **Un invio fallito non consuma il silenziatore** di `AvvisoTecnico`, né lo
+  stato di chi ricorda di aver avvisato: `invia()` restituisce `EsitoAvviso`, e
+  sorveglianza, health check e job falliti scrivono lo stato solo se l'esito
+  non è `Fallito`. Il client di Resend ha un timeout (10 s, in
+  `AppServiceProvider`); l'avviso del pianificatore parte con `defer()`, dopo
+  la risposta di `/up`.
+- **Il webhook di Resend avvisa solo per i clienti**: destinatario con un
+  ordine negli ultimi 30 giorni, al massimo 10 avvisi l'ora. Newsletter e
+  ricevute del recesso vanno a indirizzi scritti da chiunque: quei rimbalzi
+  restano nel log, senza l'indirizzo.
 - **I job falliti della coda `ai` non vanno per email**: dipendono da
   CompreFace e si recuperano da soli al giro orario.
 - **Le destinazioni degli alert di DigitalOcean non stanno nella spec**: una
@@ -1325,8 +1342,10 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   (`resources/js/diagnostica.js`, `SentryTunnelController`): il browser non
   contatta Sentry, che quindi non riceve l'IP del visitatore — è ciò che
   l'informativa promette. Mandarli direttamente a `sentry.io` la renderebbe
-  falsa. Solo gli script del sito (`allowUrls`), niente BrowserSession: ogni
-  issue nuova è un'email in `allarmi@`.
+  falsa. Solo gli script del sito (`allowUrls`), niente BrowserSession né props
+  dei componenti (`attachProps: false`): ogni issue nuova è un'email in
+  `allarmi@`. Il tunnel inoltra solo gli item `event` e ha il limiter
+  `diagnostica` (30/min per IP, 300/min globale).
 - **Il webhook di Resend punta all'indirizzo `ondigitalocean.app`**, non al
   dominio: resta valido dopo il 1 ottobre. La firma è Svix con
   `RESEND_WEBHOOK_SECRET` (livello d'app); senza segreto ogni notifica è
@@ -1345,7 +1364,12 @@ Mappa completa in `docs/CONSUMATORI.md`. Vincoli:
 - **Condizioni di vendita e recesso sono pagine CMS con i testi in
   `database/data/condizioni_di_vendita.php`**, come le informative (§21). La
   versione accettata finisce su `orders.condizioni_versione`; si alza
-  `CondizioniDiVendita::VERSIONE` quando cambia la sostanza.
+  `CondizioniDiVendita::VERSIONE` quando cambia la sostanza. Ma la prova è
+  l'istantanea: la redazione riscrive le pagine dal pannello, quindi ogni
+  ordine (shop e aste) porta lo sha256 del testo pubblicato
+  (`orders.condizioni_impronta`) e il testo sta in `versioni_condizioni`; il
+  PDF della conferma si genera da lì (`perLAllegatoDellOrdine`), non dalla
+  pagina di oggi. Quelle righe non si cancellano.
 - **La conferma d'ordine porta venditore, recesso con modulo tipo, garanzia e
   il PDF delle condizioni** (art. 51 c. 7): il partial
   `emails/partials/informazioni-contrattuali` non si toglie.

@@ -4,6 +4,7 @@ namespace Tests\Feature\Shop;
 
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ShippingZone;
 use App\Models\User;
@@ -74,6 +75,11 @@ class CheckoutGatewayRedirectTest extends TestCase
 
         $response->assertStatus(409);
         $response->assertHeader('X-Inertia-Location', 'https://www.paypal.com/checkoutnow?token=TOKEN-TEST');
+
+        // Il testo delle condizioni accettate è fotografato sull'ordine.
+        $impronta = Order::latest('id')->value('condizioni_impronta');
+        $this->assertNotNull($impronta);
+        $this->assertDatabaseHas('versioni_condizioni', ['impronta' => $impronta]);
     }
 
     public function test_il_checkout_stripe_chiede_al_client_inertia_di_uscire_dal_sito(): void

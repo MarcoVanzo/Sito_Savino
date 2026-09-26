@@ -79,6 +79,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+    <!-- La finestra modale comprende la barra: con aria-modal sul solo elenco
+         delle voci, il pulsante di chiusura, la lingua, l'account e il
+         carrello sparivano per lo screen reader. Il ruolo c'e' solo a menu
+         aperto: chiuso, la barra e' parte normale della testata. Il
+         contenitore non e' posizionato: il pannello resta ancorato all'header. -->
+    <div
+        :role="isOpen ? 'dialog' : undefined"
+        :aria-modal="isOpen ? 'true' : undefined"
+        :aria-label="isOpen ? $t('nav.mobile_menu') : undefined"
+    >
     <!-- MOBILE MENU BUTTON -->
     <div v-show="visible" ref="barraMobile" class="flex items-center z-50 gap-1">
         <!-- Language Switcher slot (mobile) -->
@@ -232,4 +242,5 @@ onBeforeUnmount(() => {
             </div>
         </div>
     </transition>
+    </div>
 </template>
