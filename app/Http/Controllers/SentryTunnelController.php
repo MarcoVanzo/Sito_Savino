@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SentryDsn;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
@@ -15,8 +16,8 @@ use Throwable;
  * promette — la CSP non si allarga, e un blocco pubblicitario che ferma
  * `sentry.io` non nasconde i guasti.
  *
- * Non è un inoltro aperto: accetta solo buste indirizzate al DSN di questo sito,
- * e le spedisce all'host di quel DSN, mai a uno letto dalla richiesta. Il resto
+ * Non è un inoltro aperto: accetta solo buste indirizzate ai DSN di questo sito
+ * (SentryDsn::ammessiDalTunnel), e le spedisce all'host di quel DSN, mai a uno letto dalla richiesta. Il resto
  * lo limitano la dimensione massima e il limiter `diagnostica`
  * (AppServiceProvider: un tetto per indirizzo e uno globale, perché ogni
  * richiesta tiene occupato un processo PHP mentre aspetta Sentry).
@@ -39,16 +40,19 @@ class SentryTunnelController extends Controller
             return response('', 413);
         }
 
-        $dsn = (string) config('sentry.dsn');
+        $ammessi = SentryDsn::ammessiDalTunnel();
         $busta = $request->getContent();
 
-        if ($dsn === '' || $busta === '' || strlen($busta) > self::DIMENSIONE_MASSIMA) {
+        if ($ammessi === [] || $busta === '' || strlen($busta) > self::DIMENSIONE_MASSIMA) {
             return response('', 400);
         }
 
         $intestazione = json_decode(strtok($busta, "\n") ?: '', true);
+        $dsn = is_array($intestazione) ? ($intestazione['dsn'] ?? null) : null;
 
-        if (! is_array($intestazione) || ($intestazione['dsn'] ?? null) !== $dsn) {
+        // Confronto stretto con un elenco chiuso: l'host a cui si spedisce
+        // viene da uno dei nostri DSN, mai dalla richiesta.
+        if (! is_string($dsn) || ! in_array($dsn, $ammessi, true)) {
             return response('', 400);
         }
 
@@ -86,7 +90,7 @@ class SentryTunnelController extends Controller
         // Il 429 di Sentry torna al browser con le sue intestazioni: è così
         // che l'SDK rallenta. Mascherato da 202, un browser in un ciclo
         // d'errore continuerebbe a spedire e a consumare la quota del
-        // progetto, che è la stessa degli errori del server.
+        // progetto (quella del server, se SENTRY_BROWSER_DSN non è impostato).
         if ($risposta->status() === 429) {
             return response('', 429)->withHeaders(array_filter([
                 'X-Sentry-Rate-Limits' => $risposta->header('X-Sentry-Rate-Limits'),
