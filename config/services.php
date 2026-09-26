@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\SentryDsn;
+
 return [
 
     /*
@@ -16,6 +18,12 @@ return [
 
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
+    ],
+
+    // Progetto Sentry degli errori JavaScript, separato da quello del server
+    // (App\Support\SentryDsn::perIlBrowser). Vuoto: stesso DSN del server.
+    'sentry' => [
+        'browser_dsn' => SentryDsn::sanitize(env('SENTRY_BROWSER_DSN')),
     ],
 
     'resend' => [

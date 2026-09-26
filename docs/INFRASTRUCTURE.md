@@ -95,7 +95,7 @@ l'app è agganciata con la voce `vpc:` della spec.
 | **Predis** | Client Redis (pronto per futuro uso) |
 | **Spatie Translatable** | Contenuti multilingua |
 | **Spatie Sitemap** | Generazione sitemap SEO |
-| **Sentry** | Error tracking (web, worker e scheduler; attivo solo quando `SENTRY_LARAVEL_DSN` è valorizzato — oggi è vuoto, quindi spento) |
+| **Sentry** | Error tracking (web, worker e scheduler; attivo dal 25/09/2026 con `SENTRY_LARAVEL_DSN`). Gli errori JavaScript vanno al progetto di `SENTRY_BROWSER_DSN` (`sito-savino-browser`), con quota propria; vuoto, ripiegano su quello del server |
 | **PayPal** (REST API, `PayPalPaymentService`) | Pagamenti shop e aste, modalità `live`; `php artisan paypal:verifica` controlla credenziali e webhook |
 | **Stripe** (`stripe/stripe-php`) | Pagamenti shop — chiavi `STRIPE_*` non nello spec: il metodo non viene offerto al checkout (`PaymentGateway::configurato()`) |
 | **ActiveCampaign** | Newsletter (iscrizioni e revoche via coda) |

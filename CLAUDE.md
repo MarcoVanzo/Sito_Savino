@@ -1327,6 +1327,11 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   l'informativa promette. Mandarli direttamente a `sentry.io` la renderebbe
   falsa. Solo gli script del sito (`allowUrls`), niente BrowserSession: ogni
   issue nuova è un'email in `allarmi@`.
+- **Il browser ha un progetto Sentry suo** (`SENTRY_BROWSER_DSN`,
+  `SentryDsn::perIlBrowser()`): la quota di eventi è per progetto, e un errore
+  JavaScript ripetuto su migliaia di visite la esaurirebbe, zittendo gli errori
+  del server. Il tunnel accetta solo i due DSN del sito; vuoto, il browser
+  ripiega su quello del server.
 - **Il webhook di Resend punta all'indirizzo `ondigitalocean.app`**, non al
   dominio: resta valido dopo il 1 ottobre. La firma è Svix con
   `RESEND_WEBHOOK_SECRET` (livello d'app); senza segreto ogni notifica è
