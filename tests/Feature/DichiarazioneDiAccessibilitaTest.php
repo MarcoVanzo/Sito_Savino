@@ -33,6 +33,33 @@ class DichiarazioneDiAccessibilitaTest extends TestCase
     }
 
     #[Test]
+    public function dopo_le_migrazioni_i_limiti_sono_quelli_di_oggi(): void
+    {
+        $testo = Page::where('slug', 'dichiarazione-di-accessibilita')->first()->getTranslation('content', 'it');
+
+        // Il checkout ora lo percorre la scansione: il limite e' caduto.
+        $this->assertStringNotContainsString('non raggiunge le pagine che richiedono un carrello pieno', $testo);
+        $this->assertStringContainsString('Modello organizzativo', $testo);
+        $this->assertStringContainsString('screen reader simulato', $testo);
+        // Le notizie dell'archivio non sono piu' un limite: nessun impegno
+        // lasciato alla redazione.
+        $this->assertStringNotContainsString('a mano', $testo);
+        $this->assertStringContainsString('hanno un testo alternativo che ne riporta il contenuto', $testo);
+    }
+
+    #[Test]
+    public function il_testo_modificato_dalla_redazione_non_si_tocca(): void
+    {
+        $pagina = Page::where('slug', 'dichiarazione-di-accessibilita')->first();
+        $pagina->setTranslation('content', 'it', '<p>Scritto dalla redazione</p>')->save();
+
+        $migrazione = require database_path('migrations/2026_09_26_130000_dichiarazione_di_accessibilita_checkout_e_pdf.php');
+        $migrazione->up();
+
+        $this->assertSame('<p>Scritto dalla redazione</p>', $pagina->fresh()->getTranslation('content', 'it'));
+    }
+
+    #[Test]
     public function la_pagina_risponde(): void
     {
         $this->withoutVite();

@@ -213,7 +213,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 {{ $t('auction_checkout.deadline_note') }}
                             </p>
                         </div>
-                        <CountdownTimer :end-date="checkoutDeadline" :is-active="true" />
+                        <CountdownTimer :end-date="checkoutDeadline" :is-active="true" chiaro />
                     </div>
                 </div>
 
@@ -242,13 +242,13 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 :placeholder="$t('shop_checkout.placeholder_phone')"
                             />
                             <p v-if="form.errors.phone" id="errore-phone" class="mt-1 text-sm text-red-700">{{ form.errors.phone }}</p>
-                            <p class="mt-1 text-xs text-gray-400">{{ $t('shop_checkout.phone_shipping_note') }}</p>
+                            <p class="mt-1 text-xs text-gray-600">{{ $t('shop_checkout.phone_shipping_note') }}</p>
                         </div>
 
                         <!-- Spedizione -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <div class="flex items-center gap-3 mb-6">
-                                <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">1</span>
+                                <span aria-hidden="true" class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">1</span>
                                 <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">
                                     {{ $t('shop_checkout.shipping_title') }}
                                 </h2>
@@ -455,7 +455,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-500">{{ $t('shop_checkout.shipping') }}</span>
                                     <div class="text-right">
-                                        <span class="font-medium" :class="shippingCost === 0 ? 'text-green-600' : 'text-gray-900'">
+                                        <span class="font-medium" :class="shippingCost === 0 ? 'text-green-700' : 'text-gray-900'">
                                             {{ shippingCost === 0 ? $t('shop_checkout.free_shipping') : formatPrice(shippingCost) }}
                                         </span>
                                         <div v-if="selectedZone?.estimated_days_min" class="text-xs text-gray-500 mt-1">
@@ -489,7 +489,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 @click="submitOrder"
                             />
 
-                            <p class="text-xs text-gray-400 text-center mt-4">
+                            <p class="text-xs text-gray-600 text-center mt-4">
                                 {{ $t('auction_checkout.stripe_note') }}
                             </p>
                         </div>

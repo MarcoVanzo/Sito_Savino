@@ -1,5 +1,6 @@
 {
     "common": {
+        "breadcrumb": "Breadcrumb",
         "read_more": "Read more",
         "read_more_alt": "Read more",
         "back": "Back",
@@ -681,6 +682,8 @@
         "remove_item_named": "Remove {name} from the cart"
     },
     "shop_checkout": {
+        "step_of": "Step {step} of {total}: {name}",
+        "payment_required": "Choose a payment method",
         "order_submitted_placeholder": "Order submitted! (placeholder)",
         "og_title": "Checkout",
         "og_description": "Complete your order on the official Savino Del Bene Volley shop.",
@@ -1025,6 +1028,7 @@
         "back_to_shop": "Back to Shop"
     },
     "auction": {
+        "remaining_sr": "Time remaining: {days} days, {hours} hours and {minutes} minutes",
         "bid_placed": "Bid placed successfully! You are the highest bidder.",
         "bid_error": "Unable to place bid. Please try again.",
         "not_active": "This auction is not active.",

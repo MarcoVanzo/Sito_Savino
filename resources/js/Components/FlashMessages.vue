@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onUnmounted } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
+import { useTranslations } from '@/Composables/useTranslations.js';
+
+const $t = useTranslations();
 
 const messages = ref([]);
 let nextId = 0;
@@ -18,7 +21,7 @@ const typeConfig = {
 const addMessage = (type, text) => {
     if (!text) return;
     const id = nextId++;
-    messages.value.push({ id, type, text, progress: 100 });
+    messages.value.push({ id, type, text, progress: 100, inPausa: false });
     const stop = () => {
         clearInterval(interval);
         activeIntervals.delete(interval);
@@ -26,6 +29,9 @@ const addMessage = (type, text) => {
     const interval = setInterval(() => {
         const msg = messages.value.find(m => m.id === id);
         if (msg) {
+            // Fermo finche' il puntatore o il focus ci stanno sopra: cinque
+            // secondi non bastano a tutti per leggere (WCAG 2.2.1).
+            if (msg.inPausa) return;
             msg.progress -= 2;
             if (msg.progress <= 0) {
                 stop();
@@ -36,6 +42,11 @@ const addMessage = (type, text) => {
         }
     }, 100);
     activeIntervals.add(interval);
+};
+
+const pausa = (id, valore) => {
+    const msg = messages.value.find(m => m.id === id);
+    if (msg) msg.inPausa = valore;
 };
 
 const dismiss = (id) => {
@@ -88,7 +99,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="fixed top-4 right-4 z-[100] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+    <!-- Regione viva sempre presente: i messaggi che ci entrano vengono letti
+         dallo screen reader, gli errori subito (role="alert" sul singolo). -->
+    <div aria-live="polite" class="fixed top-4 right-4 z-[100] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
         <TransitionGroup
             enter-active-class="transition-all duration-300 ease-out"
             leave-active-class="transition-all duration-200 ease-in"
@@ -102,38 +115,43 @@ onUnmounted(() => {
                 :key="msg.id"
                 class="pointer-events-auto rounded-xl shadow-2xl backdrop-blur-sm border-l-4 overflow-hidden"
                 :class="[typeConfig[msg.type].bg, typeConfig[msg.type].border]"
+                :role="msg.type === 'error' ? 'alert' : undefined"
+                @mouseenter="pausa(msg.id, true)"
+                @mouseleave="pausa(msg.id, false)"
+                @focusin="pausa(msg.id, true)"
+                @focusout="pausa(msg.id, false)"
             >
                 <div class="flex items-start gap-3 p-4">
                     <!-- Icon -->
                     <div class="flex-shrink-0 mt-0.5">
                         <!-- Check -->
-                        <svg v-if="msg.type === 'success'" class="w-5 h-5" :class="typeConfig[msg.type].text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg v-if="msg.type === 'success'" aria-hidden="true" class="w-5 h-5" :class="typeConfig[msg.type].text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <!-- X Circle -->
-                        <svg v-else-if="msg.type === 'error'" class="w-5 h-5" :class="typeConfig[msg.type].text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg v-else-if="msg.type === 'error'" aria-hidden="true" class="w-5 h-5" :class="typeConfig[msg.type].text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <!-- Warning Triangle -->
-                        <svg v-else-if="msg.type === 'warning'" class="w-5 h-5" :class="typeConfig[msg.type].text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg v-else-if="msg.type === 'warning'" aria-hidden="true" class="w-5 h-5" :class="typeConfig[msg.type].text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                         </svg>
                         <!-- Info Circle -->
-                        <svg v-else class="w-5 h-5" :class="typeConfig[msg.type].text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg v-else aria-hidden="true" class="w-5 h-5" :class="typeConfig[msg.type].text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                         </svg>
                     </div>
                     <!-- Text -->
                     <p class="flex-1 text-sm font-medium text-white/90">{{ msg.text }}</p>
                     <!-- Dismiss -->
-                    <button type="button" @click="dismiss(msg.id)" class="flex-shrink-0 text-white/50 hover:text-white transition-colors">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <button type="button" :aria-label="$t('common.close')" @click="dismiss(msg.id)" class="flex-shrink-0 text-white/80 hover:text-white transition-colors">
+                        <svg aria-hidden="true" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
                 <!-- Progress Bar -->
-                <div class="h-0.5 w-full bg-white/10">
+                <div class="h-0.5 w-full bg-white/10" aria-hidden="true">
                     <div
                         class="h-full transition-all duration-100 ease-linear"
                         :class="typeConfig[msg.type].progress"

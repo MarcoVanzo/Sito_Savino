@@ -109,9 +109,13 @@ const validateStep1 = () => {
     }
     // Guest fields required if not auth
     if (!authUser) {
+        // Il telefono dell'ospite lo chiede anche il server
+        // (StoreCheckoutRequest): senza questo controllo il passo 1 lasciava
+        // passare, e l'errore arrivava solo dopo "Conferma ordine".
         required.push(
             { field: 'guest_name', value: form.guest_name },
             { field: 'guest_email', value: form.guest_email },
+            { field: 'guest_phone', value: form.guest_phone },
         );
     }
     // Anche la fatturazione, quando e' diversa dalla spedizione
@@ -135,10 +139,14 @@ const validateStep1 = () => {
     return true;
 };
 
+const titoloPasso = ref(null);
+const annunciaIlPasso = () => nextTick(() => titoloPasso.value?.focus({ preventScroll: true }));
+
 const goToStep2 = () => {
     if (validateStep1()) {
         currentStep.value = 2;
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        annunciaIlPasso();
     }
 };
 
@@ -146,6 +154,7 @@ const goToStep1 = () => {
     currentStep.value = 1;
     stepValidationError.value = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    annunciaIlPasso();
 };
 
 const getCountryName = (code) => {
@@ -252,7 +261,28 @@ const erroriGenerali = computed(() => Object.entries(form.errors)
     .filter(([campo]) => !campiDelModulo.value.includes(campo))
     .map(([, messaggio]) => messaggio));
 
+// Il pulsante che chiude l'ordine resta attivo come nel checkout delle aste:
+// spento finche' mancavano metodo di pagamento e condizioni non diceva perche',
+// e chi usa la tastiera o uno screen reader non aveva modo di scoprirlo. Al
+// clic ogni mancanza riceve il suo errore, legato al campo, e il focus va alla
+// prima (WCAG 3.3.1, 3.3.2, 4.1.3).
+const validaIlPasso2 = () => {
+    form.clearErrors('payment_gateway', 'privacy_accepted');
+    if (!form.payment_gateway) {
+        form.setError('payment_gateway', $t('shop_checkout.payment_required'));
+    }
+    if (!form.privacy_accepted) {
+        form.setError('privacy_accepted', $t('shop_checkout.terms_required'));
+    }
+    return Boolean(form.payment_gateway) && form.privacy_accepted;
+};
+
 const submitOrder = () => {
+    if (form.processing) return;
+    if (!validaIlPasso2()) {
+        vaiAlPrimoErrore();
+        return;
+    }
     form.post(route('shop.checkout.store'), {
         preserveScroll: true,
         onError: (errori) => {
@@ -330,7 +360,7 @@ const ogMeta = useOgMeta({
             <div v-if="!user()" class="mb-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 px-6 py-5 sm:px-8">
                     <div class="flex-shrink-0 w-12 h-12 rounded-full bg-savino-blue/10 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg aria-hidden="true" class="w-6 h-6 text-savino-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                         </svg>
                     </div>
@@ -351,26 +381,27 @@ const ogMeta = useOgMeta({
                     </div>
                 </div>
                 <div class="border-t border-gray-100 px-6 py-3 sm:px-8 bg-gray-50/50">
-                    <p class="text-xs text-gray-400 text-center sm:text-left">
+                    <p class="text-xs text-gray-600 text-center sm:text-left">
                         {{ $t('shop_checkout.guest_banner_continue') }}
                     </p>
                 </div>
             </div>
 
-            <!-- Step Progress Indicator -->
-            <div class="mb-10">
+            <!-- Step Progress Indicator: solo visivo, il passo lo annuncia il
+                 titolo nascosto qui sotto. -->
+            <div class="mb-10" aria-hidden="true">
                 <div class="flex items-center justify-center">
                     <!-- Step 1 -->
                     <div class="flex items-center">
                         <div class="flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm transition-all duration-300"
                              :class="currentStep >= 1 ? (currentStep > 1 ? 'bg-savino-fucsia text-white' : 'bg-savino-blue text-white') : 'bg-gray-200 text-gray-500'">
-                            <svg v-if="currentStep > 1" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg aria-hidden="true" v-if="currentStep > 1" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                             </svg>
                             <span v-else>1</span>
                         </div>
-                        <span class="ml-3 text-sm font-bold hidden sm:inline" :class="currentStep >= 1 ? 'text-gray-900' : 'text-gray-400'">
-                            📦 {{ $t('shop_checkout.step_shipping') }}
+                        <span class="ml-3 text-sm font-bold hidden sm:inline" :class="currentStep >= 1 ? 'text-gray-900' : 'text-gray-600'">
+                            <span aria-hidden="true">📦</span> {{ $t('shop_checkout.step_shipping') }}
                         </span>
                     </div>
                     <!-- Line -->
@@ -381,8 +412,8 @@ const ogMeta = useOgMeta({
                              :class="currentStep >= 2 ? 'bg-savino-blue text-white' : 'bg-gray-200 text-gray-500'">
                             <span>2</span>
                         </div>
-                        <span class="ml-3 text-sm font-bold hidden sm:inline" :class="currentStep >= 2 ? 'text-gray-900' : 'text-gray-400'">
-                            💳 {{ $t('shop_checkout.step_payment') }}
+                        <span class="ml-3 text-sm font-bold hidden sm:inline" :class="currentStep >= 2 ? 'text-gray-900' : 'text-gray-600'">
+                            <span aria-hidden="true">💳</span> {{ $t('shop_checkout.step_payment') }}
                         </span>
                     </div>
                 </div>
@@ -401,6 +432,13 @@ const ogMeta = useOgMeta({
                 <!-- Form Section (2 cols) -->
                 <div class="lg:col-span-2 space-y-8">
 
+                    <!-- Il cambio di passo sposta il focus qui: prima restava
+                         sul pulsante appena sparito, e chi usa uno screen
+                         reader non sapeva di essere passato al pagamento. -->
+                    <h2 ref="titoloPasso" tabindex="-1" class="sr-only">
+                        {{ $t('shop_checkout.step_of', { step: currentStep, total: 2, name: currentStep === 1 ? $t('shop_checkout.step_shipping') : $t('shop_checkout.step_payment') }) }}
+                    </h2>
+
                     <!-- STEP 1: Shipping Info -->
                     <template v-if="currentStep === 1">
 
@@ -408,7 +446,7 @@ const ogMeta = useOgMeta({
                         <div v-if="!user()" class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <div class="flex items-center gap-3 mb-6">
                                 <span class="w-8 h-8 rounded-full bg-savino-blue/10 text-savino-blue flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                     </svg>
                                 </span>
@@ -446,10 +484,11 @@ const ogMeta = useOgMeta({
                                     <p v-if="form.errors.guest_email" id="errore-guest_email" class="mt-1 text-sm text-red-700">{{ form.errors.guest_email }}</p>
                                 </div>
                                 <div>
-                                    <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }}</label>
+                                    <label for="checkout-phone" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_phone') }} *</label>
                                     <input
                                         id="checkout-phone"
                                         v-model="form.guest_phone"
+                                required aria-required="true"
                                 :aria-invalid="!!form.errors.guest_phone"
                                 :aria-describedby="form.errors.guest_phone ? 'errore-guest_phone' : undefined"
                                         type="tel"
@@ -466,7 +505,7 @@ const ogMeta = useOgMeta({
                         <div v-if="user()" class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <div class="flex items-center gap-3 mb-6">
                                 <span class="w-8 h-8 rounded-full bg-savino-blue/10 text-savino-blue flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                                     </svg>
                                 </span>
@@ -486,14 +525,14 @@ const ogMeta = useOgMeta({
                                     :placeholder="$t('shop_checkout.placeholder_phone')"
                                 />
                                 <p v-if="form.errors.phone" id="errore-phone" class="mt-1 text-sm text-red-700">{{ form.errors.phone }}</p>
-                                <p class="mt-1 text-xs text-gray-400">{{ $t('shop_checkout.phone_shipping_note') }}</p>
+                                <p class="mt-1 text-xs text-gray-600">{{ $t('shop_checkout.phone_shipping_note') }}</p>
                             </div>
                         </div>
 
                         <!-- Shipping Address -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <div class="flex items-center gap-3 mb-6">
-                                <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">1</span>
+                                <span aria-hidden="true" class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">1</span>
                                 <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.shipping_title') }}</h2>
                             </div>
                             <div class="grid sm:grid-cols-2 gap-4">
@@ -710,11 +749,12 @@ const ogMeta = useOgMeta({
                         <div class="flex justify-end">
                             <button
                                 type="button"
+                                data-passaggio-successivo
                                 @click="goToStep2"
                                 class="px-8 py-3 bg-savino-blue text-white font-bold uppercase tracking-wider text-sm rounded-lg hover:bg-savino-blue/90 transition-all duration-200 flex items-center gap-2"
                             >
                                 {{ $t('shop_checkout.next_step') }}
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
@@ -727,7 +767,7 @@ const ogMeta = useOgMeta({
                         <!-- Payment Gateway Selector -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <div class="flex items-center gap-3 mb-6">
-                                <span class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">2</span>
+                                <span aria-hidden="true" class="w-8 h-8 rounded-full bg-savino-blue text-white flex items-center justify-center text-sm font-bold">2</span>
                                 <h2 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.payment_title') }}</h2>
                             </div>
                             <fieldset class="space-y-3" :aria-describedby="form.errors.payment_gateway ? 'errore-payment_gateway' : undefined">
@@ -743,7 +783,8 @@ const ogMeta = useOgMeta({
                                         name="payment_gateway"
                                         :value="gateway.value"
                                         v-model="form.payment_gateway"
-                                        :aria-invalid="!!form.errors.payment_gateway"
+                                        :aria-invalid="form.errors.payment_gateway ? 'true' : undefined"
+                                        :aria-describedby="form.errors.payment_gateway ? 'errore-payment_gateway' : undefined"
                                         class="w-5 h-5 text-savino-blue border-gray-300 focus:ring-savino-blue/20"
                                     />
                                     <div class="flex-1">
@@ -751,14 +792,14 @@ const ogMeta = useOgMeta({
                                     </div>
                                 </label>
                             </fieldset>
-                            <p v-if="!paymentGateways.length" class="text-gray-400 text-sm text-center py-4">{{ $t('shop_checkout.no_gateways') }}</p>
+                            <p v-if="!paymentGateways.length" class="text-gray-600 text-sm text-center py-4">{{ $t('shop_checkout.no_gateways') }}</p>
                             <p v-if="form.errors.payment_gateway" id="errore-payment_gateway" class="mt-2 text-sm text-red-700">{{ form.errors.payment_gateway }}</p>
                         </div>
 
                         <!-- Coupon Code -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <div class="flex items-center gap-3 mb-4">
-                                <svg class="w-5 h-5 text-savino-fucsia" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <svg aria-hidden="true" class="w-5 h-5 text-savino-fucsia" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                 </svg>
                                 <h3 class="text-sm font-bold text-gray-900 uppercase tracking-tight">{{ $t('shop_checkout.coupon_label') }}</h3>
@@ -778,7 +819,7 @@ const ogMeta = useOgMeta({
                                     :disabled="!form.coupon_code || couponStatus === 'loading'"
                                     class="px-6 py-3 bg-savino-blue text-white text-sm font-bold uppercase rounded-lg hover:bg-savino-blue/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
-                                    <svg v-if="couponStatus === 'loading'" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                    <svg aria-hidden="true" v-if="couponStatus === 'loading'" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
@@ -787,7 +828,7 @@ const ogMeta = useOgMeta({
                             </div>
                             <div v-else class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-4 py-3">
                                 <div class="flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <svg aria-hidden="true" class="w-5 h-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                     </svg>
                                     <span class="text-sm font-medium text-green-800" role="status">{{ couponMessage }}</span>
@@ -823,7 +864,7 @@ const ogMeta = useOgMeta({
                                 @click="goToStep1"
                                 class="px-6 py-3 bg-gray-100 text-gray-700 font-bold uppercase tracking-wider text-sm rounded-lg hover:bg-gray-200 transition-all duration-200 flex items-center gap-2"
                             >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                                 </svg>
                                 {{ $t('shop_checkout.prev_step') }}
@@ -850,7 +891,7 @@ const ogMeta = useOgMeta({
                                 <div class="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                                     <img v-if="item.product?.image_url" :src="item.product.image_url" :alt="item.name" class="w-full h-full object-cover" />
                                     <div v-else class="w-full h-full flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg aria-hidden="true" class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                         </svg>
                                     </div>
@@ -872,7 +913,7 @@ const ogMeta = useOgMeta({
                         <!-- Empty Cart -->
                         <div v-else class="text-center py-6 mb-6">
                             <span class="text-4xl block mb-2">🛒</span>
-                            <p class="text-gray-400 text-sm">{{ $t('shop_checkout.empty_cart') }}</p>
+                            <p class="text-gray-600 text-sm">{{ $t('shop_checkout.empty_cart') }}</p>
                         </div>
 
                         <!-- Totals -->
@@ -884,7 +925,7 @@ const ogMeta = useOgMeta({
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">{{ $t('shop_checkout.shipping') }}</span>
                                 <div class="text-right">
-                                    <span class="text-gray-900 font-medium" :class="{ 'text-green-600': shippingCost === 0 }">
+                                    <span class="text-gray-900 font-medium" :class="{ 'text-green-700': shippingCost === 0 }">
                                         {{ shippingCost === 0 ? $t('shop_checkout.free_shipping') : formatPrice(shippingCost) }}
                                     </span>
                                     <div v-if="selectedZone?.estimated_days_min" class="text-xs text-gray-500 mt-1">
@@ -896,8 +937,8 @@ const ogMeta = useOgMeta({
                                 {{ $t('shop_checkout.free_shipping_over', { amount: formatPrice(Number(selectedZone.free_threshold)) }) }}
                             </div>
                             <div v-if="couponDiscount > 0" class="flex justify-between text-sm">
-                                <span class="text-green-600">{{ $t('shop_checkout.discount') }}</span>
-                                <span class="text-green-600 font-medium">-{{ formatPrice(couponDiscount) }}</span>
+                                <span class="text-green-700">{{ $t('shop_checkout.discount') }}</span>
+                                <span class="text-green-700 font-medium">-{{ formatPrice(couponDiscount) }}</span>
                             </div>
                             <div class="flex justify-between pt-3 border-t border-gray-200">
                                 <span class="font-bold text-gray-900">{{ $t('shop_checkout.total') }}</span>
@@ -928,11 +969,11 @@ const ogMeta = useOgMeta({
                             v-if="currentStep === 2"
                             :etichetta="$t('shop_checkout.confirm_order')"
                             :in-corso="form.processing"
-                            :disabilitato="form.processing || cart.items.length === 0 || !form.payment_gateway || !form.privacy_accepted"
+                            :disabilitato="form.processing"
                             @click="submitOrder"
                         />
 
-                        <p class="text-xs text-gray-400 text-center mt-4">
+                        <p class="text-xs text-gray-600 text-center mt-4">
                             {{ $t('shop_checkout.payment_secure_note') }}
                         </p>
                     </div>

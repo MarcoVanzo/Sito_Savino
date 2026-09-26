@@ -1,9 +1,15 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useTranslations } from '@/Composables/useTranslations.js';
+
+const $t = useTranslations();
 
 const props = defineProps({
     endDate: { type: String, required: true },
     isActive: { type: Boolean, default: true },
+    // Su fondo chiaro (checkout dell'asta) le tinte -400 pensate per il blu
+    // scuro scendevano a 1,4:1: servono quelle scure.
+    chiaro: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['ending-soon', 'ended']);
@@ -33,6 +39,12 @@ const isEndingSoon = computed(() => remaining.value.total > 0 && remaining.value
 const isWarning = computed(() => remaining.value.total > 0 && remaining.value.total <= 30 * 60 * 1000);
 
 const colorClass = computed(() => {
+    if (props.chiaro) {
+        if (isEnded.value) return 'text-gray-600';
+        if (isEndingSoon.value) return 'text-red-700';
+        if (isWarning.value) return 'text-amber-800';
+        return 'text-emerald-800';
+    }
     if (isEnded.value) return 'text-gray-400';
     if (isEndingSoon.value) return 'text-red-400';
     if (isWarning.value) return 'text-amber-400';
@@ -45,6 +57,17 @@ const bgClass = computed(() => {
     if (isWarning.value) return 'bg-amber-900/20 border border-amber-500/20';
     return 'bg-emerald-900/20 border border-emerald-500/20';
 });
+
+const unitClass = computed(() => (props.chiaro ? 'text-gray-600' : 'text-gray-400'));
+
+// Uno screen reader leggeva "23 h 56 : m 22 s" e, se la regione fosse viva,
+// lo ripeterebbe a ogni secondo. Le cifre restano solo visive; il testo
+// nascosto dice il tempo per esteso, al minuto, e si legge quando ci si arriva.
+const testoPerScreenReader = computed(() => $t('auction.remaining_sr', {
+    days: remaining.value.days,
+    hours: remaining.value.hours,
+    minutes: remaining.value.minutes,
+}));
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -77,7 +100,7 @@ onUnmounted(() => {
             v-if="wasExtended"
             class="text-amber-300 text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1 animate-pulse"
         >
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <svg aria-hidden="true" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
             </svg>
             {{ $t('auction.time_extended') || 'Tempo esteso!' }}
@@ -89,13 +112,16 @@ onUnmounted(() => {
             </span>
         </div>
 
-        <div v-else class="flex items-center justify-center gap-3 sm:gap-4">
+        <p v-else-if="isEnded" class="sr-only">{{ $t('auction.ended') }}</p>
+        <p v-if="!isEnded" class="sr-only">{{ testoPerScreenReader }}</p>
+
+        <div v-if="!(isEnded && !isActive)" aria-hidden="true" class="flex items-center justify-center gap-3 sm:gap-4">
             <!-- Days -->
             <div v-if="remaining.days > 0" class="text-center">
                 <span :class="['text-2xl sm:text-3xl font-black tabular-nums', colorClass]">
                     {{ remaining.days }}
                 </span>
-                <span class="block text-[10px] uppercase tracking-wider text-gray-400 mt-0.5">g</span>
+                <span :class="['block text-[10px] uppercase tracking-wider mt-0.5', unitClass]">g</span>
             </div>
 
             <!-- Hours -->
@@ -103,7 +129,7 @@ onUnmounted(() => {
                 <span :class="['text-2xl sm:text-3xl font-black tabular-nums', colorClass]">
                     {{ pad(remaining.hours) }}
                 </span>
-                <span class="block text-[10px] uppercase tracking-wider text-gray-400 mt-0.5">h</span>
+                <span :class="['block text-[10px] uppercase tracking-wider mt-0.5', unitClass]">h</span>
             </div>
 
             <span :class="['text-xl font-bold', colorClass, { 'animate-pulse': isEndingSoon }]">:</span>
@@ -113,7 +139,7 @@ onUnmounted(() => {
                 <span :class="['text-2xl sm:text-3xl font-black tabular-nums', colorClass]">
                     {{ pad(remaining.minutes) }}
                 </span>
-                <span class="block text-[10px] uppercase tracking-wider text-gray-400 mt-0.5">m</span>
+                <span :class="['block text-[10px] uppercase tracking-wider mt-0.5', unitClass]">m</span>
             </div>
 
             <span :class="['text-xl font-bold', colorClass, { 'animate-pulse': isEndingSoon }]">:</span>
@@ -123,7 +149,7 @@ onUnmounted(() => {
                 <span :class="['text-2xl sm:text-3xl font-black tabular-nums', colorClass, { 'animate-pulse': isEndingSoon }]">
                     {{ pad(remaining.seconds) }}
                 </span>
-                <span class="block text-[10px] uppercase tracking-wider text-gray-400 mt-0.5">s</span>
+                <span :class="['block text-[10px] uppercase tracking-wider mt-0.5', unitClass]">s</span>
             </div>
         </div>
     </div>
