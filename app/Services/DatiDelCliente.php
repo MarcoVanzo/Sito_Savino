@@ -3,17 +3,23 @@
 namespace App\Services;
 
 use App\Enums\AuctionStatus;
+use App\Enums\PaymentGateway;
 use App\Models\ActivityLog;
 use App\Models\Auction;
 use App\Models\Bid;
+use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\ContactMessage;
 use App\Models\NewsletterSubscriber;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\RichiestaDiRecesso;
 use App\Models\User;
+use App\Services\Payments\StripeCustomerService;
+use App\Support\CondizioniDiVendita;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Quello che il sito sa di un cliente dello shop, per l'esportazione e per la
@@ -41,7 +47,15 @@ class DatiDelCliente
         // le colonne, e il modello rifiuta di leggere quelle che mancano.
         $utente = $utente->fresh() ?? $utente;
 
-        $ordini = Order::where('user_id', $utente->id)
+        // Anche gli ordini fatti da ospite con lo stesso indirizzo, ma solo se
+        // l'indirizzo è verificato: altrimenti chiunque registrasse un
+        // account con l'email di un altro ne scaricherebbe indirizzi,
+        // telefono e codice fiscale.
+        $ordini = Order::query()
+            ->where(fn ($q) => $q
+                ->where('user_id', $utente->id)
+                ->when($utente->email_verified_at !== null, fn ($q) => $q
+                    ->orWhere(fn ($q) => $q->whereNull('user_id')->where('guest_email', $utente->email))))
             ->with(['items.product', 'items.variant', 'coupon'])
             ->orderBy('created_at')
             ->get();
@@ -50,7 +64,7 @@ class DatiDelCliente
 
         return [
             'esportato_il' => now()->toIso8601String(),
-            'titolare' => 'Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata',
+            'titolare' => CondizioniDiVendita::RAGIONE_SOCIALE,
             'account' => [
                 'nome' => $utente->name,
                 'email' => $utente->email,
@@ -76,6 +90,7 @@ class DatiDelCliente
                 'codice_fiscale' => $ordine->codice_fiscale,
                 'note' => $ordine->notes,
                 'condizioni_accettate' => $ordine->condizioni_versione,
+                'impronta_delle_condizioni' => $ordine->condizioni_impronta,
                 'articoli' => $ordine->items->map(fn (OrderItem $articolo) => [
                     'prodotto' => $articolo->product?->name,
                     'variante' => $articolo->variant
@@ -85,6 +100,20 @@ class DatiDelCliente
                     'prezzo' => (float) $articolo->price_at_time_of_purchase,
                 ])->values()->all(),
             ])->values()->all(),
+            // Il carrello aperto: poca cosa, ma è legato all'account.
+            'carrello' => Cart::where('user_id', $utente->id)
+                ->with(['items.product', 'items.variant'])
+                ->get()
+                ->flatMap(fn (Cart $carrello) => $carrello->items)
+                ->map(fn (CartItem $articolo) => [
+                    'prodotto' => $articolo->product?->name,
+                    'variante' => $articolo->variant
+                        ? collect([$articolo->variant->size, $articolo->variant->color])->filter()->implode(' / ')
+                        : null,
+                    'quantita' => $articolo->quantity,
+                    'con_personalizzazione' => (bool) $articolo->con_personalizzazione,
+                    'aggiunto_il' => $this->data($articolo->created_at),
+                ])->values()->all(),
             'offerte_alle_aste' => $utente->bids()
                 ->with('auction')
                 ->orderBy('placed_at')
@@ -181,11 +210,34 @@ class DatiDelCliente
      * cancellato), senza dati personali; lo stesso per IP e browser delle
      * azioni fatte dal cliente, che dopo la cancellazione non si
      * ritroverebbero più (`user_id` va a null).
+     *
+     * Gli ordini restano (conservazione fiscale, `user_id` a null), ma prima
+     * ricevono nome ed email dell'account dove non li hanno: l'ordine d'asta
+     * non li valorizza mai, e quello dello shop fatto da cliente registrato
+     * può non avere il nome. Senza, un ordine pagato e non ancora spedito
+     * resterebbe senza nessuno a cui mandare spedizione, rimborso o la
+     * ricevuta di un recesso (`RichiestaDiRecesso::emailDellOrdine`). È
+     * esecuzione del contratto e obbligo fiscale, non un nuovo trattamento:
+     * l'informativa dice che alla cancellazione restano i documenti fiscali,
+     * e l'ordine con i suoi recapiti è uno di quelli.
      */
     public function cancella(User $utente): void
     {
+        // Riletto dal database, come in esporta(): l'istanza della sessione
+        // può non avere tutte le colonne (stripe_customer_id).
+        $utente = $utente->fresh() ?? $utente;
+
+        $this->cancellaIlClienteSuStripe($utente);
+
         DB::transaction(function () use ($utente) {
             $id = $utente->id;
+
+            Order::where('user_id', $id)
+                ->where(fn ($q) => $q->whereNull('guest_email')->orWhere('guest_email', ''))
+                ->update(['guest_email' => $utente->email]);
+            Order::where('user_id', $id)
+                ->where(fn ($q) => $q->whereNull('guest_name')->orWhere('guest_name', ''))
+                ->update(['guest_name' => $utente->name]);
 
             ActivityLog::where('user_id', $id)->update(['ip_address' => null, 'user_agent' => null]);
 
@@ -195,6 +247,31 @@ class DatiDelCliente
                 ->where('model_id', $id)
                 ->update(['changes' => null, 'model_label' => 'Cliente #'.$id]);
         });
+    }
+
+    /**
+     * Il cliente Stripe nato per la verifica della carta delle aste
+     * (`StripeCustomerService::getOrCreateCustomer`) porta nome ed email: si
+     * cancella con l'account. Un errore di Stripe non blocca la
+     * cancellazione, che è un diritto del cliente: si registra, senza dati
+     * personali, e si rimedia a mano dal pannello di Stripe.
+     */
+    private function cancellaIlClienteSuStripe(User $utente): void
+    {
+        $idCliente = $utente->stripe_customer_id;
+
+        if (! $idCliente || ! PaymentGateway::Stripe->configurato()) {
+            return;
+        }
+
+        try {
+            app(StripeCustomerService::class)->cancellaCustomer($idCliente);
+        } catch (\Throwable $e) {
+            Log::warning('Stripe: cliente non cancellato insieme all\'account', [
+                'user_id' => $utente->id,
+                'errore' => $e::class,
+            ]);
+        }
     }
 
     /**

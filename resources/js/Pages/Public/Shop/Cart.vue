@@ -196,7 +196,7 @@ const handleRemoveItem = (itemId) => {
                                     </span>
                                     <button type="button"
                                         @click="handleUpdateQuantity(item.id, item.quantity + 1)"
-                                        :disabled="item.quantity >= (item.stock ?? 99) || loadingItems.has(item.id)"
+                                        :disabled="item.quantity >= (item.disponibili ?? item.stock ?? 99) || loadingItems.has(item.id)"
                                         :aria-label="$t('shop.increase_quantity') || 'Aumenta quantità'"
                                         class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >

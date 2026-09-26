@@ -495,12 +495,13 @@ const ogMeta = useOgMeta({
                                         id="contact-name"
                                         v-model="form.name"
                                         :aria-invalid="!!form.errors.name"
-                                        :aria-describedby="form.errors.name ? 'errori-contatti' : undefined"
+                                        :aria-describedby="form.errors.name ? 'errore-name' : undefined"
                                         type="text"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium"
                                         :placeholder="cd.form_placeholder_name"
                                         required
                                     />
+                                    <p v-if="form.errors.name" id="errore-name" class="text-red-700 text-xs mt-1">{{ form.errors.name }}</p>
                                 </div>
                                 <div>
                                     <label for="contact-email" class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{{ cd.form_label_email }} *</label>
@@ -508,12 +509,13 @@ const ogMeta = useOgMeta({
                                         id="contact-email"
                                         v-model="form.email"
                                         :aria-invalid="!!form.errors.email"
-                                        :aria-describedby="form.errors.email ? 'errori-contatti' : undefined"
+                                        :aria-describedby="form.errors.email ? 'errore-email' : undefined"
                                         type="email"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium"
                                         :placeholder="cd.form_placeholder_email"
                                         required
                                     />
+                                    <p v-if="form.errors.email" id="errore-email" class="text-red-700 text-xs mt-1">{{ form.errors.email }}</p>
                                 </div>
                             </div>
 
@@ -525,7 +527,7 @@ const ogMeta = useOgMeta({
                                         id="contact-subject"
                                         v-model="form.subject"
                                         :aria-invalid="!!form.errors.subject"
-                                        :aria-describedby="form.errors.subject ? 'errori-contatti' : undefined"
+                                        :aria-describedby="form.errors.subject ? 'errore-subject' : undefined"
                                         class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all font-medium appearance-none cursor-pointer"
                                     >
                                         <option value="" disabled selected>{{ $t('contatti.select_subject') }}</option>
@@ -538,6 +540,7 @@ const ogMeta = useOgMeta({
                                         </svg>
                                     </div>
                                 </div>
+                                <p v-if="form.errors.subject" id="errore-subject" class="text-red-700 text-xs mt-1">{{ form.errors.subject }}</p>
                             </div>
 
                             <!-- Smart Tip Box -->
@@ -565,12 +568,13 @@ const ogMeta = useOgMeta({
                                     id="contact-message"
                                     v-model="form.message"
                                         :aria-invalid="!!form.errors.message"
-                                        :aria-describedby="form.errors.message ? 'errori-contatti' : undefined"
+                                        :aria-describedby="form.errors.message ? 'errore-message' : undefined"
                                     rows="5"
                                     class="w-full px-5 py-4 bg-gray-50 rounded-xl border border-gray-200 focus:bg-white focus:border-savino-blue focus:ring-4 focus:ring-savino-blue/10 outline-none transition-all resize-none font-medium"
                                     :placeholder="cd.form_placeholder_message"
                                     required
                                 ></textarea>
+                                <p v-if="form.errors.message" id="errore-message" class="text-red-700 text-xs mt-1">{{ form.errors.message }}</p>
                             </div>
                             
                             <div class="hidden" aria-hidden="true">

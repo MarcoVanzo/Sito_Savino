@@ -17,6 +17,7 @@ use App\Models\PlayerStat;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductVariant;
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Sponsor;
@@ -26,6 +27,7 @@ use App\Models\StockMovement;
 use App\Models\Team;
 use App\Models\User;
 use App\Observers\AuctionObserver;
+use App\Observers\CacheInvalidationDopoIlCommit;
 use App\Observers\CacheInvalidationObserver;
 use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
@@ -143,6 +145,10 @@ class AppServiceProvider extends ServiceProvider
         User::observe(UserObserver::class);
         Order::observe(OrderObserver::class);
         StockMovement::observe(StockMovementObserver::class);
+        // Dopo StockMovementObserver e a transazione chiusa: la vetrina si
+        // butta a giacenza scritta e visibile alle altre richieste.
+        StockMovement::observe(CacheInvalidationDopoIlCommit::class);
+        ProductVariant::observe(CacheInvalidationDopoIlCommit::class);
         Roster::observe(CacheInvalidationObserver::class);
         Player::observe(CacheInvalidationObserver::class);
         PlayerStat::observe(CacheInvalidationObserver::class);
@@ -179,5 +185,16 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+
+        // Il tunnel degli errori JavaScript verso Sentry: ogni richiesta tiene
+        // un processo PHP in attesa di Sentry. Il tetto per indirizzo ferma un
+        // browser in un ciclo d'errore, quello globale molti indirizzi insieme
+        // (un errore che colpisce tutti i visitatori, o chi prova a usare il
+        // tunnel per saturare il sito). Le chiavi hanno un prefisso proprio:
+        // non condividono il contatore con nessun altro limite (§18).
+        RateLimiter::for('diagnostica', fn (Request $request) => [
+            Limit::perMinute(30)->by('diagnostica:ip:'.$request->ip()),
+            Limit::perMinute(300)->by('diagnostica:globale'),
+        ]);
     }
 }

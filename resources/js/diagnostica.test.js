@@ -83,4 +83,15 @@ describe('diagnostica', () => {
         const briciola = opzioni.beforeBreadcrumb({ category: 'navigation', data: { from: '/shop/ordine/t/ricevuta', to: '/?p=1' } });
         expect(briciola.data).toEqual({ from: '/shop/ordine/[nascosto]/ricevuta', to: '/' });
     });
+
+    it('non allega le props dei componenti Vue', () => {
+        const opzioni = opzioniDiSentry({ app: {}, dsn: 'x', environment: 'test', origine: 'https://sito.test' });
+
+        expect(opzioni.attachProps).toBe(false);
+
+        const evento = opzioni.beforeSend({
+            contexts: { vue: { componentName: 'Checkout', propsData: { email: 'a@b.it' } } },
+        });
+        expect(evento.contexts.vue).toEqual({ componentName: 'Checkout' });
+    });
 });

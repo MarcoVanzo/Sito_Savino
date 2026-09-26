@@ -3,10 +3,14 @@
 namespace Tests\Feature\Observability;
 
 use App\Models\SiteSetting;
+use App\Services\AvvisoTecnico;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -75,19 +79,102 @@ class SorvegliaLoShopTest extends TestCase
         ], $this->oggetti());
     }
 
+    /**
+     * Il rilascio vero: `start.sh` esegue `cache:clear` sullo store
+     * predefinito. Lo stato della sorveglianza sta nello store `persistente`
+     * e deve uscirne intatto.
+     */
+    private function rilascio(): void
+    {
+        Artisan::call('cache:clear');
+    }
+
     #[Test]
     public function un_negozio_gia_chiuso_al_primo_giro_avvisa_una_volta_al_giorno(): void
     {
-        // Dopo un rilascio la cache è vuota: un negozio spento da un Salva
-        // caduto fra l'ultimo giro e il deploy non deve passare in silenzio.
-        // Lo stesso stato ritrovato a ogni rilascio non si riannuncia.
+        // Senza stato precedente un negozio spento da un Salva caduto fra
+        // l'ultimo giro e il deploy non deve passare in silenzio. Lo stesso
+        // stato non si riannuncia: né dopo un rilascio, né se lo store
+        // persistente si svuota (lì vale il silenziatore di un giorno).
         SiteSetting::set('shop.enabled', '0');
 
         $this->giro();
-        Cache::forget('sorveglianza:interruttore:negozio');
+        $this->rilascio();
+        $this->giro();
+        AvvisoTecnico::memoria()->forget('sorveglianza:interruttore:negozio');
         $this->giro();
 
         $this->assertSame(['[Sito Savino] Il negozio è chiuso'], $this->oggetti());
+    }
+
+    #[Test]
+    public function un_guasto_che_dura_non_si_riannuncia_a_ogni_rilascio(): void
+    {
+        $this->accoda('default', minutiFa: 20);
+
+        $this->giro();
+        $this->rilascio();
+        $this->giro();
+
+        $this->assertSame(['[Sito Savino] La coda dei job è ferma'], $this->oggetti());
+    }
+
+    #[Test]
+    public function un_avviso_non_partito_si_ritenta_al_giro_dopo(): void
+    {
+        // Prima lo stato si scriveva prima dell'invio: con Resend giù in
+        // quel momento il guasto restava "già annunciato" per sempre.
+        $this->accoda('default', minutiFa: 20);
+
+        Mail::shouldReceive('raw')->once()->andThrow(new RuntimeException('Resend irraggiungibile'));
+        Mail::shouldReceive('raw')->once();
+
+        $this->giro();
+        $this->giro();
+        $this->giro();
+
+        $this->assertTrue(AvvisoTecnico::memoria()->get('sorveglianza:guasto:coda'));
+    }
+
+    #[Test]
+    public function paypal_in_difficolta_non_e_ne_guasto_ne_guarigione(): void
+    {
+        $this->conPayPal();
+        AvvisoTecnico::memoria()->forever('sorveglianza:guasto:paypal', true);
+        Http::fake(['*' => Http::response('', 503)]);
+
+        $this->giro();
+
+        // Nessun "non configurato", nessun "risolto": il guasto ricordato
+        // resta, e il controllo si ripete al giro dopo invece che fra un'ora.
+        $this->assertSame([], $this->oggetti());
+        $this->assertTrue(AvvisoTecnico::memoria()->get('sorveglianza:guasto:paypal'));
+        $this->assertNull(AvvisoTecnico::memoria()->get('sorveglianza:paypal-controllato'));
+    }
+
+    #[Test]
+    public function paypal_tolto_dal_checkout_dimentica_il_guasto(): void
+    {
+        // Se PayPal torna fra i metodi ancora rotto, va riannunciato.
+        $this->conPayPal();
+        AvvisoTecnico::memoria()->forever('sorveglianza:guasto:paypal', true);
+        SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');
+
+        $this->giro();
+
+        $this->assertNull(AvvisoTecnico::memoria()->get('sorveglianza:guasto:paypal'));
+        $this->assertSame([], $this->oggetti());
+    }
+
+    private function conPayPal(): void
+    {
+        config([
+            'services.paypal.mode' => 'sandbox',
+            'services.paypal.client_id' => 'id',
+            'services.paypal.client_secret' => 'secret',
+            'services.paypal.webhook_id' => 'WH-1',
+        ]);
+        SiteSetting::set('shop.active_payment_gateways', 'paypal,bank_transfer');
     }
 
     #[Test]
@@ -127,7 +214,7 @@ class SorvegliaLoShopTest extends TestCase
         config(['services.stripe.secret' => null]);
         SiteSetting::set('auctions.enabled', '0');
         SiteSetting::set('shop.active_payment_gateways', 'stripe');
-        Cache::forever('sorveglianza:interruttore:aste', false);
+        AvvisoTecnico::memoria()->forever('sorveglianza:interruttore:aste', false);
 
         $this->giro();
 
@@ -140,7 +227,7 @@ class SorvegliaLoShopTest extends TestCase
         SiteSetting::set('shop.enabled', '0');
         SiteSetting::set('shop.active_payment_gateways', '');
         // Chiuso già al giro precedente: nessun cambio da annunciare.
-        Cache::forever('sorveglianza:interruttore:negozio', false);
+        AvvisoTecnico::memoria()->forever('sorveglianza:interruttore:negozio', false);
 
         $this->giro();
 

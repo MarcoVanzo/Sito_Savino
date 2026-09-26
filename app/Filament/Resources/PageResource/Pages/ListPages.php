@@ -40,7 +40,11 @@ class ListPages extends ListRecords
     }
 
     /**
-     * Le pagine che il footer linka in fondo a ogni pagina del sito.
+     * Le pagine che il footer linka in fondo a ogni pagina del sito, piu' il
+     * regolamento delle aste, che la pagina delle aste linka da se'.
+     *
+     * Gli slug sono scritti a mano anche in `SiteFooter.vue`: le due liste le
+     * confronta `tests/Unit/SlugLegaliDelFooterTest.php`.
      *
      * @return list<string>
      */

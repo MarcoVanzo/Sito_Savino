@@ -48,9 +48,11 @@ const handleAddToCart = () => {
     trackAddToCart({
         id: props.product.id,
         name: props.product.name,
-        value: Number(props.product.price),
+        // Il prezzo che si paga: con uno sconto annunciabile `price` e' il
+        // barrato, non l'incasso.
+        value: Number(hasSalePrice.value ? props.product.sale_price : props.product.price),
     });
-    addToCart(props.product.id, {
+    addToCart({ product_id: props.product.id, quantity: 1 }, {
         onFinish: () => { isAdding.value = false; },
         onError: (errors) => {
             cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || $t('shop.cart_error_generic');

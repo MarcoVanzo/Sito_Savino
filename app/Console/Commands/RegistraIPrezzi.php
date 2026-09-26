@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Product;
+use App\Observers\CacheInvalidationObserver;
 use App\Services\StoricoPrezzi;
 use Illuminate\Console\Command;
 
@@ -21,9 +22,23 @@ class RegistraIPrezzi extends Command
 
     protected $description = 'Registra nello storico i prezzi cambiati (sconti programmati compresi)';
 
-    public function handle(StoricoPrezzi $storico): int
+    public function handle(StoricoPrezzi $storico, CacheInvalidationObserver $cache): int
     {
-        Product::query()->each(fn (Product $prodotto) => $storico->registra($prodotto));
+        $cambiato = null;
+
+        Product::query()->each(function (Product $prodotto) use ($storico, &$cambiato) {
+            if ($storico->registra($prodotto)) {
+                $cambiato ??= $prodotto;
+            }
+        });
+
+        // Uno sconto cominciato o finito da solo non salva il prodotto, quindi
+        // l'observer non butta la vetrina: la card continuerebbe a dire IN
+        // OFFERTA, con il barrato, mentre il carrello fa pagare il prezzo
+        // pieno. Le chiavi sono le stesse per tutti i prodotti: basta un giro.
+        if ($cambiato !== null) {
+            $cache->saved($cambiato);
+        }
 
         return self::SUCCESS;
     }

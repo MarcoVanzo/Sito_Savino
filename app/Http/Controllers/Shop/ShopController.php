@@ -11,12 +11,30 @@ use App\Services\StoricoPrezzi;
 use App\Support\EtichetteDelProdotto;
 use App\Support\GuidaTaglie;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ShopController extends Controller
 {
+    /**
+     * Lo storico dei prezzi dei prodotti in sconto della lista che si sta
+     * costruendo, letto con una query sola (precaricaLoStorico). Senza, ogni
+     * card in sconto ne faceva una sua.
+     *
+     * @var array<int, Collection<int, \stdClass>>
+     */
+    private array $storico = [];
+
+    /**
+     * @param  iterable<Product>  $prodotti
+     */
+    private function precaricaLoStorico(iterable $prodotti): void
+    {
+        $this->storico = app(StoricoPrezzi::class)->righePer($prodotti);
+    }
+
     /**
      * Mappa un Product Eloquent model in un array con campi tradotti e image_url.
      * Spatie HasTranslations serializza i campi translatable come oggetto JSON
@@ -81,7 +99,7 @@ class ShopController extends Controller
      */
     private function prezzi(Product $p): array
     {
-        $riferimento = app(StoricoPrezzi::class)->prezzoDiRiferimento($p);
+        $riferimento = app(StoricoPrezzi::class)->prezzoDiRiferimento($p, $this->storico[$p->id] ?? null);
 
         if ($riferimento !== null) {
             return [
@@ -134,12 +152,16 @@ class ShopController extends Controller
 
         $locale = app()->getLocale();
         $data = Cache::remember("public:shop:{$locale}", now()->addMinutes(10), function () {
-            $allProducts = Product::shoppable()
+            $prodotti = Product::shoppable()
                 ->with(['category', 'media'])
                 ->withSum('variants', 'stock')
                 ->withMax('variants', 'stock')
                 ->orderBy('sort_order')
-                ->get()
+                ->get();
+
+            $this->precaricaLoStorico($prodotti);
+
+            $allProducts = $prodotti
                 ->map(fn ($p) => $this->mapProductCard($p))
                 ->values()
                 ->all();
@@ -195,7 +217,10 @@ class ShopController extends Controller
      * una lettura da poco e deve rispecchiare subito il pannello, altrimenti
      * chi li collega non li vede per mezz'ora e pensa di aver sbagliato. Il
      * ripiego a caso nella stessa categoria, che e' il comportamento storico,
-     * resta in cache come prima.
+     * resta in cache come prima, ma solo la scelta degli id: prezzo,
+     * etichette e giacenza si leggono a ogni richiesta. In cache c'erano le
+     * card intere, che nessuno buttava: per mezz'ora una card poteva dire IN
+     * OFFERTA o ULTIMO RIMASTO a sconto finito o a taglia esaurita.
      */
     private function prodottiCorrelati(Product $product)
     {
@@ -208,24 +233,41 @@ class ShopController extends Controller
             ->get();
 
         if ($scelti->isNotEmpty()) {
-            return $scelti->map(fn ($p) => $this->mapProductCard($p))->values();
+            return $this->carteDeiCorrelati($scelti);
         }
 
-        $relatedCacheKey = 'product:'.$product->id.':related:'.app()->getLocale();
-
-        return Cache::remember($relatedCacheKey, now()->addMinutes(30), function () use ($product) {
+        $ids = Cache::remember('product:'.$product->id.':related_ids', now()->addMinutes(30), function () use ($product) {
             return Product::shoppable()
                 ->when($product->product_category_id, fn ($q) => $q->where('product_category_id', $product->product_category_id))
                 ->where('id', '!=', $product->id)
-                ->with(['media', 'category'])
-                ->withSum('variants', 'stock')
-                ->withMax('variants', 'stock')
                 ->orderByRaw('RAND(?)', [$product->id])
                 ->take(4)
-                ->get()
-                ->map(fn ($p) => $this->mapProductCard($p))
-                ->values();
+                ->pluck('id')
+                ->all();
         });
+
+        // Si riapplica shoppable(): un id in cache puo' essere stato ritirato
+        // nel frattempo.
+        $prodotti = Product::shoppable()
+            ->whereIn('id', $ids)
+            ->with(['media', 'category'])
+            ->withSum('variants', 'stock')
+            ->withMax('variants', 'stock')
+            ->get()
+            ->sortBy(fn (Product $p) => array_search($p->id, $ids, true))
+            ->values();
+
+        return $this->carteDeiCorrelati($prodotti);
+    }
+
+    /**
+     * @param  Collection<int, Product>  $prodotti
+     */
+    private function carteDeiCorrelati($prodotti)
+    {
+        $this->precaricaLoStorico($prodotti);
+
+        return $prodotti->map(fn ($p) => $this->mapProductCard($p))->values();
     }
 
     /**
@@ -286,6 +328,7 @@ class ShopController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $this->precaricaLoStorico($paginator->getCollection());
         $paginator->through(fn ($p) => $this->mapProduct($p));
 
         return Inertia::render('Public/Shop/Category', [
@@ -327,6 +370,7 @@ class ShopController extends Controller
                 ->paginate(12)
                 ->withQueryString();
 
+            $this->precaricaLoStorico($paginator->getCollection());
             $paginator->through(fn ($p) => $this->mapProduct($p));
             $products = $paginator;
         }

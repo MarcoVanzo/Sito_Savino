@@ -61,7 +61,8 @@ class OrderConfirmation extends Mailable implements ShouldQueue
                 fn () => Pdf::loadView('pdf.condizioni-di-vendita', [
                     'order' => $this->order,
                     'lingua' => $lingua,
-                    'pagine' => CondizioniDiVendita::perLAllegato($lingua),
+                    // Il testo fotografato al checkout, non quello di oggi.
+                    'pagine' => CondizioniDiVendita::perLAllegatoDellOrdine($this->order),
                 ])->output(),
                 __('emails.contratto.pdf_filename', [], $lingua),
             )->withMime('application/pdf'),

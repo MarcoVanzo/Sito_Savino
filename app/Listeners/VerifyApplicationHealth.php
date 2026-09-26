@@ -2,8 +2,10 @@
 
 namespace App\Listeners;
 
+use App\Enums\EsitoAvviso;
 use App\Exceptions\UnhealthyApplicationException;
 use App\Services\AdminNotificationService;
+use App\Services\AvvisoTecnico;
 use App\Support\SchedulerHeartbeat;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Support\Facades\Cache;
@@ -43,6 +45,11 @@ class VerifyApplicationHealth
      * Momento della prima osservazione di stallo della serie in corso.
      */
     private const STALE_SINCE_KEY = 'scheduler:stale-since';
+
+    /**
+     * Silenziatore orario dell'avviso, nello store `persistente`.
+     */
+    public const STALE_ALERT_KEY = 'scheduler-stale-alert';
 
     public function handle(DiagnosingHealth $event): void
     {
@@ -120,21 +127,34 @@ class VerifyApplicationHealth
 
         // App Platform interroga `/up` ogni 30 secondi: senza silenziatore un
         // pianificatore morto produrrebbe 2.880 segnalazioni al giorno.
-        // `add()` è atomico, quindi regge anche con più istanze del web.
-        if (! Cache::add('scheduler-stale-alert', true, 3600)) {
+        // `add()` è atomico, quindi regge anche con più istanze del web. Sta
+        // nello store `persistente`: il `cache:clear` di start.sh non lo
+        // azzera, e un rilascio non rimanda l'avviso dell'ora in corso.
+        if (! AvvisoTecnico::memoria()->add(self::STALE_ALERT_KEY, true, 3600)) {
             return;
         }
 
         $elapsed = SchedulerHeartbeat::secondsSinceLastBeat();
 
-        report(UnhealthyApplicationException::for(
-            'scheduler',
-            $elapsed === null
-                ? 'nessun battito registrato: il pianificatore non è mai partito'
-                : "ultimo battito {$elapsed}s fa, soglia ".SchedulerHeartbeat::STALE_AFTER_SECONDS.'s',
-        ));
+        // Fuori dalla richiesta: `/up` ha 5 secondi per rispondere a
+        // DigitalOcean, l'invio a Resend fino a 10. Con PHP-FPM il callback
+        // gira dopo che la risposta è già partita.
+        defer(static function () use ($elapsed): void {
+            report(UnhealthyApplicationException::for(
+                'scheduler',
+                $elapsed === null
+                    ? 'nessun battito registrato: il pianificatore non è mai partito'
+                    : "ultimo battito {$elapsed}s fa, soglia ".SchedulerHeartbeat::STALE_AFTER_SECONDS.'s',
+            ));
 
-        app(AdminNotificationService::class)->notifySchedulerStalled($elapsed);
+            $esito = app(AdminNotificationService::class)->notifySchedulerStalled($elapsed);
+
+            // Email non partita: il silenziatore si libera, e il prossimo
+            // `/up` riprova invece di tacere per un'ora.
+            if ($esito === EsitoAvviso::Fallito) {
+                AvvisoTecnico::memoria()->forget(self::STALE_ALERT_KEY);
+            }
+        });
     }
 
     /**

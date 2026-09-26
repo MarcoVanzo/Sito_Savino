@@ -95,7 +95,7 @@ function cancella() {
                         <div>
                             <dt class="text-gray-500">{{ $t('account.orders') }}</dt>
                             <dd class="font-semibold text-gray-900">
-                                <Link :href="route('shop.orders')" class="text-savino-blue underline hover:text-savino-fucsia">{{ account.orders_count }}</Link>
+                                <Link :href="route('shop.orders')" class="text-savino-blue underline hover:text-savino-fucsia">{{ account.orders_count }}<span class="sr-only"> {{ $t('account.orders_link') }}</span></Link>
                             </dd>
                         </div>
                     </dl>

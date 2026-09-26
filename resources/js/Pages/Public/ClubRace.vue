@@ -99,7 +99,7 @@ const ogMeta = useOgMeta({
                                 class="border-b border-gray-100 last:border-0"
                                 :class="riga.position <= 3 ? 'bg-savino-fucsia/5' : ''"
                             >
-                                <td class="px-6 py-4 font-black" :class="riga.position <= 3 ? 'text-savino-fucsia' : 'text-gray-400'">{{ riga.position }}</td>
+                                <td class="px-6 py-4 font-black" :class="riga.position <= 3 ? 'text-savino-fucsia' : 'text-gray-500'">{{ riga.position }}</td>
                                 <td class="px-6 py-4 font-bold text-gray-900">{{ riga.club }}</td>
                                 <td class="px-6 py-4 text-right font-black text-savino-blue tabular-nums">{{ riga.points }}</td>
                             </tr>

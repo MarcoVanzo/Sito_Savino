@@ -3,7 +3,9 @@
 namespace Tests\Feature\Observability;
 
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request as RichiestaHttp;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -33,9 +35,9 @@ class SentryTunnelTest extends TestCase
             .json_encode(['message' => 'boom']);
     }
 
-    private function manda(string $busta)
+    private function manda(string $busta, string $ip = '127.0.0.1')
     {
-        return $this->call('POST', '/api/diagnostica', [], [], [], ['CONTENT_TYPE' => 'text/plain'], $busta);
+        return $this->call('POST', '/api/diagnostica', [], [], [], ['CONTENT_TYPE' => 'text/plain', 'REMOTE_ADDR' => $ip], $busta);
     }
 
     #[Test]
@@ -43,11 +45,92 @@ class SentryTunnelTest extends TestCase
     {
         $this->manda($this->busta())->assertOk();
 
-        Http::assertSent(fn (Request $r) => $r->url() === 'https://o1.ingest.de.sentry.io/api/42/envelope/'
-            && $r->body() === $this->busta()
-            // Il server non aggiunge l'IP del visitatore: nessuna intestazione
-            // di inoltro nella richiesta verso Sentry.
-            && ! $r->hasHeader('X-Forwarded-For'));
+        Http::assertSent(fn (Request $r) => $r->url() === 'https://o1.ingest.de.sentry.io/api/42/envelope/');
+    }
+
+    #[Test]
+    public function inoltra_la_busta_intatta_senza_l_ip_del_visitatore(): void
+    {
+        // È ciò che l'informativa promette: Sentry riceve l'evento, non chi
+        // lo ha generato. Il visitatore arriva con il suo IP e con un
+        // X-Forwarded-For (come dietro il proxy di App Platform).
+        $ip = '203.0.113.77';
+
+        $this->call('POST', '/api/diagnostica', [], [], [], [
+            'CONTENT_TYPE' => 'text/plain',
+            'REMOTE_ADDR' => $ip,
+            'HTTP_X_FORWARDED_FOR' => $ip,
+            'HTTP_X_REAL_IP' => $ip,
+        ], $this->busta())->assertOk();
+
+        Http::assertSentCount(1);
+        Http::assertSent(function (Request $r) use ($ip): bool {
+            $intestazioni = json_encode($r->headers());
+
+            return $r->body() === $this->busta()
+                && ! str_contains($intestazioni, $ip)
+                && ! str_contains($r->body(), $ip);
+        });
+    }
+
+    #[Test]
+    public function inoltra_solo_gli_eventi(): void
+    {
+        // Sessioni, replay e allegati non servono a trovare un guasto e
+        // consumano la quota condivisa con gli errori del server.
+        $intestazione = json_encode(['event_id' => 'abc', 'dsn' => self::DSN]);
+        $evento = json_encode(['message' => 'boom']);
+        $allegato = "riga uno\nriga due";
+        $busta = $intestazione."\n"
+            .json_encode(['type' => 'session'])."\n".json_encode(['sid' => 'x'])."\n"
+            .json_encode(['type' => 'attachment', 'length' => strlen($allegato)])."\n".$allegato."\n"
+            .json_encode(['type' => 'event'])."\n".$evento."\n"
+            .json_encode(['type' => 'replay_recording', 'length' => 3])."\nabc";
+
+        $this->manda($busta)->assertOk();
+
+        Http::assertSent(fn (Request $r) => $r->body() === $intestazione."\n".json_encode(['type' => 'event'])."\n".$evento."\n");
+    }
+
+    #[Test]
+    public function una_busta_senza_eventi_non_parte(): void
+    {
+        $busta = json_encode(['dsn' => self::DSN])."\n"
+            .json_encode(['type' => 'session'])."\n".json_encode(['sid' => 'x']);
+
+        $this->manda($busta)->assertStatus(202);
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function una_busta_malformata_si_rifiuta(): void
+    {
+        $this->manda(json_encode(['dsn' => self::DSN])."\nnon json\nx")->assertStatus(400);
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function un_indirizzo_oltre_il_suo_tetto_riceve_429(): void
+    {
+        for ($i = 0; $i < 30; $i++) {
+            $this->manda($this->busta(), '198.51.100.1')->assertOk();
+        }
+
+        $this->manda($this->busta(), '198.51.100.1')->assertStatus(429);
+        // Un altro visitatore non paga per il primo.
+        $this->manda($this->busta(), '198.51.100.2')->assertOk();
+    }
+
+    #[Test]
+    public function il_tunnel_ha_anche_un_tetto_globale(): void
+    {
+        $limiti = RateLimiter::limiter('diagnostica')(RichiestaHttp::create('/api/diagnostica', 'POST', server: ['REMOTE_ADDR' => '198.51.100.9']));
+
+        $this->assertSame([30, 300], array_map(fn ($l) => $l->maxAttempts, $limiti));
+        $this->assertSame('diagnostica:globale', $limiti[1]->key);
+        $this->assertStringContainsString('198.51.100.9', $limiti[0]->key);
     }
 
     #[Test]

@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\SiteSetting;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class CartService
@@ -393,20 +394,56 @@ class CartService
     {
         $items = $cart->items()->with('product')->get();
         $removedCount = 0;
+        $toccate = false;
 
         foreach ($items as $item) {
             if (! $item->product || ! $item->product->is_active || $item->product->trashed()) {
                 $item->delete();
                 $removedCount++;
+
+                continue;
+            }
+
+            if ($item->con_personalizzazione && ! $item->product->offrePersonalizzazione()) {
+                $this->tornaSemplice($item, $items);
+                $toccate = true;
             }
         }
 
-        if ($removedCount > 0) {
+        if ($removedCount > 0 || $toccate) {
             // Ricarica items dopo la pulizia
             $cart->unsetRelation('items');
         }
 
         return $removedCount;
+    }
+
+    /**
+     * La firma tolta dal pannello mentre la riga era nel carrello: la riga
+     * torna semplice davvero, non solo nel prezzo (CartItem::personalizzata).
+     * Lasciare il flag acceso faceva nascere una seconda riga identica al
+     * primo "aggiungi" dello stesso pezzo, e riaccesa la firma la vecchia riga
+     * tornava a pagarla senza che il cliente l'avesse scelta. Se il pezzo ha
+     * gia' una riga semplice, le quantita' si uniscono li'.
+     *
+     * @param  Collection<int, CartItem>  $items
+     */
+    private function tornaSemplice(CartItem $item, $items): void
+    {
+        $semplice = $items->first(fn (CartItem $altra) => $altra->id !== $item->id
+            && $altra->exists
+            && ! $altra->con_personalizzazione
+            && $altra->product_id === $item->product_id
+            && $altra->product_variant_id === $item->product_variant_id);
+
+        if ($semplice === null) {
+            $item->update(['con_personalizzazione' => false]);
+
+            return;
+        }
+
+        $semplice->update(['quantity' => $semplice->quantity + $item->quantity]);
+        $item->delete();
     }
 
     /**

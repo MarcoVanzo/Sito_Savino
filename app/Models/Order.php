@@ -49,7 +49,7 @@ class Order extends Model
         'shipped_at', 'tracking_number', 'tracking_url',
         'shipping_cost', 'coupon_id', 'coupon_discount', 'notes',
         'privacy_accepted_at',
-        'condizioni_versione',
+        'condizioni_versione', 'condizioni_impronta',
     ];
 
     protected $casts = [

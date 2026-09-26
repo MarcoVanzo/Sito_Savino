@@ -20,7 +20,8 @@
         "home": "Home",
         "shop": "Shop",
         "form_privacy_notice": "Usiamo i dati che inserisci solo per rispondere alla tua richiesta e li conserviamo per 24 mesi. Per sapere come li trattiamo e quali diritti hai, leggi",
-        "form_privacy_link": "l'informativa privacy"
+        "form_privacy_link": "l'informativa privacy",
+        "breadcrumb": "Percorso di navigazione"
     },
     "nav": {
         "main_navigation": "Navigazione principale",
@@ -1057,7 +1058,10 @@
         "max_increment": "Rilancio massimo",
         "reserve_price": "Prezzo di riserva",
         "reached": "Raggiunto",
-        "not_reached": "Non raggiunto"
+        "not_reached": "Non raggiunto",
+        "og_title": "{title} — Asta Savino Del Bene Volley",
+        "og_description_current": "Offerta attuale: {price}.",
+        "og_description_from": "A partire da {price}."
     },
     "auctions": {
         "og_title": "Aste — Savino Del Bene Volley",
@@ -1199,7 +1203,8 @@
         "delete_password": "Per confermare, scrivi la tua password",
         "delete_confirm": "Cancella definitivamente",
         "delete_cancel": "Annulla",
-        "export_note": "Il download parte subito: è un file JSON."
+        "export_note": "Il download parte subito: è un file JSON.",
+        "orders_link": "ordini, vedi l'elenco"
     },
     "recesso": {
         "title": "Recedi dal contratto",

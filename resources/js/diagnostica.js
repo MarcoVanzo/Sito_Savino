@@ -46,6 +46,13 @@ export function ripulisciIndirizzo(indirizzo) {
 }
 
 function ripulisciEvento(evento) {
+    // Le props del componente in errore possono contenere dati del cliente
+    // (indirizzo, email, righe dell'ordine): `attachProps: false` le spegne
+    // alla fonte, questa riga le toglie se un'altra strada le rimette.
+    if (evento.contexts?.vue) {
+        delete evento.contexts.vue.propsData;
+    }
+
     if (evento.request) {
         evento.request.url = ripulisciIndirizzo(evento.request.url);
         delete evento.request.query_string;
@@ -81,6 +88,9 @@ export function opzioniDiSentry({ app, dsn, environment, origine }) {
         environment,
         tunnel: TUNNEL,
         sendDefaultPii: false,
+        // @sentry/vue allega di default le props del componente (`vm.$props`)
+        // a ogni errore: nel checkout sono indirizzo, email e carrello.
+        attachProps: false,
         allowUrls: [origine],
         ignoreErrors: [
             // Rumore noto dei browser, non guasti: il ridimensionamento che

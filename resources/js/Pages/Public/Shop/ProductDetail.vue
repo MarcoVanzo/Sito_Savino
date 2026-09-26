@@ -81,7 +81,9 @@ onMounted(() => {
     trackViewContent({
         id: props.product.id,
         name: props.product.name,
-        value: Number(props.product.price),
+        // Il prezzo che si paga, non il barrato (`price` con uno sconto
+        // annunciabile e' il riferimento dei 30 giorni).
+        value: displayPrice.value,
     });
 });
 
@@ -187,7 +189,8 @@ const handleAddToCart = () => {
     trackAddToCart({
         id: props.product.id,
         name: props.product.name,
-        value: Number(props.product.price) * quantity.value,
+        // Taglia e firma comprese: e' il valore che il carrello fa pagare.
+        value: displayPrice.value * quantity.value,
         quantity: quantity.value,
     });
     addToCart({

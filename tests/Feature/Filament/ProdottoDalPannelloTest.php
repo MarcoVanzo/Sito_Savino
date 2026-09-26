@@ -83,6 +83,22 @@ class ProdottoDalPannelloTest extends TestCase
             ->assertFormSet(['stock' => 14]);
     }
 
+    #[Test]
+    public function il_supplemento_svuotato_vale_zero_e_il_prodotto_si_salva(): void
+    {
+        // La colonna e' NOT NULL: il campo svuotato arrivava come null e il
+        // salvataggio dell'intero prodotto falliva.
+        $prodotto = $this->prodotto(['personalizzazione_prezzo' => 5]);
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(EditProduct::class, ['record' => $prodotto->getRouteKey()])
+            ->fillForm(['personalizzazione_prezzo' => null])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame('0.00', (string) $prodotto->refresh()->personalizzazione_prezzo);
+    }
+
     private function prodotto(array $attributi = []): Product
     {
         return Product::factory()->create([

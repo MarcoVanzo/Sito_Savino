@@ -20,7 +20,8 @@
         "home": "Home",
         "shop": "Shop",
         "form_privacy_notice": "We use the data you enter only to reply to your request and keep it for 24 months. To find out how we process it and what your rights are, read the",
-        "form_privacy_link": "privacy notice"
+        "form_privacy_link": "privacy notice",
+        "breadcrumb": "Breadcrumb"
     },
     "nav": {
         "main_navigation": "Main navigation",
@@ -77,7 +78,7 @@
         "contacts": "Contacts",
         "communication": "Media",
         "standings": "Standings",
-        "supplier_policy": "Supplier Policy",
+        "supplier_policy": "Supplier privacy notice",
         "terms_of_sale": "Terms of sale",
         "withdrawal": "Right of withdrawal",
         "shipping": "Shipping",
@@ -1057,7 +1058,10 @@
         "max_increment": "Maximum bid jump",
         "reserve_price": "Reserve price",
         "reached": "Reserve met",
-        "not_reached": "Reserve not met"
+        "not_reached": "Reserve not met",
+        "og_title": "{title} — Savino Del Bene Volley Auction",
+        "og_description_current": "Current bid: {price}.",
+        "og_description_from": "Starting from {price}."
     },
     "auctions": {
         "og_title": "Auctions — Savino Del Bene Volley",
@@ -1199,7 +1203,8 @@
         "delete_password": "To confirm, enter your password",
         "delete_confirm": "Delete permanently",
         "delete_cancel": "Cancel",
-        "export_note": "The download starts straight away: it is a JSON file."
+        "export_note": "The download starts straight away: it is a JSON file.",
+        "orders_link": "orders, view the list"
     },
     "recesso": {
         "title": "Withdraw from contract",

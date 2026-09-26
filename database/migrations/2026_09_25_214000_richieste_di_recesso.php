@@ -21,6 +21,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Guardia per la ripartenza: su MySQL il DDL non e' transazionale, e
+        // una migrazione interrotta dopo la CREATE lascerebbe la tabella senza
+        // la riga in `migrations`. In produzione e' gia' applicata.
+        if (Schema::hasTable('richieste_di_recesso')) {
+            return;
+        }
+
         Schema::create('richieste_di_recesso', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();

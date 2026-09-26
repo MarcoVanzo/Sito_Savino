@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Product;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -39,25 +40,34 @@ class StoricoPrezzi
     /**
      * Apre una riga nuova se il prezzo effettivo è cambiato rispetto a quella
      * aperta, e chiude la precedente. Chiamarla due volte di seguito non
-     * produce niente.
+     * produce niente. Restituisce true quando ha aperto una riga: è il segnale
+     * che il prezzo in vetrina è cambiato (prezzi:registra ci butta la cache).
+     *
+     * Observer e comando orario possono girare insieme sullo stesso prodotto:
+     * senza un lock leggevano entrambi la stessa riga aperta (o nessuna) e
+     * aprivano due righe con `al` nullo. Il lock è sulla riga di `products`,
+     * non su quella dello storico, perché al primo giro quella non esiste
+     * ancora e non ci sarebbe niente da bloccare.
      */
-    public function registra(Product $prodotto, ?CarbonInterface $quando = null): void
+    public function registra(Product $prodotto, ?CarbonInterface $quando = null): bool
     {
         $quando ??= now();
         $prezzo = round($prodotto->effectivePrice(), 2);
         $inSconto = $prezzo < round((float) $prodotto->price, 2);
 
-        $aperta = DB::table('storico_prezzi')
-            ->where('product_id', $prodotto->id)
-            ->whereNull('al')
-            ->orderByDesc('dal')
-            ->first();
+        return DB::transaction(function () use ($prodotto, $prezzo, $inSconto, $quando) {
+            DB::table('products')->where('id', $prodotto->id)->lockForUpdate()->first();
 
-        if ($aperta && round((float) $aperta->prezzo, 2) === $prezzo && (bool) $aperta->in_sconto === $inSconto) {
-            return;
-        }
+            $aperta = DB::table('storico_prezzi')
+                ->where('product_id', $prodotto->id)
+                ->whereNull('al')
+                ->orderByDesc('dal')
+                ->first();
 
-        DB::transaction(function () use ($aperta, $prodotto, $prezzo, $inSconto, $quando) {
+            if ($aperta && round((float) $aperta->prezzo, 2) === $prezzo && (bool) $aperta->in_sconto === $inSconto) {
+                return false;
+            }
+
             if ($aperta) {
                 DB::table('storico_prezzi')->where('id', $aperta->id)->update(['al' => $quando]);
             }
@@ -69,7 +79,47 @@ class StoricoPrezzi
                 'dal' => $quando,
                 'al' => null,
             ]);
+
+            return true;
         });
+    }
+
+    /**
+     * Lo storico di più prodotti con una query sola, da passare a
+     * prezzoDiRiferimento(): le liste dello shop ne facevano una per ogni
+     * prodotto in sconto. Solo i prodotti in sconto hanno una voce (anche
+     * vuota), gli altri non la chiedono.
+     *
+     * @param  iterable<Product>  $prodotti
+     * @return array<int, Collection<int, \stdClass>>
+     */
+    public function righePer(iterable $prodotti): array
+    {
+        $ids = [];
+
+        foreach ($prodotti as $prodotto) {
+            if ($prodotto->isOnSale()) {
+                $ids[] = $prodotto->id;
+            }
+        }
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $righe = DB::table('storico_prezzi')
+            ->whereIn('product_id', $ids)
+            ->orderByDesc('dal')
+            ->get()
+            ->groupBy('product_id');
+
+        $mappa = [];
+
+        foreach ($ids as $id) {
+            $mappa[$id] = ($righe[$id] ?? collect())->values();
+        }
+
+        return $mappa;
     }
 
     /**
@@ -77,13 +127,17 @@ class StoricoPrezzi
      * annunciare una riduzione: prodotto non in sconto, sconto che non scende
      * sotto il riferimento, oppure nessun prezzo praticato prima.
      */
-    public function prezzoDiRiferimento(Product $prodotto): ?float
+    /**
+     * @param  Collection<int, \stdClass>|null  $righe  lo storico del prodotto già
+     *                                                  letto (righePer), dal più recente
+     */
+    public function prezzoDiRiferimento(Product $prodotto, ?Collection $righe = null): ?float
     {
         if (! $prodotto->isOnSale()) {
             return null;
         }
 
-        $righe = DB::table('storico_prezzi')
+        $righe ??= DB::table('storico_prezzi')
             ->where('product_id', $prodotto->id)
             ->orderByDesc('dal')
             ->get();

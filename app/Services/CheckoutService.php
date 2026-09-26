@@ -15,6 +15,7 @@ use App\Models\ProductVariant;
 use App\Models\ShippingZone;
 use App\Models\User;
 use App\Support\CondizioniDiVendita;
+use App\Support\Locale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -188,6 +189,9 @@ class CheckoutService
                 // Quale testo delle condizioni valeva quando il cliente le ha
                 // accettate: la pagina cambierà, l'ordine deve ricordarlo.
                 'condizioni_versione' => CondizioniDiVendita::VERSIONE,
+                // E quale testo esatto: la redazione riscrive le pagine dal
+                // pannello, la costante del codice non lo saprebbe.
+                'condizioni_impronta' => CondizioniDiVendita::registraIstantanea(Locale::current()),
             ]);
 
             // status is not mass-assignable (security), set it explicitly

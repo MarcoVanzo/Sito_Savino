@@ -10,6 +10,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -121,8 +122,35 @@ class NewsletterController extends Controller
         return back()->with('success', __('messages.newsletter.success'));
     }
 
+    /**
+     * Quante email di conferma può ricevere lo stesso indirizzo in un giorno.
+     *
+     * Il limite della rotta conta per IP: senza questo, chiunque può far
+     * arrivare a una casella altrui una conferma dopo l'altra cambiando rete.
+     */
+    public const CONFERME_AL_GIORNO = 3;
+
+    /**
+     * Manda il link di conferma, al massimo CONFERME_AL_GIORNO volte al giorno
+     * per indirizzo. Oltre il limite l'invio si salta senza dirlo al
+     * visitatore: un messaggio diverso direbbe a chiunque se quell'indirizzo
+     * è già in lista. La chiave ha il suo prefisso (§18 del CLAUDE.md) e
+     * l'impronta dell'email, non l'email: la cache non deve tenere indirizzi.
+     */
     private function mandaLaConferma(NewsletterSubscriber $subscriber): void
     {
+        $chiave = 'newsletter.conferma:'.hash('sha256', mb_strtolower(trim($subscriber->email)));
+
+        if (RateLimiter::tooManyAttempts($chiave, self::CONFERME_AL_GIORNO)) {
+            Log::channel('daily')->info('Newsletter: conferma non rimandata, limite giornaliero raggiunto', [
+                'subscriber_id' => $subscriber->id,
+            ]);
+
+            return;
+        }
+
+        RateLimiter::hit($chiave, 86400);
+
         Mail::to($subscriber->email)->queue(new ConfermaIscrizioneNewsletter($subscriber, app()->getLocale()));
     }
 

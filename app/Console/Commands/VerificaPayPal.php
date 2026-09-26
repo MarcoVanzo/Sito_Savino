@@ -3,6 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -20,6 +23,10 @@ use Illuminate\Support\Facades\Http;
  *
  * Legge soltanto: chiede un token e interroga l'elenco dei webhook. Non
  * stampa mai credenziali o token.
+ *
+ * Esce con TRANSITORIO (3), non con FAILURE, quando è PayPal a non rispondere
+ * (rete, timeout, 5xx, 429): `shop:sorveglia` lo tratta come "non so" invece
+ * di annunciare un impianto "non configurato" che non lo è.
  */
 class VerificaPayPal extends Command
 {
@@ -33,7 +40,24 @@ class VerificaPayPal extends Command
         'PAYMENT.CAPTURE.REFUNDED',
     ];
 
+    /** PayPal non ha risposto: nessuna conclusione sull'impianto. */
+    public const TRANSITORIO = 3;
+
+    /** Secondi di attesa per ogni chiamata. */
+    private const TIMEOUT = 15;
+
     public function handle(): int
+    {
+        try {
+            return $this->verifica();
+        } catch (ConnectionException $e) {
+            $this->warn('PayPal non raggiungibile ('.$e->getMessage().'): riprovare più tardi.');
+
+            return self::TRANSITORIO;
+        }
+    }
+
+    private function verifica(): int
     {
         $mode = (string) config('services.paypal.mode');
         $clientId = (string) config('services.paypal.client_id');
@@ -51,8 +75,8 @@ class VerificaPayPal extends Command
 
         $token = $this->token($base, $clientId, $secret);
 
-        if ($token === null) {
-            return self::FAILURE;
+        if (is_int($token)) {
+            return $token;
         }
 
         $this->info('Credenziali valide: token ottenuto.');
@@ -66,24 +90,54 @@ class VerificaPayPal extends Command
         return $this->controllaWebhook($base, $token, $webhookId);
     }
 
-    private function token(string $base, string $clientId, string $secret): ?string
+    /**
+     * @return string|int il token, oppure il codice d'uscita
+     */
+    private function token(string $base, string $clientId, string $secret): string|int
     {
-        $risposta = Http::withBasicAuth($clientId, $secret)
+        $risposta = $this->http()
+            ->withBasicAuth($clientId, $secret)
             ->asForm()
             ->post("{$base}/v1/oauth2/token", ['grant_type' => 'client_credentials']);
+
+        if ($this->transitorio($risposta)) {
+            $this->warn('PayPal non risponde ('.$risposta->status().'): riprovare più tardi.');
+
+            return self::TRANSITORIO;
+        }
 
         if ($risposta->failed()) {
             $this->error('Credenziali rifiutate da PayPal ('.$risposta->status().'): '.$risposta->json('error_description', ''));
 
-            return null;
+            return self::FAILURE;
         }
 
         return (string) $risposta->json('access_token');
     }
 
+    private function http(): PendingRequest
+    {
+        return Http::timeout(self::TIMEOUT)->connectTimeout(5);
+    }
+
+    /**
+     * Un 5xx o un 429 dicono che PayPal è in difficoltà, non che le nostre
+     * credenziali o il webhook siano sbagliati.
+     */
+    private function transitorio(Response $risposta): bool
+    {
+        return $risposta->serverError() || $risposta->status() === 429;
+    }
+
     private function controllaWebhook(string $base, string $token, string $webhookId): int
     {
-        $risposta = Http::withToken($token)->acceptJson()->get("{$base}/v1/notifications/webhooks");
+        $risposta = $this->http()->withToken($token)->acceptJson()->get("{$base}/v1/notifications/webhooks");
+
+        if ($this->transitorio($risposta)) {
+            $this->warn('Elenco webhook non disponibile ('.$risposta->status().'): riprovare più tardi.');
+
+            return self::TRANSITORIO;
+        }
 
         if ($risposta->failed()) {
             $this->error('Elenco webhook non leggibile ('.$risposta->status().').');

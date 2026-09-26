@@ -93,6 +93,20 @@ return function (string $namePrefix): void {
         Route::get('/'.$vecchio, fn () => $vai($rotta, $parametri));
     }
 
+    // --- PDF delle informative ----------------------------------------------
+    // Dal 26/09/2026 l'informativa fornitori e' una pagina: il PDF che il
+    // vecchio sito pubblicava nella libreria media porta li'. Quella
+    // promozionale no: non e' mai stata nella libreria media di WordPress
+    // (verificato su `wp-json/wp/v2/media` il 26/09/2026), quindi non ha un
+    // vecchio indirizzo da raccogliere.
+    $pdf = [
+        'wp-content/uploads/2021/06/Informativa-Fornitori.pdf' => 'informativa-fornitori',
+    ];
+
+    foreach ($pdf as $vecchio => $slug) {
+        Route::get('/'.$vecchio, fn () => $vai('pages.show', ['slug' => $slug]));
+    }
+
     // --- Feed ---------------------------------------------------------------
     // Devono stare prima delle rotte di tag e categoria, che altrimenti se li
     // prendono e li mandano su una pagina HTML: chi legge un feed non saprebbe

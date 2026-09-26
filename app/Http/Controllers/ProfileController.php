@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\DatiDelCliente;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -41,9 +43,15 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * Cancella l'account dalla pagina di Breeze (`/profile`).
+     *
+     * Passa dalle stesse regole di `/shop/account` (AccountController):
+     * prima faceva `$user->delete()` e basta, quindi un redattore poteva
+     * cancellarsi da qui, chi aveva un'asta in corso lasciava l'offerta senza
+     * nessuno dietro, e restavano dati nel registro, gli ordini senza
+     * recapito e il cliente su Stripe (DatiDelCliente::cancella).
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, DatiDelCliente $dati): RedirectResponse
     {
         $request->validate([
             'password' => ['required', 'current_password'],
@@ -51,9 +59,17 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($motivo = $dati->motivoPerNonCancellare($user)) {
+            return back()->withErrors(['password' => $motivo]);
+        }
+
+        $id = $user->id;
+
         Auth::logout();
 
-        $user->delete();
+        $dati->cancella($user);
+
+        Log::channel('daily')->info('Account cancellato su richiesta', ['user_id' => $id]);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

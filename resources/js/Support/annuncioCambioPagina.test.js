@@ -18,7 +18,53 @@ describe('annunciaIlCambioDiPagina', () => {
 
     afterEach(() => vi.useRealTimers());
 
-    it('porta il focus al contenuto e legge il titolo nuovo', () => {
+    it('porta il focus sul primo h1 del contenuto e non ripete il titolo nella regione', () => {
+        const router = routerFinto();
+        annunciaIlCambioDiPagina(router);
+        document.getElementById('link').focus();
+
+        // Il componente nuovo e' gia' montato quando scatta il timer.
+        document.getElementById('contenuto').innerHTML = '<h1 id="titolo">News</h1><h1>Secondo</h1>';
+        document.title = 'News — Savino Del Bene Volley';
+        router.naviga('/news');
+        vi.runAllTimers();
+
+        const titolo = document.getElementById('titolo');
+        expect(document.activeElement).toBe(titolo);
+        expect(titolo.getAttribute('tabindex')).toBe('-1');
+        // Un annuncio solo: lo legge il focus, la regione resta muta.
+        expect(document.querySelector('[data-annuncio-pagina]').textContent).toBe('');
+    });
+
+    it('non tocca il tabindex di un h1 che ne ha gia\' uno', () => {
+        const router = routerFinto();
+        annunciaIlCambioDiPagina(router);
+
+        document.getElementById('contenuto').innerHTML = '<h1 id="titolo" tabindex="0">News</h1>';
+        router.naviga('/news');
+        vi.runAllTimers();
+
+        expect(document.getElementById('titolo').getAttribute('tabindex')).toBe('0');
+        expect(document.activeElement.id).toBe('titolo');
+    });
+
+    it('ripiega sul main e legge il titolo se l\'h1 non prende il focus', () => {
+        const router = routerFinto();
+        annunciaIlCambioDiPagina(router);
+
+        document.getElementById('contenuto').innerHTML = '<h1 id="titolo">News</h1>';
+        const titolo = document.getElementById('titolo');
+        // Come un titolo con display:none: focus() non ha effetto.
+        titolo.focus = () => {};
+        document.title = 'News — Savino Del Bene Volley';
+        router.naviga('/news');
+        vi.runAllTimers();
+
+        expect(document.activeElement.id).toBe('contenuto');
+        expect(document.querySelector('[data-annuncio-pagina]').textContent).toBe('News — Savino Del Bene Volley');
+    });
+
+    it('senza h1 porta il focus al contenuto e legge il titolo nuovo', () => {
         const router = routerFinto();
         annunciaIlCambioDiPagina(router);
         document.getElementById('link').focus();

@@ -45,9 +45,19 @@ const hasStockWarnings = computed(() => cart.value?.items?.some(item => item.sto
 const pannello = ref(null);
 useTrappolaDelFocus(pannello, isCartOpen);
 
+// Alla chiusura si rimette lo scroll com'era all'apertura, non vuoto: aperto
+// sopra il menu mobile, che blocca a sua volta la pagina, rimetterlo a ''
+// faceva tornare a scorrere la pagina sotto il menu.
+let overflowPrecedente = '';
+
 watch(isCartOpen, (open) => {
     if (typeof document !== 'undefined') {
-        document.body.style.overflow = open ? 'hidden' : '';
+        if (open) {
+            overflowPrecedente = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = overflowPrecedente;
+        }
     }
     if (open) {
         fetchCart();
@@ -61,24 +71,54 @@ watch(cartVersion, () => {
     }
 });
 
-// Chiude il drawer con ESC
+// Chiude il drawer con ESC. Anche il menu mobile ascolta l'Esc sul document:
+// col carrello aperto sopra il menu un Esc chiudeva entrambi. Il carrello sta
+// sopra, quindi ascolta in cattura (prima di chiunque ascolti in bolla, a
+// prescindere dall'ordine di registrazione) e ferma l'evento quando chiude.
 const handleKeydown = (e) => {
     if (e.key === 'Escape' && isCartOpen.value) {
+        e.stopImmediatePropagation();
         closeCart();
     }
 };
 
+// Durante un aggiornamento i pulsanti restano focalizzabili (aria-disabled):
+// con `disabled` il focus cadeva sul body a ogni click su "+" o "−". Il
+// doppio click lo ferma la guardia, non l'attributo.
+const inAggiornamento = (id) => loadingItems.value.has(id);
+const limiteDellaRiga = (item) => item.disponibili ?? item.stock ?? item.product?.stock ?? 99;
+
+const conAttesa = (id, azione) => {
+    if (inAggiornamento(id)) return;
+    loadingItems.value.add(id);
+    azione({ onFinish: () => { loadingItems.value.delete(id); } });
+};
+
+const diminuisci = (item) => {
+    if ((item.quantity || 1) <= 1) return;
+    conAttesa(item.id, (callbacks) => updateQuantity(item.id, (item.quantity || 1) - 1, callbacks));
+};
+
+const aumenta = (item) => {
+    if ((item.quantity || 1) >= limiteDellaRiga(item)) return;
+    conAttesa(item.id, (callbacks) => updateQuantity(item.id, (item.quantity || 1) + 1, callbacks));
+};
+
+const togli = (item) => {
+    conAttesa(item.id, (callbacks) => removeItem(item.id, callbacks));
+};
+
 onMounted(() => {
-    document.addEventListener('keydown', handleKeydown);
+    document.addEventListener('keydown', handleKeydown, true);
     if (!hasFetched.value) {
         fetchCart();
     }
 });
 
 onUnmounted(() => {
-    document.removeEventListener('keydown', handleKeydown);
-    if (typeof document !== 'undefined') {
-        document.body.style.overflow = '';
+    document.removeEventListener('keydown', handleKeydown, true);
+    if (typeof document !== 'undefined' && isCartOpen.value) {
+        document.body.style.overflow = overflowPrecedente;
     }
 });
 </script>
@@ -151,7 +191,8 @@ onUnmounted(() => {
                         v-for="item in items"
                         :key="item.id"
                         class="flex gap-4 bg-gray-800/50 rounded-lg p-3 border border-gray-800 transition-opacity duration-200"
-                        :class="{ 'opacity-50 pointer-events-none': loadingItems.has(item.id) }"
+                        :class="{ 'opacity-50': loadingItems.has(item.id) }"
+                        :aria-busy="loadingItems.has(item.id) ? 'true' : undefined"
                     >
                         <!-- Product Image -->
                         <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
@@ -194,10 +235,11 @@ onUnmounted(() => {
                             <!-- Quantity Controls -->
                             <div class="flex items-center gap-2 mt-2">
                                 <button type="button"
-                                    @click="() => { loadingItems.add(item.id); updateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1), { onFinish: () => { loadingItems.delete(item.id); } }); }"
+                                    @click="diminuisci(item)"
                                     class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-white transition-colors flex items-center justify-center text-sm font-bold"
                                     :aria-label="$t('shop.decrease_quantity_of', { name: item.product?.name || item.name })"
-                                    :disabled="item.quantity <= 1 || loadingItems.has(item.id)"
+                                    :disabled="item.quantity <= 1"
+                                    :aria-disabled="loadingItems.has(item.id) ? 'true' : undefined"
                                 >
                                     −
                                 </button>
@@ -205,20 +247,21 @@ onUnmounted(() => {
                                     <span class="sr-only">{{ $t('shop.quantity') }}: </span>{{ item.quantity || 1 }}
                                 </span>
                                 <button type="button"
-                                    @click="() => { loadingItems.add(item.id); updateQuantity(item.id, (item.quantity || 1) + 1, { onFinish: () => { loadingItems.delete(item.id); } }); }"
+                                    @click="aumenta(item)"
                                     class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-white transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
                                     :aria-label="$t('shop.increase_quantity_of', { name: item.product?.name || item.name })"
-                                    :disabled="item.quantity >= (item.stock ?? item.product?.stock ?? 99) || loadingItems.has(item.id)"
+                                    :disabled="item.quantity >= limiteDellaRiga(item)"
+                                    :aria-disabled="loadingItems.has(item.id) ? 'true' : undefined"
                                 >
                                     +
                                 </button>
 
                                 <!-- Remove Button -->
                                 <button type="button"
-                                    @click="() => { loadingItems.add(item.id); removeItem(item.id, { onFinish: () => { loadingItems.delete(item.id); } }); }"
+                                    @click="togli(item)"
                                     class="ml-auto text-gray-400 hover:text-red-400 transition-colors p-1"
                                     :aria-label="$t('shop.remove_item_named', { name: item.product?.name || item.name })"
-                                    :disabled="loadingItems.has(item.id)"
+                                    :aria-disabled="loadingItems.has(item.id) ? 'true' : undefined"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
