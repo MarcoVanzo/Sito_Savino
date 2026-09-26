@@ -82,9 +82,9 @@ const handleKeydown = (e) => {
     }
 };
 
-// Durante un aggiornamento i pulsanti restano focalizzabili (aria-disabled):
-// con `disabled` il focus cadeva sul body a ogni click su "+" o "−". Il
-// doppio click lo ferma la guardia, non l'attributo.
+// I pulsanti restano focalizzabili (aria-disabled), anche al minimo e al
+// massimo: con `disabled` il focus cadeva sul body appena "−" arrivava a 1 o
+// "+" alla giacenza. Il click in più lo fermano le guardie, non l'attributo.
 const inAggiornamento = (id) => loadingItems.value.has(id);
 const limiteDellaRiga = (item) => item.disponibili ?? item.stock ?? item.product?.stock ?? 99;
 
@@ -236,10 +236,9 @@ onUnmounted(() => {
                             <div class="flex items-center gap-2 mt-2">
                                 <button type="button"
                                     @click="diminuisci(item)"
-                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-white transition-colors flex items-center justify-center text-sm font-bold"
+                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-white transition-colors flex items-center justify-center text-sm font-bold aria-disabled:opacity-40 aria-disabled:cursor-not-allowed aria-disabled:hover:bg-gray-700 aria-disabled:hover:text-gray-300"
                                     :aria-label="$t('shop.decrease_quantity_of', { name: item.product?.name || item.name })"
-                                    :disabled="item.quantity <= 1"
-                                    :aria-disabled="loadingItems.has(item.id) ? 'true' : undefined"
+                                    :aria-disabled="item.quantity <= 1 || loadingItems.has(item.id) ? 'true' : undefined"
                                 >
                                     −
                                 </button>
@@ -248,10 +247,9 @@ onUnmounted(() => {
                                 </span>
                                 <button type="button"
                                     @click="aumenta(item)"
-                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-white transition-colors flex items-center justify-center text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-700 disabled:hover:text-gray-300"
+                                    class="w-7 h-7 rounded-md bg-gray-700 text-gray-300 hover:bg-savino-fucsia hover:text-white transition-colors flex items-center justify-center text-sm font-bold aria-disabled:opacity-40 aria-disabled:cursor-not-allowed aria-disabled:hover:bg-gray-700 aria-disabled:hover:text-gray-300"
                                     :aria-label="$t('shop.increase_quantity_of', { name: item.product?.name || item.name })"
-                                    :disabled="item.quantity >= limiteDellaRiga(item)"
-                                    :aria-disabled="loadingItems.has(item.id) ? 'true' : undefined"
+                                    :aria-disabled="item.quantity >= limiteDellaRiga(item) || loadingItems.has(item.id) ? 'true' : undefined"
                                 >
                                     +
                                 </button>

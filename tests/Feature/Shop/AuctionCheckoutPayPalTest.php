@@ -4,6 +4,7 @@ namespace Tests\Feature\Shop;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
+use App\Mail\OrderConfirmation;
 use App\Models\Auction;
 use App\Models\Order;
 use App\Models\Product;
@@ -262,6 +263,71 @@ class AuctionCheckoutPayPalTest extends TestCase
         $this->assertSame(OrderStatus::Paid, $order->status);
         $this->assertSame('CAPTURE-WEBHOOK-ASTA', $order->payment_id);
         $this->assertSame($auction->id, $order->auction_id);
+    }
+
+    #[Test]
+    public function il_vincitore_scaduto_che_paga_tardi_non_si_riprende_il_lotto_riassegnato(): void
+    {
+        [$winner, $auction] = $this->astaVinta();
+        $order = $this->ordineDellAsta($winner, $auction, PaymentGateway::PayPal);
+        $stockPrima = $auction->product->fresh()->stock;
+
+        // Termine scaduto: l'ordine è annullato e l'asta passa al secondo.
+        $order->forceFill(['status' => OrderStatus::Cancelled])->save();
+        $secondo = User::factory()->create();
+        $auction->forceFill(['winner_user_id' => $secondo->id, 'winner_checkout_token' => Str::uuid()->toString()])->save();
+
+        // Il vecchio vincitore approva su PayPal adesso.
+        $this->fakePayPal($order->id, 'CAPTURE-TARDIVO');
+        $this->postWebhook()->assertOk();
+
+        $order->refresh();
+
+        // Il pagamento è registrato (va rimborsato), l'ordine resta annullato
+        // e la giacenza non viene scaricata di nuovo.
+        $this->assertSame(OrderStatus::Cancelled, $order->status);
+        $this->assertSame('CAPTURE-TARDIVO', $order->payment_id);
+        $this->assertNotNull($order->paid_at);
+        $this->assertStringContainsString('REVISIONE MANUALE', (string) $order->notes);
+        $this->assertSame($stockPrima, $auction->product->fresh()->stock);
+        Mail::assertNotQueued(OrderConfirmation::class);
+    }
+
+    #[Test]
+    public function dopo_la_riassegnazione_l_annulla_del_vecchio_vincitore_non_porta_al_checkout_altrui(): void
+    {
+        [$winner, $auction] = $this->astaVinta();
+        $order = $this->ordineDellAsta($winner, $auction, PaymentGateway::PayPal);
+
+        $auction->forceFill(['winner_user_id' => User::factory()->create()->id, 'winner_checkout_token' => 'TOKEN-DEL-SECONDO'])->save();
+
+        $this->assertSame(
+            route('shop.checkout.cancel', ['orderToken' => $order->order_token]),
+            $order->fresh()->cancelUrl(),
+        );
+    }
+
+    #[Test]
+    public function con_piu_metodi_chi_torna_da_paypal_rivede_il_modulo_compilato(): void
+    {
+        [$winner, $auction, $token] = $this->astaVinta();
+        $order = $this->ordineDellAsta($winner, $auction, PaymentGateway::PayPal);
+        $order->forceFill([
+            'shipping_address' => ['first_name' => 'Anna', 'last_name' => 'Rossi', 'street' => 'Via Rialdoli 1', 'city' => 'Scandicci', 'zip_code' => '50018', 'province' => 'FI'],
+            'billing_address' => ['first_name' => 'Anna', 'last_name' => 'Rossi', 'street' => 'Via Rialdoli 1', 'city' => 'Scandicci', 'zip_code' => '50018', 'province' => 'FI'],
+        ])->save();
+        config(['services.stripe.secret' => 'sk_test_finto']);
+        Http::fake();
+
+        $dati = $this->actingAs($winner)
+            ->get(route('shop.auction-checkout.show', ['token' => $token]))
+            ->assertOk()
+            ->viewData('page')['props']['datiGiaInseriti'];
+
+        $this->assertSame('paypal', $dati['payment_gateway']);
+        $this->assertSame('Via Rialdoli 1', $dati['shipping_street']);
+        $this->assertTrue($dati['billing_same_as_shipping']);
+        Http::assertNothingSent();
     }
 
     #[Test]

@@ -93,6 +93,27 @@ trait HandlesPaymentWebhooks
                     return 'needs_review';
                 }
 
+                // Un'asta passata a un altro offerente non torna indietro: il
+                // vincitore scaduto che paga in ritardo (sessione aperta prima
+                // del termine, approvata dopo) troverebbe il pezzo di nuovo in
+                // giacenza e se lo riprenderebbe, lasciando il nuovo vincitore
+                // davanti a un lotto esaurito. Il pagamento si registra, l'ordine
+                // resta com'è e va rimborsato a mano.
+                if ($this->astaPassataAdAltri($order)) {
+                    $order->payment_id = $result['payment_id'];
+                    $order->paid_at = now();
+                    $order->save();
+
+                    $this->flagForManualReview(
+                        $order,
+                        'auction_reassigned',
+                        "Pagamento {$result['payment_id']} ricevuto dopo che l'asta è passata a un altro offerente: ordine non confermato, da rimborsare.",
+                        ['payment_id' => $result['payment_id'], 'auction_id' => $order->auction_id]
+                    );
+
+                    return 'needs_review';
+                }
+
                 // Se l'ordine era già stato annullato/rimborsato lo stock è stato
                 // ripristinato: prima di registrarlo come pagato va ri-scaricato,
                 // altrimenti si vende merce che non c'è più.
@@ -502,6 +523,20 @@ trait HandlesPaymentWebhooks
                 'order_id' => $order->id,
             ]);
         }
+    }
+
+    /**
+     * L'ordine è di un'asta che nel frattempo ha un altro vincitore.
+     */
+    private function astaPassataAdAltri(Order $order): bool
+    {
+        if ($order->auction_id === null) {
+            return false;
+        }
+
+        $vincitore = $order->auction()->value('winner_user_id');
+
+        return $vincitore === null || (int) $vincitore !== (int) $order->user_id;
     }
 
     /**

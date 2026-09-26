@@ -92,10 +92,16 @@ class AuctionCheckoutController extends Controller
         // Ordine ancora da pagare e deadline aperta: riapri una sessione di
         // pagamento sull'ordine esistente (stesso order_token), senza crearne
         // uno nuovo né duplicare la riserva di stock.
+        // Si riapre da sola solo quando non c'è niente da scegliere: con più
+        // metodi offerti chi è tornato indietro dal gateway deve poter
+        // cambiare (da PayPal alla carta), e il modulo glielo ripropone già
+        // compilato con i dati del primo tentativo.
         if ($existingOrder && $existingOrder->status === OrderStatus::Pending) {
             // Null se il metodo scelto la prima volta non è più offerto: il
             // vincitore rivede il modulo e ne sceglie un altro.
-            $retryUrl = $this->openPaymentSession($existingOrder);
+            $retryUrl = count(PaymentGateway::offertiAlleAste()) === 1
+                ? $this->openPaymentSession($existingOrder)
+                : null;
 
             if ($retryUrl) {
                 return Inertia::location($retryUrl);
@@ -138,7 +144,40 @@ class AuctionCheckoutController extends Controller
                 'label' => $g->getLabel(),
                 'icon' => $g->getIcon(),
             ], PaymentGateway::offertiAlleAste()),
+            'datiGiaInseriti' => $existingOrder?->status === OrderStatus::Pending
+                ? $this->datiDelPrimoTentativo($existingOrder)
+                : null,
         ]);
+    }
+
+    /**
+     * I campi del modulo come li ha compilati il vincitore la prima volta.
+     *
+     * @return array<string, mixed>
+     */
+    private function datiDelPrimoTentativo(Order $order): array
+    {
+        $spedizione = (array) ($order->shipping_address ?? []);
+        $fatturazione = (array) ($order->billing_address ?? []);
+        $stessoIndirizzo = $fatturazione === [] || $fatturazione == $spedizione;
+
+        $dati = [
+            'country' => $order->country,
+            'phone' => $order->phone,
+            'codice_fiscale' => $order->codice_fiscale,
+            'payment_gateway' => $order->payment_gateway?->value,
+            'billing_same_as_shipping' => $stessoIndirizzo,
+        ];
+
+        foreach (['first_name', 'last_name', 'street', 'city', 'zip_code', 'province'] as $campo) {
+            $dati["shipping_{$campo}"] = $spedizione[$campo] ?? null;
+
+            if (! $stessoIndirizzo) {
+                $dati["billing_{$campo}"] = $fatturazione[$campo] ?? null;
+            }
+        }
+
+        return array_filter($dati, fn ($valore) => $valore !== null && $valore !== '');
     }
 
     /**

@@ -881,6 +881,12 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   shop meno il bonifico, che non sta nel termine dell'asta) e si incassa sulla
   stessa conferma e con lo stesso webhook. Solo l'annullo torna all'asta
   (`Order::cancelUrl()`), perché il «riprova» dello shop ignorerebbe il termine.
+  **Un pagamento arrivato quando l'asta ha già un altro vincitore non conferma
+  l'ordine**: si registra e va in revisione da rimborsare
+  (`HandlesPaymentWebhooks::astaPassataAdAltri`). Senza, il vecchio vincitore
+  che approvava PayPal dopo il termine si riprendeva il lotto già riassegnato,
+  perché l'annullo aveva rimesso il pezzo in giacenza. La sessione Stripe di
+  un'asta scade col termine del vincitore.
 - **Il numero d'ordine non si legge solo dalla risposta della cattura.** Lo
   schema di PayPal dichiara `custom_id` sull'unità d'acquisto e sulla cattura,
   ma non garantisce che la risposta lo riporti: si guarda anche l'ordine

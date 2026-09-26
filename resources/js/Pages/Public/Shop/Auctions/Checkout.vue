@@ -35,6 +35,9 @@ const props = defineProps({
     // Solo i metodi con le credenziali e attivi dal pannello
     // (PaymentGateway::offertiAlleAste): Stripe e/o PayPal.
     paymentGateways: { type: Array, default: () => [] },
+    // I campi del primo tentativo, quando il vincitore torna indietro dal
+    // gateway: può cambiare metodo senza riscrivere l'indirizzo.
+    datiGiaInseriti: { type: Object, default: null },
 });
 
 const { checkoutToken, localized, auctionImage } = useAuctionCheckout(props);
@@ -66,7 +69,17 @@ const form = useForm({
     notes: '',
     payment_gateway: metodoPredefinito(props.paymentGateways),
     privacy_accepted: false,
+    ...datiDelPrimoTentativo(),
 });
+
+function datiDelPrimoTentativo() {
+    const dati = { ...(props.datiGiaInseriti ?? {}) };
+    // Un metodo non più offerto non si ripropone.
+    if (dati.payment_gateway && !props.paymentGateways.some((g) => g.value === dati.payment_gateway)) {
+        delete dati.payment_gateway;
+    }
+    return dati;
+}
 
 const getCountryName = (code) => {
     const translated = $t(`countries.${code}`);
@@ -115,7 +128,7 @@ const campiObbligatori = () => {
         'shipping_city', 'shipping_zip_code', 'shipping_province'];
     if (form.country === 'IT') campi.push('codice_fiscale');
     if (!form.billing_same_as_shipping) {
-        campi.push('billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code');
+        campi.push('billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code', 'billing_province');
     }
     return campi;
 };
@@ -221,7 +234,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 {{ $t('auction_checkout.deadline_note') }}
                             </p>
                         </div>
-                        <CountdownTimer :end-date="checkoutDeadline" :is-active="true" chiaro />
+                        <CountdownTimer :end-date="checkoutDeadline" :is-active="true" chiaro :testo-alla-scadenza="$t('auction_checkout.deadline_expired')" />
                     </div>
                 </div>
 

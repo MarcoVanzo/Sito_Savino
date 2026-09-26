@@ -127,6 +127,23 @@ describe('Checkout dello shop: il pulsante che chiude l\'ordine', () => {
         expect(pagina.find('#errore-guest_phone').text()).toBe('Campo obbligatorio');
     });
 
+    it('con la fatturazione diversa la provincia si chiede al passo 1, come fa il server', async () => {
+        const pagina = monta();
+        const casella = pagina.findAll('input[type="checkbox"]').find((c) => c.element.checked);
+        await casella.setValue(false);
+        for (const [selettore, valore] of Object.entries({
+            '#billing-first-name': 'Maria', '#billing-last-name': 'Rossi', '#billing-street': 'Via Roma 1',
+            '#billing-city': 'Firenze', '#billing-zip': '50100',
+        })) {
+            await pagina.find(selettore).setValue(valore);
+        }
+
+        await compilaIlPasso1(pagina);
+
+        expect(pagina.find('#errore-billing_province').text()).toBe('Campo obbligatorio');
+        expect(pagina.text()).not.toContain('Passo 2 di 2');
+    });
+
     it('passando al pagamento il focus va al titolo del passo', async () => {
         const pagina = monta();
         await compilaIlPasso1(pagina);

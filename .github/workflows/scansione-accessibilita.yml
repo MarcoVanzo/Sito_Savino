@@ -54,9 +54,10 @@ jobs:
         with:
           node-version: '22'
 
-      # Come per i cookie: Playwright e axe non stanno fra le dipendenze del
-      # progetto (scaricherebbero un browser a ogni `npm ci`), versioni fissate
-      # e niente script di installazione.
+      # Questo lavoro non fa `npm ci`: gli bastano Playwright, che non sta fra
+      # le dipendenze del progetto (scaricherebbe un browser a ogni `npm ci`),
+      # e axe-core, che è fra le devDependencies per i test ma qui si installa
+      # da solo. Versioni fissate e niente script di installazione.
       - name: Installa Playwright e axe-core
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.0 axe-core@4.10.3

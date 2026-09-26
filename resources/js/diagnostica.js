@@ -33,7 +33,7 @@ export const TUNNEL = '/api/diagnostica';
  * con i breadcrumb di navigazione e di rete: l'informativa dice di no.
  */
 const SEGMENTI_SEGRETI =
-    /\/(reset-password|asta|conferma|confirmed|annullato|cancelled|ordine|order|verify-email)\/[^/?#]+(\/[0-9a-f]{20,})?/gi;
+    /\/(reset-password|asta|conferma|confirmed|annullato|cancelled|ordine|order|retry|verify-email)\/[^/?#]+(\/[0-9a-f]{20,})?/gi;
 
 export function ripulisciIndirizzo(indirizzo) {
     if (typeof indirizzo !== 'string' || indirizzo === '') {

@@ -106,7 +106,13 @@ class ResendWebhookController extends Controller
 
         $memoria = AvvisoTecnico::memoria();
 
-        if ((int) $memoria->get(self::CHIAVE_TETTO, 0) >= self::AVVISI_ALL_ORA) {
+        // Il posto nel tetto si prende prima dell'invio: letto e incrementato
+        // dopo, due notifiche arrivate insieme lo superavano entrambe. add()
+        // apre la finestra dell'ora al primo avviso, increment() conta i
+        // successivi senza spostarne la scadenza.
+        $posto = $memoria->add(self::CHIAVE_TETTO, 1, 3600) ? 1 : (int) $memoria->increment(self::CHIAVE_TETTO);
+
+        if ($posto > self::AVVISI_ALL_ORA) {
             Log::warning("Resend: email {$esito}, avviso non inviato: raggiunto il tetto orario", [
                 'evento' => $evento,
                 'email_id' => $emailId,
@@ -132,10 +138,9 @@ class ResendWebhookController extends Controller
             86400,
         );
 
-        if ($inviato === EsitoAvviso::Inviato && ! $memoria->add(self::CHIAVE_TETTO, 1, 3600)) {
-            // add() apre la finestra dell'ora al primo avviso, increment()
-            // conta i successivi senza spostarne la scadenza.
-            $memoria->increment(self::CHIAVE_TETTO);
+        // Il posto preso vale solo per un avviso partito davvero.
+        if ($inviato !== EsitoAvviso::Inviato) {
+            $memoria->decrement(self::CHIAVE_TETTO);
         }
 
         return response('', 204);

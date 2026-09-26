@@ -441,9 +441,9 @@ const structuredData = computed(() => {
                             <div role="group" aria-labelledby="etichetta-quantita" class="inline-flex items-center border-2 border-gray-200 rounded-lg overflow-hidden">
                                 <button type="button"
                                     @click="decrementQty"
-                                    :disabled="quantity <= 1"
+                                    :aria-disabled="quantity <= 1 ? 'true' : undefined"
                                     :aria-label="$t('shop.decrease_quantity')"
-                                    class="w-12 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    class="w-12 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors aria-disabled:opacity-30 aria-disabled:cursor-not-allowed"
                                 >
                                     <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
                                 </button>
@@ -452,9 +452,9 @@ const structuredData = computed(() => {
                                 </span>
                                 <button type="button"
                                     @click="incrementQty"
-                                    :disabled="quantity >= currentStock"
+                                    :aria-disabled="quantity >= currentStock ? 'true' : undefined"
                                     :aria-label="$t('shop.increase_quantity')"
-                                    class="w-12 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    class="w-12 h-12 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors aria-disabled:opacity-30 aria-disabled:cursor-not-allowed"
                                 >
                                     <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                 </button>

@@ -30,12 +30,8 @@ const hasSalePrice = computed(() => props.product.prezzo_piu_basso_30_giorni ===
 
 const isAdding = ref(false);
 const cartError = ref('');
-let cartErrorTimer = null;
-
-const clearCartError = () => {
-    if (cartErrorTimer) clearTimeout(cartErrorTimer);
-    cartErrorTimer = setTimeout(() => { cartError.value = ''; }, 5000);
-};
+// L'errore resta finché non si riprova: sparire da solo dopo pochi secondi
+// lo toglieva a chi legge più lentamente (WCAG 2.2.1), come in ProductDetail.
 
 const handleAddToCart = () => {
     if (isAdding.value) return;
@@ -56,7 +52,6 @@ const handleAddToCart = () => {
         onFinish: () => { isAdding.value = false; },
         onError: (errors) => {
             cartError.value = errors?.message || errors?.product_id || Object.values(errors || {})[0] || $t('shop.cart_error_generic');
-            clearCartError();
         },
     });
 };
@@ -164,7 +159,7 @@ const handleAddToCart = () => {
                 </svg>
                 {{ product.type === 'variable' ? $t('shop.choose_options') : $t('shop.add_to_cart') }}
             </button>
-            <p v-if="cartError" class="text-red-500 text-xs mt-2 text-center">
+            <p v-if="cartError" role="alert" class="text-red-700 text-xs mt-2 text-center">
                 {{ cartError }}
             </p>
         </div>

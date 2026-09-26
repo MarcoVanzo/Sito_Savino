@@ -204,7 +204,12 @@ class Order extends Model
      */
     public function cancelUrl(): string
     {
-        $tokenDellAsta = $this->auction_id !== null ? $this->auction?->winner_checkout_token : null;
+        // Il token è quello del vincitore di adesso: dopo una riassegnazione
+        // il vecchio vincitore finirebbe su una pagina che non è più sua (403).
+        $asta = $this->auction_id !== null ? $this->auction : null;
+        $tokenDellAsta = $asta !== null && (int) $asta->winner_user_id === (int) $this->user_id
+            ? $asta->winner_checkout_token
+            : null;
 
         if (filled($tokenDellAsta)) {
             return route('shop.auction-checkout.cancel', ['token' => $tokenDellAsta]);
