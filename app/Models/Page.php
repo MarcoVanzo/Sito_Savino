@@ -92,6 +92,29 @@ class Page extends Model implements HasMedia
             $dati['content_data']['video_url'] = LiveStream::externalUrl($dati['content_data']['video_url']);
         }
 
+        // I video di Double Face passano dallo stesso filtro: ContentPage.vue
+        // aveva un suo parser, che incorporava qualunque cosa come id di
+        // YouTube e su `www.youtube.com`, cioè con i cookie di marketing. La
+        // redazione a volte incolla il solo id: lo si riconosce e si completa.
+        if (is_array($dati['content_data']['youtube_videos'] ?? null)) {
+            $dati['content_data']['youtube_videos'] = array_map(function ($video) {
+                if (! is_array($video)) {
+                    return $video;
+                }
+
+                $link = trim((string) ($video['youtube_url'] ?? ''));
+
+                if (preg_match('/^[A-Za-z0-9_-]{11}$/', $link) === 1) {
+                    $link = 'https://youtu.be/'.$link;
+                }
+
+                $video['embed_url'] = LiveStream::embedUrl($link);
+                $video['youtube_url'] = LiveStream::externalUrl($link);
+
+                return $video;
+            }, $dati['content_data']['youtube_videos']);
+        }
+
         return $dati;
     }
 

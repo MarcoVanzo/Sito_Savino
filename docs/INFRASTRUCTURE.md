@@ -759,7 +759,7 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 | `backup-media.yml` | Domenica 04:00 UTC | Copia dei media di Spaces (§9) |
 | `verifica-restore.yml` | Lunedì 04:30 UTC | Prova di ripristino dell'ultimo dump |
 | `scansione-cookie.yml` | Lunedì 04:30 UTC | Playwright sul sito: aggiorna `database/data/cookie_rilevati.json` e va in rosso se qualcosa parte prima del consenso |
-| `sorveglianza-sito.yml` | Ogni 10 minuti (puntualità non garantita da GitHub) | `/up`, `/` e `/shop` da fuori DigitalOcean; in rosso se il sito non risponde o resta sopra i 6 s per due richieste di fila (§9, Avvisi) |
+| `sorveglianza-sito.yml` | Ogni ora, al minuto 17 (puntualità non garantita da GitHub) | `/up`, `/` e `/shop` da fuori DigitalOcean; in rosso se il sito non risponde o resta sopra i 6 s per due richieste di fila (§9, Avvisi) |
 
 ### Avvisi
 
@@ -803,9 +803,13 @@ altri indirizzi (newsletter, ricevute del recesso) li scrive chiunque, e
 finiscono nel log senza l'indirizzo.
 
 **Limiti di `sorveglianza-sito.yml`.** È una rete di sicurezza, non un
-monitor: GitHub manda un'email a **ogni** run fallita (un sito giù per un'ora
-sono sei email) e **nessuna** alla guarigione; la puntualità del cron non è
-garantita (10-15 minuti di ritardo nelle ore di punta); e GitHub **disattiva i
-workflow schedulati dopo 60 giorni** senza attività nel repository, senza
-avvisare chi li riceve. Conviene affiancargli un monitor esterno dedicato
-(UptimeRobot, Better Stack) su `/up`, con avviso alla caduta e al ritorno.
+monitor: gira **una volta l'ora** (dal 26/09/2026; ogni dieci minuti costava
+circa 4.300 minuti di Actions al mese, più dell'intero conto da 3.000 che
+Klubia, Savino e MV-ERP esauriscono già), quindi un sito giù può restare
+senza avviso fino a un'ora; GitHub manda un'email a **ogni** run fallita e
+**nessuna** alla guarigione; la puntualità del cron non è garantita (10-15
+minuti di ritardo nelle ore di punta); e GitHub **disattiva i workflow
+schedulati dopo 60 giorni** senza attività nel repository, senza avvisare chi
+li riceve. **Per un controllo più fitto serve un monitor esterno gratuito**
+(UptimeRobot, Better Stack: controllo ogni 5 minuti nel piano gratuito) su
+`/up`, con avviso alla caduta e al ritorno: non costa minuti di Actions.

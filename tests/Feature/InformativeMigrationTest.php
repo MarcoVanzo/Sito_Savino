@@ -152,7 +152,8 @@ class InformativeMigrationTest extends TestCase
 
         $this->eseguiLaRevisione();
 
-        // Mappa e video partono con la pagina: finché è così, va scritto.
+        // Mappa e video incorporati vanno dichiarati (dal 26/09/2026 aspettano
+        // il consenso di marketing o un clic, ma chi li ospita resta un altro).
         $this->assertStringContainsString('mappa del palazzetto', $this->testo('cookie-policy'));
         $this->assertStringContainsString('YouTube', $this->testo('cookie-policy'));
         $this->assertStringContainsString('arena map', $this->testo('cookie-policy', 'en'));
@@ -229,5 +230,27 @@ class InformativeMigrationTest extends TestCase
             $this->assertStringContainsString('privacy@savinodelbenevolley.it', $testo);
             $this->assertStringNotContainsString('mailto:info@savinodelbenevolley.it', $testo);
         }
+    }
+
+    public function test_mappa_e_video_aspettano_il_consenso_anche_nel_testo(): void
+    {
+        // La frase della versione del 23 settembre: mappa e video partivano con
+        // la pagina. Dal click-to-load (ContenutoIncorporato.vue) non è più vero.
+        $this->scriviIlTesto('cookie-policy', [
+            'it' => '<p>Sono parte del contenuto della pagina e si caricano insieme a essa: da quel momento…</p>',
+            'en' => "<p>They are part of the page's content and load with it: from that moment…</p>",
+        ]);
+        $this->scriviIlTesto('privacy-policy', [
+            'it' => '<p>la mappa del palazzetto, i video delle dirette: aprendole, il tuo indirizzo IP arriva a chi li ospita.</p>',
+            'en' => '<p>the arena map, the live stream videos: opening them sends your IP address to whoever hosts them.</p>',
+        ]);
+
+        (require database_path('migrations/2026_09_26_210000_l_informativa_dice_che_mappa_e_video_aspettano_il_consenso.php'))->up();
+
+        $this->assertStringContainsString('segnaposto', $this->testo('cookie-policy'));
+        $this->assertStringNotContainsString('si caricano insieme a essa', $this->testo('cookie-policy'));
+        $this->assertStringContainsString('placeholder', $this->testo('cookie-policy', 'en'));
+        $this->assertStringContainsString('si caricano solo se lo chiedi', $this->testo('privacy-policy'));
+        $this->assertStringContainsString('they only load if you ask', $this->testo('privacy-policy', 'en'));
     }
 }

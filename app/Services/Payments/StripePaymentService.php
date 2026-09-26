@@ -53,20 +53,34 @@ class StripePaymentService implements PaymentGatewayInterface
         return $session->url;
     }
 
+    /** Minuti di vita della sessione di un ordine dello shop. */
+    public const DURATA_SESSIONE_SHOP_MINUTI = 45;
+
     /**
-     * La sessione di un'asta scade col termine del vincitore.
+     * Quando scade la sessione di pagamento.
      *
-     * Quella predefinita dura 24 ore: aperta poco prima del termine,
-     * restava pagabile per un giorno intero dopo che l'asta era passata al
-     * secondo offerente. Stripe accetta una scadenza fra 30 minuti e 24 ore
-     * da adesso; sotto il minimo il pagamento tardivo lo ferma il webhook
-     * (HandlesPaymentWebhooks::astaPassataAdAltri).
+     * Quella predefinita di Stripe dura 24 ore. Per lo shop era un buco:
+     * `order:check-unpaid` annulla dopo un'ora l'ordine non pagato e rimette
+     * la merce a scaffale, ma la sessione restava pagabile per un giorno, e il
+     * cliente che pagava tardi finiva su un ordine annullato (merce forse gia'
+     * rivenduta, rimborso a mano). 45 minuti stanno sotto l'ora
+     * dell'annullamento e sopra il minimo di 30 accettato da Stripe.
+     *
+     * La sessione di un'asta scade invece col termine del vincitore:
+     * aperta poco prima del termine, restava pagabile per un giorno intero
+     * dopo che l'asta era passata al secondo offerente. Stripe accetta una
+     * scadenza fra 30 minuti e 24 ore da adesso; sotto il minimo il pagamento
+     * tardivo lo ferma il webhook (HandlesPaymentWebhooks::astaPassataAdAltri).
      *
      * @return array{expires_at?: int}
      */
     private function scadenza(Order $order): array
     {
-        $termine = $order->auction_id !== null ? $order->auction?->winner_checkout_deadline : null;
+        if ($order->auction_id === null) {
+            return ['expires_at' => now()->addMinutes(self::DURATA_SESSIONE_SHOP_MINUTI)->getTimestamp()];
+        }
+
+        $termine = $order->auction?->winner_checkout_deadline;
 
         if ($termine === null) {
             return [];
@@ -158,14 +172,28 @@ class StripePaymentService implements PaymentGatewayInterface
 
     /**
      * Handle charge.refunded event.
+     *
+     * Stripe manda `charge.refunded` a OGNI rimborso, anche parziale: trattarlo
+     * come totale rimetteva in giacenza merce ancora dal cliente e gli
+     * annunciava un rimborso completo per le sole spese di spedizione. Il
+     * charge porta l'importo rimborsato cumulato (`amount_refunded`) e il
+     * flag `refunded`, vero solo a rimborso completo: si passano entrambi e
+     * decide il trait.
      */
     private function handleChargeRefunded(Event $event): array
     {
         $charge = $event->data->object;
 
+        $importo = isset($charge['amount']) ? (int) $charge['amount'] : null;
+        $rimborsato = isset($charge['amount_refunded']) ? (int) $charge['amount_refunded'] : null;
+
         return [
             'payment_id' => $charge['payment_intent'],
             'status' => 'refunded',
+            'totale' => ($charge['refunded'] ?? false) === true
+                || ($importo !== null && $rimborsato !== null && $rimborsato >= $importo),
+            // In euro, come il resto dei conti dell'ordine.
+            'refunded_amount' => $rimborsato !== null ? $rimborsato / 100 : null,
         ];
     }
 }

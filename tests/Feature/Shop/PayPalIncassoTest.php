@@ -132,7 +132,7 @@ class PayPalIncassoTest extends TestCase
                 'status' => 'COMPLETED',
                 'purchase_units' => [[
                     'reference_id' => $order->order_number,
-                    'payments' => ['captures' => [['id' => 'CAPTURE-SENZA-CUSTOM']]],
+                    'payments' => ['captures' => [['id' => 'CAPTURE-SENZA-CUSTOM', 'status' => 'COMPLETED']]],
                 ]],
             ]),
         ]);
@@ -277,6 +277,7 @@ class PayPalIncassoTest extends TestCase
                     'custom_id' => (string) $order->id,
                     'payments' => ['captures' => [[
                         'id' => 'CAPTURE-PARZIALE',
+                        'status' => 'COMPLETED',
                         'amount' => ['currency_code' => 'EUR', 'value' => '19.90'],
                     ]]],
                 ]],
@@ -316,6 +317,7 @@ class PayPalIncassoTest extends TestCase
                     'custom_id' => (string) $order->id,
                     'payments' => ['captures' => [[
                         'id' => 'CAPTURE-ABBONDANTE',
+                        'status' => 'COMPLETED',
                         'amount' => ['currency_code' => 'EUR', 'value' => '99.00'],
                     ]]],
                 ]],
@@ -352,6 +354,7 @@ class PayPalIncassoTest extends TestCase
                     'custom_id' => (string) $order->id,
                     'payments' => ['captures' => [[
                         'id' => 'CAPTURE-ESATTA',
+                        'status' => 'COMPLETED',
                         'amount' => ['currency_code' => 'EUR', 'value' => '49.90'],
                     ]]],
                 ]],

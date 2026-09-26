@@ -26,6 +26,21 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            // Cambiare l'email e poi chiedere il reset della password basta a
+            // prendersi l'account: con una sessione lasciata aperta su un
+            // computer altrui non deve bastare, serve la password attuale.
+            'current_password' => [
+                Rule::requiredIf(fn (): bool => $this->cambiaLEmail()),
+                'nullable',
+                'string',
+                'current_password',
+            ],
         ];
+    }
+
+    private function cambiaLEmail(): bool
+    {
+        return mb_strtolower(trim((string) $this->input('email')))
+            !== mb_strtolower((string) $this->user()->email);
     }
 }

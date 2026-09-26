@@ -506,12 +506,29 @@ class ProductResource extends Resource
                         Forms\Components\DateTimePicker::make('sale_end')->label('Fine Sconto'),
                     ])
                     ->action(function (Collection $records, array $data): void {
-                        $records->each(fn ($product) => $product->update([
+                        // Il prezzo scontato e' uno solo per tutta la selezione:
+                        // sui prodotti che costano gia' meno (o uguale) non e' uno
+                        // sconto e si salta, invece di alzarne il prezzo
+                        // annunciando un'offerta. Stessa regola del modulo
+                        // (`->lte('price')`) e di Product::isOnSale.
+                        $scontato = (float) $data['sale_price'];
+                        [$daScontare, $saltati] = $records->partition(fn ($product) => $scontato < (float) $product->price);
+
+                        $daScontare->each(fn ($product) => $product->update([
                             'sale_price' => $data['sale_price'],
                             'sale_start' => $data['sale_start'] ?? null,
                             'sale_end' => $data['sale_end'] ?? null,
                         ]));
-                        Notification::make()->title('Sconto applicato a '.$records->count().' prodotti')->success()->send();
+
+                        $notifica = Notification::make()->title('Sconto applicato a '.$daScontare->count().' prodotti');
+
+                        if ($saltati->isNotEmpty()) {
+                            $notifica->body($saltati->count().' saltati: il prezzo scontato non e\' inferiore al loro prezzo ('.$saltati->pluck('name')->take(5)->implode(', ').').')->warning();
+                        } else {
+                            $notifica->success();
+                        }
+
+                        $notifica->send();
                         // La cache pubblica dello shop la invalida CacheInvalidationObserver
                         // (registrato su Product): non duplicare qui le chiavi per lingua.
                     })

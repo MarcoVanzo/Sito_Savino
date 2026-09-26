@@ -29,8 +29,13 @@ class ConsensoCookie extends Model
      * caricano insieme alla pagina e fanno arrivare l'IP a chi li ospita, e che
      * i caratteri tipografici non arrivano più dal CDN di Google. Cambia ciò
      * che si dichiara, quindi la scelta va richiesta.
+     *
+     * 2026-09-26: mappa e video aspettano il consenso di marketing (o un clic
+     * sul segnaposto) invece di partire con la pagina. Il consenso di
+     * marketing dato prima copriva solo il pixel di Meta: adesso fa caricare
+     * anche YouTube e Google Maps, quindi va richiesto su questa versione.
      */
-    public const VERSIONE = '2026-09-23';
+    public const VERSIONE = '2026-09-26';
 
     protected $fillable = [
         'riferimento',

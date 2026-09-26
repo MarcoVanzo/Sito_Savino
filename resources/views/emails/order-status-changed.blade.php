@@ -105,13 +105,15 @@
         </tr>
     </table>
 
-    {{-- Contact note for cancellations/refunds --}}
+    {{-- Contact note for cancellations/refunds. Il recapito è `contact.email`:
+         `shop.contact_email` è stata tolta dalle impostazioni e si ripiegava
+         sull'indirizzo del mittente. --}}
     @if(in_array($order->status, [\App\Enums\OrderStatus::Cancelled, \App\Enums\OrderStatus::Refunded]))
         <div style="margin-top: 24px; padding: 16px 20px; background-color: #FFF8E1; border-left: 4px solid #F8269C; border-radius: 0 6px 6px 0;">
             <p style="color: #333333; font-size: 14px; margin: 0; line-height: 1.6;">
                 {{ __('emails.status_changed.contact_note') }}
-                <a href="mailto:{{ \App\Models\SiteSetting::get('shop.contact_email', config('mail.from.address')) }}" style="color: #003063; text-decoration: none; font-weight: 600;">
-                    {{ \App\Models\SiteSetting::get('shop.contact_email', config('mail.from.address')) }}
+                <a href="mailto:{{ \App\Models\SiteSetting::get('contact.email', config('mail.from.address')) }}" style="color: #003063; text-decoration: none; font-weight: 600;">
+                    {{ \App\Models\SiteSetting::get('contact.email', config('mail.from.address')) }}
                 </a>.
             </p>
         </div>

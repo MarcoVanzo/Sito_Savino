@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Tests\TestCase;
 
 class CachePublicResponseTest extends TestCase
@@ -59,5 +62,95 @@ class CachePublicResponseTest extends TestCase
         $risposta->assertHeaderMissing('X-Page-Cache');
         $this->assertNotNull($risposta->getCookie('XSRF-TOKEN', false));
         $this->get('/csrf-cookie')->assertHeaderMissing('X-Page-Cache');
+    }
+
+    /**
+     * Il cookie «ricordami» autentica la richiesta dentro la pipeline, dopo
+     * che la cache ha già deciso: senza cookie di sessione la pagina con
+     * `auth.user` veniva salvata e servita a tutti i visitatori anonimi.
+     */
+    public function test_con_il_cookie_ricordami_la_pagina_non_passa_dalla_cache(): void
+    {
+        $user = User::factory()->create(['email' => 'ricordata@example.test']);
+        [$nome, $valore] = $this->cookieRicordami($user);
+
+        $this->withCookie($nome, $valore)
+            ->get('/')
+            ->assertOk()
+            ->assertHeaderMissing('X-Page-Cache');
+
+        $this->flushHeaders();
+        $this->defaultCookies = [];
+        $this->app['session.store']->flush();
+        $this->app['auth']->forgetGuards();
+
+        $anonimo = $this->get('/')->assertOk();
+        $anonimo->assertHeader('X-Page-Cache', 'MISS');
+        $this->assertStringNotContainsString('ricordata@example.test', $anonimo->getContent());
+    }
+
+    /**
+     * Seconda difesa: anche se un giorno una richiesta autenticata superasse
+     * il controllo dei cookie (un guard nuovo, un nome di cookie cambiato),
+     * dopo la pipeline una risposta con utente autenticato non si salva.
+     */
+    public function test_una_risposta_con_utente_autenticato_non_viene_mai_salvata(): void
+    {
+        $user = User::factory()->create(['email' => 'dentro@example.test']);
+
+        // Un middleware applicato dopo la cache autentica la richiesta senza
+        // passare da nessun cookie riconosciuto.
+        $this->app['router']->pushMiddlewareToGroup('web', AutenticaSenzaCookie::class);
+        AutenticaSenzaCookie::$utente = $user;
+
+        $this->get('/')->assertOk()->assertHeaderMissing('X-Page-Cache');
+
+        AutenticaSenzaCookie::$utente = null;
+        $this->app['auth']->forgetGuards();
+
+        $anonimo = $this->get('/')->assertOk();
+        $anonimo->assertHeader('X-Page-Cache', 'MISS');
+        $this->assertStringNotContainsString('dentro@example.test', $anonimo->getContent());
+    }
+
+    /**
+     * Il cookie che il guard `web` emetterebbe con «ricordami» spuntato.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function cookieRicordami(User $user): array
+    {
+        $guard = Auth::guard('web');
+        $guard->login($user, true);
+
+        $cookie = collect(Cookie::getQueuedCookies())
+            ->first(fn ($c) => $c->getName() === $guard->getRecallerName());
+        $this->assertNotNull($cookie);
+
+        // Resta solo il cookie: la sessione aperta da login() non deve
+        // autenticare le richieste successive.
+        Cookie::flushQueuedCookies();
+        $this->app['session.store']->flush();
+        $this->app['auth']->forgetGuards();
+
+        return [$cookie->getName(), $cookie->getValue()];
+    }
+}
+
+/**
+ * Solo per i test: autentica la richiesta senza cookie, come farebbe un guard
+ * che la cache non conosce.
+ */
+class AutenticaSenzaCookie
+{
+    public static ?User $utente = null;
+
+    public function handle(Request $request, \Closure $next): mixed
+    {
+        if (self::$utente !== null) {
+            Auth::guard('web')->setUser(self::$utente);
+        }
+
+        return $next($request);
     }
 }

@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Http\Controllers\PageController;
 use App\Models\Page;
 use App\Models\Post;
+use App\Support\IndirizziPerLingua;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
@@ -51,35 +52,44 @@ class SitemapBuilder
         $sitemap = Sitemap::create();
 
         $addLocalizedUrls = function (string $path, array $config = [], $lastMod = null) use ($sitemap): void {
-            $basePath = ltrim($path, '/');
-            $itPath = '/'.$basePath;
-            $enPath = '/en'.($basePath ? '/'.$basePath : '');
+            // Il percorso è quello della lingua predefinita; gli altri si
+            // chiedono al router per nome di rotta, perché gli slug sono
+            // tradotti: con `/en` davanti al percorso la pagina Contatti
+            // finiva in sitemap come `/en/contatti`, che è un 404 (la rotta
+            // inglese è `/en/contacts`). Una lingua in cui la pagina non
+            // esiste non si elenca e non si dichiara come alternata.
+            $predefinita = IndirizziPerLingua::linguaPredefinita();
+            $indirizzi = [$predefinita => url('/'.ltrim($path, '/'))];
 
-            $itUrl = Url::create(url($itPath))
-                ->addAlternate(url($itPath), 'it')
-                ->addAlternate(url($enPath), 'en');
-
-            $enUrl = Url::create(url($enPath))
-                ->addAlternate(url($itPath), 'it')
-                ->addAlternate(url($enPath), 'en');
-
-            if (isset($config['freq'])) {
-                $itUrl->setChangeFrequency($config['freq']);
-                $enUrl->setChangeFrequency($config['freq']);
+            foreach (IndirizziPerLingua::lingue() as $lingua) {
+                if ($lingua !== $predefinita && ($indirizzo = IndirizziPerLingua::perPercorso($path, $lingua)) !== null) {
+                    $indirizzi[$lingua] = $indirizzo;
+                }
             }
 
-            if (isset($config['priority'])) {
-                $itUrl->setPriority($config['priority']);
-                $enUrl->setPriority($config['priority']);
-            }
+            foreach ($indirizzi as $indirizzo) {
+                $url = Url::create($indirizzo);
 
-            if ($lastMod) {
-                $itUrl->setLastModificationDate($lastMod);
-                $enUrl->setLastModificationDate($lastMod);
-            }
+                if (count($indirizzi) > 1) {
+                    foreach ($indirizzi as $lingua => $alternato) {
+                        $url->addAlternate($alternato, $lingua);
+                    }
+                }
 
-            $sitemap->add($itUrl);
-            $sitemap->add($enUrl);
+                if (isset($config['freq'])) {
+                    $url->setChangeFrequency($config['freq']);
+                }
+
+                if (isset($config['priority'])) {
+                    $url->setPriority($config['priority']);
+                }
+
+                if ($lastMod) {
+                    $url->setLastModificationDate($lastMod);
+                }
+
+                $sitemap->add($url);
+            }
         };
 
         $addLocalizedUrls('/', [

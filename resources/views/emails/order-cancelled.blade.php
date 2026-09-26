@@ -31,5 +31,7 @@
     </a>
 </p>
 
-<p style="color: #666; font-size: 13px;">{{ __('emails.cancelled.contact', ['email' => \App\Models\SiteSetting::get('shop.contact_email', config('mail.from.address'))]) }}</p>
+{{-- `contact.email`, non `shop.contact_email`: quella chiave non esiste più
+     e l'email invitava a scrivere all'indirizzo del mittente. --}}
+<p style="color: #666; font-size: 13px;">{{ __('emails.cancelled.contact', ['email' => \App\Models\SiteSetting::get('contact.email', config('mail.from.address'))]) }}</p>
 @endsection

@@ -1146,6 +1146,14 @@
         "cta_hint": "Cambiala ora per non trovarti bloccato al prossimo accesso.",
         "change": "Cambia password"
     },
+    "incorporato": {
+        "avviso": "Questo contenuto è ospitato da {piattaforma}, che usa cookie di marketing. Lo carichiamo solo se lo chiedi o se hai accettato i cookie di marketing.",
+        "carica_video": "Carica il video ({piattaforma} raccoglie cookie)",
+        "carica_mappa": "Carica la mappa ({piattaforma} raccoglie cookie)",
+        "apri_video": "Guarda il video su {piattaforma}",
+        "apri_mappa": "Apri la mappa su {piattaforma}",
+        "preferenze": "Preferenze sui cookie"
+    },
     "stream": {
         "modal_title": "Diretta streaming",
         "close": "Chiudi la diretta",

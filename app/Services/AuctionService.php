@@ -46,6 +46,16 @@ class AuctionService
                 // Lock per garantire integrità nella determinazione del vincitore
                 $auction = Auction::lockForUpdate()->find($auction->id);
 
+                // La lista e' stata letta prima del lock: nel frattempo un
+                // rilancio negli ultimi minuti puo' aver spostato la fine
+                // (anti-sniping) o un altro giro averla gia' chiusa. Chiudere
+                // sulla copia vecchia assegnava l'asta mentre si offriva ancora.
+                if ($auction === null
+                    || $auction->status !== AuctionStatus::Active
+                    || $auction->end_date->isFuture()) {
+                    return;
+                }
+
                 $winnerBid = $auction->validBids()->first();
 
                 if ($winnerBid && $auction->isReserveMet()) {
@@ -143,7 +153,22 @@ class AuctionService
         }
 
         if (in_array($existingOrder->status, [OrderStatus::Pending, OrderStatus::Processing], true)) {
-            $existingOrder->forceFill(['status' => OrderStatus::Cancelled])->save();
+            // Si rilegge sotto lock (siamo nella transazione di
+            // checkWinnerPayments): il pagamento puo' essere arrivato dopo la
+            // lettura. Annullare la copia vecchia cancellava un ordine appena
+            // pagato e passava il lotto al secondo offerente.
+            $attuale = Order::lockForUpdate()->find($existingOrder->id);
+
+            if ($attuale === null || $attuale->payment_id !== null || $attuale->paid_at !== null) {
+                return false;
+            }
+
+            if (! in_array($attuale->status, [OrderStatus::Pending, OrderStatus::Processing], true)) {
+                // Cambiato nel frattempo: lo rivede il prossimo giro.
+                return false;
+            }
+
+            $attuale->forceFill(['status' => OrderStatus::Cancelled])->save();
 
             return true;
         }
@@ -169,6 +194,16 @@ class AuctionService
         $currentAttempt = (int) $auction->current_winner_attempt;
         $nextIndex = $this->posizioneDelProssimo($auction);
         $nextBid = $this->classificaOfferte($auction)->get($nextIndex);
+
+        // La riserva vale anche per chi subentra: alla chiusura un'offerta
+        // sotto riserva non vince (closeEndedAuctions), e riassegnando si
+        // vendeva il lotto sotto il prezzo minimo deciso dalla societa'. La
+        // classifica e' decrescente: se questa e' sotto, lo sono tutte.
+        if ($nextBid && ! $this->raggiungeLaRiserva($auction, (float) $nextBid->amount)) {
+            Log::info("Asta #{$auction->id}: l'offerta successiva (€{$nextBid->amount}) e' sotto la riserva (€{$auction->reserve_price}).");
+
+            $nextBid = null;
+        }
 
         if (! $nextBid) {
             // Nessun altro offerente disponibile
@@ -200,6 +235,19 @@ class AuctionService
         }
 
         Log::info("Asta #{$auction->id}: vincitore precedente non ha pagato. Nuovo vincitore: User #{$nextBid->user_id} (tentativo #{$auction->current_winner_attempt}).");
+    }
+
+    /**
+     * Stessa regola di Auction::isReserveMet, ma sull'offerta di chi subentra
+     * e non su `current_bid`, che resta quella del primo vincitore.
+     */
+    private function raggiungeLaRiserva(Auction $auction, float $offerta): bool
+    {
+        if (! $auction->reserve_price || (float) $auction->reserve_price <= 0) {
+            return true;
+        }
+
+        return $offerta >= (float) $auction->reserve_price;
     }
 
     /**

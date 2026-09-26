@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Webhooks\Traits;
 use App\Enums\OrderStatus;
 use App\Enums\StockMovementType;
 use App\Mail\OrderConfirmation;
-use App\Mail\RefundConfirmation;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -19,6 +18,10 @@ use Illuminate\Support\Facades\Mail;
 
 trait HandlesPaymentWebhooks
 {
+    // Rimborsi e catture in sospeso in trait a parte: questo aveva superato
+    // le 600 righe.
+    use HandlesPendingCaptures, HandlesRefundWebhooks;
+
     /**
      * Il nome del gateway nei messaggi di log (es. 'Stripe', 'PayPal').
      *
@@ -52,6 +55,12 @@ trait HandlesPaymentWebhooks
             ]);
 
             return response()->json(['error' => 'Ordine non trovato'], 404);
+        }
+
+        // Una cattura non ancora conclusa (PayPal PENDING) non e' un incasso:
+        // l'ordine resta in attesa e la conferma arriva con la conclusione.
+        if (($result['status'] ?? 'completed') !== 'completed') {
+            return $this->registraCatturaInSospeso($order, $result);
         }
 
         try {
@@ -310,87 +319,6 @@ trait HandlesPaymentWebhooks
     }
 
     /**
-     * Handle refund webhook event.
-     */
-    protected function handleRefund(array $result): JsonResponse
-    {
-        $order = Order::where('payment_id', $result['payment_id'])->first();
-
-        if (! $order) {
-            Log::warning("{$this->getGatewayName()} {$this->canaleDiIncasso()}: ordine non trovato per rimborso", [
-                'payment_id' => $result['payment_id'],
-            ]);
-
-            return response()->json(['message' => 'Ordine non trovato'], 404);
-        }
-
-        try {
-            $alreadyRefunded = DB::transaction(function () use ($order) {
-                // Lock the order row to prevent concurrent webhook processing
-                $order = Order::lockForUpdate()->find($order->id);
-
-                // Idempotency check: if already refunded, skip processing
-                if ($order->status === OrderStatus::Refunded) {
-                    Log::info("{$this->getGatewayName()} {$this->canaleDiIncasso()}: rimborso già processato (idempotenza)", [
-                        'order_id' => $order->id,
-                    ]);
-
-                    return true;
-                }
-
-                $order->status = OrderStatus::Refunded;
-                $order->save();
-
-                // OrderObserver::restoreStock salta il ripristino se esiste già un
-                // Adjustment sull'ordine: capita quando l'ordine era stato annullato
-                // (stock ripristinato), poi pagato in ritardo (stock riscaricato) e
-                // infine rimborsato. Qui si riporta comunque il saldo dei movimenti
-                // a zero; se l'observer ha già fatto il suo lavoro non c'è nulla da fare.
-                $this->reconcileStockAfterRefund($order);
-
-                return false;
-            });
-
-            if ($alreadyRefunded) {
-                return response()->json(['message' => 'Already refunded'], 200);
-            }
-
-            // Refresh the order to get updated data from the transaction
-            $order->refresh();
-
-            // Send refund confirmation email (outside transaction)
-            $recipientEmail = $order->user->email ?? $order->guest_email;
-            if ($recipientEmail) {
-                try {
-                    Mail::to($recipientEmail)->queue(new RefundConfirmation($order));
-                } catch (\Throwable $e) {
-                    report($e);
-
-                    Log::error('Errore invio email rimborso', ['order_id' => $order->id, 'error' => $e->getMessage()]);
-                }
-            }
-
-            Log::info("{$this->getGatewayName()} {$this->canaleDiIncasso()}: rimborso registrato", [
-                'order_id' => $order->id,
-                'payment_id' => $result['payment_id'],
-            ]);
-
-            return response()->json(['message' => 'Rimborso processato'], 200);
-
-        } catch (\Throwable $e) {
-            report($e);
-
-            Log::error("{$this->getGatewayName()} {$this->canaleDiIncasso()}: errore processamento rimborso", [
-                'order_id' => $order->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json(['error' => 'Errore interno'], 500);
-        }
-    }
-
-    /**
      * Movimenti di magazzino dell'ordine aggregati per prodotto/variante.
      *
      * - `sold`: quantità complessivamente venduta (movimenti Sale, in positivo)
@@ -494,35 +422,6 @@ trait HandlesPaymentWebhooks
         }
 
         return true;
-    }
-
-    /**
-     * Riporta a zero il saldo dei movimenti dell'ordine dopo un rimborso,
-     * coprendo i casi in cui OrderObserver::restoreStock si è auto-escluso.
-     */
-    private function reconcileStockAfterRefund(Order $order): void
-    {
-        $outstanding = array_filter(
-            $this->stockBalanceFor($order),
-            fn (array $row) => $row['net'] < 0
-        );
-
-        foreach ($outstanding as $row) {
-            StockMovement::create([
-                'product_id' => $row['product_id'],
-                'product_variant_id' => $row['product_variant_id'],
-                'order_id' => $order->id,
-                'quantity' => abs($row['net']),
-                'type' => StockMovementType::Adjustment,
-                'notes' => "Ripristino Ordine #{$order->id} — rimborso",
-            ]);
-        }
-
-        if (! empty($outstanding)) {
-            Log::info("{$this->getGatewayName()} {$this->canaleDiIncasso()}: stock riconciliato dopo rimborso", [
-                'order_id' => $order->id,
-            ]);
-        }
     }
 
     /**

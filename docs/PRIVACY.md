@@ -170,7 +170,7 @@ consenso (art. 7 §1), non un registro statistico: non aggiungerci altro.
 | ActiveCampaign | newsletter | `services.activecampaign` |
 | Google Ireland | GA4, **solo dopo il consenso statistico** | `resources/js/analytics.js` |
 | Meta Platforms Ireland | pixel, **solo dopo il consenso marketing** (`META_PIXEL_REQUIRES_CONSENT`, predefinito `true`) | `resources/js/meta-pixel.js` |
-| Google (Maps), YouTube, Vimeo | l'IP di chi apre una pagina con la mappa o un video, **senza consenso** (§5) | `Societa/Palazzetto.vue`, `LiveStreamModal.vue`, `PageMediaTail.vue` |
+| Google (Maps), YouTube, Vimeo, Twitch, Dailymotion | l'IP di chi carica la mappa o un video: solo col consenso di marketing o dopo un clic sul segnaposto (`ContenutoIncorporato.vue`) | `Societa/Palazzetto.vue`, `LiveStreamModal.vue`, `PageMediaTail.vue` |
 
 **Il poco che riceve Sentry è configurazione, non fortuna.** `send_default_pii`
 e `sql_bindings` sono due `env()` con predefinito `false`: restano spenti finché
@@ -242,14 +242,18 @@ codice; l'informativa li dichiara.
    Se un giorno la si vuole rendere verificabile: una data
    `consenso_biometrico_il` sui due modelli, e l'azione di addestramento
    disabilitata finché è vuota.
-2. **Mappa e video si caricano prima del consenso.** Gli iframe di Google Maps,
-   YouTube e Vimeo partono con la pagina: la Cookie Policy ora lo dice, ma
-   dirlo non lo rende lecito. È una scelta presa sapendolo (23/09/2026), non una
-   dimenticanza. Il rimedio, quando si vorrà, è il *click-to-load* — un riquadro
-   al posto dell'iframe finché il visitatore non chiede di vederlo — nei tre
-   componenti elencati al §3. Fino ad allora la scansione settimanale dei cookie
-   può trovare cookie di terze parti prima della scelta: è un difetto vero, non
-   un falso positivo, e non va silenziato.
+2. ~~**Mappa e video si caricano prima del consenso.**~~ Risolto il 26/09/2026
+   con il *click-to-load*: `resources/js/Components/ContenutoIncorporato.vue`
+   (usato da `Palazzetto.vue`, `LiveStreamModal.vue`, `PageMediaTail.vue`,
+   `ContentPage.vue`) mette un segnaposto al posto dell'iframe finché non c'è
+   il consenso di marketing (`consenso.js`) o un clic su quel contenuto, con il
+   link per aprirlo sulla piattaforma. YouTube si incorpora da
+   `youtube-nocookie.com` e l'avvio automatico si aggiunge solo al clic.
+   Informative aggiornate con la migrazione
+   `2026_09_26_210000_l_informativa_dice_che_mappa_e_video_aspettano_il_consenso`,
+   `ConsensoCookie::VERSIONE` alzata a `2026-09-26`. Se la scansione
+   settimanale trova di nuovo cookie di terze parti prima della scelta, è un
+   iframe nuovo che non passa dal componente.
 
 3. **Il Codice di condotta manda i diritti a un'altra casella.** Ragione
    sociale e casella del sito sono risolte (§1): tutte le informative del sito,

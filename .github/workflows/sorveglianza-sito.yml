@@ -7,15 +7,21 @@
 # controlla, e fallisce quando il sito non risponde. GitHub manda l'email di
 # "workflow fallito" a chi ha modificato per ultimo questo file.
 #
-# Limite da sapere: GitHub non garantisce la puntualità dei cron, e nelle ore
-# di punta un giro può slittare di dieci-quindici minuti. È una rete di
-# sicurezza, non un monitor al minuto; per quello serve un servizio dedicato
-# (UptimeRobot, Better Stack) puntato sugli stessi indirizzi.
+# Limite da sapere: gira una volta l'ora, e GitHub non garantisce la
+# puntualità dei cron (nelle ore di punta un giro può slittare di
+# dieci-quindici minuti). È una rete di sicurezza, non un monitor al minuto;
+# per quello serve un servizio dedicato e gratuito (UptimeRobot, Better Stack)
+# puntato su `/up`.
 name: Sorveglianza sito
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    # Una volta l'ora, al minuto 17 (lontano dallo :00, dove si accumulano i
+    # cron di tutti e GitHub slitta di più). Ogni dieci minuti erano circa
+    # 4.300 minuti di Actions al mese su un conto da 3.000 già esaurito dagli
+    # altri repository: il controllo fitto spetta a un monitor esterno
+    # gratuito su `/up` (vedi sopra e docs/INFRASTRUCTURE.md §9).
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:

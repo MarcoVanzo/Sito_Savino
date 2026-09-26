@@ -3,7 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Symfony\Component\HttpFoundation\Response;
@@ -84,6 +86,11 @@ class CachePublicResponse
 
         // Only cache successful HTML responses
         if (
+            // Seconda difesa: se dentro la pipeline la richiesta è diventata
+            // autenticata (cookie «ricordami», un guard che qui non si vede),
+            // la pagina contiene `auth.user` e non va mai salvata, altrimenti
+            // la si servirebbe a ogni visitatore anonimo.
+            ! Auth::check() &&
             $response->getStatusCode() === 200 &&
             str_contains($response->headers->get('Content-Type', ''), 'text/html')
         ) {
@@ -125,10 +132,23 @@ class CachePublicResponse
      * girare l'intera pipeline (che gestisce correttamente auth e dati per-utente).
      * Il traffico realmente anonimo (bot, primo accesso senza cookie) continua a
      * beneficiare della cache full-page.
+     *
+     * Vale lo stesso per il cookie «ricordami» (`remember_web_*`): chi ha
+     * spuntato la casella e ha la sessione scaduta arriva senza cookie di
+     * sessione, ma viene autenticato dentro la pipeline. Senza questo
+     * controllo la sua pagina, con nome ed email in `auth.user`, finiva in
+     * cache e veniva servita a tutti.
      */
     private function mightBeAuthenticated(Request $request): bool
     {
-        return $request->cookies->has(Config::get('session.cookie'));
+        if ($request->cookies->has(Config::get('session.cookie'))) {
+            return true;
+        }
+
+        $guard = Auth::guard('web');
+
+        return $guard instanceof SessionGuard
+            && $request->cookies->has($guard->getRecallerName());
     }
 
     /**

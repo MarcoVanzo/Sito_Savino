@@ -40,6 +40,17 @@ class VerificaPayPal extends Command
         'PAYMENT.CAPTURE.REFUNDED',
     ];
 
+    /**
+     * Chiudono le catture rimaste in sospeso (PENDING, rare): senza, un
+     * pagamento in sospeso non si conferma e non si annulla da solo. Mancare
+     * questi è un avviso, non un guasto: `shop:sorveglia` non deve dare
+     * l'allarme finché non li si aggiunge dalla dashboard di PayPal.
+     */
+    private const EVENTI_CONSIGLIATI = [
+        'PAYMENT.CAPTURE.COMPLETED',
+        'PAYMENT.CAPTURE.DENIED',
+    ];
+
     /** PayPal non ha risposto: nessuna conclusione sull'impianto. */
     public const TRANSITORIO = 3;
 
@@ -180,6 +191,12 @@ class VerificaPayPal extends Command
             $esito = self::FAILURE;
         } else {
             $this->info('Eventi sottoscritti: '.implode(', ', self::EVENTI_ATTESI));
+        }
+
+        $consigliatiMancanti = array_diff(self::EVENTI_CONSIGLIATI, $eventi);
+
+        if ($consigliatiMancanti !== []) {
+            $this->warn('Eventi consigliati non sottoscritti (catture in sospeso): '.implode(', ', $consigliatiMancanti));
         }
 
         return $esito;

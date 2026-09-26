@@ -24,6 +24,7 @@ use App\Http\Controllers\Shop\RecessoController;
 use App\Http\Controllers\Shop\ShopAuthController;
 use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\ValidateCouponController;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\TrackShopPageView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -96,8 +97,11 @@ return function (string $loc, string $namePrefix): void {
         Route::get('/'.$shopSlugs['ordine'].'/{orderNumber}', [OrderController::class, 'show'])->name('shop.order.show');
         Route::get('/'.$shopSlugs['ordine'].'/{orderToken}/'.$shopSlugs['ricevuta'], [OrderController::class, 'downloadReceipt'])->name('shop.order.receipt');
 
-        // Auth-only shop routes
-        Route::middleware('auth')->group(function () use ($shopSlugs) {
+        // Auth-only shop routes. EnsureUserIsActive su ogni gruppo `auth`:
+        // un cliente disattivato dal pannello con la sessione ancora aperta
+        // (o il cookie «ricordami») continuava a vedere ordini e dati, a
+        // esportarli e a fare offerte.
+        Route::middleware(['auth', EnsureUserIsActive::class])->group(function () use ($shopSlugs) {
             Route::get('/'.$shopSlugs['ordini'], [OrderController::class, 'index'])->name('shop.orders');
 
             // Il mio account: dati, esportazione (art. 20 GDPR) e
@@ -123,7 +127,7 @@ return function (string $loc, string $namePrefix): void {
             Route::get('/{auction}', [AuctionController::class, 'show'])->name('shop.auctions.show');
 
             // Bidding (auth + carta verificata)
-            Route::middleware(['auth', 'verified.payment'])->group(function () {
+            Route::middleware(['auth', EnsureUserIsActive::class, 'verified.payment'])->group(function () {
                 Route::post('/{auction}/bid', [AuctionController::class, 'bid'])
                     ->middleware('throttle:12,1,shop.auctions.bid')
                     ->name('shop.auctions.bid');
@@ -131,7 +135,7 @@ return function (string $loc, string $namePrefix): void {
         });
 
         // Checkout asta vincitore
-        Route::middleware(['auth', 'auctions.enabled'])->group(function () {
+        Route::middleware(['auth', EnsureUserIsActive::class, 'auctions.enabled'])->group(function () {
             Route::get('/checkout/asta/{token}', [AuctionCheckoutController::class, 'show'])->name('shop.auction-checkout.show');
             Route::post('/checkout/asta/{token}', [AuctionCheckoutController::class, 'store'])
                 ->middleware('throttle:3,1,shop.auction-checkout.store')

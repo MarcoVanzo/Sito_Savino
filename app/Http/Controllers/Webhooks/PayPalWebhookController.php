@@ -53,9 +53,15 @@ class PayPalWebhookController
             return response()->json(['message' => 'Evento ignorato'], 200);
         }
 
-        // Handle completed payment
-        if ($result['status'] === 'completed') {
+        // Handle completed payment. Una cattura in sospeso passa dallo stesso
+        // punto, che la riconosce e lascia l'ordine in attesa.
+        if (in_array($result['status'], ['completed', 'pending'], true)) {
             return $this->handlePaymentCompleted($result);
+        }
+
+        // Cattura in sospeso rifiutata: pagamento fallito.
+        if ($result['status'] === 'denied') {
+            return $this->handlePaymentDenied($result);
         }
 
         // Handle refund

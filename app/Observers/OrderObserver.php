@@ -5,6 +5,8 @@ namespace App\Observers;
 use App\Enums\OrderStatus;
 use App\Enums\StockMovementType;
 use App\Mail\OrderStatusChanged;
+use App\Models\Coupon;
+use App\Models\CouponUsage;
 use App\Models\Order;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\Cache;
@@ -53,6 +55,13 @@ class OrderObserver
         // Il guard $alreadyRestored in restoreStock() previene la doppia esecuzione.
         if ($order->status === OrderStatus::Cancelled || $order->status === OrderStatus::Refunded) {
             $this->restoreStock($order);
+        }
+
+        // Un ordine mai pagato che si annulla (checkout abbandonato, cattura
+        // rifiutata, annullo dal pannello) restituisce anche il coupon: il
+        // checkout ne registra l'uso prima del pagamento.
+        if ($order->status === OrderStatus::Cancelled && $order->paid_at === null && $order->payment_id === null) {
+            $this->releaseCoupon($order);
         }
 
         // Send status change notification to customer
@@ -108,6 +117,34 @@ class OrderObserver
             }
 
             Log::info("Stock ripristinato per Ordine #{$order->id} (cancellazione)");
+        });
+    }
+
+    /**
+     * Libera il coupon di un ordine annullato senza pagamento.
+     *
+     * Il checkout registra `CouponUsage` e incrementa `used_count` subito
+     * (CheckoutService::createOrder): senza questo, un checkout abbandonato
+     * consumava per sempre un coupon a uso singolo, o l'unico uso concesso
+     * a quel cliente. Idempotente: si decrementa solo se c'era una riga da
+     * cancellare, e mai sotto zero.
+     */
+    private function releaseCoupon(Order $order): void
+    {
+        DB::transaction(function () use ($order) {
+            $usages = CouponUsage::where('order_id', $order->id)->lockForUpdate()->get();
+
+            foreach ($usages as $usage) {
+                $usage->delete();
+
+                Coupon::withTrashed()->whereKey($usage->coupon_id)
+                    ->where('used_count', '>', 0)
+                    ->decrement('used_count');
+            }
+
+            if ($usages->isNotEmpty()) {
+                Log::info("Coupon rilasciato per Ordine #{$order->id} (annullato senza pagamento)");
+            }
         });
     }
 

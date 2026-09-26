@@ -161,6 +161,14 @@ class Product extends Model implements HasMedia
             return false;
         }
 
+        // Uno "sconto" pari o sopra il listino non e' uno sconto: il modulo
+        // lo impedisce (`->lte('price')`), ma l'azione in blocco e un listino
+        // abbassato dopo lo lasciavano passare, e carrello e ordine facevano
+        // pagare di piu' annunciando un'offerta.
+        if ((float) $this->sale_price >= (float) $this->price) {
+            return false;
+        }
+
         $now = now();
 
         if ($this->sale_start && $now->lt($this->sale_start)) {

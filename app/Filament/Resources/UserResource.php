@@ -12,6 +12,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class UserResource extends Resource
@@ -150,7 +152,20 @@ class UserResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Ogni record passa da UserPolicy::delete(): la selezione
+                    // può includere sé stessi o l'ultimo super admin, che
+                    // vengono saltati invece di essere cancellati.
+                    // Il controllo è fatto record per record e al momento della
+                    // cancellazione, così l'ultimo super admin si riconosce anche
+                    // dopo aver cancellato gli altri della stessa selezione.
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->using(function (Collection $records): void {
+                            foreach ($records as $record) {
+                                if (Gate::allows('delete', $record)) {
+                                    $record->delete();
+                                }
+                            }
+                        }),
                 ]),
             ]);
     }

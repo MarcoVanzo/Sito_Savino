@@ -122,7 +122,10 @@ class VerificaIlLancio extends Command
 
     private function accessoRiservato(): void
     {
-        $acceso = (bool) config('services.preview_auth.enabled');
+        // La chiave e' `services.preview` (config/services.php, letta da
+        // PreviewBasicAuth): leggendo `preview_auth` il controllo vedeva sempre
+        // null e dava via libera anche col sito chiuso da password.
+        $acceso = (bool) config('services.preview.enabled');
 
         $this->registra(
             $acceso ? self::BLOCCO : self::OK,

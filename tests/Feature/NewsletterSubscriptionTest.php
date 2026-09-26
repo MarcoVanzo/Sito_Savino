@@ -157,7 +157,7 @@ class NewsletterSubscriptionTest extends TestCase
         $this->assertNull($uscito->fresh()->unsubscribed_at);
     }
 
-    public function test_duplicate_email_returns_info_message(): void
+    public function test_duplicate_email_returns_the_same_message_as_a_new_one(): void
     {
         Queue::fake();
 
@@ -175,8 +175,11 @@ class NewsletterSubscriptionTest extends TestCase
             'privacy_accepted' => true,
         ]);
 
+        // Stessa risposta di un indirizzo nuovo: il modulo non deve dire a
+        // chiunque se un indirizzo è iscritto.
         $response->assertRedirect();
-        $response->assertSessionHas('newsletter_info');
+        $response->assertSessionHas('success', __('messages.newsletter.confirm_sent'));
+        $response->assertSessionMissing('newsletter_info');
 
         $this->assertDatabaseCount('newsletter_subscribers', 1);
 
@@ -329,7 +332,8 @@ class NewsletterSubscriptionTest extends TestCase
             'privacy_accepted' => true,
         ]);
 
-        $response->assertSessionHas('newsletter_info');
+        $response->assertSessionHas('success', __('messages.newsletter.confirm_sent'));
+        $response->assertSessionMissing('newsletter_info');
         Queue::assertPushed(SyncNewsletterToActiveCampaign::class);
     }
 
@@ -398,5 +402,31 @@ class NewsletterSubscriptionTest extends TestCase
             'privacy_accepted' => true,
         ]);
         Mail::assertQueuedCount(NewsletterController::CONFERME_AL_GIORNO + 2);
+    }
+
+    public function test_la_risposta_non_rivela_se_l_indirizzo_e_iscritto(): void
+    {
+        Queue::fake();
+        Mail::fake();
+
+        NewsletterSubscriber::create([
+            'email' => 'iscritta@example.com',
+            'source' => 'website',
+            'subscribed_at' => now(),
+            'confermato_il' => now(),
+            'synced_to_ac' => true,
+        ]);
+
+        $flash = function (string $email): array {
+            $this->post(route('newsletter.subscribe'), [
+                'email' => $email,
+                'honeypot' => '',
+                'privacy_accepted' => true,
+            ])->assertRedirect();
+
+            return [session('success'), session('newsletter_info')];
+        };
+
+        $this->assertSame($flash('nuova@example.com'), $flash('iscritta@example.com'));
     }
 }

@@ -1146,6 +1146,14 @@
         "cta_hint": "Change it now so you are not locked out at your next sign-in.",
         "change": "Change password"
     },
+    "incorporato": {
+        "avviso": "This content is hosted by {piattaforma}, which uses marketing cookies. We load it only if you ask, or if you have accepted marketing cookies.",
+        "carica_video": "Load the video ({piattaforma} collects cookies)",
+        "carica_mappa": "Load the map ({piattaforma} collects cookies)",
+        "apri_video": "Watch the video on {piattaforma}",
+        "apri_mappa": "Open the map on {piattaforma}",
+        "preferenze": "Cookie preferences"
+    },
     "stream": {
         "modal_title": "Live stream",
         "close": "Close the stream",

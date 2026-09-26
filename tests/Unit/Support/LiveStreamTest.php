@@ -14,9 +14,9 @@ class LiveStreamTest extends TestCase
     public static function piattaformeIncorporabili(): array
     {
         return [
-            'youtube watch' => ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1'],
-            'youtube corto' => ['https://youtu.be/dQw4w9WgXcQ', 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1'],
-            'youtube live' => ['https://www.youtube.com/live/abc123XYZ', 'https://www.youtube.com/embed/abc123XYZ?autoplay=1'],
+            'youtube watch' => ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'],
+            'youtube corto' => ['https://youtu.be/dQw4w9WgXcQ', 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'],
+            'youtube live' => ['https://www.youtube.com/live/abc123XYZ', 'https://www.youtube-nocookie.com/embed/abc123XYZ'],
             'vimeo' => ['https://vimeo.com/123456789', 'https://player.vimeo.com/video/123456789'],
             'dailymotion' => ['https://www.dailymotion.com/video/x8abcd', 'https://www.dailymotion.com/embed/video/x8abcd'],
         ];

@@ -31,7 +31,8 @@ class NewsController extends Controller
 
         $posts = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($page, $category) {
             $paginator = Post::published()
-                ->with(['author', 'categories', 'media'])
+                // Dell'autore serve solo il nome: vedi publicAuthor().
+                ->with(['author:id,name', 'categories', 'media'])
                 ->when($category, fn ($query) => $query->whereHas(
                     'categories',
                     fn ($q) => $q->where('categories.id', $category->id)
@@ -48,6 +49,11 @@ class NewsController extends Controller
 
             return $transformed->toArray();
         });
+
+        // La ripulitura avviene anche all'uscita dalla cache: le chiavi scritte
+        // prima di questa correzione contengono l'intero User dell'autore e
+        // restano valide per qualche minuto dopo il deploy.
+        $posts['data'] = array_map($this->publicAuthor(...), $posts['data'] ?? []);
 
         return Inertia::render('Public/News', [
             'posts' => $posts,
@@ -121,7 +127,7 @@ class NewsController extends Controller
 
         $data = Cache::remember("public:news:{$locale}:{$slug}", now()->addMinutes(10), function () use ($slug) {
             $post = Post::published()
-                ->with(['author', 'categories', 'tags', 'media'])
+                ->with(['author:id,name', 'categories', 'tags', 'media'])
                 ->where('slug', $slug)
                 ->firstOrFail();
 
@@ -145,8 +151,8 @@ class NewsController extends Controller
         });
 
         return Inertia::render('Public/NewsDetail', [
-            'post' => $data['post'],
-            'relatedPosts' => $data['relatedPosts'],
+            'post' => $this->publicAuthor($data['post']),
+            'relatedPosts' => array_map($this->publicAuthor(...), $data['relatedPosts']),
         ]);
     }
 
@@ -190,6 +196,29 @@ class NewsController extends Controller
             }
         }
 
-        return $data;
+        return $this->publicAuthor($data);
+    }
+
+    /**
+     * Riduce l'autore al solo nome, l'unico campo che il frontend mostra
+     * (NewsDetail.vue). Le pagine delle notizie sono pubbliche e in cache:
+     * serializzare il model intero pubblicava email, telefono, indirizzo,
+     * ruolo e id cliente Stripe di chi scrive.
+     *
+     * @param  array<string, mixed>  $post
+     * @return array<string, mixed>
+     */
+    private function publicAuthor(array $post): array
+    {
+        if (! array_key_exists('author', $post)) {
+            return $post;
+        }
+
+        $author = $post['author'];
+        $post['author'] = is_array($author) && isset($author['name'])
+            ? ['name' => $author['name']]
+            : null;
+
+        return $post;
     }
 }

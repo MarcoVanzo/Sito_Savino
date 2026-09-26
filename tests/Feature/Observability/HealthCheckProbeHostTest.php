@@ -70,4 +70,64 @@ class HealthCheckProbeHostTest extends TestCase
         $this->assertFalse($this->hostIsTrusted('sito-di-un-attaccante.example', $patterns));
         $this->assertFalse($this->hostIsTrusted('evil.com', $patterns));
     }
+
+    /**
+     * Le voci passate a Symfony sono espressioni regolari: senza ancore
+     * `sito-savino.ondigitalocean.app` accettava anche un dominio che lo
+     * contiene, e l'attaccante ne registra uno così con poca spesa.
+     */
+    #[Test]
+    public function un_dominio_che_contiene_quello_del_sito_resta_rifiutato(): void
+    {
+        $patterns = $this->trustedHostPatterns();
+
+        $this->assertFalse($this->hostIsTrusted('sito-savino.ondigitalocean.app.evil.com', $patterns));
+        $this->assertFalse($this->hostIsTrusted('evil-sito-savino.ondigitalocean.app', $patterns));
+        $this->assertFalse($this->hostIsTrusted('sito-savinoXondigitalocean.app', $patterns));
+        $this->assertTrue($this->hostIsTrusted('www.sito-savino.ondigitalocean.app', $patterns));
+    }
+
+    #[Test]
+    public function funziona_anche_con_app_url_senza_schema(): void
+    {
+        config(['app.trusted_hosts' => []]);
+        config(['app.url' => 'sito-savino.ondigitalocean.app']);
+        $patterns = app(TrustHosts::class)->hosts();
+
+        $this->assertTrue($this->hostIsTrusted('sito-savino.ondigitalocean.app', $patterns));
+        $this->assertFalse($this->hostIsTrusted('sito-savino.ondigitalocean.app.evil.com', $patterns));
+    }
+
+    /**
+     * Per la sonda bastano gli indirizzi della rete interna: un IP pubblico
+     * come Host non ha nessun motivo di arrivare.
+     */
+    #[Test]
+    public function come_host_sono_ammessi_solo_ip_privati(): void
+    {
+        $patterns = $this->trustedHostPatterns();
+
+        $this->assertTrue($this->hostIsTrusted('192.168.1.5', $patterns));
+        $this->assertTrue($this->hostIsTrusted('172.20.0.3', $patterns));
+        $this->assertTrue($this->hostIsTrusted('127.0.0.1', $patterns));
+        $this->assertFalse($this->hostIsTrusted('8.8.8.8', $patterns));
+        $this->assertFalse($this->hostIsTrusted('172.32.0.1', $patterns));
+        $this->assertFalse($this->hostIsTrusted('100.128.0.1', $patterns));
+        $this->assertFalse($this->hostIsTrusted('10.0.0.1.evil.com', $patterns));
+    }
+
+    #[Test]
+    public function anche_trusted_hosts_viene_ancorato(): void
+    {
+        config(['app.trusted_hosts' => ['savinodelbenevolley.it']]);
+        config(['app.url' => 'https://sito-savino.ondigitalocean.app']);
+        $patterns = app(TrustHosts::class)->hosts();
+
+        $this->assertTrue($this->hostIsTrusted('savinodelbenevolley.it', $patterns));
+        $this->assertTrue($this->hostIsTrusted('www.savinodelbenevolley.it', $patterns));
+        $this->assertFalse($this->hostIsTrusted('savinodelbenevolley.it.evil.com', $patterns));
+        $this->assertFalse($this->hostIsTrusted('savinodelbenevolleyXit', $patterns));
+        // La sonda interna passa anche con la lista esplicita.
+        $this->assertTrue($this->hostIsTrusted('10.244.1.37', $patterns));
+    }
 }

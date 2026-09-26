@@ -54,6 +54,8 @@ class Order extends Model
 
     protected $casts = [
         'total_price' => 'decimal:2',
+        // Scritto solo dai webhook di rimborso: fuori da $fillable come payment_id.
+        'refunded_amount' => 'decimal:2',
         'status' => OrderStatus::class,
         'payment_gateway' => PaymentGateway::class,
         'shipping_address' => 'array',

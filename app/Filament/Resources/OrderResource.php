@@ -73,11 +73,18 @@ class OrderResource extends Resource
                                     ->label('Numero Ordine')
                                     ->disabled()
                                     ->dehydrated(false),
+                                // Solo in lettura: `status` e' fuori da $fillable e
+                                // il valore scelto qui finiva nel nulla senza dirlo.
+                                // Lo stato si cambia con le azioni dedicate (Conferma
+                                // pagamento, Segna spedito, Annulla, Rimborso), che
+                                // ammettono solo le transizioni sensate e portano con
+                                // se' magazzino, coupon ed email.
                                 Forms\Components\Select::make('status')
                                     ->label(self::LABEL_ORDER_STATUS)
                                     ->options(OrderStatus::class)
-                                    ->required()
-                                    ->default(OrderStatus::Pending),
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->helperText('Si cambia con le azioni dell\'ordine (Conferma pagamento, Segna spedito, Annulla, Rimborso).'),
                                 Forms\Components\Select::make('user_id')
                                     ->label('Cliente (Utente)')
                                     ->relationship('user', 'name')
@@ -223,7 +230,14 @@ class OrderResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters(self::filtri())
             ->actions(self::azioni())
-            ->bulkActions(static::softDeleteBulkActions());
+            // Niente cancellazione, né in blocco né singola: gli ordini sono
+            // documenti contabili da conservare (OrderPolicy). Resta il
+            // ripristino di quelli cancellati prima di questa regola.
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\RestoreBulkAction::make(),
+                ]),
+            ]);
     }
 
     /**
@@ -516,7 +530,11 @@ class OrderResource extends Resource
                         ->step(0.01),
                 ])
                 ->modalHeading('Emetti Rimborso')
-                ->modalDescription('Il rimborso verrà emesso direttamente sul metodo di pagamento originale del cliente. Lo stock NON verrà modificato automaticamente.')
+                // Il testo diceva che lo stock non cambia: il rimborso totale
+                // porta l'ordine a Rimborsato e l'OrderObserver rimette la merce
+                // in giacenza; il parziale (anche quando torna dal gateway via
+                // webhook) registra solo l'importo.
+                ->modalDescription('Il rimborso verrà emesso sul metodo di pagamento originale del cliente. Rimborso totale: l\'ordine passa a Rimborsato e la merce torna in giacenza. Rimborso parziale: l\'ordine resta nel suo stato, la giacenza non cambia e l\'importo rimborsato viene registrato.')
                 ->modalSubmitActionLabel('Emetti Rimborso')
                 ->action(function (Order $record, array $data): void {
                     try {
@@ -531,6 +549,9 @@ class OrderResource extends Resource
                         $service->refund($record, $amount);
 
                         if ($data['refund_type'] === 'full') {
+                            // Il webhook che segue trova l'ordine gia' Rimborsato e
+                            // si ferma: l'importo si registra qui.
+                            $record->refunded_amount = $record->total_price;
                             $record->status = OrderStatus::Refunded;
                             $record->save();
                         }

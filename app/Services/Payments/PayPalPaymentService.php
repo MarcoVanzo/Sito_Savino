@@ -2,6 +2,7 @@
 
 namespace App\Services\Payments;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
@@ -142,6 +143,10 @@ class PayPalPaymentService implements PaymentGatewayInterface
 
         return match ($eventType) {
             'CHECKOUT.ORDER.APPROVED' => $this->handleOrderApproved($payload),
+            // Una cattura rimasta PENDING (verifica antifrode, eCheck) si
+            // chiude piu' tardi con uno di questi due eventi.
+            'PAYMENT.CAPTURE.COMPLETED' => $this->handleCaptureCompleted($payload),
+            'PAYMENT.CAPTURE.DENIED' => $this->handleCaptureDenied($payload),
             'PAYMENT.CAPTURE.REFUNDED' => $this->handleCaptureRefunded($payload),
             default => ['status' => 'ignored'],
         };
@@ -234,9 +239,64 @@ class PayPalPaymentService implements PaymentGatewayInterface
             throw new PayPalException('PayPal order ID non trovato nel payload webhook');
         }
 
+        $ordineRemoto = $payload['resource'] ?? [];
+
+        // Approvare non e' pagare: finche' non si cattura il denaro resta al
+        // cliente. Un ordine locale gia' annullato (checkout abbandonato dopo
+        // un'ora, turno dell'asta scaduto) ha la merce tornata a scaffale, e
+        // catturare adesso significava incassare per poi dover rimborsare a
+        // mano. Se l'evento dice di quale ordine si tratta e quell'ordine non
+        // e' piu' in attesa, non si cattura: l'approvazione scade da sola.
+        $locale = $this->ordineLocaleDellEvento($ordineRemoto);
+
+        if ($locale !== null && ! $this->ordineAncoraDaIncassare($locale)) {
+            Log::warning('PayPal: ordine approvato ma non piu\' in attesa, cattura non eseguita', [
+                'paypal_order_id' => $paypalOrderId,
+                'order_id' => $locale->id,
+                'status' => $locale->status->value,
+            ]);
+
+            return ['status' => 'ignored'];
+        }
+
         // L'ordine così come sta nell'evento: è la fonte più affidabile del
         // custom_id, perché è la copia di quello che abbiamo inviato noi.
-        return $this->catturaEDescrivi($paypalOrderId, $payload['resource'] ?? []);
+        return $this->catturaEDescrivi($paypalOrderId, $ordineRemoto);
+    }
+
+    /**
+     * L'ordine locale indicato dall'ordine PayPal dell'evento, se l'evento lo
+     * dice (custom_id o reference_id della prima unita' d'acquisto).
+     *
+     * @param  array<string, mixed>  $ordineRemoto
+     */
+    private function ordineLocaleDellEvento(array $ordineRemoto): ?Order
+    {
+        $unita = $ordineRemoto['purchase_units'][0] ?? [];
+        $customId = $unita['custom_id'] ?? null;
+
+        if (is_numeric($customId)) {
+            return Order::find((int) $customId);
+        }
+
+        $numero = $unita['reference_id'] ?? null;
+
+        return $numero ? Order::where('order_number', $numero)->first() : null;
+    }
+
+    /**
+     * Si puo' ancora catturare per questo ordine? Solo se e' in attesa e
+     * senza una transazione gia' registrata. Riletto dal database, non dalla
+     * copia in memoria: l'annullamento automatico puo' essere passato un
+     * attimo fa.
+     */
+    private function ordineAncoraDaIncassare(Order $order): bool
+    {
+        $attuale = Order::query()->whereKey($order->id)->first(['id', 'status', 'payment_id']);
+
+        return $attuale !== null
+            && $attuale->status === OrderStatus::Pending
+            && $attuale->payment_id === null;
     }
 
     /**
@@ -244,7 +304,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
      * trait dei webhook (payment_id, status, order_id).
      *
      * @param  array<string, mixed>  $ordineRemoto  rappresentazione dell'ordine già in nostro possesso
-     * @return array{payment_id: string, status: string, order_id: int, amount: float|null}
+     * @return array{payment_id: string, status: string, capture_status: string|null, order_id: int, amount: float|null}
      */
     private function catturaEDescrivi(string $paypalOrderId, array $ordineRemoto = []): array
     {
@@ -285,7 +345,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
      *
      * @param  array<string, mixed>  $risposta  risposta della cattura (o rilettura dell'ordine)
      * @param  array<string, mixed>  $ordineRemoto  ordine come arrivato nell'evento
-     * @return array{payment_id: string, status: string, order_id: int, amount: float|null}
+     * @return array{payment_id: string, status: string, capture_status: string|null, order_id: int, amount: float|null}
      */
     private function esitoDa(string $paypalOrderId, array $risposta, array $ordineRemoto = []): array
     {
@@ -318,9 +378,17 @@ class PayPalPaymentService implements PaymentGatewayInterface
             ]);
         }
 
+        // Solo una cattura COMPLETED e' denaro incassato. PENDING (verifica
+        // antifrode, eCheck, conto del venditore da confermare) puo' ancora
+        // finire DENIED: registrarla come pagata confermava l'ordine e
+        // mandava la merce a chi poteva non pagarla mai. La conclusione
+        // arriva dopo, con PAYMENT.CAPTURE.COMPLETED o .DENIED.
+        $statoCattura = $cattura['status'] ?? null;
+
         return [
             'payment_id' => $cattura['id'] ?? $paypalOrderId,
-            'status' => 'completed',
+            'status' => $statoCattura === 'COMPLETED' ? 'completed' : 'pending',
+            'capture_status' => is_string($statoCattura) ? $statoCattura : null,
             'order_id' => $orderId,
             // Quanto il gateway dice di aver incassato: il confronto col totale
             // dell'ordine e' l'unico modo per accorgersi che il cliente ha
@@ -373,8 +441,8 @@ class PayPalPaymentService implements PaymentGatewayInterface
      * `token`: si cattura subito, e il webhook (che di norma arriva lo stesso)
      * trova il lavoro già fatto e si ferma sull'idempotenza.
      *
-     * @return array{payment_id: string, status: string, order_id: int, amount: float|null}|null
-     *                                                                                           null se l'ordine remoto non è pagabile o non corrisponde a quello locale
+     * @return array{payment_id: string, status: string, capture_status: string|null, order_id: int, amount: float|null}|null
+     *                                                                                                                        null se l'ordine remoto non è pagabile o non corrisponde a quello locale
      */
     public function catturaAlRitorno(Order $order, string $paypalOrderId): ?array
     {
@@ -397,6 +465,13 @@ class PayPalPaymentService implements PaymentGatewayInterface
         }
 
         $stato = $ordineRemoto['status'] ?? '';
+
+        // Come nel webhook: un ordine locale non piu' in attesa (annullato
+        // nel frattempo) non si cattura. Chi torna dal gateway trova l'esito
+        // dell'annullamento, non un addebito da rimborsare.
+        if ($stato === 'APPROVED' && ! $this->ordineAncoraDaIncassare($order)) {
+            return null;
+        }
 
         if ($stato === 'COMPLETED') {
             return $this->esitoDa($paypalOrderId, $ordineRemoto, $ordineRemoto);
@@ -428,6 +503,72 @@ class PayPalPaymentService implements PaymentGatewayInterface
     }
 
     /**
+     * PAYMENT.CAPTURE.COMPLETED: la cattura rimasta in sospeso e' andata a buon
+     * fine. Per una cattura gia' COMPLETED al primo colpo l'evento arriva lo
+     * stesso e si ferma sull'idempotenza della coppia (ordine, cattura).
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function handleCaptureCompleted(array $payload): array
+    {
+        $cattura = $payload['resource'] ?? [];
+
+        if (($cattura['status'] ?? null) !== 'COMPLETED' || empty($cattura['id'])) {
+            return ['status' => 'ignored'];
+        }
+
+        return [
+            'payment_id' => (string) $cattura['id'],
+            'status' => 'completed',
+            'capture_status' => 'COMPLETED',
+            'order_id' => $this->ordineDellaCattura($cattura),
+            'amount' => isset($cattura['amount']['value']) ? (float) $cattura['amount']['value'] : null,
+        ];
+    }
+
+    /**
+     * PAYMENT.CAPTURE.DENIED: la cattura in sospeso e' stata rifiutata, il
+     * denaro non arrivera'. L'ordine va trattato come un pagamento fallito.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function handleCaptureDenied(array $payload): array
+    {
+        $cattura = $payload['resource'] ?? [];
+
+        if (empty($cattura['id'])) {
+            return ['status' => 'ignored'];
+        }
+
+        return [
+            'payment_id' => (string) $cattura['id'],
+            'status' => 'denied',
+            'order_id' => $this->ordineDellaCattura($cattura),
+        ];
+    }
+
+    /**
+     * L'ordine locale di una cattura: dal suo `custom_id` (copia di quello
+     * dell'unita' d'acquisto) o, se manca, rileggendo l'ordine PayPal a cui la
+     * cattura appartiene. Zero se non si trova.
+     *
+     * @param  array<string, mixed>  $cattura
+     */
+    private function ordineDellaCattura(array $cattura): int
+    {
+        if (is_numeric($cattura['custom_id'] ?? null)) {
+            return (int) $cattura['custom_id'];
+        }
+
+        $paypalOrderId = $cattura['supplementary_data']['related_ids']['order_id'] ?? null;
+        $ordine = is_string($paypalOrderId) ? $this->leggiOrdineRemoto($paypalOrderId) : null;
+
+        return $ordine !== null ? $this->ordineLocaleDellEvento($ordine)->id ?? 0 : 0;
+    }
+
+    /**
      * Handle PAYMENT.CAPTURE.REFUNDED event.
      */
     private function handleCaptureRefunded(array $payload): array
@@ -450,9 +591,44 @@ class PayPalPaymentService implements PaymentGatewayInterface
             $captureId = $resource['custom_id'] ?? $resource['id'] ?? '';
         }
 
+        // Rimborsato cumulato sulla cattura, se l'evento lo porta.
+        $cumulato = $resource['seller_payable_breakdown']['total_refunded_amount']['value'] ?? null;
+
         return [
             'payment_id' => $captureId,
             'status' => 'refunded',
+            'totale' => $this->catturaRimborsataDelTutto($captureId),
+            'refunded_amount' => is_numeric($cumulato) ? (float) $cumulato : null,
         ];
+    }
+
+    /**
+     * L'evento di rimborso arriva anche per i rimborsi parziali: a dire se la
+     * cattura e' stata restituita tutta e' il suo stato, REFUNDED oppure
+     * PARTIALLY_REFUNDED. Null se la cattura non si rilegge: decide allora il
+     * cumulato confrontato col totale dell'ordine.
+     */
+    private function catturaRimborsataDelTutto(string $captureId): ?bool
+    {
+        if ($captureId === '') {
+            return null;
+        }
+
+        $response = $this->client()->get("/v2/payments/captures/{$captureId}");
+
+        if ($response->failed()) {
+            Log::warning('PayPal: rilettura della cattura rimborsata non riuscita', [
+                'capture_id' => $captureId,
+                'status' => $response->status(),
+            ]);
+
+            return null;
+        }
+
+        return match ($response->json('status')) {
+            'REFUNDED' => true,
+            'PARTIALLY_REFUNDED', 'COMPLETED' => false,
+            default => null,
+        };
     }
 }

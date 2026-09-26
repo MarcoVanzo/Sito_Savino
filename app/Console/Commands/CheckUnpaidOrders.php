@@ -73,8 +73,9 @@ class CheckUnpaidOrders extends Command
             ->get();
 
         foreach ($ordersToCancel as $order) {
-            $this->cancelOrder($order);
-            $cancelled++;
+            if ($this->cancelOrder($order)) {
+                $cancelled++;
+            }
         }
 
         // 3. Log & output
@@ -124,29 +125,57 @@ class CheckUnpaidOrders extends Command
     /**
      * Cancel an unpaid order: update status and send notification.
      * Note: Stock restoration is automatically handled by OrderObserver.
+     *
+     * L'ordine si rilegge sotto lock e si ricontrolla: fra la query iniziale
+     * e questo punto puo' essere arrivato il pagamento (webhook, ritorno dal
+     * gateway). Scrivere lo stato sulla copia letta all'inizio annullava un
+     * ordine appena pagato e rimetteva a scaffale merce venduta.
+     *
+     * @return bool true se l'ordine e' stato annullato adesso
      */
-    private function cancelOrder(Order $order): void
+    private function cancelOrder(Order $order): bool
     {
         try {
-            DB::transaction(function () use ($order) {
-                // Update status to cancelled
-                $order->status = OrderStatus::Cancelled;
-                $order->save();
+            $annullato = DB::transaction(function () use ($order) {
+                $attuale = Order::lockForUpdate()->find($order->id);
+
+                if ($attuale === null
+                    || $attuale->status !== OrderStatus::Pending
+                    || $attuale->payment_id !== null) {
+                    return null;
+                }
+
+                $attuale->status = OrderStatus::Cancelled;
+                $attuale->save();
+
+                return $attuale;
             });
 
+            if ($annullato === null) {
+                Log::info('CheckUnpaidOrders: ordine cambiato nel frattempo, annullamento saltato', [
+                    'order_id' => $order->id,
+                ]);
+
+                return false;
+            }
+
             // Send cancellation email
-            $this->sendCancellationEmail($order);
+            $this->sendCancellationEmail($annullato);
 
             Log::info('Ordine cancellato per mancato pagamento o abbandono', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'gateway' => $order->payment_gateway->value ?? $order->payment_gateway,
+                'order_id' => $annullato->id,
+                'order_number' => $annullato->order_number,
+                'gateway' => $annullato->payment_gateway->value ?? $annullato->payment_gateway,
             ]);
+
+            return true;
         } catch (\Throwable $e) {
             Log::error('Errore cancellazione ordine non pagato', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
             ]);
+
+            return false;
         }
     }
 

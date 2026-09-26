@@ -10,6 +10,7 @@ use App\Models\GalleryImage;
 use App\Models\Game;
 use App\Models\HeroSlide;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Page;
 use App\Models\Player;
 use App\Models\PlayerHonour;
@@ -36,6 +37,7 @@ use App\Observers\UserObserver;
 use App\Services\Analytics\WebAnalyticsService;
 use App\Services\Social\SocialAnalyticsService;
 use App\Services\Wikipedia\WikipediaClient;
+use App\Support\HostFidati;
 use Filament\SpatieLaravelTranslatableContentDriver;
 use Filament\Tables\Actions\Action as TableAction;
 use Filament\Tables\Table;
@@ -58,6 +60,26 @@ use Resend\ValueObjects\Transporter\Headers;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Ability che anche per il super admin decide la policy, invece del
+     * bypass di Gate::before. Sono i divieti che non riguardano chi sei ma
+     * cosa si tocca:
+     *
+     * - Order: documento contabile, non si cancella mai (OrderPolicy, §25 del
+     *   CLAUDE.md sulla conservazione fiscale).
+     * - OrderItem: le righe di un ordine pagato sono immutabili
+     *   (OrderItemPolicy), altrimenti il totale si stacca dall'incassato.
+     * - User: nessuno cancella sé stesso né l'ultimo super admin attivo
+     *   (UserPolicy), o il pannello resta senza amministratori.
+     *
+     * @var array<class-string, list<string>>
+     */
+    private const DIVIETI_DI_PRINCIPIO = [
+        Order::class => ['delete', 'deleteAny', 'forceDelete', 'forceDeleteAny'],
+        OrderItem::class => ['create', 'update', 'delete', 'deleteAny', 'forceDelete', 'forceDeleteAny'],
+        User::class => ['delete', 'forceDelete'],
+    ];
+
     /**
      * Register any application services.
      */
@@ -138,8 +160,25 @@ class AppServiceProvider extends ServiceProvider
         // ricordarsi di reinserire il controllo a mano. DEVE restituire null (non
         // false) per gli altri ruoli, altrimenti il gate corto-circuita in negativo
         // e nessun'altra policy verrebbe mai consultata.
-        Gate::before(function (User $user): ?bool {
-            return $user->role->isSuperAdmin() ? true : null;
+        //
+        // Alcuni divieti però non dipendono dal ruolo ma dal principio, e il
+        // bypass li annullava: il super admin poteva cancellare ordini (che
+        // vanno conservati per il fisco), toccare le righe di un ordine già
+        // incassato, cancellare sé stesso. Per quelle ability si torna null e
+        // decide la policy, anche per lui.
+        Gate::before(function (User $user, string $ability, array $arguments): ?bool {
+            if (! $user->role->isSuperAdmin()) {
+                return null;
+            }
+
+            $target = $arguments[0] ?? null;
+            $class = is_object($target) ? $target::class : (is_string($target) ? $target : null);
+
+            if ($class !== null && in_array($ability, self::DIVIETI_DI_PRINCIPIO[$class] ?? [], true)) {
+                return null;
+            }
+
+            return true;
         });
 
         User::observe(UserObserver::class);
@@ -170,9 +209,18 @@ class AppServiceProvider extends ServiceProvider
         GalleryImage::observe(CacheInvalidationObserver::class);
         HeroSlide::observe(CacheInvalidationObserver::class);
 
-        // Forza HTTPS in produzione
+        // Forza HTTPS in produzione, e la radice di APP_URL: gli URL assoluti
+        // generati durante una richiesta (link di reset password, ritorni dei
+        // pagamenti) non devono mai prendere l'host dall'header Host, che il
+        // client scrive. TrustHosts è la prima difesa, questa la seconda.
         if (app()->isProduction()) {
             URL::forceScheme('https');
+
+            $radice = HostFidati::radicePubblica((string) config('app.url'));
+
+            if ($radice !== null) {
+                URL::forceRootUrl($radice);
+            }
         }
 
         // Rate limiters

@@ -41,7 +41,7 @@ class PaymentWebhookStockTest extends TestCase
                 'purchase_units' => [
                     [
                         'custom_id' => (string) $orderId,
-                        'payments' => ['captures' => [['id' => 'CAPTURE-1']]],
+                        'payments' => ['captures' => [['id' => 'CAPTURE-1', 'status' => 'COMPLETED']]],
                     ],
                 ],
             ]),

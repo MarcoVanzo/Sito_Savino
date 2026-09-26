@@ -3,18 +3,40 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-        <meta name="description" content="{{ __('site.default_description') }}">
+        {{-- Description e og: portano l'attributo `inertia` con una chiave: al
+             primo render il gestore del <Head> di Inertia li toglie e al loro
+             posto restano quelli della pagina. Senza, nel DOM ce n'erano due
+             di ciascuno (questi generici e quelli della pagina) e Google
+             poteva prendere il primo. Ai crawler dei social risponde
+             ServeSocialCrawlerMeta (CLAUDE.md §19), non questo layout. --}}
+        <meta name="description" content="{{ __('site.default_description') }}" inertia="description">
         <link rel="canonical" href="{{ url()->current() }}">
         @php
             $cspNonce = \Illuminate\Support\Facades\Vite::cspNonce();
             $currentLocale = app()->getLocale();
-            $currentPath = request()->getPathInfo();
-            $itUrl = $currentLocale === 'it' ? url()->current() : url(preg_replace('#^/en(/|$)#', '/', $currentPath));
-            $enUrl = $currentLocale === 'en' ? url()->current() : url('/en' . $currentPath);
+            // Gli alternati si calcolano dal nome della rotta: gli slug sono
+            // tradotti (/contatti, /en/contacts) e aggiungere o togliere `/en`
+            // al percorso dichiarava indirizzi 404. Una lingua in cui la
+            // pagina non esiste non si dichiara.
+            $alternati = [];
+            foreach (\App\Support\IndirizziPerLingua::lingue() as $lingua) {
+                $indirizzo = $lingua === $currentLocale
+                    ? url()->current()
+                    : \App\Support\IndirizziPerLingua::perRichiesta(request(), $lingua, false);
+                if ($indirizzo !== null) {
+                    $alternati[$lingua] = $indirizzo;
+                }
+            }
+            $predefinita = \App\Support\IndirizziPerLingua::linguaPredefinita();
         @endphp
-        <link rel="alternate" hreflang="it" href="{{ $itUrl }}">
-        <link rel="alternate" hreflang="en" href="{{ $enUrl }}">
-        <link rel="alternate" hreflang="x-default" href="{{ $itUrl }}">
+        @if (count($alternati) > 1)
+            @foreach ($alternati as $lingua => $indirizzo)
+        <link rel="alternate" hreflang="{{ $lingua }}" href="{{ $indirizzo }}">
+            @endforeach
+            @isset($alternati[$predefinita])
+        <link rel="alternate" hreflang="x-default" href="{{ $alternati[$predefinita] }}">
+            @endisset
+        @endif
 
         {{-- Feed RSS delle notizie: è così che un lettore automatico lo trova
              senza che gli si dia l'indirizzo. --}}
@@ -23,13 +45,15 @@
               href="{{ \App\Services\NewsFeedBuilder::indirizzo($currentLocale) }}">
 
         <!-- Open Graph -->
-        <meta property="og:type" content="website">
+        <meta property="og:type" content="website" inertia="og:type">
         <meta property="og:site_name" content="Savino Del Bene Volley">
         <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'it_IT' }}">
-        <meta property="og:title" content="{{ config('app.name', 'Savino Del Bene Volley') }}">
-        <meta property="og:url" content="{{ config('app.url') }}">
-        <meta property="og:image" content="{{ config('app.url') }}/images/logo.png">
-        <meta property="og:description" content="{{ __('site.default_og_description') }}">
+        <meta property="og:title" content="{{ config('app.name', 'Savino Del Bene Volley') }}" inertia="og:title">
+        {{-- L'indirizzo della pagina, non APP_URL: ogni pagina senza un suo
+             og:url dichiarava di essere la home. --}}
+        <meta property="og:url" content="{{ url()->current() }}" inertia="og:url">
+        <meta property="og:image" content="{{ config('app.url') }}/images/logo.png" inertia="og:image">
+        <meta property="og:description" content="{{ __('site.default_og_description') }}" inertia="og:description">
 
         <!-- Twitter Card -->
         <meta name="twitter:card" content="summary_large_image">

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
 import { useTranslations } from '@/Composables/useTranslations.js';
 
 const $t = useTranslations();
@@ -88,15 +89,19 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
-                <iframe
-                    :src="stream.embedUrl"
-                    class="absolute inset-0 w-full h-full border-0"
-                    :title="stream?.title || $t('stream.modal_title')"
-                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    allowfullscreen
-                    referrerpolicy="strict-origin-when-cross-origin"
-                ></iframe>
-        </div>
+                <!-- La finestra si apre dal pulsante "Guarda la diretta": l'avvio
+                     automatico è chiesto dal visitatore. Il riquadro, invece,
+                     aspetta comunque il consenso di marketing o il clic. -->
+                <div class="absolute inset-0">
+                    <ContenutoIncorporato
+                        :src="stream.embedUrl"
+                        :titolo="stream?.title || $t('stream.modal_title')"
+                        :link-diretto="stream?.url"
+                        avvio-automatico
+                        allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    />
+                </div>
+            </div>
         </div>
     </dialog>
 </template>

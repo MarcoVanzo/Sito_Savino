@@ -38,6 +38,7 @@ class ProfileTest extends TestCase
             ->patch('/profile', [
                 'name' => 'Test User',
                 'email' => 'test@example.com',
+                'current_password' => 'password',
             ]);
 
         $response
@@ -49,6 +50,39 @@ class ProfileTest extends TestCase
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
+    }
+
+    /**
+     * Cambiare l'email è il primo passo per prendersi un account (poi basta
+     * il reset della password): con una sessione lasciata aperta non deve
+     * bastare, serve la password attuale.
+     */
+    public function test_per_cambiare_l_email_serve_la_password_attuale(): void
+    {
+        $user = User::factory()->create(['email' => 'mia@example.com']);
+
+        $this->actingAs($user)
+            ->from('/profile')
+            ->patch('/profile', ['name' => 'Test User', 'email' => 'altrui@example.com'])
+            ->assertSessionHasErrors('current_password');
+
+        $this->actingAs($user)
+            ->from('/profile')
+            ->patch('/profile', ['name' => 'Test User', 'email' => 'altrui@example.com', 'current_password' => 'sbagliata'])
+            ->assertSessionHasErrors('current_password');
+
+        $this->assertSame('mia@example.com', $user->refresh()->email);
+    }
+
+    public function test_per_cambiare_solo_il_nome_la_password_non_serve(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch('/profile', ['name' => 'Nome Nuovo', 'email' => $user->email])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Nome Nuovo', $user->refresh()->name);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void

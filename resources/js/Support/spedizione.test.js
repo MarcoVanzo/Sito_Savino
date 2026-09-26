@@ -86,4 +86,14 @@ describe('costoDiSpedizione', () => {
 
         expect(costoDiSpedizione(zona, { subtotale: 5000, peso: 1 })).toBe(29.9)
     })
+
+    it('una soglia a zero vale "nessuna soglia", come nel model', () => {
+        // Dal cast decimale di Laravel arriva '0.00': per PHP e' una stringa
+        // vera, e ShippingZone regalava la spedizione a ogni ordine.
+        for (const soglia of ['0.00', 0, '0', '']) {
+            const zona = { flat_rate: '7.90', free_threshold: soglia, weight_rates: [] }
+
+            expect(costoDiSpedizione(zona, { subtotale: 25, peso: 1 })).toBe(7.9)
+        }
+    })
 })
