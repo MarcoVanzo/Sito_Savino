@@ -84,6 +84,28 @@ Finché resta `false`, quel toggle nel banner non governa nulla.
 ### ActiveCampaign
 
 Già configurato per le iscrizioni (`ACTIVECAMPAIGN_URL`, `_API_KEY`, `_LIST_ID`).
+
+**La lista è la 1, Master Contact List** (dal 26/09/2026): è quella a cui
+partono campagne e automazioni. Prima il sito iscriveva alla 2 («Utenti
+sito») e chi si iscriveva dal sito non riceveva le newsletter.
+
+Iscrivendosi alla Master partono due automazioni di ActiveCampaign, costruite
+per chi arriva dai moduli di ActiveCampaign:
+
+- «Double opt-in» manda l'email «Conferma la tua iscrizione», a meno che il
+  contatto abbia i tag Vivaticket, Utenti App o **Confermato opt-in**;
+- «Welcome Series» aspetta il clic (tracciato) su quella conferma e,
+  senza il tag «Confermato opt-in», disiscrive da tutte le liste.
+
+Il doppio opt-in il sito l'ha già fatto, quindi `SyncNewsletterToActiveCampaign`
+mette il tag «Confermato opt-in» (`ACTIVECAMPAIGN_TAG_CONFERMATO`) **prima**
+dell'iscrizione alla lista: niente seconda conferma. Nella Welcome Series gli
+iscritti dal sito restano fermi nell'attesa del clic (niente benvenuto, niente
+disiscrizione): aggiungere un «oppure tag» a quell'attesa varrebbe anche per i
+circa 4.000 contatti già in attesa e manderebbe il benvenuto a tutti quelli che
+hanno il tag. Se serve il benvenuto per il sito, va costruito un ramo prima
+dell'attesa. Per lo stesso motivo il tracciamento dei clic nelle email delle
+automazioni non si spegne.
 La pagina Newsletter riusa le stesse credenziali in sola lettura.
 
 ---
