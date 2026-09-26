@@ -13,6 +13,7 @@ import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useAuctionCheckout } from '@/Composables/useAuctionCheckout.js';
 import { costoDiSpedizione } from '@/Support/spedizione.js';
+import { metodoPredefinito } from '@/Support/metodiDiPagamento.js';
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -31,6 +32,9 @@ const props = defineProps({
     checkoutDeadline: { type: String, default: null },
     winningBid: { type: [Number, String], default: 0 },
     token: { type: String, default: null },
+    // Solo i metodi con le credenziali e attivi dal pannello
+    // (PaymentGateway::offertiAlleAste): Stripe e/o PayPal.
+    paymentGateways: { type: Array, default: () => [] },
 });
 
 const { checkoutToken, localized, auctionImage } = useAuctionCheckout(props);
@@ -60,6 +64,7 @@ const form = useForm({
     billing_zip_code: '',
     billing_province: '',
     notes: '',
+    payment_gateway: metodoPredefinito(props.paymentGateways),
     privacy_accepted: false,
 });
 
@@ -117,13 +122,16 @@ const campiObbligatori = () => {
 
 const validaIlModulo = () => {
     const campi = campiObbligatori();
-    form.clearErrors(...campi, 'privacy_accepted');
+    form.clearErrors(...campi, 'payment_gateway', 'privacy_accepted');
     const mancanti = campi.filter((campo) => !form[campo]?.toString().trim());
     mancanti.forEach((campo) => form.setError(campo, $t('shop_checkout.field_required')));
+    if (!form.payment_gateway) {
+        form.setError('payment_gateway', $t('shop_checkout.payment_required'));
+    }
     if (!form.privacy_accepted) {
         form.setError('privacy_accepted', $t('shop_checkout.terms_required'));
     }
-    return mancanti.length === 0 && form.privacy_accepted;
+    return mancanti.length === 0 && !!form.payment_gateway && form.privacy_accepted;
 };
 
 // Gli errori che il server non lega a un campo del modulo (`general` e simili)
@@ -131,7 +139,7 @@ const validaIlModulo = () => {
 const campiDelModulo = ['phone', 'shipping_first_name', 'shipping_last_name', 'shipping_street',
     'shipping_city', 'shipping_zip_code', 'shipping_province', 'country', 'codice_fiscale',
     'billing_first_name', 'billing_last_name', 'billing_street', 'billing_city', 'billing_zip_code',
-    'billing_province', 'notes', 'privacy_accepted'];
+    'billing_province', 'notes', 'payment_gateway', 'privacy_accepted'];
 const riquadroErrori = ref(null);
 const erroriGenerali = computed(() => Object.entries(form.errors)
     .filter(([campo]) => !campiDelModulo.includes(campo))
@@ -421,6 +429,31 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                             <p v-if="form.errors.notes" id="errore-notes" class="mt-1 text-sm text-red-700">{{ form.errors.notes }}</p>
                         </div>
 
+                        <!-- Metodo di pagamento -->
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                            <fieldset class="space-y-3" :aria-describedby="form.errors.payment_gateway ? 'errore-payment_gateway' : undefined">
+                                <legend class="text-xl font-black text-gray-900 uppercase tracking-tight mb-6">{{ $t('shop_checkout.payment_title') }}</legend>
+                                <label
+                                    v-for="gateway in paymentGateways"
+                                    :key="gateway.value"
+                                    class="flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200"
+                                    :class="form.payment_gateway === gateway.value ? 'border-savino-blue bg-savino-blue/5' : 'border-gray-200 hover:border-gray-300'"
+                                >
+                                    <input
+                                        v-model="form.payment_gateway"
+                                        type="radio"
+                                        name="payment_gateway"
+                                        :value="gateway.value"
+                                        :aria-invalid="!!form.errors.payment_gateway"
+                                        class="w-5 h-5 text-savino-blue border-gray-300 focus:ring-savino-blue/20"
+                                    />
+                                    <span class="flex-1 font-bold text-gray-900">{{ gateway.label }}</span>
+                                </label>
+                            </fieldset>
+                            <p v-if="!paymentGateways.length" class="text-gray-500 text-sm text-center py-4">{{ $t('shop_checkout.no_gateways') }}</p>
+                            <p v-if="form.errors.payment_gateway" id="errore-payment_gateway" class="mt-2 text-sm text-red-700">{{ form.errors.payment_gateway }}</p>
+                        </div>
+
                         <!-- Condizioni di vendita, recesso e privacy -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <AccettazioneCondizioni v-model="form.privacy_accepted" :errore="form.errors.privacy_accepted" />
@@ -490,7 +523,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                             />
 
                             <p class="text-xs text-gray-400 text-center mt-4">
-                                {{ $t('auction_checkout.stripe_note') }}
+                                {{ $t('auction_checkout.gateway_note') }}
                             </p>
                         </div>
                     </div>

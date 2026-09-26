@@ -191,8 +191,21 @@ class Order extends Model
         return route('shop.checkout.success', ['orderToken' => $this->order_token]);
     }
 
+    /**
+     * L'ordine di un'asta torna alla pagina dell'asta: il "riprova" dello
+     * shop riaprirebbe il pagamento senza guardare il termine entro cui il
+     * vincitore deve pagare, quello dell'asta passa di nuovo dal checkout che
+     * lo controlla. La conferma resta invece quella dello shop, dove si
+     * incassa il ritorno da PayPal.
+     */
     public function cancelUrl(): string
     {
+        $tokenDellAsta = $this->auction_id !== null ? $this->auction?->winner_checkout_token : null;
+
+        if (filled($tokenDellAsta)) {
+            return route('shop.auction-checkout.cancel', ['token' => $tokenDellAsta]);
+        }
+
         return route('shop.checkout.cancel', ['orderToken' => $this->order_token]);
     }
 
