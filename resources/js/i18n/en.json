@@ -632,6 +632,7 @@
         "personalization_included": "included",
         "personalization_no_withdrawal": "A personalised item cannot be returned under the right of withdrawal (Art. 59 of the Italian Consumer Code).",
         "personalization_excluded_short": "Personalised: not covered by withdrawal",
+        "item_condition": "Item condition",
         "badge_new": "New",
         "all_categories": "All categories",
         "product_singular": "product",

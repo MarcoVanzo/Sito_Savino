@@ -79,9 +79,19 @@ lo stesso slug scritta dalla redazione vince sempre.
    dato pacifico — da far confermare a chi segue gli aspetti legali.
 3. **Casella per il recesso (deciso il 26/09/2026).** Resta
    `info@savinodelbenevolley.it` (e la PEC).
-4. **Garanzia sulle maglie da gara e sugli autografati.** Il testo li vende
-   «nello stato descritto nella scheda»: la scheda deve quindi descrivere lo
-   stato (usata, segni di gara) perché la clausola regga.
+4. **Garanzia sulle maglie da gara e sugli autografati (risolto il
+   26/09/2026).** Il testo li vende «nello stato descritto nella scheda alla
+   voce "Stato dell'articolo"». Il catalogo non permette di riconoscerli
+   (stanno in Asta, Outlet, Home, Away e Accessori, e "Maglia gara" è anche
+   il nome delle repliche nuove): la redazione accende sul prodotto
+   «Articolo indossato o autografato» (`products.usato_o_autografato`) e da
+   lì lo «Stato dell'articolo» (`products.stato_articolo`, tradotto) è
+   obbligatorio in italiano. Lo stato compare accanto al prezzo nella scheda
+   e nella pagina dell'asta (`StatoArticolo.vue`), e `Order::registraArticolo`
+   lo fotografa per lingua su `order_items.stato_articolo`: dettaglio ordine
+   del cliente, email di conferma, ricevuta PDF e pannello ordini leggono la
+   fotografia, non la scheda di oggi. I prodotti già in catalogo vanno
+   marcati e descritti a mano.
 5. **Dati societari (risolto il 25/09/2026).** Dalla visura del 07/08/2025:
    REA FI-624279, Registro Imprese di Firenze con il numero del codice
    fiscale, capitale € 150.000,00 versato. Stanno nelle impostazioni del

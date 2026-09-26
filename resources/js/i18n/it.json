@@ -632,6 +632,7 @@
         "personalization_included": "incluso",
         "personalization_no_withdrawal": "Un articolo personalizzato non si può restituire per recesso (art. 59 del Codice del consumo).",
         "personalization_excluded_short": "Personalizzato: escluso dal recesso",
+        "item_condition": "Stato dell'articolo",
         "badge_new": "Nuovo",
         "all_categories": "Tutte le categorie",
         "product_singular": "prodotto",

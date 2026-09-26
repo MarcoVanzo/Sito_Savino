@@ -70,6 +70,10 @@
                         {{-- Art. 59 c. 1 lett. c: l'articolo personalizzato esce dal recesso. --}}
                         <br><span style="font-size: 12px; color: #666666;">{{ __('emails.contratto.personalizzato_escluso') }}</span>
                     @endif
+                    @if($item->testo_stato_articolo)
+                        {{-- Lo stato dichiarato nella scheda al momento dell'acquisto: e' quello a cui rimandano le condizioni di vendita. --}}
+                        <br><span style="font-size: 12px; color: #444444;"><strong style="color: #003063;">{{ __('emails.confirmation.item_condition') }}:</strong> {!! nl2br(e($item->testo_stato_articolo)) !!}</span>
+                    @endif
                 </td>
                 <td align="center" style="padding: 12px 8px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">{{ $item->quantity }}</td>
                 <td align="right" style="padding: 12px 8px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">€{{ number_format($item->price_at_time_of_purchase, 2, ',', '.') }}</td>

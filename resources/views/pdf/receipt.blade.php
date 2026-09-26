@@ -85,7 +85,7 @@
         .section-label {
             font-size: 10px;
             font-weight: 700;
-            color: #888888;
+            color: #595959;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
@@ -141,7 +141,7 @@
 
         .item-variant {
             font-size: 10px;
-            color: #888888;
+            color: #595959;
             margin-top: 2px;
         }
 
@@ -179,7 +179,7 @@
 
         .totals-table .discount .label,
         .totals-table .discount .value {
-            color: #F8269C;
+            color: #D00778;
         }
 
         .totals-table .grand-total td {
@@ -210,7 +210,7 @@
         .vat-note {
             text-align: center;
             font-size: 10px;
-            color: #888888;
+            color: #595959;
             margin-bottom: 20px;
             font-style: italic;
         }
@@ -223,13 +223,13 @@
 
         .footer-text {
             font-size: 10px;
-            color: #888888;
+            color: #595959;
             line-height: 1.6;
         }
 
         .footer-disclaimer {
             font-size: 9px;
-            color: #aaaaaa;
+            color: #6b7280;
             margin-top: 8px;
             font-style: italic;
         }
@@ -326,6 +326,9 @@
                         @endif
                         @if($item->nome_personalizzazione)
                             <div class="item-variant">+ {{ $item->nome_personalizzazione }}</div>
+                        @endif
+                        @if($item->testo_stato_articolo)
+                            <div class="item-variant">{{ __('emails.confirmation.item_condition') }}: {!! nl2br(e($item->testo_stato_articolo)) !!}</div>
                         @endif
                     </td>
                     <td>{{ $item->quantity }}</td>

@@ -85,7 +85,7 @@ return [
 
             <h3>7. Garanzia legale di conformità</h3>
             <p>Tutti i prodotti sono coperti dalla garanzia legale di conformità prevista dagli articoli 128 e seguenti del Codice del consumo: rispondiamo dei difetti di conformità che si manifestano entro <strong>due anni dalla consegna</strong>. Se il prodotto è difettoso hai diritto, senza spese, al ripristino della conformità con la riparazione o la sostituzione, oppure, se queste non sono possibili, a una riduzione del prezzo o alla risoluzione del contratto. Per farla valere scrivi a <a href="mailto:{$email}">{$email}</a> indicando il numero d'ordine e descrivendo il difetto, se possibile con una fotografia. Le informazioni ufficiali dell'Unione europea sui tuoi diritti di garanzia sono su <a href="https://europa.eu/youreurope/garanzie">europa.eu/youreurope/garanzie</a>.</p>
-            <p>La garanzia non copre l'usura normale né i danni dovuti a un uso o a un lavaggio diversi da quelli indicati in etichetta. I prodotti autografati e le maglie da gara sono venduti nello stato descritto nella scheda.</p>
+            <p>La garanzia non copre l'usura normale né i danni dovuti a un uso o a un lavaggio diversi da quelli indicati in etichetta. I prodotti autografati e le maglie da gara sono venduti nello stato descritto nella scheda alla voce «Stato dell'articolo», riportato anche nella conferma d'ordine.</p>
 
             <h3>8. Assistenza e reclami</h3>
             <p>Per qualsiasi domanda o reclamo scrivi a <a href="mailto:{$email}">{$email}</a> o alla PEC <a href="mailto:{$pec}">{$pec}</a>: rispondiamo entro 10 giorni lavorativi.</p>
@@ -127,7 +127,7 @@ return [
 
             <h3>7. Legal guarantee of conformity</h3>
             <p>All products are covered by the legal guarantee of conformity under articles 128 et seq. of the Italian Consumer Code: we are liable for any lack of conformity that becomes apparent within <strong>two years of delivery</strong>. If the product is defective you are entitled, free of charge, to have it brought into conformity by repair or replacement or, where that is not possible, to a price reduction or to terminate the contract. To make a claim write to <a href="mailto:{$email}">{$email}</a> with your order number and a description of the defect, with a photo if possible. Official European Union information on your guarantee rights is at <a href="https://europa.eu/youreurope/guarantees">europa.eu/youreurope/guarantees</a>.</p>
-            <p>The guarantee does not cover normal wear and tear or damage caused by use or washing other than as shown on the label. Signed products and match shirts are sold in the condition described on the product page.</p>
+            <p>The guarantee does not cover normal wear and tear or damage caused by use or washing other than as shown on the label. Signed products and match shirts are sold in the condition described under “Item condition” on the product page, which is also shown in the order confirmation.</p>
 
             <h3>8. Customer service and complaints</h3>
             <p>For any question or complaint write to <a href="mailto:{$email}">{$email}</a> or to the certified email <a href="mailto:{$pec}">{$pec}</a>: we reply within 10 working days.</p>

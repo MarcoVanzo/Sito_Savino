@@ -26,7 +26,7 @@ class OrderItem extends Model
 
     protected $fillable = [
         'order_id', 'product_id', 'product_variant_id', 'quantity', 'price_at_time_of_purchase',
-        'personalizzazione', 'supplemento_personalizzazione',
+        'personalizzazione', 'supplemento_personalizzazione', 'stato_articolo',
     ];
 
     /**
@@ -35,14 +35,19 @@ class OrderItem extends Model
      * redazione puo' rinominarla o toglierla dal prodotto, l'ordine deve
      * continuare a dire cosa e' stato pagato. Nulla = riga senza aggiunta.
      * Il supplemento e' gia' dentro `price_at_time_of_purchase`.
+     *
+     * `stato_articolo` e' lo stato dichiarato nella scheda di un articolo
+     * indossato o autografato, fotografato per lingua allo stesso modo: e' la
+     * descrizione a cui rimandano le condizioni di vendita.
      */
     protected $casts = [
         'price_at_time_of_purchase' => 'decimal:2',
         'personalizzazione' => 'array',
         'supplemento_personalizzazione' => 'decimal:2',
+        'stato_articolo' => 'array',
     ];
 
-    protected $appends = ['nome_personalizzazione'];
+    protected $appends = ['nome_personalizzazione', 'testo_stato_articolo'];
 
     /**
      * Il nome della personalizzazione nella lingua corrente, per il
@@ -61,18 +66,46 @@ class OrderItem extends Model
      */
     public function personalizzazioneIn(?string $locale = null): ?string
     {
-        if (! is_array($this->personalizzazione)) {
+        return self::testoInLingua($this->personalizzazione, $locale);
+    }
+
+    /**
+     * Lo stato dell'articolo al momento dell'acquisto, nella lingua corrente,
+     * per il frontend (pagina dell'ordine).
+     *
+     * @return Attribute<string|null, never>
+     */
+    protected function testoStatoArticolo(): Attribute
+    {
+        return Attribute::make(get: fn (): ?string => $this->statoArticoloIn());
+    }
+
+    /**
+     * Lo stato dell'articolo al momento dell'acquisto nella lingua richiesta,
+     * con ripiego sull'italiano.
+     */
+    public function statoArticoloIn(?string $locale = null): ?string
+    {
+        return self::testoInLingua($this->stato_articolo, $locale);
+    }
+
+    /**
+     * @param  mixed  $perLingua  {"it": "…", "en": "…"} o null
+     */
+    private static function testoInLingua(mixed $perLingua, ?string $locale): ?string
+    {
+        if (! is_array($perLingua)) {
             return null;
         }
 
         $locale ??= app()->getLocale();
-        $nome = $this->personalizzazione[$locale] ?? null;
+        $testo = $perLingua[$locale] ?? null;
 
-        if (! is_string($nome) || trim($nome) === '') {
-            $nome = $this->personalizzazione[config('app.fallback_locale')] ?? null;
+        if (! is_string($testo) || trim($testo) === '') {
+            $testo = $perLingua[config('app.fallback_locale')] ?? null;
         }
 
-        return is_string($nome) && trim($nome) !== '' ? $nome : null;
+        return is_string($testo) && trim($testo) !== '' ? $testo : null;
     }
 
     public function order(): BelongsTo
