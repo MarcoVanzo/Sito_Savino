@@ -10,7 +10,8 @@
  * questo file e il model, e i test li confrontano.
  *
  * Le regole, nell'ordine: la soglia della spedizione gratuita viene prima di
- * tutto, è una promessa fatta nel carrello e vale qualunque sia il collo; poi
+ * tutto, è una promessa fatta nel carrello e vale qualunque sia il collo (zero
+ * o vuota vale "nessuna soglia", in entrambe le copie); poi
  * la prima fascia che contiene il peso, prese in ordine di peso crescente
  * (l'ultima può non avere limite e prende tutto il resto); senza fasce, o se
  * nessuna copre il peso, la tariffa base.

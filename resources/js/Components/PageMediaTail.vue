@@ -10,6 +10,7 @@
  * (App\Support\LiveStream): `embedUrl` è valorizzato solo per le piattaforme
  * che si possono incorporare, per le altre resta il link e si apre altrove.
  */
+import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { computed, nextTick, ref } from 'vue';
 
@@ -71,13 +72,12 @@ function closeImage() {
                 </h3>
 
                 <div v-if="videoEmbedUrl" class="aspect-video overflow-hidden rounded-2xl bg-savino-blue shadow-lg">
-                    <iframe
+                    <!-- Si carica solo col consenso di marketing o al clic. -->
+                    <ContenutoIncorporato
                         :src="videoEmbedUrl"
-                        :title="$t('content_page.video_title')"
-                        class="w-full h-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen
-                    ></iframe>
+                        :titolo="$t('content_page.video_title')"
+                        :link-diretto="videoUrl"
+                    />
                 </div>
 
                 <!-- Piattaforma non incorporabile: si apre dove sta di casa. -->

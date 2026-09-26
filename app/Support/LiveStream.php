@@ -84,8 +84,13 @@ class LiveStream
     {
         $id = trim(explode('?', $id)[0], '/');
 
+        // `youtube-nocookie.com` e niente `autoplay`: il riquadro si carica
+        // solo col consenso di marketing o dopo un clic sul segnaposto
+        // (ContenutoIncorporato.vue), ed è il clic ad aggiungere l'avvio
+        // automatico. Con `?autoplay=1` fisso un video che si apriva da solo
+        // col consenso già dato partiva senza che nessuno l'avesse chiesto.
         return preg_match('/^[A-Za-z0-9_-]{6,}$/', $id) === 1
-            ? 'https://www.youtube.com/embed/'.$id.'?autoplay=1'
+            ? 'https://www.youtube-nocookie.com/embed/'.$id
             : null;
     }
 

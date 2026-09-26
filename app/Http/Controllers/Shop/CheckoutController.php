@@ -167,7 +167,7 @@ class CheckoutController extends Controller
     /**
      * Pagina di conferma ordine.
      */
-    public function success(Request $request, string $orderToken): Response
+    public function success(Request $request, string $orderToken): Response|RedirectResponse
     {
         $order = Order::where('order_token', $orderToken)
             ->with(['items.product', 'user'])
@@ -180,6 +180,13 @@ class CheckoutController extends Controller
 
         if ($this->incassaAlRitornoDaPayPal($request, $order)) {
             $order->refresh()->load(['items.product', 'user']);
+        }
+
+        // Un ordine annullato senza incasso (checkout abbandonato oltre il
+        // termine, cattura rifiutata) non si presenta come "grazie per
+        // l'acquisto": chi torna dal gateway trova l'esito dell'annullamento.
+        if ($order->status === OrderStatus::Cancelled && $order->payment_id === null) {
+            return redirect()->to($order->cancelUrl());
         }
 
         return Inertia::render('Public/Shop/CheckoutSuccess', [

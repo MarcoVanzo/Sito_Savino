@@ -7,6 +7,7 @@ use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Support\IndirizziPerLingua;
 use App\Support\SentryDsn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -73,17 +74,18 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Indirizzo della stessa pagina nell'altra lingua, per il selettore.
+     *
+     * Dal nome della rotta, non dal percorso: `/contatti` diventava
+     * `/en/contatti`, che non esiste (è `/en/contacts`). Se nell'altra lingua
+     * la pagina non c'è, il selettore porta alla sua home invece che a un 404.
      */
     private function alternateUrl(Request $request): string
     {
-        $path = $request->getPathInfo();
-        $query = $request->getQueryString() ? '?'.$request->getQueryString() : '';
+        $corrente = app()->getLocale();
+        $altra = collect(IndirizziPerLingua::lingue())->first(fn (string $lingua) => $lingua !== $corrente)
+            ?? IndirizziPerLingua::linguaPredefinita();
 
-        if (app()->getLocale() === 'it') {
-            return url(($path === '/' ? '/en' : '/en'.$path).$query);
-        }
-
-        return url(preg_replace('#^/en(/|$)#', '/', $path).$query);
+        return IndirizziPerLingua::perRichiesta($request, $altra) ?? IndirizziPerLingua::home($altra);
     }
 
     /**

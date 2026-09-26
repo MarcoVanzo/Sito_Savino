@@ -47,7 +47,7 @@ class StreamingGaraTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('games.0.streamUrl', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
-                ->where('games.0.streamEmbedUrl', 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1')
+                ->where('games.0.streamEmbedUrl', 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ')
             );
     }
 

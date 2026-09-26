@@ -41,7 +41,10 @@ class NewsletterController extends Controller
                     SyncNewsletterToActiveCampaign::dispatch($existing);
                 }
 
-                return back()->with('newsletter_info', __('messages.newsletter.already_subscribed'));
+                // Stessa risposta di un indirizzo nuovo: un messaggio "già
+                // iscritto" dice a chiunque scriva un'email altrui se quella
+                // persona riceve la newsletter.
+                return back()->with('success', __('messages.newsletter.confirm_sent'));
             }
 
             // Disiscritto, o mai confermato: si riparte dalla richiesta, e la
@@ -78,7 +81,7 @@ class NewsletterController extends Controller
             ]);
         } catch (UniqueConstraintViolationException) {
             // Race condition: un'altra request ha inserito la stessa email tra il WHERE e il CREATE
-            return back()->with('newsletter_info', __('messages.newsletter.already_subscribed'));
+            return back()->with('success', __('messages.newsletter.confirm_sent'));
         }
 
         Log::channel('daily')->info('Nuova richiesta di iscrizione newsletter', [

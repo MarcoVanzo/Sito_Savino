@@ -25,7 +25,7 @@ class VerificaIlLancioTest extends TestCase
             'app.env' => 'production',
             'app.debug' => false,
             'app.url' => 'https://savinodelbenevolley.it',
-            'services.preview_auth.enabled' => false,
+            'services.preview.enabled' => false,
             'mail.default' => 'resend',
             'mail.from.address' => 'noreply@savinodelbenevolley.it',
             'services.paypal.client_id' => 'id',
@@ -120,7 +120,7 @@ class VerificaIlLancioTest extends TestCase
     public function blocca_il_sito_lasciato_dietro_la_password(): void
     {
         $this->tuttoAPosto();
-        config(['services.preview_auth.enabled' => true]);
+        config(['services.preview.enabled' => true]);
 
         $this->artisan('verifica:lancio')->assertFailed();
     }

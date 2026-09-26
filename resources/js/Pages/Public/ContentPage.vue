@@ -7,6 +7,7 @@ import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSafeUrl } from '@/Composables/useSafeUrl';
 import PageMediaTail from '@/Components/PageMediaTail.vue';
+import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
 import DichiarazioneCookie from '@/Components/DichiarazioneCookie.vue';
 import TabellaSpedizioni from '@/Components/Shop/TabellaSpedizioni.vue';
 
@@ -75,18 +76,10 @@ const ogMeta = useOgMeta({
     description: props.page?.meta_description || $t('content_page.og_description'),
 });
 
-const getEmbedUrl = (url) => {
-    if (!url) return '';
-    let videoId;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    if (match && match[2].length === 11) {
-        videoId = match[2];
-    } else {
-        videoId = url;
-    }
-    return `https://www.youtube.com/embed/${videoId}`;
-};
+// L'indirizzo del riquadro arriva già pronto dal server (`embed_url`, da
+// App\Support\LiveStream in Page::datiPerIlFrontend): qui c'era un parser
+// proprio che prendeva per id di YouTube qualunque testo e incorporava da
+// `www.youtube.com`, con i cookie di marketing e prima del consenso.
 </script>
 
 <template>
@@ -300,14 +293,20 @@ const getEmbedUrl = (url) => {
                             class="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
                         >
                             <div class="relative w-full aspect-video bg-black">
-                                <iframe 
-                                    v-if="vid.youtube_url"
-                                    :src="getEmbedUrl(vid.youtube_url)" 
-                                    title="YouTube video player"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                    allowfullscreen
-                                    class="absolute top-0 left-0 w-full h-full border-0"
-                                ></iframe>
+                                <ContenutoIncorporato
+                                    v-if="vid.embed_url"
+                                    :src="vid.embed_url"
+                                    :titolo="vid.title || $t('content_page.videos_title')"
+                                    :link-diretto="vid.youtube_url"
+                                    class-iframe="absolute top-0 left-0 w-full h-full border-0"
+                                />
+                                <a
+                                    v-else-if="vid.youtube_url"
+                                    :href="vid.youtube_url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white underline"
+                                >{{ $t('content_page.video_open') }}</a>
                             </div>
 
                             <div class="p-6">

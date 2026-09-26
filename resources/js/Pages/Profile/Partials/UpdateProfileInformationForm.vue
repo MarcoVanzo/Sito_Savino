@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 defineProps({
     mustVerifyEmail: {
@@ -19,7 +20,20 @@ const user = usePage().props.auth.user;
 const form = useForm({
     name: user.name,
     email: user.email,
+    current_password: '',
 });
+
+// Per cambiare l'email il server chiede la password attuale
+// (ProfileUpdateRequest): il campo compare solo quando serve.
+const cambiaEmail = computed(
+    () => form.email.trim().toLowerCase() !== (user.email ?? '').toLowerCase(),
+);
+
+const salva = () => {
+    form.patch(route('profile.update'), {
+        onFinish: () => form.reset('current_password'),
+    });
+};
 </script>
 
 <template>
@@ -35,7 +49,7 @@ const form = useForm({
         </header>
 
         <form
-            @submit.prevent="form.patch(route('profile.update'))"
+            @submit.prevent="salva"
             class="mt-6 space-y-6"
         >
             <div>
@@ -67,6 +81,26 @@ const form = useForm({
                 />
 
                 <InputError class="mt-2" :message="form.errors.email" />
+            </div>
+
+            <div v-if="cambiaEmail">
+                <InputLabel for="current_password_profile" value="Password attuale" />
+
+                <TextInput
+                    id="current_password_profile"
+                    type="password"
+                    class="mt-1 block w-full"
+                    v-model="form.current_password"
+                    required
+                    autocomplete="current-password"
+                    aria-describedby="current_password_profile_aiuto"
+                />
+
+                <p id="current_password_profile_aiuto" class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Per cambiare l'indirizzo email serve la password con cui accedi.
+                </p>
+
+                <InputError class="mt-2" :message="form.errors.current_password" />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">

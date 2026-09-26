@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Enums\OrderStatus;
+use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\Policies\Concerns\AuthorizesByRole;
@@ -11,10 +13,13 @@ use App\Policies\Concerns\AuthorizesByRole;
  * OrderResource: senza policy Filament autorizzerebbe ogni azione a chiunque
  * riesca ad aprire la scheda dell'ordine.
  *
- * Vincolo aggiuntivo: su un ordine GIÀ PAGATO le righe diventano immutabili.
- * Altrimenti un Resp. Shop potrebbe cambiare quantità o prezzo di un ordine
- * incassato, disallineando il totale dall'importo realmente riscosso dal
- * gateway di pagamento (e falsando la contabilità) senza alcun controllo.
+ * Vincolo aggiuntivo: le righe si toccano solo su un ordine ANCORA IN ATTESA
+ * e mai pagato. Su un ordine incassato un Resp. Shop cambiava quantità o
+ * prezzo disallineando il totale dall'importo riscosso dal gateway; su uno
+ * spedito, annullato o rimborsato la riga non corrispondeva piu' alla merce
+ * partita o rientrata. Il solo `paid_at` non bastava: un bonifico annullato o
+ * un ordine segnato spedito a mano non ce l'hanno. Il pannello oggi le
+ * mostra comunque in sola lettura (OrderItemsRelationManager).
  */
 class OrderItemPolicy
 {
@@ -27,12 +32,12 @@ class OrderItemPolicy
 
     public function update(User $user, OrderItem $orderItem): bool
     {
-        return $user->role->canManageShop() && ! $this->orderIsPaid($orderItem);
+        return $user->role->canManageShop() && $this->orderIsStillPending($orderItem);
     }
 
     public function delete(User $user, OrderItem $orderItem): bool
     {
-        return $user->role->canManageShop() && ! $this->orderIsPaid($orderItem);
+        return $user->role->canManageShop() && $this->orderIsStillPending($orderItem);
     }
 
     /**
@@ -47,13 +52,18 @@ class OrderItemPolicy
     }
 
     /**
-     * L'ordine è già stato incassato?
+     * L'ordine è ancora in attesa e senza incasso?
      *
      * In assenza della relazione (record orfano) si considera bloccato:
      * meglio negare che consentire una modifica non verificabile.
      */
-    private function orderIsPaid(OrderItem $orderItem): bool
+    private function orderIsStillPending(OrderItem $orderItem): bool
     {
-        return $orderItem->order?->paid_at !== null;
+        $order = $orderItem->order;
+
+        return $order instanceof Order
+            && $order->status === OrderStatus::Pending
+            && $order->paid_at === null
+            && $order->payment_id === null;
     }
 }

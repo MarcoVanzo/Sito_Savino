@@ -205,12 +205,6 @@ parameters:
 			path: app/Models/Product.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$paid_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Policies/OrderItemPolicy.php
-
-		-
 			message: '#^Parameter \#1 \$num of function number_format expects float, string given\.$#'
 			identifier: argument.type
 			count: 2

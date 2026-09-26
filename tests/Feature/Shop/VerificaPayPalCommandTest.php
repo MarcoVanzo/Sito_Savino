@@ -76,7 +76,12 @@ class VerificaPayPalCommandTest extends TestCase
             '*/v1/notifications/webhooks' => Http::response(['webhooks' => [[
                 'id' => 'WH-1',
                 'url' => route('paypal.webhook'),
-                'event_types' => [['name' => 'CHECKOUT.ORDER.APPROVED'], ['name' => 'PAYMENT.CAPTURE.REFUNDED']],
+                'event_types' => [
+                    ['name' => 'CHECKOUT.ORDER.APPROVED'],
+                    ['name' => 'PAYMENT.CAPTURE.COMPLETED'],
+                    ['name' => 'PAYMENT.CAPTURE.DENIED'],
+                    ['name' => 'PAYMENT.CAPTURE.REFUNDED'],
+                ],
             ]]]),
         ]);
 
@@ -98,6 +103,29 @@ class VerificaPayPalCommandTest extends TestCase
         ]);
 
         $this->artisan('paypal:verifica')->assertFailed();
+    }
+
+    #[Test]
+    public function senza_gli_eventi_delle_catture_in_sospeso_e_un_avviso(): void
+    {
+        // Una cattura PENDING si chiude con COMPLETED o DENIED: senza quei due
+        // eventi l'ordine resta in attesa finche' l'annullamento automatico
+        // non lo chiude. Sono catture rare: si avvisa, ma non e' un guasto che
+        // debba far scattare `shop:sorveglia`.
+        $this->configura();
+
+        Http::fake([
+            '*/v1/oauth2/token' => Http::response(['access_token' => 'tok', 'expires_in' => 3600]),
+            '*/v1/notifications/webhooks' => Http::response(['webhooks' => [[
+                'id' => 'WH-1',
+                'url' => route('paypal.webhook'),
+                'event_types' => [['name' => 'CHECKOUT.ORDER.APPROVED'], ['name' => 'PAYMENT.CAPTURE.REFUNDED']],
+            ]]]),
+        ]);
+
+        $this->artisan('paypal:verifica')
+            ->expectsOutputToContain('Eventi consigliati non sottoscritti')
+            ->assertSuccessful();
     }
 
     #[Test]

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\OrderResource\RelationManagers;
 
-use App\Models\Order;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -49,16 +48,23 @@ class OrderItemsRelationManager extends RelationManager
     }
 
     /**
-     * Riallinea il totale dell'ordine dopo ogni modifica agli articoli:
-     * altrimenti total_price resterebbe quello calcolato al checkout.
+     * Le righe d'ordine sono di sola lettura nel pannello, per ogni stato.
+     *
+     * Aggiungere, cambiare o togliere una riga da qui non passava dal
+     * magazzino: la riga nuova vendeva merce senza scaricarla, quella tolta
+     * lasciava scaricata merce mai venduta, e su un ordine pagato il totale si
+     * staccava dall'importo incassato dal gateway. Far passare le modifiche
+     * da `Order::registraArticolo` e dagli StockMovement su un ordine in
+     * attesa sarebbe possibile, ma quel totale e' anche l'importo della
+     * sessione di pagamento gia' aperta dal cliente (Stripe/PayPal) o del
+     * bonifico che gli e' stato chiesto: cambiarlo a meta' strada crea un
+     * incasso discorde (HandlesPaymentWebhooks::importoDiscorde). Un ordine
+     * sbagliato si annulla (merce e coupon tornano da soli) e se ne fa un
+     * altro. OrderItemPolicy nega comunque la modifica fuori da Pending.
      */
-    protected function recalculateOrderTotal(): void
+    public function isReadOnly(): bool
     {
-        $order = $this->getOwnerRecord();
-
-        if ($order instanceof Order) {
-            $order->recalculateTotal();
-        }
+        return true;
     }
 
     public function table(Table $table): Table
@@ -103,21 +109,9 @@ class OrderItemsRelationManager extends RelationManager
             ->filters([
                 //
             ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->after(fn () => $this->recalculateOrderTotal()),
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make()
-                    ->after(fn () => $this->recalculateOrderTotal()),
-                Tables\Actions\DeleteAction::make()
-                    ->after(fn () => $this->recalculateOrderTotal()),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->after(fn () => $this->recalculateOrderTotal()),
-                ]),
-            ]);
+            // Nessuna azione: vedi isReadOnly().
+            ->headerActions([])
+            ->actions([])
+            ->bulkActions([]);
     }
 }

@@ -338,6 +338,36 @@ riconosce l'host e risponde 404 a tutti.
    > `savinodelbenevolley.it` mentre là risponde ancora WordPress. Si aggiunge
    > quando si sposta il DNS, non prima.
 
+   **Nello stesso commit, `TRUSTED_HOSTS` sui tre componenti** (web, worker,
+   scheduler: le variabili non si ereditano fra componenti, `CLAUDE.md` §10, e
+   `VariabiliAllineateFraIComponentiTest` lo pretende):
+
+   ```yaml
+   - key: TRUSTED_HOSTS
+     scope: RUN_TIME
+     value: savinodelbenevolley.it,seashell-app-47mmf.ondigitalocean.app
+   ```
+
+   > **Perché.** `bootstrap/app.php` accetta solo gli Host di
+   > `config('app.trusted_hosts')` (variabile `TRUSTED_HOSTS`, letta in
+   > `config/app.php`) e, se è vuota, solo quello di `APP_URL`
+   > (`App\Support\HostFidati`). Appena `APP_DOMAIN` diventa il dominio,
+   > ogni richiesta con Host `seashell-app-47mmf.ondigitalocean.app` riceve
+   > **400**, e lì restano puntati il **webhook di Resend** (`CLAUDE.md` §24:
+   > senza, ogni rimbalzo e reclamo sparisce) e `vars.URL_SITO` finché non si
+   > crea (§5), cioè la scansione dei cookie e la sorveglianza. Il nome a
+   > dominio copre anche i sottodomini (`www.` compreso); gli IP della rete
+   > interna, da cui arriva la sonda di `/up`, sono ammessi a parte. Scritta
+   > `TRUSTED_HOSTS`, l'host di `APP_URL` **non** viene più aggiunto da solo:
+   > vanno elencati entrambi. Dopo il deploy, dalla macchina di sviluppo:
+   >
+   > ```
+   > curl -s -o /dev/null -w '%{http_code}\n' https://seashell-app-47mmf.ondigitalocean.app/up
+   > curl -s -o /dev/null -w '%{http_code}\n' https://savinodelbenevolley.it/up
+   > ```
+   >
+   > entrambi `200`.
+
 3. **Spostare il DNS** sull'app (record A/CNAME secondo il pannello DO).
 
 4. **Attendere il certificato.** DO lo emette da solo quando il DNS risolve.

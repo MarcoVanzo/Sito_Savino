@@ -70,6 +70,20 @@ Si configura una volta sola:
    ```
    Attenzione: un bucket con regole di lock **non si può svuotare** finché le
    regole ci sono. È esattamente lo scopo, ma va saputo prima.
+   Il lock impedisce di cancellare, **non fa scadere niente**: senza una regola
+   di lifecycle i dump restano su R2 per sempre. Si aggiunge una scadenza che
+   cada *dopo* la fine del lock (prima verrebbe rifiutata dal lock stesso):
+   ```bash
+   npx wrangler r2 bucket lifecycle add sito-savino-backup-offsite \
+     scadenza-db db/ --expire-days 100
+   npx wrangler r2 bucket lifecycle list sito-savino-backup-offsite
+   ```
+   (la sintassi degli argomenti è cambiata fra le versioni di wrangler:
+   `npx wrangler r2 bucket lifecycle add --help` in caso di errore). Per
+   `media/` **nessuna scadenza**, di proposito: è lo specchio dei file di
+   produzione copiato con `--ignore-existing`, e un file scaduto tornerebbe
+   solo al giro della domenica successiva — una settimana di buco su una foto
+   che in produzione c'è ancora.
 3. Crea un token R2 con permesso di scrittura **solo su quel bucket** e aggiungi
    quattro secret al repository: `R2_ACCOUNT_ID`, `R2_BUCKET`,
    `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`.
@@ -166,6 +180,36 @@ Vai su **GitHub → Repository → Settings → Secrets and variables → Action
 | `DO_BACKUP_SPACES_KEY` | Access Key della key `backup-writer` |
 | `DO_BACKUP_SPACES_SECRET` | Secret Key della key `backup-writer` |
 
+#### Utente del dump
+
+Il workflow usa l'utente scritto in `BACKUP_DB_USER`, che secondo questa
+guida è `doadmin` (il valore reale sta solo nel secret): funziona, ma è
+l'amministratore del cluster, e la sua password vive su GitHub. Se si vuole un
+utente dedicato di sola lettura, i privilegi che servono a `mysqldump` 8 con le
+opzioni del workflow (`--single-transaction --routines --triggers --events
+--no-tablespaces --set-gtid-purged=OFF`) sono:
+
+```sql
+CREATE USER 'backup_savino'@'%' IDENTIFIED BY '<password forte>';
+GRANT SELECT, SHOW VIEW, TRIGGER, EVENT ON defaultdb.* TO 'backup_savino'@'%';
+GRANT SHOW_ROUTINE ON *.* TO 'backup_savino'@'%';  -- MySQL >= 8.0.20, per --routines
+```
+
+- `SELECT`: i dati; `SHOW VIEW`: le viste; `TRIGGER`: `--triggers`; `EVENT`:
+  `--events`; `SHOW_ROUTINE`: `--routines` (senza, le procedure degli altri
+  utenti escono vuote o il dump si ferma).
+- **`LOCK TABLES` non serve**: con `--single-transaction` il dump legge da una
+  transazione consistente invece di bloccare le tabelle.
+- **`PROCESS` non serve** grazie a `--no-tablespaces`: da MySQL 8.0.21 senza
+  quell'opzione mysqldump interroga i tablespace e si ferma con *Access denied;
+  you need the PROCESS privilege*. `--no-tablespaces` è nel workflow dal
+  26/09/2026.
+- `RELOAD`/`FLUSH_TABLES` servirebbero solo con `--source-data` o GTID attivi
+  nel dump: il workflow usa `--set-gtid-purged=OFF`.
+
+Il cambio d'utente non è stato fatto: prima di passarci, lanciare il workflow a
+mano con il nuovo utente e far girare `verifica-restore.yml` sul dump prodotto.
+
 #### Secrets per il Backup Media
 
 | Secret | Valore |
@@ -229,7 +273,9 @@ DO Spaces Produzione → rclone copy → DO Spaces Backup
 
 ### Notifiche
 
-In caso di fallimento di un backup, viene creata automaticamente una **GitHub Issue** con label `backup` e `urgente` contenente il link ai log del workflow.
+In caso di fallimento di un backup, viene creata automaticamente una **GitHub Issue** con label `backup` e `urgente` contenente il link ai log del workflow. Vale anche per un job fermato dal tetto di `timeout-minutes`, che GitHub conclude "cancelled" e non "failure": fino al 26/09/2026 `backup-db.yml` guardava solo `failure()` e un dump andato in timeout non avvisava nessuno.
+
+Il sito visto da fuori lo controlla `sorveglianza-sito.yml`, **una volta l'ora**: per un controllo più fitto conviene un monitor esterno gratuito (UptimeRobot, Better Stack) su `/up`, che non consuma minuti di Actions (docs/INFRASTRUCTURE.md §9).
 
 ---
 
@@ -333,6 +379,45 @@ aws --profile do-admin --endpoint-url https://fra1.digitaloceanspaces.com \
 # Output atteso: delete failed: ... An error occurred (AccessDenied)
 ```
 
+### Verifica che il bucket non sia aperto a chi non ha chiavi
+
+Fino al 26/09/2026 la bucket policy aveva anche uno statement `Allow` con
+`Principal: "*"` su `PutObject`, `GetObject` e `ListBucket`: chiunque, senza
+firmare la richiesta, poteva elencare e scaricare i dump cifrati e caricarci
+sopra altro. Ora la policy ha solo il `Deny` delle cancellazioni; l'accesso
+passa dalle chiavi di Spaces. Dopo ogni esecuzione di `setup-backup-space.sh`
+(che lo controlla anche da sé):
+
+```bash
+# Tutti e tre DEVONO rispondere 403
+curl -s -o /dev/null -w '%{http_code}\n' -X PUT --data prova \
+    https://sito-savino-backups.fra1.digitaloceanspaces.com/prova-anonima.txt
+curl -s -o /dev/null -w '%{http_code}\n' \
+    'https://sito-savino-backups.fra1.digitaloceanspaces.com/?list-type=2'
+curl -s -o /dev/null -w '%{http_code}\n' \
+    https://sito-savino-backups.fra1.digitaloceanspaces.com/db/.keep
+```
+
+Un `200` su uno qualsiasi vuol dire che il bucket è aperto: controllare policy
+e ACL dal pannello DO.
+
+### Verifica che la retention scada davvero
+
+I dump hanno nel nome il timestamp e non vengono mai riscritti, quindi non
+diventano mai "versioni precedenti": la vecchia regola
+(`NoncurrentVersionExpiration` da sola) non ne cancellava nessuno e i "90
+giorni" erano per sempre. Dal 26/09/2026 `db/` ha `Expiration: 90 giorni`.
+
+```bash
+aws --profile do-admin --endpoint-url https://fra1.digitaloceanspaces.com \
+    s3api get-bucket-lifecycle-configuration --bucket sito-savino-backups
+```
+
+Dopo il primo giro utile (Spaces applica il lifecycle una volta al giorno)
+nessun oggetto di `db/` deve avere più di 91 giorni. Se ne restano, è il
+`Deny` di `DeleteObject` della policy che blocca anche il lifecycle: su S3
+le scadenze non passano dalla policy, su Spaces non è documentato.
+
 ### Trigger manuale dei workflow
 
 Vai su **GitHub → Actions → Backup Database (o Media) → Run workflow** per eseguire un backup manuale in qualsiasi momento.
@@ -381,4 +466,8 @@ Se hai davvero bisogno di cancellare un file (es. per motivi legali):
 
 ### Voglio cambiare la retention dei backup
 
-Modifica le lifecycle rules nello script `setup-backup-space.sh` (valori `NoncurrentDays`) e riesegui lo script.
+Modifica le lifecycle rules nello script `setup-backup-space.sh` e riesegui lo
+script: `Expiration.Days` per i dump (`db/`) e i manifest dei media, che non
+vengono mai riscritti; `NoncurrentDays` per le versioni sovrascritte dei media.
+Su R2 la scadenza è la regola di lifecycle (vedi "La copia fuori sede") e deve
+restare più lunga del lock.

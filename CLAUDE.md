@@ -1179,11 +1179,15 @@ di pagine e il sito ne ha 1958 (941 notizie, più altrettante in inglese), cioè
   soggetto su CompreFace e le righe di `gallery_image_person` con
   `confidence_score` non nullo. Resta il primo punto aperto di
   `docs/PRIVACY.md`.
-- **Mappa e video incorporati partono prima del consenso** (`Palazzetto.vue`,
-  `LiveStreamModal.vue`, `PageMediaTail.vue`): la Cookie Policy adesso lo dice,
-  ma dirlo non lo rende lecito — il rimedio è il click-to-load. È il difetto
-  che la scansione settimanale può far diventare rosso: è vero, non è un falso
-  positivo.
+- **Mappa e video incorporati aspettano il consenso** (click-to-load, dal
+  26/09/2026): ogni iframe di terzi passa da `ContenutoIncorporato.vue`, che
+  finché `consenso.js` non dice marketing mostra un segnaposto con «Carica il
+  video» e il link alla piattaforma, e si carica da solo appena il banner
+  salva il sì (evento `consenso-cookie:cambiato`). YouTube esce da
+  `LiveStream::embedUrl()` su `youtube-nocookie.com` e senza `autoplay`, che
+  il componente aggiunge solo al clic. **Un `<iframe>` scritto a mano in un
+  componente rompe la promessa dell'informativa**, e la scansione settimanale
+  diventa rossa: è vero, non un falso positivo.
 - **I caratteri tipografici li serve il sito**, non il CDN di Google: i
   `@font-face` stanno in `resources/css/app.css`, i woff2 variabili (Fontsource,
   OFL 1.1, sottoinsiemi latin e latin-ext) in `public/fonts`. Il foglio di

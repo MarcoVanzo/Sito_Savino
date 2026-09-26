@@ -43,9 +43,14 @@
 
                             <p style="color: #666666; font-size: 13px; margin: 0 0 8px; text-align: center; line-height: 1.5;">
                                 <strong>Savino Del Bene Volley</strong> | Firenze<br>
-                                @if(\App\Models\SiteSetting::get('shop.contact_email'))
-                                    <a href="mailto:{{ \App\Models\SiteSetting::get('shop.contact_email') }}" style="color: #003063; text-decoration: none;">
-                                        {{ \App\Models\SiteSetting::get('shop.contact_email') }}
+                                {{-- Il recapito generale del sito (Impostazioni → Contatti).
+                                     Si leggeva `shop.contact_email`, chiave tolta a luglio
+                                     con la pulizia delle impostazioni: le email uscivano
+                                     senza un indirizzo a cui rispondere. --}}
+                                @php($emailDiContatto = \App\Models\SiteSetting::get('contact.email'))
+                                @if($emailDiContatto)
+                                    <a href="mailto:{{ $emailDiContatto }}" style="color: #003063; text-decoration: none;">
+                                        {{ $emailDiContatto }}
                                     </a><br>
                                 @endif
                                 &copy; {{ date('Y') }} Savino Del Bene Volley

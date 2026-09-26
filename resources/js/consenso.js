@@ -30,6 +30,14 @@ export const CHIAVE_IN_ATTESA = 'cookie-consent-da-registrare';
  */
 export const DURATA_GIORNI = 365;
 
+/**
+ * L'evento che parte a ogni scelta salvata, con la scelta in `detail`. Lo
+ * ascoltano i contenuti incorporati (ContenutoIncorporato.vue): un video o una
+ * mappa rimasti in attesa del consenso di marketing si caricano appena il
+ * visitatore lo dà dal banner, senza ricaricare la pagina.
+ */
+export const EVENTO_CAMBIO = 'consenso-cookie:cambiato';
+
 const GIORNO_IN_MS = 24 * 60 * 60 * 1000;
 
 /**
@@ -108,6 +116,17 @@ export function leggiIlConsenso(versioneAttesa = null) {
     };
 }
 
+/**
+ * Se si possono caricare i contenuti di terzi che profilano (YouTube, Google
+ * Maps…): serve una scelta valida — non scaduta, sull'informativa di oggi — e
+ * la casella del marketing. Stessa regola del Pixel in `app.js`.
+ */
+export function marketingConsentito(versioneAttesa = null) {
+    const consenso = leggiIlConsenso(versioneAttesa);
+
+    return consenso.scelto === true && consenso.marketing === true;
+}
+
 export function salvaIlConsenso({ statistiche, marketing, versione, riferimento = null, data = null }) {
     const valore = {
         necessary: true,
@@ -126,6 +145,10 @@ export function salvaIlConsenso({ statistiche, marketing, versione, riferimento 
     } catch {
         // Se il browser non ce lo fa scrivere, il banner tornerà a chiedere:
         // è il comportamento giusto, non un errore da mostrare.
+    }
+
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(EVENTO_CAMBIO, { detail: valore }));
     }
 
     return valore;

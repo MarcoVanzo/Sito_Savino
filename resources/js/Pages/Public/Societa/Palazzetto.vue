@@ -6,6 +6,7 @@ import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import PageHero from '@/Components/PageHero.vue';
+import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
 import { safeUrl } from '@/Composables/useSafeUrl';
 
 const { sanitize } = useSanitize();
@@ -43,6 +44,18 @@ const mapsIframeSrc = computed(() => {
     const query = [venueName.value, venueAddress.value].filter(Boolean).join(', ');
 
     return query ? `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=16&output=embed` : '';
+});
+
+// Il link del segnaposto della mappa: quello del pannello o, senza, la
+// ricerca dell'indirizzo su Google Maps, che non chiede di caricare nulla qui.
+const mapsDirectLink = computed(() => {
+    if (mapsLink.value) {
+        return mapsLink.value;
+    }
+
+    const query = [venueName.value, venueAddress.value].filter(Boolean).join(', ');
+
+    return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : null;
 });
 
 const services = computed(() => Array.isArray(cd.value?.services) ? cd.value.services : []);
@@ -129,16 +142,16 @@ const services = computed(() => Array.isArray(cd.value?.services) ? cd.value.ser
         
         <!-- Interactive Map Section -->
         <section v-if="mapsIframeSrc" class="h-[400px] w-full bg-gray-200 grayscale hover:grayscale-0 transition-all duration-700">
-            <iframe
+            <!-- Google Maps scrive cookie di marketing: la mappa aspetta il
+                 consenso o il clic, e resta il link per aprirla su Google. -->
+            <ContenutoIncorporato
                 :src="mapsIframeSrc"
-                :title="$t('societa.palazzetto_map_title')"
-                width="100%"
-                height="100%" 
-                style="border:0;" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade">
-            </iframe>
+                :titolo="$t('societa.palazzetto_map_title')"
+                :link-diretto="mapsDirectLink"
+                tipo="mappa"
+                allow=""
+                referrerpolicy="no-referrer-when-downgrade"
+            />
         </section>
     </PublicLayout>
 </template>

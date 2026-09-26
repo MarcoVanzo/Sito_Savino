@@ -38,9 +38,11 @@
  * fra i punti aperti di `docs/PRIVACY.md`: il **consenso esplicito** al
  * riconoscimento dei volti, che la società raccoglie fuori di qui e che nessun
  * campo del pannello verifica prima di addestrare un volto, e i **contenuti di
- * terze parti** — mappa e video — che si caricano insieme alla pagina, prima
- * della scelta sui cookie. La seconda è detta al visitatore così com'è; la
- * prima no, quindi va mantenuta.
+ * terze parti** — mappa e video — che fino al 26 settembre 2026 si caricavano
+ * insieme alla pagina, prima della scelta sui cookie. La seconda non è più
+ * vera: da quella data mappa e video aspettano il consenso di marketing o un
+ * clic sul segnaposto (`ContenutoIncorporato.vue`), e il testo lo dice. La
+ * prima resta, quindi va mantenuta.
  */
 $societa = 'Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata';
 $sede = 'Via Benozzo Gozzoli, 5/6 — 50018 Scandicci (FI)';
@@ -82,6 +84,10 @@ return [
             // (linee guida del Garante del 17/04/2026, provv. 284).
             "Dichiarazioni di recesso inviate dal sito: 12 mesi dall'invio.",
             'Withdrawal notices sent from the site: 12 months from sending.',
+            // Revisione del 26 settembre 2026, prima del click-to-load: mappa
+            // e video si caricavano con la pagina.
+            'aprendole, il tuo indirizzo IP arriva a chi li ospita',
+            'opening them sends your IP address to whoever hosts them',
         ],
         'contenuto' => [
             'it' => <<<HTML
@@ -123,7 +129,7 @@ return [
                 <li><strong>Google Ireland</strong>: statistiche del sito (Google Analytics 4), solo con il tuo consenso.</li>
             </ul>
             <p>Trattano invece i dati come <strong>titolari autonomi</strong>, ciascuno con la propria informativa: PayPal e — quando è attivo — Stripe, per i pagamenti dello shop e delle aste (i dati della carta o del conto li ricevono direttamente loro: il sito non li vede); il corriere incaricato delle spedizioni. Meta Platforms Ireland, per la misurazione delle inserzioni con il pixel e solo con il tuo consenso ai cookie di marketing, è contitolare con la società della raccolta e della trasmissione dei dati (articolo 26 del GDPR) e titolare autonomo di ciò che ne fa dopo. Non vendiamo e non cediamo i dati a nessun altro.</p>
-            <p>Alcune pagine contengono inoltre contenuti ospitati altrove — la mappa del palazzetto, i video delle dirette: aprendole, il tuo indirizzo IP arriva a chi li ospita. È spiegato nella <a href="/cookie-policy">Cookie Policy</a>.</p>
+            <p>Alcune pagine contengono inoltre contenuti ospitati altrove — la mappa del palazzetto, i video: si caricano solo se lo chiedi con un clic o se hai accettato i cookie di marketing, e da quel momento il tuo indirizzo IP arriva a chi li ospita. È spiegato nella <a href="/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Trasferimenti fuori dall'Unione Europea</h3>
             <p>Il sito, il suo database, l'archivio fotografico, il riconoscimento dei volti e la diagnostica degli errori stanno su server nell'Unione Europea. Alcuni fornitori sono però società statunitensi o fanno parte di gruppi statunitensi: DigitalOcean e Sentry, che conservano i nostri dati in Europa, e Resend, ActiveCampaign, Google, Meta, PayPal e Stripe, che possono trattarne una parte negli Stati Uniti. Per i fornitori con sede negli Stati Uniti il trasferimento si basa sulla loro adesione all'EU-US Data Privacy Framework, che la Commissione europea ha riconosciuto adeguato (articolo 45 del GDPR), e/o sulle clausole contrattuali standard approvate dalla Commissione (articolo 46).</p>
@@ -189,7 +195,7 @@ return [
                 <li><strong>Google Ireland</strong>: site statistics (Google Analytics 4), only with your consent.</li>
             </ul>
             <p>The following act instead as <strong>independent controllers</strong>, each with its own privacy notice: PayPal and — when enabled — Stripe, for shop and auction payments (card or account details go straight to them: the site never sees them); the courier handling shipments. Meta Platforms Ireland, for advertising measurement with the pixel and only with your consent to marketing cookies, is joint controller with the club for collecting and transmitting the data (Article 26 GDPR) and independent controller for what it does with it afterwards. We do not sell or otherwise pass data to anyone else.</p>
-            <p>Some pages also carry content hosted elsewhere — the arena map, the live stream videos: opening them sends your IP address to whoever hosts them. This is explained in the <a href="/en/cookie-policy">Cookie Policy</a>.</p>
+            <p>Some pages also carry content hosted elsewhere — the arena map, the videos: they only load if you ask with a click or if you have accepted marketing cookies, and from that moment your IP address reaches whoever hosts them. This is explained in the <a href="/en/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Transfers outside the European Union</h3>
             <p>The site itself, its database, the photo archive, the face recognition service and the error diagnostics are on servers in the European Union. Some providers are, however, US companies or part of US groups: DigitalOcean and Sentry, which keep our data in Europe, and Resend, ActiveCampaign, Google, Meta, PayPal and Stripe, which may process part of it in the United States. For providers based in the United States the transfer relies on their certification under the EU-US Data Privacy Framework, which the European Commission has found adequate (Article 45 GDPR), and/or on the standard contractual clauses approved by the Commission (Article 46).</p>
@@ -231,17 +237,21 @@ return [
             // redazione ha riscritto tenendo quella frase.
             'quelli di marketing di Meta Platforms Ireland Ltd. I loro trattamenti',
             'marketing cookies to Meta Platforms Ireland Ltd. Their processing',
+            // Revisione del 23 settembre 2026, fino al 26: mappa e video si
+            // caricavano insieme alla pagina, prima di qualsiasi scelta.
+            'Sono parte del contenuto della pagina e si caricano insieme a essa',
+            "They are part of the page's content and load with it",
         ],
         'contenuto' => [
             'it' => <<<'HTML'
             <h2>Informativa sui cookie</h2>
-            <p>I cookie sono piccoli file che un sito lascia nel browser di chi lo visita. Alcuni servono a far funzionare le pagine, altri a capire come vengono lette, altri ancora a misurare le campagne pubblicitarie. Questa pagina spiega quali usiamo e come decidi tu. È aggiornata al 23 settembre 2026.</p>
+            <p>I cookie sono piccoli file che un sito lascia nel browser di chi lo visita. Alcuni servono a far funzionare le pagine, altri a capire come vengono lette, altri ancora a misurare le campagne pubblicitarie. Questa pagina spiega quali usiamo e come decidi tu. È aggiornata al 26 settembre 2026.</p>
 
             <h3>Cosa puoi scegliere</h3>
             <ul>
                 <li><strong>Necessari</strong>: tengono la sessione, il carrello e la sicurezza dei moduli. Senza, il sito non funziona, e per questo non si possono disattivare. Non servono a riconoscerti altrove.</li>
                 <li><strong>Statistici</strong>: ci dicono quante persone leggono il sito e quali pagine. Partono solo se dai il consenso.</li>
-                <li><strong>Marketing</strong>: misurano le inserzioni su Facebook e Instagram. Partono solo se dai il consenso.</li>
+                <li><strong>Marketing</strong>: misurano le inserzioni su Facebook e Instagram, e permettono di caricare da sé la mappa e i video ospitati da altri (più sotto). Partono solo se dai il consenso.</li>
             </ul>
             <p>Finché non scegli, il sito carica soltanto i cookie necessari: nessuna statistica, nessuna misurazione pubblicitaria.</p>
 
@@ -252,8 +262,8 @@ return [
             <p>Quando rispondi al banner registriamo che cosa hai scelto, quando, e su quale versione di questa informativa — insieme a un riferimento che trovi nel pannello delle preferenze. Non conserviamo il tuo indirizzo IP, ma solo un'impronta che non è riconducibile a te. Serve a dimostrare che il consenso è stato chiesto e dato come previsto dall'articolo 7 del GDPR, e si cancella dopo 12 mesi.</p>
 
             <h3>Contenuti ospitati da altri dentro le nostre pagine</h3>
-            <p>Alcune pagine contengono un riquadro che non arriva dal nostro sito: la mappa del palazzetto, che è di Google Maps, e i video delle dirette, che stanno su YouTube o Vimeo. Sono parte del contenuto della pagina e si caricano insieme a essa: da quel momento chi li ospita vede il tuo indirizzo IP e può scrivere nel tuo browser i propri cookie, che seguono le sue regole e non le nostre. Riguarda soltanto le pagine che quei riquadri li hanno: se non vuoi che accada, puoi non aprirle, oppure bloccare i cookie di terze parti dalle impostazioni del browser.</p>
-            <p>Tutto il resto di quello che vedi — i caratteri tipografici, le immagini, le fotografie dell'archivio — arriva invece dai nostri server e dal nostro spazio di archiviazione: su una pagina che non contenga uno di quei riquadri, e finché non scegli, nessun altro sito viene a sapere che sei passato di qui.</p>
+            <p>Alcune pagine contengono un riquadro che non arriva dal nostro sito: la mappa del palazzetto, che è di Google Maps, e i video, che stanno su YouTube, Vimeo, Twitch o Dailymotion. Finché non accetti i cookie di marketing, al loro posto trovi un segnaposto: il contenuto si carica solo se premi il suo pulsante, e solo quello; in alternativa c'è il link per aprirlo sul sito che lo ospita. Una volta caricato, chi lo ospita vede il tuo indirizzo IP e può scrivere nel tuo browser i propri cookie, che seguono le sue regole e non le nostre. I video di YouTube li incorporiamo dal dominio a privacy avanzata (youtube-nocookie.com).</p>
+            <p>Tutto il resto di quello che vedi — i caratteri tipografici, le immagini, le fotografie dell'archivio — arriva invece dai nostri server e dal nostro spazio di archiviazione: finché non scegli, e finché non carichi uno di quei riquadri, nessun altro sito viene a sapere che sei passato di qui.</p>
 
             <h3>Chi riceve i dati</h3>
             <p>I cookie statistici sono di Google Ireland Ltd. (Google Analytics 4), quelli di marketing di Meta Platforms Ireland Ltd.; la mappa è di Google Ireland Ltd., i video di Google Ireland Ltd. (YouTube) o di Vimeo Inc. I loro trattamenti, e i trasferimenti fuori dall'Unione Europea, sono descritti nella <a href="/privacy-policy">Privacy Policy</a>.</p>
@@ -262,13 +272,13 @@ return [
             HTML,
             'en' => <<<'HTML'
             <h2>Cookie notice</h2>
-            <p>Cookies are small files a website leaves in the visitor's browser. Some make the pages work, some tell us how they are read, others measure advertising campaigns. This page explains which ones we use and what you get to decide. Last updated 23 September 2026.</p>
+            <p>Cookies are small files a website leaves in the visitor's browser. Some make the pages work, some tell us how they are read, others measure advertising campaigns. This page explains which ones we use and what you get to decide. Last updated 26 September 2026.</p>
 
             <h3>What you can choose</h3>
             <ul>
                 <li><strong>Necessary</strong>: they keep the session, the cart and the security of the forms. Without them the site does not work, which is why they cannot be turned off. They are not used to recognise you elsewhere.</li>
                 <li><strong>Statistics</strong>: they tell us how many people read the site, and which pages. They only start if you consent.</li>
-                <li><strong>Marketing</strong>: they measure the ads on Facebook and Instagram. They only start if you consent.</li>
+                <li><strong>Marketing</strong>: they measure the ads on Facebook and Instagram, and let the map and videos hosted by others load on their own (see below). They only start if you consent.</li>
             </ul>
             <p>Until you choose, the site loads necessary cookies only: no statistics, no advertising measurement.</p>
 
@@ -279,8 +289,8 @@ return [
             <p>When you answer the banner we record what you chose, when, and against which version of this notice — along with a reference you can find in the preferences panel. We do not keep your IP address, only a fingerprint that cannot be traced back to you. It exists to show that consent was asked for and given as Article 7 GDPR requires, and it is deleted after 12 months.</p>
 
             <h3>Content hosted by others inside our pages</h3>
-            <p>Some pages carry a frame that does not come from our site: the arena map, which is Google Maps, and the live stream videos, which live on YouTube or Vimeo. They are part of the page's content and load with it: from that moment whoever hosts them can see your IP address and write their own cookies in your browser, under their rules and not ours. This only concerns the pages that carry those frames: if you would rather it did not happen, you can leave those pages alone, or block third-party cookies in your browser settings.</p>
-            <p>Everything else you see — fonts, images, the photo archive — comes from our own servers and storage instead: on a page without one of those frames, and until you choose, no other website learns that you were here.</p>
+            <p>Some pages carry a frame that does not come from our site: the arena map, which is Google Maps, and the videos, which live on YouTube, Vimeo, Twitch or Dailymotion. Until you accept marketing cookies, you will find a placeholder in their place: the content only loads if you press its button, and only that one; alternatively there is a link to open it on the site that hosts it. Once loaded, whoever hosts it can see your IP address and write their own cookies in your browser, under their rules and not ours. YouTube videos are embedded from its privacy-enhanced domain (youtube-nocookie.com).</p>
+            <p>Everything else you see — fonts, images, the photo archive — comes from our own servers and storage instead: until you choose, and until you load one of those frames, no other website learns that you were here.</p>
 
             <h3>Who receives the data</h3>
             <p>Statistics cookies belong to Google Ireland Ltd. (Google Analytics 4), marketing cookies to Meta Platforms Ireland Ltd.; the map is Google Ireland Ltd.'s, the videos are Google Ireland Ltd.'s (YouTube) or Vimeo Inc.'s. Their processing, and transfers outside the European Union, are described in the <a href="/en/privacy-policy">Privacy Policy</a>.</p>

@@ -145,6 +145,8 @@ class ShopCorrectnessAuditTest extends TestCase
         Http::fake([
             '*/v1/oauth2/token' => Http::response(['access_token' => 't', 'expires_in' => 3600]),
             '*/v1/notifications/verify-webhook-signature' => Http::response(['verification_status' => 'SUCCESS']),
+            // Il rimborso e' totale: e' lo stato della cattura a dirlo.
+            '*/v2/payments/captures/CAPTURE-1' => Http::response(['id' => 'CAPTURE-1', 'status' => 'REFUNDED']),
         ]);
         // il rimborso via webhook riconcilia
         $order->forceFill(['status' => OrderStatus::Paid])->save();

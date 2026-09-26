@@ -7,6 +7,8 @@ use App\Http\Middleware\EnsureVerifiedPayment;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PreviewBasicAuth;
 use App\Http\Middleware\SecurityHeadersMiddleware;
+use App\Http\Middleware\UsaLIpDelClienteDiDigitalOcean;
+use App\Support\HostFidati;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -47,8 +49,19 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsurePasswordIsChanged::class,
         ]);
 
+        // Prima di tutto, anche di TrustProxies: l'IP del visitatore arriva da
+        // DO-Connecting-IP (vedi il middleware).
+        $middleware->prepend(UsaLIpDelClienteDiDigitalOcean::class);
+
         // DigitalOcean App Platform: trust all proxies but only forwarded headers
         // (DO doesn't publish proxy IP ranges, so we must trust '*' but restrict headers)
+        //
+        // X-Forwarded-For da solo non basta: con i proxy fidati `*` l'IP del
+        // client sarebbe quello che il client stesso scrive nell'header, e i
+        // limiti per IP non limiterebbero nessuno. L'IP vero lo mette
+        // UsaLIpDelClienteDiDigitalOcean da DO-Connecting-IP, scartando XFF;
+        // XFF resta solo come ripiego se quell'header mancasse. Proto e Port
+        // servono a riconoscere l'HTTPS terminato dal proxy.
         //
         // X-Forwarded-Host è volutamente ESCLUSO: fidandosene, chiunque poteva
         // forgiare quell'header e far generare a Laravel URL assoluti verso un
@@ -57,62 +70,30 @@ return Application::configure(basePath: dirname(__DIR__))
         // già l'Host originale, quindi non serve.
         $middleware->trustProxies(
             at: '*',
+            // X-Forwarded-For resta fidato solo come ripiego: quando c'è
+            // DO-Connecting-IP lo scarta UsaLIpDelClienteDiDigitalOcean.
             headers: Request::HEADER_X_FORWARDED_FOR |
                      Request::HEADER_X_FORWARDED_PROTO |
                      Request::HEADER_X_FORWARDED_PORT,
         );
 
         // Seconda linea di difesa contro l'host header injection: si accettano
-        // solo richieste il cui Host corrisponde ad APP_URL o a un suo
-        // sottodominio. Il valore è risolto a runtime (una closure) perché a
+        // solo richieste il cui Host corrisponde ad APP_URL (o a TRUSTED_HOSTS)
+        // o a un loro sottodominio, più gli IP della rete interna per la sonda
+        // di App Platform. Le espressioni le costruisce HostFidati, ancorate ed
+        // escapate. Il valore è risolto a runtime (una closure) perché a
         // questo punto della configurazione la config non è ancora caricata.
         // Il middleware TrustHosts di Laravel si auto-disattiva in ambiente
         // `local` e durante i test, dove l'host varia (localhost, *.test, ...).
-        // Attenzione: una lista vuota per Symfony significa "nessuna
-        // restrizione", quindi un valore non interpretabile disattiva la difesa
-        // in silenzio invece di segnalarlo. Su App Platform APP_URL vale
-        // `${APP_DOMAIN}`, cioè un dominio SENZA schema, su cui parse_url()
-        // restituisce null: va normalizzato, altrimenti questa protezione non
-        // entra mai in funzione in produzione.
+        // `subdomains: false` perché i sottodomini sono già nelle espressioni:
+        // quella che aggiungerebbe Laravel è ridondante e, con APP_URL senza
+        // schema, assente.
         $middleware->trustHosts(
-            at: static function (): array {
-                /** @var list<string> $configured */
-                $configured = (array) config('app.trusted_hosts', []);
-
-                if ($configured !== []) {
-                    return $configured;
-                }
-
-                $url = trim((string) config('app.url'));
-
-                if ($url === '') {
-                    return [];
-                }
-
-                $host = parse_url($url, PHP_URL_HOST)
-                    ?: parse_url('https://'.ltrim($url, '/'), PHP_URL_HOST);
-
-                if (! is_string($host) || $host === '') {
-                    return [];
-                }
-
-                return [
-                    $host,
-                    // La sonda di App Platform interroga /up usando come Host
-                    // l'indirizzo IP del pod, non il dominio: senza questo
-                    // schema Symfony risponde 400 e l'istanza non passa mai
-                    // l'health check. Finché il controllo era TCP la cosa non
-                    // emergeva, perché nessuno faceva richieste HTTP interne.
-                    // Ammettere un Host in forma di IP non indebolisce la
-                    // difesa: serve a impedire che un Host forgiato finisca
-                    // negli URL assoluti generati (in primis i link di reset
-                    // password), e un indirizzo IP privato non è un dominio
-                    // verso cui valga la pena dirottare qualcuno.
-                    '^(\d{1,3}\.){3}\d{1,3}$',
-                    '^localhost$',
-                ];
-            },
-            subdomains: true,
+            at: static fn (): array => HostFidati::patterns(
+                array_values(array_map('strval', (array) config('app.trusted_hosts', []))),
+                (string) config('app.url'),
+            ),
+            subdomains: false,
         );
 
         $middleware->validateCsrfTokens(except: [

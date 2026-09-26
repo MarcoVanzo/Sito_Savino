@@ -136,6 +136,11 @@ jobs:
 
           echo "🔄 Avvio mysqldump..."
 
+          # --no-tablespaces: da MySQL 8.0.21 mysqldump interroga i tablespace
+          # e senza il privilegio PROCESS si ferma. Il sito non ne crea (le
+          # tabelle stanno nel tablespace di default), quindi non si perde
+          # niente e il dump gira anche con un utente senza PROCESS — i
+          # privilegi minimi sono in BACKUP.md, "Utente del dump".
           mysqldump \
             --host="$DB_HOST" \
             --port="$DB_PORT" \
@@ -145,6 +150,7 @@ jobs:
             --routines \
             --triggers \
             --events \
+            --no-tablespaces \
             --set-gtid-purged=OFF \
             "$DB_NAME" \
           | gzip -9 \
@@ -347,7 +353,10 @@ jobs:
     name: Notifica fallimento
     runs-on: ubuntu-latest
     needs: backup
-    if: failure()
+    # Anche `cancelled()`, come in backup-media.yml e verifica-restore.yml: un
+    # job fermato dal tetto di `timeout-minutes` (30) non si conclude
+    # "failure", e il backup mancato non apriva nessuna issue.
+    if: failure() || cancelled()
     permissions:
       issues: write
     steps:

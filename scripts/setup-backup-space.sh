@@ -83,25 +83,19 @@ fi
 # --- Step 3: Applicazione Bucket Policy (Deny Delete) ---
 info "Step 3/4 — Applicazione Bucket Policy (Deny Delete)..."
 
+# Solo il Deny. Fino al 26/09/2026 c'era anche uno statement Allow con
+# `Principal: "*"` su PutObject/GetObject/ListBucket: in una bucket policy
+# "chiunque" vuol dire anche chi non firma la richiesta, quindi il bucket dei
+# backup era leggibile ed elencabile — e scrivibile — senza chiavi. I dump sono
+# cifrati, ma chiunque poteva scaricarli e caricarci sopra spazzatura. L'accesso
+# legittimo passa dalle chiavi di Spaces (backup-writer per i workflow,
+# do-admin per il setup), che hanno i loro permessi e non hanno bisogno di un
+# Allow nella policy. Il Deny resta per tutti, chiavi comprese.
+# Verifica dopo il rilancio (BACKUP.md): un PUT non firmato deve dare 403.
 POLICY=$(cat <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
-        {
-            "Sid": "AllowWriteRead",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": [
-                "s3:PutObject",
-                "s3:GetObject",
-                "s3:ListBucket",
-                "s3:GetBucketLocation"
-            ],
-            "Resource": [
-                "arn:aws:s3:::${BUCKET_NAME}",
-                "arn:aws:s3:::${BUCKET_NAME}/*"
-            ]
-        },
         {
             "Sid": "DenyDeleteObjects",
             "Effect": "Deny",
@@ -125,11 +119,26 @@ echo "$POLICY" | aws_cmd s3api put-bucket-policy \
     --bucket "$BUCKET_NAME" \
     --policy file:///dev/stdin
 
-ok "Bucket Policy applicata: DeleteObject e DeleteBucket negati per tutti."
+ok "Bucket Policy applicata: DeleteObject e DeleteBucket negati per tutti, nessun accesso anonimo."
 
 # --- Step 4: Configurazione Lifecycle Rules ---
 info "Step 4/4 — Configurazione Lifecycle Rules..."
 
+# I dump hanno nel nome il loro timestamp e non vengono mai riscritti: non
+# diventano mai "noncurrent", quindi la sola NoncurrentVersionExpiration non
+# ne cancellava nessuno e i 90 giorni dichiarati erano infiniti. Per `db/`
+# serve `Expiration` sull'età dell'oggetto.
+#
+# `media/` resta com'è, di proposito: è lo specchio del bucket di produzione
+# (rclone copy --checksum), e i file non cambiano nome né contenuto. Farli
+# scadere per età toglierebbe dal backup foto ancora in produzione, che
+# tornerebbero solo al giro della domenica successiva: fino a una settimana
+# di buco. Scadono solo le versioni sovrascritte. I manifest settimanali hanno
+# nome con la data, come i dump, e seguono i dump.
+#
+# Da verificare dopo il rilancio (BACKUP.md): che la scadenza non sia
+# bloccata dal Deny di DeleteObject nella bucket policy — su S3 le azioni del
+# lifecycle non passano dalla policy, su Spaces non è documentato.
 LIFECYCLE=$(cat <<EOF
 {
     "Rules": [
@@ -139,8 +148,21 @@ LIFECYCLE=$(cat <<EOF
                 "Prefix": "db/"
             },
             "Status": "Enabled",
+            "Expiration": {
+                "Days": 90
+            },
             "NoncurrentVersionExpiration": {
                 "NoncurrentDays": 90
+            }
+        },
+        {
+            "ID": "media-manifest-retention-90days",
+            "Filter": {
+                "Prefix": "media/_manifests/"
+            },
+            "Status": "Enabled",
+            "Expiration": {
+                "Days": 90
             }
         },
         {
@@ -172,7 +194,7 @@ echo "$LIFECYCLE" | aws_cmd s3api put-bucket-lifecycle-configuration \
     --bucket "$BUCKET_NAME" \
     --lifecycle-configuration file:///dev/stdin
 
-ok "Lifecycle rules configurate: DB=90gg, Media=30gg, Multipart abort=7gg."
+ok "Lifecycle rules configurate: DB=90gg dalla creazione, manifest media=90gg, versioni sostituite dei media=30gg, multipart abort=7gg."
 
 # --- Creazione struttura cartelle ---
 info "Creazione struttura cartelle nel bucket..."
@@ -190,6 +212,18 @@ else
     ok "Protezione confermata: impossibile cancellare file dal bucket."
 fi
 
+# --- Test: nessun accesso senza firma ---
+# Con lo statement Allow su `Principal: "*"` un PUT anonimo veniva accettato.
+info "Verifica che il bucket rifiuti le richieste non firmate..."
+ANON_STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT --data 'prova' \
+    "https://${BUCKET_NAME}.${REGION}.digitaloceanspaces.com/verifica-accesso-anonimo.txt" || true)
+if [ "$ANON_STATUS" == "403" ]; then
+    ok "PUT non firmato rifiutato (403)."
+else
+    warn "⚠️  PUT non firmato ha risposto ${ANON_STATUS}: il bucket potrebbe essere scrivibile senza chiavi."
+    warn "   Controlla policy e ACL dal pannello DO."
+fi
+
 # --- Riepilogo ---
 echo ""
 echo "============================================="
@@ -200,8 +234,8 @@ echo "  Bucket:     $BUCKET_NAME"
 echo "  Regione:    $REGION"
 echo "  Endpoint:   $ENDPOINT"
 echo "  Versioning: Abilitato"
-echo "  Policy:     Deny Delete (attiva)"
-echo "  Lifecycle:  DB=90gg, Media=30gg"
+echo "  Policy:     solo Deny Delete (nessun accesso anonimo)"
+echo "  Lifecycle:  DB=90gg, manifest media=90gg, versioni media sostituite=30gg"
 echo ""
 echo "  ⚠️  PROSSIMI PASSI:"
 echo "  1. Crea una API key dedicata per il backup dal pannello DO"

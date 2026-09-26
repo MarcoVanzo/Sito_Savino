@@ -36,7 +36,9 @@ trait FakesPayPalWebhooks
             '*/v2/checkout/orders/*/capture' => Http::response([
                 'purchase_units' => [[
                     'custom_id' => (string) $orderId,
-                    'payments' => ['captures' => [['id' => $captureId]]],
+                    // Solo una cattura COMPLETED e' un incasso: una PENDING
+                    // lascia l'ordine in attesa (PayPalCatturaInSospesoTest).
+                    'payments' => ['captures' => [['id' => $captureId, 'status' => 'COMPLETED']]],
                 ]],
             ]),
         ]);
