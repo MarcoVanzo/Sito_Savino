@@ -142,6 +142,7 @@ return [
     // Codice del consumo): vedi emails/partials/informazioni-contrattuali.
     'contratto' => [
         'heading' => 'Informazioni sul tuo acquisto',
+        'personalizzato_escluso' => 'Personalizzato: escluso dal diritto di recesso',
         'seller_heading' => 'Chi vende',
         'vat' => 'P. IVA',
         'share_capital' => 'Cap. soc.',
@@ -153,7 +154,7 @@ return [
         'withdrawal_online' => 'Puoi anche recedere direttamente dal sito, con la funzione Recedi dal contratto: ricevi subito una ricevuta con data e ora.',
         'withdrawal_online_link' => 'Recedi dal contratto',
         'withdrawal_costs' => 'I costi diretti della restituzione sono a tuo carico.',
-        'withdrawal_exclusions' => 'Il recesso non si applica ai prodotti personalizzati su tua richiesta (per esempio una maglia con nome e numero scelti da te). Rispondi solo della diminuzione di valore dovuta a una manipolazione diversa da quella necessaria a provarli.',
+        'withdrawal_exclusions' => 'Il recesso non si applica ai prodotti personalizzati su tua richiesta (per esempio una maglia con nome e numero scelti da te, o un articolo con la firma di una giocatrice aggiunta come personalizzazione): nell\'ordine sono quelli segnati come personalizzati. Rispondi solo della diminuzione di valore dovuta a una manipolazione diversa da quella necessaria a provarli.',
         'form_heading' => 'Modulo tipo di recesso',
         'form_to' => 'Destinatario: :seller, :address, :email',
         'form_notice' => 'Con la presente io/noi (*) notifico/notifichiamo (*) il recesso dal mio/nostro (*) contratto di vendita dei seguenti beni:',
@@ -181,6 +182,15 @@ return [
         'intro' => 'Qualcuno, speriamo tu, ha chiesto di iscrivere questo indirizzo alla newsletter della Savino Del Bene Volley. Per completare l\'iscrizione conferma entro 7 giorni.',
         'button' => 'Confermo l\'iscrizione',
         'ignore' => 'Se non sei stato tu, ignora questa email: senza conferma l\'indirizzo non viene iscritto e non riceverai altro.',
+        'tracciamento' => 'La newsletter contiene un pixel e link tracciati che ci dicono se l\'hai aperta e su cosa hai cliccato: confermando accetti anche questa misura. Dal link in fondo a ogni newsletter puoi fermare solo la misura, continuando a riceverla, oppure disiscriverti.',
+    ],
+    // Al titolare dell'ordine quando il recesso arriva da un altro indirizzo:
+    // niente dati di chi ha scritto, solo il fatto e la data.
+    'recesso_titolare' => [
+        'subject' => 'È stato dichiarato il recesso dal tuo ordine #:number',
+        'heading' => 'Recesso dal tuo ordine',
+        'body' => 'Il :date è stata inviata dal nostro sito una dichiarazione di recesso relativa al tuo ordine :number, da un indirizzo email diverso da quello dell\'ordine.',
+        'not_you' => 'Se non sei stato tu, o non sai chi l\'ha inviata, scrivici subito a info@savinodelbenevolley.it indicando il numero d\'ordine: prima di rimborsare verifichiamo con te.',
     ],
     'recesso' => [
         'subject' => 'Ricevuta del recesso dall\'ordine #:number',

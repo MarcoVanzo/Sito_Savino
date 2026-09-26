@@ -25,6 +25,7 @@ use App\Http\Controllers\Shop\ShopAuthController;
 use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\ValidateCouponController;
 use App\Http\Middleware\TrackShopPageView;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 return function (string $loc, string $namePrefix): void {
@@ -141,19 +142,37 @@ return function (string $loc, string $namePrefix): void {
     });
     // Recesso online (art. 54-bis Codice del Consumo): fuori dal prefisso
     // /shop perche' il link sta nel footer di tutto il sito, e prima della
-    // rotta generica delle pagine CMS che chiude questo file.
-    Route::get('/recesso', [RecessoController::class, 'show'])->name('recesso');
+    // rotta generica delle pagine CMS che chiude questo file. Lo slug si
+    // traduce come gli altri (`/en/withdrawal`): link di footer, dettaglio
+    // ordine ed email passano da route(), non dall'indirizzo scritto a mano.
+    $recesso = $loc === 'en' ? 'withdrawal' : 'recesso';
+    Route::get('/'.$recesso, [RecessoController::class, 'show'])->name('recesso');
     // Limite stretto: la POST manda subito un'email a un indirizzo scritto
     // da chi compila, con testo suo dentro. Tre dichiarazioni ogni dieci
     // minuti bastano a chiunque receda davvero, e non fanno del modulo un
     // modo per spedire posta a nome della societa'.
-    Route::post('/recesso', [RecessoController::class, 'store'])->middleware('throttle:3,10,recesso.store')->name('recesso.store');
+    Route::post('/'.$recesso, [RecessoController::class, 'store'])->middleware('throttle:3,10,recesso.store')->name('recesso.store');
     // La ricevuta ha un indirizzo suo, firmato: ricaricando la pagina dopo
     // l'invio si rilegge la ricevuta invece di ritrovarsi il modulo vuoto (e
     // mandare una seconda dichiarazione).
-    Route::get('/recesso/ricevuta/{richiesta}', [RecessoController::class, 'ricevuta'])
+    Route::get('/'.$recesso.'/'.$shopSlugs['ricevuta'].'/{richiesta}', [RecessoController::class, 'ricevuta'])
         ->middleware('signed')
         ->name('recesso.ricevuta');
+
+    if ($recesso !== 'recesso') {
+        // Fino al 26/09/2026 l'inglese stava su `/en/recesso`: il link e'
+        // nelle email di conferma gia' spedite. Il 301 si porta dietro la
+        // query (`?ordine=...&token=...`).
+        Route::get('/recesso', fn (Request $request) => redirect()->to(
+            route($namePrefix.'recesso', $request->query()), 301,
+        ));
+        // Le ricevute firmate gia' emesse su quell'indirizzo: la firma copre
+        // il percorso, quindi un redirect la invaliderebbe. Restano leggibili
+        // dove sono state firmate, per i 90 giorni della loro scadenza.
+        Route::get('/recesso/ricevuta/{richiesta}', [RecessoController::class, 'ricevuta'])
+            ->middleware('signed')
+            ->name('recesso.ricevuta.indirizzo_precedente');
+    }
 
     Route::get('/'.$shopSlugs['contatti'], [PublicController::class, 'contatti'])->name('contatti');
     Route::post('/'.$shopSlugs['contatti'], [ContactController::class, 'submit'])->middleware('throttle:5,1,contatti.submit')->name('contatti.submit');
@@ -178,6 +197,17 @@ return function (string $loc, string $namePrefix): void {
     Route::post('/newsletter/'.$disiscriviti.'/{subscriber}', [NewsletterController::class, 'unsubscribe'])
         ->middleware(['signed', 'throttle:10,1,newsletter.unsubscribe'])
         ->name('newsletter.unsubscribe');
+
+    // Preferenze (linee guida del Garante del 17/04/2026 sui pixel nelle
+    // email): dal link in fondo a ogni newsletter si revoca il solo
+    // tracciamento o tutto. Stesso schema firmato della disiscrizione.
+    $preferenze = $loc === 'en' ? 'preferences' : 'preferenze';
+    Route::get('/newsletter/'.$preferenze.'/{subscriber}', [NewsletterController::class, 'showPreferenze'])
+        ->middleware('signed')
+        ->name('newsletter.preferenze.show');
+    Route::post('/newsletter/'.$preferenze.'/{subscriber}/'.($loc === 'en' ? 'no-tracking' : 'senza-tracciamento'), [NewsletterController::class, 'senzaTracciamento'])
+        ->middleware(['signed', 'throttle:10,1,newsletter.senza-tracciamento'])
+        ->name('newsletter.preferenze.senza-tracciamento');
 
     // Doppio opt-in: il link dell'email di conferma porta a una pagina con un
     // pulsante (GET), e la conferma avviene in POST — stesso schema della

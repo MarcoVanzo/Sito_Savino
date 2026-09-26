@@ -1,5 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
+import { datiDaInviare, descrittoDa, descrizioniScelte, mostraLaLista, righeSelezionabili } from '@/Support/righeDiRecesso.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, nextTick, ref } from 'vue';
@@ -11,11 +12,16 @@ import { computed, nextTick, ref } from 'vue';
  * recapito ("Continua"), poi si rilegge la dichiarazione e la si conferma con
  * un comando separato ("Conferma recesso"). Solo il secondo invia. La
  * ricevuta con data e ora arriva nella risposta e per email.
+ *
+ * Con `righe` (chi può vedere l'ordine) gli articoli si scelgono da una
+ * lista; le righe personalizzate sono escluse dal recesso e non si possono
+ * spuntare. Senza, si descrivono a testo come prima.
  */
 const $t = useTranslations();
 
 const props = defineProps({
     precompilato: { type: Object, default: () => ({}) },
+    righe: { type: Array, default: null },
     ricevuta: { type: Object, default: null },
 });
 
@@ -24,8 +30,16 @@ const form = useForm({
     email: props.precompilato?.email ?? '',
     numero_ordine: props.precompilato?.numero_ordine ?? '',
     articoli: '',
+    righe: righeSelezionabili(props.righe),
+    token: props.precompilato?.token ?? '',
     conferma: false,
 });
+
+const conLista = computed(() => mostraLaLista(props.righe, props.precompilato?.numero_ordine, form.numero_ordine));
+const nessunaRestituibile = computed(() => conLista.value && righeSelezionabili(props.righe).length === 0);
+const articoliNelRiepilogo = computed(() => (conLista.value
+    ? descrizioniScelte(props.righe, form.righe).join('; ')
+    : form.articoli) || $t('recesso.all_items'));
 
 const passaggio = ref('dati');
 const titoloRiepilogo = ref(null);
@@ -55,6 +69,9 @@ function continua() {
     if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
         mancanti.email = $t('recesso.invalid_email');
     }
+    if (conLista.value && form.righe.length === 0) {
+        mancanti.righe = $t('recesso.no_items');
+    }
     erroriLocali.value = mancanti;
 
     if (Object.keys(mancanti).length) {
@@ -72,14 +89,14 @@ function modifica() {
 
 function conferma() {
     form.conferma = true;
-    form.post(route('recesso.store'), {
+    form.transform((dati) => datiDaInviare(dati, conLista.value)).post(route('recesso.store'), {
         preserveScroll: false,
         onError: (errors) => {
             form.conferma = false;
             passaggio.value = 'dati';
             // Il primo campo con un errore dal server riceve il focus, come
             // per gli errori del passaggio 1; senza campo, il riquadro.
-            const primo = ['nome', 'email', 'numero_ordine', 'articoli'].find((campo) => errors[campo]);
+            const primo = ['nome', 'email', 'numero_ordine', 'righe', 'articoli'].find((campo) => errors[campo]);
             nextTick(() => (primo ? document.getElementById(`recesso-${primo}`) : riquadroErrori.value)?.focus());
         },
     });
@@ -150,7 +167,7 @@ function conferma() {
                         <div>
                             <label for="recesso-email" class="block text-sm font-semibold text-gray-800 mb-1">{{ $t('recesso.email') }} *</label>
                             <input id="recesso-email" v-model="form.email" type="email" autocomplete="email" required
-                                :aria-invalid="!!errori.email" :aria-describedby="errori.email ? idErrore('email') : 'recesso-email-aiuto'"
+                                :aria-invalid="!!errori.email" :aria-describedby="descrittoDa(errori.email && idErrore('email'), 'recesso-email-aiuto')"
                                 class="w-full rounded-lg border-gray-300 focus:border-savino-blue focus:ring-savino-blue" />
                             <p id="recesso-email-aiuto" class="mt-1 text-xs text-gray-600">{{ $t('recesso.email_help') }}</p>
                             <p v-if="errori.email" :id="idErrore('email')" class="mt-1 text-sm text-red-700">{{ errori.email }}</p>
@@ -158,20 +175,41 @@ function conferma() {
                         <div>
                             <label for="recesso-numero_ordine" class="block text-sm font-semibold text-gray-800 mb-1">{{ $t('recesso.order_number') }} *</label>
                             <input id="recesso-numero_ordine" v-model="form.numero_ordine" type="text" required
-                                :aria-invalid="!!errori.numero_ordine" :aria-describedby="errori.numero_ordine ? idErrore('numero_ordine') : 'recesso-ordine-aiuto'"
+                                :aria-invalid="!!errori.numero_ordine" :aria-describedby="descrittoDa(errori.numero_ordine && idErrore('numero_ordine'), 'recesso-ordine-aiuto')"
                                 class="w-full rounded-lg border-gray-300 focus:border-savino-blue focus:ring-savino-blue" />
                             <p id="recesso-ordine-aiuto" class="mt-1 text-xs text-gray-600">{{ $t('recesso.order_help') }}</p>
                             <p v-if="errori.numero_ordine" :id="idErrore('numero_ordine')" class="mt-1 text-sm text-red-700">{{ errori.numero_ordine }}</p>
                         </div>
-                        <div>
+                        <fieldset v-if="conLista" id="recesso-righe" tabindex="-1"
+                            :aria-invalid="!!errori.righe" :aria-describedby="descrittoDa(errori.righe && idErrore('righe'), nessunaRestituibile ? 'recesso-righe-nessuna' : 'recesso-righe-aiuto')">
+                            <legend class="block text-sm font-semibold text-gray-800 mb-1">{{ $t('recesso.items_choose') }}</legend>
+                            <p v-if="nessunaRestituibile" id="recesso-righe-nessuna" class="text-sm text-gray-700">{{ $t('recesso.none_withdrawable') }}</p>
+                            <p v-else id="recesso-righe-aiuto" class="mb-2 text-xs text-gray-600">{{ $t('recesso.items_choose_help') }}</p>
+                            <ul class="space-y-2">
+                                <li v-for="riga in righe" :key="riga.id">
+                                    <label :for="`recesso-riga-${riga.id}`" class="flex items-start gap-3 text-sm" :class="riga.personalizzata ? 'text-gray-600' : 'text-gray-800 cursor-pointer'">
+                                        <input :id="`recesso-riga-${riga.id}`" v-model="form.righe" type="checkbox" :value="riga.id"
+                                            :disabled="riga.personalizzata"
+                                            :aria-describedby="riga.personalizzata ? `recesso-riga-${riga.id}-esclusa` : undefined"
+                                            class="mt-0.5 h-5 w-5 rounded border-gray-300 text-savino-blue focus:ring-savino-blue disabled:opacity-50" />
+                                        <span>
+                                            {{ riga.descrizione }}
+                                            <span v-if="riga.personalizzata" :id="`recesso-riga-${riga.id}-esclusa`" class="block text-xs">{{ $t('recesso.personalised_excluded') }}</span>
+                                        </span>
+                                    </label>
+                                </li>
+                            </ul>
+                            <p v-if="errori.righe" :id="idErrore('righe')" class="mt-1 text-sm text-red-700">{{ errori.righe }}</p>
+                        </fieldset>
+                        <div v-else>
                             <label for="recesso-articoli" class="block text-sm font-semibold text-gray-800 mb-1">{{ $t('recesso.items_label') }}</label>
                             <textarea id="recesso-articoli" v-model="form.articoli" rows="3" maxlength="2000"
-                                :aria-invalid="!!errori.articoli" :aria-describedby="errori.articoli ? idErrore('articoli') : 'recesso-articoli-aiuto'"
+                                :aria-invalid="!!errori.articoli" :aria-describedby="descrittoDa(errori.articoli && idErrore('articoli'), 'recesso-articoli-aiuto')"
                                 class="w-full rounded-lg border-gray-300 focus:border-savino-blue focus:ring-savino-blue"></textarea>
                             <p id="recesso-articoli-aiuto" class="mt-1 text-xs text-gray-600">{{ $t('recesso.items_help') }}</p>
                             <p v-if="errori.articoli" :id="idErrore('articoli')" class="mt-1 text-sm text-red-700">{{ errori.articoli }}</p>
                         </div>
-                        <button type="submit" class="px-8 py-3 bg-savino-blue text-white font-bold rounded-lg hover:bg-savino-blue/90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-savino-blue">
+                        <button type="submit" :disabled="nessunaRestituibile" class="disabled:opacity-60 px-8 py-3 bg-savino-blue text-white font-bold rounded-lg hover:bg-savino-blue/90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-savino-blue">
                             {{ $t('recesso.continue') }}
                         </button>
                     </form>
@@ -187,7 +225,7 @@ function conferma() {
                                 <dt class="font-semibold">{{ $t('recesso.email') }}</dt>
                                 <dd class="sm:col-span-2">{{ form.email }}</dd>
                                 <dt class="font-semibold">{{ $t('recesso.items') }}</dt>
-                                <dd class="sm:col-span-2">{{ form.articoli || $t('recesso.all_items') }}</dd>
+                                <dd class="sm:col-span-2">{{ articoliNelRiepilogo }}</dd>
                             </dl>
                         </div>
                         <div class="flex flex-wrap gap-4">

@@ -190,4 +190,31 @@ class NewsletterController extends Controller
             ->to($subscriber->unsubscribeUrl())
             ->with('success', __('messages.newsletter.unsubscribed'));
     }
+
+    /**
+     * Le preferenze della newsletter, dal link in fondo a ogni invio: ricevere
+     * senza tracciamento (pixel e link tracciati) oppure disiscriversi. Sono
+     * le due revoche che le linee guida del Garante del 17/04/2026 chiedono
+     * di offrire separate. Come per la disiscrizione, il GET mostra e basta:
+     * le scelte partono in POST.
+     */
+    public function showPreferenze(NewsletterSubscriber $subscriber): Response
+    {
+        return Inertia::render('Public/NewsletterPreferenze', [
+            'email' => $subscriber->email,
+            'iscritto' => $subscriber->isSubscribed(),
+            'tracciamentoAttivo' => $subscriber->tracciamentoAttivo(),
+            'senzaTracciamentoUrl' => URL::signedRoute($this->prefissoRotta().'newsletter.preferenze.senza-tracciamento', ['subscriber' => $subscriber->id]),
+            'disiscrivitiUrl' => URL::signedRoute($this->prefissoRotta().'newsletter.unsubscribe', ['subscriber' => $subscriber->id]),
+        ]);
+    }
+
+    public function senzaTracciamento(NewsletterSubscriber $subscriber): RedirectResponse
+    {
+        $subscriber->revocaTracciamento();
+
+        return redirect()
+            ->to($subscriber->preferenzeUrl())
+            ->with('success', __('messages.newsletter.senza_tracciamento'));
+    }
 }

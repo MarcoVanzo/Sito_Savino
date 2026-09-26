@@ -1401,6 +1401,23 @@ Mappa completa in `docs/CONSUMATORI.md`. Vincoli:
   di `richieste_di_recesso` non si cancellano dal pannello. Il limite della
   POST è stretto (3 ogni 10 minuti) perché manda un'email a un indirizzo
   scritto da chi compila. Il link sta nel footer di ogni pagina: non toglierlo.
+  In inglese è `/en/withdrawal` (`/en/recesso` fa 301): i link passano da
+  `route('recesso')`. Le dichiarazioni si tengono **10 anni se agganciate a un
+  ordine** (prova del recesso, prescrizione del rimborso), 12 mesi senza. La
+  dichiarazione si registra sempre: il tetto di tre al giorno per indirizzo
+  ferma solo l'email della ricevuta, e al titolare di un ordine altrui va
+  `AvvisoDiRecessoAlTitolare`, senza i dati di chi ha scritto.
+- **Le righe personalizzate (firma della giocatrice) sono escluse dal
+  recesso** (art. 59 c. 1 lett. c): in `/recesso` non si selezionano e
+  `RecessoController` le rifiuta; scheda prodotto, checkout ed email lo
+  dicono. La lista degli articoli compare solo a chi ha il token dell'ordine
+  o l'account: il solo numero d'ordine non basta a leggere un ordine altrui.
+- **Il pixel della newsletter si revoca da solo** (linee guida del Garante
+  del 17/04/2026, adeguamento entro il 29/10/2026): pagina preferenze firmata
+  (`NewsletterSubscriber::preferenzeUrl`), `tracciamento_revocato_il`, tag
+  `senza-tracciamento` su ActiveCampaign. ActiveCampaign non spegne il pixel
+  per contatto: la redazione manda al segmento col tag una campagna con il
+  tracciamento spento (`docs/ANALYTICS.md`).
 - **L'avviso armonizzato UE sulla garanzia** (`AvvisoGaranziaLegale.vue`) sta
   sotto la casella del checkout, nella scheda prodotto e nell'email: sono le
   immagini ufficiali della Commissione, non si ridisegnano.

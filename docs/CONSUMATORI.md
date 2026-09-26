@@ -18,9 +18,10 @@ Ultima verifica sul codice: **26 settembre 2026**.
 | Pulsante «Ordine con obbligo di pagamento» (art. 51 c. 2) | checkout dello shop e delle aste, seconda riga del pulsante | `resources/js/Components/Shop/PulsanteOrdine.vue` |
 | Accettazione delle condizioni, con la versione e il testo esatto | casella del checkout | `AccettazioneCondizioni.vue`; `orders.condizioni_versione` = `CondizioniDiVendita::VERSIONE`; `orders.condizioni_impronta` = sha256 del testo pubblicato, testo in `versioni_condizioni` (`CondizioniDiVendita::registraIstantanea`) |
 | Conferma su supporto durevole (art. 51 c. 7) | email di conferma: venditore, recesso, modulo, garanzia, e il PDF delle condizioni in allegato | `App\Mail\OrderConfirmation::attachments()`, `resources/views/pdf/condizioni-di-vendita.blade.php` |
-| Funzione di recesso online (art. 54-bis, dal 19/06/2026) | `/recesso`, dal footer e dal dettaglio ordine: due passaggi, ricevuta su un indirizzo firmato (stampabile) e per email subito; se l'email non è quella dell'ordine, copia al titolare e avviso nel pannello; al massimo tre dichiarazioni al giorno per indirizzo | `RecessoController`, tabella `richieste_di_recesso`, risorsa Filament «Richieste di recesso» (non si cancellano) |
+| Funzione di recesso online (art. 54-bis, dal 19/06/2026) | `/recesso` (`/en/withdrawal`; `/en/recesso` è un 301), dal footer, dal dettaglio ordine e dall'email di conferma: due passaggi, ricevuta su un indirizzo firmato (stampabile) e per email subito. La dichiarazione si registra sempre; oltre tre al giorno per indirizzo si salta solo l'email della ricevuta. Se l'email non è quella dell'ordine, al titolare va un avviso senza i dati del dichiarante (al massimo uno al giorno per ordine) e il pannello lo segnala. Chi arriva col token dell'ordine (dettaglio, email) o dal proprio account sceglie gli articoli da una lista | `RecessoController`, tabella `richieste_di_recesso`, risorsa Filament «Richieste di recesso» (non si cancellano) |
 | Pagine pratiche: spedizioni (con la tabella delle zone), resi e rimborsi, regolamento aste | `/spedizioni`, `/resi-e-rimborsi`, `/regolamento-aste`; i vecchi indirizzi WooCommerce ci portano con un 301 | `database/data/condizioni_shop.php`, `App\Support\PagineLegaliDelloShop`, `routes/pubbliche/legacy.php` |
 | Avviso armonizzato UE sulla garanzia legale | sotto la casella del checkout, nella scheda prodotto e nell'email di conferma | `AvvisoGaranziaLegale.vue`, `public/images/garanzia/` (pagina 1 dei PDF della Commissione) |
+| Beni personalizzati esclusi dal recesso (art. 59 c. 1 lett. c) | la firma della giocatrice: avviso accanto alla casella nella scheda prodotto, segno sulla riga nel checkout e nell'email di conferma, righe non selezionabili in `/recesso`; condizioni, informativa sul recesso e "Resi e rimborsi" la nominano | `order_items.personalizzazione`; `RecessoController::articoliScelti` rifiuta le righe personalizzate; `resources/js/Support/righeDiRecesso.js` |
 | Prezzo precedente negli sconti (art. 17-bis, Omnibus) | il barrato è il prezzo più basso dei 30 giorni prima della riduzione, con la didascalia | `App\Services\StoricoPrezzi`, tabella `storico_prezzi`, `ShopController::prezzi()`; `prezzi:registra` ogni ora |
 
 ### Le versioni delle condizioni
@@ -65,15 +66,19 @@ lo stesso slug scritta dalla redazione vince sempre.
 
 ## 2. Punti aperti (decisioni della società)
 
-1. **Spese di restituzione.** Il testo le mette a carico del cliente, che è
-   la regola di legge quando il venditore non dice altro. Se la società vuole
-   il reso gratuito, va cambiata una frase nel file dati e nell'email.
-2. **Prodotti personalizzati esclusi dal recesso.** Oggi nel catalogo non c'è
-   un campo che dica se un articolo è personalizzato: l'esclusione vale per
-   quello che il cliente ha chiesto di personalizzare, e va gestita a mano.
-3. **Casella per il recesso.** Il testo indica `info@savinodelbenevolley.it`
-   (e la PEC). Se esiste una casella dedicata allo shop, va sostituita nel
-   file dati e in `CondizioniDiVendita::venditore()`.
+1. **Spese di restituzione (deciso il 26/09/2026).** A carico del cliente,
+   come dice il testo: è la regola di legge quando il venditore non dice
+   altro (art. 57 c. 1).
+2. **Prodotti personalizzati esclusi dal recesso (risolto il 26/09/2026).**
+   La personalizzazione che il negozio vende è la firma della giocatrice,
+   fotografata su `order_items.personalizzazione`: quelle righe sono escluse
+   (tabella del §1). Un articolo interamente su misura, fuori da questo
+   meccanismo, resta da gestire a mano: non c'è un campo di prodotto che lo
+   dica. Nota: che una firma aggiunta scegliendo un'opzione del catalogo sia
+   un bene «chiaramente personalizzato» è la lettura della società, non un
+   dato pacifico — da far confermare a chi segue gli aspetti legali.
+3. **Casella per il recesso (deciso il 26/09/2026).** Resta
+   `info@savinodelbenevolley.it` (e la PEC).
 4. **Garanzia sulle maglie da gara e sugli autografati.** Il testo li vende
    «nello stato descritto nella scheda»: la scheda deve quindi descrivere lo
    stato (usata, segni di gara) perché la clausola regga.
@@ -82,9 +87,12 @@ lo stesso slug scritta dalla redazione vince sempre.
    fiscale, capitale € 150.000,00 versato. Stanno nelle impostazioni del
    gruppo `contact` (`legal_rea`, `legal_capitale`, `legal_ragione_sociale`).
 6. **Corriere**: resta «corriere tracciato»; il vecchio shop diceva Bartolini.
-7. **Conservazione delle dichiarazioni di recesso (deciso il 25/09/2026):**
-   12 mesi dall'invio, dichiarati nell'informativa e applicati da
-   `model:prune`. Il rimborso resta registrato sull'ordine.
+7. **Conservazione delle dichiarazioni di recesso (deciso il 26/09/2026):**
+   10 anni dall'invio quando la dichiarazione è agganciata a un ordine
+   (`order_id` valorizzato): è la prova del recesso, e il diritto al rimborso
+   si prescrive in 10 anni (art. 2946 c.c.). 12 mesi quando il numero scritto
+   nel modulo non corrisponde a nessun ordine. Dichiarato nell'informativa e
+   applicato da `model:prune` (`RichiestaDiRecesso::prunable`).
 8. **La newsletter richiede la conferma per email**; le richieste mai
    confermate si cancellano dopo 30 giorni (`model:prune`).
 9. **La posta esce dal 25/09/2026** (Resend, vedi `docs/GO_LIVE.md` §1): le

@@ -55,7 +55,11 @@ function conferma() {
                 <p class="text-lg text-gray-600 mb-2">
                     {{ fatto ? $t('newsletter.confirm_done_text') : $t('newsletter.confirm_intro') }}
                 </p>
-                <p class="text-lg font-bold text-savino-blue mb-10">{{ email }}</p>
+                <p class="text-lg font-bold text-savino-blue" :class="fatto ? 'mb-10' : 'mb-6'">{{ email }}</p>
+                <!-- Il consenso al pixel viaggia con quello alla newsletter
+                     (linee guida del Garante del 17/04/2026): si dice qui,
+                     prima del pulsante che lo dà. -->
+                <p v-if="!fatto" class="text-sm text-gray-600 mb-10">{{ $t('newsletter.confirm_tracking') }}</p>
 
                 <button
                     v-if="!fatto"

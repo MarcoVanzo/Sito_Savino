@@ -20,13 +20,24 @@ class RichiestaDiRecesso extends Model
     use MassPrunable;
 
     /**
-     * Quanto si tiene una dichiarazione: dodici mesi dall'invio, come dice
-     * l'informativa. Il recesso si chiude in poche settimane — 14 giorni per
-     * rispedire, 14 per rimborsare — e il rimborso resta registrato
-     * sull'ordine, che ha la sua conservazione fiscale. Le toglie
-     * `model:prune`, ogni notte: dal pannello non si cancellano.
+     * Quanto si tiene una dichiarazione che non si aggancia a nessun ordine
+     * (numero sbagliato o inventato): dodici mesi dall'invio. Non prova
+     * nessun recesso su un contratto che esista, e basta a chiudere il caso.
      */
     public const MESI_DI_CONSERVAZIONE = 12;
+
+    /**
+     * Quanto si tiene una dichiarazione agganciata a un ordine vero: dieci
+     * anni dall'invio. E' la prova che il cliente ha receduto, e il diritto
+     * al rimborso che ne nasce si prescrive in dieci anni (art. 2946 c.c.):
+     * buttarla prima lascerebbe la societa' senza la data del recesso proprio
+     * quando le servirebbe. Deciso dal titolare il 26/09/2026.
+     *
+     * Il criterio e' `order_id`, che il controller valorizza solo quando il
+     * numero scritto nel modulo corrisponde a un ordine. Le toglie
+     * `model:prune`, ogni notte: dal pannello non si cancellano.
+     */
+    public const ANNI_DI_CONSERVAZIONE_CON_ORDINE = 10;
 
     protected $table = 'richieste_di_recesso';
 
@@ -74,6 +85,12 @@ class RichiestaDiRecesso extends Model
 
     public function prunable(): Builder
     {
-        return static::where('inviata_il', '<', now()->subMonths(self::MESI_DI_CONSERVAZIONE));
+        return static::where(fn (Builder $query) => $query
+            ->where(fn (Builder $senzaOrdine) => $senzaOrdine
+                ->whereNull('order_id')
+                ->where('inviata_il', '<', now()->subMonths(self::MESI_DI_CONSERVAZIONE)))
+            ->orWhere(fn (Builder $conOrdine) => $conOrdine
+                ->whereNotNull('order_id')
+                ->where('inviata_il', '<', now()->subYears(self::ANNI_DI_CONSERVAZIONE_CON_ORDINE))));
     }
 }

@@ -140,8 +140,9 @@ Gli altri dati del titolare stanno nelle impostazioni, gruppo `contact`
 | Messaggi del modulo contatti | `contact_messages` | `ContactRequest` | 24 mesi dalla data del messaggio (`messaggi:pota`, settimanale) |
 | Accrediti stampa (nome, telefono, testata, ruolo, gara) | `contact_messages` + `extra_data` | `PressAccreditationRequest` | idem, riga intera |
 | Iscritti alla newsletter (email, nome, IP della richiesta, data di conferma) | `newsletter_subscribers`, poi ActiveCampaign **solo dopo la conferma** (doppio opt-in, `confermato_il`) e mai dopo la disiscrizione (il job rilegge la riga); al massimo tre email di conferma al giorno per indirizzo (chiave con l'impronta dell'email) | `NewsletterRequest`, `NewsletterSubscriber::conferma`, `SyncNewsletterToActiveCampaign` | fino alla disiscrizione; una richiesta mai confermata 30 giorni (`model:prune`, `NewsletterSubscriber::prunable`) |
+| Aperture e clic della newsletter, per iscritto (pixel e link tracciati di ActiveCampaign) | ActiveCampaign | consenso dato all'iscrizione; revoca del solo tracciamento dalla pagina preferenze (`tracciamento_revocato_il`, tag `senza-tracciamento`) — linee guida del Garante del 17/04/2026, procedura per la redazione in `docs/ANALYTICS.md` | finché iscritto; il pixel lo spegne la redazione per campagna, ActiveCampaign non lo fa per contatto |
 | Ordini: nome, indirizzi, telefono, codice fiscale | `orders`, `order_items` | `StoreCheckoutRequest` | 10 anni (obbligo fiscale) |
-| Dichiarazioni di recesso (nome, email, numero d'ordine, articoli, data e ora) | `richieste_di_recesso` | `RecessoController` (art. 54-bis) | 12 mesi dall'invio (`model:prune`, `RichiestaDiRecesso::prunable`); il rimborso resta sull'ordine |
+| Dichiarazioni di recesso (nome, email, numero d'ordine, articoli, data e ora) | `richieste_di_recesso` | `RecessoController` (art. 54-bis) | 10 anni dall'invio se agganciate a un ordine (prova del recesso, prescrizione del rimborso, art. 2946 c.c.), 12 mesi se il numero non corrisponde a nessun ordine (`model:prune`, `RichiestaDiRecesso::prunable`) |
 | Offerte d'asta | `bids` | `BidService` | con l'asta; in pagina il nome esce abbreviato (`AuctionService::maskUsername`) |
 | Account dello shop | `users`, `password_histories` | registrazione | finché attivo; il cliente lo esporta e lo cancella da `/shop/account` (`AccountController`, `DatiDelCliente`). Alla cancellazione le righe di `activity_logs` che lo riguardano perdono dati e IP, il cliente Stripe (se c'è) si cancella, e gli ordini — che restano per l'obbligo fiscale — ricevono nome ed email dell'account dove non li avevano (`guest_name`/`guest_email`: l'ordine d'asta non li valorizza), per spedizione, rimborso e recesso (`DatiDelCliente::cancella`). L'esportazione comprende gli ordini da ospite con la stessa email solo se l'email è verificata, e il carrello |
 | Carrelli | `carts`, `cart_items` | | 7 giorni (`carts:prune-expired`, `Cart::prunable`) |
@@ -227,7 +228,9 @@ gli altri diritti.
 
 Tre, e nessuno si chiude scrivendo codice da soli. Il quarto — i ventiquattro
 mesi dei messaggi che nessun comando applicava — è chiuso: `messaggi:pota` gira
-ogni settimana.
+ogni settimana. Accordi con i fornitori (art. 28) e base dei trasferimenti
+extra-UE (artt. 45-46): chiusi dalla società il 26/09/2026, stanno fuori dal
+codice; l'informativa li dichiara.
 
 1. **Il consenso al riconoscimento dei volti va raccolto davvero, e nessuno lo
    verifica.** L'informativa dichiara la base giuridica — consenso esplicito,

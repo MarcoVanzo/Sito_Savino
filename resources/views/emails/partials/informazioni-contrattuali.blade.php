@@ -42,7 +42,7 @@
     <p style="{{ $testo }}">{{ __('emails.contratto.withdrawal_how', ['email' => $indirizzoRecesso, 'address' => $venditore['indirizzo']]) }}</p>
     <p style="{{ $testo }}">
         {{ __('emails.contratto.withdrawal_online') }}
-        <a href="{{ url(($order->locale && $order->locale !== config('app.fallback_locale') ? '/'.$order->locale : '').'/recesso?ordine='.urlencode($order->order_number)) }}" style="color: #003063;">{{ __('emails.contratto.withdrawal_online_link') }}</a>
+        <a href="{{ route(($order->locale && $order->locale !== config('app.fallback_locale') && \Illuminate\Support\Facades\Route::has($order->locale.'.recesso')) ? $order->locale.'.recesso' : 'recesso', ['ordine' => $order->order_number, 'token' => $order->order_token]) }}" style="color: #003063;">{{ __('emails.contratto.withdrawal_online_link') }}</a>
     </p>
     <p style="{{ $testo }}">{{ __('emails.contratto.withdrawal_effects') }}</p>
     <p style="{{ $testo }}"><strong>{{ __('emails.contratto.withdrawal_costs') }}</strong></p>

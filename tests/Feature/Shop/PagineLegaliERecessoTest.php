@@ -3,6 +3,7 @@
 namespace Tests\Feature\Shop;
 
 use App\Mail\AvvisoDiRecessoAlloShop;
+use App\Mail\AvvisoDiRecessoAlTitolare;
 use App\Mail\RicevutaDiRecesso;
 use App\Models\Order;
 use App\Models\Page;
@@ -158,17 +159,19 @@ class PagineLegaliERecessoTest extends TestCase
         Mail::assertSent(RicevutaDiRecesso::class, fn ($mail) => $mail->hasTo('maria@example.com'));
         Mail::assertQueued(AvvisoDiRecessoAlloShop::class);
 
-        // L'ordine è intestato a un altro indirizzo: il titolare riceve una
-        // copia, e il pannello lo segnala.
-        Mail::assertSent(RicevutaDiRecesso::class, fn ($mail) => $mail->hasTo($user->email));
+        // L'ordine è intestato a un altro indirizzo: il titolare riceve un
+        // avviso (non la ricevuta), e il pannello lo segnala.
+        Mail::assertSent(AvvisoDiRecessoAlTitolare::class, fn ($mail) => $mail->hasTo($user->email));
+        Mail::assertNotSent(RicevutaDiRecesso::class, fn ($mail) => $mail->hasTo($user->email));
         $this->assertTrue($richiesta->emailDiversaDaQuellaDellOrdine());
     }
 
     #[Test]
-    public function lo_stesso_indirizzo_non_riceve_piu_di_tre_ricevute_al_giorno(): void
+    public function lo_stesso_indirizzo_non_riceve_piu_di_tre_ricevute_al_giorno_ma_la_dichiarazione_si_registra(): void
     {
         // Il limite per IP della rotta non ferma chi cambia indirizzo IP: la
-        // ricevuta va all'email scritta nel modulo.
+        // ricevuta va all'email scritta nel modulo. Oltre la soglia si salta
+        // l'email, non la dichiarazione: il diritto non ha un tetto.
         Mail::fake();
 
         foreach (range(1, 4) as $volta) {
@@ -181,7 +184,7 @@ class PagineLegaliERecessoTest extends TestCase
                 ]);
         }
 
-        $this->assertSame(3, RichiestaDiRecesso::count());
+        $this->assertSame(4, RichiestaDiRecesso::count());
         Mail::assertSentCount(3);
     }
 

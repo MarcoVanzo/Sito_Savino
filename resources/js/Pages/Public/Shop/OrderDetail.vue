@@ -80,8 +80,9 @@ const formatDate = (dateString) => {
                                     {{ $t('shop.order_detail.download_receipt') }}
                                 </a>
                                 <!-- Il recesso online deve essere raggiungibile anche da qui
-                                     (art. 54-bis del Codice del Consumo), con l'ordine gia' scritto. -->
-                                <Link :href="route('recesso', { ordine: order.order_number })" class="block mt-2 text-sm text-savino-blue underline hover:text-savino-blue/80">
+                                     (art. 54-bis del Codice del Consumo), con l'ordine gia' scritto
+                                     e il token, che fa scegliere gli articoli da una lista. -->
+                                <Link :href="route('recesso', { ordine: order.order_number, token: order.order_token })" class="block mt-2 text-sm text-savino-blue underline hover:text-savino-blue/80">
                                     {{ $t('footer.withdraw') }}
                                 </Link>
                             </div>

@@ -21,6 +21,11 @@
         </tr>
     </table>
 
+    {{-- Linee guida del Garante del 17/04/2026: il consenso al pixel si
+         raccoglie con quello alla newsletter, se detto chiaramente. --}}
+    <p style="color: #666666; font-size: 13px; text-align: center; margin: 0 0 16px; line-height: 1.6;">
+        {{ __('emails.newsletter_conferma.tracciamento') }}
+    </p>
     <p style="color: #666666; font-size: 13px; text-align: center; margin: 0; line-height: 1.6;">
         {{ __('emails.newsletter_conferma.ignore') }}
     </p>

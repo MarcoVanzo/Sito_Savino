@@ -76,11 +76,17 @@ return [
             // (`/recesso`, art. 54-bis): le dichiarazioni non erano nominate.
             "ordini, offerte): servono a concludere e gestire l'acquisto e a rispettare gli obblighi fiscali.",
             'orders, bids): used to complete and manage the purchase and to meet tax obligations.',
+            // Revisione del 25 settembre 2026, fino al 26: recessi tenuti 12
+            // mesi in ogni caso, PayPal e Stripe fra i responsabili invece che
+            // titolari autonomi, e la newsletter senza i pixel di tracciamento
+            // (linee guida del Garante del 17/04/2026, provv. 284).
+            "Dichiarazioni di recesso inviate dal sito: 12 mesi dall'invio.",
+            'Withdrawal notices sent from the site: 12 months from sending.',
         ],
         'contenuto' => [
             'it' => <<<HTML
             <h2>Informativa sul trattamento dei dati personali</h2>
-            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 25 settembre 2026.</p>
+            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 26 settembre 2026.</p>
 
             <h3>Titolare del trattamento</h3>
             <p>{$societa} — {$sede}<br />
@@ -91,7 +97,7 @@ return [
             <ul>
                 <li><strong>Dati di navigazione</strong> (indirizzo IP, pagina richiesta, browser, momento della visita): li registra il server per far funzionare il sito e per la sicurezza. Finché la tua sessione resta aperta, indirizzo IP e browser restano anche nella tabella delle sessioni, che è ciò che tiene in piedi carrello e area riservata. Base giuridica: legittimo interesse del titolare a erogare e proteggere il servizio.</li>
                 <li><strong>Modulo contatti e richieste di accredito stampa</strong> (nome, email, telefono, testo del messaggio, e per gli accrediti testata, ruolo e gara): servono a risponderti. Base giuridica: riscontro alla tua richiesta.</li>
-                <li><strong>Iscrizione alla newsletter</strong> (email, e il nome se lo scrivi): solo se la chiedi. Base giuridica: consenso, revocabile in ogni momento dal link in fondo a ogni messaggio.</li>
+                <li><strong>Iscrizione alla newsletter</strong> (email, e il nome se lo scrivi): solo se la chiedi e la confermi dal link che ti mandiamo. La newsletter la inviamo con ActiveCampaign e contiene un pixel di tracciamento e link tracciati, che ci dicono se hai aperto il messaggio e su quali link hai cliccato: servono a capire quali contenuti interessano e a tenere pulita la lista. Base giuridica: il consenso che dai iscrivendoti, che copre sia l'invio sia questa misura. Dal link in fondo a ogni newsletter puoi revocare in ogni momento solo il tracciamento — continui a ricevere la newsletter, senza pixel né link tracciati — oppure tutto, disiscrivendoti. Le email di servizio (conferme d'ordine, ricevute, reimpostazione della password) non contengono pixel di tracciamento.</li>
                 <li><strong>Acquisti nello shop e partecipazione alle aste</strong> (nome, indirizzo di spedizione e fatturazione, telefono, codice fiscale se lo indichi, ordini, offerte, e le dichiarazioni di recesso che invii dal sito): servono a concludere e gestire l'acquisto, a dare seguito al recesso e a rispettare gli obblighi fiscali. Base giuridica: esecuzione del contratto e obbligo di legge.</li>
                 <li><strong>Account del negozio</strong> (email, password cifrata, storico ordini): solo se ti registri. Teniamo anche l'impronta delle password che hai usato prima, per impedire che tu ne riusi una. Base giuridica: esecuzione del contratto.</li>
                 <li><strong>Statistiche di lettura del sito</strong> (Google Analytics 4): solo con il tuo consenso ai cookie statistici.</li>
@@ -108,18 +114,26 @@ return [
             <p>Se compari in una fotografia e non vuoi comparire, o non vuoi che il tuo nome le resti associato, scrivi a <a href="mailto:{$email}">{$email}</a>: togliamo l'immagine o l'associazione.</p>
 
             <h3>A chi comunichiamo i dati</h3>
-            <p>I dati restano alla società e ai fornitori che ci permettono di far funzionare il servizio, nominati responsabili del trattamento: DigitalOcean (hosting, database e archiviazione dei file, data center di Francoforte), PayPal e — quando è attivo — Stripe (pagamenti dello shop e delle aste), Resend (invio delle email di servizio: conferme d'ordine, spedizioni, rimborsi, aste, reimpostazione della password), ActiveCampaign (invio della newsletter), Sentry (diagnostica degli errori del sito: indirizzo della pagina, tipo di browser e traccia tecnica del guasto; anche gli errori che avvengono nel tuo browser passano dal nostro server prima di arrivare a Sentry, che quindi non riceve il tuo indirizzo IP né la tua identità), Google Ireland (statistiche del sito), Meta Platforms Ireland (misurazione delle inserzioni), oltre al corriere incaricato delle spedizioni. Non vendiamo e non cediamo i dati a nessun altro.</p>
+            <p>I dati restano alla società e ai fornitori che li trattano per nostro conto, nominati responsabili del trattamento con un accordo scritto (articolo 28 del GDPR):</p>
+            <ul>
+                <li><strong>DigitalOcean</strong>: hosting del sito, database e archiviazione dei file, nel data center di Francoforte (Unione Europea);</li>
+                <li><strong>Resend</strong>: invio delle email di servizio — conferme d'ordine, spedizioni, rimborsi, ricevute di recesso, aste, reimpostazione della password;</li>
+                <li><strong>Sentry</strong>: diagnostica degli errori del sito, con i dati conservati nella regione europea: indirizzo della pagina, tipo di browser e traccia tecnica del guasto. Anche gli errori che avvengono nel tuo browser passano dal nostro server prima di arrivare a Sentry, che quindi non riceve il tuo indirizzo IP né la tua identità;</li>
+                <li><strong>ActiveCampaign</strong>: invio della newsletter, solo agli indirizzi che hanno confermato l'iscrizione, con la misura di aperture e clic descritta sopra;</li>
+                <li><strong>Google Ireland</strong>: statistiche del sito (Google Analytics 4), solo con il tuo consenso.</li>
+            </ul>
+            <p>Trattano invece i dati come <strong>titolari autonomi</strong>, ciascuno con la propria informativa: PayPal e — quando è attivo — Stripe, per i pagamenti dello shop e delle aste (i dati della carta o del conto li ricevono direttamente loro: il sito non li vede); il corriere incaricato delle spedizioni. Meta Platforms Ireland, per la misurazione delle inserzioni con il pixel e solo con il tuo consenso ai cookie di marketing, è contitolare con la società della raccolta e della trasmissione dei dati (articolo 26 del GDPR) e titolare autonomo di ciò che ne fa dopo. Non vendiamo e non cediamo i dati a nessun altro.</p>
             <p>Alcune pagine contengono inoltre contenuti ospitati altrove — la mappa del palazzetto, i video delle dirette: aprendole, il tuo indirizzo IP arriva a chi li ospita. È spiegato nella <a href="/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Trasferimenti fuori dall'Unione Europea</h3>
-            <p>Google, Meta, ActiveCampaign, Resend, Stripe e PayPal possono trattare i dati anche negli Stati Uniti. Il trasferimento avviene sulla base delle clausole contrattuali standard della Commissione europea e, dove applicabile, dell'EU-US Data Privacy Framework. Il sito, il suo database, l'archivio fotografico, il riconoscimento dei volti e la diagnostica degli errori restano invece su server europei.</p>
+            <p>Il sito, il suo database, l'archivio fotografico, il riconoscimento dei volti e la diagnostica degli errori stanno su server nell'Unione Europea. Alcuni fornitori sono però società statunitensi o fanno parte di gruppi statunitensi: DigitalOcean e Sentry, che conservano i nostri dati in Europa, e Resend, ActiveCampaign, Google, Meta, PayPal e Stripe, che possono trattarne una parte negli Stati Uniti. Per i fornitori con sede negli Stati Uniti il trasferimento si basa sulla loro adesione all'EU-US Data Privacy Framework, che la Commissione europea ha riconosciuto adeguato (articolo 45 del GDPR), e/o sulle clausole contrattuali standard approvate dalla Commissione (articolo 46).</p>
 
             <h3>Per quanto tempo li conserviamo</h3>
             <ul>
                 <li>Messaggi e richieste di accredito: 24 mesi dall'ultimo contatto.</li>
                 <li>Iscrizione alla newsletter: fino alla disiscrizione.</li>
                 <li>Ordini e documenti fiscali: 10 anni, come impone la legge.</li>
-                <li>Dichiarazioni di recesso inviate dal sito: 12 mesi dall'invio. Il rimborso che ne segue resta registrato sull'ordine.</li>
+                <li>Dichiarazioni di recesso inviate dal sito: 10 anni dall'invio quando si riferiscono a un ordine fatto sul sito, perché sono la prova del recesso e il diritto al rimborso si prescrive in dieci anni; 12 mesi quando il numero d'ordine indicato non corrisponde a nessun ordine.</li>
                 <li>Account del negozio: finché resta attivo; alla cancellazione restano solo i documenti fiscali.</li>
                 <li>Carrelli lasciati a metà: 7 giorni.</li>
                 <li>Sessione di navigazione: 2 ore dall'ultima pagina aperta.</li>
@@ -138,7 +152,7 @@ return [
             HTML,
             'en' => <<<HTML
             <h2>Privacy notice</h2>
-            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 25 September 2026.</p>
+            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 26 September 2026.</p>
 
             <h3>Data controller</h3>
             <p>{$societa} — {$sede}, Italy<br />
@@ -149,7 +163,7 @@ return [
             <ul>
                 <li><strong>Browsing data</strong> (IP address, requested page, browser, time of visit): recorded by the server to run and protect the site. While your session is open, IP address and browser are also held in the sessions table, which is what keeps the cart and the account area working. Legal basis: the controller's legitimate interest in providing and securing the service.</li>
                 <li><strong>Contact form and press accreditation requests</strong> (name, email, phone, message, and for accreditations the outlet, role and match): used to reply to you. Legal basis: responding to your request.</li>
-                <li><strong>Newsletter subscription</strong> (email, and your first name if you give it): only if you ask for it. Legal basis: consent, which you can withdraw at any time from the link at the bottom of every message.</li>
+                <li><strong>Newsletter subscription</strong> (email, and your first name if you give it): only if you ask for it and confirm it from the link we send you. We send the newsletter with ActiveCampaign, and it contains a tracking pixel and tracked links that tell us whether you opened the message and which links you clicked: they help us understand which content interests readers and keep the list clean. Legal basis: the consent you give when subscribing, which covers both the sending and this measurement. From the link at the bottom of every newsletter you can withdraw, at any time, just the tracking — you keep receiving the newsletter, without pixels or tracked links — or everything, by unsubscribing. Service emails (order confirmations, receipts, password resets) contain no tracking pixels.</li>
                 <li><strong>Shop purchases and auction bids</strong> (name, shipping and billing address, phone, Italian tax code if you provide it, orders, bids, and any withdrawal notices you send from the site): used to complete and manage the purchase, to handle withdrawal and to meet tax obligations. Legal basis: performance of the contract and legal obligation.</li>
                 <li><strong>Shop account</strong> (email, hashed password, order history): only if you register. We also keep a fingerprint of the passwords you used before, to stop you reusing one. Legal basis: performance of the contract.</li>
                 <li><strong>Site statistics</strong> (Google Analytics 4): only with your consent to statistics cookies.</li>
@@ -166,18 +180,26 @@ return [
             <p>If you appear in a photograph and would rather not, or would rather your name were not attached to it, write to <a href="mailto:{$email}">{$email}</a>: we will remove the image or the link.</p>
 
             <h3>Who we share data with</h3>
-            <p>Data stays with the club and with the providers that keep the service running, appointed as data processors: DigitalOcean (hosting, database and file storage, Frankfurt data centre), PayPal and — when enabled — Stripe (shop and auction payments), Resend (service emails: order confirmations, shipments, refunds, auctions, password resets), ActiveCampaign (newsletter delivery), Sentry (error diagnostics: the page address, the browser type and the technical trace of the fault; errors that happen in your browser also go through our server before reaching Sentry, which therefore receives neither your IP address nor your identity), Google Ireland (site statistics), Meta Platforms Ireland (advertising measurement), and the courier handling shipments. We do not sell or otherwise pass data to anyone else.</p>
+            <p>Data stays with the club and with the providers that process it on our behalf, appointed as data processors under a written agreement (Article 28 GDPR):</p>
+            <ul>
+                <li><strong>DigitalOcean</strong>: site hosting, database and file storage, in the Frankfurt data centre (European Union);</li>
+                <li><strong>Resend</strong>: service emails — order confirmations, shipments, refunds, withdrawal receipts, auctions, password resets;</li>
+                <li><strong>Sentry</strong>: error diagnostics, with the data held in the European region: the page address, the browser type and the technical trace of the fault. Errors that happen in your browser also go through our server before reaching Sentry, which therefore receives neither your IP address nor your identity;</li>
+                <li><strong>ActiveCampaign</strong>: newsletter delivery, only to addresses that have confirmed their subscription, with the open and click measurement described above;</li>
+                <li><strong>Google Ireland</strong>: site statistics (Google Analytics 4), only with your consent.</li>
+            </ul>
+            <p>The following act instead as <strong>independent controllers</strong>, each with its own privacy notice: PayPal and — when enabled — Stripe, for shop and auction payments (card or account details go straight to them: the site never sees them); the courier handling shipments. Meta Platforms Ireland, for advertising measurement with the pixel and only with your consent to marketing cookies, is joint controller with the club for collecting and transmitting the data (Article 26 GDPR) and independent controller for what it does with it afterwards. We do not sell or otherwise pass data to anyone else.</p>
             <p>Some pages also carry content hosted elsewhere — the arena map, the live stream videos: opening them sends your IP address to whoever hosts them. This is explained in the <a href="/en/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Transfers outside the European Union</h3>
-            <p>Google, Meta, ActiveCampaign, Resend, Stripe and PayPal may also process data in the United States, on the basis of the European Commission's standard contractual clauses and, where applicable, the EU-US Data Privacy Framework. The site itself, its database, the photo archive, the face recognition service and the error diagnostics stay on European servers.</p>
+            <p>The site itself, its database, the photo archive, the face recognition service and the error diagnostics are on servers in the European Union. Some providers are, however, US companies or part of US groups: DigitalOcean and Sentry, which keep our data in Europe, and Resend, ActiveCampaign, Google, Meta, PayPal and Stripe, which may process part of it in the United States. For providers based in the United States the transfer relies on their certification under the EU-US Data Privacy Framework, which the European Commission has found adequate (Article 45 GDPR), and/or on the standard contractual clauses approved by the Commission (Article 46).</p>
 
             <h3>How long we keep it</h3>
             <ul>
                 <li>Messages and accreditation requests: 24 months from the last contact.</li>
                 <li>Newsletter subscription: until you unsubscribe.</li>
                 <li>Orders and tax documents: 10 years, as required by law.</li>
-                <li>Withdrawal notices sent from the site: 12 months from sending. Any resulting refund stays recorded on the order.</li>
+                <li>Withdrawal notices sent from the site: 10 years from sending when they refer to an order placed on the site, because they are the proof of withdrawal and the right to a refund lapses after ten years; 12 months when the order number given does not match any order.</li>
                 <li>Shop account: as long as it is active; after deletion only tax documents remain.</li>
                 <li>Carts left halfway: 7 days.</li>
                 <li>Browsing session: 2 hours from the last page opened.</li>
