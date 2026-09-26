@@ -865,6 +865,11 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   (ordine, transazione); un ordine già catturato (`ORDER_ALREADY_CAPTURED`) non
   è un errore, si rilegge. Con la sola strada del webhook, una notifica che non
   arriva significava denaro mai incassato e ordine annullato dopo un'ora.
+- **Tutto questo vale anche per le aste**: l'ordine del vincitore è un `Order`,
+  il vincitore sceglie fra `PaymentGateway::offertiAlleAste()` (quelli dello
+  shop meno il bonifico, che non sta nel termine dell'asta) e si incassa sulla
+  stessa conferma e con lo stesso webhook. Solo l'annullo torna all'asta
+  (`Order::cancelUrl()`), perché il «riprova» dello shop ignorerebbe il termine.
 - **Il numero d'ordine non si legge solo dalla risposta della cattura.** Lo
   schema di PayPal dichiara `custom_id` sull'unità d'acquisto e sulla cattura,
   ma non garantisce che la risposta lo riporti: si guarda anche l'ordine
@@ -1306,8 +1311,9 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   guasti da segnalare ci sono la coda ferma e i job falliti, e l'avviso parte
   anche da webhook di pagamento e health check.
 - **`shop:sorveglia` guarda lo stato, non gli errori** (negozio spento, checkout
-  senza metodi di pagamento, aste accese senza Stripe — il loro checkout passa
-  solo da lì —, worker fermo, PayPal) e avvisa quando la condizione cambia,
+  senza metodi di pagamento, aste accese senza Stripe né PayPal per il
+  vincitore, aste accese senza Stripe — la verifica della carta per offrire
+  passa solo da lì —, worker fermo, PayPal) e avvisa quando la condizione cambia,
   non a ogni giro. Il primo giro dopo un rilascio (cache svuotata) avvisa se
   trova il negozio spento, al massimo una volta al giorno; un errore di rete
   verso PayPal non vale né come guasto né come guarigione. Non guarda gli

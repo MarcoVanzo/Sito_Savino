@@ -26,8 +26,9 @@ class SorvegliaLoShopTest extends TestCase
             // PayPal fuori dal giro: interrogherebbe l'API vera.
             'services.paypal.client_id' => null,
             'services.paypal.client_secret' => null,
-            // Stripe con una chiave finta: le aste pagano solo con Stripe, e
-            // senza avviserebbero in ogni test (c'è un test apposta).
+            // Stripe con una chiave finta: senza, le aste avviserebbero in
+            // ogni test (la verifica della carta per offrire passa da Stripe,
+            // e PayPal qui è spento). Ci sono test apposta.
             'services.stripe.secret' => 'sk_test_finto',
         ]);
     }
@@ -91,12 +92,53 @@ class SorvegliaLoShopTest extends TestCase
     }
 
     #[Test]
-    public function aste_accese_senza_stripe_avvisa(): void
+    public function aste_accese_senza_stripe_ne_paypal_avvisa(): void
     {
         config(['services.stripe.secret' => null]);
         SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');
 
         $this->giro();
+        $this->giro();
+
+        // Il bonifico non basta al vincitore, e senza Stripe non si verifica
+        // la carta con cui si offre.
+        $this->assertSame([
+            '[Sito Savino] Le aste non si possono pagare',
+            '[Sito Savino] Le aste non accettano nuovi offerenti',
+        ], $this->oggetti());
+    }
+
+    #[Test]
+    public function con_paypal_il_vincitore_puo_pagare_anche_senza_stripe(): void
+    {
+        config([
+            'services.stripe.secret' => null,
+            'services.paypal.client_id' => 'id-finto',
+            'services.paypal.client_secret' => 'segreto-finto',
+        ]);
+        // `paypal:verifica` interrogherebbe l'API vera: il controllo orario
+        // risulta già fatto.
+        Cache::put('sorveglianza:paypal-controllato', true, 3600);
+
+        $this->giro();
+
+        // Il checkout del vincitore ha PayPal; resta vero che senza Stripe
+        // non si verifica la carta per offrire.
+        $this->assertSame(['[Sito Savino] Le aste non accettano nuovi offerenti'], $this->oggetti());
+    }
+
+    #[Test]
+    public function paypal_spento_dal_pannello_non_conta_per_le_aste(): void
+    {
+        config([
+            'services.paypal.client_id' => 'id-finto',
+            'services.paypal.client_secret' => 'segreto-finto',
+        ]);
+        Cache::put('sorveglianza:paypal-controllato', true, 3600);
+        // Stripe ha le chiavi ma non è fra i metodi attivi, PayPal nemmeno:
+        // al vincitore resterebbe il solo bonifico, che le aste non offrono.
+        SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');
+
         $this->giro();
 
         $this->assertSame(['[Sito Savino] Le aste non si possono pagare'], $this->oggetti());
@@ -115,8 +157,11 @@ class SorvegliaLoShopTest extends TestCase
         SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');
         $this->giro();
 
+        // Il bonifico rimette in piedi lo shop, non le aste: il vincitore
+        // paga solo con Stripe o PayPal.
         $this->assertSame([
             '[Sito Savino] Il checkout non offre nessun metodo di pagamento',
+            '[Sito Savino] Le aste non si possono pagare',
             '[Sito Savino] Risolto: il checkout non offre nessun metodo di pagamento',
         ], $this->oggetti());
     }
@@ -144,7 +189,9 @@ class SorvegliaLoShopTest extends TestCase
 
         $this->giro();
 
-        $this->assertSame([], $this->oggetti());
+        // Il checkout del vincitore non dipende da `shop.enabled` (solo da
+        // `auctions.enabled`): a negozio chiuso le aste restano da pagare.
+        $this->assertSame(['[Sito Savino] Le aste non si possono pagare'], $this->oggetti());
     }
 
     #[Test]

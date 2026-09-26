@@ -9,6 +9,7 @@ use App\Models\Auction;
 use App\Models\Order;
 use App\Models\ShippingZone;
 use App\Services\AuctionService;
+use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
 use App\Support\CondizioniDiVendita;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,8 +26,9 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 class AuctionCheckoutController extends Controller
 {
     /**
-     * Dati richiesti al vincitore. Sono gli stessi del checkout dello shop,
-     * meno il metodo di pagamento: le aste si pagano solo con carta.
+     * Dati richiesti al vincitore. Sono gli stessi del checkout dello shop;
+     * il metodo di pagamento si aggiunge in `regole()`, perché l'elenco dei
+     * metodi ammessi dipende dalle credenziali e dal pannello.
      */
     private const REGOLE = [
         'shipping_first_name' => ['required', 'string', 'max:100'],
@@ -89,6 +92,8 @@ class AuctionCheckoutController extends Controller
         // pagamento sull'ordine esistente (stesso order_token), senza crearne
         // uno nuovo né duplicare la riserva di stock.
         if ($existingOrder && $existingOrder->status === OrderStatus::Pending) {
+            // Null se il metodo scelto la prima volta non è più offerto: il
+            // vincitore rivede il modulo e ne sceglie un altro.
             $retryUrl = $this->openPaymentSession($existingOrder);
 
             if ($retryUrl) {
@@ -125,18 +130,34 @@ class AuctionCheckoutController extends Controller
             'pesoDelCollo' => $auction->product?->pesoPerLaSpedizione() ?? 0.0,
             'checkoutDeadline' => $auction->winner_checkout_deadline?->toIso8601String(),
             'winningBid' => $this->auctionService->winningAmountFor($auction),
+            // Solo i metodi con le credenziali e attivi dal pannello, come nel
+            // checkout dello shop (PaymentGateway::offertiAlleAste).
+            'paymentGateways' => array_map(fn (PaymentGateway $g): array => [
+                'value' => $g->value,
+                'label' => $g->getLabel(),
+                'icon' => $g->getIcon(),
+            ], PaymentGateway::offertiAlleAste()),
         ]);
     }
 
     /**
-     * Apre una nuova sessione Stripe su un ordine già esistente e non pagato.
-     * Restituisce l'URL di pagamento, oppure null se Stripe non risponde
-     * (in quel caso il chiamante mostra di nuovo il form di checkout).
+     * Apre una nuova sessione di pagamento su un ordine già esistente e non
+     * pagato, con il metodo scelto la prima volta.
+     *
+     * Restituisce l'URL del gateway, oppure null quando la sessione non si
+     * può aprire: il metodo non è più offerto, sull'ordine c'è già una
+     * transazione (un incasso da rivedere non si ripaga), o il gateway non
+     * risponde. In quei casi il chiamante mostra di nuovo il modulo.
      */
     protected function openPaymentSession(Order $order): ?string
     {
+        if ($order->payment_id !== null
+            || ! in_array($order->payment_gateway, PaymentGateway::offertiAlleAste(), true)) {
+            return null;
+        }
+
         try {
-            return app(StripePaymentService::class)->createSession($order);
+            return $this->urlDelGateway($order);
         } catch (\Throwable $e) {
             Log::error('Errore riapertura sessione di pagamento asta', [
                 'order_id' => $order->id,
@@ -148,7 +169,40 @@ class AuctionCheckoutController extends Controller
     }
 
     /**
-     * Processa il checkout dell'asta e avvia il pagamento Stripe.
+     * La sessione di pagamento sul gateway dell'ordine.
+     *
+     * Le due strade sono quelle del checkout dello shop: Stripe incassa da sé
+     * prima di rimandare indietro, PayPal incassa al ritorno sulla pagina di
+     * conferma (Order::successUrl) e nel webhook, idempotenti fra loro.
+     */
+    private function urlDelGateway(Order $order): string
+    {
+        return match ($order->payment_gateway) {
+            PaymentGateway::Stripe => app(StripePaymentService::class)->createSession($order),
+            PaymentGateway::PayPal => app(PayPalPaymentService::class)->createSession($order),
+            default => throw new \LogicException("Metodo di pagamento non ammesso per le aste: {$order->payment_gateway?->value}"),
+        };
+    }
+
+    /**
+     * Le regole del modulo, con i soli metodi di pagamento offerti ora.
+     *
+     * @return array<string, mixed>
+     */
+    private function regole(): array
+    {
+        return [
+            ...self::REGOLE,
+            'payment_gateway' => [
+                'required',
+                'string',
+                Rule::in(array_map(fn (PaymentGateway $g): string => $g->value, PaymentGateway::offertiAlleAste())),
+            ],
+        ];
+    }
+
+    /**
+     * Processa il checkout dell'asta e avvia il pagamento sul gateway scelto.
      */
     public function store(Request $request, string $token): RedirectResponse|SymfonyResponse
     {
@@ -172,7 +226,7 @@ class AuctionCheckoutController extends Controller
         // alla INSERT, che falliva sull'indice unico (auction_id, user_id).
 
         $this->normalizzaInput($request);
-        $validated = $request->validate(self::REGOLE);
+        $validated = $request->validate($this->regole());
 
         $erroriItalia = $this->erroriSuiDatiItaliani($validated);
 
@@ -203,14 +257,12 @@ class AuctionCheckoutController extends Controller
                 return back()->with('error', __('messages.checkout.error'));
             }
 
-            // Pagamento forzato su Stripe. Inertia::location e non
-            // redirect()->away(): il form di checkout è Inertia e un 302 verso
-            // stripe.com verrebbe seguito dalla XHR, che muore sul CORS del
-            // gateway con l'ordine già creato e la merce riservata. Fuori da
-            // Inertia degrada da sé al 302 di prima.
-            $url = app(StripePaymentService::class)->createSession($result['order']);
-
-            return Inertia::location($url);
+            // Inertia::location e non redirect()->away(): il form di checkout
+            // è Inertia e un 302 verso stripe.com o paypal.com verrebbe
+            // seguito dalla XHR, che muore sul CORS del gateway con l'ordine
+            // già creato e la merce riservata. Fuori da Inertia degrada da sé
+            // al 302.
+            return Inertia::location($this->urlDelGateway($result['order']));
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
@@ -342,9 +394,12 @@ class AuctionCheckoutController extends Controller
             'codice_fiscale' => $validated['codice_fiscale'] ?? null,
             'shipping_cost' => $shippingCost,
             'notes' => $validated['notes'] ?? null,
+            // Si può cambiare metodo fra un tentativo e l'altro: chi è tornato
+            // indietro da PayPal può scegliere la carta, e viceversa.
+            'payment_gateway' => PaymentGateway::from($validated['payment_gateway']),
         ];
 
-        // Ordine già aperto e non pagato (checkout abbandonato su Stripe):
+        // Ordine già aperto e non pagato (checkout abbandonato sul gateway):
         // si riusa, aggiornando i dati appena inviati. Lo stock è già
         // riservato dal primo tentativo, non va riservato di nuovo.
         if ($existingOrder) {
@@ -359,7 +414,6 @@ class AuctionCheckoutController extends Controller
         $order = new Order([
             ...$dati,
             'user_id' => auth()->id(),
-            'payment_gateway' => PaymentGateway::Stripe,
             'privacy_accepted_at' => now(),
             'condizioni_versione' => CondizioniDiVendita::VERSIONE,
         ]);

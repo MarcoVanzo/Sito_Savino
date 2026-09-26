@@ -65,6 +65,22 @@ enum PaymentGateway: string implements HasLabel
             ->all();
     }
 
+    /**
+     * I metodi con cui il vincitore di un'asta può pagare: quelli del
+     * checkout dello shop, meno il bonifico. Il lotto va pagato entro il
+     * termine dell'asta e, scaduto quello, passa al secondo offerente: un
+     * accredito che arriva giorni dopo non ci sta dentro.
+     *
+     * @return list<self>
+     */
+    public static function offertiAlleAste(): array
+    {
+        return array_values(array_filter(
+            self::offertiAlCheckout(),
+            fn (self $g): bool => $g !== self::BankTransfer,
+        ));
+    }
+
     public function getIcon(): string
     {
         return match ($this) {

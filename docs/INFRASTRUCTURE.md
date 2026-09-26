@@ -693,7 +693,7 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 | Comando | Frequenza | Scopo |
 |---------|-----------|-------|
 | `scheduler:beat` | Ogni minuto | Battito letto dall'health check `/up`: rileva uno scheduler morto |
-| `shop:sorveglia` | Ogni 5 minuti | Negozio/aste spenti, checkout senza metodi di pagamento, coda `default` ferma, PayPal (orario): email quando cambia (§9, Avvisi) |
+| `shop:sorveglia` | Ogni 5 minuti | Negozio/aste spenti, checkout (shop o aste) senza metodi di pagamento, aste senza Stripe per la verifica della carta, coda `default` ferma, PayPal (orario): email quando cambia (§9, Avvisi) |
 | `lvf:sync` | Ogni ora | Calendario, risultati e classifica dal sito della Lega (fallimenti contati da `LvfSyncHealth`, alert ai Super Admin) |
 | `news:importa-dal-vecchio-sito` | Ogni ora | Comunicati pubblicati sul vecchio WordPress (`wp-json`); si spegne da solo il 2/10/2026 (`services.vecchio_sito.leggibile_fino_a`) |
 | `sitemap:generate` | Giornaliero (04:00) | Genera sitemap XML per SEO |
