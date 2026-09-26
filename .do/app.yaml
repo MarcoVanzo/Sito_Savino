@@ -269,6 +269,11 @@ services:
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
     value: "2"
+  # Id del campo personalizzato PREFERENZE_URL (tag %PREFERENZEURL%): il
+  # link alle preferenze sul tracciamento nel footer delle campagne.
+  - key: ACTIVECAMPAIGN_CAMPO_PREFERENZE
+    scope: RUN_AND_BUILD_TIME
+    value: "27"
   # Service account Google per la GA4 Data API, in JSON codificato base64.
   # Il valore è cifrato da DigitalOcean (EV[1:...]): può stare in un repository
   # pubblico perché solo App Platform ha la chiave per decifrarlo. Non sostituirlo
@@ -506,6 +511,11 @@ workers:
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
     value: "2"
+  # Id del campo personalizzato PREFERENZE_URL (tag %PREFERENZEURL%): il
+  # link alle preferenze sul tracciamento nel footer delle campagne.
+  - key: ACTIVECAMPAIGN_CAMPO_PREFERENZE
+    scope: RUN_AND_BUILD_TIME
+    value: "27"
   # Service account Google per la GA4 Data API, in JSON codificato base64.
   # Il valore è cifrato da DigitalOcean (EV[1:...]): può stare in un repository
   # pubblico perché solo App Platform ha la chiave per decifrarlo. Non sostituirlo
@@ -716,6 +726,11 @@ workers:
   - key: ACTIVECAMPAIGN_LIST_ID
     scope: RUN_AND_BUILD_TIME
     value: "2"
+  # Id del campo personalizzato PREFERENZE_URL (tag %PREFERENZEURL%): il
+  # link alle preferenze sul tracciamento nel footer delle campagne.
+  - key: ACTIVECAMPAIGN_CAMPO_PREFERENZE
+    scope: RUN_AND_BUILD_TIME
+    value: "27"
   # Service account Google per la GA4 Data API, in JSON codificato base64.
   # Il valore è cifrato da DigitalOcean (EV[1:...]): può stare in un repository
   # pubblico perché solo App Platform ha la chiave per decifrarlo. Non sostituirlo
