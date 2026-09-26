@@ -21,8 +21,7 @@
         "home": "Home",
         "shop": "Shop",
         "form_privacy_notice": "We use the data you enter only to reply to your request and keep it for 24 months. To find out how we process it and what your rights are, read the",
-        "form_privacy_link": "privacy notice",
-        "breadcrumb": "Breadcrumb"
+        "form_privacy_link": "privacy notice"
     },
     "nav": {
         "main_navigation": "Main navigation",
@@ -732,7 +731,6 @@
         "select_country": "Select country",
         "processing": "Processing...",
         "no_gateways": "No payment methods available",
-        "payment_required": "Choose a payment method.",
         "placeholder_phone": "+39 333 000 0000",
         "coupon_label": "Coupon Code",
         "coupon_placeholder": "Enter code...",

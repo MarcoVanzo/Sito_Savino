@@ -164,7 +164,9 @@ class SorvegliaLoShopTest extends TestCase
         $this->giro();
 
         $this->assertNull(AvvisoTecnico::memoria()->get('sorveglianza:guasto:paypal'));
-        $this->assertSame([], $this->oggetti());
+        // Nessun avviso su PayPal. Resta quello delle aste, accese di serie:
+        // con il solo bonifico il vincitore non ha un metodo per pagare.
+        $this->assertSame(['[Sito Savino] Le aste non si possono pagare'], $this->oggetti());
     }
 
     private function conPayPal(): void
@@ -205,7 +207,7 @@ class SorvegliaLoShopTest extends TestCase
         ]);
         // `paypal:verifica` interrogherebbe l'API vera: il controllo orario
         // risulta già fatto.
-        Cache::put('sorveglianza:paypal-controllato', true, 3600);
+        AvvisoTecnico::memoria()->put('sorveglianza:paypal-controllato', true, 3600);
 
         $this->giro();
 
@@ -221,7 +223,7 @@ class SorvegliaLoShopTest extends TestCase
             'services.paypal.client_id' => 'id-finto',
             'services.paypal.client_secret' => 'segreto-finto',
         ]);
-        Cache::put('sorveglianza:paypal-controllato', true, 3600);
+        AvvisoTecnico::memoria()->put('sorveglianza:paypal-controllato', true, 3600);
         // Stripe ha le chiavi ma non è fra i metodi attivi, PayPal nemmeno:
         // al vincitore resterebbe il solo bonifico, che le aste non offrono.
         SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');

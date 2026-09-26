@@ -21,8 +21,7 @@
         "home": "Home",
         "shop": "Shop",
         "form_privacy_notice": "Usiamo i dati che inserisci solo per rispondere alla tua richiesta e li conserviamo per 24 mesi. Per sapere come li trattiamo e quali diritti hai, leggi",
-        "form_privacy_link": "l'informativa privacy",
-        "breadcrumb": "Percorso di navigazione"
+        "form_privacy_link": "l'informativa privacy"
     },
     "nav": {
         "main_navigation": "Navigazione principale",
@@ -732,7 +731,6 @@
         "select_country": "Seleziona il paese",
         "processing": "Elaborazione...",
         "no_gateways": "Nessun metodo di pagamento disponibile",
-        "payment_required": "Scegli un metodo di pagamento.",
         "placeholder_phone": "+39 333 000 0000",
         "coupon_label": "Codice Coupon",
         "coupon_placeholder": "Inserisci il codice...",

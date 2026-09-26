@@ -144,13 +144,14 @@ describe('checkout con errori', () => {
 });
 
 describe('recesso online', () => {
-    it('i campi vuoti dicono l\'errore, e l\'aiuto resta legato al campo facoltativo', async () => {
+    it('i campi vuoti dicono l\'errore insieme all\'aiuto', async () => {
         const { frasi } = await leggi(Recesso, {}, async (r) => {
             await r.find('form').trigger('submit');
         });
 
         expect(frasi).toContain('textbox, Nome e cognome *, Campo obbligatorio., invalid, required');
-        expect(frasi).toContain('textbox, Email *, Campo obbligatorio., invalid, required');
+        // L'errore si aggiunge all'aiuto, non lo sostituisce.
+        expect(frasi).toContain('textbox, Email *, Campo obbligatorio. Ti mandiamo qui la ricevuta del recesso., invalid, required');
         expect(frasi).toContain('textbox, Articoli da restituire (facoltativo), Lascia vuoto se recedi dall\'intero ordine., not invalid');
         expect(indice(frasi, 'button, Continua')).toBeGreaterThan(indice(frasi, 'Articoli da restituire'));
     });
