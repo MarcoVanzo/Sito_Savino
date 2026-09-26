@@ -139,6 +139,10 @@ class Order extends Model
             'price_at_time_of_purchase' => round($unitPrice, 2),
             'personalizzazione' => $personalizzazione,
             'supplemento_personalizzazione' => round($supplementoPersonalizzazione, 2),
+            // Lo stato di un articolo indossato o autografato si fotografa qui
+            // e non nei chiamanti: shop e aste passano entrambi di qui, e le
+            // maglie da gara si vendono soprattutto all'asta.
+            'stato_articolo' => Product::withTrashed()->find($productId)?->statoArticoloDaFotografare(),
         ]);
 
         StockMovement::create([

@@ -33,6 +33,7 @@ return [
         'heading' => 'Grazie per il tuo ordine!',
         'intro' => 'Abbiamo ricevuto il tuo ordine e lo stiamo elaborando.',
         'items_heading' => 'Articoli ordinati',
+        'item_condition' => 'Stato dell\'articolo',
         'col_product' => 'Prodotto',
         'col_quantity' => 'Qtà',
         'col_price' => 'Prezzo',

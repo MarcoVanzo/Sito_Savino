@@ -103,6 +103,8 @@ const formatDate = (dateString) => {
                                             {{ item.variant.size }}{{ item.variant.color ? ` - ${item.variant.color}` : '' }}
                                         </p>
                                         <p v-if="item.nome_personalizzazione" class="text-sm text-savino-fucsia font-semibold mt-1">+ {{ item.nome_personalizzazione }}</p>
+                                        <!-- Lo stato dichiarato al momento dell'acquisto (maglie indossate, autografi) -->
+                                        <p v-if="item.testo_stato_articolo" class="text-sm text-gray-700 mt-1 whitespace-pre-line"><span class="font-semibold text-savino-blue">{{ $t('shop.item_condition') }}:</span> {{ item.testo_stato_articolo }}</p>
                                         <div class="text-sm text-gray-500 mt-2">
                                             {{ $t('shop.order_detail.qty') }}: <span class="font-medium text-gray-900">{{ item.quantity }}</span> x {{ formatPrice(item.price_at_time_of_purchase) }}
                                         </div>

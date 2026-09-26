@@ -1083,6 +1083,16 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   anche dal checkout sotto lock). La riga d'ordine ne fotografa nome e
   supplemento. Il prezzo di una riga si compone solo in
   `CartItem::prezzoUnitario()`.
+- **Maglie indossate e autografati hanno uno «Stato dell'articolo».** Le
+  condizioni li vendono «nello stato descritto nella scheda»: acceso il flag
+  `products.usato_o_autografato`, `stato_articolo` (tradotto, `text`) e'
+  obbligatorio in italiano. L'obbligo sta in
+  `ProductResource::verificaStatoDellArticolo` (beforeSave/beforeCreate), non
+  in `->required()`: il plugin translatable rivalida il modulo con i dati di
+  ogni lingua visitata e scarta in silenzio quella che non passa, quindi uno
+  stato non tradotto avrebbe buttato nome e descrizione inglesi. La riga
+  d'ordine lo fotografa in `Order::registraArticolo` (shop e aste), e ordine,
+  email, PDF e pannello leggono `order_items.stato_articolo`, mai la scheda.
 
 ---
 

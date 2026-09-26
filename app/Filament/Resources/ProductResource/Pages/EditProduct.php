@@ -25,6 +25,11 @@ class EditProduct extends EditRecord
         return ProductResource::etichetteDalModulo($data);
     }
 
+    protected function beforeSave(): void
+    {
+        ProductResource::verificaStatoDellArticolo($this);
+    }
+
     // L'invalidazione della cache shop è a carico di CacheInvalidationObserver,
     // che osserva Product: farla anche qui creava una seconda sorgente di verità
     // sulle chiavi, già divergente rispetto ai suffissi di lingua.

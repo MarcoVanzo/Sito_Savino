@@ -31,6 +31,7 @@ return [
         'heading' => 'Thank you for your order!',
         'intro' => 'We have received your order and we are processing it.',
         'items_heading' => 'Items ordered',
+        'item_condition' => 'Item condition',
         'col_product' => 'Product',
         'col_quantity' => 'Qty',
         'col_price' => 'Price',

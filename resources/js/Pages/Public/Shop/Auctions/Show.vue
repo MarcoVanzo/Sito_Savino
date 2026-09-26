@@ -11,6 +11,7 @@ import CountdownTimer from '@/Components/Shop/Auction/CountdownTimer.vue';
 import BidForm from '@/Components/Shop/Auction/BidForm.vue';
 import BidHistory from '@/Components/Shop/Auction/BidHistory.vue';
 import SocialShare from '@/Components/Shop/Auction/SocialShare.vue';
+import StatoArticolo from '@/Components/Shop/StatoArticolo.vue';
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -234,6 +235,8 @@ onUnmounted(() => {
                         <p v-if="currentAuction.product_size" class="text-gray-400 mb-4 text-sm">
                             {{ $t('shop.size') || 'Taglia' }}: <span class="text-white font-bold">{{ currentAuction.product_size }}</span>
                         </p>
+
+                        <StatoArticolo :testo="currentAuction.product_stato_articolo" scuro class="mb-5" />
 
                         <!-- Price -->
                         <div class="bg-gray-800/50 rounded-xl p-5 mb-5 border border-gray-700/50">

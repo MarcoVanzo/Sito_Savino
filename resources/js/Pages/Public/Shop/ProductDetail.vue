@@ -11,6 +11,7 @@ import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 import EtichetteProdotto from '@/Components/Shop/EtichetteProdotto.vue';
+import StatoArticolo from '@/Components/Shop/StatoArticolo.vue';
 import { trackViewContent, trackAddToCart } from '@/meta-pixel.js';
 
 
@@ -345,6 +346,11 @@ const structuredData = computed(() => {
                                 {{ $t('shop.lowest_price_30_days', { price: formatPrice(originalPrice) }) }}
                             </p>
                         </div>
+
+                        <!-- Stato di una maglia indossata o di un autografo: le
+                             condizioni li vendono «nello stato descritto nella
+                             scheda», quindi va letto prima di scegliere. -->
+                        <StatoArticolo :testo="product?.stato_articolo" class="mb-6" />
 
                         <!-- Short Description -->
                         <div v-if="product?.description" class="text-gray-600 leading-relaxed mb-8 prose prose-sm max-w-none" v-html="sanitize(product.description)"></div>

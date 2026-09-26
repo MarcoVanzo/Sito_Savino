@@ -621,6 +621,7 @@
         "personalization_add": "Add {name}",
         "personalization_surcharge": "+ {price}",
         "personalization_included": "included",
+        "item_condition": "Item condition",
         "badge_new": "New",
         "all_categories": "All categories",
         "product_singular": "product",

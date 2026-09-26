@@ -48,6 +48,9 @@ class ShopController extends Controller
                 'nome' => $p->personalizzazione_nome,
                 'prezzo' => (float) $p->personalizzazione_prezzo,
             ] : null,
+            // Maglie indossate e autografati: le condizioni di vendita li
+            // vendono «nello stato descritto nella scheda». Null per il resto.
+            'stato_articolo' => $p->statoArticoloPerLaScheda(),
             'type' => $p->type->value ?? $p->type,
             'category' => $p->category ? [
                 'id' => $p->category->id,
