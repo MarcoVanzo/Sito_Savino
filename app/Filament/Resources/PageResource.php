@@ -204,7 +204,6 @@ class PageResource extends Resource
                             'Public/Comunicazione',
                             'Public/Roster',
                             'Public/Stagione',
-                            'Public/Shop',
                         ]) && ! in_array($get('slug'), [
                             'iscrizione-experience',
                             'double-face',
@@ -240,7 +239,6 @@ class PageResource extends Resource
                                 'Public/Societa/Palazzetto' => 'Società - Palazzetto',
                                 'Public/Societa/Safeguarding' => 'Società - Safeguarding',
                                 'Public/Roster' => 'Roster',
-                                'Public/Shop' => 'Shop',
                                 'Public/Ticketing' => 'Biglietteria',
                                 'Public/ClubRace' => 'SDB Volley Club Race',
                                 'Public/Convenzioni' => 'Convenzioni per gli abbonati',
