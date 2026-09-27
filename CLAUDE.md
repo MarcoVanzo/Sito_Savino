@@ -665,6 +665,12 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   `$this->data = …`: senza idratazione un FileUpload con un percorso in
   archivio manda in 500 la richiesta con cui il browser chiede i file già
   caricati (Documenti Legali non si apriva più).
+- **I modelli di pagina stanno in `App\Enums\PageTemplate`**, e da nessun'altra
+  parte: tendina e filtro del pannello, sezioni del modulo e componente mostrato
+  da `PageController` leggono da lì. Erano quattro elenchi scritti a mano e il
+  pannello offriva `Public/Shop`, che non ha componente: la pagina ricadeva in
+  silenzio sulla pagina generica. Un test verifica che ogni caso abbia il suo
+  `.vue` e che `PageResource` non scriva nomi di modello a mano.
 - **Una sezione, una pagina.** `/youth` e `/ticketing` rimandano a
   `settore-giovanile` e `biglietteria` (come `/sociale` → `volley-4-all`): le
   copie del seeder `youth`, `ticketing` e `sociale` sono state tolte perché la

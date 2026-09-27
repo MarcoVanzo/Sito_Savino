@@ -787,27 +787,6 @@ class PageTemplateForms
     }
 
     /**
-     * Il modello della pagina non ha campi propri.
-     *
-     * Qui c'era un `KeyValue::make('content_data')`, nascosto per i modelli
-     * con un form dedicato. Un campo nascosto non viene deidratato, e Filament
-     * a quel punto toglie dallo stato tutto ciò che sta sotto il suo percorso:
-     * `content_data` intero, compresi i campi `content_data.*` dei modelli
-     * veri. Per questo salvare una pagina la svuotava, e il salvataggio era
-     * stato dirottato sullo stato grezzo di Livewire (vedi PreservaContentData).
-     * Nessuna pagina in archivio usa piu' la mappa chiave-valore: i modelli
-     * senza form (Stagione, Roster, Shop...) non leggono `content_data`.
-     */
-    public static function getGenericJsonSchema(): array
-    {
-        return [
-            Forms\Components\Placeholder::make('content_data_assente')
-                ->label('Variabili Template')
-                ->content('Questo modello non ha campi propri: il contenuto si scrive nell\'editor qui sopra.'),
-        ];
-    }
-
-    /**
      * Schema del form per il Summer Camp
      */
     public static function getSummerCampSchema(): array

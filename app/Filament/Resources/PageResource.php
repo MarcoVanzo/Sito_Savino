@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PageTemplate;
 use App\Enums\PostStatus;
 use App\Filament\Forms\PageTemplateForms;
 use App\Filament\Resources\PageResource\Pages;
@@ -91,75 +92,75 @@ class PageResource extends Resource
                     Forms\Components\Section::make('Impostazioni Pagina Società')
                         ->label('Dati Società / Organigramma')
                         ->schema(PageTemplateForms::getSocietaSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Organigramma'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Organigramma)),
 
                     // FORM: STORIA
                     Forms\Components\Section::make('Impostazioni Pagina Storia')
                         ->schema(PageTemplateForms::getStoriaSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Storia'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Storia)),
 
                     // FORM: PALAZZETTO
                     Forms\Components\Section::make('Impostazioni Pagina Palazzetto')
                         ->schema(PageTemplateForms::getPalazzettoSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Palazzetto'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Palazzetto)),
 
                     // FORM: SAFEGUARDING
                     Forms\Components\Section::make('Impostazioni Pagina Safeguarding')
                         ->schema(PageTemplateForms::getSafeguardingSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Societa/Safeguarding'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Safeguarding)),
 
                     // FORM: CONTATTI (No outer Section/Card to prevent nested borders!)
                     Forms\Components\Group::make(PageTemplateForms::getContattiSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Contatti'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Contatti)),
 
                     // FORM: TICKETING
                     Forms\Components\Section::make('Impostazioni Pagina Biglietteria')
                         ->schema(PageTemplateForms::getTicketingSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Ticketing'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Ticketing)),
 
                     // FORM: CLUB RACE
                     Forms\Components\Section::make('Convenzioni per gli abbonati')
                         ->schema(PageTemplateForms::getConvenzioniSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Convenzioni'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Convenzioni)),
 
                     // FORM: PROGETTO AFFILIAZIONI
                     Forms\Components\Section::make('Societa\' del progetto affiliazioni')
                         ->schema(PageTemplateForms::getAffiliazioniSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Affiliazioni'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Affiliazioni)),
 
                     Forms\Components\Section::make('Impostazioni Pagina Club Race')
                         ->schema(PageTemplateForms::getClubRaceSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/ClubRace'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::ClubRace)),
 
                     // FORM: SUMMER CAMP
                     Forms\Components\Section::make('Impostazioni Pagina Summer Camp')
                         ->schema(PageTemplateForms::getSummerCampSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/SummerCamp'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::SummerCamp)),
 
                     // FORM: PROGETTI SOCIALI
                     Forms\Components\Section::make('Impostazioni Pagina Progetti Sociali')
                         ->schema(PageTemplateForms::getSocialeSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sociale'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Sociale)),
 
                     // FORM: SPONSOR
                     Forms\Components\Section::make('Impostazioni Pagina Sponsor')
                         ->schema(PageTemplateForms::getSponsorSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Sponsor'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Sponsor)),
 
                     // FORM: SETTORE GIOVANILE
                     Forms\Components\Section::make('Impostazioni Pagina Settore Giovanile')
                         ->schema(PageTemplateForms::getYouthSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Youth'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Youth)),
 
                     // FORM: TALENT DAY
                     Forms\Components\Section::make('Impostazioni Pagina Talent Day')
                         ->schema(PageTemplateForms::getTalentDaySchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/TalentDay'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::TalentDay)),
 
                     // FORM: COMUNICAZIONE
                     Forms\Components\Section::make('Impostazioni Pagina Comunicazione')
                         ->schema(PageTemplateForms::getComunicazioneSchema())
-                        ->visible(fn (Forms\Get $get) => $get('template') === 'Public/Comunicazione'),
+                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Comunicazione)),
 
                     // FORM: ISCRIZIONE EXPERIENCE (SUMMER CAMP)
                     Forms\Components\Section::make('Pulsante Grafico Iscrizione (Experience)')
@@ -179,36 +180,7 @@ class PageResource extends Resource
                     // FORM: PAGINE DI CONTENUTO (pulsante + galleria foto)
                     Forms\Components\Section::make('Pulsante e Galleria Fotografica')
                         ->schema(PageTemplateForms::getContentPageSchema())
-                        ->visible(fn (Forms\Get $get) => in_array($get('template'), [
-                            'Public/ContentPage',
-                            'Default',
-                            null,
-                        ], true) && $get('slug') !== 'iscrizione-experience'),
-
-                    // GENERIC JSON per altre pagine
-                    Forms\Components\Section::make('Dati Contenuto (Altre Pagine)')
-                        ->schema(PageTemplateForms::getGenericJsonSchema())
-                        ->visible(fn (Forms\Get $get) => ! in_array($get('template'), [
-                            'Public/Societa/Organigramma',
-                            'Public/Societa/Storia',
-                            'Public/Societa/Palazzetto',
-                            'Public/Societa/Safeguarding',
-                            'Public/Contatti',
-                            'Public/Ticketing',
-                            'Public/ClubRace',
-                            'Public/Convenzioni',
-                            'Public/SummerCamp',
-                            'Public/Sociale',
-                            'Public/Sponsor',
-                            'Public/Youth',
-                            'Public/Comunicazione',
-                            'Public/Roster',
-                            'Public/Stagione',
-                        ]) && ! in_array($get('slug'), [
-                            'iscrizione-experience',
-                            'double-face',
-                            'magazine',
-                        ])),
+                        ->visible(fn (Forms\Get $get) => ($get('template') === null || PageTemplate::scelto($get('template'), PageTemplate::ContentPage, PageTemplate::Predefinito)) && $get('slug') !== 'iscrizione-experience'),
                 ])->columnSpanFull(),
             ])->columnSpan(['lg' => 2]),
         ];
@@ -232,26 +204,7 @@ class PageResource extends Resource
                             ->required(),
                         Forms\Components\Select::make('template')
                             ->label('Template Pagina')
-                            ->options([
-                                'Default' => 'Template Predefinito',
-                                'Public/Societa/Organigramma' => 'Società (Organigramma)',
-                                'Public/Societa/Storia' => 'Società - Storia',
-                                'Public/Societa/Palazzetto' => 'Società - Palazzetto',
-                                'Public/Societa/Safeguarding' => 'Società - Safeguarding',
-                                'Public/Roster' => 'Roster',
-                                'Public/Ticketing' => 'Biglietteria',
-                                'Public/ClubRace' => 'SDB Volley Club Race',
-                                'Public/Convenzioni' => 'Convenzioni per gli abbonati',
-                                'Public/Sponsor' => 'Sponsor',
-                                'Public/Youth' => 'Settore Giovanile',
-                                'Public/Affiliazioni' => 'Progetto Affiliazioni',
-                                'Public/SummerCamp' => 'Summer Camp',
-                                'Public/TalentDay' => 'Talent Day & Recruiting',
-                                'Public/Sociale' => 'Progetti Sociali',
-                                'Public/Comunicazione' => 'Comunicazione',
-                                'Public/Stagione' => 'Stagione',
-                                'Public/ContentPage' => 'Pagina Contenuto',
-                            ])
+                            ->options(PageTemplate::opzioni())
                             ->live()
                             ->nullable(),
                         Forms\Components\Select::make('parent_id')
@@ -317,11 +270,7 @@ class PageResource extends Resource
                     ->options(PostStatus::class),
                 Tables\Filters\SelectFilter::make('template')
                     ->label('Sezione (Template)')
-                    ->options([
-                        'Public/Ticketing' => 'Biglietteria',
-                        'Public/SummerCamp' => 'Summer Camp',
-                        'Public/Sociale' => 'Progetti Sociali',
-                    ]),
+                    ->options(PageTemplate::opzioni()),
             ])
             ->actions([
                 Tables\Actions\Action::make('Anteprima')
