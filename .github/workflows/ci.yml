@@ -57,13 +57,18 @@ jobs:
         with:
           fetch-depth: ${{ github.event_name != 'push' && 0 || 1 }}
 
-      # Configurazione PHP 8.4 — Xdebug (lento) solo nelle run con coverage
+      # Configurazione PHP 8.4 — PCOV solo nelle run con coverage. Con Xdebug
+      # i test PHPUnit passavano da circa 5 a 12 minuti: PCOV misura solo le
+      # righe (quello che serve a Clover e SonarCloud) e costa pochissimo.
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.4'
           extensions: mbstring, xml, ctype, json, bcmath, curl, pdo, pdo_mysql
-          coverage: ${{ github.event_name != 'push' && 'xdebug' || 'none' }}
+          coverage: ${{ github.event_name != 'push' && 'pcov' || 'none' }}
+          # PCOV da solo guarderebbe solo `app/`: phpunit.xml misura anche
+          # `database/migrations`, che SonarCloud analizza.
+          ini-values: pcov.directory=., pcov.exclude="~(vendor|node_modules|storage)~"
 
       # Configurazione Node.js 20
       - name: Setup Node.js
@@ -127,6 +132,12 @@ jobs:
         run: |
           cp .env.testing .env
           php artisan key:generate
+
+      # Mappa delle dipendenze: fallisce su codice che nessuno raggiunge e su
+      # rotte, viste, pagine Vue, import o classi citati ma inesistenti.
+      # La mappa 3D si genera in locale con --html (vedi lo script).
+      - name: Mappa delle dipendenze
+        run: php scripts/mappa-dipendenze.php
 
       # Test PHPUnit con MySQL 8.4 (coverage solo nelle run complete)
       - name: Esegui test PHPUnit
