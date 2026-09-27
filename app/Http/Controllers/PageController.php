@@ -310,7 +310,7 @@ class PageController extends Controller
                         // Le due squadre e la data ci sono per costruzione: la
                         // query filtra su una squadra di casa interna e su una
                         // data futura.
-                        $sfida = $gara->homeTeam->name.' — '.$gara->awayTeam->name;
+                        $sfida = $gara->homeTeam->nomePubblico().' — '.$gara->awayTeam->nomePubblico();
 
                         return [
                             'value' => $sfida,

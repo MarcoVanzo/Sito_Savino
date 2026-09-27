@@ -100,17 +100,20 @@ const gamesByMatchday = computed(() => {
 
         // La giornata da sola non identifica il gruppo: la Lega numera 1..13
         // sia l'andata sia il ritorno, quindi serve anche la fase.
+        // `groupPhase` c'è quando il gruppo non coincide con la fase: in
+        // Champions i gironi si raggruppano per giornata, non per girone.
+        const phase = game.groupPhase ?? game.phase ?? null
         const sameGroup = last
             && last.matchday === (game.matchday ?? null)
-            && last.phase === (game.phase ?? null)
+            && last.phase === phase
 
         if (sameGroup) {
             last.games.push(game)
         } else {
             groups.push({
                 matchday: game.matchday ?? null,
-                phase: game.phase ?? null,
-                phaseLabel: game.phaseLabel,
+                phase,
+                phaseLabel: game.groupPhaseLabel ?? game.phaseLabel,
                 games: [game],
             })
         }
@@ -121,7 +124,9 @@ const gamesByMatchday = computed(() => {
 
 function matchdayHeading(group) {
     if (group.matchday === null) {
-        return $t('risultati.other_matches')
+        // I turni a eliminazione della Champions non hanno giornate: la fase
+        // ("Playoff · Andata") è già l'intestazione giusta.
+        return group.phaseLabel || $t('risultati.other_matches')
     }
 
     const giornata = $t('risultati.matchday', { number: group.matchday })
@@ -147,6 +152,11 @@ const displayStandings = computed(() => {
 })
 
 const hasHiddenStandings = computed(() => props.standings.length > displayStandings.value.length)
+
+// In Champions la classifica è quella del girone della società: il titolo dice
+// quale. Il link alla classifica completa porta al campionato, quindi compare
+// solo lì.
+const standingsGroup = computed(() => props.standings[0]?.girone ?? null)
 
 // Il tab attivo della barra di sezione: il componente è condiviso con la
 // pagina Classifica e con le pagine di coppa.
@@ -419,8 +429,9 @@ const ogMeta = useOgMeta({
         <section v-if="showStandings" class="py-16 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-wrap items-end justify-between gap-4 mb-2">
-                    <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight">{{ $t('risultati.standings') }}</h2>
+                    <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tight">{{ standingsGroup ? `${$t('risultati.standings')} · ${standingsGroup}` : $t('risultati.standings') }}</h2>
                     <Link
+                        v-if="activeTab === 'risultati'"
                         :href="route('stagione.classifica')"
                         class="text-sm font-bold text-savino-blue hover:text-savino-fucsia transition-colors"
                     >{{ $t('risultati.full_standings') }} &rarr;</Link>
@@ -482,7 +493,7 @@ const ogMeta = useOgMeta({
                     <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none rounded-r-xl md:hidden"></div>
                 </div>
 
-                <p v-if="hasHiddenStandings" class="text-center mt-6">
+                <p v-if="hasHiddenStandings && activeTab === 'risultati'" class="text-center mt-6">
                     <Link
                         :href="route('stagione.classifica')"
                         class="inline-block px-6 py-3 rounded-full bg-savino-blue text-white text-xs font-bold uppercase tracking-wider hover:bg-savino-fucsia transition-colors"

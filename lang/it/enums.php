@@ -35,6 +35,25 @@ return [
         'phase' => [
             'andata' => 'Andata',
             'ritorno' => 'Ritorno',
+            // CEV Champions League (cev:sync): gironi, turni e giornate dei
+            // turni a eliminazione, come li scrive il portale della CEV.
+            'fase_a_gironi' => 'Fase a gironi',
+            'pool_a' => 'Girone A',
+            'pool_b' => 'Girone B',
+            'pool_c' => 'Girone C',
+            'pool_d' => 'Girone D',
+            'pool_e' => 'Girone E',
+            'pool_f' => 'Girone F',
+            '2nd_round' => '2° turno',
+            '3rd_round' => '3° turno',
+            'play_off' => 'Playoff',
+            'quarter_finals' => 'Quarti di finale',
+            'final_four' => 'Final Four',
+            'home_matches' => 'Andata',
+            'away_matches' => 'Ritorno',
+            'semi_finals' => 'Semifinali',
+            'bronze_medal_match' => 'Finale 3° posto',
+            'gold_medal_match' => 'Finale',
         ],
     ],
 ];

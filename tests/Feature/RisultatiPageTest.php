@@ -259,4 +259,41 @@ class RisultatiPageTest extends TestCase
         $this->get(route('stagione.coppa-italia'))
             ->assertInertia(fn (AssertableInertia $page) => $page->has('games', 1));
     }
+
+    #[Test]
+    public function la_pagina_cev_mostra_il_girone_e_le_fasi_in_italiano(): void
+    {
+        $this->game([
+            'competition_type' => CompetitionType::ChampionsLeague,
+            'cev_match_id' => 87417,
+            'matchday' => 2,
+            'phase' => 'Pool D',
+        ]);
+        $this->game([
+            'competition_type' => CompetitionType::ChampionsLeague,
+            'cev_match_id' => 87500,
+            'matchday' => null,
+            'phase' => 'Play Off · Home Matches',
+            'match_date' => now()->addMonths(3),
+        ]);
+        Standing::create([
+            'season_id' => $this->season->id,
+            'team_id' => $this->savino->id,
+            'competition_type' => CompetitionType::ChampionsLeague,
+            'girone' => 'Pool D',
+            'position' => 1,
+            'points' => 3,
+            'played' => 1,
+            'won' => 1,
+            'lost' => 0,
+        ]);
+
+        $this->get(route('stagione.cev'))->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('showStandings', true)
+            ->where('standings.0.girone', 'Girone D')
+            ->where('games.0.matchdayLabel', '2ª Giornata · Girone D')
+            ->where('games.1.matchdayLabel', 'Playoff · Andata')
+            ->where('games.1.phaseLabel', 'Playoff · Andata')
+        );
+    }
 }

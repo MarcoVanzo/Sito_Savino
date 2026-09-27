@@ -9,6 +9,10 @@ return [
      * chi si abbona, a partire dalla Lega, quindi è in lingua come tutto
      * il resto.
      */
+    // Avversaria di una gara di Champions non ancora nota ("la vincente del
+    // 3° turno"): Team::nomePubblico().
+    'avversaria_da_definire' => 'Avversaria da definire',
+
     'feed' => [
         'title' => 'Savino Del Bene Volley — News',
         'description' => 'Le notizie ufficiali della Savino Del Bene Volley: comunicati, risultati e vita del club.',

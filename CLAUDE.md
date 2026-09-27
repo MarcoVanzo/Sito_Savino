@@ -457,6 +457,66 @@ buttano come prima.
 - I batch `Bus::batch(...)->allowFailures()` dell'analisi non si chiudono mai se
   un job fallisce: `queue:prune-batches` li pota dopo tre giorni.
 
+## 12-quater. CEV Champions League
+
+Calendario, risultati e classifica del girone della Champions **non si inseriscono a
+mano**: arrivano dal **vecchio portale competizioni della CEV**
+(`www-old.cev.eu/Competition-Area`), che pubblica pagine HTML statiche. Il sito nuovo
+(`championsleague.cev.eu`) disegna tutto in JavaScript e non espone API: non è una fonte.
+
+- Comando: `php artisan cev:sync [--competizione=1948] [--season=2026]`, schedulato
+  ogni ora a metà ora (`routes/console.php`). Codice in `app/Services/Cev/`:
+  `CevClient`, `CevMatchParser`, `CevStandingsParser`, `CevSyncService`.
+- **L'identificativo della competizione cambia a ogni edizione**:
+  `services.cev.competition_id` (`CEV_COMPETITION_ID`) — 1948 = femminile 2026/27,
+  1802 = 2025/26 — e `services.cev.season_year`. Si aggiornano insieme a
+  `services.lvf.club_ids` quando comincia la stagione nuova; l'ID si legge in
+  `History.aspx?ID=<ultimo>` del portale.
+- Pagine: `Competition.aspx?ID=` (elenco delle fasi, `PID`),
+  `CompetitionView.aspx?ID=&PID=` (gare di una fase: codice, squadre con `TeamID`,
+  set, data e **ora locale del palazzetto**, impianto),
+  `CompetitionStandings.aspx?ID=&PID=` (classifiche dei gironi). Il markup è ASP.NET
+  con controlli Telerik: il parser si aggancia ai suffissi stabili degli id
+  (`_LB_FederationMatchNumber`, `_LB_SetCasa`, `_LB_DataOra`…) e ai pannelli
+  `Content_Left_<CID>`, nello stesso ordine delle schede col nome del girone.
+
+**Invarianti, come per la Lega:**
+
+1. **Idempotenza** su `games.cev_match_id` (il `mID` del portale).
+2. **Il lavoro manuale non si tocca**: le gare senza `cev_match_id` restano come sono,
+   e sulle importate si scrivono solo le colonne che vengono dalla CEV (il link della
+   diretta resta della redazione).
+
+- **Si pubblicano solo gare con una data e due squadre note**, con un'eccezione:
+  la gara **della società** con l'avversaria ancora da decidere ("Winner Matches
+  3rd Round…", `TeamID` 0) esce con la squadra segnaposto `Team::SLUG_DA_DEFINIRE`,
+  mostrata come «Avversaria da definire» (`Team::nomePubblico()`, tradotta): è una
+  nostra partita con data e ora, e i tifosi devono vederla. Quando la CEV pubblica
+  il nome, lo stesso `mID` si aggiorna sull'avversaria vera. "Match not yet
+  scheduled", il segnaposto `01/01/2100 00:00` e le gare fra altre squadre ancora
+  incomplete restano fuori; il comando le conta in "In attesa". Dove si stampa il
+  nome di una squadra di una gara va usato `nomePubblico()`, non `name`.
+- **L'ora è quella locale del palazzetto**: `services.cev.fusi_orari` riconosce la
+  città in fondo al nome dell'impianto ("Vakifbank Spor Sarayi ISTANBUL") e la
+  converte nel fuso del sito. Una città che non c'è vale Europe/Rome: per una
+  squadra nuova di Turchia, Romania, Grecia o Portogallo va aggiunta lì.
+- **La nostra squadra si riconosce dal nome** (`services.cev.nomi_della_societa`,
+  "Savino Del Bene SCANDICCI"), non dal `TeamID`, che cambia a ogni edizione, e
+  diventa la squadra di A1 agganciata ai club della Lega. Le avversarie si cercano
+  per nome esatto (senza maiuscole) fra le squadre non interne, e si creano se
+  mancano. I loghi CEV esistono solo a 32 px e non si importano.
+- **La classifica è quella del girone della società** (`standings.girone`), non di
+  tutti i gironi: mescolarli darebbe posizioni ripetute.
+- In pagina (`/stagione/cev`) la fase a gironi è raggruppata **per giornata** e in
+  ordine di giornata, con il girone scritto su ogni gara: le squadre spostano gare
+  fuori dalla finestra della giornata e in ordine di data le giornate si
+  spezzerebbero. Le fasi del portale restano in inglese in archivio
+  (`games.phase`: "Pool D", "Play Off · Home Matches") e si traducono in
+  presentazione (`enums.game.phase`, parte per parte).
+
+Parser e sync sono coperti da test su pagine vere in `tests/Fixtures/Cev/`
+(2025/26 giocata per intero e 2026/27 in calendario).
+
 ## 13. Analytics: sito, social, newsletter
 
 Tre pagine del pannello leggono servizi esterni. Documentazione completa in

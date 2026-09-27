@@ -33,6 +33,12 @@ Schedule::command('shop:sorveglia')->everyFiveMinutes()->withoutOverlapping(10);
 // dura (soglia in `services.lvf.failure_alert_threshold`).
 Schedule::command('lvf:sync')->hourly()->withoutOverlapping();
 
+// CEV Champions League: calendario, risultati e classifica del girone dal
+// portale della CEV (§12-quater di CLAUDE.md). Ogni ora come il campionato,
+// ma a metà ora: i due sync non si contendono il database, e un giro sono sei
+// pagine del portale con una pausa fra l'una e l'altra.
+Schedule::command('cev:sync')->hourlyAt(30)->withoutOverlapping();
+
 // I comunicati che la redazione continua a pubblicare sul vecchio sito, finche'
 // il dominio e' suo. Ogni ora e non una volta al giorno perche' la finestra e'
 // di pochi giorni: un comunicato uscito in mattinata e il passaggio del dominio

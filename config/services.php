@@ -185,6 +185,53 @@ return [
         ),
     ],
 
+    // CEV Champions League: calendario, risultati e classifica del girone dal
+    // vecchio portale competizioni della CEV, che pubblica pagine HTML
+    // statiche (il sito nuovo, championsleague.cev.eu, le carica via
+    // JavaScript). L'identificativo della competizione cambia a ogni edizione:
+    // 1948 = Champions League femminile 2026/2027, 1802 = 2025/2026.
+    'cev' => [
+        'base_url' => env('CEV_BASE_URL', 'https://www-old.cev.eu/Competition-Area'),
+        'competition_id' => (int) env('CEV_COMPETITION_ID', 1948),
+        // Anno di apertura della stagione a cui appartiene la competizione,
+        // come per la Lega: 2026 = stagione 2026/2027.
+        'season_year' => (int) env('CEV_SEASON_YEAR', 2026),
+        // Come la CEV scrive il nome della nostra squadra. L'identificativo
+        // della squadra sul portale cambia a ogni edizione, il nome no.
+        'nomi_della_societa' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('CEV_NOMI_DELLA_SOCIETA', 'Savino Del Bene SCANDICCI'))
+        ))),
+        // Il portale scrive l'ora locale del palazzetto: per convertirla serve
+        // il fuso della citta', riconosciuta dalla fine del nome dell'impianto
+        // ("Vakifbank Spor Sarayi ISTANBUL"). Le citta' che non compaiono qui
+        // valgono Europe/Rome, che copre tutta l'Europa centrale.
+        'fusi_orari' => [
+            'Europe/Istanbul' => ['ISTANBUL', 'ANKARA', 'IZMIR', 'BURSA', 'ANTALYA', 'KONYA', 'AYDIN', 'MERSIN', 'KAYSERI'],
+            'Asia/Baku' => ['BAKU', 'TOVUZ'],
+            'Europe/Bucharest' => ['BUCHAREST', 'BUCURESTI', 'VOLUNTARI', 'CLUJ', 'CLUJ-NAPOCA', 'CRAIOVA', 'TARGU MURES', 'ALBA IULIA'],
+            'Europe/Sofia' => ['SOFIA', 'PLOVDIV', 'VARNA', 'BURGAS'],
+            'Europe/Athens' => ['ATHENS', 'PIRAEUS', 'THESSALONIKI'],
+            'Europe/Helsinki' => ['HELSINKI', 'ESPOO', 'VANTAA', 'SALO'],
+            'Europe/Kyiv' => ['KYIV', 'KHARKIV', 'DNIPRO'],
+            'Europe/Lisbon' => ['PORTO', 'LISBON', 'LISBOA', 'ESPINHO', 'VIANA DO CASTELO'],
+            'Europe/London' => ['LONDON'],
+            'Asia/Nicosia' => ['NICOSIA', 'LIMASSOL'],
+            'Asia/Jerusalem' => ['TEL AVIV', 'HAIFA'],
+            'Europe/Riga' => ['RIGA'],
+            'Europe/Tallinn' => ['TALLINN', 'TARTU'],
+            'Europe/Vilnius' => ['VILNIUS', 'KAUNAS'],
+        ],
+        'timeout' => (int) env('CEV_TIMEOUT', 30),
+        'user_agent' => env(
+            'CEV_USER_AGENT',
+            'SavinoDelBeneVolleyBot/1.0 (+https://www.savinodelbenevolley.it; calendario CEV)'
+        ),
+        // Una richiesta ogni quanto, in millisecondi: il portale e' vecchio e
+        // lento, e un giro completo sono sei pagine.
+        'pausa_ms' => (int) env('CEV_PAUSA_MS', 1500),
+    ],
+
     'lvf' => [
         'base_url' => env('LVF_BASE_URL', 'https://www.legavolleyfemminile.it'),
         // I tabellini vivono su un host separato: è la pagina che il Match

@@ -26,6 +26,16 @@ final class LvfPhaseLabel
             return null;
         }
 
+        // Le fasi della CEV sono composte: turno e giornata ("Play Off · Home
+        // Matches"). Si traduce ogni parte, così le combinazioni non vanno
+        // elencate una per una.
+        if (str_contains($phase, ' · ')) {
+            return implode(' · ', array_map(
+                fn (string $parte): string => self::translate($parte) ?? $parte,
+                explode(' · ', $phase),
+            ));
+        }
+
         $key = 'enums.game.phase.'.Str::slug($phase, '_');
         $label = __($key);
 
