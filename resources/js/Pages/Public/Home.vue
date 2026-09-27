@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useIntersectionReveal } from '@/Composables/useIntersectionReveal';
 import { useCountUp } from '@/Composables/useCountUp';
@@ -89,6 +89,14 @@ const slideBackground = (slide) => {
     return { backgroundImage: `url("${escaped}")` };
 };
 
+// Le slide dopo la prima sono sfondi CSS: un background-image si scarica
+// appena l'elemento esiste, anche a opacita' zero. Con dieci slide da
+// 300-450 KB il telefono scaricava 3-4 MB prima di mostrare la prima foto
+// (Lighthouse mobile: LCP 20 s). Si assegna lo sfondo solo alla slide in
+// scena e alla successiva, cosi' la dissolvenza la trova gia' pronta.
+const slidePronte = ref(new Set([0, 1]));
+const sfondoDellaSlide = (slide, index) => (slidePronte.value.has(index) ? slideBackground(slide) : {});
+
 // Stats section dal backend con fallback
 const statsTitle = computed(() => homeSettings.value.stats_title || $t('home.stats_title'));
 const statsSubtitle = computed(() => homeSettings.value.stats_subtitle || $t('home.stats_subtitle'));
@@ -123,6 +131,13 @@ let slideInterval;
 const movimentoFermo = ref(false);
 const heroVideo = ref(null);
 let ripartiParticelle = null;
+
+watch(currentSlide, (indice) => {
+    slidePronte.value.add(indice);
+    if (slides.value.length > 0) {
+        slidePronte.value.add((indice + 1) % slides.value.length);
+    }
+});
 
 const avviaSlideshow = () => {
     clearInterval(slideInterval);
@@ -502,7 +517,7 @@ const ogMeta = useOgMeta({
                             v-else
                             class="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat hero-slide-inner"
                             :class="{ 'ken-burns-active': currentSlide === index || previousSlide === index }"
-                            :style="slideBackground(slide)"
+                            :style="sfondoDellaSlide(slide, index)"
                         ></div>
                     </div>
                 </template>
