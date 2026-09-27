@@ -87,3 +87,6 @@ storage/do-ca-certificate.crt
 
 # Stato locale di wrangler/miniflare (cache R2, sqlite): non e' codice.
 .wrangler/
+
+# Documenti commerciali riservati: il repository è pubblico.
+Proposta_Tecnica_SDB*.pdf
