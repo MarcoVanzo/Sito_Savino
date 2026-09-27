@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\CifratoOVuoto;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -39,7 +40,9 @@ class SocialAccount extends Model
     protected function casts(): array
     {
         return [
-            'access_token' => 'encrypted',
+            // Non 'encrypted': un token cifrato con una chiave precedente
+            // deve valere "da ricollegare", non mandare la pagina in 500.
+            'access_token' => CifratoOVuoto::class,
             'token_expires_at' => 'datetime',
             'connected_at' => 'datetime',
             'last_synced_at' => 'datetime',

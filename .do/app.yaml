@@ -110,7 +110,7 @@ services:
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:RUWZWKvJM8r0wVrFVOaICwXh5QlfgFFx:DfBDG/9Cwe6n071yJRZRL7V52SH21MaLsortBRZgqnztQEL9jkzdSCrNmmYl1qPiQYTRvacg3+5l2w61bo3ANT3TBw==]
+    value: EV[1:dWdbZE5pAxBtwUQUze0+URO3bUSD0S51:0G/4pZCISI8j6NKUKbxUmWAO19TdaERQRMmZ9hNW3qoeoxDGf13BkxtTOuRWfaDoOfZ3w9gKa5dr61AP2xHaGWJAsQ==]
   # Il sito è pubblico: la basic auth dell'anteprima resta spenta finché non
   # la si accende qui. Le due credenziali sotto restano pronte per quando
   # servirà richiuderlo (con la protezione accesa e i segreti vuoti il sito
@@ -392,7 +392,7 @@ workers:
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:RUWZWKvJM8r0wVrFVOaICwXh5QlfgFFx:DfBDG/9Cwe6n071yJRZRL7V52SH21MaLsortBRZgqnztQEL9jkzdSCrNmmYl1qPiQYTRvacg3+5l2w61bo3ANT3TBw==]
+    value: EV[1:dWdbZE5pAxBtwUQUze0+URO3bUSD0S51:0G/4pZCISI8j6NKUKbxUmWAO19TdaERQRMmZ9hNW3qoeoxDGf13BkxtTOuRWfaDoOfZ3w9gKa5dr61AP2xHaGWJAsQ==]
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"
@@ -605,7 +605,7 @@ workers:
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:RUWZWKvJM8r0wVrFVOaICwXh5QlfgFFx:DfBDG/9Cwe6n071yJRZRL7V52SH21MaLsortBRZgqnztQEL9jkzdSCrNmmYl1qPiQYTRvacg3+5l2w61bo3ANT3TBw==]
+    value: EV[1:dWdbZE5pAxBtwUQUze0+URO3bUSD0S51:0G/4pZCISI8j6NKUKbxUmWAO19TdaERQRMmZ9hNW3qoeoxDGf13BkxtTOuRWfaDoOfZ3w9gKa5dr61AP2xHaGWJAsQ==]
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"

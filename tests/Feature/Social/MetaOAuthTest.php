@@ -3,9 +3,11 @@
 namespace Tests\Feature\Social;
 
 use App\Enums\UserRole;
+use App\Filament\Pages\SocialAnalyticsPage;
 use App\Models\SocialAccount;
 use App\Models\User;
 use App\Services\Social\MetaOAuthService;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +101,31 @@ class MetaOAuthTest extends TestCase
         $this->assertSame('token-pagina-prima-squadra', $esistente->access_token);
         // L'etichetta è redazionale: il nome della Pagina su Meta cambia, questa no.
         $this->assertSame('Prima squadra', $esistente->name);
+    }
+
+    #[Test]
+    public function un_token_cifrato_con_una_chiave_precedente_si_puo_ricollegare(): void
+    {
+        // Il caso della rotazione della APP_KEY del 27/09/2026: il token in
+        // archivio e' cifrato con una chiave che l'app non ha piu'. Prima la
+        // pagina Analytics Social e il salvataggio del token nuovo andavano
+        // in errore con "The MAC is invalid".
+        $user = $this->redattore();
+
+        $esistente = SocialAccount::factory()->create(['page_id' => '366987790098538']);
+        $altraChiave = new Encrypter(random_bytes(32), 'AES-256-CBC');
+        DB::table('social_accounts')->where('id', $esistente->id)
+            ->update(['access_token' => $altraChiave->encryptString('token-cifrato-con-la-chiave-vecchia')]);
+
+        $this->assertNull($esistente->fresh()->access_token);
+
+        $this->actingAs($user)->get(SocialAnalyticsPage::getUrl())->assertOk();
+
+        $this->fakeGraph();
+        $state = app(MetaOAuthService::class)->createState($user->id);
+        $this->actingAs($user)->get(route('admin.social.meta.callback', ['code' => 'codice-di-prova', 'state' => $state]));
+
+        $this->assertSame('token-pagina-prima-squadra', $esistente->fresh()->access_token);
     }
 
     #[Test]
