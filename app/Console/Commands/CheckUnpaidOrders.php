@@ -7,6 +7,7 @@ use App\Enums\PaymentGateway;
 use App\Mail\OrderCancelled;
 use App\Mail\OrderPaymentReminder;
 use App\Models\Order;
+use App\Services\AvvisoTecnico;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -31,8 +32,22 @@ class CheckUnpaidOrders extends Command
             ->get();
 
         foreach ($ordersToRemind as $order) {
-            $this->sendReminder($order);
-            $reminded++;
+            // Il comando gira ogni dieci minuti e la finestra dura due giorni:
+            // senza un segno di "gia' inviato" lo stesso cliente riceveva
+            // circa 288 promemoria. Il segno sta nello store `persistente`
+            // perche' `start.sh` svuota la cache predefinita a ogni rilascio
+            // (§24), e `add()` e' atomico: due giri sovrapposti non mandano
+            // due email.
+            if (! AvvisoTecnico::memoria()->add('promemoria-bonifico:'.$order->id, now()->toIso8601String(), now()->addDays(8))) {
+                continue;
+            }
+
+            if ($this->sendReminder($order)) {
+                $reminded++;
+            } else {
+                // Invio non riuscito: il prossimo giro ci riprova.
+                AvvisoTecnico::memoria()->forget('promemoria-bonifico:'.$order->id);
+            }
         }
 
         // 2. Auto-cancel: ordini pending via bonifico (7gg) o digitali abbandonati (1h)
@@ -92,8 +107,11 @@ class CheckUnpaidOrders extends Command
 
     /**
      * Send a payment reminder email to the customer.
+     *
+     * Falso solo quando conviene riprovare al giro dopo: un ordine senza
+     * indirizzo non ne avra' uno fra dieci minuti.
      */
-    private function sendReminder(Order $order): void
+    private function sendReminder(Order $order): bool
     {
         $recipientEmail = $order->user->email ?? $order->guest_email;
         $recipientName = $order->user->name ?? $order->guest_name;
@@ -103,7 +121,7 @@ class CheckUnpaidOrders extends Command
                 'order_id' => $order->id,
             ]);
 
-            return;
+            return true;
         }
 
         try {
@@ -114,11 +132,15 @@ class CheckUnpaidOrders extends Command
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
             ]);
+
+            return true;
         } catch (\Throwable $e) {
             Log::error('Errore invio promemoria pagamento', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
             ]);
+
+            return false;
         }
     }
 
