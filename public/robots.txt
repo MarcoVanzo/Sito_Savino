@@ -9,7 +9,10 @@ Disallow: /reset-password
 Disallow: /verify-email
 Disallow: /confirm-password
 Disallow: /storage/
-Disallow: /build/
+
+# /build/ NON va vietato: e' li' che stanno JS e CSS di Vite. Il sito non ha
+# SSR, quindi l'HTML iniziale e' vuoto e Google vede il contenuto solo
+# eseguendo quei bundle. Vietarli significa pagine vuote nell'indice.
 
 # Sitemap — dominio definitivo: la direttiva vuole un indirizzo assoluto e
 # quello di anteprima cambierebbe al passaggio del dominio.

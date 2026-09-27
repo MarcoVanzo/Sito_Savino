@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -43,6 +45,24 @@ class ContactFormTest extends TestCase
             'message' => 'Vorrei informazioni sulla prossima partita.',
             'status' => 'unread',
         ]);
+    }
+
+    public function test_la_notifica_va_al_recapito_dei_contatti_non_al_mittente_di_sistema(): void
+    {
+        config(['mail.default' => 'array', 'mail.from.address' => 'noreply@example.test']);
+        SiteSetting::updateOrCreate(['key' => 'email'], ['group' => 'contact', 'value' => 'info@example.test', 'type' => 'text']);
+        Cache::flush();
+
+        $this->post(route('contatti.submit'), [
+            'name' => 'Marco Rossi',
+            'email' => 'marco@example.com',
+            'message' => 'Vorrei informazioni sulla prossima partita.',
+            'honeypot' => '',
+        ])->assertRedirect();
+
+        $inviate = app('mailer')->getSymfonyTransport()->messages();
+        $this->assertCount(1, $inviate);
+        $this->assertSame('info@example.test', $inviate[0]->getOriginalMessage()->getTo()[0]->getAddress());
     }
 
     public function test_contact_form_validates_required_fields(): void

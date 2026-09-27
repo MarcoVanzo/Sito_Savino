@@ -210,7 +210,7 @@ class VerificaIlLancio extends Command
         // restano "pending" e nessuno incassa. Non c'e' errore da nessuna
         // parte, solo ordini che non si chiudono.
         $this->registra(self::AVVISO, 'Webhook PayPal', "modo {$modo}, id {$webhook}",
-            'Da confermare con `php artisan paypal:verifica`: e\' l\'unico modo di sapere se punta a QUESTO indirizzo. Cambiando dominio va rifatto e l\'id aggiornato in .do/app.yaml.');
+            'Da confermare con `php artisan paypal:verifica`: e\' l\'unico modo di sapere se punta a QUESTO indirizzo. Cambiando dominio si MODIFICA l\'URL del webhook esistente, non se ne crea uno nuovo: l\'id resta valido e la spec non si tocca (docs/GO_LIVE.md §3).');
     }
 
     private function stripe(): void

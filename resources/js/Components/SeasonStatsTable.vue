@@ -119,7 +119,7 @@ function formatCell(value, format) {
 
 <template>
     <div class="relative">
-        <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100 bg-white">
+        <div tabindex="0" role="region" :aria-label="$t('stagione.stats_caption')" class="overflow-x-auto rounded-xl shadow-lg border border-gray-100 bg-white">
             <table class="w-full text-left">
                 <caption class="sr-only">{{ $t('stagione.stats_caption') }}</caption>
                 <thead>

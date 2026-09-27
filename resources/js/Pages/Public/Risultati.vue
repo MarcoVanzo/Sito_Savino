@@ -359,7 +359,7 @@ const ogMeta = useOgMeta({
                             <div class="flex items-center justify-between text-white px-4 py-2.5" :class="theme.dateBg">
                                 <div>
                                     <span class="text-xs font-bold uppercase tracking-wider">{{ gameDate(game) }}</span>
-                                    <span class="text-[10px] text-white/50 ml-2">{{ game.matchdayLabel }}</span>
+                                    <span class="text-[10px] text-white/70 ml-2">{{ game.matchdayLabel }}</span>
                                 </div>
                                 <span
                                     v-if="game.result"
@@ -433,7 +433,7 @@ const ogMeta = useOgMeta({
                 >{{ $t('risultati.no_standings') }}</p>
 
                 <div v-else class="relative">
-                    <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
+                    <div tabindex="0" role="region" :aria-label="$t('risultati.standings')" class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="text-white" :class="theme.headerBg">

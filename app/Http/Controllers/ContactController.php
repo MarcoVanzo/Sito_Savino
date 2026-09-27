@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ContactRequest;
 use App\Models\ContactMessage;
+use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -45,7 +46,10 @@ class ContactController extends Controller
             Mail::raw(
                 "Nome: {$validated['name']}\nEmail: {$validated['email']}\nOggetto: ".($validated['subject'] ?? '(nessuno)')."\n\nMessaggio:\n{$validated['message']}",
                 function ($mail) use ($validated) {
-                    $mail->to(config('mail.from.address'))
+                    // Il destinatario e' il recapito pubblicato (Impostazioni →
+                    // Contatti), non il mittente di sistema: in produzione quello
+                    // e' noreply@, una casella che nessuno legge.
+                    $mail->to(SiteSetting::get('contact.email') ?: config('mail.from.address'))
                         ->replyTo($validated['email'], $validated['name'])
                         ->subject('Contatto dal sito: '.($validated['subject'] ?? 'Messaggio'));
                 }
