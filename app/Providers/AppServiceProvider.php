@@ -224,9 +224,19 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Rate limiters
+        // Le letture hanno un tetto largo: il limite e' per indirizzo, e dietro
+        // lo stesso indirizzo stanno il Wi-Fi del palazzetto, la rete mobile
+        // (CGNAT) o una scuola. A 60 al minuto per tutti, una cinquantina di
+        // tifosi sulla stessa rete bastavano a far rispondere 429 al sito.
+        // Le scritture restano strette, e ognuna ha comunque il suo limite
+        // con prefisso proprio (§18).
         RateLimiter::for('web', function (Request $request) {
-            return $request->user()
-                ? Limit::perMinute(120)->by($request->user()->id)
+            if ($request->user()) {
+                return Limit::perMinute(120)->by($request->user()->id);
+            }
+
+            return $request->isMethodSafe()
+                ? Limit::perMinute(300)->by('web:lettura:'.$request->ip())
                 : Limit::perMinute(60)->by($request->ip());
         });
 
