@@ -150,7 +150,7 @@ const ogMeta = useOgMeta({
                     class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-8 text-center text-gray-500"
                 >{{ $t('partita.no_sets') }}</p>
 
-                <div v-else class="overflow-x-auto rounded-xl shadow-lg border border-gray-100 bg-white">
+                <div v-else tabindex="0" role="region" :aria-label="$t('partita.sets')" class="overflow-x-auto rounded-xl shadow-lg border border-gray-100 bg-white">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="bg-savino-blue text-white">
@@ -223,7 +223,7 @@ const ogMeta = useOgMeta({
                         >{{ $t('partita.no_box_score') }}</p>
 
                         <div v-else class="relative">
-                            <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
+                            <div tabindex="0" role="region" :aria-label="`${$t('partita.box_score')} ${side.team.name}`" class="overflow-x-auto rounded-xl shadow-lg border border-gray-100">
                                 <table class="w-full text-left">
                                     <thead>
                                         <tr class="bg-savino-blue text-white">

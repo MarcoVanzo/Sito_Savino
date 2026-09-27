@@ -48,7 +48,7 @@ const apriLePreferenze = () => window.dispatchEvent(new CustomEvent('preferenze-
         <div v-for="categoria in categorie" :key="categoria.chiave" class="mb-8">
             <h3 class="text-lg font-bold text-savino-blue mb-3">{{ titoloCategoria(categoria.chiave) }}</h3>
 
-            <div v-if="categoria.cookie.length" class="overflow-x-auto">
+            <div v-if="categoria.cookie.length" class="overflow-x-auto" tabindex="0" role="region" :aria-label="titoloCategoria(categoria.chiave)">
                 <table class="w-full text-sm text-left border-collapse">
                     <thead>
                         <tr class="border-b border-gray-200 text-gray-500 uppercase text-xs tracking-wider">

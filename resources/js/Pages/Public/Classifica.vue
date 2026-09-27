@@ -119,7 +119,7 @@ const ogMeta = useOgMeta({
                 >{{ $t('classifica.season_not_started') }}</p>
 
                 <div v-if="standings.length" class="relative">
-                    <div class="overflow-x-auto rounded-xl shadow-lg border border-gray-100 bg-white">
+                    <div tabindex="0" role="region" :aria-label="$t('classifica.title')" class="overflow-x-auto rounded-xl shadow-lg border border-gray-100 bg-white">
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="bg-savino-blue text-white">
