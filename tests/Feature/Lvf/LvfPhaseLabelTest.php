@@ -47,6 +47,20 @@ class LvfPhaseLabelTest extends TestCase
     }
 
     #[Test]
+    public function le_fasi_composte_della_cev_si_traducono_pezzo_per_pezzo(): void
+    {
+        $this->app->setLocale('it');
+        $this->assertSame('Girone D', LvfPhaseLabel::translate('Pool D'));
+        $this->assertSame('Playoff · Ritorno', LvfPhaseLabel::translate('Play Off · Away Matches'));
+        $this->assertSame('Final Four · Finale 3° posto', LvfPhaseLabel::translate('Final Four · Bronze Medal Match'));
+
+        $this->app->setLocale('en');
+        $this->assertSame('Quarter Finals · First leg', LvfPhaseLabel::translate('Quarter Finals · Home Matches'));
+        // Una parte sconosciuta resta com'è, le altre si traducono.
+        $this->assertSame('Golden Set · Second leg', LvfPhaseLabel::translate('Golden Set · Away Matches'));
+    }
+
+    #[Test]
     public function la_pagina_inglese_dei_risultati_mostra_la_fase_tradotta(): void
     {
         $season = Season::create(['name' => '2026/2027', 'is_current' => true, 'lvf_season_year' => 2026]);

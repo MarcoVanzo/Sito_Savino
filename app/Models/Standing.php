@@ -19,7 +19,7 @@ class Standing extends Model
     use HasFactory;
 
     protected $fillable = [
-        'season_id', 'team_id', 'competition_type', 'position',
+        'season_id', 'team_id', 'competition_type', 'girone', 'position',
         'points', 'played', 'won', 'lost',
         'won_3_0', 'won_3_1', 'won_3_2', 'lost_2_3', 'lost_1_3', 'lost_0_3',
         'sets_won', 'sets_lost', 'points_for', 'points_against',

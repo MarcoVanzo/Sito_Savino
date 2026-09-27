@@ -1,13 +1,20 @@
 # Revisione pre-consegna — sito Savino Del Bene Volley
 
 Branch `review/pre-consegna` (da `main` @ `4d6bc37`), 27/09/2026. Consegna: giovedì 1/10/2026.
+**Stato aggiornato al 27/09/2026 ore 18:00**: correzioni in produzione (PR #126 e #127), APP_KEY ruotata.
 Sito esaminato: `https://seashell-app-47mmf.ondigitalocean.app` (produzione, solo GET) + codice + DB di produzione in sola lettura (`readonly_savino`).
 
-## Verdetto: **NO-GO sullo stato attuale → GO dopo 3 azioni (≈ 3 h)**
+## Verdetto: **GO tecnico — consegna condizionata a 2 verifiche fuori dal codice**
 
-1. **La `APP_KEY` di produzione è pubblica** nella history del repo GitHub pubblico (S1, P0): va ruotata prima della consegna. Solo Marco può farlo (tocca la produzione).
-2. **`robots.txt` vieta `/build/`** (SEO-1, P0): senza SSR Google indicizzerebbe pagine vuote dal 1/10. Corretto sul branch: va mergiato e deployato.
-3. Il resto è in ordine: build, 1.618 test PHP, 307 test JS, PHPStan, audit delle dipendenze e header di sicurezza sono verdi; non ci sono overflow su 4 larghezze × 2 motori e nessun tracker parte prima del consenso. Gli altri P1 del codice sono corretti sul branch; restano **contenuti** (redazione) e il **perimetro rispetto alla Proposta** (da concordare col cliente).
+Stato al 27/09 sera, dopo le correzioni in produzione:
+1. **I due P0 sono chiusi e verificati in produzione.** La `APP_KEY` è stata ruotata (S1): la chiave rimasta nella history non firma più i cookie, e la nuova è identica su web, worker e scheduler (51 caratteri, stessa impronta). `robots.txt` non vieta più `/build/` (SEO-1).
+2. **Tutti i P1 di codice sono in produzione** (PR [#126](https://github.com/MarcoVanzo/Sito_Savino/pull/126) e [#127](https://github.com/MarcoVanzo/Sito_Savino/pull/127)). CI verde: 1.619 test PHP, 307 test JS, PHPStan, Pint e audit. Home mobile: LCP da 20,4 s a 3,4 s. Axe: 0 violazioni sulle pagine corrette.
+3. **Restano, fuori dal codice**:
+   - da verificare la chiave Spaces nella history (S2);
+   - l'elenco per il cliente delle funzioni della Proposta non realizzate (R1);
+   - i contenuti vuoti raggiungibili dal menu (redazione).
+
+   Con S2 verificato e R1 concordato, la consegna è **GO**.
 
 ---
 
@@ -18,19 +25,20 @@ Legenda. Priorità: **P0** blocca la consegna, **P1** va fatto prima di giovedì
 
 | ID | P | Area | Dove | Prova | Impatto | Soluzione | Ore | Stato |
 |---|---|---|---|---|---|---|---|---|
-| S1 | **P0** | Sicurezza | `.do/app.yaml` nei commit `006a10d`, `9396109`, `057d316`, `58fd24e` (01–02/07) | La chiave `base64:F/Qm8y…` presa dalla history ricalcola il MAC del cookie `XSRF-TOKEN` emesso oggi da `/csrf-cookie`: **CORRISPONDE** (verificato due volte, in modo indipendente) | Il repo è pubblico: chiunque può forgiare URL firmati (`/newsletter/disiscriviti/{id}` mostra l'email → export dell'intera lista; `/recesso/ricevuta/{id}` → dati dei recessi; `verify-email`), forgiare cookie e snapshot Livewire, e decifrare `social_accounts.access_token` | Nuova chiave cifrata in `.do/app.yaml` su **web, worker e scheduler**; la vecchia in `APP_PREVIOUS_KEYS` solo il tempo di ricifrare i token Meta. Sessioni e link firmati già spediti decadono. Non riscrivere la history. | 2 | verificato — **da fare (Marco)** |
-| SEO-1 | **P0** | SEO | `public/robots.txt:12` | `Disallow: /build/`; con UA Googlebot l'HTML di una notizia ha il titolo generico e nessun testo (`<div id="app" data-page>`) | Dal 1/10 Google vede ~2.000 pagine vuote e con lo stesso titolo, e i 301 dal WordPress finiscono lì | Tolta la riga, con un test di regressione | 0,25 | **corretto** `0eeb4f5` |
-| C1 | P1 | Shop | `app/Console/Commands/CheckUnpaidOrders.php:27-35`, `routes/console.php:119` | Test: ordine con bonifico di 6 giorni, 2 giri a 10 minuti di distanza → 2 promemoria. In produzione 0 ordini finora | Circa 288 email identiche per ogni cliente che sceglie il bonifico e non paga (la posta esce dal 25/09) | Segno «già inviato» nello store `persistente` con `add()` atomico; si ritenta solo se l'invio fallisce | 1 | **corretto** `2561791` |
-| SEO-2 | P1 | SEO | `public/.htaccess:16-19` | `curl -sI …/contatti/` → `location: http://…` (3 salti, uno in chiaro) | Tutti i permalink WordPress (terminano con `/`) passano per http | Con `X-Forwarded-Proto: https` il redirect va direttamente in https. Provato su Apache locale | 0,5 | **corretto** `4c77b83` |
-| C3 | P1 | Moduli | `app/Http/Controllers/ContactController.php:48` | `->to(config('mail.from.address'))` = `noreply@savinodelbenevolley.it` (`.do/app.yaml:39-41`); in produzione `contact.email` = `info@` | Le notifiche del modulo contatti vanno a una casella che nessuno legge (il messaggio resta solo nel pannello) | Destinatario `contact.email`, mittente come ripiego. Test sul destinatario reale | 0,5 | **corretto** `6adc2a6` |
-| R4 | P1 | Lancio | `app/Console/Commands/VerificaIlLancio.php:213` | Il comando dice «Cambiando dominio va rifatto» il webhook PayPal | Contraddice GO_LIVE §3: un webhook nuovo lascia gli ordini «pending» | Testo corretto («si modifica, non si ricrea») | 0,25 | **corretto** `a3cb6b1` |
-| PERF-1 | P1 | Performance | `resources/js/Pages/Public/Home.vue:486-506` | Lighthouse mobile home: LCP **20,4 s**, 4,1 MB; 8 immagini hero da 270–450 KB scaricate subito come `background-image` di slide invisibili | Primo impatto lento su telefono proprio nella pagina più visitata | Lo sfondo lo ha solo la slide in scena più la successiva. Verificato sul DOM: all'avvio 1 immagine + 1 sfondo, poi una slide alla volta | 1 | **corretto** `3882d86` |
-| R8 | P1 | Disponibilità | `app/Providers/AppServiceProvider.php:227-230` | `throttle:web` = 60 richieste/min **per IP** su tutto il sito; durante la revisione il mio IP ha ricevuto 429 | Wi-Fi del palazzetto (prima gara in casa il 4/10), CGNAT mobile e scuole condividono lo stesso contatore: ~50 tifosi bastano ad avere 429 | Letture anonime a 300/min su un contatore dedicato; le scritture restano a 60 (e ognuna ha già il suo limite) | 0,5 | **corretto** `4436f57` |
-| S3 | P1 | Riservatezza | `Proposta_Tecnica_SDB_v3.4.pdf` | Tracciato nel repo pubblico; il PDF porta «PROPOSTA TECNICA RISERVATA — Uso riservato» e contiene i costi | Documento commerciale del cliente esposto | `git rm --cached` + `.gitignore` (approvato). Copia salvata in `~/Sviluppo/Savino/`. **Resta nella history**: solo rendendo privato il repo | 0,1 | **corretto** `140781a` |
-| A11Y-1 | P1 | Accessibilità | `resources/js/Pages/Public/Risultati.vue:362` | axe `color-contrast` serious, 182 nodi a 375 px: `text-white/50` su `#003063` = 4,39:1 | WCAG 2.1 AA non rispettato (EAA) | `text-white/70` = 7,1:1 (approvato) | 0,1 | **corretto** `37c65e1` |
-| A11Y-2 | P1 | Accessibilità | Risultati, Classifica, `DichiarazioneCookie.vue`, `SeasonStatsTable.vue`, `Partita.vue` | axe `scrollable-region-focusable` serious su risultati, classifica e cookie-policy a 375 px | Con la sola tastiera non si scorrono le tabelle | `tabindex=0` + `role=region` + etichetta (approvato). Axe locale: 0 violazioni | 0,3 | **corretto** `37c65e1` + `549f683` |
+| S1 | **P0** | Sicurezza | `.do/app.yaml` nei commit `006a10d`, `9396109`, `057d316`, `58fd24e` (01–02/07) | La chiave `base64:F/Qm8y…` presa dalla history ricalcola il MAC del cookie `XSRF-TOKEN` emesso oggi da `/csrf-cookie`: **CORRISPONDE** (verificato due volte, in modo indipendente) | Il repo è pubblico: chiunque può forgiare URL firmati (`/newsletter/disiscriviti/{id}` mostra l'email → export dell'intera lista; `/recesso/ricevuta/{id}` → dati dei recessi; `verify-email`), forgiare cookie e snapshot Livewire, e decifrare `social_accounts.access_token` | Nuova chiave cifrata in `.do/app.yaml` su **web, worker e scheduler**; la vecchia in `APP_PREVIOUS_KEYS` solo il tempo di ricifrare i token Meta. Sessioni e link firmati già spediti decadono. Non riscrivere la history. | 2 | **risolto in produzione** 27/09 ore 17:04 (Marco dal pannello DO + PR #127 `d927044`): la chiave vecchia non valida il MAC del cookie XSRF-TOKEN; la nuova è identica sui 3 componenti |
+| S1-bis | P1 | Pannello | `app/Models/SocialAccount.php` (cast `encrypted`) | Dopo la rotazione `/admin/analytics/social` → 500 `The MAC is invalid` (log del web, 27/09 ore 15:18 UTC); fallirebbe anche il salvataggio del token nuovo (Eloquent decifra l'originale per il controllo dirty) | La pagina da cui si ricollega Meta non si apriva | Cast `App\Casts\CifratoOVuoto`: un valore non più decifrabile vale null («da ricollegare»). Test in `MetaOAuthTest`, che senza correzione fallisce con lo stesso errore | 0,5 | **corretto e in produzione** (PR #127); Meta ricollegato, dati Instagram di nuovo presenti |
+| SEO-1 | **P0** | SEO | `public/robots.txt:12` | `Disallow: /build/`; con UA Googlebot l'HTML di una notizia ha il titolo generico e nessun testo (`<div id="app" data-page>`) | Dal 1/10 Google vede ~2.000 pagine vuote e con lo stesso titolo, e i 301 dal WordPress finiscono lì | Tolta la riga, con un test di regressione | 0,25 | **in produzione** `0eeb4f5` |
+| C1 | P1 | Shop | `app/Console/Commands/CheckUnpaidOrders.php:27-35`, `routes/console.php:119` | Test: ordine con bonifico di 6 giorni, 2 giri a 10 minuti di distanza → 2 promemoria. In produzione 0 ordini finora | Circa 288 email identiche per ogni cliente che sceglie il bonifico e non paga (la posta esce dal 25/09) | Segno «già inviato» nello store `persistente` con `add()` atomico; si ritenta solo se l'invio fallisce | 1 | **in produzione** `2561791` |
+| SEO-2 | P1 | SEO | `public/.htaccess:16-19` | `curl -sI …/contatti/` → `location: http://…` (3 salti, uno in chiaro) | Tutti i permalink WordPress (terminano con `/`) passano per http | Con `X-Forwarded-Proto: https` il redirect va direttamente in https. Provato su Apache locale | 0,5 | **in produzione** `4c77b83` |
+| C3 | P1 | Moduli | `app/Http/Controllers/ContactController.php:48` | `->to(config('mail.from.address'))` = `noreply@savinodelbenevolley.it` (`.do/app.yaml:39-41`); in produzione `contact.email` = `info@` | Le notifiche del modulo contatti vanno a una casella che nessuno legge (il messaggio resta solo nel pannello) | Destinatario `contact.email`, mittente come ripiego. Test sul destinatario reale | 0,5 | **in produzione** `6adc2a6` |
+| R4 | P1 | Lancio | `app/Console/Commands/VerificaIlLancio.php:213` | Il comando dice «Cambiando dominio va rifatto» il webhook PayPal | Contraddice GO_LIVE §3: un webhook nuovo lascia gli ordini «pending» | Testo corretto («si modifica, non si ricrea») | 0,25 | **in produzione** `a3cb6b1` |
+| PERF-1 | P1 | Performance | `resources/js/Pages/Public/Home.vue:486-506` | Lighthouse mobile home: LCP **20,4 s**, 4,1 MB; 8 immagini hero da 270–450 KB scaricate subito come `background-image` di slide invisibili | Primo impatto lento su telefono proprio nella pagina più visitata | Lo sfondo lo ha solo la slide in scena più la successiva. Verificato sul DOM: all'avvio 1 immagine + 1 sfondo, poi una slide alla volta | 1 | **in produzione** `3882d86` |
+| R8 | P1 | Disponibilità | `app/Providers/AppServiceProvider.php:227-230` | `throttle:web` = 60 richieste/min **per IP** su tutto il sito; durante la revisione il mio IP ha ricevuto 429 | Wi-Fi del palazzetto (prima gara in casa il 4/10), CGNAT mobile e scuole condividono lo stesso contatore: ~50 tifosi bastano ad avere 429 | Letture anonime a 300/min su un contatore dedicato; le scritture restano a 60 (e ognuna ha già il suo limite) | 0,5 | **in produzione** `4436f57` |
+| S3 | P1 | Riservatezza | `Proposta_Tecnica_SDB_v3.4.pdf` | Tracciato nel repo pubblico; il PDF porta «PROPOSTA TECNICA RISERVATA — Uso riservato» e contiene i costi | Documento commerciale del cliente esposto | `git rm --cached` + `.gitignore` (approvato). Copia salvata in `~/Sviluppo/Savino/`. **Resta nella history**: solo rendendo privato il repo | 0,1 | **in produzione** `140781a` |
+| A11Y-1 | P1 | Accessibilità | `resources/js/Pages/Public/Risultati.vue:362` | axe `color-contrast` serious, 182 nodi a 375 px: `text-white/50` su `#003063` = 4,39:1 | WCAG 2.1 AA non rispettato (EAA) | `text-white/70` = 7,1:1 (approvato) | 0,1 | **in produzione** `37c65e1` |
+| A11Y-2 | P1 | Accessibilità | Risultati, Classifica, `DichiarazioneCookie.vue`, `SeasonStatsTable.vue`, `Partita.vue` | axe `scrollable-region-focusable` serious su risultati, classifica e cookie-policy a 375 px | Con la sola tastiera non si scorrono le tabelle | `tabindex=0` + `role=region` + etichetta (approvato). Axe locale: 0 violazioni | 0,3 | **in produzione** `37c65e1` + `549f683` |
 | S2 | P1 | Sicurezza | commit `4e2da64`, `3ac730e` (26/06), `.do/app.yaml` | Access key Spaces `DO002PZM…` e secret in chiaro nella history | Se ancora attiva, dà accesso in scrittura ai file del sito | `doctl spaces keys list --context savino` e, se compare, revocarla. Probabilmente è già revocata | 0,25 | sospetto — **da fare (Marco)** |
-| R1 | P1 | Perimetro | Proposta Tecnica §05B/§06 | Nessuna traccia nel codice (grep) di: banner sponsor a scorrimento in home, banner Youth, spazio Eventi, Match Day mode, pop-up Vivaticket, countdown, Quick Edit/Quick Post/Live Preview, backup on-demand, export CSV, sync CEV, card XL della capitana, moduli nativi Progetto Scuola/Talent Day | Il cliente può contestare alla consegna (il banner sponsor è visibilità venduta ai partner) | Mandare **prima di giovedì** un elenco scritto delle differenze e concordare cosa è fuori perimetro o in una fase 2 | 1 (+ sviluppo) | verificata l'assenza; sospetto che parte sia stata concordata a voce |
+| R1 | P1 | Perimetro | Proposta Tecnica §05B/§06 | Nessuna traccia nel codice (grep) di: banner sponsor a scorrimento in home, banner Youth, spazio Eventi, Match Day mode, pop-up Vivaticket, countdown, Quick Edit/Quick Post/Live Preview, backup on-demand, export CSV, card XL della capitana (il **sync CEV** è stato realizzato il 27/09: `cev:sync`, CLAUDE.md §12-quater), moduli nativi Progetto Scuola/Talent Day | Il cliente può contestare alla consegna (il banner sponsor è visibilità venduta ai partner) | Mandare **prima di giovedì** un elenco scritto delle differenze e concordare cosa è fuori perimetro o in una fase 2 | 1 (+ sviluppo) | verificata l'assenza; sospetto che parte sia stata concordata a voce |
 | R2 | P1 | Contenuti | `/stagione/b1`, `/stagione/u17`, `/stagione/u15` | Props: rosa e staff vuoti; sono tre voci di menu | Pagine vuote raggiungibili dal menu | La redazione carica le rose, oppure si nascondono le voci dal pannello | 0,5–2 | verificato — redazione |
 | SEO-3 / R5 | P1 | Contenuti shop | `/shop/guida-taglie` | `sizeGuides=[]`, `shop.size_guides="[]"` in produzione: la pagina dice «Guida taglie in arrivo» | Voce del menu Shop che porta a un segnaposto | Caricare i PDF Erreà in «Guida Taglie & Contatti», oppure nascondere la voce | 0,25 | verificato — redazione |
 | SEO-4 | P1 | Contenuti shop | DB `products` | 10 prodotti attivi su 22 senza descrizione; 4 coppie home/away con lo stesso nome («MAGLIA GARA EZE #2», …); refuso «MAGLIA GARAVAN HECKE #7» | Home e away indistinguibili anche nell'ordine; mancano le caratteristiche principali (art. 49 Cod. consumo) | Redazione: nomi distinti, refuso, almeno una descrizione breve; se le maglie sono indossate o firmate, compilare lo «Stato dell'articolo» | 1–2 | verificato — redazione |
@@ -52,7 +60,7 @@ Legenda. Priorità: **P0** blocca la consegna, **P1** va fatto prima di giovedì
 | SEO-8 | P2 | SEO | `/news?page=2` | canonical → `/news` | Pagine 2+ fuori indice | canonical autoreferenziale | 0,5 | verificato |
 | SEO-10 | P2 | Contenuti | `/sponsor` | `danesi.it` e `impiantipolisnc.it` senza DNS; `gogofirenze.it` con certificato non valido | Link morti verso gli sponsor | Redazione: aggiornare gli URL | 0,25 | verificato |
 | SEO-11 | P2 | SEO | `app/Http/Middleware/ServeSocialCrawlerMeta.php:264-271` | `og:description` vuota sui prodotti | Anteprime WhatsApp/Facebook senza testo | Ripiego sul nome o sulla categoria | 0,25 | verificato |
-| SEO-12 | P2 | Contenuti | `/stagione/cev`, `/stagione/coppa-italia` | `games=[]`, nessun sync CEV (`RisultatiController.php:33-36`) | Voci di menu vuote finché non inizia la competizione | Stato vuoto esplicito o voce nascosta; sync/classifica CEV entro dicembre | 0,5 (+3–12) | verificato |
+| SEO-12 | P2 | Contenuti | `/stagione/cev`, `/stagione/coppa-italia` | `games=[]`, nessun sync CEV (`RisultatiController.php:33-36`) | Voci di menu vuote finché non inizia la competizione | Stato vuoto esplicito o voce nascosta per la Coppa Italia | 0,5 | **CEV risolta il 27/09** (`cev:sync`: calendario, risultati e classifica del girone); resta la Coppa Italia |
 | SEO-13 | P2 | SEO | pagina `regolamento-aste` | `meta_description` vuota (unica pagina) | — | Redazione | 0,1 | verificato |
 | SEO-14 | P2 | SEO | menu/footer | 19 voci su 63 passano da un 301/302 (tutti voluti, nessuno rotto) | Un salto in più | Aggiornare gli URL alle destinazioni finali | 0,5 | verificato |
 | R3 | P2 | Contenuti | `routes/pubbliche/sito.php:119-131` | `/summer-camp` è 404 (pagina in bozza); `/summer-camp/info` e `/iscrizione` fanno 301 verso quel 404 | Vecchi link indicizzati finiscono su 404 | Pubblicare la pagina a stagione, oppure ripuntare i redirect | 0,5 | verificato |
@@ -83,7 +91,6 @@ Legenda. Priorità: **P0** blocca la consegna, **P1** va fatto prima di giovedì
 - **Pagamento end-to-end** (PayPal, bonifico): richiederebbe ordini veri in produzione. I flussi sono coperti dai test (`PayPalIncassoTest` e altri, verdi).
 - **Area cliente e pannello autenticati sul sito vero**: niente login in produzione, per regola. Il pannello è coperto da `PanelSmokeTest`.
 - **Invio reale delle email**: nessuna email mandata. Il destinatario di C3 è verificato con il mailer `array`.
-- **Lighthouse dopo le correzioni**: il branch non è in produzione e in locale i dati (tutte le slide sono la stessa immagine) non riproducono il peso reale. PERF-1 è verificato sul DOM; il numero finale va rimisurato dopo il deploy.
 - **Title finale impostato da `<Head>` per ogni pagina**: verificato sul codice e a campione nel browser, non su tutte le 2.010 URL.
 - **Stato della chiave Spaces `DO002PZM…`** (S2): `doctl spaces keys list` mi è stato negato.
 - **Screen reader reale** (VoiceOver/NVDA): ha un protocollo manuale in `docs/ACCESSIBILITA.md`.
@@ -95,7 +102,7 @@ Legenda. Priorità: **P0** blocca la consegna, **P1** va fatto prima di giovedì
 - `fase1/<motore>/<larghezza>/<pagina>.jpg`: primo giro. Le sezioni con animazione «reveal» vi risultano vuote perché non erano ancora entrate in vista: è un effetto della cattura, verificato nel browser reale.
 - `fase1-scroll/…`: secondo giro, con la pagina fatta scorrere prima dello scatto (è quello da guardare). `_home-prima-visita-banner.jpg` mostra il banner cookie, `_menu-mobile-aperto.jpg` e `_menu-mobile-sottomenu.jpg` il menu.
 - `report.json` di ciascun giro: stato HTTP, overflow, errori di console e violazioni axe per ogni scatto.
-- `lighthouse-fase1/`: i report HTML e JSON.
+- `lighthouse-fase1/`: i report HTML e JSON prima delle correzioni; `lighthouse-dopo-deploy/`: la home dopo il deploy.
 
 ---
 
@@ -131,6 +138,14 @@ Legenda. Priorità: **P0** blocca la consegna, **P1** va fatto prima di giovedì
 
 \* SEO a 69 **per scelta**: sull'host di anteprima il sito risponde `X-Robots-Tag: noindex`, che sparisce da sé sul dominio definitivo (`indexable_hosts`). Il confronto dopo le correzioni (home con PERF-1, Risultati con A11Y) si può fare solo dopo il deploy: è nella checklist.
 
+**Dopo il deploy in produzione (27/09, PR #126):**
+
+| Pagina | Perf | A11y | BP | LCP | Peso |
+|---|---|---|---|---|---|
+| `/` (2 misure) | 89 / 90 | 100 | 100 | 3,5 / 3,4 s | 1.473 KB |
+
+Axe su Risultati, Classifica e Cookie policy: 0 violazioni. `robots.txt` senza `/build/`. `/contatti/` → 301 diretto su https. Header `x-ratelimit-limit: 300`.
+
 **Regressioni:** nessuna. I test, i controlli statici e lo stesso insieme di pagine danno lo stesso esito o migliore.
 
 ## P2 rimandati a dopo la consegna
@@ -142,15 +157,14 @@ C2, C4, C5, C6, C7, C9/S4, S5, S6, S7, S8, SEO-6, SEO-7, SEO-8, SEO-10, SEO-11, 
 ## Checklist di consegna (da fare a mano prima di giovedì)
 
 **Sicurezza — Marco**
-- [ ] **Ruotare `APP_KEY`** (S1): `php artisan key:generate --show` in locale, poi cifrarla nella spec su **web, worker e scheduler**. Mettere la vecchia in `APP_PREVIOUS_KEYS`, rilanciare `social:sync-meta` o ricifrare i token Meta, poi togliere `APP_PREVIOUS_KEYS`. Verificare `php -r 'echo strlen(getenv("APP_KEY"));'` dalla console di ciascun componente.
-- [ ] Ruotare anche la chiave ActiveCampaign (S6), già che ci sei.
-- [ ] `doctl spaces keys list --context savino`: se c'è `DO002PZM…`, revocarla (S2).
-- [ ] Decidere se rendere **privato** il repo GitHub: è l'unico modo di togliere dalla history la proposta riservata e le chiavi vecchie.
+- [x] **APP_KEY ruotata** (S1), 27/09 ore 17:04: nuova chiave dal pannello DO sui tre componenti, spec del repo allineata (PR #127), Meta ricollegato. Verificato: la vecchia non firma più i cookie, la nuova è identica su web, worker e scheduler. Effetti attesi: sessioni chiuse per tutti, link firmati già spediti non più validi.
+- [ ] Ruotare anche la chiave ActiveCampaign (S6).
+- [ ] `doctl spaces keys list --context savino`: se compare `DO002PZM…`, revocarla (S2).
+- [ ] Decidere se rendere **privato** il repo GitHub: è l'unico modo per togliere dalla history la proposta riservata e le chiavi vecchie.
 
-**Rilascio — Marco**
-- [ ] Rivedere e mergiare `review/pre-consegna` (11 commit), poi controllare che la CI e il deploy siano verdi.
-- [ ] Dopo il deploy: `curl -s https://seashell-app-47mmf.ondigitalocean.app/robots.txt | grep build` non deve restituire niente; `curl -sI …/contatti/` deve dare `location: https://…`.
-- [ ] Rilanciare Lighthouse mobile sulla home: l'LCP deve scendere nettamente sotto i 20 s.
+**Rilascio**
+- [x] Branch `review/pre-consegna` mergiato (PR #126, `1ae2961`), CI e deploy verdi.
+- [x] Verifiche dopo il deploy: `robots.txt` senza `/build/`, `/contatti/` → `https://`, limite a 300 letture/min, home mobile LCP 3,4 s.
 - [ ] Mandare un messaggio di prova dal modulo Contatti e verificare che arrivi a `info@`.
 
 **Cliente e perimetro**

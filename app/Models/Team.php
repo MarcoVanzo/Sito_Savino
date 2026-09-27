@@ -28,6 +28,13 @@ class Team extends Model implements HasMedia
      */
     public const CATEGORIE_VIVAIO = ['B1', 'U17', 'U15'];
 
+    /**
+     * La squadra che fa da avversaria finché la CEV non la conosce ("la
+     * vincente del 3° turno"): una sola, condivisa da tutte quelle gare.
+     * Quando la CEV pubblica il nome, `cev:sync` la sostituisce sulla gara.
+     */
+    public const SLUG_DA_DEFINIRE = 'avversaria-da-definire';
+
     protected $fillable = [
         'name', 'slug', 'category', 'is_internal', 'lvf_club_id', 'logo_url',
     ];
@@ -94,6 +101,15 @@ class Team extends Model implements HasMedia
      * Logo da mostrare, in ordine di precedenza: quello caricato dal CMS, poi
      * quello importato dalla Lega, infine l'URL remoto come ultima risorsa.
      */
+    /**
+     * Il nome da mostrare sul sito: quello della squadra segnaposto si
+     * traduce, gli altri sono nomi propri.
+     */
+    public function nomePubblico(): string
+    {
+        return $this->slug === self::SLUG_DA_DEFINIRE ? __('site.avversaria_da_definire') : (string) $this->name;
+    }
+
     public function logoUrl(): ?string
     {
         foreach ([self::LOGO_CUSTOM, self::LOGO_IMPORTED] as $collection) {

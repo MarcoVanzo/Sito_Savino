@@ -26,7 +26,7 @@ class Game extends Model
         'season_id', 'home_team_id', 'away_team_id',
         'match_date', 'status', 'home_score', 'away_score',
         'location', 'stream_url', 'competition_type',
-        'lvf_match_id', 'matchday', 'phase', 'lvf_synced_at',
+        'lvf_match_id', 'cev_match_id', 'matchday', 'phase', 'lvf_synced_at',
         'spectators', 'referees', 'set_scores', 'stats_synced_at',
     ];
 
@@ -58,12 +58,47 @@ class Game extends Model
     }
 
     /**
-     * Le gare importate dalla Lega non vanno modificate a mano dal CMS:
-     * la sincronizzazione successiva sovrascriverebbe le modifiche.
+     * Le gare importate (dalla Lega o dalla CEV) non vanno modificate a mano
+     * dal CMS: la sincronizzazione successiva sovrascriverebbe data, squadre,
+     * luogo e risultato. Resta della redazione il link della diretta.
      */
     public function isImported(): bool
     {
+        return $this->importataDallaLega() || $this->importataDallaCev();
+    }
+
+    public function importataDallaLega(): bool
+    {
         return $this->lvf_match_id !== null;
+    }
+
+    public function importataDallaCev(): bool
+    {
+        return $this->cev_match_id !== null;
+    }
+
+    /**
+     * Chi scrive questa gara, per i messaggi del pannello: "Lega" o "CEV".
+     */
+    public function fonteDellaSincronizzazione(): ?string
+    {
+        return match (true) {
+            $this->importataDallaLega() => 'Lega',
+            $this->importataDallaCev() => 'CEV',
+            default => null,
+        };
+    }
+
+    /**
+     * La pagina della gara sul portale della CEV, da cui arrivano i dati.
+     */
+    public function indirizzoSulPortaleCev(): ?string
+    {
+        if (! $this->importataDallaCev()) {
+            return null;
+        }
+
+        return rtrim((string) config('services.cev.base_url'), '/').'/MatchPage.aspx?mID='.$this->cev_match_id;
     }
 
     public function season(): BelongsTo

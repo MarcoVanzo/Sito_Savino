@@ -72,6 +72,9 @@ class PublicController extends Controller
                 // template: la home mostrava lo stemma del Savino su qualunque
                 // squadra di casa.
                 $nextGame['home_team']['logo_url'] = $nextGameModel->homeTeam?->logoUrl();
+                // "Avversaria da definire" nella lingua della pagina.
+                $nextGame['home_team']['name'] = $nextGameModel->homeTeam?->nomePubblico();
+                $nextGame['away_team']['name'] = $nextGameModel->awayTeam?->nomePubblico();
                 $nextGame['away_team']['logo_url'] = $nextGameModel->awayTeam?->logoUrl();
                 // Diretta: incorporabile solo dalle piattaforme conosciute, e
                 // comunque solo se è un link web — il template lo usa come

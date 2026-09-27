@@ -32,7 +32,9 @@ class RisultatiController extends Controller
 
     public function risultatiCev()
     {
-        return $this->getRisultatiData(CompetitionType::ChampionsLeague, 'CEV Champions League', false);
+        // La classifica è quella del girone della società, importata da
+        // `cev:sync` insieme al calendario (§12-quater di CLAUDE.md).
+        return $this->getRisultatiData(CompetitionType::ChampionsLeague, 'CEV Champions League', true);
     }
 
     public function risultatiCoppaItalia()
@@ -169,8 +171,8 @@ class RisultatiController extends Controller
                 return [
                     'id' => $game->id,
                     'matchDate' => $game->match_date->toIso8601String(),
-                    'home' => $game->homeTeam->name ?? '',
-                    'away' => $game->awayTeam->name ?? '',
+                    'home' => $game->homeTeam?->nomePubblico() ?? '',
+                    'away' => $game->awayTeam?->nomePubblico() ?? '',
                     'homeLogo' => $this->teamLogo($game->homeTeam),
                     'awayLogo' => $this->teamLogo($game->awayTeam),
                     'homeIsOwn' => $homeIsOwn,
@@ -187,6 +189,15 @@ class RisultatiController extends Controller
                     'matchday' => $game->matchday,
                     'phase' => $game->phase,
                     'phaseLabel' => LvfPhaseLabel::translate($game->phase),
+                    // In Champions i gironi giocano la stessa giornata negli
+                    // stessi giorni: si raggruppa per giornata della fase a
+                    // gironi, e il girone resta scritto su ogni gara
+                    // (`matchdayLabel`). Raggruppando per girone le date dei
+                    // cinque gironi si alternerebbero spezzando i gruppi.
+                    'groupPhase' => $this->eUnGironeCev($game) ? 'gironi' : $game->phase,
+                    'groupPhaseLabel' => $this->eUnGironeCev($game)
+                        ? __('enums.game.phase.fase_a_gironi')
+                        : LvfPhaseLabel::translate($game->phase),
                     'location' => $game->location,
                     // Diretta streaming: `streamEmbedUrl` è valorizzato solo per
                     // le piattaforme incorporabili, altrimenti resta il link.
@@ -202,10 +213,28 @@ class RisultatiController extends Controller
         // giornate da 1 a 13 sia per l'andata sia per il ritorno, quindi
         // ordinando per giornata la 1ª di ritorno (dicembre) finirebbe subito
         // dopo la 1ª di andata (ottobre), spezzando il calendario.
+        // Nei gironi della Champions le squadre possono spostare una gara fuori
+        // dalla finestra della sua giornata (una 6ª anticipata a dicembre): in
+        // ordine di data le giornate si spezzerebbero. La fase a gironi va
+        // quindi in ordine di giornata, tutta collocata alla data della sua
+        // prima gara; i turni prima e dopo restano in ordine di data.
+        $inizioDeiGironi = $games
+            ->filter(fn (array $game) => $game['groupPhase'] === 'gironi')
+            ->min('matchDate');
+
         return $games
-            ->sortBy(fn (array $game) => $game['matchDate'])
+            ->sortBy(fn (array $game) => $game['groupPhase'] === 'gironi'
+                ? $inizioDeiGironi.'|'.str_pad((string) $game['matchday'], 2, '0', STR_PAD_LEFT).'|'.$game['matchDate']
+                : $game['matchDate'].'|00|'.$game['matchDate'])
             ->values()
             ->all();
+    }
+
+    private function eUnGironeCev(Game $game): bool
+    {
+        return $game->competition_type === CompetitionType::ChampionsLeague
+            && $game->matchday !== null
+            && str_starts_with((string) $game->phase, 'Pool ');
     }
 
     /**
@@ -215,7 +244,9 @@ class RisultatiController extends Controller
     private function matchdayLabel(Game $game): string
     {
         if ($game->matchday === null) {
-            return __('enums.game_status.'.$game->status->value);
+            // I turni a eliminazione della CEV non hanno giornate: la fase
+            // ("Playoff · Andata") dice già dove sta la gara.
+            return LvfPhaseLabel::translate($game->phase) ?? __('enums.game_status.'.$game->status->value);
         }
 
         $label = __('enums.game.matchday', ['number' => $game->matchday]);
@@ -264,6 +295,8 @@ class RisultatiController extends Controller
                 'team' => $row->team->name ?? '',
                 'logo' => $this->teamLogo($row->team),
                 'isOwn' => (bool) $row->team?->is_internal,
+                // Solo per le coppe: il girone a cui appartiene la classifica.
+                'girone' => LvfPhaseLabel::translate($row->girone),
                 'pts' => $row->points,
                 'played' => $row->played,
                 'won' => $row->won,
