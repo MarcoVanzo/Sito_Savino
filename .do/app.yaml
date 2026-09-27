@@ -392,7 +392,7 @@ workers:
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:pAYPe6UKhYvGHTxJF7Kz+NVvhg7z+5RT:Sv8d8IHA6kfzm8t68tnJH/znOCAhifQjpRGGN7T3pvbVBv5wNZuOJH7R2UQwPE6tQT7tBU6tX3dsJhUQI98Q+HuMrg==]
+    value: EV[1:dWdbZE5pAxBtwUQUze0+URO3bUSD0S51:0G/4pZCISI8j6NKUKbxUmWAO19TdaERQRMmZ9hNW3qoeoxDGf13BkxtTOuRWfaDoOfZ3w9gKa5dr61AP2xHaGWJAsQ==]
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"
@@ -605,7 +605,7 @@ workers:
   - key: APP_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:tfgaw31dlxdxnL7Vi6cgKd86jhjzvm2/:OPGNHz3PooONd8IlQsfaHoX2ud5e6rsXZq1gpWeZNi7EJm8IbF+IU5A1YbkEkeJF/GLyV4AGeUFclASaLO6nOq2rMg==]
+    value: EV[1:dWdbZE5pAxBtwUQUze0+URO3bUSD0S51:0G/4pZCISI8j6NKUKbxUmWAO19TdaERQRMmZ9hNW3qoeoxDGf13BkxtTOuRWfaDoOfZ3w9gKa5dr61AP2xHaGWJAsQ==]
   - key: APP_DEBUG
     scope: RUN_AND_BUILD_TIME
     value: "false"
