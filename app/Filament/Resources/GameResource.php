@@ -67,6 +67,19 @@ class GameResource extends Resource
     {
         return $form
             ->schema([
+                // Le gare importate si riallineano a ogni sincronizzazione: chi
+                // le modifica qui deve saperlo prima di salvare, non scoprirlo
+                // un'ora dopo quando la modifica è sparita.
+                Forms\Components\Section::make('Gara importata')
+                    ->schema([
+                        Forms\Components\Placeholder::make('avviso_sincronizzazione')
+                            ->hiddenLabel()
+                            ->content(fn (?Game $record): string => 'Data, squadre, luogo e risultato arrivano dalla '
+                                .$record?->fonteDellaSincronizzazione()
+                                .' e vengono riallineati a ogni sincronizzazione: qui si modifica solo il link della diretta.'),
+                    ])
+                    ->icon('heroicon-o-arrow-path')
+                    ->visible(fn (?Game $record): bool => (bool) $record?->isImported()),
                 Forms\Components\Section::make('Dettagli Partita')
                     ->schema([
                         Forms\Components\Select::make('season_id')
@@ -299,7 +312,7 @@ class GameResource extends Resource
                             ->visible(fn (Game $record) => filled($record->set_scores)),
                     ])
                     ->columns(4)
-                    ->visible(fn (Game $record) => $record->isImported()
+                    ->visible(fn (Game $record) => $record->importataDallaLega()
                         || filled($record->set_scores)
                         || filled($record->spectators)
                         || filled($record->referees)),
@@ -320,7 +333,23 @@ class GameResource extends Resource
                     ->columns(3)
                     ->collapsed()
                     ->collapsible()
-                    ->visible(fn (Game $record) => $record->isImported()),
+                    ->visible(fn (Game $record) => $record->importataDallaLega()),
+
+                Infolists\Components\Section::make('Sincronizzazione CEV')
+                    ->description('Gara importata dal portale della CEV con `cev:sync`: data, squadre, luogo e risultato si riallineano a ogni giro.')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('cev_match_id')
+                            ->label('ID gara CEV')
+                            ->url(fn (Game $record) => $record->indirizzoSulPortaleCev())
+                            ->openUrlInNewTab(),
+                        Infolists\Components\TextEntry::make('updated_at')
+                            ->label('Ultima modifica')
+                            ->dateTime(self::DATE_TIME_FORMAT),
+                    ])
+                    ->columns(2)
+                    ->collapsed()
+                    ->collapsible()
+                    ->visible(fn (Game $record) => $record->importataDallaCev()),
             ]);
     }
 
