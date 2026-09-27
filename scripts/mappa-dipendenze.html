@@ -1,0 +1,144 @@
+<title>Rete Neurale Savino</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#020b1a;--panel:#07183a;--line:#15305c;--ink:#e6ecf5;--muted:#8a9dbd;--accent:#FA5FB6;
+--f-d:"Unbounded",system-ui,sans-serif;--f-b:"IBM Plex Sans",system-ui,sans-serif;--f-m:"IBM Plex Mono",ui-monospace,monospace}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--f-b)}
+body{display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--line);position:relative;z-index:2;background:var(--bg)}
+h1{font-family:var(--f-d);font-size:18px;font-weight:700;margin:0;text-wrap:balance}
+h1 span{color:var(--accent)}
+.sub{font-family:var(--f-m);font-size:11.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+#q{background:var(--panel);border:1px solid var(--line);color:var(--ink);font:13px var(--f-m);padding:7px 10px;border-radius:6px;width:min(260px,100%)}
+.tools button{background:var(--panel);border:1px solid var(--line);color:var(--ink);font:12px var(--f-m);padding:7px 10px;border-radius:6px;cursor:pointer}
+#q:focus,.tools button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+main{position:relative;flex:1;min-height:0}
+#g{position:absolute;inset:0}
+#legend{position:absolute;left:16px;bottom:16px;display:flex;flex-wrap:wrap;gap:6px;max-width:min(560px,calc(100% - 32px));z-index:2}
+#legend button{font:11px var(--f-m);color:var(--ink);background:rgba(7,24,58,.85);border:1px solid var(--line);border-radius:99px;padding:3px 9px 3px 7px;cursor:pointer;display:flex;gap:6px;align-items:center}
+#legend button i{width:8px;height:8px;border-radius:50%;display:inline-block}
+#legend button.off{opacity:.35}
+#card{position:absolute;right:16px;top:52px;width:min(300px,calc(100% - 32px));background:rgba(7,24,58,.94);border:1px solid var(--line);border-radius:8px;padding:14px;font-size:13px;max-height:calc(100% - 120px);overflow:auto;z-index:2}
+#card h2{font-family:var(--f-d);font-size:14px;margin:0 0 2px;font-weight:500;word-break:break-word}
+#card .path{font:11px var(--f-m);color:var(--muted);word-break:break-all}
+#card .stats{display:flex;gap:16px;margin:10px 0;font:12px var(--f-m);font-variant-numeric:tabular-nums}
+#card .stats b{display:block;font-size:16px;color:var(--ink)}
+#card .stats span{color:var(--muted)}
+#card h3{font:500 10.5px var(--f-m);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 4px}
+#card ul{list-style:none;margin:0;padding:0;font:12px var(--f-m)}
+#card li{padding:2px 0;cursor:pointer;display:flex;gap:6px;align-items:center}
+#card li:hover{color:var(--accent)}
+#card li em{margin-left:auto;font-style:normal;color:var(--muted);font-size:10.5px;text-align:right}
+#card li span{overflow-wrap:anywhere}
+.dead{color:#ff8080;font-size:12.5px;line-height:1.45;margin:8px 0 0}
+#toggle{position:absolute;right:16px;top:16px;z-index:3;background:var(--panel);border:1px solid var(--line);color:var(--ink);font:12px var(--f-m);padding:5px 9px;border-radius:6px;cursor:pointer}
+#toggle:focus-visible{outline:2px solid var(--accent)}
+#card li i{width:6px;height:6px;border-radius:50%;flex:none}
+.hint{color:var(--muted);font-size:12.5px;line-height:1.5;margin:0}
+.tip{font:12px var(--f-m);background:rgba(7,24,58,.95);border:1px solid var(--line);padding:4px 8px;border-radius:4px;color:var(--ink)}
+</style>
+<header>
+  <div>
+    <h1>Savino <span>/</span> rete neurale del codice</h1>
+    <div class="sub" id="sub"></div>
+  </div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Cerca una classe o un componente…" aria-label="Cerca nodo">
+    <button id="spin" type="button">Pausa rotazione</button>
+    <button id="reset" type="button">Vista iniziale</button>
+  </div>
+</header>
+<main>
+  <div id="g"></div>
+  <div id="legend"></div>
+  <button id="toggle" type="button" aria-expanded="true" aria-controls="card">Nascondi scheda</button>
+  <div id="card"><div id="intro"><p class="hint">Ogni neurone è un file: classi PHP in <code>app/</code>, pagine e componenti Vue in <code>resources/js/</code>. Le sinapsi sono le dipendenze reali (<code>use</code>, <code>import</code>, <code>Inertia::render</code>). Gli strati corrono lungo l'asse orizzontale, dall'interfaccia ai dati.</p><p class="hint">Le dipendenze PHP vengono dal parser del linguaggio (nomi risolti, commenti esclusi), le rotte da <code>route:list</code>, più le convenzioni di Laravel e Filament: scoperta automatica, policy, factory, <code>config()</code>, viste, comandi. Restano fuori traduzioni, CSS, <code>vendor</code> e i legami che vivono solo nei dati del database.</p><p class="hint">Trascina per ruotare, rotella per lo zoom, tasto destro per spostarti. Clicca un neurone per vedere i segnali che manda (fucsia) e riceve (azzurro). Test e migrazioni sono spenti: accendili dalla legenda.</p><h3>Non raggiungibili</h3><ul id="dead"></ul></div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.80.0/dist/3d-force-graph.min.js"></script>
+<script>
+const DATA=__DATA__;
+const ORDER=["Test","Pagine Vue","Layout Vue","Componenti Vue","Composables","Supporto JS","Bootstrap JS","Viste Blade","Rotte","Config e bootstrap","Http","Filament","Console","Policies","Observers","Services","Support","Code e Mail","Infrastruttura","Models","Enums","Seeder e factory","Migrazioni","Dati"];
+const KIND={uso:"usa la classe",import:"importa",rotta:"chiama la rotta",pagina:"mostra la pagina",vista:"usa la vista",comando:"lancia il comando",config:"legge la config",file:"carica il file",convenzione:"convenzione Laravel",scoperta:"scoperta automatica",glob:"carica (glob)"};
+const STOPS=["#4cc9f0","#7b8cff","#b36bff","#FA5FB6","#ff9ec9"];
+function ramp(u){const s=u*(STOPS.length-1),i=Math.min(STOPS.length-2,Math.floor(s)),f=s-i;const a=STOPS[i],b=STOPS[i+1];
+ const c=k=>Math.round(parseInt(a.substr(k,2),16)*(1-f)+parseInt(b.substr(k,2),16)*f).toString(16).padStart(2,"0");return "#"+c(1)+c(3)+c(5)}
+const color={};ORDER.forEach((l,i)=>color[l]=ramp(i/(ORDER.length-1)));
+DATA.nodes.forEach(n=>{n.out=[];n.in=[]});
+const byId=new Map(DATA.nodes.map(n=>[n.id,n]));
+DATA.links.forEach(l=>{byId.get(l.source).out.push([l.target,l.k]);byId.get(l.target).in.push([l.source,l.k]);l.glob=l.k.length===1&&l.k[0]==="glob";l.idle=!l.glob&&Math.random()<.1});
+const DEAD=DATA.nodes.filter(n=>!n.reach);
+const lines=DATA.nodes.reduce((s,n)=>s+n.loc,0);
+document.getElementById("sub").textContent=`${DATA.nodes.length} neuroni · ${DATA.links.length} sinapsi · ${ORDER.length} strati · ${lines.toLocaleString("it-IT")} righe`;
+const SPAN=ORDER.length*40;
+const colX=l=>(ORDER.indexOf(l)/(ORDER.length-1)-.5)*SPAN;
+DATA.nodes.forEach(n=>{n.x=colX(n.layer);n.y=(Math.random()-.5)*120;n.z=(Math.random()-.5)*120});
+const off=new Set(["Test","Migrazioni"]);let sel=null,hover=null,match=null,near=new Set(),hotLinks=new Set();
+const vis=n=>!off.has(n.layer);
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+const el=document.getElementById("g");
+const G=ForceGraph3D()(el)
+ .backgroundColor("#020b1a")
+ .graphData(DATA)
+ .nodeVal(n=>1+Math.min(n.deg,120)*.8)
+ .nodeRelSize(2.2)
+ .nodeResolution(12)
+ .nodeOpacity(.95)
+ .nodeColor(n=>{if(!n.reach&&!near.size&&!match)return "#ff4d4d";if((near.size&&!near.has(n))||(match&&!match.has(n)))return "#1b2b4a";return color[n.layer]})
+ .nodeVisibility(vis)
+ .nodeLabel(n=>`<div class="tip">${esc(n.name)} <span style="color:${color[n.layer]}">· ${n.layer}</span>${n.reach?"":" <b style=\"color:#ff4d4d\">· non raggiungibile</b>"}</div>`)
+ .linkVisibility(l=>vis(l.source)&&vis(l.target)&&(!l.glob||hotLinks.has(l)))
+ .linkColor(l=>hotLinks.has(l)?(l.source===sel||l.source===hover?"#FA5FB6":"#4cc9f0"):color[l.source.layer])
+ .linkOpacity(.18)
+ .linkWidth(l=>hotLinks.has(l)?1.2:0)
+ .linkCurvature(.12)
+ .linkDirectionalParticles(l=>hotLinks.size?(hotLinks.has(l)?4:0):(l.idle?1:0))
+ .linkDirectionalParticleWidth(l=>hotLinks.has(l)?2.4:1.3)
+ .linkDirectionalParticleSpeed(l=>hotLinks.has(l)?.012:.005)
+ .linkDirectionalParticleColor(l=>hotLinks.has(l)?(l.source===sel||l.source===hover?"#FA5FB6":"#4cc9f0"):"#ffffff")
+ .onNodeHover(n=>{el.style.cursor=n?"pointer":"grab";if(sel)return;hover=n;light(n)})
+ .onNodeClick(n=>select(n,true))
+ .onBackgroundClick(()=>select(null));
+// strati: forza che tiene ogni neurone sul suo piano
+let ns=[];const layerForce=a=>{for(const n of ns)n.vx+=(colX(n.layer)-n.x)*.35*a};layerForce.initialize=x=>ns=x;
+G.d3Force("layer",layerForce);
+G.d3Force("charge").strength(-28);
+G.d3Force("link").strength(.04);
+function size(){G.width(el.clientWidth).height(el.clientHeight)}size();addEventListener("resize",size);
+function light(n){near=new Set();hotLinks=new Set();
+ if(n){near.add(n);DATA.links.forEach(l=>{if(l.source===n||l.target===n){hotLinks.add(l);near.add(l.source);near.add(l.target)}})}
+ refresh()}
+function refresh(){G.nodeColor(G.nodeColor()).linkColor(G.linkColor()).linkWidth(G.linkWidth()).linkDirectionalParticles(G.linkDirectionalParticles()).linkDirectionalParticleColor(G.linkDirectionalParticleColor()).linkDirectionalParticleWidth(G.linkDirectionalParticleWidth()).linkDirectionalParticleSpeed(G.linkDirectionalParticleSpeed())}
+const card=document.getElementById("card");
+document.getElementById("dead").innerHTML=DEAD.map(n=>li([n.id,[]])).join("");const intro=card.innerHTML;
+function bindLi(){card.querySelectorAll("li").forEach(e=>e.onclick=()=>select(byId.get(e.dataset.id),true))}bindLi();
+const tg=document.getElementById("toggle");function showCard(v){card.hidden=!v;tg.setAttribute("aria-expanded",v);tg.textContent=v?"Nascondi scheda":"Mostra scheda"}tg.onclick=()=>showCard(card.hidden);if(innerWidth<700)showCard(false);
+const li=([id,k])=>{const n=byId.get(id);return `<li data-id="${n.id}" title="${esc(n.id)}"><i style="background:${color[n.layer]}"></i><span>${esc(n.name)}</span><em>${k.map(x=>KIND[x]).join(", ")}</em></li>`};
+function fly(n){const d=60,r=1+d/Math.hypot(n.x,n.y,n.z||1);G.cameraPosition({x:n.x*r,y:n.y*r,z:(n.z||1)*r},n,1200)}
+function select(n,move){sel=n;light(n);if(!n){card.innerHTML=intro;bindLi();return}showCard(true);
+ if(move){setSpin(false);fly(n)}
+ card.innerHTML=`<h2>${esc(n.name)}</h2><div class="path">${esc(n.id)}</div>
+ <div class="stats"><div><b>${n.loc}</b><span>righe</span></div><div><b>${n.out.length}</b><span>dipende da</span></div><div><b>${n.in.length}</b><span>usato da</span></div></div>
+ <div class="path" style="color:${color[n.layer]}">strato: ${n.layer}</div>${n.reach?"":`<p class="dead">Nessun percorso lo raggiunge da rotte, config, bootstrap, migrazioni o seeder: il codice in produzione non lo usa.</p>`}
+ ${n.out.length?`<h3>Dipende da</h3><ul>${n.out.map(li).join("")}</ul>`:""}
+ ${n.in.length?`<h3>Usato da</h3><ul>${n.in.map(li).join("")}</ul>`:""}`;
+ bindLi()}
+const legend=document.getElementById("legend");
+ORDER.forEach(l=>{const c=DATA.nodes.filter(n=>n.layer===l).length;if(!c)return;const b=document.createElement("button");b.type="button";
+ b.innerHTML=`<i style="background:${color[l]}"></i>${l} ${c}`;if(off.has(l))b.classList.add("off");b.setAttribute("aria-pressed",!off.has(l));b.onclick=()=>{off.has(l)?off.delete(l):off.add(l);b.classList.toggle("off");b.setAttribute("aria-pressed",!off.has(l));G.nodeVisibility(G.nodeVisibility()).linkVisibility(G.linkVisibility())};legend.appendChild(b)});
+document.getElementById("q").addEventListener("input",e=>{const q=e.target.value.trim().toLowerCase();
+ match=q?new Set(DATA.nodes.filter(n=>n.name.toLowerCase().includes(q)||n.id.toLowerCase().includes(q))):null;refresh();
+ if(match&&match.size===1){const[n]=match;select(n,true)}});
+// rotazione lenta attorno alla rete
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let spin=!reduce,ang=0,R=720,H=60;const spinBtn=document.getElementById("spin");
+function setSpin(v){spin=v;spinBtn.textContent=v?"Pausa rotazione":"Ruota"}
+setSpin(spin);function resume(){const p=G.cameraPosition();R=Math.hypot(p.x,p.z)||R;H=p.y;ang=Math.atan2(p.x,p.z);G.controls().target.set(0,0,0);setSpin(true)}
+spinBtn.onclick=()=>spin?setSpin(false):resume();
+G.cameraPosition({x:0,y:H,z:R});
+(function tick(){if(spin){ang+=.0016;G.cameraPosition({x:R*Math.sin(ang),y:H,z:R*Math.cos(ang)},{x:0,y:0,z:0})}requestAnimationFrame(tick)})();
+el.addEventListener("pointerdown",()=>setSpin(false));el.addEventListener("wheel",()=>setSpin(false),{passive:true});
+document.getElementById("reset").onclick=()=>{select(null);setSpin(false);ang=0;R=720;H=60;G.cameraPosition({x:0,y:H,z:R},{x:0,y:0,z:0},900);setTimeout(()=>{if(!reduce)setSpin(true)},950)};
+addEventListener("keydown",e=>{if(e.key==="Escape")select(null)});
+</script>

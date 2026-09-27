@@ -2,48 +2,46 @@
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\PageController;
+use App\Enums\PageTemplate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
-use ReflectionClassConstant;
 use Tests\TestCase;
 
 /**
- * Il pannello offriva il template `Public/Shop`, che non aveva né il
- * componente Vue né un posto in `PageController::ALLOWED_TEMPLATES`: la
- * pagina ricadeva in silenzio su `Public/ContentPage`. Ogni template che la
- * redazione può scegliere deve esistere davvero.
+ * Il pannello offriva il template `Public/Shop`, che non aveva il componente
+ * Vue: la pagina ricadeva in silenzio su `Public/ContentPage`. I modelli ora
+ * stanno tutti in `App\Enums\PageTemplate`, e ognuno deve esistere davvero.
  */
 class TemplateDellePagineEsistonoTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @return list<string> */
-    private function consentiti(): array
-    {
-        return (new ReflectionClassConstant(PageController::class, 'ALLOWED_TEMPLATES'))->getValue();
-    }
-
     #[Test]
-    public function ogni_template_consentito_ha_il_suo_componente_vue(): void
+    public function ogni_modello_ha_il_suo_componente_vue(): void
     {
-        foreach ($this->consentiti() as $template) {
-            $this->assertFileExists(resource_path("js/Pages/{$template}.vue"), $template);
+        foreach (PageTemplate::cases() as $modello) {
+            $this->assertFileExists(resource_path("js/Pages/{$modello->componente()}.vue"), $modello->value);
         }
     }
 
     #[Test]
-    public function il_pannello_offre_solo_template_che_il_sito_sa_mostrare(): void
+    public function un_valore_sconosciuto_vale_la_pagina_generica(): void
+    {
+        $this->assertSame('Public/ContentPage', PageTemplate::componenteDi('Public/Shop'));
+        $this->assertSame('Public/ContentPage', PageTemplate::componenteDi('Default'));
+        $this->assertSame('Public/ContentPage', PageTemplate::componenteDi(null));
+        $this->assertSame('Public/Ticketing', PageTemplate::componenteDi('Public/Ticketing'));
+    }
+
+    #[Test]
+    public function il_pannello_non_scrive_a_mano_i_nomi_dei_modelli(): void
     {
         $sorgente = file_get_contents(app_path('Filament/Resources/PageResource.php'));
-        preg_match_all("/'(Public\\/[A-Za-z\\/]+)' =>/", $sorgente, $offerti);
 
-        $this->assertNotEmpty($offerti[1]);
-
-        foreach ($offerti[1] as $template) {
-            $this->assertContains($template, $this->consentiti(), "Il pannello offre {$template}, che il sito non mostra");
-        }
+        $this->assertDoesNotMatchRegularExpression("/'Public\\/[A-Za-z\\/]+'/", $sorgente);
+        $this->assertArrayNotHasKey('Public/Home', PageTemplate::opzioni());
+        $this->assertArrayHasKey('Public/Ticketing', PageTemplate::opzioni());
     }
 
     #[Test]

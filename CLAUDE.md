@@ -665,6 +665,12 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   `$this->data = …`: senza idratazione un FileUpload con un percorso in
   archivio manda in 500 la richiesta con cui il browser chiede i file già
   caricati (Documenti Legali non si apriva più).
+- **I modelli di pagina stanno in `App\Enums\PageTemplate`**, e da nessun'altra
+  parte: tendina e filtro del pannello, sezioni del modulo e componente mostrato
+  da `PageController` leggono da lì. Erano quattro elenchi scritti a mano e il
+  pannello offriva `Public/Shop`, che non ha componente: la pagina ricadeva in
+  silenzio sulla pagina generica. Un test verifica che ogni caso abbia il suo
+  `.vue` e che `PageResource` non scriva nomi di modello a mano.
 - **Una sezione, una pagina.** `/youth` e `/ticketing` rimandano a
   `settore-giovanile` e `biglietteria` (come `/sociale` → `volley-4-all`): le
   copie del seeder `youth`, `ticketing` e `sociale` sono state tolte perché la
@@ -1460,3 +1466,21 @@ Mappa completa in `docs/CONSUMATORI.md`. Vincoli:
   (`AccountController`, `DatiDelCliente`). Gli ordini restano con `user_id`
   nullo (conservazione fiscale); gli account della redazione e chi ha un'asta
   in corso o da pagare non si cancellano da lì.
+
+---
+
+## 26. Mappa delle dipendenze
+
+`php scripts/mappa-dipendenze.php` costruisce il grafo di tutto il progetto
+(classi PHP dal parser del linguaggio, rotte dal router, import JS, viste
+Blade, più le convenzioni di Laravel e Filament) e **fallisce** su due cose:
+codice che nessuno raggiunge partendo da rotte, config, bootstrap, migrazioni
+e seeder (i test non contano: un file usato solo da un test non serve al
+sito), e rotte, viste, pagine Vue, import o classi `App\` citati ma
+inesistenti. Gira in CI dopo PHPStan. Con `--html=mappa.html` scrive la mappa
+3D navigabile (modello in `scripts/mappa-dipendenze.html`).
+
+Un falso positivo si mette in `ECCEZIONI` dentro lo script, con il motivo.
+Una nuova convenzione del framework che collega file senza nominarli (una
+cartella a scoperta automatica, un registro per nome) va insegnata allo
+script, non silenziata: altrimenti i file che carica risultano irraggiungibili.

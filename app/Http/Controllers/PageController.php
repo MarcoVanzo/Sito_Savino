@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\GameStatus;
+use App\Enums\PageTemplate;
 use App\Enums\PostStatus;
 use App\Enums\StaffType;
 use App\Models\Game;
@@ -24,37 +25,6 @@ use Inertia\Inertia;
 
 class PageController extends Controller
 {
-    /**
-     * Template consentiti per il rendering Inertia.
-     * Previene code injection da valori malevoli nel database.
-     * Deve corrispondere ai componenti Vue in resources/js/Pages/Public/.
-     */
-    private const ALLOWED_TEMPLATES = [
-        'Public/ContentPage',
-        'Public/Stagione',
-        'Public/Home',
-        'Public/Societa/Organigramma',
-        'Public/Societa/Storia',
-        'Public/Societa/Palazzetto',
-        'Public/Societa/Safeguarding',
-        'Public/Roster',
-
-        'Public/Ticketing',
-        'Public/ClubRace',
-        'Public/Convenzioni',
-        'Public/Sponsor',
-        'Public/Youth',
-        'Public/Affiliazioni',
-        'Public/SummerCamp',
-        'Public/TalentDay',
-        'Public/Sociale',
-        'Public/Comunicazione',
-        'Public/Risultati',
-        'Public/Gallery',
-        'Public/Staff',
-        'Public/Contatti',
-    ];
-
     /**
      * Mappatura dei singoli slug di pagina alle rispettive sezioni (per URL canonici SEO).
      */
@@ -171,11 +141,9 @@ class PageController extends Controller
             return $canonico;
         }
 
-        // Se il template è nella whitelist, usalo. Altrimenti renderizza
-        // la pagina generica con un layout che mostra il contenuto della page.
-        $template = $page->template && in_array($page->template, self::ALLOWED_TEMPLATES)
-            ? $page->template
-            : 'Public/ContentPage'; // Fallback generico che renderizza il contenuto
+        // Un valore sconosciuto vale la pagina generica: dal database non
+        // arriva a Inertia un nome di componente arbitrario.
+        $template = PageTemplate::componenteDi($page->template);
 
         // Props aggiuntive per template specifici
         $extra = $this->getTemplateData($template);
@@ -260,10 +228,10 @@ class PageController extends Controller
     private function getTemplateData(string $template): array
     {
         return match ($template) {
-            'Public/Societa/Organigramma' => $this->getSocietaData(),
-            'Public/Comunicazione' => $this->getComunicazioneData(),
-            'Public/Roster' => $this->getRosterData(),
-            'Public/Sponsor' => $this->getSponsorData(),
+            PageTemplate::Organigramma->value => $this->getSocietaData(),
+            PageTemplate::Comunicazione->value => $this->getComunicazioneData(),
+            PageTemplate::Roster->value => $this->getRosterData(),
+            PageTemplate::Sponsor->value => $this->getSponsorData(),
             default => [],
         };
     }
