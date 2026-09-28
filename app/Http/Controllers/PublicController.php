@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\GameStatus;
 use App\Enums\StaffType;
 use App\Http\Controllers\Concerns\PresentaLeSquadre;
+use App\Models\Evento;
 use App\Models\Game;
 use App\Models\HeroSlide;
 use App\Models\Page;
@@ -19,6 +20,7 @@ use App\Models\Team;
 use App\Services\PalmaresPresenter;
 use App\Services\SponsorDirectory;
 use App\Support\LiveStream;
+use App\Support\MatchDay;
 use App\Support\PermalinkVecchioSito;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -65,23 +67,7 @@ class PublicController extends Controller
                 ->orderBy('match_date')
                 ->first();
 
-            $nextGame = $nextGameModel?->toArray();
-
-            if ($nextGame !== null) {
-                // I loghi vanno letti da Team::logoUrl(), non scelti nel
-                // template: la home mostrava lo stemma del Savino su qualunque
-                // squadra di casa.
-                $nextGame['home_team']['logo_url'] = $nextGameModel->homeTeam?->logoUrl();
-                // "Avversaria da definire" nella lingua della pagina.
-                $nextGame['home_team']['name'] = $nextGameModel->homeTeam?->nomePubblico();
-                $nextGame['away_team']['name'] = $nextGameModel->awayTeam?->nomePubblico();
-                $nextGame['away_team']['logo_url'] = $nextGameModel->awayTeam?->logoUrl();
-                // Diretta: incorporabile solo dalle piattaforme conosciute, e
-                // comunque solo se è un link web — il template lo usa come
-                // `href` quando non si può incorporare.
-                $nextGame['stream_url'] = LiveStream::externalUrl($nextGameModel->stream_url);
-                $nextGame['stream_embed_url'] = LiveStream::embedUrl($nextGameModel->stream_url);
-            }
+            $nextGame = $nextGameModel !== null ? self::garaPerLaHome($nextGameModel) : null;
 
             // Ultime 3 news pubblicate
             $latestNews = Post::published()
@@ -118,7 +104,60 @@ class PublicController extends Controller
             ];
         });
 
-        return Inertia::render('Public/Home', $data);
+        $matchDay = MatchDay::stato();
+
+        return Inertia::render('Public/Home', [
+            ...$data,
+            'matchDay' => [
+                'attivo' => $matchDay['attivo'],
+                'inCasa' => $matchDay['in_casa'],
+                'gara' => $matchDay['gara'] !== null ? self::garaPerLaHome($matchDay['gara']) : null,
+                'popup' => $matchDay['popup'],
+                // Lo stesso link del pop-up anche per il pulsante della fascia,
+                // che resta quando il pop-up non c'è (gara già cominciata).
+                'urlBiglietti' => (string) SiteSetting::get('match_day_popup_url', ''),
+            ],
+            // Fuori dalla cache della home: la striscia legge quella degli
+            // sponsor, che si butta appena la redazione ne salva uno.
+            'sponsor' => collect(app(SponsorDirectory::class)->tiers())
+                ->flatMap(fn (array $livello) => $livello['sponsors'])
+                ->map(fn (array $sponsor) => [
+                    'id' => $sponsor['id'],
+                    'name' => $sponsor['name'],
+                    'website_url' => $sponsor['website_url'],
+                    'logo_url' => $sponsor['logo_url'],
+                ])
+                ->values()
+                ->all(),
+            'eventi' => Evento::inArrivo()->with('media')->take(3)->get()
+                ->map(fn (Evento $evento) => $evento->perLaHome())
+                ->all(),
+        ]);
+    }
+
+    /**
+     * Una gara come la mostra la homepage: stemmi, nomi pubblici e diretta.
+     *
+     * @return array<string, mixed>
+     */
+    private static function garaPerLaHome(Game $gara): array
+    {
+        $dati = $gara->toArray();
+
+        // I loghi vanno letti da Team::logoUrl(), non scelti nel template: la
+        // home mostrava lo stemma del Savino su qualunque squadra di casa.
+        $dati['home_team']['logo_url'] = $gara->homeTeam?->logoUrl();
+        // "Avversaria da definire" nella lingua della pagina.
+        $dati['home_team']['name'] = $gara->homeTeam?->nomePubblico();
+        $dati['away_team']['name'] = $gara->awayTeam?->nomePubblico();
+        $dati['away_team']['logo_url'] = $gara->awayTeam?->logoUrl();
+        // Diretta: incorporabile solo dalle piattaforme conosciute, e comunque
+        // solo se è un link web — il template lo usa come `href` quando non si
+        // può incorporare.
+        $dati['stream_url'] = LiveStream::externalUrl($gara->stream_url);
+        $dati['stream_embed_url'] = LiveStream::embedUrl($gara->stream_url);
+
+        return $dati;
     }
 
     public function stagione()

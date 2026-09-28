@@ -55,7 +55,22 @@
         "cta_ticketing_title": "Biglietteria",
         "cta_ticketing_text": "Acquista i biglietti per la prossima partita",
         "cta_shop_title": "Shop Ufficiale",
-        "cta_shop_text": "Maglie, merchandise e accessori della squadra"
+        "cta_shop_text": "Maglie, merchandise e accessori della squadra",
+        "sponsor_subtitle": "Chi ci sostiene",
+        "sponsor_title": "I nostri partner",
+        "sponsor_label": "Scorrimento dei loghi degli sponsor",
+        "countdown_label": "Al fischio d’inizio mancano",
+        "countdown_days": "giorni",
+        "countdown_hours": "ore",
+        "countdown_minutes": "minuti",
+        "countdown_aria": "Mancano {giorni} giorni, {ore} ore e {minuti} minuti al fischio d’inizio",
+        "countdown_live": "Partita in corso",
+        "match_day_badge": "Oggi si gioca",
+        "match_day_today": "Oggi alle {ora}",
+        "match_day_tickets": "Biglietti",
+        "events_subtitle": "Da non perdere",
+        "events_title": "Eventi",
+        "event_details": "Scopri di più"
     },
     "footer": {
         "privacy_policy": "Privacy Policy",

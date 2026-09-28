@@ -6,6 +6,7 @@ use App\Enums\CompetitionType;
 use App\Http\Middleware\CachePublicResponse;
 use App\Jobs\RicostruisciLaCacheDellaGallery;
 use App\Models\Category;
+use App\Models\Evento;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
@@ -84,6 +85,9 @@ class CacheInvalidationObserver
         // senza questa voce restavano quelli vecchi per i cinque minuti di
         // `public:home`, e la redazione ricaricava senza vedere niente.
         HeroSlide::class => ['public:home'],
+        // Gli eventi non stanno nella cache della home, ma la pagina intera sì
+        // (CachePublicResponse): senza, un evento salvato compare un minuto dopo.
+        Evento::class => ['public:home'],
         Standing::class => ['public:risultati'],
         StaffMember::class => [...self::CHIAVI_STAGIONE, 'public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],
         GalleryEvent::class => ['public:gallery_images'],

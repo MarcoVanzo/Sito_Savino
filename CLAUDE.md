@@ -1544,3 +1544,42 @@ Un falso positivo si mette in `ECCEZIONI` dentro lo script, con il motivo.
 Una nuova convenzione del framework che collega file senza nominarli (una
 cartella a scoperta automatica, un registro per nome) va insegnata allo
 script, non silenziata: altrimenti i file che carica risultano irraggiungibili.
+
+---
+
+## 27. Homepage: Match Day, sponsor ed eventi
+
+Chiesti dalla redazione per il go-live (email di Gabriele del 28/09/2026).
+
+- **Match Day** (`App\Support\MatchDay`, Impostazioni → Homepage → Match Day):
+  `match_day_modalita` vale `auto` (acceso nel giorno di una gara della
+  società fino a tre ore dal fischio d'inizio, anche oltre la mezzanotte; le
+  rinviate no), `off`, oppure `on`, che **vale solo per il giorno in cui la si
+  sceglie** (`match_day_acceso_il`, scritto dal salvataggio): dimenticata
+  accesa, la home direbbe «Oggi si gioca» per settimane. Acceso, la home mostra
+  la fascia «Oggi si gioca», la sezione della partita in tema scuro con la gara
+  di oggi al posto della «prossima» e il pop-up dei biglietti. **In automatico
+  pop-up e pulsante «Biglietti» della fascia compaiono solo per le gare in casa
+  e prima del fischio d'inizio**: in trasferta o a gara cominciata non ci sono
+  biglietti da vendere. Il pannello mostra lo stato effettivo in cima alla
+  sezione. Il pop-up aspetta la risposta al banner dei
+  cookie (due finestre insieme al primo ingresso sono troppe) e si mostra una
+  volta per visita e per giorno (`sessionStorage`). Link vuoto = pagina
+  Biglietteria. Le chiavi `match_day_*` stanno nel gruppo `home`, create dalla
+  migrazione `2026_09_28_100000_eventi_e_match_day_in_homepage`.
+- **Conto alla rovescia**: `resources/js/Support/conteggioAllaPartita.js`, al
+  minuto e non al secondo (movimento continuo, WCAG 2.2.2); per tre ore dopo
+  l'inizio dice «Partita in corso», poi niente.
+- **Striscia degli sponsor** (`StrisciaSponsor.vue`): tutti gli sponsor, in
+  ordine di livello da `SponsorDirectory`, **a colori** (è visibilità venduta).
+  Ferma con lo stesso pulsante di pausa della home, e in pausa i loghi si
+  dispongono tutti in vista invece di restare tagliati a metà scorrimento; la
+  seconda copia del giro è `aria-hidden` e fuori dal Tab. Sotto i sei sponsor
+  non scorre.
+- **Eventi** (`App\Models\Evento`, tabella `eventi`, pannello «Eventi in
+  homepage»): i prossimi tre pubblicati e non finiti; senza fine un evento
+  resta fino a mezzanotte del suo giorno. Senza eventi la sezione sparisce.
+
+Test in `tests/Feature/HomepageGoLiveTest.php`,
+`tests/Feature/Filament/EventiEMatchDayNelPannelloTest.php` e
+`resources/js/Components/Home/componentiDellaHome.test.js`.

@@ -11,13 +11,17 @@ import { useImageFallback } from '@/Composables/useImageFallback.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 import TeamCrest from '@/Components/TeamCrest.vue';
 import LiveStreamModal from '@/Components/LiveStreamModal.vue';
+import ConteggioAllaPartita from '@/Components/Home/ConteggioAllaPartita.vue';
+import StrisciaSponsor from '@/Components/Home/StrisciaSponsor.vue';
+import EventiInHome from '@/Components/Home/EventiInHome.vue';
+import PopupMatchDay from '@/Components/Home/PopupMatchDay.vue';
 import { isExternalLink, externalLinkAttrs } from '@/Support/menuLinks.js';
 import { useLocale } from '@/Composables/useLocale.js';
 import { useSafeUrl } from '@/Composables/useSafeUrl.js';
 
 const { safeUrl } = useSafeUrl();
 const { onImgError } = useImageFallback();
-const { formatDate } = useLocale();
+const { formatDate, formatTime } = useLocale();
 const $t = useTranslations();
 
 const props = defineProps({
@@ -33,6 +37,44 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    // App\Support\MatchDay: attivo, inCasa, gara di oggi, pop-up.
+    matchDay: {
+        type: Object,
+        default: () => ({ attivo: false, inCasa: false, gara: null, popup: null }),
+    },
+    sponsor: {
+        type: Array,
+        default: () => [],
+    },
+    eventi: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+// Nel Match Day la sezione mostra la gara di oggi anche dopo il fischio
+// d'inizio, quando la «prossima partita» sarebbe già quella della settimana
+// dopo.
+const partita = computed(() => props.matchDay?.gara ?? props.nextGame);
+const matchDayAttivo = computed(() => Boolean(props.matchDay?.attivo));
+// Il pulsante dei biglietti nella fascia: gare in casa, prima del fischio
+// d'inizio, come il pop-up.
+const bigliettiInVendita = computed(() => Boolean(props.matchDay?.inCasa)
+    && Date.parse(props.matchDay?.gara?.match_date ?? '') > Date.now());
+const urlBigliettiMatchDay = computed(() => safeUrl(props.matchDay?.urlBiglietti, route('ticketing.page', 'biglietteria')));
+
+const oraDellaPartita = computed(() => (partita.value?.match_date
+    ? formatTime(partita.value.match_date)
+    : ''));
+
+// Accesa a mano senza una gara oggi, la fascia mostra la prossima: con la sola
+// ora sembrerebbe in programma stasera.
+const quandoNellaFascia = computed(() => {
+    if (!partita.value?.match_date) return '';
+
+    return props.matchDay?.gara
+        ? oraDellaPartita.value
+        : formatDate(partita.value.match_date, { weekday: 'long', day: 'numeric', month: 'long', year: undefined, hour: '2-digit', minute: '2-digit' });
 });
 
 // Diretta della prossima gara: le piattaforme conosciute si aprono in una
@@ -40,16 +82,16 @@ const props = defineProps({
 const activeStream = ref(null);
 
 const openNextGameStream = (event) => {
-    if (!props.nextGame?.stream_embed_url) {
+    if (!partita.value?.stream_embed_url) {
         return;
     }
 
     event.preventDefault();
 
     activeStream.value = {
-        title: `${props.nextGame?.home_team?.name ?? ''} — ${props.nextGame?.away_team?.name ?? ''}`,
-        embedUrl: props.nextGame.stream_embed_url,
-        url: props.nextGame.stream_url,
+        title: `${partita.value?.home_team?.name ?? ''} — ${partita.value?.away_team?.name ?? ''}`,
+        embedUrl: partita.value.stream_embed_url,
+        url: partita.value.stream_url,
     };
 };
 
@@ -444,8 +486,8 @@ onUnmounted(() => {
 
 // === UTILS ===
 const formattedMatchDate = computed(() => {
-    if (!props.nextGame?.match_date) return null;
-    return formatDate(props.nextGame.match_date, {
+    if (!partita.value?.match_date) return null;
+    return formatDate(partita.value.match_date, {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -638,21 +680,47 @@ const ogMeta = useOgMeta({
             </div>
         </div>
 
+        <!-- FASCIA MATCH DAY -->
+        <div v-if="matchDayAttivo" class="bg-savino-fucsia text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 text-center">
+                <span class="inline-flex items-center gap-2 font-black uppercase tracking-[0.25em] text-lg whitespace-nowrap">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white" aria-hidden="true"></span>
+                    {{ $t('home.match_day_badge') }}
+                </span>
+                <span v-if="partita" class="font-bold uppercase tracking-wide text-sm">
+                    {{ partita.home_team?.name }} – {{ partita.away_team?.name }}<template v-if="quandoNellaFascia"> · {{ quandoNellaFascia }}</template><template v-if="partita.location"> · {{ partita.location }}</template>
+                </span>
+                <component
+                    :is="isExternalLink(urlBigliettiMatchDay) ? 'a' : Link"
+                    v-if="bigliettiInVendita"
+                    v-bind="externalLinkAttrs(urlBigliettiMatchDay)"
+                    :href="urlBigliettiMatchDay"
+                    class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2 text-savino-blue text-xs font-bold uppercase tracking-wider hover:bg-savino-blue hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                >
+                    {{ $t('home.match_day_tickets') }}
+                </component>
+            </div>
+        </div>
+
         <!-- PROSSIMA PARTITA -->
-        <section ref="matchSection" class="relative py-28 overflow-hidden" style="background: #e8eaef;">
+        <section ref="matchSection" class="relative py-28 overflow-hidden" :class="matchDayAttivo ? 'match-day-scuro' : 'bg-[#e8eaef]'">
             <!-- Subtle diagonal lines pattern filling the white space -->
             <div class="absolute inset-0 opacity-[0.03]" style="background-image: repeating-linear-gradient(135deg, #003063 0px, #003063 1px, transparent 1px, transparent 40px);"></div>
             <!-- Warm radial glow from center -->
             <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 60%, rgba(0,48,99,0.06) 0%, transparent 50%);"></div>
             <!-- Large decorative watermark text -->
             <div class="absolute inset-0 flex items-start justify-center pt-8 pointer-events-none select-none overflow-hidden">
-                <span aria-hidden="true" class="text-[10rem] md:text-[14rem] font-black uppercase tracking-tighter text-white/[0.55] leading-none whitespace-nowrap">MATCH DAY</span>
+                <span aria-hidden="true" class="text-[10rem] md:text-[14rem] font-black uppercase tracking-tighter leading-none whitespace-nowrap" :class="matchDayAttivo ? 'text-white/[0.04]' : 'text-white/[0.55]'">MATCH DAY</span>
             </div>
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-14" data-reveal>
-                    <span class="text-[#B8066A] text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.next_match_subtitle') }}</span>
-                    <h2 class="text-3xl md:text-5xl font-black text-savino-blue uppercase tracking-tighter mt-3">
-                        {{ $t('home.next_match_title') }}
+                    <span v-if="matchDayAttivo" class="inline-flex items-center gap-2 rounded-full bg-savino-fucsia px-4 py-1.5 text-white text-sm font-bold uppercase tracking-[0.3em]">
+                        <span class="w-2 h-2 rounded-full bg-white" aria-hidden="true"></span>
+                        {{ $t('home.match_day_badge') }}
+                    </span>
+                    <span v-else class="text-[#B8066A] text-sm font-bold uppercase tracking-[0.3em]">{{ $t('home.next_match_subtitle') }}</span>
+                    <h2 class="text-3xl md:text-5xl font-black uppercase tracking-tighter mt-3" :class="matchDayAttivo ? 'text-white' : 'text-savino-blue'">
+                        {{ matchDayAttivo && matchDay.gara ? $t('home.match_day_today', { ora: oraDellaPartita }) : $t('home.next_match_title') }}
                     </h2>
                     <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-6"></div>
                 </div>
@@ -667,29 +735,29 @@ const ogMeta = useOgMeta({
                             <!-- Home Team -->
                             <div class="text-center md:text-right flex-1">
                                 <TeamCrest
-                                    :logo-url="nextGame?.home_team?.logo_url"
-                                    :name="nextGame?.home_team?.name"
+                                    :logo-url="partita?.home_team?.logo_url"
+                                    :name="partita?.home_team?.name"
                                     align-class="mx-auto md:ml-auto md:mr-0"
                                 />
-                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words min-h-[3.5rem] flex items-start justify-center md:justify-end">{{ nextGame?.home_team?.name ?? 'Savino Del Bene' }}</h3>
+                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words min-h-[3.5rem] flex items-start justify-center md:justify-end">{{ partita?.home_team?.name ?? 'Savino Del Bene' }}</h3>
                                 <span class="text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.home_team') }}</span>
                             </div>
                             <!-- VS -->
                             <div class="text-center px-8 md:pt-10">
                                 <div aria-hidden="true" class="text-white/10 text-6xl md:text-8xl lg:text-9xl font-black leading-none select-none">VS</div>
                                 <div class="-mt-4 bg-savino-fucsia/15 backdrop-blur-sm rounded-lg px-6 py-3 relative">
-                                    <div class="text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-widest">{{ nextGame?.competition_type ?? 'Serie A1' }}</div>
+                                    <div class="text-savino-fucsia-chiaro text-xs font-bold uppercase tracking-widest">{{ partita?.competition_type ?? 'Serie A1' }}</div>
                                     <div class="text-white text-sm font-bold mt-1">{{ formattedMatchDate ?? $t('common.tbd') }}</div>
                                 </div>
                             </div>
                             <!-- Away Team -->
                             <div class="text-center md:text-left flex-1">
                                 <TeamCrest
-                                    :logo-url="nextGame?.away_team?.logo_url"
-                                    :name="nextGame?.away_team?.name"
+                                    :logo-url="partita?.away_team?.logo_url"
+                                    :name="partita?.away_team?.name"
                                     align-class="mx-auto md:mr-auto md:ml-0"
                                 />
-                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words min-h-[3.5rem] flex items-start justify-center md:justify-start">{{ nextGame?.away_team?.name ?? 'Avversario' }}</h3>
+                                <h3 class="text-white font-black text-xl sm:text-2xl uppercase tracking-tight break-words min-h-[3.5rem] flex items-start justify-center md:justify-start">{{ partita?.away_team?.name ?? 'Avversario' }}</h3>
                                 <span class="text-white/70 text-xs font-bold uppercase tracking-widest mt-1 inline-block">{{ $t('home.away_team') }}</span>
                             </div>
                         </div>
@@ -697,21 +765,22 @@ const ogMeta = useOgMeta({
                         <!-- L'impianto era stampato come sottotitolo della squadra ospite,
                              dove si legge come una sua indicazione: sta sopra i biglietti,
                              che e' l'informazione a cui serve. -->
-                        <p v-if="nextGame?.location" class="text-center text-white/70 text-sm font-bold uppercase tracking-[0.2em] mt-12">
-                            {{ nextGame.location }}
+                        <ConteggioAllaPartita v-if="partita?.match_date" :data="partita.match_date" class="mt-12" />
+                        <p v-if="partita?.location" class="text-center text-white/70 text-sm font-bold uppercase tracking-[0.2em] mt-12">
+                            {{ partita.location }}
                         </p>
-                        <div class="text-center flex flex-wrap items-center justify-center gap-4" :class="nextGame?.location ? 'mt-5' : 'mt-12'">
+                        <div class="text-center flex flex-wrap items-center justify-center gap-4" :class="partita?.location ? 'mt-5' : 'mt-12'">
                             <Link :href="route('ticketing.page', 'biglietteria')" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 shadow-lg shadow-savino-fucsia/30">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                                 {{ $t('common.buy_tickets') }}
                             </Link>
                             <component
-                                :is="nextGame?.stream_embed_url ? 'button' : 'a'"
-                                v-if="nextGame?.stream_url"
-                                :type="nextGame?.stream_embed_url ? 'button' : undefined"
-                                :href="nextGame?.stream_embed_url ? undefined : nextGame.stream_url"
-                                :target="nextGame?.stream_embed_url ? undefined : '_blank'"
-                                :rel="nextGame?.stream_embed_url ? undefined : 'noopener noreferrer'"
+                                :is="partita?.stream_embed_url ? 'button' : 'a'"
+                                v-if="partita?.stream_url"
+                                :type="partita?.stream_embed_url ? 'button' : undefined"
+                                :href="partita?.stream_embed_url ? undefined : partita.stream_url"
+                                :target="partita?.stream_embed_url ? undefined : '_blank'"
+                                :rel="partita?.stream_embed_url ? undefined : 'noopener noreferrer'"
                                 class="inline-flex items-center gap-3 bg-savino-red text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-red/90 transition-all duration-300 shadow-lg shadow-savino-red/30"
                                 @click="openNextGameStream"
                             >
@@ -724,6 +793,9 @@ const ogMeta = useOgMeta({
             </div>
         </section>
 
+
+        <!-- SPONSOR: visibilità venduta ai partner, subito sotto la partita -->
+        <StrisciaSponsor :sponsor="sponsor" :fermo="movimentoFermo" @alterna="alternaMovimento" />
 
         <!-- IL CLUB IN NUMERI -->
         <section v-if="stats.length" ref="statsSection" class="relative py-28 overflow-hidden" style="background: linear-gradient(155deg, #001028 0%, #002244 30%, #003063 55%, #001d3d 80%, #000d1f 100%);">
@@ -753,6 +825,9 @@ const ogMeta = useOgMeta({
                 </div>
             </div>
         </section>
+
+        <!-- EVENTI (compare solo con almeno un evento in arrivo) -->
+        <EventiInHome :eventi="eventi" />
 
         <!-- NEWS IN EVIDENZA -->
         <section ref="newsSection" class="relative py-28 overflow-hidden" style="background: #e8eaef;">
@@ -901,6 +976,7 @@ const ogMeta = useOgMeta({
 
 
         <LiveStreamModal :stream="activeStream" @close="closeStream" />
+        <PopupMatchDay v-if="matchDayAttivo && matchDay.popup" :popup="matchDay.popup" />
     </PublicLayout>
 </template>
 
@@ -1131,6 +1207,12 @@ const ogMeta = useOgMeta({
     opacity: 0;
     transition: opacity 0.4s ease;
     border-radius: inherit;
+}
+
+/* === MATCH DAY: la sezione della partita passa al tema scuro === */
+.match-day-scuro {
+    background: radial-gradient(ellipse at 50% 0%, rgba(208, 7, 120, 0.25) 0%, transparent 55%),
+        linear-gradient(160deg, #000d1f 0%, #001d3d 45%, #0b1521 100%);
 }
 
 /* === GALLERY MARQUEE STRIP === */

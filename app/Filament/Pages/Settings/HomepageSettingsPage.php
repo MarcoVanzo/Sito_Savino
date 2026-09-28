@@ -4,9 +4,15 @@ namespace App\Filament\Pages\Settings;
 
 use App\Filament\Resources\HeroSlideResource;
 use App\Models\HeroSlide;
+use App\Models\SiteSetting;
+use App\Support\MatchDay;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -35,6 +41,37 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
     {
         parent::mount();
         $this->activeTab = request()->query('tab', 'settings');
+
+        // «Accesa» vale per il giorno in cui la si sceglie: il giorno dopo il
+        // modulo deve dire quello che il sito fa davvero, cioè Automatica.
+        $this->data['match_day_modalita'] = MatchDay::modalita();
+    }
+
+    public function save(): void
+    {
+        $modalita = $this->data['match_day_modalita'] ?? null;
+
+        parent::save();
+
+        if ($modalita === MatchDay::ACCESO) {
+            SiteSetting::set('match_day_acceso_il', now()->toDateString(), 'home');
+        }
+    }
+
+    private static function statoDelMatchDay(): string
+    {
+        $stato = MatchDay::stato();
+
+        if (! $stato['attivo']) {
+            return 'Spento: oggi la homepage è quella di sempre.';
+        }
+
+        $gara = $stato['gara'];
+        $testo = $gara === null
+            ? 'Acceso a mano, senza una gara in programma oggi.'
+            : sprintf('Acceso per %s – %s delle %s.', $gara->homeTeam?->nomePubblico(), $gara->awayTeam?->nomePubblico(), $gara->match_date->format('H:i'));
+
+        return $testo.($stato['popup'] !== null ? ' Il pop-up dei biglietti è attivo.' : ' Nessun pop-up (gara in trasferta, già cominciata o pop-up spento).');
     }
 
     /**
@@ -51,6 +88,19 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
             'stats', 'stats_title', 'stats_subtitle',
             'cta_ticketing_title', 'cta_ticketing_text',
             'cta_shop_title', 'cta_shop_text',
+            'match_day_popup_titolo', 'match_day_popup_testo', 'match_day_popup_pulsante',
+        ];
+    }
+
+    /**
+     * Senza, una chiave mancante aprirebbe il Match Day su un valore vuoto e
+     * il primo Salva lo scriverebbe davvero.
+     */
+    protected function valoriPredefiniti(): array
+    {
+        return [
+            'match_day_modalita' => MatchDay::AUTO,
+            'match_day_popup_attivo' => true,
         ];
     }
 
@@ -78,6 +128,39 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
                     ...$this->tradotto('stats_title', 'Titolo Sezione'),
                     ...$this->tradotto('stats_subtitle', 'Sottotitolo Sezione'),
                 ])->columns(2),
+                Section::make('Match Day')
+                    ->description('Nel giorno di una gara la homepage mostra la fascia «Oggi si gioca», la partita in tema scuro e, per le gare in casa, un pop-up verso i biglietti (una volta per visita).')
+                    ->schema([
+                        Placeholder::make('stato_match_day')
+                            ->label('Stato in questo momento')
+                            ->content(fn (): string => self::statoDelMatchDay())
+                            ->columnSpanFull(),
+                        Select::make('match_day_modalita')
+                            ->label('Modalità')
+                            ->options([
+                                MatchDay::AUTO => 'Automatica (nel giorno di una gara)',
+                                MatchDay::ACCESO => 'Accesa per oggi (torna automatica a mezzanotte)',
+                                MatchDay::SPENTO => 'Spenta',
+                            ])
+                            ->selectablePlaceholder(false)
+                            ->required(),
+                        Toggle::make('match_day_popup_attivo')
+                            ->label('Mostra il pop-up dei biglietti')
+                            ->inline(false),
+                        ...$this->tradotto('match_day_popup_titolo', 'Titolo del pop-up'),
+                        ...array_map(
+                            fn (string $locale): Textarea => Textarea::make("match_day_popup_testo.{$locale}")
+                                ->label('Testo del pop-up ('.strtoupper($locale).')')
+                                ->rows(3)
+                                ->maxLength(300),
+                            $this->locales(),
+                        ),
+                        ...$this->tradotto('match_day_popup_pulsante', 'Pulsante del pop-up'),
+                        TextInput::make('match_day_popup_url')
+                            ->label('Link del pulsante')
+                            ->helperText('Vuoto: porta alla pagina Biglietteria. Si può incollare il link di Vivaticket della partita.')
+                            ->columnSpanFull(),
+                    ])->columns(2),
                 Section::make('Banners')->schema([
                     ...$this->tradotto('cta_ticketing_title', 'Ticketing Titolo'),
                     ...$this->tradotto('cta_ticketing_text', 'Ticketing Testo'),
