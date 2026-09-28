@@ -6,7 +6,8 @@ Uso:
   gemini.py image "prompt" out.png       genera un'immagine
   gemini.py models                       elenca i modelli disponibili
 
-Chiave: env GEMINI_API_KEY (cloud), altrimenti Keychain, servizio "mvc-gemini-api-key" (Mac).
+Chiave: env GEMINI_API_KEY se presente; in cloud (CLAUDE_CODE_REMOTE=true) nessuna,
+la inietta la "Credenziale API" dell'environment; sul Mac dal Keychain ("mvc-gemini-api-key").
 Modelli: env GEMINI_TEXT_MODEL / GEMINI_IMAGE_MODEL, altrimenti i default sotto.
 """
 import base64, json, mimetypes, os, subprocess, sys, time, urllib.request
@@ -18,15 +19,18 @@ INLINE_MAX = 15 * 1024 * 1024  # oltre: upload via Files API
 
 
 def key():
-    if os.environ.get("GEMINI_API_KEY"):  # sessioni cloud: secret dell'environment
+    if os.environ.get("GEMINI_API_KEY"):
         return os.environ["GEMINI_API_KEY"]
+    if os.environ.get("CLAUDE_CODE_REMOTE") == "true":
+        return None  # cloud: x-goog-api-key lo inietta la "Credenziale API" dell'environment
     return subprocess.run(
         ["security", "find-generic-password", "-s", "mvc-gemini-api-key", "-w"],
         capture_output=True, text=True, check=True).stdout.strip()
 
 
 def req(method, url, body=None, headers=None, raw=False):
-    h = {"x-goog-api-key": key(), **(headers or {})}
+    k = key()
+    h = {**({"x-goog-api-key": k} if k else {}), **(headers or {})}
     data = body if raw else (json.dumps(body).encode() if body is not None else None)
     if data is not None and not raw:
         h["Content-Type"] = "application/json"

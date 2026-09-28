@@ -7,7 +7,7 @@ description: Delega a Gemini (API a pagamento di Marco) SOLO in 3 casi — secon
 
 Script: `gemini.py` nella cartella di questa skill (solo stdlib, read-only: restituisce testo o un file immagine, non tocca repo).
 - Mac: `G=~/.claude/skills/gemini/gemini.py` (chiave dal Keychain)
-- Cloud: `G=.claude/skills/gemini/gemini.py` dalla root del repo (chiave da `GEMINI_API_KEY` dell'environment; se manca, dillo a Marco e non procedere)
+- Cloud: `G=.claude/skills/gemini/gemini.py` dalla root del repo (la chiave la inietta la «Credenziale API» dell'environment, host generativelanguage.googleapis.com; se ricevi 401/403, dillo a Marco e non procedere)
 
 ## Regole
 - Prima di chiamare, scrivi a Marco una riga: `→ delego a Gemini: <cosa>`.
