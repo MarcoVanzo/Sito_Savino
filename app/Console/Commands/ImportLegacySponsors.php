@@ -193,10 +193,37 @@ class ImportLegacySponsors extends Command
 
             $href = trim($node->getAttribute('href'));
 
-            return Str::startsWith($href, ['http://', 'https://']) ? $href : null;
+            return Str::startsWith($href, ['http://', 'https://']) ? $this->senzaTracciamento($href) : null;
         }
 
         return null;
+    }
+
+    /**
+     * Toglie dal link i parametri delle campagne pubblicitarie (utm_*,
+     * sembox_*, gclid…). Il link di My English School ne portava tanti da
+     * superare i 255 caratteri di `sponsors.url`: l'insert falliva e con lui
+     * l'intero import. Sono parametri dell'inserzionista, non dello sponsor, e
+     * sul nostro sito attribuirebbero le visite a una campagna che non esiste.
+     * Se il link resta comunque troppo lungo si tiene senza query string.
+     */
+    private function senzaTracciamento(string $href): ?string
+    {
+        [$base, $query] = array_pad(explode('?', strtok($href, '#') ?: $href, 2), 2, '');
+
+        $parametri = array_filter(
+            explode('&', $query),
+            fn (string $coppia): bool => $coppia !== ''
+                && ! preg_match('/^(utm_|sembox_|gclid=|gbraid=|wbraid=|fbclid=|msclkid=|dclid=)/i', $coppia),
+        );
+
+        $pulito = $parametri === [] ? $base : $base.'?'.implode('&', $parametri);
+
+        if (strlen($pulito) <= 255) {
+            return $pulito;
+        }
+
+        return strlen($base) <= 255 ? $base : null;
     }
 
     private function cleanName(string $alt): string

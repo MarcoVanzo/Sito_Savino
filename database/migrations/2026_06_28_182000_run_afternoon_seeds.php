@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -11,7 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (app()->environment('testing')) {
+        // In produzione questa migrazione è già passata il 28/06/2026: da
+        // allora la incontra solo un database nuovo, dove i seeder di oggi
+        // girerebbero su uno schema di giugno. Il primo salvataggio di una
+        // foto accoda la ricostruzione della gallery, che con la coda sync
+        // cerca `gallery_images` prima che esista e interrompe la semina a
+        // metà. Su un database nuovo si semina con `migrate --seed`, a schema
+        // completo.
+        if (app()->environment('testing') || ! Schema::hasTable('gallery_images')) {
             return;
         }
 
