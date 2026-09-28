@@ -1,5 +1,5 @@
 {
-    "generato_il": "2026-09-22T19:12:11.968Z",
+    "generato_il": "2026-09-28T04:48:02.876Z",
     "indirizzo": "https://seashell-app-47mmf.ondigitalocean.app",
     "pagine_visitate": 14,
     "cookie": [
@@ -16,7 +16,7 @@
                 "it": "Collega le visite al sito alle inserzioni su Facebook e Instagram.",
                 "en": "Links visits to the site with ads on Facebook and Instagram."
             },
-            "scadenza": "2026-12-21",
+            "scadenza": "2026-12-27",
             "conConsenso": true
         },
         {
@@ -32,7 +32,7 @@
                 "it": "Distingue i visitatori per contare quante persone leggono il sito.",
                 "en": "Tells visitors apart in order to count how many people read the site."
             },
-            "scadenza": "2027-10-27",
+            "scadenza": "2027-11-02",
             "conConsenso": true
         },
         {
@@ -48,7 +48,7 @@
                 "it": "Conserva lo stato della sessione di misurazione di Google Analytics 4.",
                 "en": "Holds the Google Analytics 4 measurement session state."
             },
-            "scadenza": "2027-10-27",
+            "scadenza": "2027-11-02",
             "conConsenso": true
         },
         {
@@ -64,7 +64,7 @@
                 "it": "Tiene la sessione di navigazione: carrello, area riservata e messaggi del sito.",
                 "en": "Keeps the browsing session: cart, account area and site messages."
             },
-            "scadenza": "2026-09-23",
+            "scadenza": "2026-09-28",
             "conConsenso": false
         },
         {
@@ -80,7 +80,7 @@
                 "it": "Protegge i moduli del sito dall'invio di richieste da parte di altri siti.",
                 "en": "Protects the site's forms against requests forged by other sites."
             },
-            "scadenza": "2026-09-23",
+            "scadenza": "2026-09-28",
             "conConsenso": false
         }
     ],
