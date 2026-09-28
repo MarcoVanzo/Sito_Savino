@@ -16,6 +16,16 @@
             >
                 Slide Hero
             </x-filament::tabs.item>
+
+            {{-- Gli eventi hanno una sezione propria (ognuno ha la sua copertina):
+                 da qui ci si arriva senza cercarla nel menu. --}}
+            <x-filament::tabs.item
+                tag="a"
+                :href="\App\Filament\Resources\EventoResource::getUrl('index')"
+                icon="heroicon-o-calendar-days"
+            >
+                Eventi
+            </x-filament::tabs.item>
         </x-filament::tabs>
 
         {{-- Tab Impostazioni: Form generale della Homepage --}}

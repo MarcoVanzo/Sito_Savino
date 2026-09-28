@@ -55,7 +55,22 @@
         "cta_ticketing_title": "Ticketing",
         "cta_ticketing_text": "Buy tickets for the next match",
         "cta_shop_title": "Official Shop",
-        "cta_shop_text": "Jerseys, merchandise and team accessories"
+        "cta_shop_text": "Jerseys, merchandise and team accessories",
+        "sponsor_subtitle": "Supporting us",
+        "sponsor_title": "Our partners",
+        "sponsor_label": "Scrolling sponsor logos",
+        "countdown_label": "Kick-off in",
+        "countdown_days": "days",
+        "countdown_hours": "hours",
+        "countdown_minutes": "minutes",
+        "countdown_aria": "{giorni} days, {ore} hours and {minuti} minutes to kick-off",
+        "countdown_live": "Match in progress",
+        "match_day_badge": "Match day",
+        "match_day_today": "Today at {ora}",
+        "match_day_tickets": "Tickets",
+        "events_subtitle": "Don’t miss",
+        "events_title": "Events",
+        "event_details": "Find out more"
     },
     "footer": {
         "privacy_policy": "Privacy Policy",

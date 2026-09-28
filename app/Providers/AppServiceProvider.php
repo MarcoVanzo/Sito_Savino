@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Filament\Support\TranslatableContentDriver;
 use App\Models\Auction;
 use App\Models\Category;
+use App\Models\Evento;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
@@ -208,6 +209,7 @@ class AppServiceProvider extends ServiceProvider
         GalleryEvent::observe(CacheInvalidationObserver::class);
         GalleryImage::observe(CacheInvalidationObserver::class);
         HeroSlide::observe(CacheInvalidationObserver::class);
+        Evento::observe(CacheInvalidationObserver::class);
 
         // Forza HTTPS in produzione, e la radice di APP_URL: gli URL assoluti
         // generati durante una richiesta (link di reset password, ritorni dei
