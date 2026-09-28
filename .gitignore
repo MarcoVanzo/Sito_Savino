@@ -41,6 +41,8 @@ Pantone colori.jpeg
 *.py
 # Eccezione: genera docs/INFRASTRUCTURE.html dal Markdown.
 !scripts/genera-infrastructure-html.py
+# Eccezione: client Gemini della skill di Claude Code.
+!.claude/skills/gemini/gemini.py
 
 # File temporanei/auto-generati
 current_app.json
