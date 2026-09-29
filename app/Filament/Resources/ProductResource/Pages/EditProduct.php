@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
+use App\Models\Product;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
@@ -28,6 +29,15 @@ class EditProduct extends EditRecord
     protected function beforeSave(): void
     {
         ProductResource::verificaStatoDellArticolo($this);
+    }
+
+    protected function afterSave(): void
+    {
+        $prodotto = $this->getRecord();
+
+        if ($prodotto instanceof Product) {
+            $prodotto->togliLaPrincipaleDalleAltre();
+        }
     }
 
     // L'invalidazione della cache shop è a carico di CacheInvalidationObserver,

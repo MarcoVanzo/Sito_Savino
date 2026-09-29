@@ -305,7 +305,9 @@ class CheckoutService
             return $this->calculateSubtotal($cart);
         }
 
-        $cart->loadMissing('items.product', 'items.variant');
+        // Le categorie aggiuntive servono a valePerIlProdotto: caricate qui
+        // costano una query sola invece di una per riga.
+        $cart->loadMissing('items.product.altreCategorie:id', 'items.variant');
         $totale = 0.0;
 
         foreach ($cart->items as $item) {

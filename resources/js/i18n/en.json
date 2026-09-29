@@ -589,6 +589,7 @@
         "explore_shop": "Explore the shop",
         "category": "Category",
         "sort_by": "Sort by",
+        "sort_featured": "Featured",
         "sort_newest": "Newest",
         "sort_price_asc": "Price: low to high",
         "sort_price_desc": "Price: high to low",

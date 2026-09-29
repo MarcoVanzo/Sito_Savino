@@ -139,6 +139,9 @@ class ShopController extends Controller
                 'id' => $p->category->id,
                 'name' => $p->category->name,
             ] : null,
+            // La principale e le aggiuntive: il filtro per categoria della
+            // vetrina guarda qui, non solo `category`.
+            'category_ids' => $p->idCategorie(),
             'image_url' => $p->getImageUrl('card'),
         ];
     }
@@ -156,10 +159,10 @@ class ShopController extends Controller
         $locale = app()->getLocale();
         $data = Cache::remember("public:shop:{$locale}", now()->addMinutes(10), function () {
             $prodotti = Product::shoppable()
-                ->with(['category', 'media'])
+                ->with(['category', 'altreCategorie:id', 'media'])
                 ->withSum('variants', 'stock')
                 ->withMax('variants', 'stock')
-                ->orderBy('sort_order')
+                ->inOrdineDiVetrina()
                 ->get();
 
             $this->precaricaLoStorico($prodotti);
@@ -169,18 +172,19 @@ class ShopController extends Controller
                 ->values()
                 ->all();
 
-            $categories = ProductCategory::withCount(['products' => function ($query) {
-                $query->shoppable();
-            }])
-                ->ordered()
+            // Si contano sulle card: un prodotto in piu' categorie conta in
+            // ciascuna, come lo mostra il filtro.
+            $categories = ProductCategory::ordered()
                 ->get()
-                ->filter(fn ($c) => $c->products_count > 0)
                 ->map(fn ($c) => [
                     'id' => $c->id,
                     'name' => $c->name,
                     'slug' => $c->slug,
-                    'products_count' => $c->products_count,
+                    'products_count' => collect($allProducts)
+                        ->filter(fn ($card) => in_array($c->id, $card['category_ids'], true))
+                        ->count(),
                 ])
+                ->filter(fn ($c) => $c['products_count'] > 0)
                 ->values()
                 ->all();
 
@@ -229,7 +233,7 @@ class ShopController extends Controller
     {
         $scelti = $product->relatedProducts()
             ->shoppable()
-            ->with(['media', 'category'])
+            ->with(['media', 'category', 'altreCategorie:id'])
             ->withSum('variants', 'stock')
             ->withMax('variants', 'stock')
             ->orderBy('sort_order')
@@ -253,7 +257,7 @@ class ShopController extends Controller
         // nel frattempo.
         $prodotti = Product::shoppable()
             ->whereIn('id', $ids)
-            ->with(['media', 'category'])
+            ->with(['media', 'category', 'altreCategorie:id'])
             ->withSum('variants', 'stock')
             ->withMax('variants', 'stock')
             ->get()
@@ -278,15 +282,20 @@ class ShopController extends Controller
      */
     public function categoryShow(Request $request, ProductCategory $category): Response
     {
+        // `featured` e' l'ordine deciso in redazione trascinando i prodotti
+        // nell'elenco del pannello (products.sort_order): le maglie gara per
+        // numero, per esempio. Prima la categoria si apriva sui piu' recenti
+        // e quell'ordine non si poteva scegliere.
         $sortOptions = [
+            'featured' => ['sort_order', 'asc'],
             'newest' => ['created_at', 'desc'],
             'price_asc' => ['price', 'asc'],
             'price_desc' => ['price', 'desc'],
         ];
 
-        $sort = $request->get('sort', 'newest');
+        $sort = $request->get('sort', 'featured');
         if (! array_key_exists($sort, $sortOptions)) {
-            $sort = 'newest';
+            $sort = 'featured';
         }
 
         [$sortColumn, $sortDirection] = $sortOptions[$sort];
@@ -295,17 +304,18 @@ class ShopController extends Controller
         // Away e Champions — e si comportano come i ruoli nel roster: filtrano
         // senza cambiare pagina. Restano solo quelle che hanno qualcosa dentro,
         // altrimenti si clicca su un elenco vuoto.
+        // Il conteggio passa da nelleCategorie: una maglia che sta sia in
+        // Home sia in Away conta in entrambi gli scaffali.
         $sottocategorie = $category->children()
-            ->withCount(['products' => fn ($query) => $query->shoppable()])
             ->ordered()
             ->get()
-            ->filter(fn ($figlia) => $figlia->products_count > 0)
             ->map(fn ($figlia) => [
                 'id' => $figlia->id,
                 'name' => $figlia->name,
                 'slug' => $figlia->slug,
-                'products_count' => $figlia->products_count,
+                'products_count' => Product::shoppable()->nelleCategorie([$figlia->id])->count(),
             ])
+            ->filter(fn ($figlia) => $figlia['products_count'] > 0)
             ->values();
 
         $sottocategoriaAttiva = $request->get('gruppo');
@@ -323,11 +333,15 @@ class ShopController extends Controller
         };
 
         $paginator = Product::shoppable()
-            ->whereIn('product_category_id', $categorieMostrate)
+            ->nelleCategorie($categorieMostrate)
             ->with(['media', 'category'])
             ->withSum('variants', 'stock')
             ->withMax('variants', 'stock')
-            ->orderBy($sortColumn, $sortDirection)
+            ->when(
+                $sort === 'featured',
+                fn ($q) => $q->inOrdineDiVetrina(),
+                fn ($q) => $q->orderBy($sortColumn, $sortDirection)->orderBy('id'),
+            )
             ->paginate(12)
             ->withQueryString();
 

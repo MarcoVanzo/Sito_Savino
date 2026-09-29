@@ -17,7 +17,7 @@ const props = defineProps({
     products: Object,
     currentSort: {
         type: String,
-        default: 'newest',
+        default: 'featured',
     },
     // Gli "scaffali" del reparto: Kit Gara si divide in Home, Away e Champions
     // e si filtra come i ruoli nel roster, senza cambiare pagina.
@@ -50,6 +50,7 @@ const ogMeta = useOgMeta({
 const selectedSort = ref(props.currentSort);
 
 const sortOptions = [
+    { value: 'featured', label: $t('shop.sort_featured') },
     { value: 'newest', label: $t('shop.sort_newest') },
     { value: 'price_asc', label: $t('shop.sort_price_asc') },
     { value: 'price_desc', label: $t('shop.sort_price_desc') },

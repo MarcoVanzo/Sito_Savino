@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
+use App\Models\Product;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
 
@@ -20,6 +21,15 @@ class CreateProduct extends CreateRecord
     protected function beforeCreate(): void
     {
         ProductResource::verificaStatoDellArticolo($this);
+    }
+
+    protected function afterCreate(): void
+    {
+        $prodotto = $this->getRecord();
+
+        if ($prodotto instanceof Product) {
+            $prodotto->togliLaPrincipaleDalleAltre();
+        }
     }
 
     // L'invalidazione della cache shop è a carico di CacheInvalidationObserver,
