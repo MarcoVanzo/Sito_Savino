@@ -170,9 +170,13 @@ class MagazzinoPage extends Page implements HasForms, HasTable
                     };
                 }),
 
+            // Principale o aggiuntiva, come la vetrina e l'elenco Prodotti.
             Tables\Filters\SelectFilter::make('product_category_id')
                 ->label('Categoria')
-                ->relationship('category', 'name'),
+                ->relationship('category', 'name')
+                ->query(fn (Builder $query, array $data) => filled($data['value'] ?? null)
+                    ? $query->nelleCategorie([(int) $data['value']])
+                    : $query),
 
             Tables\Filters\TernaryFilter::make('is_active')
                 ->label('Attivo')

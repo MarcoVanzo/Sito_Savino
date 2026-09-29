@@ -108,7 +108,7 @@ class CouponResource extends Resource
                             // Le sottocategorie non seguono la categoria
                             // madre: "Kit Gara" non sconta da solo "Kit Gara
                             // Away", che va aggiunto se serve.
-                            ->helperText('Vale per i prodotti della categoria scelta. Le sottocategorie vanno aggiunte a parte.')
+                            ->helperText('Vale per i prodotti della categoria scelta, anche per quelli che ci stanno come «Anche in». Le sottocategorie vanno aggiunte a parte.')
                             ->columnSpanFull(),
                     ])->columns(1),
                 Forms\Components\Section::make('Validità')

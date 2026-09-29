@@ -48,7 +48,9 @@ const filteredProducts = computed(() => {
 
     // Filter by category
     if (selectedCategory.value) {
-        products = products.filter(p => p.category?.id === selectedCategory.value);
+        // category_ids comprende le categorie aggiuntive: la maglia del
+        // libero compare sia in Home sia in Away.
+        products = products.filter(p => (p.category_ids ?? [p.category?.id]).includes(selectedCategory.value));
     }
 
     // Filter by search query (name only — descriptions are not in the card payload)

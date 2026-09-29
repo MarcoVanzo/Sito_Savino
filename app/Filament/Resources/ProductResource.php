@@ -134,10 +134,25 @@ class ProductResource extends Resource
                             ->searchable()
                             ->preload()
                             ->required()
+                            ->live()
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('name')->label('Nome Categoria')->required(),
                                 Forms\Components\TextInput::make('slug')->label('Slug')->required(),
                             ]),
+                        Forms\Components\Select::make('altreCategorie')
+                            ->label('Anche in')
+                            ->helperText('Le altre categorie in cui il prodotto compare: la maglia del libero sia in Home sia in Away, un capo anche in Outlet. Sulla card resta scritta la categoria principale.')
+                            ->relationship(
+                                'altreCategorie',
+                                'name',
+                                fn (Builder $query, Forms\Get $get) => $query->when(
+                                    $get('product_category_id'),
+                                    fn (Builder $q, $principale) => $q->whereKeyNot($principale),
+                                ),
+                            )
+                            ->multiple()
+                            ->searchable()
+                            ->preload(),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Visibile nello Shop')
                             ->required()
@@ -437,12 +452,22 @@ class ProductResource extends Resource
                     ->label('Attivo')
                     ->boolean(),
             ])
+            // L'ordine della vetrina: si trascinano le righe (pulsante in
+            // alto a destra dell'elenco). Conviene filtrare prima per
+            // categoria, che e' l'ordine che il cliente vede.
+            ->reorderable('sort_order')
+            ->defaultSort(fn (Builder $query) => $query->inOrdineDiVetrina())
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Attivo'),
+                // Principale o aggiuntiva, come la vetrina: filtrando Home per
+                // riordinarla deve comparire anche la maglia del libero.
                 Tables\Filters\SelectFilter::make('product_category_id')
                     ->label('Categoria')
-                    ->relationship('category', 'name'),
+                    ->relationship('category', 'name')
+                    ->query(fn (Builder $query, array $data) => filled($data['value'] ?? null)
+                        ? $query->nelleCategorie([(int) $data['value']])
+                        : $query),
                 Tables\Filters\Filter::make('on_sale')
                     ->label('In Saldo')
                     ->query(fn (Builder $query) => $query->whereNotNull('sale_price')->where('sale_price', '>', 0)),
@@ -462,12 +487,24 @@ class ProductResource extends Resource
                     ->modalHeading('Duplica prodotto')
                     ->modalDescription('Verrà creata una copia del prodotto con stock azzerato e slug modificato.')
                     ->action(function (Product $record): void {
-                        $newProduct = $record->replicate(['stock']);
+                        $suffix = '-copia-'.now()->timestamp;
+
+                        // variants_sum_stock e' la somma delle taglie che
+                        // getEloquentQuery aggiunge alla riga: replicata, finiva
+                        // nell'INSERT come colonna. E lo SKU del prodotto e'
+                        // unico come quello delle taglie. Per l'una o l'altra
+                        // cosa la copia non e' mai riuscita.
+                        $newProduct = $record->replicate(['stock', 'variants_sum_stock']);
                         $newProduct->name = $record->name.' (Copia)';
-                        $newProduct->slug = $record->slug.'-copia-'.now()->timestamp;
+                        $newProduct->slug = $record->slug.$suffix;
+                        $newProduct->sku = $record->sku ? $record->sku.$suffix : null;
                         $newProduct->stock = 0;
                         $newProduct->is_active = false;
+                        // In cima come ogni prodotto nuovo (ProductObserver),
+                        // non alla stessa posizione dell'originale.
+                        $newProduct->offsetUnset('sort_order');
                         $newProduct->save();
+                        $newProduct->altreCategorie()->sync($record->altreCategorie->pluck('id'));
 
                         // Copy media
                         foreach ($record->getMedia('images') as $media) {
@@ -475,7 +512,6 @@ class ProductResource extends Resource
                         }
 
                         // Copy variants (with unique SKU suffix)
-                        $suffix = '-copia-'.now()->timestamp;
                         foreach ($record->variants as $variant) {
                             $newVariant = $variant->replicate();
                             $newVariant->product_id = $newProduct->id;

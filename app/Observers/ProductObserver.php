@@ -9,6 +9,28 @@ use Illuminate\Support\Facades\Log;
 class ProductObserver
 {
     /**
+     * Un prodotto nuovo entra in cima alla vetrina, com'era quando le
+     * categorie si aprivano sui piu' recenti, e con una posizione tutta sua:
+     * gli altri scendono di uno. A zero, com'era la colonna, due prodotti
+     * nuovi avrebbero la stessa posizione e il riordino del pannello, che
+     * scambia le posizioni occupate (ListProducts::reorderTable), non
+     * saprebbe come metterli uno dopo l'altro.
+     *
+     * Chi passa una posizione esplicita (i test, un import) la tiene.
+     */
+    public function creating(Product $product): void
+    {
+        if (array_key_exists('sort_order', $product->getAttributes())) {
+            return;
+        }
+
+        // Query builder nudo: nessun evento e nessun updated_at toccato su
+        // prodotti che nessuno ha modificato.
+        Product::withTrashed()->toBase()->increment('sort_order');
+        $product->sort_order = 1;
+    }
+
+    /**
      * Ogni salvataggio che cambia il prezzo effettivo apre una riga dello
      * storico: è da lì che si calcola il prezzo da barrare accanto a uno
      * sconto (StoricoPrezzi). Gli sconti programmati li registra

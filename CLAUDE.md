@@ -1169,6 +1169,25 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   solo mentre sono vere** (sconto annunciabile, cioè con il prezzo di riferimento dei 30 giorni come il barrato; un pezzo per ogni taglia rimasta),
   qualunque cosa dica il pannello: un'offerta o una scarsita' finte sono
   pratiche ingannevoli (Codice del consumo, artt. 21 e 23).
+- **Un prodotto sta in piu' categorie**: `product_category_id` e' la
+  principale (scritta sulla card, usata per i correlati e l'anteprima social),
+  le altre stanno in `product_category_product` (`Product::altreCategorie`,
+  campo «Anche in» del pannello). Per chiedere se un prodotto sta in una
+  categoria si passa da `Product::scopeNelleCategorie` o `idCategorie()` —
+  vetrina, conteggi, sottocategorie, filtro del pannello e coupon per
+  categoria lo fanno gia'; guardare la sola colonna esclude la maglia del
+  libero da Away.
+- **L'ordine della vetrina e' `products.sort_order`**, deciso trascinando le
+  righe nell'elenco Prodotti (`scopeInOrdineDiVetrina`, poi i piu' recenti).
+  Le categorie si aprono su quell'ordine (`sort=featured`). Il riordino
+  (`ListProducts::reorderTable`) **rimescola le posizioni gia' occupate** dai
+  prodotti riordinati invece di rinumerarli da 1: riordinare la sola
+  categoria filtrata non sposta il resto del negozio. Scrive senza eventi del
+  modello, quindi butta da se' `public:shop`. Perche' funzioni le posizioni
+  devono essere distinte: la migrazione `prodotti_in_piu_categorie` le ha
+  numerate e un prodotto nuovo (anche una copia) entra in cima con posizione
+  1 facendo scendere gli altri (`ProductObserver::creating`). Non rimettere
+  `sort_order` a zero a mano.
 - **La personalizzazione (la firma della giocatrice) non e' una variante.** E'
   un'aggiunta facoltativa del prodotto (`personalizzazione_nome`, tradotto, e
   `personalizzazione_prezzo`) e un flag sulla riga del carrello: il pezzo in

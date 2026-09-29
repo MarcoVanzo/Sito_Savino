@@ -110,7 +110,9 @@ class Coupon extends Model
      * Questo articolo rientra fra quelli scontabili.
      *
      * Prodotti e categorie si sommano: basta comparire in uno dei due
-     * elenchi. La categoria è quella del prodotto, non la sua discendenza:
+     * elenchi. Contano tutte le categorie del prodotto, la principale e le
+     * aggiuntive (un capo messo anche in Outlet si sconta con un coupon
+     * dell'Outlet), ma non la loro discendenza:
      * scegliendo "Kit Gara" non si scontano da sole le sottocategorie, che
      * vanno aggiunte se servono.
      */
@@ -124,8 +126,7 @@ class Coupon extends Model
             return true;
         }
 
-        return $prodotto->product_category_id !== null
-            && $this->categorieAmmesse()->contains($prodotto->product_category_id);
+        return $this->categorieAmmesse()->intersect($prodotto->idCategorie())->isNotEmpty();
     }
 
     /**
