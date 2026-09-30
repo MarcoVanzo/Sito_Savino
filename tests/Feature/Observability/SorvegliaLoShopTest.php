@@ -179,9 +179,9 @@ class SorvegliaLoShopTest extends TestCase
         $this->giro();
 
         $this->assertNull(AvvisoTecnico::memoria()->get('sorveglianza:guasto:paypal'));
-        // Nessun avviso su PayPal. Resta quello delle aste, accese di serie:
-        // con il solo bonifico il vincitore non ha un metodo per pagare.
-        $this->assertSame(['[Sito Savino] Le aste non si possono pagare'], $this->oggetti());
+        // Nessun avviso: il bonifico basta allo shop e, dal 30/09/2026,
+        // anche al vincitore di un'asta.
+        $this->assertSame([], $this->oggetti());
     }
 
     private function conPayPal(): void
@@ -196,7 +196,7 @@ class SorvegliaLoShopTest extends TestCase
     }
 
     #[Test]
-    public function aste_accese_senza_stripe_ne_paypal_avvisa(): void
+    public function aste_accese_senza_stripe_avvisano_per_le_offerte(): void
     {
         config(['services.stripe.secret' => null]);
         SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');
@@ -204,10 +204,9 @@ class SorvegliaLoShopTest extends TestCase
         $this->giro();
         $this->giro();
 
-        // Il bonifico non basta al vincitore, e senza Stripe non si verifica
-        // la carta con cui si offre.
+        // Il vincitore paga col bonifico, ma senza Stripe non si verifica la
+        // carta con cui si offre.
         $this->assertSame([
-            '[Sito Savino] Le aste non si possono pagare',
             '[Sito Savino] Le aste non accettano nuovi offerenti',
         ], $this->oggetti());
     }
@@ -232,7 +231,7 @@ class SorvegliaLoShopTest extends TestCase
     }
 
     #[Test]
-    public function paypal_spento_dal_pannello_non_conta_per_le_aste(): void
+    public function col_solo_bonifico_il_vincitore_puo_pagare(): void
     {
         config([
             'services.paypal.client_id' => 'id-finto',
@@ -240,12 +239,12 @@ class SorvegliaLoShopTest extends TestCase
         ]);
         AvvisoTecnico::memoria()->put('sorveglianza:paypal-controllato', true, 3600);
         // Stripe ha le chiavi ma non è fra i metodi attivi, PayPal nemmeno:
-        // al vincitore resterebbe il solo bonifico, che le aste non offrono.
+        // al vincitore resta il bonifico, che dal 30/09/2026 basta.
         SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');
 
         $this->giro();
 
-        $this->assertSame(['[Sito Savino] Le aste non si possono pagare'], $this->oggetti());
+        $this->assertSame([], $this->oggetti());
     }
 
     #[Test]
@@ -261,12 +260,12 @@ class SorvegliaLoShopTest extends TestCase
         SiteSetting::set('shop.active_payment_gateways', 'bank_transfer');
         $this->giro();
 
-        // Il bonifico rimette in piedi lo shop, non le aste: il vincitore
-        // paga solo con Stripe o PayPal.
+        // Il bonifico rimette in piedi lo shop e le aste insieme.
         $this->assertSame([
             '[Sito Savino] Il checkout non offre nessun metodo di pagamento',
             '[Sito Savino] Le aste non si possono pagare',
             '[Sito Savino] Risolto: il checkout non offre nessun metodo di pagamento',
+            '[Sito Savino] Risolto: le aste non si possono pagare',
         ], $this->oggetti());
     }
 

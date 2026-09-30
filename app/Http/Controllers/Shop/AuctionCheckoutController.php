@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Shop;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Http\Controllers\Controller;
+use App\Mail\OrderConfirmation;
 use App\Models\Auction;
 use App\Models\Order;
 use App\Models\ShippingZone;
+use App\Models\SiteSetting;
+use App\Services\AdminNotificationService;
 use App\Services\AuctionService;
 use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
@@ -18,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -137,13 +141,14 @@ class AuctionCheckoutController extends Controller
             'pesoDelCollo' => $auction->product?->pesoPerLaSpedizione() ?? 0.0,
             'checkoutDeadline' => $auction->winner_checkout_deadline?->toIso8601String(),
             'winningBid' => $this->auctionService->winningAmountFor($auction),
-            // Solo i metodi con le credenziali e attivi dal pannello, come nel
-            // checkout dello shop (PaymentGateway::offertiAlleAste).
+            // Solo i metodi con le credenziali e attivi dal pannello, gli
+            // stessi del checkout dello shop (PaymentGateway::offertiAlleAste).
             'paymentGateways' => array_map(fn (PaymentGateway $g): array => [
                 'value' => $g->value,
                 'label' => $g->getLabel(),
                 'icon' => $g->getIcon(),
             ], PaymentGateway::offertiAlleAste()),
+            'giorniBonifico' => PaymentGateway::giorniPerIlBonifico(),
             'datiGiaInseriti' => $existingOrder?->status === OrderStatus::Pending
                 ? $this->datiDelPrimoTentativo($existingOrder)
                 : null,
@@ -191,7 +196,10 @@ class AuctionCheckoutController extends Controller
      */
     protected function openPaymentSession(Order $order): ?string
     {
+        // Il bonifico non ha una sessione da riaprire: il vincitore rivede il
+        // modulo, dove può confermarlo o passare a PayPal o alla carta.
         if ($order->payment_id !== null
+            || $order->payment_gateway === PaymentGateway::BankTransfer
             || ! in_array($order->payment_gateway, PaymentGateway::offertiAlleAste(), true)) {
             return null;
         }
@@ -297,6 +305,10 @@ class AuctionCheckoutController extends Controller
                 return back()->with('error', __('messages.checkout.error'));
             }
 
+            if ($result['order']->payment_gateway === PaymentGateway::BankTransfer) {
+                return $this->confermaDelBonifico($result['order'], $token, $result['bonificoNuovo']);
+            }
+
             // Inertia::location e non redirect()->away(): il form di checkout
             // è Inertia e un 302 verso stripe.com o paypal.com verrebbe
             // seguito dalla XHR, che muore sul CORS del gateway con l'ordine
@@ -397,7 +409,9 @@ class AuctionCheckoutController extends Controller
      * user_id).
      *
      * @param  array<string, mixed>  $validated
-     * @return array{order: Order|null, paid: bool}
+     *                                           `bonificoNuovo` dice se il bonifico è stato scelto adesso: al reinvio
+     *                                           dello stesso modulo email e avviso non ripartono.
+     * @return array{order: Order|null, paid: bool, bonificoNuovo: bool}
      */
     private function ordineDelVincitore(Auction $auction, array $validated, ShippingZone $shippingZone): array
     {
@@ -405,13 +419,15 @@ class AuctionCheckoutController extends Controller
         $existingOrder = $this->auctionService->getWinnerOrder($lockedAuction);
 
         if ($existingOrder && $existingOrder->paid_at !== null) {
-            return ['order' => $existingOrder, 'paid' => true];
+            return ['order' => $existingOrder, 'paid' => true, 'bonificoNuovo' => false];
         }
 
         if ($existingOrder && $existingOrder->status !== OrderStatus::Pending) {
             // Annullato/rimborsato/in lavorazione: non ricreabile su questo token.
-            return ['order' => null, 'paid' => false];
+            return ['order' => null, 'paid' => false, 'bonificoNuovo' => false];
         }
+
+        $eraGiaBonifico = $existingOrder?->payment_gateway === PaymentGateway::BankTransfer;
 
         // L'importo dovuto è l'offerta del vincitore corrente, che può
         // non coincidere con current_bid in caso di riassegnazione.
@@ -444,8 +460,9 @@ class AuctionCheckoutController extends Controller
         // riservato dal primo tentativo, non va riservato di nuovo.
         if ($existingOrder) {
             $existingOrder->update($dati);
+            $this->terminePerIlBonifico($lockedAuction, $existingOrder);
 
-            return ['order' => $existingOrder->fresh(), 'paid' => false];
+            return ['order' => $existingOrder->fresh(), 'paid' => false, 'bonificoNuovo' => ! $eraGiaBonifico];
         }
 
         // L'order_token lo genera il model (UUID casuale): non deve coincidere
@@ -477,7 +494,71 @@ class AuctionCheckoutController extends Controller
             "asta #{$auction->id}",
         );
 
-        return ['order' => $order, 'paid' => false];
+        $this->terminePerIlBonifico($lockedAuction, $order);
+
+        return ['order' => $order, 'paid' => false, 'bonificoNuovo' => true];
+    }
+
+    /**
+     * Con il bonifico il termine del vincitore diventa quello del bonifico.
+     *
+     * Le 48 ore dell'asta non bastano a un accredito: senza spostarle,
+     * `AuctionService::checkWinnerPayments` annullerebbe l'ordine e passerebbe
+     * il lotto al secondo offerente mentre i soldi sono in viaggio. Il termine
+     * si conta dalla creazione dell'ordine, come nello shop e come dice
+     * l'email di conferma, e non si allunga a ogni nuovo invio del modulo:
+     * rimandare il bonifico non deve tenere fermo il lotto all'infinito.
+     * Non si accorcia mai: chi sceglie il bonifico nei primi minuti tiene
+     * comunque le sue 48 ore.
+     */
+    private function terminePerIlBonifico(Auction $auction, Order $order): void
+    {
+        if ($order->payment_gateway !== PaymentGateway::BankTransfer) {
+            return;
+        }
+
+        $termine = $order->created_at->copy()->addDays(PaymentGateway::giorniPerIlBonifico());
+
+        if ($auction->winner_checkout_deadline === null || $termine->gt($auction->winner_checkout_deadline)) {
+            $auction->forceFill(['winner_checkout_deadline' => $termine])->save();
+        }
+    }
+
+    /**
+     * Il vincitore ha scelto il bonifico: nessun gateway da raggiungere.
+     *
+     * Come nello shop (CheckoutController::handleBankTransfer) partono
+     * l'email di conferma, che porta IBAN, intestatario, causale e termine,
+     * e l'avviso alla redazione, che conferma l'accredito dal pannello
+     * ("Conferma Pagamento" sull'ordine).
+     *
+     * L'ordine a questo punto esiste già e il termine è spostato: un guasto
+     * nell'accodare l'email non deve mandare il vincitore sulla pagina
+     * d'errore, che gli farebbe credere di dover rifare tutto. Le coordinate
+     * le trova comunque sulla pagina di conferma.
+     */
+    private function confermaDelBonifico(Order $order, string $token, bool $nuovo): RedirectResponse
+    {
+        if ($nuovo) {
+            try {
+                $order->loadMissing('user');
+                $email = $order->user->email ?? $order->guest_email;
+
+                if ($email) {
+                    Mail::to($email)->queue(new OrderConfirmation($order));
+                }
+
+                app(AdminNotificationService::class)->notifyNewOrder($order);
+            } catch (\Throwable $e) {
+                Log::error('Bonifico d\'asta: email o avviso non partiti', [
+                    'order_id' => $order->id,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return redirect()->route('shop.auction-checkout.success', ['token' => $token])
+            ->with('success', __('messages.checkout.success_bank'));
     }
 
     /**
@@ -502,7 +583,31 @@ class AuctionCheckoutController extends Controller
         return Inertia::render('Public/Shop/Auctions/CheckoutSuccess', [
             'auction' => $auction,
             'order' => $order,
+            'bonifico' => $this->istruzioniDelBonifico($order, $auction),
         ]);
+    }
+
+    /**
+     * Le coordinate da mostrare al vincitore che paga con bonifico, le stesse
+     * dell'email di conferma. Null per gli altri metodi e a pagamento
+     * registrato.
+     *
+     * @return array{iban: string, intestatario: string, causale: string, entro: string|null}|null
+     */
+    private function istruzioniDelBonifico(Order $order, Auction $auction): ?array
+    {
+        if ($order->payment_gateway !== PaymentGateway::BankTransfer
+            || $order->paid_at !== null
+            || $order->status !== OrderStatus::Pending) {
+            return null;
+        }
+
+        return [
+            'iban' => (string) SiteSetting::get('shop.bank_transfer_iban', ''),
+            'intestatario' => (string) SiteSetting::get('shop.bank_transfer_beneficiary', ''),
+            'causale' => __('emails.confirmation.bank_reason_value', ['number' => $order->order_number]),
+            'entro' => $auction->winner_checkout_deadline?->toIso8601String(),
+        ];
     }
 
     /**

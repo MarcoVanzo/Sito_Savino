@@ -17,18 +17,22 @@ class CheckUnpaidOrders extends Command
 {
     protected $signature = 'order:check-unpaid';
 
-    protected $description = 'Cancella ordini abbandonati Stripe/PayPal (1h) e Bonifico (7gg)';
+    protected $description = 'Cancella ordini abbandonati Stripe/PayPal (1h) e Bonifico (shop.bank_transfer_expiry_days)';
 
     public function handle(): int
     {
         $reminded = 0;
         $cancelled = 0;
+        // Lo stesso numero di giorni scritto al cliente nell'email di
+        // conferma: prima qui erano sette cablati, l'email ne diceva cinque.
+        $giorni = PaymentGateway::giorniPerIlBonifico();
 
-        // 1. Reminder: ordini pending via bonifico creati tra 5 e 7 giorni fa
+        // 1. Reminder: ordini pending via bonifico negli ultimi due giorni
+        // utili (l'ultimo, se il termine e' di un giorno solo)
         $ordersToRemind = Order::where('status', OrderStatus::Pending)
             ->where('payment_gateway', PaymentGateway::BankTransfer)
-            ->where('created_at', '<=', now()->subDays(5))
-            ->where('created_at', '>', now()->subDays(7))
+            ->where('created_at', '<=', now()->subDays(max(1, $giorni - 2)))
+            ->where('created_at', '>', now()->subDays($giorni))
             ->get();
 
         foreach ($ordersToRemind as $order) {
@@ -50,7 +54,8 @@ class CheckUnpaidOrders extends Command
             }
         }
 
-        // 2. Auto-cancel: ordini pending via bonifico (7gg) o digitali abbandonati (1h)
+        // 2. Auto-cancel: ordini pending via bonifico (scaduto il termine) o
+        // digitali abbandonati (1h)
         $ordersToCancel = Order::where('status', OrderStatus::Pending)
             // Un ordine con una transazione registrata NON e' un checkout
             // abbandonato: il denaro e' stato incassato e l'ordine e' rimasto in
@@ -58,11 +63,15 @@ class CheckUnpaidOrders extends Command
             // Annullarlo qui rimetterebbe la merce a scaffale lasciando i soldi
             // del cliente senza ordine.
             ->whereNull('payment_id')
-            ->where(function ($query) {
-                // Bonifico: cancella dopo 7 giorni
-                $query->where(function ($q) {
+            ->where(function ($query) use ($giorni) {
+                // Bonifico: cancella allo scadere del termine. Quelli d'asta
+                // no: il loro termine e' quello del vincitore, e a chiuderlo
+                // (annullando l'ordine e passando il lotto al successivo) e'
+                // AuctionService::checkWinnerPayments().
+                $query->where(function ($q) use ($giorni) {
                     $q->where('payment_gateway', PaymentGateway::BankTransfer)
-                        ->where('created_at', '<=', now()->subDays(7));
+                        ->where('created_at', '<=', now()->subDays($giorni))
+                        ->whereNull('auction_id');
                 })->orWhere(function ($q) {
                     // Stripe/PayPal: cancella dopo 1 ora (checkout abbandonato).
                     // Gli ordini d'asta sono esclusi: hanno una finestra di

@@ -131,7 +131,7 @@ class ShopSettingsPage extends BaseSettingsPage
                             // Un gateway acceso qui ma senza credenziali
                             // nell'ambiente non compare nel checkout: meglio
                             // dirlo, invece di lasciar credere che sia attivo.
-                            ->helperText(fn (): string => 'Valori separati da virgola. Ammessi: stripe, paypal, bank_transfer. Il vincitore di un\'asta paga solo con stripe o paypal.'.self::avvisoCredenziali())
+                            ->helperText(fn (): string => 'Valori separati da virgola. Ammessi: stripe, paypal, bank_transfer. Valgono anche per il vincitore di un\'asta.'.self::avvisoCredenziali())
                             ->columnSpanFull(),
                         TextInput::make('shop.bank_transfer_iban')
                             ->label('IBAN per bonifico'),
@@ -139,6 +139,7 @@ class ShopSettingsPage extends BaseSettingsPage
                             ->label('Intestatario conto'),
                         TextInput::make('shop.bank_transfer_expiry_days')
                             ->label('Scadenza bonifico (giorni)')
+                            ->helperText('Giorni di calendario dall\'ordine, scritti al cliente nell\'email di conferma. Poi l\'ordine si annulla; per un\'asta il lotto passa al secondo offerente.')
                             ->numeric()
                             ->minValue(1),
                     ])->columns(2),
