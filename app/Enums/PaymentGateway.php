@@ -66,19 +66,30 @@ enum PaymentGateway: string implements HasLabel
     }
 
     /**
-     * I metodi con cui il vincitore di un'asta può pagare: quelli del
-     * checkout dello shop, meno il bonifico. Il lotto va pagato entro il
-     * termine dell'asta e, scaduto quello, passa al secondo offerente: un
-     * accredito che arriva giorni dopo non ci sta dentro.
+     * I metodi con cui il vincitore di un'asta può pagare: gli stessi del
+     * checkout dello shop, bonifico compreso (richiesta della società,
+     * 30/09/2026). Il bonifico non sta nelle 48 ore del termine: sceglierlo
+     * sposta il termine del vincitore alla scadenza del bonifico
+     * (`terminePerIlBonifico`), come per un ordine dello shop.
      *
      * @return list<self>
      */
     public static function offertiAlleAste(): array
     {
-        return array_values(array_filter(
-            self::offertiAlCheckout(),
-            fn (self $g): bool => $g !== self::BankTransfer,
-        ));
+        return self::offertiAlCheckout();
+    }
+
+    /**
+     * I giorni concessi per un bonifico, dall'ordine: quelli scritti al
+     * cliente nell'email di conferma (`shop.bank_transfer_expiry_days`).
+     * L'annullo automatico e il promemoria leggono lo stesso numero: prima
+     * erano sette giorni cablati mentre l'email ne prometteva cinque.
+     */
+    public static function giorniPerIlBonifico(): int
+    {
+        $giorni = (int) SiteSetting::get('shop.bank_transfer_expiry_days', 7);
+
+        return $giorni > 0 ? $giorni : 7;
     }
 
     public function getIcon(): string

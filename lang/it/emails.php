@@ -46,7 +46,7 @@ return [
         'bank_iban' => 'IBAN:',
         'bank_reason' => 'Causale:',
         'bank_reason_value' => 'Ordine :number',
-        'bank_deadline' => 'Ti preghiamo di effettuare il pagamento entro :days giorni lavorativi dalla data dell\'ordine. In caso contrario, l\'ordine verrà automaticamente annullato.',
+        'bank_deadline' => 'Ti preghiamo di effettuare il pagamento entro :days giorni dalla data dell\'ordine. In caso contrario, l\'ordine verrà automaticamente annullato.',
         'cta_intro' => 'Puoi seguire il tuo ordine in qualsiasi momento:',
     ],
 

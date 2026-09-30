@@ -145,7 +145,7 @@
                 <strong>{{ __('emails.confirmation.bank_reason') }}</strong> {{ __('emails.confirmation.bank_reason_value', ['number' => $order->order_number]) }}
             </p>
             <p style="color: #666666; font-size: 13px; margin: 8px 0 0; font-style: italic;">
-                {{ __('emails.confirmation.bank_deadline', ['days' => \App\Models\SiteSetting::get('shop.bank_transfer_expiry_days', 7)]) }}
+                {{ __('emails.confirmation.bank_deadline', ['days' => \App\Enums\PaymentGateway::giorniPerIlBonifico()]) }}
             </p>
         </div>
     @endif

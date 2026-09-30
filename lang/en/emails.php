@@ -44,7 +44,7 @@ return [
         'bank_iban' => 'IBAN:',
         'bank_reason' => 'Reference:',
         'bank_reason_value' => 'Order :number',
-        'bank_deadline' => 'Please make the payment within :days working days from the order date. Otherwise the order will be cancelled automatically.',
+        'bank_deadline' => 'Please make the payment within :days days of the order date. Otherwise the order will be cancelled automatically.',
         'cta_intro' => 'You can follow your order at any time:',
     ],
 

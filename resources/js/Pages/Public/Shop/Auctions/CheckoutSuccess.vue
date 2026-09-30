@@ -7,6 +7,7 @@ import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useAuctionCheckout } from '@/Composables/useAuctionCheckout.js';
+import { useLocale } from '@/Composables/useLocale.js';
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -15,6 +16,9 @@ const { onImgError } = useImageFallback();
 const props = defineProps({
     auction: { type: Object, default: () => ({}) },
     order: { type: Object, default: () => ({}) },
+    // Coordinate del bonifico, solo se il vincitore l'ha scelto e non è
+    // ancora arrivato (AuctionCheckoutController::istruzioniDelBonifico).
+    bonifico: { type: Object, default: null },
 });
 
 const { localized, auctionImage } = useAuctionCheckout(props);
@@ -27,7 +31,13 @@ const shippingAddress = computed(() => props.order?.shipping_address ?? null);
 const isPaymentConfirmed = computed(() =>
     ['paid', 'processing', 'shipped', 'delivered'].includes(props.order?.status)
 );
-const isAwaitingWebhook = computed(() => props.order?.status === 'pending');
+// Col bonifico non c'è un webhook da aspettare: l'accredito lo conferma la
+// redazione dal pannello, magari giorni dopo.
+const isAwaitingWebhook = computed(() => props.order?.status === 'pending' && !props.bonifico);
+const { formatDate } = useLocale();
+const bonificoEntro = computed(() => props.bonifico?.entro
+    ? formatDate(props.bonifico.entro, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : null);
 
 // Il webhook Stripe può arrivare qualche secondo dopo il redirect: si ricarica
 // la sola prop `order` per un massimo di 60s.
@@ -122,8 +132,26 @@ const ogMeta = useOgMeta({
                         </template>
                     </div>
 
+                    <!-- Bonifico da fare -->
+                    <div v-if="bonifico" class="text-left rounded-lg p-4 mb-8 bg-blue-50 border border-blue-100 text-savino-blue">
+                        <p class="font-medium mb-3">{{ $t('auction_checkout.bank_pending') }}</p>
+                        <h3 class="text-sm font-bold uppercase tracking-wider mb-2">{{ $t('auction_checkout.bank_details_title') }}</h3>
+                        <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm text-gray-900">
+                            <dt class="text-gray-600">{{ $t('auction_checkout.bank_beneficiary') }}</dt>
+                            <dd class="font-medium">{{ bonifico.intestatario }}</dd>
+                            <dt class="text-gray-600">{{ $t('auction_checkout.bank_iban') }}</dt>
+                            <dd class="font-mono font-medium break-all">{{ bonifico.iban }}</dd>
+                            <dt class="text-gray-600">{{ $t('auction_checkout.bank_reason') }}</dt>
+                            <dd class="font-medium">{{ bonifico.causale }}</dd>
+                            <template v-if="bonificoEntro">
+                                <dt class="text-gray-600">{{ $t('auction_checkout.bank_pay_by') }}</dt>
+                                <dd class="font-medium">{{ bonificoEntro }}</dd>
+                            </template>
+                        </dl>
+                    </div>
+
                     <!-- Stato pagamento -->
-                    <div class="rounded-lg p-4 mb-8" :class="{
+                    <div v-else class="rounded-lg p-4 mb-8" :class="{
                         'bg-green-50 border border-green-200 text-green-700': isPaymentConfirmed,
                         'bg-amber-50 border border-amber-200 text-amber-700': !isPaymentConfirmed,
                     }">

@@ -33,8 +33,11 @@ const props = defineProps({
     winningBid: { type: [Number, String], default: 0 },
     token: { type: String, default: null },
     // Solo i metodi con le credenziali e attivi dal pannello
-    // (PaymentGateway::offertiAlleAste): Stripe e/o PayPal.
+    // (PaymentGateway::offertiAlleAste): Stripe, PayPal, bonifico.
     paymentGateways: { type: Array, default: () => [] },
+    // Giorni concessi al bonifico dalla creazione dell'ordine: scegliendolo
+    // il termine del vincitore si sposta lì (shop.bank_transfer_expiry_days).
+    giorniBonifico: { type: Number, default: 7 },
     // I campi del primo tentativo, quando il vincitore torna indietro dal
     // gateway: può cambiare metodo senza riscrivere l'indirizzo.
     datiGiaInseriti: { type: Object, default: null },
@@ -536,7 +539,12 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                             />
 
                             <p class="text-xs text-gray-600 text-center mt-4">
-                                {{ $t('auction_checkout.gateway_note') }}
+                                <template v-if="form.payment_gateway === 'bank_transfer'">
+                                    {{ $t('auction_checkout.gateway_note_bank', { days: giorniBonifico }) }}
+                                </template>
+                                <template v-else>
+                                    {{ $t('auction_checkout.gateway_note') }}
+                                </template>
                             </p>
                         </div>
                     </div>

@@ -201,10 +201,10 @@ class SorvegliaLoShop extends Command
     }
 
     /**
-     * Il vincitore paga il lotto con Stripe o PayPal
-     * (PaymentGateway::offertiAlleAste, il bonifico non sta nel termine
-     * dell'asta): con le aste accese e nessuno dei due disponibile arriva in
-     * fondo al checkout e non ha con che pagare.
+     * Il vincitore paga il lotto con i metodi dello shop, bonifico compreso
+     * (PaymentGateway::offertiAlleAste): con le aste accese e nessun metodo
+     * disponibile arriva in fondo al checkout e non ha con che pagare. Vale
+     * anche a negozio chiuso, quando l'avviso del checkout tace.
      */
     private function problemaDelleAste(): ?string
     {
@@ -213,7 +213,7 @@ class SorvegliaLoShop extends Command
         }
 
         return 'Le aste sono accese ma il checkout del vincitore non offre nessun metodo di pagamento: '
-            .'servono Stripe o PayPal con le credenziali e attivi in `shop.active_payment_gateways` '
+            .'serve almeno un metodo (Stripe o PayPal con le credenziali, o il bonifico) attivo in `shop.active_payment_gateways` '
             .'(Impostazioni Shop & Aste). Altrimenti sospendere le aste.';
     }
 

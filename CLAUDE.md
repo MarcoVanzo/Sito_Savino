@@ -944,9 +944,14 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   è un errore, si rilegge. Con la sola strada del webhook, una notifica che non
   arriva significava denaro mai incassato e ordine annullato dopo un'ora.
 - **Tutto questo vale anche per le aste**: l'ordine del vincitore è un `Order`,
-  il vincitore sceglie fra `PaymentGateway::offertiAlleAste()` (quelli dello
-  shop meno il bonifico, che non sta nel termine dell'asta) e si incassa sulla
-  stessa conferma e con lo stesso webhook. Solo l'annullo torna all'asta
+  il vincitore sceglie fra `PaymentGateway::offertiAlleAste()` (gli stessi
+  dello shop, bonifico compreso dal 30/09/2026) e si incassa sulla stessa
+  conferma e con lo stesso webhook. **Il bonifico sposta il termine del
+  vincitore** alla sua scadenza, contata dalla creazione dell'ordine
+  (`AuctionCheckoutController::terminePerIlBonifico`): con le sole 48 ore lo
+  scheduler annullerebbe l'ordine e passerebbe il lotto al secondo offerente
+  con i soldi in viaggio. Reinviare il modulo non lo allunga. L'accredito si
+  conferma dal pannello ("Conferma Pagamento" sull'ordine), come nello shop. Solo l'annullo torna all'asta
   (`Order::cancelUrl()`), perché il «riprova» dello shop ignorerebbe il termine.
   **Un pagamento arrivato quando l'asta ha già un altro vincitore non conferma
   l'ordine**: si registra e va in revisione da rimborsare
@@ -974,6 +979,11 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   sono checkout abbandonati: i soldi sono in cassa) e il pulsante "riprova il
   pagamento" li manda alla pagina di conferma invece di aprire una seconda
   sessione.
+- **I giorni del bonifico sono uno solo**: `PaymentGateway::giorniPerIlBonifico()`
+  (`shop.bank_transfer_expiry_days`), letto dall'email di conferma, dal
+  promemoria, dall'annullo di `order:check-unpaid` e dal termine delle aste.
+  Fino al 30/09/2026 l'annullo era a sette giorni cablati mentre l'email ne
+  prometteva cinque (e "lavorativi", che il codice non ha mai contato).
 - **`php artisan paypal:verifica`** dice se le credenziali sono buone, se il
   webhook configurato esiste, se punta a questo sito e se ascolta gli eventi che
   il codice gestisce. Dall'esterno non si distingue un impianto sano da uno
@@ -1433,7 +1443,7 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   guasti da segnalare ci sono la coda ferma e i job falliti, e l'avviso parte
   anche da webhook di pagamento e health check.
 - **`shop:sorveglia` guarda lo stato, non gli errori** (negozio spento, checkout
-  senza metodi di pagamento, aste accese senza Stripe né PayPal per il
+  senza metodi di pagamento, aste accese senza alcun metodo per il
   vincitore, aste accese senza Stripe — la verifica della carta per offrire
   passa solo da lì —, worker fermo, PayPal) e avvisa quando la condizione cambia,
   non a ogni giro. Il primo giro senza stato precedente avvisa se trova il

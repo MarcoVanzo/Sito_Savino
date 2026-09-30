@@ -128,16 +128,16 @@ class AuctionCheckoutPayPalTest extends TestCase
     }
 
     #[Test]
-    public function la_pagina_offre_solo_i_metodi_con_le_credenziali_e_mai_il_bonifico(): void
+    public function la_pagina_offre_i_metodi_con_le_credenziali_bonifico_compreso(): void
     {
         [$winner, , $token] = $this->astaVinta();
 
-        $this->assertSame(['paypal'], $this->metodiOffertiDallaPagina($token, $winner));
+        $this->assertSame(['paypal', 'bank_transfer'], $this->metodiOffertiDallaPagina($token, $winner));
 
         // Arrivano le chiavi di Stripe: compare anche la carta.
         config(['services.stripe.secret' => 'sk_test_finto']);
 
-        $this->assertSame(['stripe', 'paypal'], $this->metodiOffertiDallaPagina($token, $winner));
+        $this->assertSame(['stripe', 'paypal', 'bank_transfer'], $this->metodiOffertiDallaPagina($token, $winner));
     }
 
     #[Test]
@@ -148,7 +148,7 @@ class AuctionCheckoutPayPalTest extends TestCase
 
         SiteSetting::set('shop.active_payment_gateways', 'stripe,bank_transfer');
 
-        $this->assertSame(['stripe'], $this->metodiOffertiDallaPagina($token, $winner));
+        $this->assertSame(['stripe', 'bank_transfer'], $this->metodiOffertiDallaPagina($token, $winner));
     }
 
     #[Test]
@@ -190,11 +190,9 @@ class AuctionCheckoutPayPalTest extends TestCase
     {
         [$winner, $auction, $token] = $this->astaVinta();
 
-        foreach (['stripe', 'bank_transfer'] as $metodo) {
-            $this->actingAs($winner)
-                ->post(route('shop.auction-checkout.store', ['token' => $token]), $this->datiValidi(['payment_gateway' => $metodo]))
-                ->assertSessionHasErrors('payment_gateway');
-        }
+        $this->actingAs($winner)
+            ->post(route('shop.auction-checkout.store', ['token' => $token]), $this->datiValidi(['payment_gateway' => 'stripe']))
+            ->assertSessionHasErrors('payment_gateway');
 
         $this->assertSame(0, Order::where('auction_id', $auction->id)->count());
     }
@@ -334,6 +332,9 @@ class AuctionCheckoutPayPalTest extends TestCase
     public function un_ordine_abbandonato_su_paypal_si_riapre_su_paypal(): void
     {
         [$winner, $auction, $token] = $this->astaVinta();
+        // Si riapre da sola solo con un metodo unico: con il bonifico accanto
+        // il vincitore rivede il modulo (test sopra).
+        SiteSetting::set('shop.active_payment_gateways', 'paypal');
         $order = $this->ordineDellAsta($winner, $auction, PaymentGateway::PayPal);
         $this->fakeCreazioneOrdinePayPal();
 

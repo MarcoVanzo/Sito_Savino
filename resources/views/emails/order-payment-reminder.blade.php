@@ -5,7 +5,7 @@
 
 <p>{!! __('emails.payment_reminder.intro', ['number' => $order->order_number, 'date' => $order->created_at->format('d/m/Y')]) !!}</p>
 
-<p>{!! __('emails.payment_reminder.deadline', ['days' => \App\Models\SiteSetting::get('shop.bank_transfer_expiry_days', 7)]) !!}</p>
+<p>{!! __('emails.payment_reminder.deadline', ['days' => \App\Enums\PaymentGateway::giorniPerIlBonifico()]) !!}</p>
 
 <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 20px 0; background: #f8f9fa; border-radius: 8px;">
     <tr>
