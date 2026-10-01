@@ -102,7 +102,6 @@ export function opzioniDiSentry({ app, dsn, environment, origine }) {
         ],
         integrations: (predefinite) => predefinite.filter((i) => i.name !== 'BrowserSession'),
         beforeSend: ripulisciEvento,
-        beforeSendTransaction: ripulisciEvento,
         beforeBreadcrumb: ripulisciBreadcrumb,
     };
 }

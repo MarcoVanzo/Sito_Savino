@@ -3,6 +3,8 @@
 namespace Tests\Feature\Webhooks;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class WebhookSecurityTest extends TestCase
@@ -29,6 +31,18 @@ class WebhookSecurityTest extends TestCase
 
         // Should not return 200 (success) without proper verification
         $this->assertNotEquals(200, $response->getStatusCode());
+    }
+
+    public function test_paypal_webhook_con_corpo_non_json_risponde_400_senza_errori(): void
+    {
+        Http::fake();
+        Log::spy();
+
+        $response = $this->call('POST', '/api/webhooks/paypal', [], [], [], ['CONTENT_TYPE' => 'application/json'], '');
+
+        $response->assertStatus(400);
+        Http::assertNothingSent();
+        Log::shouldNotHaveReceived('error');
     }
 
     public function test_webhook_endpoints_exempt_from_csrf(): void

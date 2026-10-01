@@ -136,6 +136,13 @@ class PayPalPaymentService implements PaymentGatewayInterface
     {
         $payload = json_decode($rawBody, true);
 
+        // Un corpo vuoto o non JSON non e' una notifica di PayPal: va
+        // rifiutato come una firma sbagliata (400 e warning), non lasciato
+        // arrivare alla verifica come TypeError, che finirebbe fra gli errori.
+        if (! is_array($payload)) {
+            throw new PayPalException('Corpo del webhook PayPal non valido');
+        }
+
         // Verify webhook signature
         $this->verifyWebhookSignature($payload, $headers);
 
