@@ -41,6 +41,23 @@ class RegistrationTest extends TestCase
         ]);
     }
 
+    public function test_il_cliente_registrato_non_avvisa_i_super_admin_come_utente_in_attesa(): void
+    {
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => UserRole::SuperAdmin, 'is_active' => true])->save();
+
+        $this->post(route('shop.register.store'), [
+            'name' => 'Mario Rossi',
+            'email' => 'mario@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'privacy_accepted' => true,
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('users', ['email' => 'mario@example.com', 'is_active' => true]);
+        $this->assertSame(0, $admin->notifications()->count());
+    }
+
     public function test_registration_validates_required_fields(): void
     {
         $response = $this->post(route('shop.register.store'), []);

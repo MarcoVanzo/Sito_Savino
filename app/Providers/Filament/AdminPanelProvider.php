@@ -102,6 +102,10 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn (): string => view('filament.hooks.sidebar-accordion')->render()
             )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.hooks.upload-in-attesa')->render()
+            )
             ->databaseNotifications()
             ->databaseNotificationsPolling('120s')
             ->maxContentWidth('full')

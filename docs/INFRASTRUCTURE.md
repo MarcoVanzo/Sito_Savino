@@ -594,8 +594,14 @@ php artisan scheduler:beat && php artisan schedule:work --no-interaction
 ```
 
 Un battito immediato (per l'health check del web), poi il ciclo del pianificatore.
-`schedule:work` manda l'output dei comandi in `/dev/null` e Sentry è spento: un
-comando che fallisce ogni notte non lascia traccia nei log di App Platform.
+`schedule:work` manda l'output dei comandi in `/dev/null`: un comando che esce
+con errore non lascia traccia nei log di App Platform, e senza un'eccezione
+nemmeno in Sentry. Per questo in fondo a `routes/console.php` ogni evento
+pianificato passa da `AvvisoDelPianificatore::aggancia()`: l'output si cattura
+in `storage/logs/schedule-<hash>.log` (riscritto a ogni giro) e un'uscita con
+errore manda la coda dell'output per email (AvvisoTecnico, una ogni sei ore per
+comando). Il ciclo deve restare l'ultima cosa del file: un evento registrato
+dopo resterebbe muto, e `AvvisoDelPianificatoreTest` lo segnala.
 
 ---
 
@@ -771,7 +777,7 @@ Sei livelli, ciascuno per ciò che gli altri non possono vedere:
 | Monitoring DO sul database | CPU e memoria oltre il 90%, disco oltre l'80% | `marco@` (`doctl monitoring alert list`) |
 | Webhook di Resend (`/api/webhooks/resend`) | Email ai clienti rimbalzate, segnalate come spam o non spedite | AvvisoTecnico → `allarmi@` |
 | Alert di App Platform (`alerts:` nella spec) | Deploy fallito, dominio non attivo, container che riparte in ciclo, memoria del web | Destinazioni impostate con `doctl apps update-alert-destinations` |
-| `App\Services\AvvisoTecnico` | Pianificatore fermo, job falliti (non coda `ai`), ordini da rivedere, `shop:sorveglia` | `AVVISI_EMAIL` (spec, livello d'app) via Resend |
+| `App\Services\AvvisoTecnico` | Pianificatore fermo, comandi pianificati usciti con errore, job falliti (non coda `ai`), ordini da rivedere, `shop:sorveglia` | `AVVISI_EMAIL` (spec, livello d'app) via Resend |
 | Sentry | Eccezioni del server e errori JavaScript del browser (via `/api/diagnostica`) | Regola del progetto: issue nuove, regressioni, alta priorità → `allarmi@` (email routing dell'account) |
 
 Le regole di App Platform stanno nella spec, gli indirizzi no: dopo un

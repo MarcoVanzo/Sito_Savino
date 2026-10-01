@@ -1450,6 +1450,12 @@ Mappa completa in `docs/INFRASTRUCTURE.md` §9 (Avvisi). Vincoli:
   non è `Fallito`. Il client di Resend ha un timeout (10 s, in
   `AppServiceProvider`); l'avviso del pianificatore parte con `defer()`, dopo
   la risposta di `/up`.
+- **Ogni comando pianificato che esce con errore avvisa per email**
+  (`AvvisoDelPianificatore`, agganciato a tutti gli eventi dal ciclo in fondo
+  a `routes/console.php`, con la coda dell'output; uno ogni sei ore per
+  comando). `schedule:work` manda l'output in `/dev/null`: prima un FAILURE
+  senza eccezione non lasciava traccia da nessuna parte. Un evento nuovo va
+  registrato **sopra** quel ciclo, o resta muto.
 - **Il webhook di Resend avvisa solo per i clienti**: destinatario con un
   ordine negli ultimi 30 giorni, al massimo 10 avvisi l'ora. Newsletter e
   ricevute del recesso vanno a indirizzi scritti da chiunque: quei rimbalzi

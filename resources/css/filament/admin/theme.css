@@ -170,3 +170,37 @@
 .dark .choices__list--dropdown .choices__item.is-highlighted {
     background-color: rgba(255, 255, 255, 0.1) !important;
 }
+
+/*
+ * Campo di upload in attesa di FilePond. Con il pannello in modalita' SPA
+ * Filament carica il componente solo quando il campo entra nello schermo, e
+ * crea FilePond solo dopo un giro Livewire che chiede i file gia' caricati:
+ * fino ad allora a schermo c'e' l'<input type="file"> nativo, e una foto
+ * trascinata li' sopra si perde quando FilePond lo sostituisce. L'input si
+ * nasconde finche' FilePond non lo adotta (classe filepond--browser) e al suo
+ * posto c'e' una cornice che dice di aspettare. Il drop nella cornice lo
+ * ferma filament/hooks/upload-in-attesa.
+ */
+.fi-fo-file-upload input[type='file']:not(.filepond--browser) {
+    display: none;
+}
+
+.fi-fo-file-upload > div:not(:has(.filepond--root)) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 76px;
+    border: 1px dashed rgb(156 163 175 / 0.6);
+    border-radius: 0.5rem;
+    cursor: progress;
+}
+
+.fi-fo-file-upload > div:not(:has(.filepond--root))::before {
+    content: 'Caricamento del campo…';
+    font-size: 0.875rem;
+    color: rgb(107 114 128);
+}
+
+.dark .fi-fo-file-upload > div:not(:has(.filepond--root))::before {
+    color: rgb(156 163 175);
+}

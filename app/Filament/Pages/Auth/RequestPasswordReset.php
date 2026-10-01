@@ -3,8 +3,10 @@
 namespace App\Filament\Pages\Auth;
 
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
+use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Pages\Auth\PasswordReset\RequestPasswordReset as BaseRequestPasswordReset;
+use Livewire\Attributes\Locked;
 
 /**
  * «Password dimenticata» del pannello.
@@ -23,6 +25,9 @@ class RequestPasswordReset extends BaseRequestPasswordReset
     /** @var view-string */
     protected static string $view = 'filament.pages.auth.request-password-reset';
 
+    // Solo il server lo scrive: dal browser si potrebbe accendere la conferma
+    // senza aver mandato niente.
+    #[Locked]
     public ?string $inviataA = null;
 
     private bool $limiteRaggiunto = false;
@@ -48,7 +53,10 @@ class RequestPasswordReset extends BaseRequestPasswordReset
 
     public function minutiDiValidita(): int
     {
-        return (int) config('auth.passwords.'.config('auth.defaults.passwords').'.expire', 60);
+        // Lo stesso broker con cui Filament manda il link, non quello predefinito.
+        $broker = Filament::getAuthPasswordBroker() ?? config('auth.defaults.passwords');
+
+        return (int) config("auth.passwords.{$broker}.expire", 60);
     }
 
     protected function getRateLimitedNotification(TooManyRequestsException $exception): ?Notification
