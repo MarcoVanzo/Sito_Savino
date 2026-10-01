@@ -40,13 +40,16 @@ class ShopAuthController extends Controller
             'privacy_accepted' => ['required', 'accepted'],
         ]);
 
-        $user = User::create([
+        $user = new User([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
 
-        // role is not mass-assignable (security), set it explicitly
+        // role is not mass-assignable (security), set it explicitly.
+        // Va impostato prima del primo salvataggio: UserObserver::created
+        // vedrebbe un utente non attivo e avviserebbe i Super Admin di un
+        // "nuovo utente in attesa di abilitazione" che è invece un cliente.
         $user->forceFill(['role' => UserRole::Customer, 'is_active' => true])->save();
 
         Auth::login($user);
