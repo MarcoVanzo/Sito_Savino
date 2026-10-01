@@ -73,8 +73,8 @@ class PostResource extends Resource
                             ->image()
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth(1400)
-                            ->imageResizeTargetHeight(1400)
+                            ->imageResizeTargetWidth('1400')
+                            ->imageResizeTargetHeight('1400')
                             ->imageResizeUpscale(false),
                         Forms\Components\Select::make('categories')
                             ->label('Categorie')

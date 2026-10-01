@@ -7,7 +7,6 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
 import { trackInitiateCheckout } from '@/meta-pixel.js'
-import { costoDiSpedizione } from '@/Support/spedizione.js'
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -24,10 +23,6 @@ const props = defineProps({
         default: () => ({ items: [], total: 0 })
     },
     cartTotal: {
-        type: Number,
-        default: 0
-    },
-    cartWeight: {
         type: Number,
         default: 0
     },
@@ -185,14 +180,9 @@ const selectedZone = computed(() => {
     return props.shippingZones.find(z => (z.countries || []).includes('*'));
 });
 
-// Il conto sta in `Support/spedizione.js`, condiviso con il checkout dell'asta
-// e specchio di ShippingZone::calculateShippingCost: soglia gratuita, poi la
-// fascia che contiene il peso, poi la tariffa base. Converte anche i numeri,
-// che con il cast `decimal:2` arrivano come stringhe (4 + "7.90" = "47.90").
-const shippingCost = computed(() => costoDiSpedizione(selectedZone.value, {
-    subtotale: props.cartTotal,
-    peso: props.cartWeight,
-}));
+// Il costo di ogni zona arriva gia' calcolato dal server
+// (ShippingZone::calculateShippingCost, lo stesso conto che addebita l'ordine).
+const shippingCost = computed(() => Number(selectedZone.value?.costo_spedizione ?? 0) || 0);
 
 const couponStatus = ref(null);
 const couponMessage = ref('');

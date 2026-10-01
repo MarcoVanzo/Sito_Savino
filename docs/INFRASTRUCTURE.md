@@ -730,11 +730,11 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 | `scheduler:beat` | Ogni minuto | Battito letto dall'health check `/up`: rileva uno scheduler morto |
 | `shop:sorveglia` | Ogni 5 minuti | Negozio/aste spenti, checkout (shop o aste) senza metodi di pagamento, aste senza Stripe per la verifica della carta, coda `default` ferma, PayPal (orario): email quando cambia (§9, Avvisi) |
 | `lvf:sync` | Ogni ora | Calendario, risultati e classifica dal sito della Lega (fallimenti contati da `LvfSyncHealth`, alert ai Super Admin) |
-| `news:importa-dal-vecchio-sito` | Ogni ora | Comunicati pubblicati sul vecchio WordPress (`wp-json`); si spegne da solo il 2/10/2026 (`services.vecchio_sito.leggibile_fino_a`) |
 | `sitemap:generate` | Giornaliero (04:00) | Genera sitemap XML per SEO |
 | `media:fix-remote-metadata --since="3 days ago"` | Giornaliero (04:30) | Ripassa Content-Type e Cache-Control sui file recenti caricati su Spaces |
 | `social:sync-meta --days=90` | Giornaliero (03:30) | Insight Facebook/Instagram, max 120 chiamate |
 | `analytics:sync-ga4 --days=90` | Giornaliero (05:00) | Serie giornaliera del traffico GA4 |
+| `newsletter:retry-sync` | Giornaliero (05:15) | Ritenta su ActiveCampaign gli iscritti confermati non ancora sincronizzati (max 50) |
 | `RicostruisciLaCacheDellaGallery` (job) | Ogni ora (:17) | Rigenera la cache dell'archivio foto |
 | `gallery:analyze --pending --limit=600` | Ogni ora (:37) | Riconoscimento volti sulle foto non ancora analizzate |
 | `volti:riconcilia-contatori` | Giornaliero (04:15) | Riallinea `players.ai_face_examples` a CompreFace |

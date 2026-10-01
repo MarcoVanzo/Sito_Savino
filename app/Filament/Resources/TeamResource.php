@@ -85,7 +85,7 @@ class TeamResource extends Resource
                             ->unique(ignoreRecord: true),
                         Forms\Components\Select::make('category')
                             ->label('Categoria')
-                            ->options(fn () => static::categoryOptions())
+                            ->options(fn () => self::categoryOptions())
                             ->helperText('Determina a quale sotto-sezione youth appartiene. Le avversarie importate dalla Lega non hanno categoria.'),
                     ])->columns(2),
 
@@ -100,8 +100,8 @@ class TeamResource extends Resource
                             ->image()
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth(1200)
-                            ->imageResizeTargetHeight(1200)
+                            ->imageResizeTargetWidth('1200')
+                            ->imageResizeTargetHeight('1200')
                             ->imageResizeUpscale(false)
                             ->helperText('Ha la precedenza sul logo scaricato dalla Lega. Rimuovendolo si torna automaticamente a quello importato.'),
 
@@ -202,7 +202,7 @@ class TeamResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('category')
                     ->label('Categoria')
-                    ->options(fn () => static::categoryOptions()),
+                    ->options(fn () => self::categoryOptions()),
                 Tables\Filters\TernaryFilter::make('is_internal')
                     ->label('Tipo squadra')
                     ->placeholder('Tutte')

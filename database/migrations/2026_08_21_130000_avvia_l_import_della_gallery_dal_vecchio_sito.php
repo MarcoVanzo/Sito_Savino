@@ -1,6 +1,5 @@
 <?php
 
-use App\Jobs\ImportaLaGalleryStorica;
 use Illuminate\Database\Migrations\Migration;
 
 /**
@@ -15,12 +14,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Mai in linea: con la coda `sync` — è così nei test — il dispatch
-        // eseguirebbe l'importazione dentro la migrazione, e la migrazione gira
-        // all'avvio di ogni container. Il lavoro deve finire in coda e basta.
-        $coda = config('queue.default') === 'sync' ? 'database' : config('queue.default');
-
-        ImportaLaGalleryStorica::dispatch()->onConnection($coda);
+        // No-op dal 01/10/2026: il lavoro che metteva in coda leggeva il vecchio
+        // sito WordPress, che dal passaggio del dominio non esiste piu', e il
+        // codice e' stato tolto. In produzione la migrazione e' gia' applicata;
+        // su un database nuovo non c'e' niente da importare.
     }
 
     /**

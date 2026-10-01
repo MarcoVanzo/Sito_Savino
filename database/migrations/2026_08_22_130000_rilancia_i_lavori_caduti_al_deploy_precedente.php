@@ -1,6 +1,5 @@
 <?php
 
-use App\Jobs\ImportaLaGalleryStorica;
 use App\Jobs\RigeneraLeAnteprimeMancanti;
 use Illuminate\Database\Migrations\Migration;
 
@@ -32,7 +31,8 @@ return new class extends Migration
         $coda = config('queue.default') === 'sync' ? 'database' : config('queue.default');
 
         RigeneraLeAnteprimeMancanti::dispatch()->onConnection($coda);
-        ImportaLaGalleryStorica::dispatch()->onConnection($coda);
+        // L'import della Gallery dal vecchio sito non c'e' piu' (01/10/2026):
+        // resta il solo rilancio delle anteprime.
     }
 
     public function down(): void

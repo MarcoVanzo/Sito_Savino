@@ -28,7 +28,7 @@ class AdminNotificationService
         $this->sendToAdmins(
             Notification::make()
                 ->title("Nuovo ordine #{$order->order_number}")
-                ->body("Nuovo ordine da {$customerName} — €".number_format($order->total_price, 2, ',', '.'))
+                ->body("Nuovo ordine da {$customerName} — €".number_format((float) $order->total_price, 2, ',', '.'))
                 ->icon('heroicon-o-shopping-cart')
                 ->iconColor('success')
         );
@@ -44,7 +44,7 @@ class AdminNotificationService
         $this->sendToAdmins(
             Notification::make()
                 ->title("Pagamento ricevuto #{$order->order_number}")
-                ->body('€'.number_format($order->total_price, 2, ',', '.')." tramite {$gatewayLabel}")
+                ->body('€'.number_format((float) $order->total_price, 2, ',', '.')." tramite {$gatewayLabel}")
                 ->icon('heroicon-o-banknotes')
                 ->iconColor('success')
         );

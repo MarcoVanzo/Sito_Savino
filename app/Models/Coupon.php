@@ -192,11 +192,11 @@ class Coupon extends Model
      *
      * La colonna e' NOT NULL default 1, quindi il vecchio `!== null` era sempre
      * vero e un valore 0 rendeva il coupon inutilizzabile da chiunque.
-     * Semantica esplicita: 0 (o null) = nessun limite per utente.
+     * Semantica esplicita: 0 = nessun limite per utente.
      */
     private function limitePerUtenteRaggiunto(?int $userId, ?string $guestEmail): bool
     {
-        $maxPerUser = $this->max_uses_per_user === null ? 0 : (int) $this->max_uses_per_user;
+        $maxPerUser = (int) $this->max_uses_per_user;
 
         if ($maxPerUser <= 0 || (! $userId && ! $guestEmail)) {
             return false;
@@ -204,7 +204,7 @@ class Coupon extends Model
 
         $usageCount = $this->usages()
             ->when($userId, fn ($q) => $q->where('user_id', $userId))
-            ->when(! $userId && $guestEmail, fn ($q) => $q->where('guest_email', $guestEmail))
+            ->when(! $userId, fn ($q) => $q->where('guest_email', $guestEmail))
             ->count();
 
         return $usageCount >= $maxPerUser;
