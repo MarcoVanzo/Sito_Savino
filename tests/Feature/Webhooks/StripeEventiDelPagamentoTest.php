@@ -155,6 +155,23 @@ class StripeEventiDelPagamentoTest extends TestCase
     }
 
     #[Test]
+    public function l_ordine_con_addebito_in_corso_non_si_ripaga(): void
+    {
+        $order = $this->ordineInAttesa();
+        $order->forceFill(['user_id' => null])->save();
+
+        $this->evento('checkout.session.completed', $this->sessione($order, 'unpaid'))->assertOk();
+        $this->richieste = [];
+
+        $this->post(route('shop.checkout.retry', ['orderToken' => $order->order_token]))
+            ->assertRedirect(route('shop.checkout.success', ['orderToken' => $order->order_token]));
+
+        // Nessuna seconda sessione aperta su Stripe.
+        $this->assertSame([], $this->richieste);
+        $this->assertTrue($order->refresh()->haUnPagamentoInSospeso());
+    }
+
+    #[Test]
     public function il_pagamento_differito_fallito_annulla_l_ordine(): void
     {
         $order = $this->ordineInAttesa();

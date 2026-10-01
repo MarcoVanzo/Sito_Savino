@@ -89,7 +89,9 @@ class AuctionCheckoutController extends Controller
         // bloccato per sempre sulla pagina "ordine già effettuato".
         $existingOrder = $this->auctionService->getWinnerOrder($auction);
 
-        if ($existingOrder && $existingOrder->paid_at !== null) {
+        // Un addebito ancora in corso (SEPA, cattura PayPal in verifica) vale
+        // come pagato: riproporre il modulo farebbe pagare due volte.
+        if ($existingOrder && ($existingOrder->paid_at !== null || $existingOrder->haUnPagamentoInSospeso())) {
             return redirect()->route('shop.auction-checkout.success', ['token' => $token])
                 ->with('info', __('messages.auction_checkout.already_ordered'));
         }
@@ -402,6 +404,29 @@ class AuctionCheckoutController extends Controller
     }
 
     /**
+     * Le note dell'ordine con la nota del cliente aggiornata.
+     *
+     * `orders.notes` tiene insieme la nota scritta nel modulo e le annotazioni
+     * di revisione (HandlesPaymentWebhooks::flagForManualReview), accodate su
+     * righe che cominciano con «[gg/mm/aaaa hh:mm REVISIONE MANUALE]». Al
+     * reinvio del modulo si sostituisce solo la parte che le precede: prima
+     * si riscriveva tutto e le annotazioni sparivano, compresi gli
+     * identificativi su cui webhook e contestazioni evitano i doppioni.
+     */
+    private static function noteConLaNotaDelCliente(?string $attuali, ?string $notaDelCliente): ?string
+    {
+        $annotazioni = '';
+
+        if ($attuali !== null && preg_match('/^\[\d{2}\/\d{2}\/\d{4} \d{2}:\d{2} REVISIONE MANUALE\]/m', $attuali, $trovato, PREG_OFFSET_CAPTURE)) {
+            $annotazioni = substr($attuali, $trovato[0][1]);
+        }
+
+        $note = trim(trim((string) $notaDelCliente)."\n".$annotazioni);
+
+        return $note === '' ? null : $note;
+    }
+
+    /**
      * L'ordine del vincitore: quello gia' aperto se c'e', altrimenti nuovo.
      *
      * Gira dentro una transazione con lock sull'asta: serializza i submit
@@ -419,7 +444,7 @@ class AuctionCheckoutController extends Controller
         $lockedAuction = Auction::lockForUpdate()->find($auction->id);
         $existingOrder = $this->auctionService->getWinnerOrder($lockedAuction);
 
-        if ($existingOrder && $existingOrder->paid_at !== null) {
+        if ($existingOrder && ($existingOrder->paid_at !== null || $existingOrder->haUnPagamentoInSospeso())) {
             return ['order' => $existingOrder, 'paid' => true, 'bonificoNuovo' => false];
         }
 
@@ -460,7 +485,10 @@ class AuctionCheckoutController extends Controller
         // si riusa, aggiornando i dati appena inviati. Lo stock è già
         // riservato dal primo tentativo, non va riservato di nuovo.
         if ($existingOrder) {
-            $existingOrder->update($dati);
+            $existingOrder->update([
+                ...$dati,
+                'notes' => self::noteConLaNotaDelCliente($existingOrder->notes, $dati['notes']),
+            ]);
             $this->terminePerIlBonifico($lockedAuction, $existingOrder);
 
             return ['order' => $existingOrder->fresh(), 'paid' => false, 'bonificoNuovo' => ! $eraGiaBonifico];

@@ -185,6 +185,26 @@ class Order extends Model
     }
 
     /**
+     * Il pagamento è partito ma l'esito non è ancora arrivato: addebito SEPA
+     * su Stripe, cattura PayPal in verifica (HandlesPendingCaptures).
+     *
+     * `payment_id` resta nullo apposta, quindi da solo non basta a dire che
+     * l'ordine non va ripagato: senza questo controllo «riprova il pagamento»
+     * apriva una seconda sessione e il cliente pagava due volte.
+     */
+    public function haUnPagamentoInSospeso(): bool
+    {
+        return $this->status === OrderStatus::Pending
+            && $this->payment_id === null
+            && ShopEvent::query()
+                ->where('viewable_type', self::class)
+                ->where('viewable_id', $this->id)
+                ->where('event_type', 'payment_review')
+                ->where('metadata->reason', 'payment_pending')
+                ->exists();
+    }
+
+    /**
      * Dove il gateway rimanda il cliente dopo il pagamento.
      *
      * Stanno qui, e non nei due servizi di pagamento, perché il nome del

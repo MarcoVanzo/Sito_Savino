@@ -272,7 +272,9 @@ class CheckoutController extends Controller
         }
 
         $canRetry = $order->status === OrderStatus::Pending
-            && in_array($order->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal]);
+            && in_array($order->payment_gateway, [PaymentGateway::Stripe, PaymentGateway::PayPal])
+            && $order->payment_id === null
+            && ! $order->haUnPagamentoInSospeso();
 
         return Inertia::render('Public/Shop/CheckoutCancel', [
             'order' => $order,
@@ -310,7 +312,7 @@ class CheckoutController extends Controller
         // attesa perché qualcuno deve guardarlo (per esempio un incasso di
         // importo diverso dal totale), e aprirgli una seconda sessione
         // significherebbe farlo pagare due volte.
-        if ($order->payment_id !== null) {
+        if ($order->payment_id !== null || $order->haUnPagamentoInSospeso()) {
             return redirect()->route('shop.checkout.success', ['orderToken' => $orderToken]);
         }
 
