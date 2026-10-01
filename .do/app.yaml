@@ -64,6 +64,20 @@ envs:
 - key: AVVISI_EMAIL
   scope: RUN_TIME
   value: allarmi@mv-consulting.it
+# Stripe (shop e aste). A livello d'app: lo vedono web, worker e scheduler.
+# I segreti sono cifrati da DigitalOcean (EV[...]): si rigenerano dal pannello,
+# poi si ricopiano qui da `doctl apps spec get`, o il deploy li cancella.
+- key: STRIPE_KEY
+  scope: RUN_AND_BUILD_TIME
+  value: pk_live_51ULeeFATccTjPcsEw3AytuugbXDufEhVBhqo2CsE7ET4CDVV4E22cqnvBNYZesKbxSViBdDiTfC66d5SiM0jI57W00zdPFMnlC
+- key: STRIPE_SECRET
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:uMMVnY7yZv+23+xShERkkZZ1N5+WbR9N:euqNuy5Q/z7qY//snthGXoHtNCPful9IeRMLQUe7iY+YCBI6ZlcKLo5b19RDlsn5QP5xJR88E7ofH2pue4OlVwX9/al24+vAfTsSjEaxbRQp+4HjXO4Hu2FK5RDYdI+yXc0bJFIRXQmHAP69uAzSWdMuKkUspt+4XUxZ]
+- key: STRIPE_WEBHOOK_SECRET
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:W3sl/SleR+a4WRet4Quu2r0NPk9DugTO:mP2HNNl8O4YFjbR1xuP0kD+ASSEozijvwsilwF/gilsoSrQd4kX1jLUObwSsJn13wgLYpKdJ]
 # Avvisi di DigitalOcean, per cio' che il codice non puo' vedere da dentro:
 # un rilascio fallito, un dominio che non si attiva (il giorno del passaggio) e
 # un container che riparte in ciclo — il crash di FPM delle pagine Comunicazione
