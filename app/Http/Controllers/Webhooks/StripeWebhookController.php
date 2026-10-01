@@ -146,7 +146,7 @@ class StripeWebhookController
         app(AvvisoTecnico::class)->invia(
             'Contestazione di un pagamento Stripe',
             $testo,
-            'stripe-disputa:'.$result['dispute_id'],
+            'stripe-disputa:'.($result['dispute_id'] ?? $result['payment_id'] ?? 'senza-id'),
             86400,
         );
 

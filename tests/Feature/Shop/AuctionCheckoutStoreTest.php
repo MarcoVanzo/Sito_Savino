@@ -225,6 +225,41 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertSame('3331234567', $order->fresh()->phone);
     }
 
+    public function test_il_reinvio_del_modulo_cambia_la_nota_del_cliente_ma_non_le_annotazioni_di_revisione(): void
+    {
+        $winner = User::factory()->create();
+        $token = Str::uuid()->toString();
+        $auction = $this->astaVinta($winner, $token);
+
+        ShippingZone::factory()->create(['countries' => ['IT'], 'flat_rate' => 7.9, 'free_threshold' => 1000]);
+
+        $annotazione = "[01/10/2026 10:15 REVISIONE MANUALE] Contestazione du_1 su Stripe.\nTermine per rispondere: 08/10/2026.";
+        $order = Order::factory()->create([
+            'user_id' => $winner->id,
+            'payment_gateway' => PaymentGateway::Stripe,
+            'paid_at' => null,
+            'notes' => "Citofono Rossi\n".$annotazione,
+        ]);
+        $order->forceFill(['auction_id' => $auction->id, 'status' => OrderStatus::Pending])->save();
+
+        $stripe = Mockery::mock(StripePaymentService::class);
+        $stripe->shouldReceive('createSession')->twice()->andReturn('https://checkout.stripe.test/sessione');
+        $this->app->instance(StripePaymentService::class, $stripe);
+
+        $this->actingAs($winner)
+            ->post(route('shop.auction-checkout.store', ['token' => $token]), $this->datiValidi(['notes' => 'Lasciare al portiere']))
+            ->assertRedirect('https://checkout.stripe.test/sessione');
+
+        $this->assertSame("Lasciare al portiere\n".$annotazione, $order->fresh()->notes);
+
+        // Senza nota nel modulo resta solo l'annotazione.
+        $this->actingAs($winner)
+            ->post(route('shop.auction-checkout.store', ['token' => $token]), $this->datiValidi())
+            ->assertRedirect('https://checkout.stripe.test/sessione');
+
+        $this->assertSame($annotazione, $order->fresh()->notes);
+    }
+
     public function test_la_spedizione_del_lotto_segue_la_fascia_di_peso(): void
     {
         $winner = User::factory()->create();
