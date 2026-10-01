@@ -3,11 +3,11 @@
 namespace Tests\Feature\Filament;
 
 use App\Enums\UserRole;
+use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Notifications\Auth\ResetPassword as NotificaDiReset;
-use Filament\Pages\Auth\PasswordReset\RequestPasswordReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
@@ -52,7 +52,10 @@ class PasswordDimenticataDelPannelloTest extends TestCase
         Livewire::test(RequestPasswordReset::class)
             ->fillForm(['email' => $user->email])
             ->call('request')
-            ->assertHasNoFormErrors();
+            ->assertHasNoFormErrors()
+            ->assertSet('inviataA', $user->email)
+            ->assertSee('Controlla la tua email')
+            ->assertDontSee('wire:submit="request"', false);
 
         $url = null;
         Notification::assertSentTo($user, NotificaDiReset::class, function (NotificaDiReset $notifica) use (&$url) {
@@ -64,5 +67,52 @@ class PasswordDimenticataDelPannelloTest extends TestCase
         $this->get($url)
             ->assertOk()
             ->assertSee(app(ComponentRegistry::class)->getName(ResetPassword::class), false);
+    }
+
+    /**
+     * Stessa conferma per un indirizzo che non ha account: la notifica
+     * d'errore di Filament diceva quali email sono registrate nel pannello.
+     */
+    public function test_un_indirizzo_sconosciuto_riceve_la_stessa_conferma(): void
+    {
+        Notification::fake();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Livewire::test(RequestPasswordReset::class)
+            ->fillForm(['email' => 'nessuno@example.com'])
+            ->call('request')
+            ->assertSet('inviataA', 'nessuno@example.com')
+            ->assertSee('Controlla la tua email')
+            ->assertDontSee('Non troviamo');
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_si_puo_tornare_al_modulo_per_un_altro_indirizzo(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Livewire::test(RequestPasswordReset::class)
+            ->set('inviataA', 'vecchio@example.com')
+            ->call('altroIndirizzo')
+            ->assertSet('inviataA', null)
+            ->assertFormSet(['email' => null]);
+    }
+
+    public function test_oltre_il_limite_il_modulo_resta(): void
+    {
+        Notification::fake();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $pagina = Livewire::test(RequestPasswordReset::class);
+
+        foreach (['a@example.com', 'b@example.com'] as $email) {
+            $pagina->call('altroIndirizzo')->fillForm(['email' => $email])->call('request');
+        }
+
+        $pagina->call('altroIndirizzo')
+            ->fillForm(['email' => 'c@example.com'])
+            ->call('request')
+            ->assertSet('inviataA', null);
     }
 }
