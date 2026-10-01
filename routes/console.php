@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\RicostruisciLaCacheDellaGallery;
+use App\Services\AvvisoDelPianificatore;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -132,3 +133,11 @@ Schedule::command('auction:close')->everyMinute()->withoutOverlapping();
 
 // Aste: verifica pagamenti vincitori (ogni ora)
 Schedule::command('auction:check-payments')->hourly()->withoutOverlapping();
+
+// Deve restare in fondo: copre gli eventi registrati sopra. `schedule:work`
+// manda l'output in /dev/null, quindi un comando che esce con errore non
+// lasciava traccia; così l'output si cattura e un fallimento arriva per email
+// (AvvisoTecnico, un avviso ogni sei ore per comando).
+foreach (Schedule::events() as $evento) {
+    AvvisoDelPianificatore::aggancia($evento);
+}
