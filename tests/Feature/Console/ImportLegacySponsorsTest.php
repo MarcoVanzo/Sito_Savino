@@ -47,4 +47,23 @@ class ImportLegacySponsorsTest extends TestCase
 
         $this->assertSame('https://www.myes.school/landing/', Sponsor::where('name', 'My English School')->value('url'));
     }
+
+    public function test_solo_nuovi_aggiunge_in_coda_e_non_tocca_gli_esistenti(): void
+    {
+        $esistente = Sponsor::create(['name' => 'Altro Sponsor', 'tier' => 'main', 'sort_order' => 3, 'url' => 'https://scelto.test/']);
+        Sponsor::create(['name' => 'Già In Coda', 'tier' => 'supporter', 'sort_order' => 7]);
+
+        Http::fake(['*' => Http::response($this->pagina('https://www.myes.school/'))]);
+
+        $this->artisan('sponsors:import-legacy', ['--skip-logos' => true, '--solo-nuovi' => true])->assertSuccessful();
+
+        $esistente->refresh();
+        $this->assertSame('main', $esistente->tier->value);
+        $this->assertSame(3, $esistente->sort_order);
+        $this->assertSame('https://scelto.test/', $esistente->url);
+
+        $nuovo = Sponsor::where('name', 'My English School')->firstOrFail();
+        $this->assertSame('supporter', $nuovo->tier->value);
+        $this->assertSame(8, $nuovo->sort_order);
+    }
 }
