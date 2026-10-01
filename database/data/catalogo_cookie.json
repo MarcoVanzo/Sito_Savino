@@ -29,6 +29,20 @@
       "_nota": "Il nome nasce da APP_NAME con Str::slug (config/session.php), quindi cambia fra gli ambienti."
     },
     {
+      "nome": "__cf_bm",
+      "categoria": "necessari",
+      "fornitore": "Cloudflare (rete di DigitalOcean App Platform)",
+      "durata": {
+        "it": "30 minuti",
+        "en": "30 minutes"
+      },
+      "scopo": {
+        "it": "Lo imposta la rete che serve il sito per distinguere il traffico automatizzato dannoso da quello dei visitatori. Non serve a profilare e non viene usato dal sito.",
+        "en": "Set by the network that serves the site to tell harmful automated traffic apart from visitors. It is not used for profiling and the site does not read it."
+      },
+      "_nota": "Compare dal 01/10/2026, con il dominio savinodelbenevolley.it davanti a Cloudflare (App Platform). Non lo scrive l'applicazione: non si spegne dal codice."
+    },
+    {
       "schema": "^remember_web_",
       "categoria": "necessari",
       "fornitore": "Savino Del Bene Volley",
