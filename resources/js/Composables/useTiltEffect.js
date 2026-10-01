@@ -45,10 +45,18 @@ export function useTiltEffect(options = {}) {
             onMousemove: (e) => {
                 if (rafId) cancelAnimationFrame(rafId);
 
+                // currentTarget vale solo durante la consegna dell'evento:
+                // dentro requestAnimationFrame e' gia' null.
+                const elemento = e.currentTarget;
+                const { clientX, clientY } = e;
+                if (!elemento) return;
+
                 rafId = requestAnimationFrame(() => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
+                    if (!elemento.isConnected) return;
+
+                    const rect = elemento.getBoundingClientRect();
+                    const x = clientX - rect.left;
+                    const y = clientY - rect.top;
                     const centerX = rect.width / 2;
                     const centerY = rect.height / 2;
 
