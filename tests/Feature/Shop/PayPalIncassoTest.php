@@ -217,6 +217,10 @@ class PayPalIncassoTest extends TestCase
         $this->assertSame(OrderStatus::Paid, $order->status);
         $this->assertSame('CAPTURE-RITORNO', $order->payment_id);
         $this->assertNotNull($order->paid_at);
+
+        // PayPal live rifiuta "[]" come corpo della cattura: deve essere "{}".
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/capture')
+            && $request->body() === '{}');
     }
 
     #[Test]

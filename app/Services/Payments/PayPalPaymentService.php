@@ -308,7 +308,13 @@ class PayPalPaymentService implements PaymentGatewayInterface
      */
     private function catturaEDescrivi(string $paypalOrderId, array $ordineRemoto = []): array
     {
-        $response = $this->client()->post("/v2/checkout/orders/{$paypalOrderId}/capture");
+        // Il corpo va mandato come oggetto vuoto: senza dati Laravel codifica
+        // un array vuoto, cioè "[]", che PayPal live rifiuta con
+        // MALFORMED_REQUEST_JSON (la sandbox lo accettava). Il primo ordine
+        // vero, l'1/10/2026, è rimasto approvato e mai incassato per questo.
+        $response = $this->client()
+            ->withBody('{}', 'application/json')
+            ->post("/v2/checkout/orders/{$paypalOrderId}/capture");
 
         if ($response->failed()) {
             // Un ordine già catturato non è un guasto: è il secondo tentativo
