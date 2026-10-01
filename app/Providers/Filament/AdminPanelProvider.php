@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Dashboard;
 use App\Http\Middleware\EnsurePasswordIsChanged;
@@ -38,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
             // brandizzata dai colori e dal logo impostati qui sotto. Il reset
             // password dello staff segue lo stesso percorso (/admin/password-reset).
             ->login()
-            ->passwordReset(resetAction: ResetPassword::class)
+            ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->colors([
                 'primary' => Color::Hex('#003063'), // Savino Blue
                 'danger' => Color::Hex('#DF338F'), // Savino Red
