@@ -200,6 +200,12 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
   generato fuori da una richiesta (link nelle email in coda, sitemap, feed RSS,
   ritorni dei pagamenti) punta al dominio nuovo mentre li' risponde ancora
   WordPress. Si aggiunge quando si sposta il DNS, non prima.
+- **Un solo indirizzo per chi naviga.** `PortaSullIndirizzoDelSito` (globale)
+  manda con 301 le GET di `www.` e di `*.ondigitalocean.app` all'host di
+  `APP_URL`; le visite Inertia ricevono `X-Inertia-Location`. Restano dove sono
+  le POST, `api/*` (webhook di Resend, Stripe e PayPal) e `/up`. Senza, sul
+  vecchio indirizzo la pagina si disegnava ma `forceRootUrl` mandava axios,
+  moduli e visite Inertia al dominio: CORS e "Network Error" in Sentry.
 - **La posta esce dal 25/09/2026, via Resend.** Fino ad allora `MAIL_MAILER`
   non era nella spec e `config/mail.php` cadeva su `log`: conferme d'ordine,
   rimborsi, aste vinte e reset delle password finivano nel log. Le variabili
