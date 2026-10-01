@@ -46,7 +46,7 @@ class ReanalyzeGalleryCommand extends Command
             $jobs[] = new AnalyzeGalleryImageJob($image);
         }
 
-        $chunkSize = $this->option('chunk');
+        $chunkSize = max(1, (int) $this->option('chunk'));
         $chunks = array_chunk($jobs, $chunkSize);
 
         $this->withProgressBar($chunks, function ($chunk) {

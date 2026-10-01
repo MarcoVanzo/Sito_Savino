@@ -173,7 +173,7 @@ class FacialRecognitionService
         if (! $tempPath) {
             Log::error('CompreFace: impossibile scaricare media per il training', [
                 'person_type' => get_class($person),
-                'person_id' => $person->id,
+                'person_id' => $person->getKey(),
                 'media_id' => $media->id,
             ]);
 

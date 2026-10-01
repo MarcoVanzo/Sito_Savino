@@ -48,9 +48,9 @@ class LvfStandingsParser
     {
         $document = LvfDocument::fromHtml($html);
 
-        $table = $document->xpath->query(
+        $table = $document->primo(
             "//table[contains(concat(' ', normalize-space(@class), ' '), ' classifica ')]"
-        )?->item(0);
+        );
 
         if (! $table instanceof DOMNode) {
             return [];
@@ -100,7 +100,7 @@ class LvfStandingsParser
             return null;
         }
 
-        $link = $document->xpath->query(".//a[contains(@href, '/club/')]", $row)?->item(0);
+        $link = $document->primo(".//a[contains(@href, '/club/')]", $row);
 
         if (! $link instanceof DOMElement) {
             return null;

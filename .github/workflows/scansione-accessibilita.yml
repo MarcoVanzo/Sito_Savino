@@ -52,7 +52,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version-file: .nvmrc
 
       # Questo lavoro non fa `npm ci`: gli bastano Playwright, che non sta fra
       # le dipendenze del progetto (scaricherebbe un browser a ogni `npm ci`),
@@ -117,7 +117,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version-file: .nvmrc
 
       - name: Dipendenze e build
         run: |

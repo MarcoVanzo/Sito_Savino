@@ -78,7 +78,7 @@ class Order extends Model
         static::created(function (Order $order) {
             if (! $order->order_number) {
                 $order->updateQuietly([
-                    'order_number' => 'ORD-'.now()->format('Y').'-'.str_pad($order->id, 5, '0', STR_PAD_LEFT),
+                    'order_number' => 'ORD-'.now()->format('Y').'-'.str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
                     'order_token' => $order->order_token ?? Str::uuid()->toString(),
                 ]);
             }

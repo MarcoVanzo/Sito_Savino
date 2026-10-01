@@ -326,15 +326,15 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertEqualsWithDelta(105.9, (float) $order->total_price, 0.01);
     }
 
-    public function test_la_pagina_passa_al_client_le_fasce_ordinate_e_il_peso_del_collo(): void
+    public function test_la_pagina_passa_al_client_il_costo_della_fascia_del_collo(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
         $auction = $this->astaVinta($winner, $token);
         $auction->product->update(['weight' => 6]);
 
-        // Fasce scritte fuori ordine nel pannello: al client arrivano ordinate,
-        // perché è nell'ordine che sceglie la tariffa.
+        // Fasce scritte fuori ordine nel pannello: sei chili stanno nella
+        // fascia aperta, e il client riceve il costo gia' calcolato.
         ShippingZone::factory()->create([
             'countries' => ['IT'],
             'flat_rate' => 7.9,
@@ -351,10 +351,7 @@ class AuctionCheckoutStoreTest extends TestCase
 
         $props = $response->viewData('page')['props'];
 
-        $this->assertEqualsWithDelta(6.0, (float) $props['pesoDelCollo'], 0.001);
-        $this->assertSame(
-            [['max_weight' => 2.0, 'rate' => 5.9], ['max_weight' => null, 'rate' => 19.9]],
-            $props['shippingZones'][0]['weight_rates'],
-        );
+        $this->assertEqualsWithDelta(19.9, (float) $props['shippingZones'][0]['costo_spedizione'], 0.001);
+        $this->assertArrayNotHasKey('pesoDelCollo', $props);
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\RicostruisciLaCacheDellaGallery;
+use App\Services\ActiveCampaignService;
 use App\Services\AvvisoDelPianificatore;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -40,22 +41,6 @@ Schedule::command('lvf:sync')->hourly()->withoutOverlapping();
 // pagine del portale con una pausa fra l'una e l'altra.
 Schedule::command('cev:sync')->hourlyAt(30)->withoutOverlapping();
 
-// I comunicati che la redazione continua a pubblicare sul vecchio sito, finche'
-// il dominio e' suo. Ogni ora e non una volta al giorno perche' la finestra e'
-// di pochi giorni: un comunicato uscito in mattinata e il passaggio del dominio
-// nel pomeriggio starebbero nello stesso giorno, e quel comunicato si
-// perderebbe per sempre — staccato il vecchio sito, non e' piu' interrogabile.
-// Quando non c'e' niente di nuovo il giro e' una sola richiesta.
-//
-// Si spegne da solo il giorno dopo il passaggio
-// (`services.vecchio_sito.leggibile_fino_a`): da li' `savinodelbenevolley.it` e'
-// questo sito, `wp-json` risponde 404 e il comando fallirebbe a ogni giro. Il
-// comando resta lanciabile a mano, per l'ultimo giro prima dello switch.
-Schedule::command('news:importa-dal-vecchio-sito')
-    ->hourly()
-    ->withoutOverlapping()
-    ->skip(fn (): bool => now()->greaterThanOrEqualTo((string) config('services.vecchio_sito.leggibile_fino_a')));
-
 // Da qui in giù tutto ha withoutOverlapping(). Non è una precauzione contro la
 // lentezza dei singoli comandi — la sitemap e le potature girano una volta al
 // giorno — ma contro l'esecuzione doppia: il lock è condiviso via cache, quindi
@@ -81,6 +66,14 @@ Schedule::command('social:sync-meta --days=90')->dailyAt('03:30')->withoutOverla
 // per un mese nessuno lo apre quel mese non entra in archivio e i confronti
 // anno su anno restano bucati.
 Schedule::command('analytics:sync-ga4 --days=90')->dailyAt('05:00')->withoutOverlapping();
+
+// Gli iscritti confermati che ActiveCampaign non ha ancora: il job ritenta tre
+// volte in un paio di minuti, quindi un'interruzione piu' lunga li lascerebbe
+// fuori dalla lista per sempre. Solo i non sincronizzati, al massimo 50 a giro.
+Schedule::command('newsletter:retry-sync')
+    ->dailyAt('05:15')
+    ->withoutOverlapping()
+    ->when(fn (): bool => app(ActiveCampaignService::class)->isConfigured());
 
 // L'archivio della gallery in cache dura un giorno e si rigenera in coda a
 // ogni modifica; il giro orario copre il caso in cui un job sia andato perso e

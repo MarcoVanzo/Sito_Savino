@@ -45,6 +45,9 @@ class Product extends Model implements HasMedia
         'sort_order' => 'integer',
     ];
 
+    /**
+     * @return BelongsTo<ProductCategory, $this>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
@@ -328,17 +331,17 @@ class Product extends Model implements HasMedia
         $this->registerStandardConversions();
 
         $this->addMediaConversion('zoom')
-            ->width(1200)
-            ->quality(85)
             ->performOnCollections('images', 'products')
-            ->nonQueued();
+            ->nonQueued()
+            ->width(1200)
+            ->quality(85);
 
         $this->addMediaConversion('og-image')
+            ->performOnCollections('images', 'products')
+            ->nonQueued()
             ->width(1200)
             ->height(630)
-            ->quality(80)
-            ->performOnCollections('images', 'products')
-            ->nonQueued();
+            ->quality(80);
     }
 
     /**
