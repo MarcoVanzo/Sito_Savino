@@ -153,10 +153,13 @@ class StripePaymentService implements PaymentGatewayInterface
         }
 
         // Un doppio clic sul pulsante del pannello mandava due rimborsi. La
-        // chiave include quanto e' gia' stato rimborsato: il secondo rimborso
-        // parziale voluto ha una chiave nuova, il clic ripetuto no.
+        // chiave vale un minuto: il clic ripetuto si ferma, un secondo
+        // rimborso voluto o un nuovo tentativo dopo un rifiuto passano (Stripe
+        // conserva anche gli errori sotto la stessa chiave, per 24 ore). Il
+        // gia' rimborsato nella chiave separa due parziali voluti anche nello
+        // stesso minuto, una volta arrivato il webhook del primo.
         $giaRimborsato = (int) round(((float) $order->refunded_amount) * 100);
-        $chiave = 'rimborso-'.$order->id.'-'.($payload['amount'] ?? 'totale').'-'.$giaRimborsato;
+        $chiave = 'rimborso-'.$order->id.'-'.($payload['amount'] ?? 'totale').'-'.$giaRimborsato.'-'.intdiv(now()->getTimestamp(), 60);
 
         $this->stripe->refunds->create($payload, ['idempotency_key' => $chiave]);
 
