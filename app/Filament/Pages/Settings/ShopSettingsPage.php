@@ -5,6 +5,7 @@ namespace App\Filament\Pages\Settings;
 use App\Enums\PaymentGateway;
 use App\Filament\Resources\PageResource;
 use App\Models\SiteSetting;
+use App\Services\AvvisoNuovoOrdine;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
@@ -143,6 +144,26 @@ class ShopSettingsPage extends BaseSettingsPage
                             ->numeric()
                             ->minValue(1),
                     ])->columns(2),
+
+                Section::make('Avviso nuovi ordini')
+                    ->description('A ogni acquisto parte un\'email con il riepilogo e la ricevuta in PDF. Con il bonifico parte quando l\'ordine è fatto, prima dell\'accredito.')
+                    ->icon('heroicon-o-envelope')
+                    ->schema([
+                        TextInput::make(AvvisoNuovoOrdine::IMPOSTAZIONE)
+                            ->label('Indirizzi email')
+                            ->placeholder('shop@savinodelbenevolley.it')
+                            ->helperText('Uno o più indirizzi, separati da virgola. Vuoto: nessun avviso.')
+                            ->rule(fn () => function (string $attribute, mixed $value, \Closure $fail): void {
+                                foreach (array_filter(preg_split('/[\s,;]+/', (string) $value) ?: []) as $indirizzo) {
+                                    if (filter_var($indirizzo, FILTER_VALIDATE_EMAIL) === false) {
+                                        $fail("«{$indirizzo}» non è un indirizzo email valido.");
+
+                                        return;
+                                    }
+                                }
+                            })
+                            ->columnSpanFull(),
+                    ]),
 
                 Section::make('Ricevuta')
                     ->icon('heroicon-o-document-text')

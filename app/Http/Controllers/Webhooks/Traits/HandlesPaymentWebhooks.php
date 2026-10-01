@@ -11,6 +11,7 @@ use App\Models\ProductVariant;
 use App\Models\ShopEvent;
 use App\Models\StockMovement;
 use App\Services\AdminNotificationService;
+use App\Services\AvvisoNuovoOrdine;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -208,6 +209,7 @@ trait HandlesPaymentWebhooks
 
             // 4. Send order confirmation email (queued)
             $this->sendOrderConfirmationEmail($order);
+            app(AvvisoNuovoOrdine::class)->invia($order);
 
             // 5. Notify admin panel
             app(AdminNotificationService::class)->notifyPaymentReceived($order);

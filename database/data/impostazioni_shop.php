@@ -63,6 +63,8 @@ return [
         'Scadenza bonifico (giorni)', 'Giorni per effettuare il bonifico prima dell\'annullamento automatico', 25),
     $impostazione('shop.receipt_footer_text', 'text', 'Savino Del Bene Volley - Ricevuta non fiscale. Lo scontrino è incluso nel pacco.',
         'Footer ricevuta PDF', 'Testo in fondo alla ricevuta PDF inviata al cliente', 31),
+    $impostazione('shop.order_notification_emails', 'text', '',
+        'Email avviso nuovi ordini', 'Indirizzi, separati da virgola, che ricevono un\'email con la ricevuta a ogni acquisto. Vuoto: nessun avviso', 32),
 
     // ─── Aste ─────────────────────────────────────────────────────────────
     $impostazione('auctions.enabled', 'boolean', '1',
