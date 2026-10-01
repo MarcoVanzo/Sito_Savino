@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureAuctionsEnabled;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureVerifiedPayment;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PortaSullIndirizzoDelSito;
 use App\Http\Middleware\PreviewBasicAuth;
 use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Http\Middleware\UsaLIpDelClienteDiDigitalOcean;
@@ -95,6 +96,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ),
             subdomains: false,
         );
+
+        // In coda ai globali, quindi dopo TrustHosts: un Host non fidato è
+        // già stato respinto. Copre anche il pannello, che non passa da `web`.
+        $middleware->append(PortaSullIndirizzoDelSito::class);
 
         $middleware->validateCsrfTokens(except: [
             'api/webhooks/*',
