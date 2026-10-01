@@ -144,7 +144,7 @@ class PayPalPaymentService implements PaymentGatewayInterface
         }
 
         // Verify webhook signature
-        $this->verifyWebhookSignature($payload, $headers);
+        $this->verifyWebhookSignature($rawBody, $headers);
 
         $eventType = $payload['event_type'] ?? '';
 
@@ -199,19 +199,30 @@ class PayPalPaymentService implements PaymentGatewayInterface
     /**
      * Verify PayPal webhook signature via the PayPal API.
      *
+     * La firma copre il CRC32 del corpo cosi' come e' arrivato, quindi
+     * `webhook_event` deve essere quel corpo, byte per byte. Decodificato in
+     * array e ricodificato non lo e' piu': un oggetto vuoto `{}` diventa
+     * `[]`. Il 01/10/2026 la notifica dell'ordine ORD-2026-00003, che di
+     * oggetti vuoti ne contiene uno, e' stata rifiutata a ogni tentativo.
+     *
      * @throws RuntimeException if verification fails
      */
-    private function verifyWebhookSignature(array $payload, array $headers): void
+    private function verifyWebhookSignature(string $rawBody, array $headers): void
     {
-        $response = $this->client()->post('/v1/notifications/verify-webhook-signature', [
+        $campi = json_encode([
             'auth_algo' => $headers['PAYPAL-AUTH-ALGO'] ?? $headers['paypal-auth-algo'] ?? '',
             'cert_url' => $headers['PAYPAL-CERT-URL'] ?? $headers['paypal-cert-url'] ?? '',
             'transmission_id' => $headers['PAYPAL-TRANSMISSION-ID'] ?? $headers['paypal-transmission-id'] ?? '',
             'transmission_sig' => $headers['PAYPAL-TRANSMISSION-SIG'] ?? $headers['paypal-transmission-sig'] ?? '',
             'transmission_time' => $headers['PAYPAL-TRANSMISSION-TIME'] ?? $headers['paypal-transmission-time'] ?? '',
             'webhook_id' => config('services.paypal.webhook_id'),
-            'webhook_event' => $payload,
-        ]);
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+        $corpo = substr($campi, 0, -1).',"webhook_event":'.trim($rawBody).'}';
+
+        $response = $this->client()
+            ->withBody($corpo, 'application/json')
+            ->post('/v1/notifications/verify-webhook-signature');
 
         if ($response->failed()) {
             // `error` e non `warning`: in produzione il livello dei log e'
