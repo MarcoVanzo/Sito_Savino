@@ -1034,6 +1034,10 @@ la differenza sta solo in `script-src`:
   Filament). Il pannello **non passa dal gruppo `web`**: il middleware è
   registrato nel suo stack in `AdminPanelProvider`, ed è da lì che arrivano
   anche `X-Frame-Options` e gli altri header, che prima gli mancavano del tutto.
+  Solo il pannello ha `worker-src 'self' blob:` e `blob:`/`data:` in
+  `connect-src`: FilePond ridimensiona le immagini in un worker `blob:` prima
+  dell'upload, e senza quelle voci il file resta in "Caricamento" senza errori
+  in console né richieste a `/livewire/upload-file`.
 
 Una pagina servita da `CachePublicResponse` ripete per un minuto il nonce con
 cui è stata costruita: quella cache salva l'HTML e le sue intestazioni insieme,

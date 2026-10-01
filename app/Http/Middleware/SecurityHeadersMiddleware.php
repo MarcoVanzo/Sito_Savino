@@ -102,6 +102,7 @@ class SecurityHeadersMiddleware
         $font = [self::SELF];
         $immagini = [self::SELF, 'data:', 'https:'];
         $connessioni = [];
+        $worker = [];
 
         if ($pannello) {
             $scriptSrc = [self::SELF, "'unsafe-inline'", "'unsafe-eval'"];
@@ -121,6 +122,17 @@ class SecurityHeadersMiddleware
             // anteprime le disegna poi da un `blob:`.
             $connessioni = self::originiDeiDischi();
             $immagini[] = 'blob:';
+
+            // Prima di spedire un'immagine, FilePond la ridimensiona
+            // (`imageResizeTargetWidth` & c.) in un Web Worker creato da un
+            // `blob:` e rilegge il risultato con `fetch` su `blob:`/`data:`.
+            // Senza `worker-src` vale `script-src`, che `blob:` non lo ammette:
+            // il worker veniva rifiutato senza errori in console, il file
+            // restava in "Caricamento" e `/livewire/upload-file` non partiva
+            // mai.
+            $connessioni[] = 'blob:';
+            $connessioni[] = 'data:';
+            $worker = [self::SELF, 'blob:'];
         } else {
             $nonce = Vite::cspNonce();
 
@@ -173,6 +185,7 @@ class SecurityHeadersMiddleware
                 self::PIXEL_DI_META,
             ]),
             "media-src 'self' https:",
+            ...($worker ? ['worker-src '.implode(' ', $worker)] : []),
             "frame-ancestors 'none'",
             "base-uri 'self'",
             // Il pixel di Meta spedisce gli eventi anche come form verso

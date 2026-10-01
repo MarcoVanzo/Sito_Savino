@@ -305,6 +305,25 @@ class SecurityHeadersTest extends TestCase
     }
 
     /**
+     * FilePond ridimensiona l'immagine in un Web Worker creato da un `blob:`
+     * prima di spedirla: senza `worker-src` vale `script-src`, il worker
+     * viene rifiutato e il file resta in "Caricamento" senza mai partire.
+     */
+    public function test_il_pannello_puo_ridimensionare_le_immagini_prima_dell_upload(): void
+    {
+        $direttive = collect(explode('; ', (string) $this->get('/admin/login')->headers->get('Content-Security-Policy')));
+
+        $this->assertSame("worker-src 'self' blob:", $direttive->first(fn (string $d) => str_starts_with($d, 'worker-src')));
+        $connect = (string) $direttive->first(fn (string $d) => str_starts_with($d, 'connect-src'));
+        $this->assertStringContainsString(' blob:', $connect);
+        $this->assertStringContainsString(' data:', $connect);
+
+        $pubblica = (string) $this->get('/')->headers->get('Content-Security-Policy');
+        $this->assertStringNotContainsString('worker-src', $pubblica);
+        $this->assertStringNotContainsString('blob:', $pubblica);
+    }
+
+    /**
      * Il sito pubblico invece non ne ha bisogno, e nemmeno degli host di
      * Google: i suoi caratteri li serve lui, da `public/fonts`. Finché quei
      * tre host restano fuori dalla policy, una riga rimessa nel layout si
