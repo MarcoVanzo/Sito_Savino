@@ -1,15 +1,21 @@
 {
-    "generato_il": "2026-10-01T13:31:25.679Z",
+    "generato_il": "2026-10-01T13:37:53.160Z",
     "indirizzo": "https://savinodelbenevolley.it",
     "pagine_visitate": 14,
     "cookie": [
         {
             "nome": "__cf_bm",
             "dominio": ".savinodelbenevolley.it",
-            "categoria": "non classificati",
-            "fornitore": null,
-            "durata": null,
-            "scopo": null,
+            "categoria": "necessari",
+            "fornitore": "Cloudflare (rete di DigitalOcean App Platform)",
+            "durata": {
+                "it": "30 minuti",
+                "en": "30 minutes"
+            },
+            "scopo": {
+                "it": "Lo imposta la rete che serve il sito per distinguere il traffico automatizzato dannoso da quello dei visitatori. Non serve a profilare e non viene usato dal sito.",
+                "en": "Set by the network that serves the site to tell harmful automated traffic apart from visitors. It is not used for profiling and the site does not read it."
+            },
             "scadenza": "2026-10-01",
             "conConsenso": false
         },
@@ -120,8 +126,6 @@
             "conConsenso": true
         }
     ],
-    "senza_consenso_in_regola": false,
-    "non_classificati": [
-        "cookie __cf_bm"
-    ]
+    "senza_consenso_in_regola": true,
+    "non_classificati": []
 }
