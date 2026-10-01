@@ -83,6 +83,18 @@ class CheckUnpaidOrders extends Command
                     // "ordine già effettuato".
                     $q->whereIn('payment_gateway', [PaymentGateway::Stripe, PaymentGateway::PayPal])
                         ->where('created_at', '<=', now()->subHours(1))
+                        // Un pagamento gia' partito ma a esito differito
+                        // (SEPA su Stripe, cattura PayPal in verifica) non e'
+                        // un checkout abbandonato: lo chiudono i webhook,
+                        // che confermano o annullano.
+                        ->whereNotExists(function ($sub) {
+                            $sub->select(DB::raw(1))
+                                ->from('shop_events')
+                                ->whereColumn('shop_events.viewable_id', 'orders.id')
+                                ->where('shop_events.viewable_type', Order::class)
+                                ->where('shop_events.event_type', 'payment_review')
+                                ->where('shop_events.metadata->reason', 'payment_pending');
+                        })
                         ->whereNotExists(function ($sub) {
                             // Solo le aste vive proteggono il loro ordine: senza il
                             // filtro su deleted_at un'asta soft-deleted teneva in vita

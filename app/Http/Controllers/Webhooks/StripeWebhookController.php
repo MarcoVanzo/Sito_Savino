@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Webhooks\Traits\HandlesPaymentWebhooks;
+use App\Models\Order;
 use App\Models\User;
+use App\Services\AvvisoTecnico;
 use App\Services\Payments\StripeCustomerService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\JsonResponse;
@@ -55,9 +57,20 @@ class StripeWebhookController
             return $this->handleSetupCompleted($result);
         }
 
-        // Handle completed payment
-        if ($result['status'] === 'completed') {
+        // Pagamento incassato. Un pagamento a esito differito (SEPA,
+        // bonifico) passa dallo stesso punto, che lo riconosce e lascia
+        // l'ordine in attesa.
+        if (in_array($result['status'], ['completed', 'pending'], true)) {
             return $this->handlePaymentCompleted($result);
+        }
+
+        // Pagamento differito fallito: l'ordine si annulla.
+        if ($result['status'] === 'denied') {
+            return $this->handlePaymentDenied($result);
+        }
+
+        if ($result['status'] === 'dispute') {
+            return $this->handleDispute($result);
         }
 
         // Handle refund
@@ -93,5 +106,50 @@ class StripeWebhookController
         $stripeCustomerService->handleSetupComplete($user);
 
         return response()->json(['message' => 'Metodo di pagamento verificato'], 200);
+    }
+
+    /**
+     * Il cliente ha contestato l'addebito (chargeback).
+     *
+     * Avviso per email, non solo la campanella del pannello: c'e' un termine
+     * per mandare le prove dalla dashboard di Stripe, e senza risposta la
+     * contestazione e' persa.
+     */
+    private function handleDispute(array $result): JsonResponse
+    {
+        $order = $result['payment_id'] ? Order::where('payment_id', $result['payment_id'])->first() : null;
+
+        $importo = $result['amount'] !== null ? number_format((float) $result['amount'], 2, ',', '.').' €' : 'importo non indicato';
+        $scadenza = $result['due_by'] !== null
+            ? now()->setTimestamp($result['due_by'])->timezone(config('app.timezone'))->format('d/m/Y H:i')
+            : 'non indicata';
+
+        $testo = "Contestazione {$result['dispute_id']} su Stripe ({$importo}, motivo: ".($result['reason'] ?? 'non indicato').").\n"
+            .'Ordine: '.($order !== null ? $order->order_number : 'non trovato, pagamento '.($result['payment_id'] ?? '?')).".\n"
+            ."Termine per rispondere con le prove: {$scadenza}.\n"
+            .'Si risponde dalla dashboard di Stripe, sezione Contestazioni.';
+
+        // Stripe ripete l'evento finche' non riceve un 200: la nota si scrive
+        // una volta sola.
+        if ($order !== null && ! str_contains((string) $order->notes, (string) $result['dispute_id'])) {
+            $this->flagForManualReview($order, 'dispute', $testo, [
+                'dispute_id' => $result['dispute_id'],
+                'payment_id' => $result['payment_id'],
+            ]);
+        }
+
+        Log::warning('Stripe webhook: contestazione aperta', [
+            'dispute_id' => $result['dispute_id'],
+            'order_id' => $order?->id,
+        ]);
+
+        app(AvvisoTecnico::class)->invia(
+            'Contestazione di un pagamento Stripe',
+            $testo,
+            'stripe-disputa:'.$result['dispute_id'],
+            86400,
+        );
+
+        return response()->json(['message' => 'Contestazione registrata'], 200);
     }
 }

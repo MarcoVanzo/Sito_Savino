@@ -4,16 +4,16 @@ namespace App\Services\Payments;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
-use Stripe\Checkout\Session as StripeSession;
-use Stripe\Customer;
 use Stripe\Exception\InvalidRequestException;
-use Stripe\Stripe;
+use Stripe\StripeClient;
 
 class StripeCustomerService
 {
+    private StripeClient $stripe;
+
     public function __construct()
     {
-        Stripe::setApiKey(config('services.stripe.secret'));
+        $this->stripe = StripePaymentService::client();
     }
 
     /**
@@ -25,13 +25,15 @@ class StripeCustomerService
             return $user->stripe_customer_id;
         }
 
-        $customer = Customer::create([
+        // Chiave di idempotenza: due richieste insieme (doppio clic sulla
+        // verifica della carta) non creano due clienti su Stripe.
+        $customer = $this->stripe->customers->create([
             'email' => $user->email,
             'name' => $user->name,
             'metadata' => [
                 'user_id' => (string) $user->id,
             ],
-        ]);
+        ], ['idempotency_key' => 'cliente-'.$user->id]);
 
         $user->update(['stripe_customer_id' => $customer->id]);
 
@@ -47,7 +49,7 @@ class StripeCustomerService
     public function cancellaCustomer(string $idCliente): void
     {
         try {
-            Customer::retrieve($idCliente)->delete();
+            $this->stripe->customers->delete($idCliente);
         } catch (InvalidRequestException $e) {
             if ($e->getStripeCode() !== 'resource_missing') {
                 throw $e;
@@ -65,7 +67,10 @@ class StripeCustomerService
     {
         $customerId = $this->getOrCreateCustomer($user);
 
-        $session = StripeSession::create([
+        // Qui la carta resta fissata apposta: la verifica serve a sapere che
+        // il vincitore di un'asta ha un metodo che paga subito, e un mandato
+        // SEPA o un bonifico non lo garantiscono.
+        $session = $this->stripe->checkout->sessions->create([
             'mode' => 'setup',
             'customer' => $customerId,
             'payment_method_types' => ['card'],
@@ -101,7 +106,7 @@ class StripeCustomerService
      */
     public function verifySetupSession(string $sessionId, User $user): bool
     {
-        $session = StripeSession::retrieve($sessionId);
+        $session = $this->stripe->checkout->sessions->retrieve($sessionId);
 
         if ($session->status !== 'complete') {
             return false;
