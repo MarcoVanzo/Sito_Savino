@@ -1198,6 +1198,17 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   numerate e un prodotto nuovo (anche una copia) entra in cima con posizione
   1 facendo scendere gli altri (`ProductObserver::creating`). Non rimettere
   `sort_order` a zero a mano.
+- **A ogni acquisto la societa' riceve un'email** (`App\Services\AvvisoNuovoOrdine`,
+  `NuovoOrdineAllaSocieta`, ricevuta in PDF allegata) agli indirizzi di
+  `shop.order_notification_emails` (Impostazioni Shop & Aste, separati da
+  virgola; vuoto = nessun avviso). Parte negli stessi tre punti della conferma
+  al cliente: incasso nel webhook/ritorno, bonifico dello shop, bonifico d'asta.
+  Un nuovo canale d'ordine deve chiamarlo anche lui.
+- **La ricevuta PDF usa Montserrat incorporato**: `resources/fonts/pdf` contiene
+  i TTF (tondo e grassetto, ricavati dai woff2 di `public/fonts`) gia'
+  installati per dompdf, e `PdfAccessibileServiceProvider` punta li'
+  `font_dir`/`font_cache`. Solo pesi 400 e 700: un 600 ricade su un carattere
+  con le grazie.
 - **La personalizzazione (la firma della giocatrice) non e' una variante.** E'
   un'aggiunta facoltativa del prodotto (`personalizzazione_nome`, tradotto, e
   `personalizzazione_prezzo`) e un flag sulla riga del carrello: il pezzo in

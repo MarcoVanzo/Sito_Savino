@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\ShippingZone;
 use App\Models\ShopEvent;
 use App\Services\AdminNotificationService;
+use App\Services\AvvisoNuovoOrdine;
 use App\Services\CartService;
 use App\Services\CheckoutService;
 use App\Services\Payments\PayPalPaymentService;
@@ -390,6 +391,8 @@ class CheckoutController extends Controller
         if ($recipientEmail) {
             Mail::to($recipientEmail)->queue(new OrderConfirmation($order));
         }
+
+        app(AvvisoNuovoOrdine::class)->invia($order);
 
         return redirect()->route('shop.checkout.success', ['orderToken' => $order->order_token])
             ->with('success', __('messages.checkout.success_bank'));

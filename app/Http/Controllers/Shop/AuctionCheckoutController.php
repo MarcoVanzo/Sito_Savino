@@ -12,6 +12,7 @@ use App\Models\ShippingZone;
 use App\Models\SiteSetting;
 use App\Services\AdminNotificationService;
 use App\Services\AuctionService;
+use App\Services\AvvisoNuovoOrdine;
 use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
 use App\Support\CondizioniDiVendita;
@@ -549,6 +550,7 @@ class AuctionCheckoutController extends Controller
                 }
 
                 app(AdminNotificationService::class)->notifyNewOrder($order);
+                app(AvvisoNuovoOrdine::class)->invia($order);
             } catch (\Throwable $e) {
                 Log::error('Bonifico d\'asta: email o avviso non partiti', [
                     'order_id' => $order->id,

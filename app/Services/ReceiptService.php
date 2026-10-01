@@ -13,7 +13,7 @@ class ReceiptService
      */
     public function generate(Order $order): string
     {
-        $order->loadMissing('items.product');
+        $order->loadMissing(['items.product', 'items.variant', 'coupon', 'user']);
 
         $pdf = Pdf::loadView('pdf.receipt', [
             'order' => $order,
@@ -28,7 +28,7 @@ class ReceiptService
      */
     public function download(Order $order): SymfonyResponse
     {
-        $order->loadMissing('items.product');
+        $order->loadMissing(['items.product', 'items.variant', 'coupon', 'user']);
 
         $pdf = Pdf::loadView('pdf.receipt', [
             'order' => $order,
@@ -44,7 +44,7 @@ class ReceiptService
      */
     public function stream(Order $order): SymfonyResponse
     {
-        $order->loadMissing('items.product');
+        $order->loadMissing(['items.product', 'items.variant', 'coupon', 'user']);
 
         $pdf = Pdf::loadView('pdf.receipt', [
             'order' => $order,
