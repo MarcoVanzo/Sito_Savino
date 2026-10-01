@@ -440,4 +440,29 @@ class PayPalIncassoTest extends TestCase
         // Nessuna seconda sessione di pagamento aperta sul gateway.
         Http::assertNothingSent();
     }
+
+    #[Test]
+    public function la_firma_si_verifica_sul_corpo_ricevuto_senza_ricodificarlo(): void
+    {
+        $this->fakePayPal(0);
+
+        // Le tre cose che una ricodifica puo' cambiare: l'oggetto vuoto (diventa
+        // `[]`), lo slash (diventa `\/`) e la lettera accentata (`è`).
+        $corpo = '{"id":"WH-1","event_type":"PAYMENT.CAPTURE.PENDING","resource":{"links":[{"href":"https://api-m.paypal.com/v2/x"}],"note":"è","extra":{}}}';
+
+        $this->call('POST', '/api/webhooks/paypal', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_PAYPAL_TRANSMISSION_ID' => 'T-1',
+        ], $corpo)->assertOk();
+
+        Http::assertSent(function ($request) use ($corpo) {
+            if (! str_ends_with($request->url(), '/v1/notifications/verify-webhook-signature')) {
+                return false;
+            }
+
+            return str_ends_with($request->body(), ',"webhook_event":'.$corpo.'}')
+                && $request['transmission_id'] === 'T-1'
+                && $request['webhook_id'] === 'test-webhook';
+        });
+    }
 }
