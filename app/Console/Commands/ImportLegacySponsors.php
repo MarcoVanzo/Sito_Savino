@@ -9,6 +9,7 @@ use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -24,13 +25,20 @@ use Illuminate\Support\Str;
  * rilanciarlo aggiorna livello, sito e logo invece di creare doppioni. Gli
  * sponsor inseriti a mano dal pannello e assenti dalla pagina non vengono
  * toccati.
+ *
+ * In produzione l'elenco lo cura la redazione: lì si lancia con `--solo-nuovi`,
+ * che aggiunge in coda al loro livello gli sponsor mancanti e lascia com'è
+ * tutto il resto. Dal 1/10/2026 il dominio punta a questo sito: il WordPress
+ * si raggiunge solo col suo indirizzo IP, passato in `--ip`.
  */
 class ImportLegacySponsors extends Command
 {
     protected $signature = 'sponsors:import-legacy
         {--url=https://savinodelbenevolley.it/sponsor/ : Pagina da leggere}
         {--dry-run : Mostra cosa verrebbe importato senza scrivere nulla}
-        {--skip-logos : Non scarica i loghi}';
+        {--skip-logos : Non scarica i loghi}
+        {--solo-nuovi : Crea gli sponsor mancanti senza toccare quelli esistenti}
+        {--ip= : Indirizzo IP a cui risolvere l\'host della pagina (vecchio sito dopo il cambio del DNS)}';
 
     protected $description = 'Importa sponsor, livelli e loghi dalla pagina sponsor del sito precedente';
 
@@ -59,7 +67,7 @@ class ImportLegacySponsors extends Command
     public function handle(): int
     {
         $url = (string) $this->option('url');
-        $response = Http::timeout(30)->withHeaders(['User-Agent' => 'SavinoDelBeneVolley/1.0'])->get($url);
+        $response = $this->http()->timeout(30)->withHeaders(['User-Agent' => 'SavinoDelBeneVolley/1.0'])->get($url);
 
         if (! $response->successful()) {
             $this->error("Pagina non raggiungibile ({$response->status()}): {$url}");
@@ -91,6 +99,10 @@ class ImportLegacySponsors extends Command
                 ->whereRaw('LOWER(name) = ?', [Str::lower($entry['name'])])
                 ->first();
 
+            if ($sponsor && $this->option('solo-nuovi')) {
+                continue;
+            }
+
             if ($sponsor) {
                 $sponsor->fill([
                     'tier' => $entry['tier'],
@@ -102,10 +114,13 @@ class ImportLegacySponsors extends Command
                 $sponsor = Sponsor::create([
                     'name' => $entry['name'],
                     'tier' => $entry['tier'],
-                    'sort_order' => $entry['sort_order'],
+                    'sort_order' => $this->option('solo-nuovi')
+                        ? (int) Sponsor::where('tier', $entry['tier'])->max('sort_order') + 1
+                        : $entry['sort_order'],
                     'url' => $entry['website'],
                 ]);
                 $created++;
+                $this->line("  + {$entry['name']} ({$entry['tier']->value})");
             }
 
             if (! $this->option('skip-logos') && $entry['logo'] && ! $sponsor->getFirstMedia('sponsors')) {
@@ -250,10 +265,31 @@ class ImportLegacySponsors extends Command
         return ($base['scheme'] ?? 'https').'://'.($base['host'] ?? '').'/'.ltrim($src, '/');
     }
 
+    /**
+     * Con `--ip` l'host della pagina si risolve su quell'indirizzo, per la
+     * pagina e per i loghi: il certificato del vecchio sito resta valido perché
+     * il nome richiesto non cambia.
+     */
+    private function http(): PendingRequest
+    {
+        $ip = $this->option('ip');
+
+        if (! $ip) {
+            return Http::withOptions([]);
+        }
+
+        $host = (string) parse_url((string) $this->option('url'), PHP_URL_HOST);
+        $risolvi = collect([$host, Str::startsWith($host, 'www.') ? Str::after($host, 'www.') : 'www.'.$host])
+            ->flatMap(fn (string $nome) => ["{$nome}:443:{$ip}", "{$nome}:80:{$ip}"])
+            ->all();
+
+        return Http::withOptions(['curl' => [CURLOPT_RESOLVE => $risolvi]]);
+    }
+
     private function attachLogo(Sponsor $sponsor, string $logoUrl): void
     {
         try {
-            $risposta = Http::timeout(30)->retry(2, 500, throw: false)->get($logoUrl);
+            $risposta = $this->http()->timeout(30)->retry(2, 500, throw: false)->get($logoUrl);
 
             if (! $risposta->successful()) {
                 $this->warn("Logo non scaricato per {$sponsor->name}: HTTP {$risposta->status()}");
