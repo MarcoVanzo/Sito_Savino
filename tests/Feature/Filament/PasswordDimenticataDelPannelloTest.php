@@ -10,6 +10,7 @@ use Filament\Facades\Filament;
 use Filament\Notifications\Auth\ResetPassword as NotificaDiReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Livewire\Mechanisms\ComponentRegistry;
 use Tests\TestCase;
@@ -93,10 +94,21 @@ class PasswordDimenticataDelPannelloTest extends TestCase
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
         Livewire::test(RequestPasswordReset::class)
-            ->set('inviataA', 'vecchio@example.com')
+            ->fillForm(['email' => 'vecchio@example.com'])
+            ->call('request')
+            ->assertSet('inviataA', 'vecchio@example.com')
             ->call('altroIndirizzo')
             ->assertSet('inviataA', null)
             ->assertFormSet(['email' => null]);
+    }
+
+    public function test_la_conferma_non_si_accende_dal_browser(): void
+    {
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        $this->expectException(CannotUpdateLockedPropertyException::class);
+
+        Livewire::test(RequestPasswordReset::class)->set('inviataA', 'chiunque@example.com');
     }
 
     public function test_oltre_il_limite_il_modulo_resta(): void
