@@ -38,7 +38,7 @@ class AdminPanelProvider extends PanelProvider
             // brandizzata dai colori e dal logo impostati qui sotto. Il reset
             // password dello staff segue lo stesso percorso (/admin/password-reset).
             ->login()
-            ->passwordReset(ResetPassword::class)
+            ->passwordReset(resetAction: ResetPassword::class)
             ->colors([
                 'primary' => Color::Hex('#003063'), // Savino Blue
                 'danger' => Color::Hex('#DF338F'), // Savino Red
