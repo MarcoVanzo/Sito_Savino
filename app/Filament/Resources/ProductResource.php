@@ -286,8 +286,8 @@ class ProductResource extends Resource
                             ->hidden(fn (Forms\Get $get): bool => (bool) $get('etichette_automatiche')),
                     ]),
 
-                Forms\Components\Section::make('Personalizzazione')
-                    ->description('Un\'aggiunta facoltativa che il cliente sceglie nella scheda, di solito la firma della giocatrice. Non tocca le giacenze: il pezzo in magazzino resta lo stesso.')
+                Forms\Components\Section::make('Firma su richiesta (la sceglie il cliente)')
+                    ->description('Il cliente decide nella scheda se volere la maglia con la firma della giocatrice o senza, come sceglie la taglia. Non tocca le giacenze: il pezzo in magazzino resta lo stesso, e la firma si aggiunge dopo l\'ordine.')
                     ->schema([
                         Forms\Components\TextInput::make('personalizzazione_nome')
                             ->label('Nome dell\'aggiunta')
@@ -307,7 +307,7 @@ class ProductResource extends Resource
                     ])->columns(2),
 
                 Forms\Components\Section::make('Stato dell\'articolo')
-                    ->description('Per maglie indossate in gara e articoli autografati. Le condizioni di vendita li vendono «nello stato descritto nella scheda»: il testo compare accanto al prezzo e viene copiato nell\'ordine al momento dell\'acquisto.')
+                    ->description('Solo per pezzi unici già autografati o indossati in gara, che si vendono così come sono. Per la firma a scelta del cliente usa la sezione "Firma su richiesta" qui sopra. Le condizioni di vendita li vendono «nello stato descritto nella scheda»: il testo compare accanto al prezzo e viene copiato nell\'ordine al momento dell\'acquisto.')
                     ->schema([
                         Forms\Components\Toggle::make('usato_o_autografato')
                             ->label('Articolo indossato o autografato')
