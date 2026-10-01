@@ -17,6 +17,9 @@ class CheckUnpaidOrders extends Command
 {
     protected $signature = 'order:check-unpaid';
 
+    /** Oltre questi giorni un pagamento in sospeso non si aspetta più. */
+    public const PAGAMENTO_IN_SOSPESO_GIORNI = 10;
+
     protected $description = 'Cancella ordini abbandonati Stripe/PayPal (1h) e Bonifico (shop.bank_transfer_expiry_days)';
 
     public function handle(): int
@@ -86,14 +89,21 @@ class CheckUnpaidOrders extends Command
                         // Un pagamento gia' partito ma a esito differito
                         // (SEPA su Stripe, cattura PayPal in verifica) non e'
                         // un checkout abbandonato: lo chiudono i webhook,
-                        // che confermano o annullano.
-                        ->whereNotExists(function ($sub) {
-                            $sub->select(DB::raw(1))
-                                ->from('shop_events')
-                                ->whereColumn('shop_events.viewable_id', 'orders.id')
-                                ->where('shop_events.viewable_type', Order::class)
-                                ->where('shop_events.event_type', 'payment_review')
-                                ->where('shop_events.metadata->reason', 'payment_pending');
+                        // che confermano o annullano. Ma non per sempre: se
+                        // l'esito non arriva entro PAGAMENTO_IN_SOSPESO_GIORNI
+                        // (SEPA chiude in 6 giorni lavorativi) l'ordine si
+                        // annulla e la merce torna a scaffale; un incasso
+                        // tardivo lo riprende HandlesPaymentWebhooks.
+                        ->where(function ($q) {
+                            $q->where('created_at', '<=', now()->subDays(self::PAGAMENTO_IN_SOSPESO_GIORNI))
+                                ->orWhereNotExists(function ($sub) {
+                                    $sub->select(DB::raw(1))
+                                        ->from('shop_events')
+                                        ->whereColumn('shop_events.viewable_id', 'orders.id')
+                                        ->where('shop_events.viewable_type', Order::class)
+                                        ->where('shop_events.event_type', 'payment_review')
+                                        ->where('shop_events.metadata->reason', 'payment_pending');
+                                });
                         })
                         ->whereNotExists(function ($sub) {
                             // Solo le aste vive proteggono il loro ordine: senza il

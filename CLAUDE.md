@@ -967,8 +967,23 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
 - **Un gateway senza credenziali non si offre** (`PaymentGateway::configurato()`,
   usato dalla pagina di checkout e dalla validazione): mostrarlo significa
   creare l'ordine, riservare la merce e solo allora mandare il cliente
-  sull'errore generico. In produzione le chiavi di Stripe non sono impostate:
-  finché restano fuori, quel metodo non compare.
+  sull'errore generico.
+- **Stripe è attivo in produzione dal 1/10/2026** (account live
+  `acct_1ULeeFATccTjPcsE`). Le tre `STRIPE_*` stanno a **livello d'app** nella
+  spec, cifrate da DigitalOcean: si rigenerano dal pannello e si ricopiano da
+  `doctl apps spec get`, o il deploy successivo le cancella. Il webhook
+  `sito-savino-shop` punta a `…ondigitalocean.app/api/webhooks/stripe` e
+  ascolta `checkout.session.completed`, `checkout.session.async_payment_*`,
+  `charge.refunded`, `charge.dispute.created`: un evento nuovo gestito dal
+  codice va aggiunto anche lì. I metodi (carte, wallet, Klarna…) si accendono
+  dalla dashboard: il codice non passa `payment_method_types`, quindi
+  **`checkout.session.completed` non vuol dire pagato** — conferma solo con
+  `payment_status = paid`; i metodi differiti (SEPA) confermano con
+  `async_payment_succeeded` e restano in attesa al massimo
+  `CheckUnpaidOrders::PAGAMENTO_IN_SOSPESO_GIORNI`. Una contestazione
+  (`charge.dispute.created`) annota l'ordine e avvisa per email con la
+  scadenza per rispondere. I rimborsi Stripe hanno una chiave di idempotenza
+  valida un minuto (doppio clic).
 - **L'importo incassato si confronta con il totale dell'ordine.** Fra
   l'apertura della sessione e il pagamento il totale può cambiare (il pannello
   ritocca l'ordine, si riprova un pagamento): incassato meno del dovuto, il

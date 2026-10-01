@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Webhooks;
 
+use App\Console\Commands\CheckUnpaidOrders;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Models\Order;
@@ -179,6 +180,18 @@ class StripeEventiDelPagamentoTest extends TestCase
     }
 
     #[Test]
+    public function il_pagamento_in_sospeso_non_si_aspetta_per_sempre(): void
+    {
+        $order = $this->ordineInAttesa();
+        $this->evento('checkout.session.completed', $this->sessione($order, 'unpaid'))->assertOk();
+
+        $this->travel(CheckUnpaidOrders::PAGAMENTO_IN_SOSPESO_GIORNI + 1)->days();
+        $this->artisan('order:check-unpaid')->assertSuccessful();
+
+        $this->assertSame(OrderStatus::Cancelled, $order->refresh()->status);
+    }
+
+    #[Test]
     public function la_contestazione_annota_l_ordine_e_avvisa_per_email(): void
     {
         $order = $this->ordineInAttesa();
@@ -214,6 +227,7 @@ class StripeEventiDelPagamentoTest extends TestCase
     #[Test]
     public function il_rimborso_ripetuto_usa_la_stessa_chiave_di_idempotenza(): void
     {
+        $this->freezeTime();
         $order = $this->ordineInAttesa();
         $order->forceFill(['status' => OrderStatus::Paid, 'payment_id' => 'pi_test_1'])->save();
 
@@ -227,5 +241,12 @@ class StripeEventiDelPagamentoTest extends TestCase
 
         $this->assertNotSame('', $chiavi[0]);
         $this->assertSame($chiavi[0], $chiavi[1]);
+
+        // Un minuto dopo è un nuovo tentativo, non un doppio clic.
+        $this->travel(61)->seconds();
+        (new StripePaymentService)->refund($order, 10.0);
+
+        $terza = (string) collect($this->richieste[2]['headers'])->first(fn (string $h): bool => str_starts_with($h, 'Idempotency-Key:'));
+        $this->assertNotSame($chiavi[0], $terza);
     }
 }
