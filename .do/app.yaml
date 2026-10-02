@@ -281,12 +281,10 @@ services:
   - key: ACTIVECAMPAIGN_URL
     scope: RUN_AND_BUILD_TIME
     value: https://savinodelbenevolley.api-us1.com
-  # ⚠️  ATTENZIONE: questa API key va RUOTATA e CIFRATA con doctl.
-  # Eseguire: doctl apps update <app-id> dopo aver cifrato il nuovo valore.
   - key: ACTIVECAMPAIGN_API_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:5hYulrTHr58XBdSrStn5Tk7/DxTog0Hi:gPF/M0G2B2ys6GGDayu+E619PjpX9riMpaJAJJogznv7K3CGEczu7RbotWR6G4SIHlVX28qN0eUkLuugU+/QsJwTMIrKQ1q3qf7rCUZ0JsiBCdtSPGtrpQ==]
+    value: EV[1:oD1Jsk/n5snzamqWH/dxN8FW9rNSSDUU:iRraVQ81o6J0wDgapWbFbq0/NuZnda6Cz9/RvP77zH8s0zcWM+cPKBZaNVBDWcPM22PwtwSbDRp2vsI/xwDYC1J8Wu8mACKWq6uzocpOR2Arzofx6Aau0w==]
   # Master Contact List: e' la lista a cui partono campagne e automazioni.
   # Prima era la 2 («Utenti sito») e chi si iscriveva dal sito non riceveva
   # le newsletter.
@@ -532,7 +530,7 @@ workers:
   - key: ACTIVECAMPAIGN_API_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:154oo3OU8n9CrG9XdwB/wI2k2jErtd6V:7Xj4qLPUZ9vYGANuSodv8EtE6E3DPZkC71U5bJWLjYdmEu0I13nIVRfbF67Ibp81Gn+kmWWpPlgMiIPAjw5uYX0lBSEDg18ZOq6IORglNOVYFmMFdrNtWQ==]
+    value: EV[1:/gS4H+TCjK3gBeqTKrX42P8lF50NdNCP:uO3b5dCak5Ew6v5TGn7I618ivZwSQlkm64FTwoC5l04X7yzECJZxA8I3pYi2RnT/I8bGYsVbkne7+5TmkVXN4550elKtekAhjsw5LpljEX3XjRQUEXlNaQ==]
   # Master Contact List: e' la lista a cui partono campagne e automazioni.
   # Prima era la 2 («Utenti sito») e chi si iscriveva dal sito non riceveva
   # le newsletter.
@@ -751,7 +749,7 @@ workers:
   - key: ACTIVECAMPAIGN_API_KEY
     scope: RUN_AND_BUILD_TIME
     type: SECRET
-    value: EV[1:NoAFPtuxUtIILZ1tk9MK8jsnorofncyF:m4fqVPs5knlkaYDL7TTQMPMj+azmdLLUyLFg5L8juBrddY8raKNpfDk8R2fcVIORVQ7o1Dd4sHbE3zitrqE4C5MA/j6KWvuDQY/H3zmHeX0VHcCvxpPbyw==]
+    value: EV[1:ZFS0G+OCUUJHePaF4SgRBAIxzYSqwz96:knSMjzJiWUa+0f4tOYmQn6OXlUEV0JMOQy8uAPnd08/Q7aY+3kn8/YltDJanJEdBd7jNiQgOgpdseHXVubuEEtJ5GcxvG9a/A7YeaiTgowR4nfYJB64lyA==]
   # Master Contact List: e' la lista a cui partono campagne e automazioni.
   # Prima era la 2 («Utenti sito») e chi si iscriveva dal sito non riceveva
   # le newsletter.
