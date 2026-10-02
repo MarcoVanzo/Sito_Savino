@@ -281,11 +281,15 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   (i dati stanno sotto `data.`: la regola fallisce sempre).
 - Una colonna fuori da `$fillable` non si scrive dal modulo e non protesta.
 - Modelli di pagina solo in `App\Enums\PageTemplate` (un test verifica il `.vue`).
-- **Foto dal pannello**: `SpatieMediaLibraryFileUpload` le passa da
-  `App\Support\FotoAlleggerita` (2560 px, JPEG 86, profilo ICC ricopiato;
-  configurazione "important" in `AppServiceProvider`, il `setUp()` del plugin
-  vince sulle normali). La gallery resta originale (CompreFace). Limite per
-  file = `media-library.max_file_size` (50 MB), anche sul campo.
+- **Foto dal pannello**: ogni `FileUpload` salva passando da
+  `App\Support\FotoAlleggerita` (configurazione "important" in
+  `AppServiceProvider`: il `setUp()` del campo vince sulle normali). Ai PNG si
+  toglie il profilo `iCCP` (sul GD di Linux un profilo difettoso manda in 500
+  le conversioni); i JPEG scendono a 2560 px, qualita' 86, ICC ricopiato. PNG
+  e WebP non si ridimensionano (il GD di Linux perde la trasparenza). La
+  gallery resta originale (CompreFace, che riceve una copia sotto 5 MB).
+  Limite per file = `media-library.max_file_size` (50 MB). PNG gia' rotti:
+  `php artisan foto:ripara-png`.
 - `CmsPagesSeeder` **non si rilancia in produzione**.
 - Revisione del lavoro della redazione: `activity_logs`. Correzioni ai testi in
   produzione con **migrazione a guardie** (tocca solo il valore ancora

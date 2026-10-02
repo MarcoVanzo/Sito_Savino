@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Player;
 use App\Models\StaffMember;
+use App\Support\FotoAlleggerita;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
@@ -84,6 +85,12 @@ class FacialRecognitionService
      * Returns an array: ['success' => bool, 'error' => ?string]
      */
     public function addFaceExample(Model $person, string $imagePath): array
+    {
+        return $this->conUnaCopiaAccettata($imagePath, fn (string $invio) => $this->aggiungiEsempio($person, $invio));
+    }
+
+    /** @return array{success: bool, error: ?string} */
+    private function aggiungiEsempio(Model $person, string $imagePath): array
     {
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping addFaceExample.');
@@ -251,6 +258,36 @@ class FacialRecognitionService
      * Returns an array of detected persons (Player or StaffMember) with confidence >= threshold.
      */
     public function recognizeFaces(string $imagePath, float $minConfidence = 0.985): array
+    {
+        return $this->conUnaCopiaAccettata($imagePath, fn (string $invio) => $this->riconosciVolti($invio, $minConfidence));
+    }
+
+    /**
+     * CompreFace rifiuta i file oltre `services.compreface.max_file_bytes`
+     * (5 MB): gli si manda una copia ridotta, cancellata subito dopo. Le
+     * misure dei volti servono solo alla soglia "da rivedere" e non si
+     * salvano, quindi la copia non sposta nulla in archivio.
+     *
+     * @template T
+     *
+     * @param  callable(string): T  $invia
+     * @return T
+     */
+    private function conUnaCopiaAccettata(string $imagePath, callable $invia): mixed
+    {
+        $invio = FotoAlleggerita::copiaSotto($imagePath, (int) config('services.compreface.max_file_bytes'));
+
+        try {
+            return $invia($invio);
+        } finally {
+            if ($invio !== $imagePath && is_file($invio)) {
+                @unlink($invio);
+            }
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function riconosciVolti(string $imagePath, float $minConfidence): array
     {
         if (empty($this->apiKey)) {
             Log::warning('CompreFace API Key missing. Skipping recognition.');

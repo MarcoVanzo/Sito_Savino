@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
+use App\Support\FotoAlleggerita;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
@@ -100,6 +101,10 @@ class GalleryUploadService
             if (is_resource($stream)) {
                 fclose($stream);
             }
+
+            // Un PNG con un profilo colore difettoso fa fallire le
+            // conversioni sul GD di Linux: si toglie prima (FotoAlleggerita).
+            FotoAlleggerita::togliIlProfiloDalPng($tempPath);
 
             $image->addMedia($tempPath)
                 ->usingFileName($file->getClientOriginalName())

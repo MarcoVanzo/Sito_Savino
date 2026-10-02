@@ -11,15 +11,17 @@ use Throwable;
 
 /**
  * Alleggerisce le foto caricate dal pannello prima che entrino nella media
- * library: lato lungo al massimo 2560 px e JPEG/WebP a qualita' 86, a occhio
+ * library: lato lungo al massimo 2560 px e JPEG a qualita' 86, a occhio
  * indistinguibili dall'originale. Il sito non mostra nulla oltre i 1200 px
  * (lo zoom del prodotto): una foto da fotocamera (6000 px, 15-30 MB) pesava
  * venti volte il necessario e superava il limite di upload (02/10/2026).
  *
  * Non si perde nulla di visibile:
- * - il profilo colore (ICC) dei JPEG si ricopia: GD lo scarta, e una foto
- *   Display P3 (iPhone) o Adobe RGB uscirebbe spenta. PNG e WebP con un
- *   profilo restano come sono;
+ * - solo JPEG, cioe' le foto: PNG e WebP possono avere trasparenza, e il GD
+ *   di Linux (produzione, CI) la perde nel ridimensionamento, mentre quello
+ *   di macOS no. Un logo trasparente diventava nero;
+ * - il profilo colore (ICC) si ricopia: GD lo scarta, e una foto Display P3
+ *   (iPhone) o Adobe RGB uscirebbe spenta;
  * - una foto che non va rimpicciolita e pesa poco non si ricodifica;
  * - se il risultato non e' piu' leggero si tiene l'originale.
  *
@@ -50,8 +52,6 @@ class FotoAlleggerita
         HeroSlide::class => 3840, // testata a tutta larghezza sugli schermi 4K
     ];
 
-    private const FORMATI = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-
     public static function latoMassimoPer(?Model $record): ?int
     {
         foreach (self::ECCEZIONI as $classe => $lato) {
@@ -66,23 +66,18 @@ class FotoAlleggerita
     /** Riscrive il file sul posto se ne vale la pena. */
     public static function alleggerisci(string $percorso, int $latoMassimo = self::LATO_MASSIMO): void
     {
-        $formato = self::FORMATI[@mime_content_type($percorso) ?: ''] ?? null;
         $misure = @getimagesize($percorso);
 
-        if ($formato === null || $misure === false) {
-            return; // SVG, GIF animate, PDF, file illeggibili: si lasciano stare
+        if ($misure === false || $misure[2] !== IMAGETYPE_JPEG) {
+            return; // PNG, WebP, SVG, GIF, PDF, file illeggibili: si lasciano stare
         }
 
         [$larghezza, $altezza] = $misure;
         $daRimpicciolire = max($larghezza, $altezza) > $latoMassimo;
         $originale = (string) file_get_contents($percorso);
-        $profilo = $formato === 'jpg' ? self::profiloColoreJpeg($originale) : null;
+        $profilo = self::profiloColoreJpeg($originale);
 
         if (! $daRimpicciolire && strlen($originale) <= self::PESO_DA_RICOMPRIMERE) {
-            return;
-        }
-
-        if ($formato !== 'jpg' && self::haUnProfiloColore($originale, $formato)) {
             return;
         }
 
@@ -90,7 +85,7 @@ class FotoAlleggerita
             return;
         }
 
-        $prova = $percorso.'.alleggerita.'.$formato;
+        $prova = $percorso.'.alleggerita.jpg';
 
         try {
             $immagine = Image::load($percorso); // load() raddrizza gia' secondo l'EXIF
@@ -99,11 +94,7 @@ class FotoAlleggerita
                 $immagine->fit(Fit::Max, $latoMassimo, $latoMassimo);
             }
 
-            if ($formato !== 'png') {
-                $immagine->quality(self::QUALITA);
-            }
-
-            $immagine->format($formato)->save($prova);
+            $immagine->quality(self::QUALITA)->format('jpg')->save($prova);
             unset($immagine);
 
             $risultato = (string) file_get_contents($prova);
@@ -121,6 +112,83 @@ class FotoAlleggerita
                 @unlink($prova);
             }
         }
+    }
+
+    /**
+     * Una copia della foto sotto `$byteMassimi`, rimpicciolita per gradi, o il
+     * percorso originale se gia' ci sta (o non e' un JPEG). Chi la chiede
+     * cancella la copia quando ha finito.
+     */
+    public static function copiaSotto(string $percorso, int $byteMassimi): string
+    {
+        if (@filesize($percorso) <= $byteMassimi || @getimagesize($percorso)[2] !== IMAGETYPE_JPEG) {
+            return $percorso;
+        }
+
+        $copia = sys_get_temp_dir().'/'.uniqid('foto_sotto_').'.jpg';
+
+        foreach ([4096, 3200, self::LATO_MASSIMO, 1920] as $lato) {
+            copy($percorso, $copia);
+            self::alleggerisci($copia, $lato);
+            clearstatcache();
+
+            if (filesize($copia) <= $byteMassimi) {
+                break;
+            }
+        }
+
+        return $copia;
+    }
+
+    /**
+     * Toglie dai PNG il profilo colore (chunk iCCP) sul posto.
+     *
+     * Molti programmi esportano PNG con un profilo sRGB difettoso: sul GD di
+     * Linux libpng avvisa ("iCCP: known incorrect sRGB profile"), Laravel fa
+     * dell'avviso un'eccezione e la conversione della media library va in 500.
+     * Cosi' falliva la foto prodotto da 700 KB della segreteria (02/10/2026);
+     * su macOS l'avviso non arriva a PHP, quindi non si puo' rilevare caso per
+     * caso. I pixel restano identici e le conversioni GD il profilo lo
+     * scartano comunque.
+     */
+    public static function togliIlProfiloDalPng(string $percorso): bool
+    {
+        $png = @file_get_contents($percorso);
+        $pulito = $png === false ? null : self::pngSenzaProfilo($png);
+
+        return $pulito !== null && file_put_contents($percorso, $pulito) !== false;
+    }
+
+    /** Il PNG senza chunk iCCP, o null se non e' un PNG o non ne ha. */
+    public static function pngSenzaProfilo(string $png): ?string
+    {
+        if (! str_starts_with($png, "\x89PNG\r\n\x1A\n")) {
+            return null;
+        }
+
+        $risultato = substr($png, 0, 8);
+        $posizione = 8;
+        $tolti = 0;
+
+        while ($posizione + 12 <= strlen($png)) {
+            $lunghezza = unpack('N', substr($png, $posizione, 4))[1];
+            $tipo = substr($png, $posizione + 4, 4);
+            $chunk = substr($png, $posizione, $lunghezza + 12);
+
+            if ($tipo === 'iCCP') {
+                $tolti++;
+            } else {
+                $risultato .= $chunk;
+            }
+
+            $posizione += $lunghezza + 12;
+
+            if ($tipo === 'IEND') {
+                break;
+            }
+        }
+
+        return $tolti > 0 ? $risultato : null;
     }
 
     /**
@@ -198,16 +266,5 @@ class FotoAlleggerita
         }
 
         return substr($jpeg, 0, $dopo).$profilo.substr($jpeg, $dopo);
-    }
-
-    private static function haUnProfiloColore(string $contenuto, string $formato): bool
-    {
-        $intestazione = substr($contenuto, 0, 64 * 1024);
-
-        return match ($formato) {
-            'png' => str_contains($intestazione, 'iCCP'),
-            'webp' => str_contains($intestazione, 'ICCP'),
-            default => false,
-        };
     }
 }

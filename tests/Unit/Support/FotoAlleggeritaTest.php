@@ -50,21 +50,23 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertSame($prima, file_get_contents($percorso));
     }
 
-    public function test_il_png_resta_png_con_la_trasparenza(): void
+    /**
+     * Il GD di Linux perde la trasparenza ridimensionando (quello di macOS
+     * no): un logo PNG grande deve restare com'e', byte per byte.
+     */
+    public function test_il_png_non_si_tocca_anche_se_grande(): void
     {
         $percorso = $this->cartella.'/logo.png';
         $immagine = imagecreatetruecolor(4000, 4000);
         imagealphablending($immagine, false);
         imagesavealpha($immagine, true);
         imagefilledrectangle($immagine, 0, 0, 3999, 3999, imagecolorallocatealpha($immagine, 0, 0, 0, 127));
-        imagefilledrectangle($immagine, 2000, 2000, 3999, 3999, imagecolorallocate($immagine, 0, 48, 99));
         imagepng($immagine, $percorso, 0);
+        $prima = file_get_contents($percorso);
 
         FotoAlleggerita::alleggerisci($percorso);
 
-        $this->assertSame([2560, 2560, IMAGETYPE_PNG], array_slice(getimagesize($percorso), 0, 3));
-        $alfa = (imagecolorat(imagecreatefrompng($percorso), 10, 10) >> 24) & 0x7F;
-        $this->assertSame(127, $alfa);
+        $this->assertSame($prima, file_get_contents($percorso));
     }
 
     public function test_il_profilo_colore_del_jpeg_resta(): void
@@ -83,22 +85,6 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertNotFalse(imagecreatefromstring($risultato), 'il JPEG con il profilo deve restare leggibile');
     }
 
-    public function test_png_con_profilo_colore_non_si_tocca(): void
-    {
-        $percorso = $this->cartella.'/profilo.png';
-        imagepng(imagecreatetruecolor(4000, 4000), $percorso, 0);
-        // Chunk iCCP finto subito dopo IHDR (8 + 25 byte).
-        $png = file_get_contents($percorso);
-        $dati = "sRGB\0\0".gzcompress('profilo');
-        $chunk = pack('N', strlen($dati)).'iCCP'.$dati.pack('N', crc32('iCCP'.$dati));
-        file_put_contents($percorso, substr($png, 0, 33).$chunk.substr($png, 33));
-        $prima = file_get_contents($percorso);
-
-        FotoAlleggerita::alleggerisci($percorso);
-
-        $this->assertSame($prima, file_get_contents($percorso));
-    }
-
     public function test_la_foto_gia_piccola_e_leggera_non_si_ricodifica(): void
     {
         $percorso = $this->foto('leggera.jpg', 1600, 1200, fn ($i, $p) => imagejpeg($i, $p, 95));
@@ -108,6 +94,44 @@ class FotoAlleggeritaTest extends TestCase
         FotoAlleggerita::alleggerisci($percorso);
 
         $this->assertSame($prima, file_get_contents($percorso));
+    }
+
+    /**
+     * Il PNG della segreteria (02/10/2026) aveva un profilo sRGB difettoso:
+     * sul GD di Linux la conversione andava in 500. Il profilo si toglie,
+     * i pixel restano identici.
+     */
+    public function test_il_profilo_del_png_si_toglie_senza_toccare_i_pixel(): void
+    {
+        $percorso = $this->cartella.'/profilo.png';
+        $immagine = imagecreatetruecolor(300, 200);
+        imagefilledrectangle($immagine, 0, 0, 150, 200, imagecolorallocate($immagine, 0, 48, 99));
+        imagepng($immagine, $percorso);
+        $senza = file_get_contents($percorso);
+        file_put_contents($percorso, $this->conChunk($senza, 'iCCP', "sRGB\0\0".gzcompress('profilo difettoso')));
+
+        $this->assertTrue(FotoAlleggerita::togliIlProfiloDalPng($percorso));
+
+        $pulito = file_get_contents($percorso);
+        $this->assertStringNotContainsString('iCCP', $pulito);
+        $this->assertSame($senza, $pulito);
+        $this->assertFalse(FotoAlleggerita::togliIlProfiloDalPng($percorso), 'senza profilo non si riscrive');
+    }
+
+    public function test_la_copia_per_compreface_sta_sotto_il_limite_e_l_originale_resta(): void
+    {
+        $percorso = $this->foto('grande.jpg', 6000, 4000, fn ($i, $p) => imagejpeg($i, $p, 98));
+        $prima = file_get_contents($percorso);
+        $limite = 1024 * 1024;
+
+        $copia = FotoAlleggerita::copiaSotto($percorso, $limite);
+
+        $this->assertNotSame($percorso, $copia);
+        $this->assertLessThanOrEqual($limite, filesize($copia));
+        $this->assertSame($prima, file_get_contents($percorso));
+        unlink($copia);
+
+        $this->assertSame($percorso, FotoAlleggerita::copiaSotto($percorso, strlen($prima)), 'gia sotto il limite: l originale');
     }
 
     public function test_cio_che_non_e_una_foto_non_si_tocca(): void
@@ -126,6 +150,13 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertSame(3840, FotoAlleggerita::latoMassimoPer(new HeroSlide));
         $this->assertSame(FotoAlleggerita::LATO_MASSIMO, FotoAlleggerita::latoMassimoPer(new Product));
         $this->assertSame(FotoAlleggerita::LATO_MASSIMO, FotoAlleggerita::latoMassimoPer(null));
+    }
+
+    private function conChunk(string $png, string $tipo, string $dati): string
+    {
+        $chunk = pack('N', strlen($dati)).$tipo.$dati.pack('N', crc32($tipo.$dati));
+
+        return substr($png, 0, 33).$chunk.substr($png, 33); // dopo IHDR
     }
 
     private function foto(string $nome, int $larghezza, int $altezza, callable $salva): string
