@@ -15,9 +15,9 @@ class StockMovementObserver
     /**
      * Handle the StockMovement "created" event.
      *
-     * Aggiorna lo stock atomicamente: se il movement ha una variante,
-     * aggiorna SOLO quella. Se non ha variante, aggiorna il prodotto padre.
-     * Protegge da stock negativo con UPDATE condizionale atomico.
+     * Aggiorna lo stock atomicamente: se il movement ha una variante scala
+     * quella (con la guardia contro il negativo) e ricalcola il riepilogo del
+     * padre; se non ha variante scala il prodotto.
      */
     public function created(StockMovement $stockMovement): void
     {
@@ -30,13 +30,12 @@ class StockMovementObserver
                     $stockMovement->quantity
                 );
 
-                // Aggiorna anche lo stock aggregato del prodotto padre
+                // Lo stock del padre e' solo un riepilogo: la giacenza vera e'
+                // la somma delle taglie (Product::availableStock). Scalarlo con
+                // la guardia faceva fallire il checkout quando il riepilogo era
+                // rimasto a 0 con le taglie disponibili: si ricalcola.
                 if ($stockMovement->product_id) {
-                    $this->updateStock(
-                        Product::class,
-                        $stockMovement->product_id,
-                        $stockMovement->quantity
-                    );
+                    $this->riallineaIlPadre($stockMovement->product_id);
                 }
             } elseif ($stockMovement->product_id) {
                 $this->updateStock(
@@ -85,17 +84,30 @@ class StockMovementObserver
             $modelClass::where('id', $id)->increment('stock', $quantity);
         }
 
-        // Low stock / out-of-stock notification (only for Product, not variants)
         if ($modelClass === Product::class) {
-            $product = Product::find($id);
-            if ($product) {
-                $newStock = (int) $product->stock;
-                if ($newStock <= 0) {
-                    app(AdminNotificationService::class)->notifyOutOfStock($product);
-                } elseif ($newStock <= 5) {
-                    app(AdminNotificationService::class)->notifyLowStock($product);
-                }
-            }
+            $this->avvisaSeInEsaurimento($id);
+        }
+    }
+
+    private function riallineaIlPadre(int $productId): void
+    {
+        Product::riallineaLaGiacenzaDelleTaglie($productId);
+
+        $this->avvisaSeInEsaurimento($productId);
+    }
+
+    private function avvisaSeInEsaurimento(int $productId): void
+    {
+        $product = Product::find($productId);
+        if (! $product) {
+            return;
+        }
+
+        $newStock = (int) $product->stock;
+        if ($newStock <= 0) {
+            app(AdminNotificationService::class)->notifyOutOfStock($product);
+        } elseif ($newStock <= 5) {
+            app(AdminNotificationService::class)->notifyLowStock($product);
         }
     }
 }

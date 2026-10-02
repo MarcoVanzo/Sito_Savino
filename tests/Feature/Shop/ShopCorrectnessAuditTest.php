@@ -11,6 +11,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\SiteSetting;
 use App\Models\StockMovement;
 use App\Models\User;
@@ -185,6 +186,32 @@ class ShopCorrectnessAuditTest extends TestCase
         $this->assertEquals(1, $product->fresh()->stock);
         $this->assertStringContainsString('REVISIONE MANUALE', (string) $order->notes);
         $this->assertDatabaseHas('shop_events', ['event_type' => 'payment_review', 'viewable_id' => $order->id]);
+    }
+
+    public function test_late_payment_rededucts_a_size_whatever_the_parent_summary(): void
+    {
+        $product = Product::factory()->create(['stock' => 0]);
+        $taglia = ProductVariant::factory()->create(['product_id' => $product->id, 'stock' => 5]);
+        $order = Order::factory()->create();
+        OrderItem::factory()->create([
+            'order_id' => $order->id, 'product_id' => $product->id, 'product_variant_id' => $taglia->id,
+            'quantity' => 2, 'price_at_time_of_purchase' => 10,
+        ]);
+        StockMovement::create([
+            'product_id' => $product->id, 'product_variant_id' => $taglia->id, 'order_id' => $order->id,
+            'quantity' => -2, 'type' => StockMovementType::Sale, 'notes' => 'checkout',
+        ]);
+        $order->forceFill(['status' => OrderStatus::Cancelled])->save();
+
+        // Riepilogo del padre di nuovo indietro: non deve contare.
+        Product::whereKey($product->id)->toBase()->update(['stock' => 0]);
+
+        $this->fakePayPal($order->id);
+        $this->postWebhook()->assertOk();
+
+        $this->assertEquals(OrderStatus::Paid, $order->fresh()->status);
+        $this->assertSame(3, (int) $taglia->fresh()->stock);
+        $this->assertSame(3, (int) $product->fresh()->stock);
     }
 
     public function test_merge_on_login_uses_the_given_session_id_and_caps_to_max_qty(): void

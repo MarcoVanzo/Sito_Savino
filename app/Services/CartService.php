@@ -467,6 +467,12 @@ class CartService
             return (int) $variant->stock;
         }
 
+        // Una riga senza taglia di un prodotto con taglie non ha giacenza:
+        // `products.stock` e' solo il riepilogo di tutte le taglie.
+        if ($product->variants()->exists()) {
+            return 0;
+        }
+
         return (int) $product->stock;
     }
 
@@ -494,6 +500,12 @@ class CartService
     private function varianteDelProdotto(Product $product, ?int $variantId): ?ProductVariant
     {
         if (! $variantId) {
+            // Un prodotto con taglie non si compra senza sceglierne una: la
+            // giacenza sta sulle taglie e l'ordine non direbbe cosa spedire.
+            if ($product->variants()->exists()) {
+                throw new \InvalidArgumentException(__('messages.cart.variant_required'));
+            }
+
             return null;
         }
 

@@ -7,6 +7,7 @@ use App\Enums\StockMovementType;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -168,5 +169,74 @@ class StockManagementTest extends TestCase
             'type' => StockMovementType::Sale,
             'notes' => 'Test negative stock',
         ]);
+    }
+
+    public function test_la_vendita_di_una_taglia_non_si_blocca_sul_riepilogo_del_padre(): void
+    {
+        // Caso del 02/10/2026: taglia disponibile, products.stock rimasto a 0.
+        $product = Product::factory()->create(['stock' => 0]);
+        $taglia = ProductVariant::factory()->create(['product_id' => $product->id, 'stock' => 3]);
+        ProductVariant::factory()->create(['product_id' => $product->id, 'stock' => 4]);
+
+        StockMovement::create([
+            'product_id' => $product->id,
+            'product_variant_id' => $taglia->id,
+            'quantity' => -1,
+            'type' => StockMovementType::Sale,
+            'notes' => 'Test taglia',
+        ]);
+
+        $this->assertSame(2, (int) $taglia->fresh()->stock);
+        $this->assertSame(6, (int) $product->fresh()->stock);
+    }
+
+    public function test_la_taglia_esaurita_blocca_ancora_la_vendita(): void
+    {
+        $product = Product::factory()->create(['stock' => 10]);
+        $taglia = ProductVariant::factory()->create(['product_id' => $product->id, 'stock' => 0]);
+
+        $this->expectExceptionMessage('Stock insufficiente');
+
+        StockMovement::create([
+            'product_id' => $product->id,
+            'product_variant_id' => $taglia->id,
+            'quantity' => -1,
+            'type' => StockMovementType::Sale,
+            'notes' => 'Test taglia esaurita',
+        ]);
+    }
+
+    public function test_le_taglie_scritte_dal_pannello_riallineano_il_padre(): void
+    {
+        $product = Product::factory()->create(['stock' => 0]);
+
+        $s = ProductVariant::factory()->create(['product_id' => $product->id, 'stock' => 3]);
+        $this->assertSame(3, (int) $product->fresh()->stock);
+
+        $m = ProductVariant::factory()->create(['product_id' => $product->id, 'stock' => 4]);
+        $this->assertSame(7, (int) $product->fresh()->stock);
+
+        $s->update(['stock' => 1]);
+        $this->assertSame(5, (int) $product->fresh()->stock);
+
+        $m->delete();
+        $this->assertSame(1, (int) $product->fresh()->stock);
+
+        $s->delete();
+        $this->assertSame(0, (int) $product->fresh()->stock, 'Senza taglie il vecchio riepilogo non si vende.');
+    }
+
+    public function test_la_migrazione_riallinea_solo_i_prodotti_con_taglie(): void
+    {
+        $conTaglie = Product::factory()->create();
+        ProductVariant::factory()->create(['product_id' => $conTaglie->id, 'stock' => 6]);
+        $senzaTaglie = Product::factory()->create(['stock' => 9]);
+        Product::whereKey($conTaglie->id)->toBase()->update(['stock' => 0]);
+
+        $migrazione = require database_path('migrations/2026_10_02_100000_riallinea_la_giacenza_dei_prodotti_con_taglie.php');
+        $migrazione->up();
+
+        $this->assertSame(6, (int) $conTaglie->fresh()->stock);
+        $this->assertSame(9, (int) $senzaTaglie->fresh()->stock);
     }
 }

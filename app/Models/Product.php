@@ -84,10 +84,30 @@ class Product extends Model implements HasMedia
     }
 
     /**
+     * Riporta il riepilogo `products.stock` alla somma delle taglie.
+     *
+     * Le taglie si scrivono anche fuori dai movimenti (creazione e modifica
+     * dal pannello) e il riepilogo restava a 0: lo StockMovementObserver lo
+     * scalava con la guardia contro il negativo e il checkout di una taglia
+     * disponibile falliva (02/10/2026). Tolta l'ultima taglia il prodotto
+     * resta a 0: il vecchio riepilogo diventerebbe la giacenza da vendere.
+     * Query builder: nessun evento, nessun updated_at. La somma è una lettura
+     * senza lock, apposta: un lock condiviso sulle taglie si incrocerebbe con
+     * quelli del checkout. Il riepilogo non decide nessuna vendita.
+     */
+    public static function riallineaLaGiacenzaDelleTaglie(int $productId): void
+    {
+        static::withTrashed()->whereKey($productId)->toBase()->update([
+            'stock' => (int) ProductVariant::where('product_id', $productId)->sum('stock'),
+        ]);
+    }
+
+    /**
      * Giacenza realmente disponibile.
      *
-     * Per i prodotti con varianti la colonna `stock` del prodotto resta a zero:
-     * le quantità stanno sulle taglie. Leggere solo `stock` faceva apparire
+     * Per i prodotti con varianti le quantità stanno sulle taglie: la colonna
+     * `stock` del prodotto è solo un riepilogo, tenuto allineato da
+     * riallineaLaGiacenzaDelleTaglie(). Leggere solo `stock` faceva apparire
      * "esaurito" in vetrina un prodotto pieno di magazzino.
      *
      * Usa `withSum('variants', 'stock')` quando la query lo ha già caricato,

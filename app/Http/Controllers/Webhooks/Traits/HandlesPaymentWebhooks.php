@@ -384,9 +384,15 @@ trait HandlesPaymentWebhooks
             return true;
         }
 
-        // Fabbisogno aggregato per prodotto: le varianti scalano anche il padre.
+        // Fabbisogno per prodotto, solo per le righe senza taglia: per le
+        // taglie il prodotto ha solo il riepilogo, che lo StockMovementObserver
+        // ricalcola, e la disponibilita' vera e' quella della taglia.
         $productNeed = [];
         foreach ($toDeduct as $row) {
+            if ($row['product_variant_id'] !== null) {
+                continue;
+            }
+
             $productNeed[$row['product_id']] = ($productNeed[$row['product_id']] ?? 0) + $row['missing'];
         }
 
