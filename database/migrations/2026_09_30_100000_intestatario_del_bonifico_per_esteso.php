@@ -33,7 +33,7 @@ return new class extends Migration
         $toccate = 0;
 
         foreach ($righe as $riga) {
-            $normalizzato = trim((string) preg_replace('/[\s\x{00A0}]+/u', ' ', (string) $riga->value));
+            $normalizzato = trim((string) preg_replace('/\s+/u', ' ', (string) $riga->value));
 
             if (! str_starts_with($normalizzato, self::DIFETTO)) {
                 continue;

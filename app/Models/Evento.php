@@ -84,8 +84,6 @@ class Evento extends Model implements HasMedia
      */
     public function perLaHome(): array
     {
-        $copertina = $this->getFirstMedia(self::COLLEZIONE_COPERTINA);
-
         return [
             'id' => $this->id,
             'titolo' => (string) $this->getTranslation('titolo', app()->getLocale()),
@@ -94,11 +92,22 @@ class Evento extends Model implements HasMedia
             'inizia_il' => $this->inizia_il->toIso8601String(),
             'finisce_il' => $this->finisce_il?->toIso8601String(),
             'link' => $this->link,
-            // Come per gli sponsor: la conversione ridotta solo se è già
-            // stata generata, o per il tempo della coda il riquadro resta vuoto.
-            'immagine' => $copertina === null
-                ? ''
-                : ($copertina->hasGeneratedConversion('card') ? $copertina->getUrl('card') : $copertina->getUrl()),
+            'immagine' => $this->indirizzoDellaCopertina(),
         ];
+    }
+
+    /**
+     * Come per gli sponsor: la conversione ridotta solo se è già stata
+     * generata, o per il tempo della coda il riquadro resta vuoto.
+     */
+    private function indirizzoDellaCopertina(): string
+    {
+        $copertina = $this->getFirstMedia(self::COLLEZIONE_COPERTINA);
+
+        if ($copertina === null) {
+            return '';
+        }
+
+        return $copertina->hasGeneratedConversion('card') ? $copertina->getUrl('card') : $copertina->getUrl();
     }
 }

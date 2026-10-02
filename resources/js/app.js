@@ -18,7 +18,7 @@ ricaricaDopoIlRilascio();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
-createInertiaApp({
+void createInertiaApp({
     // Le pagine che usano useOgMeta arrivano qui con il nome del sito già in
     // coda: senza questo controllo il titolo diventava
     // "Shop Ufficiale — Savino Del Bene Volley - Savino Del Bene Volley".
@@ -104,7 +104,7 @@ createInertiaApp({
 
         // Errori JavaScript verso Sentry, senza consenso perché non scrive nel
         // browser e passa dal nostro server (vedi diagnostica.js).
-        avviaLaDiagnostica(app, props.initialPage.props.diagnostica);
+        void avviaLaDiagnostica(app, props.initialPage.props.diagnostica);
 
         return app.mount(el);
     },
