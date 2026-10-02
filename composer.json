@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.4",
         "ext-curl": "*",
+        "ext-exif": "*",
         "ext-gd": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*",

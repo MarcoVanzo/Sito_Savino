@@ -1,0 +1,111 @@
+<?php
+
+namespace Tests\Feature\Filament;
+
+use App\Enums\UserRole;
+use App\Filament\Resources\ProductResource\Pages\EditProduct;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\User;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class FotoProdottoTest extends TestCase
+{
+    use RefreshDatabase;
+
+    /**
+     * Le foto da fotocamera superano i 10 MB di serie della media library:
+     * la scheda prodotto andava in 500 al salvataggio, spesso alla seconda
+     * foto (02/10/2026).
+     */
+    public function test_due_foto_oltre_i_dieci_mega_si_salvano(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $user->forceFill(['role' => UserRole::SuperAdmin, 'is_active' => true])->save();
+        $this->actingAs($user);
+
+        $prodotto = Product::factory()->create([
+            'product_category_id' => ProductCategory::factory()->create()->id,
+        ]);
+
+        Livewire::test(EditProduct::class, ['record' => $prodotto->getRouteKey()])
+            ->set('data.images.prima', $this->fotoDa(12))
+            ->set('data.images.seconda', $this->fotoDa(12))
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertCount(2, $prodotto->fresh()->getMedia('images'));
+    }
+
+    /** Dal pannello l'originale arriva alleggerito (FotoAlleggerita). */
+    public function test_la_foto_da_fotocamera_si_salva_alleggerita(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $user->forceFill(['role' => UserRole::SuperAdmin, 'is_active' => true])->save();
+        $this->actingAs($user);
+
+        $prodotto = Product::factory()->create([
+            'product_category_id' => ProductCategory::factory()->create()->id,
+        ]);
+
+        $immagine = imagecreatetruecolor(6000, 4000);
+        ob_start();
+        imagejpeg($immagine, null, 98);
+        $foto = UploadedFile::fake()->createWithContent('foto.jpg', ob_get_clean());
+
+        Livewire::test(EditProduct::class, ['record' => $prodotto->getRouteKey()])
+            ->set('data.images.prima', $foto)
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $media = $prodotto->fresh()->getFirstMedia('images');
+        [$larghezza, $altezza] = getimagesize($media->getPath());
+        $this->assertSame([2560, 1707], [$larghezza, $altezza]);
+    }
+
+    /**
+     * Oltre il limite FilePond deve dirlo prima dell'invio, non il server
+     * con un 500: il campo eredita il limite della media library.
+     */
+    public function test_il_campo_conosce_il_limite_della_media_library(): void
+    {
+        $campo = SpatieMediaLibraryFileUpload::make('images');
+
+        $this->assertSame(intdiv(config('media-library.max_file_size'), 1024), $campo->getMaxSize());
+        $this->assertGreaterThanOrEqual(1024 * 1024 * 50, config('media-library.max_file_size'));
+    }
+
+    /**
+     * Cio' che non si alleggerisce (gallery, PNG con profilo colore) arriva
+     * intero alla media library: oltre i 10 MB di serie deve passare.
+     */
+    public function test_la_media_library_accetta_un_file_da_dodici_mega(): void
+    {
+        Storage::fake('public');
+        $prodotto = Product::factory()->create();
+
+        $prodotto->addMediaFromString($this->fotoDa(12)->get())
+            ->usingFileName('foto.jpg')
+            ->toMediaCollection('images');
+
+        $this->assertCount(1, $prodotto->fresh()->getMedia('images'));
+    }
+
+    /** Un JPEG valido gonfiato fino a `$mega` MB con dati in coda. */
+    private function fotoDa(int $mega): UploadedFile
+    {
+        $immagine = imagecreatetruecolor(800, 800);
+        ob_start();
+        imagejpeg($immagine);
+        $jpeg = ob_get_clean();
+
+        return UploadedFile::fake()->createWithContent('foto.jpg', $jpeg.str_repeat("\0", $mega * 1024 * 1024));
+    }
+}

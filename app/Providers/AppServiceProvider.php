@@ -38,7 +38,9 @@ use App\Observers\UserObserver;
 use App\Services\Analytics\WebAnalyticsService;
 use App\Services\Social\SocialAnalyticsService;
 use App\Services\Wikipedia\WikipediaClient;
+use App\Support\FotoAlleggerita;
 use App\Support\HostFidati;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\SpatieLaravelTranslatableContentDriver;
 use Filament\Tables\Actions\Action as TableAction;
 use Filament\Tables\Table;
@@ -46,11 +48,13 @@ use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Resend\Client as ResendClient;
 use Resend\Contracts\Client as ResendClientContract;
 use Resend\Laravel\Exceptions\ApiKeyIsMissing;
@@ -145,6 +149,35 @@ class AppServiceProvider extends ServiceProvider
                 ->label($isReordering ? 'Fine riordino' : 'Riordina')
                 ->icon($isReordering ? 'heroicon-o-check' : 'heroicon-o-arrows-up-down'),
         ));
+
+        // La media library rifiuta i file oltre `media-library.max_file_size`
+        // solo al salvataggio, con un 500: le foto prodotto da fotocamera
+        // (oltre 10 MB) facevano fallire la scheda (02/10/2026). Il limite sul
+        // campo fa dire a FilePond "file troppo grande" prima dell'invio; un
+        // `->maxSize()` sul singolo campo lo abbassa.
+        SpatieMediaLibraryFileUpload::configureUsing(fn (SpatieMediaLibraryFileUpload $upload) => $upload
+            ->maxSize(intdiv(config('media-library.max_file_size'), 1024)));
+
+        // Le foto si alleggeriscono (FotoAlleggerita) fra il caricamento e la
+        // media library. "Important": il setUp() del plugin riscriverebbe una
+        // configurazione normale. Le due righe finali sono quelle del plugin.
+        SpatieMediaLibraryFileUpload::configureUsing(
+            fn (SpatieMediaLibraryFileUpload $upload) => $upload->saveRelationshipsUsing(
+                static function (SpatieMediaLibraryFileUpload $component): void {
+                    $lato = FotoAlleggerita::latoMassimoPer($component->getRecord());
+
+                    foreach (Arr::wrap($component->getState()) as $file) {
+                        if ($lato !== null && $file instanceof TemporaryUploadedFile && $file->getRealPath()) {
+                            FotoAlleggerita::alleggerisci($file->getRealPath(), $lato);
+                        }
+                    }
+
+                    $component->deleteAbandonedFiles();
+                    $component->saveUploadedFiles();
+                },
+            ),
+            isImportant: true,
+        );
 
         // Requisiti minimi di robustezza, applicati ovunque si usi
         // Rules\Password::defaults(). `uncompromised()` interroga l'API di
