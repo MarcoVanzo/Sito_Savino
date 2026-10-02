@@ -68,6 +68,9 @@ return [
         // l'impronta somiglia a chiunque e produce tag falsi al 99% (vedi
         // FacialRecognitionService::motivoDiScartoComeEsempio).
         'min_face_px' => (int) env('COMPREFACE_MIN_FACE_PX', 90),
+        // CompreFace rifiuta i file oltre questo peso (MAX_FILE_SIZE=5MB sul
+        // droplet): sopra, gli si manda una copia ridotta, mai l'originale.
+        'max_file_bytes' => (int) env('COMPREFACE_MAX_FILE_BYTES', 5 * 1024 * 1024),
         // Una foto va "rivista" solo se un volto somiglia a una persona in
         // anagrafica almeno così tanto (senza arrivare alla soglia del tag,
         // 0.985) ed è alto almeno così tanti pixel: il resto è tribuna,

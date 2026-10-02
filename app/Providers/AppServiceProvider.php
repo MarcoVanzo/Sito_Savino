@@ -40,6 +40,8 @@ use App\Services\Social\SocialAnalyticsService;
 use App\Services\Wikipedia\WikipediaClient;
 use App\Support\FotoAlleggerita;
 use App\Support\HostFidati;
+use Closure;
+use Filament\Forms\Components\BaseFileUpload;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\SpatieLaravelTranslatableContentDriver;
 use Filament\Tables\Actions\Action as TableAction;
@@ -48,7 +50,6 @@ use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
@@ -158,26 +159,34 @@ class AppServiceProvider extends ServiceProvider
         SpatieMediaLibraryFileUpload::configureUsing(fn (SpatieMediaLibraryFileUpload $upload) => $upload
             ->maxSize(intdiv(config('media-library.max_file_size'), 1024)));
 
-        // Le foto si alleggeriscono (FotoAlleggerita) fra il caricamento e la
-        // media library. "Important": il setUp() del plugin riscriverebbe una
-        // configurazione normale. Le due righe finali sono quelle del plugin.
-        SpatieMediaLibraryFileUpload::configureUsing(
-            fn (SpatieMediaLibraryFileUpload $upload) => $upload->saveRelationshipsUsing(
-                static function (SpatieMediaLibraryFileUpload $component): void {
-                    $lato = FotoAlleggerita::latoMassimoPer($component->getRecord());
+        // Ogni file caricato dal pannello passa da FotoAlleggerita prima di
+        // essere salvato (PNG senza profilo colore, foto alleggerite): si
+        // avvolge la chiusura di salvataggio del campo (quella del plugin
+        // Spatie o quella di Filament), cosi' vale per tutti i FileUpload.
+        // "Important": il setUp() del campo riscriverebbe una configurazione
+        // normale.
+        BaseFileUpload::configureUsing(function (BaseFileUpload $upload): void {
+            $salva = (fn (): ?Closure => $this->saveUploadedFileUsing)->call($upload);
 
-                    foreach (Arr::wrap($component->getState()) as $file) {
-                        if ($lato !== null && $file instanceof TemporaryUploadedFile && $file->getRealPath()) {
-                            FotoAlleggerita::alleggerisci($file->getRealPath(), $lato);
-                        }
+            if ($salva === null) {
+                return;
+            }
+
+            $upload->saveUploadedFileUsing(static function (BaseFileUpload $component, TemporaryUploadedFile $file) use ($salva): mixed {
+                $percorso = $file->getRealPath();
+                $lato = FotoAlleggerita::latoMassimoPer($component->getRecord());
+
+                if ($percorso) {
+                    FotoAlleggerita::togliIlProfiloDalPng($percorso);
+
+                    if ($lato !== null) {
+                        FotoAlleggerita::alleggerisci($percorso, $lato);
                     }
+                }
 
-                    $component->deleteAbandonedFiles();
-                    $component->saveUploadedFiles();
-                },
-            ),
-            isImportant: true,
-        );
+                return $component->evaluate($salva, ['file' => $file]);
+            });
+        }, isImportant: true);
 
         // Requisiti minimi di robustezza, applicati ovunque si usi
         // Rules\Password::defaults(). `uncompromised()` interroga l'API di
