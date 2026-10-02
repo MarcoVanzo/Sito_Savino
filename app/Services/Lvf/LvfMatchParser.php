@@ -208,7 +208,7 @@ class LvfMatchParser
         $teams = [];
 
         foreach ($document->xpath->query('.//tbody/tr', $table) ?: [] as $row) {
-            $link = $document->xpath->query(".//a[contains(@href, '/club/')]", $row)?->item(0);
+            $link = $document->primo(".//a[contains(@href, '/club/')]", $row);
 
             if (! $link instanceof DOMElement) {
                 continue;
@@ -223,7 +223,7 @@ class LvfMatchParser
 
             // Presente solo sulla pagina risultati; sul calendario le gare non
             // hanno ancora un punteggio e la cella non viene emessa affatto.
-            $setsCell = $document->xpath->query(".//th[contains(@class, 'num')]", $row)?->item(0);
+            $setsCell = $document->primo(".//th[contains(@class, 'num')]", $row);
             $setsText = LvfDocument::text($setsCell);
 
             $teams[] = [

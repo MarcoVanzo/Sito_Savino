@@ -203,7 +203,7 @@ class VerificaIlLancioTest extends TestCase
         Post::factory()->create(['published_at' => now()->subDays(30)]);
 
         $this->artisan('verifica:lancio')
-            ->expectsOutputToContain('news:importa-dal-vecchio-sito')
+            ->expectsOutputToContain("l'ultima e' di 30 giorni fa")
             ->assertSuccessful();
     }
 }

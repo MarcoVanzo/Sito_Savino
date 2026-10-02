@@ -252,9 +252,8 @@ class VerificaIlLancio extends Command
     }
 
     /**
-     * Quanto e' indietro l'archivio rispetto a quello che la redazione
-     * pubblica: finche' il dominio e' del vecchio sito, i comunicati nuovi
-     * nascono la' (vedi `news:importa-dal-vecchio-sito`).
+     * Quanto e' ferma la redazione: dal passaggio del dominio i comunicati
+     * nascono solo nel pannello, il vecchio sito non e' piu' una fonte.
      */
     private function notizie(): void
     {
@@ -272,7 +271,7 @@ class VerificaIlLancio extends Command
             $giorni > 7 ? self::AVVISO : self::OK,
             'Notizie',
             "l'ultima e' di {$giorni} giorni fa",
-            'Se il vecchio sito ne ha di piu\' recenti: `php artisan news:importa-dal-vecchio-sito --prova`.',
+            'I comunicati si pubblicano dal pannello (Notizie): il vecchio sito non e\' piu\' una fonte.',
         );
     }
 

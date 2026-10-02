@@ -185,6 +185,9 @@ Verificare nome pacchetto/variabili sul repo del server MCP scelto.
 - Hosting: **DigitalOcean App Platform**; config deploy in `.do/app.yaml`.
 - Branch di produzione: `main` (deploy automatico su push, gated dai test CI).
 - Storage file: **DigitalOcean Spaces (S3-compatible)**, regione `fra1`.
+- **Node 22**, fissato in `.nvmrc` e in `engines` di `package.json`: la build di
+  App Platform lo legge da `engines`, i workflow da `.nvmrc`. Con `>=20` il
+  buildpack prendeva l'ultima versione disponibile, diversa da quella della CI.
 - **SSR non attivo**: `INERTIA_SSR_ENABLED=false` nello spec, non esiste l'entrypoint
   `resources/js/ssr.js` e lo script `build:ssr` non viene mai invocato dalla pipeline.
   Non esiste nessun bundle `bootstrap/ssr/ssr.mjs`. Vedi `docs/INFRASTRUCTURE.md` §6.
@@ -615,64 +618,20 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   (accessor `gallery_images`), non upload su disco — in produzione i file
   stanno su Spaces e un percorso `/storage/...` costruito a mano non risolve.
 - **I media delle notizie non stanno piu' sul vecchio sito.** Ventinove
-  comunicati importati da WordPress citavano immagini, calendari in PDF e
-  cartelle stampa in ODT su `savinodelbenevolley.it/wp-content/uploads/`:
-  funzionavano solo finche' quel dominio puntava al sito precedente, e il
-  giorno della migrazione si sarebbero spenti senza possibilita' di recupero
-  (staccato il vecchio sito, i file non sono piu' interrogabili).
-  `php artisan news:importa-i-media-dal-vecchio-sito` li copia sotto
-  `news/<anno>/<mese>/` sul disco configurato e riscrive i link; `--prova`
-  mostra cosa farebbe. E' idempotente e va lanciato **dalla console dell'app**,
-  dove vivono le chiavi di Spaces e il database. I ritagli di `srcset` non si
-  copiano: `useSanitize` non ammette quell'attributo, quindi il browser non li
-  ha mai usati, e il comando li toglie invece di portarsi dietro un centinaio
-  di indirizzi morti. Le regole di cosa si copia e dove stanno in
-  `App\Services\VecchioSito\MediaDelVecchioSito`, che usa anche l'import dei
-  comunicati: sono scritte una volta sola.
-- **L'archivio delle notizie si riallinea da `wp-json`, non da un export.** Le
-  941 notizie storiche erano entrate da un export statico di WordPress salvato
-  sul portatile (`~/wp_export_savino/data`), fermo al 2 luglio 2026 e oggi non
-  piu' sul disco; il comando che lo leggeva e' stato tolto dando la migrazione
-  per conclusa. Intanto la redazione ha continuato a pubblicare sul vecchio
-  sito e il sito nuovo si e' fermato al 26 giugno: tre mesi di comunicati
-  mancanti, che dal giorno del feed RSS (§22) sono anche quelli che la Lega non
-  riceve. `php artisan news:importa-dal-vecchio-sito` legge invece le API REST
-  pubbliche del vecchio sito, quindi e' ripetibile: senza `--da` riparte dalla
-  notizia piu' recente in archivio, `--prova` mostra cosa farebbe. Va lanciato
-  **dalla console dell'app**, dove vivono database e chiavi di Spaces.
-- **Lo scheduler dell'import ha una scadenza, ed e' voluta.** Gira ogni ora
-  (`routes/console.php`) perche' fino al passaggio del dominio la redazione
-  pubblica sul vecchio sito e la finestra e' di giorni, non di mesi: un
-  comunicato uscito in mattinata e lo switch nel pomeriggio starebbero nello
-  stesso giorno. Si spegne da solo il 2 ottobre 2026
-  (`services.vecchio_sito.leggibile_fino_a`, spostabile se il passaggio slitta):
-  dopo, `savinodelbenevolley.it` e' questo sito, `wp-json` risponde 404 e il
-  comando fallirebbe a ogni giro. La scadenza e' coperta da
-  `tests/Feature/Console/ImportNotizieSchedulatoTest.php`, non solo da un
-  commento. Il comando resta lanciabile a mano: l'ultimo giro va fatto subito
-  prima di spostare il DNS.
-- **La chiave naturale di una notizia e' `wp_id`**, l'identificativo del post su
-  WordPress: ce l'hanno tutte le righe dell'archivio, ed e' cio' che rende
-  l'import ripetibile. Lo slug e' la seconda strada, per il comunicato che la
-  redazione ha gia' scritto a mano: quella riga si riscrive e adotta il `wp_id`,
-  invece di prendersi accanto un gemello con lo slug numerato.
-- **Le categorie si risolvono per `wp_id`, poi slug, poi nome esatto** — come le
-  squadre della Lega (§12) e per lo stesso motivo. Le due strade in fondo non
-  sono teoriche: "News Sponsor" da noi si chiama `sponsor` (stesso `wp_id`,
-  slug diverso) e "Serie A1 2026/2027" la redazione l'aveva creata a mano come
-  `serie-a1-20262027`, senza `wp_id` e prima in ordine di menu. Cercando il solo
-  `wp_id` sarebbe nata una seconda categoria con lo stesso nome e nove
-  comunicati su quindici sarebbero finiti li' dentro. Trovata per slug o per
-  nome, la categoria adotta il `wp_id`: dal giro dopo basta il primo confronto.
-- **Le date dei comunicati sono l'ora locale del vecchio sito** (`date` di
-  WordPress, non `date_gmt`): e' quella che l'import di allora ha scritto in
-  `posts.published_at`, ed e' quella con cui le API confrontano il filtro
-  `after`. Il connettore MCP le mostra spostate di due ore — leggerle con
-  `CAST(published_at AS CHAR)` prima di concludere che qualcosa si e' spostato.
-- **Uno slug come `41541-2` non e' uno slug**: WordPress lo genera da solo
-  quando si pubblica senza titolo, ed e' l'id del post. Finirebbe
-  nell'indirizzo della notizia e nel `guid` del feed, che non si puo' piu'
-  cambiare (§22): l'import lo sostituisce con quello ricavato dal titolo.
+  comunicati importati da WordPress citavano file su
+  `savinodelbenevolley.it/wp-content/uploads/`: prima del passaggio del dominio
+  sono stati copiati sotto `news/<anno>/<mese>/` su Spaces e i link riscritti.
+- **L'archivio delle notizie e' chiuso al 27/09/2026.** Fino al passaggio del
+  dominio i comunicati si rileggevano ogni ora dal `wp-json` del vecchio sito;
+  l'ultimo giro e' stato fatto il 01/10/2026 prima di spostare il DNS e il
+  comando (`news:importa-dal-vecchio-sito`) e' stato tolto, insieme agli altri
+  import dal vecchio sito (media delle notizie, gallery storica, documenti
+  legali, affiliazioni, sponsor) e alle migrazioni che li lanciavano, ora no-op: oggi
+  `savinodelbenevolley.it` e' questo sito e le notizie nascono solo nel
+  pannello. Resta in archivio `posts.wp_id`, che
+  serve ai `?p=` del vecchio sito (§23). Le date delle
+  notizie importate sono l'ora locale di WordPress: il connettore MCP le
+  mostra spostate di due ore, leggerle con `CAST(published_at AS CHAR)`.
 
 - **Niente contenuti nel codice dei componenti.** Progetti sociali, valori del
   vivaio, attività e turni del camp, servizi del palazzetto, documenti di
@@ -783,10 +742,7 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
   `content_data.affiliates` (`name`, `tier`, `url`, `logo`), raggruppate dal
   frontend nell'ordine di `App\Enums\AffiliateTier` (Main Partner, Partner
   Ufficiale, Società Affiliate) con le intestazioni tradotte in `affiliazioni.*`;
-  il racconto resta nell'editor. `php artisan affiliazioni:importa-dal-vecchio-sito`
-  rilegge società, livelli, link e loghi dalla pagina del sito precedente ed è
-  idempotente (chiave: il nome); i loghi vanno sul disco dei campi di upload del
-  pannello, non su quello predefinito. La migrazione che accende il template
+  il racconto resta nell'editor. La migrazione che accende il template
   toglie dal racconto le sezioni "Main Partner" e "Partner Ufficiali" scritte a
   testo: sono le stesse società che l'elenco pubblica con il logo, e lasciarle
   le mostrava due volte nella stessa pagina.
@@ -908,11 +864,6 @@ Tre pagine del pannello leggono servizi esterni. Documentazione completa in
 - Il raggruppamento è in `App\Services\SponsorDirectory` (cache
   `public:sponsor:tiers:<locale>`, invalidata da `CacheInvalidationObserver`):
   è condiviso fra `/sponsor` e le pagine di sezione, non va duplicato.
-- `php artisan sponsors:import-legacy` rilegge sponsor, livelli, link e loghi
-  dalla pagina pubblica del sito precedente. È idempotente (chiave: il nome) e
-  non tocca gli sponsor inseriti a mano che non compaiono su quella pagina.
-  Riconosce come sponsor solo le immagini con `alt`: senza quel filtro
-  entravano in elenco il marchio in testata e i pixel di tracciamento.
 - Le richieste di sponsorizzazione vanno a `marketing@savinodelbenevolley.it`
   con oggetto precompilato (campi `contact_email` / `contact_subject` della
   pagina Sponsor).
@@ -1154,12 +1105,13 @@ Test in `tests/Feature/SocialCrawlerMetaTest.php`.
   `shop.default_item_weight_kg` invece di zero, o un ordine intero di articoli
   senza peso viaggerebbe nella fascia piu' economica; il peso di un articolo,
   ripiego compreso, lo decide `Product::pesoPerLaSpedizione()`. **Il conto e'
-  scritto due volte**, in `ShippingZone::calculateShippingCost` e in
-  `resources/js/Support/spedizione.js` (con test): se cambia una regola vanno
-  cambiate entrambe. La copia JS e' **una sola** e la usano sia il checkout
-  dello shop sia quello dell'asta — quando quest'ultimo aveva la sua, e' rimasto
-  indietro alle fasce e mostrava al vincitore una spedizione diversa da quella
-  che l'ordine gli addebitava.
+  scritto una volta sola**, in `ShippingZone::calculateShippingCost`: i due
+  checkout (shop e asta) ricevono per ogni zona il `costo_spedizione` gia'
+  calcolato sul carrello o sull'offerta, e il client sceglie solo la zona.
+  Fino al 01/10/2026 c'era una copia in JavaScript, e una terza nel checkout
+  dell'asta era rimasta indietro alle fasce: il vincitore vedeva una
+  spedizione diversa da quella che l'ordine gli addebitava. Non reintrodurre
+  il conto nel client.
 - **Gli articoli collegati sono a senso unico e non passano dalla cache.**
   Mettere B sotto A non mette A sotto B (e' il cross-selling di WooCommerce da
   cui arriva la richiesta). La cache di mezz'ora resta solo sul ripiego

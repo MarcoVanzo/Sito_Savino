@@ -72,7 +72,10 @@ class GalleryImage extends Model implements HasMedia
             ->withTimestamps();
     }
 
-    public function staffMembers()
+    /**
+     * @return MorphToMany<StaffMember, $this>
+     */
+    public function staffMembers(): MorphToMany
     {
         return $this->morphedByMany(StaffMember::class, 'person', 'gallery_image_person')
             ->withPivot('confidence_score')

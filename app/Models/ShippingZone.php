@@ -102,7 +102,7 @@ class ShippingZone extends Model
     {
         // La soglia arriva dal cast decimale come stringa: "0.00" e' vera per
         // PHP, e una soglia salvata a zero regalava la spedizione a ogni
-        // ordine. Zero o vuota vale "nessuna soglia", come in spedizione.js.
+        // ordine. Zero o vuota vale "nessuna soglia".
         $soglia = (float) ($this->free_threshold ?? 0);
 
         if ($soglia > 0 && $subtotal >= $soglia) {

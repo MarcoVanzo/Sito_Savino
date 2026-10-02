@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\GalleryImageResource\Pages;
 
 use App\Filament\Resources\GalleryImageResource;
+use App\Models\GalleryImage;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
@@ -25,8 +26,13 @@ class EditGalleryImage extends EditRecord
     protected function afterSave(): void
     {
         $data = $this->data;
+        $immagine = $this->getRecord();
 
-        $this->record->players()->sync($data['players'] ?? []);
-        $this->record->staffMembers()->sync($data['staff_members'] ?? []);
+        if (! $immagine instanceof GalleryImage) {
+            return;
+        }
+
+        $immagine->players()->sync($data['players'] ?? []);
+        $immagine->staffMembers()->sync($data['staff_members'] ?? []);
     }
 }

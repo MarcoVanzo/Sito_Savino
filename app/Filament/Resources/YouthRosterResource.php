@@ -112,8 +112,8 @@ class YouthRosterResource extends Resource
                             ->fetchFileInformation(false)
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth(1200)
-                            ->imageResizeTargetHeight(1200)
+                            ->imageResizeTargetWidth('1200')
+                            ->imageResizeTargetHeight('1200')
                             ->imageResizeUpscale(false),
                         SpatieMediaLibraryFileUpload::make('action_photos')
                             ->label('Foto in Azione')
@@ -127,8 +127,8 @@ class YouthRosterResource extends Resource
                             ->fetchFileInformation(false)
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth(1200)
-                            ->imageResizeTargetHeight(1200)
+                            ->imageResizeTargetWidth('1200')
+                            ->imageResizeTargetHeight('1200')
                             ->imageResizeUpscale(false)
                             ->helperText('Puoi caricare più foto contemporaneamente.'),
                     ])->columns(2),

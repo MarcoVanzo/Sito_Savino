@@ -2,7 +2,6 @@
 # Balanced between strictness and pragmatism for a Laravel + Filament project
 includes:
     - vendor/larastan/larastan/extension.neon
-    - phpstan-baseline.neon
 
 parameters:
     paths:
@@ -32,7 +31,6 @@ parameters:
     # monodirezionale: le voci restavano valide anche dopo che l'errore era stato
     # corretto, e continuavano a coprire codice nuovo scritto nello stesso punto.
     # Con true, una voce che non corrisponde più a nulla fa fallire l'analisi e va
-    # rimossa: la baseline si svuota da sola man mano che il debito viene ripagato.
-    # Conseguenza operativa: dopo un refactoring va rigenerata con
-    #   vendor/bin/phpstan analyse --generate-baseline --memory-limit=512M
+    # rimossa. La baseline è stata svuotata e tolta il 01/10/2026: un errore nuovo
+    # si corregge, non si rimanda in un file che nessuno rilegge.
     reportUnmatchedIgnoredErrors: true

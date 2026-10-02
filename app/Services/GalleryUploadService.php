@@ -24,7 +24,7 @@ class GalleryUploadService
             return;
         }
 
-        $disk = $component->getDiskName() ?? config('filesystems.default');
+        $disk = $component->getDiskName();
         $duplicates = 0;
         $uploaded = 0;
 
