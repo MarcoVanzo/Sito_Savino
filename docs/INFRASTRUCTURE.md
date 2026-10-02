@@ -1,18 +1,23 @@
 # Documentazione Tecnica Infrastruttura — Savino Del Bene Volley
 
-> Ultimo aggiornamento: 23 settembre 2026
+> Ultimo aggiornamento: 1 ottobre 2026
+> Versione: 3.0
 >
-> Il sito oggi risponde solo su `seashell-app-47mmf.ondigitalocean.app`. Il passaggio
-> di `savinodelbenevolley.it` è fissato al **1 ottobre 2026** e ha una procedura sua:
-> [`docs/GO_LIVE.md`](GO_LIVE.md) (`php artisan verifica:lancio` dice cosa manca).
->
-> La versione stampabile `docs/INFRASTRUCTURE.html` si rigenera da questo file con
-> `python3 scripts/genera-infrastructure-html.py`: non si modifica a mano.
+Questo documento descrive come è costruita e come funziona l'infrastruttura che
+serve il sito **savinodelbenevolley.it**, il suo pannello di gestione (CMS), lo
+shop e le aste: componenti, servizi esterni, rilascio delle versioni, costi,
+backup, sicurezza e avvisi. Fotografa lo stato al 1 ottobre 2026, giorno in cui
+il dominio è passato dal vecchio sito WordPress a questa piattaforma
+(procedura in `docs/GO_LIVE.md`).
+
+<!-- La versione stampabile docs/INFRASTRUCTURE.html si rigenera da questo file con
+python3 scripts/genera-infrastructure-html.py: non si modifica a mano. -->
 
 ---
 
 ## Indice
 
+- [Sintesi per la direzione](#sintesi-per-la-direzione)
 1. [Panoramica Architettura](#1-panoramica-architettura)
 2. [Stack Tecnologico](#2-stack-tecnologico)
 3. [Servizi DigitalOcean — Dettaglio](#3-servizi-digitalocean--dettaglio)
@@ -22,6 +27,57 @@
 7. [Performance e OPcache](#7-performance-e-opcache)
 8. [Costi](#8-costi)
 9. [Backup e Sicurezza](#9-backup-e-sicurezza)
+
+---
+
+## Sintesi per la direzione
+
+### Cosa c'è in produzione
+
+Il sito pubblico, il pannello di gestione dei contenuti, lo shop e le aste
+girano su **DigitalOcean**, in un unico data center a **Francoforte** (Unione
+Europea). L'applicazione è divisa in tre componenti — sito, coda dei lavori in
+background, pianificatore — che usano lo stesso database MySQL gestito e lo
+stesso archivio dei file (Spaces). Un server a parte esegue il riconoscimento
+dei volti per l'archivio fotografico ed è raggiungibile solo dalla rete
+privata. Dal 1 ottobre 2026 il dominio `savinodelbenevolley.it` punta qui.
+
+### Costi
+
+| Voce | Importo |
+|------|---------|
+| Infrastruttura DigitalOcean (listino, IVA esclusa) | $71,43 al mese |
+| Equivalente indicativo | ~65 € al mese, ~780 € l'anno |
+| Esclusi | Commissioni Stripe e PayPal, Resend, Sentry, ActiveCampaign, eventuale traffico oltre le soglie incluse (§8) |
+
+### Continuità e backup
+
+| Cosa | Come | Stato al 1/10/2026 |
+|------|------|--------------------|
+| Database | Tre copie indipendenti: backup giornaliero di DigitalOcean (7 giorni), dump cifrato giornaliero su Spaces (90 giorni) e su Cloudflare R2, fuori da DigitalOcean | ✅ 40 dump su 40 riusciti dal 24/08 |
+| Prova di ripristino | Ogni lunedì l'ultimo dump viene ripristinato davvero in un database di prova | ✅ Riuscita il 21/09 e il 28/09 |
+| File e foto | Copia settimanale su Spaces e su R2 | ✅ Ultima il 27/09, 81.719 file |
+| Server del riconoscimento volti | Immagine giornaliera del server (7 giorni) | ✅ Attiva |
+
+### Sicurezza e controllo
+
+- Connessioni cifrate (HTTPS), segreti cifrati nella configurazione, database
+  accessibile solo dall'applicazione e da indirizzi autorizzati.
+- Content Security Policy sul sito pubblico; strumenti di statistica e
+  marketing, mappe e video caricati solo dopo il consenso del visitatore.
+- Ogni rilascio passa da test automatici prima di andare in produzione; un
+  test fallito blocca il rilascio.
+- Errori del server e del browser tracciati con Sentry; guasti (pianificatore
+  fermo, coda bloccata, negozio spento, pagamenti da rivedere) segnalati per
+  email al referente tecnico.
+
+### Limiti noti e punti aperti
+
+| Punto | Effetto | Proposta |
+|-------|---------|----------|
+| Un'istanza sola per il sito e un nodo solo per il database | Nessuna ridondanza: un guasto del componente o la manutenzione del database fermano il sito per qualche minuto | Accettabile per il traffico attuale. Se servirà, un nodo di standby per il database (richiede un piano superiore: costo da valutare sul listino) |
+| Immagini servite dall'origine di Francoforte, senza CDN | Adeguato per chi visita dall'Italia e dall'Europa; più lento da lontano | Attivare il CDN di Spaces se cresce il traffico estero (§3.5) |
+| Chiavi di ActiveCampaign e di Spaces rimaste nella cronologia del repository pubblico | Chi le trova può usarle finché non vengono sostituite | Ruotarle (la chiave applicativa `APP_KEY` è già stata ruotata il 27/09) |
 
 ---
 
@@ -67,7 +123,7 @@ l'app è agganciata con la voce `vpc:` della spec.
 | Tecnologia | Versione | Ruolo |
 |-----------|---------|-------|
 | **PHP** | `^8.4` (`composer.json`; in locale 8.5) | Linguaggio backend |
-| **Laravel** | 13.17.0 | Framework MVC |
+| **Laravel** | 13.34.0 | Framework MVC |
 | **Filament** | 3.3.54 | Pannello admin (CMS) |
 | **Inertia.js** | 2.0 (`inertia-laravel` 2.0.24) | Bridge server↔client (SSR non attivo, vedi §6) |
 | **MySQL** | 8.4 LTS | Database relazionale |
@@ -80,7 +136,7 @@ l'app è agganciata con la voce `vpc:` della spec.
 |-----------|---------|-------|
 | **Vue.js** | 3.x | Framework UI (via Inertia) |
 | **Vite** | 8.x | Bundler assets |
-| **Node.js** | ≥ 20 (`engines` in `package.json`; la CI usa Node 20) | Build-time (compilazione assets client) |
+| **Node.js** | ≥ 20 (`engines` in `package.json`: la CI usa Node 20, il build su App Platform la versione scelta dal buildpack) | Build-time (compilazione assets client) |
 | **Tailwind CSS** | 3.4 | Styling |
 | **Font** | Montserrat, Playfair Display | Serviti dal sito (`public/fonts`, `@font-face` in `resources/css/app.css`), non dal CDN di Google |
 
@@ -90,17 +146,19 @@ l'app è agganciata con la voce `vpc:` della spec.
 |-----------|-------|
 | **Spatie Media Library** | Gestione media con conversioni automatiche |
 | **CompreFace** | Riconoscimento facciale (self-hosted) |
-| **Resend** | Invio email transazionali (pacchetto installato, ⚠️ **non ancora configurato in produzione**: senza `MAIL_MAILER=resend` + `RESEND_API_KEY` il mailer di default è `log`) |
+| **Resend** | Invio email transazionali, attivo dal 25/09/2026 (`MAIL_MAILER=resend`, mittente `noreply@savinodelbenevolley.it`, dominio verificato con DKIM sul DNS della Spa). Webhook `/api/webhooks/resend` per le email non consegnate |
 | **Ziggy** | Routing Laravel → JavaScript |
-| **Predis** | Client Redis (pronto per futuro uso) |
+| **Predis** | Client Redis (usato in sviluppo; in produzione cache, sessioni e code stanno su `database`) |
 | **Spatie Translatable** | Contenuti multilingua |
 | **Spatie Sitemap** | Generazione sitemap SEO |
 | **Sentry** | Error tracking (web, worker e scheduler, più gli errori JavaScript via `/api/diagnostica`; attivo dal 25/09/2026 con `SENTRY_LARAVEL_DSN` valorizzato). Gli errori JavaScript vanno al progetto di `SENTRY_BROWSER_DSN` (`sito-savino-browser`), con quota propria; vuoto, ripiegano su quello del server |
-| **PayPal** (REST API, `PayPalPaymentService`) | Pagamenti shop e aste, modalità `live`; `php artisan paypal:verifica` controlla credenziali e webhook |
-| **Stripe** (`stripe/stripe-php`) | Pagamenti shop — chiavi `STRIPE_*` non nello spec: il metodo non viene offerto al checkout (`PaymentGateway::configurato()`) |
+| **PayPal** (REST API, `PayPalPaymentService`) | Pagamenti shop e aste, modalità `live`; `php artisan paypal:verifica` controlla credenziali e webhook. La firma del webhook si verifica sul corpo grezzo ricevuto |
+| **Bonifico bancario** | Shop e, dal 30/09/2026, aste; accredito confermato a mano dal pannello |
+| **Stripe** (`stripe/stripe-php` 21) | Pagamenti shop e aste, **live dal 1/10/2026** (account `acct_1ULeeFATccTjPcsE`); webhook `sito-savino-shop` su `…ondigitalocean.app/api/webhooks/stripe`. Metodi accesi dalla dashboard: si conferma solo con `payment_status = paid` |
 | **ActiveCampaign** | Newsletter (iscrizioni e revoche via coda) |
 | **GA4 Data API** / **Meta Graph API** | Analytics del pannello (sito, Facebook, Instagram) — vedi `docs/ANALYTICS.md` |
 | **Lega Volley Femminile** | Calendario, risultati, classifica e tabellini, letti dalle pagine pubbliche (`app/Services/Lvf/`) |
+| **CEV** (`www-old.cev.eu`) | Calendario, risultati e classifica della Champions League, dal 27/09/2026 (`app/Services/Cev/`) |
 
 ### Repository
 
@@ -154,15 +212,16 @@ l'app è agganciata con la voce `vpc:` della spec.
                                           valori S3 vuoti)
    php artisan route:cache / view:cache / event:cache
 6. php artisan filament:optimize        → Cachea componenti Filament
-7. heroku-php-apache2 -i opcache.ini    → Avvia Apache con OPcache tuning
+7. heroku-php-apache2 -i php-config/opcache.ini public/
+                                        → Avvia Apache con OPcache tuning
 ```
 
 **Health check** (`.do/app.yaml`): App Platform interroga `/up` via HTTP
 (`App\Listeners\VerifyApplicationHealth`), che verifica database e cache.
 Uno scheduler fermo viene segnalato ma **non** fa fallire il check (riavviare
-il web non lo risolverebbe). `initial_delay_seconds: 120` è vincolante: dopo
-`cache:clear` il battito dello scheduler torna solo al giro successivo, e un
-delay più corto metterebbe l'istanza in ciclo di riavvio.
+il web non lo risolverebbe), e solo se lo stallo dura da almeno 120 s.
+`initial_delay_seconds: 120` lascia margine all'avvio (migrazioni, seeder,
+cache di configurazione, rotte e viste) prima del primo controllo.
 
 > Lo scheduler **non gira più dentro il container web**: ha un componente
 > dedicato (vedi §3.3). Prima era avviato in background da `start.sh` e, se
@@ -185,7 +244,7 @@ delay più corto metterebbe l'istanza in ciclo di riavvio.
 **Comportamento:**
 - Processa le code `default` e `ai` (in quest'ordine di priorità)
 - Controlla la tabella `jobs` ogni **3 secondi**
-- Se un job fallisce, **riprova fino a 3 volte**; attese e timeout li decide il
+- Un job che fallisce ha **fino a 3 tentativi in tutto** (o quanti ne dichiara il job); attese e timeout li decide il
   singolo job (`AnalyzeGalleryImageJob`: 120 s, backoff 30/60 s; newsletter:
   backoff 10/30/90 s). Senza un valore proprio vale il timeout di serie di
   `queue:work`, **60 s**: il comando non passa `--timeout`
@@ -207,7 +266,7 @@ delay più corto metterebbe l'istanza in ciclo di riavvio.
 | `PerformConversionsJob` (Spatie) | Upload di un media | Conversioni immagine; richiede GD (§3.5) |
 | `SyncNewsletterToActiveCampaign` | Iscrizione newsletter | Sincronizza il contatto su ActiveCampaign (coda `default`) |
 | `UnsubscribeNewsletterFromActiveCampaign` | Disiscrizione o cancellazione di un iscritto | Porta la revoca su ActiveCampaign: status 2 sulla lista, oppure cancellazione del contatto se la richiesta è di cancellazione dati (coda `default`) |
-| Mail transazionali | Ordini, aste, rimborsi | `Mail::to(...)->queue(...)` — oggi finiscono nel log: nessun mailer configurato (vedi §5) |
+| Mail transazionali | Ordini, aste, rimborsi, avviso di nuovo ordine alla società | `Mail::to(...)->queue(...)`, spedite via Resend (vedi §5). La ricevuta del recesso parte invece in modo sincrono |
 
 **Flusso:**
 
@@ -232,8 +291,8 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 
 **Comportamento:**
 - Il primo `scheduler:beat` esplicito scrive subito il battito nella cache
-  condivisa: senza, l'health check del web resterebbe in rosso per un minuto
-  a ogni riavvio di questo componente.
+  condivisa: senza, dopo ogni riavvio di questo componente `/up` vedrebbe il
+  battito assente e comincerebbe a contare lo stallo.
 - Il battito (`scheduler:beat`, ogni minuto) è letto dall'health check `/up`
   del web: se lo scheduler muore, il problema viene segnalato invece di
   restare silenzioso.
@@ -254,23 +313,24 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 | Nodi | 1 (singolo, no replica) |
 | Region | `fra1` (Frankfurt) |
 | Tipo | Managed (DigitalOcean gestisce backup, aggiornamenti, monitoring) |
-| Connessione | Endpoint pubblico TLS (porta 25060) filtrato dalle **Trusted Sources**: l'app `sito-savino` e l'IP di sviluppo. Il backup aggiunge l'IP del runner GitHub per la durata del dump e lo rimuove alla fine, anche su errore |
+| Connessione | Endpoint pubblico TLS (porta 25060) filtrato dalle **Trusted Sources**: l'app `sito-savino` e gli IP di sviluppo autorizzati. Il backup aggiunge l'IP del runner GitHub per la durata del dump e lo rimuove alla fine, anche su errore |
 | Nome cluster | `sito-savino-db` |
 
 **Dati contenuti (principali):**
 
 | Categoria | Tabelle | Esempi |
 |-----------|---------|--------|
-| Contenuti | posts, pages, categories, hero_slides, site_settings | News (941 storiche + import orario da WordPress), pagine CMS, impostazioni |
+| Contenuti | posts, pages, categories, hero_slides, site_settings, eventi | News (941 storiche + quelle riallineate da `wp-json` fino al 1/10), pagine CMS, impostazioni, eventi della homepage |
 | Squadra | players, staff_members, rosters, player_stats, game_player_stats | Rose, statistiche stagionali ricostruite dai tabellini |
-| Partite | games, seasons, teams, team_lvf_club_ids | Calendario, risultati, classifiche (sync Lega) |
+| Partite | games, seasons, teams, team_lvf_club_ids | Calendario, risultati, classifiche (sync Lega e CEV) |
 | Galleria | gallery_events, gallery_images, gallery_image_person | Eventi foto, tag delle atlete (manuali e AI) |
-| Shop | products, product_categories, orders, coupons, shipping_zones, stock_movements | Prodotti, ordini, codici sconto, fasce di peso |
+| Shop | products, product_categories, product_category_product, storico_prezzi, orders, coupons, shipping_zones, stock_movements | Prodotti (anche in più categorie), ordini, codici sconto, fasce di peso, storico prezzi (Omnibus) |
+| Consumatori | versioni_condizioni, richieste_di_recesso | Testo delle condizioni accettate da ogni ordine, dichiarazioni di recesso (non si cancellano dal pannello) |
 | Aste | auctions, bids | Aste benefiche e offerte |
 | Sponsor | sponsors | Loghi e link partner |
 | Analytics | web_analytics_daily, social_insights_daily, social_accounts | Serie giornaliere GA4 e Meta (`docs/ANALYTICS.md`) |
-| Privacy | consensi_cookie, contact_messages | Prove di consenso (12 mesi), messaggi e accrediti (24 mesi) |
-| Sistema | users, activity_logs, jobs, job_batches, cache, sessions, menu_items | Utenti, log, code, navigazione |
+| Privacy | consensi_cookie, contact_messages, newsletter_subscribers | Prove di consenso (12 mesi), messaggi e accrediti (24 mesi), iscritti alla newsletter |
+| Sistema | users, activity_logs, jobs, job_batches, cache, cache_persistente, sessions, menu_items | Utenti, log, code, navigazione |
 | Media | media (Spatie) | Metadati file caricati |
 
 **Backup:** giornaliero gestito da DigitalOcean, più il dump cifrato su Spaces e R2 (§9).
@@ -301,12 +361,12 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 | Galleria | Foto eventi, partite |
 | Shop | Immagini prodotti |
 | Sponsor | Loghi partner |
-| Media Library | Conversioni Spatie (thumbnail, webp, responsive) |
+| Media Library | Conversioni Spatie: `thumb` (400 px) e `card` (600 px) su tutti i modelli, più `lightbox`, `detail`, `hero`, `zoom`, `og-image` secondo il modello |
 
 **Come arriva un'immagine al browser:**
 1. L'admin carica un'immagine nel CMS
 2. Laravel la salva su Spaces via API S3
-3. Spatie Media Library genera le conversioni in coda (thumbnail, webp)
+3. Spatie Media Library genera le conversioni (`thumb`, `card`…), quasi tutte in coda; `zoom` e `og-image` dei prodotti subito, sul web
 4. Il sito pubblico la chiede **direttamente all'origine di Frankfurt**: gli
    indirizzi nascono da `AWS_URL`, che punta all'endpoint non-CDN. Il
    `Cache-Control` che `media:fix-remote-metadata` scrive sui file vale per la
@@ -322,25 +382,23 @@ le immagini con `<img>`, che non chiede permessi. Il pannello no: FilePond,
 nei campi di upload di Filament e Media Library, **scarica con `fetch()`** i
 file già caricati per mostrarne l'anteprima, e una richiesta cross-origin
 verso Spaces passa solo se il bucket la ammette. La CSP del pannello
-(`connect-src` con l'host di Spaces, #105) è la metà nostra; l'altra metà è
+(`connect-src` con l'host di Spaces) è la metà nostra; l'altra metà è
 la regola CORS del bucket, che **non sta nel repository né nella spec** e si
 cambia dal pannello DigitalOcean (Spaces → `sito-savino-assets-2026` →
 Settings → CORS). Senza, le foto dei prodotti restano in "Caricamento" e non
 si possono modificare, senza nessun errore lato server.
 
-Stato letto il 26/09/2026 con richieste di preflight (`OPTIONS` con
+Stato letto il 1/10/2026 con richieste di preflight (`OPTIONS` con
 `Origin`), in sola lettura:
 
 | Origine | Esito |
 | --- | --- |
-| `https://seashell-app-47mmf.ondigitalocean.app` | ammessa (GET, HEAD), `max-age` 86400 |
-| `http://localhost:8000` | ammessa (GET) |
-| `https://savinodelbenevolley.it`, `https://www.savinodelbenevolley.it` | **rifiutate** (403) |
+| `https://savinodelbenevolley.it` | ammessa (200) |
+| `https://seashell-app-47mmf.ondigitalocean.app` | ammessa (GET, HEAD), `max-age` 86400 (lettura del 26/09) |
+| `http://localhost:8000` | ammessa (GET) (lettura del 26/09) |
+| `https://www.savinodelbenevolley.it` | rifiutata (403): innocuo, `www.` manda con 301 al dominio e il pannello non vi si apre mai |
 
-Il giorno del cambio dominio le due origini nuove vanno aggiunte alle
-AllowedOrigins (metodi GET e HEAD, come l'anteprima): è un passo di
-`docs/GO_LIVE.md`. L'origine `ondigitalocean.app` resta, perché l'indirizzo di
-anteprima continua a rispondere. Per verificare dopo la modifica:
+Per verificare:
 
 ```
 curl -s -D - -o /dev/null -X OPTIONS \
@@ -404,13 +462,18 @@ soglie di tag e di "da rivedere") stanno in `CLAUDE.md` §12-ter.
    ai_analyzed_at su gallery_images
 ```
 
-**Perché 4GB RAM:** CompreFace è un'applicazione Java (Spring Boot) che carica in memoria modelli di deep learning per il riconoscimento facciale. Il modello + JVM + API server richiedono circa 2-3 GB di RAM operativa.
+**Perché 4 GB di RAM:** CompreFace gira in più container: API e amministrazione in Java (Spring Boot), il servizio `compreface-core` in Python che tiene in memoria i modelli di rilevamento e riconoscimento, più Postgres e il frontend. Insieme richiedono circa 2-3 GB di RAM operativa.
 
 ---
 
 ## 4. Flusso delle Richieste
 
 ### 4.1 Visita sito pubblico (es. `/news`)
+
+Prima di tutto `PortaSullIndirizzoDelSito` manda con 301 le GET e HEAD
+arrivate su `www.` o su `*.ondigitalocean.app` all'host di `APP_URL`
+(`savinodelbenevolley.it`). POST, `api/*` (webhook di Stripe, PayPal e Resend)
+e `/up` restano dove sono.
 
 ```
 Utente → HTTPS → App Web → CachePublicResponse
@@ -444,7 +507,7 @@ sono quindi il caso migliore, non quello tipico.
 2. App Web                    → Salva immagine su Spaces S3
 3. App Web                    → INSERT in gallery_images (MySQL)
 4. App Web                    → INSERT in jobs (MySQL) — accoda job
-5. App Web                    → Risponde "Foto caricata ✅"
+5. App Web                    → Risponde "Foto caricata"
 6. (in background) Worker     → Preleva job dalla coda
 7. Worker                     → Scarica immagine da S3
 8. Worker                     → POST a CompreFace (:8000)
@@ -464,7 +527,8 @@ sono quindi il caso migliore, non quello tipico.
 | `APP_ENV` | `production` | Ambiente di esecuzione |
 | `APP_DEBUG` | `false` | Debug disattivato |
 | `APP_KEY` | 🔒 secret | Chiave di cifratura Laravel |
-| `APP_URL` | `https://${APP_DOMAIN}` | URL base. Segue il dominio della spec: per questo `domains:` si aggiunge solo il giorno del passaggio (`docs/GO_LIVE.md`) |
+| `APP_URL` | `https://${APP_DOMAIN}` | URL base: segue il dominio PRIMARY della spec (`savinodelbenevolley.it` dal 1/10/2026; `www.` è ALIAS) |
+| `TRUSTED_HOSTS` | `savinodelbenevolley.it,seashell-app-47mmf.ondigitalocean.app` | L'host di `APP_URL` non si aggiunge da solo; su `ondigitalocean.app` restano webhook (Resend, Stripe, PayPal) e sorveglianza |
 | `APP_LOCALE` | `it` | Lingua predefinita |
 | `DB_CONNECTION` | `mysql` | Driver database |
 | `DB_HOST` | `${sito-savino-db.HOSTNAME}` | Host DB (injected da DO) |
@@ -490,7 +554,9 @@ sono quindi il caso migliore, non quello tipico.
 | `INERTIA_SSR_ENABLED` | `false` | SSR **disattivato** (non esiste `resources/js/ssr.js` né bundle SSR) |
 | `LOG_CHANNEL` | `stderr` | Log su stderr (visibili in DO dashboard) |
 | `LOG_LEVEL` | `error` | Solo errori: i log DO sono effimeri, servono da contesto per Sentry |
-| `SENTRY_LARAVEL_DSN` | `""` (vuoto) | Error tracking — **spento** finché il DSN non viene valorizzato (cifrato, vedi commento nello spec) |
+| `SENTRY_LARAVEL_DSN` | DSN del progetto server (regione UE) | Error tracking, attivo dal 25/09/2026 |
+| `SENTRY_BROWSER_DSN` | DSN di `sito-savino-browser` | Errori JavaScript, quota separata; vuoto ripiega sul DSN del server |
+| `SENTRY_SEND_DEFAULT_PII` | `false` | Nessun dato personale a Sentry: cambiarlo vuol dire cambiare prima l'informativa |
 | `SENTRY_ENVIRONMENT` | `production` | Ambiente riportato a Sentry |
 | `SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Campionamento performance tracing |
 | `PREVIEW_AUTH_ENABLED` | `false` | Basic auth di pre-lancio **spenta**: il sito è pubblico |
@@ -501,18 +567,25 @@ sono quindi il caso migliore, non quello tipico.
 | `ACTIVECAMPAIGN_API_KEY` | 🔒 secret cifrato | Oggi cifrata (`EV[1:…]`); il commento nello spec la dà ancora da **ruotare**, perché il valore è stato in chiaro nel repository |
 | `GA4_SERVICE_ACCOUNT_JSON` | 🔒 secret cifrato | Service account Google (base64) per la GA4 Data API |
 | `META_APP_ID` / `META_CONFIG_ID` | in chiaro | App Meta e configurazione Login for Business (non segreti) |
-| `META_APP_SECRET` | 🔒 secret, **a livello di app** | Unica variabile dichiarata sopra i componenti: vale per web, worker e scheduler |
 | `PAYPAL_CLIENT_ID` / `PAYPAL_MODE` | in chiaro / `live` | Credenziale pubblica e ambiente |
 | `PAYPAL_CLIENT_SECRET` | 🔒 secret cifrato | |
 | `PAYPAL_WEBHOOK_ID` | in chiaro | Entra nella verifica della firma: al cambio di dominio si **modifica l'URL** del webhook esistente, non se ne crea uno nuovo |
 
-> ⚠️ **Variabili ancora assenti dallo spec** (`.do/app.yaml`):
-> - `MAIL_MAILER` / `RESEND_API_KEY` / `MAIL_FROM_*`: senza, `config/mail.php`
->   cade su `log` e **nessuna email esce** (ordini, aste, rimborsi, reset password).
->   Oltre alle variabili serve il DKIM di Resend sul DNS della Spa, che pubblica
->   `DMARC p=reject`: procedura in `docs/GO_LIVE.md` §1.
-> - `STRIPE_*`: il gateway resta nascosto al checkout finché non ci sono.
->
+### Variabili a livello d'app
+
+Dichiarate sopra i componenti nella spec: le ereditano web, worker e scheduler.
+
+| Variabile | Valore | Descrizione |
+|----------|--------|-------------|
+| `META_APP_SECRET` | 🔒 secret cifrato | Segreto dell'app Meta (OAuth sul web, sync notturno sugli altri) |
+| `MAIL_MAILER` | `resend` | Dal 25/09/2026; prima `config/mail.php` cadeva su `log` e nessuna email usciva |
+| `MAIL_FROM_ADDRESS` / `MAIL_FROM_NAME` | `noreply@savinodelbenevolley.it` / `Savino Del Bene Volley` | Il dominio deve restare verificato su Resend: il DNS della Spa pubblica `DMARC p=reject` (`docs/GO_LIVE.md` §1) |
+| `RESEND_API_KEY` | 🔒 secret cifrato | Solo invio, limitata al dominio |
+| `RESEND_WEBHOOK_SECRET` | 🔒 secret cifrato | Firma Svix delle notifiche di Resend |
+| `AVVISI_EMAIL` | `allarmi@mv-consulting.it` | Destinatari di `AvvisoTecnico` (§9, Avvisi) |
+| `STRIPE_KEY` | `pk_live_…` in chiaro | Chiave pubblicabile, live dal 1/10/2026 |
+| `STRIPE_SECRET` / `STRIPE_WEBHOOK_SECRET` | 🔒 secret cifrati | Si rigenerano dal pannello e si ricopiano da `doctl apps spec get` |
+
 > Il deploy applica lo spec del repository: un valore aggiunto solo dal pannello
 > DO viene cancellato al rilascio successivo. I segreti si scrivono dal pannello
 > con "Encrypt" e si ricopiano nello spec nella forma `EV[1:…]`.
@@ -522,8 +595,9 @@ sono quindi il caso migliore, non quello tipico.
 Web, worker e scheduler sono **tre ambienti distinti**: una variabile scritta solo
 sotto `services:` non arriva alla coda né allo scheduler. Worker e scheduler
 ripetono quindi le variabili del web (`APP_KEY`, `APP_URL`, `AWS_*`,
-`FILAMENT_FILESYSTEM_DISK`, `COMPREFACE_*`, `ACTIVECAMPAIGN_*`, `GA4_*`, `META_*`,
-`PAYPAL_*`, Sentry).
+`FILAMENT_FILESYSTEM_DISK`, `TRUSTED_HOSTS`, `COMPREFACE_*`, `ACTIVECAMPAIGN_*`,
+`GA4_*`, `META_*`, `PAYPAL_*`, Sentry). Le variabili a livello d'app (sopra) non
+vanno ripetute.
 
 Due casi reali: senza `APP_URL` le email in coda uscivano con host
 `http://localhost`; con un `APP_KEY` che si decifrava in stringa vuota (trovato
@@ -540,12 +614,14 @@ una richiesta HTTP). Controllo manuale su ciascun componente:
 ### Pipeline di deploy
 
 ```
-git push main → GitHub Actions (CI: lint, PHPStan, test) → job "deploy"
+git push main → GitHub Actions (CI: ESLint, Vitest, Pint, PHPStan, mappa dipendenze,
+                 PHPUnit, audit delle dipendenze) → job "deploy"
               → digitalocean/app_action con lo spec .do/app.yaml → Build Web + Worker + Scheduler → ACTIVE
 ```
 
 Lo spec `.do/app.yaml` del repository **sovrascrive** la configurazione dell'app
-ad ogni deploy: ogni variabile d'ambiente deve stare lì.
+ad ogni deploy: ogni variabile d'ambiente deve stare lì. Un push che tocca solo
+`*.md`, `docs/**` o `Loghi/**` non avvia né CI né deploy.
 
 ### Build Web
 
@@ -602,6 +678,7 @@ in `storage/logs/schedule-<hash>.log` (riscritto a ogni giro) e un'uscita con
 errore manda la coda dell'output per email (AvvisoTecnico, una ogni sei ore per
 comando). Il ciclo deve restare l'ultima cosa del file: un evento registrato
 dopo resterebbe muto, e `AvvisoDelPianificatoreTest` lo segnala.
+Le eccezioni arrivano comunque a Sentry (attivo dal 25/09/2026).
 
 ---
 
@@ -619,8 +696,9 @@ dopo resterebbe muto, e `AvvisoDelPianificatoreTest` lo segnala.
 | `opcache.validate_timestamps` | `0` | Non verifica se i file sono cambiati (cambiano solo al deploy) |
 | `opcache.revalidate_freq` | `0` | Frequenza check timestamps (irrilevante con validate=0) |
 | `opcache.enable_file_override` | `1` | Ottimizza file_exists/is_file via OPcache |
+| `upload_max_filesize` / `post_max_size` | `64M` / `128M` | Limiti di caricamento dal pannello (allineati a `public/.user.ini`) |
 
-### Utilizzo reale in produzione (misurato il 2 luglio 2026)
+### Utilizzo in produzione (misurato il 2 luglio 2026, prima del go-live: da rimisurare)
 
 | Risorsa | Allocata | Usata | % |
 |---------|----------|-------|---|
@@ -630,20 +708,23 @@ dopo resterebbe muto, e `AvvisoDelPianificatoreTest` lo segnala.
 | File cachati | 16.229 max | 1.640 | 10% |
 | Hit rate | — | 90.3% | — |
 
-### Benchmark TTFB (cache calde, 2 luglio 2026)
+### Tempo di risposta (TTFB)
 
-> Misure di luglio, con `curl` senza cookie: per il sito pubblico sono
-> probabilmente cache HIT di `CachePublicResponse` (§4.1), non il tempo di una
-> navigazione reale. Da rimisurare dopo il passaggio del dominio.
+> Misure con `curl` senza cookie: per il sito pubblico sono probabilmente cache
+> HIT di `CachePublicResponse` (§4.1), non il tempo di una navigazione reale.
+> Il 1/10/2026 la misura è sul dominio, dietro l'edge Cloudflare di App
+> Platform, da una linea diversa: le due colonne non sono confrontabili alla
+> lettera.
 
-| Pagina | TTFB |
-|--------|------|
-| CMS Admin `/admin/login` | **0.18s** |
-| Sito Home `/` | **0.15s** |
-| Sito Stagione `/stagione` | **0.17s** |
-| Sito News `/news` | **0.11s** |
-| TCP connect (Italia→Frankfurt) | 0.017s |
-| TLS handshake | 0.037s |
+| Pagina | TTFB 2/07 (ondigitalocean.app) | TTFB 1/10 (dominio, mediana di 3) |
+|--------|------|------|
+| CMS Admin `/admin/login` | **0.18s** | **0.32s** |
+| Sito Home `/` | **0.15s** | **0.31s** |
+| Sito Stagione `/stagione` | **0.17s** | **0.28s** |
+| Sito News `/news` | **0.11s** | **0.29s** |
+| Shop `/shop` | — | **0.27s** |
+| TCP connect | 0.017s | 0.042s |
+| TLS handshake | 0.037s | 0.118s |
 
 ### Caching layers
 
@@ -670,13 +751,13 @@ dopo resterebbe muto, e `AvvisoDelPianificatoreTest` lo segnala.
 | 4 | ⚙️ Worker | `apps-s-1vcpu-0.5gb`, fra | **$5.00** |
 | 5 | ⏱️ Scheduler | `apps-s-1vcpu-0.5gb`, fra | **$5.00** |
 | 6 | 📦 Spaces | abbonamento: 250 GB + 1 TB di traffico, **per tutti i bucket** dell'account | **$5.00** |
-| 7 | 💾 Backup droplet CompreFace | settimanali, 20% del droplet | **$4.80** |
-| | | **TOTALE** | **$69.03/mese** |
-| | | | **~€63/mese** |
-| | | | **~€760/anno** |
+| 7 | 💾 Backup droplet CompreFace | giornalieri (7 giorni), 30% del droplet | **$7.20** |
+| | | **TOTALE** | **$71.43/mese** |
+| | | | **~€65/mese** |
+| | | | **~€780/anno** |
 
-Cifre di listino: la fatturazione non è leggibile con il token di sola lettura
-(403), quindi il totale non è confrontato con una fattura.
+Cifre di listino DigitalOcean in dollari, IVA esclusa; il cambio in euro è
+indicativo. Il totale va confrontato con la fattura mensile dell'account.
 
 Voci variabili, fuori dal totale:
 - **Spaces oltre i 250 GB** ($0.02/GB): il bucket di backup
@@ -684,8 +765,14 @@ Voci variabili, fuori dal totale:
   media vi sono copiati per intero. Con dodicimila foto più le conversioni, la
   somma dei due bucket va controllata dal pannello prima di darla per inclusa.
 - **Cloudflare R2**: 10 GB gratuiti, poi a consumo; contiene dump e media.
-- **GitHub Actions**: gratuito, il repository è pubblico. Cookiebot è stato scartato
-(~30 €/mese per 1958 pagine): consenso e scansione dei cookie sono fatti in casa.
+- **GitHub Actions**: gratuito, il repository è pubblico.
+- **Servizi a consumo o con piano proprio**, fatturati fuori da DigitalOcean:
+  Resend (email), Sentry, Stripe e PayPal (commissioni sulle transazioni),
+  ActiveCampaign.
+
+Nessun costo per la gestione del consenso ai cookie: Cookiebot è stato scartato
+(~30 €/mese per 1958 pagine) e consenso, scansione e dichiarazione sono fatti in
+casa.
 
 ---
 
@@ -695,32 +782,38 @@ Voci variabili, fuori dal totale:
 
 | Componente | Backup | Frequenza | Gestione |
 |-----------|--------|-----------|----------|
-| Database MySQL | ✅ Managed | Giornaliero, ultimi 7 giorni (verificato 23/09: 8 copie, ~0,56 GB) | DigitalOcean |
-| Database MySQL | ✅ Dump GPG | Giornaliero 03:00 UTC (`backup-db.yml`) | Bucket `sito-savino-backups` (90 giorni) + copia su Cloudflare R2 |
-| Media Spaces | ✅ Copia | Settimanale, domenica 04:00 UTC (`backup-media.yml`) | Bucket `sito-savino-backups` (30 giorni) + copia su Cloudflare R2, con manifest dei file (20/09: 81.308 file) |
-| Verifica restore | ✅ Automatica | Lunedì 04:30 UTC (`verifica-restore.yml`) | Ripristina l'ultimo dump in un MySQL usa e getta; apre una issue se non torna su |
+| Database MySQL | ✅ Managed | Giornaliero, ultimi 7 giorni (verificato 1/10: uno al giorno alle 10:05 UTC, ~0,6 GB) | DigitalOcean |
+| Database MySQL | ✅ Dump GPG | Giornaliero 03:00 UTC (`backup-db.yml`; dal 24/08 al 1/10: 40 run su 40 riuscite) | Bucket `sito-savino-backups` (90 giorni) + copia su Cloudflare R2 |
+| Media Spaces | ✅ Copia | Settimanale, domenica 04:00 UTC (`backup-media.yml`; ultima il 27/09, riuscita) | Bucket `sito-savino-backups`, copia cumulativa (i file non scadono; le versioni sovrascritte dopo 30 giorni, i manifest dopo 90) + copia su Cloudflare R2 con lock di 30 giorni; manifest dei file (27/09: 81.719 file) |
+| Verifica restore | ✅ Automatica | Lunedì 04:30 UTC (`verifica-restore.yml`; 21/09 e 28/09 riuscite) | Ripristina l'ultimo dump in un MySQL usa e getta; apre una issue se non torna su |
 | Codice sorgente | ✅ Git | Ad ogni push | GitHub |
-| Droplet CompreFace | ✅ Backup DigitalOcean | Settimanale (attivati il 23/09/2026, ~$4,80/mese) | Immagine intera del droplet. È l'unica copia della face collection, cioè degli esempi appresi: le foto di addestramento non vengono conservate (`CLAUDE.md` §12-ter), e senza backup un droplet perso significherebbe riaddestrare da capo |
+| Droplet CompreFace | ✅ Backup DigitalOcean | Giornaliero, conservati 7 giorni (attivati il 23/09/2026, ~$7,20/mese) | Immagine intera del droplet. È l'unica copia della face collection, cioè degli esempi appresi: le foto di addestramento non vengono conservate (`CLAUDE.md` §12-ter), e senza backup un droplet perso significherebbe riaddestrare da capo |
 
 Il bucket di backup ha una policy che nega la cancellazione ma non la
 sovrascrittura. La copia su R2 sta fuori dal perimetro dell'account DigitalOcean
-e i giri di settembre la scrivono davvero (`R2_CHIAVI_PRESENTI: true`); che sia
-anche **immutabile** dipende dal bucket lock, che si configura su Cloudflare e
-da qui non è verificabile. Dettagli, setup e restore in [`BACKUP.md`](../BACKUP.md).
+e viene scritta a ogni giro (il 1/10 verificata la copia del dump), ed è
+**immutabile**: il bucket `sito-savino-backup-offsite` ha le regole di lock
+`retention-db` (`db/`, 90 giorni) e `retention-media` (`media/`, 30 giorni),
+gli stessi prefissi su cui scrivono i workflow. Provato il 1/10 su un file di
+prova sotto `db/` con le credenziali di amministratore dell'account: la
+sovrascrittura risponde 409 «The object is locked by the bucket policy» e la
+cancellazione non toglie il file. Dettagli, setup e restore in
+[`BACKUP.md`](../BACKUP.md).
 
 ### Sicurezza
 
 | Misura | Stato |
 |--------|-------|
 | HTTPS (TLS) | ✅ Automatico (App Platform) |
-| Accesso al DB | ✅ Trusted Sources: l'app e l'IP di chi sviluppa, più il runner del backup per la durata del dump. L'IP di sviluppo cambia spesso: quando se ne aggiunge uno nuovo il vecchio va tolto, perché resta autorizzato anche dopo che la linea l'ha riassegnato a qualcun altro. L'endpoint chiede comunque utente, password e TLS |
+| Accesso al DB | ✅ Trusted Sources: l'app e gli IP di sviluppo autorizzati, più il runner del backup per la durata del dump. L'IP di sviluppo cambia spesso: quando se ne aggiunge uno nuovo il vecchio va tolto, perché resta autorizzato anche dopo che la linea l'ha riassegnato a qualcun altro. L'endpoint chiede comunque utente, password e TLS |
 | CompreFace | ✅ API solo dalla VPC (cloud firewall `compreface-fw`). SSH aperta a internet per scelta: solo chiave (password e keyboard-interactive disattivate), fail2ban attivo. Limitarla a un IP non regge, con un IP di sviluppo che cambia più volte al giorno |
 | Content Security Policy | ✅ `SecurityHeadersMiddleware`: sito pubblico con nonce, senza `unsafe-inline`/`unsafe-eval`; il pannello li mantiene per Alpine |
-| Terze parti prima del consenso | ✅ Font serviti dal sito; GA4 e Pixel Meta solo dopo il consenso. ⚠️ Mappa e video incorporati partono ancora prima (`docs/PRIVACY.md`) |
+| Terze parti prima del consenso | ✅ Font serviti dal sito; GA4 e Pixel Meta solo dopo il consenso; mappa e video incorporati click-to-load dal 26/09/2026 (`ContenutoIncorporato.vue`) |
+| Indirizzo unico | ✅ `PortaSullIndirizzoDelSito`: GET su `www.` e `ondigitalocean.app` → 301 al dominio (POST, `api/*` e `/up` esclusi) |
 | Sessioni cifrate | ✅ `SESSION_ENCRYPT` attivo |
 | Cookie sicuri | ✅ `SESSION_SECURE_COOKIE` attivo |
 | Debug disattivato | ✅ `APP_DEBUG=false` |
-| Secret in env vars | ✅ Tutti cifrati (`EV[1:…]`) in `.do/app.yaml`. ⚠️ `ACTIVECAMPAIGN_API_KEY` è stata in chiaro nel repository pubblico: va ancora **ruotata** |
+| Segreti nelle variabili d'ambiente | ✅ Tutti i segreti sono cifrati (`EV[1:…]`) in `.do/app.yaml`; in chiaro restano solo identificativi pubblici (DSN di Sentry, chiave pubblicabile di Stripe, client id e webhook id di PayPal). ⚠️ Nella cronologia del repository pubblico sono rimasti valori in chiaro: la `APP_KEY` è stata ruotata il 27/09/2026, la chiave di ActiveCampaign e quella di accesso a Spaces vanno ruotate (Sintesi, punti aperti) |
 | Error tracking | ✅ Sentry attivo dal 25/09/2026 (server ed errori JavaScript). ⚠️ `LOG_LEVEL=error`: i warning restano fuori dai log |
 | Trust proxies | ✅ Configurato per App Platform |
 | Health check | ✅ `/up` verifica database e cache; segnala (senza far fallire) uno scheduler fermo |
@@ -728,7 +821,7 @@ da qui non è verificabile. Dettagli, setup e restore in [`BACKUP.md`](../BACKUP
 ### Task schedulati
 
 Definiti in `routes/console.php`, eseguiti dal componente **scheduler**
-dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
+dedicato (vedi §3.3). Tutti i comandi ricorrenti tranne `scheduler:beat` hanno `withoutOverlapping()`
 (lock condiviso via cache, valido anche fra istanze).
 
 | Comando | Frequenza | Scopo |
@@ -736,21 +829,24 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 | `scheduler:beat` | Ogni minuto | Battito letto dall'health check `/up`: rileva uno scheduler morto |
 | `shop:sorveglia` | Ogni 5 minuti | Negozio/aste spenti, checkout (shop o aste) senza metodi di pagamento, aste senza Stripe per la verifica della carta, coda `default` ferma, PayPal (orario): email quando cambia (§9, Avvisi) |
 | `lvf:sync` | Ogni ora | Calendario, risultati e classifica dal sito della Lega (fallimenti contati da `LvfSyncHealth`, alert ai Super Admin) |
+| `cev:sync` | Ogni ora (:30) | Calendario, risultati e classifica del girone di Champions dal portale CEV |
+| `news:importa-dal-vecchio-sito` | Tolto dallo scheduler il 2/10/2026 | Importava i comunicati dal vecchio WordPress (`wp-json`). Ultimo giro fatto a mano il 1/10 prima del cambio DNS: ora il dominio è questo sito e il comando non ha più una sorgente |
+| `prezzi:registra` | Ogni ora (:05) | Storico dei prezzi per il barrato dei 30 giorni (Omnibus); butta la vetrina quando uno sconto comincia o finisce |
 | `sitemap:generate` | Giornaliero (04:00) | Genera sitemap XML per SEO |
 | `media:fix-remote-metadata --since="3 days ago"` | Giornaliero (04:30) | Ripassa Content-Type e Cache-Control sui file recenti caricati su Spaces |
 | `social:sync-meta --days=90` | Giornaliero (03:30) | Insight Facebook/Instagram, max 120 chiamate |
 | `analytics:sync-ga4 --days=90` | Giornaliero (05:00) | Serie giornaliera del traffico GA4 |
 | `newsletter:retry-sync` | Giornaliero (05:15) | Ritenta su ActiveCampaign gli iscritti confermati non ancora sincronizzati (max 50) |
 | `RicostruisciLaCacheDellaGallery` (job) | Ogni ora (:17) | Rigenera la cache dell'archivio foto |
-| `gallery:analyze --pending --limit=600` | Ogni ora (:37) | Riconoscimento volti sulle foto non ancora analizzate |
+| `gallery:analyze --pending --limit=600 --force` | Ogni ora (:37) | Riconoscimento volti sulle foto non ancora analizzate |
 | `volti:riconcilia-contatori` | Giornaliero (04:15) | Riallinea `players.ai_face_examples` a CompreFace |
-| `activity-log:prune --days=180` | Settimanale | Pulisce log attività > 6 mesi |
-| `consensi:pota` | Settimanale | Prove di consenso cookie oltre i 12 mesi |
-| `messaggi:pota` | Settimanale | Messaggi e accrediti oltre i 24 mesi (dalla data del messaggio) |
-| `model:prune` | Giornaliero | Pulisce modelli scaduti |
+| `activity-log:prune --days=180 --force` | Settimanale (domenica 00:00) | Pulisce log attività > 6 mesi |
+| `consensi:pota` | Settimanale (domenica 00:00) | Prove di consenso cookie oltre i 12 mesi |
+| `messaggi:pota` | Settimanale (domenica 00:00) | Messaggi e accrediti oltre i 24 mesi (dalla data del messaggio) |
+| `model:prune` | Giornaliero | Carrelli scaduti da più di 7 giorni, iscrizioni alla newsletter non confermate entro 30 giorni, dichiarazioni di recesso oltre la conservazione (12 mesi; 10 anni se legate a un ordine) |
 | `queue:prune-batches` / `queue:prune-failed` | Giornaliero | Batch rimasti aperti (72 h) e job falliti (30 giorni) |
 | `carts:prune-expired` | Giornaliero (03:00) | Elimina i carrelli scaduti |
-| `order:check-unpaid` | Ogni 10 minuti | Annulla ordini non pagati e rilascia lo stock |
+| `order:check-unpaid` | Ogni 10 minuti | Annulla gli ordini non pagati (carta e PayPal dopo un'ora, bonifico dopo i giorni di `shop.bank_transfer_expiry_days`), manda il promemoria del bonifico e rilascia lo stock |
 | `auction:activate` | Ogni minuto | Attiva le aste programmate |
 | `auction:close` | Ogni minuto | Chiude le aste scadute e notifica i vincitori |
 | `auction:check-payments` | Oraria | Verifica i pagamenti dei vincitori d'asta |
@@ -760,12 +856,13 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno `withoutOverlapping()`
 
 | Workflow | Quando | Scopo |
 |----------|--------|-------|
-| `ci.yml` | Push e PR; lunedì 05:00 UTC | Lint, PHPStan, test, SonarCloud; su `main` il job `deploy` applica lo spec |
+| `ci.yml` | Push su `main` (esclusi i soli `*.md`, `docs/**`, `Loghi/**`), PR verso `main`, lunedì 05:00 UTC | ESLint, Vitest, Pint, PHPStan, mappa delle dipendenze, PHPUnit, audit di Composer e npm; SonarCloud e soglie di copertura solo su PR e run schedulate; su `main` il job `deploy` applica lo spec |
 | `backup-db.yml` | Ogni giorno 03:00 UTC | Dump cifrato del database (§9) |
 | `backup-media.yml` | Domenica 04:00 UTC | Copia dei media di Spaces (§9) |
 | `verifica-restore.yml` | Lunedì 04:30 UTC | Prova di ripristino dell'ultimo dump |
 | `scansione-cookie.yml` | Lunedì 04:30 UTC | Playwright sul sito: aggiorna `database/data/cookie_rilevati.json` e va in rosso se qualcosa parte prima del consenso |
-| `sorveglianza-sito.yml` | Ogni ora, al minuto 17 (puntualità non garantita da GitHub) | `/up`, `/` e `/shop` da fuori DigitalOcean; in rosso se il sito non risponde o resta sopra i 6 s per due richieste di fila (§9, Avvisi) |
+| `scansione-accessibilita.yml` | Lunedì 05:00 UTC | axe-core sul sito (sole letture) e sui flussi d'acquisto in CI; rosso sulle violazioni gravi (WCAG 2.1 AA, European Accessibility Act) |
+| `sorveglianza-sito.yml` | Ogni ora, al minuto 17 (in pratica fra :20 e :35: GitHub non garantisce la puntualità) | `/up`, `/` e `/shop` da fuori DigitalOcean; in rosso se il sito non risponde o resta sopra i 6 s per due richieste di fila (§9, Avvisi) |
 
 ### Avvisi
 
@@ -774,10 +871,10 @@ Sei livelli, ciascuno per ciò che gli altri non possono vedere:
 | Livello | Vede | Arriva a |
 |---------|------|----------|
 | `sorveglianza-sito.yml` (GitHub) | Sito irraggiungibile, giù del tutto o lento | Email di GitHub a chi ha modificato per ultimo il workflow |
-| Monitoring DO sul database | CPU e memoria oltre il 90%, disco oltre l'80% | `marco@` (`doctl monitoring alert list`) |
+| Monitoring DO sul database | CPU e memoria oltre il 90%, disco oltre l'80% | Referente tecnico (MV Consulting) |
 | Webhook di Resend (`/api/webhooks/resend`) | Email ai clienti rimbalzate, segnalate come spam o non spedite | AvvisoTecnico → `allarmi@` |
-| Alert di App Platform (`alerts:` nella spec) | Deploy fallito, dominio non attivo, container che riparte in ciclo, memoria del web | Destinazioni impostate con `doctl apps update-alert-destinations` |
-| `App\Services\AvvisoTecnico` | Pianificatore fermo, comandi pianificati usciti con errore, job falliti (non coda `ai`), ordini da rivedere, `shop:sorveglia` | `AVVISI_EMAIL` (spec, livello d'app) via Resend |
+| Alert di App Platform (`alerts:` nella spec) | Deploy fallito, dominio non attivo, container che riparte in ciclo, memoria del web | Referente tecnico (MV Consulting), con `doctl apps update-alert-destinations` |
+| `App\Services\AvvisoTecnico` | Pianificatore fermo, comandi pianificati usciti con errore, job falliti (non coda `ai`), ordini da rivedere, contestazioni Stripe, `shop:sorveglia` | `AVVISI_EMAIL` (spec, livello d'app) via Resend |
 | Sentry | Eccezioni del server e errori JavaScript del browser (via `/api/diagnostica`) | Regola del progetto: issue nuove, regressioni, alta priorità → `allarmi@` (email routing dell'account) |
 
 Le regole di App Platform stanno nella spec, gli indirizzi no: dopo un
@@ -809,13 +906,19 @@ altri indirizzi (newsletter, ricevute del recesso) li scrive chiunque, e
 finiscono nel log senza l'indirizzo.
 
 **Limiti di `sorveglianza-sito.yml`.** È una rete di sicurezza, non un
-monitor: gira **una volta l'ora** (dal 26/09/2026; ogni dieci minuti costava
-circa 4.300 minuti di Actions al mese, più dell'intero conto da 3.000 che
-Klubia, Savino e MV-ERP esauriscono già), quindi un sito giù può restare
-senza avviso fino a un'ora; GitHub manda un'email a **ogni** run fallita e
-**nessuna** alla guarigione; la puntualità del cron non è garantita (10-15
-minuti di ritardo nelle ore di punta); e GitHub **disattiva i workflow
+monitor: gira **una volta l'ora** (dal 26/09/2026), quindi un sito giù può
+restare senza avviso fino a un'ora; GitHub manda un'email a **ogni** run
+fallita e **nessuna** alla guarigione; la puntualità del cron non è garantita
+(10-20 minuti di ritardo nelle ore di punta); e GitHub **disattiva i workflow
 schedulati dopo 60 giorni** senza attività nel repository, senza avvisare chi
-li riceve. **Per un controllo più fitto serve un monitor esterno gratuito**
-(UptimeRobot, Better Stack: controllo ogni 5 minuti nel piano gratuito) su
-`/up`, con avviso alla caduta e al ritorno: non costa minuti di Actions.
+li riceve.
+
+**Il controllo fitto è l'uptime check di DigitalOcean** `sito-savino-up`
+(dal 01/10/2026, account Savino, `doctl --context savino monitoring uptime
+list`): interroga `https://savinodelbenevolley.it/up` da `eu_west` e
+`us_east`, fuori dall'app, e avvisa per email alla caduta e al ritorno. Tre
+regole: `sito-savino-down` (giù da 2 minuti), `sito-savino-latenza` (oltre
+6 s per 5 minuti, la soglia del workflow) e `sito-savino-ssl` (certificato in
+scadenza entro 14 giorni). Le email vanno a `marco@mv-consulting.it`: come per
+gli alert dell'app, DigitalOcean le manda solo a membri del team. Il workflow
+orario resta come seconda strada, indipendente da DigitalOcean.
