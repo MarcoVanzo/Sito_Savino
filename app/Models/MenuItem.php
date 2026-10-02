@@ -8,6 +8,8 @@ use App\Models\Traits\LogsActivity;
 use App\Support\DocumentiLegali;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Spatie\MediaLibrary\HasMedia;
@@ -48,17 +50,17 @@ class MenuItem extends Model implements HasMedia
     private const PREFISSO_DOCUMENTO = 'documento:';
 
     /**
-     * Parent menu item.
+     * @return BelongsTo<MenuItem, $this>
      */
-    public function parent()
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(MenuItem::class, 'parent_id');
     }
 
     /**
-     * Children menu items.
+     * @return HasMany<MenuItem, $this>
      */
-    public function children()
+    public function children(): HasMany
     {
         return $this->hasMany(MenuItem::class, 'parent_id')
             ->where('is_active', true)

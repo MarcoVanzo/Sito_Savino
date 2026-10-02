@@ -212,7 +212,9 @@ class GalleryImagesRelationManager extends RelationManager
                         ->requiresConfirmation()
                         ->action(function (Collection $records) {
                             foreach ($records as $record) {
-                                AnalyzeGalleryImageJob::dispatch($record);
+                                if ($record instanceof GalleryImage) {
+                                    AnalyzeGalleryImageJob::dispatch($record);
+                                }
                             }
                             Notification::make()
                                 ->title('Analisi avviata')

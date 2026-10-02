@@ -32,6 +32,18 @@ class LvfDocument
     }
 
     /**
+     * Primo nodo che risponde all'espressione, o null. `query()` restituisce
+     * false su un'espressione malformata: il nullsafe sul risultato non lo
+     * copre (`false?->item()` e' un errore fatale).
+     */
+    public function primo(string $espressione, ?DOMNode $contesto = null): ?DOMNode
+    {
+        $nodi = $this->xpath->query($espressione, $contesto);
+
+        return $nodi === false ? null : $nodi->item(0);
+    }
+
+    /**
      * Testo di un nodo con spazi normalizzati.
      */
     public static function text(?DOMNode $node): string

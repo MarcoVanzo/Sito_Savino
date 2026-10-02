@@ -124,26 +124,27 @@ class AuctionCheckoutController extends Controller
         // Carica l'asta con product e media
         $auction->load(['product.media']);
 
-        // Le fasce arrivano al client gia' ordinate e ripulite, come nel
-        // checkout dello shop: il costo mostrato al vincitore e' lo stesso che
-        // gli viene addebitato, e con la sola `flat_rate` divergeva appena una
-        // zona prendeva le fasce di peso.
+        // Il costo di ogni zona lo calcola il server, con lo stesso conto che
+        // addebita l'ordine (store()): offerta e peso del collo sono fissi, e
+        // al client resta solo la scelta della zona. Quando il conto era
+        // ripetuto nel client, il vincitore vedeva la tariffa base mentre
+        // l'ordine applicava le fasce di peso.
+        $winningBid = $this->auctionService->winningAmountFor($auction);
+        $peso = $auction->product?->pesoPerLaSpedizione() ?? 0.0;
+
         $shippingZones = ShippingZone::active()->ordered()->get()
-            // array_merge e non l'unione con `+`: `toArray()` contiene gia'
-            // `weight_rates` grezze e l'unione non sovrascrive le chiavi
-            // presenti, lasciando al client l'elenco non ordinato.
-            ->map(fn (ShippingZone $zone): array => array_merge($zone->toArray(), [
-                'weight_rates' => $zone->fasceOrdinate(),
-            ]))
+            ->map(fn (ShippingZone $zone): array => [
+                ...$zone->toArray(),
+                'costo_spedizione' => $zone->calculateShippingCost($winningBid, $peso),
+            ])
             ->all();
 
         return Inertia::render('Public/Shop/Auctions/Checkout', [
             'auction' => $auction,
             'product' => $auction->product,
             'shippingZones' => $shippingZones,
-            'pesoDelCollo' => $auction->product?->pesoPerLaSpedizione() ?? 0.0,
             'checkoutDeadline' => $auction->winner_checkout_deadline?->toIso8601String(),
-            'winningBid' => $this->auctionService->winningAmountFor($auction),
+            'winningBid' => $winningBid,
             // Solo i metodi con le credenziali e attivi dal pannello, gli
             // stessi del checkout dello shop (PaymentGateway::offertiAlleAste).
             'paymentGateways' => array_map(fn (PaymentGateway $g): array => [

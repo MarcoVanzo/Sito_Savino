@@ -111,7 +111,7 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         $this->assertSame(1.0, app(CartService::class)->getCartWeight());
     }
 
-    public function test_il_checkout_riceve_peso_e_fasce(): void
+    public function test_il_checkout_riceve_il_costo_della_fascia_gia_calcolato(): void
     {
         $this->zonaItaliana();
         $this->actingAs(User::factory()->create());
@@ -120,12 +120,12 @@ class SpedizioneAFasceDiPesoTest extends TestCase
 
         $this->get(route('shop.checkout'))
             ->assertOk()
-            // I numeri passano da JSON e tornano indifferentemente int o
-            // float: conta il valore, non il tipo.
+            // Sei chili: la seconda fascia (fino a 10 kg). Il client non rifa' il
+            // conto, legge quello del server. I numeri passano da JSON e
+            // tornano indifferentemente int o float: conta il valore.
             ->assertInertia(fn ($pagina) => $pagina
-                ->where('cartWeight', fn ($peso) => (float) $peso === 6.0)
-                ->where('shippingZones.0.weight_rates.0.max_weight', fn ($kg) => (float) $kg === 5.0)
-                ->where('shippingZones.0.weight_rates.0.rate', fn ($tariffa) => (float) $tariffa === 7.5),
+                ->where('shippingZones.0.costo_spedizione', fn ($costo) => (float) $costo === 12.0)
+                ->missing('cartWeight'),
             );
     }
 

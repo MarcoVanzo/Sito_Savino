@@ -92,8 +92,8 @@ class StaffMemberResource extends Resource
                             ->image()
                             ->maxSize(5120)
                             ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth(1200)
-                            ->imageResizeTargetHeight(1200)
+                            ->imageResizeTargetWidth('1200')
+                            ->imageResizeTargetHeight('1200')
                             ->imageResizeUpscale(false)
                             ->helperText('Immagine ottimale: quadrata (es. 800x800px).')
                             ->columnSpanFull(),

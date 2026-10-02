@@ -1,9 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * La pagina Sponsor era vuota: in archivio non c'era un solo sponsor, e online
@@ -28,21 +25,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (app()->environment('testing') || DB::table('sponsors')->exists()) {
-            return;
-        }
-
-        try {
-            Artisan::call('sponsors:import-legacy', ['--no-interaction' => true]);
-
-            Log::info('Sponsor importati dal sito precedente', [
-                'importati' => DB::table('sponsors')->count(),
-            ]);
-        } catch (Throwable $e) {
-            // La pagina Sponsor resta vuota come prima e si potrà rilanciare
-            // il comando a mano: nessun danno, solo un lavoro da rifare.
-            Log::error('Import degli sponsor non riuscito', ['errore' => $e->getMessage()]);
-        }
+        // No-op dal 01/10/2026: il lavoro che metteva in coda leggeva il vecchio
+        // sito WordPress, che dal passaggio del dominio non esiste piu', e il
+        // codice e' stato tolto. In produzione la migrazione e' gia' applicata;
+        // su un database nuovo non c'e' niente da importare.
     }
 
     /**

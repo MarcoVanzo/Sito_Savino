@@ -65,6 +65,8 @@
   pannello DO viene cancellato al deploy successivo). Deploy automatico da
   `main`, gated dalla CI. File su **Spaces** `fra1`.
 - **SSR non attivo** (`INERTIA_SSR_ENABLED=false`, nessun `ssr.js` né bundle).
+- **Node 22**, fissato in `.nvmrc` (workflow) e in `engines` di `package.json`
+  (build di App Platform): devono coincidere.
 - **Dominio** (dal 1/10/2026, `docs/GO_LIVE.md`): `domains:` nella spec con
   `savinodelbenevolley.it` PRIMARY e `www.` ALIAS. `APP_URL` = `https://${APP_DOMAIN}`,
   quindi email in coda, sitemap, feed e ritorni dei pagamenti usano il dominio.
@@ -311,7 +313,7 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
 - Squadre del vivaio per `teams.category` (`B1`, `U17`, `U15`), non per slug.
 - Template specifici: Ticketing (`TicketingTemplateForm`, blocchi facoltativi,
   la biglietteria non ha listino), Convenzioni (`partners`), Affiliazioni
-  (`affiliates`, `AffiliateTier`, import `affiliazioni:importa-dal-vecchio-sito`),
+  (`affiliates`, `AffiliateTier`),
   Club Race (`standings`), Safeguarding (documenti per chiave da Documenti
   Legali, `DocumentiLegali::risolviNeiDocumenti`). Sezioni nuove nascono
   facoltative; il testo dell'editor è l'introduzione sotto l'hero.
@@ -321,23 +323,20 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
 - Mappa del Palazzetto: `content_data.maps_iframe_src` (solo il `src` Google).
 
 ### Notizie e vecchio sito
-- Il vecchio WordPress non esiste più. L'import da `wp-json`
-  (`news:importa-dal-vecchio-sito`) ha fatto l'ultimo giro prima del DNS; lo
-  scheduler si spegne da sé il 2/10/2026 (`services.vecchio_sito.leggibile_fino_a`,
-  test `ImportNotizieSchedulatoTest`).
-- Chiave naturale di una notizia: `wp_id`, poi slug; categorie per `wp_id`, poi
-  slug, poi nome esatto (e adottano il `wp_id`).
-- Date dei comunicati = ora locale; il connettore MCP le mostra spostate:
-  leggere con `CAST(published_at AS CHAR)`.
-- Slug tipo `41541-2` non sono slug: l'import li rigenera dal titolo.
-- I media delle notizie stanno su Spaces sotto `news/<anno>/<mese>/`
-  (`MediaDelVecchioSito`).
+- **Archivio chiuso al 27/09/2026**: gli import dal vecchio WordPress (notizie,
+  media, gallery, documenti, affiliazioni, sponsor) sono stati tolti dopo il
+  passaggio del dominio, con le migrazioni che li lanciavano ora no-op. Le
+  notizie nascono solo nel pannello; i loro media vecchi stanno su Spaces sotto
+  `news/<anno>/<mese>/`.
+- Resta `posts.wp_id`, che serve ai `?p=` del vecchio sito (§23).
+- Le date delle notizie importate sono ora locale di WordPress: il connettore
+  MCP le mostra spostate, leggerle con `CAST(published_at AS CHAR)`.
 
 ## 15. Sponsor
 
 - Livelli in `App\Enums\SponsorTier` (ordine dei case = ordine in pagina);
-  raggruppamento in `App\Services\SponsorDirectory`, condiviso. **Mai rilanciare
-  `sponsors:import-legacy` in produzione**: l'elenco lo cura la redazione.
+  raggruppamento in `App\Services\SponsorDirectory`, condiviso. L'elenco lo cura
+  la redazione. Le richieste vanno a `marketing@savinodelbenevolley.it`.
 
 ## 16. Diretta streaming
 
@@ -422,9 +421,9 @@ minimale; i meta `og:` di `app.blade.php` sono statici.
   ammessa, ordine minimo sulla spesa intera. Il coupon sconta anche la firma (scelta).
 - **Spedizione**: fasce in `shipping_zones.weight_rates`; soglia gratuita prima
   delle fasce; peso via `Product::pesoPerLaSpedizione()` (ripiego
-  `shop.default_item_weight_kg`). **Conto scritto due volte**:
-  `ShippingZone::calculateShippingCost` e `resources/js/Support/spedizione.js`
-  (unico per shop e aste): si cambiano insieme.
+  `shop.default_item_weight_kg`). **Conto scritto una volta sola**, in
+  `ShippingZone::calculateShippingCost`: i checkout (shop e asta) ricevono il
+  `costo_spedizione` per zona già calcolato. Non reintrodurre il conto nel client.
 - Più categorie per prodotto: principale `product_category_id` + 
   `product_category_product`; usare `scopeNelleCategorie` / `idCategorie()`.
 - Ordine di vetrina `products.sort_order` (trascinamento; `reorderTable` rimescola
