@@ -375,6 +375,13 @@ class CheckoutService
                 ->keyBy('id');
         }
 
+        // Per i prodotti con taglie `products.stock` e' solo il riepilogo: una
+        // riga senza taglia non ha giacenza (CartService::getAvailableStock).
+        $prodottiConTaglie = ProductVariant::whereIn('product_id', $productIds)
+            ->distinct()
+            ->pluck('product_id')
+            ->flip();
+
         // Valida stock per ogni pezzo di magazzino: la stessa taglia puo'
         // stare su due righe, con e senza personalizzazione.
         $errors = [];
@@ -393,9 +400,11 @@ class CheckoutService
                 ? $lockedVariants->get($item->product_variant_id)
                 : null;
 
-            $availableStock = $variant
-                ? (int) $variant->stock
-                : (int) ($product->stock ?? 0);
+            $availableStock = match (true) {
+                $variant !== null => (int) $variant->stock,
+                $prodottiConTaglie->has($item->product_id) => 0,
+                default => (int) ($product->stock ?? 0),
+            };
 
             if ($richiesto > $availableStock) {
                 $productName = $product->name ?? 'Unknown';

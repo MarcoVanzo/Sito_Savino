@@ -33,6 +33,7 @@ use App\Observers\CacheInvalidationDopoIlCommit;
 use App\Observers\CacheInvalidationObserver;
 use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
+use App\Observers\ProductVariantObserver;
 use App\Observers\StockMovementObserver;
 use App\Observers\UserObserver;
 use App\Services\Analytics\WebAnalyticsService;
@@ -185,6 +186,7 @@ class AppServiceProvider extends ServiceProvider
         User::observe(UserObserver::class);
         Order::observe(OrderObserver::class);
         StockMovement::observe(StockMovementObserver::class);
+        ProductVariant::observe(ProductVariantObserver::class);
         // Dopo StockMovementObserver e a transazione chiusa: la vetrina si
         // butta a giacenza scritta e visibile alle altre richieste.
         StockMovement::observe(CacheInvalidationDopoIlCommit::class);

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\StockMovementType;
 use App\Filament\Resources\StockMovementResource\Pages;
+use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -50,7 +51,12 @@ class StockMovementResource extends Resource
                             ->required()
                             ->live(),
                         Forms\Components\Select::make('product_variant_id')
-                            ->label('Variante (Opzionale)')
+                            ->label('Variante')
+                            // Un prodotto con taglie si carica e si scarica sulla
+                            // taglia: un movimento sul solo prodotto spostava il
+                            // riepilogo, che le taglie poi riallineano.
+                            ->required(fn (Forms\Get $get): bool => filled($get('product_id'))
+                                && ProductVariant::where('product_id', $get('product_id'))->exists())
                             ->relationship('variant', 'sku', fn (Builder $query, Forms\Get $get) => $query->where('product_id', $get('product_id'))
                             )
                             ->searchable()
