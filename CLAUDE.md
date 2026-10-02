@@ -411,7 +411,11 @@ minimale; i meta `og:` di `app.blade.php` sono statici.
 - `Auction::status` si cambia solo con `Auction::cambiaStato()` (`TRANSIZIONI_AMMESSE`).
   Il prodotto di un'asta esce e rientra dallo shop via `AuctionObserver`.
 - Giacenza con varianti = somma delle taglie (`Product::availableStock`), non
-  `products.stock`.
+  `products.stock`, che per loro è solo un riepilogo ricalcolato
+  (`Product::riallineaLaGiacenzaDelleTaglie`, dai movimenti e da
+  `ProductVariantObserver`): **mai scalarlo con la guardia** (il 02/10/2026 a 0
+  bloccava il checkout delle taglie disponibili). Prodotto con taglie = taglia
+  obbligatoria in carrello e nei movimenti.
 - **Prezzo barrato** = il più basso dei 30 giorni prima dello sconto
   (`StoricoPrezzi`, art. 17-bis); senza storico non si barra. Lo sconto si
   annuncia solo mentre è in corso (`effectivePrice()`).
