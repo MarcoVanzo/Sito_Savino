@@ -58,8 +58,8 @@ const durata = computed(() => `${elenco.value.length * 3}s`);
 
         <!-- In pausa i loghi si dispongono tutti in vista: una striscia ferma a
              metà lascerebbe fuori dallo schermo metà degli sponsor. -->
-        <div v-if="scorre" class="striscia" role="group" :aria-label="$t('home.sponsor_label')">
-            <ul class="striscia-binario" :style="{ animationDuration: durata }">
+        <div v-if="scorre" class="striscia">
+            <ul class="striscia-binario" :aria-label="$t('home.sponsor_label')" :style="{ animationDuration: durata }">
                 <li v-for="s in elenco" :key="'a-' + s.id" class="striscia-voce">
                     <component
                         :is="s.href ? 'a' : 'span'"

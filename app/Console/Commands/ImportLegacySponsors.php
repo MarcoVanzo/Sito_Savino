@@ -85,56 +85,62 @@ class ImportLegacySponsors extends Command
 
         $this->line(count($entries).' sponsor riconosciuti.');
 
-        $created = 0;
-        $updated = 0;
-
-        foreach ($entries as $entry) {
-            if ($this->option('dry-run')) {
-                $this->line(sprintf('  %-42s %-18s %s', $entry['name'], $entry['tier']->value, $entry['website'] ?? '—'));
-
-                continue;
-            }
-
-            $sponsor = Sponsor::query()
-                ->whereRaw('LOWER(name) = ?', [Str::lower($entry['name'])])
-                ->first();
-
-            if ($sponsor && $this->option('solo-nuovi')) {
-                continue;
-            }
-
-            if ($sponsor) {
-                $sponsor->fill([
-                    'tier' => $entry['tier'],
-                    'sort_order' => $entry['sort_order'],
-                    'url' => $entry['website'] ?: $sponsor->url,
-                ])->save();
-                $updated++;
-            } else {
-                $sponsor = Sponsor::create([
-                    'name' => $entry['name'],
-                    'tier' => $entry['tier'],
-                    'sort_order' => $this->option('solo-nuovi')
-                        ? (int) Sponsor::where('tier', $entry['tier'])->max('sort_order') + 1
-                        : $entry['sort_order'],
-                    'url' => $entry['website'],
-                ]);
-                $created++;
-                $this->line("  + {$entry['name']} ({$entry['tier']->value})");
-            }
-
-            if (! $this->option('skip-logos') && $entry['logo'] && ! $sponsor->getFirstMedia('sponsors')) {
-                $this->attachLogo($sponsor, $entry['logo']);
-            }
-        }
-
         if ($this->option('dry-run')) {
+            foreach ($entries as $entry) {
+                $this->line(sprintf('  %-42s %-18s %s', $entry['name'], $entry['tier']->value, $entry['website'] ?? '—'));
+            }
+
             return self::SUCCESS;
         }
 
-        $this->info("Sponsor creati: {$created} — aggiornati: {$updated}.");
+        $esiti = array_count_values(array_map(fn (array $entry): string => $this->importa($entry), $entries));
+
+        $this->info(sprintf('Sponsor creati: %d — aggiornati: %d.', $esiti['creato'] ?? 0, $esiti['aggiornato'] ?? 0));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Crea o aggiorna uno sponsor riconosciuto (chiave: il nome).
+     *
+     * @param  array{name: string, tier: SponsorTier, website: ?string, logo: ?string, sort_order: int}  $entry
+     * @return 'creato'|'aggiornato'|'saltato'
+     */
+    private function importa(array $entry): string
+    {
+        $sponsor = Sponsor::query()
+            ->whereRaw('LOWER(name) = ?', [Str::lower($entry['name'])])
+            ->first();
+
+        if ($sponsor && $this->option('solo-nuovi')) {
+            return 'saltato';
+        }
+
+        if ($sponsor) {
+            $sponsor->fill([
+                'tier' => $entry['tier'],
+                'sort_order' => $entry['sort_order'],
+                'url' => $entry['website'] ?: $sponsor->url,
+            ])->save();
+            $esito = 'aggiornato';
+        } else {
+            $sponsor = Sponsor::create([
+                'name' => $entry['name'],
+                'tier' => $entry['tier'],
+                'sort_order' => $this->option('solo-nuovi')
+                    ? (int) Sponsor::where('tier', $entry['tier'])->max('sort_order') + 1
+                    : $entry['sort_order'],
+                'url' => $entry['website'],
+            ]);
+            $esito = 'creato';
+            $this->line("  + {$entry['name']} ({$entry['tier']->value})");
+        }
+
+        if (! $this->option('skip-logos') && $entry['logo'] && ! $sponsor->getFirstMedia('sponsors')) {
+            $this->attachLogo($sponsor, $entry['logo']);
+        }
+
+        return $esito;
     }
 
     /**

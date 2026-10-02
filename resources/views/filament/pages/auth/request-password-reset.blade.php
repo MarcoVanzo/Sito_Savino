@@ -6,7 +6,7 @@
     @endif
 
     @if ($inviataA)
-        <div class="space-y-4 text-center" role="status">
+        <div class="space-y-4 text-center" aria-live="polite">
             <x-filament::icon
                 icon="heroicon-o-envelope"
                 class="mx-auto h-12 w-12 text-primary-600 dark:text-primary-400"

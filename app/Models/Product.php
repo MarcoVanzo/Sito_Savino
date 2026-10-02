@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Enums\ProductType;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
+use App\Models\Traits\PersonalizzazioneEStatoDellArticolo;
+use App\Models\Traits\StaInPiuCategorie;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,7 +21,7 @@ use Spatie\Translatable\HasTranslations;
 
 class Product extends Model implements HasMedia
 {
-    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity, SoftDeletes;
+    use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity, PersonalizzazioneEStatoDellArticolo, SoftDeletes, StaInPiuCategorie;
 
     protected $fillable = [
         'product_category_id', 'name', 'slug', 'description', 'price',
@@ -51,33 +53,6 @@ class Product extends Model implements HasMedia
     }
 
     /**
-     * Le categorie in cui il prodotto compare oltre alla principale: la
-     * maglia del libero sia in Home sia in Away, un capo anche in Outlet.
-     *
-     * La principale resta `category`: e' quella scritta sulla card e quella
-     * degli articoli correlati. Per chiedere "sta in questa categoria?" si
-     * passa da scopeNelleCategorie o idCategorie, mai da una delle due sole.
-     *
-     * @return BelongsToMany<ProductCategory, $this>
-     */
-    public function altreCategorie(): BelongsToMany
-    {
-        return $this->belongsToMany(ProductCategory::class, 'product_category_product');
-    }
-
-    /**
-     * La categoria principale non si ripete fra le aggiuntive: nel modulo non
-     * la si puo' scegliere, ma cambiando la principale con una che era gia'
-     * fra le "Anche in" ci resterebbe.
-     */
-    public function togliLaPrincipaleDalleAltre(): void
-    {
-        if ($this->product_category_id !== null) {
-            $this->altreCategorie()->detach($this->product_category_id);
-        }
-    }
-
-    /**
      * L'ordine scelto in redazione trascinando i prodotti nell'elenco del
      * pannello. A parita' di posizione (i prodotti mai riordinati valgono
      * tutti zero) vengono prima i piu' recenti, che era l'ordine di prima.
@@ -85,37 +60,6 @@ class Product extends Model implements HasMedia
     public function scopeInOrdineDiVetrina($query)
     {
         return $query->orderBy('sort_order')->orderByDesc('created_at')->orderByDesc('id');
-    }
-
-    /**
-     * I prodotti che stanno in almeno una delle categorie, come principale o
-     * come aggiuntiva.
-     *
-     * @param  array<int, int>  $idCategorie
-     */
-    public function scopeNelleCategorie($query, array $idCategorie)
-    {
-        return $query->where(fn ($q) => $q
-            ->whereIn('product_category_id', $idCategorie)
-            ->orWhereHas('altreCategorie', fn ($c) => $c->whereIn('product_categories.id', $idCategorie)));
-    }
-
-    /**
-     * Tutte le categorie del prodotto: la principale e le aggiuntive.
-     *
-     * @return array<int, int>
-     */
-    public function idCategorie(): array
-    {
-        $this->loadMissing('altreCategorie:id');
-
-        return collect([$this->product_category_id])
-            ->merge($this->altreCategorie->pluck('id'))
-            ->filter()
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
     }
 
     public function variants(): HasMany
@@ -254,52 +198,6 @@ class Product extends Model implements HasMedia
     public function effectivePrice(): float
     {
         return $this->isOnSale() ? (float) $this->sale_price : (float) $this->price;
-    }
-
-    /**
-     * Il prodotto offre la personalizzazione (di solito la firma della
-     * giocatrice)? Si accende dando un nome all'aggiunta nel pannello.
-     */
-    public function offrePersonalizzazione(): bool
-    {
-        return trim((string) $this->getTranslation('personalizzazione_nome', config('app.fallback_locale'), false)) !== '';
-    }
-
-    /**
-     * Lo stato dichiarato di un articolo indossato o autografato, per lingua
-     * ({"it": "Indossata in gara il …", …}); null se il prodotto non e' di
-     * quel tipo o lo stato manca. E' cio' che la riga d'ordine fotografa: le
-     * condizioni lo vendono «nello stato descritto nella scheda».
-     *
-     * @return array<string, string>|null
-     */
-    public function statoArticoloDaFotografare(): ?array
-    {
-        if (! $this->usato_o_autografato) {
-            return null;
-        }
-
-        $stati = array_filter(
-            $this->getTranslations('stato_articolo'),
-            fn ($testo): bool => is_string($testo) && trim($testo) !== '',
-        );
-
-        return $stati === [] ? null : $stati;
-    }
-
-    /**
-     * Lo stato da mostrare nella scheda (shop e asta), nella lingua corrente
-     * con ripiego sull'italiano; null se il prodotto non e' di quel tipo.
-     */
-    public function statoArticoloPerLaScheda(): ?string
-    {
-        if (! $this->usato_o_autografato) {
-            return null;
-        }
-
-        $testo = trim((string) $this->getTranslation('stato_articolo', app()->getLocale()));
-
-        return $testo === '' ? null : $testo;
     }
 
     /**
