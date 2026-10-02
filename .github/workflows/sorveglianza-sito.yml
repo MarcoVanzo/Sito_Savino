@@ -9,9 +9,9 @@
 #
 # Limite da sapere: gira una volta l'ora, e GitHub non garantisce la
 # puntualità dei cron (nelle ore di punta un giro può slittare di
-# dieci-quindici minuti). È una rete di sicurezza, non un monitor al minuto;
-# per quello serve un servizio dedicato e gratuito (UptimeRobot, Better Stack)
-# puntato su `/up`.
+# dieci-quindici minuti). È una rete di sicurezza, non un monitor al minuto:
+# quello è l'uptime check di DigitalOcean `sito-savino-up` su `/up`
+# (docs/INFRASTRUCTURE.md §9).
 name: Sorveglianza sito
 
 on:
@@ -19,8 +19,8 @@ on:
     # Una volta l'ora, al minuto 17 (lontano dallo :00, dove si accumulano i
     # cron di tutti e GitHub slitta di più). Ogni dieci minuti erano circa
     # 4.300 minuti di Actions al mese su un conto da 3.000 già esaurito dagli
-    # altri repository: il controllo fitto spetta a un monitor esterno
-    # gratuito su `/up` (vedi sopra e docs/INFRASTRUCTURE.md §9).
+    # altri repository: il controllo fitto spetta all'uptime check di
+    # DigitalOcean su `/up` (vedi sopra e docs/INFRASTRUCTURE.md §9).
     - cron: '17 * * * *'
   workflow_dispatch:
 

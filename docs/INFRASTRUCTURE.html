@@ -1,693 +1,407 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentazione Tecnica Infrastruttura — Savino Del Bene Volley</title>
-    <style>
-        @font-face { font-family: 'Montserrat'; font-weight: 100 900; font-style: normal;
-            src: url('../public/fonts/montserrat-latin-wght-normal.woff2') format('woff2'); }
-        @font-face { font-family: 'Playfair Display'; font-weight: 400 900; font-style: normal;
-            src: url('../public/fonts/playfair-display-latin-wght-normal.woff2') format('woff2'); }
-        ul, ol { margin: 0 0 12px 22px; }
-        li { margin: 3px 0; line-height: 1.6; }
-        .callout p strong, .callout li strong { display: inline; margin: 0; }
-
-        :root {
-            --savino-blue: #003063;
-            --savino-blue-light: #0a4a8a;
-            --savino-red: #DF338F;
-            --savino-fucsia: #F8269C;
-            --savino-pink: #ED028C;
-            --text-primary: #1a1a2e;
-            --text-secondary: #4a4a6a;
-            --text-light: #7a7a9a;
-            --bg-white: #ffffff;
-            --bg-light: #f8f9fc;
-            --bg-subtle: #eef1f6;
-            --border: #e2e5ec;
-            --border-light: #f0f2f5;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        @page {
-            size: A4;
-            margin: 20mm 18mm;
-        }
-
-        @media print {
-            body { font-size: 9pt; }
-            .cover-page { height: 100vh; page-break-after: always; }
-            .toc { page-break-after: always; }
-            section { page-break-inside: avoid; }
-            h2 { page-break-before: always; }
-            h2:first-of-type { page-break-before: auto; }
-            table { page-break-inside: avoid; }
-            .no-print { display: none; }
-            .architecture-diagram { page-break-inside: avoid; }
-        }
-
-        body {
-            font-family: 'Montserrat', -apple-system, sans-serif;
-            color: var(--text-primary);
-            line-height: 1.7;
-            background: var(--bg-white);
-            font-size: 10pt;
-        }
-
-        /* === COVER PAGE === */
-        .cover-page {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--savino-blue) 0%, #001a3a 100%);
-            color: white;
-            text-align: center;
-            padding: 60px 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cover-page::before {
-            content: '';
-            position: absolute;
-            top: -20%;
-            right: -10%;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(223,51,143,0.15) 0%, transparent 70%);
-        }
-
-        .cover-page::after {
-            content: '';
-            position: absolute;
-            bottom: -10%;
-            left: -5%;
-            width: 400px;
-            height: 400px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 70%);
-        }
-
-        .cover-logo {
-            width: 120px;
-            height: 120px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            margin-bottom: 40px;
-            border: 2px solid rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            position: relative;
-            z-index: 1;
-        }
-
-        .cover-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 38pt;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .cover-subtitle {
-            font-size: 16pt;
-            font-weight: 300;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 60px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .cover-meta {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            gap: 40px;
-            font-size: 9pt;
-            color: rgba(255,255,255,0.5);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        .cover-meta span { display: flex; align-items: center; gap: 8px; }
-
-        .cover-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--savino-pink), var(--savino-fucsia), var(--savino-blue-light));
-        }
-
-        /* === CONTENT === */
-        .content {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 30px;
-        }
-
-        /* === TOC === */
-        .toc {
-            padding: 50px 0;
-        }
-
-        .toc h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 22pt;
-            color: var(--savino-blue);
-            margin-bottom: 30px;
-            padding-bottom: 12px;
-            border-bottom: 3px solid var(--savino-fucsia);
-        }
-
-        .toc-list {
-            list-style: none;
-            counter-reset: toc-counter;
-        }
-
-        .toc-list li {
-            counter-increment: toc-counter;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-        }
-
-        .toc-list li::before {
-            content: counter(toc-counter, decimal-leading-zero);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 12pt;
-            font-weight: 700;
-            color: var(--savino-fucsia);
-            margin-right: 16px;
-            min-width: 30px;
-        }
-
-        .toc-list a {
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 11pt;
-            font-weight: 500;
-        }
-
-        /* === HEADINGS === */
-        h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 20pt;
-            color: var(--savino-blue);
-            margin: 50px 0 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid var(--savino-fucsia);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        h2 .section-number {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 14pt;
-            font-weight: 700;
-            color: var(--savino-fucsia);
-            background: rgba(201,168,76,0.1);
-            padding: 4px 10px;
-            border-radius: 6px;
-        }
-
-        h3 {
-            font-size: 13pt;
-            font-weight: 700;
-            color: var(--savino-blue);
-            margin: 30px 0 12px;
-            padding-left: 14px;
-            border-left: 4px solid var(--savino-pink);
-        }
-
-        h4 {
-            font-size: 10.5pt;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin: 20px 0 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        /* === PARAGRAPHS === */
-        p {
-            margin: 10px 0;
-            color: var(--text-secondary);
-            font-size: 10pt;
-        }
-
-        strong { color: var(--text-primary); }
-
-        /* === TABLES === */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 16px 0;
-            font-size: 9pt;
-        }
-
-        thead th {
-            background: var(--savino-blue);
-            color: white;
-            padding: 10px 14px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 8.5pt;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        thead th:first-child { border-radius: 6px 0 0 0; }
-        thead th:last-child { border-radius: 0 6px 0 0; }
-
-        tbody td {
-            padding: 9px 14px;
-            border-bottom: 1px solid var(--border-light);
-            color: var(--text-secondary);
-        }
-
-        tbody tr:nth-child(even) { background: var(--bg-light); }
-        tbody tr:hover { background: rgba(0,48,99,0.03); }
-
-        .table-highlight td { font-weight: 600; color: var(--text-primary); }
-        .table-total td {
-            background: rgba(0,48,99,0.05) !important;
-            font-weight: 700;
-            color: var(--savino-blue);
-            border-top: 2px solid var(--savino-blue);
-        }
-
-        /* === CODE === */
-        code {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 8.5pt;
-            background: var(--bg-subtle);
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: var(--savino-blue);
-        }
-
-        pre {
-            background: #0f1923;
-            color: #d4d4d4;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 8.5pt;
-            line-height: 1.8;
-            margin: 16px 0;
-            border-left: 4px solid var(--savino-fucsia);
-        }
-
-        pre .comment { color: #6a737d; }
-        pre .keyword { color: #c586c0; }
-        pre .string { color: #ce9178; }
-        pre .arrow { color: #d4d4d4; }
-
-        /* === SPEC BOX === */
-        .spec-box {
-            background: var(--bg-light);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 20px 24px;
-            margin: 16px 0;
-        }
-
-        .spec-box h4 {
-            margin: 0 0 12px;
-            padding: 0;
-            border: none;
-        }
-
-        .spec-grid {
-            display: grid;
-            grid-template-columns: 140px 1fr;
-            gap: 6px 16px;
-            font-size: 9pt;
-        }
-
-        .spec-label {
-            color: var(--text-light);
-            font-weight: 500;
-        }
-
-        .spec-value {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        /* === CALLOUTS === */
-        .callout {
-            padding: 16px 20px;
-            border-radius: 8px;
-            margin: 16px 0;
-            font-size: 9pt;
-            border-left: 4px solid;
-        }
-
-        .callout-info {
-            background: rgba(0,48,99,0.05);
-            border-color: var(--savino-blue);
-            color: var(--savino-blue);
-        }
-
-        .callout-warning {
-            background: rgba(201,168,76,0.1);
-            border-color: var(--savino-fucsia);
-            color: #8a7030;
-        }
-
-        .callout-pink {
-            background: rgba(237,2,140,0.05);
-            border-color: var(--savino-pink);
-            color: #a0006a;
-        }
-
-        .callout strong { display: block; margin-bottom: 4px; }
-
-        /* === ARCHITECTURE DIAGRAM === */
-        .architecture-diagram {
-            background: linear-gradient(135deg, #f8f9fc 0%, #eef1f8 100%);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            margin: 20px 0;
-        }
-
-        .arch-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .arch-node {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 16px;
-            text-align: center;
-            transition: box-shadow 0.2s;
-        }
-
-        .arch-node:hover { box-shadow: 0 4px 12px rgba(0,48,99,0.1); }
-
-        .arch-node-icon {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
-        .arch-node-name {
-            font-weight: 700;
-            font-size: 10pt;
-            color: var(--savino-blue);
-        }
-
-        .arch-node-detail {
-            font-size: 8pt;
-            color: var(--text-light);
-            margin-top: 4px;
-        }
-
-        .arch-node-cost {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 11pt;
-            color: var(--savino-pink);
-            margin-top: 8px;
-        }
-
-        .arch-node-full {
-            grid-column: 1 / -1;
-        }
-
-        .arch-flow {
-            text-align: center;
-            padding: 10px;
-            color: var(--text-light);
-            font-size: 8.5pt;
-        }
-
-        .arch-flow .arrow-down { font-size: 16px; color: var(--savino-fucsia); }
-
-        /* === FLOW STEPS === */
-        .flow-steps {
-            counter-reset: flow;
-            margin: 16px 0;
-        }
-
-        .flow-step {
-            counter-increment: flow;
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .flow-step::before {
-            content: counter(flow);
-            min-width: 28px;
-            height: 28px;
-            background: var(--savino-blue);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8pt;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .flow-step .step-actor {
-            font-weight: 600;
-            color: var(--savino-blue);
-            min-width: 120px;
-        }
-
-        .flow-step .step-desc {
-            color: var(--text-secondary);
-        }
-
-        /* === COST PIE === */
-        .cost-summary {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        .cost-card {
-            background: var(--bg-light);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .cost-card-icon { font-size: 24px; margin-bottom: 6px; }
-        .cost-card-name { font-size: 7.5pt; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-        .cost-card-price { font-family: 'JetBrains Mono', monospace; font-size: 14pt; font-weight: 700; color: var(--savino-blue); margin-top: 6px; }
-        .cost-card-pct { font-size: 8pt; color: var(--text-light); margin-top: 2px; }
-
-        /* === STATUS BADGE === */
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 7.5pt;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-green { background: #e6f9e6; color: #1a7a1a; }
-        .badge-yellow { background: #fff8e1; color: #8a6d00; }
-        .badge-red { background: #ffeef0; color: #a00020; }
-
-        /* === FOOTER === */
-        .doc-footer {
-            margin-top: 60px;
-            padding-top: 20px;
-            border-top: 2px solid var(--border);
-            text-align: center;
-            color: var(--text-light);
-            font-size: 8pt;
-        }
-
-        /* === SEPARATOR === */
-        hr {
-            border: none;
-            height: 1px;
-            background: var(--border);
-            margin: 30px 0;
-        }
-
-        .section-divider {
-            height: 3px;
-            background: linear-gradient(90deg, var(--savino-blue), var(--savino-pink), var(--savino-fucsia));
-            border: none;
-            border-radius: 2px;
-            margin: 40px 0;
-        }
-
-        /* === SECRET === */
-        .secret {
-            background: repeating-linear-gradient(90deg, var(--text-light) 0px, var(--text-light) 6px, transparent 6px, transparent 10px);
-            display: inline-block;
-            width: 60px;
-            height: 12px;
-            border-radius: 2px;
-            vertical-align: middle;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infrastruttura tecnica — Savino Del Bene Volley — v3.0</title>
+<!-- Generata da docs/INFRASTRUCTURE.md con scripts/genera-infrastructure-html.py: si modificano il Markdown e docs/assets/infrastructure.css, non questo file. -->
+<style>
+/* Documentazione tecnica dell'infrastruttura — stile di stampa (A4, Chrome).
+   Blu Savino per titoli e struttura del cliente, colori MV Consulting per
+   l'apparato del documento (tabelle, intestazioni, callout informativi). */
+
+@font-face { font-family: 'Montserrat'; font-weight: 100 900; font-style: normal;
+    src: url('../public/fonts/montserrat-latin-wght-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Montserrat'; font-weight: 100 900; font-style: normal;
+    src: url('../public/fonts/montserrat-latin-ext-wght-normal.woff2') format('woff2');
+    unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Montserrat'; font-weight: 100 900; font-style: italic;
+    src: url('../public/fonts/montserrat-latin-wght-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Playfair Display'; font-weight: 400 900; font-style: normal;
+    src: url('../public/fonts/playfair-display-latin-wght-normal.woff2') format('woff2'); }
+
+:root {
+    --sdb-navy: #003063;
+    --sdb-fucsia: #D00778;          /* fucsia scurito del sito: 4,5:1 su bianco */
+    --mv-grigio: #66879E;
+    --mv-azzurro: #429DDA;
+    --mv-azzurro-testo: #2F7FB5;    /* azzurro leggibile come testo */
+    --testo: #1F2933;
+    --testo-2: #52606D;
+    --linea: #DDE3EA;
+    --fondo-1: #F5F7FA;
+    --fondo-codice: #F3F5F8;
+}
+
+@page {
+    size: A4;
+    margin: 22mm 18mm 20mm 18mm;
+    @top-left { font-family: 'Montserrat', sans-serif; font-size: 6.5pt; color: #8AA2B4;
+        letter-spacing: 0.6pt; text-transform: uppercase; vertical-align: bottom; padding-bottom: 4mm; }
+    @top-right { content: "MV Consulting"; font-family: 'Montserrat', sans-serif; font-size: 6.5pt;
+        font-weight: 700; color: #429DDA; letter-spacing: 0.6pt; text-transform: uppercase;
+        vertical-align: bottom; padding-bottom: 4mm; }
+    @bottom-left { font-family: 'Montserrat', sans-serif; font-size: 7pt; color: #66879E;
+        vertical-align: top; padding-top: 4mm; }
+    @bottom-right { content: counter(page) " / " counter(pages); font-family: 'Montserrat', sans-serif;
+        font-size: 7.5pt; font-weight: 600; color: #003063; vertical-align: top; padding-top: 4mm; }
+}
+@page :first {
+    margin: 0;
+    @top-left { content: none; } @top-right { content: none; }
+    @bottom-left { content: none; } @bottom-right { content: none; }
+}
+
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+body {
+    margin: 0;
+    background: #fff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.55;
+    color: var(--testo);
+    font-variant-numeric: tabular-nums;
+}
+@media screen {
+    html { background: #E9EDF2; }
+    body { max-width: 210mm; margin: 0 auto; padding: 0 18mm 18mm; box-shadow: 0 0 24px rgba(0, 48, 99, .08); }
+    .cover-page { margin: 0 -18mm 12mm; }
+}
+
+a { color: var(--mv-azzurro-testo); text-decoration: none; }
+p { margin: 0 0 8pt; orphans: 3; widows: 3; }
+strong { font-weight: 700; color: #102A43; }
+em { font-style: italic; }
+ul, ol { margin: 0 0 9pt 16pt; padding: 0; }
+li { margin: 2pt 0; }
+
+/* ---------- Copertina ---------- */
+.cover-page {
+    width: 210mm;
+    height: 297mm;
+    padding: 20mm 20mm 18mm;
+    display: flex;
+    flex-direction: column;
+    break-after: page;
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+}
+.cover-page::before {           /* fascia blu Savino sul lato sinistro */
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 7mm;
+    background: linear-gradient(180deg, var(--sdb-navy) 0 78%, var(--sdb-fucsia) 78% 100%);
+}
+.cover-header { display: flex; justify-content: space-between; align-items: center; }
+.cover-logo-mv svg { height: 13mm; width: auto; display: block; }
+.badge-riservato {
+    font-size: 7.5pt; font-weight: 700; letter-spacing: 1.5pt; text-transform: uppercase;
+    color: var(--sdb-fucsia); border: 1.2pt solid var(--sdb-fucsia); padding: 3pt 9pt; border-radius: 2pt;
+}
+.cover-body { margin-top: 62mm; }
+.cover-kicker {
+    font-size: 9pt; font-weight: 700; letter-spacing: 2.5pt; text-transform: uppercase;
+    color: var(--mv-azzurro-testo); margin: 0 0 6mm;
+}
+.cover-title {
+    font-family: 'Playfair Display', serif; font-weight: 700;
+    font-size: 40pt; line-height: 1.08; color: var(--sdb-navy); margin: 0 0 8mm;
+}
+.cover-subtitle { font-size: 12pt; line-height: 1.5; color: var(--testo-2); max-width: 130mm; margin: 0; }
+.cover-client {
+    margin-top: auto; margin-bottom: 12mm;
+    display: flex; align-items: center; gap: 6mm;
+}
+.cover-client img { width: 24mm; height: 24mm; object-fit: contain; }
+.cover-client div { display: flex; flex-direction: column; font-size: 9pt; color: var(--testo-2); }
+.cover-client strong { font-size: 13pt; color: var(--sdb-navy); }
+.label {
+    display: block; font-size: 6.5pt; font-weight: 700; letter-spacing: 1.2pt;
+    text-transform: uppercase; color: var(--mv-grigio); margin-bottom: 1pt;
+}
+.cover-footer {
+    border-top: 1.5pt solid var(--mv-azzurro); padding-top: 5mm;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm;
+    font-size: 9.5pt; font-weight: 600; color: var(--sdb-navy);
+}
+
+/* ---------- Scheda del documento e indice ---------- */
+.scheda { break-after: page; }
+table.scheda-doc { margin: 0 0 10mm; font-size: 9pt; }
+table.scheda-doc th {
+    width: 34mm; text-align: left; vertical-align: top;
+    font-size: 7pt; letter-spacing: 1pt; text-transform: uppercase; color: var(--mv-grigio);
+    border-bottom: 1px solid var(--linea); padding: 5pt 8pt 5pt 0;
+}
+table.scheda-doc td { border-bottom: 1px solid var(--linea); padding: 5pt 0; }
+table.scheda-doc tbody tr:nth-child(even) { background: none; }
+
+.toc { margin-top: 8mm; }
+.toc h2 { border: 0; margin: 0 0 4mm; padding: 0; }
+.toc ol { list-style: none; margin: 0; }
+.toc li { margin: 0; border-bottom: 1px solid var(--linea); }
+.toc a { display: flex; gap: 5mm; padding: 6pt 0; color: var(--sdb-navy); font-weight: 600; font-size: 10.5pt; }
+.toc-n { width: 9mm; color: var(--sdb-fucsia); font-family: 'Playfair Display', serif; font-weight: 700; }
+
+/* ---------- Sintesi per la direzione ---------- */
+.sintesi { break-after: page; }
+.sintesi h3 { margin-top: 12pt; }
+.sintesi table { font-size: 8.8pt; }
+
+/* ---------- Titoli ---------- */
+h2 {
+    font-family: 'Playfair Display', serif; font-weight: 700;
+    font-size: 21pt; line-height: 1.2; color: var(--sdb-navy);
+    margin: 0 0 10pt; padding-bottom: 6pt; border-bottom: 1.5pt solid var(--sdb-navy);
+    break-after: avoid;
+}
+.content h2 { break-before: page; }
+.section-number {
+    display: inline-block; min-width: 11mm;
+    color: var(--sdb-fucsia); font-size: 21pt;
+}
+h3 {
+    font-size: 12pt; font-weight: 700; color: var(--sdb-navy);
+    margin: 16pt 0 6pt; break-after: avoid;
+}
+h4 {
+    font-size: 8.5pt; font-weight: 700; letter-spacing: .8pt; text-transform: uppercase;
+    color: var(--mv-grigio); margin: 12pt 0 5pt; break-after: avoid;
+}
+h3 + p, h3 + table, h4 + table { break-before: avoid; }
+
+/* ---------- Tabelle ---------- */
+table { width: 100%; border-collapse: collapse; margin: 6pt 0 12pt; font-size: 8.5pt; line-height: 1.45; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th {
+    text-align: left; vertical-align: bottom;
+    font-size: 7pt; font-weight: 700; letter-spacing: .7pt; text-transform: uppercase;
+    color: #3E5A70; padding: 5pt 7pt; border-bottom: 1.5pt solid var(--mv-grigio);
+}
+td { padding: 5pt 7pt; vertical-align: top; border-bottom: 1px solid var(--linea); }
+tbody tr:nth-child(even) { background: var(--fondo-1); }
+td:first-child { font-weight: 600; color: #102A43; }
+td code { white-space: normal; overflow-wrap: anywhere; }
+/* I nomi in prima colonna (variabili, comandi) non si spezzano; i valori sì. */
+td:first-child code { white-space: nowrap; overflow-wrap: normal; }
+tr.table-total td {
+    background: #fff; border-top: 1.2pt solid var(--sdb-navy); border-bottom: 0;
+    font-weight: 700; color: var(--sdb-navy); font-size: 9.5pt;
+}
+tr.table-total + tr td { background: #fff; border: 0; color: var(--sdb-navy); font-weight: 700; }
+
+.stato { display: inline-block; width: 11pt; height: 11pt; line-height: 11pt; border-radius: 50%;
+    text-align: center; font-size: 7pt; font-weight: 700; color: #fff; margin-right: 2pt; }
+.stato-ok { background: #2E8B57; }
+.stato-att { background: var(--sdb-fucsia); }
+
+/* ---------- Callout ---------- */
+.callout {
+    margin: 8pt 0 12pt; padding: 8pt 11pt;
+    border-left: 3pt solid var(--mv-azzurro); background: #F1F7FC;
+    break-inside: avoid; font-size: 9pt;
+}
+.callout-warning { border-left-color: var(--sdb-fucsia); background: #FDF2F8; }
+.callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+
+/* ---------- Codice ---------- */
+code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .86em;
+    background: var(--fondo-codice); color: #243B53; padding: .5pt 3pt; border-radius: 2pt;
+    overflow-wrap: anywhere;
+}
+pre {
+    font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 7.6pt; line-height: 1.22;
+    background: var(--fondo-codice); color: #243B53;
+    border: 1px solid var(--linea); border-left: 3pt solid var(--mv-grigio);
+    padding: 10pt 12pt; margin: 6pt 0 12pt; white-space: pre-wrap; break-inside: avoid;
+}
+
+/* ---------- Diagramma ---------- */
+.architecture-diagram {
+    margin: 4pt 0 14pt; padding: 10pt 8pt 6pt;
+    border: 1px solid var(--linea); border-radius: 4pt; background: #FAFCFE; break-inside: avoid;
+}
+.architecture-diagram figcaption {
+    text-align: center; font-size: 7pt; font-weight: 700; letter-spacing: 1.5pt;
+    text-transform: uppercase; color: var(--mv-grigio); margin-bottom: 6pt;
+}
+.architecture-diagram svg { width: 100%; display: block; }
+
+@page { @top-left { content: "Savino Del Bene Volley · Documentazione tecnica dell'infrastruttura"; }
+        @bottom-left { content: "MV Consulting · v3.0 · 1 ottobre 2026 · Riservato"; } }
+</style>
 </head>
 <body>
 
-<!-- Generata da docs/INFRASTRUCTURE.md con scripts/genera-infrastructure-html.py: si modifica il Markdown, non questo file. -->
-<div class="cover-page">
-    <div class="cover-logo">🏐</div>
-    <h1 class="cover-title">Infrastruttura</h1>
-    <p class="cover-subtitle">Documentazione Tecnica — DigitalOcean</p>
-    <div class="cover-meta">
-        <span>Savino Del Bene Volley</span>
-        <span>•</span>
-        <span>23 settembre 2026</span>
-        <span>•</span>
-        <span>Versione 2.0</span>
-    </div>
-    <div class="cover-bar"></div>
-</div>
-
-<div class="content">
-
-<div class="callout callout-info"><p>Ultimo aggiornamento: 23 settembre 2026</p>
-<p>Il sito oggi risponde solo su <code>seashell-app-47mmf.ondigitalocean.app</code>. Il passaggio di <code>savinodelbenevolley.it</code> è fissato al <strong>1 ottobre 2026</strong> e ha una procedura sua: <a href="GO_LIVE.md"><code>docs/GO_LIVE.md</code></a> (<code>php artisan verifica:lancio</code> dice cosa manca).</p>
-<p>La versione stampabile <code>docs/INFRASTRUCTURE.html</code> si rigenera da questo file con <code>python3 scripts/genera-infrastructure-html.py</code>: non si modifica a mano.</p></div>
-
-<div class="toc">
-    <h2>Indice</h2>
-    <ol class="toc-list"><li><a href="#s1">Panoramica Architettura</a></li><li><a href="#s2">Stack Tecnologico</a></li><li><a href="#s3">Servizi DigitalOcean — Dettaglio</a></li><li><a href="#s4">Flusso delle Richieste</a></li><li><a href="#s5">Variabili d'Ambiente</a></li><li><a href="#s6">Build e Deploy</a></li><li><a href="#s7">Performance e OPcache</a></li><li><a href="#s8">Costi</a></li><li><a href="#s9">Backup e Sicurezza</a></li></ol>
-</div>
-
-<h2 id="s1"><span class="section-number">01</span> Panoramica Architettura</h2>
-<div class="architecture-diagram" style="padding:20px 10px;">
-<div style="text-align:center; margin-bottom:12px; font-size:9pt; color:var(--text-light); text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">DigitalOcean — Region Frankfurt (fra / fra1)</div>
-<svg viewBox="0 0 760 505" style="width:100%; max-width:760px; margin:0 auto; display:block;" xmlns="http://www.w3.org/2000/svg">
-<defs>
-<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#003063"/></marker>
-<marker id="arrow-pink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#ED028C"/></marker>
-<filter id="shadow" x="-5%" y="-5%" width="115%" height="115%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#003063" flood-opacity="0.08"/></filter>
-</defs>
-<g transform="translate(310,10)">
-<rect width="140" height="44" rx="10" fill="white" stroke="#003063" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h120 a10 10 0 0 1 10 10 v18 h-140 z" fill="#003063"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">👤 Visitatori</text>
-</g>
-<g transform="translate(40,110)">
-<rect width="250" height="92" rx="10" fill="white" stroke="#003063" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h230 a10 10 0 0 1 10 10 v18 h-250 z" fill="#003063"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">🌐 App Web</text>
-<text x="238" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="white">$10</text>
-<text x="12" y="46" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">PHP + Apache • 1 vCPU, 1 GB</text>
-<text x="12" y="61" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Sito (Inertia/Vue) + pannello (Filament)</text>
-<text x="12" y="76" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">health check /up</text>
-</g>
-<g transform="translate(470,110)">
-<rect width="250" height="92" rx="10" fill="white" stroke="#003063" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h230 a10 10 0 0 1 10 10 v18 h-250 z" fill="#003063"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">🗄️ MySQL 8.4 managed</text>
-<text x="238" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="white">$15</text>
-<text x="12" y="46" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">1 vCPU, 1 GB • Trusted Sources</text>
-<text x="12" y="61" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">dati, sessioni, cache, code</text>
-<text x="12" y="76" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">backup DO: ultimi 7 giorni</text>
-</g>
-<g transform="translate(40,270)">
-<rect width="250" height="77" rx="10" fill="white" stroke="#ED028C" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h230 a10 10 0 0 1 10 10 v18 h-250 z" fill="#ED028C"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">📦 Spaces sito-savino-assets-2026</text>
-<text x="238" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="white">$5</text>
-<text x="12" y="46" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">immagini e media (origine, niente CDN)</text>
-<text x="12" y="61" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">S3 API • abbonamento 250 GB</text>
-</g>
-<g transform="translate(330,270)">
-<rect width="180" height="77" rx="10" fill="white" stroke="#003063" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h160 a10 10 0 0 1 10 10 v18 h-180 z" fill="#003063"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">⚙️ Worker</text>
-<text x="168" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="white">$5</text>
-<text x="12" y="46" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">queue:work default, ai</text>
-<text x="12" y="61" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">0,5 GB • 1 istanza</text>
-</g>
-<g transform="translate(540,270)">
-<rect width="180" height="77" rx="10" fill="white" stroke="#003063" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h160 a10 10 0 0 1 10 10 v18 h-180 z" fill="#003063"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">⏱️ Scheduler</text>
-<text x="168" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="white">$5</text>
-<text x="12" y="46" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">schedule:work + battito</text>
-<text x="12" y="61" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">0,5 GB • 1 istanza sola</text>
-</g>
-<g transform="translate(290,400)">
-<rect width="260" height="77" rx="10" fill="white" stroke="#ED028C" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h240 a10 10 0 0 1 10 10 v18 h-260 z" fill="#ED028C"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">🖥️ Droplet CompreFace</text>
-<text x="248" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="white">$24</text>
-<text x="12" y="46" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">2 vCPU, 4 GB • Ubuntu 24.04</text>
-<text x="12" y="61" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">API :8000 solo dalla VPC 10.114.0.0/20</text>
-</g>
-<g transform="translate(40,400)">
-<rect width="210" height="92" rx="10" fill="white" stroke="#7a7a9a" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h190 a10 10 0 0 1 10 10 v18 h-210 z" fill="#7a7a9a"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">🔒 Backup (GitHub Actions)</text>
-<text x="12" y="46" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">dump GPG giornaliero, media settimanali</text>
-<text x="12" y="61" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">→ sito-savino-backups (Spaces)</text>
-<text x="12" y="76" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">→ Cloudflare R2, fuori da DO</text>
-</g>
-<g transform="translate(590,400)">
-<rect width="150" height="62" rx="10" fill="white" stroke="#7a7a9a" stroke-width="1.8" filter="url(#shadow)"/>
-<path d="M0 10 a10 10 0 0 1 10 -10 h130 a10 10 0 0 1 10 10 v18 h-150 z" fill="#7a7a9a"/>
-<text x="12" y="19" font-family="Montserrat" font-size="10.5" font-weight="700" fill="white">🔗 Servizi esterni</text>
-<text x="12" y="46" font-family="Montserrat" font-size="8.5" fill="#4a4a6a">Lega, PayPal, GA4, Meta</text>
-</g>
-<line x1="350" y1="56" x2="200" y2="108" stroke="#003063" stroke-width="1.6" marker-end="url(#arrow)"/><text x="260" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#003063">HTTPS</text>
-<polyline points="308,32 20,32 20,308 36,308" fill="none" stroke="#ED028C" stroke-width="1.6" stroke-dasharray="4,3" marker-end="url(#arrow-pink)"/>
-<text x="120" y="26" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#ED028C">immagini (dirette da Spaces)</text>
-<line x1="292" y1="150" x2="468" y2="150" stroke="#003063" stroke-width="1.6" marker-end="url(#arrow)"/><text x="380" y="144" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#003063">SQL</text>
-<line x1="165" y1="204" x2="165" y2="268" stroke="#ED028C" stroke-width="1.6" marker-end="url(#arrow-pink)"/><text x="205" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#ED028C">upload S3</text>
-<line x1="420" y1="268" x2="540" y2="204" stroke="#003063" stroke-width="1.6" marker-end="url(#arrow)"/><text x="505" y="250" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#003063">coda jobs</text>
-<line x1="630" y1="268" x2="610" y2="204" stroke="#003063" stroke-width="1.6" marker-end="url(#arrow)"/><text x="650" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#003063">comandi</text>
-<line x1="420" y1="349" x2="420" y2="398" stroke="#ED028C" stroke-width="1.6" marker-end="url(#arrow-pink)"/><text x="460" y="378" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#ED028C">HTTP (VPC)</text>
-<line x1="330" y1="310" x2="292" y2="310" stroke="#ED028C" stroke-width="1.6" marker-end="url(#arrow-pink)"/>
-<line x1="145" y1="398" x2="145" y2="351" stroke="#7a7a9a" stroke-width="1.6" marker-end="url(#arrow)" stroke-dasharray="3,3"/><text x="170" y="380" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#7a7a9a">copia</text>
-<line x1="720" y1="349" x2="690" y2="398" stroke="#7a7a9a" stroke-width="1.6" marker-end="url(#arrow)" stroke-dasharray="3,3"/>
+<section class="cover-page">
+    <header class="cover-header">
+        <div class="cover-logo-mv"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3463 687" role="img" aria-label="MV Consulting">
+  
+  <path fill="#66879E" d="M10.3 3.4C8.5 4.9 5.8 8.7 4.3 11.8L1.5 17.5L0.7 123.5C0.3 181.8 0.1 273.6 0.3 327.5C0.5 436.1 0.2 430.4 7.1 439.8C8.8 442.2 21.1 452.6 34.9 463.5C48.4 474.1 66.3 488.2 74.5 494.7C98 513.3 103 517 104.6 517C105.8 517 106 495.9 106 359L106 201L108.4 201C110.6 201 129.1 215.5 219.5 288.5C242.8 307.3 321.9 370.8 353 395.7C376.3 414.4 384.9 419.6 394.2 420.6C401.7 421.5 411.8 418.4 420.2 412.7C427.2 408 459.6 382.9 538.5 321C567.7 298.1 599.2 273.4 608.5 266.1C681.1 209.4 688.3 203.9 689.4 205C690.2 205.8 690.5 219 690.5 248C690.5 271 690.8 290.1 691.2 290.5C691.6 290.9 694.1 289.5 696.7 287.3C708.9 277.3 743.4 248.9 751 242.5C755.7 238.7 767.8 228.8 777.8 220.5L796 205.5L795.8 111L795.5 16.5L792.6 10.7C789.7 4.7 785.4 1 781.4 1C777.1 1 768.5 6.9 741.4 28.5C726.1 40.6 692.7 67.2 667.1 87.5C641.5 107.9 595.5 144.5 565 169C514.1 209.7 497.9 222.7 438.1 270.8C414.9 289.5 410 292.3 400.1 292.3C389.5 292.3 388.1 291.5 351 264.1C334.6 252 318.1 238.9 264 195.1C197.8 141.5 167 117 138.6 95.6C103.4 69.1 86.3 55.1 40.4 15.4C28.2 4.8 23.4 1.7 18 1.2C14.1 0.9 12.9 1.2 10.3 3.4Z"/>
+  <path fill="#429DDA" d="M728 324.1C663.7 377.2 638 398.3 548.5 471.3C525.4 490.1 494.4 515.6 479.5 527.9C464.7 540.1 451.2 550.9 449.5 551.7C445.6 553.8 439.3 553.8 435.5 551.7C433.9 550.9 424.2 543.5 414 535.4C328.3 467.4 187.5 356.8 179.4 351.1C174.5 347.8 172.7 347 170.6 347.6L168 348.2L168 404.4C168 465.1 168.3 468.7 173.5 478.9C174.9 481.8 177.7 485.9 179.8 488.2C183.2 492 230.1 529.7 366.7 638.5C401.5 666.2 419.3 679.7 424.6 682.5C432 686.4 432.6 686.5 441.9 686.5C458.6 686.5 448 694.2 590.5 579.4C635.6 543.1 696.5 494.2 725.8 470.6C759.4 443.6 780.5 426 783.1 422.7C789.1 415.2 793 406.7 794.5 398.1C796.4 387.2 797.6 269 795.8 269.1C795.1 269.1 764.6 293.9 728 324.1Z M1044.6 200C976.4 212.4 917.8 268.3 902.1 336C888 396.5 912.2 452.4 963.5 477.8C980.9 486.4 992.7 489 1016.5 489.7C1032.7 490.1 1037.2 489.9 1047.5 488.2C1067.8 484.7 1090.1 476.3 1108.5 465.1C1117.3 459.7 1132 448.8 1132 447.6C1132 446.7 1113.1 422.9 1105.8 414.7L1102.5 410.9L1095.4 416.3C1074.5 432.2 1049.1 440.1 1024.5 438.7C1011.4 437.9 1003.6 435.8 992 430.2C975.3 422.1 960.8 405.3 954.6 386.9C951.5 377.8 949.7 363.8 950.5 355.7C953.5 325.5 964.4 303.3 986.5 282.2C1008 261.6 1031 251.1 1058.6 249.3C1082 247.8 1103.9 255.4 1119.7 270.5C1123.4 274.1 1126.6 277 1126.7 277C1126.9 277 1165.8 244.4 1167.9 242.4C1169.1 241.3 1168.8 240.4 1165.6 236.6C1157.1 226.1 1137.6 212.7 1122.7 206.9C1105.3 200.2 1097.4 198.8 1075.5 198.4C1058.8 198.1 1053.7 198.4 1044.6 200Z M1330.6 200C1262.4 212.4 1203.8 268.3 1188.1 336C1172.5 403 1205.1 465.4 1265.5 484.3C1280.7 489 1284.4 489.5 1307.5 489.5C1326.9 489.5 1330.7 489.2 1339.8 487.2C1403.2 473 1456.9 423.7 1474.9 363.2C1487.2 321.8 1482.5 281.6 1461.7 249.6C1448.5 229.5 1426.2 212.4 1402.6 204.5C1388.5 199.8 1382.4 198.9 1361.5 198.5C1344.7 198.1 1339.8 198.4 1330.6 200Z M1372.3 251.9C1397.2 258.4 1417.4 277.6 1425.8 302.8C1428.2 309.8 1428.4 312 1428.4 326.5C1428.5 340.9 1428.2 343.5 1425.7 352.4C1418.9 377.1 1404.6 398.1 1383.6 414.4C1369.6 425.3 1356.8 431.7 1340.2 436.2C1334.1 437.9 1329.4 438.3 1317 438.4C1298.6 438.5 1292.3 437.2 1278 430.2C1261.3 422.1 1246.8 405.3 1240.6 386.9C1237.5 377.8 1235.7 363.8 1236.5 355.7C1239.5 325.9 1250.3 303.5 1271.7 282.9C1290.4 264.9 1309.3 254.9 1332.5 250.5C1343.2 248.5 1361.9 249.2 1372.3 251.9Z M1506.5 201.7C1507.4 203.8 1534.5 269.4 1566.9 347.5L1625.7 489.5L1651.8 489.8C1669.2 489.9 1678 489.7 1678 489C1678 488.5 1689.5 423.2 1703.5 344.1C1717.5 265 1729 199.7 1729 199.1C1729 198.3 1722 198 1703.3 198.2L1677.7 198.5L1660.9 293C1651.6 345 1644 387.7 1644 388C1644 388.3 1626.3 345.7 1604.7 293.5L1565.4 198.5L1535.2 198.2L1505 198L1506.5 201.7Z M1847 199.5C1822.4 204.6 1799.6 219.4 1783.6 240.8C1760.9 270.9 1756.7 308.4 1772.7 336C1778.6 346.1 1790.2 357 1800.2 361.9C1814.1 368.7 1817 369.2 1849.5 369.9C1881.3 370.6 1882.3 370.8 1889.4 377C1900.4 386.7 1902 402.9 1893.4 417.6C1889.7 423.9 1880.8 431.7 1873.3 435.3L1866.5 438.5L1801.8 438.8L1737.1 439.1L1736.1 444.3C1735.5 447.2 1733.7 457.6 1732 467.5C1730.3 477.4 1728.7 486.5 1728.5 487.8L1727.9 490.1L1797.7 489.8C1865.9 489.4 1867.7 489.4 1874.5 487.3C1905.1 477.9 1933 453.2 1944 425.8C1957.2 392.7 1953.2 362.3 1932.8 340.5C1924.8 331.9 1917 326.5 1908 323.2C1896.8 319.1 1888.2 318.1 1863.4 318C1837.4 318 1833.3 317.3 1825.8 311.5C1818.9 306.3 1816.5 300.6 1816.5 289.5C1816.5 281.3 1816.8 279.8 1819.8 273.7C1824.2 264.9 1831.4 257.9 1840.9 253.2L1848.5 249.5L1904.2 249.2C1955.7 248.9 1959.9 248.8 1960.4 247.2C1960.7 246.3 1962.5 236 1964.5 224.5C1966.4 212.9 1968.3 202.3 1968.6 200.7L1969.2 198L1911.3 198.1C1867.4 198.2 1851.9 198.5 1847 199.5Z M2037 198.5C2037 198.7 2029.3 242.3 2019.8 295.2C2003 390 2002.7 391.7 2002.6 406C2002.6 421.4 2003.6 427.3 2008.4 439.2C2012.1 448.4 2016.9 455.6 2024.8 464.1C2037.1 477.2 2051.6 485.3 2068.7 488.6C2078.7 490.5 2100.6 490.4 2111 488.4C2143.9 482.2 2178.3 457.4 2196 427.1C2200.8 418.8 2206.1 405.9 2208.3 397C2209.2 393.4 2217.3 348.2 2226.4 296.5C2235.6 244.8 2243.2 201.5 2243.5 200.2L2244 198L2218.1 198L2192.2 198L2191 204.7C2190.4 208.5 2182.7 252.2 2173.9 301.9C2156.7 399.1 2156.5 400.1 2148.6 410.9C2146.5 413.7 2141.8 418.8 2138 422.3C2115.4 443.2 2083.6 444.6 2066 425.3C2057.8 416.3 2053.5 403.7 2054.7 392.5C2055.2 388.4 2087.5 204.3 2088.5 200.2L2089 198L2063 198C2048.7 198 2037 198.2 2037 198.5Z M2312.1 284.7C2303.7 332.5 2292.4 396.9 2286.9 428C2281.5 459.1 2276.8 485.7 2276.6 487.2L2276.1 490L2379.5 490C2436.4 490 2483 489.7 2483 489.4C2483 488.8 2490.6 446.7 2491.6 441.8L2492.2 439L2414.5 439L2336.8 439L2337.4 436.3C2338.7 430.3 2379 200.5 2379 199.3C2379 198.3 2373.5 198 2353.2 198L2327.4 198L2312.1 284.7Z M2532.5 200.2C2532.3 201.5 2530.4 211.7 2528.5 223C2526.6 234.3 2524.7 244.7 2524.4 246.2L2523.8 249L2562.4 249C2597.5 249 2601 249.1 2601 250.6C2601 252.2 2560.6 482.8 2559.5 487.8L2559 490L2584.9 490L2610.8 490L2611.4 486.7C2614.8 467.6 2653 250.1 2653 249.6C2653 249.3 2670.6 249 2692 249C2713.5 249 2731 248.7 2731 248.4C2731 247.8 2738.6 205.7 2739.6 200.7L2740.2 198L2636.6 198L2533 198L2532.5 200.2Z M2823 199.1C2823 200.3 2773.4 483.8 2772.5 487.7L2772 490L2798 490C2812.3 490 2824 489.7 2824 489.2C2824 488.8 2835.5 423.7 2849.5 344.5C2863.5 265.3 2875 200 2875 199.3C2875 198.3 2869.5 198 2849 198C2830.4 198 2823 198.3 2823 199.1Z M2908.5 201.7C2909.4 203.8 2936.5 269.4 2968.9 347.5L3027.7 489.5L3053.8 489.8C3071.2 489.9 3080 489.7 3080 489C3080 488.5 3091.5 423.2 3105.5 344.1C3119.5 265 3131 199.7 3131 199.1C3131 198.3 3124 198 3105.3 198.2L3079.7 198.5L3062.9 293C3053.6 345 3046 387.7 3046 388C3046 388.3 3028.3 345.7 3006.7 293.5L2967.4 198.5L2937.2 198.2L2907 198L2908.5 201.7Z M3309.6 200C3241.4 212.4 3182.8 268.3 3167.1 336C3151.5 403 3184.1 465.4 3244.5 484.3C3259.7 489 3263.4 489.5 3286.5 489.5C3305.9 489.5 3309.7 489.2 3318.8 487.2C3369.1 475.9 3413.8 442.6 3439.4 397.2C3449.5 379.3 3454.8 363.5 3459.5 337C3460.9 329 3462.3 321.7 3462.6 320.7C3463.1 319.1 3460.1 319 3410.1 319L3357.2 319L3356.6 321.7C3356.3 323.3 3354.4 333.7 3352.5 345C3350.6 356.3 3348.7 366.5 3348.5 367.7L3348 370L3373 370C3386.7 370 3398 370.3 3398 370.7C3398 371.8 3390 385.1 3385.7 391C3379.6 399.4 3365.4 412.9 3355.8 419.3C3335 433.2 3312.8 439.8 3290.5 438.7C3276.6 437.9 3268.9 436 3257 430.2C3240.3 422.1 3225.8 405.3 3219.6 386.9C3216.5 377.8 3214.7 363.8 3215.5 355.7C3218.5 325.5 3229.4 303.3 3251.5 282.2C3273 261.6 3296 251.1 3323.6 249.3C3347 247.8 3368.9 255.4 3384.7 270.5C3388.4 274.1 3391.6 277 3391.7 277C3391.9 277 3430.8 244.4 3432.9 242.4C3434.1 241.3 3433.8 240.4 3430.6 236.6C3422.1 226.1 3402.6 212.7 3387.7 206.9C3370.3 200.2 3362.4 198.8 3340.5 198.4C3323.8 198.1 3318.7 198.4 3309.6 200Z"/>
 </svg>
 </div>
+        <span class="badge-riservato">Riservato</span>
+    </header>
+    <div class="cover-body">
+        <p class="cover-kicker">Documentazione tecnica</p>
+        <h1 class="cover-title">Infrastruttura<br>del sito e del CMS</h1>
+        <p class="cover-subtitle">Architettura, servizi DigitalOcean, deploy, costi, backup e sicurezza di savinodelbenevolley.it</p>
+    </div>
+    <div class="cover-client">
+        <img src="../public/images/logo.png" alt="Savino Del Bene Volley">
+        <div>
+            <span class="label">Cliente</span>
+            <strong>Savino Del Bene Volley</strong>
+            <span>Pallavolo Scandicci Savino Del Bene S.S.D. a r.l.</span>
+        </div>
+    </div>
+    <footer class="cover-footer">
+        <div><span class="label">Redatto da</span>MV Consulting</div>
+        <div><span class="label">Data</span>1 ottobre 2026</div>
+        <div><span class="label">Versione</span>3.0</div>
+    </footer>
+</section>
+
+<section class="scheda">
+    <table class="scheda-doc">
+        <tbody>
+            <tr><th>Documento</th><td>Documentazione tecnica dell'infrastruttura</td></tr>
+            <tr><th>Cliente</th><td>Pallavolo Scandicci Savino Del Bene S.S.D. a r.l.</td></tr>
+            <tr><th>Fornitore</th><td>MV Consulting — Marco Vanzo</td></tr>
+            <tr><th>Versione</th><td>3.0 del 1 ottobre 2026</td></tr>
+            <tr><th>Classificazione</th><td>Riservato: contiene dettagli di configurazione dei sistemi in produzione</td></tr>
+            <tr><th>Fonte</th><td><code>docs/INFRASTRUCTURE.md</code> nel repository del sito</td></tr>
+        </tbody>
+    </table>
+    <p>Questo documento descrive come è costruita e come funziona l'infrastruttura che serve il sito <strong>savinodelbenevolley.it</strong>, il suo pannello di gestione (CMS), lo shop e le aste: componenti, servizi esterni, rilascio delle versioni, costi, backup, sicurezza e avvisi. Fotografa lo stato al 1 ottobre 2026, giorno in cui il dominio è passato dal vecchio sito WordPress a questa piattaforma (procedura in <code>docs/GO_LIVE.md</code>).</p>
+    <nav class="toc">
+        <h2>Indice</h2>
+        <ol><li><a href="#sintesi"><span class="toc-n">—</span><span class="toc-t">Sintesi per la direzione</span></a></li><li><a href="#s1"><span class="toc-n">01</span><span class="toc-t">Panoramica Architettura</span></a></li><li><a href="#s2"><span class="toc-n">02</span><span class="toc-t">Stack Tecnologico</span></a></li><li><a href="#s3"><span class="toc-n">03</span><span class="toc-t">Servizi DigitalOcean — Dettaglio</span></a></li><li><a href="#s4"><span class="toc-n">04</span><span class="toc-t">Flusso delle Richieste</span></a></li><li><a href="#s5"><span class="toc-n">05</span><span class="toc-t">Variabili d'Ambiente</span></a></li><li><a href="#s6"><span class="toc-n">06</span><span class="toc-t">Build e Deploy</span></a></li><li><a href="#s7"><span class="toc-n">07</span><span class="toc-t">Performance e OPcache</span></a></li><li><a href="#s8"><span class="toc-n">08</span><span class="toc-t">Costi</span></a></li><li><a href="#s9"><span class="toc-n">09</span><span class="toc-t">Backup e Sicurezza</span></a></li></ol>
+    </nav>
+</section>
+
+<section class="sintesi" id="sintesi"><h2 class="sintesi-titolo">Sintesi per la direzione</h2><h3>Cosa c'è in produzione</h3>
+<p>Il sito pubblico, il pannello di gestione dei contenuti, lo shop e le aste girano su <strong>DigitalOcean</strong>, in un unico data center a <strong>Francoforte</strong> (Unione Europea). L'applicazione è divisa in tre componenti — sito, coda dei lavori in background, pianificatore — che usano lo stesso database MySQL gestito e lo stesso archivio dei file (Spaces). Un server a parte esegue il riconoscimento dei volti per l'archivio fotografico ed è raggiungibile solo dalla rete privata. Dal 1 ottobre 2026 il dominio <code>savinodelbenevolley.it</code> punta qui.</p>
+<h3>Costi</h3>
+<table><thead><tr><th>Voce</th><th>Importo</th></tr></thead><tbody><tr><td>Infrastruttura DigitalOcean (listino, IVA esclusa)</td><td>$71,43 al mese</td></tr><tr><td>Equivalente indicativo</td><td>~65 € al mese, ~780 € l'anno</td></tr><tr><td>Esclusi</td><td>Commissioni Stripe e PayPal, Resend, Sentry, ActiveCampaign, eventuale traffico oltre le soglie incluse (§8)</td></tr></tbody></table>
+<h3>Continuità e backup</h3>
+<table><thead><tr><th>Cosa</th><th>Come</th><th>Stato al 1/10/2026</th></tr></thead><tbody><tr><td>Database</td><td>Tre copie indipendenti: backup giornaliero di DigitalOcean (7 giorni), dump cifrato giornaliero su Spaces (90 giorni) e su Cloudflare R2, fuori da DigitalOcean</td><td><span class="stato stato-ok"></span> 40 dump su 40 riusciti dal 24/08</td></tr><tr><td>Prova di ripristino</td><td>Ogni lunedì l'ultimo dump viene ripristinato davvero in un database di prova</td><td><span class="stato stato-ok"></span> Riuscita il 21/09 e il 28/09</td></tr><tr><td>File e foto</td><td>Copia settimanale su Spaces e su R2</td><td><span class="stato stato-ok"></span> Ultima il 27/09, 81.719 file</td></tr><tr><td>Server del riconoscimento volti</td><td>Immagine giornaliera del server (7 giorni)</td><td><span class="stato stato-ok"></span> Attiva</td></tr></tbody></table>
+<h3>Sicurezza e controllo</h3>
+<ul><li>Connessioni cifrate (HTTPS), segreti cifrati nella configurazione, database accessibile solo dall'applicazione e da indirizzi autorizzati.</li><li>Content Security Policy sul sito pubblico; strumenti di statistica e marketing, mappe e video caricati solo dopo il consenso del visitatore.</li><li>Ogni rilascio passa da test automatici prima di andare in produzione; un test fallito blocca il rilascio.</li><li>Errori del server e del browser tracciati con Sentry; guasti (pianificatore fermo, coda bloccata, negozio spento, pagamenti da rivedere) segnalati per email al referente tecnico.</li></ul>
+<h3>Limiti noti e punti aperti</h3>
+<table><thead><tr><th>Punto</th><th>Effetto</th><th>Proposta</th></tr></thead><tbody><tr><td>Un'istanza sola per il sito e un nodo solo per il database</td><td>Nessuna ridondanza: un guasto del componente o la manutenzione del database fermano il sito per qualche minuto</td><td>Accettabile per il traffico attuale. Se servirà, un nodo di standby per il database (richiede un piano superiore: costo da valutare sul listino)</td></tr><tr><td>Immagini servite dall'origine di Francoforte, senza CDN</td><td>Adeguato per chi visita dall'Italia e dall'Europa; più lento da lontano</td><td>Attivare il CDN di Spaces se cresce il traffico estero (§3.5)</td></tr><tr><td>Chiavi di ActiveCampaign e di Spaces rimaste nella cronologia del repository pubblico</td><td>Chi le trova può usarle finché non vengono sostituite</td><td>Ruotarle (la chiave applicativa <code>APP_KEY</code> è già stata ruotata il 27/09)</td></tr></tbody></table></section>
+
+<main class="content">
+<h2 id="s1"><span class="section-number">01</span> Panoramica Architettura</h2>
+<figure class="architecture-diagram">
+<figcaption>DigitalOcean — region Frankfurt (fra / fra1)</figcaption>
+<svg viewBox="0 0 760 505" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Schema dell'infrastruttura">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#003063"/></marker>
+<marker id="arrow-az" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2F7FB5"/></marker>
+<marker id="arrow-gr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#66879E"/></marker>
+</defs>
+<g transform="translate(310,10)">
+<rect width="140" height="34" rx="6" fill="white" stroke="#003063" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h128 a6 6 0 0 1 6 6 v20 h-140 z" fill="#003063"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">Visitatori</text>
+</g>
+<g transform="translate(40,110)">
+<rect width="250" height="92" rx="6" fill="white" stroke="#003063" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h238 a6 6 0 0 1 6 6 v20 h-250 z" fill="#003063"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">App Web</text>
+<text x="240" y="17.5" text-anchor="end" font-family="Montserrat" font-size="9" font-weight="600" fill="white">$10</text>
+<text x="10" y="43" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">PHP + Apache • 1 vCPU, 1 GB</text>
+<text x="10" y="57" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">Sito (Inertia/Vue) + pannello (Filament)</text>
+<text x="10" y="71" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">health check /up</text>
+</g>
+<g transform="translate(470,110)">
+<rect width="250" height="92" rx="6" fill="white" stroke="#003063" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h238 a6 6 0 0 1 6 6 v20 h-250 z" fill="#003063"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">MySQL 8.4 managed</text>
+<text x="240" y="17.5" text-anchor="end" font-family="Montserrat" font-size="9" font-weight="600" fill="white">$15.23</text>
+<text x="10" y="43" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">1 vCPU, 1 GB • Trusted Sources</text>
+<text x="10" y="57" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">dati, sessioni, cache, code</text>
+<text x="10" y="71" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">backup DO: ultimi 7 giorni</text>
+</g>
+<g transform="translate(40,270)">
+<rect width="250" height="77" rx="6" fill="white" stroke="#2F7FB5" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h238 a6 6 0 0 1 6 6 v20 h-250 z" fill="#2F7FB5"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">Spaces sito-savino-assets-2026</text>
+<text x="240" y="17.5" text-anchor="end" font-family="Montserrat" font-size="9" font-weight="600" fill="white">$5</text>
+<text x="10" y="43" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">immagini e media (origine, niente CDN)</text>
+<text x="10" y="57" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">S3 API • abbonamento 250 GB</text>
+</g>
+<g transform="translate(330,270)">
+<rect width="180" height="77" rx="6" fill="white" stroke="#003063" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h168 a6 6 0 0 1 6 6 v20 h-180 z" fill="#003063"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">Worker</text>
+<text x="170" y="17.5" text-anchor="end" font-family="Montserrat" font-size="9" font-weight="600" fill="white">$5</text>
+<text x="10" y="43" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">queue:work default, ai</text>
+<text x="10" y="57" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">0,5 GB • 1 istanza</text>
+</g>
+<g transform="translate(540,270)">
+<rect width="180" height="77" rx="6" fill="white" stroke="#003063" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h168 a6 6 0 0 1 6 6 v20 h-180 z" fill="#003063"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">Scheduler</text>
+<text x="170" y="17.5" text-anchor="end" font-family="Montserrat" font-size="9" font-weight="600" fill="white">$5</text>
+<text x="10" y="43" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">schedule:work + battito</text>
+<text x="10" y="57" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">0,5 GB • 1 istanza sola</text>
+</g>
+<g transform="translate(290,400)">
+<rect width="260" height="77" rx="6" fill="white" stroke="#2F7FB5" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h248 a6 6 0 0 1 6 6 v20 h-260 z" fill="#2F7FB5"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">Droplet CompreFace</text>
+<text x="250" y="17.5" text-anchor="end" font-family="Montserrat" font-size="9" font-weight="600" fill="white">$24</text>
+<text x="10" y="43" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">2 vCPU, 4 GB • Ubuntu 24.04</text>
+<text x="10" y="57" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">API :8000 solo dalla VPC 10.114.0.0/20</text>
+</g>
+<g transform="translate(40,400)">
+<rect width="210" height="92" rx="6" fill="white" stroke="#66879E" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h198 a6 6 0 0 1 6 6 v20 h-210 z" fill="#66879E"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">Backup (GitHub Actions)</text>
+<text x="10" y="43" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">dump GPG giornaliero, media settimanali</text>
+<text x="10" y="57" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">→ sito-savino-backups (Spaces)</text>
+<text x="10" y="71" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">→ Cloudflare R2, fuori da DO</text>
+</g>
+<g transform="translate(580,400)">
+<rect width="165" height="92" rx="6" fill="white" stroke="#66879E" stroke-width="1.2"/>
+<path d="M0 6 a6 6 0 0 1 6 -6 h153 a6 6 0 0 1 6 6 v20 h-165 z" fill="#66879E"/>
+<text x="10" y="17.5" font-family="Montserrat" font-size="10" font-weight="700" fill="white">Servizi esterni</text>
+<text x="10" y="43" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">Lega Volley, CEV</text>
+<text x="10" y="57" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">Stripe, PayPal, Resend</text>
+<text x="10" y="71" font-family="Montserrat" font-size="8.5" fill="#3d4a5c">GA4, Meta, Sentry</text>
+</g>
+<line x1="350" y1="46" x2="200" y2="108" stroke="#003063" stroke-width="1.3" marker-end="url(#arrow)"/><text x="260" y="72" text-anchor="middle" font-family="Montserrat" font-size="7.5" font-weight="600" fill="#003063">HTTPS</text>
+<polyline points="308,27 20,27 20,308 36,308" fill="none" stroke="#2F7FB5" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#arrow-az)"/>
+<text x="120" y="21" text-anchor="middle" font-family="Montserrat" font-size="7.5" font-weight="600" fill="#2F7FB5">immagini (dirette da Spaces)</text>
+<line x1="292" y1="150" x2="468" y2="150" stroke="#003063" stroke-width="1.3" marker-end="url(#arrow)"/><text x="380" y="144" text-anchor="middle" font-family="Montserrat" font-size="7.5" font-weight="600" fill="#003063">SQL</text>
+<line x1="165" y1="204" x2="165" y2="268" stroke="#2F7FB5" stroke-width="1.3" marker-end="url(#arrow-az)"/><text x="205" y="240" text-anchor="middle" font-family="Montserrat" font-size="7.5" font-weight="600" fill="#2F7FB5">upload S3</text>
+<line x1="420" y1="268" x2="540" y2="204" stroke="#003063" stroke-width="1.3" marker-end="url(#arrow)"/><text x="505" y="250" text-anchor="middle" font-family="Montserrat" font-size="7.5" font-weight="600" fill="#003063">coda jobs</text>
+<line x1="630" y1="268" x2="610" y2="204" stroke="#003063" stroke-width="1.3" marker-end="url(#arrow)"/><text x="650" y="240" text-anchor="middle" font-family="Montserrat" font-size="7.5" font-weight="600" fill="#003063">comandi</text>
+<line x1="420" y1="349" x2="420" y2="398" stroke="#2F7FB5" stroke-width="1.3" marker-end="url(#arrow-az)"/><text x="460" y="378" text-anchor="middle" font-family="Montserrat" font-size="7.5" font-weight="600" fill="#2F7FB5">HTTP (VPC)</text>
+<line x1="330" y1="310" x2="292" y2="310" stroke="#2F7FB5" stroke-width="1.3" marker-end="url(#arrow-az)"/>
+<line x1="145" y1="398" x2="145" y2="351" stroke="#66879E" stroke-width="1.3" marker-end="url(#arrow-gr)" stroke-dasharray="3,3"/><text x="170" y="380" text-anchor="middle" font-family="Montserrat" font-size="7.5" font-weight="600" fill="#66879E">copia</text>
+<line x1="700" y1="349" x2="680" y2="398" stroke="#66879E" stroke-width="1.3" marker-end="url(#arrow-gr)" stroke-dasharray="3,3"/>
+</svg>
+</figure>
 <p>Tutti i servizi sono nella <strong>stessa region</strong> (Frankfurt, Germania) per minimizzare la latenza tra i componenti.</p>
 <p>Fuori da questo schema: il bucket di backup <code>sito-savino-backups</code> (Spaces, stessa region), la copia fuori sede su <strong>Cloudflare R2</strong> e i job di GitHub Actions che li alimentano (§9). CompreFace è raggiungibile solo dalla VPC <code>default-fra1</code>, in cui l'app è agganciata con la voce <code>vpc:</code> della spec.</p>
 <h2 id="s2"><span class="section-number">02</span> Stack Tecnologico</h2>
 <h3>Backend</h3>
-<table><thead><tr><th>Tecnologia</th><th>Versione</th><th>Ruolo</th></tr></thead><tbody><tr><td><strong>PHP</strong></td><td><code>^8.4</code> (<code>composer.json</code>; in locale 8.5)</td><td>Linguaggio backend</td></tr><tr><td><strong>Laravel</strong></td><td>13.17.0</td><td>Framework MVC</td></tr><tr><td><strong>Filament</strong></td><td>3.3.54</td><td>Pannello admin (CMS)</td></tr><tr><td><strong>Inertia.js</strong></td><td>2.0 (<code>inertia-laravel</code> 2.0.24)</td><td>Bridge server↔client (SSR non attivo, vedi §6)</td></tr><tr><td><strong>MySQL</strong></td><td>8.4 LTS</td><td>Database relazionale</td></tr><tr><td><strong>Apache</strong></td><td>(heroku buildpack)</td><td>Web server</td></tr><tr><td><strong>OPcache + JIT</strong></td><td>tracing 1255</td><td>Compilazione PHP → codice nativo</td></tr></tbody></table>
+<table><thead><tr><th>Tecnologia</th><th>Versione</th><th>Ruolo</th></tr></thead><tbody><tr><td><strong>PHP</strong></td><td><code>^8.4</code> (<code>composer.json</code>; in locale 8.5)</td><td>Linguaggio backend</td></tr><tr><td><strong>Laravel</strong></td><td>13.34.0</td><td>Framework MVC</td></tr><tr><td><strong>Filament</strong></td><td>3.3.54</td><td>Pannello admin (CMS)</td></tr><tr><td><strong>Inertia.js</strong></td><td>2.0 (<code>inertia-laravel</code> 2.0.24)</td><td>Bridge server↔client (SSR non attivo, vedi §6)</td></tr><tr><td><strong>MySQL</strong></td><td>8.4 LTS</td><td>Database relazionale</td></tr><tr><td><strong>Apache</strong></td><td>(heroku buildpack)</td><td>Web server</td></tr><tr><td><strong>OPcache + JIT</strong></td><td>tracing 1255</td><td>Compilazione PHP → codice nativo</td></tr></tbody></table>
 <h3>Frontend</h3>
-<table><thead><tr><th>Tecnologia</th><th>Versione</th><th>Ruolo</th></tr></thead><tbody><tr><td><strong>Vue.js</strong></td><td>3.x</td><td>Framework UI (via Inertia)</td></tr><tr><td><strong>Vite</strong></td><td>8.x</td><td>Bundler assets</td></tr><tr><td><strong>Node.js</strong></td><td>≥ 20 (<code>engines</code> in <code>package.json</code>; la CI usa Node 20)</td><td>Build-time (compilazione assets client)</td></tr><tr><td><strong>Tailwind CSS</strong></td><td>3.4</td><td>Styling</td></tr><tr><td><strong>Font</strong></td><td>Montserrat, Playfair Display</td><td>Serviti dal sito (<code>public/fonts</code>, <code>@font-face</code> in <code>resources/css/app.css</code>), non dal CDN di Google</td></tr></tbody></table>
+<table><thead><tr><th>Tecnologia</th><th>Versione</th><th>Ruolo</th></tr></thead><tbody><tr><td><strong>Vue.js</strong></td><td>3.x</td><td>Framework UI (via Inertia)</td></tr><tr><td><strong>Vite</strong></td><td>8.x</td><td>Bundler assets</td></tr><tr><td><strong>Node.js</strong></td><td>≥ 20 (<code>engines</code> in <code>package.json</code>: la CI usa Node 20, il build su App Platform la versione scelta dal buildpack)</td><td>Build-time (compilazione assets client)</td></tr><tr><td><strong>Tailwind CSS</strong></td><td>3.4</td><td>Styling</td></tr><tr><td><strong>Font</strong></td><td>Montserrat, Playfair Display</td><td>Serviti dal sito (<code>public/fonts</code>, <code>@font-face</code> in <code>resources/css/app.css</code>), non dal CDN di Google</td></tr></tbody></table>
 <h3>Servizi e Librerie</h3>
-<table><thead><tr><th>Tecnologia</th><th>Ruolo</th></tr></thead><tbody><tr><td><strong>Spatie Media Library</strong></td><td>Gestione media con conversioni automatiche</td></tr><tr><td><strong>CompreFace</strong></td><td>Riconoscimento facciale (self-hosted)</td></tr><tr><td><strong>Resend</strong></td><td>Invio email transazionali (pacchetto installato, ⚠️ <strong>non ancora configurato in produzione</strong>: senza <code>MAIL_MAILER=resend</code> + <code>RESEND_API_KEY</code> il mailer di default è <code>log</code>)</td></tr><tr><td><strong>Ziggy</strong></td><td>Routing Laravel → JavaScript</td></tr><tr><td><strong>Predis</strong></td><td>Client Redis (pronto per futuro uso)</td></tr><tr><td><strong>Spatie Translatable</strong></td><td>Contenuti multilingua</td></tr><tr><td><strong>Spatie Sitemap</strong></td><td>Generazione sitemap SEO</td></tr><tr><td><strong>Sentry</strong></td><td>Error tracking (web, worker e scheduler, più gli errori JavaScript via <code>/api/diagnostica</code>; attivo dal 25/09/2026 con <code>SENTRY_LARAVEL_DSN</code> valorizzato). Gli errori JavaScript vanno al progetto di <code>SENTRY_BROWSER_DSN</code> (<code>sito-savino-browser</code>), con quota propria; vuoto, ripiegano su quello del server</td></tr><tr><td><strong>PayPal</strong> (REST API, <code>PayPalPaymentService</code>)</td><td>Pagamenti shop e aste, modalità <code>live</code>; <code>php artisan paypal:verifica</code> controlla credenziali e webhook</td></tr><tr><td><strong>Stripe</strong> (<code>stripe/stripe-php</code>)</td><td>Pagamenti shop — chiavi <code>STRIPE_*</code> non nello spec: il metodo non viene offerto al checkout (<code>PaymentGateway::configurato()</code>)</td></tr><tr><td><strong>ActiveCampaign</strong></td><td>Newsletter (iscrizioni e revoche via coda)</td></tr><tr><td><strong>GA4 Data API</strong> / <strong>Meta Graph API</strong></td><td>Analytics del pannello (sito, Facebook, Instagram) — vedi <code>docs/ANALYTICS.md</code></td></tr><tr><td><strong>Lega Volley Femminile</strong></td><td>Calendario, risultati, classifica e tabellini, letti dalle pagine pubbliche (<code>app/Services/Lvf/</code>)</td></tr></tbody></table>
+<table><thead><tr><th>Tecnologia</th><th>Ruolo</th></tr></thead><tbody><tr><td><strong>Spatie Media Library</strong></td><td>Gestione media con conversioni automatiche</td></tr><tr><td><strong>CompreFace</strong></td><td>Riconoscimento facciale (self-hosted)</td></tr><tr><td><strong>Resend</strong></td><td>Invio email transazionali, attivo dal 25/09/2026 (<code>MAIL_MAILER=resend</code>, mittente <code>noreply@savinodelbenevolley.it</code>, dominio verificato con DKIM sul DNS della Spa). Webhook <code>/api/webhooks/resend</code> per le email non consegnate</td></tr><tr><td><strong>Ziggy</strong></td><td>Routing Laravel → JavaScript</td></tr><tr><td><strong>Predis</strong></td><td>Client Redis (usato in sviluppo; in produzione cache, sessioni e code stanno su <code>database</code>)</td></tr><tr><td><strong>Spatie Translatable</strong></td><td>Contenuti multilingua</td></tr><tr><td><strong>Spatie Sitemap</strong></td><td>Generazione sitemap SEO</td></tr><tr><td><strong>Sentry</strong></td><td>Error tracking (web, worker e scheduler, più gli errori JavaScript via <code>/api/diagnostica</code>; attivo dal 25/09/2026 con <code>SENTRY_LARAVEL_DSN</code> valorizzato). Gli errori JavaScript vanno al progetto di <code>SENTRY_BROWSER_DSN</code> (<code>sito-savino-browser</code>), con quota propria; vuoto, ripiegano su quello del server</td></tr><tr><td><strong>PayPal</strong> (REST API, <code>PayPalPaymentService</code>)</td><td>Pagamenti shop e aste, modalità <code>live</code>; <code>php artisan paypal:verifica</code> controlla credenziali e webhook. La firma del webhook si verifica sul corpo grezzo ricevuto</td></tr><tr><td><strong>Bonifico bancario</strong></td><td>Shop e, dal 30/09/2026, aste; accredito confermato a mano dal pannello</td></tr><tr><td><strong>Stripe</strong> (<code>stripe/stripe-php</code> 21)</td><td>Pagamenti shop e aste, <strong>live dal 1/10/2026</strong> (account <code>acct_1ULeeFATccTjPcsE</code>); webhook <code>sito-savino-shop</code> su <code>…ondigitalocean.app/api/webhooks/stripe</code>. Metodi accesi dalla dashboard: si conferma solo con <code>payment_status = paid</code></td></tr><tr><td><strong>ActiveCampaign</strong></td><td>Newsletter (iscrizioni e revoche via coda)</td></tr><tr><td><strong>GA4 Data API</strong> / <strong>Meta Graph API</strong></td><td>Analytics del pannello (sito, Facebook, Instagram) — vedi <code>docs/ANALYTICS.md</code></td></tr><tr><td><strong>Lega Volley Femminile</strong></td><td>Calendario, risultati, classifica e tabellini, letti dalle pagine pubbliche (<code>app/Services/Lvf/</code>)</td></tr><tr><td><strong>CEV</strong> (<code>www-old.cev.eu</code>)</td><td>Calendario, risultati e classifica della Champions League, dal 27/09/2026 (<code>app/Services/Cev/</code>)</td></tr></tbody></table>
 <h3>Repository</h3>
 <table><thead><tr><th>Dettaglio</th><th>Valore</th></tr></thead><tbody><tr><td>GitHub</td><td><a href="https://github.com/MarcoVanzo/sito_savino">MarcoVanzo/sito_savino</a> (pubblico)</td></tr><tr><td>Branch produzione</td><td><code>main</code></td></tr><tr><td>Deploy</td><td>Gated: push a <code>main</code> → workflow CI → job <code>deploy</code> solo se i test passano (<code>deploy_on_push: false</code> nello spec)</td></tr></tbody></table>
 <h2 id="s3"><span class="section-number">03</span> Servizi DigitalOcean — Dettaglio</h2>
-<h3>3.1 🌐 App Web (sito + CMS) — $10/mese</h3>
+<h3>3.1 App Web (sito + CMS) — $10/mese</h3>
 <p><strong>Cosa fa:</strong> È il container principale che serve tutte le pagine web. Quando un utente visita il sito o un admin accede al CMS, questa macchina elabora la richiesta PHP e restituisce la pagina HTML.</p>
 <table><thead><tr><th>Spec</th><th>Valore</th></tr></thead><tbody><tr><td>Slug</td><td><code>apps-s-1vcpu-1gb-fixed</code></td></tr><tr><td>CPU</td><td>1 shared vCPU</td></tr><tr><td>RAM</td><td>1 GB</td></tr><tr><td>Bandwidth</td><td>100 GB/mese</td></tr><tr><td>Region</td><td><code>fra</code> (Frankfurt)</td></tr><tr><td>Istanze</td><td>1 (fissa, no scaling)</td></tr><tr><td>Web server</td><td><code>heroku-php-apache2</code></td></tr><tr><td>Run command</td><td><code>bash start.sh</code></td></tr></tbody></table>
 <p><strong>Serve due applicazioni:</strong></p>
@@ -708,48 +422,49 @@
                                           valori S3 vuoti)
    php artisan route:cache / view:cache / event:cache
 6. php artisan filament:optimize        → Cachea componenti Filament
-7. heroku-php-apache2 -i opcache.ini    → Avvia Apache con OPcache tuning</pre>
-<p><strong>Health check</strong> (<code>.do/app.yaml</code>): App Platform interroga <code>/up</code> via HTTP (<code>App\Listeners\VerifyApplicationHealth</code>), che verifica database e cache. Uno scheduler fermo viene segnalato ma <strong>non</strong> fa fallire il check (riavviare il web non lo risolverebbe). <code>initial_delay_seconds: 120</code> è vincolante: dopo <code>cache:clear</code> il battito dello scheduler torna solo al giro successivo, e un delay più corto metterebbe l'istanza in ciclo di riavvio.</p>
+7. heroku-php-apache2 -i php-config/opcache.ini public/
+                                        → Avvia Apache con OPcache tuning</pre>
+<p><strong>Health check</strong> (<code>.do/app.yaml</code>): App Platform interroga <code>/up</code> via HTTP (<code>App\Listeners\VerifyApplicationHealth</code>), che verifica database e cache. Uno scheduler fermo viene segnalato ma <strong>non</strong> fa fallire il check (riavviare il web non lo risolverebbe), e solo se lo stallo dura da almeno 120 s. <code>initial_delay_seconds: 120</code> lascia margine all'avvio (migrazioni, seeder, cache di configurazione, rotte e viste) prima del primo controllo.</p>
 <div class="callout callout-info"><p>Lo scheduler <strong>non gira più dentro il container web</strong>: ha un componente dedicato (vedi §3.3). Prima era avviato in background da <code>start.sh</code> e, se moriva, il container restava "healthy" mentre i task si fermavano in silenzio.</p></div>
-<h3>3.2 ⚙️ App Worker (code) — $5/mese</h3>
+<h3>3.2 App Worker (code) — $5/mese</h3>
 <p><strong>Cosa fa:</strong> Processa i job in background. Resta in ascolto sulla tabella <code>jobs</code> nel database e quando trova un nuovo job, lo esegue senza bloccare il browser dell'utente.</p>
 <table><thead><tr><th>Spec</th><th>Valore</th></tr></thead><tbody><tr><td>Slug</td><td><code>apps-s-1vcpu-0.5gb</code></td></tr><tr><td>CPU</td><td>1 shared vCPU</td></tr><tr><td>RAM</td><td>512 MB</td></tr><tr><td>Region</td><td><code>fra</code> (Frankfurt)</td></tr><tr><td>Run command</td><td><code>php artisan queue:work --queue=default,ai --sleep=3 --tries=3 --max-time=3600 --max-jobs=100 --memory=384</code></td></tr></tbody></table>
 <p><strong>Comportamento:</strong></p>
-<ul><li>Processa le code <code>default</code> e <code>ai</code> (in quest'ordine di priorità)</li><li>Controlla la tabella <code>jobs</code> ogni <strong>3 secondi</strong></li><li>Se un job fallisce, <strong>riprova fino a 3 volte</strong>; attese e timeout li decide il singolo job (<code>AnalyzeGalleryImageJob</code>: 120 s, backoff 30/60 s; newsletter: backoff 10/30/90 s). Senza un valore proprio vale il timeout di serie di <code>queue:work</code>, <strong>60 s</strong>: il comando non passa <code>--timeout</code></li><li>Si riavvia dopo <strong>1 ora</strong>, <strong>100 job</strong> o <strong>384 MB</strong> per prevenire memory leak</li><li><code>retry_after</code> della coda database è <strong>1860 s</strong> (<code>config/queue.php</code>), sopra il job più lungo (import della gallery storica e anteprime, 1800 s). Era 180 s: con un solo worker innocuo, con due un job ancora in corsa sarebbe stato ripreso dall'altro e avrebbe girato <strong>due volte in parallelo</strong>. Il prezzo è che un job rimasto orfano (worker ucciso a metà) torna in coda dopo mezz'ora. Un job nuovo con un timeout più lungo fa fallire <code>tests/Unit/RetryAfterDellaCodaTest.php</code></li></ul>
+<ul><li>Processa le code <code>default</code> e <code>ai</code> (in quest'ordine di priorità)</li><li>Controlla la tabella <code>jobs</code> ogni <strong>3 secondi</strong></li><li>Un job che fallisce ha <strong>fino a 3 tentativi in tutto</strong> (o quanti ne dichiara il job); attese e timeout li decide il singolo job (<code>AnalyzeGalleryImageJob</code>: 120 s, backoff 30/60 s; newsletter: backoff 10/30/90 s). Senza un valore proprio vale il timeout di serie di <code>queue:work</code>, <strong>60 s</strong>: il comando non passa <code>--timeout</code></li><li>Si riavvia dopo <strong>1 ora</strong>, <strong>100 job</strong> o <strong>384 MB</strong> per prevenire memory leak</li><li><code>retry_after</code> della coda database è <strong>1860 s</strong> (<code>config/queue.php</code>), sopra il job più lungo (import della gallery storica e anteprime, 1800 s). Era 180 s: con un solo worker innocuo, con due un job ancora in corsa sarebbe stato ripreso dall'altro e avrebbe girato <strong>due volte in parallelo</strong>. Il prezzo è che un job rimasto orfano (worker ucciso a metà) torna in coda dopo mezz'ora. Un job nuovo con un timeout più lungo fa fallire <code>tests/Unit/RetryAfterDellaCodaTest.php</code></li></ul>
 <p><strong>Job processati:</strong></p>
-<table><thead><tr><th>Job</th><th>Trigger</th><th>Cosa fa</th></tr></thead><tbody><tr><td><code>AnalyzeGalleryImageJob</code></td><td>Upload foto nel CMS (Galleria), oppure <code>gallery:analyze --pending</code> ogni ora per le foto entrate da altre vie</td><td>Scarica l'immagine da S3, la invia a CompreFace per riconoscimento facciale, salva i tag nel DB (coda <code>ai</code>)</td></tr><tr><td><code>RicostruisciLaCacheDellaGallery</code></td><td>Modifica di foto/album/atlete, avvio del web, ogni ora</td><td>Rigenera la cache dell'archivio foto invece di cancellarla (job unico)</td></tr><tr><td><code>PerformConversionsJob</code> (Spatie)</td><td>Upload di un media</td><td>Conversioni immagine; richiede GD (§3.5)</td></tr><tr><td><code>SyncNewsletterToActiveCampaign</code></td><td>Iscrizione newsletter</td><td>Sincronizza il contatto su ActiveCampaign (coda <code>default</code>)</td></tr><tr><td><code>UnsubscribeNewsletterFromActiveCampaign</code></td><td>Disiscrizione o cancellazione di un iscritto</td><td>Porta la revoca su ActiveCampaign: status 2 sulla lista, oppure cancellazione del contatto se la richiesta è di cancellazione dati (coda <code>default</code>)</td></tr><tr><td>Mail transazionali</td><td>Ordini, aste, rimborsi</td><td><code>Mail::to(...)-&gt;queue(...)</code> — oggi finiscono nel log: nessun mailer configurato (vedi §5)</td></tr></tbody></table>
+<table><thead><tr><th>Job</th><th>Trigger</th><th>Cosa fa</th></tr></thead><tbody><tr><td><code>AnalyzeGalleryImageJob</code></td><td>Upload foto nel CMS (Galleria), oppure <code>gallery:analyze --pending</code> ogni ora per le foto entrate da altre vie</td><td>Scarica l'immagine da S3, la invia a CompreFace per riconoscimento facciale, salva i tag nel DB (coda <code>ai</code>)</td></tr><tr><td><code>RicostruisciLaCacheDellaGallery</code></td><td>Modifica di foto/album/atlete, avvio del web, ogni ora</td><td>Rigenera la cache dell'archivio foto invece di cancellarla (job unico)</td></tr><tr><td><code>PerformConversionsJob</code> (Spatie)</td><td>Upload di un media</td><td>Conversioni immagine; richiede GD (§3.5)</td></tr><tr><td><code>SyncNewsletterToActiveCampaign</code></td><td>Iscrizione newsletter</td><td>Sincronizza il contatto su ActiveCampaign (coda <code>default</code>)</td></tr><tr><td><code>UnsubscribeNewsletterFromActiveCampaign</code></td><td>Disiscrizione o cancellazione di un iscritto</td><td>Porta la revoca su ActiveCampaign: status 2 sulla lista, oppure cancellazione del contatto se la richiesta è di cancellazione dati (coda <code>default</code>)</td></tr><tr><td>Mail transazionali</td><td>Ordini, aste, rimborsi, avviso di nuovo ordine alla società</td><td><code>Mail::to(...)-&gt;queue(...)</code>, spedite via Resend (vedi §5). La ricevuta del recesso parte invece in modo sincrono</td></tr></tbody></table>
 <p><strong>Flusso:</strong></p>
 <pre>Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama CompreFace → Salva risultati</pre>
-<h3>3.3 ⏱️ App Scheduler (pianificatore) — $5/mese</h3>
+<h3>3.3 ⏱ App Scheduler (pianificatore) — $5/mese</h3>
 <p><strong>Cosa fa:</strong> Esegue i task pianificati definiti in <code>routes/console.php</code> (vedi §9). È un componente dedicato di App Platform, separato dal web.</p>
 <table><thead><tr><th>Spec</th><th>Valore</th></tr></thead><tbody><tr><td>Slug</td><td><code>apps-s-1vcpu-0.5gb</code></td></tr><tr><td>CPU</td><td>1 shared vCPU</td></tr><tr><td>RAM</td><td>512 MB</td></tr><tr><td>Region</td><td><code>fra</code> (Frankfurt)</td></tr><tr><td>Run command</td><td><code>php artisan scheduler:beat &amp;&amp; php artisan schedule:work --no-interaction</code></td></tr></tbody></table>
 <p><strong>Comportamento:</strong></p>
-<ul><li>Il primo <code>scheduler:beat</code> esplicito scrive subito il battito nella cache condivisa: senza, l'health check del web resterebbe in rosso per un minuto a ogni riavvio di questo componente.</li><li>Il battito (<code>scheduler:beat</code>, ogni minuto) è letto dall'health check <code>/up</code> del web: se lo scheduler muore, il problema viene segnalato invece di restare silenzioso.</li><li><code>instance_count</code> <strong>deve restare 1</strong>: due istanze eseguirebbero gli stessi comandi in parallelo. I <code>withoutOverlapping()</code> nei task sono una rete di sicurezza (lock condiviso via cache), non un permesso a scalare.</li></ul>
-<h3>3.4 🗄️ Database MySQL 8.4 — $15.23/mese</h3>
+<ul><li>Il primo <code>scheduler:beat</code> esplicito scrive subito il battito nella cache condivisa: senza, dopo ogni riavvio di questo componente <code>/up</code> vedrebbe il battito assente e comincerebbe a contare lo stallo.</li><li>Il battito (<code>scheduler:beat</code>, ogni minuto) è letto dall'health check <code>/up</code> del web: se lo scheduler muore, il problema viene segnalato invece di restare silenzioso.</li><li><code>instance_count</code> <strong>deve restare 1</strong>: due istanze eseguirebbero gli stessi comandi in parallelo. I <code>withoutOverlapping()</code> nei task sono una rete di sicurezza (lock condiviso via cache), non un permesso a scalare.</li></ul>
+<h3>3.4 Database MySQL 8.4 — $15.23/mese</h3>
 <p><strong>Cosa fa:</strong> Contiene tutti i dati strutturati dell'applicazione. Ogni pagina web legge da qui, ogni azione nel CMS scrive qui.</p>
-<table><thead><tr><th>Spec</th><th>Valore</th></tr></thead><tbody><tr><td>Engine</td><td>MySQL 8.4 LTS</td></tr><tr><td>Size</td><td><code>db-s-1vcpu-1gb</code> (1 vCPU, 1 GB RAM)</td></tr><tr><td>Nodi</td><td>1 (singolo, no replica)</td></tr><tr><td>Region</td><td><code>fra1</code> (Frankfurt)</td></tr><tr><td>Tipo</td><td>Managed (DigitalOcean gestisce backup, aggiornamenti, monitoring)</td></tr><tr><td>Connessione</td><td>Endpoint pubblico TLS (porta 25060) filtrato dalle <strong>Trusted Sources</strong>: l'app <code>sito-savino</code> e l'IP di sviluppo. Il backup aggiunge l'IP del runner GitHub per la durata del dump e lo rimuove alla fine, anche su errore</td></tr><tr><td>Nome cluster</td><td><code>sito-savino-db</code></td></tr></tbody></table>
+<table><thead><tr><th>Spec</th><th>Valore</th></tr></thead><tbody><tr><td>Engine</td><td>MySQL 8.4 LTS</td></tr><tr><td>Size</td><td><code>db-s-1vcpu-1gb</code> (1 vCPU, 1 GB RAM)</td></tr><tr><td>Nodi</td><td>1 (singolo, no replica)</td></tr><tr><td>Region</td><td><code>fra1</code> (Frankfurt)</td></tr><tr><td>Tipo</td><td>Managed (DigitalOcean gestisce backup, aggiornamenti, monitoring)</td></tr><tr><td>Connessione</td><td>Endpoint pubblico TLS (porta 25060) filtrato dalle <strong>Trusted Sources</strong>: l'app <code>sito-savino</code> e gli IP di sviluppo autorizzati. Il backup aggiunge l'IP del runner GitHub per la durata del dump e lo rimuove alla fine, anche su errore</td></tr><tr><td>Nome cluster</td><td><code>sito-savino-db</code></td></tr></tbody></table>
 <p><strong>Dati contenuti (principali):</strong></p>
-<table><thead><tr><th>Categoria</th><th>Tabelle</th><th>Esempi</th></tr></thead><tbody><tr><td>Contenuti</td><td>posts, pages, categories, hero_slides, site_settings</td><td>News (941 storiche + import orario da WordPress), pagine CMS, impostazioni</td></tr><tr><td>Squadra</td><td>players, staff_members, rosters, player_stats, game_player_stats</td><td>Rose, statistiche stagionali ricostruite dai tabellini</td></tr><tr><td>Partite</td><td>games, seasons, teams, team_lvf_club_ids</td><td>Calendario, risultati, classifiche (sync Lega)</td></tr><tr><td>Galleria</td><td>gallery_events, gallery_images, gallery_image_person</td><td>Eventi foto, tag delle atlete (manuali e AI)</td></tr><tr><td>Shop</td><td>products, product_categories, orders, coupons, shipping_zones, stock_movements</td><td>Prodotti, ordini, codici sconto, fasce di peso</td></tr><tr><td>Aste</td><td>auctions, bids</td><td>Aste benefiche e offerte</td></tr><tr><td>Sponsor</td><td>sponsors</td><td>Loghi e link partner</td></tr><tr><td>Analytics</td><td>web_analytics_daily, social_insights_daily, social_accounts</td><td>Serie giornaliere GA4 e Meta (<code>docs/ANALYTICS.md</code>)</td></tr><tr><td>Privacy</td><td>consensi_cookie, contact_messages</td><td>Prove di consenso (12 mesi), messaggi e accrediti (24 mesi)</td></tr><tr><td>Sistema</td><td>users, activity_logs, jobs, job_batches, cache, sessions, menu_items</td><td>Utenti, log, code, navigazione</td></tr><tr><td>Media</td><td>media (Spatie)</td><td>Metadati file caricati</td></tr></tbody></table>
+<table><thead><tr><th>Categoria</th><th>Tabelle</th><th>Esempi</th></tr></thead><tbody><tr><td>Contenuti</td><td>posts, pages, categories, hero_slides, site_settings, eventi</td><td>News (941 storiche + quelle riallineate da <code>wp-json</code> fino al 1/10), pagine CMS, impostazioni, eventi della homepage</td></tr><tr><td>Squadra</td><td>players, staff_members, rosters, player_stats, game_player_stats</td><td>Rose, statistiche stagionali ricostruite dai tabellini</td></tr><tr><td>Partite</td><td>games, seasons, teams, team_lvf_club_ids</td><td>Calendario, risultati, classifiche (sync Lega e CEV)</td></tr><tr><td>Galleria</td><td>gallery_events, gallery_images, gallery_image_person</td><td>Eventi foto, tag delle atlete (manuali e AI)</td></tr><tr><td>Shop</td><td>products, product_categories, product_category_product, storico_prezzi, orders, coupons, shipping_zones, stock_movements</td><td>Prodotti (anche in più categorie), ordini, codici sconto, fasce di peso, storico prezzi (Omnibus)</td></tr><tr><td>Consumatori</td><td>versioni_condizioni, richieste_di_recesso</td><td>Testo delle condizioni accettate da ogni ordine, dichiarazioni di recesso (non si cancellano dal pannello)</td></tr><tr><td>Aste</td><td>auctions, bids</td><td>Aste benefiche e offerte</td></tr><tr><td>Sponsor</td><td>sponsors</td><td>Loghi e link partner</td></tr><tr><td>Analytics</td><td>web_analytics_daily, social_insights_daily, social_accounts</td><td>Serie giornaliere GA4 e Meta (<code>docs/ANALYTICS.md</code>)</td></tr><tr><td>Privacy</td><td>consensi_cookie, contact_messages, newsletter_subscribers</td><td>Prove di consenso (12 mesi), messaggi e accrediti (24 mesi), iscritti alla newsletter</td></tr><tr><td>Sistema</td><td>users, activity_logs, jobs, job_batches, cache, cache_persistente, sessions, menu_items</td><td>Utenti, log, code, navigazione</td></tr><tr><td>Media</td><td>media (Spatie)</td><td>Metadati file caricati</td></tr></tbody></table>
 <p><strong>Backup:</strong> giornaliero gestito da DigitalOcean, più il dump cifrato su Spaces e R2 (§9).</p>
-<h3>3.5 📦 Spaces S3 — $5/mese</h3>
+<h3>3.5 Spaces S3 — $5/mese</h3>
 <p><strong>Cosa fa:</strong> Storage dei file (immagini, media, documenti). È un servizio di object storage compatibile con Amazon S3, quindi Laravel lo usa come se fosse AWS S3.</p>
 <table><thead><tr><th>Spec</th><th>Valore</th></tr></thead><tbody><tr><td>Bucket</td><td><code>sito-savino-assets-2026</code></td></tr><tr><td>Region</td><td><code>fra1</code> (Frankfurt)</td></tr><tr><td>Storage incluso</td><td>250 GB</td></tr><tr><td>Transfer incluso</td><td>1 TB/mese</td></tr><tr><td>URL usato dal sito</td><td><code>sito-savino-assets-2026.fra1.digitaloceanspaces.com</code> (<code>AWS_URL</code>: origine, <strong>non</strong> CDN)</td></tr><tr><td>URL CDN</td><td><code>sito-savino-assets-2026.fra1.cdn.digitaloceanspaces.com</code> — non referenziato da nessuna parte nel codice né nello spec</td></tr><tr><td>Protocollo</td><td>S3 API v4 (compatibile AWS SDK)</td></tr></tbody></table>
 <p><strong>File contenuti:</strong></p>
-<table><thead><tr><th>Tipo</th><th>Esempi</th></tr></thead><tbody><tr><td>Foto giocatrici</td><td>Ritratti ufficiali, foto azione</td></tr><tr><td>Hero slides</td><td>Immagini banner homepage</td></tr><tr><td>News</td><td>Immagini articoli</td></tr><tr><td>Galleria</td><td>Foto eventi, partite</td></tr><tr><td>Shop</td><td>Immagini prodotti</td></tr><tr><td>Sponsor</td><td>Loghi partner</td></tr><tr><td>Media Library</td><td>Conversioni Spatie (thumbnail, webp, responsive)</td></tr></tbody></table>
+<table><thead><tr><th>Tipo</th><th>Esempi</th></tr></thead><tbody><tr><td>Foto giocatrici</td><td>Ritratti ufficiali, foto azione</td></tr><tr><td>Hero slides</td><td>Immagini banner homepage</td></tr><tr><td>News</td><td>Immagini articoli</td></tr><tr><td>Galleria</td><td>Foto eventi, partite</td></tr><tr><td>Shop</td><td>Immagini prodotti</td></tr><tr><td>Sponsor</td><td>Loghi partner</td></tr><tr><td>Media Library</td><td>Conversioni Spatie: <code>thumb</code> (400 px) e <code>card</code> (600 px) su tutti i modelli, più <code>lightbox</code>, <code>detail</code>, <code>hero</code>, <code>zoom</code>, <code>og-image</code> secondo il modello</td></tr></tbody></table>
 <p><strong>Come arriva un'immagine al browser:</strong></p>
-<ol><li>L'admin carica un'immagine nel CMS</li><li>Laravel la salva su Spaces via API S3</li><li>Spatie Media Library genera le conversioni in coda (thumbnail, webp)</li><li>Il sito pubblico la chiede <strong>direttamente all'origine di Frankfurt</strong>: gli indirizzi nascono da <code>AWS_URL</code>, che punta all'endpoint non-CDN. Il <code>Cache-Control</code> che <code>media:fix-remote-metadata</code> scrive sui file vale per la cache del browser, non per un edge.</li></ol>
+<ol><li>L'admin carica un'immagine nel CMS</li><li>Laravel la salva su Spaces via API S3</li><li>Spatie Media Library genera le conversioni (<code>thumb</code>, <code>card</code>…), quasi tutte in coda; <code>zoom</code> e <code>og-image</code> dei prodotti subito, sul web</li><li>Il sito pubblico la chiede <strong>direttamente all'origine di Frankfurt</strong>: gli indirizzi nascono da <code>AWS_URL</code>, che punta all'endpoint non-CDN. Il <code>Cache-Control</code> che <code>media:fix-remote-metadata</code> scrive sui file vale per la cache del browser, non per un edge.</li></ol>
 <p>Passare al CDN significa cambiare <code>AWS_URL</code> sullo spec (web, worker e scheduler) e verificare che l'endpoint CDN sia attivo sul bucket; gli indirizzi già salvati in chiaro nei contenuti (HTML delle notizie) resterebbero sull'origine.</p>
-<p><strong>CORS del bucket: serve al pannello, non al sito.</strong> Il sito pubblico mostra le immagini con <code>&lt;img&gt;</code>, che non chiede permessi. Il pannello no: FilePond, nei campi di upload di Filament e Media Library, **scarica con <code>fetch()</code>** i file già caricati per mostrarne l'anteprima, e una richiesta cross-origin verso Spaces passa solo se il bucket la ammette. La CSP del pannello (<code>connect-src</code> con l'host di Spaces, #105) è la metà nostra; l'altra metà è la regola CORS del bucket, che <strong>non sta nel repository né nella spec</strong> e si cambia dal pannello DigitalOcean (Spaces → <code>sito-savino-assets-2026</code> → Settings → CORS). Senza, le foto dei prodotti restano in "Caricamento" e non si possono modificare, senza nessun errore lato server.</p>
-<p>Stato letto il 26/09/2026 con richieste di preflight (<code>OPTIONS</code> con <code>Origin</code>), in sola lettura:</p>
-<table><thead><tr><th>Origine</th><th>Esito</th></tr></thead><tbody><tr><td><code>https://seashell-app-47mmf.ondigitalocean.app</code></td><td>ammessa (GET, HEAD), <code>max-age</code> 86400</td></tr><tr><td><code>http://localhost:8000</code></td><td>ammessa (GET)</td></tr><tr><td><code>https://savinodelbenevolley.it</code>, <code>https://www.savinodelbenevolley.it</code></td><td><strong>rifiutate</strong> (403)</td></tr></tbody></table>
-<p>Il giorno del cambio dominio le due origini nuove vanno aggiunte alle AllowedOrigins (metodi GET e HEAD, come l'anteprima): è un passo di <code>docs/GO_LIVE.md</code>. L'origine <code>ondigitalocean.app</code> resta, perché l'indirizzo di anteprima continua a rispondere. Per verificare dopo la modifica:</p>
+<p><strong>CORS del bucket: serve al pannello, non al sito.</strong> Il sito pubblico mostra le immagini con <code>&lt;img&gt;</code>, che non chiede permessi. Il pannello no: FilePond, nei campi di upload di Filament e Media Library, <strong>scarica con <code>fetch()</code></strong> i file già caricati per mostrarne l'anteprima, e una richiesta cross-origin verso Spaces passa solo se il bucket la ammette. La CSP del pannello (<code>connect-src</code> con l'host di Spaces) è la metà nostra; l'altra metà è la regola CORS del bucket, che <strong>non sta nel repository né nella spec</strong> e si cambia dal pannello DigitalOcean (Spaces → <code>sito-savino-assets-2026</code> → Settings → CORS). Senza, le foto dei prodotti restano in "Caricamento" e non si possono modificare, senza nessun errore lato server.</p>
+<p>Stato letto il 1/10/2026 con richieste di preflight (<code>OPTIONS</code> con <code>Origin</code>), in sola lettura:</p>
+<table><thead><tr><th>Origine</th><th>Esito</th></tr></thead><tbody><tr><td><code>https://savinodelbenevolley.it</code></td><td>ammessa (200)</td></tr><tr><td><code>https://seashell-app-47mmf.ondigitalocean.app</code></td><td>ammessa (GET, HEAD), <code>max-age</code> 86400 (lettura del 26/09)</td></tr><tr><td><code>http://localhost:8000</code></td><td>ammessa (GET) (lettura del 26/09)</td></tr><tr><td><code>https://www.savinodelbenevolley.it</code></td><td>rifiutata (403): innocuo, <code>www.</code> manda con 301 al dominio e il pannello non vi si apre mai</td></tr></tbody></table>
+<p>Per verificare:</p>
 <pre>curl -s -D - -o /dev/null -X OPTIONS \
   -H &quot;Origin: https://savinodelbenevolley.it&quot; \
   -H &quot;Access-Control-Request-Method: GET&quot; \
   https://sito-savino-assets-2026.fra1.digitaloceanspaces.com/</pre>
 <p>deve rispondere 200 con <code>access-control-allow-origin</code> uguale all'origine.</p>
-<div class="callout callout-warning"><p>⚠️ Le conversioni richiedono <strong>GD</strong>, che il buildpack <code>heroku/php</code> non abilita per impostazione predefinita: va richiesto con <code>&quot;ext-gd&quot;: &quot;*&quot;</code> fra i <code>require</code> di <code>composer.json</code> (già presente). Senza, il build passa e il sito funziona, ma ogni <code>PerformConversionsJob</code> fallisce in coda con <code>Call to undefined function ...\Gd\imagecreatefrom*</code> e le immagini restano senza thumbnail. Se si toglie quella riga il guasto ricompare, silenzioso fino al primo upload.</p></div>
-<h3>3.6 🖥️ Droplet CompreFace — $24/mese</h3>
+<div class="callout callout-warning"><p>Le conversioni richiedono <strong>GD</strong>, che il buildpack <code>heroku/php</code> non abilita per impostazione predefinita: va richiesto con <code>&quot;ext-gd&quot;: &quot;*&quot;</code> fra i <code>require</code> di <code>composer.json</code> (già presente). Senza, il build passa e il sito funziona, ma ogni <code>PerformConversionsJob</code> fallisce in coda con <code>Call to undefined function ...\Gd\imagecreatefrom*</code> e le immagini restano senza thumbnail. Se si toglie quella riga il guasto ricompare, silenzioso fino al primo upload.</p></div>
+<h3>3.6 Droplet CompreFace — $24/mese</h3>
 <p><strong>Cosa fa:</strong> Server dedicato che esegue <a href="https://github.com/exadel-inc/CompreFace">CompreFace</a>, un sistema open-source di riconoscimento facciale basato su deep learning.</p>
 <table><thead><tr><th>Spec</th><th>Valore</th></tr></thead><tbody><tr><td>Nome</td><td><code>compreface-server</code></td></tr><tr><td>OS</td><td>Ubuntu 24.04 LTS</td></tr><tr><td>CPU</td><td>2 vCPU</td></tr><tr><td>RAM</td><td>4 GB</td></tr><tr><td>Disco</td><td>80 GB SSD</td></tr><tr><td>Region</td><td><code>fra1</code> (Frankfurt)</td></tr><tr><td>IP privato (VPC)</td><td>10.114.0.3</td></tr><tr><td>Porta API</td><td>8000, aperta alla sola VPC <code>10.114.0.0/20</code> (cloud firewall <code>compreface-fw</code>)</td></tr><tr><td>ID Droplet</td><td>580932690</td></tr></tbody></table>
 <p>Chiave API vera nel Postgres interno di CompreFace, copia cifrata in <code>COMPREFACE_KEY</code>. Le regole sugli esempi di addestramento (volto minimo 90 px, soglie di tag e di "da rivedere") stanno in <code>CLAUDE.md</code> §12-ter.</p>
@@ -766,9 +481,10 @@
    - Identità matchate (nome giocatrice, % confidenza)
 7. Worker salva i tag in gallery_image_person (con confidence_score) e segna
    ai_analyzed_at su gallery_images</pre>
-<p><strong>Perché 4GB RAM:</strong> CompreFace è un'applicazione Java (Spring Boot) che carica in memoria modelli di deep learning per il riconoscimento facciale. Il modello + JVM + API server richiedono circa 2-3 GB di RAM operativa.</p>
+<p><strong>Perché 4 GB di RAM:</strong> CompreFace gira in più container: API e amministrazione in Java (Spring Boot), il servizio <code>compreface-core</code> in Python che tiene in memoria i modelli di rilevamento e riconoscimento, più Postgres e il frontend. Insieme richiedono circa 2-3 GB di RAM operativa.</p>
 <h2 id="s4"><span class="section-number">04</span> Flusso delle Richieste</h2>
 <h3>4.1 Visita sito pubblico (es. <code>/news</code>)</h3>
+<p>Prima di tutto <code>PortaSullIndirizzoDelSito</code> manda con 301 le GET e HEAD arrivate su <code>www.</code> o su <code>*.ondigitalocean.app</code> all'host di <code>APP_URL</code> (<code>savinodelbenevolley.it</code>). POST, <code>api/*</code> (webhook di Stripe, PayPal e Resend) e <code>/up</code> restano dove sono.</p>
 <pre>Utente → HTTPS → App Web → CachePublicResponse
                               │
           ┌───────────────────┴────────────────────┐
@@ -788,7 +504,7 @@
 2. App Web                    → Salva immagine su Spaces S3
 3. App Web                    → INSERT in gallery_images (MySQL)
 4. App Web                    → INSERT in jobs (MySQL) — accoda job
-5. App Web                    → Risponde &quot;Foto caricata ✅&quot;
+5. App Web                    → Risponde &quot;Foto caricata&quot;
 6. (in background) Worker     → Preleva job dalla coda
 7. Worker                     → Scarica immagine da S3
 8. Worker                     → POST a CompreFace (:8000)
@@ -797,18 +513,20 @@
 11. Worker                    → DELETE job (completato)</pre>
 <h2 id="s5"><span class="section-number">05</span> Variabili d'Ambiente</h2>
 <h3>Web Container</h3>
-<table><thead><tr><th>Variabile</th><th>Valore</th><th>Descrizione</th></tr></thead><tbody><tr><td><code>APP_ENV</code></td><td><code>production</code></td><td>Ambiente di esecuzione</td></tr><tr><td><code>APP_DEBUG</code></td><td><code>false</code></td><td>Debug disattivato</td></tr><tr><td><code>APP_KEY</code></td><td>🔒 secret</td><td>Chiave di cifratura Laravel</td></tr><tr><td><code>APP_URL</code></td><td><code>https://${APP_DOMAIN}</code></td><td>URL base. Segue il dominio della spec: per questo <code>domains:</code> si aggiunge solo il giorno del passaggio (<code>docs/GO_LIVE.md</code>)</td></tr><tr><td><code>APP_LOCALE</code></td><td><code>it</code></td><td>Lingua predefinita</td></tr><tr><td><code>DB_CONNECTION</code></td><td><code>mysql</code></td><td>Driver database</td></tr><tr><td><code>DB_HOST</code></td><td><code>${sito-savino-db.HOSTNAME}</code></td><td>Host DB (injected da DO)</td></tr><tr><td><code>DB_PORT</code></td><td><code>${sito-savino-db.PORT}</code></td><td>Porta DB (injected da DO)</td></tr><tr><td><code>DB_DATABASE</code></td><td><code>${sito-savino-db.DATABASE}</code></td><td>Nome database</td></tr><tr><td><code>DB_USERNAME</code></td><td><code>${sito-savino-db.USERNAME}</code></td><td>Utente DB</td></tr><tr><td><code>DB_PASSWORD</code></td><td>🔒 <code>${sito-savino-db.PASSWORD}</code></td><td>Password DB</td></tr><tr><td><code>CACHE_STORE</code></td><td><code>database</code></td><td>Driver cache (tabella MySQL <code>cache</code>)</td></tr><tr><td><code>SESSION_DRIVER</code></td><td><code>database</code></td><td>Sessioni salvate in MySQL</td></tr><tr><td><code>SESSION_LIFETIME</code></td><td><code>480</code></td><td>Otto ore: con i 120 minuti di default un salvataggio lungo nel pannello tornava 419</td></tr><tr><td><code>SESSION_ENCRYPT</code></td><td>(attivo)</td><td>Sessioni cifrate</td></tr><tr><td><code>SESSION_SECURE_COOKIE</code></td><td>(attivo)</td><td>Cookie solo HTTPS</td></tr><tr><td><code>QUEUE_CONNECTION</code></td><td><code>database</code></td><td>Code via tabella MySQL <code>jobs</code></td></tr><tr><td><code>FILESYSTEM_DISK</code></td><td><code>s3</code></td><td>Storage file su Spaces</td></tr><tr><td><code>MEDIA_DISK</code></td><td><code>s3</code></td><td>Media Library su Spaces</td></tr><tr><td><code>FILAMENT_FILESYSTEM_DISK</code></td><td><code>s3</code></td><td>Upload del pannello su Spaces: Filament non segue <code>FILESYSTEM_DISK</code> e di serie scriverebbe sul container effimero</td></tr><tr><td><code>AWS_ACCESS_KEY_ID</code></td><td>🔒 secret</td><td>Credenziali Spaces</td></tr><tr><td><code>AWS_SECRET_ACCESS_KEY</code></td><td>🔒 secret</td><td>Credenziali Spaces</td></tr><tr><td><code>AWS_DEFAULT_REGION</code></td><td><code>fra1</code></td><td>Region Spaces</td></tr><tr><td><code>AWS_BUCKET</code></td><td><code>sito-savino-assets-2026</code></td><td>Nome bucket</td></tr><tr><td><code>AWS_ENDPOINT</code></td><td><code>https://fra1.digitaloceanspaces.com</code></td><td>Endpoint S3 API</td></tr><tr><td><code>AWS_URL</code></td><td><code>https://sito-savino-assets-2026.fra1.digitaloceanspaces.com</code></td><td>URL pubblico</td></tr><tr><td><code>INERTIA_SSR_ENABLED</code></td><td><code>false</code></td><td>SSR <strong>disattivato</strong> (non esiste <code>resources/js/ssr.js</code> né bundle SSR)</td></tr><tr><td><code>LOG_CHANNEL</code></td><td><code>stderr</code></td><td>Log su stderr (visibili in DO dashboard)</td></tr><tr><td><code>LOG_LEVEL</code></td><td><code>error</code></td><td>Solo errori: i log DO sono effimeri, servono da contesto per Sentry</td></tr><tr><td><code>SENTRY_LARAVEL_DSN</code></td><td><code>&quot;&quot;</code> (vuoto)</td><td>Error tracking — <strong>spento</strong> finché il DSN non viene valorizzato (cifrato, vedi commento nello spec)</td></tr><tr><td><code>SENTRY_ENVIRONMENT</code></td><td><code>production</code></td><td>Ambiente riportato a Sentry</td></tr><tr><td><code>SENTRY_TRACES_SAMPLE_RATE</code></td><td><code>0.1</code></td><td>Campionamento performance tracing</td></tr><tr><td><code>PREVIEW_AUTH_ENABLED</code></td><td><code>false</code></td><td>Basic auth di pre-lancio <strong>spenta</strong>: il sito è pubblico</td></tr><tr><td><code>PREVIEW_AUTH_USER</code> / <code>PREVIEW_AUTH_PASS</code></td><td>🔒 secret</td><td>Credenziali pronte per richiuderlo (con la protezione accesa e i segreti vuoti il sito risponde 503)</td></tr><tr><td><code>COMPREFACE_HOST</code></td><td><code>http://10.114.0.3:8000</code></td><td>URL server CompreFace (rete privata VPC)</td></tr><tr><td><code>COMPREFACE_KEY</code></td><td>🔒 secret cifrato</td><td>API key CompreFace</td></tr><tr><td><code>ACTIVECAMPAIGN_URL</code> / <code>ACTIVECAMPAIGN_LIST_ID</code></td><td>in chiaro</td><td>Endpoint e lista newsletter</td></tr><tr><td><code>ACTIVECAMPAIGN_API_KEY</code></td><td>🔒 secret cifrato</td><td>Oggi cifrata (<code>EV[1:…]</code>); il commento nello spec la dà ancora da <strong>ruotare</strong>, perché il valore è stato in chiaro nel repository</td></tr><tr><td><code>GA4_SERVICE_ACCOUNT_JSON</code></td><td>🔒 secret cifrato</td><td>Service account Google (base64) per la GA4 Data API</td></tr><tr><td><code>META_APP_ID</code> / <code>META_CONFIG_ID</code></td><td>in chiaro</td><td>App Meta e configurazione Login for Business (non segreti)</td></tr><tr><td><code>META_APP_SECRET</code></td><td>🔒 secret, <strong>a livello di app</strong></td><td>Unica variabile dichiarata sopra i componenti: vale per web, worker e scheduler</td></tr><tr><td><code>PAYPAL_CLIENT_ID</code> / <code>PAYPAL_MODE</code></td><td>in chiaro / <code>live</code></td><td>Credenziale pubblica e ambiente</td></tr><tr><td><code>PAYPAL_CLIENT_SECRET</code></td><td>🔒 secret cifrato</td><td></td></tr><tr><td><code>PAYPAL_WEBHOOK_ID</code></td><td>in chiaro</td><td>Entra nella verifica della firma: al cambio di dominio si <strong>modifica l'URL</strong> del webhook esistente, non se ne crea uno nuovo</td></tr></tbody></table>
-<div class="callout callout-warning"><p>⚠️ <strong>Variabili ancora assenti dallo spec</strong> (<code>.do/app.yaml</code>):</p>
-<ul><li><code>MAIL_MAILER</code> / <code>RESEND_API_KEY</code> / <code>MAIL_FROM_*</code>: senza, <code>config/mail.php</code> cade su <code>log</code> e <strong>nessuna email esce</strong> (ordini, aste, rimborsi, reset password). Oltre alle variabili serve il DKIM di Resend sul DNS della Spa, che pubblica <code>DMARC p=reject</code>: procedura in <code>docs/GO_LIVE.md</code> §1.</li><li><code>STRIPE_*</code>: il gateway resta nascosto al checkout finché non ci sono.</li></ul>
-<p>Il deploy applica lo spec del repository: un valore aggiunto solo dal pannello DO viene cancellato al rilascio successivo. I segreti si scrivono dal pannello con "Encrypt" e si ricopiano nello spec nella forma <code>EV[1:…]</code>.</p></div>
+<table><thead><tr><th>Variabile</th><th>Valore</th><th>Descrizione</th></tr></thead><tbody><tr><td><code>APP_ENV</code></td><td><code>production</code></td><td>Ambiente di esecuzione</td></tr><tr><td><code>APP_DEBUG</code></td><td><code>false</code></td><td>Debug disattivato</td></tr><tr><td><code>APP_KEY</code></td><td> secret</td><td>Chiave di cifratura Laravel</td></tr><tr><td><code>APP_URL</code></td><td><code>https://${APP_DOMAIN}</code></td><td>URL base: segue il dominio PRIMARY della spec (<code>savinodelbenevolley.it</code> dal 1/10/2026; <code>www.</code> è ALIAS)</td></tr><tr><td><code>TRUSTED_HOSTS</code></td><td><code>savinodelbenevolley.it,seashell-app-47mmf.ondigitalocean.app</code></td><td>L'host di <code>APP_URL</code> non si aggiunge da solo; su <code>ondigitalocean.app</code> restano webhook (Resend, Stripe, PayPal) e sorveglianza</td></tr><tr><td><code>APP_LOCALE</code></td><td><code>it</code></td><td>Lingua predefinita</td></tr><tr><td><code>DB_CONNECTION</code></td><td><code>mysql</code></td><td>Driver database</td></tr><tr><td><code>DB_HOST</code></td><td><code>${sito-savino-db.HOSTNAME}</code></td><td>Host DB (injected da DO)</td></tr><tr><td><code>DB_PORT</code></td><td><code>${sito-savino-db.PORT}</code></td><td>Porta DB (injected da DO)</td></tr><tr><td><code>DB_DATABASE</code></td><td><code>${sito-savino-db.DATABASE}</code></td><td>Nome database</td></tr><tr><td><code>DB_USERNAME</code></td><td><code>${sito-savino-db.USERNAME}</code></td><td>Utente DB</td></tr><tr><td><code>DB_PASSWORD</code></td><td> <code>${sito-savino-db.PASSWORD}</code></td><td>Password DB</td></tr><tr><td><code>CACHE_STORE</code></td><td><code>database</code></td><td>Driver cache (tabella MySQL <code>cache</code>)</td></tr><tr><td><code>SESSION_DRIVER</code></td><td><code>database</code></td><td>Sessioni salvate in MySQL</td></tr><tr><td><code>SESSION_LIFETIME</code></td><td><code>480</code></td><td>Otto ore: con i 120 minuti di default un salvataggio lungo nel pannello tornava 419</td></tr><tr><td><code>SESSION_ENCRYPT</code></td><td>(attivo)</td><td>Sessioni cifrate</td></tr><tr><td><code>SESSION_SECURE_COOKIE</code></td><td>(attivo)</td><td>Cookie solo HTTPS</td></tr><tr><td><code>QUEUE_CONNECTION</code></td><td><code>database</code></td><td>Code via tabella MySQL <code>jobs</code></td></tr><tr><td><code>FILESYSTEM_DISK</code></td><td><code>s3</code></td><td>Storage file su Spaces</td></tr><tr><td><code>MEDIA_DISK</code></td><td><code>s3</code></td><td>Media Library su Spaces</td></tr><tr><td><code>FILAMENT_FILESYSTEM_DISK</code></td><td><code>s3</code></td><td>Upload del pannello su Spaces: Filament non segue <code>FILESYSTEM_DISK</code> e di serie scriverebbe sul container effimero</td></tr><tr><td><code>AWS_ACCESS_KEY_ID</code></td><td> secret</td><td>Credenziali Spaces</td></tr><tr><td><code>AWS_SECRET_ACCESS_KEY</code></td><td> secret</td><td>Credenziali Spaces</td></tr><tr><td><code>AWS_DEFAULT_REGION</code></td><td><code>fra1</code></td><td>Region Spaces</td></tr><tr><td><code>AWS_BUCKET</code></td><td><code>sito-savino-assets-2026</code></td><td>Nome bucket</td></tr><tr><td><code>AWS_ENDPOINT</code></td><td><code>https://fra1.digitaloceanspaces.com</code></td><td>Endpoint S3 API</td></tr><tr><td><code>AWS_URL</code></td><td><code>https://sito-savino-assets-2026.fra1.digitaloceanspaces.com</code></td><td>URL pubblico</td></tr><tr><td><code>INERTIA_SSR_ENABLED</code></td><td><code>false</code></td><td>SSR <strong>disattivato</strong> (non esiste <code>resources/js/ssr.js</code> né bundle SSR)</td></tr><tr><td><code>LOG_CHANNEL</code></td><td><code>stderr</code></td><td>Log su stderr (visibili in DO dashboard)</td></tr><tr><td><code>LOG_LEVEL</code></td><td><code>error</code></td><td>Solo errori: i log DO sono effimeri, servono da contesto per Sentry</td></tr><tr><td><code>SENTRY_LARAVEL_DSN</code></td><td>DSN del progetto server (regione UE)</td><td>Error tracking, attivo dal 25/09/2026</td></tr><tr><td><code>SENTRY_BROWSER_DSN</code></td><td>DSN di <code>sito-savino-browser</code></td><td>Errori JavaScript, quota separata; vuoto ripiega sul DSN del server</td></tr><tr><td><code>SENTRY_SEND_DEFAULT_PII</code></td><td><code>false</code></td><td>Nessun dato personale a Sentry: cambiarlo vuol dire cambiare prima l'informativa</td></tr><tr><td><code>SENTRY_ENVIRONMENT</code></td><td><code>production</code></td><td>Ambiente riportato a Sentry</td></tr><tr><td><code>SENTRY_TRACES_SAMPLE_RATE</code></td><td><code>0.1</code></td><td>Campionamento performance tracing</td></tr><tr><td><code>PREVIEW_AUTH_ENABLED</code></td><td><code>false</code></td><td>Basic auth di pre-lancio <strong>spenta</strong>: il sito è pubblico</td></tr><tr><td><code>PREVIEW_AUTH_USER</code> / <code>PREVIEW_AUTH_PASS</code></td><td> secret</td><td>Credenziali pronte per richiuderlo (con la protezione accesa e i segreti vuoti il sito risponde 503)</td></tr><tr><td><code>COMPREFACE_HOST</code></td><td><code>http://10.114.0.3:8000</code></td><td>URL server CompreFace (rete privata VPC)</td></tr><tr><td><code>COMPREFACE_KEY</code></td><td> secret cifrato</td><td>API key CompreFace</td></tr><tr><td><code>ACTIVECAMPAIGN_URL</code> / <code>ACTIVECAMPAIGN_LIST_ID</code></td><td>in chiaro</td><td>Endpoint e lista newsletter</td></tr><tr><td><code>ACTIVECAMPAIGN_API_KEY</code></td><td> secret cifrato</td><td>Oggi cifrata (<code>EV[1:…]</code>); il commento nello spec la dà ancora da <strong>ruotare</strong>, perché il valore è stato in chiaro nel repository</td></tr><tr><td><code>GA4_SERVICE_ACCOUNT_JSON</code></td><td> secret cifrato</td><td>Service account Google (base64) per la GA4 Data API</td></tr><tr><td><code>META_APP_ID</code> / <code>META_CONFIG_ID</code></td><td>in chiaro</td><td>App Meta e configurazione Login for Business (non segreti)</td></tr><tr><td><code>PAYPAL_CLIENT_ID</code> / <code>PAYPAL_MODE</code></td><td>in chiaro / <code>live</code></td><td>Credenziale pubblica e ambiente</td></tr><tr><td><code>PAYPAL_CLIENT_SECRET</code></td><td> secret cifrato</td><td></td></tr><tr><td><code>PAYPAL_WEBHOOK_ID</code></td><td>in chiaro</td><td>Entra nella verifica della firma: al cambio di dominio si <strong>modifica l'URL</strong> del webhook esistente, non se ne crea uno nuovo</td></tr></tbody></table>
+<h3>Variabili a livello d'app</h3>
+<p>Dichiarate sopra i componenti nella spec: le ereditano web, worker e scheduler.</p>
+<table><thead><tr><th>Variabile</th><th>Valore</th><th>Descrizione</th></tr></thead><tbody><tr><td><code>META_APP_SECRET</code></td><td> secret cifrato</td><td>Segreto dell'app Meta (OAuth sul web, sync notturno sugli altri)</td></tr><tr><td><code>MAIL_MAILER</code></td><td><code>resend</code></td><td>Dal 25/09/2026; prima <code>config/mail.php</code> cadeva su <code>log</code> e nessuna email usciva</td></tr><tr><td><code>MAIL_FROM_ADDRESS</code> / <code>MAIL_FROM_NAME</code></td><td><code>noreply@savinodelbenevolley.it</code> / <code>Savino Del Bene Volley</code></td><td>Il dominio deve restare verificato su Resend: il DNS della Spa pubblica <code>DMARC p=reject</code> (<code>docs/GO_LIVE.md</code> §1)</td></tr><tr><td><code>RESEND_API_KEY</code></td><td> secret cifrato</td><td>Solo invio, limitata al dominio</td></tr><tr><td><code>RESEND_WEBHOOK_SECRET</code></td><td> secret cifrato</td><td>Firma Svix delle notifiche di Resend</td></tr><tr><td><code>AVVISI_EMAIL</code></td><td><code>allarmi@mv-consulting.it</code></td><td>Destinatari di <code>AvvisoTecnico</code> (§9, Avvisi)</td></tr><tr><td><code>STRIPE_KEY</code></td><td><code>pk_live_…</code> in chiaro</td><td>Chiave pubblicabile, live dal 1/10/2026</td></tr><tr><td><code>STRIPE_SECRET</code> / <code>STRIPE_WEBHOOK_SECRET</code></td><td> secret cifrati</td><td>Si rigenerano dal pannello e si ricopiano da <code>doctl apps spec get</code></td></tr></tbody></table>
+<div class="callout callout-info"><p>Il deploy applica lo spec del repository: un valore aggiunto solo dal pannello DO viene cancellato al rilascio successivo. I segreti si scrivono dal pannello con "Encrypt" e si ricopiano nello spec nella forma <code>EV[1:…]</code>.</p></div>
 <h3>Worker e Scheduler</h3>
-<p>Web, worker e scheduler sono <strong>tre ambienti distinti</strong>: una variabile scritta solo sotto <code>services:</code> non arriva alla coda né allo scheduler. Worker e scheduler ripetono quindi le variabili del web (<code>APP_KEY</code>, <code>APP_URL</code>, <code>AWS_*</code>, <code>FILAMENT_FILESYSTEM_DISK</code>, <code>COMPREFACE_*</code>, <code>ACTIVECAMPAIGN_*</code>, <code>GA4_*</code>, <code>META_*</code>, <code>PAYPAL_*</code>, Sentry).</p>
+<p>Web, worker e scheduler sono <strong>tre ambienti distinti</strong>: una variabile scritta solo sotto <code>services:</code> non arriva alla coda né allo scheduler. Worker e scheduler ripetono quindi le variabili del web (<code>APP_KEY</code>, <code>APP_URL</code>, <code>AWS_*</code>, <code>FILAMENT_FILESYSTEM_DISK</code>, <code>TRUSTED_HOSTS</code>, <code>COMPREFACE_*</code>, <code>ACTIVECAMPAIGN_*</code>, <code>GA4_*</code>, <code>META_*</code>, <code>PAYPAL_*</code>, Sentry). Le variabili a livello d'app (sopra) non vanno ripetute.</p>
 <p>Due casi reali: senza <code>APP_URL</code> le email in coda uscivano con host <code>http://localhost</code>; con un <code>APP_KEY</code> che si decifrava in stringa vuota (trovato il 23/09/2026) <code>social:sync-meta</code> falliva ogni notte senza lasciare traccia. Ora l'allineamento lo verifica <code>tests/Unit/VariabiliAllineateFraIComponentiTest.php</code>, che elenca una per una, col motivo, le sole eccezioni (variabili che vivono dentro una richiesta HTTP). Controllo manuale su ciascun componente: <code>doctl apps console &lt;app&gt; &lt;componente&gt;</code> → <code>php -r &#x27;echo strlen(getenv(&quot;APP_KEY&quot;));&#x27;</code>.</p>
 <h2 id="s6"><span class="section-number">06</span> Build e Deploy</h2>
 <h3>Pipeline di deploy</h3>
-<pre>git push main → GitHub Actions (CI: lint, PHPStan, test) → job &quot;deploy&quot;
+<pre>git push main → GitHub Actions (CI: ESLint, Vitest, Pint, PHPStan, mappa dipendenze,
+                 PHPUnit, audit delle dipendenze) → job &quot;deploy&quot;
               → digitalocean/app_action con lo spec .do/app.yaml → Build Web + Worker + Scheduler → ACTIVE</pre>
-<p>Lo spec <code>.do/app.yaml</code> del repository <strong>sovrascrive</strong> la configurazione dell'app ad ogni deploy: ogni variabile d'ambiente deve stare lì.</p>
+<p>Lo spec <code>.do/app.yaml</code> del repository <strong>sovrascrive</strong> la configurazione dell'app ad ogni deploy: ogni variabile d'ambiente deve stare lì. Un push che tocca solo <code>*.md</code>, `docs/<strong><code> o </code>Loghi/</strong>` non avvia né CI né deploy.</p>
 <h3>Build Web</h3>
 <pre>composer install --optimize-autoloader --no-dev &amp;&amp; npm ci --include=dev &amp;&amp; npm run build</pre>
 <ol><li><strong>Composer</strong>: installa dipendenze PHP (autoloader ottimizzato, no dev-dependencies)</li><li><strong>NPM ci</strong>: installa dipendenze frontend (Vue, Vite, Tailwind...)</li><li><strong>NPM build</strong>: compila gli assets client (<code>vite build</code>). Nessun bundle SSR: lo script <code>build:ssr</code> esiste in <code>package.json</code> ma non è usato e manca l'entrypoint <code>resources/js/ssr.js</code>.</li></ol>
@@ -822,49 +540,45 @@
 <p>Polling sulla tabella <code>jobs</code> ogni 3 secondi, code <code>default</code> e <code>ai</code>, max 3 tentativi per job, riavvio dopo 100 job / 1 ora / 384 MB.</p>
 <h3>Avvio Scheduler</h3>
 <pre>php artisan scheduler:beat &amp;&amp; php artisan schedule:work --no-interaction</pre>
-<p>Un battito immediato (per l'health check del web), poi il ciclo del pianificatore. <code>schedule:work</code> manda l'output dei comandi in <code>/dev/null</code> e Sentry è spento: un comando che fallisce ogni notte non lascia traccia nei log di App Platform.</p>
+<p>Un battito immediato (per l'health check del web), poi il ciclo del pianificatore. <code>schedule:work</code> manda l'output dei comandi in <code>/dev/null</code>: un comando che esce con errore non lascia traccia nei log di App Platform, e senza un'eccezione nemmeno in Sentry. Per questo in fondo a <code>routes/console.php</code> ogni evento pianificato passa da <code>AvvisoDelPianificatore::aggancia()</code>: l'output si cattura in <code>storage/logs/schedule-&lt;hash&gt;.log</code> (riscritto a ogni giro) e un'uscita con errore manda la coda dell'output per email (AvvisoTecnico, una ogni sei ore per comando). Il ciclo deve restare l'ultima cosa del file: un evento registrato dopo resterebbe muto, e <code>AvvisoDelPianificatoreTest</code> lo segnala. Le eccezioni arrivano comunque a Sentry (attivo dal 25/09/2026).</p>
 <h2 id="s7"><span class="section-number">07</span> Performance e OPcache</h2>
 <h3>Configurazione OPcache (<code>php-config/opcache.ini</code>)</h3>
-<table><thead><tr><th>Setting</th><th>Valore</th><th>Effetto</th></tr></thead><tbody><tr><td><code>opcache.jit</code></td><td><code>1255</code></td><td>JIT tracing mode — compila PHP in codice macchina nativo</td></tr><tr><td><code>opcache.jit_buffer_size</code></td><td><code>32M</code></td><td>Buffer per il codice JIT compilato</td></tr><tr><td><code>opcache.memory_consumption</code></td><td><code>128</code> MB</td><td>Memoria per il bytecode cachato</td></tr><tr><td><code>opcache.max_accelerated_files</code></td><td><code>10000</code></td><td>Max file PHP cachati (progetto usa ~1600)</td></tr><tr><td><code>opcache.interned_strings_buffer</code></td><td><code>16</code> MB</td><td>Buffer stringhe internate PHP</td></tr><tr><td><code>opcache.validate_timestamps</code></td><td><code>0</code></td><td>Non verifica se i file sono cambiati (cambiano solo al deploy)</td></tr><tr><td><code>opcache.revalidate_freq</code></td><td><code>0</code></td><td>Frequenza check timestamps (irrilevante con validate=0)</td></tr><tr><td><code>opcache.enable_file_override</code></td><td><code>1</code></td><td>Ottimizza file_exists/is_file via OPcache</td></tr></tbody></table>
-<h3>Utilizzo reale in produzione (misurato il 2 luglio 2026)</h3>
+<table><thead><tr><th>Setting</th><th>Valore</th><th>Effetto</th></tr></thead><tbody><tr><td><code>opcache.jit</code></td><td><code>1255</code></td><td>JIT tracing mode — compila PHP in codice macchina nativo</td></tr><tr><td><code>opcache.jit_buffer_size</code></td><td><code>32M</code></td><td>Buffer per il codice JIT compilato</td></tr><tr><td><code>opcache.memory_consumption</code></td><td><code>128</code> MB</td><td>Memoria per il bytecode cachato</td></tr><tr><td><code>opcache.max_accelerated_files</code></td><td><code>10000</code></td><td>Max file PHP cachati (progetto usa ~1600)</td></tr><tr><td><code>opcache.interned_strings_buffer</code></td><td><code>16</code> MB</td><td>Buffer stringhe internate PHP</td></tr><tr><td><code>opcache.validate_timestamps</code></td><td><code>0</code></td><td>Non verifica se i file sono cambiati (cambiano solo al deploy)</td></tr><tr><td><code>opcache.revalidate_freq</code></td><td><code>0</code></td><td>Frequenza check timestamps (irrilevante con validate=0)</td></tr><tr><td><code>opcache.enable_file_override</code></td><td><code>1</code></td><td>Ottimizza file_exists/is_file via OPcache</td></tr><tr><td><code>upload_max_filesize</code> / <code>post_max_size</code></td><td><code>64M</code> / <code>128M</code></td><td>Limiti di caricamento dal pannello (allineati a <code>public/.user.ini</code>)</td></tr></tbody></table>
+<h3>Utilizzo in produzione (misurato il 2 luglio 2026, prima del go-live: da rimisurare)</h3>
 <table><thead><tr><th>Risorsa</th><th>Allocata</th><th>Usata</th><th>%</th></tr></thead><tbody><tr><td>OPcache memory</td><td>128 MB</td><td>69 MB</td><td>54%</td></tr><tr><td>Interned strings</td><td>16 MB</td><td>10 MB</td><td>60%</td></tr><tr><td>JIT buffer</td><td>32 MB</td><td>&lt;1 MB</td><td>3%</td></tr><tr><td>File cachati</td><td>16.229 max</td><td>1.640</td><td>10%</td></tr><tr><td>Hit rate</td><td>—</td><td>90.3%</td><td>—</td></tr></tbody></table>
-<h3>Benchmark TTFB (cache calde, 2 luglio 2026)</h3>
-<div class="callout callout-info"><p>Misure di luglio, con <code>curl</code> senza cookie: per il sito pubblico sono probabilmente cache HIT di <code>CachePublicResponse</code> (§4.1), non il tempo di una navigazione reale. Da rimisurare dopo il passaggio del dominio.</p></div>
-<table><thead><tr><th>Pagina</th><th>TTFB</th></tr></thead><tbody><tr><td>CMS Admin <code>/admin/login</code></td><td><strong>0.18s</strong></td></tr><tr><td>Sito Home <code>/</code></td><td><strong>0.15s</strong></td></tr><tr><td>Sito Stagione <code>/stagione</code></td><td><strong>0.17s</strong></td></tr><tr><td>Sito News <code>/news</code></td><td><strong>0.11s</strong></td></tr><tr><td>TCP connect (Italia→Frankfurt)</td><td>0.017s</td></tr><tr><td>TLS handshake</td><td>0.037s</td></tr></tbody></table>
+<h3>Tempo di risposta (TTFB)</h3>
+<div class="callout callout-info"><p>Misure con <code>curl</code> senza cookie: per il sito pubblico sono probabilmente cache HIT di <code>CachePublicResponse</code> (§4.1), non il tempo di una navigazione reale. Il 1/10/2026 la misura è sul dominio, dietro l'edge Cloudflare di App Platform, da una linea diversa: le due colonne non sono confrontabili alla lettera.</p></div>
+<table><thead><tr><th>Pagina</th><th>TTFB 2/07 (ondigitalocean.app)</th><th>TTFB 1/10 (dominio, mediana di 3)</th></tr></thead><tbody><tr><td>CMS Admin <code>/admin/login</code></td><td><strong>0.18s</strong></td><td><strong>0.32s</strong></td></tr><tr><td>Sito Home <code>/</code></td><td><strong>0.15s</strong></td><td><strong>0.31s</strong></td></tr><tr><td>Sito Stagione <code>/stagione</code></td><td><strong>0.17s</strong></td><td><strong>0.28s</strong></td></tr><tr><td>Sito News <code>/news</code></td><td><strong>0.11s</strong></td><td><strong>0.29s</strong></td></tr><tr><td>Shop <code>/shop</code></td><td>—</td><td><strong>0.27s</strong></td></tr><tr><td>TCP connect</td><td>0.017s</td><td>0.042s</td></tr><tr><td>TLS handshake</td><td>0.037s</td><td>0.118s</td></tr></tbody></table>
 <h3>Caching layers</h3>
 <table><thead><tr><th>Layer</th><th>Tipo</th><th>Scope</th></tr></thead><tbody><tr><td>OPcache + JIT</td><td>Bytecode → machine code</td><td>Tutte le pagine PHP</td></tr><tr><td>Laravel config/route/view cache</td><td>File serializzati</td><td>Boot framework</td></tr><tr><td>Filament optimize</td><td>Componenti cachati</td><td>CMS admin</td></tr><tr><td><code>CachePublicResponse</code> middleware</td><td>Full-page HTML cache, 60 s</td><td>Solo GET anonimi senza cookie di sessione e non Inertia (§4.1)</td></tr><tr><td>Cache applicative (store <code>database</code>)</td><td>Home, news, rose, shop, archivio gallery (1 giorno, rigenerato in coda), sponsor, feed RSS (30 min), menu</td><td>Invalidate al salvataggio (<code>CacheInvalidationObserver</code>; il menu da <code>MenuItem</code>)</td></tr><tr><td><code>Cache-Control</code> sui file Spaces</td><td>Cache del browser</td><td>Immagini/media (nessun CDN, §3.5)</td></tr></tbody></table>
 <h2 id="s8"><span class="section-number">08</span> Costi</h2>
 <h3>Riepilogo mensile</h3>
-<table><thead><tr><th>#</th><th>Risorsa</th><th>Spec</th><th>Costo/mese</th></tr></thead><tbody><tr><td>1</td><td>🖥️ Droplet CompreFace</td><td>2 vCPU, 4 GB, fra1</td><td><strong>$24.00</strong></td></tr><tr><td>2</td><td>🗄️ Database MySQL</td><td><code>db-s-1vcpu-1gb</code>, fra1</td><td><strong>$15.23</strong></td></tr><tr><td>3</td><td>🌐 App Web</td><td><code>apps-s-1vcpu-1gb-fixed</code>, fra</td><td><strong>$10.00</strong></td></tr><tr><td>4</td><td>⚙️ Worker</td><td><code>apps-s-1vcpu-0.5gb</code>, fra</td><td><strong>$5.00</strong></td></tr><tr><td>5</td><td>⏱️ Scheduler</td><td><code>apps-s-1vcpu-0.5gb</code>, fra</td><td><strong>$5.00</strong></td></tr><tr><td>6</td><td>📦 Spaces</td><td>abbonamento: 250 GB + 1 TB di traffico, <strong>per tutti i bucket</strong> dell'account</td><td><strong>$5.00</strong></td></tr><tr><td>7</td><td>💾 Backup droplet CompreFace</td><td>settimanali, 20% del droplet</td><td><strong>$4.80</strong></td></tr><tr class="table-total"><td></td><td></td><td><strong>TOTALE</strong></td><td><strong>$69.03/mese</strong></td></tr><tr><td></td><td></td><td></td><td><strong>~€63/mese</strong></td></tr><tr><td></td><td></td><td></td><td><strong>~€760/anno</strong></td></tr></tbody></table>
-<p>Cifre di listino: la fatturazione non è leggibile con il token di sola lettura (403), quindi il totale non è confrontato con una fattura.</p>
+<table><thead><tr><th>#</th><th>Risorsa</th><th>Spec</th><th>Costo/mese</th></tr></thead><tbody><tr><td>1</td><td> Droplet CompreFace</td><td>2 vCPU, 4 GB, fra1</td><td><strong>$24.00</strong></td></tr><tr><td>2</td><td> Database MySQL</td><td><code>db-s-1vcpu-1gb</code>, fra1</td><td><strong>$15.23</strong></td></tr><tr><td>3</td><td> App Web</td><td><code>apps-s-1vcpu-1gb-fixed</code>, fra</td><td><strong>$10.00</strong></td></tr><tr><td>4</td><td> Worker</td><td><code>apps-s-1vcpu-0.5gb</code>, fra</td><td><strong>$5.00</strong></td></tr><tr><td>5</td><td>⏱ Scheduler</td><td><code>apps-s-1vcpu-0.5gb</code>, fra</td><td><strong>$5.00</strong></td></tr><tr><td>6</td><td> Spaces</td><td>abbonamento: 250 GB + 1 TB di traffico, <strong>per tutti i bucket</strong> dell'account</td><td><strong>$5.00</strong></td></tr><tr><td>7</td><td> Backup droplet CompreFace</td><td>giornalieri (7 giorni), 30% del droplet</td><td><strong>$7.20</strong></td></tr><tr class="table-total"><td></td><td></td><td><strong>TOTALE</strong></td><td><strong>$71.43/mese</strong></td></tr><tr><td></td><td></td><td></td><td><strong>~€65/mese</strong></td></tr><tr><td></td><td></td><td></td><td><strong>~€780/anno</strong></td></tr></tbody></table>
+<p>Cifre di listino DigitalOcean in dollari, IVA esclusa; il cambio in euro è indicativo. Il totale va confrontato con la fattura mensile dell'account.</p>
 <p>Voci variabili, fuori dal totale:</p>
-<ul><li><strong>Spaces oltre i 250 GB</strong> ($0.02/GB): il bucket di backup <code>sito-savino-backups</code> sta nello stesso abbonamento del bucket degli asset, e i media vi sono copiati per intero. Con dodicimila foto più le conversioni, la somma dei due bucket va controllata dal pannello prima di darla per inclusa.</li><li><strong>Cloudflare R2</strong>: 10 GB gratuiti, poi a consumo; contiene dump e media.</li><li><strong>GitHub Actions</strong>: gratuito, il repository è pubblico. Cookiebot è stato scartato</li></ul>
-<p>(~30 €/mese per 1958 pagine): consenso e scansione dei cookie sono fatti in casa.</p>
+<ul><li><strong>Spaces oltre i 250 GB</strong> ($0.02/GB): il bucket di backup <code>sito-savino-backups</code> sta nello stesso abbonamento del bucket degli asset, e i media vi sono copiati per intero. Con dodicimila foto più le conversioni, la somma dei due bucket va controllata dal pannello prima di darla per inclusa.</li><li><strong>Cloudflare R2</strong>: 10 GB gratuiti, poi a consumo; contiene dump e media.</li><li><strong>GitHub Actions</strong>: gratuito, il repository è pubblico.</li><li><strong>Servizi a consumo o con piano proprio</strong>, fatturati fuori da DigitalOcean: Resend (email), Sentry, Stripe e PayPal (commissioni sulle transazioni), ActiveCampaign.</li></ul>
+<p>Nessun costo per la gestione del consenso ai cookie: Cookiebot è stato scartato (~30 €/mese per 1958 pagine) e consenso, scansione e dichiarazione sono fatti in casa.</p>
 <h2 id="s9"><span class="section-number">09</span> Backup e Sicurezza</h2>
 <h3>Backup</h3>
-<table><thead><tr><th>Componente</th><th>Backup</th><th>Frequenza</th><th>Gestione</th></tr></thead><tbody><tr><td>Database MySQL</td><td>✅ Managed</td><td>Giornaliero, ultimi 7 giorni (verificato 23/09: 8 copie, ~0,56 GB)</td><td>DigitalOcean</td></tr><tr><td>Database MySQL</td><td>✅ Dump GPG</td><td>Giornaliero 03:00 UTC (<code>backup-db.yml</code>)</td><td>Bucket <code>sito-savino-backups</code> (90 giorni) + copia su Cloudflare R2</td></tr><tr><td>Media Spaces</td><td>✅ Copia</td><td>Settimanale, domenica 04:00 UTC (<code>backup-media.yml</code>)</td><td>Bucket <code>sito-savino-backups</code> (30 giorni) + copia su Cloudflare R2, con manifest dei file (20/09: 81.308 file)</td></tr><tr><td>Verifica restore</td><td>✅ Automatica</td><td>Lunedì 04:30 UTC (<code>verifica-restore.yml</code>)</td><td>Ripristina l'ultimo dump in un MySQL usa e getta; apre una issue se non torna su</td></tr><tr><td>Codice sorgente</td><td>✅ Git</td><td>Ad ogni push</td><td>GitHub</td></tr><tr><td>Droplet CompreFace</td><td>✅ Backup DigitalOcean</td><td>Settimanale (attivati il 23/09/2026, ~$4,80/mese)</td><td>Immagine intera del droplet. È l'unica copia della face collection, cioè degli esempi appresi: le foto di addestramento non vengono conservate (<code>CLAUDE.md</code> §12-ter), e senza backup un droplet perso significherebbe riaddestrare da capo</td></tr></tbody></table>
-<p>Il bucket di backup ha una policy che nega la cancellazione ma non la sovrascrittura. La copia su R2 sta fuori dal perimetro dell'account DigitalOcean e i giri di settembre la scrivono davvero (<code>R2_CHIAVI_PRESENTI: true</code>); che sia anche <strong>immutabile</strong> dipende dal bucket lock, che si configura su Cloudflare e da qui non è verificabile. Dettagli, setup e restore in <a href="../BACKUP.md"><code>BACKUP.md</code></a>.</p>
+<table><thead><tr><th>Componente</th><th>Backup</th><th>Frequenza</th><th>Gestione</th></tr></thead><tbody><tr><td>Database MySQL</td><td><span class="stato stato-ok"></span> Managed</td><td>Giornaliero, ultimi 7 giorni (verificato 1/10: uno al giorno alle 10:05 UTC, ~0,6 GB)</td><td>DigitalOcean</td></tr><tr><td>Database MySQL</td><td><span class="stato stato-ok"></span> Dump GPG</td><td>Giornaliero 03:00 UTC (<code>backup-db.yml</code>; dal 24/08 al 1/10: 40 run su 40 riuscite)</td><td>Bucket <code>sito-savino-backups</code> (90 giorni) + copia su Cloudflare R2</td></tr><tr><td>Media Spaces</td><td><span class="stato stato-ok"></span> Copia</td><td>Settimanale, domenica 04:00 UTC (<code>backup-media.yml</code>; ultima il 27/09, riuscita)</td><td>Bucket <code>sito-savino-backups</code>, copia cumulativa (i file non scadono; le versioni sovrascritte dopo 30 giorni, i manifest dopo 90) + copia su Cloudflare R2 con lock di 30 giorni; manifest dei file (27/09: 81.719 file)</td></tr><tr><td>Verifica restore</td><td><span class="stato stato-ok"></span> Automatica</td><td>Lunedì 04:30 UTC (<code>verifica-restore.yml</code>; 21/09 e 28/09 riuscite)</td><td>Ripristina l'ultimo dump in un MySQL usa e getta; apre una issue se non torna su</td></tr><tr><td>Codice sorgente</td><td><span class="stato stato-ok"></span> Git</td><td>Ad ogni push</td><td>GitHub</td></tr><tr><td>Droplet CompreFace</td><td><span class="stato stato-ok"></span> Backup DigitalOcean</td><td>Giornaliero, conservati 7 giorni (attivati il 23/09/2026, ~$7,20/mese)</td><td>Immagine intera del droplet. È l'unica copia della face collection, cioè degli esempi appresi: le foto di addestramento non vengono conservate (<code>CLAUDE.md</code> §12-ter), e senza backup un droplet perso significherebbe riaddestrare da capo</td></tr></tbody></table>
+<p>Il bucket di backup ha una policy che nega la cancellazione ma non la sovrascrittura. La copia su R2 sta fuori dal perimetro dell'account DigitalOcean e viene scritta a ogni giro (il 1/10 verificata la copia del dump), ed è <strong>immutabile</strong>: il bucket <code>sito-savino-backup-offsite</code> ha le regole di lock <code>retention-db</code> (<code>db/</code>, 90 giorni) e <code>retention-media</code> (<code>media/</code>, 30 giorni), gli stessi prefissi su cui scrivono i workflow. Provato il 1/10 su un file di prova sotto <code>db/</code> con le credenziali di amministratore dell'account: la sovrascrittura risponde 409 «The object is locked by the bucket policy» e la cancellazione non toglie il file. Dettagli, setup e restore in <a href="../BACKUP.md"><code>BACKUP.md</code></a>.</p>
 <h3>Sicurezza</h3>
-<table><thead><tr><th>Misura</th><th>Stato</th></tr></thead><tbody><tr><td>HTTPS (TLS)</td><td>✅ Automatico (App Platform)</td></tr><tr><td>Accesso al DB</td><td>✅ Trusted Sources: l'app e l'IP di chi sviluppa, più il runner del backup per la durata del dump. L'IP di sviluppo cambia spesso: quando se ne aggiunge uno nuovo il vecchio va tolto, perché resta autorizzato anche dopo che la linea l'ha riassegnato a qualcun altro. L'endpoint chiede comunque utente, password e TLS</td></tr><tr><td>CompreFace</td><td>✅ API solo dalla VPC (cloud firewall <code>compreface-fw</code>). SSH aperta a internet per scelta: solo chiave (password e keyboard-interactive disattivate), fail2ban attivo. Limitarla a un IP non regge, con un IP di sviluppo che cambia più volte al giorno</td></tr><tr><td>Content Security Policy</td><td>✅ <code>SecurityHeadersMiddleware</code>: sito pubblico con nonce, senza <code>unsafe-inline</code>/<code>unsafe-eval</code>; il pannello li mantiene per Alpine</td></tr><tr><td>Terze parti prima del consenso</td><td>✅ Font serviti dal sito; GA4 e Pixel Meta solo dopo il consenso. ⚠️ Mappa e video incorporati partono ancora prima (<code>docs/PRIVACY.md</code>)</td></tr><tr><td>Sessioni cifrate</td><td>✅ <code>SESSION_ENCRYPT</code> attivo</td></tr><tr><td>Cookie sicuri</td><td>✅ <code>SESSION_SECURE_COOKIE</code> attivo</td></tr><tr><td>Debug disattivato</td><td>✅ <code>APP_DEBUG=false</code></td></tr><tr><td>Secret in env vars</td><td>✅ Tutti cifrati (<code>EV[1:…]</code>) in <code>.do/app.yaml</code>. ⚠️ <code>ACTIVECAMPAIGN_API_KEY</code> è stata in chiaro nel repository pubblico: va ancora <strong>ruotata</strong></td></tr><tr><td>Error tracking</td><td>✅ Sentry attivo dal 25/09/2026 (server ed errori JavaScript). ⚠️ <code>LOG_LEVEL=error</code>: i warning restano fuori dai log</td></tr><tr><td>Trust proxies</td><td>✅ Configurato per App Platform</td></tr><tr><td>Health check</td><td>✅ <code>/up</code> verifica database e cache; segnala (senza far fallire) uno scheduler fermo</td></tr></tbody></table>
+<table><thead><tr><th>Misura</th><th>Stato</th></tr></thead><tbody><tr><td>HTTPS (TLS)</td><td><span class="stato stato-ok"></span> Automatico (App Platform)</td></tr><tr><td>Accesso al DB</td><td><span class="stato stato-ok"></span> Trusted Sources: l'app e gli IP di sviluppo autorizzati, più il runner del backup per la durata del dump. L'IP di sviluppo cambia spesso: quando se ne aggiunge uno nuovo il vecchio va tolto, perché resta autorizzato anche dopo che la linea l'ha riassegnato a qualcun altro. L'endpoint chiede comunque utente, password e TLS</td></tr><tr><td>CompreFace</td><td><span class="stato stato-ok"></span> API solo dalla VPC (cloud firewall <code>compreface-fw</code>). SSH aperta a internet per scelta: solo chiave (password e keyboard-interactive disattivate), fail2ban attivo. Limitarla a un IP non regge, con un IP di sviluppo che cambia più volte al giorno</td></tr><tr><td>Content Security Policy</td><td><span class="stato stato-ok"></span> <code>SecurityHeadersMiddleware</code>: sito pubblico con nonce, senza <code>unsafe-inline</code>/<code>unsafe-eval</code>; il pannello li mantiene per Alpine</td></tr><tr><td>Terze parti prima del consenso</td><td><span class="stato stato-ok"></span> Font serviti dal sito; GA4 e Pixel Meta solo dopo il consenso; mappa e video incorporati click-to-load dal 26/09/2026 (<code>ContenutoIncorporato.vue</code>)</td></tr><tr><td>Indirizzo unico</td><td><span class="stato stato-ok"></span> <code>PortaSullIndirizzoDelSito</code>: GET su <code>www.</code> e <code>ondigitalocean.app</code> → 301 al dominio (POST, <code>api/*</code> e <code>/up</code> esclusi)</td></tr><tr><td>Sessioni cifrate</td><td><span class="stato stato-ok"></span> <code>SESSION_ENCRYPT</code> attivo</td></tr><tr><td>Cookie sicuri</td><td><span class="stato stato-ok"></span> <code>SESSION_SECURE_COOKIE</code> attivo</td></tr><tr><td>Debug disattivato</td><td><span class="stato stato-ok"></span> <code>APP_DEBUG=false</code></td></tr><tr><td>Segreti nelle variabili d'ambiente</td><td><span class="stato stato-ok"></span> Tutti i segreti sono cifrati (<code>EV[1:…]</code>) in <code>.do/app.yaml</code>; in chiaro restano solo identificativi pubblici (DSN di Sentry, chiave pubblicabile di Stripe, client id e webhook id di PayPal). <span class="stato stato-att">!</span> Nella cronologia del repository pubblico sono rimasti valori in chiaro: la <code>APP_KEY</code> è stata ruotata il 27/09/2026, la chiave di ActiveCampaign e quella di accesso a Spaces vanno ruotate (Sintesi, punti aperti)</td></tr><tr><td>Error tracking</td><td><span class="stato stato-ok"></span> Sentry attivo dal 25/09/2026 (server ed errori JavaScript). <span class="stato stato-att">!</span> <code>LOG_LEVEL=error</code>: i warning restano fuori dai log</td></tr><tr><td>Trust proxies</td><td><span class="stato stato-ok"></span> Configurato per App Platform</td></tr><tr><td>Health check</td><td><span class="stato stato-ok"></span> <code>/up</code> verifica database e cache; segnala (senza far fallire) uno scheduler fermo</td></tr></tbody></table>
 <h3>Task schedulati</h3>
-<p>Definiti in <code>routes/console.php</code>, eseguiti dal componente <strong>scheduler</strong> dedicato (vedi §3.3). Tutti i comandi ricorrenti hanno <code>withoutOverlapping()</code> (lock condiviso via cache, valido anche fra istanze).</p>
-<table><thead><tr><th>Comando</th><th>Frequenza</th><th>Scopo</th></tr></thead><tbody><tr><td><code>scheduler:beat</code></td><td>Ogni minuto</td><td>Battito letto dall'health check <code>/up</code>: rileva uno scheduler morto</td></tr><tr><td><code>shop:sorveglia</code></td><td>Ogni 5 minuti</td><td>Negozio/aste spenti, checkout (shop o aste) senza metodi di pagamento, aste senza Stripe per la verifica della carta, coda <code>default</code> ferma, PayPal (orario): email quando cambia (§9, Avvisi)</td></tr><tr><td><code>lvf:sync</code></td><td>Ogni ora</td><td>Calendario, risultati e classifica dal sito della Lega (fallimenti contati da <code>LvfSyncHealth</code>, alert ai Super Admin)</td></tr><tr><td><code>news:importa-dal-vecchio-sito</code></td><td>Ogni ora</td><td>Comunicati pubblicati sul vecchio WordPress (<code>wp-json</code>); si spegne da solo il 2/10/2026 (<code>services.vecchio_sito.leggibile_fino_a</code>)</td></tr><tr><td><code>sitemap:generate</code></td><td>Giornaliero (04:00)</td><td>Genera sitemap XML per SEO</td></tr><tr><td><code>media:fix-remote-metadata --since=&quot;3 days ago&quot;</code></td><td>Giornaliero (04:30)</td><td>Ripassa Content-Type e Cache-Control sui file recenti caricati su Spaces</td></tr><tr><td><code>social:sync-meta --days=90</code></td><td>Giornaliero (03:30)</td><td>Insight Facebook/Instagram, max 120 chiamate</td></tr><tr><td><code>analytics:sync-ga4 --days=90</code></td><td>Giornaliero (05:00)</td><td>Serie giornaliera del traffico GA4</td></tr><tr><td><code>RicostruisciLaCacheDellaGallery</code> (job)</td><td>Ogni ora (:17)</td><td>Rigenera la cache dell'archivio foto</td></tr><tr><td><code>gallery:analyze --pending --limit=600</code></td><td>Ogni ora (:37)</td><td>Riconoscimento volti sulle foto non ancora analizzate</td></tr><tr><td><code>volti:riconcilia-contatori</code></td><td>Giornaliero (04:15)</td><td>Riallinea <code>players.ai_face_examples</code> a CompreFace</td></tr><tr><td><code>activity-log:prune --days=180</code></td><td>Settimanale</td><td>Pulisce log attività &gt; 6 mesi</td></tr><tr><td><code>consensi:pota</code></td><td>Settimanale</td><td>Prove di consenso cookie oltre i 12 mesi</td></tr><tr><td><code>messaggi:pota</code></td><td>Settimanale</td><td>Messaggi e accrediti oltre i 24 mesi (dalla data del messaggio)</td></tr><tr><td><code>model:prune</code></td><td>Giornaliero</td><td>Pulisce modelli scaduti</td></tr><tr><td><code>queue:prune-batches</code> / <code>queue:prune-failed</code></td><td>Giornaliero</td><td>Batch rimasti aperti (72 h) e job falliti (30 giorni)</td></tr><tr><td><code>carts:prune-expired</code></td><td>Giornaliero (03:00)</td><td>Elimina i carrelli scaduti</td></tr><tr><td><code>order:check-unpaid</code></td><td>Ogni 10 minuti</td><td>Annulla ordini non pagati e rilascia lo stock</td></tr><tr><td><code>auction:activate</code></td><td>Ogni minuto</td><td>Attiva le aste programmate</td></tr><tr><td><code>auction:close</code></td><td>Ogni minuto</td><td>Chiude le aste scadute e notifica i vincitori</td></tr><tr><td><code>auction:check-payments</code></td><td>Oraria</td><td>Verifica i pagamenti dei vincitori d'asta</td></tr><tr><td><code>sync:legavolley</code></td><td>Giornaliero</td><td>Dati <strong>simulati</strong>, solo in ambienti <strong>non</strong> di produzione</td></tr></tbody></table>
+<p>Definiti in <code>routes/console.php</code>, eseguiti dal componente <strong>scheduler</strong> dedicato (vedi §3.3). Tutti i comandi ricorrenti tranne <code>scheduler:beat</code> hanno <code>withoutOverlapping()</code> (lock condiviso via cache, valido anche fra istanze).</p>
+<table><thead><tr><th>Comando</th><th>Frequenza</th><th>Scopo</th></tr></thead><tbody><tr><td><code>scheduler:beat</code></td><td>Ogni minuto</td><td>Battito letto dall'health check <code>/up</code>: rileva uno scheduler morto</td></tr><tr><td><code>shop:sorveglia</code></td><td>Ogni 5 minuti</td><td>Negozio/aste spenti, checkout (shop o aste) senza metodi di pagamento, aste senza Stripe per la verifica della carta, coda <code>default</code> ferma, PayPal (orario): email quando cambia (§9, Avvisi)</td></tr><tr><td><code>lvf:sync</code></td><td>Ogni ora</td><td>Calendario, risultati e classifica dal sito della Lega (fallimenti contati da <code>LvfSyncHealth</code>, alert ai Super Admin)</td></tr><tr><td><code>cev:sync</code></td><td>Ogni ora (:30)</td><td>Calendario, risultati e classifica del girone di Champions dal portale CEV</td></tr><tr><td><code>news:importa-dal-vecchio-sito</code></td><td>Tolto dallo scheduler il 2/10/2026</td><td>Importava i comunicati dal vecchio WordPress (<code>wp-json</code>). Ultimo giro fatto a mano il 1/10 prima del cambio DNS: ora il dominio è questo sito e il comando non ha più una sorgente</td></tr><tr><td><code>prezzi:registra</code></td><td>Ogni ora (:05)</td><td>Storico dei prezzi per il barrato dei 30 giorni (Omnibus); butta la vetrina quando uno sconto comincia o finisce</td></tr><tr><td><code>sitemap:generate</code></td><td>Giornaliero (04:00)</td><td>Genera sitemap XML per SEO</td></tr><tr><td><code>media:fix-remote-metadata --since=&quot;3 days ago&quot;</code></td><td>Giornaliero (04:30)</td><td>Ripassa Content-Type e Cache-Control sui file recenti caricati su Spaces</td></tr><tr><td><code>social:sync-meta --days=90</code></td><td>Giornaliero (03:30)</td><td>Insight Facebook/Instagram, max 120 chiamate</td></tr><tr><td><code>analytics:sync-ga4 --days=90</code></td><td>Giornaliero (05:00)</td><td>Serie giornaliera del traffico GA4</td></tr><tr><td><code>newsletter:retry-sync</code></td><td>Giornaliero (05:15)</td><td>Ritenta su ActiveCampaign gli iscritti confermati non ancora sincronizzati (max 50)</td></tr><tr><td><code>RicostruisciLaCacheDellaGallery</code> (job)</td><td>Ogni ora (:17)</td><td>Rigenera la cache dell'archivio foto</td></tr><tr><td><code>gallery:analyze --pending --limit=600 --force</code></td><td>Ogni ora (:37)</td><td>Riconoscimento volti sulle foto non ancora analizzate</td></tr><tr><td><code>volti:riconcilia-contatori</code></td><td>Giornaliero (04:15)</td><td>Riallinea <code>players.ai_face_examples</code> a CompreFace</td></tr><tr><td><code>activity-log:prune --days=180 --force</code></td><td>Settimanale (domenica 00:00)</td><td>Pulisce log attività &gt; 6 mesi</td></tr><tr><td><code>consensi:pota</code></td><td>Settimanale (domenica 00:00)</td><td>Prove di consenso cookie oltre i 12 mesi</td></tr><tr><td><code>messaggi:pota</code></td><td>Settimanale (domenica 00:00)</td><td>Messaggi e accrediti oltre i 24 mesi (dalla data del messaggio)</td></tr><tr><td><code>model:prune</code></td><td>Giornaliero</td><td>Carrelli scaduti da più di 7 giorni, iscrizioni alla newsletter non confermate entro 30 giorni, dichiarazioni di recesso oltre la conservazione (12 mesi; 10 anni se legate a un ordine)</td></tr><tr><td><code>queue:prune-batches</code> / <code>queue:prune-failed</code></td><td>Giornaliero</td><td>Batch rimasti aperti (72 h) e job falliti (30 giorni)</td></tr><tr><td><code>carts:prune-expired</code></td><td>Giornaliero (03:00)</td><td>Elimina i carrelli scaduti</td></tr><tr><td><code>order:check-unpaid</code></td><td>Ogni 10 minuti</td><td>Annulla gli ordini non pagati (carta e PayPal dopo un'ora, bonifico dopo i giorni di <code>shop.bank_transfer_expiry_days</code>), manda il promemoria del bonifico e rilascia lo stock</td></tr><tr><td><code>auction:activate</code></td><td>Ogni minuto</td><td>Attiva le aste programmate</td></tr><tr><td><code>auction:close</code></td><td>Ogni minuto</td><td>Chiude le aste scadute e notifica i vincitori</td></tr><tr><td><code>auction:check-payments</code></td><td>Oraria</td><td>Verifica i pagamenti dei vincitori d'asta</td></tr><tr><td><code>sync:legavolley</code></td><td>Giornaliero</td><td>Dati <strong>simulati</strong>, solo in ambienti <strong>non</strong> di produzione</td></tr></tbody></table>
 <h3>Workflow GitHub Actions</h3>
-<table><thead><tr><th>Workflow</th><th>Quando</th><th>Scopo</th></tr></thead><tbody><tr><td><code>ci.yml</code></td><td>Push e PR; lunedì 05:00 UTC</td><td>Lint, PHPStan, test, SonarCloud; su <code>main</code> il job <code>deploy</code> applica lo spec</td></tr><tr><td><code>backup-db.yml</code></td><td>Ogni giorno 03:00 UTC</td><td>Dump cifrato del database (§9)</td></tr><tr><td><code>backup-media.yml</code></td><td>Domenica 04:00 UTC</td><td>Copia dei media di Spaces (§9)</td></tr><tr><td><code>verifica-restore.yml</code></td><td>Lunedì 04:30 UTC</td><td>Prova di ripristino dell'ultimo dump</td></tr><tr><td><code>scansione-cookie.yml</code></td><td>Lunedì 04:30 UTC</td><td>Playwright sul sito: aggiorna <code>database/data/cookie_rilevati.json</code> e va in rosso se qualcosa parte prima del consenso</td></tr><tr><td><code>sorveglianza-sito.yml</code></td><td>Ogni ora, al minuto 17 (puntualità non garantita da GitHub)</td><td><code>/up</code>, <code>/</code> e <code>/shop</code> da fuori DigitalOcean; in rosso se il sito non risponde o resta sopra i 6 s per due richieste di fila (§9, Avvisi)</td></tr></tbody></table>
+<table><thead><tr><th>Workflow</th><th>Quando</th><th>Scopo</th></tr></thead><tbody><tr><td><code>ci.yml</code></td><td>Push su <code>main</code> (esclusi i soli <code>*.md</code>, `docs/<strong><code>, </code>Loghi/</strong><code>), PR verso </code>main`, lunedì 05:00 UTC</td><td>ESLint, Vitest, Pint, PHPStan, mappa delle dipendenze, PHPUnit, audit di Composer e npm; SonarCloud e soglie di copertura solo su PR e run schedulate; su <code>main</code> il job <code>deploy</code> applica lo spec</td></tr><tr><td><code>backup-db.yml</code></td><td>Ogni giorno 03:00 UTC</td><td>Dump cifrato del database (§9)</td></tr><tr><td><code>backup-media.yml</code></td><td>Domenica 04:00 UTC</td><td>Copia dei media di Spaces (§9)</td></tr><tr><td><code>verifica-restore.yml</code></td><td>Lunedì 04:30 UTC</td><td>Prova di ripristino dell'ultimo dump</td></tr><tr><td><code>scansione-cookie.yml</code></td><td>Lunedì 04:30 UTC</td><td>Playwright sul sito: aggiorna <code>database/data/cookie_rilevati.json</code> e va in rosso se qualcosa parte prima del consenso</td></tr><tr><td><code>scansione-accessibilita.yml</code></td><td>Lunedì 05:00 UTC</td><td>axe-core sul sito (sole letture) e sui flussi d'acquisto in CI; rosso sulle violazioni gravi (WCAG 2.1 AA, European Accessibility Act)</td></tr><tr><td><code>sorveglianza-sito.yml</code></td><td>Ogni ora, al minuto 17 (in pratica fra :20 e :35: GitHub non garantisce la puntualità)</td><td><code>/up</code>, <code>/</code> e <code>/shop</code> da fuori DigitalOcean; in rosso se il sito non risponde o resta sopra i 6 s per due richieste di fila (§9, Avvisi)</td></tr></tbody></table>
 <h3>Avvisi</h3>
 <p>Sei livelli, ciascuno per ciò che gli altri non possono vedere:</p>
-<table><thead><tr><th>Livello</th><th>Vede</th><th>Arriva a</th></tr></thead><tbody><tr><td><code>sorveglianza-sito.yml</code> (GitHub)</td><td>Sito irraggiungibile, giù del tutto o lento</td><td>Email di GitHub a chi ha modificato per ultimo il workflow</td></tr><tr><td>Monitoring DO sul database</td><td>CPU e memoria oltre il 90%, disco oltre l'80%</td><td><code>marco@</code> (<code>doctl monitoring alert list</code>)</td></tr><tr><td>Webhook di Resend (<code>/api/webhooks/resend</code>)</td><td>Email ai clienti rimbalzate, segnalate come spam o non spedite</td><td>AvvisoTecnico → <code>allarmi@</code></td></tr><tr><td>Alert di App Platform (<code>alerts:</code> nella spec)</td><td>Deploy fallito, dominio non attivo, container che riparte in ciclo, memoria del web</td><td>Destinazioni impostate con <code>doctl apps update-alert-destinations</code></td></tr><tr><td><code>App\Services\AvvisoTecnico</code></td><td>Pianificatore fermo, job falliti (non coda <code>ai</code>), ordini da rivedere, <code>shop:sorveglia</code></td><td><code>AVVISI_EMAIL</code> (spec, livello d'app) via Resend</td></tr><tr><td>Sentry</td><td>Eccezioni del server e errori JavaScript del browser (via <code>/api/diagnostica</code>)</td><td>Regola del progetto: issue nuove, regressioni, alta priorità → <code>allarmi@</code> (email routing dell'account)</td></tr></tbody></table>
+<table><thead><tr><th>Livello</th><th>Vede</th><th>Arriva a</th></tr></thead><tbody><tr><td><code>sorveglianza-sito.yml</code> (GitHub)</td><td>Sito irraggiungibile, giù del tutto o lento</td><td>Email di GitHub a chi ha modificato per ultimo il workflow</td></tr><tr><td>Monitoring DO sul database</td><td>CPU e memoria oltre il 90%, disco oltre l'80%</td><td>Referente tecnico (MV Consulting)</td></tr><tr><td>Webhook di Resend (<code>/api/webhooks/resend</code>)</td><td>Email ai clienti rimbalzate, segnalate come spam o non spedite</td><td>AvvisoTecnico → <code>allarmi@</code></td></tr><tr><td>Alert di App Platform (<code>alerts:</code> nella spec)</td><td>Deploy fallito, dominio non attivo, container che riparte in ciclo, memoria del web</td><td>Referente tecnico (MV Consulting), con <code>doctl apps update-alert-destinations</code></td></tr><tr><td><code>App\Services\AvvisoTecnico</code></td><td>Pianificatore fermo, comandi pianificati usciti con errore, job falliti (non coda <code>ai</code>), ordini da rivedere, contestazioni Stripe, <code>shop:sorveglia</code></td><td><code>AVVISI_EMAIL</code> (spec, livello d'app) via Resend</td></tr><tr><td>Sentry</td><td>Eccezioni del server e errori JavaScript del browser (via <code>/api/diagnostica</code>)</td><td>Regola del progetto: issue nuove, regressioni, alta priorità → <code>allarmi@</code> (email routing dell'account)</td></tr></tbody></table>
 <p>Le regole di App Platform stanno nella spec, gli indirizzi no: dopo un deploy che aggiunge una regola se ne leggono gli id con <code>doctl apps list-alerts &lt;app&gt;</code> e si imposta la destinazione con <code>doctl apps update-alert-destinations &lt;app&gt; &lt;alert&gt; --app-alert-destinations destinazioni.json</code> (<code>{&quot;emails&quot;: [&quot;…&quot;]}</code>). L'email deve essere di un membro del team DigitalOcean.</p>
 <p>AvvisoTecnico manda in modo <strong>sincrono</strong> (non in coda: la coda ferma è uno dei guasti da segnalare) e non lancia mai: un Resend irraggiungibile non deve far fallire un webhook di pagamento. <code>invia()</code> restituisce un <code>EsitoAvviso</code> (inviato, silenziato, senza destinatari, fallito): chi ricorda di aver già avvisato — lo stato di <code>shop:sorveglia</code>, il silenziatore dell'health check e quello dei job falliti — lo scrive o lo tiene solo se l'invio non è fallito, così un Resend giù in quel momento non spegne l'avviso per sempre. L'avviso sul pianificatore fermo parte con <code>defer()</code>, dopo la risposta di <code>/up</code> (DigitalOcean aspetta 5 s, l'invio a Resend fino a 10).</p>
-<p>**Lo stato degli avvisi sta nello store di cache <code>persistente</code>** (<code>config/cache.php</code>, tabelle <code>cache_persistente</code> e <code>cache_persistente_locks</code>), non in quello predefinito: <code>start.sh</code> esegue <code>cache:clear</code> a ogni avvio, e con silenziatori e stato di <code>shop:sorveglia</code> lì dentro ogni rilascio rimandava gli avvisi già mandati. Si legge con <code>AvvisoTecnico::memoria()</code>; nei test il driver è <code>array</code> (<code>CACHE_PERSISTENTE_DRIVER</code> in <code>phpunit.xml</code>).</p>
+<p><strong>Lo stato degli avvisi sta nello store di cache <code>persistente</code></strong> (<code>config/cache.php</code>, tabelle <code>cache_persistente</code> e <code>cache_persistente_locks</code>), non in quello predefinito: <code>start.sh</code> esegue <code>cache:clear</code> a ogni avvio, e con silenziatori e stato di <code>shop:sorveglia</code> lì dentro ogni rilascio rimandava gli avvisi già mandati. Si legge con <code>AvvisoTecnico::memoria()</code>; nei test il driver è <code>array</code> (<code>CACHE_PERSISTENTE_DRIVER</code> in <code>phpunit.xml</code>).</p>
 <p>Il webhook di Resend avvisa solo per i destinatari con un ordine negli ultimi 30 giorni (email dell'ospite o dell'account), al massimo 10 avvisi l'ora: gli altri indirizzi (newsletter, ricevute del recesso) li scrive chiunque, e finiscono nel log senza l'indirizzo.</p>
-<p>**Limiti di <code>sorveglianza-sito.yml</code>.<strong> È una rete di sicurezza, non un monitor: gira </strong>una volta l'ora<strong> (dal 26/09/2026; ogni dieci minuti costava circa 4.300 minuti di Actions al mese, più dell'intero conto da 3.000 che Klubia, Savino e MV-ERP esauriscono già), quindi un sito giù può restare senza avviso fino a un'ora; GitHub manda un'email a </strong>ogni<strong> run fallita e </strong>nessuna<strong> alla guarigione; la puntualità del cron non è garantita (10-15 minuti di ritardo nelle ore di punta); e GitHub </strong>disattiva i workflow schedulati dopo 60 giorni<strong> senza attività nel repository, senza avvisare chi li riceve. </strong>Per un controllo più fitto serve un monitor esterno gratuito** (UptimeRobot, Better Stack: controllo ogni 5 minuti nel piano gratuito) su <code>/up</code>, con avviso alla caduta e al ritorno: non costa minuti di Actions.</p>
+<p><strong>Limiti di <code>sorveglianza-sito.yml</code>.</strong> È una rete di sicurezza, non un monitor: gira <strong>una volta l'ora</strong> (dal 26/09/2026), quindi un sito giù può restare senza avviso fino a un'ora; GitHub manda un'email a <strong>ogni</strong> run fallita e <strong>nessuna</strong> alla guarigione; la puntualità del cron non è garantita (10-20 minuti di ritardo nelle ore di punta); e GitHub <strong>disattiva i workflow schedulati dopo 60 giorni</strong> senza attività nel repository, senza avvisare chi li riceve.</p>
+<p><strong>Il controllo fitto è l'uptime check di DigitalOcean</strong> <code>sito-savino-up</code> (dal 01/10/2026, account Savino, <code>doctl --context savino monitoring uptime list</code>): interroga <code>https://savinodelbenevolley.it/up</code> da <code>eu_west</code> e <code>us_east</code>, fuori dall'app, e avvisa per email alla caduta e al ritorno. Tre regole: <code>sito-savino-down</code> (giù da 2 minuti), <code>sito-savino-latenza</code> (oltre 6 s per 5 minuti, la soglia del workflow) e <code>sito-savino-ssl</code> (certificato in scadenza entro 14 giorni). Le email vanno a <code>marco@mv-consulting.it</code>: come per gli alert dell'app, DigitalOcean le manda solo a membri del team. Il workflow orario resta come seconda strada, indipendente da DigitalOcean.</p>
+</main>
 
-<div class="doc-footer">
-    <p><strong>Savino Del Bene Volley</strong> — Documentazione Infrastruttura v2.0</p>
-    <p>Generata il 23 settembre 2026 da <code>docs/INFRASTRUCTURE.md</code> • DigitalOcean Frankfurt (fra/fra1)</p>
-</div>
-
-</div>
 </body>
 </html>
