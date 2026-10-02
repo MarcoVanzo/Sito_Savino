@@ -50,7 +50,11 @@ return [
      * The maximum file size of an item in bytes.
      * Adding a larger file will result in an exception.
      */
-    'max_file_size' => 1024 * 1024 * 10, // 10MB
+    // 50MB: le foto da fotocamera superano i 10 MB di serie. Il limite vale
+    // anche sui campi del pannello (AppServiceProvider), sotto i 64 MB di
+    // Livewire e di upload_max_filesize. Per le foto da 45 MP
+    // FotoAlleggerita alza memory_limit quanto serve.
+    'max_file_size' => 1024 * 1024 * 50,
 
     /*
      * Uploads whose file name contains any of these extensions will be rejected.
