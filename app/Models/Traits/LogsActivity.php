@@ -3,6 +3,7 @@
 namespace App\Models\Traits;
 
 use App\Models\ActivityLog;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
 
@@ -15,6 +16,15 @@ use Illuminate\Support\Facades\Request;
  *   - protected array $logExclude = ['campo1', 'campo2'];  // campi da escludere completamente dal log
  *   - protected array $logHeavyFields = ['content', 'body']; // campi grandi: logga solo "modificato" senza diff
  *   - protected string $logLabelField = 'title';  // campo da usare come label leggibile
+ *   - protected bool $logSoloDalPannello = true;   // registra solo le azioni dello staff del pannello
+ *   - public function etichettaPerIlRegistro(): ?string  // label calcolata, vince su $logLabelField
+ *
+ * Il registro serve a rivedere il lavoro della redazione nel pannello, non a
+ * copiare i dati dei clienti: i modelli che i visitatori scrivono dal sito
+ * pubblico (ordini, account) dichiarano `$logSoloDalPannello`, così checkout,
+ * registrazioni, webhook e job non lasciano righe, e tengono fuori con
+ * `$logExclude` i campi personali anche dalle azioni dello staff. Su tutti i
+ * modelli autore, IP e browser si scrivono solo quando agisce lo staff.
  */
 trait LogsActivity
 {
@@ -54,6 +64,12 @@ trait LogsActivity
      */
     protected static function logAction($model, string $action): void
     {
+        if (property_exists($model, 'logSoloDalPannello')
+            && $model->logSoloDalPannello
+            && ! static::autoreDelPannello()) {
+            return;
+        }
+
         $changes = null;
 
         if ($action === 'updated') {
@@ -67,16 +83,22 @@ trait LogsActivity
             $changes = static::buildCreatedSnapshot($model);
         }
 
+        // Autore, IP e browser si registrano solo per lo staff: di un
+        // visitatore che fa un'offerta o un ordine il registro non deve
+        // ricordare chi era né da dove si collegava. La riga resta, come
+        // azione di sistema.
+        $dalPannello = static::autoreDelPannello();
+
         try {
             ActivityLog::create([
-                'user_id' => Auth::id(), // null se azione da CLI/queue
+                'user_id' => $dalPannello ? Auth::id() : null,
                 'action' => $action,
                 'model_type' => get_class($model),
                 'model_id' => $model->getKey(),
                 'model_label' => static::extractLabel($model),
                 'changes' => $changes,
-                'ip_address' => Request::ip(), // null-safe in CLI
-                'user_agent' => Request::userAgent(),
+                'ip_address' => $dalPannello ? Request::ip() : null,
+                'user_agent' => $dalPannello ? Request::userAgent() : null,
                 'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
@@ -169,10 +191,25 @@ trait LogsActivity
     }
 
     /**
+     * Chi agisce è un utente del pannello? Senza autenticazione (CLI, coda,
+     * webhook) o con un account da cliente la risposta è no.
+     */
+    protected static function autoreDelPannello(): bool
+    {
+        $utente = Auth::user();
+
+        return $utente instanceof User && $utente->role->canAccessPanel();
+    }
+
+    /**
      * Cerca un campo leggibile da usare come label del record nel log.
      */
     protected static function extractLabel($model): ?string
     {
+        if (method_exists($model, 'etichettaPerIlRegistro')) {
+            return $model->etichettaPerIlRegistro();
+        }
+
         // Campo esplicito definito nel modello
         if (property_exists($model, 'logLabelField')) {
             return $model->{$model->logLabelField} ?? null;

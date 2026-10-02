@@ -3,6 +3,7 @@
 namespace Tests\Feature\Console;
 
 use App\Models\ConsensoCookie;
+use App\Services\CatenaDeiConsensi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -10,6 +11,9 @@ use Tests\TestCase;
  * `consensi:pota` è l'unica cosa che impedisce al registro dei consensi di
  * diventare quello che è fatto per evitare: una raccolta di dati che nessuno
  * ha più motivo di conservare.
+ *
+ * Conserva ventiquattro mesi: i dodici in cui il consenso vale più dodici per
+ * le contestazioni.
  *
  * Gira dallo scheduler una volta a settimana e non lo guarda nessuno, quindi
  * i due modi in cui può sbagliare vanno provati qui: cancellare quello che
@@ -21,7 +25,11 @@ class PotaIConsensiCookieTest extends TestCase
 
     private function consensoDi(string $quando): ConsensoCookie
     {
-        $consenso = ConsensoCookie::create([
+        // Il registro si scrive solo in coda alla catena, con l'ora del
+        // momento: per invecchiare una riga si sposta l'orologio.
+        $this->travelTo(now()->parse($quando));
+
+        $consenso = CatenaDeiConsensi::registra([
             'riferimento' => ConsensoCookie::nuovoRiferimento(),
             'statistiche' => true,
             'marketing' => false,
@@ -29,17 +37,17 @@ class PotaIConsensiCookieTest extends TestCase
             'versione' => ConsensoCookie::VERSIONE,
         ]);
 
-        // `created_at` sta fuori da `$fillable` e la colonna ha `useCurrent()`:
-        // per invecchiare una riga si riscrive dopo averla creata.
-        $consenso->forceFill(['created_at' => now()->parse($quando)])->save();
+        $this->travelBack();
 
         return $consenso;
     }
 
-    public function test_toglie_i_consensi_piu_vecchi_di_dodici_mesi(): void
+    public function test_toglie_i_consensi_piu_vecchi_di_ventiquattro_mesi(): void
     {
-        $vecchio = $this->consensoDi(now()->subMonths(13)->toDateTimeString());
-        $recente = $this->consensoDi(now()->subMonths(11)->toDateTimeString());
+        $vecchio = $this->consensoDi(now()->subMonths(25)->toDateTimeString());
+        // Scaduto come consenso (più di dodici mesi) ma ancora dentro il
+        // margine per le contestazioni: resta.
+        $recente = $this->consensoDi(now()->subMonths(13)->toDateTimeString());
 
         $this->artisan('consensi:pota')
             ->expectsOutputToContain('1 consenso cancellato')
@@ -49,12 +57,12 @@ class PotaIConsensiCookieTest extends TestCase
         $this->assertDatabaseHas('consensi_cookie', ['id' => $recente->id]);
     }
 
-    public function test_il_confine_dei_dodici_mesi_tiene_il_consenso_di_ieri(): void
+    public function test_il_confine_dei_ventiquattro_mesi_tiene_il_consenso_sul_filo(): void
     {
         // Il giorno esatto del limite non si cancella: la prova del consenso
         // serve finché può essere richiesta, e un'ora di differenza non è un
         // motivo per non averla più.
-        $sulFilo = $this->consensoDi(now()->subMonths(12)->addHour()->toDateTimeString());
+        $sulFilo = $this->consensoDi(now()->subMonths(24)->addHour()->toDateTimeString());
 
         $this->artisan('consensi:pota')
             ->expectsOutputToContain('Nessun consenso da togliere')
@@ -82,8 +90,10 @@ class PotaIConsensiCookieTest extends TestCase
         // Cinque giorni, non "adesso": un consenso dello stesso secondo in cui
         // gira il comando resterebbe comunque, e il test non distinguerebbe il
         // minimo di un mese da nessun minimo affatto.
-        $diCinqueGiorniFa = $this->consensoDi(now()->subDays(5)->toDateTimeString());
+        // In ordine di tempo, come arrivano davvero: la potatura toglie la
+        // testa del registro per id.
         $vecchio = $this->consensoDi(now()->subMonths(2)->toDateTimeString());
+        $diCinqueGiorniFa = $this->consensoDi(now()->subDays(5)->toDateTimeString());
 
         $this->artisan('consensi:pota', ['--mesi' => 0])->assertSuccessful();
 
@@ -100,13 +110,49 @@ class PotaIConsensiCookieTest extends TestCase
 
     public function test_conta_al_plurale_quando_sono_piu_di_uno(): void
     {
-        $this->consensoDi(now()->subMonths(14)->toDateTimeString());
-        $this->consensoDi(now()->subMonths(15)->toDateTimeString());
+        $this->consensoDi(now()->subMonths(26)->toDateTimeString());
+        $this->consensoDi(now()->subMonths(25)->toDateTimeString());
 
         $this->artisan('consensi:pota')
             ->expectsOutputToContain('2 consensi cancellati')
             ->assertSuccessful();
 
         $this->assertSame(0, ConsensoCookie::count());
+    }
+
+    public function test_dopo_la_potatura_la_catena_resta_verificabile_dall_ancora(): void
+    {
+        $tolto = $this->consensoDi(now()->subMonths(26)->toDateTimeString());
+        $this->consensoDi(now()->subMonths(2)->toDateTimeString());
+        $this->consensoDi(now()->subDay()->toDateTimeString());
+
+        $this->artisan('consensi:pota')->assertSuccessful();
+
+        // La potatura lascia l'impronta dell'ultima riga tolta: la prima
+        // rimasta vi si aggancia, e la verifica riparte da lì.
+        $this->assertDatabaseHas('consensi_cookie_potature', [
+            'fino_a_id' => $tolto->id,
+            'righe' => 1,
+            'ultima_impronta' => $tolto->impronta_riga,
+        ]);
+        $this->assertSame(2, ConsensoCookie::count());
+        $this->assertNull(CatenaDeiConsensi::verifica()['guasto']);
+
+        // Un consenso nuovo dopo la potatura continua la stessa catena.
+        $this->consensoDi(now()->toDateTimeString());
+        $this->assertNull(CatenaDeiConsensi::verifica()['guasto']);
+    }
+
+    public function test_potare_tutto_il_registro_lascia_l_ancora_al_consenso_successivo(): void
+    {
+        $tolto = $this->consensoDi(now()->subMonths(30)->toDateTimeString());
+
+        $this->artisan('consensi:pota')->assertSuccessful();
+        $this->assertSame(0, ConsensoCookie::count());
+
+        $nuovo = $this->consensoDi(now()->toDateTimeString());
+
+        $this->assertSame($tolto->impronta_riga, $nuovo->impronta_precedente);
+        $this->assertNull(CatenaDeiConsensi::verifica()['guasto']);
     }
 }

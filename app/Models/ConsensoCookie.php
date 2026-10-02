@@ -4,12 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use LogicException;
 
 /**
  * Una scelta fatta sul banner dei cookie, con quanto serve a dimostrarla.
  *
  * Il modello non usa `updated_at`: un consenso non si modifica, se ne registra
  * uno nuovo. La storia di chi cambia idea resta leggibile riga per riga.
+ *
+ * Le righe si scrivono solo da `CatenaDeiConsensi::registra()`, che le mette in
+ * coda alla catena delle impronte; il modello rifiuta modifiche e
+ * cancellazioni una per una (la potatura per età toglie una testa intera e
+ * lascia l'ancora, vedi `consensi:pota`).
  */
 class ConsensoCookie extends Model
 {
@@ -43,6 +49,7 @@ class ConsensoCookie extends Model
         'marketing',
         'azione',
         'versione',
+        'impronta_testi',
         'locale',
         'user_agent',
         'impronta_ip',
@@ -57,12 +64,21 @@ class ConsensoCookie extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::updating(function () {
+            throw new LogicException('Un consenso registrato non si modifica: se ne registra uno nuovo.');
+        });
+
+        static::deleting(function () {
+            throw new LogicException('Un consenso non si cancella da solo: spezzerebbe la catena delle impronte (consensi:pota toglie le righe scadute).');
+        });
+    }
+
     /**
-     * L'impronta dell'indirizzo, con il sale dell'applicazione.
-     *
-     * `APP_KEY` non lascia mai il server, quindi l'impronta non è ricostruibile
-     * da fuori nemmeno conoscendo l'indirizzo. Serve a contare e a distinguere,
-     * non a risalire alla persona.
+     * L'impronta dell'indirizzo, con un sale che non lascia mai il server:
+     * l'impronta non è ricostruibile da fuori nemmeno conoscendo l'indirizzo.
+     * Serve a contare e a distinguere, non a risalire alla persona.
      */
     public static function improntaDi(?string $ip): ?string
     {
@@ -70,7 +86,23 @@ class ConsensoCookie extends Model
             return null;
         }
 
-        return hash('sha256', $ip.'|'.config('app.key'));
+        return hash('sha256', $ip.'|'.self::sale());
+    }
+
+    /**
+     * Il sale dell'impronta: `CONSENSI_SALE` (services.consensi.sale).
+     *
+     * Fino al 2 ottobre 2026 era `APP_KEY`, che è stata esposta e va ruotata:
+     * con il sale legato alla chiave, ruotarla avrebbe reso incomparabili le
+     * impronte già registrate. Se il segreto dedicato manca si ripiega su
+     * `APP_KEY`, apposta: il deploy non si rompe, e le impronte restano quelle
+     * di prima finché qualcuno non imposta la variabile.
+     */
+    public static function sale(): string
+    {
+        $sale = (string) config('services.consensi.sale');
+
+        return $sale !== '' ? $sale : (string) config('app.key');
     }
 
     /**

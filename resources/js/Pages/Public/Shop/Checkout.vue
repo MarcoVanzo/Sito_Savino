@@ -10,7 +10,6 @@ import { trackInitiateCheckout } from '@/meta-pixel.js'
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
-import AddressAutocomplete from '@/Components/Shop/AddressAutocomplete.vue';
 import AccettazioneCondizioni from '@/Components/Shop/AccettazioneCondizioni.vue';
 import PulsanteOrdine from '@/Components/Shop/PulsanteOrdine.vue';
 
@@ -558,24 +557,19 @@ const ogMeta = useOgMeta({
                                     />
                                     <p v-if="form.errors.shipping_last_name" id="errore-shipping_last_name" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_last_name }}</p>
                                 </div>
-                                <!-- Street Address with Autocomplete (full width) -->
+                                <!-- Street Address (full width) -->
                                 <div class="sm:col-span-2">
                                     <label for="checkout-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
-                                    <AddressAutocomplete
+                                    <input
                                         id="checkout-street"
                                         v-model="form.shipping_street"
-                                        required
-                                        aria-required="true"
+                                        required aria-required="true"
                                         :aria-invalid="!!form.errors.shipping_street"
                                         :aria-describedby="form.errors.shipping_street ? 'errore-shipping_street' : undefined"
+                                        type="text"
+                                        autocomplete="address-line1"
+                                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-savino-blue focus:ring-2 focus:ring-savino-blue/20 outline-none transition-colors text-sm"
                                         :placeholder="$t('shop_checkout.placeholder_street')"
-                                        :country="form.country"
-                                        @address-selected="(addr) => {
-                                            form.shipping_street = addr.street;
-                                            form.shipping_city = addr.city;
-                                            form.shipping_zip_code = addr.zip_code;
-                                            form.shipping_province = addr.province;
-                                        }"
                                     />
                                     <p v-if="form.errors.shipping_street" id="errore-shipping_street" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_street }}</p>
                                 </div>
@@ -920,7 +914,7 @@ const ogMeta = useOgMeta({
                                         {{ shippingCost === 0 ? $t('shop_checkout.free_shipping') : formatPrice(shippingCost) }}
                                     </span>
                                     <div v-if="selectedZone?.estimated_days_min" class="text-xs text-gray-500 mt-1">
-                                        📦 {{ $t('shop_checkout.estimated_delivery') }}: {{ selectedZone.estimated_days_min }}-{{ selectedZone.estimated_days_max }} {{ $t('shop_checkout.business_days') }}
+                                        📦 {{ $t('shop_checkout.estimated_delivery') }}: {{ selectedZone.estimated_days_min }}-{{ selectedZone.estimated_days_max }} {{ $t('shop_checkout.business_days') }}, {{ $t('shop_checkout.preparation_days') }}
                                     </div>
                                 </div>
                             </div>

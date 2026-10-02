@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -70,18 +71,20 @@ class ActiveCampaignService
         if ($response->successful()) {
             $contactId = $response->json('contact.id');
 
+            // Niente email nei log: con le breadcrumb di Sentry finirebbero
+            // anche lì. L'id del contatto basta a ritrovarlo su ActiveCampaign.
             Log::info('ActiveCampaign: contatto sincronizzato', [
-                'email' => $email,
                 'contact_id' => $contactId,
             ]);
 
             return $contactId ? (int) $contactId : null;
         }
 
+        // Qui l'id del contatto non c'è ancora: si registra solo l'esito, e
+        // l'email si toglie anche dal corpo, se ActiveCampaign la ripete.
         Log::error('ActiveCampaign: errore syncContact', [
-            'email' => $email,
             'status' => $response->status(),
-            'body' => mb_substr($response->body(), 0, 500),
+            'body' => mb_substr(str_ireplace($email, '[email]', $response->body()), 0, 500),
         ]);
 
         return null;
@@ -234,6 +237,69 @@ class ActiveCampaignService
         ]);
 
         return false;
+    }
+
+    /**
+     * Quanti contatti chiedere per pagina: il massimo dell'API v3.
+     */
+    private const CONTATTI_PER_PAGINA = 100;
+
+    /**
+     * Le email dei contatti che risultano disiscritti dalla lista del sito.
+     *
+     * Chi esce dal Preference Center o dal link in fondo a una campagna esce
+     * su ActiveCampaign, e al sito non arriva niente: non c'è un webhook. Il
+     * comando `newsletter:allinea-disiscritti` usa questo elenco per segnare
+     * l'uscita anche qui (e cancellare nome e IP).
+     *
+     * `GET /api/3/contacts?listid=…&status=2` (2 = disiscritto), a pagine da
+     * cento con `offset`. Su un errore lancia ActiveCampaignException con lo
+     * stato HTTP come codice (0 se la connessione non è riuscita): è chi
+     * chiama a decidere se è transitorio.
+     *
+     * @return list<string> email in minuscolo
+     */
+    public function emailDisiscritteDallaLista(): array
+    {
+        $email = [];
+        $offset = 0;
+
+        do {
+            try {
+                $risposta = $this->client()->get($this->baseUrl.'/api/3/contacts', [
+                    'listid' => $this->listId,
+                    'status' => 2,
+                    'limit' => self::CONTATTI_PER_PAGINA,
+                    'offset' => $offset,
+                ]);
+            } catch (ConnectionException $e) {
+                throw new ActiveCampaignException('ActiveCampaign non raggiungibile: '.$e->getMessage(), 0, $e);
+            }
+
+            if (! $risposta->successful()) {
+                throw new ActiveCampaignException('ActiveCampaign ha risposto '.$risposta->status().' all\'elenco dei disiscritti.', $risposta->status());
+            }
+
+            $contatti = $risposta->json('contacts');
+
+            if (! is_array($contatti)) {
+                throw new ActiveCampaignException('Risposta di ActiveCampaign senza l\'elenco dei contatti.', $risposta->status());
+            }
+
+            foreach ($contatti as $contatto) {
+                if (is_array($contatto) && ! empty($contatto['email'])) {
+                    $email[] = mb_strtolower(trim((string) $contatto['email']));
+                }
+            }
+
+            $offset += self::CONTATTI_PER_PAGINA;
+            $totale = (int) $risposta->json('meta.total', 0);
+            // Senza `meta.total` si va avanti finché le pagine sono piene; il
+            // tetto di cinquecento pagine (50 000 contatti) ferma un'API che
+            // rispondesse sempre la stessa pagina.
+        } while (count($contatti) === self::CONTATTI_PER_PAGINA && ($totale === 0 || $offset < $totale) && $offset < 500 * self::CONTATTI_PER_PAGINA);
+
+        return array_values(array_unique($email));
     }
 
     private function idDelTag(string $nome): ?int

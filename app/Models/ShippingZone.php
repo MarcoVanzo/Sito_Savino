@@ -91,6 +91,43 @@ class ShippingZone extends Model
     }
 
     /**
+     * La soglia della spedizione gratuita che vale per questa zona.
+     *
+     * `shop.free_shipping_threshold`, se compilata con un importo positivo,
+     * vale per tutte le zone al posto della loro (scelta di Marco, 2/10/2026):
+     * prima il carrello la annunciava ma il checkout applicava solo quella
+     * della zona, e il cliente si vedeva promettere una consegna gratuita che
+     * poi pagava. Vuota (o zero) vale la soglia della zona. Null = nessuna
+     * soglia: carrello, checkout, tabella pubblica e conto la leggono tutti
+     * da qui, così non possono piu' dire cose diverse.
+     */
+    public function sogliaGratuita(): ?float
+    {
+        $globale = static::sogliaGlobale();
+
+        if ($globale !== null) {
+            return $globale;
+        }
+
+        // La soglia arriva dal cast decimale come stringa: "0.00" e' vera per
+        // PHP, e una soglia salvata a zero regalava la spedizione a ogni
+        // ordine. Zero o vuota vale "nessuna soglia".
+        $soglia = (float) ($this->free_threshold ?? 0);
+
+        return $soglia > 0 ? $soglia : null;
+    }
+
+    /**
+     * La soglia globale delle impostazioni shop, o null se non compilata.
+     */
+    public static function sogliaGlobale(): ?float
+    {
+        $valore = SiteSetting::get('shop.free_shipping_threshold');
+
+        return is_numeric($valore) && (float) $valore > 0 ? (float) $valore : null;
+    }
+
+    /**
      * Calcola il costo spedizione per un dato subtotale e peso (in kg).
      *
      * La soglia della spedizione gratuita viene prima di tutto: e' una
@@ -100,12 +137,9 @@ class ShippingZone extends Model
      */
     public function calculateShippingCost(float $subtotal, float $peso = 0.0): float
     {
-        // La soglia arriva dal cast decimale come stringa: "0.00" e' vera per
-        // PHP, e una soglia salvata a zero regalava la spedizione a ogni
-        // ordine. Zero o vuota vale "nessuna soglia".
-        $soglia = (float) ($this->free_threshold ?? 0);
+        $soglia = $this->sogliaGratuita();
 
-        if ($soglia > 0 && $subtotal >= $soglia) {
+        if ($soglia !== null && $subtotal >= $soglia) {
             return 0.00;
         }
 

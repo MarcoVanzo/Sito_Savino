@@ -54,6 +54,9 @@
                 @if($telefono)
                     <p style="margin: 0; font-size: 13px; color: #4b5563;">{{ $telefono }}</p>
                 @endif
+                @if($order->codice_fiscale)
+                    <p style="margin: 0; font-size: 13px; color: #4b5563;">C.F. {{ $order->codice_fiscale }}</p>
+                @endif
             </td>
             <td valign="top" width="50%">
                 <p style="{{ $etichetta }} margin: 0 0 6px;">Spedizione a</p>

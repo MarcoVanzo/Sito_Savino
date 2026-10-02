@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CouponUsage extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory;
 
     protected $fillable = [
         'coupon_id', 'order_id', 'user_id', 'guest_email', 'used_at',

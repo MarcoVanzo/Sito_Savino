@@ -75,6 +75,7 @@
     "footer": {
         "privacy_policy": "Privacy Policy",
         "cookie_policy": "Cookie Policy",
+        "cookie_preferences": "Cookie preferences",
         "promotional_policy": "Promotional communications notice",
         "all_rights_reserved": "All rights reserved",
         "season": "Season",
@@ -769,7 +770,8 @@
         "placeholder_city": "Florence",
         "placeholder_zip_code": "50123",
         "placeholder_province": "FI",
-        "estimated_delivery": "Estimated delivery",
+        "estimated_delivery": "Shipping",
+        "preparation_days": "plus 1-2 working days of preparation from payment",
         "business_days": "business days",
         "gateway_not_available": "Payment method not available",
         "step_validation_required": "Please fill in all required fields before proceeding",
@@ -784,7 +786,6 @@
         "withdrawal_link": "right of withdrawal",
         "terms_accept_3": ", and I have read the",
         "field_required": "This field is required",
-        "address_suggestions": "{count} suggested addresses: use the arrow keys to choose one and Enter to confirm",
         "order_errors_title": "The order was not placed",
         "terms_required": "To order you must accept the terms of sale"
     },
@@ -958,7 +959,12 @@
         "download_receipt": "Download Receipt",
         "continue_shopping": "Continue shopping",
         "view_orders": "View your orders",
-        "shipping_to": "Shipping to"
+        "shipping_to": "Shipping to",
+        "gateway": {
+            "stripe": "Credit card",
+            "paypal": "PayPal",
+            "bank_transfer": "Bank transfer"
+        }
     },
     "checkout_cancel": {
         "og_title": "Payment Cancelled - Savino Del Bene Volley",

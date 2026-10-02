@@ -39,6 +39,11 @@ const etichettaFascia = (fasce, j) => {
     return precedente ? $t('spedizioni.over', { kg: peso(precedente) }) : $t('spedizioni.any_weight');
 };
 
+// Una soglia vuota, a zero o negativa non e' una soglia: "da 0,00 €"
+// prometterebbe la spedizione gratuita a ogni ordine, che il checkout non
+// concede (ShippingZone::sogliaGratuita).
+const haSoglia = (z) => Number(z.soglia_gratuita) > 0;
+
 const haGiorni = (z) => z.giorni_min !== null && z.giorni_min !== undefined
     && z.giorni_max !== null && z.giorni_max !== undefined;
 </script>
@@ -72,7 +77,7 @@ const haGiorni = (z) => z.giorni_min !== null && z.giorni_min !== undefined
                             </ul>
                             <strong v-else>{{ euro(z.tariffa) }}</strong>
                         </td>
-                        <td class="px-4 py-3">{{ z.soglia_gratuita !== null && z.soglia_gratuita !== undefined ? $t('spedizioni.free_from', { amount: euro(z.soglia_gratuita) }) : '—' }}</td>
+                        <td class="px-4 py-3">{{ haSoglia(z) ? $t('spedizioni.free_from', { amount: euro(z.soglia_gratuita) }) : '—' }}</td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <template v-if="haGiorni(z)">{{ $t('spedizioni.days', { min: z.giorni_min, max: z.giorni_max }) }}</template>
                             <template v-else>—</template>

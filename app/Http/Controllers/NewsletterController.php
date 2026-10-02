@@ -6,6 +6,7 @@ use App\Http\Requests\NewsletterRequest;
 use App\Jobs\SyncNewsletterToActiveCampaign;
 use App\Mail\ConfermaIscrizioneNewsletter;
 use App\Models\NewsletterSubscriber;
+use App\Support\TestiDelConsenso;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
@@ -54,6 +55,8 @@ class NewsletterController extends Controller
             // (NewsletterSubscriber::conferma).
             $existing->update([
                 'confermato_il' => null,
+                'impronta_testi_modulo' => TestiDelConsenso::archiviaPerLaNewsletter(),
+                'impronta_testi_conferma' => null,
                 'first_name' => $validated['first_name'] ?? $existing->first_name,
                 'ip_address' => $request->ip(),
                 'synced_to_ac' => false,
@@ -78,6 +81,8 @@ class NewsletterController extends Controller
                 'ip_address' => $request->ip(),
                 'source' => 'website',
                 'subscribed_at' => now(),
+                // Il testo della casella spuntata nel modulo (EDPB 05/2020 §108).
+                'impronta_testi_modulo' => TestiDelConsenso::archiviaPerLaNewsletter(),
             ]);
         } catch (UniqueConstraintViolationException) {
             // Race condition: un'altra request ha inserito la stessa email tra il WHERE e il CREATE

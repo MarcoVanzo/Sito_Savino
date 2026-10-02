@@ -17,18 +17,15 @@ class TrackShopPageView
         if ($request->isMethod('GET') && $response->getStatusCode() === 200) {
             // Extract serializable values before closure to avoid
             // capturing the full Request (contains non-serializable WeakMap)
-            $userId = $request->user()?->id;
-            $sessionId = $request->session()->getId();
-            $ipAddress = $request->ip();
+            // Si conta la pagina, non chi la guarda: niente utente, sessione
+            // né indirizzo IP, che nessuna statistica legge e che l'informativa
+            // dello shop dichiara di non tenere (Privacy Policy, #acquisti).
             $fullUrl = $request->fullUrl();
             $referer = $request->header('Referer');
 
-            dispatch(function () use ($userId, $sessionId, $ipAddress, $fullUrl, $referer) {
+            dispatch(function () use ($fullUrl, $referer) {
                 ShopEvent::create([
                     'event_type' => 'view',
-                    'user_id' => $userId,
-                    'session_id' => $sessionId,
-                    'ip_address' => $ipAddress,
                     'metadata' => [
                         'url' => $fullUrl,
                         'referer' => $referer,

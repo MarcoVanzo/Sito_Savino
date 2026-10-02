@@ -110,6 +110,14 @@ class AccountClienteTest extends TestCase
         $cliente = $this->cliente();
         $cliente->update(['name' => 'Nome Riservato']);
 
+        // Le azioni del cliente non entrano nel registro; quelle dello staff
+        // sì, e sono loro a lasciare righe sull'account.
+        $admin = User::factory()->create();
+        $admin->forceFill(['role' => UserRole::SuperAdmin])->save();
+        $this->actingAs($admin);
+        $cliente->forceFill(['is_active' => false])->save();
+        $cliente->forceFill(['is_active' => true])->save();
+
         $this->actingAs($cliente)
             ->delete(route('shop.account.destroy'), ['password' => 'password'])
             ->assertRedirect();

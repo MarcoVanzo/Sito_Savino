@@ -57,6 +57,11 @@ function loadScript() {
     script.src = 'https://connect.facebook.net/en_US/fbevents.js';
     document.head.appendChild(script);
 
+    // Niente advanced matching automatico: con `autoConfig` attivo lo script
+    // di Meta legge da solo i campi dei moduli (l'email e il telefono del
+    // checkout) e li manda a Meta, cosa che l'informativa non dichiara. Va
+    // detto prima di `init`, o per quel pixel vale gia' l'impostazione di Meta.
+    window.fbq('set', 'autoConfig', false, pixelId);
     window.fbq('init', pixelId);
     trackPageView();
 }

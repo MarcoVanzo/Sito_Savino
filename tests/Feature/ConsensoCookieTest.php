@@ -2,7 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PostStatus;
 use App\Models\ConsensoCookie;
+use App\Models\Page;
+use App\Models\VersioneTestiConsenso;
+use App\Services\CatenaDeiConsensi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -124,5 +128,131 @@ class ConsensoCookieTest extends TestCase
             ->assertSuccessful();
 
         $this->assertLessThanOrEqual(255, strlen(ConsensoCookie::firstOrFail()->user_agent));
+    }
+
+    /**
+     * La Cookie Policy la crea già una migrazione: si riscrive il testo.
+     *
+     * @param  array<string, string>  $testo
+     */
+    private function cookiePolicy(array $testo): void
+    {
+        $pagina = Page::firstOrNew(['slug' => 'cookie-policy']);
+        $pagina->setTranslations('title', ['it' => 'Cookie Policy', 'en' => 'Cookie Policy']);
+        $pagina->setTranslations('content', $testo);
+        $pagina->status = PostStatus::Published;
+        $pagina->save();
+    }
+
+    public function test_l_impronta_dell_ip_usa_il_sale_dedicato_e_non_la_chiave_dell_applicazione(): void
+    {
+        config(['services.consensi.sale' => 'sale-dedicato', 'app.key' => 'base64:chiave-vecchia']);
+
+        $this->assertSame(hash('sha256', '203.0.113.7|sale-dedicato'), ConsensoCookie::improntaDi('203.0.113.7'));
+
+        // Ruotare APP_KEY non cambia le impronte: era il motivo del sale suo.
+        $prima = ConsensoCookie::improntaDi('203.0.113.7');
+        config(['app.key' => 'base64:chiave-nuova']);
+        $this->assertSame($prima, ConsensoCookie::improntaDi('203.0.113.7'));
+    }
+
+    public function test_senza_sale_dedicato_ripiega_sulla_chiave_dell_applicazione(): void
+    {
+        // Il deploy non si rompe se CONSENSI_SALE non è ancora impostato: le
+        // impronte restano quelle calcolate finora.
+        config(['services.consensi.sale' => null, 'app.key' => 'base64:chiave']);
+
+        $this->assertSame('base64:chiave', ConsensoCookie::sale());
+        $this->assertSame(hash('sha256', '203.0.113.7|base64:chiave'), ConsensoCookie::improntaDi('203.0.113.7'));
+
+        config(['services.consensi.sale' => '']);
+        $this->assertSame('base64:chiave', ConsensoCookie::sale());
+    }
+
+    public function test_il_consenso_porta_l_impronta_dei_testi_mostrati_e_l_archivio_li_conserva(): void
+    {
+        $this->cookiePolicy(['it' => '<p>Usiamo cookie tecnici.</p>', 'en' => '<p>We use technical cookies.</p>']);
+
+        $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => false])
+            ->assertSuccessful();
+
+        $consenso = ConsensoCookie::firstOrFail();
+        $versione = VersioneTestiConsenso::where('impronta', $consenso->impronta_testi)->firstOrFail();
+
+        $this->assertSame(VersioneTestiConsenso::TIPO_COOKIE, $versione->tipo);
+        // Chiunque può ricalcolare l'impronta dal contenuto conservato.
+        $this->assertSame(hash('sha256', $versione->contenuto), $versione->impronta);
+
+        $testi = $versione->testi();
+        $it = json_decode((string) file_get_contents(resource_path('js/i18n/it.json')), true);
+        $en = json_decode((string) file_get_contents(resource_path('js/i18n/en.json')), true);
+
+        $this->assertSame(ConsensoCookie::VERSIONE, $testi['versione']);
+        $this->assertSame($it['cookie']['description'], $testi['lingue']['it']['banner']['description']);
+        $this->assertSame($en['cookie']['marketing_desc'], $testi['lingue']['en']['banner']['marketing_desc']);
+        $this->assertSame('<p>Usiamo cookie tecnici.</p>', $testi['lingue']['it']['cookie_policy']['testo']);
+        $this->assertSame('<p>We use technical cookies.</p>', $testi['lingue']['en']['cookie_policy']['testo']);
+        $this->assertArrayHasKey('categorie', $testi['lingue']['it']['dichiarazione']);
+    }
+
+    public function test_con_gli_stessi_testi_l_archivio_non_si_ripete_e_con_testi_nuovi_si_allunga(): void
+    {
+        $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true]);
+        $this->postJson(route('consenso-cookie.registra'), ['statistiche' => false, 'marketing' => false]);
+
+        $this->assertSame(1, VersioneTestiConsenso::count());
+
+        // La redazione cambia la Cookie Policy: il consenso dopo vede un
+        // testo diverso, e l'archivio lo conserva accanto al primo.
+        $this->cookiePolicy(['it' => '<p>Testo nuovo.</p>']);
+
+        $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => false]);
+
+        $this->assertSame(2, VersioneTestiConsenso::count());
+        $impronte = ConsensoCookie::orderBy('id')->pluck('impronta_testi');
+        $this->assertSame($impronte[0], $impronte[1]);
+        $this->assertNotSame($impronte[1], $impronte[2]);
+    }
+
+    public function test_un_testo_archiviato_non_si_modifica_ne_si_cancella(): void
+    {
+        $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true]);
+        $versione = VersioneTestiConsenso::firstOrFail();
+
+        try {
+            $versione->update(['contenuto' => '{}']);
+            $this->fail('Il testo archiviato è stato modificato.');
+        } catch (\LogicException) {
+        }
+
+        try {
+            $versione->delete();
+            $this->fail('Il testo archiviato è stato cancellato.');
+        } catch (\LogicException) {
+        }
+
+        $this->assertSame(1, VersioneTestiConsenso::count());
+    }
+
+    public function test_ogni_consenso_si_aggancia_al_precedente_nella_catena(): void
+    {
+        $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true]);
+        $this->postJson(route('consenso-cookie.registra'), ['statistiche' => false, 'marketing' => false]);
+
+        [$primo, $secondo] = ConsensoCookie::orderBy('id')->get()->all();
+
+        $this->assertNull($primo->impronta_precedente);
+        $this->assertSame($primo->impronta_riga, $secondo->impronta_precedente);
+        $this->assertNull(CatenaDeiConsensi::verifica()['guasto']);
+    }
+
+    public function test_un_consenso_registrato_non_si_modifica_ne_si_cancella_dal_modello(): void
+    {
+        $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true]);
+        $consenso = ConsensoCookie::firstOrFail();
+
+        $this->expectException(\LogicException::class);
+
+        $consenso->update(['marketing' => false]);
     }
 }

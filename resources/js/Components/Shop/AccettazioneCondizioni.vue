@@ -5,7 +5,9 @@
  *
  * Porta a tre pagine, non a una: le Condizioni di vendita e l'informativa sul
  * recesso vanno date prima che il cliente sia vincolato (art. 49 del Codice
- * del consumo), la Privacy Policy si legge e non si "accetta". Fino al 25
+ * del consumo), la Privacy Policy si legge e non si "accetta". Il link porta
+ * alla sezione degli acquisti (`#acquisti`), con le finalità dell'ordine: la
+ * pagina intera descrive anche newsletter, contatti e fotografie. Fino al 25
  * settembre 2026 la casella diceva «Accetto la Privacy Policy» e basta, e lo
  * shop vendeva senza nessuna condizione scritta.
  *
@@ -42,7 +44,7 @@ const idErrore = 'errore-privacy_accepted';
                 <a :href="route('pages.show', 'condizioni-di-vendita')" target="_blank" rel="noopener noreferrer" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop_checkout.terms_link') }}</a>
                 {{ $t('shop_checkout.terms_accept_2') }}
                 <a :href="route('pages.show', 'diritto-di-recesso')" target="_blank" rel="noopener noreferrer" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop_checkout.withdrawal_link') }}</a>{{ $t('shop_checkout.terms_accept_3') }}
-                <a :href="route('pages.show', 'privacy-policy')" target="_blank" rel="noopener noreferrer" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>.
+                <a :href="`${route('pages.show', 'privacy-policy')}#acquisti`" target="_blank" rel="noopener noreferrer" class="text-savino-blue underline hover:text-savino-blue/80">{{ $t('shop.accept_privacy_2') }}</a>.
             </span>
         </label>
         <p v-if="errore" :id="idErrore" class="mt-1 text-sm text-red-700">{{ errore }}</p>

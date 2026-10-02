@@ -3,7 +3,6 @@ import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
 import { computed, nextTick, ref, watch } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import AddressAutocomplete from '@/Components/Shop/AddressAutocomplete.vue';
 import CountdownTimer from '@/Components/Shop/Auction/CountdownTimer.vue';
 import AccettazioneCondizioni from '@/Components/Shop/AccettazioneCondizioni.vue';
 import PulsanteOrdine from '@/Components/Shop/PulsanteOrdine.vue';
@@ -290,21 +289,16 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label for="auction-street" class="block text-sm font-medium text-gray-700 mb-1">{{ $t('shop_checkout.label_street') }} *</label>
-                                    <AddressAutocomplete
+                                    <input
                                         id="auction-street"
                                         v-model="form.shipping_street"
-                                        required
-                                        aria-required="true"
+                                        required aria-required="true"
                                         :aria-invalid="!!form.errors.shipping_street"
                                         :aria-describedby="form.errors.shipping_street ? 'errore-shipping_street' : undefined"
+                                        type="text"
+                                        autocomplete="address-line1"
+                                        :class="inputClass"
                                         :placeholder="$t('shop_checkout.placeholder_street')"
-                                        :country="form.country"
-                                        @address-selected="(addr) => {
-                                            form.shipping_street = addr.street;
-                                            form.shipping_city = addr.city;
-                                            form.shipping_zip_code = addr.zip_code;
-                                            form.shipping_province = addr.province;
-                                        }"
                                     />
                                     <p v-if="form.errors.shipping_street" id="errore-shipping_street" class="mt-1 text-sm text-red-700">{{ form.errors.shipping_street }}</p>
                                 </div>
@@ -501,7 +495,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
                                             {{ shippingCost === 0 ? $t('shop_checkout.free_shipping') : formatPrice(shippingCost) }}
                                         </span>
                                         <div v-if="selectedZone?.estimated_days_min" class="text-xs text-gray-500 mt-1">
-                                            📦 {{ $t('shop_checkout.estimated_delivery') }}: {{ selectedZone.estimated_days_min }}-{{ selectedZone.estimated_days_max }} {{ $t('shop_checkout.business_days') }}
+                                            📦 {{ $t('shop_checkout.estimated_delivery') }}: {{ selectedZone.estimated_days_min }}-{{ selectedZone.estimated_days_max }} {{ $t('shop_checkout.business_days') }}, {{ $t('shop_checkout.preparation_days') }}
                                         </div>
                                     </div>
                                 </div>

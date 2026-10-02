@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSafeUrl } from '@/Composables/useSafeUrl';
@@ -10,6 +10,7 @@ import PageMediaTail from '@/Components/PageMediaTail.vue';
 import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
 import DichiarazioneCookie from '@/Components/DichiarazioneCookie.vue';
 import TabellaSpedizioni from '@/Components/Shop/TabellaSpedizioni.vue';
+import { vaiAllAncora } from '@/Support/vaiAllAncora.js';
 
 const { sanitize } = useSanitize();
 const { safeUrl } = useSafeUrl();
@@ -26,6 +27,16 @@ const props = defineProps({
 });
 
 const safeContent = computed(() => sanitize(props.page?.content));
+
+// Un link con l'ancora (`/privacy-policy#acquisti`, dal checkout): il testo
+// c'e' solo ora, e a caricamento finito il punto puo' essersi spostato.
+onMounted(() => {
+    const allAncora = () => vaiAllAncora(window.location.hash);
+    nextTick(allAncora);
+    if (document.readyState !== 'complete') {
+        window.addEventListener('load', allAncora, { once: true });
+    }
+});
 
 // URL del bottone/banner: arriva dal CMS, va validato prima di finire in href.
 const buttonUrl = computed(() => safeUrl(props.page?.content_data?.button_url));
@@ -106,7 +117,7 @@ const ogMeta = useOgMeta({
 
                 <!-- Content -->
                 <div 
-                    class="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-a:text-savino-fucsia prose-a:no-underline hover:prose-a:underline"
+                    class="testo-della-pagina prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-savino-blue prose-a:text-savino-fucsia prose-a:no-underline hover:prose-a:underline"
                     v-html="safeContent"
                 ></div>
 
@@ -349,6 +360,11 @@ const ogMeta = useOgMeta({
 </template>
 
 <style scoped>
+/* Un'ancora del testo si ferma sotto la testata sticky, non dietro. */
+.testo-della-pagina :deep([id]) {
+    scroll-margin-top: calc(var(--header-h, 85px) + 1.5rem);
+}
+
 /* Il browser dà a <dialog> bordo, sfondo e dimensioni proprie: qui serve la
    foto al centro di uno schermo scuro. */
 .foto-ingrandita {

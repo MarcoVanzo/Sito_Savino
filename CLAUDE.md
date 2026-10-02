@@ -291,7 +291,12 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   Limite per file = `media-library.max_file_size` (50 MB). PNG gia' rotti:
   `php artisan foto:ripara-png`.
 - `CmsPagesSeeder` **non si rilancia in produzione**.
-- Revisione del lavoro della redazione: `activity_logs`. Correzioni ai testi in
+- Revisione del lavoro della redazione: `activity_logs`, solo per le azioni
+  dello staff: autore, IP e browser si scrivono solo per chi entra nel
+  pannello; Order, User e StockMovement hanno `$logSoloDalPannello` e i campi
+  personali in `$logExclude`; carrelli, righe d'ordine, offerte e coupon usati
+  non si registrano. Pulizia a 180 giorni (`activity-log:prune --force`).
+  Correzioni ai testi in
   produzione con **migrazione a guardie** (tocca solo il valore ancora
   sbagliato), provata a secco su una copia delle righe.
 
@@ -416,7 +421,8 @@ minimale; i meta `og:` di `app.blade.php` sono statici.
 - **Impostazioni**: valori di partenza in `database/data/impostazioni_shop.php`,
   anche quando la riga non esiste (il modulo si apriva vuoto e il primo Salva ha
   spento il negozio). `shop.free_shipping_threshold` vuoto = vale la soglia della
-  zona. Gli interruttori di shop e aste li decide la redazione, non una migrazione.
+  zona; compilato (> 0) vale per tutte le zone, applicata in
+  `ShippingZone::calculateShippingCost`. Gli interruttori di shop e aste li decide la redazione, non una migrazione.
 - `Auction::status` si cambia solo con `Auction::cambiaStato()` (`TRANSIZIONI_AMMESSE`).
   Il prodotto di un'asta esce e rientra dallo shop via `AuctionObserver`.
 - Giacenza con varianti = somma delle taglie (`Product::availableStock`), non
@@ -459,7 +465,14 @@ minimale; i meta `og:` di `app.blade.php` sono statici.
   `scelto && statistiche`. `ConsensoCookie::VERSIONE` si alza solo quando cambia
   ciò che si dichiara.
 - `consensi_cookie` è la prova del consenso: IP solo come impronta salata con
-  `APP_KEY`, 12 mesi (`consensi:pota`).
+  `CONSENSI_SALE` (ripiego su `APP_KEY`: impostarla prima di ruotare la
+  chiave, poi non cambiarla), 24 mesi (`consensi:pota`, tiene l'ancora in
+  `consensi_cookie_potature`). Righe immodificabili e incatenate
+  (`CatenaDeiConsensi`, controllo `consensi:verifica`); il testo visto
+  (banner, Cookie Policy, elenco cookie; per la newsletter modulo e conferma)
+  sta in `versioni_testi_consenso`, mai cancellate. Footer: «Preferenze cookie».
+- Newsletter disiscritta: nome e IP via subito, la riga resta 24 mesi come
+  prova (`NewsletterSubscriber::prunable`).
 - Pixel sotto consenso marketing; CSP con `www.facebook.com` in `form-action` e
   `frame-src` (non è una piattaforma di `LiveStream`).
 - La dichiarazione dei cookie viene da `database/data/cookie_rilevati.json`
@@ -470,6 +483,9 @@ minimale; i meta `og:` di `app.blade.php` sono statici.
   un `<iframe>` scritto a mano rompe l'informativa.
 - Font serviti dal sito (`public/fonts`, `@font-face` in `app.css`), famiglia
   `Montserrat` (non `Montserrat Variable`: la usano Tailwind, email e `useHeaderNavFit`).
+- Il checkout (shop e aste) linka `privacy-policy#acquisti`: un uso nuovo dei
+  dati d'ordine si dichiara in quella sezione. `shop_events` non tiene IP né
+  sessione.
 - Informative: testi in `database/data/informative_privacy.php` e
   `informative_da_documento.php`, via `App\Support\TestiDelleInformative`;
   correzioni con migrazioni a guardie; le `firme` sono cumulative. Non
@@ -481,8 +497,11 @@ minimale; i meta `og:` di `app.blade.php` sono statici.
   sede Via Benozzo Gozzoli 5/6, 50018 Scandicci). Diritti a
   `privacy@savinodelbenevolley.it`, non `info@`.
 - Riconoscimento dei volti dichiarato (consenso esplicito, art. 9 §2 a, raccolto
-  fuori dal sito). Alla revoca: cancellare il soggetto su CompreFace e le righe
-  AI di `gallery_image_person`.
+  fuori dal sito). Alla revoca: azione «Revoca consenso al riconoscimento» su
+  atleta/staff (anche alla cancellazione della scheda): soggetto su CompreFace,
+  righe AI di `gallery_image_person`, nome in alt/descrizione/parole chiave e nei
+  titoli generati (`TestiSeoDellaFoto`; i titoli scritti a mano si segnalano).
+  Le righe `revoca_volti` del registro non scadono.
 
 ## 22. Feed RSS
 

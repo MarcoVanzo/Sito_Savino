@@ -88,11 +88,17 @@ return [
             // e video si caricavano con la pagina.
             'aprendole, il tuo indirizzo IP arriva a chi li ospita',
             'opening them sends your IP address to whoever hosts them',
+            // Revisione del 26 settembre 2026, fino al 2 ottobre: gli acquisti
+            // in una riga sola, che il checkout linkava come informativa
+            // dell'ordine senza le sue finalità vere (avviso alla società,
+            // prova delle condizioni, contestazioni, statistiche dello shop).
+            'a dare seguito al recesso e a rispettare gli obblighi fiscali. Base giuridica: esecuzione del contratto e obbligo di legge.',
+            'to handle withdrawal and to meet tax obligations. Legal basis: performance of the contract and legal obligation.',
         ],
         'contenuto' => [
             'it' => <<<HTML
             <h2>Informativa sul trattamento dei dati personali</h2>
-            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 26 settembre 2026.</p>
+            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 2 ottobre 2026.</p>
 
             <h3>Titolare del trattamento</h3>
             <p>{$societa} — {$sede}<br />
@@ -102,52 +108,66 @@ return [
             <h3>Quali dati raccogliamo, perché, e con quale base giuridica</h3>
             <ul>
                 <li><strong>Dati di navigazione</strong> (indirizzo IP, pagina richiesta, browser, momento della visita): li registra il server per far funzionare il sito e per la sicurezza. Finché la tua sessione resta aperta, indirizzo IP e browser restano anche nella tabella delle sessioni, che è ciò che tiene in piedi carrello e area riservata. Base giuridica: legittimo interesse del titolare a erogare e proteggere il servizio.</li>
-                <li><strong>Modulo contatti e richieste di accredito stampa</strong> (nome, email, telefono, testo del messaggio, e per gli accrediti testata, ruolo e gara): servono a risponderti. Base giuridica: riscontro alla tua richiesta.</li>
-                <li><strong>Iscrizione alla newsletter</strong> (email, e il nome se lo scrivi): solo se la chiedi e la confermi dal link che ti mandiamo. La newsletter la inviamo con ActiveCampaign e contiene un pixel di tracciamento e link tracciati, che ci dicono se hai aperto il messaggio e su quali link hai cliccato: servono a capire quali contenuti interessano e a tenere pulita la lista. Base giuridica: il consenso che dai iscrivendoti, che copre sia l'invio sia questa misura. Dal link in fondo a ogni newsletter puoi revocare in ogni momento solo il tracciamento — continui a ricevere la newsletter, senza pixel né link tracciati — oppure tutto, disiscrivendoti. Le email di servizio (conferme d'ordine, ricevute, reimpostazione della password) non contengono pixel di tracciamento.</li>
-                <li><strong>Acquisti nello shop e partecipazione alle aste</strong> (nome, indirizzo di spedizione e fatturazione, telefono, codice fiscale se lo indichi, ordini, offerte, e le dichiarazioni di recesso che invii dal sito): servono a concludere e gestire l'acquisto, a dare seguito al recesso e a rispettare gli obblighi fiscali. Base giuridica: esecuzione del contratto e obbligo di legge.</li>
-                <li><strong>Account del negozio</strong> (email, password cifrata, storico ordini): solo se ti registri. Teniamo anche l'impronta delle password che hai usato prima, per impedire che tu ne riusi una. Base giuridica: esecuzione del contratto.</li>
+                <li><strong>Modulo contatti</strong> (nome, email, oggetto e testo del messaggio) <strong>e richieste di accredito stampa</strong> (nome, email, telefono, testata, ruolo, gara e note): servono a risponderti, e li inoltriamo per email agli uffici della società che se ne occupano. Base giuridica: riscontro alla tua richiesta.</li>
+                <li><strong>Iscrizione alla newsletter</strong> (email, il nome se lo scrivi, data e indirizzo IP della richiesta, data della conferma e versione del testo del consenso che hai accettato, che insieme dimostrano il consenso): solo se la chiedi e la confermi dal link che ti mandiamo. La newsletter la inviamo con ActiveCampaign e contiene un pixel di tracciamento e link tracciati, che ci dicono se hai aperto il messaggio e su quali link hai cliccato: servono a capire quali contenuti interessano e a tenere pulita la lista. Base giuridica: il consenso che dai iscrivendoti, che copre sia l'invio sia questa misura. Dal link in fondo a ogni newsletter puoi revocare in ogni momento solo il tracciamento — continui a ricevere la newsletter, senza pixel né link tracciati — oppure tutto, disiscrivendoti. Le email di servizio (conferme d'ordine, ricevute, reimpostazione della password) non contengono pixel di tracciamento.</li>
+                <li><strong>Acquisti nello shop e partecipazione alle aste</strong>: dati, finalità e basi giuridiche sono nella sezione <a href="#acquisti">Acquisti nello shop e aste</a>, qui sotto.</li>
+                <li><strong>Account del negozio</strong> (nome, email, telefono se lo indichi in un ordine, password conservata come impronta non reversibile, storico ordini e, per le aste, l'esito della verifica della carta): solo se ti registri. Teniamo anche l'impronta delle password che hai usato prima, per impedire che tu ne riusi una. Base giuridica: esecuzione del contratto.</li>
                 <li><strong>Statistiche di lettura del sito</strong> (Google Analytics 4): solo con il tuo consenso ai cookie statistici.</li>
                 <li><strong>Misurazione delle campagne pubblicitarie</strong> (pixel di Meta): solo con il tuo consenso ai cookie di marketing.</li>
-                <li><strong>Prova della tua scelta sui cookie</strong> (che cosa hai scelto, quando, su quale versione dell'informativa, e un'impronta non riconducibile a te al posto dell'indirizzo IP): è descritta nella <a href="/cookie-policy">Cookie Policy</a>. Base giuridica: obbligo di dimostrare il consenso, articolo 7 del GDPR.</li>
+                <li><strong>Prova della tua scelta sui cookie</strong> (che cosa hai scelto, quando, su quale versione dei testi, il browser usato, la lingua, e un'impronta pseudonimizzata al posto dell'indirizzo IP): è descritta nella <a href="/cookie-policy">Cookie Policy</a>. Base giuridica: obbligo di dimostrare il consenso, articolo 7 del GDPR.</li>
             </ul>
+
+            <h3 id="acquisti">Acquisti nello shop e aste</h3>
+            <p>Quando ordini dallo shop o paghi un lotto vinto all'asta trattiamo: nome e cognome, email, telefono, indirizzo di spedizione e, se diverso, di fatturazione, il codice fiscale (lo chiediamo per gli ordini con spedizione in Italia e compare sulla ricevuta), le note che scrivi all'ordine, gli articoli acquistati, le offerte fatte alle aste e le dichiarazioni di recesso che invii dal sito. Senza i dati obbligatori del modulo l'ordine non si può concludere.</p>
+            <ul>
+                <li><strong>Concludere ed eseguire l'acquisto</strong>: registrare l'ordine, riservare la merce, gestire pagamento e spedizione, mandarti le email di servizio (conferma, istruzioni e promemoria per il bonifico, cambi di stato, spedizione, rimborso). Base giuridica: esecuzione del contratto (articolo 6 §1 lettera b del GDPR).</li>
+                <li><strong>Avvisare la società del nuovo ordine</strong>: gli addetti dello shop ricevono per email il riepilogo dell'ordine, con i tuoi dati di contatto e di spedizione, per prepararlo. Base giuridica: esecuzione del contratto.</li>
+                <li><strong>Conservare la prova di ciò che hai accettato</strong>: con l'ordine registriamo la versione delle Condizioni di vendita in vigore e l'impronta del testo, che ti mandiamo anche in allegato alla conferma. Base giuridica: obbligo di legge (Codice del consumo) e legittimo interesse del titolare a poter dimostrare il contratto.</li>
+                <li><strong>Recesso, garanzia, rimborsi e contestazioni dei pagamenti</strong>: dare seguito alle tue richieste e difendere i diritti della società se un pagamento viene contestato. Base giuridica: obbligo di legge (Codice del consumo) e legittimo interesse del titolare alla tutela dei propri diritti.</li>
+                <li><strong>Obblighi fiscali e contabili</strong>: tenere ordini e documenti per il tempo che la legge impone. Base giuridica: obbligo di legge (articolo 6 §1 lettera c del GDPR).</li>
+                <li><strong>Verifica della carta per le aste</strong>: per fare offerte devi verificare una carta di pagamento. Stripe riceve nome, email e i dati della carta (che il sito non vede) e crea un tuo profilo cliente, che si cancella insieme all'account. Base giuridica: esecuzione del contratto.</li>
+                <li><strong>Misurazione delle inserzioni</strong>: solo se hai accettato i cookie di marketing, il pixel di Meta riceve articoli, quantità e valore di ciò che metti nel carrello e compri. Base giuridica: consenso.</li>
+                <li><strong>Statistiche dello shop</strong>: contiamo le pagine dello shop viste, gli ordini avviati e quelli conclusi, senza indirizzo IP né identificativo di sessione, per sapere quali articoli interessano. Base giuridica: legittimo interesse del titolare.</li>
+            </ul>
+            <p>I dati degli ordini non servono a mandarti promozioni: la newsletter arriva solo se ti iscrivi a parte e confermi. Il pagamento lo gestiscono PayPal o Stripe, che ricevono importo e numero d'ordine (Stripe anche la tua email); la consegna il corriere. Entrambi sono titolari autonomi, come spiegato più sotto. Quanto conserviamo ordini e recessi è scritto in <a href="#conservazione">Per quanto tempo li conserviamo</a>.</p>
 
             <h3>Fotografie e riconoscimento dei volti</h3>
             <p>Il sito pubblica fotografie di gare, allenamenti, eventi e attività della società. Nelle immagini compaiono atlete, staff, ospiti e pubblico presente al palazzetto.</p>
             <p>Ogni fotografia che entra nell'archivio viene analizzata da un servizio di riconoscimento facciale che gira su un server della società, a Francoforte, raggiungibile solo dalla nostra rete interna: le immagini non vengono inviate a servizi di riconoscimento di terze parti. Il servizio individua i volti presenti nella fotografia e li confronta con le impronte numeriche delle persone che la redazione ha registrato — atlete e membri dello staff — per capire chi è ritratto. I nomi riconosciuti vengono associati alla fotografia, compaiono nell'archivio fotografico come filtro per persona e finiscono nel titolo e nella descrizione dell'immagine, che è anche ciò che leggono i motori di ricerca.</p>
             <p>Le impronte conservate sono soltanto quelle delle persone registrate dalla redazione. Per tutti gli altri volti che compaiono in una fotografia il confronto avviene sul momento e non lascia nulla: nessuna impronta viene creata o conservata per il pubblico ritratto.</p>
-            <p><strong>Base giuridica</strong>: il consenso esplicito della persona interessata (articolo 9 §2 lettera a del GDPR), raccolto dalla società prima di registrarne il volto; per le atlete minorenni lo dà chi esercita la responsabilità genitoriale. Il consenso si può revocare in ogni momento, e alla revoca l'impronta viene cancellata insieme alle associazioni già fatte: le fotografie restano, senza il nome.</p>
+            <p><strong>Base giuridica</strong>: il consenso esplicito della persona interessata (articolo 9 §2 lettera a del GDPR), raccolto dalla società prima di registrarne il volto; per le atlete minorenni lo dà chi esercita la responsabilità genitoriale. Il consenso si può revocare in ogni momento: alla revoca la redazione cancella l'impronta, le associazioni fatte dal riconoscimento e il nome nei titoli e nelle descrizioni delle fotografie. Le fotografie restano, senza il nome.</p>
             <p>Il riconoscimento propone, non decide: l'associazione fra una persona e una fotografia resta sempre modificabile dalla redazione, e non produce alcun effetto giuridico né decisione automatizzata su nessuno.</p>
             <p>Se compari in una fotografia e non vuoi comparire, o non vuoi che il tuo nome le resti associato, scrivi a <a href="mailto:{$email}">{$email}</a>: togliamo l'immagine o l'associazione.</p>
 
             <h3>A chi comunichiamo i dati</h3>
             <p>I dati restano alla società e ai fornitori che li trattano per nostro conto, nominati responsabili del trattamento con un accordo scritto (articolo 28 del GDPR):</p>
             <ul>
-                <li><strong>DigitalOcean</strong>: hosting del sito, database e archiviazione dei file, nel data center di Francoforte (Unione Europea);</li>
-                <li><strong>Resend</strong>: invio delle email di servizio — conferme d'ordine, spedizioni, rimborsi, ricevute di recesso, aste, reimpostazione della password;</li>
+                <li><strong>DigitalOcean</strong>: hosting del sito, database e archiviazione dei file, nel data center di Francoforte (Unione Europea). Il traffico verso il sito passa dalla rete di Cloudflare, che DigitalOcean usa come proprio sub-fornitore e che vede l'indirizzo IP di chi naviga;</li>
+                <li><strong>Resend</strong>: invio delle email del sito — conferme e aggiornamenti degli ordini, aste, ricevute di recesso, conferma dell'iscrizione alla newsletter, verifica e gestione dell'account, e l'inoltro alla società dei messaggi scritti nei moduli e degli avvisi di nuovo ordine;</li>
                 <li><strong>Sentry</strong>: diagnostica degli errori del sito, con i dati conservati nella regione europea: indirizzo della pagina, tipo di browser e traccia tecnica del guasto. Anche gli errori che avvengono nel tuo browser passano dal nostro server prima di arrivare a Sentry, che quindi non riceve il tuo indirizzo IP né la tua identità;</li>
                 <li><strong>ActiveCampaign</strong>: invio della newsletter, solo agli indirizzi che hanno confermato l'iscrizione, con la misura di aperture e clic descritta sopra;</li>
                 <li><strong>Google Ireland</strong>: statistiche del sito (Google Analytics 4), solo con il tuo consenso.</li>
             </ul>
-            <p>Trattano invece i dati come <strong>titolari autonomi</strong>, ciascuno con la propria informativa: PayPal e — quando è attivo — Stripe, per i pagamenti dello shop e delle aste (i dati della carta o del conto li ricevono direttamente loro: il sito non li vede); il corriere incaricato delle spedizioni. Meta Platforms Ireland, per la misurazione delle inserzioni con il pixel e solo con il tuo consenso ai cookie di marketing, è contitolare con la società della raccolta e della trasmissione dei dati (articolo 26 del GDPR) e titolare autonomo di ciò che ne fa dopo. Non vendiamo e non cediamo i dati a nessun altro.</p>
+            <p>Trattano invece i dati come <strong>titolari autonomi</strong>, ciascuno con la propria informativa: PayPal e Stripe, per i pagamenti dello shop e delle aste (i dati della carta o del conto li ricevono direttamente loro: il sito non li vede); il corriere incaricato delle spedizioni. Meta Platforms Ireland, per la misurazione delle inserzioni con il pixel e solo con il tuo consenso ai cookie di marketing, è contitolare con la società della raccolta e della trasmissione dei dati (articolo 26 del GDPR) e titolare autonomo di ciò che ne fa dopo. Non vendiamo e non cediamo i dati a nessun altro.</p>
             <p>Alcune pagine contengono inoltre contenuti ospitati altrove — la mappa del palazzetto, i video: si caricano solo se lo chiedi con un clic o se hai accettato i cookie di marketing, e da quel momento il tuo indirizzo IP arriva a chi li ospita. È spiegato nella <a href="/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Trasferimenti fuori dall'Unione Europea</h3>
-            <p>Il sito, il suo database, l'archivio fotografico, il riconoscimento dei volti e la diagnostica degli errori stanno su server nell'Unione Europea. Alcuni fornitori sono però società statunitensi o fanno parte di gruppi statunitensi: DigitalOcean e Sentry, che conservano i nostri dati in Europa, e Resend, ActiveCampaign, Google, Meta, PayPal e Stripe, che possono trattarne una parte negli Stati Uniti. Per i fornitori con sede negli Stati Uniti il trasferimento si basa sulla loro adesione all'EU-US Data Privacy Framework, che la Commissione europea ha riconosciuto adeguato (articolo 45 del GDPR), e/o sulle clausole contrattuali standard approvate dalla Commissione (articolo 46).</p>
+            <p>Il sito, il suo database, l'archivio fotografico, il riconoscimento dei volti e la diagnostica degli errori stanno su server nell'Unione Europea. Alcuni fornitori sono però società statunitensi o fanno parte di gruppi statunitensi: DigitalOcean e Sentry, che conservano i nostri dati in Europa; Cloudflare, dalla cui rete passa il traffico; Resend, ActiveCampaign, Google, Meta, PayPal e Stripe, che possono trattarne una parte negli Stati Uniti; e, solo se carichi un video incorporato, Vimeo e Twitch. Per i fornitori con sede negli Stati Uniti il trasferimento si basa sulla loro adesione all'EU-US Data Privacy Framework, che la Commissione europea ha riconosciuto adeguato (articolo 45 del GDPR), e/o sulle clausole contrattuali standard approvate dalla Commissione (articolo 46).</p>
 
-            <h3>Per quanto tempo li conserviamo</h3>
+            <h3 id="conservazione">Per quanto tempo li conserviamo</h3>
             <ul>
-                <li>Messaggi e richieste di accredito: 24 mesi dall'ultimo contatto.</li>
-                <li>Iscrizione alla newsletter: fino alla disiscrizione.</li>
-                <li>Ordini e documenti fiscali: 10 anni, come impone la legge.</li>
+                <li>Messaggi e richieste di accredito: 24 mesi dall'invio.</li>
+                <li>Iscrizione alla newsletter: fino alla disiscrizione. Dopo, per 24 mesi, restano solo l'email e le date di iscrizione, conferma e revoca, come prova del consenso; nome e indirizzo IP si cancellano subito. Le richieste mai confermate si cancellano dopo 30 giorni.</li>
+                <li>Ordini, offerte alle aste e documenti fiscali: 10 anni, come impone la legge.</li>
                 <li>Dichiarazioni di recesso inviate dal sito: 10 anni dall'invio quando si riferiscono a un ordine fatto sul sito, perché sono la prova del recesso e il diritto al rimborso si prescrive in dieci anni; 12 mesi quando il numero d'ordine indicato non corrisponde a nessun ordine.</li>
                 <li>Account del negozio: finché resta attivo; alla cancellazione restano solo i documenti fiscali.</li>
-                <li>Carrelli lasciati a metà: 7 giorni.</li>
-                <li>Sessione di navigazione: 2 ore dall'ultima pagina aperta.</li>
-                <li>Prova del consenso ai cookie: 12 mesi.</li>
+                <li>Carrelli lasciati a metà: 7 giorni dalla creazione.</li>
+                <li>Sessione di navigazione: 8 ore dall'ultima pagina aperta.</li>
+                <li>Prova del consenso ai cookie: 24 mesi — i 12 di validità della scelta più 12 per poter rispondere a eventuali contestazioni.</li>
                 <li>Statistiche di Google Analytics 4: 14 mesi.</li>
                 <li>Registro di chi ha modificato che cosa nel pannello della redazione: 180 giorni.</li>
                 <li>Fotografie e nomi a esse associati: finché l'immagine resta nell'archivio pubblico.</li>
-                <li>Impronte dei volti di atlete e staff: finché il consenso resta valido — alla revoca, o quando la persona lascia la società, si cancellano.</li>
+                <li>Impronte dei volti di atlete e staff: finché il consenso resta valido — alla revoca, o quando la persona lascia la società, la redazione le cancella insieme alle associazioni fatte dal riconoscimento.</li>
             </ul>
 
             <h3>I tuoi diritti</h3>
@@ -158,7 +178,7 @@ return [
             HTML,
             'en' => <<<HTML
             <h2>Privacy notice</h2>
-            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 26 September 2026.</p>
+            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 2 October 2026.</p>
 
             <h3>Data controller</h3>
             <p>{$societa} — {$sede}, Italy<br />
@@ -168,52 +188,66 @@ return [
             <h3>What we collect, why, and on what legal basis</h3>
             <ul>
                 <li><strong>Browsing data</strong> (IP address, requested page, browser, time of visit): recorded by the server to run and protect the site. While your session is open, IP address and browser are also held in the sessions table, which is what keeps the cart and the account area working. Legal basis: the controller's legitimate interest in providing and securing the service.</li>
-                <li><strong>Contact form and press accreditation requests</strong> (name, email, phone, message, and for accreditations the outlet, role and match): used to reply to you. Legal basis: responding to your request.</li>
-                <li><strong>Newsletter subscription</strong> (email, and your first name if you give it): only if you ask for it and confirm it from the link we send you. We send the newsletter with ActiveCampaign, and it contains a tracking pixel and tracked links that tell us whether you opened the message and which links you clicked: they help us understand which content interests readers and keep the list clean. Legal basis: the consent you give when subscribing, which covers both the sending and this measurement. From the link at the bottom of every newsletter you can withdraw, at any time, just the tracking — you keep receiving the newsletter, without pixels or tracked links — or everything, by unsubscribing. Service emails (order confirmations, receipts, password resets) contain no tracking pixels.</li>
-                <li><strong>Shop purchases and auction bids</strong> (name, shipping and billing address, phone, Italian tax code if you provide it, orders, bids, and any withdrawal notices you send from the site): used to complete and manage the purchase, to handle withdrawal and to meet tax obligations. Legal basis: performance of the contract and legal obligation.</li>
-                <li><strong>Shop account</strong> (email, hashed password, order history): only if you register. We also keep a fingerprint of the passwords you used before, to stop you reusing one. Legal basis: performance of the contract.</li>
+                <li><strong>Contact form</strong> (name, email, subject and message) <strong>and press accreditation requests</strong> (name, email, phone, outlet, role, match and notes): used to reply to you, and forwarded by email to the club offices that handle them. Legal basis: responding to your request.</li>
+                <li><strong>Newsletter subscription</strong> (email, your first name if you give it, date and IP address of the request, date of confirmation and version of the consent text you accepted, which together prove consent): only if you ask for it and confirm it from the link we send you. We send the newsletter with ActiveCampaign, and it contains a tracking pixel and tracked links that tell us whether you opened the message and which links you clicked: they help us understand which content interests readers and keep the list clean. Legal basis: the consent you give when subscribing, which covers both the sending and this measurement. From the link at the bottom of every newsletter you can withdraw, at any time, just the tracking — you keep receiving the newsletter, without pixels or tracked links — or everything, by unsubscribing. Service emails (order confirmations, receipts, password resets) contain no tracking pixels.</li>
+                <li><strong>Shop purchases and auction bids</strong>: data, purposes and legal bases are in the section <a href="#acquisti">Shop purchases and auctions</a>, below.</li>
+                <li><strong>Shop account</strong> (name, email, phone if you give it in an order, password kept as a non-reversible hash, order history and, for auctions, the outcome of the card verification): only if you register. We also keep a fingerprint of the passwords you used before, to stop you reusing one. Legal basis: performance of the contract.</li>
                 <li><strong>Site statistics</strong> (Google Analytics 4): only with your consent to statistics cookies.</li>
                 <li><strong>Advertising measurement</strong> (Meta pixel): only with your consent to marketing cookies.</li>
-                <li><strong>Proof of your cookie choice</strong> (what you chose, when, against which version of the notice, and a fingerprint that cannot be traced back to you instead of your IP address): described in the <a href="/en/cookie-policy">Cookie Policy</a>. Legal basis: the obligation to demonstrate consent, Article 7 GDPR.</li>
+                <li><strong>Proof of your cookie choice</strong> (what you chose, when, against which version of the texts, the browser used, the language, and a pseudonymised fingerprint instead of your IP address): described in the <a href="/en/cookie-policy">Cookie Policy</a>. Legal basis: the obligation to demonstrate consent, Article 7 GDPR.</li>
             </ul>
+
+            <h3 id="acquisti">Shop purchases and auctions</h3>
+            <p>When you order from the shop or pay for a lot you won at auction we process: first and last name, email, phone, shipping address and, if different, billing address, your Italian tax code (we ask for it on orders shipped to Italy, and it appears on the receipt), any notes you add to the order, the items bought, the bids made at auctions and any withdrawal notices you send from the site. Without the required fields of the form the order cannot be completed.</p>
+            <ul>
+                <li><strong>Completing and fulfilling the purchase</strong>: recording the order, reserving the goods, handling payment and shipping, sending you service emails (confirmation, bank transfer instructions and reminders, status changes, shipment, refund). Legal basis: performance of the contract (Article 6(1)(b) GDPR).</li>
+                <li><strong>Notifying the club of the new order</strong>: the shop staff receive the order summary by email, with your contact and shipping details, to prepare it. Legal basis: performance of the contract.</li>
+                <li><strong>Keeping proof of what you accepted</strong>: with the order we record the version of the Terms of sale in force and a fingerprint of the text, which we also attach to the confirmation. Legal basis: legal obligation (Italian Consumer Code) and the controller's legitimate interest in being able to prove the contract.</li>
+                <li><strong>Withdrawal, warranty, refunds and payment disputes</strong>: handling your requests and defending the club's rights if a payment is disputed. Legal basis: legal obligation (Italian Consumer Code) and the controller's legitimate interest in protecting its rights.</li>
+                <li><strong>Tax and accounting obligations</strong>: keeping orders and documents for as long as the law requires. Legal basis: legal obligation (Article 6(1)(c) GDPR).</li>
+                <li><strong>Card verification for auctions</strong>: to bid you must verify a payment card. Stripe receives your name, email and card details (which the site never sees) and creates a customer profile for you, deleted together with your account. Legal basis: performance of the contract.</li>
+                <li><strong>Advertising measurement</strong>: only if you have accepted marketing cookies, the Meta pixel receives the items, quantities and value of what you add to the cart and buy. Legal basis: consent.</li>
+                <li><strong>Shop statistics</strong>: we count shop pages viewed, orders started and orders completed, without IP address or session identifier, to learn which items interest people. Legal basis: the controller's legitimate interest.</li>
+            </ul>
+            <p>Order data is not used to send you promotions: the newsletter only arrives if you subscribe separately and confirm. Payment is handled by PayPal or Stripe, which receive the amount and the order number (Stripe also your email); delivery by the courier. Both act as independent controllers, as explained below. How long we keep orders and withdrawals is set out in <a href="#conservazione">How long we keep it</a>.</p>
 
             <h3>Photographs and face recognition</h3>
             <p>The site publishes photographs of matches, training sessions, events and club activities. Players, staff, guests and the crowd at the arena appear in them.</p>
             <p>Every photograph added to the archive is analysed by a face recognition service running on a club server in Frankfurt, reachable only from our internal network: images are not sent to any third-party recognition service. The service finds the faces in the photograph and compares them with the numeric templates of the people the editorial team has enrolled — players and staff members — in order to tell who is pictured. Recognised names are attached to the photograph, appear in the photo archive as a per-person filter, and end up in the image title and description, which is also what search engines read.</p>
             <p>The only templates we keep are those of the people enrolled by the editorial team. For every other face in a photograph the comparison happens there and then and leaves nothing behind: no template is created or kept for members of the public.</p>
-            <p><strong>Legal basis</strong>: the explicit consent of the person concerned (Article 9(2)(a) GDPR), obtained by the club before enrolling their face; for players who are minors it is given by whoever holds parental responsibility. Consent can be withdrawn at any time, and on withdrawal the template is deleted along with the links already made: the photographs stay, without the name.</p>
+            <p><strong>Legal basis</strong>: the explicit consent of the person concerned (Article 9(2)(a) GDPR), obtained by the club before enrolling their face; for players who are minors it is given by whoever holds parental responsibility. Consent can be withdrawn at any time: on withdrawal the editorial team deletes the template, the links made by recognition and the name in the titles and descriptions of the photographs. The photographs stay, without the name.</p>
             <p>Recognition suggests, it does not decide: the link between a person and a photograph can always be changed by the editorial team, and it produces no legal effect and no automated decision about anyone.</p>
             <p>If you appear in a photograph and would rather not, or would rather your name were not attached to it, write to <a href="mailto:{$email}">{$email}</a>: we will remove the image or the link.</p>
 
             <h3>Who we share data with</h3>
             <p>Data stays with the club and with the providers that process it on our behalf, appointed as data processors under a written agreement (Article 28 GDPR):</p>
             <ul>
-                <li><strong>DigitalOcean</strong>: site hosting, database and file storage, in the Frankfurt data centre (European Union);</li>
-                <li><strong>Resend</strong>: service emails — order confirmations, shipments, refunds, withdrawal receipts, auctions, password resets;</li>
+                <li><strong>DigitalOcean</strong>: site hosting, database and file storage, in the Frankfurt data centre (European Union). Traffic to the site goes through the Cloudflare network, which DigitalOcean uses as its sub-processor and which sees the visitor's IP address;</li>
+                <li><strong>Resend</strong>: the site's emails — order confirmations and updates, auctions, withdrawal receipts, newsletter subscription confirmation, account verification and management, and forwarding to the club of messages written in the forms and of new order notices;</li>
                 <li><strong>Sentry</strong>: error diagnostics, with the data held in the European region: the page address, the browser type and the technical trace of the fault. Errors that happen in your browser also go through our server before reaching Sentry, which therefore receives neither your IP address nor your identity;</li>
                 <li><strong>ActiveCampaign</strong>: newsletter delivery, only to addresses that have confirmed their subscription, with the open and click measurement described above;</li>
                 <li><strong>Google Ireland</strong>: site statistics (Google Analytics 4), only with your consent.</li>
             </ul>
-            <p>The following act instead as <strong>independent controllers</strong>, each with its own privacy notice: PayPal and — when enabled — Stripe, for shop and auction payments (card or account details go straight to them: the site never sees them); the courier handling shipments. Meta Platforms Ireland, for advertising measurement with the pixel and only with your consent to marketing cookies, is joint controller with the club for collecting and transmitting the data (Article 26 GDPR) and independent controller for what it does with it afterwards. We do not sell or otherwise pass data to anyone else.</p>
+            <p>The following act instead as <strong>independent controllers</strong>, each with its own privacy notice: PayPal and Stripe, for shop and auction payments (card or account details go straight to them: the site never sees them); the courier handling shipments. Meta Platforms Ireland, for advertising measurement with the pixel and only with your consent to marketing cookies, is joint controller with the club for collecting and transmitting the data (Article 26 GDPR) and independent controller for what it does with it afterwards. We do not sell or otherwise pass data to anyone else.</p>
             <p>Some pages also carry content hosted elsewhere — the arena map, the videos: they only load if you ask with a click or if you have accepted marketing cookies, and from that moment your IP address reaches whoever hosts them. This is explained in the <a href="/en/cookie-policy">Cookie Policy</a>.</p>
 
             <h3>Transfers outside the European Union</h3>
-            <p>The site itself, its database, the photo archive, the face recognition service and the error diagnostics are on servers in the European Union. Some providers are, however, US companies or part of US groups: DigitalOcean and Sentry, which keep our data in Europe, and Resend, ActiveCampaign, Google, Meta, PayPal and Stripe, which may process part of it in the United States. For providers based in the United States the transfer relies on their certification under the EU-US Data Privacy Framework, which the European Commission has found adequate (Article 45 GDPR), and/or on the standard contractual clauses approved by the Commission (Article 46).</p>
+            <p>The site itself, its database, the photo archive, the face recognition service and the error diagnostics are on servers in the European Union. Some providers are, however, US companies or part of US groups: DigitalOcean and Sentry, which keep our data in Europe; Cloudflare, whose network the traffic goes through; Resend, ActiveCampaign, Google, Meta, PayPal and Stripe, which may process part of it in the United States; and, only if you load an embedded video, Vimeo and Twitch. For providers based in the United States the transfer relies on their certification under the EU-US Data Privacy Framework, which the European Commission has found adequate (Article 45 GDPR), and/or on the standard contractual clauses approved by the Commission (Article 46).</p>
 
-            <h3>How long we keep it</h3>
+            <h3 id="conservazione">How long we keep it</h3>
             <ul>
-                <li>Messages and accreditation requests: 24 months from the last contact.</li>
-                <li>Newsletter subscription: until you unsubscribe.</li>
-                <li>Orders and tax documents: 10 years, as required by law.</li>
+                <li>Messages and accreditation requests: 24 months from sending.</li>
+                <li>Newsletter subscription: until you unsubscribe. After that, for 24 months, only your email and the dates of subscription, confirmation and withdrawal are kept as proof of consent; name and IP address are deleted at once. Requests never confirmed are deleted after 30 days.</li>
+                <li>Orders, auction bids and tax documents: 10 years, as required by law.</li>
                 <li>Withdrawal notices sent from the site: 10 years from sending when they refer to an order placed on the site, because they are the proof of withdrawal and the right to a refund lapses after ten years; 12 months when the order number given does not match any order.</li>
                 <li>Shop account: as long as it is active; after deletion only tax documents remain.</li>
-                <li>Carts left halfway: 7 days.</li>
-                <li>Browsing session: 2 hours from the last page opened.</li>
-                <li>Proof of cookie consent: 12 months.</li>
+                <li>Carts left halfway: 7 days from creation.</li>
+                <li>Browsing session: 8 hours from the last page opened.</li>
+                <li>Proof of cookie consent: 24 months — the 12 for which the choice is valid plus 12 to be able to answer any dispute.</li>
                 <li>Google Analytics 4 statistics: 14 months.</li>
                 <li>Record of who changed what in the editorial panel: 180 days.</li>
                 <li>Photographs and the names attached to them: as long as the image stays in the public archive.</li>
-                <li>Face templates of players and staff: as long as consent stands — on withdrawal, or when the person leaves the club, they are deleted.</li>
+                <li>Face templates of players and staff: as long as consent stands — on withdrawal, or when the person leaves the club, the editorial team deletes them along with the links made by recognition.</li>
             </ul>
 
             <h3>Your rights</h3>
@@ -241,11 +275,16 @@ return [
             // caricavano insieme alla pagina, prima di qualsiasi scelta.
             'Sono parte del contenuto della pagina e si caricano insieme a essa',
             "They are part of the page's content and load with it",
+            // Revisione del 26 settembre 2026, fino al 2 ottobre: l'impronta
+            // dell'IP salata con APP_KEY (che era pubblica) presentata come
+            // non riconducibile, e la prova cancellata dopo 12 mesi.
+            "Non conserviamo il tuo indirizzo IP, ma solo un'impronta che non è riconducibile a te.",
+            'We do not keep your IP address, only a fingerprint that cannot be traced back to you.',
         ],
         'contenuto' => [
             'it' => <<<'HTML'
             <h2>Informativa sui cookie</h2>
-            <p>I cookie sono piccoli file che un sito lascia nel browser di chi lo visita. Alcuni servono a far funzionare le pagine, altri a capire come vengono lette, altri ancora a misurare le campagne pubblicitarie. Questa pagina spiega quali usiamo e come decidi tu. È aggiornata al 26 settembre 2026.</p>
+            <p>I cookie sono piccoli file che un sito lascia nel browser di chi lo visita. Alcuni servono a far funzionare le pagine, altri a capire come vengono lette, altri ancora a misurare le campagne pubblicitarie. Questa pagina spiega quali usiamo e come decidi tu. È aggiornata al 2 ottobre 2026.</p>
 
             <h3>Cosa puoi scegliere</h3>
             <ul>
@@ -256,23 +295,23 @@ return [
             <p>Finché non scegli, il sito carica soltanto i cookie necessari: nessuna statistica, nessuna misurazione pubblicitaria.</p>
 
             <h3>Come cambiare idea</h3>
-            <p>L'icona in basso a sinistra, presente in ogni pagina, riapre le tue preferenze: puoi accettare, rifiutare o scegliere voce per voce, quando vuoi. La scelta vale 12 mesi e viene richiesta di nuovo se cambiamo questa informativa. Puoi anche cancellare i cookie dalle impostazioni del tuo browser.</p>
+            <p>Il link «Preferenze cookie» in fondo a ogni pagina, e l'icona in basso a sinistra, riaprono le tue preferenze: puoi accettare, rifiutare o scegliere voce per voce, quando vuoi. La scelta vale 12 mesi e viene richiesta di nuovo se cambiamo questa informativa. Puoi anche cancellare i cookie dalle impostazioni del tuo browser.</p>
 
             <h3>La prova della tua scelta</h3>
-            <p>Quando rispondi al banner registriamo che cosa hai scelto, quando, e su quale versione di questa informativa — insieme a un riferimento che trovi nel pannello delle preferenze. Non conserviamo il tuo indirizzo IP, ma solo un'impronta che non è riconducibile a te. Serve a dimostrare che il consenso è stato chiesto e dato come previsto dall'articolo 7 del GDPR, e si cancella dopo 12 mesi.</p>
+            <p>Quando rispondi al banner registriamo che cosa hai scelto, quando, il browser e la lingua, insieme a un riferimento che trovi nel pannello delle preferenze. Conserviamo anche, una volta per ogni versione, il testo esatto del banner e di questa informativa che avevi davanti, così si può dimostrare che cosa ti è stato detto. Al posto dell'indirizzo IP teniamo un'impronta pseudonimizzata, calcolata con una chiave segreta. Le registrazioni sono concatenate fra loro, così che una modifica successiva si noterebbe. Serve a dimostrare che il consenso è stato chiesto e dato come previsto dall'articolo 7 del GDPR, e si cancella dopo 24 mesi: i 12 di validità della scelta più 12 per poter rispondere a eventuali contestazioni.</p>
 
             <h3>Contenuti ospitati da altri dentro le nostre pagine</h3>
             <p>Alcune pagine contengono un riquadro che non arriva dal nostro sito: la mappa del palazzetto, che è di Google Maps, e i video, che stanno su YouTube, Vimeo, Twitch o Dailymotion. Finché non accetti i cookie di marketing, al loro posto trovi un segnaposto: il contenuto si carica solo se premi il suo pulsante, e solo quello; in alternativa c'è il link per aprirlo sul sito che lo ospita. Una volta caricato, chi lo ospita vede il tuo indirizzo IP e può scrivere nel tuo browser i propri cookie, che seguono le sue regole e non le nostre. I video di YouTube li incorporiamo dal dominio a privacy avanzata (youtube-nocookie.com).</p>
-            <p>Tutto il resto di quello che vedi — i caratteri tipografici, le immagini, le fotografie dell'archivio — arriva invece dai nostri server e dal nostro spazio di archiviazione: finché non scegli, e finché non carichi uno di quei riquadri, nessun altro sito viene a sapere che sei passato di qui.</p>
+            <p>Tutto il resto di quello che vedi — i caratteri tipografici, le immagini, le fotografie dell'archivio — arriva invece dai nostri server e dal nostro spazio di archiviazione: finché non scegli, e finché non carichi uno di quei riquadri, nessun altro sito viene a sapere che sei passato di qui. Fa eccezione la rete di Cloudflare, da cui passa il traffico del nostro hosting: per proteggere il sito dai robot può scrivere il cookie tecnico <code>__cf_bm</code>, elencato qui sotto.</p>
 
             <h3>Chi riceve i dati</h3>
-            <p>I cookie statistici sono di Google Ireland Ltd. (Google Analytics 4), quelli di marketing di Meta Platforms Ireland Ltd.; la mappa è di Google Ireland Ltd., i video di Google Ireland Ltd. (YouTube) o di Vimeo Inc. I loro trattamenti, e i trasferimenti fuori dall'Unione Europea, sono descritti nella <a href="/privacy-policy">Privacy Policy</a>.</p>
+            <p>I cookie statistici sono di Google Ireland Ltd. (Google Analytics 4), quelli di marketing di Meta Platforms Ireland Ltd.; la mappa è di Google Ireland Ltd., i video di Google Ireland Ltd. (YouTube), Vimeo Inc., Twitch Interactive Inc. o Dailymotion SA. I loro trattamenti, e i trasferimenti fuori dall'Unione Europea, sono descritti nella <a href="/privacy-policy">Privacy Policy</a>.</p>
 
             <p>L'elenco qui sotto non è scritto a mano: lo aggiorna una scansione automatica che visita il sito ogni settimana con un browser vero e annota che cosa viene caricato prima e dopo il consenso.</p>
             HTML,
             'en' => <<<'HTML'
             <h2>Cookie notice</h2>
-            <p>Cookies are small files a website leaves in the visitor's browser. Some make the pages work, some tell us how they are read, others measure advertising campaigns. This page explains which ones we use and what you get to decide. Last updated 26 September 2026.</p>
+            <p>Cookies are small files a website leaves in the visitor's browser. Some make the pages work, some tell us how they are read, others measure advertising campaigns. This page explains which ones we use and what you get to decide. Last updated 2 October 2026.</p>
 
             <h3>What you can choose</h3>
             <ul>
@@ -283,17 +322,17 @@ return [
             <p>Until you choose, the site loads necessary cookies only: no statistics, no advertising measurement.</p>
 
             <h3>Changing your mind</h3>
-            <p>The icon at the bottom left, on every page, reopens your preferences: accept, refuse or choose item by item, whenever you like. Your choice lasts 12 months, and we ask again if we change this notice. You can also delete cookies from your browser settings.</p>
+            <p>The “Cookie preferences” link at the bottom of every page, and the icon at the bottom left, reopen your preferences: accept, refuse or choose item by item, whenever you like. Your choice lasts 12 months, and we ask again if we change this notice. You can also delete cookies from your browser settings.</p>
 
             <h3>Proof of your choice</h3>
-            <p>When you answer the banner we record what you chose, when, and against which version of this notice — along with a reference you can find in the preferences panel. We do not keep your IP address, only a fingerprint that cannot be traced back to you. It exists to show that consent was asked for and given as Article 7 GDPR requires, and it is deleted after 12 months.</p>
+            <p>When you answer the banner we record what you chose, when, the browser and the language, along with a reference you can find in the preferences panel. We also keep, once for each version, the exact text of the banner and of this notice you had in front of you, so that what you were told can be proven. Instead of your IP address we keep a pseudonymised fingerprint, computed with a secret key. The records are chained together, so that a later change would show. It exists to show that consent was asked for and given as Article 7 GDPR requires, and it is deleted after 24 months: the 12 for which the choice is valid plus 12 to be able to answer any dispute.</p>
 
             <h3>Content hosted by others inside our pages</h3>
             <p>Some pages carry a frame that does not come from our site: the arena map, which is Google Maps, and the videos, which live on YouTube, Vimeo, Twitch or Dailymotion. Until you accept marketing cookies, you will find a placeholder in their place: the content only loads if you press its button, and only that one; alternatively there is a link to open it on the site that hosts it. Once loaded, whoever hosts it can see your IP address and write their own cookies in your browser, under their rules and not ours. YouTube videos are embedded from its privacy-enhanced domain (youtube-nocookie.com).</p>
-            <p>Everything else you see — fonts, images, the photo archive — comes from our own servers and storage instead: until you choose, and until you load one of those frames, no other website learns that you were here.</p>
+            <p>Everything else you see — fonts, images, the photo archive — comes from our own servers and storage instead: until you choose, and until you load one of those frames, no other website learns that you were here. The exception is the Cloudflare network, which our hosting's traffic goes through: to protect the site from bots it may set the technical cookie <code>__cf_bm</code>, listed below.</p>
 
             <h3>Who receives the data</h3>
-            <p>Statistics cookies belong to Google Ireland Ltd. (Google Analytics 4), marketing cookies to Meta Platforms Ireland Ltd.; the map is Google Ireland Ltd.'s, the videos are Google Ireland Ltd.'s (YouTube) or Vimeo Inc.'s. Their processing, and transfers outside the European Union, are described in the <a href="/en/privacy-policy">Privacy Policy</a>.</p>
+            <p>Statistics cookies belong to Google Ireland Ltd. (Google Analytics 4), marketing cookies to Meta Platforms Ireland Ltd.; the map is Google Ireland Ltd.'s, the videos are Google Ireland Ltd.'s (YouTube), Vimeo Inc.'s, Twitch Interactive Inc.'s or Dailymotion SA's. Their processing, and transfers outside the European Union, are described in the <a href="/en/privacy-policy">Privacy Policy</a>.</p>
 
             <p>The list below is not written by hand: an automated scan visits the site every week with a real browser and notes what is loaded before and after consent.</p>
             HTML,

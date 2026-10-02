@@ -175,6 +175,21 @@ class AvvisoNuovoOrdineTest extends TestCase
     }
 
     #[Test]
+    public function il_codice_fiscale_sta_nell_avviso_e_nella_ricevuta(): void
+    {
+        $order = $this->ordinePayPalInAttesa();
+        $order->forceFill(['codice_fiscale' => 'RSSNNA85M41D612K'])->save();
+
+        (new NuovoOrdineAllaSocieta($order->refresh()))->assertSeeInHtml('RSSNNA85M41D612K');
+
+        $order->load('items', 'user');
+        $this->assertStringContainsString(
+            'Codice fiscale RSSNNA85M41D612K',
+            view('pdf.receipt', ['order' => $order])->render()
+        );
+    }
+
+    #[Test]
     public function la_ricevuta_usa_montserrat_incorporato(): void
     {
         $order = $this->ordinePayPalInAttesa();

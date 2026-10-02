@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
+use App\Services\RevocaDelRiconoscimentoDeiVolti;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -40,6 +41,18 @@ class Player extends Model implements HasMedia
     ];
 
     protected $appends = ['full_name'];
+
+    /**
+     * Cancellata la scheda, del riconoscimento dei volti non deve restare
+     * niente: impronte su CompreFace, tag automatici, nome nei testi generati
+     * delle foto (§21, art. 9 GDPR). Vale anche per il cestino: l'atleta
+     * eliminata non e' piu' sul sito, e un ripristino non riaccende il
+     * riconoscimento senza un nuovo addestramento.
+     */
+    protected static function booted(): void
+    {
+        static::deleted(fn (self $player) => app(RevocaDelRiconoscimentoDeiVolti::class)->allaCancellazione($player));
+    }
 
     public function getFullNameAttribute()
     {

@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Filament\Resources\ActivityLogResource\Pages;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Services\RevocaDelRiconoscimentoDeiVolti;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -113,6 +114,7 @@ class ActivityLogResource extends Resource
                         'deleted' => 'Eliminazione',
                         'restored' => 'Ripristino',
                         'force_deleted' => 'Eliminazione definitiva',
+                        RevocaDelRiconoscimentoDeiVolti::AZIONE => 'Revoca riconoscimento volti',
                     ]),
 
                 Tables\Filters\SelectFilter::make('model_type')

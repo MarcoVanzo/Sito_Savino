@@ -16,6 +16,10 @@ const { safeUrl } = useSafeUrl();
 const { onImgError } = useImageFallback();
 
 const currentYear = new Date().getFullYear();
+
+// Lo stesso evento della Cookie Policy e dei contenuti incorporati: il banner
+// e' caricato in differita dal layout e un `ref` non lo raggiungerebbe.
+const apriLePreferenzeCookie = () => window.dispatchEvent(new CustomEvent('preferenze-cookie:apri'));
 const page = usePage();
 
 // Dati condivisi dal backend via Inertia
@@ -202,6 +206,18 @@ const socialLinks = computed(() => {
                          pagina e il footer serviva l'informativa del vecchio sito. -->
                     <Link :href="route('pages.show', 'privacy-policy')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.privacy_policy') }}</Link>
                     <Link :href="route('pages.show', 'cookie-policy')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.cookie_policy') }}</Link>
+                    <!-- Le linee guida del Garante sui cookie (10/06/2021, §7.1) vogliono
+                         le scelte modificabili in ogni momento da un punto sempre
+                         raggiungibile: l'icona in basso a sinistra non basta a chi non
+                         la riconosce. E' un pulsante, non un link: non porta a una
+                         pagina, apre il pannello del banner (CookieConsent.vue). -->
+                    <button
+                        type="button"
+                        class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-savino-fucsia-chiaro"
+                        @click="apriLePreferenzeCookie"
+                    >
+                        {{ $t('footer.cookie_preferences') }}
+                    </button>
                     <Link :href="route('pages.show', 'condizioni-di-vendita')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.terms_of_sale') }}</Link>
                     <Link :href="route('pages.show', 'diritto-di-recesso')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.withdrawal') }}</Link>
                     <Link :href="route('pages.show', 'spedizioni')" class="inline-flex items-center min-h-[24px] text-gray-400 text-xs hover:text-savino-fucsia-chiaro transition-colors">{{ $t('footer.shipping') }}</Link>

@@ -74,7 +74,9 @@ class CheckoutController extends Controller
                 'name' => $zone->name,
                 'countries' => $zone->countries,
                 'flat_rate' => (float) $zone->flat_rate,
-                'free_threshold' => $zone->free_threshold !== null ? (float) $zone->free_threshold : null,
+                // La soglia che vale davvero (globale o della zona), la stessa
+                // che usa calculateShippingCost.
+                'free_threshold' => $zone->sogliaGratuita(),
                 'costo_spedizione' => $zone->calculateShippingCost($cartTotal, $cartWeight),
                 'estimated_days_min' => $zone->estimated_days_min,
                 'estimated_days_max' => $zone->estimated_days_max,
@@ -135,8 +137,6 @@ class CheckoutController extends Controller
                 'viewable_type' => Order::class,
                 'viewable_id' => $order->id,
                 'user_id' => auth()->id(),
-                'session_id' => session()->getId(),
-                'ip_address' => $request->ip(),
             ]);
 
             // Gestisci il pagamento in base al gateway selezionato

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Actions\RevocaRiconoscimentoVoltiAction;
 use App\Filament\Actions\TrainAiFacesAction;
 use App\Filament\Resources\PlayerResource\Pages;
 use App\Filament\Resources\PlayerResource\RelationManagers;
@@ -148,6 +149,8 @@ class PlayerResource extends Resource
                                     ->send();
                             }
                         }),
+
+                    RevocaRiconoscimentoVoltiAction::perLaTabella(),
                 ])->icon('heroicon-m-sparkles')->label('Azioni AI'),
                 Tables\Actions\EditAction::make(),
             ])

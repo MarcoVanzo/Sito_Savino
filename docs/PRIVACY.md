@@ -136,25 +136,29 @@ Gli altri dati del titolare stanno nelle impostazioni, gruppo `contact`
 
 | Dato | Dove finisce | Chi lo scrive | Per quanto, e chi lo applica |
 | --- | --- | --- | --- |
-| IP, browser, pagina | log del server; `sessions.ip_address`, `sessions.user_agent` | Laravel | sessione: 2 h di inattività (`SESSION_LIFETIME`) |
+| IP, browser, pagina | log del server; `sessions.ip_address`, `sessions.user_agent` | Laravel | sessione: 8 h di inattività (`SESSION_LIFETIME=480` in `.do/app.yaml`) |
 | Messaggi del modulo contatti | `contact_messages` | `ContactRequest` | 24 mesi dalla data del messaggio (`messaggi:pota`, settimanale) |
 | Accrediti stampa (nome, telefono, testata, ruolo, gara) | `contact_messages` + `extra_data` | `PressAccreditationRequest` | idem, riga intera |
-| Iscritti alla newsletter (email, nome, IP della richiesta, data di conferma) | `newsletter_subscribers`, poi ActiveCampaign **solo dopo la conferma** (doppio opt-in, `confermato_il`) e mai dopo la disiscrizione (il job rilegge la riga); al massimo tre email di conferma al giorno per indirizzo (chiave con l'impronta dell'email) | `NewsletterRequest`, `NewsletterSubscriber::conferma`, `SyncNewsletterToActiveCampaign` | fino alla disiscrizione; una richiesta mai confermata 30 giorni (`model:prune`, `NewsletterSubscriber::prunable`) |
+| Iscritti alla newsletter (email, nome, IP della richiesta, data di conferma) | `newsletter_subscribers`, poi ActiveCampaign **solo dopo la conferma** (doppio opt-in, `confermato_il`) e mai dopo la disiscrizione (il job rilegge la riga); al massimo tre email di conferma al giorno per indirizzo (chiave con l'impronta dell'email) | `NewsletterRequest`, `NewsletterSubscriber::conferma`, `SyncNewsletterToActiveCampaign` | fino alla disiscrizione (dal sito, dal pannello o da ActiveCampaign): nome e IP si azzerano subito, email e date restano 24 mesi come prova; una richiesta mai confermata 30 giorni (`model:prune`, `NewsletterSubscriber::prunable`). Il testo accettato sta in `versioni_testi_consenso` |
 | Aperture e clic della newsletter, per iscritto (pixel e link tracciati di ActiveCampaign) | ActiveCampaign | consenso dato all'iscrizione; revoca del solo tracciamento dal Preference Center di ActiveCampaign (modulo 10, campo 28, link nel footer di ogni campagna) — linee guida del Garante del 17/04/2026, procedura per la redazione in `docs/ANALYTICS.md`. La colonna `newsletter_subscribers.tracciamento_revocato_il` è inutilizzata dal 26/09/2026 (nessuna riga valorizzata in produzione): resta solo perché la migrazione è già applicata | finché iscritto; il pixel lo spegne la redazione per campagna (segmento «Newsletter - SENZA tracciamento»), ActiveCampaign non lo fa per contatto; nelle automazioni il pixel di apertura è spento |
 | Ordini: nome, indirizzi, telefono, codice fiscale | `orders`, `order_items` | `StoreCheckoutRequest` | 10 anni (obbligo fiscale) |
+| Statistiche dello shop (pagine viste, ordini avviati e conclusi) | `shop_events` | `TrackShopPageView`, `CheckoutController`, webhook | senza IP né sessione dal 02/10/2026 (le visite anche senza utente): si conta la pagina, non chi la guarda |
 | Dichiarazioni di recesso (nome, email, numero d'ordine, articoli, data e ora) | `richieste_di_recesso` | `RecessoController` (art. 54-bis) | 10 anni dall'invio se agganciate a un ordine (prova del recesso, prescrizione del rimborso, art. 2946 c.c.), 12 mesi se il numero non corrisponde a nessun ordine (`model:prune`, `RichiestaDiRecesso::prunable`) |
 | Offerte d'asta | `bids` | `BidService` | con l'asta; in pagina il nome esce abbreviato (`AuctionService::maskUsername`) |
 | Account dello shop | `users`, `password_histories` | registrazione | finché attivo; il cliente lo esporta e lo cancella da `/shop/account` (`AccountController`, `DatiDelCliente`). Alla cancellazione le righe di `activity_logs` che lo riguardano perdono dati e IP, il cliente Stripe (se c'è) si cancella, e gli ordini — che restano per l'obbligo fiscale — ricevono nome ed email dell'account dove non li avevano (`guest_name`/`guest_email`: l'ordine d'asta non li valorizza), per spedizione, rimborso e recesso (`DatiDelCliente::cancella`). L'esportazione comprende gli ordini da ospite con la stessa email solo se l'email è verificata, e il carrello |
 | Carrelli | `carts`, `cart_items` | | 7 giorni (`carts:prune-expired`, `Cart::prunable`) |
-| Prova del consenso ai cookie | `consensi_cookie` | `ConsensoCookieController` | 12 mesi (`consensi:pota`, settimanale) |
-| Chi ha modificato cosa nel pannello | `activity_logs` | `LogsActivity` | 180 giorni (`activity-log:prune`) |
+| Prova del consenso ai cookie (scelta, azione, versione, impronta dei testi visti, lingua, browser, impronta dell'IP) | `consensi_cookie` + `versioni_testi_consenso` | `ConsensoCookieController`, `CatenaDeiConsensi` | 24 mesi (`consensi:pota`, settimanale); catena controllata da `consensi:verifica`; i testi non si cancellano |
+| Chi ha modificato cosa nel pannello (solo staff: dal 02/10/2026 niente dati dei clienti) | `activity_logs` | `LogsActivity` | 180 giorni (`activity-log:prune --force`, settimanale: fino al 02/10/2026 falliva) |
 | Fotografie e persone ritratte | `media`, `gallery_images`, `gallery_image_person` | redazione + `AnalyzeGalleryImageJob` | finché la foto resta pubblicata |
 | Impronte dei volti di atlete e staff | **fuori dal database**: nel Postgres di CompreFace | pannello → `FacialRecognitionService::addFaceExample` | finché il consenso regge; alla revoca si cancella il soggetto |
 
-**Nel registro dei consensi non c'è l'indirizzo IP**, solo
-`hash('sha256', $ip.'|'.config('app.key'))` (`ConsensoCookie::improntaDi`): senza
-`APP_KEY`, che non lascia il server, non si torna indietro. È una prova di
-consenso (art. 7 §1), non un registro statistico: non aggiungerci altro.
+**Nel registro dei consensi non c'è l'indirizzo IP**, solo un'impronta
+salata con `CONSENSI_SALE` (`ConsensoCookie::improntaDi`; ripiego su
+`APP_KEY` finché la variabile manca). È pseudonimizzata, non anonima: con il
+sale si confronta un IP noto, ed è per questo che il sale non è `APP_KEY`
+(finita nella storia del repo) e non si cambia. È una prova di consenso
+(art. 7 §1; EDPB 05/2020 §107-108: come, quando e con quali informazioni),
+non un registro statistico: non aggiungerci altro.
 
 ---
 
@@ -164,7 +168,7 @@ consenso (art. 7 §1), non un registro statistico: non aggiungerci altro.
 | --- | --- | --- |
 | DigitalOcean | hosting, database, file (Spaces, `fra1`) | `.do/app.yaml` |
 | PayPal | pagamenti | `config/services.php` → `paypal` |
-| Stripe | pagamenti, **quando ha le chiavi** — in produzione non le ha, e senza credenziali il metodo non viene nemmeno offerto (`PaymentGateway::configurato()`) | `services.stripe` |
+| Stripe | pagamenti dello shop e delle aste (live dal 01/10/2026) e verifica della carta per fare offerte, che crea un cliente Stripe con nome ed email (`StripeCustomerService`), cancellato con l'account | `services.stripe` |
 | Resend | email di servizio, **attivo dal 25/09/2026** | `services.resend`, `MAIL_MAILER` |
 | Sentry | diagnostica degli errori: indirizzo della pagina, tipo di browser e traccia tecnica del guasto, del server e (dal 25/09/2026) del browser. **Non** l'IP né l'utente (`send_default_pii` a `false`, `sendDefaultPii: false`), **non** i parametri delle query (`sql_bindings` a `false`). Gli errori del browser passano dal tunnel `/api/diagnostica`: il browser non contatta Sentry, che vede solo l'IP del server. Nessun cookie né storage, quindi niente consenso. Progetto nella regione europea | `config/sentry.php`, `SENTRY_LARAVEL_DSN`, `resources/js/diagnostica.js`, `SentryTunnelController` |
 | ActiveCampaign | newsletter | `services.activecampaign` |
