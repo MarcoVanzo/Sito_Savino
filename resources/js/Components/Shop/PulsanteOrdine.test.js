@@ -45,7 +45,8 @@ describe('AccettazioneCondizioni', () => {
         // Le tre pagine stanno nella frase della casella; il quarto link e'
         // quello dell'avviso UE sulla garanzia legale, dentro la sua finestra.
         const indirizzi = casella.find('label').findAll('a').map((a) => a.attributes('href'));
-        expect(indirizzi).toEqual(['/condizioni-di-vendita', '/diritto-di-recesso', '/privacy-policy']);
+        // La privacy porta alla sezione degli acquisti, non alla pagina intera.
+        expect(indirizzi).toEqual(['/condizioni-di-vendita', '/diritto-di-recesso', '/privacy-policy#acquisti']);
     });
 
     it("mostra l'avviso UE sulla garanzia legale prima dell'ordine", () => {

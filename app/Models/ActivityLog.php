@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\RevocaDelRiconoscimentoDeiVolti;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -70,6 +71,7 @@ class ActivityLog extends Model
             'deleted' => 'Eliminazione',
             'restored' => 'Ripristino',
             'force_deleted' => 'Eliminazione definitiva',
+            RevocaDelRiconoscimentoDeiVolti::AZIONE => 'Revoca riconoscimento volti',
             default => $this->action,
         };
     }
@@ -85,6 +87,7 @@ class ActivityLog extends Model
             'deleted' => 'heroicon-o-trash',
             'restored' => 'heroicon-o-arrow-uturn-left',
             'force_deleted' => 'heroicon-o-x-circle',
+            RevocaDelRiconoscimentoDeiVolti::AZIONE => 'heroicon-o-no-symbol',
             default => 'heroicon-o-question-mark-circle',
         };
     }
@@ -100,6 +103,7 @@ class ActivityLog extends Model
             'deleted' => 'danger',
             'restored' => 'info',
             'force_deleted' => 'danger',
+            RevocaDelRiconoscimentoDeiVolti::AZIONE => 'danger',
             default => 'gray',
         };
     }

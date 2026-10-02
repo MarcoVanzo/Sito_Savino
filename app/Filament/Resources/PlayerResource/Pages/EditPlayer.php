@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PlayerResource\Pages;
 
+use App\Filament\Actions\RevocaRiconoscimentoVoltiAction;
 use App\Filament\Actions\TrainAiFacesAction;
 use App\Filament\Resources\PlayerResource;
 use App\Services\FacialRecognitionService;
@@ -57,6 +58,8 @@ class EditPlayer extends EditRecord
                                 ->send();
                         }
                     }),
+
+                RevocaRiconoscimentoVoltiAction::perLaScheda(),
             ])->icon('heroicon-m-sparkles')->label('Azioni AI'),
             Actions\DeleteAction::make(),
         ];

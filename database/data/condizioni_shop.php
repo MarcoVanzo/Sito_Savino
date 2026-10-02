@@ -81,7 +81,7 @@ HTML,
             'it' => <<<HTML
 <p><strong>Hai cambiato idea? Hai 14 giorni dalla consegna per recedere</strong> dal contratto, senza dover spiegare il motivo. Vale anche per gli oggetti aggiudicati nelle aste online.</p>
 <h2>1. Comunica il recesso</h2>
-<p>Il modo più semplice è la funzione <a href="/recesso">Recedi dal contratto</a>: inserisci nome, numero d'ordine ed email e confermi. Ricevi subito via email una ricevuta con data e ora. In alternativa scrivi a <a href="mailto:info@savinodelbenevolley.it">info@savinodelbenevolley.it</a>, anche con il modulo tipo che trovi nella pagina <a href="/diritto-di-recesso">Diritto di recesso</a>.</p>
+<p>Il modo più semplice è la funzione <a href="/recesso">Recedi dal contratto</a>: inserisci nome, numero d'ordine ed email e confermi. Ricevi subito la ricevuta con data e ora, a schermo e via email. In alternativa scrivi a <a href="mailto:info@savinodelbenevolley.it">info@savinodelbenevolley.it</a>, anche con il modulo tipo che trovi nella pagina <a href="/diritto-di-recesso">Diritto di recesso</a>.</p>
 <h2>2. Rispedisci i prodotti</h2>
 <p>Entro 14 giorni dalla comunicazione rispedisci i prodotti, con un corriere a tua scelta e a tue spese, a: <strong>Pallavolo Scandicci Savino Del Bene, {$italiaIndirizzo}</strong>, indicando il numero d'ordine. Imballali con cura: puoi provarli come faresti in negozio, ma se li restituisci indossati, lavati, rovinati o senza etichette potremo trattenere dal rimborso la diminuzione di valore.</p>
 <h2>3. Ricevi il rimborso</h2>
@@ -96,7 +96,7 @@ HTML,
             'en' => <<<HTML
 <p><strong>Changed your mind? You have 14 days from delivery to withdraw</strong> from the contract, without giving any reason. This also applies to items won in online auctions.</p>
 <h2>1. Tell us you are withdrawing</h2>
-<p>The easiest way is the <a href="/en/withdrawal">Withdraw from contract</a> function: enter your name, order number and email and confirm. You immediately receive a receipt by email with the date and time. Alternatively write to <a href="mailto:info@savinodelbenevolley.it">info@savinodelbenevolley.it</a>, also using the model form on the <a href="/en/diritto-di-recesso">Right of withdrawal</a> page.</p>
+<p>The easiest way is the <a href="/en/withdrawal">Withdraw from contract</a> function: enter your name, order number and email and confirm. You immediately receive a receipt with the date and time, on screen and by email. Alternatively write to <a href="mailto:info@savinodelbenevolley.it">info@savinodelbenevolley.it</a>, also using the model form on the <a href="/en/diritto-di-recesso">Right of withdrawal</a> page.</p>
 <h2>2. Send the products back</h2>
 <p>Within 14 days of your communication, send the products back with a courier of your choice and at your own cost to: <strong>Pallavolo Scandicci Savino Del Bene, {$italiaIndirizzo}, Italy</strong>, quoting your order number. Pack them carefully: you may try them as you would in a shop, but if they come back worn, washed, damaged or without labels we may deduct the loss in value from the refund.</p>
 <h2>3. Get your refund</h2>
@@ -130,11 +130,11 @@ HTML,
 <li>Ricevi un'email quando la tua offerta viene superata. Nella pagina dell'asta gli offerenti compaiono con il nome abbreviato.</li>
 </ul>
 <h2>Aggiudicazione e pagamento</h2>
-<p>Alla chiusura l'oggetto è aggiudicato a chi ha fatto l'offerta più alta, che riceve un'email con il collegamento per il pagamento. Il prezzo finale è l'importo dell'offerta vincente, IVA inclusa, più le spese di spedizione indicate al checkout; non ci sono commissioni. Il vincitore ha il tempo indicato nella pagina dell'asta per pagare; se non paga entro il termine, l'oggetto viene proposto al secondo miglior offerente alle condizioni della sua offerta.</p>
+<p>Alla chiusura l'oggetto è aggiudicato a chi ha fatto l'offerta più alta, che riceve un'email con il collegamento per il pagamento. Il prezzo finale è l'importo dell'offerta vincente, IVA inclusa, più le spese di spedizione indicate al checkout; non ci sono commissioni. Il vincitore deve pagare entro il termine indicato nell'email di aggiudicazione e nella pagina di pagamento; se sceglie il bonifico, il termine diventa quello del bonifico indicato nell'email di conferma dell'ordine. Se non paga entro il termine, l'oggetto viene proposto all'offerente successivo in classifica, alle condizioni della sua offerta, purché raggiunga l'eventuale prezzo di riserva.</p>
 <h2>Spedizione, recesso e garanzia</h2>
 <p>Agli oggetti aggiudicati si applicano le <a href="/condizioni-di-vendita">Condizioni di vendita</a> dello Shop: la spedizione è descritta nella pagina <a href="/spedizioni">Spedizioni</a> e, come per ogni acquisto online, il vincitore ha 14 giorni dalla consegna per recedere, anche con la funzione <a href="/recesso">Recedi dal contratto</a>, e gode della garanzia legale di conformità.</p>
 <h2>Beneficenza</h2>
-<p>Quando un'asta è a scopo benefico, la sua pagina indica l'ente destinatario e la quota del ricavato che gli viene devoluta.</p>
+<p>Quando un'asta è a scopo benefico, la sua pagina descrive la finalità benefica e l'ente destinatario.</p>
 <h2>Dati personali</h2>
 <p>I dati dei partecipanti sono trattati per gestire le offerte, l'aggiudicazione e la vendita, come descritto nella <a href="/privacy-policy">Privacy Policy</a>.</p>
 HTML,
@@ -150,11 +150,11 @@ HTML,
 <li>You receive an email when you are outbid. On the auction page bidders are shown with a shortened name.</li>
 </ul>
 <h2>Award and payment</h2>
-<p>At closing the item is awarded to the highest bidder, who receives an email with the payment link. The final price is the amount of the winning bid, VAT included, plus the shipping cost shown at checkout; there are no fees. The winner has the time shown on the auction page to pay; if payment is not made in time, the item is offered to the second-highest bidder on the terms of their bid.</p>
+<p>At closing the item is awarded to the highest bidder, who receives an email with the payment link. The final price is the amount of the winning bid, VAT included, plus the shipping cost shown at checkout; there are no fees. The winner must pay within the deadline stated in the award email and on the payment page; if they choose bank transfer, the deadline becomes the bank transfer deadline stated in the order confirmation email. If payment is not made in time, the item is offered to the next bidder in the ranking, on the terms of their bid, provided it reaches any reserve price.</p>
 <h2>Shipping, withdrawal and guarantee</h2>
 <p>Items won at auction are subject to the Shop's <a href="/en/condizioni-di-vendita">Terms of sale</a>: shipping is described on the <a href="/en/spedizioni">Shipping</a> page and, as for any online purchase, the winner has 14 days from delivery to withdraw, including through the <a href="/en/withdrawal">Withdraw from contract</a> function, and benefits from the legal guarantee of conformity.</p>
 <h2>Charity</h2>
-<p>When an auction is for charity, its page states the beneficiary and the share of the proceeds donated.</p>
+<p>When an auction is for charity, its page describes the charitable purpose and the beneficiary.</p>
 <h2>Personal data</h2>
 <p>Participants' data are processed to manage bids, award and sale, as described in the <a href="/en/privacy-policy">Privacy Policy</a>.</p>
 HTML,

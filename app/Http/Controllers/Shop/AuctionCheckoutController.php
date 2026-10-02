@@ -135,6 +135,9 @@ class AuctionCheckoutController extends Controller
         $shippingZones = ShippingZone::active()->ordered()->get()
             ->map(fn (ShippingZone $zone): array => [
                 ...$zone->toArray(),
+                // La soglia che vale davvero (globale o della zona), non
+                // quella grezza della zona.
+                'free_threshold' => $zone->sogliaGratuita(),
                 'costo_spedizione' => $zone->calculateShippingCost($winningBid, $peso),
             ])
             ->all();

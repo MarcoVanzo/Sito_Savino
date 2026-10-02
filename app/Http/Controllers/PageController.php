@@ -168,7 +168,7 @@ class PageController extends Controller
                     'paesi' => $zona->countries,
                     'tariffa' => (float) $zona->flat_rate,
                     'fasce' => $zona->fasceOrdinate(),
-                    'soglia_gratuita' => $zona->free_threshold !== null ? (float) $zona->free_threshold : null,
+                    'soglia_gratuita' => $zona->sogliaGratuita(),
                     'giorni_min' => $zona->estimated_days_min,
                     'giorni_max' => $zona->estimated_days_max,
                 ])->values()->all();

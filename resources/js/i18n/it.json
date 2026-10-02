@@ -75,6 +75,7 @@
     "footer": {
         "privacy_policy": "Privacy Policy",
         "cookie_policy": "Cookie Policy",
+        "cookie_preferences": "Preferenze cookie",
         "promotional_policy": "Informativa comunicazioni promozionali",
         "all_rights_reserved": "Tutti i diritti riservati",
         "season": "Stagione",
@@ -769,7 +770,8 @@
         "placeholder_city": "Firenze",
         "placeholder_zip_code": "50123",
         "placeholder_province": "FI",
-        "estimated_delivery": "Consegna stimata",
+        "estimated_delivery": "Spedizione",
+        "preparation_days": "più 1-2 giorni lavorativi di preparazione dal pagamento",
         "business_days": "giorni lavorativi",
         "gateway_not_available": "Metodo di pagamento non disponibile",
         "step_validation_required": "Compila tutti i campi obbligatori prima di procedere",
@@ -784,7 +786,6 @@
         "withdrawal_link": "diritto di recesso",
         "terms_accept_3": ", e ho letto la",
         "field_required": "Campo obbligatorio",
-        "address_suggestions": "{count} indirizzi suggeriti: usa le frecce per sceglierne uno e Invio per confermare",
         "order_errors_title": "L’ordine non è partito",
         "terms_required": "Per ordinare devi accettare le condizioni di vendita"
     },
@@ -958,7 +959,12 @@
         "download_receipt": "Scarica Ricevuta",
         "continue_shopping": "Continua lo shopping",
         "view_orders": "Vedi i tuoi ordini",
-        "shipping_to": "Spedizione a"
+        "shipping_to": "Spedizione a",
+        "gateway": {
+            "stripe": "Carta di credito",
+            "paypal": "PayPal",
+            "bank_transfer": "Bonifico bancario"
+        }
     },
     "checkout_cancel": {
         "og_title": "Pagamento Annullato - Savino Del Bene Volley",

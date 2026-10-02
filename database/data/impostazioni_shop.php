@@ -49,8 +49,11 @@ return [
         'Quantità max per prodotto', 'Quantità massima acquistabile per singolo prodotto per ordine', 5),
     $impostazione('shop.cart_expiry_days', 'number', '7',
         'Scadenza carrello (giorni)', 'Giorni dopo cui un carrello inattivo viene eliminato', 6),
-    $impostazione('shop.free_shipping_threshold', 'number', '50',
-        'Soglia spedizione gratuita (€)', 'Importo minimo per la spedizione gratuita (soglia globale)', 10),
+    // Vuota di partenza: compilata vale per tutte le zone (sogliaGlobale), e
+    // il pannello apre le chiavi mancanti con questo valore, quindi un '50'
+    // qui diventava, al primo Salva, la soglia di ogni paese.
+    $impostazione('shop.free_shipping_threshold', 'number', '',
+        'Soglia spedizione gratuita (€)', 'Se compilata vale per tutte le zone al posto della loro soglia; vuota: vale la soglia di ciascuna zona', 10),
     $impostazione('shop.default_item_weight_kg', 'number', '0.5',
         'Peso di ripiego per articolo (kg)', 'Peso usato per i prodotti che non ne hanno uno in scheda, per le fasce di peso della spedizione', 11),
     $impostazione('shop.active_payment_gateways', 'text', 'stripe,paypal,bank_transfer',

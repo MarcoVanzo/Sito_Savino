@@ -12,6 +12,13 @@ class StockMovement extends Model
 {
     use HasFactory, LogsActivity;
 
+    /**
+     * Le rettifiche dello staff si rivedono nel registro; gli scarichi di
+     * checkout, webhook e annulli automatici no: stanno già in questa tabella
+     * e nel registro porterebbero solo il cliente che ha comprato.
+     */
+    protected bool $logSoloDalPannello = true;
+
     protected $fillable = [
         'product_id',
         'product_variant_id',

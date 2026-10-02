@@ -94,9 +94,16 @@ Schedule::command('volti:riconcilia-contatori')->dailyAt('04:15')->withoutOverla
 // Pulizia periodica
 Schedule::command('activity-log:prune --days=180 --force')->weekly()->withoutOverlapping();
 
-// Il registro dei consensi ai cookie tiene dodici mesi, quanto dura il consenso
-// che documenta: oltre, conservarlo sarebbe raccolta di dati senza scopo.
+// Il registro dei consensi ai cookie tiene ventiquattro mesi: i dodici in cui
+// il consenso vale più dodici per le contestazioni. Oltre, conservarlo sarebbe
+// raccolta di dati senza scopo.
 Schedule::command('consensi:pota')->weekly()->withoutOverlapping();
+
+// La catena delle impronte del registro: se qualcuno ha ritoccato una riga
+// fuori dal sito il comando esce con errore e l'avviso arriva per email.
+// Il lunedì, e non la domenica a mezzanotte con la potatura: le due cose
+// prendono lo stesso lucchetto.
+Schedule::command('consensi:verifica')->weeklyOn(1, '04:30')->withoutOverlapping();
 
 // Messaggi del modulo contatti e richieste di accredito: ventiquattro mesi, che
 // è quello che l'informativa promette. Finché non c'è stato questo comando era
@@ -126,6 +133,11 @@ Schedule::command('auction:close')->everyMinute()->withoutOverlapping();
 
 // Aste: verifica pagamenti vincitori (ogni ora)
 Schedule::command('auction:check-payments')->hourly()->withoutOverlapping();
+
+// Le disiscrizioni fatte su ActiveCampaign (Preference Center, link delle
+// campagne) non arrivano al sito da sole: senza questo la riga restava
+// "iscritta", con nome e IP.
+Schedule::command('newsletter:allinea-disiscritti')->dailyAt('05:15')->withoutOverlapping();
 
 // Deve restare in fondo: copre gli eventi registrati sopra. `schedule:work`
 // manda l'output in /dev/null, quindi un comando che esce con errore non

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\StaffType;
+use App\Filament\Actions\RevocaRiconoscimentoVoltiAction;
 use App\Filament\Actions\TrainAiFacesAction;
 use App\Filament\Clusters\SerieA1;
 use App\Filament\Resources\StaffMemberResource\Pages;
@@ -164,6 +165,8 @@ class StaffMemberResource extends Resource
                                 ->success()
                                 ->send();
                         }),
+
+                    RevocaRiconoscimentoVoltiAction::perLaTabella(),
                 ])
                     ->label('Azioni AI')
                     ->icon('heroicon-o-sparkles')

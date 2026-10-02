@@ -143,7 +143,7 @@ onUnmounted(() => {
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">{{ $t('checkout_success.payment_method') }}</span>
-                            <span class="font-medium text-gray-900 capitalize">{{ order.payment_gateway?.replace('_', ' ') ?? '—' }}</span>
+                            <span class="font-medium text-gray-900">{{ order.payment_gateway ? $t(`checkout_success.gateway.${order.payment_gateway}`) : '—' }}</span>
                         </div>
                     </div>
 

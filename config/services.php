@@ -41,6 +41,16 @@ return [
         'email' => env('AVVISI_EMAIL'),
     ],
 
+    // Il sale dell'impronta dell'IP nel registro dei consensi ai cookie
+    // (ConsensoCookie::improntaDi). Segreto suo e non `APP_KEY`: la chiave
+    // dell'applicazione è stata esposta e va ruotata, e ruotarla non deve
+    // cambiare le impronte del registro. Si imposta una volta e non si cambia
+    // più: con un sale nuovo due consensi dallo stesso indirizzo non si
+    // riconoscono. Vuoto, si ripiega su `APP_KEY` per non rompere il deploy.
+    'consensi' => [
+        'sale' => env('CONSENSI_SALE'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

@@ -56,7 +56,7 @@ return [
         'contenuto' => [
             'it' => <<<HTML
             <h2>Condizioni generali di vendita</h2>
-            <p>Queste condizioni regolano gli acquisti fatti sullo shop ufficiale della Savino Del Bene Volley, compresi i beni aggiudicati nelle aste online. Sono aggiornate al 25 settembre 2026. Ti chiediamo di leggerle prima di ordinare: al momento dell'ordine ti viene chiesto di accettarle, e te le mandiamo di nuovo con la conferma.</p>
+            <p>Queste condizioni regolano gli acquisti fatti sullo shop ufficiale della Savino Del Bene Volley, compresi i beni aggiudicati nelle aste online. Sono aggiornate al 2 ottobre 2026. Ti chiediamo di leggerle prima di ordinare: al momento dell'ordine ti viene chiesto di accettarle, e te le mandiamo di nuovo con la conferma.</p>
 
             <h3>1. Chi vende</h3>
             <p>{$societa}<br />
@@ -70,13 +70,13 @@ return [
             <p>Per le aste il contratto si conclude con l'aggiudicazione: il vincitore riceve un'email con il collegamento per completare il pagamento entro il termine indicato. Se il pagamento non arriva entro quel termine l'aggiudicazione decade e il bene può essere assegnato al miglior offerente successivo.</p>
 
             <h3>3. Prezzi</h3>
-            <p>I prezzi sono in euro e comprendono l'IVA. Le spese di spedizione dipendono dal paese di destinazione e dal peso dell'ordine, e sono mostrate prima della conferma. Quando un prodotto è in promozione, accanto al prezzo scontato indichiamo il prezzo più basso applicato nei 30 giorni precedenti la riduzione, come prevede l'art. 17-bis del Codice del consumo.</p>
+            <p>I prezzi sono in euro e comprendono l'IVA. Le spese di spedizione dipendono dal paese di destinazione e dal peso dell'ordine, sono gratuite sopra la soglia di spesa indicata nella pagina <a href="/spedizioni">Spedizioni</a> e sono mostrate prima della conferma. Quando un prodotto è in promozione, accanto al prezzo scontato indichiamo il prezzo più basso applicato nei 30 giorni precedenti la riduzione, come prevede l'art. 17-bis del Codice del consumo.</p>
 
             <h3>4. Pagamento</h3>
-            <p>Puoi pagare con i metodi mostrati al checkout: PayPal, carta di pagamento (quando disponibile) e bonifico bancario. Con il bonifico l'ordine resta in attesa fino all'accredito e viene annullato se il pagamento non arriva entro il termine indicato nell'email di conferma. Non conserviamo i dati delle carte: il pagamento avviene sulle pagine del gestore.</p>
+            <p>Puoi pagare con i metodi mostrati al checkout: PayPal, carta di pagamento e gli altri metodi che Stripe propone nella sua pagina di pagamento (per esempio Apple Pay o Google Pay), e bonifico bancario. Se scegli PayPal o Stripe e non completi il pagamento, l'ordine viene annullato automaticamente dopo un'ora e i prodotti tornano disponibili; se il gestore segnala un pagamento ancora in verifica, l'ordine attende il suo esito. Con il bonifico l'ordine resta in attesa fino all'accredito e viene annullato se il pagamento non arriva entro il termine indicato nell'email di conferma. Non conserviamo i dati delle carte: il pagamento avviene sulle pagine del gestore.</p>
 
             <h3>5. Consegna</h3>
-            <p>Spediamo con corriere tracciato nei paesi elencati al checkout. I tempi stimati sono indicati prima della conferma e decorrono dalla ricezione del pagamento; in ogni caso consegniamo entro 30 giorni dalla conclusione del contratto (art. 61 del Codice del consumo). Costi e tempi per ogni zona sono nella pagina <a href="/spedizioni">Spedizioni</a>. Il rischio di perdita o danneggiamento passa a te solo quando ricevi fisicamente i beni (art. 63).</p>
+            <p>Spediamo con corriere tracciato nei paesi elencati al checkout. Prima della conferma sono indicati i tempi stimati di spedizione, a cui si aggiungono 1-2 giorni lavorativi di preparazione che decorrono dalla ricezione del pagamento; in ogni caso consegniamo entro 30 giorni dalla conclusione del contratto (art. 61 del Codice del consumo). Costi e tempi per ogni zona sono nella pagina <a href="/spedizioni">Spedizioni</a>. Il rischio di perdita o danneggiamento passa a te solo quando ricevi fisicamente i beni (art. 63).</p>
             <p>Quando ricevi il pacco controlla che sia integro: se è danneggiato, accettalo con riserva scritta sul documento del corriere e scrivici.</p>
 
             <h3>6. Diritto di recesso</h3>
@@ -98,7 +98,7 @@ return [
             HTML,
             'en' => <<<HTML
             <h2>General terms of sale</h2>
-            <p>These terms govern purchases made on the official Savino Del Bene Volley shop, including items won in online auctions. Last updated 25 September 2026. Please read them before ordering: you are asked to accept them when you place the order, and we send them to you again with the confirmation.</p>
+            <p>These terms govern purchases made on the official Savino Del Bene Volley shop, including items won in online auctions. Last updated 2 October 2026. Please read them before ordering: you are asked to accept them when you place the order, and we send them to you again with the confirmation.</p>
 
             <h3>1. The seller</h3>
             <p>{$societa}<br />
@@ -112,13 +112,13 @@ return [
             <p>For auctions the contract is concluded when the item is awarded: the winner receives an email with a link to complete payment within the stated deadline. If payment is not received in time, the award lapses and the item may be offered to the next highest bidder.</p>
 
             <h3>3. Prices</h3>
-            <p>Prices are in euro and include VAT. Shipping costs depend on the destination country and the weight of the order, and are shown before confirmation. When a product is on sale, next to the reduced price we show the lowest price applied in the 30 days before the reduction, as required by article 17-bis of the Italian Consumer Code.</p>
+            <p>Prices are in euro and include VAT. Shipping costs depend on the destination country and the weight of the order, are free above the spending threshold shown on the <a href="/en/spedizioni">Shipping</a> page, and are shown before confirmation. When a product is on sale, next to the reduced price we show the lowest price applied in the 30 days before the reduction, as required by article 17-bis of the Italian Consumer Code.</p>
 
             <h3>4. Payment</h3>
-            <p>You can pay with the methods shown at checkout: PayPal, card (when available) and bank transfer. With a bank transfer the order remains pending until the payment is credited and is cancelled if payment is not received within the deadline stated in the confirmation email. We do not store card details: payment takes place on the provider's pages.</p>
+            <p>You can pay with the methods shown at checkout: PayPal, card and the other methods Stripe offers on its payment page (for example Apple Pay or Google Pay), and bank transfer. If you choose PayPal or Stripe and do not complete the payment, the order is cancelled automatically after one hour and the products become available again; if the provider reports a payment still under review, the order waits for its outcome. With a bank transfer the order remains pending until the payment is credited and is cancelled if payment is not received within the deadline stated in the confirmation email. We do not store card details: payment takes place on the provider's pages.</p>
 
             <h3>5. Delivery</h3>
-            <p>We ship with a tracked courier to the countries listed at checkout. Estimated times are shown before confirmation and run from receipt of payment; in any case we deliver within 30 days of the conclusion of the contract. Costs and times for each area are on the <a href="/en/spedizioni">Shipping</a> page. The risk of loss or damage passes to you only when you physically receive the goods.</p>
+            <p>We ship with a tracked courier to the countries listed at checkout. Estimated shipping times are shown before confirmation, plus 1-2 working days of preparation that run from receipt of payment; in any case we deliver within 30 days of the conclusion of the contract. Costs and times for each area are on the <a href="/en/spedizioni">Shipping</a> page. The risk of loss or damage passes to you only when you physically receive the goods.</p>
             <p>When you receive the parcel, check that it is intact: if it is damaged, accept it with a written reservation on the courier's document and write to us.</p>
 
             <h3>6. Right of withdrawal</h3>
@@ -151,12 +151,12 @@ return [
         'contenuto' => [
             'it' => <<<HTML
             <h2>Informativa sul diritto di recesso</h2>
-            <p>Aggiornata al 25 settembre 2026. Vale per gli acquisti fatti come consumatore sullo shop ufficiale, compresi i beni aggiudicati nelle aste online.</p>
+            <p>Aggiornata al 2 ottobre 2026. Vale per gli acquisti fatti come consumatore sullo shop ufficiale, compresi i beni aggiudicati nelle aste online.</p>
 
             <h3>Diritto di recesso</h3>
             <p>Hai il diritto di recedere dal contratto, senza indicarne le ragioni, entro 14 giorni.</p>
             <p>Il periodo di recesso scade dopo 14 giorni dal giorno in cui tu, o un terzo da te designato diverso dal vettore, acquisisci il possesso fisico dei beni. Se hai ordinato più beni con un solo ordine e li ricevi separatamente, i 14 giorni decorrono dal giorno in cui ricevi l'ultimo.</p>
-            <p>Il modo più semplice è la funzione online <a href="/recesso">Recedi dal contratto</a>: inserisci nome, numero d'ordine ed email, confermi con il pulsante «Conferma recesso» e ricevi subito via email una ricevuta con il contenuto della dichiarazione, la data e l'ora dell'invio (art. 54-bis del Codice del consumo).</p>
+            <p>Il modo più semplice è la funzione online <a href="/recesso">Recedi dal contratto</a>: inserisci nome, numero d'ordine ed email, confermi con il pulsante «Conferma recesso» e ricevi subito, a schermo e via email, una ricevuta con il contenuto della dichiarazione, la data e l'ora dell'invio (art. 54-bis del Codice del consumo).</p>
             <p>In alternativa puoi informarci della tua decisione con una dichiarazione esplicita, per esempio una lettera inviata per posta o un'email, a:</p>
             <p>{$societa}<br />
             {$sede}<br />
@@ -193,12 +193,12 @@ return [
             HTML,
             'en' => <<<HTML
             <h2>Information on the right of withdrawal</h2>
-            <p>Last updated 25 September 2026. It applies to purchases made as a consumer on the official shop, including items won in online auctions.</p>
+            <p>Last updated 2 October 2026. It applies to purchases made as a consumer on the official shop, including items won in online auctions.</p>
 
             <h3>Right of withdrawal</h3>
             <p>You have the right to withdraw from this contract within 14 days without giving any reason.</p>
             <p>The withdrawal period expires 14 days after the day on which you, or a third party other than the carrier and indicated by you, acquire physical possession of the goods. If you ordered multiple goods in one order and they are delivered separately, the 14 days run from the day you receive the last one.</p>
-            <p>The easiest way is the online <a href="/en/withdrawal">Withdraw from contract</a> function: enter your name, order number and email, confirm with the "Confirm withdrawal" button and you immediately receive by email a receipt with the content of your statement and the date and time it was sent.</p>
+            <p>The easiest way is the online <a href="/en/withdrawal">Withdraw from contract</a> function: enter your name, order number and email, confirm with the "Confirm withdrawal" button and you immediately receive, on screen and by email, a receipt with the content of your statement and the date and time it was sent.</p>
             <p>Alternatively you can inform us of your decision by an unequivocal statement, for example a letter sent by post or an email, to:</p>
             <p>{$societa}<br />
             {$sede}, Italy<br />

@@ -18,6 +18,15 @@ vpc:
 # rigenera il segreto su Meta, lo si riscrive dal pannello DO e si ricopia qui
 # il nuovo valore cifrato — mai il segreto in chiaro.
 envs:
+# Il sale dell'impronta dell'IP nei consensi ai cookie e della catena delle
+# loro righe (ConsensoCookie::sale, CatenaDeiConsensi). Separato da APP_KEY,
+# che e' finita nella storia del repo e va ruotata. Non si cambia mai: un sale
+# nuovo fa risultare alterato tutto il registro (consensi:verifica). Impostato
+# il 02/10/2026; valore cifrato da DigitalOcean.
+- key: CONSENSI_SALE
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:jOF+Zt3fvt9s9zn0oTVYa59H0msM782b:1DQ0u83JsL0pIq0FeCB5OnlCiWh/PiuGGex2FVZVoTa20+aBtRF3QM2wTfyXLu2gnrhALTXHdauWAjrqGDM1rrsCF160bLh1eIZPa3bonyA=]
 - key: META_APP_SECRET
   scope: RUN_AND_BUILD_TIME
   type: SECRET

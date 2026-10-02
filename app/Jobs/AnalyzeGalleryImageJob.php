@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Exceptions\MediaProcessingException;
 use App\Models\GalleryImage;
 use App\Services\FacialRecognitionService;
+use App\Support\TestiSeoDellaFoto;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -184,85 +185,12 @@ class AnalyzeGalleryImageJob implements ShouldQueue
     /**
      * Ottimizza la foto per la SEO dopo il riconoscimento facciale.
      * Genera: titolo descrittivo, alt text, custom properties sulla media.
-     * Include sia Player che StaffMember riconosciuti.
+     * Include sia Player che StaffMember riconosciuti. Le regole stanno in
+     * TestiSeoDellaFoto, condivise con la revoca del riconoscimento.
      */
     protected function optimizeForSeo(): void
     {
-        $this->galleryImage->loadMissing(['players', 'staffMembers', 'galleryEvent']);
-        $allPersons = $this->galleryImage->players->concat($this->galleryImage->staffMembers);
-        $event = $this->galleryImage->galleryEvent;
-
-        // Costruisci i nomi delle persone riconosciute
-        $personNames = $allPersons->map->full_name->toArray();
-        $personLastNames = $allPersons->map->last_name->toArray();
-        $namesString = implode(', ', $personNames);
-
-        // Contesto dell'evento
-        $eventTitle = $event->title ?? '';
-        $category = $this->galleryImage->category ?? $event->category ?? 'Partite';
-        $eventDate = $event?->event_date?->format('d/m/Y') ?? '';
-
-        // --- 1. Titolo SEO strutturato ---
-        // Formato: "Bosetti, Gaspari - Partita vs Busto Arsizio 01/07/2026"
-        $titleParts = [];
-
-        if (! empty($personNames)) {
-            $titleParts[] = $namesString;
-        }
-
-        if (! empty($eventTitle)) {
-            $titleParts[] = $eventTitle;
-        }
-
-        if (! empty($eventDate)) {
-            $titleParts[] = $eventDate;
-        }
-
-        $seoTitle = implode(' - ', $titleParts);
-
-        if (! empty($seoTitle)) {
-            $this->galleryImage->title = $seoTitle;
-        }
-
-        // --- 2. Alt text sulla media Spatie ---
-        $media = $this->galleryImage->getFirstMedia('gallery');
-        if ($media) {
-            // Alt text descrittivo per Google Images
-            $altParts = ['Savino Del Bene Volley'];
-            if (! empty($personNames)) {
-                $altParts[] = $namesString;
-            }
-            if (! empty($eventTitle)) {
-                $altParts[] = $eventTitle;
-            }
-            $altText = implode(' - ', $altParts);
-
-            $media->setCustomProperty('alt', $altText);
-
-            // Description per SEO
-            $description = 'Foto ';
-            if (! empty($personNames)) {
-                $description .= 'di '.$namesString.' ';
-            }
-            $description .= 'della Savino Del Bene Volley';
-            if (! empty($eventTitle)) {
-                $description .= ' durante '.$eventTitle;
-            }
-            if (! empty($eventDate)) {
-                $description .= ' ('.$eventDate.')';
-            }
-            $media->setCustomProperty('description', $description);
-
-            // Keywords per ricerca interna
-            $keywords = array_merge(
-                ['Savino Del Bene', 'Volley', 'Serie A'],
-                $personLastNames,
-                [$category]
-            );
-            $media->setCustomProperty('keywords', implode(', ', $keywords));
-
-            $media->saveQuietly();
-        }
+        TestiSeoDellaFoto::applica($this->galleryImage);
 
         // Unico save del modello GalleryImage (include needs_review se settato)
         $this->galleryImage->saveQuietly();

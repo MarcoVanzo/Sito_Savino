@@ -8,6 +8,7 @@ use App\Support\FotoAlleggerita;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -210,6 +211,48 @@ class FacialRecognitionService
         $response = $this->richiesta(15)->delete($this->getBaseUrl().'/faces?subject='.urlencode($subjectName));
 
         return $response->successful();
+    }
+
+    /**
+     * Cancella da CompreFace il soggetto e tutte le sue impronte.
+     *
+     * Serve alla revoca del consenso (art. 9 GDPR): non basta svuotare gli
+     * esempi come fa "Resetta memoria volto", anche il soggetto se ne va.
+     * Prima gli esempi e poi il soggetto, cosi' se la seconda chiamata fallisce
+     * le impronte sono comunque sparite. Un soggetto che CompreFace non conosce
+     * (404, o 400 "not found") e' gia' cancellato: non e' un errore.
+     *
+     * @throws ConnectionException se CompreFace non risponde
+     * @throws FacialRecognitionException senza chiave o se CompreFace risponde con un errore
+     */
+    public function cancellaIlSoggetto(Model $person): void
+    {
+        if (empty($this->apiKey)) {
+            throw new FacialRecognitionException('CompreFace API Key non configurata.');
+        }
+
+        $soggetto = urlencode($this->getSubjectName($person));
+
+        $esempi = $this->richiesta(15)->delete($this->getBaseUrl().'/faces?subject='.$soggetto);
+        $this->verificaCancellazione($esempi);
+
+        $this->verificaCancellazione($this->richiesta(15)->delete($this->getBaseUrl().'/subjects/'.$soggetto));
+    }
+
+    /**
+     * @throws FacialRecognitionException
+     */
+    private function verificaCancellazione(Response $risposta): void
+    {
+        if ($risposta->successful() || $risposta->status() === 404) {
+            return;
+        }
+
+        if ($risposta->status() === 400 && str_contains(strtolower($risposta->body()), 'not found')) {
+            return;
+        }
+
+        throw new FacialRecognitionException("CompreFace API error (HTTP {$risposta->status()}): {$risposta->body()}");
     }
 
     /**

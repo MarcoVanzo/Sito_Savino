@@ -30,7 +30,10 @@ class CondizioniDiVendita
      * (`orders.condizioni_impronta`, vedi registraIstantanea()), perché la
      * redazione può riscrivere le pagine dal pannello senza toccare il codice.
      */
-    public const VERSIONE = '2026-09-25';
+    // 2026-10-02: pagamenti (metodi di Stripe, annullo dopo un'ora degli
+    // ordini non pagati), spedizione gratuita sopra la soglia, tempi di
+    // consegna come preparazione piu' spedizione.
+    public const VERSIONE = '2026-10-02';
 
     /**
      * La ragione sociale per esteso: venditore (art. 49 c. 1 lett. b) e

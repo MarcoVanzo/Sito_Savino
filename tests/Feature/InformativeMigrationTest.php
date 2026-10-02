@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -252,5 +253,36 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('placeholder', $this->testo('cookie-policy', 'en'));
         $this->assertStringContainsString('si caricano solo se lo chiedi', $this->testo('privacy-policy'));
         $this->assertStringContainsString('they only load if you ask', $this->testo('privacy-policy', 'en'));
+    }
+
+    public function test_la_privacy_policy_dice_le_finalita_degli_acquisti(): void
+    {
+        // La riga sugli acquisti della versione del 26 settembre.
+        $this->scriviIlTesto('privacy-policy', [
+            'it' => "<p>servono a concludere e gestire l'acquisto, a dare seguito al recesso e a rispettare gli obblighi fiscali. Base giuridica: esecuzione del contratto e obbligo di legge.</p>",
+            'en' => '<p>used to complete and manage the purchase, to handle withdrawal and to meet tax obligations. Legal basis: performance of the contract and legal obligation.</p>',
+        ]);
+
+        (require database_path('migrations/2026_10_02_120000_l_informativa_dice_le_finalita_degli_acquisti.php'))->up();
+
+        $this->assertStringContainsString('<h3 id="acquisti">', $this->testo('privacy-policy'));
+        $this->assertStringContainsString('Avvisare la società del nuovo ordine', $this->testo('privacy-policy'));
+        $this->assertStringContainsString('senza indirizzo IP né identificativo di sessione', $this->testo('privacy-policy'));
+        $this->assertStringContainsString('<h3 id="acquisti">', $this->testo('privacy-policy', 'en'));
+    }
+
+    public function test_dagli_eventi_dello_shop_spariscono_ip_e_sessione(): void
+    {
+        $utente = User::factory()->create();
+        DB::table('shop_events')->insert([
+            ['event_type' => 'view', 'user_id' => $utente->id, 'session_id' => 'abc', 'ip_address' => '203.0.113.7', 'created_at' => now()],
+            ['event_type' => 'begin_checkout', 'user_id' => $utente->id, 'session_id' => 'abc', 'ip_address' => '203.0.113.7', 'created_at' => now()],
+        ]);
+
+        (require database_path('migrations/2026_10_02_120000_l_informativa_dice_le_finalita_degli_acquisti.php'))->up();
+
+        $this->assertSame(0, DB::table('shop_events')->whereNotNull('ip_address')->orWhereNotNull('session_id')->count());
+        $this->assertNull(DB::table('shop_events')->where('event_type', 'view')->value('user_id'));
+        $this->assertSame($utente->id, DB::table('shop_events')->where('event_type', 'begin_checkout')->value('user_id'));
     }
 }

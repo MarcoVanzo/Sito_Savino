@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\StaffType;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
+use App\Services\RevocaDelRiconoscimentoDeiVolti;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -45,6 +46,11 @@ class StaffMember extends Model implements HasMedia
                 $member->sort_order = (int) static::query()->max('sort_order') + 1;
             }
         });
+
+        // Cancellata la scheda, del riconoscimento dei volti non deve restare
+        // niente: impronte su CompreFace, tag automatici, nome nei testi
+        // generati delle foto (§21, art. 9 GDPR).
+        static::deleted(fn (self $member) => app(RevocaDelRiconoscimentoDeiVolti::class)->allaCancellazione($member));
     }
 
     public function getFullNameAttribute()

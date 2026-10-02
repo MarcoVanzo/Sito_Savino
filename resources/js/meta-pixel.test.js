@@ -47,8 +47,25 @@ describe('meta pixel', () => {
         initMetaPixel('2048882385693445');
 
         expect(pixelScripts()).toHaveLength(1);
-        expect(calls()[0]).toEqual(['init', '2048882385693445']);
-        expect(calls()[1]).toEqual(['track', 'PageView']);
+        expect(calls()[0]).toEqual(['set', 'autoConfig', false, '2048882385693445']);
+        expect(calls()[1]).toEqual(['init', '2048882385693445']);
+        expect(calls()[2]).toEqual(['track', 'PageView']);
+    });
+
+    it('spegne l\'advanced matching automatico prima di init', async () => {
+        // Senza, lo script di Meta legge da solo i campi dei moduli (l'email
+        // del checkout): deve arrivare prima di `init`, o non vale.
+        const { initMetaPixel } = await freshModule();
+
+        initMetaPixel('2048882385693445');
+
+        const chiamate = calls();
+        const autoConfig = chiamate.findIndex((c) => c[0] === 'set' && c[1] === 'autoConfig');
+        const init = chiamate.findIndex((c) => c[0] === 'init');
+
+        expect(autoConfig).toBeGreaterThanOrEqual(0);
+        expect(chiamate[autoConfig]).toEqual(['set', 'autoConfig', false, '2048882385693445']);
+        expect(autoConfig).toBeLessThan(init);
     });
 
     it('dopo la revoca non manda più eventi, e lo dice allo script', async () => {

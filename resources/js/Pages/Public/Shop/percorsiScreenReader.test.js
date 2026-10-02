@@ -136,7 +136,9 @@ describe('checkout con errori', () => {
         expect(avviso).toBeLessThan(indice(frasi, 'textbox, Nome e Cognome'));
         expect(frasi).toContain('heading, Passo 1 di 2: Dati Spedizione, level 2');
         expect(frasi.some((f) => /^textbox, Telefono \*, Campo obbligatorio, invalid, .*required$/.test(f))).toBe(true);
-        expect(frasi.some((f) => /^combobox, Via \/ Indirizzo \*, Campo obbligatorio, .*invalid, required$/.test(f))).toBe(true);
+        // L'indirizzo e' un campo di testo come gli altri: il suggeritore
+        // OpenStreetMap (un combobox) e' stato tolto, la CSP lo bloccava.
+        expect(frasi.some((f) => /^textbox, Via \/ Indirizzo \*, Campo obbligatorio, .*invalid, .*required$/.test(f))).toBe(true);
         // Icone e numeri dei passi non si leggono piu' come contenuto.
         expect(frasi).not.toContain('graphics-document');
         expect(frasi).not.toContain('1');

@@ -38,8 +38,32 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasFactory, LogsActivity, Notifiable;
 
-    /** Campi esclusi dal log (dati sensibili). */
-    protected array $logExclude = ['password', 'remember_token'];
+    /**
+     * Il registro guarda solo ciò che fa lo staff del pannello: registrazioni,
+     * profili modificati dai clienti e verifiche delle carte non vi entrano.
+     * Anche dalle azioni dello staff restano fuori recapiti e credenziali.
+     */
+    protected bool $logSoloDalPannello = true;
+
+    /** @var list<string> */
+    protected array $logExclude = [
+        'name', 'email', 'phone', 'address',
+        'password', 'remember_token', 'stripe_customer_id',
+    ];
+
+    /**
+     * Etichetta della riga di registro: il nome per gli account dello staff,
+     * che sono chi lavora nel pannello; per i clienti solo il numero, come
+     * dopo la cancellazione dell'account (`DatiDelCliente::cancella`).
+     */
+    public function etichettaPerIlRegistro(): string
+    {
+        // Valore grezzo, come in `creating`: appena creato il modello non ha
+        // il ruolo se lo ha messo il default della colonna.
+        $ruolo = UserRole::tryFrom((string) ($this->getAttributes()['role'] ?? ''));
+
+        return $ruolo?->canAccessPanel() ? (string) $this->name : 'Cliente #'.$this->getKey();
+    }
 
     protected static function booted(): void
     {

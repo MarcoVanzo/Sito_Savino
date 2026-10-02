@@ -202,14 +202,14 @@ class DatiDelCliente
     /**
      * Cancella l'account e ciò che il registro delle attività ne ricorda.
      *
-     * Il modello `User` passa da `LogsActivity`, che alla creazione e a ogni
-     * modifica copia nome, email, telefono e indirizzo in
-     * `activity_logs.changes`, e il nome in `model_label`: senza questo passo
-     * quei dati sopravvivrebbero alla cancellazione per i 180 giorni del
-     * registro. Le righe restano (dicono che un account è esistito ed è stato
-     * cancellato), senza dati personali; lo stesso per IP e browser delle
-     * azioni fatte dal cliente, che dopo la cancellazione non si
-     * ritroverebbero più (`user_id` va a null).
+     * Dal 02/10/2026 `LogsActivity` registra solo le azioni dello staff e
+     * tiene fuori i campi personali di `User`; fino ad allora copiava nome,
+     * email, telefono e indirizzo in `activity_logs.changes`, e il nome in
+     * `model_label`. Questo passo resta per le righe vecchie e per quelle
+     * scritte da un admin sull'account: senza, sopravvivrebbero alla
+     * cancellazione per i 180 giorni del registro. Le righe restano (dicono
+     * che un account è esistito ed è stato cancellato), senza dati personali;
+     * lo stesso per IP e browser (`user_id` va a null).
      *
      * Gli ordini restano (conservazione fiscale, `user_id` a null), ma prima
      * ricevono nome ed email dell'account dove non li hanno: l'ordine d'asta

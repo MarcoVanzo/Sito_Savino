@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\StaffMemberResource\Pages;
 
+use App\Filament\Actions\RevocaRiconoscimentoVoltiAction;
 use App\Filament\Resources\StaffMemberResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -17,6 +18,7 @@ class EditStaffMember extends EditRecord
     {
         return [
             Actions\LocaleSwitcher::make(),
+            RevocaRiconoscimentoVoltiAction::perLaScheda(),
             Actions\DeleteAction::make(),
         ];
     }

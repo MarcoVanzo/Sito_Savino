@@ -37,6 +37,23 @@ class Order extends Model
     use HasFactory, LogsActivity, SoftDeletes;
 
     /**
+     * Nel registro entrano solo le azioni dello staff (stato, spedizione,
+     * rimborsi dal pannello): checkout, webhook e job no, perché il registro
+     * non è un archivio dei clienti. Per lo stesso motivo restano fuori i
+     * recapiti e il token che apre l'ordine senza login.
+     */
+    protected bool $logSoloDalPannello = true;
+
+    /** @var list<string> */
+    protected array $logExclude = [
+        'guest_email', 'guest_name', 'guest_phone', 'phone',
+        'shipping_address', 'billing_address', 'country', 'billing_country',
+        'codice_fiscale', 'notes', 'order_token',
+    ];
+
+    protected string $logLabelField = 'order_number';
+
+    /**
      * Note: payment_id, status, paid_at and auction_id are intentionally
      * excluded from $fillable to prevent mass-assignment of sensitive fields.
      * Set status and auction_id via service code, paid_at via webhook handlers.

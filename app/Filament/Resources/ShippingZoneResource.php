@@ -58,7 +58,12 @@ class ShippingZoneResource extends Resource
                             ->numeric()
                             ->prefix('€')
                             ->nullable()
-                            ->helperText('Lasciare vuoto per disabilitare'),
+                            // La soglia globale delle Impostazioni Shop, se
+                            // compilata, vince su questa (ShippingZone::sogliaGratuita):
+                            // va detto qui, o la redazione cambia un numero che non conta.
+                            ->helperText(fn (): string => ShippingZone::sogliaGlobale() !== null
+                                ? 'Ora non conta: vale la soglia globale di '.number_format(ShippingZone::sogliaGlobale(), 2, ',', '.').' € delle Impostazioni Shop. Svuotala lì per usare questa.'
+                                : 'Lasciare vuoto per disabilitare. Se si compila la soglia globale nelle Impostazioni Shop, vale quella per tutte le zone.'),
                         Forms\Components\TextInput::make('estimated_days_min')
                             ->label('Giorni Min')
                             ->numeric(),

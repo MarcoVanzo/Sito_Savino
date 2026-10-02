@@ -39,11 +39,10 @@ class ShopSettingsPage extends BaseSettingsPage
     /**
      * Le chiavi in cui "vuoto" è una scelta, non una mancanza.
      *
-     * Senza soglia qui, il carrello usa quella della zona di spedizione
-     * (CartController::sogliaDellaSpedizioneGratuita). Proporre i 50 € del
-     * seeder significherebbe scriverli al primo Salva e far promettere al
-     * carrello una spedizione gratuita che il checkout — che applica la
-     * soglia della zona — non concede.
+     * Senza soglia qui vale quella di ciascuna zona di spedizione
+     * (ShippingZone::sogliaGratuita). Proporre i 50 € del seeder
+     * significherebbe scriverli al primo Salva e cambiare la soglia di tutte
+     * le zone senza che nessuno l'abbia deciso.
      *
      * @var list<string>
      */
@@ -108,7 +107,7 @@ class ShopSettingsPage extends BaseSettingsPage
                             ->label('Soglia spedizione gratuita (€)')
                             ->numeric()
                             ->minValue(0)
-                            ->helperText('Lascia vuoto per usare la soglia della zona di spedizione: un valore qui vale per tutti i paesi e ha la precedenza.'),
+                            ->helperText('Se compilata vale per tutte le zone di spedizione al posto della loro soglia, in carrello, al checkout (shop e aste) e nella pagina Spedizioni. Lascia vuoto per usare la soglia di ciascuna zona.'),
                         TextInput::make('shop.default_item_weight_kg')
                             ->label('Peso di ripiego per articolo (kg)')
                             ->numeric()

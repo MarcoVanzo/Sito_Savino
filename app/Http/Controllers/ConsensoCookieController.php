@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\ConsensoCookie;
+use App\Models\VersioneTestiConsenso;
+use App\Services\CatenaDeiConsensi;
+use App\Support\TestiDelConsenso;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -43,12 +46,21 @@ class ConsensoCookieController extends Controller
         $dati = $validatore->validated();
         $primaVolta = empty($dati['riferimento']);
 
-        $consenso = ConsensoCookie::create([
+        // Che cosa diceva il sito quando il visitatore ha scelto: banner,
+        // pannello, Cookie Policy ed elenco dei cookie, archiviati una volta
+        // per versione (EDPB 05/2020 §108). Il consenso porta l'impronta.
+        $improntaTesti = VersioneTestiConsenso::archivia(
+            VersioneTestiConsenso::TIPO_COOKIE,
+            TestiDelConsenso::perICookie(),
+        );
+
+        $consenso = CatenaDeiConsensi::registra([
             'riferimento' => $dati['riferimento'] ?? ConsensoCookie::nuovoRiferimento(),
-            'statistiche' => $dati['statistiche'],
-            'marketing' => $dati['marketing'],
+            'statistiche' => (bool) $dati['statistiche'],
+            'marketing' => (bool) $dati['marketing'],
             'azione' => ConsensoCookie::azionePer((bool) $dati['statistiche'], (bool) $dati['marketing'], $primaVolta),
             'versione' => ConsensoCookie::VERSIONE,
+            'impronta_testi' => $improntaTesti,
             'locale' => app()->getLocale(),
             // La colonna sta a 255: un user agent più lungo di così è
             // un'anomalia, e troncarlo vale più che rifiutare il consenso.

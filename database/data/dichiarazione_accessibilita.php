@@ -34,7 +34,7 @@ return [
 <p>Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata (sede in Via Benozzo Gozzoli 5/6, 50018 Scandicci (FI), P. IVA 06271460484) si impegna a rendere il proprio sito e lo shop online accessibili a tutte le persone, comprese le persone con disabilità, in conformità al decreto legislativo 27 maggio 2022, n. 82, che recepisce la direttiva (UE) 2019/882 (European Accessibility Act).</p>
 
 <h2>Il servizio</h2>
-<p>Questa dichiarazione riguarda il sito della Savino Del Bene Volley e il suo shop online, dove si acquistano prodotti ufficiali e si partecipa alle aste di beneficenza: consultazione del catalogo, carrello, checkout, pagamento, area personale, recesso online e aste.</p>
+<p>Questa dichiarazione riguarda il sito della Savino Del Bene Volley e il suo shop online, dove si acquistano prodotti ufficiali e si partecipa alle aste online: consultazione del catalogo, carrello, checkout, pagamento, area personale, recesso online e aste.</p>
 
 <h2>Norma di riferimento e stato di conformità</h2>
 <p>Il riferimento tecnico è la norma europea EN 301 549, che per i siti web coincide con le Web Content Accessibility Guidelines (WCAG) 2.1, livello AA. Il sito è <strong>parzialmente conforme</strong>: buona parte dei requisiti è rispettata, con le eccezioni elencate più avanti.</p>
@@ -57,7 +57,7 @@ return [
 <h2>Contenuti non ancora accessibili</h2>
 <ul>
 <li><strong>Documenti PDF della società</strong>: il Modello organizzativo e il Bilancio di sostenibilità 2024/25 non hanno la struttura (tag) che serve agli screen reader; i Protocolli di Safeguarding sono strutturati e dichiarano la lingua, ma non hanno un titolo del documento. I loghi delle cartelle stampa sono file grafici. Su richiesta forniamo una versione accessibile di qualunque documento.</li>
-<li><strong>PDF delle condizioni allegato alla conferma d'ordine</strong>: dichiara titolo e lingua ma non è strutturato; lo stesso testo è pubblicato come pagine accessibili, <a href="/condizioni-di-vendita">Condizioni di vendita</a> e <a href="/diritto-di-recesso">Diritto di recesso</a>.</li>
+<li><strong>PDF delle condizioni allegato alla conferma d'ordine e ricevuta PDF dell'ordine</strong>: dichiarano titolo e lingua ma non sono strutturati; i dati dell'ordine sono anche nella pagina di conferma e nell'area personale, e il testo delle condizioni è pubblicato come pagine accessibili, <a href="/condizioni-di-vendita">Condizioni di vendita</a> e <a href="/diritto-di-recesso">Diritto di recesso</a>.</li>
 <li><strong>Archivio fotografico storico</strong>: le descrizioni di parte delle foto sono generate in automatico (nome dell'evento e delle atlete riconosciute) e possono essere poco descrittive.</li>
 <li><strong>Testi sopra fotografie e sfumature</strong>: il controllo automatico non riesce a misurarne il contrasto; li verifichiamo a vista e alcuni potrebbero restare sotto la soglia.</li>
 <li><strong>Mappe e contenuti di terze parti</strong>: le mappe di Google e i video incorporati (YouTube e simili) e le pagine di pagamento di PayPal e Stripe dipendono dai rispettivi fornitori e non sono sotto il nostro controllo.</li>
@@ -78,7 +78,7 @@ HTML,
 <p>Pallavolo Scandicci Savino Del Bene Società Sportiva Dilettantistica a Responsabilità Limitata (registered office Via Benozzo Gozzoli 5/6, 50018 Scandicci (FI), Italy, VAT number IT06271460484) is committed to making its website and online shop accessible to everyone, including people with disabilities, in accordance with Italian Legislative Decree 82/2022, which transposes Directive (EU) 2019/882 (European Accessibility Act).</p>
 
 <h2>The service</h2>
-<p>This statement covers the Savino Del Bene Volley website and its online shop, where official products are sold and charity auctions are held: product catalogue, cart, checkout, payment, personal area, online withdrawal and auctions.</p>
+<p>This statement covers the Savino Del Bene Volley website and its online shop, where official products are sold and online auctions are held: product catalogue, cart, checkout, payment, personal area, online withdrawal and auctions.</p>
 
 <h2>Standard and compliance status</h2>
 <p>The technical reference is the European standard EN 301 549, which for websites corresponds to the Web Content Accessibility Guidelines (WCAG) 2.1, level AA. The site is <strong>partially compliant</strong>: a large part of the requirements is met, with the exceptions listed below.</p>
@@ -101,7 +101,7 @@ HTML,
 <h2>Content that is not yet accessible</h2>
 <ul>
 <li><strong>Club PDF documents</strong>: the Organisational Model and the 2024/25 Sustainability Report lack the structure (tags) screen readers need; the Safeguarding protocols are structured and declare their language but have no document title. The press-kit logos are graphic files. We provide an accessible version of any document on request.</li>
-<li><strong>Terms PDF attached to the order confirmation</strong>: it declares title and language but is not structured; the same text is published as accessible pages, <a href="/en/condizioni-di-vendita">Terms of sale</a> and <a href="/en/diritto-di-recesso">Right of withdrawal</a>.</li>
+<li><strong>Terms PDF attached to the order confirmation and order receipt PDF</strong>: they declare title and language but are not structured; the order details are also on the confirmation page and in the personal area, and the terms is published as accessible pages, <a href="/en/condizioni-di-vendita">Terms of sale</a> and <a href="/en/diritto-di-recesso">Right of withdrawal</a>.</li>
 <li><strong>Historical photo archive</strong>: the descriptions of some photos are generated automatically (event name and recognised players) and may not be very descriptive.</li>
 <li><strong>Text over photos and gradients</strong>: the automated check cannot measure its contrast; we check it visually and some may remain below the threshold.</li>
 <li><strong>Maps and third-party content</strong>: Google maps, embedded videos (YouTube and similar) and the PayPal and Stripe payment pages depend on their providers and are outside our control.</li>

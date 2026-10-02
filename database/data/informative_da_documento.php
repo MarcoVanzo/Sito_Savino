@@ -64,7 +64,7 @@ return [
 </ul>
 <p>Puoi chiedere l'elenco dei Paesi extra SEE scrivendo a {$posta}.</p>
 <h2>Conservazione dei dati</h2>
-<p>I dati personali trattati per le finalità indicate sono conservati per 24 mesi dalla data in cui hai prestato il consenso.</p>
+<p>I dati personali trattati per le finalità indicate sono conservati finché non revochi il consenso. Per la newsletter del sito, dopo la disiscrizione restano per 24 mesi solo l'email e le date di iscrizione, conferma e revoca, come prova del consenso; poi si cancellano.</p>
 <h2>Diritti dell'interessato</h2>
 <p>In ogni momento, gratuitamente e senza formalità particolari, puoi:</p>
 <ul>
@@ -105,7 +105,7 @@ HTML,
 </ul>
 <p>You can ask for the list of non-EEA countries by writing to {$posta}.</p>
 <h2>Data retention</h2>
-<p>Personal data processed for the purposes above are kept for 24 months from the date you gave your consent.</p>
+<p>Personal data processed for the purposes above are kept until you withdraw your consent. For the site newsletter, after you unsubscribe only your email and the dates of subscription, confirmation and withdrawal are kept for 24 months as proof of consent; then they are deleted.</p>
 <h2>Your rights</h2>
 <p>At any time, free of charge and without particular formalities, you can:</p>
 <ul>
@@ -133,8 +133,8 @@ HTML,
             'en' => 'Supplier privacy notice',
         ],
         'descrizione' => [
-            'it' => 'Informativa privacy (art. 13 GDPR) per clienti e fornitori della Savino Del Bene Volley: finalità, destinatari, conservazione e diritti.',
-            'en' => 'Privacy notice (art. 13 GDPR) for Savino Del Bene Volley customers and suppliers: purposes, recipients, retention and rights.',
+            'it' => 'Informativa privacy (art. 13 GDPR) per fornitori e controparti contrattuali della Savino Del Bene Volley; gli acquisti sullo shop sono descritti nella Privacy Policy.',
+            'en' => 'Privacy notice (art. 13 GDPR) for Savino Del Bene Volley suppliers and contractual counterparties; shop purchases are described in the Privacy Policy.',
         ],
         'firme' => [],
         'contenuto' => [

@@ -273,6 +273,9 @@
                     @if($customerPhone)
                         <div class="line">{{ $customerPhone }}</div>
                     @endif
+                    @if($order->codice_fiscale)
+                        <div class="line">Codice fiscale {{ $order->codice_fiscale }}</div>
+                    @endif
                 </td>
                 <td>
                     <div class="section-title">Spedizione a</div>

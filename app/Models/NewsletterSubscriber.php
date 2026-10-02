@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Jobs\SyncNewsletterToActiveCampaign;
 use App\Jobs\UnsubscribeNewsletterFromActiveCampaign;
+use App\Support\TestiDelConsenso;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\MassPrunable;
@@ -25,11 +26,33 @@ class NewsletterSubscriber extends Model
      */
     public const GIORNI_PER_CONFERMARE = 30;
 
+    /**
+     * Dopo la disiscrizione la riga resta ventiquattro mesi, senza nome né IP
+     * (vedi unsubscribe()): email e date di richiesta, conferma e revoca sono
+     * la prova del consenso e della sua revoca per eventuali contestazioni.
+     * Poi si cancella.
+     */
+    public const MESI_DOPO_LA_DISISCRIZIONE = 24;
+
+    /**
+     * Il motivo di unsubscribe() per chi è uscito dal Preference Center o dal
+     * link di una campagna (comando `newsletter:allinea-disiscritti`).
+     */
+    public const DISISCRITTO_SU_ACTIVECAMPAIGN = 'activecampaign';
+
     public function prunable(): Builder
     {
-        return static::whereNull('confermato_il')
-            ->whereNull('ac_contact_id')
-            ->where('subscribed_at', '<', now()->subDays(self::GIORNI_PER_CONFERMARE));
+        return static::where(function (Builder $query) {
+            $query->whereNull('confermato_il')
+                ->whereNull('ac_contact_id')
+                ->where('subscribed_at', '<', now()->subDays(self::GIORNI_PER_CONFERMARE));
+        })->orWhere(function (Builder $query) {
+            // Una richiesta d'iscrizione più recente, ancora nei suoi trenta
+            // giorni, aspetta la conferma: la riga non si toglie sotto i piedi
+            // di chi sta per cliccare.
+            $query->where('unsubscribed_at', '<', now()->subMonths(self::MESI_DOPO_LA_DISISCRIZIONE))
+                ->where('subscribed_at', '<', now()->subDays(self::GIORNI_PER_CONFERMARE));
+        });
     }
 
     protected $fillable = [
@@ -43,6 +66,8 @@ class NewsletterSubscriber extends Model
         'subscribed_at',
         'confermato_il',
         'unsubscribed_at',
+        'impronta_testi_modulo',
+        'impronta_testi_conferma',
     ];
 
     protected function casts(): array
@@ -155,7 +180,13 @@ class NewsletterSubscriber extends Model
         // d'iscrizione da sola non cancella la disiscrizione, altrimenti
         // chiunque scrivendo l'indirizzo nel modulo cancellerebbe la prova
         // che il titolare era uscito dalla lista.
-        $this->update(['confermato_il' => now(), 'unsubscribed_at' => null]);
+        // Il testo che si accetta cliccando (pagina di conferma, email con il
+        // pixel, informativa): è questo clic a rendere valido il consenso.
+        $this->update([
+            'confermato_il' => now(),
+            'unsubscribed_at' => null,
+            'impronta_testi_conferma' => TestiDelConsenso::archiviaPerLaNewsletter(),
+        ]);
 
         SyncNewsletterToActiveCampaign::dispatch($this);
 
@@ -198,9 +229,20 @@ class NewsletterSubscriber extends Model
             return false;
         }
 
-        $this->update(['unsubscribed_at' => now()]);
+        // Nome e IP servivano all'iscrizione: con la revoca si cancellano
+        // subito. Restano email e date, la prova di consenso e revoca, fino
+        // alla potatura (prunable()). Tutti i percorsi passano di qui: il link
+        // nelle email e le azioni del pannello.
+        $this->update([
+            'unsubscribed_at' => now(),
+            'first_name' => null,
+            'last_name' => null,
+            'ip_address' => null,
+        ]);
 
-        if ($this->ac_contact_id) {
+        // Se l'uscita viene da ActiveCampaign, lì è già fatta: rimandarla
+        // sarebbe una chiamata inutile.
+        if ($this->ac_contact_id && $reason !== self::DISISCRITTO_SU_ACTIVECAMPAIGN) {
             UnsubscribeNewsletterFromActiveCampaign::dispatch((int) $this->ac_contact_id, $this->email);
         }
 
