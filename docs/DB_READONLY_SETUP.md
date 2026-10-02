@@ -86,7 +86,7 @@ Una `INSERT`/`UPDATE`/`DELETE` con questo utente deve fallire con
 
 ## 3. Per il connettore MCP
 
-Nel blocco JSON del `CLAUDE.md` (§4) usa `readonly_savino`, `MYSQL_PORT=25060`,
+Nella configurazione del connettore (`CLAUDE.md` §2) usa `readonly_savino`, `MYSQL_PORT=25060`,
 `MYSQL_DB=defaultdb`, host reale, e password **da variabile d'ambiente** (mai in chiaro).
 Per la verifica completa del certificato, se il server MCP lo supporta, passagli anche il
 percorso di `ca-certificate.crt` (vedi la doc del pacchetto MCP scelto); in alternativa
