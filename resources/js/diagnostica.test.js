@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const init = vi.fn();
 vi.mock('@sentry/vue', () => ({ init }));
 
-const { avviaLaDiagnostica, opzioniDiSentry, ripulisciIndirizzo, TUNNEL } = await import('./diagnostica.js');
+const { avviaLaDiagnostica, opzioniDiSentry, ripulisciIndirizzo, TUNNEL, vieneDaCodiceIniettato } =
+    await import('./diagnostica.js');
 
 describe('diagnostica', () => {
     beforeEach(() => init.mockClear());
@@ -95,5 +96,53 @@ describe('diagnostica', () => {
             contexts: { vue: { componentName: 'Checkout', propsData: { email: 'a@b.it' } } },
         });
         expect(evento.contexts.vue).toEqual({ componentName: 'Checkout' });
+    });
+
+    it('scarta gli errori di codice iniettato nella pagina, non i nostri', () => {
+        // Sentry, 3/10/2026: RangeError «dalla riga 190» di una notizia il cui
+        // HTML ha 91 righe, da Chrome iOS su un IP DigitalOcean.
+        const pagina = '/news/una-notizia';
+        const iniettato = {
+            exception: {
+                values: [
+                    {
+                        stacktrace: {
+                            frames: [
+                                { filename: pagina, lineno: 226 },
+                                { filename: pagina, lineno: 190 },
+                            ],
+                        },
+                    },
+                ],
+            },
+        };
+        const nostro = {
+            exception: {
+                values: [
+                    {
+                        stacktrace: {
+                            frames: [
+                                { filename: pagina },
+                                { filename: 'https://sito.test/build/assets/app-OT06btD8.js?v=1' },
+                            ],
+                        },
+                    },
+                ],
+            },
+        };
+
+        expect(vieneDaCodiceIniettato(iniettato)).toBe(true);
+        expect(vieneDaCodiceIniettato(nostro)).toBe(false);
+        expect(vieneDaCodiceIniettato({ exception: { values: [{}] } })).toBe(false);
+        expect(vieneDaCodiceIniettato({ message: 'x' })).toBe(false);
+
+        const opzioni = opzioniDiSentry({
+            app: {},
+            dsn: 'x',
+            environment: 'test',
+            origine: 'https://sito.test',
+        });
+        expect(opzioni.beforeSend(iniettato)).toBeNull();
+        expect(opzioni.beforeSend(nostro)).toBe(nostro);
     });
 });
