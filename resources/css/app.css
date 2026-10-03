@@ -118,3 +118,44 @@ html {
         scroll-behavior: auto;
     }
 }
+
+/* <dialog> sui browser che non lo conoscono (iOS < 15.4): vedi
+   resources/js/Support/dialogDiRipiego.js. Senza top layer la finestra modale
+   sta sopra con fixed e z-index; lo sfondo e' .dialog-ripiego-sfondo. Le
+   misure predefinite stanno in :where() (specificita' zero): vincono quelle
+   dei componenti, come con le regole del browser. */
+dialog:not([open]) {
+    display: none;
+}
+
+dialog[data-ripiego='modale'] {
+    position: fixed;
+    z-index: 2147483001;
+}
+
+:where(dialog[data-ripiego='modale']) {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+    width: -webkit-fit-content;
+    width: fit-content;
+    height: -webkit-fit-content;
+    height: fit-content;
+    max-width: calc(100% - 2em);
+    max-height: calc(100% - 2em);
+    overflow: auto;
+    background: #fff;
+    color: #000;
+}
+
+.dialog-ripiego-sfondo {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2147483000;
+    background: rgb(0 0 0 / 0.8);
+}

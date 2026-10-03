@@ -12,9 +12,12 @@ import { initAnalytics, trackPageView } from './analytics.js';
 import { initMetaPixel, trackPageView as trackPixelPageView } from './meta-pixel.js';
 import { leggiIlConsenso } from './consenso.js';
 import { avviaLaDiagnostica } from './diagnostica.js';
+import { installaDialogDiRipiego } from './Support/dialogDiRipiego.js';
 
 // Prima di tutto il resto: anche la prima pagina Inertia si carica su richiesta.
 ricaricaDopoIlRilascio();
+// iOS < 15.4 non ha <dialog>: senza, ogni showModal() del sito va in errore.
+installaDialogDiRipiego();
 
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
