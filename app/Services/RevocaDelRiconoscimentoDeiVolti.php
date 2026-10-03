@@ -150,9 +150,11 @@ class RevocaDelRiconoscimentoDeiVolti
      * si rifanno se l'analisi li aveva scritti. Il titolo la redazione lo puo'
      * cambiare: si rifa' solo se e' ancora quello generato con questo nome.
      *
+     * Pubblico: lo usa anche `volti:togli-fuori-stagione`.
+     *
      * @return bool false se il titolo nomina ancora la persona e non e' nostro
      */
-    private function ripulisciITesti(GalleryImage $foto, string $nome): bool
+    public function ripulisciITesti(GalleryImage $foto, string $nome): bool
     {
         $foto->unsetRelation('players')->unsetRelation('staffMembers');
         $testi = TestiSeoDellaFoto::componi($foto);
