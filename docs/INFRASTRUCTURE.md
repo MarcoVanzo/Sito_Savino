@@ -29,6 +29,7 @@ python3 scripts/genera-infrastructure-html.py: non si modifica a mano. -->
 7. [Performance e OPcache](#7-performance-e-opcache)
 8. [Costi](#8-costi)
 9. [Backup e Sicurezza](#9-backup-e-sicurezza)
+10. [Account della società](#10-account-della-società)
 
 ---
 
@@ -950,3 +951,22 @@ regole: `sito-savino-down` (giù da 2 minuti), `sito-savino-latenza` (oltre
 scadenza entro 14 giorni). Le email vanno a `marco@mv-consulting.it`: come per
 gli alert dell'app, DigitalOcean le manda solo a membri del team. Il workflow
 orario resta come seconda strada, indipendente da DigitalOcean.
+
+---
+
+## 10. Account della società
+
+I servizi del progetto che stanno su account della società. Le utenze di
+accesso compaiono solo nella versione PDF consegnata alla società, non nel
+repository, che è pubblico.
+
+| Servizio | A cosa serve |
+|----------|--------------|
+| **DigitalOcean** (team «Savino del Bene Volley») | Hosting del sito, database, Spaces, droplet CompreFace, backup gestiti |
+| **Stripe** (Pallavolo Scandicci Savino Del Bene SSDRL) | Pagamenti con carta, wallet e Klarna di shop e aste |
+| **PayPal** (conto business della società) | Pagamenti PayPal di shop e aste |
+| **Resend** (team `savinodelbene`) | Invio delle email del sito dal dominio `savinodelbenevolley.it` |
+| **ActiveCampaign** (`savinodelbenevolley`) | Newsletter: liste, automazioni, Preference Center |
+| **Meta** (portfolio «Savino Del Bene Volley», app «Savino Analytics») | Statistiche di Facebook e Instagram, Pixel |
+| **DNS di `savinodelbenevolley.it`** | Gestito dall'IT della Spa: record del sito e della posta (Resend, DMARC) |
+
