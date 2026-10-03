@@ -45,7 +45,36 @@ export function ripulisciIndirizzo(indirizzo) {
         .replace(SEGMENTI_SEGRETI, (_, segmento) => `/${segmento}/[nascosto]`);
 }
 
+/**
+ * Un errore che non passa da nessun nostro file.
+ *
+ * `allowUrls` guarda il file di ogni riga dello stack, ma il codice che un
+ * browser o un'estensione infila nella pagina (Chrome su iOS, i bot che si
+ * spacciano per lui) risulta scritto nella pagina stessa: righe 190 e oltre di
+ * un HTML che ne ha 91. Il nostro codice sta tutto in file `.js` (in sviluppo
+ * anche `.vue`/`.ts`); nella pagina ci sono solo Ziggy e i dati strutturati.
+ * Senza stack non si può dire, e l'errore passa.
+ */
+const NOSTRI_FILE = /\.(m?js|vue|ts)(\?|#|$)/;
+
+export function vieneDaCodiceIniettato(evento) {
+    const righe = (evento.exception?.values ?? []).flatMap(
+        (eccezione) => eccezione.stacktrace?.frames ?? [],
+    );
+    const conFile = righe.filter(
+        (riga) => typeof riga.filename === 'string' && riga.filename !== '',
+    );
+
+    return (
+        conFile.length > 0 && !conFile.some((riga) => NOSTRI_FILE.test(riga.filename.split('?')[0]))
+    );
+}
+
 function ripulisciEvento(evento) {
+    if (vieneDaCodiceIniettato(evento)) {
+        return null;
+    }
+
     // Le props del componente in errore possono contenere dati del cliente
     // (indirizzo, email, righe dell'ordine): `attachProps: false` le spegne
     // alla fonte, questa riga le toglie se un'altra strada le rimette.

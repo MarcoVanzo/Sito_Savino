@@ -106,7 +106,11 @@ class SiteSetting extends Model
      */
     public static function getAllCached(): array
     {
-        return Cache::remember(self::CACHE_KEY.'_'.app()->getLocale(), self::CACHE_TTL, function () {
+        // `memo()`: dentro la stessa richiesta (o job) il valore resta in
+        // memoria. Col driver `database` ogni get() era una SELECT sulla
+        // tabella cache: una pagina dello shop ne faceva una per prodotto
+        // (GuidaTaglie, peso di spedizione) e Sentry la segnalava come N+1.
+        return Cache::memo()->remember(self::CACHE_KEY.'_'.app()->getLocale(), self::CACHE_TTL, function () {
             return static::pluck('value', 'key')
                 ->map(fn ($value) => static::resolveForLocale($value))
                 ->toArray();
@@ -118,7 +122,7 @@ class SiteSetting extends Model
      */
     public static function getAllGrouped(): array
     {
-        return Cache::remember(self::CACHE_KEY.'_grouped_'.app()->getLocale(), self::CACHE_TTL, function () {
+        return Cache::memo()->remember(self::CACHE_KEY.'_grouped_'.app()->getLocale(), self::CACHE_TTL, function () {
             $grouped = [];
 
             foreach (static::orderBy('group')->orderBy('sort_order')->get() as $setting) {
@@ -227,8 +231,11 @@ class SiteSetting extends Model
     public static function clearCache(): void
     {
         foreach (config('app.supported_locales', ['it', 'en']) as $locale) {
-            Cache::forget(self::CACHE_KEY.'_'.$locale);
-            Cache::forget(self::CACHE_KEY.'_grouped_'.$locale);
+            // Passando dal memo si svuota anche la copia in memoria, oltre
+            // allo store: un Cache::forget nudo la lascerebbe viva fino alla
+            // fine della richiesta.
+            Cache::memo()->forget(self::CACHE_KEY.'_'.$locale);
+            Cache::memo()->forget(self::CACHE_KEY.'_grouped_'.$locale);
         }
     }
 
