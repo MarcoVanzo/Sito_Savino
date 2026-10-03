@@ -1,14 +1,16 @@
 # Documentazione Tecnica Infrastruttura — Savino Del Bene Volley
 
-> Ultimo aggiornamento: 1 ottobre 2026
-> Versione: 3.0
+> Ultimo aggiornamento: 3 ottobre 2026
+> Versione: 3.1
 >
 Questo documento descrive come è costruita e come funziona l'infrastruttura che
 serve il sito **savinodelbenevolley.it**, il suo pannello di gestione (CMS), lo
 shop e le aste: componenti, servizi esterni, rilascio delle versioni, costi,
 backup, sicurezza e avvisi. Fotografa lo stato al 1 ottobre 2026, giorno in cui
 il dominio è passato dal vecchio sito WordPress a questa piattaforma
-(procedura in `docs/GO_LIVE.md`).
+(procedura in `docs/GO_LIVE.md`). La versione 3.1 (3 ottobre) aggiunge la
+rotazione delle chiavi (ActiveCampaign, token DigitalOcean, chiavi Spaces) e la
+gestione delle foto caricate dal pannello (§3.5).
 
 <!-- La versione stampabile docs/INFRASTRUCTURE.html si rigenera da questo file con
 python3 scripts/genera-infrastructure-html.py: non si modifica a mano. -->
@@ -77,7 +79,6 @@ privata. Dal 1 ottobre 2026 il dominio `savinodelbenevolley.it` punta qui.
 |-------|---------|----------|
 | Un'istanza sola per il sito e un nodo solo per il database | Nessuna ridondanza: un guasto del componente o la manutenzione del database fermano il sito per qualche minuto | Accettabile per il traffico attuale. Se servirà, un nodo di standby per il database (richiede un piano superiore: costo da valutare sul listino) |
 | Immagini servite dall'origine di Francoforte, senza CDN | Adeguato per chi visita dall'Italia e dall'Europa; più lento da lontano | Attivare il CDN di Spaces se cresce il traffico estero (§3.5) |
-| Chiavi di ActiveCampaign e di Spaces rimaste nella cronologia del repository pubblico | Chi le trova può usarle finché non vengono sostituite | Ruotarle (la chiave applicativa `APP_KEY` è già stata ruotata il 27/09) |
 
 ---
 
@@ -409,6 +410,21 @@ curl -s -D - -o /dev/null -X OPTIONS \
 
 deve rispondere 200 con `access-control-allow-origin` uguale all'origine.
 
+**Foto caricate dal pannello (dal 02/10/2026).** Ogni campo di upload passa
+da `App\Support\FotoAlleggerita` prima di salvare:
+
+| Formato | Trattamento |
+| --- | --- |
+| JPEG | Lato lungo ridotto a 2560 px (slide della home 3840), qualità 86, profilo colore ricopiato, orientamento EXIF applicato; se il risultato non pesa meno resta l'originale |
+| PNG | Nessun ridimensionamento (il GD di Linux perderebbe la trasparenza); si toglie solo il profilo colore incorporato (`iCCP`), a pixel identici: un profilo difettoso mandava in errore 500 le conversioni della scheda prodotto |
+| WebP | Invariato |
+| Galleria | Originale intatto, per il riconoscimento dei volti; a CompreFace va una copia ridotta sotto i 5 MB (§3.6) |
+
+Il limite per file è 50 MB (`media-library.max_file_size`, prima 10 MB): oltre,
+il campo avvisa prima dell'invio. I PNG salvati prima della correzione si
+riparano, con le loro conversioni, da `php artisan foto:ripara-png`. Le
+estensioni PHP `ext-gd` ed `ext-exif` sono dichiarate in `composer.json`.
+
 > ⚠️ Le conversioni richiedono **GD**, che il buildpack `heroku/php` non abilita
 > per impostazione predefinita: va richiesto con `"ext-gd": "*"` fra i `require`
 > di `composer.json` (già presente). Senza, il build passa e il sito funziona,
@@ -436,7 +452,8 @@ deve rispondere 200 con `access-control-allow-origin` uguale all'origine.
 | ID Droplet | 580932690 |
 
 Chiave API vera nel Postgres interno di CompreFace, copia cifrata in
-`COMPREFACE_KEY`. Le regole sugli esempi di addestramento (volto minimo 90 px,
+`COMPREFACE_KEY`. CompreFace rifiuta i file oltre 5 MB: il worker gli manda una
+copia ridotta (`services.compreface.max_file_bytes`), l'originale resta su Spaces. Le regole sugli esempi di addestramento (volto minimo 90 px,
 soglie di tag e di "da rivedere") stanno in `CLAUDE.md` §12-ter.
 
 **Funzionalità:**
@@ -553,7 +570,7 @@ sono quindi il caso migliore, non quello tipico.
 | `AWS_URL` | `https://sito-savino-assets-2026.fra1.digitaloceanspaces.com` | URL pubblico |
 | `INERTIA_SSR_ENABLED` | `false` | SSR **disattivato** (non esiste `resources/js/ssr.js` né bundle SSR) |
 | `LOG_CHANNEL` | `stderr` | Log su stderr (visibili in DO dashboard) |
-| `LOG_LEVEL` | `error` | Solo errori: i log DO sono effimeri, servono da contesto per Sentry |
+| `LOG_LEVEL` | `warning` | Errori e avvisi (dal 03/10/2026, prima solo errori): i log DO sono effimeri, servono da contesto per Sentry |
 | `SENTRY_LARAVEL_DSN` | DSN del progetto server (regione UE) | Error tracking, attivo dal 25/09/2026 |
 | `SENTRY_BROWSER_DSN` | DSN di `sito-savino-browser` | Errori JavaScript, quota separata; vuoto ripiega sul DSN del server |
 | `SENTRY_SEND_DEFAULT_PII` | `false` | Nessun dato personale a Sentry: cambiarlo vuol dire cambiare prima l'informativa |
@@ -564,7 +581,7 @@ sono quindi il caso migliore, non quello tipico.
 | `COMPREFACE_HOST` | `http://10.114.0.3:8000` | URL server CompreFace (rete privata VPC) |
 | `COMPREFACE_KEY` | 🔒 secret cifrato | API key CompreFace |
 | `ACTIVECAMPAIGN_URL` / `ACTIVECAMPAIGN_LIST_ID` | in chiaro | Endpoint e lista newsletter |
-| `ACTIVECAMPAIGN_API_KEY` | 🔒 secret cifrato | Oggi cifrata (`EV[1:…]`); il commento nello spec la dà ancora da **ruotare**, perché il valore è stato in chiaro nel repository |
+| `ACTIVECAMPAIGN_API_KEY` | 🔒 secret cifrato | Ruotata il 02/10/2026 (la vecchia era rimasta in chiaro nella cronologia del repository): il nuovo cifrato è ricopiato nello spec su web, worker e scheduler, o il deploy successivo rimetterebbe la chiave revocata |
 | `GA4_SERVICE_ACCOUNT_JSON` | 🔒 secret cifrato | Service account Google (base64) per la GA4 Data API |
 | `META_APP_ID` / `META_CONFIG_ID` | in chiaro | App Meta e configurazione Login for Business (non segreti) |
 | `PAYPAL_CLIENT_ID` / `PAYPAL_MODE` | in chiaro / `live` | Credenziale pubblica e ambiente |
@@ -696,9 +713,12 @@ Le eccezioni arrivano comunque a Sentry (attivo dal 25/09/2026).
 | `opcache.validate_timestamps` | `0` | Non verifica se i file sono cambiati (cambiano solo al deploy) |
 | `opcache.revalidate_freq` | `0` | Frequenza check timestamps (irrilevante con validate=0) |
 | `opcache.enable_file_override` | `1` | Ottimizza file_exists/is_file via OPcache |
-| `upload_max_filesize` / `post_max_size` | `64M` / `128M` | Limiti di caricamento dal pannello (allineati a `public/.user.ini`) |
+| `upload_max_filesize` / `post_max_size` | `64M` / `128M` | Limiti di caricamento dal pannello (allineati a `public/.user.ini`); il limite per file dei media è più basso, 50 MB (§3.5) |
 
-### Utilizzo in produzione (misurato il 2 luglio 2026, prima del go-live: da rimisurare)
+### Utilizzo in produzione (misurato il 2 luglio 2026)
+
+> La misura va presa dal processo web, non dalla console (un PHP diverso, con
+> una cache sua): margine ampio a luglio, non ripetuta dopo il go-live.
 
 | Risorsa | Allocata | Usata | % |
 |---------|----------|-------|---|
@@ -800,6 +820,14 @@ sovrascrittura risponde 409 «The object is locked by the bucket policy» e la
 cancellazione non toglie il file. Dettagli, setup e restore in
 [`BACKUP.md`](../BACKUP.md).
 
+La chiave dei workflow di backup (`backup-writer`) ha accesso completo
+all'account Spaces: DigitalOcean non ammette chiavi limitate su un bucket con
+policy. Chi la ottenesse potrebbe sovrascrivere i backup su Spaces e riscrivere
+la policy, e il versioning di quel bucket non è verificato. È una scelta
+consapevole (3/10/2026): la chiave sta solo nei secret di GitHub, il sito usa
+una chiave limitata al proprio bucket e le copie su R2, bloccate, restano fuori
+dalla sua portata.
+
 ### Sicurezza
 
 | Misura | Stato |
@@ -813,8 +841,8 @@ cancellazione non toglie il file. Dettagli, setup e restore in
 | Sessioni cifrate | ✅ `SESSION_ENCRYPT` attivo |
 | Cookie sicuri | ✅ `SESSION_SECURE_COOKIE` attivo |
 | Debug disattivato | ✅ `APP_DEBUG=false` |
-| Segreti nelle variabili d'ambiente | ✅ Tutti i segreti sono cifrati (`EV[1:…]`) in `.do/app.yaml`; in chiaro restano solo identificativi pubblici (DSN di Sentry, chiave pubblicabile di Stripe, client id e webhook id di PayPal). ⚠️ Nella cronologia del repository pubblico sono rimasti valori in chiaro: la `APP_KEY` è stata ruotata il 27/09/2026, la chiave di ActiveCampaign e quella di accesso a Spaces vanno ruotate (Sintesi, punti aperti) |
-| Error tracking | ✅ Sentry attivo dal 25/09/2026 (server ed errori JavaScript). ⚠️ `LOG_LEVEL=error`: i warning restano fuori dai log |
+| Segreti nelle variabili d'ambiente | ✅ Tutti i segreti sono cifrati (`EV[1:…]`) in `.do/app.yaml`; in chiaro restano solo identificativi pubblici (DSN di Sentry, chiave pubblicabile di Stripe, client id e webhook id di PayPal). ⚠️ Nella cronologia del repository pubblico sono rimasti valori in chiaro: la `APP_KEY` è stata ruotata il 27/09/2026, la chiave di ActiveCampaign il 02/10/2026, e la chiave Spaces di allora non esiste più. Chiavi Spaces al 03/10/2026: quella dell'app (lettura e scrittura sul solo bucket del sito), una in sola lettura per le verifiche e `backup-writer` per i backup. Token API di DigitalOcean rinnovati il 03/10/2026, ciascuno coi soli permessi che gli servono. Il repository resta pubblico per scelta (03/10/2026): nella sua cronologia non restano segreti validi, e da privato perderebbe i minuti illimitati di GitHub Actions e SonarCloud gratuito |
+| Error tracking | ✅ Sentry attivo dal 25/09/2026 (server ed errori JavaScript). Log a livello `warning` dal 03/10/2026 |
 | Trust proxies | ✅ Configurato per App Platform |
 | Health check | ✅ `/up` verifica database e cache; segnala (senza far fallire) uno scheduler fermo |
 

@@ -4,7 +4,9 @@ namespace App\Jobs;
 
 use App\Exceptions\MediaProcessingException;
 use App\Models\GalleryImage;
+use App\Models\Player;
 use App\Services\FacialRecognitionService;
+use App\Support\StagioniDelleAtlete;
 use App\Support\TestiSeoDellaFoto;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -120,6 +122,25 @@ class AnalyzeGalleryImageJob implements ShouldQueue
                 'detected_count' => count($detectedPersons),
                 'has_unrecognized' => $hasUnrecognizedFaces,
             ]);
+
+            // Un'atleta riconosciuta su una foto di una stagione in cui giocava
+            // altrove è uno scambio di volto, non un tag (StagioniDelleAtlete).
+            $dataDellaFoto = $this->galleryImage->galleryEvent?->event_date;
+            $detectedPersons = array_values(array_filter($detectedPersons, function (array $detected) use ($dataDellaFoto, $imageId) {
+                if ($detected['person_type'] !== Player::class) {
+                    return true;
+                }
+
+                $atleta = Player::find($detected['person_id']);
+
+                if ($atleta && StagioniDelleAtlete::eraInSquadra($atleta, $dataDellaFoto) === false) {
+                    Log::info("AnalyzeGalleryImageJob: Image #{$imageId} — tag scartato, {$atleta->full_name} non era in squadra");
+
+                    return false;
+                }
+
+                return true;
+            }));
 
             if (! empty($detectedPersons)) {
                 foreach ($detectedPersons as $detected) {

@@ -189,6 +189,11 @@ parsa le pagine pubbliche di `legavolleyfemminile.it`. Codice in
   sempre i tag con la stagione in cui l'atleta era in squadra.
 - "Da rivedere" = somiglianza fra 0.97 e la soglia del tag (0.985) su un volto
   ≥ 80 px; il job lo scrive in entrambe le direzioni.
+- **Tag fuori stagione**: il job scarta un'atleta su foto di stagioni in cui
+  non era in squadra (`StagioniDelleAtlete`: stagioni passate in
+  `database/data/stagioni_delle_atlete.php`, la corrente dalle rose; atleta
+  assente dal file = non giudicata). Un'atleta nuova con passato al Savino va
+  aggiunta lì. Pulizia degli esistenti: `volti:togli-fuori-stagione [--dry-run]`.
 - **Il job non toglie mai tag**: per rifare un'analisi cancellare le righe di
   `gallery_image_person` con `confidence_score` non nullo (le manuali l'hanno
   nullo) e azzerare `ai_analyzed_at`.
