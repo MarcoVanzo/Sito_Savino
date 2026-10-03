@@ -9,9 +9,16 @@ import html
 import re
 import sys
 
-# Uso: python3 scripts/genera-infrastructure-html.py  (dalla radice del progetto)
-ROOT = sys.argv[1] if len(sys.argv) > 1 else "."
+# Uso: python3 scripts/genera-infrastructure-html.py [--pdf]  (dalla radice del progetto)
+# Con --pdf scrive docs/INFRASTRUCTURE-pdf.html, da cui si stampa il PDF: in coda
+# al §10 aggiunge le utenze degli account da docs/ACCOUNT_UTENZE.md. Entrambi i
+# file sono fuori dal repository, che è pubblico.
+PDF = "--pdf" in sys.argv
+ROOT = next((a for a in sys.argv[1:] if not a.startswith("--")), ".")
 md = open(f"{ROOT}/docs/INFRASTRUCTURE.md", encoding="utf-8").read()
+if PDF:
+    utenze = open(f"{ROOT}/docs/ACCOUNT_UTENZE.md", encoding="utf-8").read().strip()
+    md = md.rstrip("\n") + "\n\n**Utenze di accesso**\n\n" + utenze + "\n"
 md = re.sub(r"<!--.*?-->\n?", "", md, flags=re.S).splitlines()
 LOGO_MV = open(f"{ROOT}/docs/assets/logo-mv-consulting.svg", encoding="utf-8").read()
 LOGO_MV = re.sub(r"<title>.*?</title>", "", LOGO_MV, flags=re.S)
@@ -297,5 +304,5 @@ page = f"""<!DOCTYPE html>
 </body>
 </html>
 """
-open(f"{ROOT}/docs/INFRASTRUCTURE.html", "w", encoding="utf-8").write(page)
+open(f"{ROOT}/docs/INFRASTRUCTURE{'-pdf' if PDF else ''}.html", "w", encoding="utf-8").write(page)
 print("ok", len(page))

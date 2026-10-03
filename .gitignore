@@ -93,3 +93,6 @@ storage/do-ca-certificate.crt
 # Documenti commerciali riservati: il repository è pubblico.
 Proposta_Tecnica_SDB*.pdf
 docs/INFRASTRUCTURE.pdf
+# Utenze degli account della società: solo nel PDF, mai nel repository pubblico.
+docs/ACCOUNT_UTENZE.md
+docs/INFRASTRUCTURE-pdf.html
