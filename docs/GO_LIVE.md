@@ -399,6 +399,7 @@ riconosce l'host e risponde 404 a tutti.
 7. **Provare a mano** la cosa che porta soldi: un ordine vero di prova sullo
    shop, fino alla mail di conferma. È l'unico controllo che attraversa tutta
    la catena — checkout, webhook, coda, posta.
+   Fatto con ordini veri il 1 e 2 ottobre 2026 (pagamento e rimborso).
 
 ---
 
