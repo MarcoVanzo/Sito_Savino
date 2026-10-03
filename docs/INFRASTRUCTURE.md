@@ -570,7 +570,7 @@ sono quindi il caso migliore, non quello tipico.
 | `AWS_URL` | `https://sito-savino-assets-2026.fra1.digitaloceanspaces.com` | URL pubblico |
 | `INERTIA_SSR_ENABLED` | `false` | SSR **disattivato** (non esiste `resources/js/ssr.js` né bundle SSR) |
 | `LOG_CHANNEL` | `stderr` | Log su stderr (visibili in DO dashboard) |
-| `LOG_LEVEL` | `error` | Solo errori: i log DO sono effimeri, servono da contesto per Sentry |
+| `LOG_LEVEL` | `warning` | Errori e avvisi (dal 03/10/2026, prima solo errori): i log DO sono effimeri, servono da contesto per Sentry |
 | `SENTRY_LARAVEL_DSN` | DSN del progetto server (regione UE) | Error tracking, attivo dal 25/09/2026 |
 | `SENTRY_BROWSER_DSN` | DSN di `sito-savino-browser` | Errori JavaScript, quota separata; vuoto ripiega sul DSN del server |
 | `SENTRY_SEND_DEFAULT_PII` | `false` | Nessun dato personale a Sentry: cambiarlo vuol dire cambiare prima l'informativa |
@@ -715,7 +715,10 @@ Le eccezioni arrivano comunque a Sentry (attivo dal 25/09/2026).
 | `opcache.enable_file_override` | `1` | Ottimizza file_exists/is_file via OPcache |
 | `upload_max_filesize` / `post_max_size` | `64M` / `128M` | Limiti di caricamento dal pannello (allineati a `public/.user.ini`); il limite per file dei media è più basso, 50 MB (§3.5) |
 
-### Utilizzo in produzione (misurato il 2 luglio 2026, prima del go-live: da rimisurare)
+### Utilizzo in produzione (misurato il 2 luglio 2026)
+
+> La misura va presa dal processo web, non dalla console (un PHP diverso, con
+> una cache sua): margine ampio a luglio, non ripetuta dopo il go-live.
 
 | Risorsa | Allocata | Usata | % |
 |---------|----------|-------|---|
@@ -839,7 +842,7 @@ dalla sua portata.
 | Cookie sicuri | ✅ `SESSION_SECURE_COOKIE` attivo |
 | Debug disattivato | ✅ `APP_DEBUG=false` |
 | Segreti nelle variabili d'ambiente | ✅ Tutti i segreti sono cifrati (`EV[1:…]`) in `.do/app.yaml`; in chiaro restano solo identificativi pubblici (DSN di Sentry, chiave pubblicabile di Stripe, client id e webhook id di PayPal). ⚠️ Nella cronologia del repository pubblico sono rimasti valori in chiaro: la `APP_KEY` è stata ruotata il 27/09/2026, la chiave di ActiveCampaign il 02/10/2026, e la chiave Spaces di allora non esiste più. Chiavi Spaces al 03/10/2026: quella dell'app (lettura e scrittura sul solo bucket del sito), una in sola lettura per le verifiche e `backup-writer` per i backup. Token API di DigitalOcean rinnovati il 03/10/2026, ciascuno coi soli permessi che gli servono. Il repository resta pubblico per scelta (03/10/2026): nella sua cronologia non restano segreti validi, e da privato perderebbe i minuti illimitati di GitHub Actions e SonarCloud gratuito |
-| Error tracking | ✅ Sentry attivo dal 25/09/2026 (server ed errori JavaScript). ⚠️ `LOG_LEVEL=error`: i warning restano fuori dai log |
+| Error tracking | ✅ Sentry attivo dal 25/09/2026 (server ed errori JavaScript). Log a livello `warning` dal 03/10/2026 |
 | Trust proxies | ✅ Configurato per App Platform |
 | Health check | ✅ `/up` verifica database e cache; segnala (senza far fallire) uno scheduler fermo |
 

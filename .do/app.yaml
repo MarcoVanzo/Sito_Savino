@@ -211,12 +211,13 @@ services:
   - key: LOG_CHANNEL
     scope: RUN_AND_BUILD_TIME
     value: stderr
-  # `error` e non `warning`: i log di App Platform sono effimeri e nessuno li
-  # guarda, quindi servono solo come contesto di un errore già segnalato da
-  # Sentry. Allineato al worker, che prima era su `info` senza motivo.
+  # `warning` (dal 03/10/2026, prima `error`): i log di App Platform sono
+  # effimeri, ma senza i warning sparivano CompreFace irraggiungibile, firme dei
+  # webhook rifiutate e simili. I passaggi `info` del job di analisi restano
+  # fuori. Uguale su web, worker e scheduler.
   - key: LOG_LEVEL
     scope: RUN_AND_BUILD_TIME
-    value: error
+    value: warning
   # Sentry. Il valore va sostituito con il DSN reale CIFRATO (formato EV[1:...],
   # come APP_KEY qui sopra): questa spec è la sorgente autorevole — l'action di
   # deploy la applica alla app — quindi un valore impostato solo dal pannello
@@ -441,7 +442,7 @@ workers:
     value: stderr
   - key: LOG_LEVEL
     scope: RUN_AND_BUILD_TIME
-    value: error
+    value: warning
   # I job in coda girano qui: senza Sentry sul worker, un fallimento di invio
   # mail o di sincronizzazione non lascerebbe alcuna traccia visibile.
   # Stesso DSN cifrato del componente web (vedi la nota lì).
@@ -660,7 +661,7 @@ workers:
     value: stderr
   - key: LOG_LEVEL
     scope: RUN_AND_BUILD_TIME
-    value: error
+    value: warning
   # I job in coda girano qui: senza Sentry sul worker, un fallimento di invio
   # mail o di sincronizzazione non lascerebbe alcuna traccia visibile.
   # Stesso DSN cifrato del componente web (vedi la nota lì).
