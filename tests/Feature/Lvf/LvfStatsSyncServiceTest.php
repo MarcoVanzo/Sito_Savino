@@ -62,7 +62,7 @@ class LvfStatsSyncServiceTest extends TestCase
      * Tabellino minimo ma con la stessa struttura del reale: tabella-contenitore
      * che ripete l'intestazione, poi la tabella vera con le sotto-colonne.
      */
-    private function boxScoreHtml(): string
+    private function boxScoreHtml(string $bosetti = 'Bosetti Caterina', string $ognjenovic = 'Ognjenovic Maja'): string
     {
         $row = fn (int $n, string $name, int $points) => <<<HTML
             <tr><td>{$n}</td><td>{$name}</td><td>1</td><td>1</td><td>1</td><td></td><td></td>
@@ -76,7 +76,7 @@ class LvfStatsSyncServiceTest extends TestCase
             HTML;
 
         $homeRows = $row(1, 'Miner Kamerynn', 5).$row(2, 'Gelin Juliette', 7);
-        $awayRows = $row(3, 'Bosetti Caterina', 9).$row(4, 'Ognjenovic Maja', 4);
+        $awayRows = $row(3, $bosetti, 9).$row(4, $ognjenovic, 4);
 
         // La tabella-contenitore ripete l'intestazione: è la trappola che faceva
         // attribuire le atlete alla squadra avversaria.
@@ -173,6 +173,39 @@ class LvfStatsSyncServiceTest extends TestCase
             $maja->id,
             GamePlayerStat::where('player_name', 'Ognjenovic Maja')->value('player_id')
         );
+    }
+
+    #[Test]
+    public function laggancio_regge_i_secondi_nomi_del_referto(): void
+    {
+        // Il 04/10/2026 "Eze Chidera Blessing" e "Bergmann Julia Isabelle" sono
+        // rimaste fuori dallo storico: in anagrafica c'e' solo il nome d'uso.
+        $caterina = Player::create(['first_name' => 'Caterina', 'last_name' => 'Bosetti']);
+        $maja = Player::create(['first_name' => 'Maja', 'last_name' => 'Ognjenović']);
+
+        $this->game();
+        $this->fakeBoxScore($this->boxScoreHtml('Bosetti Caterina Maria', 'Ognjenovic Maja Ana'));
+
+        LvfStatsSyncService::make()->sync($this->season->id);
+
+        $this->assertSame($caterina->id, GamePlayerStat::where('player_name', 'Bosetti Caterina Maria')->value('player_id'));
+        $this->assertSame($maja->id, GamePlayerStat::where('player_name', 'Ognjenovic Maja Ana')->value('player_id'));
+    }
+
+    #[Test]
+    public function con_due_candidate_per_i_secondi_nomi_non_indovina(): void
+    {
+        // Due sorelle in anagrafica, il referto le contiene entrambe: meglio
+        // nessun aggancio che quello sbagliato.
+        Player::create(['first_name' => 'Caterina', 'last_name' => 'Bosetti']);
+        Player::create(['first_name' => 'Maria', 'last_name' => 'Bosetti']);
+
+        $this->game();
+        $this->fakeBoxScore($this->boxScoreHtml('Bosetti Caterina Maria'));
+
+        LvfStatsSyncService::make()->sync($this->season->id);
+
+        $this->assertNull(GamePlayerStat::where('player_name', 'Bosetti Caterina Maria')->value('player_id'));
     }
 
     #[Test]

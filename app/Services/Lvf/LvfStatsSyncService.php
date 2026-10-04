@@ -160,7 +160,7 @@ class LvfStatsSyncService
      * Per le avversarie non si tenta nemmeno: non sono in archivio, e un
      * omonimo aggancerebbe la statistica alla persona sbagliata.
      *
-     * @param  array<string, int>  $ownPlayers
+     * @param  array{esatti: array<string, int>, parole: array<int, list<string>>}  $ownPlayers
      */
     private function anagraficaDi(LvfPlayerStat $player, Team $team, array $ownPlayers): ?int
     {
@@ -168,7 +168,29 @@ class LvfStatsSyncService
             return null;
         }
 
-        return $ownPlayers[$this->nameKey($player->playerName)] ?? null;
+        $chiave = $this->nameKey($player->playerName);
+
+        return $ownPlayers['esatti'][$chiave] ?? $this->unicaConTutteLeParole($chiave, $ownPlayers['parole']);
+    }
+
+    /**
+     * Ripiego per i secondi nomi: la Lega scrive il nome completo dal
+     * tesseramento ("Eze Chidera Blessing"), l'anagrafica spesso solo quello
+     * d'uso ("Chidera Eze"). Vale l'atleta di cui il referto contiene nome e
+     * cognome, ma solo se e' una sola: con due candidate non si indovina.
+     *
+     * @param  array<int, list<string>>  $parolePerAtleta
+     */
+    private function unicaConTutteLeParole(string $chiave, array $parolePerAtleta): ?int
+    {
+        $delReferto = explode(' ', $chiave);
+
+        $candidate = array_keys(array_filter(
+            $parolePerAtleta,
+            fn (array $parole) => array_diff($parole, $delReferto) === [],
+        ));
+
+        return count($candidate) === 1 ? $candidate[0] : null;
     }
 
     /**
@@ -223,20 +245,29 @@ class LvfStatsSyncService
      *
      * La Lega scrive "Cognome Nome", il CMS tiene i due campi separati: si
      * indicizzano entrambi gli ordini, perché su nomi composti indovinare quale
-     * parte sia il cognome non è affidabile.
+     * parte sia il cognome non è affidabile. Accanto, le parole di ciascuna
+     * per il ripiego sui secondi nomi.
      *
-     * @return array<string, int>
+     * @return array{esatti: array<string, int>, parole: array<int, list<string>>}
      */
     private function ownPlayersByName(): array
     {
-        $index = [];
+        $index = ['esatti' => [], 'parole' => []];
 
         foreach (Player::query()->get(['id', 'first_name', 'last_name']) as $player) {
             foreach ([
                 $player->last_name.' '.$player->first_name,
                 $player->first_name.' '.$player->last_name,
             ] as $variant) {
-                $index[$this->nameKey($variant)] ??= $player->id;
+                $index['esatti'][$this->nameKey($variant)] ??= $player->id;
+            }
+
+            $parole = array_values(array_filter(explode(' ', $this->nameKey($player->first_name.' '.$player->last_name))));
+
+            // Con una parola sola (nome o cognome mancante) il confronto
+            // aggancerebbe chiunque la contenga.
+            if (count($parole) >= 2) {
+                $index['parole'][$player->id] = $parole;
             }
         }
 
