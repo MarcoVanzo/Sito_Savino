@@ -6,8 +6,10 @@ use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
 use App\Http\Controllers\Concerns\PresentaLeSquadre;
 use App\Models\Game;
+use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Standing;
+use App\Models\Team;
 use App\Services\Lvf\LvfPhaseLabel;
 use App\Support\LiveStream;
 use Illuminate\Support\Facades\Cache;
@@ -343,6 +345,7 @@ class RisultatiController extends Controller
 
         $homeTeamId = $game->home_team_id;
         $awayTeamId = $game->away_team_id;
+        $atleteInRosa = $this->atleteDellaRosaInPrimaSquadra();
 
         return [
             'game' => [
@@ -371,8 +374,8 @@ class RisultatiController extends Controller
                 ],
                 'sets' => $this->presentSetScores($game),
             ],
-            'homeStats' => $this->presentPlayerStats($game, $homeTeamId),
-            'awayStats' => $this->presentPlayerStats($game, $awayTeamId),
+            'homeStats' => $this->presentPlayerStats($game, $homeTeamId, $atleteInRosa),
+            'awayStats' => $this->presentPlayerStats($game, $awayTeamId, $atleteInRosa),
         ];
     }
 
@@ -451,9 +454,14 @@ class RisultatiController extends Controller
      * (servono per confrontare i numeri) ma senza slug, quindi il frontend non
      * genera un link a una scheda che non esiste.
      *
+     * `inRosa` dice dove porta il nome: la scheda con le statistiche
+     * (`stagione.atleta`) esiste solo per la rosa in corso della prima
+     * squadra, e altrove risponderebbe 404; le altre vanno alla loro gallery.
+     *
+     * @param  list<int>  $atleteInRosa
      * @return list<array<string, mixed>>
      */
-    private function presentPlayerStats(Game $game, ?int $teamId): array
+    private function presentPlayerStats(Game $game, ?int $teamId, array $atleteInRosa): array
     {
         if ($teamId === null) {
             return [];
@@ -474,6 +482,7 @@ class RisultatiController extends Controller
                 'playerSlug' => $stat->player
                     ? $stat->player->id.'-'.Str::slug($stat->player->full_name)
                     : null,
+                'inRosa' => $stat->player_id !== null && in_array($stat->player_id, $atleteInRosa, true),
                 'isCaptain' => (bool) $stat->is_captain,
                 'isLibero' => (bool) $stat->is_libero,
                 'setsPlayed' => $stat->sets_played,
@@ -486,6 +495,32 @@ class RisultatiController extends Controller
                 'receptionPerfectPct' => $stat->reception_perfect_pct,
             ])
             ->values()
+            ->all();
+    }
+
+    /**
+     * Le atlete che hanno la scheda su `/stagione/atleta/{slug}`: stessa rosa
+     * di `PublicController::stagioneForTeam()` per la prima squadra.
+     *
+     * @return list<int>
+     */
+    private function atleteDellaRosaInPrimaSquadra(): array
+    {
+        $squadra = Team::query()
+            ->where('is_internal', true)
+            ->where(fn ($query) => $query->where('slug', 'savino-del-bene-volley')->orWhere('category', 'A1'))
+            ->first();
+        $stagione = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
+
+        if ($squadra === null || $stagione === null) {
+            return [];
+        }
+
+        return Roster::query()
+            ->where('team_id', $squadra->id)
+            ->where('season_id', $stagione->id)
+            ->pluck('player_id')
+            ->map(fn ($id): int => (int) $id)
             ->all();
     }
 }

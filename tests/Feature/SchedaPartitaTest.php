@@ -7,6 +7,7 @@ use App\Enums\GameStatus;
 use App\Models\Game;
 use App\Models\GamePlayerStat;
 use App\Models\Player;
+use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -202,6 +203,32 @@ class SchedaPartitaTest extends TestCase
                 ->where('homeStats.0.playerSlug', $atleta->id.'-anna-bianchi')
                 ->where('awayStats.0.playerSlug', null)
             );
+    }
+
+    #[Test]
+    public function il_nome_porta_alla_scheda_con_le_statistiche_solo_per_la_rosa_in_corso(): void
+    {
+        // Prima portava sempre alla gallery: le statistiche di stagione
+        // stanno nella finestra dell'atleta su /stagione.
+        $gara = $this->garaGiocata(['season_id' => Season::factory()->create(['is_current' => true])->id]);
+        $gara->homeTeam->update(['slug' => 'savino-del-bene-volley', 'is_internal' => true]);
+
+        $inRosa = Player::factory()->create(['first_name' => 'Anna', 'last_name' => 'Bianchi']);
+        $exAtleta = Player::factory()->create(['first_name' => 'Carla', 'last_name' => 'Verdi']);
+        Roster::create(['player_id' => $inRosa->id, 'team_id' => $gara->home_team_id, 'season_id' => $gara->season_id]);
+
+        $this->tabellino($gara, $gara->home_team_id, ['player_id' => $inRosa->id, 'player_name' => 'Bianchi Anna', 'jersey_number' => 1]);
+        $this->tabellino($gara, $gara->home_team_id, ['player_id' => $exAtleta->id, 'player_name' => 'Verdi Carla', 'jersey_number' => 2]);
+
+        $this->get(route('stagione.partita', $gara))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('homeStats.0.inRosa', true)
+                ->where('homeStats.1.inRosa', false)
+            );
+
+        // E la scheda esiste davvero: niente link a un 404.
+        $this->get(route('stagione.atleta', $inRosa->id.'-anna-bianchi'))->assertOk();
     }
 
     #[Test]
