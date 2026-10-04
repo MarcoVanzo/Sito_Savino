@@ -245,10 +245,10 @@ const ogMeta = useOgMeta({
                                         <tr v-for="row in side.stats" :key="row.id" class="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                                             <td class="px-3 py-3 text-sm text-center font-black text-gray-500 tabular-nums">{{ num(row.jersey) }}</td>
                                             <td class="px-4 py-3 text-sm whitespace-nowrap">
-                                                <!-- Le avversarie non hanno una scheda sul nostro sito: solo il nome -->
+                                                <!-- Rosa in corso: scheda con le statistiche; ex atlete: la loro gallery; avversarie: solo il nome -->
                                                 <Link
                                                     v-if="row.playerSlug"
-                                                    :href="route('gallery.atleta', { slug: row.playerSlug })"
+                                                    :href="route(row.inRosa ? 'stagione.atleta' : 'gallery.atleta', { slug: row.playerSlug })"
                                                     class="font-bold text-savino-blue hover:text-savino-fucsia transition-colors"
                                                 >{{ row.name }}</Link>
                                                 <span v-else class="font-semibold text-gray-800">{{ row.name }}</span>
