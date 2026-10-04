@@ -86,7 +86,8 @@ class Player extends Model implements HasMedia
         return preg_match('/^[A-Za-z0-9._]{1,30}$/', $valore) ? $valore : null;
     }
 
-    public function rosters()
+    /** @return HasMany<Roster, $this> */
+    public function rosters(): HasMany
     {
         return $this->hasMany(Roster::class);
     }

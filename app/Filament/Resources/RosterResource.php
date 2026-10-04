@@ -6,6 +6,7 @@ use App\Enums\PlayerPosition;
 use App\Filament\Actions\SyncFaceAction;
 use App\Filament\Clusters\SerieA1;
 use App\Filament\Columns\AiScoreColumn;
+use App\Filament\Forms\CampoAtleta;
 use App\Filament\Resources\RosterResource\Pages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Roster;
@@ -60,11 +61,7 @@ class RosterResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Associazione Stagionale')
                     ->schema([
-                        Forms\Components\Select::make('player_id')
-                            ->label('Atleta')
-                            ->relationship('player', 'last_name')
-                            ->searchable()
-                            ->preload()
+                        CampoAtleta::make()
                             ->required(),
                         Forms\Components\Select::make('team_id')
                             ->label('Squadra')
@@ -143,6 +140,7 @@ class RosterResource extends Resource
                     ->schema([
                         Forms\Components\ViewField::make('ai_photo_status')
                             ->label('')
+                            ->dehydrated(false)
                             ->view('filament.components.ai-photo-status'),
                     ]),
             ]);
