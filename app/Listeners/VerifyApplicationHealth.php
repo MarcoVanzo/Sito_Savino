@@ -10,6 +10,7 @@ use App\Support\SchedulerHeartbeat;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -78,8 +79,15 @@ class VerifyApplicationHealth
     private function verifyCache(): void
     {
         try {
-            $canary = 'health:cache:'.now()->timestamp;
-            Cache::put($canary, true, 10);
+            // Chiave unica per richiesta. Con il timestamp al secondo il probe
+            // di App Platform e l'Uptime Probe di DO, arrivati nello stesso
+            // istante (05/10, 04:17:31), scrivevano la stessa chiave: il primo
+            // la cancellava e il secondo rispondeva 500 «non rileggibile».
+            $canary = 'health:cache:'.Str::random(16);
+
+            if (! Cache::put($canary, true, 10)) {
+                throw UnhealthyApplicationException::for('cache', 'scrittura rifiutata');
+            }
 
             if (Cache::get($canary) !== true) {
                 throw UnhealthyApplicationException::for('cache', 'scrittura non rileggibile');
