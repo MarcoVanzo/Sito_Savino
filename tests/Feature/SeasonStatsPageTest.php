@@ -159,4 +159,28 @@ class SeasonStatsPageTest extends TestCase
             ->where('seasonStats.1.pointsPerSet', null)
         );
     }
+
+    /**
+     * Al browser va solo ciò che la pagina mostra: dell'atleta l'anno di
+     * nascita, non la data (in archivio quasi sempre 1° gennaio), né il resto
+     * del record (parere del 5/10/2026).
+     */
+    #[Test]
+    public function della_rosa_arrivano_solo_i_campi_mostrati(): void
+    {
+        $atleta = $this->player('Emma', 'Graziani', 7);
+        $atleta->update(['date_of_birth' => '2003-01-01', 'instagram_handle' => 'emma']);
+
+        $html = $this->get(route('stagione'))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $pagina) => $pagina
+                ->where('roster.0.player.anno_di_nascita', 2003)
+                ->missing('roster.0.player.date_of_birth')
+                ->missing('roster.0.player.stats')
+                ->missing('roster.0.player.media')
+                ->missing('roster.0.player_id'))
+            ->getContent();
+
+        $this->assertStringNotContainsString('2003-01-01', $html);
+    }
 }

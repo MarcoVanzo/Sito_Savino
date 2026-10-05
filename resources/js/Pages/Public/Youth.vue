@@ -1,7 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head, usePage } from '@inertiajs/vue3'
+import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
@@ -18,14 +18,11 @@ const props = defineProps({
 const { sanitize } = useSanitize()
 const safeContent = computed(() => sanitize(props.page?.content))
 
-const inertiaPage = usePage()
-const settings = computed(() => inertiaPage.props.siteSettings ?? {})
-const contact = computed(() => settings.value.contact ?? {})
 const cd = computed(() => props.page?.content_data ?? {})
 
 // Indirizzo del settore giovanile: quello scritto nella pagina, altrimenti
 // quello in Impostazioni -> Contatti.
-const scoutingEmail = computed(() => cd.value.scouting_email || contact.value.youth_email || null)
+const scoutingEmail = computed(() => cd.value.scouting_email || props.page?.caselle?.youth_email || null)
 
 // Le foto di squadra, dall'Under 19 alla Promozionale: una voce senza foto non
 // ha niente da mostrare e resta fuori.

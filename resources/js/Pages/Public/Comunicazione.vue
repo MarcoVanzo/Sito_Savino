@@ -3,7 +3,7 @@ import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import NotaInformativaModulo from '@/Components/NotaInformativaModulo.vue'
-import { Head, useForm, usePage } from '@inertiajs/vue3'
+import { Head, useForm } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { useSanitize } from '@/Composables/useSanitize'
 import { useOgMeta } from '@/Composables/useOgMeta'
@@ -28,9 +28,6 @@ const props = defineProps({
 const { sanitize } = useSanitize()
 const safeContent = computed(() => sanitize(props.page?.content))
 
-const inertiaPage = usePage()
-const settings = computed(() => inertiaPage.props.siteSettings ?? {})
-const contact = computed(() => settings.value.contact ?? {})
 const cd = computed(() => props.page?.content_data ?? {})
 
 // Richiesta di accredito stampa: finisce in "Richieste Accrediti" nel pannello
@@ -80,19 +77,19 @@ const contacts = computed(() => [
     {
         role: cd.value.contact_1_role || $t('comunicazione.contact_role_press'),
         name: cd.value.contact_1_name || $t('comunicazione.contact_name_press'),
-        email: cd.value.contact_1_email || contact.value.press_email || null,
+        email: cd.value.contact_1_email || props.page?.caselle?.press_email || null,
         phone: cd.value.contact_1_phone || null
     },
     {
         role: cd.value.contact_2_role || $t('comunicazione.contact_role_social'),
         name: cd.value.contact_2_name || $t('comunicazione.contact_name_social'),
-        email: cd.value.contact_2_email || contact.value.social_email || null,
+        email: cd.value.contact_2_email || props.page?.caselle?.social_email || null,
         phone: cd.value.contact_2_phone || null
     },
     {
         role: cd.value.contact_3_role || $t('comunicazione.contact_role_media'),
         name: cd.value.contact_3_name || $t('comunicazione.contact_name_media'),
-        email: cd.value.contact_3_email || contact.value.media_email || null,
+        email: cd.value.contact_3_email || props.page?.caselle?.media_email || null,
         phone: cd.value.contact_3_phone || null
     }
 ])

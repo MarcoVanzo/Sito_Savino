@@ -131,6 +131,14 @@ class HandleInertiaRequests extends Middleware
             $settings['contact'] = array_merge($settings['contact'] ?? [], $contactOverrides);
         }
 
+        // Le caselle dei singoli uffici le riceve solo la pagina che le mostra
+        // (Page::datiPerIlFrontend).
+        foreach (Page::CASELLE_PER_MODELLO as $caselle) {
+            foreach ($caselle as $chiave) {
+                unset($settings['contact'][$chiave]);
+            }
+        }
+
         foreach ($settings['legal'] ?? [] as $key => $path) {
             if ($path) {
                 $settings['legal'][$key] = Storage::url($path);

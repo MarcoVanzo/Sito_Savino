@@ -44,14 +44,9 @@ const fullName = computed(() => {
     return p ? `${p.first_name} ${p.last_name}`.trim() : '';
 });
 
-const birthYear = computed(() => {
-    const date = player.value?.date_of_birth;
-    if (!date) return null;
-    // L'anno si legge dalla stringa: `new Date('1984-01-01')` è mezzanotte UTC
-    // e a ovest di Greenwich `getFullYear()` restituisce 1983.
-    const year = Number.parseInt(String(date).slice(0, 4), 10);
-    return Number.isNaN(year) ? null : year;
-});
+// Il server manda solo l'anno: la data completa non si mostra e in archivio
+// vale quasi sempre 1° gennaio.
+const birthYear = computed(() => player.value?.anno_di_nascita ?? null);
 
 // Le tre caselle in testata: si mostrano solo quelle con un numero dentro.
 const counters = computed(() => {

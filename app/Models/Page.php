@@ -75,9 +75,25 @@ class Page extends Model implements HasMedia
      *
      * @return array<string, mixed>
      */
+    /**
+     * Le caselle degli uffici dal gruppo `contact`, solo per la pagina che le
+     * mostra. Prima viaggiavano in ogni pagina del sito fra le impostazioni
+     * condivise, compresa una casella nominativa (parere del 5/10/2026):
+     * HandleInertiaRequests le toglie, e arrivano solo qui.
+     */
+    public const CASELLE_PER_MODELLO = [
+        'Public/Comunicazione' => ['press_email', 'social_email', 'media_email'],
+        'Public/Youth' => ['youth_email'],
+    ];
+
     public function datiPerIlFrontend(): array
     {
         $dati = $this->toArray();
+
+        $modello = $this->template instanceof \BackedEnum ? $this->template->value : (string) $this->template;
+        $dati['caselle'] = collect(self::CASELLE_PER_MODELLO[$modello] ?? [])
+            ->mapWithKeys(fn (string $chiave): array => [$chiave => SiteSetting::get($chiave) ?: null])
+            ->all();
 
         if (! is_array($dati['content_data'] ?? null)) {
             return $dati;
