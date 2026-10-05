@@ -316,7 +316,9 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   valore salvato nel gruppo.
 - Chiavi nuove di un gruppo: con una migrazione (`set()` le mette nel gruppo
   predefinito). Le `json` si traducono come le altre (`resolveForLocale()`).
-- Recapiti e dati societari: gruppo `contact`, non `content_data`.
+- Recapiti e dati societari: gruppo `contact`, non `content_data`. Le caselle
+  dei singoli uffici (`Page::CASELLE_PER_MODELLO`) non viaggiano nelle props
+  condivise: le riceve solo la pagina del loro modello (`page.caselle`).
 
 ### Regole varie
 - **Una sezione, una pagina**: non ricreare pagine con lo slug di una sezione
@@ -417,13 +419,20 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   rigenerare l'header su un cache hit. Non porta Set-Cookie: `bootstrap.js`
   chiede `/csrf-cookie` prima di scrivere; 419/429 Inertia tornano alla pagina.
   Esclude i crawler.
+- **Ziggy a elenco chiuso** (`config/ziggy.php` `only`): una rotta nuova chiamata
+  dal frontend per nome va aggiunta lì (`RotteNelBrowserTest`).
+- `RispostaSenzaResidui` (globale): toglie `X-RateLimit-*` e fa scadere i cookie
+  del vecchio WordPress. `/.well-known/security.txt` è una rotta: la cartella
+  `public/.well-known/` serve ad aggirare il 403 del buildpack sui percorsi col punto.
 - **Ogni `throttle:N,M` ha il terzo parametro** (nome del limite), o i limiti
   condividono il contatore (`LimitiDelleRotteSeparatiTest`).
 
 ## 19. Anteprime social
 
 `ServeSocialCrawlerMeta` risponde ai crawler (`CRAWLER_PATTERNS`) con un HTML
-minimale; i meta `og:` di `app.blade.php` sono statici.
+minimale; per tutti gli altri mette gli stessi meta nell'attributo
+`ATTRIBUTO_META`, che `app.blade.php` stampa (titolo, descrizione, `og:`) con
+l'attributo `inertia` (Google senza SSR). Le visite Inertia non li calcolano.
 - Pagina riconosciuta dal **nome della rotta** (uguale in tutte le lingue); le
   pagine CMS dal controller `PageController@show`.
 - Ciò che non sa descrivere passa a `$next` (301 e 404 restano tali).

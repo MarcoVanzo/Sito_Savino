@@ -85,12 +85,24 @@ class VoltiDiSfondo
             throw new RuntimeException("Copia di lavoro illeggibile: {$copia}");
         }
 
+        // I riquadri di CompreFace possono uscire dai bordi della foto: senza
+        // limitarli `imagecrop` fallisce e il volto non verrebbe rimesso.
+        $larghezzaFoto = imagesx($immagine);
+        $altezzaFoto = imagesy($immagine);
+
         $intatti = [];
         foreach ($primoPiano as $volto) {
-            $box = self::riquadro($volto, 0);
-            $pezzo = imagecrop($immagine, ['x' => $box[0], 'y' => $box[1], 'width' => $box[2] - $box[0], 'height' => $box[3] - $box[1]]);
+            [$x0, $y0, $x1, $y1] = self::riquadro($volto, 0);
+            $x1 = min($x1, $larghezzaFoto);
+            $y1 = min($y1, $altezzaFoto);
+
+            if ($x1 <= $x0 || $y1 <= $y0) {
+                continue;
+            }
+
+            $pezzo = imagecrop($immagine, ['x' => $x0, 'y' => $y0, 'width' => $x1 - $x0, 'height' => $y1 - $y0]);
             if ($pezzo !== false) {
-                $intatti[] = [$pezzo, $box];
+                $intatti[] = [$pezzo, [$x0, $y0]];
             }
         }
 

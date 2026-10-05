@@ -14,6 +14,7 @@ use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
@@ -79,6 +80,24 @@ class SocialCrawlerMetaTest extends TestCase
         $this->assertStringContainsString('<meta property="og:title" content="Maglia gara 2026 — Savino Del Bene Volley" inertia="og:title">', $html);
         $this->assertStringContainsString('content="La maglia ufficiale della stagione." inertia="description"', $html);
         $this->assertStringContainsString('og:type" content="product"', $html);
+    }
+
+    /**
+     * La pagina d'errore non eredita i meta della pagina richiesta: un 404
+     * non deve presentarsi col titolo di ciò che non c'è. Qui una rotta che
+     * il middleware sa descrivere e che poi risponde 404.
+     */
+    #[Test]
+    public function la_pagina_d_errore_ha_i_meta_generici(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+        Route::get('/prova/errore/dei/meta', fn () => abort(404))
+            ->middleware(['web', ServeSocialCrawlerMeta::class])
+            ->name('sponsor');
+
+        $html = $this->get('/prova/errore/dei/meta')->assertNotFound()->getContent();
+
+        $this->assertStringContainsString('<meta property="og:title" content="Savino Del Bene Volley" inertia="og:title">', $html);
     }
 
     #[Test]

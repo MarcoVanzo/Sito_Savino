@@ -296,6 +296,28 @@ class FacialRecognitionServiceTest extends TestCase
         $this->assertGreaterThan(240, $bordo['red'], 'Il margine della copertura non deve mangiare il volto in primo piano.');
     }
 
+    /** Un riquadro che esce dalla foto non deve far perdere il volto in primo piano. */
+    #[Test]
+    public function un_volto_sul_bordo_resta_intero_anche_vicino_allo_sfondo(): void
+    {
+        $percorso = $this->immagineFinta();
+        $copia = VoltiDiSfondo::copiaDiLavoro($percorso, 5 * 1024 * 1024);
+
+        try {
+            VoltiDiSfondo::copri(
+                $copia,
+                [['box' => $this->riquadro(20, 1080, 690)]],
+                [['box' => $this->riquadro(200, 1100, 700)]],
+                5 * 1024 * 1024,
+            );
+
+            $foto = imagecreatefromjpeg($copia);
+            $this->assertGreaterThan(240, imagecolorsforindex($foto, imagecolorat($foto, 1105, 705))['red']);
+        } finally {
+            @unlink($copia);
+        }
+    }
+
     /**
      * Un pezzo di volto piccolo restituito dal riconoscimento (ai margini di
      * una copertura) non diventa un tag.
@@ -468,7 +490,7 @@ class FacialRecognitionServiceTest extends TestCase
     {
         $atleta = Player::factory()->create();
         Http::fake([
-            '*/recognize*' => Http::response(['result' => [$this->volto(180)]]),
+            '*/detection/detect*' => Http::response(['result' => [$this->volto(180)]]),
             '*/subjects' => Http::response(['subject' => 'player_'.$atleta->id]),
             '*/faces*' => Http::response(['image_id' => 'abc', 'subject' => 'player_'.$atleta->id]),
         ]);
@@ -485,7 +507,7 @@ class FacialRecognitionServiceTest extends TestCase
         config(['services.compreface.min_face_px' => 90]);
         $atleta = Player::factory()->create();
         Http::fake([
-            '*/recognize*' => Http::response(['result' => [$this->volto(44)]]),
+            '*/detection/detect*' => Http::response(['result' => [$this->volto(44)]]),
             '*/faces*' => Http::response(['image_id' => 'mai']),
         ]);
 
@@ -501,7 +523,7 @@ class FacialRecognitionServiceTest extends TestCase
     {
         $atleta = Player::factory()->create();
         Http::fake([
-            '*/recognize*' => Http::response(['result' => [$this->volto(200), $this->volto(150)]]),
+            '*/detection/detect*' => Http::response(['result' => [$this->volto(200), $this->volto(150)]]),
             '*/faces*' => Http::response(['image_id' => 'mai']),
         ]);
 
@@ -517,7 +539,7 @@ class FacialRecognitionServiceTest extends TestCase
     {
         $atleta = Player::factory()->create();
         Http::fake([
-            '*/recognize*' => Http::response(['message' => 'No face is found in the given image', 'code' => 28], 400),
+            '*/detection/detect*' => Http::response(['message' => 'No face is found in the given image', 'code' => 28], 400),
             '*/faces*' => Http::response(['image_id' => 'mai']),
         ]);
 
