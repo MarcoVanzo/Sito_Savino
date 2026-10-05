@@ -233,7 +233,7 @@ v-for="role in roles"
                             <div class="flex gap-4 text-sm text-gray-500">
                                 <div v-if="item.player.nationality"><strong>{{ $t('stagione.nationality_short') }}:</strong> {{ item.player.nationality }}</div>
                                 <div v-if="item.height_cm"><strong>{{ $t('stagione.height_short') }}:</strong> {{ item.height_cm }} cm</div>
-                                <div v-if="item.player.date_of_birth"><strong>{{ $t('stagione.year_short') }}:</strong> {{ String(item.player.date_of_birth).slice(0, 4) }}</div>
+                                <div v-if="item.player.anno_di_nascita"><strong>{{ $t('stagione.year_short') }}:</strong> {{ item.player.anno_di_nascita }}</div>
                             </div>
                         </div>
                     </component>

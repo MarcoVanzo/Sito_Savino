@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Player;
 use App\Models\StaffMember;
 use App\Support\FotoAlleggerita;
+use App\Support\VoltiDiSfondo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
@@ -302,7 +303,9 @@ class FacialRecognitionService
      */
     public function recognizeFaces(string $imagePath, float $minConfidence = 0.985): array
     {
-        return $this->conUnaCopiaAccettata($imagePath, fn (string $invio) => $this->riconosciVolti($invio, $minConfidence));
+        // Niente conUnaCopiaAccettata: la copia (dritta e sotto il peso
+        // massimo) la prepara VoltiDiSfondo, che deve coprirne i volti.
+        return $this->riconosciVolti($imagePath, $minConfidence);
     }
 
     /**
@@ -329,7 +332,16 @@ class FacialRecognitionService
         }
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Riconosce solo i volti in primo piano. Prima si cercano i volti col
+     * servizio di rilevamento, che restituisce i riquadri e nessuna impronta;
+     * quelli di sfondo (pubblico, sotto `min_face_px_riconoscimento`) si
+     * coprono, e al riconoscimento arriva la foto senza di loro. Se non resta
+     * nessun volto in primo piano il riconoscimento non si chiama affatto.
+     * È la garanzia che l'informativa dà agli spettatori.
+     *
+     * @return array<string, mixed>
+     */
     private function riconosciVolti(string $imagePath, float $minConfidence): array
     {
         if (empty($this->apiKey)) {
@@ -337,6 +349,91 @@ class FacialRecognitionService
 
             throw new FacialRecognitionException('CompreFace API Key non configurata.');
         }
+
+        // Senza rilevamento non si sa quali volti sono di sfondo: meglio
+        // nessun riconoscimento che confrontare anche il pubblico.
+        // L'analisi gira in coda `ai`, i cui job falliti non mandano email:
+        // senza questo avviso la gallery smetterebbe di taggare in silenzio.
+        if (empty(config('services.compreface.detection_key'))) {
+            app(AvvisoTecnico::class)->invia(
+                'Riconoscimento dei volti fermo: manca COMPREFACE_DETECTION_KEY',
+                "Senza la chiave del servizio di rilevamento CompreFace le foto nuove non vengono analizzate.\n"
+                .'Va impostata su web, worker e scheduler (docs/INFRASTRUCTURE.md), poi: php artisan gallery:analyze --pending.',
+                'compreface-senza-rilevamento',
+                6 * 3600,
+            );
+
+            throw new FacialRecognitionException('Chiave del rilevamento CompreFace non configurata.');
+        }
+
+        $byteMassimi = (int) config('services.compreface.max_file_bytes');
+
+        try {
+            $copia = VoltiDiSfondo::copiaDiLavoro($imagePath, $byteMassimi);
+        } catch (\RuntimeException $e) {
+            throw new FacialRecognitionException($e->getMessage(), previous: $e);
+        }
+
+        try {
+            $volti = $this->rilevaVolti($copia);
+            $latoCorto = VoltiDiSfondo::latoCorto($copia);
+            $primoPiano = array_values(array_filter($volti, fn (array $volto): bool => VoltiDiSfondo::inPrimoPiano($volto, $latoCorto)));
+            $sfondo = array_values(array_filter($volti, fn (array $volto): bool => ! VoltiDiSfondo::inPrimoPiano($volto, $latoCorto)));
+
+            if ($primoPiano === []) {
+                return [
+                    'detected_persons' => [],
+                    'has_unrecognized_faces' => false,
+                ];
+            }
+
+            if ($sfondo !== []) {
+                VoltiDiSfondo::copri($copia, $sfondo, $primoPiano, $byteMassimi);
+            }
+
+            return $this->riconosciIVoltiInPrimoPiano($copia, $minConfidence);
+        } finally {
+            @unlink($copia);
+        }
+    }
+
+    /**
+     * Riquadri dei volti trovati dal servizio di rilevamento di CompreFace.
+     * Senza `face_plugins` non calcola impronte: solo posizione e probabilità.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function rilevaVolti(string $imagePath): array
+    {
+        $response = Http::withHeaders(['x-api-key' => (string) config('services.compreface.detection_key')])
+            ->connectTimeout(5)
+            ->timeout(30)
+            ->retry(2, 1000, fn (\Throwable $e): bool => ! $e instanceof ConnectionException, throw: false)
+            ->attach('file', fopen($imagePath, 'r'), basename($imagePath))
+            ->post(rtrim($this->host, '/').'/api/v1/detection/detect?limit=0&det_prob_threshold=0.8');
+
+        if ($response->status() === 400 && ($response->json()['code'] ?? null) === self::ERRORE_NESSUN_VOLTO) {
+            return [];
+        }
+
+        if (! $response->successful()) {
+            Log::error('CompreFace Detect Error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            throw new FacialRecognitionException("CompreFace detection error (HTTP {$response->status()}): {$response->body()}");
+        }
+
+        return $response->json()['result'] ?? [];
+    }
+
+    /** @return array<string, mixed> */
+    private function riconosciIVoltiInPrimoPiano(string $imagePath, float $minConfidence): array
+    {
+        // La copia può essere stata ridotta dopo la copertura: la soglia si
+        // misura sulla foto che CompreFace ha davvero visto.
+        $latoCorto = VoltiDiSfondo::latoCorto($imagePath);
 
         // `throw: false` come negli altri tre metodi del servizio: senza, al
         // terzo tentativo fallito Laravel lancia la propria RequestException e
@@ -373,6 +470,12 @@ class FacialRecognitionService
         $hasUnrecognizedFaces = false;
 
         foreach ($response->json()['result'] ?? [] as $face) {
+            // Un pezzo di volto rimasto ai margini di una copertura: non lo
+            // si attribuisce a nessuno.
+            if (! VoltiDiSfondo::inPrimoPiano($face, $latoCorto)) {
+                continue;
+            }
+
             ['persona' => $persona, 'daRivedere' => $daRivedere] = $this->personaDelVolto($face, $minConfidence);
 
             if ($persona !== null) {

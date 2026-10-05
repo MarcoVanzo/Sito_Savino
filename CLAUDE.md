@@ -178,6 +178,11 @@ parsa le pagine pubbliche di `legavolleyfemminile.it`. Codice in
 - **CompreFace** su un droplet raggiungibile **solo dalla VPC**
   (`COMPREFACE_HOST`); chiave vera nel suo Postgres. Le foto di addestramento
   non restano né nel repo né su Spaces.
+- **Il pubblico non si confronta** (informativa del 5/10/2026): il servizio di
+  rilevamento (`COMPREFACE_DETECTION_KEY`) trova i volti, quelli sotto
+  `quota_volto_riconoscimento` (4% del lato corto, non pixel) si coprono
+  (`VoltiDiSfondo`) prima del riconoscimento. Senza chiave di rilevamento il
+  riconoscimento si ferma e avvisa.
 - `players.ai_face_examples` è una copia: la riallinea ogni notte
   `volti:riconcilia-contatori`.
 - Le foto entrate senza l'upload del pannello si analizzano con

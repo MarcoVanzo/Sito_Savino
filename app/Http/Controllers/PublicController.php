@@ -377,8 +377,26 @@ class PublicController extends Controller
         $presenter = $withPalmares ? app(PalmaresPresenter::class) : null;
 
         return $rosterEntries->map(function (Roster $entry) use ($presenter): array {
-            $row = $entry->toArray();
             $player = $entry->player;
+
+            // Solo i campi che la pagina mostra. Con `toArray()` arrivavano
+            // al browser l'intero record dell'atleta, i suoi media, i
+            // tabellini e la data di nascita completa — che in archivio vale
+            // quasi sempre 1° gennaio, perché si conosce solo l'anno, e che
+            // la pagina non mostra (parere del 5/10/2026: ~212 KB di JSON).
+            $row = [
+                'id' => $entry->id,
+                'jersey_number' => $entry->jersey_number,
+                'role' => $entry->role,
+                'height_cm' => $entry->height_cm,
+                'official_photo_url' => $entry->official_photo_url,
+                'player' => $player instanceof Player ? [
+                    'first_name' => $player->first_name,
+                    'last_name' => $player->last_name,
+                    'nationality' => $player->nationality,
+                    'anno_di_nascita' => $player->date_of_birth?->year,
+                ] : null,
+            ];
 
             $row['playerSlug'] = $player instanceof Player
                 ? $player->id.'-'.Str::slug($player->full_name)

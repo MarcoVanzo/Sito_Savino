@@ -197,7 +197,7 @@ class FotoAlleggerita
      * fatale (500), non un'eccezione: se serve si alza per questa richiesta,
      * fino a un tetto, altrimenti si rinuncia.
      */
-    private static function memoriaSufficientePer(int $larghezza, int $altezza): bool
+    public static function memoriaSufficientePer(int $larghezza, int $altezza): bool
     {
         $limite = self::inByte((string) ini_get('memory_limit'));
 

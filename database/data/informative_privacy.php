@@ -94,11 +94,15 @@ return [
             // prova delle condizioni, contestazioni, statistiche dello shop).
             'a dare seguito al recesso e a rispettare gli obblighi fiscali. Base giuridica: esecuzione del contratto e obbligo di legge.',
             'to handle withdrawal and to meet tax obligations. Legal basis: performance of the contract and legal obligation.',
+            // Revisione del 2 ottobre 2026, fino al 5: anche i volti del
+            // pubblico arrivavano al confronto, senza lasciare impronte.
+            'Per tutti gli altri volti che compaiono in una fotografia il confronto avviene sul momento',
+            'For every other face in a photograph the comparison happens there and then',
         ],
         'contenuto' => [
             'it' => <<<HTML
             <h2>Informativa sul trattamento dei dati personali</h2>
-            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 2 ottobre 2026.</p>
+            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 5 ottobre 2026.</p>
 
             <h3>Titolare del trattamento</h3>
             <p>{$societa} — {$sede}<br />
@@ -132,9 +136,9 @@ return [
             <p>I dati degli ordini non servono a mandarti promozioni: la newsletter arriva solo se ti iscrivi a parte e confermi. Il pagamento lo gestiscono PayPal o Stripe, che ricevono importo e numero d'ordine (Stripe anche la tua email); la consegna il corriere. Entrambi sono titolari autonomi, come spiegato più sotto. Quanto conserviamo ordini e recessi è scritto in <a href="#conservazione">Per quanto tempo li conserviamo</a>.</p>
 
             <h3>Fotografie e riconoscimento dei volti</h3>
-            <p>Il sito pubblica fotografie di gare, allenamenti, eventi e attività della società. Nelle immagini compaiono atlete, staff, ospiti e pubblico presente al palazzetto.</p>
-            <p>Ogni fotografia che entra nell'archivio viene analizzata da un servizio di riconoscimento facciale che gira su un server della società, a Francoforte, raggiungibile solo dalla nostra rete interna: le immagini non vengono inviate a servizi di riconoscimento di terze parti. Il servizio individua i volti presenti nella fotografia e li confronta con le impronte numeriche delle persone che la redazione ha registrato — atlete e membri dello staff — per capire chi è ritratto. I nomi riconosciuti vengono associati alla fotografia, compaiono nell'archivio fotografico come filtro per persona e finiscono nel titolo e nella descrizione dell'immagine, che è anche ciò che leggono i motori di ricerca.</p>
-            <p>Le impronte conservate sono soltanto quelle delle persone registrate dalla redazione. Per tutti gli altri volti che compaiono in una fotografia il confronto avviene sul momento e non lascia nulla: nessuna impronta viene creata o conservata per il pubblico ritratto.</p>
+            <p>Il sito pubblica fotografie di gare, allenamenti, eventi e attività della società. Nelle immagini compaiono atlete, staff, avversarie, arbitri, ospiti e, di solito sullo sfondo, il pubblico presente al palazzetto.</p>
+            <p>Ogni fotografia che entra nell'archivio viene analizzata da un servizio di riconoscimento facciale che gira su un server della società, a Francoforte, raggiungibile solo dalla nostra rete interna: le immagini non vengono inviate a servizi di riconoscimento di terze parti. Il servizio individua i volti abbastanza grandi da essere riconoscibili e li confronta con le impronte numeriche delle persone che la redazione ha registrato — atlete e membri dello staff — per capire chi è ritratto. I nomi riconosciuti vengono associati alla fotografia, compaiono nell'archivio fotografico come filtro per persona e finiscono nel titolo e nella descrizione dell'immagine, che è anche ciò che leggono i motori di ricerca.</p>
+            <p>I volti piccoli rispetto alla fotografia, come quelli del pubblico sullo sfondo, sono esclusi dal riconoscimento: il servizio ne rileva soltanto la posizione e li copre prima del confronto, senza calcolarne alcuna impronta. Gli altri volti di persone non registrate, per esempio avversarie, arbitri od ospiti, vengono confrontati sul momento con le impronte delle persone registrate e, se non somigliano a nessuna di loro, non lasciano nulla: per loro nessuna impronta viene creata o conservata. Le impronte conservate sono soltanto quelle delle persone registrate dalla redazione.</p>
             <p><strong>Base giuridica</strong>: il consenso esplicito della persona interessata (articolo 9 §2 lettera a del GDPR), raccolto dalla società prima di registrarne il volto; per le atlete minorenni lo dà chi esercita la responsabilità genitoriale. Il consenso si può revocare in ogni momento: alla revoca la redazione cancella l'impronta, le associazioni fatte dal riconoscimento e il nome nei titoli e nelle descrizioni delle fotografie. Le fotografie restano, senza il nome.</p>
             <p>Il riconoscimento propone, non decide: l'associazione fra una persona e una fotografia resta sempre modificabile dalla redazione, e non produce alcun effetto giuridico né decisione automatizzata su nessuno.</p>
             <p>Se compari in una fotografia e non vuoi comparire, o non vuoi che il tuo nome le resti associato, scrivi a <a href="mailto:{$email}">{$email}</a>: togliamo l'immagine o l'associazione.</p>
@@ -178,7 +182,7 @@ return [
             HTML,
             'en' => <<<HTML
             <h2>Privacy notice</h2>
-            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 2 October 2026.</p>
+            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 5 October 2026.</p>
 
             <h3>Data controller</h3>
             <p>{$societa} — {$sede}, Italy<br />
@@ -212,9 +216,9 @@ return [
             <p>Order data is not used to send you promotions: the newsletter only arrives if you subscribe separately and confirm. Payment is handled by PayPal or Stripe, which receive the amount and the order number (Stripe also your email); delivery by the courier. Both act as independent controllers, as explained below. How long we keep orders and withdrawals is set out in <a href="#conservazione">How long we keep it</a>.</p>
 
             <h3>Photographs and face recognition</h3>
-            <p>The site publishes photographs of matches, training sessions, events and club activities. Players, staff, guests and the crowd at the arena appear in them.</p>
-            <p>Every photograph added to the archive is analysed by a face recognition service running on a club server in Frankfurt, reachable only from our internal network: images are not sent to any third-party recognition service. The service finds the faces in the photograph and compares them with the numeric templates of the people the editorial team has enrolled — players and staff members — in order to tell who is pictured. Recognised names are attached to the photograph, appear in the photo archive as a per-person filter, and end up in the image title and description, which is also what search engines read.</p>
-            <p>The only templates we keep are those of the people enrolled by the editorial team. For every other face in a photograph the comparison happens there and then and leaves nothing behind: no template is created or kept for members of the public.</p>
+            <p>The site publishes photographs of matches, training sessions, events and club activities. Players, staff, opponents, referees, guests and, usually in the background, the crowd at the arena appear in them.</p>
+            <p>Every photograph added to the archive is analysed by a face recognition service running on a club server in Frankfurt, reachable only from our internal network: images are not sent to any third-party recognition service. The service finds the faces large enough to be recognisable and compares them with the numeric templates of the people the editorial team has enrolled — players and staff members — in order to tell who is pictured. Recognised names are attached to the photograph, appear in the photo archive as a per-person filter, and end up in the image title and description, which is also what search engines read.</p>
+            <p>Faces that are small relative to the photograph, such as those of the crowd in the background, are excluded from recognition: the service only detects where they are and covers them before the comparison, without computing any template. Other faces of people who are not enrolled, for example opponents, referees or guests, are compared there and then with the templates of the enrolled people and, if they resemble none of them, leave nothing behind: no template is created or kept for them. The only templates we keep are those of the people enrolled by the editorial team.</p>
             <p><strong>Legal basis</strong>: the explicit consent of the person concerned (Article 9(2)(a) GDPR), obtained by the club before enrolling their face; for players who are minors it is given by whoever holds parental responsibility. Consent can be withdrawn at any time: on withdrawal the editorial team deletes the template, the links made by recognition and the name in the titles and descriptions of the photographs. The photographs stay, without the name.</p>
             <p>Recognition suggests, it does not decide: the link between a person and a photograph can always be changed by the editorial team, and it produces no legal effect and no automated decision about anyone.</p>
             <p>If you appear in a photograph and would rather not, or would rather your name were not attached to it, write to <a href="mailto:{$email}">{$email}</a>: we will remove the image or the link.</p>

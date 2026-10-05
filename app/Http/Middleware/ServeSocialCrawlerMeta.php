@@ -93,10 +93,25 @@ class ServeSocialCrawlerMeta
         'contatti' => 'contatti',
     ];
 
+    /** Attributo della richiesta da cui app.blade.php legge i meta della pagina. */
+    public const ATTRIBUTO_META = 'meta_della_pagina';
+
     public function handle(Request $request, Closure $next): Response
     {
-        // Passa oltre se non è un crawler social
+        // Per tutti gli altri gli stessi meta finiscono nell'HTML iniziale del
+        // layout (app.blade.php): senza SSR, Google e chiunque legga l'HTML
+        // senza eseguire il JavaScript vedeva per ogni pagina il titolo e il
+        // logo della home (parere del 5/10/2026). Le visite Inertia (XHR)
+        // non disegnano il layout: lì non serve calcolarli.
         if (! self::isSocialCrawler($request)) {
+            if ($request->isMethod('GET') && ! $request->header('X-Inertia')) {
+                $meta = $this->resolveMeta($request);
+
+                if ($meta !== null) {
+                    $request->attributes->set(self::ATTRIBUTO_META, $this->perIlLayout($meta));
+                }
+            }
+
             return $next($request);
         }
 
@@ -455,6 +470,25 @@ class ServeSocialCrawlerMeta
         }
 
         return $titolo.self::TITLE_SUFFIX;
+    }
+
+    /**
+     * I meta pronti per il layout: titolo col nome del sito, descrizione in
+     * testo semplice, immagine e tipo con i ripieghi del layout.
+     *
+     * @param  array<string, mixed>  $meta
+     * @return array{title: string, description: string, image: ?string, type: string}
+     */
+    private function perIlLayout(array $meta): array
+    {
+        $descrizione = trim((string) preg_replace('/\s+/u', ' ', strip_tags((string) ($meta['description'] ?? ''))));
+
+        return [
+            'title' => $this->conIlNomeDelSito((string) ($meta['title'] ?? '')),
+            'description' => Str::limit(html_entity_decode($descrizione, ENT_QUOTES | ENT_HTML5), 200),
+            'image' => ($meta['image'] ?? null) ?: null,
+            'type' => (string) ($meta['type'] ?? 'website'),
+        ];
     }
 
     /**
