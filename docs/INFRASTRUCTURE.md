@@ -1,7 +1,7 @@
 # Documentazione Tecnica Infrastruttura — Savino Del Bene Volley
 
-> Ultimo aggiornamento: 3 ottobre 2026
-> Versione: 3.1
+> Ultimo aggiornamento: 4 ottobre 2026
+> Versione: 3.2
 >
 Questo documento descrive come è costruita e come funziona l'infrastruttura che
 serve il sito **savinodelbenevolley.it**, il suo pannello di gestione (CMS), lo
@@ -10,7 +10,8 @@ backup, sicurezza e avvisi. Fotografa lo stato al 1 ottobre 2026, giorno in cui
 il dominio è passato dal vecchio sito WordPress a questa piattaforma
 (procedura in `docs/GO_LIVE.md`). La versione 3.1 (3 ottobre) aggiunge la
 rotazione delle chiavi (ActiveCampaign, token DigitalOcean, chiavi Spaces) e la
-gestione delle foto caricate dal pannello (§3.5).
+gestione delle foto caricate dal pannello (§3.5). La 3.2 (4 ottobre) aggiunge gli account
+della società (§10).
 
 <!-- La versione stampabile docs/INFRASTRUCTURE.html si rigenera da questo file con
 python3 scripts/genera-infrastructure-html.py: non si modifica a mano. -->
@@ -331,7 +332,7 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 | Aste | auctions, bids | Aste benefiche e offerte |
 | Sponsor | sponsors | Loghi e link partner |
 | Analytics | web_analytics_daily, social_insights_daily, social_accounts | Serie giornaliere GA4 e Meta (`docs/ANALYTICS.md`) |
-| Privacy | consensi_cookie, contact_messages, newsletter_subscribers | Prove di consenso (12 mesi), messaggi e accrediti (24 mesi), iscritti alla newsletter |
+| Privacy | consensi_cookie, contact_messages, newsletter_subscribers | Prove di consenso (24 mesi), messaggi e accrediti (24 mesi), iscritti alla newsletter |
 | Sistema | users, activity_logs, jobs, job_batches, cache, cache_persistente, sessions, menu_items | Utenti, log, code, navigazione |
 | Media | media (Spatie) | Metadati file caricati |
 
@@ -367,7 +368,10 @@ Admin carica foto → Web accoda job nel DB → Worker lo preleva → Chiama Com
 
 **Come arriva un'immagine al browser:**
 1. L'admin carica un'immagine nel CMS
-2. Laravel la salva su Spaces via API S3
+2. Laravel la salva su Spaces via API S3. Fino al Salva il file sta in
+   `livewire-tmp/` sul disco del container web: un rilascio (o la pulizia
+   dopo 24 ore) lo cancella, e la redazione riceve l'avviso di ricaricarlo
+   (`UploadTemporaneoPerso`) invece di un errore 500
 3. Spatie Media Library genera le conversioni (`thumb`, `card`…), quasi tutte in coda; `zoom` e `og-image` dei prodotti subito, sul web
 4. Il sito pubblico la chiede **direttamente all'origine di Frankfurt**: gli
    indirizzi nascono da `AWS_URL`, che punta all'endpoint non-CDN. Il
@@ -866,11 +870,13 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti tranne `scheduler:beat` hanno 
 | `social:sync-meta --days=90` | Giornaliero (03:30) | Insight Facebook/Instagram, max 120 chiamate |
 | `analytics:sync-ga4 --days=90` | Giornaliero (05:00) | Serie giornaliera del traffico GA4 |
 | `newsletter:retry-sync` | Giornaliero (05:15) | Ritenta su ActiveCampaign gli iscritti confermati non ancora sincronizzati (max 50) |
+| `newsletter:allinea-disiscritti` | Giornaliero (05:15) | Porta sul sito le disiscrizioni fatte su ActiveCampaign e toglie nome e IP dei disiscritti |
 | `RicostruisciLaCacheDellaGallery` (job) | Ogni ora (:17) | Rigenera la cache dell'archivio foto |
 | `gallery:analyze --pending --limit=600 --force` | Ogni ora (:37) | Riconoscimento volti sulle foto non ancora analizzate |
 | `volti:riconcilia-contatori` | Giornaliero (04:15) | Riallinea `players.ai_face_examples` a CompreFace |
 | `activity-log:prune --days=180 --force` | Settimanale (domenica 00:00) | Pulisce log attività > 6 mesi |
-| `consensi:pota` | Settimanale (domenica 00:00) | Prove di consenso cookie oltre i 12 mesi |
+| `consensi:pota` | Settimanale (domenica 00:00) | Prove di consenso cookie oltre i 24 mesi |
+| `consensi:verifica` | Settimanale (lunedì 04:30) | Controlla che il registro dei consensi non sia stato alterato (righe incatenate) |
 | `messaggi:pota` | Settimanale (domenica 00:00) | Messaggi e accrediti oltre i 24 mesi (dalla data del messaggio) |
 | `model:prune` | Giornaliero | Carrelli scaduti da più di 7 giorni, iscrizioni alla newsletter non confermate entro 30 giorni, dichiarazioni di recesso oltre la conservazione (12 mesi; 10 anni se legate a un ordine) |
 | `queue:prune-batches` / `queue:prune-failed` | Giornaliero | Batch rimasti aperti (72 h) e job falliti (30 giorni) |

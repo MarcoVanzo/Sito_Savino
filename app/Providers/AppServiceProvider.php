@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Filament\Support\TranslatableContentDriver;
+use App\Filament\Support\UploadTemporaneoPerso;
 use App\Models\Auction;
 use App\Models\Category;
 use App\Models\Evento;
@@ -64,6 +65,7 @@ use Resend\Transporters\HttpTransporter;
 use Resend\ValueObjects\ApiKey;
 use Resend\ValueObjects\Transporter\BaseUri;
 use Resend\ValueObjects\Transporter\Headers;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -188,6 +190,10 @@ class AppServiceProvider extends ServiceProvider
                 return $component->evaluate($salva, ['file' => $file]);
             });
         }, isImportant: true);
+
+        // Caricamento perso fra upload e Salva (un rilascio ha sostituito il
+        // container): avviso alla redazione invece del 500.
+        \Livewire\on('exception', fn ($component, Throwable $e, Closure $stopPropagation) => UploadTemporaneoPerso::gestisci($e, $stopPropagation));
 
         // Requisiti minimi di robustezza, applicati ovunque si usi
         // Rules\Password::defaults(). `uncompromised()` interroga l'API di
