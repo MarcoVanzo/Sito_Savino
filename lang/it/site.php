@@ -98,6 +98,10 @@ return [
             'title' => 'Le foto di :nome',
             'description' => 'Tutte le foto di :nome nell\'archivio fotografico della Savino Del Bene Volley.',
         ],
+        'gallery-album' => [
+            'title' => ':nome',
+            'description' => 'Le foto di «:nome» nella gallery ufficiale della Savino Del Bene Volley.',
+        ],
     ],
 
     /*

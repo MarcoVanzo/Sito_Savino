@@ -7,7 +7,7 @@ import { useImageFallback } from '@/Composables/useImageFallback.js'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useChunkedList } from '@/Composables/useChunkedList.js'
 import { useDeferredArchive } from '@/Composables/useDeferredArchive.js'
-import { groupIntoAlbums, searchMedia } from '@/Support/galleryAlbums.js'
+import { albumSlug, groupIntoAlbums, searchMedia } from '@/Support/galleryAlbums.js'
 
 const $t = useTranslations();
 
@@ -27,6 +27,11 @@ const props = defineProps({
         default: () => []
     },
     currentAthlete: {
+        type: Object,
+        default: null
+    },
+    // Album aperto dal suo indirizzo (`/gallery/album/{slug}`)
+    currentAlbum: {
         type: Object,
         default: null
     },
@@ -79,7 +84,8 @@ const activeCategory = ref(null)
 // dopo il primo render: la prima disponibile diventa quella aperta.
 watch(categories, (cats) => {
     if (activeCategory.value === null && cats.length > 0) {
-        activeCategory.value = cats.includes('Partite') ? 'Partite' : cats[0]
+        const dellAlbum = props.currentAlbum?.category
+        activeCategory.value = cats.includes(dellAlbum) ? dellAlbum : (cats.includes('Partite') ? 'Partite' : cats[0])
     }
 }, { immediate: true })
 
@@ -91,7 +97,7 @@ const searchQuery = ref('')
 // da lì: prima le copertine, poi le foto dentro. Una ricerca per tag o una
 // pagina d'atleta attraversano invece piu' album, quindi in quei due casi si
 // torna all'elenco piatto.
-const activeAlbumId = ref(null)
+const activeAlbumId = ref(props.currentAlbum?.id ?? null)
 
 const categoryMedia = computed(() => {
     if (!activeCategory.value) return displayMedia.value
@@ -131,19 +137,54 @@ const filteredMedia = computed(() => {
     return categoryMedia.value
 })
 
+// Ogni album ha il suo indirizzo, da condividere. Aprirlo e chiuderlo cambia
+// l'indirizzo con una visita solo lato client (niente richiesta: l'archivio e'
+// gia' qui) e lascia una voce nella cronologia, cosi' "indietro" torna
+// all'elenco.
+function cambiaIndirizzo(url, album, { replace = false } = {}) {
+    router[replace ? 'replace' : 'push']({
+        url,
+        props: (current) => ({ ...current, currentAlbum: album }),
+        preserveState: true,
+        preserveScroll: true,
+    })
+}
+
 function openAlbum(id) {
+    const album = albums.value.find(a => a.id === id)
     activeAlbumId.value = id
+
+    if (album) {
+        cambiaIndirizzo(route('gallery.album', { slug: albumSlug(album) }), {
+            id: album.id,
+            name: album.name,
+            category: activeCategory.value,
+            cover: album.cover,
+        })
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function closeAlbum() {
+function closeAlbum({ replace = false } = {}) {
+    if (activeAlbumId.value === null) return
+
     activeAlbumId.value = null
+    cambiaIndirizzo(route('gallery'), null, { replace })
 }
 
-// Cambiare categoria o cercare porta fuori dall'album aperto: restarci dentro
-// mostrerebbe una cartella che non appartiene piu' a quello che si sta guardando.
-watch([activeCategory, isSearching], () => {
-    activeAlbumId.value = null
+// Avanti e indietro del browser riportano le props della voce di cronologia.
+watch(() => props.currentAlbum, (album) => {
+    activeAlbumId.value = album?.id ?? null
+
+    if (album?.category) {
+        activeCategory.value = album.category
+    }
+})
+
+// Cercare porta fuori dall'album aperto: la ricerca attraversa tutto l'archivio.
+watch(isSearching, (searching) => {
+    if (searching) closeAlbum({ replace: true })
 })
 
 // ── Rendering incrementale ────────────────────────────────────
@@ -157,7 +198,10 @@ const {
     showMore: renderMore,
 } = useChunkedList(filteredMedia, 60)
 
+// Cambiare categoria porta fuori dall'album aperto: restarci dentro mostrerebbe
+// una cartella che non appartiene piu' a quello che si sta guardando.
 function filterByCategory(cat) {
+    if (cat !== activeCategory.value) closeAlbum()
     activeCategory.value = cat
 }
 
@@ -333,10 +377,15 @@ onUnmounted(() => {
 const loadedImages = ref(new Set())
 function onImageLoad(id) { loadedImages.value.add(id) }
 
-const ogMeta = useOgMeta({
-    title: props.currentAthlete ? $t('gallery.photos_of') + ' ' + props.currentAthlete.name : (props.page?.title ?? $t('gallery.title')),
+// Calcolato: aprire e chiudere un album cambia indirizzo senza ricaricare la
+// pagina, e il titolo della scheda deve seguirlo.
+const ogMeta = computed(() => useOgMeta({
+    title: props.currentAthlete
+        ? $t('gallery.photos_of') + ' ' + props.currentAthlete.name
+        : (props.currentAlbum?.name || props.page?.title || $t('gallery.title')),
+    image: props.currentAlbum?.cover ?? null,
     description: $t('gallery.og_description'),
-})
+}))
 </script>
 
 <template>
@@ -562,7 +611,7 @@ const ogMeta = useOgMeta({
         <!-- ═══════════════ GALLERY GRID ═══════════════ -->
         <section v-else class="gallery-grid-section">
             <!-- Ritorno all'elenco degli album -->
-            <button type="button" v-if="activeAlbum" @click="closeAlbum" class="gallery-album-back">
+            <button type="button" v-if="activeAlbum" @click="closeAlbum()" class="gallery-album-back">
                 <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd"/>
                 </svg>

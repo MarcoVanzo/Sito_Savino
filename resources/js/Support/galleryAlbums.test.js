@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupIntoAlbums, searchMedia } from './galleryAlbums.js'
+import { albumSlug, groupIntoAlbums, searchMedia } from './galleryAlbums.js'
 
 const foto = (evento, extra = {}) => ({
     event_id: evento?.id ?? null,
@@ -115,5 +115,16 @@ describe('searchMedia', () => {
     it('una foto senza tag non fa esplodere la ricerca', () => {
         expect(() => searchMedia([foto(milano)], 'qualcosa')).not.toThrow()
         expect(searchMedia([foto(milano)], 'qualcosa')).toEqual([])
+    })
+})
+
+describe('albumSlug', () => {
+    it('mette l\'id davanti al titolo, senza accenti né simboli', () => {
+        expect(albumSlug({ id: 42, name: 'Giornata 1 - Serie A1 2025/2027' })).toBe('42-giornata-1-serie-a1-2025-2027')
+        expect(albumSlug({ id: 7, name: 'Città — Perugia' })).toBe('7-citta-perugia')
+    })
+
+    it('senza titolo resta solo l\'id', () => {
+        expect(albumSlug({ id: 9, name: '' })).toBe('9')
     })
 })

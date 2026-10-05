@@ -63,7 +63,9 @@ class PressAccreditationController extends Controller
                 'subject' => self::SUBJECT,
                 'message' => $this->corpoMessaggio($dettagli),
                 'status' => 'unread',
-                'extra_data' => $dettagli,
+                // La lingua serve alla conferma che parte dal pannello giorni
+                // dopo, quando la richiesta HTTP non c'è più.
+                'extra_data' => [...$dettagli, 'lingua' => app()->getLocale()],
             ]);
         } catch (\Throwable $e) {
             Log::error('Errore salvataggio richiesta accredito nel database', ['error' => $e->getMessage()]);

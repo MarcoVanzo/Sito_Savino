@@ -209,4 +209,15 @@ return [
         'next' => 'Rispedisci i prodotti entro 14 giorni, a tue spese, a: :address, indicando il numero d\'ordine. Ti rimborseremo il prezzo e le spese di consegna standard entro 14 giorni da oggi, con lo stesso metodo di pagamento che hai usato; possiamo attendere di ricevere i prodotti o la prova della spedizione.',
         'questions' => 'Per qualsiasi domanda scrivi a info@savinodelbenevolley.it.',
     ],
+
+    'accredito' => [
+        'subject' => 'Accredito stampa confermato',
+        'heading' => 'Il tuo accredito è confermato',
+        'intro' => 'Gentile :name, la tua richiesta di accredito stampa è stata accolta.',
+        'match' => 'Gara',
+        'outlet' => 'Testata',
+        'role' => 'Ruolo',
+        'roles' => ['giornalista' => 'Giornalista', 'fotografo' => 'Fotografo', 'operatore' => 'Operatore video'],
+        'questions' => 'Per qualsiasi necessità scrivi a :email.',
+    ],
 ];

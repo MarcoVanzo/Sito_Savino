@@ -65,3 +65,21 @@ export function searchMedia(media, query) {
         return Boolean(matchAlt || matchTags || matchEvent)
     })
 }
+
+/**
+ * Parametro dell'indirizzo di un album (`/gallery/album/{slug}`): `{id}-{titolo}`.
+ * Al server basta l'id, il titolo rende il link leggibile quando si condivide.
+ *
+ * @param {{id: number, name?: string}} album
+ * @returns {string}
+ */
+export function albumSlug(album) {
+    const testo = String(album?.name ?? '')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+
+    return testo ? `${album.id}-${testo}` : String(album.id)
+}

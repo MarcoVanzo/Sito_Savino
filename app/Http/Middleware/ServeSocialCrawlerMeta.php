@@ -12,6 +12,7 @@ use App\Models\ProductCategory;
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Team;
+use App\Services\GalleryArchive;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route as RoutingRoute;
@@ -171,6 +172,7 @@ class ServeSocialCrawlerMeta
             'shop.category' => $this->resolveCategoryMeta($this->slugDiRotta($route, 'category'), $locale),
             'stagione.atleta' => $this->resolvePlayerMeta($this->slugDiRotta($route, 'slug'), $locale, inRosa: true),
             'gallery.atleta' => $this->resolvePlayerMeta($this->slugDiRotta($route, 'slug'), $locale, inRosa: false),
+            'gallery.album' => $this->resolveAlbumMeta($this->slugDiRotta($route, 'slug'), $locale),
             default => isset(self::ROUTE_META[$nome])
                 ? $this->metaTradotti(self::ROUTE_META[$nome], $locale)
                 : null,
@@ -295,6 +297,33 @@ class ServeSocialCrawlerMeta
                 ? $description
                 : (string) __('site.social.shop.description', [], $locale),
         ];
+    }
+
+    /**
+     * Album della gallery (`{id}-{titolo}`): titolo e prima foto, letti
+     * dall'archivio come fa GalleryController::galleryAlbum, così l'anteprima
+     * esiste solo per gli album che la pagina mostra.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function resolveAlbumMeta(string $slug, string $locale): ?array
+    {
+        $id = (int) explode('-', $slug)[0];
+
+        if ($id <= 0) {
+            return null;
+        }
+
+        foreach (app(GalleryArchive::class)->media(null, $locale) as $foto) {
+            if ((int) ($foto['event_id'] ?? 0) === $id) {
+                return [
+                    ...$this->metaTradotti('gallery-album', $locale, ['nome' => $foto['event_name'] ?? '']),
+                    'image' => $foto['url'] ?? null,
+                ];
+            }
+        }
+
+        return null;
     }
 
     /**
