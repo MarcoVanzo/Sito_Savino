@@ -87,6 +87,14 @@ envs:
   scope: RUN_AND_BUILD_TIME
   type: SECRET
   value: EV[1:W3sl/SleR+a4WRet4Quu2r0NPk9DugTO:mP2HNNl8O4YFjbR1xuP0kD+ASSEozijvwsilwF/gilsoSrQd4kX1jLUObwSsJn13wgLYpKdJ]
+# Chiave del servizio di rilevamento di CompreFace (DetectionService
+# nell'applicazione SavinoDelBene): trova i volti di sfondo da coprire prima
+# del riconoscimento (VoltiDiSfondo). A livello di app perche' l'analisi gira
+# nel worker ma la puo' chiedere anche il web. Valore cifrato da DigitalOcean.
+- key: COMPREFACE_DETECTION_KEY
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:yPGn4eP4TXVkTbHnl4CsPgc9aYhDC12V:4XWkT569TaMI733PkJNUPn1Rhz6a7zF0iWwBVdA9tgtfhqxD3UoEjNersa0xBcHw7RzSCA==]
 # Avvisi di DigitalOcean, per cio' che il codice non puo' vedere da dentro:
 # un rilascio fallito, un dominio che non si attiva (il giorno del passaggio) e
 # un container che riparte in ciclo — il crash di FPM delle pagine Comunicazione

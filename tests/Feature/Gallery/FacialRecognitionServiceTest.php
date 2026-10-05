@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Gallery;
 
+use App\Enums\EsitoAvviso;
 use App\Models\Player;
 use App\Models\Post;
 use App\Models\StaffMember;
+use App\Services\AvvisoTecnico;
 use App\Services\FacialRecognitionException;
 use App\Services\FacialRecognitionService;
+use App\Support\VoltiDiSfondo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -33,20 +36,39 @@ class FacialRecognitionServiceTest extends TestCase
         parent::setUp();
         config(['services.compreface.host' => 'http://compreface.test:8000']);
         config(['services.compreface.key' => 'chiave-di-prova']);
+        config(['services.compreface.detection_key' => 'chiave-del-rilevamento']);
         $this->servizio = new FacialRecognitionService;
     }
 
     private function immagineFinta(): string
     {
         $percorso = tempnam(sys_get_temp_dir(), 'volto').'.jpg';
-        file_put_contents($percorso, 'contenuto binario finto');
+        $immagine = imagecreatetruecolor(1200, 800);
+        imagefill($immagine, 0, 0, (int) imagecolorallocate($immagine, 255, 255, 255));
+        imagejpeg($immagine, $percorso);
+        imagedestroy($immagine);
 
         return $percorso;
     }
 
+    /**
+     * Il rilevamento trova gli stessi volti che il riconoscimento descrive; un
+     * volto senza riquadro si intende in primo piano (200 px).
+     */
     private function rispostaConVolti(array $volti): void
     {
-        Http::fake(['*/recognize*' => Http::response(['result' => $volti], 200)]);
+        $volti = array_map(fn (array $volto): array => $volto + ['box' => $this->riquadro(200)], $volti);
+
+        Http::fake([
+            '*/detection/detect*' => Http::response(['result' => array_map(fn (array $volto): array => ['box' => $volto['box']], $volti)], 200),
+            '*/recognize*' => Http::response(['result' => $volti], 200),
+        ]);
+    }
+
+    /** @return array<string, int|float> */
+    private function riquadro(int $altezza, int $x = 0, int $y = 0): array
+    {
+        return ['x_min' => $x, 'y_min' => $y, 'x_max' => $x + $altezza, 'y_max' => $y + $altezza, 'probability' => 0.99];
     }
 
     /**
@@ -57,7 +79,7 @@ class FacialRecognitionServiceTest extends TestCase
     private function voltoAlto(int $altezza, array $subjects): array
     {
         return [
-            'box' => ['x_min' => 0, 'y_min' => 0, 'x_max' => $altezza, 'y_max' => $altezza, 'probability' => 0.99],
+            'box' => $this->riquadro($altezza),
             'subjects' => $subjects,
         ];
     }
@@ -202,7 +224,7 @@ class FacialRecognitionServiceTest extends TestCase
     #[Test]
     public function una_foto_senza_volti_e_analizzata_senza_tag_ne_revisione(): void
     {
-        Http::fake(['*/recognize*' => Http::response([
+        Http::fake(['*/detection/detect*' => Http::response([
             'message' => 'No face is found in the given image',
             'code' => 28,
         ], 400)]);
@@ -211,6 +233,151 @@ class FacialRecognitionServiceTest extends TestCase
 
         $this->assertSame([], $esito['detected_persons']);
         $this->assertFalse($esito['has_unrecognized_faces']);
+        Http::assertNotSent(fn (Request $richiesta): bool => str_contains($richiesta->url(), '/recognize'));
+    }
+
+    /**
+     * L'informativa dice che i volti del pubblico non si confrontano con
+     * nessuno: se nella foto ci sono solo volti di sfondo il riconoscimento
+     * non parte nemmeno.
+     */
+    #[Test]
+    public function una_foto_con_soli_volti_di_sfondo_non_arriva_al_riconoscimento(): void
+    {
+        Http::fake(['*/detection/detect*' => Http::response(['result' => [
+            ['box' => $this->riquadro(10, 10, 10)],
+            ['box' => $this->riquadro(31, 200, 10)],
+        ]], 200)]);
+
+        $esito = $this->servizio->recognizeFaces($this->immagineFinta());
+
+        $this->assertSame([], $esito['detected_persons']);
+        Http::assertSentCount(1);
+        Http::assertNotSent(fn (Request $richiesta): bool => str_contains($richiesta->url(), '/recognize'));
+    }
+
+    /**
+     * Con volti in primo piano e pubblico dietro, al riconoscimento arriva la
+     * foto con i volti di sfondo coperti; quelli in primo piano restano.
+     */
+    #[Test]
+    public function i_volti_di_sfondo_arrivano_al_riconoscimento_coperti(): void
+    {
+        $atleta = Player::factory()->create();
+        $inviata = null;
+
+        Http::fake(function (Request $richiesta) use (&$inviata, $atleta) {
+            if (str_contains($richiesta->url(), '/detection/detect')) {
+                return Http::response(['result' => [
+                    ['box' => $this->riquadro(20, 500, 20)],
+                    ['box' => $this->riquadro(20, 300, 330)],
+                    ['box' => $this->riquadro(200, 100, 150)],
+                ]], 200);
+            }
+
+            $inviata = $richiesta->data()[0]['contents'] ?? null;
+
+            return Http::response(['result' => [
+                ['box' => $this->riquadro(200, 100, 150), 'subjects' => [['subject' => 'player_'.$atleta->id, 'similarity' => 0.99]]],
+            ]], 200);
+        });
+
+        $esito = $this->servizio->recognizeFaces($this->immagineFinta());
+
+        $this->assertCount(1, $esito['detected_persons']);
+
+        $foto = imagecreatefromstring(is_resource($inviata) ? (string) stream_get_contents($inviata, -1, 0) : (string) $inviata);
+        $this->assertNotFalse($foto, 'Al riconoscimento deve arrivare una foto.');
+        $grigio = imagecolorsforindex($foto, imagecolorat($foto, 510, 30));
+        $bianco = imagecolorsforindex($foto, imagecolorat($foto, 200, 250));
+        $bordo = imagecolorsforindex($foto, imagecolorat($foto, 297, 340));
+        $this->assertEqualsWithDelta(128, $grigio['red'], 6, 'Il volto di sfondo deve essere coperto.');
+        $this->assertGreaterThan(240, $bianco['red'], 'Il volto in primo piano deve restare com\'era.');
+        $this->assertGreaterThan(240, $bordo['red'], 'Il margine della copertura non deve mangiare il volto in primo piano.');
+    }
+
+    /**
+     * Un pezzo di volto piccolo restituito dal riconoscimento (ai margini di
+     * una copertura) non diventa un tag.
+     */
+    #[Test]
+    public function un_volto_piccolo_nel_riconoscimento_non_diventa_un_tag(): void
+    {
+        $atleta = Player::factory()->create();
+        Http::fake([
+            '*/detection/detect*' => Http::response(['result' => [['box' => $this->riquadro(200)]]], 200),
+            '*/recognize*' => Http::response(['result' => [
+                ['box' => $this->riquadro(15), 'subjects' => [['subject' => 'player_'.$atleta->id, 'similarity' => 0.999]]],
+            ]], 200),
+        ]);
+
+        $this->assertSame([], $this->servizio->recognizeFaces($this->immagineFinta())['detected_persons']);
+    }
+
+    #[Test]
+    public function senza_chiave_del_rilevamento_non_si_riconosce_nessuno_e_si_avvisa(): void
+    {
+        config(['services.compreface.detection_key' => null]);
+        Http::fake();
+        $this->mock(AvvisoTecnico::class)->shouldReceive('invia')->once()
+            ->withArgs(fn (string $oggetto): bool => str_contains($oggetto, 'COMPREFACE_DETECTION_KEY'))
+            ->andReturn(EsitoAvviso::Inviato);
+
+        try {
+            $this->servizio->recognizeFaces($this->immagineFinta());
+            $this->fail('Doveva fermarsi senza chiave del rilevamento.');
+        } catch (FacialRecognitionException $e) {
+            $this->assertStringContainsString('rilevamento', $e->getMessage());
+        }
+
+        Http::assertNothingSent();
+    }
+
+    /**
+     * La soglia è una quota del lato corto, non pixel: su una foto da 24 MP il
+     * pubblico sfocato supera i 100 px e con 80 px fissi passava.
+     */
+    #[Test]
+    public function la_soglia_del_primo_piano_e_relativa_alla_foto(): void
+    {
+        $volto = ['box' => $this->riquadro(120)];
+
+        $this->assertFalse(VoltiDiSfondo::inPrimoPiano($volto, 4000), '120 px su 4000: pubblico.');
+        $this->assertTrue(VoltiDiSfondo::inPrimoPiano($volto, 1000), '120 px su 1000: primo piano.');
+        $this->assertFalse(VoltiDiSfondo::inPrimoPiano($volto, 0));
+    }
+
+    /** CompreFace rifiuta i file oltre 5 MB: la copia mandata deve starci. */
+    #[Test]
+    public function la_copia_di_lavoro_resta_sotto_il_peso_massimo(): void
+    {
+        $percorso = tempnam(sys_get_temp_dir(), 'rumore').'.jpg';
+        $immagine = imagecreatetruecolor(2400, 1600);
+        for ($i = 0; $i < 40000; $i++) {
+            imagefilledrectangle($immagine, $x = random_int(0, 2399), $y = random_int(0, 1599), $x + 8, $y + 8, random_int(0, 0xFFFFFF));
+        }
+        imagejpeg($immagine, $percorso, 100);
+        imagedestroy($immagine);
+
+        $copia = VoltiDiSfondo::copiaDiLavoro($percorso, 3 * 1024 * 1024);
+
+        try {
+            clearstatcache();
+            $this->assertLessThanOrEqual(3 * 1024 * 1024, filesize($copia));
+        } finally {
+            @unlink($copia);
+            @unlink($percorso);
+        }
+    }
+
+    #[Test]
+    public function un_errore_del_rilevamento_non_passa_inosservato(): void
+    {
+        Http::fake(['*/detection/detect*' => Http::response('servizio non disponibile', 503)]);
+
+        $this->expectException(FacialRecognitionException::class);
+
+        $this->servizio->recognizeFaces($this->immagineFinta());
     }
 
     /**
@@ -220,10 +387,13 @@ class FacialRecognitionServiceTest extends TestCase
     #[Test]
     public function un_400_diverso_da_nessun_volto_resta_un_errore(): void
     {
-        Http::fake(['*/recognize*' => Http::response([
-            'message' => 'File has an unavailable extension',
-            'code' => 21,
-        ], 400)]);
+        Http::fake([
+            '*/detection/detect*' => Http::response(['result' => [['box' => $this->riquadro(200)]]], 200),
+            '*/recognize*' => Http::response([
+                'message' => 'File has an unavailable extension',
+                'code' => 21,
+            ], 400),
+        ]);
 
         $this->expectException(FacialRecognitionException::class);
 
@@ -233,7 +403,10 @@ class FacialRecognitionServiceTest extends TestCase
     #[Test]
     public function un_errore_del_servizio_di_riconoscimento_non_passa_inosservato(): void
     {
-        Http::fake(['*/recognize*' => Http::response('servizio non disponibile', 503)]);
+        Http::fake([
+            '*/detection/detect*' => Http::response(['result' => [['box' => $this->riquadro(200)]]], 200),
+            '*/recognize*' => Http::response('servizio non disponibile', 503),
+        ]);
 
         $this->expectException(FacialRecognitionException::class);
 

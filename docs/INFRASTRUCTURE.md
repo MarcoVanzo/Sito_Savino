@@ -585,6 +585,7 @@ sono quindi il caso migliore, non quello tipico.
 | `PREVIEW_AUTH_USER` / `PREVIEW_AUTH_PASS` | 🔒 secret | Credenziali pronte per richiuderlo (con la protezione accesa e i segreti vuoti il sito risponde 503) |
 | `COMPREFACE_HOST` | `http://10.114.0.3:8000` | URL server CompreFace (rete privata VPC) |
 | `COMPREFACE_KEY` | 🔒 secret cifrato | API key CompreFace |
+| `COMPREFACE_DETECTION_KEY` | 🔒 secret cifrato | API key del servizio di **rilevamento** CompreFace: trova i volti di sfondo da coprire prima del riconoscimento. Senza, il riconoscimento non parte |
 | `ACTIVECAMPAIGN_URL` / `ACTIVECAMPAIGN_LIST_ID` | in chiaro | Endpoint e lista newsletter |
 | `ACTIVECAMPAIGN_API_KEY` | 🔒 secret cifrato | Ruotata il 02/10/2026 (la vecchia era rimasta in chiaro nella cronologia del repository): il nuovo cifrato è ricopiato nello spec su web, worker e scheduler, o il deploy successivo rimetterebbe la chiave revocata |
 | `GA4_SERVICE_ACCOUNT_JSON` | 🔒 secret cifrato | Service account Google (base64) per la GA4 Data API |

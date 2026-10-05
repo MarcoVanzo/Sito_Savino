@@ -71,6 +71,11 @@ return [
         'pass' => env('PREVIEW_AUTH_PASS'),
     ],
 
+    // Contatto per chi segnala una vulnerabilità (/.well-known/security.txt).
+    'security_txt' => [
+        'contatto' => env('SECURITY_TXT_CONTACT', 'allarmi@mv-consulting.it'),
+    ],
+
     'compreface' => [
         'host' => env('COMPREFACE_HOST', 'http://localhost:8000'),
         'key' => env('COMPREFACE_KEY'),
@@ -90,6 +95,15 @@ return [
         // una su sei.
         'review_similarity' => (float) env('COMPREFACE_REVIEW_SIMILARITY', 0.97),
         'review_min_face_px' => (int) env('COMPREFACE_REVIEW_MIN_FACE_PX', 80),
+        // Chiave del servizio di rilevamento (solo riquadri, nessuna
+        // impronta): serve a trovare i volti di sfondo e coprirli prima del
+        // riconoscimento. Senza, il riconoscimento non parte.
+        'detection_key' => env('COMPREFACE_DETECTION_KEY'),
+        // Un volto alto meno di questa quota del lato corto della foto non
+        // si confronta con nessuno (VoltiDiSfondo): e' cio' che dice
+        // l'informativa. Proporzione e non pixel, perche' sulle foto da 24 MP
+        // anche il pubblico sfocato supera i 100 px. 0.04 = 160 px su 4000.
+        'quota_volto_riconoscimento' => (float) env('COMPREFACE_RECOGNITION_MIN_FACE_RATIO', 0.04),
     ],
 
     'activecampaign' => [
