@@ -61,6 +61,10 @@ const matchDayAttivo = computed(() => Boolean(props.matchDay?.attivo));
 // d'inizio, come il pop-up.
 const bigliettiInVendita = computed(() => Boolean(props.matchDay?.inCasa)
     && Date.parse(props.matchDay?.gara?.match_date ?? '') > Date.now());
+// Il pulsante del riquadro della partita: stessa regola, sulla gara mostrata
+// (oggi o la prossima). In trasferta i biglietti li vende la squadra di casa.
+const bigliettiDellaPartita = computed(() => Boolean(partita.value?.in_casa)
+    && Date.parse(partita.value?.match_date ?? '') > Date.now());
 const urlBigliettiMatchDay = computed(() => safeUrl(props.matchDay?.urlBiglietti, route('ticketing.page', 'biglietteria')));
 
 const oraDellaPartita = computed(() => (partita.value?.match_date
@@ -769,8 +773,8 @@ const ogMeta = useOgMeta({
                         <p v-if="partita?.location" class="text-center text-white/70 text-sm font-bold uppercase tracking-[0.2em] mt-12">
                             {{ partita.location }}
                         </p>
-                        <div class="text-center flex flex-wrap items-center justify-center gap-4" :class="partita?.location ? 'mt-5' : 'mt-12'">
-                            <Link :href="route('ticketing.page', 'biglietteria')" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 shadow-lg shadow-savino-fucsia/30">
+                        <div v-if="bigliettiDellaPartita || partita?.stream_url" class="text-center flex flex-wrap items-center justify-center gap-4" :class="partita?.location ? 'mt-5' : 'mt-12'">
+                            <Link v-if="bigliettiDellaPartita" :href="route('ticketing.page', 'biglietteria')" class="cta-glow-gold inline-flex items-center gap-3 bg-savino-fucsia text-white font-bold uppercase tracking-wider text-sm px-10 py-4 rounded-lg hover:bg-savino-fucsia/90 transition-all duration-300 shadow-lg shadow-savino-fucsia/30">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
                                 {{ $t('common.buy_tickets') }}
                             </Link>
