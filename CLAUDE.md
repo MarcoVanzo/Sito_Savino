@@ -329,6 +329,11 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   "Foto Ufficiale" sparisce finché manca il PDF.
 - Accrediti stampa = `ContactMessage` con oggetto
   `PressAccreditationController::SUBJECT` (legame con `PressAccreditationResource`).
+  La conferma al richiedente parte solo da «Accredita e avvisa» / «Reinvia
+  conferma» (`PressAccreditationResource::accredita`), nella lingua salvata in
+  `extra_data.lingua`; cambiare lo stato dal modulo non scrive a nessuno.
+- Album della gallery: `/gallery/album/{id}-{titolo}`, conta solo l'id; aprire
+  e chiudere un album cambia indirizzo con `router.push` lato client.
 - Squadre del vivaio per `teams.category` (`B1`, `U17`, `U15`), non per slug.
 - Template specifici: Ticketing (`TicketingTemplateForm`, blocchi facoltativi,
   la biglietteria non ha listino), Convenzioni (`partners`), Affiliazioni

@@ -4,16 +4,21 @@ namespace Tests\Feature;
 
 use App\Enums\GameStatus;
 use App\Enums\PostStatus;
+use App\Enums\UserRole;
 use App\Filament\Resources\PressAccreditationResource;
+use App\Filament\Resources\PressAccreditationResource\Pages\ManagePressAccreditations;
 use App\Http\Controllers\PressAccreditationController;
+use App\Mail\AccreditoStampaConfermato;
 use App\Models\ContactMessage;
 use App\Models\Game;
 use App\Models\Page;
 use App\Models\SiteSetting;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PressAccreditationTest extends TestCase
@@ -207,5 +212,108 @@ class PressAccreditationTest extends TestCase
                 'value' => $sfida,
                 'label' => $sfida.' · 4 March 2027',
             ]]));
+    }
+
+    private function amministratore(): User
+    {
+        $user = User::factory()->create();
+        $user->forceFill(['role' => UserRole::SuperAdmin, 'is_active' => true])->save();
+
+        return $user->refresh();
+    }
+
+    /**
+     * Segnalazione della redazione del 05/10/2026: accreditata una richiesta
+     * di prova, al richiedente non arrivava niente. Il pulsante cambiava solo
+     * lo stato.
+     */
+    public function test_accreditare_manda_la_conferma_al_richiedente(): void
+    {
+        Mail::fake();
+
+        $this->post(route('comunicazione.accrediti.submit'), $this->richiestaValida());
+        $richiesta = ContactMessage::firstOrFail();
+
+        Livewire::actingAs($this->amministratore())
+            ->test(ManagePressAccreditations::class)
+            ->callTableAction('markAsReplied', $richiesta, ['messaggio' => 'Pass al cancello 3 dalle 19.'])
+            ->assertHasNoTableActionErrors();
+
+        Mail::assertSent(AccreditoStampaConfermato::class, fn (AccreditoStampaConfermato $mail) => $mail->hasTo('chiara@testata.it')
+            && $mail->messaggio === 'Pass al cancello 3 dalle 19.');
+
+        $richiesta->refresh();
+        $this->assertSame('replied', $richiesta->status);
+        $this->assertNotEmpty($richiesta->extra_data['conferma_inviata_il']);
+        // Quello che il sito aveva raccolto resta.
+        $this->assertSame('Il Tirreno', $richiesta->extra_data['outlet']);
+    }
+
+    public function test_la_conferma_dice_gara_testata_e_messaggio_nella_lingua_della_richiesta(): void
+    {
+        $richiesta = ContactMessage::create([
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+            'subject' => PressAccreditationController::SUBJECT,
+            'message' => '-',
+            'status' => 'unread',
+            'extra_data' => ['outlet' => 'Volleyball World', 'role' => 'fotografo', 'match' => 'Savino — Milano', 'lingua' => 'en'],
+        ]);
+
+        $html = (new AccreditoStampaConfermato($richiesta, 'Gate 3 <b>from</b> 7pm'))->render();
+
+        $this->assertStringContainsString('Your accreditation is confirmed', $html);
+        $this->assertStringContainsString('Volleyball World', $html);
+        $this->assertStringContainsString('Savino — Milano', $html);
+        $this->assertStringContainsString('Photographer', $html);
+        // Il messaggio della redazione è testo, non HTML.
+        $this->assertStringContainsString('Gate 3 &lt;b&gt;from&lt;/b&gt; 7pm', $html);
+    }
+
+    public function test_la_richiesta_ricorda_la_lingua_per_la_conferma(): void
+    {
+        Mail::fake();
+
+        $this->post(route('comunicazione.accrediti.submit'), $this->richiestaValida());
+
+        $this->assertSame('it', ContactMessage::firstOrFail()->extra_data['lingua']);
+    }
+
+    public function test_se_l_email_non_parte_resta_accreditata_e_la_conferma_non_risulta_inviata(): void
+    {
+        Mail::fake();
+        $this->post(route('comunicazione.accrediti.submit'), $this->richiestaValida());
+        $richiesta = ContactMessage::firstOrFail();
+
+        // Come farebbe Resend giù.
+        Mail::shouldReceive('to')->andThrow(new \RuntimeException('Resend non risponde'));
+
+        Livewire::actingAs($this->amministratore())
+            ->test(ManagePressAccreditations::class)
+            ->callTableAction('markAsReplied', $richiesta, ['messaggio' => null])
+            ->assertNotified('Accreditato, ma l\'email non è partita');
+
+        $richiesta->refresh();
+        $this->assertSame('replied', $richiesta->status);
+        $this->assertArrayNotHasKey('conferma_inviata_il', $richiesta->extra_data);
+    }
+
+    public function test_la_scheda_dice_quando_e_partita_la_conferma(): void
+    {
+        $richiesta = ContactMessage::create([
+            'name' => 'Chiara Bianchi',
+            'email' => 'chiara@testata.it',
+            'subject' => PressAccreditationController::SUBJECT,
+            'message' => '-',
+            'status' => 'replied',
+            'extra_data' => ['outlet' => 'Il Tirreno', 'conferma_inviata_il' => '05/10/2026 13:10'],
+        ]);
+
+        Livewire::actingAs($this->amministratore())
+            ->test(ManagePressAccreditations::class)
+            ->assertTableActionHasLabel('markAsReplied', 'Reinvia conferma', $richiesta)
+            ->mountTableAction('edit', $richiesta)
+            ->assertSee('05/10/2026 13:10')
+            ->assertSee('Da qui non parte nessuna email');
     }
 }

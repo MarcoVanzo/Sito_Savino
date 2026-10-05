@@ -94,6 +94,10 @@ return [
             'title' => 'Photos of :nome',
             'description' => 'All photos of :nome in the Savino Del Bene Volley photo archive.',
         ],
+        'gallery-album' => [
+            'title' => ':nome',
+            'description' => 'Photos of “:nome” in the official Savino Del Bene Volley gallery.',
+        ],
     ],
 
     /*

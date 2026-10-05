@@ -205,4 +205,15 @@ return [
         'next' => 'Send the products back within 14 days, at your own cost, to: :address, Italy, quoting the order number. We will refund the price and standard delivery costs within 14 days of today, using the payment method you used; we may wait until we receive the products or proof of dispatch.',
         'questions' => 'For any question, write to info@savinodelbenevolley.it.',
     ],
+
+    'accredito' => [
+        'subject' => 'Press accreditation confirmed',
+        'heading' => 'Your accreditation is confirmed',
+        'intro' => 'Dear :name, your press accreditation request has been approved.',
+        'match' => 'Match',
+        'outlet' => 'Media outlet',
+        'role' => 'Role',
+        'roles' => ['giornalista' => 'Journalist', 'fotografo' => 'Photographer', 'operatore' => 'Camera operator'],
+        'questions' => 'For any request please write to :email.',
+    ],
 ];

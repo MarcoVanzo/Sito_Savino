@@ -68,6 +68,8 @@ return function (string $namePrefix): void {
     Route::get('/gallery/data', [GalleryController::class, 'galleryData'])->name('gallery.data');
     Route::get('/gallery/atleta/{slug}', [GalleryController::class, 'galleryAtleta'])->name('gallery.atleta');
     Route::get('/gallery/atleta/{slug}/data', [GalleryController::class, 'galleryData'])->name('gallery.atleta.data');
+    // Indirizzo proprio di ogni album, da condividere (`{id}-{titolo}`)
+    Route::get('/gallery/album/{slug}', [GalleryController::class, 'galleryAlbum'])->name('gallery.album');
     Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
     Route::get('/societa', function () use ($namePrefix) {
         return redirect()->route($namePrefix.'societa.page', ['slug' => 'storia']);

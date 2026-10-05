@@ -4,13 +4,17 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PressAccreditationResource\Pages;
 use App\Http\Controllers\PressAccreditationController;
+use App\Mail\AccreditoStampaConfermato;
 use App\Models\ContactMessage;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PressAccreditationResource extends Resource
 {
@@ -84,11 +88,15 @@ class PressAccreditationResource extends Resource
                             ->label('Stato')
                             ->options(self::STATUS_LABELS)
                             ->default('unread')
+                            ->helperText('Da qui non parte nessuna email: per avvisare il richiedente usa «Accredita e avvisa» dall\'elenco.')
                             ->required(),
                         Forms\Components\Textarea::make('extra_data.admin_notes')
                             ->label('Note Amministratore')
                             ->rows(3)
                             ->placeholder('Es: Confermato pass tribuna stampa...'),
+                        Forms\Components\Placeholder::make('conferma_inviata_il')
+                            ->label('Conferma inviata il')
+                            ->content(fn ($record): string => $record?->extra_data['conferma_inviata_il'] ?? '-'),
                         Forms\Components\Placeholder::make('created_at')
                             ->label('Ricevuto il')
                             ->content(fn ($record): string => $record && $record->created_at ? $record->created_at->format('d/m/Y H:i:s') : '-'),
@@ -156,12 +164,22 @@ class PressAccreditationResource extends Resource
                         ->color('warning')
                         ->visible(fn ($record) => $record->status === 'unread')
                         ->action(fn ($record) => $record->update(['status' => 'read'])),
+                    // Prima cambiava solo lo stato e il richiedente non sapeva
+                    // niente: ora gli manda la conferma per email.
                     Tables\Actions\Action::make('markAsReplied')
-                        ->label('Accredita / Rispondi')
+                        ->label(fn ($record) => $record->status === 'replied' ? 'Reinvia conferma' : 'Accredita e avvisa')
                         ->icon('heroicon-o-check')
                         ->color('success')
-                        ->visible(fn ($record) => $record->status !== 'replied')
-                        ->action(fn ($record) => $record->update(['status' => 'replied'])),
+                        ->modalHeading('Conferma accredito')
+                        ->modalDescription(fn ($record) => "Il richiedente riceverà la conferma all'indirizzo {$record->email}.")
+                        ->modalSubmitActionLabel('Accredita e invia')
+                        ->form([
+                            Forms\Components\Textarea::make('messaggio')
+                                ->label('Messaggio per il richiedente (facoltativo)')
+                                ->helperText('Compare nell\'email: ritiro del pass, orari, ingresso.')
+                                ->rows(4),
+                        ])
+                        ->action(fn ($record, array $data) => self::accredita($record, $data['messaggio'] ?? null)),
                     Tables\Actions\DeleteAction::make(),
                 ]),
             ])
@@ -170,6 +188,40 @@ class PressAccreditationResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * Segna la richiesta come accreditata e manda la conferma al richiedente.
+     * Lo stato cambia anche se l'invio fallisce: la redazione lo vede dalla
+     * notifica e può riprovare con «Reinvia conferma».
+     */
+    public static function accredita(ContactMessage $richiesta, ?string $messaggio = null): void
+    {
+        $richiesta->update(['status' => 'replied']);
+
+        try {
+            Mail::to($richiesta->email, $richiesta->name)->send(new AccreditoStampaConfermato($richiesta, $messaggio));
+        } catch (\Throwable $e) {
+            Log::error('Conferma accredito stampa non inviata', ['id' => $richiesta->id, 'error' => $e->getMessage()]);
+
+            Notification::make()
+                ->title('Accreditato, ma l\'email non è partita')
+                ->body('Riprova con «Reinvia conferma» o scrivi al richiedente.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $richiesta->update(['extra_data' => [
+            ...(is_array($richiesta->extra_data) ? $richiesta->extra_data : []),
+            'conferma_inviata_il' => now()->format('d/m/Y H:i'),
+        ]]);
+
+        Notification::make()
+            ->title("Conferma inviata a {$richiesta->email}")
+            ->success()
+            ->send();
     }
 
     public static function getEloquentQuery(): Builder
