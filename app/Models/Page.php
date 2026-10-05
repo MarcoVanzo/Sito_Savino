@@ -90,8 +90,7 @@ class Page extends Model implements HasMedia
     {
         $dati = $this->toArray();
 
-        $modello = $this->template instanceof \BackedEnum ? $this->template->value : (string) $this->template;
-        $dati['caselle'] = collect(self::CASELLE_PER_MODELLO[$modello] ?? [])
+        $dati['caselle'] = collect(self::CASELLE_PER_MODELLO[(string) $this->template] ?? [])
             ->mapWithKeys(fn (string $chiave): array => [$chiave => SiteSetting::get($chiave) ?: null])
             ->all();
 
