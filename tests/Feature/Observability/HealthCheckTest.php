@@ -270,4 +270,40 @@ class HealthCheckTest extends TestCase
 
         app(VerifyApplicationHealth::class)->handle(new DiagnosingHealth);
     }
+
+    #[Test]
+    public function una_scrittura_rifiutata_fa_fallire_il_controllo(): void
+    {
+        Cache::shouldReceive('put')->andReturn(false);
+
+        $this->expectException(UnhealthyApplicationException::class);
+        $this->expectExceptionMessage('scrittura rifiutata');
+
+        app(VerifyApplicationHealth::class)->handle(new DiagnosingHealth);
+    }
+
+    #[Test]
+    public function due_controlli_nello_stesso_secondo_non_si_cancellano_il_canarino(): void
+    {
+        // Prima la chiave era il timestamp al secondo: due `/up` ravvicinati
+        // scrivevano la stessa chiave e il primo `forget` lasciava il secondo
+        // senza niente da rileggere.
+        $this->freezeTime();
+        $chiavi = [];
+
+        Cache::shouldReceive('put')->andReturnUsing(function (string $chiave) use (&$chiavi) {
+            $chiavi[] = $chiave;
+
+            return true;
+        });
+        Cache::shouldReceive('get')->andReturnUsing(fn (string $chiave) => str_starts_with($chiave, 'health:cache:') ? true : null);
+        Cache::shouldReceive('forget')->andReturn(true);
+
+        app(VerifyApplicationHealth::class)->handle(new DiagnosingHealth);
+        app(VerifyApplicationHealth::class)->handle(new DiagnosingHealth);
+
+        $canarini = array_values(array_filter($chiavi, fn ($c) => str_starts_with($c, 'health:cache:')));
+        $this->assertCount(2, $canarini);
+        $this->assertNotSame($canarini[0], $canarini[1]);
+    }
 }
