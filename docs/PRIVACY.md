@@ -201,9 +201,18 @@ escono verso servizi di riconoscimento esterni.
 
 Quello che l'informativa dice, e dove sta:
 
-- ogni foto dell'archivio passa da `AnalyzeGalleryImageJob` → `/recognize` di
-  CompreFace, che **rileva tutti i volti nell'immagine** — atlete, staff, e
-  chiunque altro ci sia dentro — e li confronta con i soggetti registrati;
+- ogni foto dell'archivio passa da `AnalyzeGalleryImageJob`: prima il servizio
+  di **rilevamento** di CompreFace (`/detection/detect`, solo riquadri, nessuna
+  impronta) trova i volti; quelli alti meno del 4% del lato corto della foto
+  (`quota_volto_riconoscimento`, il pubblico sullo sfondo) si **coprono**
+  (`App\Support\VoltiDiSfondo`) e solo dopo la foto va a `/recognize`. Se
+  restano solo volti di sfondo il riconoscimento non parte. Dal 5/10/2026,
+  dopo il parere tecnico di quel giorno; le foto analizzate prima hanno
+  confrontato tutti i volti;
+- i volti in primo piano di persone non registrate (avversarie, arbitri,
+  ospiti) si confrontano ancora, e l'informativa lo dice;
+- anche la misura del volto di un esempio di addestramento passa dal
+  rilevamento, non dal riconoscimento: non confronta nessuno;
 - **si conservano solo le impronte dei soggetti registrati** dalla redazione
   (`addFaceExample`, atlete e staff). Il confronto degli altri volti avviene in
   memoria e non lascia niente: nessun profilo del pubblico;

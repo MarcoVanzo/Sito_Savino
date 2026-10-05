@@ -5,6 +5,7 @@ namespace Tests\Feature\Gallery;
 use App\Filament\Actions\TrainAiFacesAction;
 use App\Models\Player;
 use App\Models\StaffMember;
+use App\Services\FacialRecognitionService;
 use Filament\Notifications\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -31,6 +32,7 @@ class AddestramentoVoltiTest extends TestCase
         Storage::fake('local');
         config(['services.compreface.host' => 'http://compreface.test:8000']);
         config(['services.compreface.key' => 'chiave-di-prova']);
+        config(['services.compreface.detection_key' => 'chiave-del-rilevamento']);
     }
 
     private function fotoDiProva(string $nome): string
@@ -41,7 +43,7 @@ class AddestramentoVoltiTest extends TestCase
     }
 
     /**
-     * Prima di caricare, il servizio misura il volto con `/recognize`: di
+     * Prima di caricare, il servizio misura il volto con il rilevamento (`/detection/detect`): di
      * default la foto ha un primo piano buono, e l'esito lo decide `/faces`.
      */
     private function rispostaAddestramento(int $stato, array $corpo = [], ?array $volti = null): void
@@ -49,7 +51,7 @@ class AddestramentoVoltiTest extends TestCase
         $volti ??= [self::volto(200)];
 
         Http::fake([
-            '*/recognize*' => Http::response(['result' => $volti], 200),
+            '*/detection/detect*' => Http::response(['result' => $volti], 200),
             '*/subjects' => Http::response(['message' => 'ok'], 201),
             '*/faces*' => Http::response($corpo, $stato),
         ]);
@@ -182,5 +184,44 @@ class AddestramentoVoltiTest extends TestCase
         return is_array($ultima)
             ? ($ultima['body'] ?? '')
             : (string) ($ultima instanceof Notification ? $ultima->getBody() : '');
+    }
+
+    /**
+     * La misura del volto non confronta nessuno: passa dal rilevamento, mai
+     * da `/recognize` (gli altri volti della foto non si confrontano).
+     */
+    private function primoPiano(): string
+    {
+        $percorso = tempnam(sys_get_temp_dir(), 'esempio').'.jpg';
+        $immagine = imagecreatetruecolor(400, 400);
+        imagejpeg($immagine, $percorso);
+        imagedestroy($immagine);
+
+        return $percorso;
+    }
+
+    #[Test]
+    public function la_misura_del_volto_non_passa_dal_riconoscimento(): void
+    {
+        $atleta = Player::factory()->create();
+        $this->rispostaAddestramento(201, ['image_id' => 'x', 'subject' => 'player_'.$atleta->id]);
+
+        app(FacialRecognitionService::class)->addFaceExample($atleta, $this->primoPiano());
+
+        Http::assertNotSent(fn ($richiesta): bool => str_contains($richiesta->url(), '/recognize'));
+        Http::assertSent(fn ($richiesta): bool => str_contains($richiesta->url(), '/detection/detect'));
+    }
+
+    #[Test]
+    public function senza_chiave_del_rilevamento_l_esempio_non_si_carica(): void
+    {
+        config(['services.compreface.detection_key' => null]);
+        Http::fake();
+
+        $esito = app(FacialRecognitionService::class)->addFaceExample(Player::factory()->create(), $this->primoPiano());
+
+        $this->assertFalse($esito['success']);
+        $this->assertStringContainsString('COMPREFACE_DETECTION_KEY', (string) $esito['error']);
+        Http::assertNothingSent();
     }
 }

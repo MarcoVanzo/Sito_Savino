@@ -9,6 +9,7 @@ use App\Http\Middleware\PortaSullIndirizzoDelSito;
 use App\Http\Middleware\PreviewBasicAuth;
 use App\Http\Middleware\RispostaSenzaResidui;
 use App\Http\Middleware\SecurityHeadersMiddleware;
+use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\UsaLIpDelClienteDiDigitalOcean;
 use App\Support\HostFidati;
 use Illuminate\Foundation\Application;
@@ -144,6 +145,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
                 && ! app()->environment('local')
             ) {
+                // I meta della pagina richiesta (ServeSocialCrawlerMeta) non
+                // valgono per la pagina d'errore: un 404 non deve presentarsi
+                // col titolo di ciò che non esiste o non è pubblico.
+                $request->attributes->remove(ServeSocialCrawlerMeta::ATTRIBUTO_META);
+
                 return Inertia::render('Error', [
                     'status' => $response->getStatusCode(),
                     // Un link firmato scaduto o alterato (conferma della

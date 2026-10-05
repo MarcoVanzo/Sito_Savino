@@ -133,27 +133,26 @@ class FacialRecognitionService
      * con volti alti fino a 44 px, hanno prodotto impronte che somigliavano a
      * chiunque: 123 foto dell'archivio taggate con lei al 99% di somiglianza,
      * tutte di una stagione in cui non era ancora in squadra. La misura del
-     * volto si legge con lo stesso riconoscimento usato per la gallery, prima
-     * di caricare: costa una chiamata in più su un'operazione rara.
+     * volto si legge dal servizio di rilevamento, prima di caricare: solo
+     * riquadri, nessun confronto. Fino al 5/10/2026 si usava `/recognize`,
+     * che confrontava con le persone registrate anche gli altri volti della
+     * foto (un esempio preso dalla gallery può averne): l'informativa dice che
+     * i volti si confrontano solo nell'analisi dell'archivio.
      *
      * @throws ConnectionException se CompreFace non risponde
      */
     private function motivoDiScartoComeEsempio(string $imagePath): ?string
     {
-        $response = $this->richiesta(30)->attach(
-            'file', fopen($imagePath, 'r'), basename($imagePath)
-        )->post($this->getBaseUrl().'/recognize?limit=0&det_prob_threshold=0.8&prediction_count=1');
-
-        if ($response->status() === 400 && ($response->json()['code'] ?? null) === self::ERRORE_NESSUN_VOLTO) {
-            return 'Nessun volto trovato nella foto.';
+        if (empty(config('services.compreface.detection_key'))) {
+            return 'Rilevamento dei volti non configurato (COMPREFACE_DETECTION_KEY): impossibile misurare il volto.';
         }
 
-        if (! $response->successful()) {
+        try {
+            $volti = $this->rilevaVolti($imagePath);
+        } catch (FacialRecognitionException) {
             // Sarà il caricamento vero a fallire con il messaggio del server.
             return null;
         }
-
-        $volti = $response->json('result') ?? [];
 
         if (count($volti) !== 1) {
             return count($volti) === 0
