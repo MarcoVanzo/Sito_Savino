@@ -1,5 +1,5 @@
 {
-    "generato_il": "2026-10-01T13:37:53.160Z",
+    "generato_il": "2026-10-05T05:07:38.876Z",
     "indirizzo": "https://savinodelbenevolley.it",
     "pagine_visitate": 14,
     "cookie": [
@@ -16,7 +16,7 @@
                 "it": "Lo imposta la rete che serve il sito per distinguere il traffico automatizzato dannoso da quello dei visitatori. Non serve a profilare e non viene usato dal sito.",
                 "en": "Set by the network that serves the site to tell harmful automated traffic apart from visitors. It is not used for profiling and the site does not read it."
             },
-            "scadenza": "2026-10-01",
+            "scadenza": "2026-10-05",
             "conConsenso": false
         },
         {
@@ -32,7 +32,7 @@
                 "it": "Collega le visite al sito alle inserzioni su Facebook e Instagram.",
                 "en": "Links visits to the site with ads on Facebook and Instagram."
             },
-            "scadenza": "2026-12-30",
+            "scadenza": "2027-01-03",
             "conConsenso": true
         },
         {
@@ -48,7 +48,7 @@
                 "it": "Distingue i visitatori per contare quante persone leggono il sito.",
                 "en": "Tells visitors apart in order to count how many people read the site."
             },
-            "scadenza": "2027-11-05",
+            "scadenza": "2027-11-09",
             "conConsenso": true
         },
         {
@@ -64,7 +64,7 @@
                 "it": "Conserva lo stato della sessione di misurazione di Google Analytics 4.",
                 "en": "Holds the Google Analytics 4 measurement session state."
             },
-            "scadenza": "2027-11-05",
+            "scadenza": "2027-11-09",
             "conConsenso": true
         },
         {
@@ -80,7 +80,7 @@
                 "it": "Tiene la sessione di navigazione: carrello, area riservata e messaggi del sito.",
                 "en": "Keeps the browsing session: cart, account area and site messages."
             },
-            "scadenza": "2026-10-01",
+            "scadenza": "2026-10-05",
             "conConsenso": false
         },
         {
@@ -96,7 +96,7 @@
                 "it": "Protegge i moduli del sito dall'invio di richieste da parte di altri siti.",
                 "en": "Protects the site's forms against requests forged by other sites."
             },
-            "scadenza": "2026-10-01",
+            "scadenza": "2026-10-05",
             "conConsenso": false
         }
     ],
