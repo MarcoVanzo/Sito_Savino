@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\PostStatus;
+use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Models\Page;
 use App\Models\Player;
 use App\Models\Post;
@@ -55,6 +56,39 @@ class SocialCrawlerMetaTest extends TestCase
             ->assertSee('Maglia gara 2026', false)
             ->assertSee('La maglia ufficiale della stagione.', false)
             ->assertSee('og:type" content="product', false);
+    }
+
+    /**
+     * Senza SSR l'HTML iniziale di ogni pagina aveva il titolo e il logo della
+     * home: Google e chi non esegue il JavaScript non vedevano altro (parere
+     * del 5/10/2026). Ora il layout porta gli stessi meta dei crawler social.
+     */
+    #[Test]
+    public function anche_il_browser_riceve_titolo_e_descrizione_della_pagina_nell_html(): void
+    {
+        $product = Product::factory()->create([
+            'name' => 'Maglia gara 2026',
+            'slug' => 'maglia-gara-2026',
+            'short_description' => '<p>La maglia ufficiale della stagione.</p>',
+            'is_active' => true,
+        ]);
+
+        $html = $this->get("/shop/prodotto/{$product->slug}")->assertOk()->getContent();
+
+        $this->assertStringContainsString('<title inertia>Maglia gara 2026 — Savino Del Bene Volley</title>', $html);
+        $this->assertStringContainsString('<meta property="og:title" content="Maglia gara 2026 — Savino Del Bene Volley" inertia="og:title">', $html);
+        $this->assertStringContainsString('content="La maglia ufficiale della stagione." inertia="description"', $html);
+        $this->assertStringContainsString('og:type" content="product"', $html);
+    }
+
+    #[Test]
+    public function le_visite_inertia_non_calcolano_i_meta(): void
+    {
+        $product = Product::factory()->create(['slug' => 'maglia-x', 'is_active' => true]);
+
+        $this->withHeaders(['X-Inertia' => 'true'])->get("/shop/prodotto/{$product->slug}");
+
+        $this->assertNull(request()->attributes->get(ServeSocialCrawlerMeta::ATTRIBUTO_META));
     }
 
     #[Test]

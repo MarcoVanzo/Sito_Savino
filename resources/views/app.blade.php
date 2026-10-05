@@ -9,7 +9,13 @@
              di ciascuno (questi generici e quelli della pagina) e Google
              poteva prendere il primo. Ai crawler dei social risponde
              ServeSocialCrawlerMeta (CLAUDE.md §19), non questo layout. --}}
-        <meta name="description" content="{{ __('site.default_description') }}" inertia="description">
+        @php
+            $metaDellaPagina = request()->attributes->get(\App\Http\Middleware\ServeSocialCrawlerMeta::ATTRIBUTO_META);
+        @endphp
+        {{-- Con $metaDellaPagina (ServeSocialCrawlerMeta) l'HTML iniziale
+             descrive la pagina vera anche senza SSR: titolo, descrizione e
+             immagine di una notizia, di un prodotto, di un'atleta. --}}
+        <meta name="description" content="{{ $metaDellaPagina['description'] ?? __('site.default_description') }}" inertia="description">
         <link rel="canonical" href="{{ url()->current() }}">
         @php
             $cspNonce = \Illuminate\Support\Facades\Vite::cspNonce();
@@ -45,15 +51,15 @@
               href="{{ \App\Services\NewsFeedBuilder::indirizzo($currentLocale) }}">
 
         <!-- Open Graph -->
-        <meta property="og:type" content="website" inertia="og:type">
+        <meta property="og:type" content="{{ $metaDellaPagina['type'] ?? 'website' }}" inertia="og:type">
         <meta property="og:site_name" content="Savino Del Bene Volley">
         <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'it_IT' }}">
-        <meta property="og:title" content="{{ config('app.name', 'Savino Del Bene Volley') }}" inertia="og:title">
+        <meta property="og:title" content="{{ $metaDellaPagina['title'] ?? config('app.name', 'Savino Del Bene Volley') }}" inertia="og:title">
         {{-- L'indirizzo della pagina, non APP_URL: ogni pagina senza un suo
              og:url dichiarava di essere la home. --}}
         <meta property="og:url" content="{{ url()->current() }}" inertia="og:url">
-        <meta property="og:image" content="{{ config('app.url') }}/images/logo.png" inertia="og:image">
-        <meta property="og:description" content="{{ __('site.default_og_description') }}" inertia="og:description">
+        <meta property="og:image" content="{{ $metaDellaPagina['image'] ?? config('app.url').'/images/logo.png' }}" inertia="og:image">
+        <meta property="og:description" content="{{ $metaDellaPagina['description'] ?? __('site.default_og_description') }}" inertia="og:description">
 
         <!-- Twitter Card -->
         <meta name="twitter:card" content="summary_large_image">
@@ -103,7 +109,7 @@
         }
         </script>
 
-        <title inertia>{{ config('app.name', 'Savino Del Bene Volley') }}</title>
+        <title inertia>{{ $metaDellaPagina['title'] ?? config('app.name', 'Savino Del Bene Volley') }}</title>
 
         <!-- Favicon -->
         <link rel="icon" href="/favicon.ico" type="image/x-icon">

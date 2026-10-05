@@ -30,6 +30,24 @@ Route::get('/sitemap.xml', function (SitemapBuilder $builder) {
     ]);
 })->name('sitemap');
 
+// RFC 9116: dove segnalare una vulnerabilità. Il buildpack di Heroku nega i
+// percorsi che iniziano col punto se la cartella non esiste (rispondeva 403):
+// `public/.well-known/` c'è apposta, vuota, e la richiesta arriva qui. La
+// scadenza si calcola a ogni richiesta, così non scade mai per dimenticanza.
+Route::get('/.well-known/security.txt', function () {
+    $scadenza = now()->addYear()->startOfMonth()->utc()->format('Y-m-d\TH:i:s\Z');
+
+    return response(implode("\n", [
+        'Contact: mailto:'.config('services.security_txt.contatto'),
+        'Expires: '.$scadenza,
+        'Preferred-Languages: it, en',
+        'Canonical: '.url('/.well-known/security.txt'),
+    ])."\n", 200, [
+        'Content-Type' => 'text/plain; charset=utf-8',
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+})->name('security-txt');
+
 // Il cookie XSRF per chi è arrivato su una pagina servita dalla cache
 // (CachePublicResponse toglie i Set-Cookie): senza, il primo invio di un
 // modulo — newsletter nel footer, contatti, recesso, conferma della

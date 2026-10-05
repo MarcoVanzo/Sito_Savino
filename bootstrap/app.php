@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureVerifiedPayment;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PortaSullIndirizzoDelSito;
 use App\Http\Middleware\PreviewBasicAuth;
+use App\Http\Middleware\RispostaSenzaResidui;
 use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Http\Middleware\UsaLIpDelClienteDiDigitalOcean;
 use App\Support\HostFidati;
@@ -100,6 +101,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // In coda ai globali, quindi dopo TrustHosts: un Host non fidato è
         // già stato respinto. Copre anche il pannello, che non passa da `web`.
         $middleware->append(PortaSullIndirizzoDelSito::class);
+        // Toglie le soglie dei limiti e fa scadere i cookie del vecchio sito,
+        // anche sulle risposte della cache pubblica (vedi il middleware).
+        $middleware->append(RispostaSenzaResidui::class);
 
         $middleware->validateCsrfTokens(except: [
             'api/webhooks/*',
