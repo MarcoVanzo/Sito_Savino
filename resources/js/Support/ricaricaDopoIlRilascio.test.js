@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ricaricaDopoIlRilascio, RIPROVA_DOPO_MS } from './ricaricaDopoIlRilascio.js';
+import { ricaricaDopoIlRilascio, ricaricaInCorso, RIPROVA_DOPO_MS } from './ricaricaDopoIlRilascio.js';
 
 function finestraFinta(storage = new Map()) {
     const target = new EventTarget();
     return {
         addEventListener: target.addEventListener.bind(target),
         dispatchEvent: target.dispatchEvent.bind(target),
-        location: { reload: vi.fn() },
+        location: { reload: vi.fn(), assign: vi.fn() },
         sessionStorage: {
             getItem: (k) => storage.get(k) ?? null,
             setItem: (k, v) => storage.set(k, v),
@@ -27,6 +27,7 @@ describe('ricaricaDopoIlRilascio', () => {
         f.dispatchEvent(e);
         expect(f.location.reload).toHaveBeenCalledOnce();
         expect(e.defaultPrevented).toBe(true);
+        expect(ricaricaInCorso()).toBe(true);
     });
 
     it('non ricarica due volte di fila: un pezzo che manca davvero arriva a Sentry', () => {
@@ -53,6 +54,14 @@ describe('ricaricaDopoIlRilascio', () => {
         f.sessionStorage.getItem = () => { throw new Error('bloccato'); };
         ricaricaDopoIlRilascio(f);
         f.dispatchEvent(errore());
+        expect(f.location.reload).not.toHaveBeenCalled();
+    });
+
+    it('apre la pagina della visita in corso invece di ricaricare quella di partenza', () => {
+        const f = finestraFinta();
+        ricaricaDopoIlRilascio(f, () => 'https://sito.test/gallery');
+        f.dispatchEvent(errore());
+        expect(f.location.assign).toHaveBeenCalledWith('https://sito.test/gallery');
         expect(f.location.reload).not.toHaveBeenCalled();
     });
 });

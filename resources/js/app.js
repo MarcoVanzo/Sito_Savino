@@ -15,7 +15,16 @@ import { avviaLaDiagnostica } from './diagnostica.js';
 import { installaDialogDiRipiego } from './Support/dialogDiRipiego.js';
 
 // Prima di tutto il resto: anche la prima pagina Inertia si carica su richiesta.
-ricaricaDopoIlRilascio();
+// Solo le visite GET si possono riaprire con un indirizzo.
+let visitaInCorso = null;
+router.on('start', (evento) => {
+    const { method, url } = evento.detail.visit;
+    visitaInCorso = method === 'get' ? url.href : null;
+});
+router.on('finish', () => {
+    visitaInCorso = null;
+});
+ricaricaDopoIlRilascio(window, () => visitaInCorso);
 // iOS < 15.4 non ha <dialog>: senza, ogni showModal() del sito va in errore.
 installaDialogDiRipiego();
 
