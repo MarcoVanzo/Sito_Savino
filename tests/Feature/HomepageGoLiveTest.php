@@ -84,6 +84,43 @@ class HomepageGoLiveTest extends TestCase
     }
 
     #[Test]
+    public function accesa_a_mano_su_una_trasferta_non_vende_biglietti(): void
+    {
+        $this->garaDiOggi(inCasa: false);
+        $this->modalita(MatchDay::ACCESO);
+
+        $stato = MatchDay::stato();
+        $this->assertTrue($stato['attivo']);
+        $this->assertNull($stato['popup']);
+    }
+
+    #[Test]
+    public function accesa_a_mano_senza_gara_oggi_niente_pop_up_se_la_prossima_e_in_trasferta(): void
+    {
+        $gara = $this->garaDiOggi(inCasa: false, attributi: ['match_date' => now()->addDays(6)]);
+        $this->modalita(MatchDay::ACCESO);
+
+        $this->assertNull(MatchDay::stato()['gara']);
+        $this->assertNull(MatchDay::stato()['popup']);
+
+        $gara->update(['home_team_id' => $gara->away_team_id, 'away_team_id' => $gara->home_team_id]);
+        $this->assertNotNull(MatchDay::stato()['popup']);
+    }
+
+    #[Test]
+    public function la_prossima_partita_dice_se_si_gioca_in_casa(): void
+    {
+        $gara = $this->garaDiOggi(inCasa: false, attributi: ['match_date' => now()->addDays(6)]);
+
+        $this->get('/')->assertInertia(fn (AssertableInertia $page) => $page->where('nextGame.in_casa', false));
+
+        $gara->update(['home_team_id' => $gara->away_team_id, 'away_team_id' => $gara->home_team_id]);
+        cache()->flush();
+
+        $this->get('/')->assertInertia(fn (AssertableInertia $page) => $page->where('nextGame.in_casa', true));
+    }
+
+    #[Test]
     public function la_gara_gia_cominciata_tiene_accesa_la_modalita_ma_non_vende_piu_biglietti(): void
     {
         $gara = $this->garaDiOggi(inCasa: true, attributi: [

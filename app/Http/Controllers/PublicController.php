@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\GameStatus;
 use App\Enums\StaffType;
 use App\Http\Controllers\Concerns\PresentaLeSquadre;
 use App\Models\Evento;
@@ -57,15 +56,7 @@ class PublicController extends Controller
             // importato contiene tutto il campionato, quindi senza il vincolo
             // sulla squadra interna la home mostrava la prossima gara di due
             // avversarie.
-            $nextGameModel = Game::with(['homeTeam', 'awayTeam'])
-                ->where('status', GameStatus::Scheduled)
-                ->where('match_date', '>=', now())
-                ->where(function ($query) {
-                    $query->whereHas('homeTeam', fn ($team) => $team->where('is_internal', true))
-                        ->orWhereHas('awayTeam', fn ($team) => $team->where('is_internal', true));
-                })
-                ->orderBy('match_date')
-                ->first();
+            $nextGameModel = MatchDay::prossimaGara();
 
             $nextGame = $nextGameModel !== null ? self::garaPerLaHome($nextGameModel) : null;
 
@@ -151,6 +142,8 @@ class PublicController extends Controller
         $dati['home_team']['name'] = $gara->homeTeam?->nomePubblico();
         $dati['away_team']['name'] = $gara->awayTeam?->nomePubblico();
         $dati['away_team']['logo_url'] = $gara->awayTeam?->logoUrl();
+        // «Acquista biglietti» solo in casa: in trasferta li vende l'altra società.
+        $dati['in_casa'] = (bool) $gara->homeTeam?->is_internal;
         // Diretta: incorporabile solo dalle piattaforme conosciute, e comunque
         // solo se è un link web — il template lo usa come `href` quando non si
         // può incorporare.

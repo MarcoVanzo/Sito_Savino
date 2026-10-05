@@ -18,7 +18,8 @@ use Illuminate\Database\Eloquent\Builder;
  * «Oggi si gioca» per settimane.
  *
  * Il pop-up vende biglietti: in automatico compare solo per le gare in casa e
- * prima del fischio d'inizio. Acceso a mano, decide la redazione.
+ * prima del fischio d'inizio. Acceso a mano, decide la redazione, ma mai su
+ * una trasferta: i biglietti li vende la squadra di casa.
  */
 class MatchDay
 {
@@ -54,12 +55,16 @@ class MatchDay
 
         $inCasa = (bool) $gara?->homeTeam?->is_internal;
         $prima = $gara !== null && $gara->match_date->isFuture();
+        // Acceso a mano senza una gara oggi, la home mostra la prossima: se è
+        // una trasferta, il pop-up venderebbe biglietti che non sono nostri.
+        $riferimento = $gara ?? self::prossimaGara();
+        $trasferta = $riferimento !== null && ! $riferimento->homeTeam?->is_internal;
 
         return [
             'attivo' => true,
             'gara' => $gara,
             'in_casa' => $inCasa,
-            'popup' => self::popupAttivo() && ($modalita === self::ACCESO || ($inCasa && $prima))
+            'popup' => self::popupAttivo() && ! $trasferta && ($modalita === self::ACCESO || ($inCasa && $prima))
                 ? self::popup()
                 : null,
         ];
@@ -91,6 +96,23 @@ class MatchDay
             ->where('match_date', '>', now()->subHours(self::ORE_DOPO_L_INIZIO))
             ->where('match_date', '<=', now()->endOfDay())
             ->where('status', '!=', GameStatus::Postponed)
+            ->where(function (Builder $query) {
+                $query->whereHas('homeTeam', fn (Builder $team) => $team->where('is_internal', true))
+                    ->orWhereHas('awayTeam', fn (Builder $team) => $team->where('is_internal', true));
+            })
+            ->orderBy('match_date')
+            ->first();
+    }
+
+    /**
+     * La prossima gara in programma della società, la stessa che la home
+     * mostra nella sezione della partita quando non si gioca oggi.
+     */
+    public static function prossimaGara(): ?Game
+    {
+        return Game::with(['homeTeam', 'awayTeam'])
+            ->where('status', GameStatus::Scheduled)
+            ->where('match_date', '>=', now())
             ->where(function (Builder $query) {
                 $query->whereHas('homeTeam', fn (Builder $team) => $team->where('is_internal', true))
                     ->orWhereHas('awayTeam', fn (Builder $team) => $team->where('is_internal', true));
