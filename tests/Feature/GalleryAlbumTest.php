@@ -105,5 +105,9 @@ class GalleryAlbumTest extends TestCase
         $this->withHeaders(['User-Agent' => 'WhatsApp/2.23'])
             ->get('/gallery/album/999999-non-esiste')
             ->assertNotFound();
+
+        $this->withHeaders(['User-Agent' => 'WhatsApp/2.23'])
+            ->get('/gallery/album/niente')
+            ->assertNotFound();
     }
 }

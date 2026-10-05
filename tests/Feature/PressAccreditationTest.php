@@ -278,4 +278,42 @@ class PressAccreditationTest extends TestCase
 
         $this->assertSame('it', ContactMessage::firstOrFail()->extra_data['lingua']);
     }
+
+    public function test_se_l_email_non_parte_resta_accreditata_e_la_conferma_non_risulta_inviata(): void
+    {
+        Mail::fake();
+        $this->post(route('comunicazione.accrediti.submit'), $this->richiestaValida());
+        $richiesta = ContactMessage::firstOrFail();
+
+        // Come farebbe Resend giù.
+        Mail::shouldReceive('to')->andThrow(new \RuntimeException('Resend non risponde'));
+
+        Livewire::actingAs($this->amministratore())
+            ->test(ManagePressAccreditations::class)
+            ->callTableAction('markAsReplied', $richiesta, ['messaggio' => null])
+            ->assertNotified('Accreditato, ma l\'email non è partita');
+
+        $richiesta->refresh();
+        $this->assertSame('replied', $richiesta->status);
+        $this->assertArrayNotHasKey('conferma_inviata_il', $richiesta->extra_data);
+    }
+
+    public function test_la_scheda_dice_quando_e_partita_la_conferma(): void
+    {
+        $richiesta = ContactMessage::create([
+            'name' => 'Chiara Bianchi',
+            'email' => 'chiara@testata.it',
+            'subject' => PressAccreditationController::SUBJECT,
+            'message' => '-',
+            'status' => 'replied',
+            'extra_data' => ['outlet' => 'Il Tirreno', 'conferma_inviata_il' => '05/10/2026 13:10'],
+        ]);
+
+        Livewire::actingAs($this->amministratore())
+            ->test(ManagePressAccreditations::class)
+            ->assertTableActionHasLabel('markAsReplied', 'Reinvia conferma', $richiesta)
+            ->mountTableAction('edit', $richiesta)
+            ->assertSee('05/10/2026 13:10')
+            ->assertSee('Da qui non parte nessuna email');
+    }
 }
