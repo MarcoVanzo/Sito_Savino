@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const init = vi.fn();
 vi.mock('@sentry/vue', () => ({ init }));
+const ricarica = vi.hoisted(() => ({ inCorso: false }));
+vi.mock('./Support/ricaricaDopoIlRilascio.js', () => ({ ricaricaInCorso: () => ricarica.inCorso }));
 
 const { avviaLaDiagnostica, opzioniDiSentry, ripulisciIndirizzo, TUNNEL, vieneDaCodiceIniettato } =
     await import('./diagnostica.js');
@@ -144,5 +146,14 @@ describe('diagnostica', () => {
         });
         expect(opzioni.beforeSend(iniettato)).toBeNull();
         expect(opzioni.beforeSend(nostro)).toBe(nostro);
+    });
+
+    it('scarta gli errori mentre la pagina si ricarica dopo un rilascio', () => {
+        const opzioni = opzioniDiSentry({ app: {}, dsn: 'x', environment: 'test', origine: 'https://sito.test' });
+        const evento = { exception: { values: [{ stacktrace: { frames: [{ filename: 'https://sito.test/build/assets/vendor.js' }] } }] } };
+        expect(opzioni.beforeSend(evento)).toBe(evento);
+        ricarica.inCorso = true;
+        expect(opzioni.beforeSend(evento)).toBeNull();
+        ricarica.inCorso = false;
     });
 });

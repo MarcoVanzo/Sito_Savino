@@ -23,6 +23,8 @@
  * perdono; quelli che contano — un'azione che fallisce — arrivano dopo.
  */
 
+import { ricaricaInCorso } from './Support/ricaricaDopoIlRilascio.js';
+
 export const TUNNEL = '/api/diagnostica';
 
 /**
@@ -71,7 +73,9 @@ export function vieneDaCodiceIniettato(evento) {
 }
 
 function ripulisciEvento(evento) {
-    if (vieneDaCodiceIniettato(evento)) {
+    // La pagina si sta ricaricando dopo un rilascio: gli errori dei pezzi
+    // vecchi mancanti non sono guasti (ricaricaDopoIlRilascio.js).
+    if (ricaricaInCorso() || vieneDaCodiceIniettato(evento)) {
         return null;
     }
 
