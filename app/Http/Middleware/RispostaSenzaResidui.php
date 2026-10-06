@@ -66,8 +66,10 @@ class RispostaSenzaResidui
     {
         $dominio = preg_replace('/^www\./', '', $host);
 
+        // HttpOnly non conta per farlo scadere (il browser confronta nome,
+        // dominio e percorso) e toglie a SonarCloud il dubbio (php:S3330).
         foreach ([null, '.'.$dominio] as $ambito) {
-            $response->headers->setCookie(new Cookie($nome, '', 1, '/', $ambito, true, false, false, Cookie::SAMESITE_LAX));
+            $response->headers->setCookie(new Cookie($nome, '', 1, '/', $ambito, true, true, false, Cookie::SAMESITE_LAX));
         }
     }
 }
