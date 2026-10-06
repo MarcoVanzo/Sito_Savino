@@ -50,6 +50,6 @@
         "@vue/server-renderer": "^3.5.39",
         "axios": "^1.18.1",
         "dompurify": "^3.4.11",
-        "vue": "^3.4.0"
+        "vue": "^3.5.43"
     }
 }
