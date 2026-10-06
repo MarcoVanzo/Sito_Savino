@@ -72,10 +72,30 @@ export function vieneDaCodiceIniettato(evento) {
     );
 }
 
+/**
+ * La pagina tradotta dal browser (Firefox, Chrome).
+ *
+ * Il traduttore riscrive i nodi di testo sotto Vue, che al primo cambio di
+ * album o di categoria si ritrova riferimenti a nodi staccati: "e is null" su
+ * `nextSibling`, `parentNode`, `textContent`. Il 05/10 due visitatori con la
+ * gallery tradotta in inglese ne hanno prodotte cinque issue
+ * (SITO-SAVINO-BROWSER-9/A/C/D/E). Il DOM non è più il nostro: chi vuole
+ * l'inglese ha `/en`.
+ *
+ * Entrambi i traduttori cambiano il `lang` di `<html>` (Chrome aggiunge anche
+ * la classe `translated-ltr`); il sito non lo cambia mai dopo il caricamento,
+ * neppure passando all'inglese con una visita Inertia.
+ */
+const LINGUA_DELLA_PAGINA = typeof document === 'undefined' ? '' : document.documentElement.lang;
+
+export function paginaTradotta(radice = document.documentElement, linguaOriginale = LINGUA_DELLA_PAGINA) {
+    return /\btranslated-(ltr|rtl)\b/.test(radice.className) || (radice.lang ?? '') !== linguaOriginale;
+}
+
 function ripulisciEvento(evento) {
     // La pagina si sta ricaricando dopo un rilascio: gli errori dei pezzi
     // vecchi mancanti non sono guasti (ricaricaDopoIlRilascio.js).
-    if (ricaricaInCorso() || vieneDaCodiceIniettato(evento)) {
+    if (ricaricaInCorso() || vieneDaCodiceIniettato(evento) || paginaTradotta()) {
         return null;
     }
 
