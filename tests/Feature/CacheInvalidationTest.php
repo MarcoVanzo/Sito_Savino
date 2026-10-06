@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\GalleryImage;
 use App\Models\Game;
 use App\Models\HeroSlide;
 use App\Models\Player;
@@ -10,6 +11,7 @@ use App\Models\Post;
 use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Team;
+use App\Services\GalleryArchive;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -32,6 +34,23 @@ class CacheInvalidationTest extends TestCase
         Roster::factory()->create();
 
         $this->assertNull(Cache::get('public:stagione'));
+    }
+
+    /**
+     * Le varianti della gallery per atleta si buttavano una query per atleta e
+     * per lingua: adesso basta una generazione nuova nel nome della chiave.
+     */
+    public function test_una_foto_salvata_butta_le_varianti_della_gallery_per_atleta(): void
+    {
+        $atleta = Player::factory()->create();
+        $archivio = app(GalleryArchive::class);
+        $prima = $archivio->chiave($atleta, 'it');
+        Cache::put($prima, ['vecchia'], now()->addHour());
+
+        GalleryImage::factory()->create();
+
+        $this->assertNotSame($prima, $archivio->chiave($atleta, 'it'));
+        $this->assertSame($archivio->chiave($atleta, 'it'), $archivio->chiave($atleta, 'it'));
     }
 
     public function test_cache_is_cleared_when_player_is_updated(): void

@@ -110,6 +110,9 @@ Schedule::command('consensi:verifica')->weeklyOn(1, '04:30')->withoutOverlapping
 // l'unica conservazione dichiarata che nessuno applicava.
 Schedule::command('messaggi:pota')->weekly()->withoutOverlapping();
 Schedule::command('model:prune')->daily()->withoutOverlapping();
+// Il driver `database` non toglie da sé le righe scadute che nessuno rilegge:
+// pagine intere di generazioni superate, contatori dei limiti di richiesta.
+Schedule::command('cache:pota-scadute')->hourlyAt(47)->withoutOverlapping();
 // I batch di analisi della gallery con `allowFailures()` non si chiudono mai
 // da soli se un job fallisce: a settembre 2026 ce n'erano 18 aperti da luglio.
 Schedule::command('queue:prune-batches --hours=48 --unfinished=72 --cancelled=72')->daily()->withoutOverlapping();

@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\CachePublicResponse;
+use App\Models\Roster;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
 use Tests\TestCase;
 
@@ -17,6 +20,34 @@ class CachePublicResponseTest extends TestCase
     {
         parent::setUp();
         $this->withoutVite();
+    }
+
+    /**
+     * Svuotare la cache di pagina era una query per ogni indirizzo in cache,
+     * presi da un registro che ogni pagina nuova riscriveva (Sentry
+     * SITO-SAVINO-Z): adesso cambia la generazione nel nome delle chiavi.
+     */
+    public function test_un_contenuto_salvato_butta_le_pagine_in_cache(): void
+    {
+        $this->get('/')->assertHeader('X-Page-Cache', 'MISS');
+        $this->get('/')->assertHeader('X-Page-Cache', 'HIT');
+
+        Roster::factory()->create();
+
+        $this->get('/')->assertHeader('X-Page-Cache', 'MISS');
+        $this->get('/')->assertHeader('X-Page-Cache', 'HIT');
+    }
+
+    public function test_svuotare_la_cache_di_pagina_non_tiene_un_registro_degli_indirizzi(): void
+    {
+        $this->get('/')->assertHeader('X-Page-Cache', 'MISS');
+        $this->get('/en')->assertOk();
+
+        $this->assertNull(Cache::get(CachePublicResponse::CACHE_PREFIX.'registry'));
+
+        CachePublicResponse::flush();
+
+        $this->get('/')->assertHeader('X-Page-Cache', 'MISS');
     }
 
     public function test_login_page_is_never_full_page_cached(): void

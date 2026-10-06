@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\GenerazioneDiCache;
 use Closure;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Http\Request;
@@ -33,6 +34,9 @@ class CachePublicResponse
 
     /** Cache key prefix for targeted invalidation. */
     public const CACHE_PREFIX = 'page_cache:';
+
+    /** Famiglia di `GenerazioneDiCache`: cambiarla butta tutte le pagine. */
+    private const GENERAZIONE = 'page_cache';
 
     /**
      * Headers that must NEVER be cached because they are
@@ -71,7 +75,9 @@ class CachePublicResponse
         // Derive locale from URL prefix (this middleware runs before SetLocale)
         $locale = str_starts_with($request->getPathInfo(), '/en') ? 'en' : 'it';
         // Hash non crittografico: è solo una chiave di cache, non un contesto di sicurezza.
-        $cacheKey = self::CACHE_PREFIX.hash('xxh128', $request->fullUrl().'|'.$locale);
+        $cacheKey = self::CACHE_PREFIX
+            .GenerazioneDiCache::attuale(self::GENERAZIONE).':'
+            .hash('xxh128', $request->fullUrl().'|'.$locale);
 
         $cached = Cache::get($cacheKey);
 
@@ -107,13 +113,6 @@ class CachePublicResponse
                 'status' => $response->getStatusCode(),
                 'headers' => $safeHeaders,
             ], self::TTL);
-
-            // Track this key in the registry for selective flush
-            $registry = Cache::get(self::CACHE_PREFIX.'registry', []);
-            if (! in_array($cacheKey, $registry, true)) {
-                $registry[] = $cacheKey;
-                Cache::put(self::CACHE_PREFIX.'registry', $registry, self::TTL * 2);
-            }
 
             $response->headers->set('X-Page-Cache', 'MISS');
         }
@@ -173,19 +172,11 @@ class CachePublicResponse
     }
 
     /**
-     * Flush only the page cache entries, not the entire cache store.
-     * Called by CacheInvalidationObserver when models change.
+     * Butta tutte le pagine in cache con una sola scrittura (vedi
+     * GenerazioneDiCache). Chiamato da CacheInvalidationObserver.
      */
     public static function flush(): void
     {
-        // With file cache driver we can't query by prefix,
-        // so we maintain a registry of cached URLs.
-        $registry = Cache::get(self::CACHE_PREFIX.'registry', []);
-
-        foreach ($registry as $key) {
-            Cache::forget($key);
-        }
-
-        Cache::forget(self::CACHE_PREFIX.'registry');
+        GenerazioneDiCache::rinnova(self::GENERAZIONE);
     }
 }
