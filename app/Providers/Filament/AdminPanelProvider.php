@@ -178,10 +178,10 @@ class AdminPanelProvider extends PanelProvider
         return function () use ($label, $slugMap, $underConstructionUrl) {
             try {
                 $slug = $slugMap[$label] ?? null;
-                $page = $slug ? Page::where('slug', $slug)->first() : null;
+                $id = $slug ? (self::idDellePagine($slugMap)[$slug] ?? null) : null;
 
-                if ($page) {
-                    return "/admin/pages/{$page->id}/edit";
+                if ($id) {
+                    return "/admin/pages/{$id}/edit";
                 }
             } catch (\Throwable) {
                 // Fallback: database non raggiungibile o non ancora migrato.
@@ -189,5 +189,21 @@ class AdminPanelProvider extends PanelProvider
 
             return $underConstructionUrl;
         };
+    }
+
+    /**
+     * Gli id delle pagine del menu con una query sola per richiesta: una
+     * per voce erano venticinque query a ogni pagina del pannello (N+1
+     * segnalato da Sentry, SITO-SAVINO-6/7).
+     *
+     * @param  array<string, string>  $slugMap
+     * @return array<string, int>
+     */
+    private static function idDellePagine(array $slugMap): array
+    {
+        return once(fn () => Page::query()
+            ->whereIn('slug', array_values($slugMap))
+            ->pluck('id', 'slug')
+            ->all());
     }
 }

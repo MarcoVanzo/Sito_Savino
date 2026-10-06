@@ -34,12 +34,14 @@ class VariantsRelationManager extends RelationManager
             Forms\Components\TextInput::make('price_modifier')
                 ->label('Variazione Prezzo (€)')
                 ->numeric()
+                ->required()
                 ->default(0)
                 ->prefix('€')
                 ->helperText('Aggiunto al prezzo base del prodotto. Es: +5.00 per taglia XL.'),
             Forms\Components\TextInput::make('stock')
                 ->label('Stock')
                 ->numeric()
+                ->required()
                 ->default(0)
                 ->minValue(0)
                 ->helperText('Stock attuale per questa variante. Puoi modificarlo manualmente o tramite i Movimenti Magazzino.'),
