@@ -61,11 +61,14 @@ class CacheRiscaldataTest extends TestCase
         Bus::fake([RicostruisciLaCacheDellaGallery::class]);
         $foto = GalleryImage::factory()->create(['is_active' => true]);
         $atleta = Player::factory()->create();
-        Cache::put(GalleryArchive::CHIAVE.':player_'.$atleta->id.':it', [['id' => 1]], now()->addDay());
+        $archivio = app(GalleryArchive::class);
+        Cache::put($archivio->chiave($atleta, 'it'), [['id' => 1]], now()->addDay());
 
         $foto->update(['category' => 'Eventi']);
 
-        $this->assertNull(Cache::get(GalleryArchive::CHIAVE.':player_'.$atleta->id.':it'));
+        // Si butta cambiando generazione: la copia vecchia non si trova più.
+        $this->assertNull(Cache::get($archivio->chiave($atleta, 'it')));
+        $this->assertSame([], $archivio->media($atleta, 'it'));
     }
 
     #[Test]
