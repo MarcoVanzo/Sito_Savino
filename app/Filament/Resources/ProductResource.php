@@ -386,10 +386,15 @@ class ProductResource extends Resource
                                 Forms\Components\TextInput::make('stock')
                                     ->label('Stock Iniziale')
                                     ->numeric()
+                                    ->required()
                                     ->default(0)
+                                    ->minValue(0)
                                     ->helperText('Imposta lo stock iniziale. Dopo la creazione, usa la tab "Varianti" per gestirlo.'),
+                                // Svuotati arrivano null su colonne NOT NULL: come nella
+                                // tab "Varianti" (SITO-SAVINO-J), obbligatori.
                                 Forms\Components\TextInput::make('price_modifier')
                                     ->numeric()
+                                    ->required()
                                     ->default(0)
                                     ->label('Variazione Prezzo (€)'),
                             ])
