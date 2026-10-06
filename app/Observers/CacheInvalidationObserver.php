@@ -165,13 +165,9 @@ class CacheInvalidationObserver
             }
         }
 
-        // public:gallery_images:player_<id>:<locale>
+        // public:gallery_images:player_<id>:<generazione>:<locale>
         if (in_array(GalleryArchive::CHIAVE, $keys, true)) {
-            foreach (Player::query()->pluck('id') as $playerId) {
-                foreach ($locales as $locale) {
-                    Cache::forget(GalleryArchive::CHIAVE.':player_'.$playerId.':'.$locale);
-                }
-            }
+            GalleryArchive::dimenticaLeVariantiPerAtleta();
         }
     }
 

@@ -171,7 +171,10 @@ parsa le pagine pubbliche di `legavolleyfemminile.it`. Codice in
 - **La cache della gallery si rigenera, non si butta**: `GalleryArchive` (12 000+
   foto, ~10 s per costruirla) in cache un giorno; `CacheInvalidationObserver`
   accoda `RicostruisciLaCacheDellaGallery` invece di cancellare
-  `public:gallery_images:<locale>`. Le varianti per atleta si buttano.
+  `public:gallery_images:<locale>`. Le varianti per atleta e le pagine intere
+  (`CachePublicResponse`) si buttano cambiando generazione (`GenerazioneDiCache`,
+  una scrittura), mai chiave per chiave; le righe scadute le toglie
+  `cache:pota-scadute` (il driver `database` non lo fa da sé).
 
 ## 12-ter. Riconoscimento dei volti (CompreFace)
 

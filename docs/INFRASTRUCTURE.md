@@ -513,6 +513,12 @@ Utente → HTTPS → App Web → CachePublicResponse
               Immagini → Spaces (origine fra1) → Browser
 ```
 
+**Svuotarla costa una scrittura.** Le chiavi portano una generazione
+(`GenerazioneDiCache`): `CachePublicResponse::flush()`, chiamato da
+`CacheInvalidationObserver`, ne scrive una nuova e le pagine di prima non si
+trovano più. Non c'è registro degli indirizzi; le righe vecchie le toglie
+`cache:pota-scadute`. Stesso schema per le varianti della gallery per atleta.
+
 **La cache full-page copre poco del traffico umano.** Il middleware gira prima
 di `StartSession` e, per non servire a un anonimo la pagina di un utente
 loggato, salta ogni richiesta che porta il cookie di sessione — che Laravel
@@ -880,6 +886,7 @@ dedicato (vedi §3.3). Tutti i comandi ricorrenti tranne `scheduler:beat` hanno 
 | `consensi:verifica` | Settimanale (lunedì 04:30) | Controlla che il registro dei consensi non sia stato alterato (righe incatenate) |
 | `messaggi:pota` | Settimanale (domenica 00:00) | Messaggi e accrediti oltre i 24 mesi (dalla data del messaggio) |
 | `model:prune` | Giornaliero | Carrelli scaduti da più di 7 giorni, iscrizioni alla newsletter non confermate entro 30 giorni, dichiarazioni di recesso oltre la conservazione (12 mesi; 10 anni se legate a un ordine) |
+| `cache:pota-scadute` | Ogni ora (:47) | Toglie le righe scadute della cache su database (pagine di generazioni superate, contatori dei limiti): il driver le cancella solo se rilette |
 | `queue:prune-batches` / `queue:prune-failed` | Giornaliero | Batch rimasti aperti (72 h) e job falliti (30 giorni) |
 | `carts:prune-expired` | Giornaliero (03:00) | Elimina i carrelli scaduti |
 | `order:check-unpaid` | Ogni 10 minuti | Annulla gli ordini non pagati (carta e PayPal dopo un'ora, bonifico dopo i giorni di `shop.bank_transfer_expiry_days`), manda il promemoria del bonifico e rilascia lo stock |

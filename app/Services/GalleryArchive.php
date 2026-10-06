@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\GalleryImage;
 use App\Models\Player;
+use App\Support\GenerazioneDiCache;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -26,6 +27,9 @@ use Illuminate\Support\Facades\Cache;
 class GalleryArchive
 {
     public const CHIAVE = 'public:gallery_images';
+
+    /** Famiglia di `GenerazioneDiCache` delle varianti per atleta. */
+    private const GENERAZIONE_VARIANTI = 'gallery_images:atlete';
 
     /** Foto lette per volta: dodicimila modelli con le relazioni non stanno in memoria tutti insieme. */
     private const BLOCCO = 500;
@@ -51,8 +55,17 @@ class GalleryArchive
     public function chiave(?Player $filtro, string $locale): string
     {
         return $filtro
-            ? self::CHIAVE.':player_'.$filtro->id.':'.$locale
+            ? self::CHIAVE.':player_'.$filtro->id.':'.GenerazioneDiCache::attuale(self::GENERAZIONE_VARIANTI).':'.$locale
             : self::CHIAVE.':'.$locale;
+    }
+
+    /**
+     * Butta le varianti per atleta con una sola scrittura, invece di una
+     * query per atleta e per lingua.
+     */
+    public static function dimenticaLeVariantiPerAtleta(): void
+    {
+        GenerazioneDiCache::rinnova(self::GENERAZIONE_VARIANTI);
     }
 
     /**
