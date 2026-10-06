@@ -4,12 +4,14 @@ namespace Tests\Feature\Filament;
 
 use App\Enums\ProductType;
 use App\Enums\UserRole;
+use App\Filament\Resources\ProductResource\Pages\CreateProduct;
 use App\Filament\Resources\ProductResource\Pages\EditProduct;
 use App\Filament\Resources\ProductResource\RelationManagers\VariantsRelationManager;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductVariant;
 use App\Models\User;
+use Filament\Forms\Components\Repeater;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -117,6 +119,25 @@ class ProdottoDalPannelloTest extends TestCase
             ->assertHasTableActionErrors(['stock' => 'required']);
 
         $this->assertSame(4, $taglia->refresh()->stock);
+    }
+
+    #[Test]
+    public function una_taglia_aggiunta_alla_creazione_con_lo_stock_vuoto_viene_rifiutata(): void
+    {
+        // Lo stesso difetto di SITO-SAVINO-J nel Repeater della creazione.
+        $undo = Repeater::fake();
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(CreateProduct::class)
+            ->fillForm(['variants' => [['sku' => 'TAGLIA-M', 'stock' => null, 'price_modifier' => null]]])
+            ->call('create')
+            ->assertHasFormErrors([
+                'variants.0.stock' => 'required',
+                'variants.0.price_modifier' => 'required',
+            ]);
+
+        $undo();
+        $this->assertSame(0, ProductVariant::count());
     }
 
     private function prodotto(array $attributi = []): Product
