@@ -5,7 +5,7 @@ vi.mock('@sentry/vue', () => ({ init }));
 const ricarica = vi.hoisted(() => ({ inCorso: false }));
 vi.mock('./Support/ricaricaDopoIlRilascio.js', () => ({ ricaricaInCorso: () => ricarica.inCorso }));
 
-const { avviaLaDiagnostica, opzioniDiSentry, ripulisciIndirizzo, TUNNEL, vieneDaCodiceIniettato } =
+const { avviaLaDiagnostica, opzioniDiSentry, paginaTradotta, ripulisciIndirizzo, TUNNEL, vieneDaCodiceIniettato } =
     await import('./diagnostica.js');
 
 describe('diagnostica', () => {
@@ -155,5 +155,31 @@ describe('diagnostica', () => {
         ricarica.inCorso = true;
         expect(opzioni.beforeSend(evento)).toBeNull();
         ricarica.inCorso = false;
+    });
+
+    it('riconosce la pagina tradotta dal browser', () => {
+        const radice = (lang, className = '') => ({ lang, className });
+
+        expect(paginaTradotta(radice('it'), 'it')).toBe(false);
+        // Firefox: cambia solo il lang
+        expect(paginaTradotta(radice('en'), 'it')).toBe(true);
+        // Chrome: lang e classe
+        expect(paginaTradotta(radice('en', 'translated-ltr'), 'it')).toBe(true);
+        expect(paginaTradotta(radice('it', 'translated-rtl'), 'it')).toBe(true);
+    });
+
+    it('scarta gli errori della pagina tradotta dal browser', () => {
+        // SITO-SAVINO-BROWSER-9/A: la gallery tradotta da Firefox
+        const opzioni = opzioniDiSentry({ app: {}, dsn: 'x', environment: 'test', origine: 'https://sito.test' });
+        const evento = { exception: { values: [{ type: 'TypeError', value: "can't access property \"nextSibling\", e is null", stacktrace: { frames: [{ filename: 'https://sito.test/build/assets/vendor.js' }] } }] } };
+        const originale = document.documentElement.lang;
+
+        expect(opzioni.beforeSend(evento)).toBe(evento);
+        document.documentElement.lang = 'en';
+        expect(opzioni.beforeSend(evento)).toBeNull();
+        document.documentElement.lang = originale;
+        document.documentElement.classList.add('translated-ltr');
+        expect(opzioni.beforeSend(evento)).toBeNull();
+        document.documentElement.classList.remove('translated-ltr');
     });
 });
