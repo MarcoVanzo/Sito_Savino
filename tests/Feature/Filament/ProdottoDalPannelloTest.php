@@ -5,6 +5,7 @@ namespace Tests\Feature\Filament;
 use App\Enums\ProductType;
 use App\Enums\UserRole;
 use App\Filament\Resources\ProductResource\Pages\EditProduct;
+use App\Filament\Resources\ProductResource\RelationManagers\VariantsRelationManager;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductVariant;
@@ -97,6 +98,25 @@ class ProdottoDalPannelloTest extends TestCase
             ->assertHasNoFormErrors();
 
         $this->assertSame('0.00', (string) $prodotto->refresh()->personalizzazione_prezzo);
+    }
+
+    #[Test]
+    public function una_taglia_con_lo_stock_vuoto_viene_rifiutata_invece_di_andare_in_errore(): void
+    {
+        // SITO-SAVINO-J: il campo svuotato arrivava come null su una colonna
+        // NOT NULL, e il salvataggio finiva in un 500.
+        $prodotto = $this->prodotto();
+        $taglia = ProductVariant::factory()->for($prodotto)->create(['size' => 'M', 'stock' => 4]);
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(VariantsRelationManager::class, [
+                'ownerRecord' => $prodotto,
+                'pageClass' => EditProduct::class,
+            ])
+            ->callTableAction('edit', $taglia, data: ['stock' => null])
+            ->assertHasTableActionErrors(['stock' => 'required']);
+
+        $this->assertSame(4, $taglia->refresh()->stock);
     }
 
     private function prodotto(array $attributi = []): Product
