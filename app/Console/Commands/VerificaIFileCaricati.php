@@ -165,7 +165,7 @@ class VerificaIFileCaricati extends Command
             return false;
         }
 
-        return (bool) preg_match('#^[\w\-/. ]+\.(pdf|jpe?g|png|webp|gif|svg|zip|docx?|xlsx?)$#i', $valore);
+        return (bool) preg_match('#^[\w\-/. ]+\.(pdf|jpe?g|png|webp|gif|svg|zip|docx?|xlsx?|mp4)$#i', $valore);
     }
 
     private function esiste(string $percorso): bool

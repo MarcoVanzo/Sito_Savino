@@ -45,6 +45,12 @@ return [
         'Messaggio manutenzione', 'Banner mostrato quando lo shop è disabilitato', 2),
     $impostazione('shop.announcement_banner', 'text', '',
         'Banner promozionale', 'Banner in cima allo shop (es. "Saldi estivi -20%!")', 3),
+    // Vuoti di partenza: senza video la testata resta blu. Contengono il
+    // percorso sul disco del pannello (Spaces in produzione), letto con CmsFile.
+    $impostazione('shop.hero_video', 'text', '',
+        'Video di sfondo della testata', 'MP4 muto in loop dietro il titolo dello shop. Vuoto: sfondo blu', 4),
+    $impostazione('shop.hero_video_poster', 'text', '',
+        'Copertina del video della testata', 'Immagine mostrata mentre il video carica e a chi chiede meno animazioni', 4),
     $impostazione('shop.max_qty_per_product', 'number', '10',
         'Quantità max per prodotto', 'Quantità massima acquistabile per singolo prodotto per ordine', 5),
     $impostazione('shop.cart_expiry_days', 'number', '7',

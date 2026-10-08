@@ -8,6 +8,8 @@ use App\Models\SiteSetting;
 use App\Models\User;
 use Database\Seeders\ShopSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -123,6 +125,49 @@ class ShopSettingsPageTest extends TestCase
         $this->get(route('shop'))->assertOk()->assertInertia(
             fn ($page) => $page->component('Public/Shop/Maintenance'),
         );
+    }
+
+    #[Test]
+    public function il_video_della_testata_si_carica_sul_disco_del_pannello_e_si_toglie(): void
+    {
+        Storage::fake('local');
+        Storage::fake(config('filament.default_filesystem_disk'));
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(ShopSettingsPage::class)
+            ->set('data.shop.hero_video', [UploadedFile::fake()->create('testata.mp4', 3000, 'video/mp4')])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $percorso = SiteSetting::get('shop.hero_video');
+        $this->assertIsString($percorso);
+        $this->assertStringStartsWith('shop/', $percorso);
+        Storage::disk(config('filament.default_filesystem_disk'))->assertExists($percorso);
+
+        // Riaperta la pagina il file c'e' ancora; togliendolo lo shop torna blu.
+        Livewire::actingAs($this->superAdmin())
+            ->test(ShopSettingsPage::class)
+            ->assertSet('data.shop.hero_video', fn ($stato) => in_array($percorso, (array) $stato, true))
+            ->set('data.shop.hero_video', [])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('', (string) SiteSetting::get('shop.hero_video'));
+    }
+
+    #[Test]
+    public function un_video_troppo_pesante_viene_rifiutato(): void
+    {
+        Storage::fake('local');
+        Storage::fake(config('filament.default_filesystem_disk'));
+
+        Livewire::actingAs($this->superAdmin())
+            ->test(ShopSettingsPage::class)
+            ->set('data.shop.hero_video', [UploadedFile::fake()->create('testata.mp4', 9000, 'video/mp4')])
+            ->call('save')
+            ->assertHasErrors('data.shop.hero_video');
+
+        $this->assertSame('', (string) SiteSetting::get('shop.hero_video'));
     }
 
     private function superAdmin(): User

@@ -6,6 +6,7 @@ use App\Enums\PaymentGateway;
 use App\Filament\Resources\PageResource;
 use App\Models\SiteSetting;
 use App\Services\AvvisoNuovoOrdine;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
@@ -99,6 +100,31 @@ class ShopSettingsPage extends BaseSettingsPage
                             ->rows(2)
                             ->columnSpanFull(),
                     ])->columns(1),
+
+                Section::make('Testata dello Shop')
+                    ->description('Video di sfondo della striscia blu in cima allo shop. Senza video resta lo sfondo blu.')
+                    ->icon('heroicon-o-film')
+                    ->schema([
+                        // Nessun `disk()`: vale quello del pannello (Spaces in
+                        // produzione), come per le guide taglie. La copertina,
+                        // come ogni FileUpload, passa da FotoAlleggerita.
+                        FileUpload::make('shop.hero_video')
+                            ->label('Video di sfondo (MP4)')
+                            ->helperText('MP4 (H.264), muto, in loop, parte anche sul telefono. 720p, 10-20 secondi, sotto i 5 MB: lo shop deve aprirsi veloce anche in 4G. Meglio riprese scure o poco contrastate: sopra ci va il testo.')
+                            ->acceptedFileTypes(['video/mp4'])
+                            ->directory('shop')
+                            // 8 MB: il consiglio è 5, il margine serve a non
+                            // respingere un file appena sopra. Oltre, il
+                            // telefono di un tifoso in 4G paga la testata
+                            // prima di vedere un prodotto.
+                            ->maxSize(8192),
+                        FileUpload::make('shop.hero_video_poster')
+                            ->label('Immagine di copertina')
+                            ->helperText('Si vede mentre il video carica e a chi ha chiesto al sistema meno animazioni. Meglio un fotogramma del video, 1600 px di larghezza.')
+                            ->image()
+                            ->directory('shop')
+                            ->maxSize(2048),
+                    ])->columns(2),
 
                 Section::make('Carrello & Ordini')
                     ->icon('heroicon-o-shopping-cart')
