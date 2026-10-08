@@ -169,7 +169,7 @@ trait HandlesPaymentWebhooks
 
                 // 2. Lo stock NON va decrementato qui: è già stato riservato al
                 // momento del checkout tramite gli StockMovement di tipo Sale
-                // (CheckoutService::createOrder / AuctionCheckoutController::store).
+                // (CheckoutService::createOrder / OrdineDelVincitoreDellAsta::registra).
                 // Decrementarlo di nuovo causerebbe un doppio scarico di magazzino.
 
                 // 3. Track purchase event for analytics
