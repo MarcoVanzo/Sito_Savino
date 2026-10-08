@@ -43,6 +43,8 @@ Pantone colori.jpeg
 !scripts/genera-infrastructure-html.py
 # Eccezione: client Gemini della skill di Claude Code.
 !.claude/skills/gemini/gemini.py
+# Eccezione: script delle skill di progetto (ui-ux-pro-max e affini).
+!.claude/skills/**/*.py
 
 # File temporanei/auto-generati
 current_app.json
