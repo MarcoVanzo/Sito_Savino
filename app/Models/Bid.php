@@ -23,12 +23,18 @@ class Bid extends Model
         'auction_id', 'user_id', 'amount', 'placed_at',
     ];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'is_valid' => 'boolean',
-        'invalidated_at' => 'datetime',
-        'placed_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'is_valid' => 'boolean',
+            'invalidated_at' => 'datetime',
+            'placed_at' => 'datetime',
+        ];
+    }
 
     // --- Relazioni ---
 

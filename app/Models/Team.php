@@ -39,10 +39,16 @@ class Team extends Model implements HasMedia
         'name', 'slug', 'category', 'is_internal', 'lvf_club_id', 'logo_url',
     ];
 
-    protected $casts = [
-        'is_internal' => 'boolean',
-        'lvf_club_id' => 'integer',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_internal' => 'boolean',
+            'lvf_club_id' => 'integer',
+        ];
+    }
 
     public function standings(): HasMany
     {

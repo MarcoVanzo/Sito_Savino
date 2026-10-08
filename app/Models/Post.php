@@ -34,10 +34,16 @@ class Post extends Model implements HasMedia
 
     public $translatable = ['title', 'content', 'excerpt', 'meta_description'];
 
-    protected $casts = [
-        'published_at' => 'datetime',
-        'status' => PostStatus::class,
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'published_at' => 'datetime',
+            'status' => PostStatus::class,
+        ];
+    }
 
     /**
      * @return BelongsToMany<Category, $this>

@@ -30,18 +30,24 @@ class Auction extends Model
 
     public $translatable = ['title', 'description', 'charity_description'];
 
-    protected $casts = [
-        'starting_price' => 'decimal:2',
-        'current_bid' => 'decimal:2',
-        'reserve_price' => 'decimal:2',
-        'bid_increment' => 'decimal:2',
-        'max_bid_jump' => 'decimal:2',
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
-        'status' => AuctionStatus::class,
-        'winner_checkout_deadline' => 'datetime',
-        'is_charity' => 'boolean',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'starting_price' => 'decimal:2',
+            'current_bid' => 'decimal:2',
+            'reserve_price' => 'decimal:2',
+            'bid_increment' => 'decimal:2',
+            'max_bid_jump' => 'decimal:2',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
+            'status' => AuctionStatus::class,
+            'winner_checkout_deadline' => 'datetime',
+            'is_charity' => 'boolean',
+        ];
+    }
 
     /**
      * Transizioni di stato ammesse alla redazione.

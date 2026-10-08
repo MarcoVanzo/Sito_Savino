@@ -46,10 +46,16 @@ class RichiestaDiRecesso extends Model
         'inviata_il', 'gestita_il', 'note_interne',
     ];
 
-    protected $casts = [
-        'inviata_il' => 'datetime',
-        'gestita_il' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'inviata_il' => 'datetime',
+            'gestita_il' => 'datetime',
+        ];
+    }
 
     /**
      * @return BelongsTo<Order, $this>

@@ -38,13 +38,18 @@ class OrderItem extends Model
      * `stato_articolo` e' lo stato dichiarato nella scheda di un articolo
      * indossato o autografato, fotografato per lingua allo stesso modo: e' la
      * descrizione a cui rimandano le condizioni di vendita.
+     *
+     * @return array<string, string|class-string>
      */
-    protected $casts = [
-        'price_at_time_of_purchase' => 'decimal:2',
-        'personalizzazione' => 'array',
-        'supplemento_personalizzazione' => 'decimal:2',
-        'stato_articolo' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'price_at_time_of_purchase' => 'decimal:2',
+            'personalizzazione' => 'array',
+            'supplemento_personalizzazione' => 'decimal:2',
+            'stato_articolo' => 'array',
+        ];
+    }
 
     protected $appends = ['nome_personalizzazione', 'testo_stato_articolo'];
 

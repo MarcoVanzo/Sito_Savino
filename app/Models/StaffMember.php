@@ -28,9 +28,15 @@ class StaffMember extends Model implements HasMedia
 
     public $translatable = ['role'];
 
-    protected $casts = [
-        'type' => StaffType::class,
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => StaffType::class,
+        ];
+    }
 
     protected $appends = ['full_name'];
 

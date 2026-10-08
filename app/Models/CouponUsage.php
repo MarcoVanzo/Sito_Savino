@@ -14,9 +14,15 @@ class CouponUsage extends Model
         'coupon_id', 'order_id', 'user_id', 'guest_email', 'used_at',
     ];
 
-    protected $casts = [
-        'used_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'used_at' => 'datetime',
+        ];
+    }
 
     public function coupon(): BelongsTo
     {

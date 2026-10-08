@@ -28,12 +28,18 @@ class GalleryImage extends Model implements HasMedia
         'ai_analyzed_at',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'needs_review' => 'boolean',
-        'sort_order' => 'integer',
-        'ai_analyzed_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'needs_review' => 'boolean',
+            'sort_order' => 'integer',
+            'ai_analyzed_at' => 'datetime',
+        ];
+    }
 
     public function registerMediaCollections(): void
     {

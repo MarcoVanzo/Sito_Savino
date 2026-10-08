@@ -14,10 +14,16 @@ class Season extends Model
 
     protected $fillable = ['name', 'is_current', 'lvf_season_year'];
 
-    protected $casts = [
-        'is_current' => 'boolean',
-        'lvf_season_year' => 'integer',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_current' => 'boolean',
+            'lvf_season_year' => 'integer',
+        ];
+    }
 
     public function standings(): HasMany
     {

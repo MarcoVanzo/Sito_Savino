@@ -26,12 +26,18 @@ class Standing extends Model
         'set_ratio', 'point_ratio', 'synced_at',
     ];
 
-    protected $casts = [
-        'competition_type' => CompetitionType::class,
-        'synced_at' => 'datetime',
-        'set_ratio' => 'float',
-        'point_ratio' => 'float',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'competition_type' => CompetitionType::class,
+            'synced_at' => 'datetime',
+            'set_ratio' => 'float',
+            'point_ratio' => 'float',
+        ];
+    }
 
     public function season(): BelongsTo
     {

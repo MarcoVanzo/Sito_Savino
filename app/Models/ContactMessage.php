@@ -18,7 +18,13 @@ class ContactMessage extends Model
         'extra_data',
     ];
 
-    protected $casts = [
-        'extra_data' => 'array',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'extra_data' => 'array',
+        ];
+    }
 }
