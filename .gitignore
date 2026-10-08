@@ -96,3 +96,4 @@ docs/INFRASTRUCTURE.pdf
 # Utenze degli account della società: solo nel PDF, mai nel repository pubblico.
 docs/ACCOUNT_UTENZE.md
 docs/INFRASTRUCTURE-pdf.html
+/.phpunit-toccati.xml
