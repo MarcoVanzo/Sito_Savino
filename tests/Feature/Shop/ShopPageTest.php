@@ -5,8 +5,11 @@ namespace Tests\Feature\Shop;
 use App\Enums\ProductType;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -26,6 +29,37 @@ class ShopPageTest extends TestCase
     {
         $response = $this->get(route('shop'));
         $response->assertStatus(200);
+    }
+
+    #[Test]
+    public function senza_video_la_testata_resta_blu(): void
+    {
+        $this->get(route('shop'))
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('heroVideo', null));
+    }
+
+    #[Test]
+    public function il_video_della_testata_arriva_con_la_copertina(): void
+    {
+        SiteSetting::set('shop.hero_video', 'shop/testata.mp4');
+        SiteSetting::set('shop.hero_video_poster', 'shop/copertina.jpg');
+
+        $this->get(route('shop'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('heroVideo.src', Storage::url('shop/testata.mp4'))
+                ->where('heroVideo.poster', Storage::url('shop/copertina.jpg')));
+    }
+
+    #[Test]
+    public function un_video_senza_copertina_arriva_lo_stesso(): void
+    {
+        SiteSetting::set('shop.hero_video', 'shop/testata.mp4');
+        SiteSetting::set('shop.hero_video_poster', '');
+
+        $this->get(route('shop'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('heroVideo.src', Storage::url('shop/testata.mp4'))
+                ->where('heroVideo.poster', null));
     }
 
     #[Test]

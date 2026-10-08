@@ -6,6 +6,7 @@ import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 import ProductCardSkeleton from '@/Components/Shop/ProductCardSkeleton.vue';
+import VideoDiSfondo from '@/Components/Shop/VideoDiSfondo.vue';
 
 const $t = useTranslations();
 
@@ -29,6 +30,11 @@ const props = defineProps({
     },
     announcementBanner: {
         type: String,
+        default: null,
+    },
+    // Video di sfondo della testata, da Impostazioni Shop & Aste.
+    heroVideo: {
+        type: Object,
         default: null,
     },
 });
@@ -135,15 +141,26 @@ const loadMore = () => {
 
         <!-- HERO SECTION -->
         <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
-            <div class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
+            <template v-if="heroVideo?.src">
+                <VideoDiSfondo :src="heroVideo.src" :poster="heroVideo.poster" />
+                <!-- Velo blu sopra il video. Al 70% il bianco tiene il 4,5:1
+                     anche su un fotogramma tutto bianco; il fucsia chiaro no
+                     (1,9:1), per questo col video l'etichetta diventa una
+                     pillola fucsia con il testo bianco, leggibile da sé. -->
+                <div class="absolute inset-0 bg-gradient-to-br from-gray-900/80 via-savino-blue/70 to-gray-900/80"></div>
+            </template>
+            <div v-else class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
+            <div v-if="!heroVideo?.src" class="absolute inset-0 opacity-[0.05]" style="background-image: url('data:image/svg+xml,%3Csvg width=&quot;80&quot; height=&quot;80&quot; viewBox=&quot;0 0 80 80&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cpath d=&quot;M0 0h40v40H0zM40 40h40v40H40z&quot; fill=&quot;%23C5A55A&quot; fill-opacity=&quot;0.5&quot;/%3E%3C/svg%3E'); background-size: 80px 80px;"></div>
             <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-                <span class="text-savino-fucsia-chiaro text-sm font-bold uppercase tracking-[0.3em]">{{ $t('shop.hero_label') }}</span>
+                <span
+                    class="text-sm font-bold uppercase tracking-[0.3em]"
+                    :class="heroVideo?.src ? 'inline-block rounded-full bg-savino-fucsia px-4 py-1 text-white' : 'text-savino-fucsia-chiaro'"
+                >{{ $t('shop.hero_label') }}</span>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tighter mt-4">
                     {{ $t('shop.og_title') }}
                 </h1>
                 <div class="w-16 h-1 bg-savino-fucsia mx-auto mt-4 mb-6"></div>
-                <p class="text-white/70 text-lg max-w-2xl mx-auto">
+                <p class="text-lg max-w-2xl mx-auto" :class="heroVideo?.src ? 'text-white/90' : 'text-white/70'">
                     {{ $t('shop.hero_description') }}
                 </p>
             </div>

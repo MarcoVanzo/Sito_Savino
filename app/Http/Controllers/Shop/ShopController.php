@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\SiteSetting;
 use App\Services\StoricoPrezzi;
+use App\Support\CmsFile;
 use App\Support\EtichetteDelProdotto;
 use App\Support\GuidaTaglie;
 use Illuminate\Http\Request;
@@ -195,7 +196,30 @@ class ShopController extends Controller
             'allProducts' => $data['allProducts'],
             'categories' => $data['categories'],
             'announcementBanner' => SiteSetting::get('shop.announcement_banner'),
+            'heroVideo' => $this->videoDellaTestata(),
         ]);
+    }
+
+    /**
+     * Il video di sfondo della testata, se la redazione ne ha caricato uno.
+     *
+     * I file stanno sul disco del pannello (Spaces in produzione): l'indirizzo
+     * si chiede a CmsFile, non si compone a mano.
+     *
+     * @return array{src: string, poster: ?string}|null
+     */
+    private function videoDellaTestata(): ?array
+    {
+        $src = CmsFile::url(SiteSetting::get('shop.hero_video'));
+
+        if ($src === null) {
+            return null;
+        }
+
+        return [
+            'src' => $src,
+            'poster' => CmsFile::url(SiteSetting::get('shop.hero_video_poster')),
+        ];
     }
 
     /**
