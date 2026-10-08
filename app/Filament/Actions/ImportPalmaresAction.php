@@ -188,6 +188,6 @@ class ImportPalmaresAction
 
     private static function previewKey(string $title): string
     {
-        return 'wikipedia:palmares-preview:'.md5($title);
+        return 'wikipedia:palmares-preview:'.hash('xxh128', $title);
     }
 }
