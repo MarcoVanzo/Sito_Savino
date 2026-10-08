@@ -5,6 +5,34 @@
 > nei `docs/` citati e nei commenti del codice.
 > La numerazione dei § e' quella storica, citata da codice e docs: non rinumerare.
 
+## Regole essenziali (dal `CLAUDE.md` globale di Marco)
+
+Ripetute qui perché le sessioni cloud (telefono) vedono solo il repository.
+
+- Rispondi **in italiano**, **pragmatico e breve**: prima la risposta/azione,
+  poi poche righe. Niente preamboli né riepiloghi non richiesti.
+- Commit **Conventional Commits** (`feat:`, `fix:`, `chore:`, `perf:`,
+  `refactor:`…) **in italiano**. Niente commit/push se non richiesti; su un
+  branch di default crea prima un branch.
+- **«deploy» = porta tutto in produzione da solo**: commit, push, PR, merge su
+  `main`, deploy e verifica finale (skill `deploy-mvc`), senza conferme
+  intermedie né comandi da far lanciare. Fermati solo per rischio segreti,
+  modifiche estranee nel working tree, CI o deploy rossi (riporta l'errore
+  reale). Avvisa quando il deploy finisce.
+- **Mai committare segreti**: i `.env*` non `.example` non sono tracciati;
+  controlla prima di aggiungere file. Niente host/DB/chiavi hardcodati.
+
+## Lavorare dal telefono (sessioni cloud)
+
+- Risposte corte: si leggono su uno schermo piccolo.
+- Per mostrare una schermata manda lo screenshot con `SendUserFile`, non
+  descriverla.
+- Le domande vanno con `AskUserQuestion` (opzioni toccabili), non in testo libero.
+- Porta il lavoro fino al push sul branch senza conferme intermedie.
+- Mai incollare file interi in chat: link `file:riga` o estratti di poche righe.
+- L'ambiente lo prepara `.claude/hooks/session-start.sh` (dipendenze, build,
+  MariaDB per i test; PHPStan escluso). Il DB di produzione non è raggiungibile.
+
 ## 1. Contesto
 
 - **Laravel 13** (Filament CMS, Inertia + Vue, **SSR non attivo**), **MySQL 8.4
