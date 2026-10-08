@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -29,7 +30,8 @@ class CouponLimitatoAiProdottiTest extends TestCase
         $this->actingAs(User::factory()->create());
     }
 
-    public function test_lo_sconto_si_calcola_solo_sui_prodotti_ammessi(): void
+    #[Test]
+    public function lo_sconto_si_calcola_solo_sui_prodotti_ammessi(): void
     {
         $maglia = $this->prodotto(100);
         $sciarpa = $this->prodotto(50);
@@ -46,7 +48,8 @@ class CouponLimitatoAiProdottiTest extends TestCase
             ->assertJson(['valid' => true, 'discount' => 10]);
     }
 
-    public function test_senza_i_prodotti_ammessi_il_codice_viene_rifiutato(): void
+    #[Test]
+    public function senza_i_prodotti_ammessi_il_codice_viene_rifiutato(): void
     {
         $maglia = $this->prodotto(100);
         $sciarpa = $this->prodotto(50);
@@ -64,7 +67,8 @@ class CouponLimitatoAiProdottiTest extends TestCase
             ]);
     }
 
-    public function test_il_limite_puo_essere_una_categoria(): void
+    #[Test]
+    public function il_limite_puo_essere_una_categoria(): void
     {
         $kit = ProductCategory::factory()->create();
         $maglia = $this->prodotto(100, $kit);
@@ -81,7 +85,8 @@ class CouponLimitatoAiProdottiTest extends TestCase
             ->assertJson(['valid' => true, 'discount' => 10]);
     }
 
-    public function test_un_coupon_senza_limiti_vale_su_tutto_il_carrello(): void
+    #[Test]
+    public function un_coupon_senza_limiti_vale_su_tutto_il_carrello(): void
     {
         $this->nelCarrello($this->prodotto(100));
         $this->nelCarrello($this->prodotto(50));
@@ -93,7 +98,8 @@ class CouponLimitatoAiProdottiTest extends TestCase
             ->assertJson(['valid' => true, 'discount' => 15]);
     }
 
-    public function test_l_ordine_minimo_guarda_tutto_il_carrello(): void
+    #[Test]
+    public function l_ordine_minimo_guarda_tutto_il_carrello(): void
     {
         // La soglia è una spesa minima, non un vincolo su cosa si compra:
         // i 60 € della maglia da soli non la raggiungerebbero, il carrello sì.

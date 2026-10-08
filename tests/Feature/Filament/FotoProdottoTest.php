@@ -14,6 +14,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FotoProdottoTest extends TestCase
@@ -25,7 +26,8 @@ class FotoProdottoTest extends TestCase
      * la scheda prodotto andava in 500 al salvataggio, spesso alla seconda
      * foto (02/10/2026).
      */
-    public function test_due_foto_oltre_i_dieci_mega_si_salvano(): void
+    #[Test]
+    public function due_foto_oltre_i_dieci_mega_si_salvano(): void
     {
         Storage::fake('public');
         $user = User::factory()->create();
@@ -46,7 +48,8 @@ class FotoProdottoTest extends TestCase
     }
 
     /** Dal pannello l'originale arriva alleggerito (FotoAlleggerita). */
-    public function test_la_foto_da_fotocamera_si_salva_alleggerita(): void
+    #[Test]
+    public function la_foto_da_fotocamera_si_salva_alleggerita(): void
     {
         Storage::fake('public');
         $user = User::factory()->create();
@@ -76,7 +79,8 @@ class FotoProdottoTest extends TestCase
      * Oltre il limite FilePond deve dirlo prima dell'invio, non il server
      * con un 500: il campo eredita il limite della media library.
      */
-    public function test_il_campo_conosce_il_limite_della_media_library(): void
+    #[Test]
+    public function il_campo_conosce_il_limite_della_media_library(): void
     {
         $campo = SpatieMediaLibraryFileUpload::make('images');
 
@@ -88,7 +92,8 @@ class FotoProdottoTest extends TestCase
      * Cio' che non si alleggerisce (gallery, PNG con profilo colore) arriva
      * intero alla media library: oltre i 10 MB di serie deve passare.
      */
-    public function test_la_media_library_accetta_un_file_da_dodici_mega(): void
+    #[Test]
+    public function la_media_library_accetta_un_file_da_dodici_mega(): void
     {
         Storage::fake('public');
         $prodotto = Product::factory()->create();
@@ -105,7 +110,8 @@ class FotoProdottoTest extends TestCase
      * colore difettoso mandava in 500 la conversione sul GD di Linux. Arriva
      * in archivio senza profilo, con le conversioni fatte.
      */
-    public function test_il_png_con_profilo_difettoso_si_salva_senza_profilo(): void
+    #[Test]
+    public function il_png_con_profilo_difettoso_si_salva_senza_profilo(): void
     {
         Storage::fake('public');
         $user = User::factory()->create();
@@ -132,7 +138,8 @@ class FotoProdottoTest extends TestCase
     }
 
     /** Anche i FileUpload semplici (non media library) salvano la foto alleggerita. */
-    public function test_l_immagine_della_categoria_si_salva_alleggerita(): void
+    #[Test]
+    public function l_immagine_della_categoria_si_salva_alleggerita(): void
     {
         $disco = config('filament.default_filesystem_disk');
         Storage::fake($disco);

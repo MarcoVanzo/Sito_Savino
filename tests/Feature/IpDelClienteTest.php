@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -24,7 +25,8 @@ class IpDelClienteTest extends TestCase
         $this->app['router']->get('/api/_test/ip-del-cliente', fn () => response(request()->ip()));
     }
 
-    public function test_l_ip_arriva_da_do_connecting_ip_e_non_da_x_forwarded_for(): void
+    #[Test]
+    public function l_ip_arriva_da_do_connecting_ip_e_non_da_x_forwarded_for(): void
     {
         $this->get('/api/_test/ip-del-cliente', [
             'DO-Connecting-IP' => '203.0.113.10',
@@ -32,7 +34,8 @@ class IpDelClienteTest extends TestCase
         ])->assertSeeText('203.0.113.10');
     }
 
-    public function test_senza_l_header_di_digitalocean_resta_il_ripiego_su_x_forwarded_for(): void
+    #[Test]
+    public function senza_l_header_di_digitalocean_resta_il_ripiego_su_x_forwarded_for(): void
     {
         // Se App Platform smettesse di mandare DO-Connecting-IP, tutti i
         // visitatori finirebbero sull'IP del proxy e sullo stesso contatore dei
@@ -41,13 +44,15 @@ class IpDelClienteTest extends TestCase
             ->assertSeeText('198.51.100.99');
     }
 
-    public function test_un_do_connecting_ip_non_valido_viene_ignorato(): void
+    #[Test]
+    public function un_do_connecting_ip_non_valido_viene_ignorato(): void
     {
         $this->get('/api/_test/ip-del-cliente', ['DO-Connecting-IP' => 'non-un-ip'])
             ->assertSeeText('127.0.0.1');
     }
 
-    public function test_cambiare_x_forwarded_for_non_aggira_il_limite_del_login(): void
+    #[Test]
+    public function cambiare_x_forwarded_for_non_aggira_il_limite_del_login(): void
     {
         for ($i = 1; $i <= 5; $i++) {
             $this->post('/login', ['email' => "chi{$i}@example.test", 'password' => 'sbagliata'], [

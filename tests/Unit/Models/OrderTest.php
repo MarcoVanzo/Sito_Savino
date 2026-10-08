@@ -8,13 +8,15 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class OrderTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_order_belongs_to_user(): void
+    #[Test]
+    public function order_belongs_to_user(): void
     {
         $user = User::factory()->create();
         $order = Order::factory()->create(['user_id' => $user->id]);
@@ -23,7 +25,8 @@ class OrderTest extends TestCase
         $this->assertEquals($user->id, $order->user->id);
     }
 
-    public function test_order_has_many_items(): void
+    #[Test]
+    public function order_has_many_items(): void
     {
         $order = Order::factory()->create();
         OrderItem::factory()->create(['order_id' => $order->id]);
@@ -32,7 +35,8 @@ class OrderTest extends TestCase
         $this->assertInstanceOf(OrderItem::class, $order->items->first());
     }
 
-    public function test_order_belongs_to_coupon(): void
+    #[Test]
+    public function order_belongs_to_coupon(): void
     {
         $coupon = Coupon::factory()->create();
         $order = Order::factory()->create(['coupon_id' => $coupon->id]);
@@ -41,7 +45,8 @@ class OrderTest extends TestCase
         $this->assertEquals($coupon->id, $order->coupon->id);
     }
 
-    public function test_paid_scope(): void
+    #[Test]
+    public function paid_scope(): void
     {
         $paidOrder = Order::factory()->create();
         $paidOrder->forceFill(['status' => OrderStatus::Paid])->save();
@@ -55,7 +60,8 @@ class OrderTest extends TestCase
         $this->assertNotContains($pendingOrder->id, $results);
     }
 
-    public function test_for_guest_scope(): void
+    #[Test]
+    public function for_guest_scope(): void
     {
         $guestOrder = Order::factory()->create([
             'user_id' => null,
@@ -72,7 +78,8 @@ class OrderTest extends TestCase
         $this->assertNotContains($otherOrder->id, $results);
     }
 
-    public function test_is_guest_returns_true_when_no_user(): void
+    #[Test]
+    public function is_guest_returns_true_when_no_user(): void
     {
         $order = Order::factory()->create([
             'user_id' => null,
@@ -82,14 +89,16 @@ class OrderTest extends TestCase
         $this->assertTrue($order->isGuest());
     }
 
-    public function test_is_guest_returns_false_when_user_exists(): void
+    #[Test]
+    public function is_guest_returns_false_when_user_exists(): void
     {
         $order = Order::factory()->create();
 
         $this->assertFalse($order->isGuest());
     }
 
-    public function test_order_generates_order_number_on_create(): void
+    #[Test]
+    public function order_generates_order_number_on_create(): void
     {
         $order = Order::factory()->create();
         $order->refresh();
@@ -98,7 +107,8 @@ class OrderTest extends TestCase
         $this->assertStringStartsWith('ORD-', $order->order_number);
     }
 
-    public function test_order_generates_order_token_on_create(): void
+    #[Test]
+    public function order_generates_order_token_on_create(): void
     {
         $order = Order::factory()->create();
         $order->refresh();
@@ -106,7 +116,8 @@ class OrderTest extends TestCase
         $this->assertNotNull($order->order_token);
     }
 
-    public function test_order_uses_soft_deletes(): void
+    #[Test]
+    public function order_uses_soft_deletes(): void
     {
         $order = Order::factory()->create();
         $orderId = $order->id;

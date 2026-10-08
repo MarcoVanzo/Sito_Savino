@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class NewsletterSubscriptionTest extends TestCase
@@ -32,7 +33,8 @@ class NewsletterSubscriptionTest extends TestCase
      * conferma, ma ad ActiveCampaign non arriva niente finché il proprietario
      * della casella non clicca.
      */
-    public function test_user_can_subscribe_to_newsletter(): void
+    #[Test]
+    public function user_can_subscribe_to_newsletter(): void
     {
         Queue::fake();
 
@@ -57,7 +59,8 @@ class NewsletterSubscriptionTest extends TestCase
         Queue::assertNotPushed(SyncNewsletterToActiveCampaign::class);
     }
 
-    public function test_la_conferma_dal_link_attiva_l_iscrizione_e_la_manda_ad_activecampaign(): void
+    #[Test]
+    public function la_conferma_dal_link_attiva_l_iscrizione_e_la_manda_ad_activecampaign(): void
     {
         Queue::fake();
 
@@ -77,7 +80,8 @@ class NewsletterSubscriptionTest extends TestCase
         Queue::assertPushed(SyncNewsletterToActiveCampaign::class);
     }
 
-    public function test_il_link_di_conferma_scade(): void
+    #[Test]
+    public function il_link_di_conferma_scade(): void
     {
         $iscritto = NewsletterSubscriber::factory()->nonConfermato()->create();
 
@@ -86,7 +90,8 @@ class NewsletterSubscriptionTest extends TestCase
         $this->get($link)->assertForbidden();
     }
 
-    public function test_un_iscritto_non_confermato_non_arriva_ad_activecampaign(): void
+    #[Test]
+    public function un_iscritto_non_confermato_non_arriva_ad_activecampaign(): void
     {
         $iscritto = NewsletterSubscriber::factory()->nonConfermato()->create();
 
@@ -99,7 +104,8 @@ class NewsletterSubscriptionTest extends TestCase
         $this->assertFalse($iscritto->fresh()->synced_to_ac);
     }
 
-    public function test_nel_log_non_finiscono_email_e_ip(): void
+    #[Test]
+    public function nel_log_non_finiscono_email_e_ip(): void
     {
         // Un canale vero che scrive in memoria: con Log::spy() la chiamata a
         // channel() restituiva null, il controller andava in errore e
@@ -123,7 +129,8 @@ class NewsletterSubscriptionTest extends TestCase
         }
     }
 
-    public function test_una_richiesta_mai_confermata_si_cancella_dopo_trenta_giorni(): void
+    #[Test]
+    public function una_richiesta_mai_confermata_si_cancella_dopo_trenta_giorni(): void
     {
         $vecchia = NewsletterSubscriber::factory()->nonConfermato()->create(['subscribed_at' => now()->subDays(31)]);
         $recente = NewsletterSubscriber::factory()->nonConfermato()->create(['subscribed_at' => now()->subDays(5)]);
@@ -136,7 +143,8 @@ class NewsletterSubscriptionTest extends TestCase
         $this->assertModelExists($confermata);
     }
 
-    public function test_la_richiesta_di_un_disiscritto_non_cancella_la_disiscrizione_finche_non_conferma(): void
+    #[Test]
+    public function la_richiesta_di_un_disiscritto_non_cancella_la_disiscrizione_finche_non_conferma(): void
     {
         Queue::fake();
 
@@ -158,7 +166,8 @@ class NewsletterSubscriptionTest extends TestCase
         $this->assertNull($uscito->fresh()->unsubscribed_at);
     }
 
-    public function test_duplicate_email_returns_the_same_message_as_a_new_one(): void
+    #[Test]
+    public function duplicate_email_returns_the_same_message_as_a_new_one(): void
     {
         Queue::fake();
 
@@ -187,7 +196,8 @@ class NewsletterSubscriptionTest extends TestCase
         Queue::assertNotPushed(SyncNewsletterToActiveCampaign::class);
     }
 
-    public function test_honeypot_filled_silently_rejects(): void
+    #[Test]
+    public function honeypot_filled_silently_rejects(): void
     {
         Queue::fake();
 
@@ -208,7 +218,8 @@ class NewsletterSubscriptionTest extends TestCase
         Queue::assertNotPushed(SyncNewsletterToActiveCampaign::class);
     }
 
-    public function test_invalid_email_returns_validation_error(): void
+    #[Test]
+    public function invalid_email_returns_validation_error(): void
     {
         $response = $this->post(route('newsletter.subscribe'), [
             'email' => 'not-an-email',
@@ -219,7 +230,8 @@ class NewsletterSubscriptionTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    public function test_missing_privacy_consent_returns_error(): void
+    #[Test]
+    public function missing_privacy_consent_returns_error(): void
     {
         $response = $this->post(route('newsletter.subscribe'), [
             'email' => 'test@example.com',
@@ -229,7 +241,8 @@ class NewsletterSubscriptionTest extends TestCase
         $response->assertSessionHasErrors('privacy_accepted');
     }
 
-    public function test_previously_unsubscribed_user_can_resubscribe(): void
+    #[Test]
+    public function previously_unsubscribed_user_can_resubscribe(): void
     {
         Queue::fake();
 
@@ -271,7 +284,8 @@ class NewsletterSubscriptionTest extends TestCase
         Queue::assertNotPushed(SyncNewsletterToActiveCampaign::class);
     }
 
-    public function test_email_is_normalized_to_lowercase(): void
+    #[Test]
+    public function email_is_normalized_to_lowercase(): void
     {
         Queue::fake();
 
@@ -289,7 +303,8 @@ class NewsletterSubscriptionTest extends TestCase
         ]);
     }
 
-    public function test_resubscribe_keeps_ac_contact_id(): void
+    #[Test]
+    public function resubscribe_keeps_ac_contact_id(): void
     {
         Queue::fake();
 
@@ -315,7 +330,8 @@ class NewsletterSubscriptionTest extends TestCase
         ]);
     }
 
-    public function test_active_but_unsynced_user_resubscribing_triggers_sync_job(): void
+    #[Test]
+    public function active_but_unsynced_user_resubscribing_triggers_sync_job(): void
     {
         Queue::fake();
 
@@ -338,7 +354,8 @@ class NewsletterSubscriptionTest extends TestCase
         Queue::assertPushed(SyncNewsletterToActiveCampaign::class);
     }
 
-    public function test_chi_si_disiscrive_prima_che_il_job_giri_non_arriva_ad_activecampaign(): void
+    #[Test]
+    public function chi_si_disiscrive_prima_che_il_job_giri_non_arriva_ad_activecampaign(): void
     {
         // Il job porta con sé l'istanza di quando è stato accodato: la
         // disiscrizione arrivata nel frattempo va riletta dal database.
@@ -356,7 +373,8 @@ class NewsletterSubscriptionTest extends TestCase
         $this->assertFalse($iscritto->fresh()->synced_to_ac);
     }
 
-    public function test_un_iscritto_cancellato_prima_che_il_job_giri_non_arriva_ad_activecampaign(): void
+    #[Test]
+    public function un_iscritto_cancellato_prima_che_il_job_giri_non_arriva_ad_activecampaign(): void
     {
         $iscritto = NewsletterSubscriber::factory()->create(['confermato_il' => now()]);
         $job = new SyncNewsletterToActiveCampaign($iscritto);
@@ -376,7 +394,8 @@ class NewsletterSubscriptionTest extends TestCase
      * automazioni gli manderebbero una seconda conferma e lo disiscriverebbero
      * dopo trenta giorni senza clic.
      */
-    public function test_il_tag_del_doppio_opt_in_arriva_prima_dell_iscrizione_alla_lista(): void
+    #[Test]
+    public function il_tag_del_doppio_opt_in_arriva_prima_dell_iscrizione_alla_lista(): void
     {
         Http::fake([
             '*/api/3/contact/sync' => Http::response(['contact' => ['id' => 42]]),
@@ -402,7 +421,8 @@ class NewsletterSubscriptionTest extends TestCase
         $this->assertTrue($iscritto->fresh()->synced_to_ac);
     }
 
-    public function test_senza_il_tag_del_doppio_opt_in_il_contatto_non_entra_nella_lista(): void
+    #[Test]
+    public function senza_il_tag_del_doppio_opt_in_il_contatto_non_entra_nella_lista(): void
     {
         Http::fake([
             '*/api/3/contact/sync' => Http::response(['contact' => ['id' => 42]]),
@@ -422,7 +442,8 @@ class NewsletterSubscriptionTest extends TestCase
         $this->assertFalse($iscritto->fresh()->synced_to_ac);
     }
 
-    public function test_le_email_di_conferma_allo_stesso_indirizzo_hanno_un_tetto_giornaliero(): void
+    #[Test]
+    public function le_email_di_conferma_allo_stesso_indirizzo_hanno_un_tetto_giornaliero(): void
     {
         // Il limite della rotta conta per IP: senza un tetto per indirizzo,
         // una casella altrui si riempie di conferme cambiando rete.
@@ -457,7 +478,8 @@ class NewsletterSubscriptionTest extends TestCase
         Mail::assertQueuedCount(NewsletterController::CONFERME_AL_GIORNO + 2);
     }
 
-    public function test_la_risposta_non_rivela_se_l_indirizzo_e_iscritto(): void
+    #[Test]
+    public function la_risposta_non_rivela_se_l_indirizzo_e_iscritto(): void
     {
         Queue::fake();
         Mail::fake();
@@ -487,7 +509,8 @@ class NewsletterSubscriptionTest extends TestCase
      * Il consenso al pixel e ai link tracciati si dichiara nel modulo e
      * nell'email di conferma (linee guida del Garante del 17/04/2026).
      */
-    public function test_il_consenso_dice_del_tracciamento_nel_modulo_e_nell_email_di_conferma(): void
+    #[Test]
+    public function il_consenso_dice_del_tracciamento_nel_modulo_e_nell_email_di_conferma(): void
     {
         $it = json_decode((string) file_get_contents(resource_path('js/i18n/it.json')), true);
         $en = json_decode((string) file_get_contents(resource_path('js/i18n/en.json')), true);

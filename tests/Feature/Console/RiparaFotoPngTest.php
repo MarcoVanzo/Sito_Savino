@@ -5,13 +5,15 @@ namespace Tests\Feature\Console;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RiparaFotoPngTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_toglie_il_profilo_e_rigenera_le_conversioni(): void
+    #[Test]
+    public function toglie_il_profilo_e_rigenera_le_conversioni(): void
     {
         Storage::fake('public');
         $prodotto = Product::factory()->create();

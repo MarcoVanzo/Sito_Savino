@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -30,7 +31,8 @@ class NewsletterRisincronizzaTest extends TestCase
         Queue::fake();
     }
 
-    public function test_l_azione_singola_non_compare_per_un_disiscritto(): void
+    #[Test]
+    public function l_azione_singola_non_compare_per_un_disiscritto(): void
     {
         $disiscritto = NewsletterSubscriber::factory()->create(['synced_to_ac' => false, 'unsubscribed_at' => now()]);
         $attivo = NewsletterSubscriber::factory()->create(['synced_to_ac' => false, 'unsubscribed_at' => null]);
@@ -41,7 +43,8 @@ class NewsletterRisincronizzaTest extends TestCase
             ->assertTableActionVisible('retry_sync', $attivo);
     }
 
-    public function test_l_azione_massiva_salta_i_disiscritti(): void
+    #[Test]
+    public function l_azione_massiva_salta_i_disiscritti(): void
     {
         $disiscritto = NewsletterSubscriber::factory()->create(['synced_to_ac' => false, 'unsubscribed_at' => now()]);
         $attivo = NewsletterSubscriber::factory()->create(['synced_to_ac' => false, 'unsubscribed_at' => null]);

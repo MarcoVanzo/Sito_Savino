@@ -13,6 +13,7 @@ use App\Services\StoricoPrezzi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -35,7 +36,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
 
     // --- Cache della vetrina ----------------------------------------------
 
-    public function test_uno_sconto_finito_da_solo_esce_dalla_vetrina_al_giro_orario(): void
+    #[Test]
+    public function uno_sconto_finito_da_solo_esce_dalla_vetrina_al_giro_orario(): void
     {
         $prodotto = $this->scontatoDopoIlPrezzoPieno(['sale_end' => now()->addMinutes(2)]);
 
@@ -54,7 +56,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
             ->where('allProducts.0.etichette', ['nuovo']));
     }
 
-    public function test_un_movimento_di_magazzino_butta_la_vetrina(): void
+    #[Test]
+    public function un_movimento_di_magazzino_butta_la_vetrina(): void
     {
         $prodotto = $this->prodotto(['stock' => 2]);
         Cache::put('public:shop:it', 'vecchia', 600);
@@ -68,7 +71,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
         $this->assertFalse(Cache::has('public:shop:it'));
     }
 
-    public function test_la_vetrina_si_butta_solo_a_transazione_chiusa(): void
+    #[Test]
+    public function la_vetrina_si_butta_solo_a_transazione_chiusa(): void
     {
         // Buttata dentro la transazione del checkout, una richiesta
         // concorrente la ricostruiva con la giacenza non ancora scritta.
@@ -88,7 +92,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
         $this->assertFalse(Cache::has('public:shop:it'));
     }
 
-    public function test_una_taglia_modificata_butta_la_vetrina(): void
+    #[Test]
+    public function una_taglia_modificata_butta_la_vetrina(): void
     {
         $prodotto = $this->prodotto(['type' => ProductType::Variable]);
         $taglia = ProductVariant::factory()->for($prodotto)->create(['stock' => 3]);
@@ -99,7 +104,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
         $this->assertFalse(Cache::has('public:shop:it'));
     }
 
-    public function test_i_correlati_automatici_mostrano_il_prezzo_di_adesso(): void
+    #[Test]
+    public function i_correlati_automatici_mostrano_il_prezzo_di_adesso(): void
     {
         $scheda = $this->prodotto();
         $correlato = $this->prodotto(['price' => 30]);
@@ -116,7 +122,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
 
     // --- Storico dei prezzi -----------------------------------------------
 
-    public function test_registra_dice_se_ha_aperto_una_riga(): void
+    #[Test]
+    public function registra_dice_se_ha_aperto_una_riga(): void
     {
         $prodotto = $this->prodotto();
         $storico = app(StoricoPrezzi::class);
@@ -131,7 +138,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
         $this->assertSame(1, DB::table('storico_prezzi')->where('product_id', $prodotto->id)->whereNull('al')->count());
     }
 
-    public function test_la_vetrina_legge_lo_storico_con_una_query_sola(): void
+    #[Test]
+    public function la_vetrina_legge_lo_storico_con_una_query_sola(): void
     {
         $prodotti = collect(range(1, 3))->map(fn () => $this->scontatoDopoIlPrezzoPieno());
         $this->prodotto(); // uno non in sconto: non chiede niente
@@ -158,7 +166,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
 
     // --- Carrello ---------------------------------------------------------
 
-    public function test_tolta_la_firma_le_righe_dello_stesso_pezzo_si_uniscono(): void
+    #[Test]
+    public function tolta_la_firma_le_righe_dello_stesso_pezzo_si_uniscono(): void
     {
         $this->actingAs(User::factory()->create());
         $prodotto = $this->prodottoConFirma();
@@ -175,7 +184,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
         $this->assertFalse($righe->first()->con_personalizzazione);
     }
 
-    public function test_riaccesa_la_firma_la_vecchia_riga_non_torna_a_pagarla(): void
+    #[Test]
+    public function riaccesa_la_firma_la_vecchia_riga_non_torna_a_pagarla(): void
     {
         $this->actingAs(User::factory()->create());
         $prodotto = $this->prodottoConFirma();
@@ -192,7 +202,8 @@ class VetrinaECarrelloAllineatiTest extends TestCase
         $this->assertSame(50.0, $servizio->getCartTotal());
     }
 
-    public function test_il_piu_e_l_avviso_contano_anche_la_riga_con_la_firma(): void
+    #[Test]
+    public function il_piu_e_l_avviso_contano_anche_la_riga_con_la_firma(): void
     {
         $this->actingAs(User::factory()->create());
         $prodotto = $this->prodottoConFirma(['stock' => 3]);

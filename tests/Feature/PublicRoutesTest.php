@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Sponsor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PublicRoutesTest extends TestCase
@@ -22,65 +23,77 @@ class PublicRoutesTest extends TestCase
 
     // --- Rotte Statiche ---
 
-    public function test_home_returns_200(): void
+    #[Test]
+    public function home_returns_200(): void
     {
         $this->get('/')->assertStatus(200);
     }
 
-    public function test_stagione_returns_200(): void
+    #[Test]
+    public function stagione_returns_200(): void
     {
         $this->get('/stagione')->assertStatus(200);
     }
 
-    public function test_stagione_b1_returns_200(): void
+    #[Test]
+    public function stagione_b1_returns_200(): void
     {
         $this->get('/stagione/b1')->assertStatus(200);
     }
 
-    public function test_risultati_redirects_to_stagione_risultati(): void
+    #[Test]
+    public function risultati_redirects_to_stagione_risultati(): void
     {
         $this->get('/risultati')->assertRedirect(route('stagione.risultati'));
     }
 
-    public function test_stagione_risultati_returns_200(): void
+    #[Test]
+    public function stagione_risultati_returns_200(): void
     {
         $this->get('/stagione/risultati')->assertStatus(200);
     }
 
-    public function test_gallery_returns_200(): void
+    #[Test]
+    public function gallery_returns_200(): void
     {
         $this->get('/gallery')->assertStatus(200);
     }
 
-    public function test_staff_returns_200(): void
+    #[Test]
+    public function staff_returns_200(): void
     {
         $this->get('/staff')->assertStatus(200);
     }
 
-    public function test_sponsor_returns_200(): void
+    #[Test]
+    public function sponsor_returns_200(): void
     {
         $this->get('/sponsor')->assertStatus(200);
     }
 
-    public function test_shop_returns_200(): void
+    #[Test]
+    public function shop_returns_200(): void
     {
         $this->get('/shop')->assertStatus(200);
     }
 
-    public function test_news_returns_200(): void
+    #[Test]
+    public function news_returns_200(): void
     {
         $this->get('/news')->assertStatus(200);
     }
 
     // --- Rendering Inertia ---
 
-    public function test_home_renders_correct_component(): void
+    #[Test]
+    public function home_renders_correct_component(): void
     {
         $this->get('/')->assertInertia(fn ($page) => $page->component('Public/Home')
         );
     }
 
-    public function test_sponsor_page_includes_sponsor_data(): void
+    #[Test]
+    public function sponsor_page_includes_sponsor_data(): void
     {
         // Gli sponsor arrivano raggruppati per livello: due sponsor dello
         // stesso livello sono un gruppo solo, quindi si contano gli sponsor
@@ -94,7 +107,8 @@ class PublicRoutesTest extends TestCase
         );
     }
 
-    public function test_shop_page_shows_only_active_products(): void
+    #[Test]
+    public function shop_page_shows_only_active_products(): void
     {
         Product::factory()->create(['is_active' => true]);
         Product::factory()->create(['is_active' => false]);
@@ -107,7 +121,8 @@ class PublicRoutesTest extends TestCase
 
     // --- Security Headers su Rotte Pubbliche ---
 
-    public function test_public_routes_have_security_headers(): void
+    #[Test]
+    public function public_routes_have_security_headers(): void
     {
         $response = $this->get('/news');
 

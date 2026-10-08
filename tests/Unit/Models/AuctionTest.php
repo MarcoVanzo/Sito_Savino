@@ -7,13 +7,15 @@ use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AuctionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_auction_belongs_to_product(): void
+    #[Test]
+    public function auction_belongs_to_product(): void
     {
         $product = Product::factory()->create();
         $auction = Auction::factory()->create(['product_id' => $product->id]);
@@ -22,7 +24,8 @@ class AuctionTest extends TestCase
         $this->assertEquals($product->id, $auction->product->id);
     }
 
-    public function test_auction_has_many_bids(): void
+    #[Test]
+    public function auction_has_many_bids(): void
     {
         $auction = Auction::factory()->create();
         Bid::factory()->create(['auction_id' => $auction->id]);
@@ -31,7 +34,8 @@ class AuctionTest extends TestCase
         $this->assertInstanceOf(Bid::class, $auction->bids->first());
     }
 
-    public function test_active_scope(): void
+    #[Test]
+    public function active_scope(): void
     {
         $active = Auction::factory()->active()->create();
         $active->refresh();
@@ -43,7 +47,8 @@ class AuctionTest extends TestCase
         $this->assertCount(1, $results);
     }
 
-    public function test_is_active_returns_true_for_active_auction(): void
+    #[Test]
+    public function is_active_returns_true_for_active_auction(): void
     {
         $auction = Auction::factory()->active()->create();
         $auction->refresh();
@@ -51,14 +56,16 @@ class AuctionTest extends TestCase
         $this->assertTrue($auction->isActive());
     }
 
-    public function test_is_reserve_met_without_reserve_price(): void
+    #[Test]
+    public function is_reserve_met_without_reserve_price(): void
     {
         $auction = Auction::factory()->create(['reserve_price' => null]);
 
         $this->assertTrue($auction->isReserveMet());
     }
 
-    public function test_is_reserve_met_with_reserve_met(): void
+    #[Test]
+    public function is_reserve_met_with_reserve_met(): void
     {
         $auction = Auction::factory()->create([
             'reserve_price' => 100.00,
@@ -68,7 +75,8 @@ class AuctionTest extends TestCase
         $this->assertTrue($auction->isReserveMet());
     }
 
-    public function test_is_reserve_met_with_reserve_not_met(): void
+    #[Test]
+    public function is_reserve_met_with_reserve_not_met(): void
     {
         $auction = Auction::factory()->create([
             'reserve_price' => 200.00,
@@ -78,7 +86,8 @@ class AuctionTest extends TestCase
         $this->assertFalse($auction->isReserveMet());
     }
 
-    public function test_minimum_bid_amount_from_starting_price(): void
+    #[Test]
+    public function minimum_bid_amount_from_starting_price(): void
     {
         $auction = Auction::factory()->create([
             'starting_price' => 100.00,
@@ -89,7 +98,8 @@ class AuctionTest extends TestCase
         $this->assertEquals(110.00, $auction->minimumBidAmount());
     }
 
-    public function test_minimum_bid_amount_from_current_bid(): void
+    #[Test]
+    public function minimum_bid_amount_from_current_bid(): void
     {
         $auction = Auction::factory()->create([
             'starting_price' => 100.00,
@@ -100,7 +110,8 @@ class AuctionTest extends TestCase
         $this->assertEquals(160.00, $auction->minimumBidAmount());
     }
 
-    public function test_maximum_bid_amount(): void
+    #[Test]
+    public function maximum_bid_amount(): void
     {
         $auction = Auction::factory()->create([
             'starting_price' => 100.00,
@@ -111,7 +122,8 @@ class AuctionTest extends TestCase
         $this->assertEquals(200.00, $auction->maximumBidAmount());
     }
 
-    public function test_auction_uses_soft_deletes(): void
+    #[Test]
+    public function auction_uses_soft_deletes(): void
     {
         $auction = Auction::factory()->create();
         $auctionId = $auction->id;
@@ -126,7 +138,8 @@ class AuctionTest extends TestCase
      * `cambiaStato` e' l'unico varco su `status`: uno stato inesistente o
      * uguale a quello corrente non e' una transizione e non tocca l'archivio.
      */
-    public function test_cambia_stato_rifiuta_i_valori_che_non_sono_transizioni(): void
+    #[Test]
+    public function cambia_stato_rifiuta_i_valori_che_non_sono_transizioni(): void
     {
         $auction = Auction::factory()->create();
         $auction->forceFill(['status' => AuctionStatus::Draft])->save();
@@ -138,7 +151,8 @@ class AuctionTest extends TestCase
         $this->assertSame(AuctionStatus::Draft, $auction->refresh()->status);
     }
 
-    public function test_stati_raggiungibili_senza_stato_di_partenza_li_elenca_tutti(): void
+    #[Test]
+    public function stati_raggiungibili_senza_stato_di_partenza_li_elenca_tutti(): void
     {
         $this->assertSame(
             array_map(fn (AuctionStatus $caso) => $caso->value, AuctionStatus::cases()),

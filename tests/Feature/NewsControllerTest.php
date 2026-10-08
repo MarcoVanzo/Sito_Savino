@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class NewsControllerTest extends TestCase
@@ -18,13 +19,15 @@ class NewsControllerTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_news_index_returns_200(): void
+    #[Test]
+    public function news_index_returns_200(): void
     {
         $response = $this->get('/news');
         $response->assertStatus(200);
     }
 
-    public function test_news_index_shows_only_published_posts(): void
+    #[Test]
+    public function news_index_shows_only_published_posts(): void
     {
         Post::factory()->create(['status' => PostStatus::Published, 'title' => 'Post Pubblicato']);
         Post::factory()->create(['status' => PostStatus::Draft, 'title' => 'Post Bozza']);
@@ -36,7 +39,8 @@ class NewsControllerTest extends TestCase
         );
     }
 
-    public function test_news_show_returns_200_for_published_post(): void
+    #[Test]
+    public function news_show_returns_200_for_published_post(): void
     {
         Post::factory()->create([
             'status' => PostStatus::Published,
@@ -51,7 +55,8 @@ class NewsControllerTest extends TestCase
         );
     }
 
-    public function test_news_show_returns_404_for_draft_post(): void
+    #[Test]
+    public function news_show_returns_404_for_draft_post(): void
     {
         Post::factory()->create([
             'status' => PostStatus::Draft,
@@ -62,13 +67,15 @@ class NewsControllerTest extends TestCase
         $response->assertStatus(404);
     }
 
-    public function test_news_show_returns_404_for_nonexistent_slug(): void
+    #[Test]
+    public function news_show_returns_404_for_nonexistent_slug(): void
     {
         $response = $this->get('/news/this-does-not-exist');
         $response->assertStatus(404);
     }
 
-    public function test_news_index_filters_by_category(): void
+    #[Test]
+    public function news_index_filters_by_category(): void
     {
         $comunicati = Category::factory()->create(['slug' => 'comunicati', 'name' => 'Comunicati']);
         $mercato = Category::factory()->create(['slug' => 'mercato', 'name' => 'Mercato']);
@@ -87,7 +94,8 @@ class NewsControllerTest extends TestCase
             );
     }
 
-    public function test_news_index_only_offers_categories_that_have_published_posts(): void
+    #[Test]
+    public function news_index_only_offers_categories_that_have_published_posts(): void
     {
         $conNotizie = Category::factory()->create(['slug' => 'comunicati', 'name' => 'Comunicati']);
         $soloBozze = Category::factory()->create(['slug' => 'vuota', 'name' => 'Vuota']);
@@ -103,12 +111,14 @@ class NewsControllerTest extends TestCase
             );
     }
 
-    public function test_news_index_returns_404_for_unknown_category(): void
+    #[Test]
+    public function news_index_returns_404_for_unknown_category(): void
     {
         $this->get('/news?categoria=categoria-inesistente')->assertNotFound();
     }
 
-    public function test_english_news_index_accepts_the_english_query_parameter(): void
+    #[Test]
+    public function english_news_index_accepts_the_english_query_parameter(): void
     {
         $category = Category::factory()->create(['slug' => 'press', 'name' => 'Press']);
         Post::factory()->create(['status' => PostStatus::Published])->categories()->attach($category);
@@ -121,7 +131,8 @@ class NewsControllerTest extends TestCase
             );
     }
 
-    public function test_category_filter_does_not_leak_across_cached_pages(): void
+    #[Test]
+    public function category_filter_does_not_leak_across_cached_pages(): void
     {
         $comunicati = Category::factory()->create(['slug' => 'comunicati', 'name' => 'Comunicati']);
 
@@ -138,7 +149,8 @@ class NewsControllerTest extends TestCase
             ->assertInertia(fn ($page) => $page->has('posts.data', 1));
     }
 
-    public function test_news_show_includes_related_posts(): void
+    #[Test]
+    public function news_show_includes_related_posts(): void
     {
         $category = Category::factory()->create();
 

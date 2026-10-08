@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -29,7 +30,8 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         Cache::flush();
     }
 
-    public function test_il_peso_sceglie_la_fascia(): void
+    #[Test]
+    public function il_peso_sceglie_la_fascia(): void
     {
         $zona = $this->zonaItaliana();
 
@@ -39,7 +41,8 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         $this->assertSame(20.0, $zona->calculateShippingCost(20, 40));
     }
 
-    public function test_senza_fasce_vale_la_tariffa_base(): void
+    #[Test]
+    public function senza_fasce_vale_la_tariffa_base(): void
     {
         $zona = ShippingZone::factory()->create([
             'countries' => ['IT'],
@@ -51,7 +54,8 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         $this->assertSame(7.9, $zona->calculateShippingCost(20, 40));
     }
 
-    public function test_la_spedizione_gratuita_batte_le_fasce(): void
+    #[Test]
+    public function la_spedizione_gratuita_batte_le_fasce(): void
     {
         // È una promessa fatta nel carrello: vale qualunque sia il collo.
         $zona = $this->zonaItaliana(['free_threshold' => 100]);
@@ -59,7 +63,8 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         $this->assertSame(0.0, $zona->calculateShippingCost(150, 40));
     }
 
-    public function test_le_fasce_scritte_in_disordine_valgono_lo_stesso(): void
+    #[Test]
+    public function le_fasce_scritte_in_disordine_valgono_lo_stesso(): void
     {
         $zona = $this->zonaItaliana([
             'weight_rates' => [
@@ -73,7 +78,8 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         $this->assertSame(20.0, $zona->calculateShippingCost(20, 30));
     }
 
-    public function test_una_fascia_senza_tariffa_non_conta(): void
+    #[Test]
+    public function una_fascia_senza_tariffa_non_conta(): void
     {
         $zona = $this->zonaItaliana([
             'weight_rates' => [
@@ -85,7 +91,8 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         $this->assertSame(12.0, $zona->calculateShippingCost(20, 2));
     }
 
-    public function test_il_peso_del_carrello_somma_le_quantita(): void
+    #[Test]
+    public function il_peso_del_carrello_somma_le_quantita(): void
     {
         $this->actingAs(User::factory()->create());
 
@@ -95,7 +102,8 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         $this->assertSame(1.0, app(CartService::class)->getCartWeight());
     }
 
-    public function test_un_prodotto_senza_peso_usa_il_ripiego(): void
+    #[Test]
+    public function un_prodotto_senza_peso_usa_il_ripiego(): void
     {
         SiteSetting::set('shop.default_item_weight_kg', '0.4');
         SiteSetting::clearCache();
@@ -111,7 +119,8 @@ class SpedizioneAFasceDiPesoTest extends TestCase
         $this->assertSame(1.0, app(CartService::class)->getCartWeight());
     }
 
-    public function test_il_checkout_riceve_il_costo_della_fascia_gia_calcolato(): void
+    #[Test]
+    public function il_checkout_riceve_il_costo_della_fascia_gia_calcolato(): void
     {
         $this->zonaItaliana();
         $this->actingAs(User::factory()->create());

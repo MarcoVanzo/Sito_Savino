@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class StockManagementTest extends TestCase
@@ -44,7 +45,8 @@ class StockManagementTest extends TestCase
         $order->save();
     }
 
-    public function test_stock_decrements_at_checkout(): void
+    #[Test]
+    public function stock_decrements_at_checkout(): void
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 3);
 
@@ -69,7 +71,8 @@ class StockManagementTest extends TestCase
         ]);
     }
 
-    public function test_stock_is_not_decremented_twice_for_same_order(): void
+    #[Test]
+    public function stock_is_not_decremented_twice_for_same_order(): void
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 5);
 
@@ -89,7 +92,8 @@ class StockManagementTest extends TestCase
         $this->assertEquals(1, StockMovement::where('order_id', $order->id)->where('type', StockMovementType::Sale)->count());
     }
 
-    public function test_stock_restores_when_paid_order_is_cancelled(): void
+    #[Test]
+    public function stock_restores_when_paid_order_is_cancelled(): void
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 4);
 
@@ -115,7 +119,8 @@ class StockManagementTest extends TestCase
         $this->assertEquals(1, StockMovement::where('order_id', $order->id)->where('type', StockMovementType::Adjustment)->count());
     }
 
-    public function test_stock_restore_is_idempotent(): void
+    #[Test]
+    public function stock_restore_is_idempotent(): void
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 4);
 
@@ -143,7 +148,8 @@ class StockManagementTest extends TestCase
         $this->assertEquals(1, StockMovement::where('order_id', $order->id)->where('type', StockMovementType::Adjustment)->count());
     }
 
-    public function test_pending_order_cancellation_does_not_restore_stock(): void
+    #[Test]
+    public function pending_order_cancellation_does_not_restore_stock(): void
     {
         [$order, $product] = $this->createOrderWithProduct(stock: 50, quantity: 3);
 
@@ -155,7 +161,8 @@ class StockManagementTest extends TestCase
         $this->assertEquals(0, StockMovement::where('order_id', $order->id)->count());
     }
 
-    public function test_stock_movement_observer_prevents_negative_stock(): void
+    #[Test]
+    public function stock_movement_observer_prevents_negative_stock(): void
     {
         $product = Product::factory()->create(['stock' => 2]);
 
@@ -171,7 +178,8 @@ class StockManagementTest extends TestCase
         ]);
     }
 
-    public function test_la_vendita_di_una_taglia_non_si_blocca_sul_riepilogo_del_padre(): void
+    #[Test]
+    public function la_vendita_di_una_taglia_non_si_blocca_sul_riepilogo_del_padre(): void
     {
         // Caso del 02/10/2026: taglia disponibile, products.stock rimasto a 0.
         $product = Product::factory()->create(['stock' => 0]);
@@ -190,7 +198,8 @@ class StockManagementTest extends TestCase
         $this->assertSame(6, (int) $product->fresh()->stock);
     }
 
-    public function test_la_taglia_esaurita_blocca_ancora_la_vendita(): void
+    #[Test]
+    public function la_taglia_esaurita_blocca_ancora_la_vendita(): void
     {
         $product = Product::factory()->create(['stock' => 10]);
         $taglia = ProductVariant::factory()->create(['product_id' => $product->id, 'stock' => 0]);
@@ -206,7 +215,8 @@ class StockManagementTest extends TestCase
         ]);
     }
 
-    public function test_le_taglie_scritte_dal_pannello_riallineano_il_padre(): void
+    #[Test]
+    public function le_taglie_scritte_dal_pannello_riallineano_il_padre(): void
     {
         $product = Product::factory()->create(['stock' => 0]);
 
@@ -226,7 +236,8 @@ class StockManagementTest extends TestCase
         $this->assertSame(0, (int) $product->fresh()->stock, 'Senza taglie il vecchio riepilogo non si vende.');
     }
 
-    public function test_la_migrazione_riallinea_solo_i_prodotti_con_taglie(): void
+    #[Test]
+    public function la_migrazione_riallinea_solo_i_prodotti_con_taglie(): void
     {
         $conTaglie = Product::factory()->create();
         ProductVariant::factory()->create(['product_id' => $conTaglie->id, 'stock' => 6]);

@@ -8,6 +8,7 @@ use App\Mail\OrderShipped;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -19,7 +20,8 @@ class OrderEmailLocaleTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_l_ordine_registra_la_lingua_della_richiesta(): void
+    #[Test]
+    public function l_ordine_registra_la_lingua_della_richiesta(): void
     {
         app()->setLocale('en');
         $order = Order::factory()->create();
@@ -27,7 +29,8 @@ class OrderEmailLocaleTest extends TestCase
         $this->assertSame('en', $order->fresh()->locale);
     }
 
-    public function test_una_locale_non_supportata_ricade_sull_italiano(): void
+    #[Test]
+    public function una_locale_non_supportata_ricade_sull_italiano(): void
     {
         app()->setLocale('de');
         $order = Order::factory()->create();
@@ -35,7 +38,8 @@ class OrderEmailLocaleTest extends TestCase
         $this->assertSame('it', $order->fresh()->locale);
     }
 
-    public function test_la_conferma_ordine_e_in_inglese_per_un_ordine_inglese(): void
+    #[Test]
+    public function la_conferma_ordine_e_in_inglese_per_un_ordine_inglese(): void
     {
         app()->setLocale('it');
         $order = Order::factory()->create(['locale' => 'en']);
@@ -47,7 +51,8 @@ class OrderEmailLocaleTest extends TestCase
         $mailable->assertDontSeeInHtml('Grazie per il tuo ordine!');
     }
 
-    public function test_la_conferma_ordine_resta_in_italiano_per_un_ordine_italiano(): void
+    #[Test]
+    public function la_conferma_ordine_resta_in_italiano_per_un_ordine_italiano(): void
     {
         app()->setLocale('en');
         $order = Order::factory()->create(['locale' => 'it']);
@@ -58,7 +63,8 @@ class OrderEmailLocaleTest extends TestCase
         $mailable->assertSeeInHtml('Grazie per il tuo ordine!');
     }
 
-    public function test_spedizione_e_annullamento_seguono_la_lingua_dell_ordine(): void
+    #[Test]
+    public function spedizione_e_annullamento_seguono_la_lingua_dell_ordine(): void
     {
         $order = Order::factory()->create(['locale' => 'en']);
 
@@ -66,7 +72,8 @@ class OrderEmailLocaleTest extends TestCase
         (new OrderCancelled($order))->assertSeeInHtml('Order cancelled');
     }
 
-    public function test_l_utente_registra_la_lingua_di_registrazione(): void
+    #[Test]
+    public function l_utente_registra_la_lingua_di_registrazione(): void
     {
         app()->setLocale('en');
 

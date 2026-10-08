@@ -6,6 +6,7 @@ use App\Models\Auction;
 use App\Models\Product;
 use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -22,7 +23,8 @@ class StatoDelloShopTest extends TestCase
         return SiteSetting::where('key', $chiave)->value('value');
     }
 
-    public function test_senza_argomenti_dice_come_stanno_tutti_e_due(): void
+    #[Test]
+    public function senza_argomenti_dice_come_stanno_tutti_e_due(): void
     {
         SiteSetting::set('shop.enabled', '0');
         SiteSetting::set('auctions.enabled', '1');
@@ -37,7 +39,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertSame('1', $this->valore('auctions.enabled'));
     }
 
-    public function test_apre_il_negozio_con_la_forma_di_prima(): void
+    #[Test]
+    public function apre_il_negozio_con_la_forma_di_prima(): void
     {
         SiteSetting::set('shop.enabled', '0');
 
@@ -48,7 +51,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertSame('1', $this->valore('shop.enabled'));
     }
 
-    public function test_chiude_il_negozio(): void
+    #[Test]
+    public function chiude_il_negozio(): void
     {
         SiteSetting::set('shop.enabled', '1');
 
@@ -59,7 +63,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertSame('0', $this->valore('shop.enabled'));
     }
 
-    public function test_accende_le_aste_senza_toccare_il_negozio(): void
+    #[Test]
+    public function accende_le_aste_senza_toccare_il_negozio(): void
     {
         SiteSetting::set('shop.enabled', '0');
         SiteSetting::set('auctions.enabled', '0');
@@ -72,7 +77,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertSame('0', $this->valore('shop.enabled'));
     }
 
-    public function test_sospende_le_aste(): void
+    #[Test]
+    public function sospende_le_aste(): void
     {
         SiteSetting::set('auctions.enabled', '1');
 
@@ -83,7 +89,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertSame('0', $this->valore('auctions.enabled'));
     }
 
-    public function test_non_riscrive_uno_stato_che_e_gia_quello(): void
+    #[Test]
+    public function non_riscrive_uno_stato_che_e_gia_quello(): void
     {
         SiteSetting::set('shop.enabled', '1');
         $prima = SiteSetting::where('key', 'shop.enabled')->value('updated_at');
@@ -97,7 +104,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertEquals($prima, SiteSetting::where('key', 'shop.enabled')->value('updated_at'));
     }
 
-    public function test_uno_stato_che_non_esiste_non_tocca_niente(): void
+    #[Test]
+    public function uno_stato_che_non_esiste_non_tocca_niente(): void
     {
         SiteSetting::set('shop.enabled', '1');
 
@@ -108,7 +116,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertSame('1', $this->valore('shop.enabled'));
     }
 
-    public function test_un_interruttore_che_non_esiste_non_tocca_niente(): void
+    #[Test]
+    public function un_interruttore_che_non_esiste_non_tocca_niente(): void
     {
         SiteSetting::set('shop.enabled', '1');
 
@@ -119,7 +128,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertSame('1', $this->valore('shop.enabled'));
     }
 
-    public function test_la_riga_che_non_esiste_nasce_interruttore(): void
+    #[Test]
+    public function la_riga_che_non_esiste_nasce_interruttore(): void
     {
         // `type` è ciò che rende un valore un interruttore: senza, il pannello
         // lo rilegge come testo e al frontend arriva la stringa "0", vera in
@@ -136,7 +146,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertFalse(SiteSetting::getGroup('auctions')['enabled']);
     }
 
-    public function test_scrive_sulla_riga_che_governa_davvero_la_sezione(): void
+    #[Test]
+    public function scrive_sulla_riga_che_governa_davvero_la_sezione(): void
     {
         // Forma `gruppo` + chiave nuda: creare accanto la forma letterale
         // `shop.enabled` oscurerebbe questa riga senza cancellarla, perché in
@@ -151,7 +162,8 @@ class StatoDelloShopTest extends TestCase
         $this->assertSame('1', SiteSetting::where('key', 'enabled')->where('group', 'shop')->value('value'));
     }
 
-    public function test_avvisa_quando_la_pagina_delle_aste_resta_vuota(): void
+    #[Test]
+    public function avvisa_quando_la_pagina_delle_aste_resta_vuota(): void
     {
         SiteSetting::set('auctions.enabled', '0');
 
@@ -163,7 +175,8 @@ class StatoDelloShopTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_la_pagina_delle_aste_esce_davvero_dal_404(): void
+    #[Test]
+    public function la_pagina_delle_aste_esce_davvero_dal_404(): void
     {
         SiteSetting::set('auctions.enabled', '0');
 
@@ -174,7 +187,8 @@ class StatoDelloShopTest extends TestCase
         $this->get(route('shop.auctions.index'))->assertSuccessful();
     }
 
-    public function test_la_pagina_dello_shop_riapre_davvero(): void
+    #[Test]
+    public function la_pagina_dello_shop_riapre_davvero(): void
     {
         SiteSetting::set('shop.enabled', '0');
 

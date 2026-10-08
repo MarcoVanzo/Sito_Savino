@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -32,7 +33,8 @@ class OrdineStaffTest extends TestCase
         ]);
     }
 
-    public function test_un_membro_nuovo_va_in_fondo(): void
+    #[Test]
+    public function un_membro_nuovo_va_in_fondo(): void
     {
         $this->membro('Presidente', ordine: 1);
         $this->membro('Scout', StaffType::Tecnico, 15);
@@ -42,14 +44,16 @@ class OrdineStaffTest extends TestCase
         $this->assertSame(16, $nuovo->fresh()->sort_order);
     }
 
-    public function test_una_posizione_scelta_resta_quella(): void
+    #[Test]
+    public function una_posizione_scelta_resta_quella(): void
     {
         $this->membro('Presidente', ordine: 5);
 
         $this->assertSame(3, $this->membro('Vice', ordine: 3)->fresh()->sort_order);
     }
 
-    public function test_il_riordino_dal_pannello_butta_la_cache_dell_organigramma(): void
+    #[Test]
+    public function il_riordino_dal_pannello_butta_la_cache_dell_organigramma(): void
     {
         $admin = User::factory()->create();
         $admin->forceFill(['role' => UserRole::SuperAdmin])->save();
@@ -68,7 +72,8 @@ class OrdineStaffTest extends TestCase
         $this->assertFalse(Cache::has('public:organigramma:page:it'));
     }
 
-    public function test_salvare_un_membro_dello_staff_aggiorna_la_stagione(): void
+    #[Test]
+    public function salvare_un_membro_dello_staff_aggiorna_la_stagione(): void
     {
         Cache::put('public:stagione:it', ['vecchio'], 600);
 
@@ -77,7 +82,8 @@ class OrdineStaffTest extends TestCase
         $this->assertFalse(Cache::has('public:stagione:it'));
     }
 
-    public function test_il_pulsante_di_riordino_ha_un_etichetta(): void
+    #[Test]
+    public function il_pulsante_di_riordino_ha_un_etichetta(): void
     {
         $admin = User::factory()->create();
         $admin->forceFill(['role' => UserRole::SuperAdmin])->save();

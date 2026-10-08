@@ -6,6 +6,7 @@ use App\Support\LiveStream;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SecurityHeadersTest extends TestCase
@@ -18,25 +19,29 @@ class SecurityHeadersTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_response_has_x_content_type_options_header(): void
+    #[Test]
+    public function response_has_x_content_type_options_header(): void
     {
         $response = $this->get('/');
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
     }
 
-    public function test_response_has_x_frame_options_header(): void
+    #[Test]
+    public function response_has_x_frame_options_header(): void
     {
         $response = $this->get('/');
         $response->assertHeader('X-Frame-Options', 'DENY');
     }
 
-    public function test_response_has_referrer_policy_header(): void
+    #[Test]
+    public function response_has_referrer_policy_header(): void
     {
         $response = $this->get('/');
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     }
 
-    public function test_response_has_permissions_policy_header(): void
+    #[Test]
+    public function response_has_permissions_policy_header(): void
     {
         $response = $this->get('/');
         $response->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
@@ -52,14 +57,16 @@ class SecurityHeadersTest extends TestCase
      * Symfony sono uno stato statico del processo e un test che ne cambia il
      * valore condiziona quelli successivi.
      */
-    public function test_un_host_fuori_elenco_non_viene_indicizzato(): void
+    #[Test]
+    public function un_host_fuori_elenco_non_viene_indicizzato(): void
     {
         config()->set('app.indexable_hosts', ['savinodelbenevolley.it']);
 
         $this->get('/')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
     }
 
-    public function test_il_dominio_definitivo_resta_indicizzabile(): void
+    #[Test]
+    public function il_dominio_definitivo_resta_indicizzabile(): void
     {
         config()->set('app.indexable_hosts', ['localhost', 'www.savinodelbenevolley.it']);
 
@@ -70,14 +77,16 @@ class SecurityHeadersTest extends TestCase
      * Elenco vuoto: nessun vincolo. Serve a poter spegnere il controllo da
      * variabile d'ambiente senza rilasciare codice.
      */
-    public function test_senza_elenco_non_si_blocca_niente(): void
+    #[Test]
+    public function senza_elenco_non_si_blocca_niente(): void
     {
         config()->set('app.indexable_hosts', []);
 
         $this->get('/')->assertHeaderMissing('X-Robots-Tag');
     }
 
-    public function test_response_has_csp_header(): void
+    #[Test]
+    public function response_has_csp_header(): void
     {
         $response = $this->get('/');
         $response->assertHeader('Content-Security-Policy');
@@ -108,7 +117,8 @@ class SecurityHeadersTest extends TestCase
      * browser senza che a schermo si capisca perché.
      */
     #[DataProvider('dirette')]
-    public function test_le_dirette_incorporabili_sono_ammesse_dalla_csp(string $url): void
+    #[Test]
+    public function le_dirette_incorporabili_sono_ammesse_dalla_csp(string $url): void
     {
         $embed = LiveStream::embedUrl($url);
         $this->assertNotNull($embed, 'la piattaforma dovrebbe essere incorporabile');
@@ -126,7 +136,8 @@ class SecurityHeadersTest extends TestCase
      * configurato — misurazione ferma, e nessun errore da nessuna parte se non
      * nella console del browser.
      */
-    public function test_la_policy_lascia_passare_le_due_misurazioni_del_sito(): void
+    #[Test]
+    public function la_policy_lascia_passare_le_due_misurazioni_del_sito(): void
     {
         $csp = $this->get('/')->headers->get('Content-Security-Policy');
 
@@ -150,7 +161,8 @@ class SecurityHeadersTest extends TestCase
      * canali venivano rifiutati dal browser — il tag si caricava, gli eventi
      * si fermavano, e l'unico posto dove si vedeva era la console.
      */
-    public function test_la_policy_lascia_passare_gli_eventi_del_pixel(): void
+    #[Test]
+    public function la_policy_lascia_passare_gli_eventi_del_pixel(): void
     {
         $csp = $this->get('/')->headers->get('Content-Security-Policy');
 
@@ -170,7 +182,8 @@ class SecurityHeadersTest extends TestCase
      * non vanno confusi. Un link a Facebook nel campo diretta deve continuare
      * ad aprire una scheda nuova, non un riquadro dentro la pagina.
      */
-    public function test_facebook_non_diventa_una_piattaforma_incorporabile(): void
+    #[Test]
+    public function facebook_non_diventa_una_piattaforma_incorporabile(): void
     {
         $this->assertNull(LiveStream::embedUrl('https://www.facebook.com/savinodelbenevolley/videos/123456'));
     }
@@ -181,7 +194,8 @@ class SecurityHeadersTest extends TestCase
      * in `v-html`, era l'unica cosa fra un XSS e il browser del visitatore.
      * Il nonce cambia a ogni richiesta e chi inietta non lo conosce.
      */
-    public function test_la_pagina_pubblica_usa_il_nonce_invece_di_unsafe_inline(): void
+    #[Test]
+    public function la_pagina_pubblica_usa_il_nonce_invece_di_unsafe_inline(): void
     {
         $scriptSrc = $this->scriptSrc($this->get('/'));
 
@@ -195,7 +209,8 @@ class SecurityHeadersTest extends TestCase
      * altrimenti la pagina resta senza script: Ziggy pubblica le rotte in un
      * blocco in linea, e senza quelle il frontend non sa più costruire un URL.
      */
-    public function test_il_nonce_dell_intestazione_e_quello_dei_tag_della_pagina(): void
+    #[Test]
+    public function il_nonce_dell_intestazione_e_quello_dei_tag_della_pagina(): void
     {
         $risposta = $this->get('/');
 
@@ -209,7 +224,8 @@ class SecurityHeadersTest extends TestCase
      * Su una pagina che non passa dalla cache il nonce è nuovo a ogni
      * richiesta: è ciò che lo rende inindovinabile.
      */
-    public function test_ogni_richiesta_ha_il_suo_nonce(): void
+    #[Test]
+    public function ogni_richiesta_ha_il_suo_nonce(): void
     {
         // `/login` è esclusa da CachePublicResponse (le serve un cookie CSRF
         // fresco), quindi qui si vedono due risposte davvero distinte.
@@ -225,7 +241,8 @@ class SecurityHeadersTest extends TestCase
      * uguale a quello dei tag: se i due si separassero, la pagina arriverebbe
      * al visitatore senza uno script.
      */
-    public function test_la_pagina_servita_dalla_cache_resta_coerente_col_suo_nonce(): void
+    #[Test]
+    public function la_pagina_servita_dalla_cache_resta_coerente_col_suo_nonce(): void
     {
         $this->get('/')->assertHeader('X-Page-Cache', 'MISS');
 
@@ -243,7 +260,8 @@ class SecurityHeadersTest extends TestCase
      * template con `new Function`: senza `unsafe-eval` non si disegna. La
      * policy larga resta confinata lì.
      */
-    public function test_il_pannello_tiene_la_policy_larga(): void
+    #[Test]
+    public function il_pannello_tiene_la_policy_larga(): void
     {
         $scriptSrc = $this->scriptSrc($this->get('/admin/login'));
 
@@ -256,7 +274,8 @@ class SecurityHeadersTest extends TestCase
      * sicurezza: incorniciabile in un iframe altrui, cioè clickjacking su
      * ordini e prezzi.
      */
-    public function test_il_pannello_non_e_incorniciabile(): void
+    #[Test]
+    public function il_pannello_non_e_incorniciabile(): void
     {
         $this->get('/admin/login')
             ->assertHeader('X-Frame-Options', 'DENY')
@@ -268,7 +287,8 @@ class SecurityHeadersTest extends TestCase
      * Filament prende il font Outfit da fonts.bunny.net: se la policy non lo
      * ammette il pannello si disegna col font di ripiego.
      */
-    public function test_il_pannello_puo_caricare_il_suo_font(): void
+    #[Test]
+    public function il_pannello_puo_caricare_il_suo_font(): void
     {
         $csp = (string) $this->get('/admin/login')->headers->get('Content-Security-Policy');
 
@@ -280,7 +300,8 @@ class SecurityHeadersTest extends TestCase
      * per mostrarle: senza l'host in `connect-src` restavano in
      * "Caricamento" e il prodotto non si poteva più modificare.
      */
-    public function test_il_pannello_puo_leggere_i_file_gia_caricati(): void
+    #[Test]
+    public function il_pannello_puo_leggere_i_file_gia_caricati(): void
     {
         config([
             'media-library.disk_name' => 's3',
@@ -309,7 +330,8 @@ class SecurityHeadersTest extends TestCase
      * prima di spedirla: senza `worker-src` vale `script-src`, il worker
      * viene rifiutato e il file resta in "Caricamento" senza mai partire.
      */
-    public function test_il_pannello_puo_ridimensionare_le_immagini_prima_dell_upload(): void
+    #[Test]
+    public function il_pannello_puo_ridimensionare_le_immagini_prima_dell_upload(): void
     {
         $direttive = collect(explode('; ', (string) $this->get('/admin/login')->headers->get('Content-Security-Policy')));
 
@@ -330,7 +352,8 @@ class SecurityHeadersTest extends TestCase
      * rompe subito invece di rimandare in silenzio l'IP dei visitatori a
      * Google prima di qualsiasi consenso.
      */
-    public function test_il_sito_pubblico_non_apre_host_che_non_gli_servono(): void
+    #[Test]
+    public function il_sito_pubblico_non_apre_host_che_non_gli_servono(): void
     {
         $csp = (string) $this->get('/')->headers->get('Content-Security-Policy');
 
@@ -342,7 +365,8 @@ class SecurityHeadersTest extends TestCase
     /**
      * E il layout non deve tornare a chiederli.
      */
-    public function test_la_pagina_pubblica_non_chiede_i_font_a_google(): void
+    #[Test]
+    public function la_pagina_pubblica_non_chiede_i_font_a_google(): void
     {
         $html = $this->get('/')->getContent();
 
@@ -362,7 +386,8 @@ class SecurityHeadersTest extends TestCase
      * L'apertura vale per quei due host e basta: `default-src` resta chiuso e
      * nessuna direttiva concede il jolly.
      */
-    public function test_la_policy_non_si_apre_a_chiunque(): void
+    #[Test]
+    public function la_policy_non_si_apre_a_chiunque(): void
     {
         $csp = $this->get('/')->headers->get('Content-Security-Policy');
 

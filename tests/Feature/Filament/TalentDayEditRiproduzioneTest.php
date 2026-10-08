@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -25,7 +26,8 @@ class TalentDayEditRiproduzioneTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_la_pagina_talent_day_si_apre_con_i_contenuti_di_produzione(): void
+    #[Test]
+    public function la_pagina_talent_day_si_apre_con_i_contenuti_di_produzione(): void
     {
         $pagina = $this->paginaConContenuti(
             json_decode(file_get_contents(base_path('tests/Fixtures/talentday_prod.json')), true)
@@ -41,7 +43,8 @@ class TalentDayEditRiproduzioneTest extends TestCase
      * La nota sulle societa' partner e' un testo: sotto il nome di un elenco
      * mandava in errore l'intera pagina.
      */
-    public function test_un_testo_sotto_il_nome_di_un_elenco_non_manda_in_errore_la_pagina(): void
+    #[Test]
+    public function un_testo_sotto_il_nome_di_un_elenco_non_manda_in_errore_la_pagina(): void
     {
         $pagina = $this->paginaConContenuti([
             'it' => ['partners' => 'In collaborazione con Civitavecchia Volley'],
@@ -58,7 +61,8 @@ class TalentDayEditRiproduzioneTest extends TestCase
      * solo le chiavi dei campi mostrati, e quella resta in archivio finche' la
      * migrazione non la sposta.
      */
-    public function test_il_valore_tenuto_fuori_dal_modulo_resta_in_archivio(): void
+    #[Test]
+    public function il_valore_tenuto_fuori_dal_modulo_resta_in_archivio(): void
     {
         $pagina = $this->paginaConContenuti([
             'it' => ['hero_label' => 'Talent Scouting', 'partners' => 'In collaborazione con Civitavecchia Volley'],

@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Support\ContentData;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -16,12 +17,14 @@ use PHPUnit\Framework\TestCase;
  */
 class ContentDataChiaviElencoTest extends TestCase
 {
-    public function test_elenca_tutte_le_chiavi_dichiarate_come_ripetibili_nei_form(): void
+    #[Test]
+    public function elenca_tutte_le_chiavi_dichiarate_come_ripetibili_nei_form(): void
     {
         $this->assertSame($this->chiaviDichiarateNeiForm(), ContentData::CHIAVI_ELENCO);
     }
 
-    public function test_toglie_solo_le_chiavi_di_elenco_con_un_valore_di_altro_tipo(): void
+    #[Test]
+    public function toglie_solo_le_chiavi_di_elenco_con_un_valore_di_altro_tipo(): void
     {
         $contenuti = [
             'partners' => 'In collaborazione con Civitavecchia Volley',

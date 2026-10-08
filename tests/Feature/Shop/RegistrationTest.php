@@ -5,6 +5,7 @@ namespace Tests\Feature\Shop;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RegistrationTest extends TestCase
@@ -17,13 +18,15 @@ class RegistrationTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_registration_page_returns_200(): void
+    #[Test]
+    public function registration_page_returns_200(): void
     {
         $response = $this->get(route('shop.register'));
         $response->assertStatus(200);
     }
 
-    public function test_registration_creates_user(): void
+    #[Test]
+    public function registration_creates_user(): void
     {
         $response = $this->post(route('shop.register.store'), [
             'name' => 'Mario Rossi',
@@ -41,7 +44,8 @@ class RegistrationTest extends TestCase
         ]);
     }
 
-    public function test_il_cliente_registrato_non_avvisa_i_super_admin_come_utente_in_attesa(): void
+    #[Test]
+    public function il_cliente_registrato_non_avvisa_i_super_admin_come_utente_in_attesa(): void
     {
         $admin = User::factory()->create();
         $admin->forceFill(['role' => UserRole::SuperAdmin, 'is_active' => true])->save();
@@ -58,14 +62,16 @@ class RegistrationTest extends TestCase
         $this->assertSame(0, $admin->notifications()->count());
     }
 
-    public function test_registration_validates_required_fields(): void
+    #[Test]
+    public function registration_validates_required_fields(): void
     {
         $response = $this->post(route('shop.register.store'), []);
 
         $response->assertSessionHasErrors(['name', 'email', 'password', 'privacy_accepted']);
     }
 
-    public function test_registration_rejects_duplicate_email(): void
+    #[Test]
+    public function registration_rejects_duplicate_email(): void
     {
         User::factory()->create(['email' => 'existing@example.com']);
 
@@ -80,7 +86,8 @@ class RegistrationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    public function test_authenticated_user_cannot_access_registration(): void
+    #[Test]
+    public function authenticated_user_cannot_access_registration(): void
     {
         $user = User::factory()->create();
 

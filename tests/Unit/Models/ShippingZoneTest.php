@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Models\ShippingZone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ShippingZoneTest extends TestCase
@@ -17,7 +18,8 @@ class ShippingZoneTest extends TestCase
         Cache::forget('shipping_zones_active');
     }
 
-    public function test_active_scope(): void
+    #[Test]
+    public function active_scope(): void
     {
         $active = ShippingZone::factory()->create(['is_active' => true]);
         $inactive = ShippingZone::factory()->create(['is_active' => false]);
@@ -28,7 +30,8 @@ class ShippingZoneTest extends TestCase
         $this->assertNotContains($inactive->id, $results);
     }
 
-    public function test_ordered_scope(): void
+    #[Test]
+    public function ordered_scope(): void
     {
         $third = ShippingZone::factory()->create(['sort_order' => 30]);
         $first = ShippingZone::factory()->create(['sort_order' => 10]);
@@ -41,7 +44,8 @@ class ShippingZoneTest extends TestCase
         $this->assertEquals($third->id, $results[2]);
     }
 
-    public function test_find_by_country_exact_match(): void
+    #[Test]
+    public function find_by_country_exact_match(): void
     {
         Cache::forget('shipping_zones_active');
         ShippingZone::factory()->create([
@@ -56,7 +60,8 @@ class ShippingZoneTest extends TestCase
         $this->assertContains('IT', $zone->countries);
     }
 
-    public function test_find_by_country_wildcard_fallback(): void
+    #[Test]
+    public function find_by_country_wildcard_fallback(): void
     {
         Cache::forget('shipping_zones_active');
         ShippingZone::factory()->create([
@@ -71,7 +76,8 @@ class ShippingZoneTest extends TestCase
         $this->assertContains('*', $zone->countries);
     }
 
-    public function test_find_by_country_returns_null_when_no_match(): void
+    #[Test]
+    public function find_by_country_returns_null_when_no_match(): void
     {
         Cache::forget('shipping_zones_active');
         ShippingZone::factory()->create([
@@ -84,7 +90,8 @@ class ShippingZoneTest extends TestCase
         $this->assertNull($zone);
     }
 
-    public function test_calculate_shipping_cost_flat_rate(): void
+    #[Test]
+    public function calculate_shipping_cost_flat_rate(): void
     {
         $zone = ShippingZone::factory()->create([
             'flat_rate' => 9.90,
@@ -94,7 +101,8 @@ class ShippingZoneTest extends TestCase
         $this->assertEquals(9.90, $zone->calculateShippingCost(50.00));
     }
 
-    public function test_calculate_shipping_cost_free_above_threshold(): void
+    #[Test]
+    public function calculate_shipping_cost_free_above_threshold(): void
     {
         $zone = ShippingZone::factory()->create([
             'flat_rate' => 9.90,

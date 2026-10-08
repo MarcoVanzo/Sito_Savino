@@ -7,6 +7,7 @@ use App\Models\ContactMessage;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -36,7 +37,8 @@ class PotaIMessaggiTest extends TestCase
         return $messaggio->refresh();
     }
 
-    public function test_toglie_i_messaggi_oltre_i_ventiquattro_mesi(): void
+    #[Test]
+    public function toglie_i_messaggi_oltre_i_ventiquattro_mesi(): void
     {
         $vecchio = $this->messaggio(now()->subMonths(25));
         $recente = $this->messaggio(now()->subMonths(23));
@@ -47,7 +49,8 @@ class PotaIMessaggiTest extends TestCase
         $this->assertDatabaseHas('contact_messages', ['id' => $recente->id]);
     }
 
-    public function test_porta_via_anche_le_richieste_di_accredito(): void
+    #[Test]
+    public function porta_via_anche_le_richieste_di_accredito(): void
     {
         // L'accredito è un ContactMessage con un oggetto suo, e `extra_data`
         // tiene testata, ruolo, gara e telefono: sparisce con la riga.
@@ -61,7 +64,8 @@ class PotaIMessaggiTest extends TestCase
         $this->assertDatabaseMissing('contact_messages', ['id' => $accredito->id]);
     }
 
-    public function test_conta_dalla_data_del_messaggio_non_dall_ultima_lettura(): void
+    #[Test]
+    public function conta_dalla_data_del_messaggio_non_dall_ultima_lettura(): void
     {
         // `updated_at` cambia quando la redazione segna "letto": contare da lì
         // rimanderebbe la scadenza dell'archivio a ogni giro nel pannello.
@@ -73,7 +77,8 @@ class PotaIMessaggiTest extends TestCase
         $this->assertDatabaseMissing('contact_messages', ['id' => $vecchio->id]);
     }
 
-    public function test_la_prova_non_cancella_niente(): void
+    #[Test]
+    public function la_prova_non_cancella_niente(): void
     {
         $vecchio = $this->messaggio(now()->subMonths(25));
 
@@ -84,7 +89,8 @@ class PotaIMessaggiTest extends TestCase
         $this->assertDatabaseHas('contact_messages', ['id' => $vecchio->id]);
     }
 
-    public function test_il_termine_si_puo_cambiare(): void
+    #[Test]
+    public function il_termine_si_puo_cambiare(): void
     {
         $messaggio = $this->messaggio(now()->subMonths(7));
 
@@ -93,7 +99,8 @@ class PotaIMessaggiTest extends TestCase
         $this->assertDatabaseMissing('contact_messages', ['id' => $messaggio->id]);
     }
 
-    public function test_senza_niente_da_togliere_non_si_lamenta(): void
+    #[Test]
+    public function senza_niente_da_togliere_non_si_lamenta(): void
     {
         $this->messaggio(now()->subMonths(2));
 
@@ -106,7 +113,8 @@ class PotaIMessaggiTest extends TestCase
      * La promessa dell'informativa vive nello scheduler: se il comando non è
      * pianificato, i ventiquattro mesi tornano a essere una buona intenzione.
      */
-    public function test_e_pianificato_una_volta_sola(): void
+    #[Test]
+    public function e_pianificato_una_volta_sola(): void
     {
         $eventi = array_values(array_filter(
             app(Schedule::class)->events(),

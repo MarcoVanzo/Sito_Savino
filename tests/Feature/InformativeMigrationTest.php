@@ -6,6 +6,7 @@ use App\Models\User;
 use Database\Seeders\PageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -39,7 +40,8 @@ class InformativeMigrationTest extends TestCase
         return (string) ($contenuti[$lingua] ?? '');
     }
 
-    public function test_il_testo_che_diceva_il_falso_viene_riscritto(): void
+    #[Test]
+    public function il_testo_che_diceva_il_falso_viene_riscritto(): void
     {
         $this->scriviIlTesto('cookie-policy', [
             'it' => '<p>Il sito non utilizza cookie di profilazione o di tracciamento di terze parti.</p>',
@@ -58,7 +60,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('Google Analytics 4', $this->testo('cookie-policy', 'en'));
     }
 
-    public function test_la_privacy_policy_riporta_la_sede_delle_impostazioni(): void
+    #[Test]
+    public function la_privacy_policy_riporta_la_sede_delle_impostazioni(): void
     {
         $this->scriviIlTesto('privacy-policy', [
             'it' => '<p>Il sito raccoglie esclusivamente dati tecnici necessari alla navigazione.</p>',
@@ -75,7 +78,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('garanteprivacy.it', $italiano);
     }
 
-    public function test_non_passa_sopra_a_un_testo_gia_riscritto_dalla_redazione(): void
+    #[Test]
+    public function non_passa_sopra_a_un_testo_gia_riscritto_dalla_redazione(): void
     {
         $suo = '<p>Informativa curata dallo studio legale, da non toccare.</p>';
 
@@ -86,7 +90,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertSame($suo, $this->testo('cookie-policy'));
     }
 
-    public function test_si_puo_rieseguire_senza_cambiare_niente(): void
+    #[Test]
+    public function si_puo_rieseguire_senza_cambiare_niente(): void
     {
         $this->scriviIlTesto('cookie-policy', [
             'it' => '<p>Il sito non utilizza cookie di profilazione.</p>',
@@ -101,7 +106,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertSame($dopoLaPrima, $this->testo('cookie-policy'));
     }
 
-    public function test_il_testo_nuovo_non_indenta_l_html(): void
+    #[Test]
+    public function il_testo_nuovo_non_indenta_l_html(): void
     {
         $this->scriviIlTesto('privacy-policy', [
             'it' => '<p>Il sito raccoglie esclusivamente dati tecnici necessari alla navigazione.</p>',
@@ -122,7 +128,8 @@ class InformativeMigrationTest extends TestCase
         (require database_path('migrations/2026_09_23_110000_le_informative_dicono_anche_dei_volti.php'))->up();
     }
 
-    public function test_la_revisione_riscrive_il_testo_della_versione_precedente(): void
+    #[Test]
+    public function la_revisione_riscrive_il_testo_della_versione_precedente(): void
     {
         // Il testo del 22 settembre: vero ma incompleto. La firma che lo
         // riconosce è la data di aggiornamento che portava scritta.
@@ -141,7 +148,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('face recognition', $this->testo('privacy-policy', 'en'));
     }
 
-    public function test_la_cookie_policy_dice_dei_contenuti_incorporati(): void
+    #[Test]
+    public function la_cookie_policy_dice_dei_contenuti_incorporati(): void
     {
         // La frase della versione del 22 settembre, per intero: il solo
         // "quelli di marketing di Meta Platforms Ireland Ltd." c'e' anche nel
@@ -160,7 +168,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('arena map', $this->testo('cookie-policy', 'en'));
     }
 
-    public function test_la_revisione_non_passa_sopra_alla_redazione(): void
+    #[Test]
+    public function la_revisione_non_passa_sopra_alla_redazione(): void
     {
         $suo = '<p>Informativa curata dallo studio legale, da non toccare.</p>';
 
@@ -171,7 +180,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertSame($suo, $this->testo('privacy-policy'));
     }
 
-    public function test_le_firme_riconoscono_anche_il_testo_originale(): void
+    #[Test]
+    public function le_firme_riconoscono_anche_il_testo_originale(): void
     {
         // Le firme sono cumulative: un database che si ferma al testo del 2025
         // — un ambiente nuovo, o uno rimasto indietro — deve essere riscritto
@@ -186,7 +196,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('riconoscimento dei volti', $this->testo('privacy-policy'));
     }
 
-    public function test_il_seeder_non_fa_nascere_una_pagina_col_testo_vecchio(): void
+    #[Test]
+    public function il_seeder_non_fa_nascere_una_pagina_col_testo_vecchio(): void
     {
         // La copia nel seeder diceva "esclusivamente dati tecnici" e riportava
         // un indirizzo che non è la sede: ogni ambiente nuovo, e il database
@@ -206,7 +217,8 @@ class InformativeMigrationTest extends TestCase
 
     // --- Il titolare e' la ragione sociale ---
 
-    public function test_il_titolare_e_la_ragione_sociale_per_esteso(): void
+    #[Test]
+    public function il_titolare_e_la_ragione_sociale_per_esteso(): void
     {
         // Il nome con cui la squadra gioca non e' la denominazione di nessuno:
         // i diritti si esercitano verso la persona giuridica.
@@ -233,7 +245,8 @@ class InformativeMigrationTest extends TestCase
         }
     }
 
-    public function test_mappa_e_video_aspettano_il_consenso_anche_nel_testo(): void
+    #[Test]
+    public function mappa_e_video_aspettano_il_consenso_anche_nel_testo(): void
     {
         // La frase della versione del 23 settembre: mappa e video partivano con
         // la pagina. Dal click-to-load (ContenutoIncorporato.vue) non è più vero.
@@ -255,7 +268,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('they only load if you ask', $this->testo('privacy-policy', 'en'));
     }
 
-    public function test_la_privacy_policy_dice_le_finalita_degli_acquisti(): void
+    #[Test]
+    public function la_privacy_policy_dice_le_finalita_degli_acquisti(): void
     {
         // La riga sugli acquisti della versione del 26 settembre.
         $this->scriviIlTesto('privacy-policy', [
@@ -271,7 +285,8 @@ class InformativeMigrationTest extends TestCase
         $this->assertStringContainsString('<h3 id="acquisti">', $this->testo('privacy-policy', 'en'));
     }
 
-    public function test_dagli_eventi_dello_shop_spariscono_ip_e_sessione(): void
+    #[Test]
+    public function dagli_eventi_dello_shop_spariscono_ip_e_sessione(): void
     {
         $utente = User::factory()->create();
         DB::table('shop_events')->insert([

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\Request;
 use Tests\TestCase;
 
@@ -26,46 +27,53 @@ class PortaSullIndirizzoDelSitoTest extends TestCase
         config(['app.url' => 'https://savinodelbenevolley.it']);
     }
 
-    public function test_app_platform_porta_al_dominio_con_percorso_e_query(): void
+    #[Test]
+    public function app_platform_porta_al_dominio_con_percorso_e_query(): void
     {
         $this->get(self::APP_PLATFORM.'/news?page=2')
             ->assertStatus(301)
             ->assertRedirect('https://savinodelbenevolley.it/news?page=2');
     }
 
-    public function test_www_porta_al_dominio(): void
+    #[Test]
+    public function www_porta_al_dominio(): void
     {
         $this->get('https://www.savinodelbenevolley.it/en/news')
             ->assertStatus(301)
             ->assertRedirect('https://savinodelbenevolley.it/en/news');
     }
 
-    public function test_anche_il_pannello_si_sposta(): void
+    #[Test]
+    public function anche_il_pannello_si_sposta(): void
     {
         $this->get(self::APP_PLATFORM.'/admin/login')
             ->assertStatus(301)
             ->assertRedirect('https://savinodelbenevolley.it/admin/login');
     }
 
-    public function test_una_visita_inertia_naviga_per_intero_invece_di_seguire_il_301(): void
+    #[Test]
+    public function una_visita_inertia_naviga_per_intero_invece_di_seguire_il_301(): void
     {
         $this->get(self::APP_PLATFORM.'/news', ['X-Inertia' => 'true'])
             ->assertStatus(409)
             ->assertHeader('X-Inertia-Location', 'https://savinodelbenevolley.it/news');
     }
 
-    public function test_il_dominio_non_si_sposta(): void
+    #[Test]
+    public function il_dominio_non_si_sposta(): void
     {
         $this->get('https://savinodelbenevolley.it/')->assertOk();
     }
 
-    public function test_up_e_api_restano_sull_indirizzo_di_app_platform(): void
+    #[Test]
+    public function up_e_api_restano_sull_indirizzo_di_app_platform(): void
     {
         $this->get(self::APP_PLATFORM.'/up')->assertOk();
         $this->get(self::APP_PLATFORM.'/api/webhooks/stripe')->assertStatus(405);
     }
 
-    public function test_le_post_dei_webhook_non_si_spostano(): void
+    #[Test]
+    public function le_post_dei_webhook_non_si_spostano(): void
     {
         $risposta = $this->post(self::APP_PLATFORM.'/api/webhooks/resend', []);
 
@@ -73,7 +81,8 @@ class PortaSullIndirizzoDelSitoTest extends TestCase
         $this->assertNotSame(409, $risposta->getStatusCode());
     }
 
-    public function test_con_app_url_su_app_platform_non_rimbalza_su_se_stesso(): void
+    #[Test]
+    public function con_app_url_su_app_platform_non_rimbalza_su_se_stesso(): void
     {
         config(['app.url' => self::APP_PLATFORM]);
 

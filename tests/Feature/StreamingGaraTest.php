@@ -9,6 +9,7 @@ use App\Models\Season;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class StreamingGaraTest extends TestCase
@@ -39,7 +40,8 @@ class StreamingGaraTest extends TestCase
         Cache::flush();
     }
 
-    public function test_una_piattaforma_conosciuta_arriva_pronta_per_il_riquadro(): void
+    #[Test]
+    public function una_piattaforma_conosciuta_arriva_pronta_per_il_riquadro(): void
     {
         $this->garaProgrammata('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
@@ -51,7 +53,8 @@ class StreamingGaraTest extends TestCase
             );
     }
 
-    public function test_un_dominio_sconosciuto_non_viene_incorporato(): void
+    #[Test]
+    public function un_dominio_sconosciuto_non_viene_incorporato(): void
     {
         // Il link resta, ma senza indirizzo di embed: il frontend apre una
         // scheda nuova invece di caricare un sito qualsiasi dentro la pagina.
@@ -65,7 +68,8 @@ class StreamingGaraTest extends TestCase
             );
     }
 
-    public function test_una_gara_senza_diretta_non_espone_nulla(): void
+    #[Test]
+    public function una_gara_senza_diretta_non_espone_nulla(): void
     {
         $this->garaProgrammata(null);
 

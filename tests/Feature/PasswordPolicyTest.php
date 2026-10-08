@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PasswordPolicyTest extends TestCase
@@ -37,14 +38,16 @@ class PasswordPolicyTest extends TestCase
 
     // --- Storico e divieto di riuso ---
 
-    public function test_la_password_iniziale_finisce_nello_storico(): void
+    #[Test]
+    public function la_password_iniziale_finisce_nello_storico(): void
     {
         $user = $this->staff();
 
         $this->assertSame(1, $user->passwordHistories()->count());
     }
 
-    public function test_non_si_puo_riusare_la_password_attuale(): void
+    #[Test]
+    public function non_si_puo_riusare_la_password_attuale(): void
     {
         $user = $this->staff();
 
@@ -57,7 +60,8 @@ class PasswordPolicyTest extends TestCase
         $response->assertSessionHasErrors('password');
     }
 
-    public function test_non_si_possono_riusare_le_ultime_sei_password(): void
+    #[Test]
+    public function non_si_possono_riusare_le_ultime_sei_password(): void
     {
         $user = $this->staff();
         $prima = 'PrimaPassword!2026';
@@ -83,7 +87,8 @@ class PasswordPolicyTest extends TestCase
         ])->assertSessionHasErrors('password');
     }
 
-    public function test_lo_storico_non_supera_la_dimensione_configurata(): void
+    #[Test]
+    public function lo_storico_non_supera_la_dimensione_configurata(): void
     {
         $user = $this->staff();
 
@@ -103,7 +108,8 @@ class PasswordPolicyTest extends TestCase
         );
     }
 
-    public function test_una_password_uscita_dallo_storico_torna_riusabile(): void
+    #[Test]
+    public function una_password_uscita_dallo_storico_torna_riusabile(): void
     {
         $user = $this->staff();
 
@@ -136,7 +142,8 @@ class PasswordPolicyTest extends TestCase
 
     // --- Robustezza ---
 
-    public function test_le_password_deboli_sono_rifiutate(): void
+    #[Test]
+    public function le_password_deboli_sono_rifiutate(): void
     {
         $user = $this->staff();
 
@@ -149,7 +156,8 @@ class PasswordPolicyTest extends TestCase
 
     // --- Scadenza ---
 
-    public function test_la_password_scade_dopo_il_periodo_configurato(): void
+    #[Test]
+    public function la_password_scade_dopo_il_periodo_configurato(): void
     {
         $mesi = (int) config('password_policy.expires_after_months');
 
@@ -161,7 +169,8 @@ class PasswordPolicyTest extends TestCase
         $this->actingAs($user)->get('/admin')->assertRedirect(route('password.change'));
     }
 
-    public function test_una_password_recente_non_e_scaduta(): void
+    #[Test]
+    public function una_password_recente_non_e_scaduta(): void
     {
         $user = $this->staff(['password_changed_at' => now()->subMonth()]);
 
@@ -170,7 +179,8 @@ class PasswordPolicyTest extends TestCase
         $this->actingAs($user)->get('/admin')->assertOk();
     }
 
-    public function test_il_preavviso_scatta_nella_finestra_configurata(): void
+    #[Test]
+    public function il_preavviso_scatta_nella_finestra_configurata(): void
     {
         // Data fissa perché l'aritmetica sui mesi non è simmetrica: tornando
         // indietro di sei mesi da fine agosto si finisce in febbraio, che è
@@ -191,7 +201,8 @@ class PasswordPolicyTest extends TestCase
         $this->assertLessThanOrEqual($giorni, $user->daysUntilPasswordExpires());
     }
 
-    public function test_il_cambio_password_azzera_scadenza_e_preavviso(): void
+    #[Test]
+    public function il_cambio_password_azzera_scadenza_e_preavviso(): void
     {
         $mesi = (int) config('password_policy.expires_after_months');
         $giorni = (int) config('password_policy.warn_before_days');
@@ -227,7 +238,8 @@ class PasswordPolicyTest extends TestCase
 
     // --- Preavviso via email ---
 
-    public function test_al_login_parte_una_sola_email_di_preavviso(): void
+    #[Test]
+    public function al_login_parte_una_sola_email_di_preavviso(): void
     {
         Notification::fake();
 
@@ -247,7 +259,8 @@ class PasswordPolicyTest extends TestCase
         Notification::assertSentToTimes($user, PasswordExpiringSoon::class, 1);
     }
 
-    public function test_nessuna_email_se_la_password_non_sta_scadendo(): void
+    #[Test]
+    public function nessuna_email_se_la_password_non_sta_scadendo(): void
     {
         Notification::fake();
 
@@ -260,7 +273,8 @@ class PasswordPolicyTest extends TestCase
 
     // --- Creazione/modifica utenti dal pannello ---
 
-    public function test_il_pannello_rifiuta_una_password_debole_alla_creazione(): void
+    #[Test]
+    public function il_pannello_rifiuta_una_password_debole_alla_creazione(): void
     {
         $admin = $this->staff();
 
@@ -278,7 +292,8 @@ class PasswordPolicyTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => 'nuovo.staff@savinodelbene.it']);
     }
 
-    public function test_il_pannello_rifiuta_il_riuso_di_una_password_gia_usata(): void
+    #[Test]
+    public function il_pannello_rifiuta_il_riuso_di_una_password_gia_usata(): void
     {
         $admin = $this->staff();
         $target = $this->staff(['role' => UserRole::ShopManager]);

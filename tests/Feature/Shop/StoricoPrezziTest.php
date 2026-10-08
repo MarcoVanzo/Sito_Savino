@@ -8,6 +8,7 @@ use App\Services\StoricoPrezzi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -29,7 +30,8 @@ class StoricoPrezziTest extends TestCase
         Cache::flush();
     }
 
-    public function test_ogni_cambio_di_prezzo_apre_una_riga_e_chiude_la_precedente(): void
+    #[Test]
+    public function ogni_cambio_di_prezzo_apre_una_riga_e_chiude_la_precedente(): void
     {
         $this->travelTo(now()->subDays(10));
         $prodotto = $this->prodotto();
@@ -47,7 +49,8 @@ class StoricoPrezziTest extends TestCase
         $this->assertTrue((bool) $righe[1]->in_sconto);
     }
 
-    public function test_si_barra_il_prezzo_piu_basso_dei_30_giorni_prima_dello_sconto(): void
+    #[Test]
+    public function si_barra_il_prezzo_piu_basso_dei_30_giorni_prima_dello_sconto(): void
     {
         $this->travelTo(now()->subDays(40));
         $prodotto = $this->prodotto();          // 20 € per 20 giorni
@@ -60,7 +63,8 @@ class StoricoPrezziTest extends TestCase
         $this->assertSame(18.0, app(StoricoPrezzi::class)->prezzoDiRiferimento($prodotto->fresh()));
     }
 
-    public function test_nella_riduzione_progressiva_vale_il_prezzo_prima_della_prima(): void
+    #[Test]
+    public function nella_riduzione_progressiva_vale_il_prezzo_prima_della_prima(): void
     {
         $this->travelTo(now()->subDays(20));
         $prodotto = $this->prodotto();
@@ -73,7 +77,8 @@ class StoricoPrezziTest extends TestCase
         $this->assertSame(20.0, app(StoricoPrezzi::class)->prezzoDiRiferimento($prodotto->fresh()));
     }
 
-    public function test_un_prodotto_nato_in_sconto_non_barra_niente_ma_si_vende_scontato(): void
+    #[Test]
+    public function un_prodotto_nato_in_sconto_non_barra_niente_ma_si_vende_scontato(): void
     {
         $prodotto = $this->prodotto(['sale_price' => 50, 'price' => 75]);
 
@@ -87,7 +92,8 @@ class StoricoPrezziTest extends TestCase
                 ->where('product.prezzo_piu_basso_30_giorni', false));
     }
 
-    public function test_uno_sconto_piu_alto_del_minimo_recente_non_si_annuncia(): void
+    #[Test]
+    public function uno_sconto_piu_alto_del_minimo_recente_non_si_annuncia(): void
     {
         $this->travelTo(now()->subDays(20));
         $prodotto = $this->prodotto(['sale_price' => 8]);   // nato a 8
@@ -100,7 +106,8 @@ class StoricoPrezziTest extends TestCase
         $this->assertNull(app(StoricoPrezzi::class)->prezzoDiRiferimento($prodotto->fresh()));
     }
 
-    public function test_uno_sconto_programmato_lo_registra_il_giro_orario(): void
+    #[Test]
+    public function uno_sconto_programmato_lo_registra_il_giro_orario(): void
     {
         $this->travelTo(now()->subDays(10));
         $prodotto = $this->prodotto(['sale_price' => 10, 'sale_start' => now()->addDays(5)]);

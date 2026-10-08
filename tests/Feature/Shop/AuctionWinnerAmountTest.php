@@ -7,13 +7,15 @@ use App\Models\Bid;
 use App\Models\User;
 use App\Services\AuctionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AuctionWinnerAmountTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_winning_amount_is_the_top_bid_for_the_first_winner(): void
+    #[Test]
+    public function winning_amount_is_the_top_bid_for_the_first_winner(): void
     {
         $first = User::factory()->create();
         $second = User::factory()->create();
@@ -28,7 +30,8 @@ class AuctionWinnerAmountTest extends TestCase
         $this->assertEquals(200.0, app(AuctionService::class)->winningAmountFor($auction->fresh()));
     }
 
-    public function test_fallback_winner_pays_their_own_bid_not_the_top_one(): void
+    #[Test]
+    public function fallback_winner_pays_their_own_bid_not_the_top_one(): void
     {
         $first = User::factory()->create();
         $second = User::factory()->create();

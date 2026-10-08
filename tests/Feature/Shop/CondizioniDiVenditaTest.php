@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Support\CondizioniDiVendita;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -23,7 +24,8 @@ class CondizioniDiVenditaTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_le_due_pagine_nascono_pubblicate_e_non_sovrascrivono_quelle_della_redazione(): void
+    #[Test]
+    public function le_due_pagine_nascono_pubblicate_e_non_sovrascrivono_quelle_della_redazione(): void
     {
         Page::query()->whereIn('slug', [CondizioniDiVendita::SLUG_CONDIZIONI, CondizioniDiVendita::SLUG_RECESSO])->delete();
         Page::factory()->create(['slug' => CondizioniDiVendita::SLUG_RECESSO, 'content' => ['it' => 'Testo della redazione']]);
@@ -38,7 +40,8 @@ class CondizioniDiVenditaTest extends TestCase
         $this->assertStringContainsString('Ordine con obbligo di pagamento', $condizioni->getTranslation('content', 'it'));
     }
 
-    public function test_l_informativa_sul_recesso_contiene_il_modulo_tipo(): void
+    #[Test]
+    public function l_informativa_sul_recesso_contiene_il_modulo_tipo(): void
     {
         $testo = CondizioniDiVendita::contenuto(CondizioniDiVendita::SLUG_RECESSO);
 
@@ -48,7 +51,8 @@ class CondizioniDiVenditaTest extends TestCase
         }
     }
 
-    public function test_la_conferma_d_ordine_porta_venditore_recesso_modulo_e_garanzia(): void
+    #[Test]
+    public function la_conferma_d_ordine_porta_venditore_recesso_modulo_e_garanzia(): void
     {
         $ordine = Order::factory()->create(['locale' => 'it', 'condizioni_versione' => CondizioniDiVendita::VERSIONE]);
 
@@ -62,7 +66,8 @@ class CondizioniDiVenditaTest extends TestCase
         $this->assertSame('condizioni-di-vendita-e-recesso.pdf', $email->attachments()[0]->as);
     }
 
-    public function test_l_allegato_pdf_si_genera(): void
+    #[Test]
+    public function l_allegato_pdf_si_genera(): void
     {
         $ordine = Order::factory()->create(['locale' => 'en']);
 
@@ -76,7 +81,8 @@ class CondizioniDiVenditaTest extends TestCase
         $this->assertStringStartsWith('%PDF', $pdf);
     }
 
-    public function test_l_istantanea_e_una_per_testo_e_cambia_con_il_testo(): void
+    #[Test]
+    public function l_istantanea_e_una_per_testo_e_cambia_con_il_testo(): void
     {
         CondizioniDiVendita::creaLePagineMancanti();
 
@@ -94,7 +100,8 @@ class CondizioniDiVenditaTest extends TestCase
         $this->assertSame(2, DB::table('versioni_condizioni')->count());
     }
 
-    public function test_il_pdf_riporta_il_testo_accettato_anche_se_la_pagina_cambia_dopo(): void
+    #[Test]
+    public function il_pdf_riporta_il_testo_accettato_anche_se_la_pagina_cambia_dopo(): void
     {
         // La prova del contratto: la redazione riscrive la pagina dal
         // pannello, ma l'allegato dell'ordine resta quello accettato.
@@ -122,7 +129,8 @@ class CondizioniDiVenditaTest extends TestCase
         $this->assertStringContainsString('Testo riscritto dopo', CondizioniDiVendita::perLAllegatoDellOrdine($vecchio)['condizioni-di-vendita']['contenuto']);
     }
 
-    public function test_l_allegato_riporta_il_testo_pubblicato_con_i_link_assoluti(): void
+    #[Test]
+    public function l_allegato_riporta_il_testo_pubblicato_con_i_link_assoluti(): void
     {
         // Il cliente accetta la pagina che legge: se la redazione l'ha
         // ritoccata, il PDF deve essere quella, non il file dati.

@@ -4,6 +4,7 @@ namespace Tests\Feature\Shop;
 
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CartTest extends TestCase
@@ -16,13 +17,15 @@ class CartTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_guest_can_view_cart_page(): void
+    #[Test]
+    public function guest_can_view_cart_page(): void
     {
         $response = $this->get(route('shop.cart'));
         $response->assertStatus(200);
     }
 
-    public function test_user_can_add_product_to_cart(): void
+    #[Test]
+    public function user_can_add_product_to_cart(): void
     {
         $product = Product::factory()->create(['stock' => 10]);
 
@@ -35,7 +38,8 @@ class CartTest extends TestCase
         $response->assertSessionHas('success');
     }
 
-    public function test_cart_count_returns_json(): void
+    #[Test]
+    public function cart_count_returns_json(): void
     {
         $response = $this->getJson(route('shop.cart.count'));
 

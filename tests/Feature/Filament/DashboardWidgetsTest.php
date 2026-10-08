@@ -12,6 +12,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DashboardWidgetsTest extends TestCase
@@ -23,7 +24,8 @@ class DashboardWidgetsTest extends TestCase
      * alla rilettura dalla cache su database diventano __PHP_Incomplete_Class
      * e mandano in 500 l'intera dashboard. Il secondo render legge dalla cache.
      */
-    public function test_next_match_widget_renders_twice_with_warm_cache(): void
+    #[Test]
+    public function next_match_widget_renders_twice_with_warm_cache(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['role' => UserRole::SuperAdmin])->save();
@@ -40,7 +42,8 @@ class DashboardWidgetsTest extends TestCase
         Livewire::actingAs($user)->test(NextMatchWidget::class)->assertSuccessful();
     }
 
-    public function test_next_match_widget_renders_without_upcoming_games(): void
+    #[Test]
+    public function next_match_widget_renders_without_upcoming_games(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['role' => UserRole::SuperAdmin])->save();
@@ -48,7 +51,8 @@ class DashboardWidgetsTest extends TestCase
         Livewire::actingAs($user)->test(NextMatchWidget::class)->assertSuccessful();
     }
 
-    public function test_recent_activity_widget_renders_twice_with_warm_cache(): void
+    #[Test]
+    public function recent_activity_widget_renders_twice_with_warm_cache(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['role' => UserRole::SuperAdmin])->save();

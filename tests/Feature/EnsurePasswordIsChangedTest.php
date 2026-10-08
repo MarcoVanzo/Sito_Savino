@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class EnsurePasswordIsChangedTest extends TestCase
@@ -19,7 +20,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_user_without_password_change_force_can_access_dashboard(): void
+    #[Test]
+    public function user_without_password_change_force_can_access_dashboard(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['must_change_password' => false])->save();
@@ -29,7 +31,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_user_with_password_change_force_is_redirected_to_change_password_page(): void
+    #[Test]
+    public function user_with_password_change_force_is_redirected_to_change_password_page(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['must_change_password' => true])->save();
@@ -39,7 +42,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $response->assertRedirect(route('password.change'));
     }
 
-    public function test_new_admin_user_is_forced_to_change_password(): void
+    #[Test]
+    public function new_admin_user_is_forced_to_change_password(): void
     {
         // `role` e `is_active` non sono assegnabili in massa: vanno impostati
         // prima del salvataggio, perché è il ruolo a decidere se il cambio
@@ -58,7 +62,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertTrue($admin->must_change_password);
     }
 
-    public function test_new_non_admin_user_is_not_forced_to_change_password(): void
+    #[Test]
+    public function new_non_admin_user_is_not_forced_to_change_password(): void
     {
         $customer = new User([
             'name' => 'Cliente',
@@ -74,7 +79,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertFalse((bool) $customer->fresh()->must_change_password);
     }
 
-    public function test_admin_with_password_change_force_is_redirected_from_admin_panel(): void
+    #[Test]
+    public function admin_with_password_change_force_is_redirected_from_admin_panel(): void
     {
         $user = User::factory()->create();
         $user->forceFill([
@@ -87,7 +93,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $response->assertRedirect(route('password.change'));
     }
 
-    public function test_user_with_password_change_force_can_access_change_password_page(): void
+    #[Test]
+    public function user_with_password_change_force_can_access_change_password_page(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['must_change_password' => true])->save();
@@ -97,7 +104,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_user_with_password_change_force_can_logout(): void
+    #[Test]
+    public function user_with_password_change_force_can_logout(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['must_change_password' => true])->save();
@@ -108,7 +116,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_user_cannot_change_password_with_incorrect_current_password(): void
+    #[Test]
+    public function user_cannot_change_password_with_incorrect_current_password(): void
     {
         $user = User::factory()->create([
             'password' => Hash::make('temp_password'),
@@ -125,7 +134,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertTrue($user->fresh()->must_change_password);
     }
 
-    public function test_user_cannot_change_password_to_the_same_password(): void
+    #[Test]
+    public function user_cannot_change_password_to_the_same_password(): void
     {
         $user = User::factory()->create([
             'password' => 'temp_password123', // Model hashashed cast, but let's test
@@ -142,7 +152,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertTrue($user->fresh()->must_change_password);
     }
 
-    public function test_user_can_successfully_change_password(): void
+    #[Test]
+    public function user_can_successfully_change_password(): void
     {
         $user = User::factory()->create([
             'password' => 'temp_password123',
@@ -163,7 +174,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertTrue(Hash::check('NewSecurePassword123!', $user->password));
     }
 
-    public function test_admin_user_is_redirected_to_admin_after_password_change(): void
+    #[Test]
+    public function admin_user_is_redirected_to_admin_after_password_change(): void
     {
         $user = User::factory()->create([
             'password' => 'temp_password123',
@@ -185,7 +197,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertFalse($user->must_change_password);
     }
 
-    public function test_admin_stays_authenticated_on_filament_panel_after_password_change(): void
+    #[Test]
+    public function admin_stays_authenticated_on_filament_panel_after_password_change(): void
     {
         // Riproduce il bug: dopo il cambio password forzato il pannello Filament
         // (middleware AuthenticateSession) non deve slogare l'utente per hash
@@ -233,7 +246,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $this->assertAuthenticatedAs($user->fresh());
     }
 
-    public function test_json_accept_header_does_not_bypass_forced_password_change(): void
+    #[Test]
+    public function json_accept_header_does_not_bypass_forced_password_change(): void
     {
         // Regressione: il middleware saltava il controllo su expectsJson(), che
         // dipende solo dall'header Accept inviato dal client. Bastava quindi
@@ -248,7 +262,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $response->assertRedirect(route('password.change'));
     }
 
-    public function test_a_path_containing_logout_does_not_bypass_forced_password_change(): void
+    #[Test]
+    public function a_path_containing_logout_does_not_bypass_forced_password_change(): void
     {
         // `Str::contains($path, 'logout')` lasciava passare qualsiasi URL con
         // "logout" al suo interno (per esempio uno slug di pagina o prodotto).
@@ -260,7 +275,8 @@ class EnsurePasswordIsChangedTest extends TestCase
         $response->assertRedirect(route('password.change'));
     }
 
-    public function test_force_change_password_from_inertia_forces_full_page_visit_to_panel(): void
+    #[Test]
+    public function force_change_password_from_inertia_forces_full_page_visit_to_panel(): void
     {
         // Regressione: il redirect finale punta al pannello Filament, che non è
         // una pagina Inertia. Senza Inertia::location il client mostrava il

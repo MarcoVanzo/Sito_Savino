@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -59,7 +60,8 @@ class CheckoutGatewayRedirectTest extends TestCase
         ];
     }
 
-    public function test_il_checkout_paypal_chiede_al_client_inertia_di_uscire_dal_sito(): void
+    #[Test]
+    public function il_checkout_paypal_chiede_al_client_inertia_di_uscire_dal_sito(): void
     {
         $user = User::factory()->create();
         $this->carrelloPronto($user);
@@ -82,7 +84,8 @@ class CheckoutGatewayRedirectTest extends TestCase
         $this->assertDatabaseHas('versioni_condizioni', ['impronta' => $impronta]);
     }
 
-    public function test_il_checkout_stripe_chiede_al_client_inertia_di_uscire_dal_sito(): void
+    #[Test]
+    public function il_checkout_stripe_chiede_al_client_inertia_di_uscire_dal_sito(): void
     {
         $user = User::factory()->create();
         $this->carrelloPronto($user);
@@ -100,7 +103,8 @@ class CheckoutGatewayRedirectTest extends TestCase
         $response->assertHeader('X-Inertia-Location', 'https://checkout.stripe.com/c/pay/TEST');
     }
 
-    public function test_un_gateway_senza_credenziali_non_viene_offerto(): void
+    #[Test]
+    public function un_gateway_senza_credenziali_non_viene_offerto(): void
     {
         $user = User::factory()->create();
         $this->carrelloPronto($user);
@@ -122,7 +126,8 @@ class CheckoutGatewayRedirectTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
-    public function test_senza_inertia_resta_un_redirect_normale(): void
+    #[Test]
+    public function senza_inertia_resta_un_redirect_normale(): void
     {
         $user = User::factory()->create();
         $this->carrelloPronto($user);

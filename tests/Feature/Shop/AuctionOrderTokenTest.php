@@ -10,6 +10,7 @@ use App\Services\AuctionService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -36,7 +37,8 @@ class AuctionOrderTokenTest extends TestCase
         return $auction;
     }
 
-    public function test_winner_order_is_found_through_the_auction_and_not_the_token(): void
+    #[Test]
+    public function winner_order_is_found_through_the_auction_and_not_the_token(): void
     {
         $winner = User::factory()->create();
         $auction = $this->endedAuctionWithWinner($winner);
@@ -55,7 +57,8 @@ class AuctionOrderTokenTest extends TestCase
         );
     }
 
-    public function test_reassignment_ignores_the_order_of_the_previous_winner(): void
+    #[Test]
+    public function reassignment_ignores_the_order_of_the_previous_winner(): void
     {
         $first = User::factory()->create();
         $second = User::factory()->create();
@@ -78,7 +81,8 @@ class AuctionOrderTokenTest extends TestCase
         );
     }
 
-    public function test_auction_checkout_token_does_not_open_the_order_detail(): void
+    #[Test]
+    public function auction_checkout_token_does_not_open_the_order_detail(): void
     {
         $winner = User::factory()->create();
         $auction = $this->endedAuctionWithWinner($winner);
@@ -94,7 +98,8 @@ class AuctionOrderTokenTest extends TestCase
         ]))->assertNotFound();
     }
 
-    public function test_auction_checkout_token_does_not_download_the_receipt(): void
+    #[Test]
+    public function auction_checkout_token_does_not_download_the_receipt(): void
     {
         $winner = User::factory()->create();
         $auction = $this->endedAuctionWithWinner($winner);
@@ -106,7 +111,8 @@ class AuctionOrderTokenTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_one_order_per_auction_and_user(): void
+    #[Test]
+    public function one_order_per_auction_and_user(): void
     {
         $winner = User::factory()->create();
         $auction = $this->endedAuctionWithWinner($winner);

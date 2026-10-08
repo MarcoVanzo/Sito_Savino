@@ -8,13 +8,15 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\StaffMember;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TranslateContentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_traduce_i_campi_rimasti_in_italiano(): void
+    #[Test]
+    public function traduce_i_campi_rimasti_in_italiano(): void
     {
         $product = Product::factory()->create([
             'name' => ['it' => 'Zaino', 'en' => 'Zaino'],
@@ -34,7 +36,8 @@ class TranslateContentTest extends TestCase
         $this->assertSame('Zaino', $product->getTranslation('name', 'it'));
     }
 
-    public function test_non_sovrascrive_le_traduzioni_fatte_in_redazione(): void
+    #[Test]
+    public function non_sovrascrive_le_traduzioni_fatte_in_redazione(): void
     {
         $category = ProductCategory::factory()->create([
             'name' => ['it' => 'Kit Gara 25-26', 'en' => 'Game Kit 25-26'],
@@ -45,7 +48,8 @@ class TranslateContentTest extends TestCase
         $this->assertSame('Game Kit 25-26', $category->refresh()->getTranslation('name', 'en'));
     }
 
-    public function test_il_dry_run_non_scrive_nulla(): void
+    #[Test]
+    public function il_dry_run_non_scrive_nulla(): void
     {
         $product = Product::factory()->create([
             'name' => ['it' => 'Tazza', 'en' => 'Tazza'],
@@ -57,7 +61,8 @@ class TranslateContentTest extends TestCase
         $this->assertSame('Tazza', $product->refresh()->getTranslation('name', 'en'));
     }
 
-    public function test_segnala_i_testi_senza_traduzione_e_fallisce(): void
+    #[Test]
+    public function segnala_i_testi_senza_traduzione_e_fallisce(): void
     {
         Product::factory()->create([
             'name' => ['it' => 'Prodotto mai visto', 'en' => 'Prodotto mai visto'],
@@ -69,7 +74,8 @@ class TranslateContentTest extends TestCase
             ->assertFailed();
     }
 
-    public function test_traduce_ruoli_dello_staff_e_categorie_delle_news(): void
+    #[Test]
+    public function traduce_ruoli_dello_staff_e_categorie_delle_news(): void
     {
         $staff = StaffMember::factory()->create([
             'role' => ['it' => 'Primo Allenatore', 'en' => 'Primo Allenatore'],
@@ -84,7 +90,8 @@ class TranslateContentTest extends TestCase
         $this->assertSame('News', $category->refresh()->getTranslation('name', 'en'));
     }
 
-    public function test_traduce_le_pagine_per_slug(): void
+    #[Test]
+    public function traduce_le_pagine_per_slug(): void
     {
         // La pagina esiste già nel database di test: la riportiamo allo stato
         // pre-traduzione invece di crearne una seconda con lo stesso slug.
@@ -111,7 +118,8 @@ class TranslateContentTest extends TestCase
         $this->assertSame('<h2>Pala BigMat</h2>', $page->getTranslation('content', 'it'));
     }
 
-    public function test_una_pagina_senza_testo_italiano_non_viene_riempita(): void
+    #[Test]
+    public function una_pagina_senza_testo_italiano_non_viene_riempita(): void
     {
         $page = Page::updateOrCreate(
             ['slug' => 'safeguarding'],

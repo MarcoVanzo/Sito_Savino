@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -34,7 +35,8 @@ class NewsAutoreNonEspostoTest extends TestCase
         ]);
     }
 
-    public function test_la_lista_delle_notizie_espone_dell_autore_solo_il_nome(): void
+    #[Test]
+    public function la_lista_delle_notizie_espone_dell_autore_solo_il_nome(): void
     {
         Post::factory()->create(['author_id' => $this->autore()->id]);
 
@@ -47,7 +49,8 @@ class NewsAutoreNonEspostoTest extends TestCase
         $this->assertStringNotContainsString('333 0000000', $response->getContent());
     }
 
-    public function test_il_dettaglio_e_le_correlate_espongono_dell_autore_solo_il_nome(): void
+    #[Test]
+    public function il_dettaglio_e_le_correlate_espongono_dell_autore_solo_il_nome(): void
     {
         $autore = $this->autore();
         $categoria = Category::factory()->create();
@@ -67,7 +70,8 @@ class NewsAutoreNonEspostoTest extends TestCase
      * In produzione le chiavi `public:news:*` contengono già la copia con
      * l'utente intero: non deve arrivare al browser nemmeno quella.
      */
-    public function test_una_copia_vecchia_in_cache_viene_ripulita_prima_di_uscire(): void
+    #[Test]
+    public function una_copia_vecchia_in_cache_viene_ripulita_prima_di_uscire(): void
     {
         $vecchioAutore = [
             'id' => 1, 'name' => 'Redattrice', 'email' => 'redattrice@example.test',

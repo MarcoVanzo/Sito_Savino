@@ -11,6 +11,7 @@ use Filament\SpatieLaravelTranslatableContentDriver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -32,14 +33,16 @@ class TranslatableSearchTest extends TestCase
         return $user;
     }
 
-    public function test_il_content_driver_del_plugin_e_sostituito_dal_nostro(): void
+    #[Test]
+    public function il_content_driver_del_plugin_e_sostituito_dal_nostro(): void
     {
         $driver = app(SpatieLaravelTranslatableContentDriver::class, ['activeLocale' => 'it']);
 
         $this->assertInstanceOf(TranslatableContentDriver::class, $driver);
     }
 
-    public function test_la_ricerca_trova_il_titolo_tradotto(): void
+    #[Test]
+    public function la_ricerca_trova_il_titolo_tradotto(): void
     {
         $match = Post::factory()->create(['title' => ['it' => 'Vittoria a scandicci', 'en' => 'Win in Scandicci']]);
         $other = Post::factory()->create(['title' => ['it' => 'Amichevole a firenze', 'en' => 'Friendly in Florence']]);
@@ -51,7 +54,8 @@ class TranslatableSearchTest extends TestCase
             ->assertCanNotSeeTableRecords([$other]);
     }
 
-    public function test_la_ricerca_ignora_le_maiuscole(): void
+    #[Test]
+    public function la_ricerca_ignora_le_maiuscole(): void
     {
         $match = Post::factory()->create(['title' => ['it' => 'vittoria a scandicci']]);
         $other = Post::factory()->create(['title' => ['it' => 'Amichevole a Firenze']]);
@@ -69,7 +73,8 @@ class TranslatableSearchTest extends TestCase
             ->assertCanNotSeeTableRecords([$match]);
     }
 
-    public function test_la_ricerca_gestisce_gli_escape_json(): void
+    #[Test]
+    public function la_ricerca_gestisce_gli_escape_json(): void
     {
         // spatie serializza con json_encode: "/" diventa "\/" e le lettere
         // accentate diventano sequenze \uXXXX.
@@ -89,7 +94,8 @@ class TranslatableSearchTest extends TestCase
             ->assertCanNotSeeTableRecords([$slash]);
     }
 
-    public function test_la_ricerca_sopravvive_alle_righe_legacy_in_testo_semplice(): void
+    #[Test]
+    public function la_ricerca_sopravvive_alle_righe_legacy_in_testo_semplice(): void
     {
         $legacy = Post::factory()->create(['title' => ['it' => 'segnaposto']]);
         DB::table('posts')->where('id', $legacy->getKey())->update(['title' => 'Riga legacy in testo semplice']);

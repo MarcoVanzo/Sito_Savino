@@ -7,6 +7,7 @@ use App\Services\CatenaDeiConsensi;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -35,7 +36,8 @@ class VerificaIConsensiCookieTest extends TestCase
         ]);
     }
 
-    public function test_un_registro_intatto_passa_e_dice_l_ultima_impronta(): void
+    #[Test]
+    public function un_registro_intatto_passa_e_dice_l_ultima_impronta(): void
     {
         $this->consenso();
         $ultimo = $this->consenso(true);
@@ -45,14 +47,16 @@ class VerificaIConsensiCookieTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_un_registro_vuoto_non_e_un_guasto(): void
+    #[Test]
+    public function un_registro_vuoto_non_e_un_guasto(): void
     {
         $this->artisan('consensi:verifica')
             ->expectsOutputToContain('vuoto')
             ->assertSuccessful();
     }
 
-    public function test_una_data_ritoccata_si_trova(): void
+    #[Test]
+    public function una_data_ritoccata_si_trova(): void
     {
         $this->consenso();
         $ritoccato = $this->consenso();
@@ -66,7 +70,8 @@ class VerificaIConsensiCookieTest extends TestCase
             ->assertFailed();
     }
 
-    public function test_una_scelta_ritoccata_si_trova(): void
+    #[Test]
+    public function una_scelta_ritoccata_si_trova(): void
     {
         $ritoccato = $this->consenso(false);
 
@@ -75,7 +80,8 @@ class VerificaIConsensiCookieTest extends TestCase
         $this->artisan('consensi:verifica')->assertFailed();
     }
 
-    public function test_una_riga_tolta_in_mezzo_si_trova(): void
+    #[Test]
+    public function una_riga_tolta_in_mezzo_si_trova(): void
     {
         $this->consenso();
         $tolto = $this->consenso();
@@ -88,7 +94,8 @@ class VerificaIConsensiCookieTest extends TestCase
             ->assertFailed();
     }
 
-    public function test_righe_tolte_in_testa_senza_la_potatura_si_trovano(): void
+    #[Test]
+    public function righe_tolte_in_testa_senza_la_potatura_si_trovano(): void
     {
         // La potatura lascia l'ancora; una cancellazione a mano no. Senza
         // l'ancora le due cose sarebbero indistinguibili.
@@ -102,7 +109,8 @@ class VerificaIConsensiCookieTest extends TestCase
             ->assertFailed();
     }
 
-    public function test_una_riga_scritta_fuori_dalla_catena_si_trova(): void
+    #[Test]
+    public function una_riga_scritta_fuori_dalla_catena_si_trova(): void
     {
         $this->consenso();
 
@@ -120,7 +128,8 @@ class VerificaIConsensiCookieTest extends TestCase
             ->assertFailed();
     }
 
-    public function test_le_righe_di_prima_della_catena_si_sigillano_in_ordine_di_id(): void
+    #[Test]
+    public function le_righe_di_prima_della_catena_si_sigillano_in_ordine_di_id(): void
     {
         // Come la migrazione trova il registro: righe senza impronta.
         foreach ([false, true, false] as $marketing) {
@@ -150,7 +159,8 @@ class VerificaIConsensiCookieTest extends TestCase
         $this->artisan('consensi:verifica')->assertSuccessful();
     }
 
-    public function test_una_riga_lasciata_dal_codice_vecchio_durante_un_rilascio_si_sigilla_al_consenso_dopo(): void
+    #[Test]
+    public function una_riga_lasciata_dal_codice_vecchio_durante_un_rilascio_si_sigilla_al_consenso_dopo(): void
     {
         $this->consenso();
 
@@ -170,7 +180,8 @@ class VerificaIConsensiCookieTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_e_pianificata_e_quindi_avvisa_se_fallisce(): void
+    #[Test]
+    public function e_pianificata_e_quindi_avvisa_se_fallisce(): void
     {
         // Registrata sopra il ciclo di AvvisoDelPianificatore (§24): un evento
         // aggiunto sotto resterebbe muto.
@@ -180,7 +191,8 @@ class VerificaIConsensiCookieTest extends TestCase
         $this->assertCount(1, $eventi);
     }
 
-    public function test_chi_ritocca_una_riga_e_ricalcola_l_impronta_senza_il_segreto_viene_scoperto(): void
+    #[Test]
+    public function chi_ritocca_una_riga_e_ricalcola_l_impronta_senza_il_segreto_viene_scoperto(): void
     {
         config(['services.consensi.sale' => 'segreto-vero']);
 
@@ -205,7 +217,8 @@ class VerificaIConsensiCookieTest extends TestCase
         }
     }
 
-    public function test_l_impronta_e_un_hmac_con_il_sale_dedicato_e_ripiega_sulla_chiave_dell_applicazione(): void
+    #[Test]
+    public function l_impronta_e_un_hmac_con_il_sale_dedicato_e_ripiega_sulla_chiave_dell_applicazione(): void
     {
         $riga = ['riferimento' => 'r', 'statistiche' => true, 'marketing' => false, 'created_at' => '2026-10-02 10:00:00'];
 
@@ -223,7 +236,8 @@ class VerificaIConsensiCookieTest extends TestCase
         $this->assertSame($conLaChiave, CatenaDeiConsensi::impronta($riga, null));
     }
 
-    public function test_cambiare_il_segreto_fa_risultare_alterato_il_registro(): void
+    #[Test]
+    public function cambiare_il_segreto_fa_risultare_alterato_il_registro(): void
     {
         // È il prezzo dell'HMAC, e va saputo: CONSENSI_SALE non si ruota.
         config(['services.consensi.sale' => 'primo']);

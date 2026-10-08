@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -39,7 +40,8 @@ class TestiLegaliAllineatiTest extends TestCase
         return json_decode((string) DB::table('pages')->where('slug', $slug)->value('content'), true)[$lingua];
     }
 
-    public function test_riscrive_le_frasi_pubblicate(): void
+    #[Test]
+    public function riscrive_le_frasi_pubblicate(): void
     {
         $this->pagina('regolamento-aste', [
             'it' => "<p>Il vincitore ha il tempo indicato nella pagina dell'asta per pagare; se non paga entro il termine, l'oggetto viene proposto al secondo miglior offerente alle condizioni della sua offerta.</p>",
@@ -60,7 +62,8 @@ class TestiLegaliAllineatiTest extends TestCase
         $this->assertSame('Scritta dalla redazione', $descrizione['en']);
     }
 
-    public function test_non_tocca_il_testo_della_redazione_e_si_puo_rieseguire(): void
+    #[Test]
+    public function non_tocca_il_testo_della_redazione_e_si_puo_rieseguire(): void
     {
         $this->pagina('regolamento-aste', ['it' => '<p>Regole scritte dalla redazione.</p>', 'en' => '<p>Editorial rules.</p>']);
 

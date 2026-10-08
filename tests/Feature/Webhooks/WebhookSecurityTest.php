@@ -5,13 +5,15 @@ namespace Tests\Feature\Webhooks;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class WebhookSecurityTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_stripe_webhook_rejects_without_signature(): void
+    #[Test]
+    public function stripe_webhook_rejects_without_signature(): void
     {
         $response = $this->postJson('/api/webhooks/stripe', [
             'type' => 'checkout.session.completed',
@@ -22,7 +24,8 @@ class WebhookSecurityTest extends TestCase
         $response->assertStatus(400);
     }
 
-    public function test_paypal_webhook_rejects_without_verification(): void
+    #[Test]
+    public function paypal_webhook_rejects_without_verification(): void
     {
         $response = $this->postJson('/api/webhooks/paypal', [
             'event_type' => 'CHECKOUT.ORDER.APPROVED',
@@ -33,7 +36,8 @@ class WebhookSecurityTest extends TestCase
         $this->assertNotEquals(200, $response->getStatusCode());
     }
 
-    public function test_paypal_webhook_con_corpo_non_json_risponde_400_senza_errori(): void
+    #[Test]
+    public function paypal_webhook_con_corpo_non_json_risponde_400_senza_errori(): void
     {
         Http::fake();
         Log::spy();
@@ -45,7 +49,8 @@ class WebhookSecurityTest extends TestCase
         Log::shouldNotHaveReceived('error');
     }
 
-    public function test_webhook_endpoints_exempt_from_csrf(): void
+    #[Test]
+    public function webhook_endpoints_exempt_from_csrf(): void
     {
         // POST without CSRF token — should NOT get 419 (CSRF mismatch)
         $response = $this->post('/api/webhooks/stripe', [

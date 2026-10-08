@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -28,7 +29,8 @@ class ProvaDelConsensoNewsletterTest extends TestCase
         Queue::fake();
     }
 
-    public function test_la_richiesta_e_la_conferma_portano_l_impronta_del_testo_accettato(): void
+    #[Test]
+    public function la_richiesta_e_la_conferma_portano_l_impronta_del_testo_accettato(): void
     {
         $this->post(route('newsletter.subscribe'), [
             'email' => 'tifoso@example.com',
@@ -61,7 +63,8 @@ class ProvaDelConsensoNewsletterTest extends TestCase
         $this->assertSame(1, VersioneTestiConsenso::count());
     }
 
-    public function test_dal_link_nell_email_la_disiscrizione_cancella_nome_e_ip_e_tiene_la_prova(): void
+    #[Test]
+    public function dal_link_nell_email_la_disiscrizione_cancella_nome_e_ip_e_tiene_la_prova(): void
     {
         $iscritto = NewsletterSubscriber::factory()->create([
             'first_name' => 'Paola',
@@ -85,7 +88,8 @@ class ProvaDelConsensoNewsletterTest extends TestCase
         $this->assertNotNull($dopo->unsubscribed_at);
     }
 
-    public function test_dal_pannello_la_disiscrizione_cancella_nome_e_ip(): void
+    #[Test]
+    public function dal_pannello_la_disiscrizione_cancella_nome_e_ip(): void
     {
         // Le azioni "Disiscrivi" del pannello (una e in blocco) chiamano
         // unsubscribe('cms'): stesso metodo, stessa regola.
@@ -100,7 +104,8 @@ class ProvaDelConsensoNewsletterTest extends TestCase
         $this->assertNull($iscritto->fresh()->ip_address);
     }
 
-    public function test_un_disiscritto_si_cancella_dopo_ventiquattro_mesi(): void
+    #[Test]
+    public function un_disiscritto_si_cancella_dopo_ventiquattro_mesi(): void
     {
         $vecchio = NewsletterSubscriber::factory()->create([
             'subscribed_at' => now()->subMonths(40),
@@ -133,7 +138,8 @@ class ProvaDelConsensoNewsletterTest extends TestCase
         $this->assertModelExists($attivo);
     }
 
-    public function test_la_migrazione_azzera_nome_e_ip_dei_gia_disiscritti(): void
+    #[Test]
+    public function la_migrazione_azzera_nome_e_ip_dei_gia_disiscritti(): void
     {
         $uscito = NewsletterSubscriber::factory()->create([
             'first_name' => 'Paola',

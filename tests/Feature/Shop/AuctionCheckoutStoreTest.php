@@ -14,6 +14,7 @@ use App\Services\Payments\StripePaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -75,14 +76,16 @@ class AuctionCheckoutStoreTest extends TestCase
         return $auction;
     }
 
-    public function test_un_token_inesistente_non_esiste(): void
+    #[Test]
+    public function un_token_inesistente_non_esiste(): void
     {
         $this->actingAs(User::factory()->create())
             ->post(route('shop.auction-checkout.store', ['token' => Str::uuid()->toString()]), $this->datiValidi())
             ->assertNotFound();
     }
 
-    public function test_solo_il_vincitore_puo_pagare(): void
+    #[Test]
+    public function solo_il_vincitore_puo_pagare(): void
     {
         $token = Str::uuid()->toString();
         $this->astaVinta(User::factory()->create(), $token);
@@ -92,7 +95,8 @@ class AuctionCheckoutStoreTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_oltre_il_termine_si_torna_alla_pagina_con_un_avviso(): void
+    #[Test]
+    public function oltre_il_termine_si_torna_alla_pagina_con_un_avviso(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -104,7 +108,8 @@ class AuctionCheckoutStoreTest extends TestCase
             ->assertSessionHas('error');
     }
 
-    public function test_per_l_italia_il_cap_e_di_cinque_cifre(): void
+    #[Test]
+    public function per_l_italia_il_cap_e_di_cinque_cifre(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -118,7 +123,8 @@ class AuctionCheckoutStoreTest extends TestCase
             ->assertSessionHasErrors('shipping_zip_code');
     }
 
-    public function test_per_l_italia_il_codice_fiscale_e_obbligatorio(): void
+    #[Test]
+    public function per_l_italia_il_codice_fiscale_e_obbligatorio(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -132,7 +138,8 @@ class AuctionCheckoutStoreTest extends TestCase
             ->assertSessionHasErrors('codice_fiscale');
     }
 
-    public function test_un_paese_senza_zona_di_spedizione_non_si_serve(): void
+    #[Test]
+    public function un_paese_senza_zona_di_spedizione_non_si_serve(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -146,7 +153,8 @@ class AuctionCheckoutStoreTest extends TestCase
             ->assertSessionHasErrors('country');
     }
 
-    public function test_un_ordine_gia_pagato_porta_alla_conferma_senza_ricrearlo(): void
+    #[Test]
+    public function un_ordine_gia_pagato_porta_alla_conferma_senza_ricrearlo(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -168,7 +176,8 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertSame(1, Order::where('auction_id', $auction->id)->count());
     }
 
-    public function test_il_primo_pagamento_crea_ordine_riga_e_movimento_di_magazzino(): void
+    #[Test]
+    public function il_primo_pagamento_crea_ordine_riga_e_movimento_di_magazzino(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -197,7 +206,8 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertDatabaseHas('versioni_condizioni', ['impronta' => $order->condizioni_impronta]);
     }
 
-    public function test_un_checkout_abbandonato_riusa_l_ordine_invece_di_duplicarlo(): void
+    #[Test]
+    public function un_checkout_abbandonato_riusa_l_ordine_invece_di_duplicarlo(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -225,7 +235,8 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertSame('3331234567', $order->fresh()->phone);
     }
 
-    public function test_il_reinvio_del_modulo_cambia_la_nota_del_cliente_ma_non_le_annotazioni_di_revisione(): void
+    #[Test]
+    public function il_reinvio_del_modulo_cambia_la_nota_del_cliente_ma_non_le_annotazioni_di_revisione(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -260,7 +271,8 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertSame($annotazione, $order->fresh()->notes);
     }
 
-    public function test_la_spedizione_del_lotto_segue_la_fascia_di_peso(): void
+    #[Test]
+    public function la_spedizione_del_lotto_segue_la_fascia_di_peso(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -293,7 +305,8 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertEqualsWithDelta(119.9, (float) $order->total_price, 0.01);
     }
 
-    public function test_un_lotto_senza_peso_in_scheda_usa_il_ripiego(): void
+    #[Test]
+    public function un_lotto_senza_peso_in_scheda_usa_il_ripiego(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -326,7 +339,8 @@ class AuctionCheckoutStoreTest extends TestCase
         $this->assertEqualsWithDelta(105.9, (float) $order->total_price, 0.01);
     }
 
-    public function test_la_pagina_passa_al_client_il_costo_della_fascia_del_collo(): void
+    #[Test]
+    public function la_pagina_passa_al_client_il_costo_della_fascia_del_collo(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();

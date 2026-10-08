@@ -7,6 +7,7 @@ use App\Models\Page;
 use App\Models\RichiestaDiRecesso;
 use App\Support\TestiDelleInformative;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -20,7 +21,8 @@ class ConservazioneDeiRecessiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_senza_ordine_model_prune_toglie_le_dichiarazioni_oltre_i_dodici_mesi(): void
+    #[Test]
+    public function senza_ordine_model_prune_toglie_le_dichiarazioni_oltre_i_dodici_mesi(): void
     {
         $vecchia = $this->richiesta(now()->subMonths(12)->subDay());
         $recente = $this->richiesta(now()->subMonths(11));
@@ -31,7 +33,8 @@ class ConservazioneDeiRecessiTest extends TestCase
         $this->assertModelExists($recente);
     }
 
-    public function test_con_un_ordine_la_dichiarazione_resta_dieci_anni(): void
+    #[Test]
+    public function con_un_ordine_la_dichiarazione_resta_dieci_anni(): void
     {
         $ordine = Order::factory()->create();
 
@@ -46,7 +49,8 @@ class ConservazioneDeiRecessiTest extends TestCase
         $this->assertModelMissing($oltreDieciAnni);
     }
 
-    public function test_l_informativa_dichiara_le_due_conservazioni_in_entrambe_le_lingue(): void
+    #[Test]
+    public function l_informativa_dichiara_le_due_conservazioni_in_entrambe_le_lingue(): void
     {
         $testi = TestiDelleInformative::contenuto('privacy-policy');
 
@@ -56,7 +60,8 @@ class ConservazioneDeiRecessiTest extends TestCase
         $this->assertStringContainsString('12 months when the order number given does not match any order', $testi['en']);
     }
 
-    public function test_la_revisione_del_26_settembre_riconosce_il_testo_del_25(): void
+    #[Test]
+    public function la_revisione_del_26_settembre_riconosce_il_testo_del_25(): void
     {
         $pagina = Page::where('slug', 'privacy-policy')->first() ?? Page::factory()->create(['slug' => 'privacy-policy']);
         $pagina->setTranslations('content', [
@@ -73,7 +78,8 @@ class ConservazioneDeiRecessiTest extends TestCase
         $this->assertStringContainsString('pixel di tracciamento', $it);
     }
 
-    public function test_l_informativa_distingue_responsabili_e_titolari_autonomi_senza_smentire_il_codice(): void
+    #[Test]
+    public function l_informativa_distingue_responsabili_e_titolari_autonomi_senza_smentire_il_codice(): void
     {
         $testi = TestiDelleInformative::contenuto('privacy-policy');
 
@@ -96,7 +102,8 @@ class ConservazioneDeiRecessiTest extends TestCase
         $this->assertFalse((bool) config('sentry.send_default_pii'));
     }
 
-    public function test_l_informativa_dichiara_il_pixel_della_newsletter_e_la_revoca_granulare(): void
+    #[Test]
+    public function l_informativa_dichiara_il_pixel_della_newsletter_e_la_revoca_granulare(): void
     {
         $testi = TestiDelleInformative::contenuto('privacy-policy');
 
@@ -106,7 +113,8 @@ class ConservazioneDeiRecessiTest extends TestCase
         $this->assertStringContainsString('withdraw, at any time, just the tracking', $testi['en']);
     }
 
-    public function test_la_revisione_riscrive_solo_la_pagina_non_toccata_dalla_redazione(): void
+    #[Test]
+    public function la_revisione_riscrive_solo_la_pagina_non_toccata_dalla_redazione(): void
     {
         $firma = "ordini, offerte): servono a concludere e gestire l'acquisto e a rispettare gli obblighi fiscali.";
         $pagina = Page::where('slug', 'privacy-policy')->first() ?? Page::factory()->create(['slug' => 'privacy-policy']);

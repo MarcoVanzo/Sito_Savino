@@ -25,6 +25,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -145,14 +146,16 @@ class CmsResourcesSmokeTest extends TestCase
     }
 
     #[DataProvider('listPageProvider')]
-    public function test_list_page_renders(string $page): void
+    #[Test]
+    public function list_page_renders(string $page): void
     {
         Livewire::actingAs($this->admin)
             ->test($page)
             ->assertSuccessful();
     }
 
-    public function test_translatable_edit_pages_expose_the_locale_switcher(): void
+    #[Test]
+    public function translatable_edit_pages_expose_the_locale_switcher(): void
     {
         Livewire::actingAs($this->admin)
             ->test(Resources\PostResource\Pages\EditPost::class, ['record' => Post::first()->getKey()])
@@ -169,7 +172,8 @@ class CmsResourcesSmokeTest extends TestCase
      * La modifica di un'atleta andava in 500: la risorsa usava il plugin
      * traduzioni ma `players` non ha colonne tradotte.
      */
-    public function test_la_scheda_di_un_atleta_si_apre_in_modifica(): void
+    #[Test]
+    public function la_scheda_di_un_atleta_si_apre_in_modifica(): void
     {
         Livewire::actingAs($this->admin)
             ->test(Resources\PlayerResource\Pages\EditPlayer::class, ['record' => Player::first()->getKey()])

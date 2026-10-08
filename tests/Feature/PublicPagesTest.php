@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\PostStatus;
 use App\Models\Page;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PublicPagesTest extends TestCase
@@ -17,19 +18,22 @@ class PublicPagesTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_home_page_returns_200(): void
+    #[Test]
+    public function home_page_returns_200(): void
     {
         $response = $this->get('/');
         $response->assertStatus(200);
     }
 
-    public function test_stagione_page_returns_200(): void
+    #[Test]
+    public function stagione_page_returns_200(): void
     {
         $response = $this->get('/stagione');
         $response->assertStatus(200);
     }
 
-    public function test_cms_page_returns_200_for_published_page(): void
+    #[Test]
+    public function cms_page_returns_200_for_published_page(): void
     {
         Page::factory()->create([
             'slug' => 'test-page',
@@ -42,7 +46,8 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_societa_page_returns_200_for_published_page(): void
+    #[Test]
+    public function societa_page_returns_200_for_published_page(): void
     {
         Page::factory()->create([
             'slug' => 'storia',
@@ -56,19 +61,22 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_societa_root_redirects_to_storia(): void
+    #[Test]
+    public function societa_root_redirects_to_storia(): void
     {
         $response = $this->get('/societa');
         $response->assertRedirect('/societa/storia');
     }
 
-    public function test_en_societa_root_redirects_to_en_storia(): void
+    #[Test]
+    public function en_societa_root_redirects_to_en_storia(): void
     {
         $response = $this->get('/en/societa');
         $response->assertRedirect('/en/societa/storia');
     }
 
-    public function test_seo_catch_all_redirects_societa_pages_to_canonical_route(): void
+    #[Test]
+    public function seo_catch_all_redirects_societa_pages_to_canonical_route(): void
     {
         Page::factory()->create([
             'slug' => 'storia',
@@ -89,7 +97,8 @@ class PublicPagesTest extends TestCase
         $responseEn->assertStatus(301);
     }
 
-    public function test_cms_page_returns_404_for_draft_page(): void
+    #[Test]
+    public function cms_page_returns_404_for_draft_page(): void
     {
         Page::factory()->create([
             'slug' => 'draft-page',
@@ -101,7 +110,8 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(404);
     }
 
-    public function test_nonexistent_slug_returns_404(): void
+    #[Test]
+    public function nonexistent_slug_returns_404(): void
     {
         $response = $this->get('/this-page-does-not-exist');
         $response->assertStatus(404);
@@ -109,7 +119,8 @@ class PublicPagesTest extends TestCase
 
     // --- Nuovi test per le sottovoci dei menu e redirect ---
 
-    public function test_sponsor_subpages_return_200(): void
+    #[Test]
+    public function sponsor_subpages_return_200(): void
     {
         Page::factory()->create([
             'slug' => 'diventa-sponsor',
@@ -122,7 +133,8 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_ticketing_subpages_return_200(): void
+    #[Test]
+    public function ticketing_subpages_return_200(): void
     {
         Page::factory()->create([
             'slug' => 'abbonamenti',
@@ -135,7 +147,8 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_youth_subpages_return_200(): void
+    #[Test]
+    public function youth_subpages_return_200(): void
     {
         Page::factory()->create([
             'slug' => 'settore-giovanile',
@@ -148,7 +161,8 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_sociale_subpages_return_200(): void
+    #[Test]
+    public function sociale_subpages_return_200(): void
     {
         Page::factory()->create([
             'slug' => 'volley-4-all',
@@ -161,7 +175,8 @@ class PublicPagesTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_comunicazione_subpages_return_200(): void
+    #[Test]
+    public function comunicazione_subpages_return_200(): void
     {
         Page::factory()->create([
             'slug' => 'accrediti-stampa',
@@ -186,14 +201,16 @@ class PublicPagesTest extends TestCase
         $response2->assertStatus(200);
     }
 
-    public function test_sponsor_legacy_redirects(): void
+    #[Test]
+    public function sponsor_legacy_redirects(): void
     {
         $response = $this->get('/sponsor/nostri-sponsor');
         $response->assertRedirect('/sponsor');
         $response->assertStatus(301);
     }
 
-    public function test_youth_redirects(): void
+    #[Test]
+    public function youth_redirects(): void
     {
         $response1 = $this->get('/youth/b1-u19');
         $response1->assertRedirect('/stagione/b1');
@@ -213,7 +230,8 @@ class PublicPagesTest extends TestCase
         $response4->assertStatus(301);
     }
 
-    public function test_summer_camp_redirects(): void
+    #[Test]
+    public function summer_camp_redirects(): void
     {
         $response1 = $this->get('/summer-camp/info');
         $response1->assertRedirect('/summer-camp');
@@ -226,7 +244,8 @@ class PublicPagesTest extends TestCase
         $response2->assertStatus(301);
     }
 
-    public function test_sociale_redirects(): void
+    #[Test]
+    public function sociale_redirects(): void
     {
         $response1 = $this->get('/sociale/progetti');
         $response1->assertRedirect('/sociale/progetti-sociali');
@@ -237,7 +256,8 @@ class PublicPagesTest extends TestCase
         $response2->assertStatus(301);
     }
 
-    public function test_comunicazione_redirects(): void
+    #[Test]
+    public function comunicazione_redirects(): void
     {
         $response1 = $this->get('/comunicazione/accrediti');
         $response1->assertRedirect('/comunicazione/accrediti-stampa');
@@ -248,7 +268,8 @@ class PublicPagesTest extends TestCase
         $response2->assertStatus(301);
     }
 
-    public function test_seo_canonical_redirects_across_multiple_sections(): void
+    #[Test]
+    public function seo_canonical_redirects_across_multiple_sections(): void
     {
         // 1. Sponsor
         Page::factory()->create([

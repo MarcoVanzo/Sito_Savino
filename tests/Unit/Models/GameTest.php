@@ -9,20 +9,23 @@ use App\Models\Season;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class GameTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_game_belongs_to_season(): void
+    #[Test]
+    public function game_belongs_to_season(): void
     {
         $game = Game::factory()->create();
 
         $this->assertInstanceOf(Season::class, $game->season);
     }
 
-    public function test_game_has_home_and_away_teams(): void
+    #[Test]
+    public function game_has_home_and_away_teams(): void
     {
         $home = Team::factory()->create();
         $away = Team::factory()->create();
@@ -37,21 +40,24 @@ class GameTest extends TestCase
         $this->assertEquals($away->id, $game->awayTeam->id);
     }
 
-    public function test_match_date_is_cast_to_datetime(): void
+    #[Test]
+    public function match_date_is_cast_to_datetime(): void
     {
         $game = Game::factory()->create(['match_date' => '2025-03-15 20:30:00']);
 
         $this->assertInstanceOf(Carbon::class, $game->match_date);
     }
 
-    public function test_status_is_cast_to_enum(): void
+    #[Test]
+    public function status_is_cast_to_enum(): void
     {
         $game = Game::factory()->create();
 
         $this->assertInstanceOf(GameStatus::class, $game->status);
     }
 
-    public function test_competition_type_is_cast_to_enum(): void
+    #[Test]
+    public function competition_type_is_cast_to_enum(): void
     {
         $game = Game::factory()->create();
 

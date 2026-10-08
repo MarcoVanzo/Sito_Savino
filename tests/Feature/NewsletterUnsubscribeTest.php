@@ -6,6 +6,7 @@ use App\Jobs\UnsubscribeNewsletterFromActiveCampaign;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class NewsletterUnsubscribeTest extends TestCase
@@ -23,7 +24,8 @@ class NewsletterUnsubscribeTest extends TestCase
         ], $attributes));
     }
 
-    public function test_unsigned_link_is_rejected(): void
+    #[Test]
+    public function unsigned_link_is_rejected(): void
     {
         $subscriber = $this->subscriber();
 
@@ -31,7 +33,8 @@ class NewsletterUnsubscribeTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_tampered_link_does_not_unsubscribe_someone_else(): void
+    #[Test]
+    public function tampered_link_does_not_unsubscribe_someone_else(): void
     {
         $mine = $this->subscriber();
         $other = $this->subscriber(['email' => 'altro@example.com']);
@@ -48,7 +51,8 @@ class NewsletterUnsubscribeTest extends TestCase
         $this->assertTrue($other->fresh()->isSubscribed());
     }
 
-    public function test_signed_get_shows_the_confirmation_without_unsubscribing(): void
+    #[Test]
+    public function signed_get_shows_the_confirmation_without_unsubscribing(): void
     {
         Queue::fake();
 
@@ -63,7 +67,8 @@ class NewsletterUnsubscribeTest extends TestCase
         Queue::assertNotPushed(UnsubscribeNewsletterFromActiveCampaign::class);
     }
 
-    public function test_confirmation_unsubscribes_and_propagates_to_activecampaign(): void
+    #[Test]
+    public function confirmation_unsubscribes_and_propagates_to_activecampaign(): void
     {
         Queue::fake();
 
@@ -81,7 +86,8 @@ class NewsletterUnsubscribeTest extends TestCase
         );
     }
 
-    public function test_unsubscribing_twice_keeps_the_first_date(): void
+    #[Test]
+    public function unsubscribing_twice_keeps_the_first_date(): void
     {
         Queue::fake();
 
@@ -94,7 +100,8 @@ class NewsletterUnsubscribeTest extends TestCase
         Queue::assertNotPushed(UnsubscribeNewsletterFromActiveCampaign::class);
     }
 
-    public function test_deleting_a_subscriber_removes_the_contact_from_activecampaign(): void
+    #[Test]
+    public function deleting_a_subscriber_removes_the_contact_from_activecampaign(): void
     {
         Queue::fake();
 
@@ -109,7 +116,8 @@ class NewsletterUnsubscribeTest extends TestCase
         );
     }
 
-    public function test_resubscribing_after_unsubscribe_still_works(): void
+    #[Test]
+    public function resubscribing_after_unsubscribe_still_works(): void
     {
         Queue::fake();
 

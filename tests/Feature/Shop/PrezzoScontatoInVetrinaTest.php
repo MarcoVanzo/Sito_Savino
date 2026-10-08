@@ -6,6 +6,7 @@ use App\Enums\ProductType;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -27,7 +28,8 @@ class PrezzoScontatoInVetrinaTest extends TestCase
         Cache::flush();
     }
 
-    public function test_lo_sconto_in_corso_arriva_alla_pagina(): void
+    #[Test]
+    public function lo_sconto_in_corso_arriva_alla_pagina(): void
     {
         // Prima al prezzo pieno, poi scontato: senza un prezzo praticato prima
         // lo sconto non si annuncia (art. 17-bis, StoricoPrezziTest).
@@ -46,7 +48,8 @@ class PrezzoScontatoInVetrinaTest extends TestCase
             ->assertInertia(fn ($page) => $page->where('product.sale_price', '5.00')->where('product.price', '20.00'));
     }
 
-    public function test_uno_sconto_futuro_non_si_vede(): void
+    #[Test]
+    public function uno_sconto_futuro_non_si_vede(): void
     {
         $prodotto = $this->prodotto([
             'sale_price' => 5,
@@ -61,7 +64,8 @@ class PrezzoScontatoInVetrinaTest extends TestCase
         $this->assertSame(20.0, $prodotto->effectivePrice());
     }
 
-    public function test_uno_sconto_scaduto_non_si_vede_nemmeno_nella_griglia(): void
+    #[Test]
+    public function uno_sconto_scaduto_non_si_vede_nemmeno_nella_griglia(): void
     {
         $this->prodotto([
             'sale_price' => 5,

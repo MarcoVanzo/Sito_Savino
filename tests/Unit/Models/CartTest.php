@@ -7,13 +7,15 @@ use App\Models\CartItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CartTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_cart_belongs_to_user(): void
+    #[Test]
+    public function cart_belongs_to_user(): void
     {
         $user = User::factory()->create();
         $cart = Cart::factory()->create(['user_id' => $user->id]);
@@ -22,7 +24,8 @@ class CartTest extends TestCase
         $this->assertEquals($user->id, $cart->user->id);
     }
 
-    public function test_cart_has_many_items(): void
+    #[Test]
+    public function cart_has_many_items(): void
     {
         $cart = Cart::factory()->create();
         CartItem::factory()->create(['cart_id' => $cart->id]);
@@ -31,14 +34,16 @@ class CartTest extends TestCase
         $this->assertInstanceOf(CartItem::class, $cart->items->first());
     }
 
-    public function test_expires_at_is_cast_to_datetime(): void
+    #[Test]
+    public function expires_at_is_cast_to_datetime(): void
     {
         $cart = Cart::factory()->create(['expires_at' => now()->addHours(2)]);
 
         $this->assertInstanceOf(Carbon::class, $cart->expires_at);
     }
 
-    public function test_prunable_returns_expired_carts(): void
+    #[Test]
+    public function prunable_returns_expired_carts(): void
     {
         // Carrello scaduto da più di 7 giorni (dovrebbe essere pruned)
         $expiredCart = Cart::factory()->create([

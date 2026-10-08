@@ -15,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -135,7 +136,8 @@ class CheckoutConcurrencyTest extends TestCase
      * Alla fine deve esistere UN solo ordine e lo stock non deve mai essere
      * andato sotto zero.
      */
-    public function test_two_simultaneous_checkouts_on_the_last_unit_do_not_oversell(): void
+    #[Test]
+    public function two_simultaneous_checkouts_on_the_last_unit_do_not_oversell(): void
     {
         ShippingZone::factory()->create(['countries' => ['IT'], 'flat_rate' => 7, 'free_threshold' => null]);
         $product = Product::factory()->create(['stock' => 1, 'price' => 40]);
@@ -205,7 +207,8 @@ class CheckoutConcurrencyTest extends TestCase
      * È il guard che regge il caso in cui la validazione a monte sia stata
      * aggirata: senza `where('stock', '>=', ...)` lo stock finirebbe a -1.
      */
-    public function test_conditional_update_refuses_to_push_stock_below_zero(): void
+    #[Test]
+    public function conditional_update_refuses_to_push_stock_below_zero(): void
     {
         $product = Product::factory()->create(['stock' => 1]);
 
@@ -240,7 +243,8 @@ class CheckoutConcurrencyTest extends TestCase
      * Con l'UPDATE condizionale il secondo scarico viene respinto; con un
      * decremento secco la giacenza finirebbe a -1.
      */
-    public function test_stock_movement_is_rejected_when_another_connection_took_the_last_unit(): void
+    #[Test]
+    public function stock_movement_is_rejected_when_another_connection_took_the_last_unit(): void
     {
         $product = Product::factory()->create(['stock' => 1]);
 

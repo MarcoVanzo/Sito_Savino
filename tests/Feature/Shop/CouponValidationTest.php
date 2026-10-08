@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CouponValidationTest extends TestCase
@@ -68,7 +69,8 @@ class CouponValidationTest extends TestCase
         ]);
     }
 
-    public function test_valid_coupon_returns_the_calculated_discount(): void
+    #[Test]
+    public function valid_coupon_returns_the_calculated_discount(): void
     {
         $this->fillCartWithHundredEuros();
 
@@ -86,7 +88,8 @@ class CouponValidationTest extends TestCase
         ]);
     }
 
-    public function test_coupon_stops_being_accepted_once_its_window_closes(): void
+    #[Test]
+    public function coupon_stops_being_accepted_once_its_window_closes(): void
     {
         $this->fillCartWithHundredEuros();
 
@@ -110,7 +113,8 @@ class CouponValidationTest extends TestCase
         ]);
     }
 
-    public function test_coupon_is_not_accepted_before_its_window_opens(): void
+    #[Test]
+    public function coupon_is_not_accepted_before_its_window_opens(): void
     {
         $this->fillCartWithHundredEuros();
 
@@ -131,7 +135,8 @@ class CouponValidationTest extends TestCase
         ])->assertOk()->assertJson(['valid' => true, 'discount' => 15]);
     }
 
-    public function test_nonexistent_coupon_returns_error(): void
+    #[Test]
+    public function nonexistent_coupon_returns_error(): void
     {
         $this->fillCartWithHundredEuros();
 
@@ -146,7 +151,8 @@ class CouponValidationTest extends TestCase
         ]);
     }
 
-    public function test_expired_coupon_returns_error(): void
+    #[Test]
+    public function expired_coupon_returns_error(): void
     {
         $this->fillCartWithHundredEuros();
 
@@ -166,7 +172,8 @@ class CouponValidationTest extends TestCase
         ]);
     }
 
-    public function test_empty_cart_is_rejected_before_the_coupon_is_even_looked_up(): void
+    #[Test]
+    public function empty_cart_is_rejected_before_the_coupon_is_even_looked_up(): void
     {
         $coupon = $this->fixedCoupon(now()->subDay(), now()->addDays(30));
 

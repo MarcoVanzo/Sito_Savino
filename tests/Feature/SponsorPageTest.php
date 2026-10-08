@@ -7,6 +7,7 @@ use App\Models\Sponsor;
 use App\Services\SponsorDirectory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SponsorPageTest extends TestCase
@@ -20,7 +21,8 @@ class SponsorPageTest extends TestCase
         Cache::flush();
     }
 
-    public function test_gli_sponsor_sono_raggruppati_nellordine_dei_livelli(): void
+    #[Test]
+    public function gli_sponsor_sono_raggruppati_nellordine_dei_livelli(): void
     {
         Sponsor::factory()->create(['name' => 'Media', 'tier' => SponsorTier::Media]);
         Sponsor::factory()->create(['name' => 'Titolare', 'tier' => SponsorTier::Title]);
@@ -33,7 +35,8 @@ class SponsorPageTest extends TestCase
         $this->assertSame('Titolare', $tiers[0]['sponsors'][0]['name']);
     }
 
-    public function test_i_livelli_senza_sponsor_non_vengono_pubblicati(): void
+    #[Test]
+    public function i_livelli_senza_sponsor_non_vengono_pubblicati(): void
     {
         Sponsor::factory()->create(['tier' => SponsorTier::Supporter]);
 
@@ -42,7 +45,8 @@ class SponsorPageTest extends TestCase
         $this->assertSame(['supporter'], $chiavi);
     }
 
-    public function test_dentro_al_livello_conta_lordine_impostato_nel_pannello(): void
+    #[Test]
+    public function dentro_al_livello_conta_lordine_impostato_nel_pannello(): void
     {
         Sponsor::factory()->create(['name' => 'Secondo', 'tier' => SponsorTier::Official, 'sort_order' => 2]);
         Sponsor::factory()->create(['name' => 'Primo', 'tier' => SponsorTier::Official, 'sort_order' => 1]);
@@ -52,7 +56,8 @@ class SponsorPageTest extends TestCase
         $this->assertSame(['Primo', 'Secondo'], array_column($sponsors, 'name'));
     }
 
-    public function test_la_pagina_pubblica_riceve_i_livelli(): void
+    #[Test]
+    public function la_pagina_pubblica_riceve_i_livelli(): void
     {
         Sponsor::factory()->create(['tier' => SponsorTier::Title]);
 

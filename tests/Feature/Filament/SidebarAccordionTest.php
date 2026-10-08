@@ -5,6 +5,7 @@ namespace Tests\Feature\Filament;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SidebarAccordionTest extends TestCase
@@ -24,7 +25,8 @@ class SidebarAccordionTest extends TestCase
      * dei gruppi collassati solo al primo accesso, leggendola dallo stato dei
      * NavigationGroup del pannello.
      */
-    public function test_all_navigation_groups_start_collapsed(): void
+    #[Test]
+    public function all_navigation_groups_start_collapsed(): void
     {
         $html = $this->actingAs($this->admin())->get('/admin')->assertSuccessful()->getContent();
 
@@ -41,7 +43,8 @@ class SidebarAccordionTest extends TestCase
      * Lo script che rende il menu a fisarmonica (aprendo un gruppo si chiudono
      * gli altri) deve essere iniettato nel pannello.
      */
-    public function test_accordion_script_is_rendered(): void
+    #[Test]
+    public function accordion_script_is_rendered(): void
     {
         $this->actingAs($this->admin())
             ->get('/admin')

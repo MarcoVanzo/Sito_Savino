@@ -5,13 +5,15 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PasswordUpdateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_password_can_be_updated(): void
+    #[Test]
+    public function password_can_be_updated(): void
     {
         $user = User::factory()->create();
 
@@ -31,7 +33,8 @@ class PasswordUpdateTest extends TestCase
         $this->assertTrue(Hash::check('PasswordSicura!2026', $user->refresh()->password));
     }
 
-    public function test_current_session_survives_the_password_change(): void
+    #[Test]
+    public function current_session_survives_the_password_change(): void
     {
         $user = User::factory()->create();
 
@@ -51,7 +54,8 @@ class PasswordUpdateTest extends TestCase
         $this->assertAuthenticatedAs($user->fresh());
     }
 
-    public function test_a_session_with_a_stale_password_hash_is_logged_out(): void
+    #[Test]
+    public function a_session_with_a_stale_password_hash_is_logged_out(): void
     {
         $user = User::factory()->create();
 
@@ -65,7 +69,8 @@ class PasswordUpdateTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_correct_password_must_be_provided_to_update_password(): void
+    #[Test]
+    public function correct_password_must_be_provided_to_update_password(): void
     {
         $user = User::factory()->create();
 

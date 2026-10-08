@@ -11,6 +11,7 @@ use App\Filament\Resources\UserResource;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -41,7 +42,8 @@ class PanelAuthorizationTest extends TestCase
         Filament::auth()->setUser($user);
     }
 
-    public function test_la_cancellazione_in_blocco_non_e_permessa_a_chi_non_puo_cancellare(): void
+    #[Test]
+    public function la_cancellazione_in_blocco_non_e_permessa_a_chi_non_puo_cancellare(): void
     {
         // Il Resp. Comunicazione vede le atlete (canViewSport) ma non le gestisce.
         $this->actingInPanel($this->userWithRole(UserRole::CommunicationManager));
@@ -50,7 +52,8 @@ class PanelAuthorizationTest extends TestCase
         $this->assertFalse(PlayerResource::canRestoreAny());
     }
 
-    public function test_gli_ordini_non_sono_cancellabili_in_blocco_dal_resp_shop(): void
+    #[Test]
+    public function gli_ordini_non_sono_cancellabili_in_blocco_dal_resp_shop(): void
     {
         $this->actingInPanel($this->userWithRole(UserRole::ShopManager));
 
@@ -58,7 +61,8 @@ class PanelAuthorizationTest extends TestCase
         $this->assertFalse(OrderResource::canDeleteAny());
     }
 
-    public function test_solo_il_super_admin_cancella_in_blocco_gli_utenti(): void
+    #[Test]
+    public function solo_il_super_admin_cancella_in_blocco_gli_utenti(): void
     {
         $this->actingInPanel($this->userWithRole(UserRole::SportCoordinator));
         $this->assertFalse(UserResource::canDeleteAny());
@@ -67,7 +71,8 @@ class PanelAuthorizationTest extends TestCase
         $this->assertTrue(UserResource::canDeleteAny());
     }
 
-    public function test_il_registro_attivita_e_riservato_al_super_admin(): void
+    #[Test]
+    public function il_registro_attivita_e_riservato_al_super_admin(): void
     {
         $this->actingInPanel($this->userWithRole(UserRole::ShopManager));
         $this->assertFalse(ActivityLogResource::canViewAny());
@@ -76,7 +81,8 @@ class PanelAuthorizationTest extends TestCase
         $this->assertTrue(ActivityLogResource::canViewAny());
     }
 
-    public function test_gli_iscritti_newsletter_sono_riservati_alla_comunicazione(): void
+    #[Test]
+    public function gli_iscritti_newsletter_sono_riservati_alla_comunicazione(): void
     {
         $this->actingInPanel($this->userWithRole(UserRole::SportCoordinator));
         $this->assertFalse(NewsletterSubscriberResource::canViewAny());

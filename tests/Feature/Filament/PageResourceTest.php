@@ -9,6 +9,7 @@ use App\Models\Page;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -29,7 +30,8 @@ class PageResourceTest extends TestCase
         return $user;
     }
 
-    public function test_edit_form_is_filled_with_the_stored_content(): void
+    #[Test]
+    public function edit_form_is_filled_with_the_stored_content(): void
     {
         $page = Page::factory()->create([
             'title' => ['it' => 'Storia', 'en' => 'History'],
@@ -49,7 +51,8 @@ class PageResourceTest extends TestCase
      * in testo semplice invece che in JSON: il form deve mostrarle comunque,
      * altrimenti un salvataggio cancella il contenuto pubblicato.
      */
-    public function test_edit_form_is_filled_when_the_stored_content_is_legacy_plain_text(): void
+    #[Test]
+    public function edit_form_is_filled_when_the_stored_content_is_legacy_plain_text(): void
     {
         $page = Page::factory()->create();
 
@@ -65,7 +68,8 @@ class PageResourceTest extends TestCase
             ]);
     }
 
-    public function test_saving_an_untouched_edit_form_preserves_the_published_content(): void
+    #[Test]
+    public function saving_an_untouched_edit_form_preserves_the_published_content(): void
     {
         $page = Page::factory()->create([
             'title' => ['it' => 'Storia'],
@@ -80,7 +84,8 @@ class PageResourceTest extends TestCase
         $this->assertSame('<p>Contenuto pubblicato.</p>', $page->refresh()->getTranslation('content', 'it'));
     }
 
-    public function test_a_page_can_be_created_with_title_and_slug(): void
+    #[Test]
+    public function a_page_can_be_created_with_title_and_slug(): void
     {
         Livewire::actingAs($this->admin())
             ->test(CreatePage::class)

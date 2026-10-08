@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -19,14 +20,16 @@ class PreviewBasicAuthTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_protezione_spenta_il_sito_e_pubblico(): void
+    #[Test]
+    public function protezione_spenta_il_sito_e_pubblico(): void
     {
         config(['services.preview.enabled' => false]);
 
         $this->get('/')->assertOk();
     }
 
-    public function test_protezione_spenta_anche_con_credenziali_impostate(): void
+    #[Test]
+    public function protezione_spenta_anche_con_credenziali_impostate(): void
     {
         // Le credenziali restano nello spec di App Platform anche ora che il
         // sito è pubblico: da sole non devono più chiudere niente.
@@ -39,7 +42,8 @@ class PreviewBasicAuthTest extends TestCase
         $this->get('/')->assertOk();
     }
 
-    public function test_protezione_accesa_senza_credenziali_chiude_il_sito(): void
+    #[Test]
+    public function protezione_accesa_senza_credenziali_chiude_il_sito(): void
     {
         config([
             'services.preview.enabled' => true,
@@ -50,7 +54,8 @@ class PreviewBasicAuthTest extends TestCase
         $this->get('/')->assertStatus(503);
     }
 
-    public function test_protezione_accesa_rifiuta_chi_non_ha_credenziali(): void
+    #[Test]
+    public function protezione_accesa_rifiuta_chi_non_ha_credenziali(): void
     {
         config([
             'services.preview.enabled' => true,
@@ -63,7 +68,8 @@ class PreviewBasicAuthTest extends TestCase
             ->assertHeader('WWW-Authenticate', 'Basic');
     }
 
-    public function test_protezione_accesa_rifiuta_la_password_sbagliata(): void
+    #[Test]
+    public function protezione_accesa_rifiuta_la_password_sbagliata(): void
     {
         config([
             'services.preview.enabled' => true,
@@ -74,7 +80,8 @@ class PreviewBasicAuthTest extends TestCase
         $this->withBasicAuth('anteprima', 'sbagliata')->get('/')->assertStatus(401);
     }
 
-    public function test_protezione_accesa_lascia_passare_le_credenziali_giuste(): void
+    #[Test]
+    public function protezione_accesa_lascia_passare_le_credenziali_giuste(): void
     {
         config([
             'services.preview.enabled' => true,

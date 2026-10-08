@@ -12,6 +12,7 @@ use App\Models\ShippingZone;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -31,7 +32,8 @@ class ShopStockAndShippingTest extends TestCase
         Cache::flush();
     }
 
-    public function test_a_variable_product_reports_the_stock_of_its_variants(): void
+    #[Test]
+    public function a_variable_product_reports_the_stock_of_its_variants(): void
     {
         $product = Product::factory()->create([
             'type' => ProductType::Variable,
@@ -49,7 +51,8 @@ class ShopStockAndShippingTest extends TestCase
         $this->assertSame(30, $product->availableStock());
     }
 
-    public function test_a_simple_product_still_reports_its_own_stock(): void
+    #[Test]
+    public function a_simple_product_still_reports_its_own_stock(): void
     {
         $product = Product::factory()->create([
             'type' => ProductType::Simple,
@@ -59,7 +62,8 @@ class ShopStockAndShippingTest extends TestCase
         $this->assertSame(7, $product->availableStock());
     }
 
-    public function test_the_shop_grid_does_not_mark_a_stocked_variable_product_as_out_of_stock(): void
+    #[Test]
+    public function the_shop_grid_does_not_mark_a_stocked_variable_product_as_out_of_stock(): void
     {
         $category = ProductCategory::factory()->create();
 
@@ -87,7 +91,8 @@ class ShopStockAndShippingTest extends TestCase
         $this->assertSame(12, $card['stock']);
     }
 
-    public function test_shipping_zones_reach_the_client_as_numbers(): void
+    #[Test]
+    public function shipping_zones_reach_the_client_as_numbers(): void
     {
         ShippingZone::factory()->create([
             'countries' => ['IT'],

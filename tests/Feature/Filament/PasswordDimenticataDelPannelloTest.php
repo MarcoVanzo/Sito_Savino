@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Notification;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Livewire\Mechanisms\ComponentRegistry;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -26,7 +27,8 @@ class PasswordDimenticataDelPannelloTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_le_due_pagine_sono_al_loro_posto(): void
+    #[Test]
+    public function le_due_pagine_sono_al_loro_posto(): void
     {
         $panel = Filament::getPanel('admin');
 
@@ -34,7 +36,8 @@ class PasswordDimenticataDelPannelloTest extends TestCase
         $this->assertSame(ResetPassword::class, $panel->getResetPasswordRouteAction());
     }
 
-    public function test_la_richiesta_del_link_chiede_solo_l_email(): void
+    #[Test]
+    public function la_richiesta_del_link_chiede_solo_l_email(): void
     {
         $this->get('/admin/password-reset/request')
             ->assertOk()
@@ -42,7 +45,8 @@ class PasswordDimenticataDelPannelloTest extends TestCase
             ->assertDontSee('passwordConfirmation');
     }
 
-    public function test_il_link_arriva_e_porta_alla_pagina_con_la_policy(): void
+    #[Test]
+    public function il_link_arriva_e_porta_alla_pagina_con_la_policy(): void
     {
         Notification::fake();
         Filament::setCurrentPanel(Filament::getPanel('admin'));
@@ -74,7 +78,8 @@ class PasswordDimenticataDelPannelloTest extends TestCase
      * Stessa conferma per un indirizzo che non ha account: la notifica
      * d'errore di Filament diceva quali email sono registrate nel pannello.
      */
-    public function test_un_indirizzo_sconosciuto_riceve_la_stessa_conferma(): void
+    #[Test]
+    public function un_indirizzo_sconosciuto_riceve_la_stessa_conferma(): void
     {
         Notification::fake();
         Filament::setCurrentPanel(Filament::getPanel('admin'));
@@ -89,7 +94,8 @@ class PasswordDimenticataDelPannelloTest extends TestCase
         Notification::assertNothingSent();
     }
 
-    public function test_si_puo_tornare_al_modulo_per_un_altro_indirizzo(): void
+    #[Test]
+    public function si_puo_tornare_al_modulo_per_un_altro_indirizzo(): void
     {
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
@@ -102,7 +108,8 @@ class PasswordDimenticataDelPannelloTest extends TestCase
             ->assertFormSet(['email' => null]);
     }
 
-    public function test_la_conferma_non_si_accende_dal_browser(): void
+    #[Test]
+    public function la_conferma_non_si_accende_dal_browser(): void
     {
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
@@ -111,7 +118,8 @@ class PasswordDimenticataDelPannelloTest extends TestCase
         Livewire::test(RequestPasswordReset::class)->set('inviataA', 'chiunque@example.com');
     }
 
-    public function test_oltre_il_limite_il_modulo_resta(): void
+    #[Test]
+    public function oltre_il_limite_il_modulo_resta(): void
     {
         Notification::fake();
         Filament::setCurrentPanel(Filament::getPanel('admin'));

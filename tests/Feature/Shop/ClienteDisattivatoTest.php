@@ -5,6 +5,7 @@ namespace Tests\Feature\Shop;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -29,7 +30,8 @@ class ClienteDisattivatoTest extends TestCase
         return $user->refresh();
     }
 
-    public function test_un_cliente_disattivato_non_apre_il_suo_account(): void
+    #[Test]
+    public function un_cliente_disattivato_non_apre_il_suo_account(): void
     {
         $this->actingAs($this->disattivato())
             ->get(route('shop.account'))
@@ -38,13 +40,15 @@ class ClienteDisattivatoTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_un_cliente_disattivato_non_scarica_i_suoi_dati_ne_vede_gli_ordini(): void
+    #[Test]
+    public function un_cliente_disattivato_non_scarica_i_suoi_dati_ne_vede_gli_ordini(): void
     {
         $this->actingAs($this->disattivato())->get(route('shop.account.export'))->assertRedirect(route('login'));
         $this->actingAs($this->disattivato())->get(route('shop.orders'))->assertRedirect(route('login'));
     }
 
-    public function test_un_cliente_attivo_apre_il_suo_account(): void
+    #[Test]
+    public function un_cliente_attivo_apre_il_suo_account(): void
     {
         $this->actingAs(User::factory()->create())
             ->get(route('shop.account'))
@@ -55,7 +59,8 @@ class ClienteDisattivatoTest extends TestCase
      * Ogni rotta dello shop protetta da `auth` deve passare anche da
      * EnsureUserIsActive: vale per le rotte aggiunte in futuro.
      */
-    public function test_nessuna_rotta_pubblica_con_auth_salta_il_controllo_dell_account_attivo(): void
+    #[Test]
+    public function nessuna_rotta_pubblica_con_auth_salta_il_controllo_dell_account_attivo(): void
     {
         $scoperte = [];
 
