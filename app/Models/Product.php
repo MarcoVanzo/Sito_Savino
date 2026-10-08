@@ -33,19 +33,25 @@ class Product extends Model implements HasMedia
 
     public $translatable = ['name', 'description', 'short_description', 'personalizzazione_nome', 'stato_articolo'];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'price' => 'decimal:2',
-        'type' => ProductType::class,
-        'sale_price' => 'decimal:2',
-        'sale_start' => 'datetime',
-        'sale_end' => 'datetime',
-        'weight' => 'decimal:2',
-        'etichette' => 'array',
-        'personalizzazione_prezzo' => 'decimal:2',
-        'usato_o_autografato' => 'boolean',
-        'sort_order' => 'integer',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'price' => 'decimal:2',
+            'type' => ProductType::class,
+            'sale_price' => 'decimal:2',
+            'sale_start' => 'datetime',
+            'sale_end' => 'datetime',
+            'weight' => 'decimal:2',
+            'etichette' => 'array',
+            'personalizzazione_prezzo' => 'decimal:2',
+            'usato_o_autografato' => 'boolean',
+            'sort_order' => 'integer',
+        ];
+    }
 
     /**
      * @return BelongsTo<ProductCategory, $this>

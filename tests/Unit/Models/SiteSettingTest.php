@@ -4,6 +4,7 @@ namespace Tests\Unit\Models;
 
 use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SiteSettingTest extends TestCase
@@ -16,7 +17,8 @@ class SiteSettingTest extends TestCase
         SiteSetting::clearCache();
     }
 
-    public function test_get_returns_value_by_key(): void
+    #[Test]
+    public function get_returns_value_by_key(): void
     {
         SiteSetting::factory()->create([
             'key' => 'site.name',
@@ -27,12 +29,14 @@ class SiteSettingTest extends TestCase
         $this->assertEquals('Savino Del Bene', SiteSetting::get('site.name'));
     }
 
-    public function test_get_returns_default_when_key_not_found(): void
+    #[Test]
+    public function get_returns_default_when_key_not_found(): void
     {
         $this->assertEquals('fallback', SiteSetting::get('nonexistent.key', 'fallback'));
     }
 
-    public function test_set_creates_new_setting(): void
+    #[Test]
+    public function set_creates_new_setting(): void
     {
         SiteSetting::set('test.key', 'test_value');
 
@@ -42,7 +46,8 @@ class SiteSettingTest extends TestCase
         ]);
     }
 
-    public function test_set_updates_existing_setting(): void
+    #[Test]
+    public function set_updates_existing_setting(): void
     {
         SiteSetting::set('test.key', 'original');
         SiteSetting::set('test.key', 'updated');
@@ -57,7 +62,8 @@ class SiteSettingTest extends TestCase
         ]);
     }
 
-    public function test_get_public_grouped_filters_groups(): void
+    #[Test]
+    public function get_public_grouped_filters_groups(): void
     {
         SiteSetting::factory()->create([
             'key' => 'general.name',
@@ -77,7 +83,8 @@ class SiteSettingTest extends TestCase
         $this->assertArrayNotHasKey('system', $publicGrouped);
     }
 
-    public function test_le_impostazioni_json_tradotte_arrivano_nella_lingua_corrente(): void
+    #[Test]
+    public function le_impostazioni_json_tradotte_arrivano_nella_lingua_corrente(): void
     {
         // I numeri della homepage sono di tipo `json` e tradotti: prima di
         // risolvere anche gli array già decodificati, al frontend arrivava
@@ -104,7 +111,8 @@ class SiteSettingTest extends TestCase
         $this->assertSame('Years of History', SiteSetting::getGroup('home')['stats'][0]['label']);
     }
 
-    public function test_un_valore_json_senza_lingue_resta_intatto(): void
+    #[Test]
+    public function un_valore_json_senza_lingue_resta_intatto(): void
     {
         SiteSetting::updateOrCreate(['key' => 'active_payment_gateways'], [
             'group' => 'shop',

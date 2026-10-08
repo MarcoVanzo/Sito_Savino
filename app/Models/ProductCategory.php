@@ -19,9 +19,15 @@ class ProductCategory extends Model
 
     public $translatable = ['name', 'description'];
 
-    protected $casts = [
-        'sort_order' => 'integer',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'sort_order' => 'integer',
+        ];
+    }
 
     // --- Relazioni ---
 

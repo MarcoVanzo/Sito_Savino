@@ -5,13 +5,15 @@ namespace Tests\Unit\Models;
 use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CategoryTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_category_has_many_posts(): void
+    #[Test]
+    public function category_has_many_posts(): void
     {
         $category = Category::factory()->create();
         $post = Post::factory()->create();
@@ -20,7 +22,8 @@ class CategoryTest extends TestCase
         $this->assertCount(1, $category->posts);
     }
 
-    public function test_category_can_have_parent(): void
+    #[Test]
+    public function category_can_have_parent(): void
     {
         $parent = Category::factory()->create(['name' => 'Sport']);
         $child = Category::factory()->create(['parent_id' => $parent->id, 'name' => 'Volley']);
@@ -29,7 +32,8 @@ class CategoryTest extends TestCase
         $this->assertEquals('Sport', $child->parent->name);
     }
 
-    public function test_category_can_have_children(): void
+    #[Test]
+    public function category_can_have_children(): void
     {
         $parent = Category::factory()->create();
         Category::factory()->count(3)->create(['parent_id' => $parent->id]);
@@ -37,7 +41,8 @@ class CategoryTest extends TestCase
         $this->assertCount(3, $parent->children);
     }
 
-    public function test_root_category_has_null_parent(): void
+    #[Test]
+    public function root_category_has_null_parent(): void
     {
         $root = Category::factory()->create(['parent_id' => null]);
 

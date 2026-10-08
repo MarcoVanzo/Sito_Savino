@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\VersioneTestiConsenso;
 use App\Services\CatenaDeiConsensi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -21,7 +22,8 @@ class ConsensoCookieTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registra_la_scelta_e_restituisce_il_riferimento(): void
+    #[Test]
+    public function registra_la_scelta_e_restituisce_il_riferimento(): void
     {
         $risposta = $this->postJson(route('consenso-cookie.registra'), [
             'statistiche' => true,
@@ -40,7 +42,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame($risposta->json('riferimento'), $consenso->riferimento);
     }
 
-    public function test_non_conserva_l_indirizzo_in_chiaro(): void
+    #[Test]
+    public function non_conserva_l_indirizzo_in_chiaro(): void
     {
         $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.7'])
             ->postJson(route('consenso-cookie.registra'), ['statistiche' => false, 'marketing' => false])
@@ -58,7 +61,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertNotSame(ConsensoCookie::improntaDi('203.0.113.8'), $consenso->impronta_ip);
     }
 
-    public function test_chi_cambia_idea_aggiunge_una_riga_alla_propria_storia(): void
+    #[Test]
+    public function chi_cambia_idea_aggiunge_una_riga_alla_propria_storia(): void
     {
         $riferimento = $this->postJson(route('consenso-cookie.registra'), [
             'statistiche' => true,
@@ -78,7 +82,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame('revocato', $consensi[1]->azione);
     }
 
-    public function test_un_no_alla_prima_richiesta_e_un_rifiuto_non_una_revoca(): void
+    #[Test]
+    public function un_no_alla_prima_richiesta_e_un_rifiuto_non_una_revoca(): void
     {
         $this->postJson(route('consenso-cookie.registra'), ['statistiche' => false, 'marketing' => false])
             ->assertSuccessful();
@@ -86,7 +91,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame('rifiutato', ConsensoCookie::firstOrFail()->azione);
     }
 
-    public function test_una_scelta_parziale_di_chi_torna_e_un_aggiornamento(): void
+    #[Test]
+    public function una_scelta_parziale_di_chi_torna_e_un_aggiornamento(): void
     {
         $riferimento = $this->postJson(route('consenso-cookie.registra'), [
             'statistiche' => false,
@@ -102,7 +108,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame('aggiornato', ConsensoCookie::orderByDesc('id')->firstOrFail()->azione);
     }
 
-    public function test_rifiuta_una_richiesta_senza_le_due_scelte(): void
+    #[Test]
+    public function rifiuta_una_richiesta_senza_le_due_scelte(): void
     {
         $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true])
             ->assertStatus(422);
@@ -110,7 +117,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame(0, ConsensoCookie::count());
     }
 
-    public function test_rifiuta_un_riferimento_inventato(): void
+    #[Test]
+    public function rifiuta_un_riferimento_inventato(): void
     {
         $this->postJson(route('consenso-cookie.registra'), [
             'statistiche' => true,
@@ -121,7 +129,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame(0, ConsensoCookie::count());
     }
 
-    public function test_tiene_un_user_agent_lunghissimo_senza_perdere_il_consenso(): void
+    #[Test]
+    public function tiene_un_user_agent_lunghissimo_senza_perdere_il_consenso(): void
     {
         $this->withHeaders(['User-Agent' => str_repeat('x', 900)])
             ->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true])
@@ -144,7 +153,8 @@ class ConsensoCookieTest extends TestCase
         $pagina->save();
     }
 
-    public function test_l_impronta_dell_ip_usa_il_sale_dedicato_e_non_la_chiave_dell_applicazione(): void
+    #[Test]
+    public function l_impronta_dell_ip_usa_il_sale_dedicato_e_non_la_chiave_dell_applicazione(): void
     {
         config(['services.consensi.sale' => 'sale-dedicato', 'app.key' => 'base64:chiave-vecchia']);
 
@@ -156,7 +166,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame($prima, ConsensoCookie::improntaDi('203.0.113.7'));
     }
 
-    public function test_senza_sale_dedicato_ripiega_sulla_chiave_dell_applicazione(): void
+    #[Test]
+    public function senza_sale_dedicato_ripiega_sulla_chiave_dell_applicazione(): void
     {
         // Il deploy non si rompe se CONSENSI_SALE non è ancora impostato: le
         // impronte restano quelle calcolate finora.
@@ -169,7 +180,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame('base64:chiave', ConsensoCookie::sale());
     }
 
-    public function test_il_consenso_porta_l_impronta_dei_testi_mostrati_e_l_archivio_li_conserva(): void
+    #[Test]
+    public function il_consenso_porta_l_impronta_dei_testi_mostrati_e_l_archivio_li_conserva(): void
     {
         $this->cookiePolicy(['it' => '<p>Usiamo cookie tecnici.</p>', 'en' => '<p>We use technical cookies.</p>']);
 
@@ -195,7 +207,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertArrayHasKey('categorie', $testi['lingue']['it']['dichiarazione']);
     }
 
-    public function test_con_gli_stessi_testi_l_archivio_non_si_ripete_e_con_testi_nuovi_si_allunga(): void
+    #[Test]
+    public function con_gli_stessi_testi_l_archivio_non_si_ripete_e_con_testi_nuovi_si_allunga(): void
     {
         $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true]);
         $this->postJson(route('consenso-cookie.registra'), ['statistiche' => false, 'marketing' => false]);
@@ -214,7 +227,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertNotSame($impronte[1], $impronte[2]);
     }
 
-    public function test_un_testo_archiviato_non_si_modifica_ne_si_cancella(): void
+    #[Test]
+    public function un_testo_archiviato_non_si_modifica_ne_si_cancella(): void
     {
         $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true]);
         $versione = VersioneTestiConsenso::firstOrFail();
@@ -234,7 +248,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertSame(1, VersioneTestiConsenso::count());
     }
 
-    public function test_ogni_consenso_si_aggancia_al_precedente_nella_catena(): void
+    #[Test]
+    public function ogni_consenso_si_aggancia_al_precedente_nella_catena(): void
     {
         $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true]);
         $this->postJson(route('consenso-cookie.registra'), ['statistiche' => false, 'marketing' => false]);
@@ -246,7 +261,8 @@ class ConsensoCookieTest extends TestCase
         $this->assertNull(CatenaDeiConsensi::verifica()['guasto']);
     }
 
-    public function test_un_consenso_registrato_non_si_modifica_ne_si_cancella_dal_modello(): void
+    #[Test]
+    public function un_consenso_registrato_non_si_modifica_ne_si_cancella_dal_modello(): void
     {
         $this->postJson(route('consenso-cookie.registra'), ['statistiche' => true, 'marketing' => true]);
         $consenso = ConsensoCookie::firstOrFail();

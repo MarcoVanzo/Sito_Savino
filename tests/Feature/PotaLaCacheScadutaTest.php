@@ -5,13 +5,15 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PotaLaCacheScadutaTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_toglie_solo_le_righe_scadute_della_cache_su_database(): void
+    #[Test]
+    public function toglie_solo_le_righe_scadute_della_cache_su_database(): void
     {
         config(['cache.default' => 'database']);
         $prefisso = Cache::store('database')->getPrefix();
@@ -33,7 +35,8 @@ class PotaLaCacheScadutaTest extends TestCase
         );
     }
 
-    public function test_con_un_altro_driver_non_fa_niente(): void
+    #[Test]
+    public function con_un_altro_driver_non_fa_niente(): void
     {
         DB::table('cache')->insert([
             'key' => 'scaduta', 'value' => serialize('no'), 'expiration' => now()->subMinute()->getTimestamp(),

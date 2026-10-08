@@ -6,6 +6,7 @@ use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ContactFormTest extends TestCase
@@ -18,13 +19,15 @@ class ContactFormTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_contact_page_returns_200(): void
+    #[Test]
+    public function contact_page_returns_200(): void
     {
         $response = $this->get(route('contatti'));
         $response->assertStatus(200);
     }
 
-    public function test_contact_form_submission_with_valid_data(): void
+    #[Test]
+    public function contact_form_submission_with_valid_data(): void
     {
         Mail::fake();
 
@@ -47,7 +50,8 @@ class ContactFormTest extends TestCase
         ]);
     }
 
-    public function test_la_notifica_va_al_recapito_dei_contatti_non_al_mittente_di_sistema(): void
+    #[Test]
+    public function la_notifica_va_al_recapito_dei_contatti_non_al_mittente_di_sistema(): void
     {
         config(['mail.default' => 'array', 'mail.from.address' => 'noreply@example.test']);
         SiteSetting::updateOrCreate(['key' => 'email'], ['group' => 'contact', 'value' => 'info@example.test', 'type' => 'text']);
@@ -65,7 +69,8 @@ class ContactFormTest extends TestCase
         $this->assertSame('info@example.test', $inviate[0]->getOriginalMessage()->getTo()[0]->getAddress());
     }
 
-    public function test_contact_form_validates_required_fields(): void
+    #[Test]
+    public function contact_form_validates_required_fields(): void
     {
         $response = $this->post(route('contatti.submit'), [
             'honeypot' => '',
@@ -74,7 +79,8 @@ class ContactFormTest extends TestCase
         $response->assertSessionHasErrors(['name', 'email', 'message']);
     }
 
-    public function test_contact_form_validates_email_format(): void
+    #[Test]
+    public function contact_form_validates_email_format(): void
     {
         $response = $this->post(route('contatti.submit'), [
             'name' => 'Marco',
@@ -86,7 +92,8 @@ class ContactFormTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    public function test_honeypot_traps_bots(): void
+    #[Test]
+    public function honeypot_traps_bots(): void
     {
         Mail::fake();
 

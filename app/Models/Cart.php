@@ -16,9 +16,15 @@ class Cart extends Model
         'session_id', 'user_id', 'expires_at',
     ];
 
-    protected $casts = [
-        'expires_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+        ];
+    }
 
     /**
      * Carrelli scaduti da più di 7 giorni vengono eliminati automaticamente.

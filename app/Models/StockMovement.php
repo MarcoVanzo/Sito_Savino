@@ -28,9 +28,15 @@ class StockMovement extends Model
         'notes',
     ];
 
-    protected $casts = [
-        'type' => StockMovementType::class,
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => StockMovementType::class,
+        ];
+    }
 
     public function product(): BelongsTo
     {

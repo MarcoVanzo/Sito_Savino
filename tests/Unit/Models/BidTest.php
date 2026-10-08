@@ -6,13 +6,15 @@ use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BidTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_bid_belongs_to_auction(): void
+    #[Test]
+    public function bid_belongs_to_auction(): void
     {
         $auction = Auction::factory()->create();
         $bid = Bid::factory()->create(['auction_id' => $auction->id]);
@@ -21,7 +23,8 @@ class BidTest extends TestCase
         $this->assertEquals($auction->id, $bid->auction->id);
     }
 
-    public function test_bid_belongs_to_user(): void
+    #[Test]
+    public function bid_belongs_to_user(): void
     {
         $user = User::factory()->create();
         $bid = Bid::factory()->create(['user_id' => $user->id]);
@@ -30,7 +33,8 @@ class BidTest extends TestCase
         $this->assertEquals($user->id, $bid->user->id);
     }
 
-    public function test_valid_scope(): void
+    #[Test]
+    public function valid_scope(): void
     {
         $validBid = Bid::factory()->create();
         $validBid->refresh();
@@ -45,7 +49,8 @@ class BidTest extends TestCase
         $this->assertNotContains($invalidBid->id, $results);
     }
 
-    public function test_highest_first_scope(): void
+    #[Test]
+    public function highest_first_scope(): void
     {
         $auction = Auction::factory()->create();
 
@@ -60,7 +65,8 @@ class BidTest extends TestCase
         $this->assertEquals($low->id, $results[2]);
     }
 
-    public function test_invalidate_method(): void
+    #[Test]
+    public function invalidate_method(): void
     {
         $bid = Bid::factory()->create();
         $bid->refresh();

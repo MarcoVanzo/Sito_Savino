@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class EnsureUserIsActiveTest extends TestCase
@@ -16,7 +17,8 @@ class EnsureUserIsActiveTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_active_user_can_access_dashboard(): void
+    #[Test]
+    public function active_user_can_access_dashboard(): void
     {
         $user = User::factory()->create();
         // is_active is set to true by factory afterCreating, no need to change
@@ -26,7 +28,8 @@ class EnsureUserIsActiveTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_inactive_user_is_redirected_to_login(): void
+    #[Test]
+    public function inactive_user_is_redirected_to_login(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['is_active' => false])->save();
@@ -37,7 +40,8 @@ class EnsureUserIsActiveTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function test_inactive_user_is_logged_out(): void
+    #[Test]
+    public function inactive_user_is_logged_out(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['is_active' => false])->save();
@@ -48,7 +52,8 @@ class EnsureUserIsActiveTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_inactive_user_sees_error_message(): void
+    #[Test]
+    public function inactive_user_sees_error_message(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['is_active' => false])->save();
@@ -59,7 +64,8 @@ class EnsureUserIsActiveTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
-    public function test_active_user_can_access_profile(): void
+    #[Test]
+    public function active_user_can_access_profile(): void
     {
         $user = User::factory()->create();
         // is_active is set to true by factory afterCreating, no need to change
@@ -69,7 +75,8 @@ class EnsureUserIsActiveTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_inactive_user_cannot_access_profile(): void
+    #[Test]
+    public function inactive_user_cannot_access_profile(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['is_active' => false])->save();

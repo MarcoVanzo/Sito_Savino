@@ -6,13 +6,15 @@ use App\Enums\CouponType;
 use App\Models\Coupon;
 use App\Models\CouponUsage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CouponTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_coupon_has_many_usages(): void
+    #[Test]
+    public function coupon_has_many_usages(): void
     {
         $coupon = Coupon::factory()->create();
         CouponUsage::factory()->create(['coupon_id' => $coupon->id]);
@@ -21,7 +23,8 @@ class CouponTest extends TestCase
         $this->assertInstanceOf(CouponUsage::class, $coupon->usages->first());
     }
 
-    public function test_active_scope(): void
+    #[Test]
+    public function active_scope(): void
     {
         $active = Coupon::factory()->create(['is_active' => true]);
         $inactive = Coupon::factory()->inactive()->create();
@@ -32,14 +35,16 @@ class CouponTest extends TestCase
         $this->assertNotContains($inactive->id, $results);
     }
 
-    public function test_is_valid_for_order_returns_false_for_inactive(): void
+    #[Test]
+    public function is_valid_for_order_returns_false_for_inactive(): void
     {
         $coupon = Coupon::factory()->create(['is_active' => false]);
 
         $this->assertFalse($coupon->isValidForOrder(100.00));
     }
 
-    public function test_is_valid_for_order_returns_false_when_expired(): void
+    #[Test]
+    public function is_valid_for_order_returns_false_when_expired(): void
     {
         $coupon = Coupon::factory()->create([
             'is_active' => true,
@@ -49,7 +54,8 @@ class CouponTest extends TestCase
         $this->assertFalse($coupon->isValidForOrder(100.00));
     }
 
-    public function test_is_valid_for_order_returns_false_below_min_amount(): void
+    #[Test]
+    public function is_valid_for_order_returns_false_below_min_amount(): void
     {
         $coupon = Coupon::factory()->create([
             'is_active' => true,
@@ -60,7 +66,8 @@ class CouponTest extends TestCase
         $this->assertFalse($coupon->isValidForOrder(30.00));
     }
 
-    public function test_is_valid_for_order_returns_false_when_max_uses_reached(): void
+    #[Test]
+    public function is_valid_for_order_returns_false_when_max_uses_reached(): void
     {
         $coupon = Coupon::factory()->create([
             'is_active' => true,
@@ -73,7 +80,8 @@ class CouponTest extends TestCase
         $this->assertFalse($coupon->isValidForOrder(100.00));
     }
 
-    public function test_is_valid_for_order_returns_true_for_valid_coupon(): void
+    #[Test]
+    public function is_valid_for_order_returns_true_for_valid_coupon(): void
     {
         $coupon = Coupon::factory()->create([
             'is_active' => true,
@@ -87,7 +95,8 @@ class CouponTest extends TestCase
         $this->assertTrue($coupon->isValidForOrder(100.00));
     }
 
-    public function test_calculate_discount_percentage(): void
+    #[Test]
+    public function calculate_discount_percentage(): void
     {
         $coupon = Coupon::factory()->create([
             'type' => CouponType::Percentage,
@@ -98,7 +107,8 @@ class CouponTest extends TestCase
         $this->assertEquals(10.00, $coupon->calculateDiscount(100.00));
     }
 
-    public function test_calculate_discount_fixed(): void
+    #[Test]
+    public function calculate_discount_fixed(): void
     {
         $coupon = Coupon::factory()->create([
             'type' => CouponType::Fixed,
@@ -108,7 +118,8 @@ class CouponTest extends TestCase
         $this->assertEquals(15.00, $coupon->calculateDiscount(100.00));
     }
 
-    public function test_calculate_discount_percentage_capped(): void
+    #[Test]
+    public function calculate_discount_percentage_capped(): void
     {
         $coupon = Coupon::factory()->create([
             'type' => CouponType::Percentage,
@@ -119,7 +130,8 @@ class CouponTest extends TestCase
         $this->assertEquals(20.00, $coupon->calculateDiscount(100.00));
     }
 
-    public function test_calculate_discount_cannot_exceed_subtotal(): void
+    #[Test]
+    public function calculate_discount_cannot_exceed_subtotal(): void
     {
         $coupon = Coupon::factory()->create([
             'type' => CouponType::Fixed,
@@ -129,7 +141,8 @@ class CouponTest extends TestCase
         $this->assertEquals(100.00, $coupon->calculateDiscount(100.00));
     }
 
-    public function test_increment_usage(): void
+    #[Test]
+    public function increment_usage(): void
     {
         $coupon = Coupon::factory()->create(['used_count' => 0]);
 

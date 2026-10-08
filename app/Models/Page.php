@@ -165,9 +165,15 @@ class Page extends Model implements HasMedia
 
     public $translatable = ['title', 'content', 'excerpt', 'content_data', 'meta_description'];
 
-    protected $casts = [
-        'status' => PostStatus::class,
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => PostStatus::class,
+        ];
+    }
 
     public function author(): BelongsTo
     {

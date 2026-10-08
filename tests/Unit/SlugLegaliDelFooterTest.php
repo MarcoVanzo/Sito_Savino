@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Filament\Resources\PageResource\Pages\ListPages;
 use App\Support\PagineLegaliDelloShop;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -24,7 +25,8 @@ class SlugLegaliDelFooterTest extends TestCase
         PagineLegaliDelloShop::REGOLAMENTO_ASTE,
     ];
 
-    public function test_la_scheda_legali_e_il_footer_elencano_le_stesse_pagine(): void
+    #[Test]
+    public function la_scheda_legali_e_il_footer_elencano_le_stesse_pagine(): void
     {
         $vue = (string) file_get_contents(resource_path('js/Components/SiteFooter.vue'));
         preg_match_all("/route\\('pages\\.show',\\s*'([^']+)'\\)/", $vue, $trovati);

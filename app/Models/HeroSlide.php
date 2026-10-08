@@ -26,10 +26,16 @@ class HeroSlide extends Model implements HasMedia
 
     public $translatable = ['title', 'subtitle', 'cta_text'];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'sort_order' => 'integer',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
+        ];
+    }
 
     /**
      * Register media collections for hero slide images.

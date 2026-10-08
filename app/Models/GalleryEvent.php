@@ -30,10 +30,16 @@ class GalleryEvent extends Model
         'is_active',
     ];
 
-    protected $casts = [
-        'event_date' => 'date',
-        'is_active' => 'boolean',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'event_date' => 'date',
+            'is_active' => 'boolean',
+        ];
+    }
 
     /**
      * @return HasMany<GalleryImage, $this>

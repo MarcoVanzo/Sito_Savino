@@ -28,11 +28,17 @@ class Roster extends Model implements HasMedia
         'bio',
     ];
 
-    protected $casts = [
-        'is_captain' => 'boolean',
-        'height_cm' => 'integer',
-        'role' => PlayerPosition::class,
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_captain' => 'boolean',
+            'height_cm' => 'integer',
+            'role' => PlayerPosition::class,
+        ];
+    }
 
     protected $appends = ['official_photo_url'];
 

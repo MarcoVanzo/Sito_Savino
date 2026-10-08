@@ -21,15 +21,21 @@ class Coupon extends Model
         'valid_from', 'valid_until', 'is_active', 'description',
     ];
 
-    protected $casts = [
-        'type' => CouponType::class,
-        'value' => 'decimal:2',
-        'max_discount' => 'decimal:2',
-        'min_order_amount' => 'decimal:2',
-        'is_active' => 'boolean',
-        'valid_from' => 'datetime',
-        'valid_until' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'type' => CouponType::class,
+            'value' => 'decimal:2',
+            'max_discount' => 'decimal:2',
+            'min_order_amount' => 'decimal:2',
+            'is_active' => 'boolean',
+            'valid_from' => 'datetime',
+            'valid_until' => 'datetime',
+        ];
+    }
 
     // --- Relazioni ---
 

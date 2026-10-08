@@ -9,6 +9,7 @@ use App\Models\Season;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -33,7 +34,8 @@ class PagineDelleSquadreYouthTest extends TestCase
         $this->stagione = Season::factory()->create(['is_current' => true]);
     }
 
-    public function test_ogni_squadra_del_vivaio_pubblica_la_propria_rosa(): void
+    #[Test]
+    public function ogni_squadra_del_vivaio_pubblica_la_propria_rosa(): void
     {
         $u17 = $this->atletaDi('U17', 'Bianchi');
         $u15 = $this->atletaDi('U15', 'Rossi');
@@ -59,7 +61,8 @@ class PagineDelleSquadreYouthTest extends TestCase
      * Il palmares resta alla prima squadra: le voci di Wikipedia delle
      * giovanili non esistono.
      */
-    public function test_le_giovanili_non_espongono_il_palmares(): void
+    #[Test]
+    public function le_giovanili_non_espongono_il_palmares(): void
     {
         $this->atletaDi('U17', 'Bianchi');
 
@@ -73,7 +76,8 @@ class PagineDelleSquadreYouthTest extends TestCase
      * subito: senza atlete tesserate mostra la rosa vuota invece di un 500 su
      * una voce di menu pubblicata.
      */
-    public function test_senza_atlete_la_pagina_risponde_con_la_rosa_vuota(): void
+    #[Test]
+    public function senza_atlete_la_pagina_risponde_con_la_rosa_vuota(): void
     {
         $this->get('/stagione/u15')
             ->assertOk()
@@ -87,7 +91,8 @@ class PagineDelleSquadreYouthTest extends TestCase
      * pagina esistevano da sempre, la squadra no, e la rosa restava vuota
      * qualunque cosa la redazione tesserasse.
      */
-    public function test_anche_la_b1_ha_la_sua_squadra_e_la_sua_rosa(): void
+    #[Test]
+    public function anche_la_b1_ha_la_sua_squadra_e_la_sua_rosa(): void
     {
         $atleta = $this->atletaDi('B1', 'Verdi');
 

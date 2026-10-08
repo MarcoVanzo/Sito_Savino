@@ -8,6 +8,7 @@ use App\Models\Season;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SeasonResourceTest extends TestCase
@@ -22,7 +23,8 @@ class SeasonResourceTest extends TestCase
         return $user;
     }
 
-    public function test_marking_a_season_as_current_demotes_the_others_on_save(): void
+    #[Test]
+    public function marking_a_season_as_current_demotes_the_others_on_save(): void
     {
         $old = Season::factory()->create(['is_current' => true]);
         $new = Season::factory()->create(['is_current' => false]);
@@ -37,7 +39,8 @@ class SeasonResourceTest extends TestCase
         $this->assertFalse($old->refresh()->is_current);
     }
 
-    public function test_toggling_without_saving_does_not_demote_the_current_season(): void
+    #[Test]
+    public function toggling_without_saving_does_not_demote_the_current_season(): void
     {
         $old = Season::factory()->create(['is_current' => true]);
         $new = Season::factory()->create(['is_current' => false]);

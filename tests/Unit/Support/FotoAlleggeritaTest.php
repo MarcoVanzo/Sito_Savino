@@ -6,6 +6,7 @@ use App\Models\GalleryImage;
 use App\Models\HeroSlide;
 use App\Models\Product;
 use App\Support\FotoAlleggerita;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class FotoAlleggeritaTest extends TestCase
@@ -26,7 +27,8 @@ class FotoAlleggeritaTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_la_foto_da_fotocamera_scende_a_2560_px_e_pesa_meno(): void
+    #[Test]
+    public function la_foto_da_fotocamera_scende_a_2560_px_e_pesa_meno(): void
     {
         $percorso = $this->foto('foto.jpg', 6000, 4000, fn ($i, $p) => imagejpeg($i, $p, 98));
         $prima = filesize($percorso);
@@ -39,7 +41,8 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertLessThan($prima, filesize($percorso));
     }
 
-    public function test_la_foto_gia_piccola_non_si_ingrandisce_ne_peggiora(): void
+    #[Test]
+    public function la_foto_gia_piccola_non_si_ingrandisce_ne_peggiora(): void
     {
         $percorso = $this->foto('piccola.jpg', 800, 600, fn ($i, $p) => imagejpeg($i, $p, 60));
         $prima = file_get_contents($percorso);
@@ -54,7 +57,8 @@ class FotoAlleggeritaTest extends TestCase
      * Il GD di Linux perde la trasparenza ridimensionando (quello di macOS
      * no): un logo PNG grande deve restare com'e', byte per byte.
      */
-    public function test_il_png_non_si_tocca_anche_se_grande(): void
+    #[Test]
+    public function il_png_non_si_tocca_anche_se_grande(): void
     {
         $percorso = $this->cartella.'/logo.png';
         $immagine = imagecreatetruecolor(4000, 4000);
@@ -69,7 +73,8 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertSame($prima, file_get_contents($percorso));
     }
 
-    public function test_il_profilo_colore_del_jpeg_resta(): void
+    #[Test]
+    public function il_profilo_colore_del_jpeg_resta(): void
     {
         $percorso = $this->foto('p3.jpg', 6000, 4000, fn ($i, $p) => imagejpeg($i, $p, 95));
         $profilo = "ICC_PROFILE\0\x01\x01".str_repeat('P3', 300);
@@ -85,7 +90,8 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertNotFalse(imagecreatefromstring($risultato), 'il JPEG con il profilo deve restare leggibile');
     }
 
-    public function test_la_foto_gia_piccola_e_leggera_non_si_ricodifica(): void
+    #[Test]
+    public function la_foto_gia_piccola_e_leggera_non_si_ricodifica(): void
     {
         $percorso = $this->foto('leggera.jpg', 1600, 1200, fn ($i, $p) => imagejpeg($i, $p, 95));
         $this->assertLessThan(FotoAlleggerita::PESO_DA_RICOMPRIMERE, filesize($percorso));
@@ -101,7 +107,8 @@ class FotoAlleggeritaTest extends TestCase
      * sul GD di Linux la conversione andava in 500. Il profilo si toglie,
      * i pixel restano identici.
      */
-    public function test_il_profilo_del_png_si_toglie_senza_toccare_i_pixel(): void
+    #[Test]
+    public function il_profilo_del_png_si_toglie_senza_toccare_i_pixel(): void
     {
         $percorso = $this->cartella.'/profilo.png';
         $immagine = imagecreatetruecolor(300, 200);
@@ -118,7 +125,8 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertFalse(FotoAlleggerita::togliIlProfiloDalPng($percorso), 'senza profilo non si riscrive');
     }
 
-    public function test_la_copia_per_compreface_sta_sotto_il_limite_e_l_originale_resta(): void
+    #[Test]
+    public function la_copia_per_compreface_sta_sotto_il_limite_e_l_originale_resta(): void
     {
         $percorso = $this->foto('grande.jpg', 6000, 4000, fn ($i, $p) => imagejpeg($i, $p, 98));
         $prima = file_get_contents($percorso);
@@ -134,7 +142,8 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertSame($percorso, FotoAlleggerita::copiaSotto($percorso, strlen($prima)), 'gia sotto il limite: l originale');
     }
 
-    public function test_cio_che_non_e_una_foto_non_si_tocca(): void
+    #[Test]
+    public function cio_che_non_e_una_foto_non_si_tocca(): void
     {
         $percorso = $this->cartella.'/documento.pdf';
         file_put_contents($percorso, "%PDF-1.4\n%falso\n");
@@ -144,7 +153,8 @@ class FotoAlleggeritaTest extends TestCase
         $this->assertSame("%PDF-1.4\n%falso\n", file_get_contents($percorso));
     }
 
-    public function test_la_gallery_resta_originale_per_il_riconoscimento_dei_volti(): void
+    #[Test]
+    public function la_gallery_resta_originale_per_il_riconoscimento_dei_volti(): void
     {
         $this->assertNull(FotoAlleggerita::latoMassimoPer(new GalleryImage));
         $this->assertSame(3840, FotoAlleggerita::latoMassimoPer(new HeroSlide));

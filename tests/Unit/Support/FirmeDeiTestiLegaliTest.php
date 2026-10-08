@@ -3,6 +3,7 @@
 namespace Tests\Unit\Support;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -32,7 +33,8 @@ class FirmeDeiTestiLegaliTest extends TestCase
     }
 
     #[DataProvider('fileConFirme')]
-    public function test_nessuna_firma_compare_nel_testo_attuale(string $file): void
+    #[Test]
+    public function nessuna_firma_compare_nel_testo_attuale(string $file): void
     {
         $testi = require database_path('data/'.$file);
 
@@ -56,7 +58,8 @@ class FirmeDeiTestiLegaliTest extends TestCase
      * Tutti i file dati con le firme sono nell'elenco qui sopra: uno nuovo
      * dimenticato sfuggirebbe al controllo.
      */
-    public function test_l_elenco_dei_file_con_firme_e_completo(): void
+    #[Test]
+    public function l_elenco_dei_file_con_firme_e_completo(): void
     {
         $conFirme = [];
 

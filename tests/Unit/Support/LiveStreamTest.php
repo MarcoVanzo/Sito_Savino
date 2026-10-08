@@ -4,6 +4,7 @@ namespace Tests\Unit\Support;
 
 use App\Support\LiveStream;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class LiveStreamTest extends TestCase
@@ -23,12 +24,14 @@ class LiveStreamTest extends TestCase
     }
 
     #[DataProvider('piattaformeIncorporabili')]
-    public function test_le_piattaforme_conosciute_diventano_url_di_embed(string $url, string $atteso): void
+    #[Test]
+    public function le_piattaforme_conosciute_diventano_url_di_embed(string $url, string $atteso): void
     {
         $this->assertSame($atteso, LiveStream::embedUrl($url));
     }
 
-    public function test_twitch_riceve_il_dominio_che_ospita_iframe(): void
+    #[Test]
+    public function twitch_riceve_il_dominio_che_ospita_iframe(): void
     {
         config(['app.url' => 'https://savinodelbenevolley.it']);
 
@@ -60,7 +63,8 @@ class LiveStreamTest extends TestCase
      * L'indirizzo del player passa intero: la chiave `h=` dei video non elencati
      * fa parte del link e toglierla lascerebbe un iframe che non parte.
      */
-    public function test_il_player_di_vimeo_passa_con_la_sua_chiave(): void
+    #[Test]
+    public function il_player_di_vimeo_passa_con_la_sua_chiave(): void
     {
         $this->assertSame(
             'https://player.vimeo.com/video/123456789?h=abc',
@@ -72,7 +76,8 @@ class LiveStreamTest extends TestCase
      * Il link non incorporabile viene aperto in una scheda nuova, cioè finisce
      * in un `href`: deve restare un indirizzo web.
      */
-    public function test_solo_i_link_web_vengono_riproposti_al_frontend(): void
+    #[Test]
+    public function solo_i_link_web_vengono_riproposti_al_frontend(): void
     {
         $this->assertSame(
             'https://streaming-qualsiasi.example/diretta',
@@ -89,7 +94,8 @@ class LiveStreamTest extends TestCase
      * una scheda nuova, così la pagina non carica codice di terzi sconosciuti.
      */
     #[DataProvider('indirizziNonIncorporabili')]
-    public function test_gli_altri_indirizzi_non_vengono_incorporati(?string $url): void
+    #[Test]
+    public function gli_altri_indirizzi_non_vengono_incorporati(?string $url): void
     {
         $this->assertNull(LiveStream::embedUrl($url));
     }

@@ -20,6 +20,7 @@ use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -58,7 +59,8 @@ class RegistroDelleAttivitaTest extends TestCase
 
     // ─── Pulizia periodica ────────────────────────────────────────
 
-    public function test_dal_pianificatore_cancella_i_log_oltre_i_180_giorni(): void
+    #[Test]
+    public function dal_pianificatore_cancella_i_log_oltre_i_180_giorni(): void
     {
         $vecchio = $this->riga(Product::class, 1, null, null);
         $recente = $this->riga(Product::class, 2, null, null);
@@ -77,7 +79,8 @@ class RegistroDelleAttivitaTest extends TestCase
         $this->assertDatabaseHas('activity_logs', ['id' => $recente]);
     }
 
-    public function test_la_revoca_dei_volti_non_scade_con_il_registro(): void
+    #[Test]
+    public function la_revoca_dei_volti_non_scade_con_il_registro(): void
     {
         $revoca = $this->riga(Product::class, 1, null, null);
         DB::table('activity_logs')->where('id', $revoca)->update([
@@ -90,7 +93,8 @@ class RegistroDelleAttivitaTest extends TestCase
         $this->assertDatabaseHas('activity_logs', ['id' => $revoca]);
     }
 
-    public function test_senza_force_chiede_conferma_e_rispondendo_no_non_cancella(): void
+    #[Test]
+    public function senza_force_chiede_conferma_e_rispondendo_no_non_cancella(): void
     {
         $vecchio = $this->riga(Product::class, 1, null, null);
         DB::table('activity_logs')->where('id', $vecchio)->update(['created_at' => now()->subDays(200)]);
@@ -104,7 +108,8 @@ class RegistroDelleAttivitaTest extends TestCase
 
     // ─── Niente dati dei clienti ──────────────────────────────────
 
-    public function test_un_ordine_dal_checkout_pubblico_non_lascia_righe(): void
+    #[Test]
+    public function un_ordine_dal_checkout_pubblico_non_lascia_righe(): void
     {
         ShippingZone::factory()->create(['countries' => ['IT'], 'flat_rate' => 5, 'free_threshold' => null]);
         $prodotto = Product::factory()->create(['price' => 30, 'stock' => 5]);
@@ -141,7 +146,8 @@ class RegistroDelleAttivitaTest extends TestCase
         $this->assertDatabaseCount('activity_logs', 0);
     }
 
-    public function test_lo_stato_cambiato_da_un_admin_si_registra_senza_dati_personali(): void
+    #[Test]
+    public function lo_stato_cambiato_da_un_admin_si_registra_senza_dati_personali(): void
     {
         $ordine = Order::factory()->create([
             'guest_email' => 'cliente@example.test',
@@ -171,7 +177,8 @@ class RegistroDelleAttivitaTest extends TestCase
         }
     }
 
-    public function test_l_admin_che_modifica_un_cliente_non_ne_copia_nome_ed_email(): void
+    #[Test]
+    public function l_admin_che_modifica_un_cliente_non_ne_copia_nome_ed_email(): void
     {
         $cliente = User::factory()->create(['name' => 'Maria Bianchi']);
         $cliente->forceFill(['role' => UserRole::Customer])->save();
@@ -185,7 +192,8 @@ class RegistroDelleAttivitaTest extends TestCase
         $this->assertSame(['is_active'], array_keys($riga->changes['new']));
     }
 
-    public function test_un_azione_del_cliente_su_un_altro_modello_resta_senza_autore_ne_ip(): void
+    #[Test]
+    public function un_azione_del_cliente_su_un_altro_modello_resta_senza_autore_ne_ip(): void
     {
         $cliente = User::factory()->create();
         $cliente->forceFill(['role' => UserRole::Customer])->save();
@@ -201,7 +209,8 @@ class RegistroDelleAttivitaTest extends TestCase
         $this->assertNull($riga->user_agent);
     }
 
-    public function test_i_modelli_scritti_dai_clienti_non_passano_dal_registro(): void
+    #[Test]
+    public function i_modelli_scritti_dai_clienti_non_passano_dal_registro(): void
     {
         foreach ([Cart::class, CartItem::class, OrderItem::class, Bid::class, CouponUsage::class] as $modello) {
             $this->assertFalse(
@@ -213,7 +222,8 @@ class RegistroDelleAttivitaTest extends TestCase
 
     // ─── Pulizia dello storico ────────────────────────────────────
 
-    public function test_la_migrazione_ripulisce_lo_storico(): void
+    #[Test]
+    public function la_migrazione_ripulisce_lo_storico(): void
     {
         $admin = $this->admin();
         $cliente = User::factory()->create();

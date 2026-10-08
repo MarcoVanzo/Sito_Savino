@@ -4,24 +4,28 @@ namespace Tests\Unit\Support;
 
 use App\Support\CmsFile;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CmsFileTest extends TestCase
 {
-    public function test_un_percorso_relativo_diventa_indirizzo_del_disco(): void
+    #[Test]
+    public function un_percorso_relativo_diventa_indirizzo_del_disco(): void
     {
         Storage::fake('local');
 
         $this->assertSame(Storage::url('press-kit/foto.zip'), CmsFile::url('press-kit/foto.zip'));
     }
 
-    public function test_un_indirizzo_gia_completo_resta_intatto(): void
+    #[Test]
+    public function un_indirizzo_gia_completo_resta_intatto(): void
     {
         $this->assertSame('https://cdn.example/file.pdf', CmsFile::url('https://cdn.example/file.pdf'));
         $this->assertSame('/images/logo.png', CmsFile::url('/images/logo.png'));
     }
 
-    public function test_i_segnaposto_non_diventano_link(): void
+    #[Test]
+    public function i_segnaposto_non_diventano_link(): void
     {
         // '#' arrivava dai dati iniziali dei documenti di safeguarding: senza
         // questo controllo il sito mostrava un pulsante "Scarica" che non
@@ -31,7 +35,8 @@ class CmsFileTest extends TestCase
         $this->assertNull(CmsFile::url(null));
     }
 
-    public function test_risolve_i_file_dentro_content_data(): void
+    #[Test]
+    public function risolve_i_file_dentro_content_data(): void
     {
         Storage::fake('local');
 

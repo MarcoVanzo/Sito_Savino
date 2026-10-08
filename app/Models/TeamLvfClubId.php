@@ -16,10 +16,16 @@ class TeamLvfClubId extends Model
 
     protected $fillable = ['team_id', 'lvf_club_id', 'season_year'];
 
-    protected $casts = [
-        'lvf_club_id' => 'integer',
-        'season_year' => 'integer',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'lvf_club_id' => 'integer',
+            'season_year' => 'integer',
+        ];
+    }
 
     public function team(): BelongsTo
     {

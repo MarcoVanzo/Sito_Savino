@@ -37,11 +37,17 @@ class MenuItem extends Model implements HasMedia
         'is_highlight',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'is_highlight' => 'boolean',
-        'sort_order' => 'integer',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'is_highlight' => 'boolean',
+            'sort_order' => 'integer',
+        ];
+    }
 
     private const CACHE_KEY = 'menu_items';
 

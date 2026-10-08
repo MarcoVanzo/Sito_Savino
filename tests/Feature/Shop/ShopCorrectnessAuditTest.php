@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Concerns\FakesPayPalWebhooks;
 use Tests\TestCase;
 
@@ -50,7 +51,8 @@ class ShopCorrectnessAuditTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_alternating_bids_do_not_bounce_between_the_same_two_users(): void
+    #[Test]
+    public function alternating_bids_do_not_bounce_between_the_same_two_users(): void
     {
         $a = User::factory()->create();
         $b = User::factory()->create();
@@ -86,7 +88,8 @@ class ShopCorrectnessAuditTest extends TestCase
         $this->assertNull($auction->winner_user_id);
     }
 
-    public function test_auction_won_email_shows_the_amount_of_the_current_winner(): void
+    #[Test]
+    public function auction_won_email_shows_the_amount_of_the_current_winner(): void
     {
         $first = User::factory()->create();
         $second = User::factory()->create();
@@ -116,7 +119,8 @@ class ShopCorrectnessAuditTest extends TestCase
         });
     }
 
-    public function test_late_payment_on_cancelled_order_rededucts_stock(): void
+    #[Test]
+    public function late_payment_on_cancelled_order_rededucts_stock(): void
     {
         $product = Product::factory()->create(['stock' => 10]);
         $order = Order::factory()->create();
@@ -160,7 +164,8 @@ class ShopCorrectnessAuditTest extends TestCase
         $this->assertEquals(10, $product->fresh()->stock, 'Dopo il rimborso lo stock torna disponibile.');
     }
 
-    public function test_late_payment_without_stock_does_not_confirm_the_order(): void
+    #[Test]
+    public function late_payment_without_stock_does_not_confirm_the_order(): void
     {
         $product = Product::factory()->create(['stock' => 10]);
         $order = Order::factory()->create();
@@ -188,7 +193,8 @@ class ShopCorrectnessAuditTest extends TestCase
         $this->assertDatabaseHas('shop_events', ['event_type' => 'payment_review', 'viewable_id' => $order->id]);
     }
 
-    public function test_late_payment_rededucts_a_size_whatever_the_parent_summary(): void
+    #[Test]
+    public function late_payment_rededucts_a_size_whatever_the_parent_summary(): void
     {
         $product = Product::factory()->create(['stock' => 0]);
         $taglia = ProductVariant::factory()->create(['product_id' => $product->id, 'stock' => 5]);
@@ -214,7 +220,8 @@ class ShopCorrectnessAuditTest extends TestCase
         $this->assertSame(3, (int) $product->fresh()->stock);
     }
 
-    public function test_merge_on_login_uses_the_given_session_id_and_caps_to_max_qty(): void
+    #[Test]
+    public function merge_on_login_uses_the_given_session_id_and_caps_to_max_qty(): void
     {
         SiteSetting::create(['key' => 'shop.max_qty_per_product', 'value' => '5', 'type' => 'integer', 'group' => 'shop']);
         Cache::flush();
@@ -234,7 +241,8 @@ class ShopCorrectnessAuditTest extends TestCase
         $this->assertDatabaseMissing('carts', ['session_id' => 'vecchia-sessione']);
     }
 
-    public function test_second_payment_with_different_id_is_flagged(): void
+    #[Test]
+    public function second_payment_with_different_id_is_flagged(): void
     {
         $order = Order::factory()->create();
         $order->forceFill(['status' => OrderStatus::Paid, 'payment_id' => 'CAPTURE-OLD', 'paid_at' => now()])->save();

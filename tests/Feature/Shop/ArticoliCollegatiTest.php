@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -32,7 +33,8 @@ class ArticoliCollegatiTest extends TestCase
         Cache::flush();
     }
 
-    public function test_i_prodotti_collegati_battono_la_scelta_automatica(): void
+    #[Test]
+    public function i_prodotti_collegati_battono_la_scelta_automatica(): void
     {
         $categoria = ProductCategory::factory()->create();
         $maglia = $this->prodotto($categoria);
@@ -52,7 +54,8 @@ class ArticoliCollegatiTest extends TestCase
             );
     }
 
-    public function test_senza_collegamenti_resta_la_scelta_automatica(): void
+    #[Test]
+    public function senza_collegamenti_resta_la_scelta_automatica(): void
     {
         $categoria = ProductCategory::factory()->create();
         $maglia = $this->prodotto($categoria);
@@ -66,7 +69,8 @@ class ArticoliCollegatiTest extends TestCase
             );
     }
 
-    public function test_un_collegato_non_piu_in_vendita_non_si_mostra(): void
+    #[Test]
+    public function un_collegato_non_piu_in_vendita_non_si_mostra(): void
     {
         $maglia = $this->prodotto();
         $ritirato = $this->prodotto();
@@ -79,7 +83,8 @@ class ArticoliCollegatiTest extends TestCase
             ->assertInertia(fn ($pagina) => $pagina->has('relatedProducts', 0));
     }
 
-    public function test_il_collegamento_si_crea_dal_pannello_e_si_vede_subito(): void
+    #[Test]
+    public function il_collegamento_si_crea_dal_pannello_e_si_vede_subito(): void
     {
         $maglia = $this->prodotto();
         $portachiavi = $this->prodotto();
@@ -103,7 +108,8 @@ class ArticoliCollegatiTest extends TestCase
             );
     }
 
-    public function test_anche_un_prodotto_nuovo_nasce_con_i_suoi_collegamenti(): void
+    #[Test]
+    public function anche_un_prodotto_nuovo_nasce_con_i_suoi_collegamenti(): void
     {
         // In creazione il prodotto non esiste ancora quando si sceglie
         // l'elenco: il legame si scrive dopo, ed e' il caso che si rompe per

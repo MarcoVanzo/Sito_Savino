@@ -14,6 +14,7 @@ use App\Services\CheckoutService;
 use App\Support\EtichetteDelProdotto;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -43,7 +44,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
 
     // --- Etichette ---------------------------------------------------------
 
-    public function test_senza_scelta_le_etichette_restano_automatiche(): void
+    #[Test]
+    public function senza_scelta_le_etichette_restano_automatiche(): void
     {
         $nuovo = $this->scontatoDopoIlPrezzoPieno();
         $vecchio = $this->prodotto();
@@ -53,7 +55,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
         $this->assertSame([], EtichetteDelProdotto::per($vecchio));
     }
 
-    public function test_la_scelta_della_redazione_vince_e_nell_ordine_dato(): void
+    #[Test]
+    public function la_scelta_della_redazione_vince_e_nell_ordine_dato(): void
     {
         $prodotto = $this->prodotto(['etichette' => ['hot_sales', 'nuovo']]);
         $prodotto->forceFill(['created_at' => now()->subYear()])->save();
@@ -61,14 +64,16 @@ class EtichetteEPersonalizzazioneTest extends TestCase
         $this->assertSame(['hot_sales', 'nuovo'], EtichetteDelProdotto::per($prodotto));
     }
 
-    public function test_un_elenco_vuoto_spegne_anche_le_automatiche(): void
+    #[Test]
+    public function un_elenco_vuoto_spegne_anche_le_automatiche(): void
     {
         $prodotto = $this->prodotto(['etichette' => [], 'sale_price' => 15]);
 
         $this->assertSame([], EtichetteDelProdotto::per($prodotto));
     }
 
-    public function test_in_offerta_senza_prezzo_di_riferimento_non_compare(): void
+    #[Test]
+    public function in_offerta_senza_prezzo_di_riferimento_non_compare(): void
     {
         // Nato gia' scontato: nessun prezzo praticato prima, quindi lo sconto
         // non si annuncia (art. 17-bis), come il prezzo barrato.
@@ -77,14 +82,16 @@ class EtichetteEPersonalizzazioneTest extends TestCase
         $this->assertSame([], EtichetteDelProdotto::per($prodotto));
     }
 
-    public function test_in_offerta_senza_sconto_in_corso_non_compare(): void
+    #[Test]
+    public function in_offerta_senza_sconto_in_corso_non_compare(): void
     {
         $prodotto = $this->prodotto(['etichette' => ['in_offerta', 'hot_sales']]);
 
         $this->assertSame(['hot_sales'], EtichetteDelProdotto::per($prodotto));
     }
 
-    public function test_ultimo_rimasto_compare_solo_con_un_pezzo_per_taglia(): void
+    #[Test]
+    public function ultimo_rimasto_compare_solo_con_un_pezzo_per_taglia(): void
     {
         $semplice = $this->prodotto(['etichette' => ['ultimo_rimasto'], 'stock' => 3]);
         $this->assertSame([], EtichetteDelProdotto::per($semplice));
@@ -102,14 +109,16 @@ class EtichetteEPersonalizzazioneTest extends TestCase
         $this->assertSame([], EtichetteDelProdotto::per($maglia->fresh()));
     }
 
-    public function test_un_prodotto_esaurito_tiene_solo_nuovo(): void
+    #[Test]
+    public function un_prodotto_esaurito_tiene_solo_nuovo(): void
     {
         $prodotto = $this->prodotto(['etichette' => ['hot_sales', 'nuovo'], 'stock' => 0]);
 
         $this->assertSame(['nuovo'], EtichetteDelProdotto::per($prodotto));
     }
 
-    public function test_le_etichette_arrivano_alla_griglia_e_alla_scheda(): void
+    #[Test]
+    public function le_etichette_arrivano_alla_griglia_e_alla_scheda(): void
     {
         $prodotto = $this->prodotto(['etichette' => ['hot_sales']]);
 
@@ -122,7 +131,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
             ->assertInertia(fn ($page) => $page->where('product.etichette', ['hot_sales']));
     }
 
-    public function test_riaccendere_le_automatiche_azzera_la_scelta(): void
+    #[Test]
+    public function riaccendere_le_automatiche_azzera_la_scelta(): void
     {
         $this->assertSame(
             ['etichette' => null],
@@ -140,7 +150,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
 
     // --- Personalizzazione -------------------------------------------------
 
-    public function test_la_scheda_offre_la_personalizzazione_solo_se_ha_un_nome(): void
+    #[Test]
+    public function la_scheda_offre_la_personalizzazione_solo_se_ha_un_nome(): void
     {
         $con = $this->prodottoConFirma();
         $senza = $this->prodotto();
@@ -154,7 +165,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
             ->assertInertia(fn ($page) => $page->where('product.personalizzazione', null));
     }
 
-    public function test_il_supplemento_entra_nel_prezzo_della_riga(): void
+    #[Test]
+    public function il_supplemento_entra_nel_prezzo_della_riga(): void
     {
         $this->cliente();
         $prodotto = $this->prodottoConFirma();
@@ -171,7 +183,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
             ->assertJsonPath('items.0.personalizzazione', 'Firma della giocatrice');
     }
 
-    public function test_con_e_senza_firma_sono_due_righe_ma_la_giacenza_e_una(): void
+    #[Test]
+    public function con_e_senza_firma_sono_due_righe_ma_la_giacenza_e_una(): void
     {
         $this->cliente();
         $prodotto = $this->prodottoConFirma(['stock' => 1]);
@@ -186,7 +199,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
         $this->assertSame(1, app(CartService::class)->getItemCount());
     }
 
-    public function test_non_si_chiede_la_firma_a_un_prodotto_che_non_la_offre(): void
+    #[Test]
+    public function non_si_chiede_la_firma_a_un_prodotto_che_non_la_offre(): void
     {
         $this->cliente();
         $prodotto = $this->prodotto();
@@ -200,7 +214,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
         $this->assertSame(0, app(CartService::class)->getItemCount());
     }
 
-    public function test_l_ordine_fotografa_nome_e_supplemento(): void
+    #[Test]
+    public function l_ordine_fotografa_nome_e_supplemento(): void
     {
         ShippingZone::factory()->create(['countries' => ['IT'], 'flat_rate' => 7, 'free_threshold' => null]);
         $prodotto = $this->prodottoConFirma();
@@ -225,7 +240,8 @@ class EtichetteEPersonalizzazioneTest extends TestCase
         $this->assertSame('Firma della giocatrice', $firmata->fresh()->personalizzazioneIn('it'));
     }
 
-    public function test_tolta_dal_prodotto_la_riga_nel_carrello_torna_semplice(): void
+    #[Test]
+    public function tolta_dal_prodotto_la_riga_nel_carrello_torna_semplice(): void
     {
         $this->cliente();
         $prodotto = $this->prodottoConFirma();

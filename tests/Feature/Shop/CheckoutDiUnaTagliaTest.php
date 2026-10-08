@@ -12,6 +12,7 @@ use App\Models\ShippingZone;
 use App\Models\User;
 use App\Services\Payments\PayPalPaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -55,7 +56,8 @@ class CheckoutDiUnaTagliaTest extends TestCase
         return [$maglia, $taglia];
     }
 
-    public function test_si_ordina_una_taglia_disponibile_anche_col_riepilogo_a_zero(): void
+    #[Test]
+    public function si_ordina_una_taglia_disponibile_anche_col_riepilogo_a_zero(): void
     {
         ShippingZone::factory()->create(['countries' => ['IT'], 'flat_rate' => 5, 'free_threshold' => null]);
         [$maglia, $taglia] = $this->magliaConTaglie();
@@ -84,7 +86,8 @@ class CheckoutDiUnaTagliaTest extends TestCase
         $this->assertSame(4, (int) $maglia->fresh()->stock);
     }
 
-    public function test_un_prodotto_con_taglie_non_entra_nel_carrello_senza_taglia(): void
+    #[Test]
+    public function un_prodotto_con_taglie_non_entra_nel_carrello_senza_taglia(): void
     {
         [$maglia] = $this->magliaConTaglie();
 

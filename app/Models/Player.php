@@ -30,15 +30,21 @@ class Player extends Model implements HasMedia
     // vivono rispettivamente su `rosters` e `staff_members`.
     public $translatable = [];
 
-    protected $casts = [
-        // Solo la data, senza ora: serializzata con il fuso (1983-12-31T23:00Z
-        // per il 1º gennaio 1984) il browser di chi sta a ovest di Roma ne
-        // ricavava l'anno prima.
-        'date_of_birth' => 'date:Y-m-d',
-        'ai_face_examples' => 'integer',
-        'wikipedia_revid' => 'integer',
-        'palmares_synced_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            // Solo la data, senza ora: serializzata con il fuso (1983-12-31T23:00Z
+            // per il 1º gennaio 1984) il browser di chi sta a ovest di Roma ne
+            // ricavava l'anno prima.
+            'date_of_birth' => 'date:Y-m-d',
+            'ai_face_examples' => 'integer',
+            'wikipedia_revid' => 'integer',
+            'palmares_synced_at' => 'datetime',
+        ];
+    }
 
     protected $appends = ['full_name'];
 

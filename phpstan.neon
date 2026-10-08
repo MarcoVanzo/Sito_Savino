@@ -7,6 +7,9 @@ parameters:
     paths:
         - app
     level: 5
+    # I cast stanno nel metodo casts(): senza questa opzione Larastan legge il
+    # tipo dichiarato (array generico) e perde enum, date e decimali dei modelli.
+    parseModelCastsMethod: true
     ignoreErrors:
         # Filament dynamic $form property on custom pages
         - identifier: property.notFound

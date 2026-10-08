@@ -11,13 +11,15 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class GameResourceTableTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_games_table_renders_with_every_status(): void
+    #[Test]
+    public function games_table_renders_with_every_status(): void
     {
         $user = User::factory()->create();
         $user->forceFill(['role' => UserRole::SuperAdmin])->save();

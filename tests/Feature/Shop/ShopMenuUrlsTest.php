@@ -5,6 +5,7 @@ namespace Tests\Feature\Shop;
 use App\Models\MenuItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
@@ -18,7 +19,8 @@ class ShopMenuUrlsTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_italian_category_urls_return_200(): void
+    #[Test]
+    public function italian_category_urls_return_200(): void
     {
         $response = $this->get('/shop/categoria/kit-gara-25-26');
         $response->assertStatus(200);
@@ -27,7 +29,8 @@ class ShopMenuUrlsTest extends TestCase
         $response2->assertStatus(200);
     }
 
-    public function test_english_category_urls_return_200(): void
+    #[Test]
+    public function english_category_urls_return_200(): void
     {
         $response = $this->get('/en/shop/category/kit-gara-25-26');
         $response->assertStatus(200);
@@ -36,7 +39,8 @@ class ShopMenuUrlsTest extends TestCase
         $response2->assertStatus(200);
     }
 
-    public function test_incorrect_english_menu_url_returns_404(): void
+    #[Test]
+    public function incorrect_english_menu_url_returns_404(): void
     {
         // Se il menu genera '/en/shop/categoria/...' invece di '/en/shop/category/...', deve dare 404
         $response = $this->get('/en/shop/categoria/kit-gara-25-26');
@@ -47,7 +51,8 @@ class ShopMenuUrlsTest extends TestCase
      * "kit-gara" e' il reparto che raccoglie Home, Away e Champions: prima la
      * scorciatoia portava alla sola linea Home e non si poteva scegliere.
      */
-    public function test_legacy_italian_redirects_work(): void
+    #[Test]
+    public function legacy_italian_redirects_work(): void
     {
         $response = $this->get('/shop/kit-gara');
         $response->assertRedirect('/shop/categoria/kit-gara');
@@ -58,7 +63,8 @@ class ShopMenuUrlsTest extends TestCase
         $response2->assertStatus(301);
     }
 
-    public function test_legacy_english_redirects_work(): void
+    #[Test]
+    public function legacy_english_redirects_work(): void
     {
         $response = $this->get('/en/shop/kit-gara');
         $response->assertRedirect('/en/shop/category/kit-gara');
@@ -69,7 +75,8 @@ class ShopMenuUrlsTest extends TestCase
         $response2->assertStatus(301);
     }
 
-    public function test_menu_item_url_localization_in_get_tree(): void
+    #[Test]
+    public function menu_item_url_localization_in_get_tree(): void
     {
         // Pulisci cache prima di iniziare
         MenuItem::clearCache();
@@ -114,7 +121,8 @@ class ShopMenuUrlsTest extends TestCase
         $this->assertEquals('/en/shop/category/kit-gara-25-26', $parentEn['children'][0]['href']);
     }
 
-    public function test_laravel_route_matching_experiment(): void
+    #[Test]
+    public function laravel_route_matching_experiment(): void
     {
         $url = '/shop/categoria/kit-gara-25-26';
 
@@ -138,7 +146,8 @@ class ShopMenuUrlsTest extends TestCase
         }
     }
 
-    public function test_menu_item_url_localization_preserves_query_and_fragments(): void
+    #[Test]
+    public function menu_item_url_localization_preserves_query_and_fragments(): void
     {
         // 1. URL con query string
         $urlWithQuery = '/shop/categoria/kit-gara-25-26?q=search&size=M';

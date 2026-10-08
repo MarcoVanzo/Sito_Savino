@@ -19,6 +19,7 @@ use App\Services\CheckoutService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -43,7 +44,8 @@ class StatoDellArticoloTest extends TestCase
 
     // --- Pannello ----------------------------------------------------------
 
-    public function test_acceso_il_flag_lo_stato_e_obbligatorio(): void
+    #[Test]
+    public function acceso_il_flag_lo_stato_e_obbligatorio(): void
     {
         $prodotto = $this->prodotto();
 
@@ -56,7 +58,8 @@ class StatoDellArticoloTest extends TestCase
         $this->assertFalse($prodotto->fresh()->usato_o_autografato);
     }
 
-    public function test_con_lo_stato_il_prodotto_si_salva(): void
+    #[Test]
+    public function con_lo_stato_il_prodotto_si_salva(): void
     {
         $prodotto = $this->prodotto();
 
@@ -71,7 +74,8 @@ class StatoDellArticoloTest extends TestCase
         $this->assertSame(self::STATO_IT, $prodotto->getTranslation('stato_articolo', 'it'));
     }
 
-    public function test_un_prodotto_nuovo_non_nasce_senza_stato(): void
+    #[Test]
+    public function un_prodotto_nuovo_non_nasce_senza_stato(): void
     {
         $categoria = ProductCategory::factory()->create();
 
@@ -92,7 +96,8 @@ class StatoDellArticoloTest extends TestCase
         $this->assertDatabaseMissing('products', ['slug' => 'maglia-gara-bosetti-9']);
     }
 
-    public function test_senza_flag_lo_stato_resta_facoltativo(): void
+    #[Test]
+    public function senza_flag_lo_stato_resta_facoltativo(): void
     {
         $prodotto = $this->prodotto();
 
@@ -105,7 +110,8 @@ class StatoDellArticoloTest extends TestCase
         $this->assertSame('TS-001', $prodotto->fresh()->sku);
     }
 
-    public function test_salvando_in_inglese_basta_lo_stato_italiano_in_archivio(): void
+    #[Test]
+    public function salvando_in_inglese_basta_lo_stato_italiano_in_archivio(): void
     {
         // L'inglese ripiega sull'italiano: non tradurre lo stato non deve
         // bloccare il salvataggio della scheda inglese.
@@ -121,7 +127,8 @@ class StatoDellArticoloTest extends TestCase
         $this->assertSame('Match jersey Bosetti #9', $prodotto->fresh()->getTranslation('name', 'en'));
     }
 
-    public function test_salvando_in_inglese_senza_stato_italiano_si_chiede_l_italiano(): void
+    #[Test]
+    public function salvando_in_inglese_senza_stato_italiano_si_chiede_l_italiano(): void
     {
         $prodotto = $this->prodotto(['usato_o_autografato' => true]);
 
@@ -133,7 +140,8 @@ class StatoDellArticoloTest extends TestCase
             ->assertHasFormErrors(['stato_articolo']);
     }
 
-    public function test_lo_stato_non_tradotto_non_butta_la_scheda_inglese(): void
+    #[Test]
+    public function lo_stato_non_tradotto_non_butta_la_scheda_inglese(): void
     {
         // Con un ->required() sul campo, il plugin translatable avrebbe
         // rivalidato i dati inglesi senza stato e scartato in silenzio anche
@@ -153,7 +161,8 @@ class StatoDellArticoloTest extends TestCase
 
     // --- Scheda ------------------------------------------------------------
 
-    public function test_la_scheda_mostra_lo_stato_nella_lingua_con_ripiego(): void
+    #[Test]
+    public function la_scheda_mostra_lo_stato_nella_lingua_con_ripiego(): void
     {
         $prodotto = $this->magliaIndossata(['stato_articolo' => ['it' => self::STATO_IT]]);
 
@@ -167,7 +176,8 @@ class StatoDellArticoloTest extends TestCase
             ->assertInertia(fn ($page) => $page->where('product.stato_articolo', self::STATO_IT));
     }
 
-    public function test_un_articolo_nuovo_non_ha_il_riquadro(): void
+    #[Test]
+    public function un_articolo_nuovo_non_ha_il_riquadro(): void
     {
         // Uno stato rimasto scritto dopo aver spento il flag non si mostra.
         $prodotto = $this->prodotto(['stato_articolo' => ['it' => self::STATO_IT]]);
@@ -178,7 +188,8 @@ class StatoDellArticoloTest extends TestCase
 
     // --- Ordine ------------------------------------------------------------
 
-    public function test_la_riga_d_ordine_fotografa_lo_stato(): void
+    #[Test]
+    public function la_riga_d_ordine_fotografa_lo_stato(): void
     {
         $maglia = $this->magliaIndossata();
         $nuova = $this->prodotto(['stato_articolo' => ['it' => 'non deve finire nell\'ordine']]);
@@ -196,7 +207,8 @@ class StatoDellArticoloTest extends TestCase
         $this->assertSame(self::STATO_IT, $riga->fresh()->statoArticoloIn('it'));
     }
 
-    public function test_il_cliente_ritrova_lo_stato_nel_dettaglio_dell_ordine(): void
+    #[Test]
+    public function il_cliente_ritrova_lo_stato_nel_dettaglio_dell_ordine(): void
     {
         $user = User::factory()->create();
         $order = $this->ordina($this->magliaIndossata());
@@ -208,7 +220,8 @@ class StatoDellArticoloTest extends TestCase
             ->assertInertia(fn ($page) => $page->where('order.items.0.testo_stato_articolo', self::STATO_IT));
     }
 
-    public function test_l_email_di_conferma_riporta_lo_stato(): void
+    #[Test]
+    public function l_email_di_conferma_riporta_lo_stato(): void
     {
         $order = $this->ordina($this->magliaIndossata());
 
@@ -222,7 +235,8 @@ class StatoDellArticoloTest extends TestCase
         $inglese->assertSeeInHtml(self::STATO_EN);
     }
 
-    public function test_il_pannello_ordini_mostra_lo_stato(): void
+    #[Test]
+    public function il_pannello_ordini_mostra_lo_stato(): void
     {
         $order = $this->ordina($this->magliaIndossata());
 

@@ -13,6 +13,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -43,7 +44,8 @@ class DivietiDelSuperAdminTest extends TestCase
         return $utente->refresh();
     }
 
-    public function test_il_super_admin_non_cancella_gli_ordini(): void
+    #[Test]
+    public function il_super_admin_non_cancella_gli_ordini(): void
     {
         $ordine = Order::factory()->create();
         $gate = Gate::forUser($this->admin);
@@ -58,7 +60,8 @@ class DivietiDelSuperAdminTest extends TestCase
         $this->assertTrue($gate->allows('viewAny', Order::class));
     }
 
-    public function test_il_super_admin_non_modifica_le_righe_di_un_ordine_pagato(): void
+    #[Test]
+    public function il_super_admin_non_modifica_le_righe_di_un_ordine_pagato(): void
     {
         $pagato = Order::factory()->paid()->create();
         $riga = OrderItem::factory()->create(['order_id' => $pagato->id]);
@@ -69,7 +72,8 @@ class DivietiDelSuperAdminTest extends TestCase
         $this->assertFalse($gate->allows('deleteAny', OrderItem::class));
     }
 
-    public function test_il_super_admin_non_cancella_se_stesso_ma_gli_altri_si(): void
+    #[Test]
+    public function il_super_admin_non_cancella_se_stesso_ma_gli_altri_si(): void
     {
         $altro = User::factory()->create();
         $gate = Gate::forUser($this->admin);
@@ -80,7 +84,8 @@ class DivietiDelSuperAdminTest extends TestCase
         $this->assertTrue($gate->allows('deleteAny', Player::class));
     }
 
-    public function test_il_pannello_non_offre_la_cancellazione_degli_ordini(): void
+    #[Test]
+    public function il_pannello_non_offre_la_cancellazione_degli_ordini(): void
     {
         $ordine = Order::factory()->create();
 
@@ -91,7 +96,8 @@ class DivietiDelSuperAdminTest extends TestCase
             ->assertActionDoesNotExist('delete');
     }
 
-    public function test_la_cancellazione_in_blocco_degli_utenti_salta_se_stessi(): void
+    #[Test]
+    public function la_cancellazione_in_blocco_degli_utenti_salta_se_stessi(): void
     {
         $altro = User::factory()->create();
 
@@ -102,7 +108,8 @@ class DivietiDelSuperAdminTest extends TestCase
         $this->assertModelMissing($altro);
     }
 
-    public function test_l_ultimo_super_admin_attivo_non_si_cancella(): void
+    #[Test]
+    public function l_ultimo_super_admin_attivo_non_si_cancella(): void
     {
         // Un secondo super admin disattivato: chi resta attivo è uno solo.
         $disattivato = $this->superAdmin();

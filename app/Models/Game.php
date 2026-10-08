@@ -38,16 +38,22 @@ class Game extends Model
      */
     protected array $logExclude = ['lvf_synced_at', 'stats_synced_at'];
 
-    protected $casts = [
-        'match_date' => 'datetime',
-        'status' => GameStatus::class,
-        'competition_type' => CompetitionType::class,
-        'lvf_synced_at' => 'datetime',
-        'stats_synced_at' => 'datetime',
-        'lvf_match_id' => 'integer',
-        'matchday' => 'integer',
-        'set_scores' => 'array',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'match_date' => 'datetime',
+            'status' => GameStatus::class,
+            'competition_type' => CompetitionType::class,
+            'lvf_synced_at' => 'datetime',
+            'stats_synced_at' => 'datetime',
+            'lvf_match_id' => 'integer',
+            'matchday' => 'integer',
+            'set_scores' => 'array',
+        ];
+    }
 
     /**
      * @return HasMany<GamePlayerStat, $this>

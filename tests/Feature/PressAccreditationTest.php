@@ -19,6 +19,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PressAccreditationTest extends TestCase
@@ -49,7 +50,8 @@ class PressAccreditationTest extends TestCase
         ], $sovrascritture);
     }
 
-    public function test_una_richiesta_valida_viene_registrata(): void
+    #[Test]
+    public function una_richiesta_valida_viene_registrata(): void
     {
         Mail::fake();
 
@@ -70,7 +72,8 @@ class PressAccreditationTest extends TestCase
      * Accrediti" del pannello: se cambia da una parte sola, la redazione vede
      * un elenco vuoto senza che nulla vada in errore.
      */
-    public function test_la_richiesta_compare_nell_elenco_del_pannello(): void
+    #[Test]
+    public function la_richiesta_compare_nell_elenco_del_pannello(): void
     {
         Mail::fake();
 
@@ -84,7 +87,8 @@ class PressAccreditationTest extends TestCase
         $this->assertSame(1, PressAccreditationResource::getEloquentQuery()->count());
     }
 
-    public function test_testata_ruolo_e_gara_restano_leggibili(): void
+    #[Test]
+    public function testata_ruolo_e_gara_restano_leggibili(): void
     {
         Mail::fake();
 
@@ -106,7 +110,8 @@ class PressAccreditationTest extends TestCase
      * `Mail::assertSentCount`: qui si guarda il messaggio vero nel trasporto
      * di prova (`array`).
      */
-    public function test_la_richiesta_viene_spedita_all_ufficio_stampa(): void
+    #[Test]
+    public function la_richiesta_viene_spedita_all_ufficio_stampa(): void
     {
         SiteSetting::updateOrCreate(
             ['group' => 'contact', 'key' => 'press_email'],
@@ -128,7 +133,8 @@ class PressAccreditationTest extends TestCase
         $this->assertStringContainsString('chiara@testata.it', $messaggio->getReplyTo()[0]->getAddress());
     }
 
-    public function test_i_campi_obbligatori_sono_richiesti(): void
+    #[Test]
+    public function i_campi_obbligatori_sono_richiesti(): void
     {
         Mail::fake();
 
@@ -141,7 +147,8 @@ class PressAccreditationTest extends TestCase
         $this->assertDatabaseCount('contact_messages', 0);
     }
 
-    public function test_un_ruolo_inventato_viene_rifiutato(): void
+    #[Test]
+    public function un_ruolo_inventato_viene_rifiutato(): void
     {
         Mail::fake();
 
@@ -158,7 +165,8 @@ class PressAccreditationTest extends TestCase
      * inviato non stava leggendo. Si finge successo per non spiegare al bot
      * come aggirare il controllo.
      */
-    public function test_il_campo_trappola_scarta_la_richiesta_senza_dirlo(): void
+    #[Test]
+    public function il_campo_trappola_scarta_la_richiesta_senza_dirlo(): void
     {
         Mail::fake();
 
@@ -177,7 +185,8 @@ class PressAccreditationTest extends TestCase
      * faceva morire il processo: ora i mesi vengono da `site.months`, e questo
      * test è ciò che impedisce di tornare indietro senza accorgersene.
      */
-    public function test_la_tendina_della_gara_scrive_la_data_per_esteso(): void
+    #[Test]
+    public function la_tendina_della_gara_scrive_la_data_per_esteso(): void
     {
         $casa = Team::factory()->internal()->create(['name' => 'Savino Del Bene Volley']);
         $ospite = Team::factory()->create(['name' => 'Numia Vero Volley Milano']);
@@ -227,7 +236,8 @@ class PressAccreditationTest extends TestCase
      * di prova, al richiedente non arrivava niente. Il pulsante cambiava solo
      * lo stato.
      */
-    public function test_accreditare_manda_la_conferma_al_richiedente(): void
+    #[Test]
+    public function accreditare_manda_la_conferma_al_richiedente(): void
     {
         Mail::fake();
 
@@ -249,7 +259,8 @@ class PressAccreditationTest extends TestCase
         $this->assertSame('Il Tirreno', $richiesta->extra_data['outlet']);
     }
 
-    public function test_la_conferma_dice_gara_testata_e_messaggio_nella_lingua_della_richiesta(): void
+    #[Test]
+    public function la_conferma_dice_gara_testata_e_messaggio_nella_lingua_della_richiesta(): void
     {
         $richiesta = ContactMessage::create([
             'name' => 'Jane Doe',
@@ -270,7 +281,8 @@ class PressAccreditationTest extends TestCase
         $this->assertStringContainsString('Gate 3 &lt;b&gt;from&lt;/b&gt; 7pm', $html);
     }
 
-    public function test_la_richiesta_ricorda_la_lingua_per_la_conferma(): void
+    #[Test]
+    public function la_richiesta_ricorda_la_lingua_per_la_conferma(): void
     {
         Mail::fake();
 
@@ -279,7 +291,8 @@ class PressAccreditationTest extends TestCase
         $this->assertSame('it', ContactMessage::firstOrFail()->extra_data['lingua']);
     }
 
-    public function test_se_l_email_non_parte_resta_accreditata_e_la_conferma_non_risulta_inviata(): void
+    #[Test]
+    public function se_l_email_non_parte_resta_accreditata_e_la_conferma_non_risulta_inviata(): void
     {
         Mail::fake();
         $this->post(route('comunicazione.accrediti.submit'), $this->richiestaValida());
@@ -298,7 +311,8 @@ class PressAccreditationTest extends TestCase
         $this->assertArrayNotHasKey('conferma_inviata_il', $richiesta->extra_data);
     }
 
-    public function test_la_scheda_dice_quando_e_partita_la_conferma(): void
+    #[Test]
+    public function la_scheda_dice_quando_e_partita_la_conferma(): void
     {
         $richiesta = ContactMessage::create([
             'name' => 'Chiara Bianchi',

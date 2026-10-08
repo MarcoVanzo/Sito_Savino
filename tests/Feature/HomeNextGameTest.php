@@ -7,6 +7,7 @@ use App\Models\Game;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -33,7 +34,8 @@ class HomeNextGameTest extends TestCase
         return $response->viewData('page')['props']['nextGame'] ?? null;
     }
 
-    public function test_the_home_shows_the_next_match_of_the_club_not_of_two_opponents(): void
+    #[Test]
+    public function the_home_shows_the_next_match_of_the_club_not_of_two_opponents(): void
     {
         $internal = Team::factory()->create(['is_internal' => true]);
         $opponentA = Team::factory()->create(['is_internal' => false]);
@@ -60,7 +62,8 @@ class HomeNextGameTest extends TestCase
         $this->assertNotSame($betweenOpponents->id, $nextGame['id']);
     }
 
-    public function test_the_next_match_carries_the_logo_of_each_team(): void
+    #[Test]
+    public function the_next_match_carries_the_logo_of_each_team(): void
     {
         $internal = Team::factory()->create(['is_internal' => true, 'logo_url' => 'https://esempio.test/casa.png']);
         $opponent = Team::factory()->create(['is_internal' => false, 'logo_url' => 'https://esempio.test/ospite.png']);
@@ -79,7 +82,8 @@ class HomeNextGameTest extends TestCase
         $this->assertSame('https://esempio.test/ospite.png', $nextGame['away_team']['logo_url']);
     }
 
-    public function test_no_next_match_is_shown_when_the_club_has_none(): void
+    #[Test]
+    public function no_next_match_is_shown_when_the_club_has_none(): void
     {
         $opponentA = Team::factory()->create(['is_internal' => false]);
         $opponentB = Team::factory()->create(['is_internal' => false]);

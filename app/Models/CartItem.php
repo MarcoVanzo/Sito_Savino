@@ -14,9 +14,15 @@ class CartItem extends Model
         'cart_id', 'product_id', 'product_variant_id', 'con_personalizzazione', 'quantity',
     ];
 
-    protected $casts = [
-        'con_personalizzazione' => 'boolean',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'con_personalizzazione' => 'boolean',
+        ];
+    }
 
     protected $appends = ['unit_price', 'personalizzazione'];
 

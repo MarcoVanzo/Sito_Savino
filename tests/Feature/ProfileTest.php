@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -18,7 +19,8 @@ class ProfileTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_profile_page_is_displayed(): void
+    #[Test]
+    public function profile_page_is_displayed(): void
     {
         $user = User::factory()->create();
 
@@ -29,7 +31,8 @@ class ProfileTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_profile_information_can_be_updated(): void
+    #[Test]
+    public function profile_information_can_be_updated(): void
     {
         $user = User::factory()->create();
 
@@ -57,7 +60,8 @@ class ProfileTest extends TestCase
      * il reset della password): con una sessione lasciata aperta non deve
      * bastare, serve la password attuale.
      */
-    public function test_per_cambiare_l_email_serve_la_password_attuale(): void
+    #[Test]
+    public function per_cambiare_l_email_serve_la_password_attuale(): void
     {
         $user = User::factory()->create(['email' => 'mia@example.com']);
 
@@ -74,7 +78,8 @@ class ProfileTest extends TestCase
         $this->assertSame('mia@example.com', $user->refresh()->email);
     }
 
-    public function test_per_cambiare_solo_il_nome_la_password_non_serve(): void
+    #[Test]
+    public function per_cambiare_solo_il_nome_la_password_non_serve(): void
     {
         $user = User::factory()->create();
 
@@ -85,7 +90,8 @@ class ProfileTest extends TestCase
         $this->assertSame('Nome Nuovo', $user->refresh()->name);
     }
 
-    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
+    #[Test]
+    public function email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();
 
@@ -103,7 +109,8 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account(): void
+    #[Test]
+    public function user_can_delete_their_account(): void
     {
         $user = User::factory()->create();
 
@@ -121,7 +128,8 @@ class ProfileTest extends TestCase
         $this->assertNull($user->fresh());
     }
 
-    public function test_un_redattore_non_si_cancella_nemmeno_da_profile(): void
+    #[Test]
+    public function un_redattore_non_si_cancella_nemmeno_da_profile(): void
     {
         // /profile faceva $user->delete() senza le regole di /shop/account.
         $redattore = User::factory()->create();
@@ -135,7 +143,8 @@ class ProfileTest extends TestCase
         $this->assertModelExists($redattore);
     }
 
-    public function test_la_cancellazione_da_profile_lascia_il_recapito_sugli_ordini(): void
+    #[Test]
+    public function la_cancellazione_da_profile_lascia_il_recapito_sugli_ordini(): void
     {
         $user = User::factory()->create();
         $ordine = Order::factory()->create(['user_id' => $user->id, 'guest_email' => null]);
@@ -148,7 +157,8 @@ class ProfileTest extends TestCase
         $this->assertSame($user->email, $ordine->fresh()->guest_email);
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    #[Test]
+    public function correct_password_must_be_provided_to_delete_account(): void
     {
         $user = User::factory()->create();
 

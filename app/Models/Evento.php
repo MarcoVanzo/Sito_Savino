@@ -39,11 +39,17 @@ class Evento extends Model implements HasMedia
     /** @var list<string> */
     public $translatable = ['titolo', 'descrizione'];
 
-    protected $casts = [
-        'inizia_il' => 'datetime',
-        'finisce_il' => 'datetime',
-        'pubblicato' => 'boolean',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'inizia_il' => 'datetime',
+            'finisce_il' => 'datetime',
+            'pubblicato' => 'boolean',
+        ];
+    }
 
     public function registerMediaCollections(): void
     {

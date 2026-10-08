@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -41,7 +42,8 @@ class RipristinoImpostazioniShopMigrationTest extends TestCase
         return DB::table('site_settings')->where('key', $chiave)->value('value');
     }
 
-    public function test_le_chiavi_vuote_tornano_al_valore_di_partenza(): void
+    #[Test]
+    public function le_chiavi_vuote_tornano_al_valore_di_partenza(): void
     {
         $this->scrivi('shop.max_qty_per_product', '');
         $this->scrivi('shop.cart_expiry_days', '');
@@ -56,7 +58,8 @@ class RipristinoImpostazioniShopMigrationTest extends TestCase
         $this->assertSame('5', $this->valore('auctions.min_bid_increment'));
     }
 
-    public function test_non_tocca_quello_che_la_redazione_ha_scritto(): void
+    #[Test]
+    public function non_tocca_quello_che_la_redazione_ha_scritto(): void
     {
         $this->scrivi('shop.max_qty_per_product', '3');
         $this->scrivi('shop.active_payment_gateways', 'bank_transfer');
@@ -67,7 +70,8 @@ class RipristinoImpostazioniShopMigrationTest extends TestCase
         $this->assertSame('bank_transfer', $this->valore('shop.active_payment_gateways'));
     }
 
-    public function test_non_riaccende_il_negozio_ne_le_aste(): void
+    #[Test]
+    public function non_riaccende_il_negozio_ne_le_aste(): void
     {
         // Spegnere lo shop è una decisione della redazione: la migrazione
         // rimette i numeri, non gli interruttori.
@@ -80,7 +84,8 @@ class RipristinoImpostazioniShopMigrationTest extends TestCase
         $this->assertSame('0', $this->valore('auctions.enabled'));
     }
 
-    public function test_la_soglia_della_spedizione_gratuita_resta_vuota(): void
+    #[Test]
+    public function la_soglia_della_spedizione_gratuita_resta_vuota(): void
     {
         // Vuota significa "vale la soglia della zona di spedizione": scriverci
         // i 50 € del file dati farebbe promettere al carrello una spedizione
@@ -92,7 +97,8 @@ class RipristinoImpostazioniShopMigrationTest extends TestCase
         $this->assertSame('', $this->valore('shop.free_shipping_threshold'));
     }
 
-    public function test_riallinea_il_tipo_dichiarato_dal_file_dati(): void
+    #[Test]
+    public function riallinea_il_tipo_dichiarato_dal_file_dati(): void
     {
         // Il salvataggio del pannello non scrive la colonna `type`, e un
         // interruttore nato come `text` non viene più letto come booleano.
@@ -103,7 +109,8 @@ class RipristinoImpostazioniShopMigrationTest extends TestCase
         $this->assertSame('boolean', DB::table('site_settings')->where('key', 'shop.enabled')->value('type'));
     }
 
-    public function test_non_inventa_le_chiavi_che_in_archivio_non_ci_sono(): void
+    #[Test]
+    public function non_inventa_le_chiavi_che_in_archivio_non_ci_sono(): void
     {
         // La forma letterale `shop.x` vince su `x` + colonna `group`: crearla
         // qui oscurerebbe un valore salvato nell'altra forma. Senza riga vale
@@ -117,7 +124,8 @@ class RipristinoImpostazioniShopMigrationTest extends TestCase
         $this->assertSame(0.5, (float) SiteSetting::get('shop.default_item_weight_kg', 0.5));
     }
 
-    public function test_si_puo_rieseguire(): void
+    #[Test]
+    public function si_puo_rieseguire(): void
     {
         $this->scrivi('shop.max_qty_per_product', '');
 

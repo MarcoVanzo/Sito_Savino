@@ -9,6 +9,7 @@ use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RosterPageTest extends TestCase
@@ -26,7 +27,8 @@ class RosterPageTest extends TestCase
      * colonne inesistenti — numero di maglia e ruolo arrivavano sempre vuoti.
      * I dati corretti stanno su `rosters.jersey_number` e `rosters.role`.
      */
-    public function test_roster_page_exposes_jersey_number_and_role(): void
+    #[Test]
+    public function roster_page_exposes_jersey_number_and_role(): void
     {
         $season = Season::factory()->current()->create();
         $team = Team::factory()->create(['category' => 'A1']);
@@ -62,7 +64,8 @@ class RosterPageTest extends TestCase
      * Il roster deve essere ordinato per numero di maglia, non nell'ordine
      * (non deterministico) restituito dal database.
      */
-    public function test_roster_page_is_ordered_by_jersey_number(): void
+    #[Test]
+    public function roster_page_is_ordered_by_jersey_number(): void
     {
         $season = Season::factory()->current()->create();
         $team = Team::factory()->create(['category' => 'A1']);

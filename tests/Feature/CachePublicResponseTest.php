@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CachePublicResponseTest extends TestCase
@@ -27,7 +28,8 @@ class CachePublicResponseTest extends TestCase
      * presi da un registro che ogni pagina nuova riscriveva (Sentry
      * SITO-SAVINO-Z): adesso cambia la generazione nel nome delle chiavi.
      */
-    public function test_un_contenuto_salvato_butta_le_pagine_in_cache(): void
+    #[Test]
+    public function un_contenuto_salvato_butta_le_pagine_in_cache(): void
     {
         $this->get('/')->assertHeader('X-Page-Cache', 'MISS');
         $this->get('/')->assertHeader('X-Page-Cache', 'HIT');
@@ -38,7 +40,8 @@ class CachePublicResponseTest extends TestCase
         $this->get('/')->assertHeader('X-Page-Cache', 'HIT');
     }
 
-    public function test_svuotare_la_cache_di_pagina_non_tiene_un_registro_degli_indirizzi(): void
+    #[Test]
+    public function svuotare_la_cache_di_pagina_non_tiene_un_registro_degli_indirizzi(): void
     {
         $this->get('/')->assertHeader('X-Page-Cache', 'MISS');
         $this->get('/en')->assertOk();
@@ -50,7 +53,8 @@ class CachePublicResponseTest extends TestCase
         $this->get('/')->assertHeader('X-Page-Cache', 'MISS');
     }
 
-    public function test_login_page_is_never_full_page_cached(): void
+    #[Test]
+    public function login_page_is_never_full_page_cached(): void
     {
         // La pagina di login deve restare dinamica: la cache full-page rimuove
         // gli header Set-Cookie / X-XSRF-TOKEN e romperebbe il CSRF (419) per chi
@@ -59,7 +63,8 @@ class CachePublicResponseTest extends TestCase
         $this->get('/login')->assertOk()->assertHeaderMissing('X-Page-Cache');
     }
 
-    public function test_login_page_sets_a_fresh_csrf_cookie(): void
+    #[Test]
+    public function login_page_sets_a_fresh_csrf_cookie(): void
     {
         $response = $this->get('/login');
 
@@ -70,7 +75,8 @@ class CachePublicResponseTest extends TestCase
         );
     }
 
-    public function test_authenticated_page_is_not_full_page_cached(): void
+    #[Test]
+    public function authenticated_page_is_not_full_page_cached(): void
     {
         // Le pagine autenticate non devono essere messe in cache (rischio di
         // servirle ad altri utenti).
@@ -82,7 +88,8 @@ class CachePublicResponseTest extends TestCase
             ->assertHeaderMissing('X-Page-Cache');
     }
 
-    public function test_chi_arriva_da_una_pagina_in_cache_puo_chiedere_il_cookie_csrf(): void
+    #[Test]
+    public function chi_arriva_da_una_pagina_in_cache_puo_chiedere_il_cookie_csrf(): void
     {
         // Le pagine servite dalla cache non portano Set-Cookie: il frontend
         // (resources/js/bootstrap.js) chiede il cookie qui prima di un invio,
@@ -100,7 +107,8 @@ class CachePublicResponseTest extends TestCase
      * che la cache ha già deciso: senza cookie di sessione la pagina con
      * `auth.user` veniva salvata e servita a tutti i visitatori anonimi.
      */
-    public function test_con_il_cookie_ricordami_la_pagina_non_passa_dalla_cache(): void
+    #[Test]
+    public function con_il_cookie_ricordami_la_pagina_non_passa_dalla_cache(): void
     {
         $user = User::factory()->create(['email' => 'ricordata@example.test']);
         [$nome, $valore] = $this->cookieRicordami($user);
@@ -125,7 +133,8 @@ class CachePublicResponseTest extends TestCase
      * il controllo dei cookie (un guard nuovo, un nome di cookie cambiato),
      * dopo la pipeline una risposta con utente autenticato non si salva.
      */
-    public function test_una_risposta_con_utente_autenticato_non_viene_mai_salvata(): void
+    #[Test]
+    public function una_risposta_con_utente_autenticato_non_viene_mai_salvata(): void
     {
         $user = User::factory()->create(['email' => 'dentro@example.test']);
 

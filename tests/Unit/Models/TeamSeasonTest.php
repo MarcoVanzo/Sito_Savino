@@ -8,6 +8,7 @@ use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TeamSeasonTest extends TestCase
@@ -16,7 +17,8 @@ class TeamSeasonTest extends TestCase
 
     // --- Team ---
 
-    public function test_team_has_many_rosters(): void
+    #[Test]
+    public function team_has_many_rosters(): void
     {
         $team = Team::factory()->create();
         Roster::factory()->create(['team_id' => $team->id]);
@@ -24,7 +26,8 @@ class TeamSeasonTest extends TestCase
         $this->assertCount(1, $team->rosters);
     }
 
-    public function test_team_has_home_and_away_games(): void
+    #[Test]
+    public function team_has_home_and_away_games(): void
     {
         $team = Team::factory()->create();
         $opponent = Team::factory()->create();
@@ -45,7 +48,8 @@ class TeamSeasonTest extends TestCase
         $this->assertCount(1, $team->awayGames);
     }
 
-    public function test_team_uses_soft_deletes(): void
+    #[Test]
+    public function team_uses_soft_deletes(): void
     {
         $team = Team::factory()->create();
         $team->delete();
@@ -53,7 +57,8 @@ class TeamSeasonTest extends TestCase
         $this->assertSoftDeleted($team);
     }
 
-    public function test_team_is_internal_is_boolean(): void
+    #[Test]
+    public function team_is_internal_is_boolean(): void
     {
         $team = Team::factory()->create(['is_internal' => 1]);
 
@@ -62,7 +67,8 @@ class TeamSeasonTest extends TestCase
 
     // --- Season ---
 
-    public function test_season_current_scope(): void
+    #[Test]
+    public function season_current_scope(): void
     {
         Season::factory()->create(['is_current' => true]);
         Season::factory()->create(['is_current' => false]);
@@ -70,7 +76,8 @@ class TeamSeasonTest extends TestCase
         $this->assertCount(1, Season::current()->get());
     }
 
-    public function test_season_has_many_rosters(): void
+    #[Test]
+    public function season_has_many_rosters(): void
     {
         $season = Season::factory()->create();
         Roster::factory()->create(['season_id' => $season->id]);
@@ -78,7 +85,8 @@ class TeamSeasonTest extends TestCase
         $this->assertCount(1, $season->rosters);
     }
 
-    public function test_season_has_many_games(): void
+    #[Test]
+    public function season_has_many_games(): void
     {
         $season = Season::factory()->create();
         Game::factory()->create(['season_id' => $season->id]);
@@ -86,7 +94,8 @@ class TeamSeasonTest extends TestCase
         $this->assertCount(1, $season->games);
     }
 
-    public function test_season_uses_soft_deletes(): void
+    #[Test]
+    public function season_uses_soft_deletes(): void
     {
         $season = Season::factory()->create();
         $season->delete();
@@ -96,7 +105,8 @@ class TeamSeasonTest extends TestCase
 
     // --- Roster ---
 
-    public function test_roster_belongs_to_player_team_season(): void
+    #[Test]
+    public function roster_belongs_to_player_team_season(): void
     {
         $roster = Roster::factory()->create();
 
@@ -105,7 +115,8 @@ class TeamSeasonTest extends TestCase
         $this->assertInstanceOf(Season::class, $roster->season);
     }
 
-    public function test_roster_casts_is_captain_to_boolean(): void
+    #[Test]
+    public function roster_casts_is_captain_to_boolean(): void
     {
         $roster = Roster::factory()->create(['is_captain' => 1]);
 

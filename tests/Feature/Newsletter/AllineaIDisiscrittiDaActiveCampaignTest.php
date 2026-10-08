@@ -10,6 +10,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -47,7 +48,8 @@ class AllineaIDisiscrittiDaActiveCampaignTest extends TestCase
         ];
     }
 
-    public function test_segna_i_disiscritti_su_activecampaign_e_cancella_nome_e_ip(): void
+    #[Test]
+    public function segna_i_disiscritti_su_activecampaign_e_cancella_nome_e_ip(): void
     {
         $uscita = NewsletterSubscriber::factory()->create(['email' => 'uscita@example.com', 'ip_address' => '203.0.113.7']);
         $rimasta = NewsletterSubscriber::factory()->create(['email' => 'rimasta@example.com']);
@@ -72,7 +74,8 @@ class AllineaIDisiscrittiDaActiveCampaignTest extends TestCase
             && $richiesta->hasHeader('Api-Token', 'chiave-di-prova'));
     }
 
-    public function test_legge_tutte_le_pagine(): void
+    #[Test]
+    public function legge_tutte_le_pagine(): void
     {
         $email = array_map(fn ($i) => "persona{$i}@example.com", range(1, 150));
         $ultima = NewsletterSubscriber::factory()->create(['email' => 'persona150@example.com']);
@@ -89,7 +92,8 @@ class AllineaIDisiscrittiDaActiveCampaignTest extends TestCase
         Http::assertSent(fn (Request $richiesta) => $richiesta['offset'] == 100);
     }
 
-    public function test_non_tocca_chi_ha_appena_riconfermato_e_aspetta_di_tornare_in_lista(): void
+    #[Test]
+    public function non_tocca_chi_ha_appena_riconfermato_e_aspetta_di_tornare_in_lista(): void
     {
         // Su ActiveCampaign è ancora disiscritto dalla volta prima; sul sito
         // ha confermato di nuovo e il job che lo rimette in lista non è
@@ -103,7 +107,8 @@ class AllineaIDisiscrittiDaActiveCampaignTest extends TestCase
         $this->assertNull($rientrato->fresh()->unsubscribed_at);
     }
 
-    public function test_con_prova_non_cambia_niente(): void
+    #[Test]
+    public function con_prova_non_cambia_niente(): void
     {
         $uscita = NewsletterSubscriber::factory()->create(['email' => 'uscita@example.com']);
 
@@ -116,7 +121,8 @@ class AllineaIDisiscrittiDaActiveCampaignTest extends TestCase
         $this->assertNull($uscita->fresh()->unsubscribed_at);
     }
 
-    public function test_un_errore_transitorio_non_fa_fallire_il_comando(): void
+    #[Test]
+    public function un_errore_transitorio_non_fa_fallire_il_comando(): void
     {
         $uscita = NewsletterSubscriber::factory()->create(['email' => 'uscita@example.com']);
 
@@ -129,14 +135,16 @@ class AllineaIDisiscrittiDaActiveCampaignTest extends TestCase
         $this->assertNull($uscita->fresh()->unsubscribed_at);
     }
 
-    public function test_una_connessione_mancata_e_transitoria(): void
+    #[Test]
+    public function una_connessione_mancata_e_transitoria(): void
     {
         Http::fake(fn () => throw new ConnectionException('timeout'));
 
         $this->artisan('newsletter:allinea-disiscritti')->assertSuccessful();
     }
 
-    public function test_una_chiave_rifiutata_fa_fallire_il_comando_e_quindi_avvisa(): void
+    #[Test]
+    public function una_chiave_rifiutata_fa_fallire_il_comando_e_quindi_avvisa(): void
     {
         Http::fake([self::CONTATTI => Http::response(['message' => 'No Result found'], 403)]);
 
@@ -145,14 +153,16 @@ class AllineaIDisiscrittiDaActiveCampaignTest extends TestCase
             ->assertFailed();
     }
 
-    public function test_una_risposta_illeggibile_fa_fallire_il_comando(): void
+    #[Test]
+    public function una_risposta_illeggibile_fa_fallire_il_comando(): void
     {
         Http::fake([self::CONTATTI => Http::response(['qualcosa' => 'altro'])]);
 
         $this->artisan('newsletter:allinea-disiscritti')->assertFailed();
     }
 
-    public function test_senza_activecampaign_configurato_non_chiama_niente(): void
+    #[Test]
+    public function senza_activecampaign_configurato_non_chiama_niente(): void
     {
         config(['services.activecampaign.key' => '']);
         Http::fake();
@@ -162,7 +172,8 @@ class AllineaIDisiscrittiDaActiveCampaignTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_e_pianificato_sopra_il_ciclo_degli_avvisi(): void
+    #[Test]
+    public function e_pianificato_sopra_il_ciclo_degli_avvisi(): void
     {
         $eventi = collect(app(Schedule::class)->events())
             ->filter(fn ($evento) => str_contains((string) $evento->command, 'newsletter:allinea-disiscritti'));

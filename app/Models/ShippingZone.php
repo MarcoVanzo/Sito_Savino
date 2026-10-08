@@ -24,13 +24,19 @@ class ShippingZone extends Model
         'estimated_days_min', 'estimated_days_max', 'is_active', 'sort_order',
     ];
 
-    protected $casts = [
-        'countries' => 'array',
-        'weight_rates' => 'array',
-        'flat_rate' => 'decimal:2',
-        'free_threshold' => 'decimal:2',
-        'is_active' => 'boolean',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'countries' => 'array',
+            'weight_rates' => 'array',
+            'flat_rate' => 'decimal:2',
+            'free_threshold' => 'decimal:2',
+            'is_active' => 'boolean',
+        ];
+    }
 
     /**
      * Scope: solo zone attive.

@@ -4,6 +4,7 @@ namespace Tests\Feature\Shop;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -15,7 +16,8 @@ class ShopRegistrationPasswordPolicyTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_shop_registration_rejects_weak_password(): void
+    #[Test]
+    public function shop_registration_rejects_weak_password(): void
     {
         $response = $this->post(route('shop.register.store'), [
             'name' => 'Mario Rossi',
@@ -29,7 +31,8 @@ class ShopRegistrationPasswordPolicyTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => 'mario@example.com']);
     }
 
-    public function test_shop_registration_accepts_compliant_password(): void
+    #[Test]
+    public function shop_registration_accepts_compliant_password(): void
     {
         $response = $this->post(route('shop.register.store'), [
             'name' => 'Mario Rossi',

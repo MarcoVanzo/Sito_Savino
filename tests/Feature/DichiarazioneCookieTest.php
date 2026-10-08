@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Models\Page;
 use App\Support\DichiarazioneCookie;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -35,7 +36,8 @@ class DichiarazioneCookieTest extends TestCase
         return $pagina;
     }
 
-    public function test_la_cookie_policy_riceve_i_cookie_trovati_dalla_scansione(): void
+    #[Test]
+    public function la_cookie_policy_riceve_i_cookie_trovati_dalla_scansione(): void
     {
         $this->paginaCookiePolicy();
 
@@ -54,7 +56,8 @@ class DichiarazioneCookieTest extends TestCase
         });
     }
 
-    public function test_le_altre_pagine_di_solo_testo_non_la_ricevono(): void
+    #[Test]
+    public function le_altre_pagine_di_solo_testo_non_la_ricevono(): void
     {
         $pagina = Page::firstOrNew(['slug' => 'privacy-policy']);
 
@@ -68,7 +71,8 @@ class DichiarazioneCookieTest extends TestCase
             ->assertInertia(fn ($risposta) => $risposta->component('Public/ContentPage')->missing('dichiarazioneCookie'));
     }
 
-    public function test_ogni_cookie_dichiarato_ha_una_categoria_conosciuta(): void
+    #[Test]
+    public function ogni_cookie_dichiarato_ha_una_categoria_conosciuta(): void
     {
         $dichiarazione = DichiarazioneCookie::perIlFrontend('it');
 
@@ -88,7 +92,8 @@ class DichiarazioneCookieTest extends TestCase
         }
     }
 
-    public function test_la_spiegazione_segue_la_lingua(): void
+    #[Test]
+    public function la_spiegazione_segue_la_lingua(): void
     {
         $italiano = DichiarazioneCookie::perIlFrontend('it');
         $inglese = DichiarazioneCookie::perIlFrontend('en');
@@ -101,7 +106,8 @@ class DichiarazioneCookieTest extends TestCase
         $this->assertNotSame($scopoIt, $scopoEn);
     }
 
-    public function test_senza_il_file_della_scansione_la_pagina_non_si_rompe(): void
+    #[Test]
+    public function senza_il_file_della_scansione_la_pagina_non_si_rompe(): void
     {
         $file = database_path('data/cookie_rilevati.json');
         $contenuto = file_get_contents($file);

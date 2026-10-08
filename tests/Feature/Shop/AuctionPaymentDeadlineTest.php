@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\AuctionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AuctionPaymentDeadlineTest extends TestCase
@@ -38,7 +39,8 @@ class AuctionPaymentDeadlineTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_unpaid_orders_command_does_not_cancel_an_auction_order_after_one_hour(): void
+    #[Test]
+    public function unpaid_orders_command_does_not_cancel_an_auction_order_after_one_hour(): void
     {
         $winner = User::factory()->create();
         $token = Str::uuid()->toString();
@@ -70,7 +72,8 @@ class AuctionPaymentDeadlineTest extends TestCase
         );
     }
 
-    public function test_unpaid_orders_command_leaves_a_digital_checkout_alone_within_the_first_hour(): void
+    #[Test]
+    public function unpaid_orders_command_leaves_a_digital_checkout_alone_within_the_first_hour(): void
     {
         $order = Order::factory()->create([
             'order_token' => Str::uuid()->toString(),
@@ -90,7 +93,8 @@ class AuctionPaymentDeadlineTest extends TestCase
         );
     }
 
-    public function test_unpaid_orders_command_still_cancels_a_normal_abandoned_checkout(): void
+    #[Test]
+    public function unpaid_orders_command_still_cancels_a_normal_abandoned_checkout(): void
     {
         $order = Order::factory()->create([
             'order_token' => Str::uuid()->toString(),
@@ -106,7 +110,8 @@ class AuctionPaymentDeadlineTest extends TestCase
         $this->assertSame(OrderStatus::Cancelled, $order->fresh()->status);
     }
 
-    public function test_auction_is_not_reassigned_before_the_deadline_expires(): void
+    #[Test]
+    public function auction_is_not_reassigned_before_the_deadline_expires(): void
     {
         $first = User::factory()->create();
         $second = User::factory()->create();
@@ -143,7 +148,8 @@ class AuctionPaymentDeadlineTest extends TestCase
         $this->assertSame(OrderStatus::Pending, $order->fresh()->status, "L'ordine ancora pagabile non va annullato.");
     }
 
-    public function test_un_offerta_rimasta_senza_utente_non_riceve_l_asta(): void
+    #[Test]
+    public function un_offerta_rimasta_senza_utente_non_riceve_l_asta(): void
     {
         // Un account cancellato lascia le offerte con user_id NULL: la
         // riassegnazione le sceglieva, e l'asta restava a un vincitore nullo
@@ -172,7 +178,8 @@ class AuctionPaymentDeadlineTest extends TestCase
         $this->assertSame($third->id, $auction->fresh()->winner_user_id);
     }
 
-    public function test_pending_order_does_not_block_reassignment_to_the_next_bidder(): void
+    #[Test]
+    public function pending_order_does_not_block_reassignment_to_the_next_bidder(): void
     {
         $first = User::factory()->create();
         $second = User::factory()->create();
@@ -213,7 +220,8 @@ class AuctionPaymentDeadlineTest extends TestCase
         );
     }
 
-    public function test_paid_order_keeps_the_auction_assigned_to_its_winner(): void
+    #[Test]
+    public function paid_order_keeps_the_auction_assigned_to_its_winner(): void
     {
         $first = User::factory()->create();
         $second = User::factory()->create();

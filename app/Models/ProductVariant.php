@@ -16,9 +16,15 @@ class ProductVariant extends Model
         'product_id', 'size', 'color', 'sku', 'price_modifier', 'stock',
     ];
 
-    protected $casts = [
-        'price_modifier' => 'decimal:2',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'price_modifier' => 'decimal:2',
+        ];
+    }
 
     public function product(): BelongsTo
     {

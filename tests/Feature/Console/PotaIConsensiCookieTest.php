@@ -5,6 +5,7 @@ namespace Tests\Feature\Console;
 use App\Models\ConsensoCookie;
 use App\Services\CatenaDeiConsensi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -42,7 +43,8 @@ class PotaIConsensiCookieTest extends TestCase
         return $consenso;
     }
 
-    public function test_toglie_i_consensi_piu_vecchi_di_ventiquattro_mesi(): void
+    #[Test]
+    public function toglie_i_consensi_piu_vecchi_di_ventiquattro_mesi(): void
     {
         $vecchio = $this->consensoDi(now()->subMonths(25)->toDateTimeString());
         // Scaduto come consenso (più di dodici mesi) ma ancora dentro il
@@ -57,7 +59,8 @@ class PotaIConsensiCookieTest extends TestCase
         $this->assertDatabaseHas('consensi_cookie', ['id' => $recente->id]);
     }
 
-    public function test_il_confine_dei_ventiquattro_mesi_tiene_il_consenso_sul_filo(): void
+    #[Test]
+    public function il_confine_dei_ventiquattro_mesi_tiene_il_consenso_sul_filo(): void
     {
         // Il giorno esatto del limite non si cancella: la prova del consenso
         // serve finché può essere richiesta, e un'ora di differenza non è un
@@ -71,7 +74,8 @@ class PotaIConsensiCookieTest extends TestCase
         $this->assertDatabaseHas('consensi_cookie', ['id' => $sulFilo->id]);
     }
 
-    public function test_con_mesi_si_accorcia_la_conservazione(): void
+    #[Test]
+    public function con_mesi_si_accorcia_la_conservazione(): void
     {
         $treMesiFa = $this->consensoDi(now()->subMonths(3)->toDateTimeString());
         $ieri = $this->consensoDi(now()->subDay()->toDateTimeString());
@@ -82,7 +86,8 @@ class PotaIConsensiCookieTest extends TestCase
         $this->assertDatabaseHas('consensi_cookie', ['id' => $ieri->id]);
     }
 
-    public function test_un_mese_e_il_minimo_e_zero_non_svuota_il_registro(): void
+    #[Test]
+    public function un_mese_e_il_minimo_e_zero_non_svuota_il_registro(): void
     {
         // `--mesi=0` letto alla lettera vorrebbe dire "cancella tutto, anche il
         // consenso raccolto un minuto fa": una svista da riga di comando non
@@ -101,14 +106,16 @@ class PotaIConsensiCookieTest extends TestCase
         $this->assertDatabaseMissing('consensi_cookie', ['id' => $vecchio->id]);
     }
 
-    public function test_su_un_registro_vuoto_non_ha_niente_da_dire(): void
+    #[Test]
+    public function su_un_registro_vuoto_non_ha_niente_da_dire(): void
     {
         $this->artisan('consensi:pota')
             ->expectsOutputToContain('Nessun consenso da togliere')
             ->assertSuccessful();
     }
 
-    public function test_conta_al_plurale_quando_sono_piu_di_uno(): void
+    #[Test]
+    public function conta_al_plurale_quando_sono_piu_di_uno(): void
     {
         $this->consensoDi(now()->subMonths(26)->toDateTimeString());
         $this->consensoDi(now()->subMonths(25)->toDateTimeString());
@@ -120,7 +127,8 @@ class PotaIConsensiCookieTest extends TestCase
         $this->assertSame(0, ConsensoCookie::count());
     }
 
-    public function test_dopo_la_potatura_la_catena_resta_verificabile_dall_ancora(): void
+    #[Test]
+    public function dopo_la_potatura_la_catena_resta_verificabile_dall_ancora(): void
     {
         $tolto = $this->consensoDi(now()->subMonths(26)->toDateTimeString());
         $this->consensoDi(now()->subMonths(2)->toDateTimeString());
@@ -143,7 +151,8 @@ class PotaIConsensiCookieTest extends TestCase
         $this->assertNull(CatenaDeiConsensi::verifica()['guasto']);
     }
 
-    public function test_potare_tutto_il_registro_lascia_l_ancora_al_consenso_successivo(): void
+    #[Test]
+    public function potare_tutto_il_registro_lascia_l_ancora_al_consenso_successivo(): void
     {
         $tolto = $this->consensoDi(now()->subMonths(30)->toDateTimeString());
 

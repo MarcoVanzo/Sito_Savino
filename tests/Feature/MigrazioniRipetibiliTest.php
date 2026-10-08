@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -23,7 +24,8 @@ class MigrazioniRipetibiliTest extends TestCase
         return require database_path('migrations/'.$nome.'.php');
     }
 
-    public function test_le_migrazioni_del_25_09_si_possono_rilanciare(): void
+    #[Test]
+    public function le_migrazioni_del_25_09_si_possono_rilanciare(): void
     {
         $this->migrazione('2026_09_25_210000_etichette_e_personalizzazione_dei_prodotti')->up();
         $this->migrazione('2026_09_25_211000_storico_dei_prezzi')->up();
@@ -33,7 +35,8 @@ class MigrazioniRipetibiliTest extends TestCase
         $this->assertTrue(Schema::hasColumn('order_items', 'supplemento_personalizzazione'));
     }
 
-    public function test_una_migrazione_interrotta_a_meta_riparte_dalle_colonne_mancanti(): void
+    #[Test]
+    public function una_migrazione_interrotta_a_meta_riparte_dalle_colonne_mancanti(): void
     {
         // Come se il giro precedente si fosse fermato dopo `products`.
         Schema::table('order_items', function (Blueprint $table) {

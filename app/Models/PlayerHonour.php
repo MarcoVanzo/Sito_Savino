@@ -51,13 +51,19 @@ class PlayerHonour extends Model
         'sort_order' => 0,
     ];
 
-    protected $casts = [
-        'category' => PlayerHonourCategory::class,
-        'medal' => HonourMedal::class,
-        'year' => 'integer',
-        'is_visible' => 'boolean',
-        'sort_order' => 'integer',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'category' => PlayerHonourCategory::class,
+            'medal' => HonourMedal::class,
+            'year' => 'integer',
+            'is_visible' => 'boolean',
+            'sort_order' => 'integer',
+        ];
+    }
 
     public function player(): BelongsTo
     {

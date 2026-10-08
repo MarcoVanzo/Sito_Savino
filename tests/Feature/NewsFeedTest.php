@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -38,7 +39,8 @@ class NewsFeedTest extends TestCase
         return $xml;
     }
 
-    public function test_il_feed_risponde_come_rss(): void
+    #[Test]
+    public function il_feed_risponde_come_rss(): void
     {
         $risposta = $this->get('/feed');
 
@@ -47,7 +49,8 @@ class NewsFeedTest extends TestCase
         $this->assertStringStartsWith('<?xml', trim($risposta->getContent()));
     }
 
-    public function test_il_feed_elenca_solo_le_notizie_pubblicate(): void
+    #[Test]
+    public function il_feed_elenca_solo_le_notizie_pubblicate(): void
     {
         Post::factory()->create(['title' => 'Comunicato pubblicato']);
         Post::factory()->draft()->create(['title' => 'Bozza da non pubblicare']);
@@ -67,7 +70,8 @@ class NewsFeedTest extends TestCase
         $this->assertSame(['Comunicato pubblicato'], $titoli);
     }
 
-    public function test_le_notizie_sono_in_ordine_di_pubblicazione(): void
+    #[Test]
+    public function le_notizie_sono_in_ordine_di_pubblicazione(): void
     {
         Post::factory()->create(['title' => 'La più vecchia', 'published_at' => now()->subDays(3)]);
         Post::factory()->create(['title' => 'La più recente', 'published_at' => now()->subHour()]);
@@ -83,7 +87,8 @@ class NewsFeedTest extends TestCase
         $this->assertSame(['La più recente', 'Quella di mezzo', 'La più vecchia'], $titoli);
     }
 
-    public function test_il_feed_si_ferma_al_numero_di_notizie_previsto(): void
+    #[Test]
+    public function il_feed_si_ferma_al_numero_di_notizie_previsto(): void
     {
         Post::factory()->count(NewsFeedBuilder::NUMERO_DI_NOTIZIE + 5)->create();
 
@@ -92,7 +97,8 @@ class NewsFeedTest extends TestCase
         $this->assertCount(NewsFeedBuilder::NUMERO_DI_NOTIZIE, iterator_to_array($xml->channel->item, false));
     }
 
-    public function test_la_notizia_porta_indirizzo_guid_data_e_categoria(): void
+    #[Test]
+    public function la_notizia_porta_indirizzo_guid_data_e_categoria(): void
     {
         $categoria = Category::factory()->create(['name' => 'Prima Squadra']);
         $notizia = Post::factory()->create([
@@ -113,7 +119,8 @@ class NewsFeedTest extends TestCase
         $this->assertStringContainsString('Tre punti pesanti', (string) $item->description);
     }
 
-    public function test_il_contenuto_completo_viaggia_in_content_encoded_con_indirizzi_assoluti(): void
+    #[Test]
+    public function il_contenuto_completo_viaggia_in_content_encoded_con_indirizzi_assoluti(): void
     {
         Post::factory()->create([
             'content' => '<p>Le foto: <img src="/storage/news/2026/09/foto.jpg"> e il <a href="/stagione">roster</a>.</p>',
@@ -127,7 +134,8 @@ class NewsFeedTest extends TestCase
         $this->assertStringNotContainsString('src="/storage', $contenuto);
     }
 
-    public function test_gli_indirizzi_gia_assoluti_restano_intatti(): void
+    #[Test]
+    public function gli_indirizzi_gia_assoluti_restano_intatti(): void
     {
         Post::factory()->create([
             'content' => '<p><img src="https://cdn.esempio.it/foto.jpg"><a href="//altro.esempio.it/pagina">link</a></p>',
@@ -139,7 +147,8 @@ class NewsFeedTest extends TestCase
         $this->assertStringContainsString('href="//altro.esempio.it/pagina"', $contenuto);
     }
 
-    public function test_la_descrizione_ripiega_sul_contenuto_quando_manca_l_occhiello(): void
+    #[Test]
+    public function la_descrizione_ripiega_sul_contenuto_quando_manca_l_occhiello(): void
     {
         Post::factory()->create([
             'excerpt' => '',
@@ -152,7 +161,8 @@ class NewsFeedTest extends TestCase
         $this->assertStringNotContainsString('<p>', $descrizione);
     }
 
-    public function test_un_contenuto_che_chiude_il_cdata_non_tronca_il_feed(): void
+    #[Test]
+    public function un_contenuto_che_chiude_il_cdata_non_tronca_il_feed(): void
     {
         Post::factory()->create([
             'title' => 'Formula del punteggio',
@@ -168,7 +178,8 @@ class NewsFeedTest extends TestCase
         );
     }
 
-    public function test_i_caratteri_di_controllo_non_rompono_il_feed(): void
+    #[Test]
+    public function i_caratteri_di_controllo_non_rompono_il_feed(): void
     {
         Post::factory()->create([
             'title' => "Titolo\x0Bcon un carattere vietato",
@@ -180,7 +191,8 @@ class NewsFeedTest extends TestCase
         $this->assertSame('Titolocon un carattere vietato', (string) $xml->channel->item[0]->title);
     }
 
-    public function test_le_righe_storiche_in_testo_semplice_non_spariscono(): void
+    #[Test]
+    public function le_righe_storiche_in_testo_semplice_non_spariscono(): void
     {
         // I contenuti importati da WordPress hanno il titolo in testo semplice
         // invece del JSON per lingua: spatie da solo restituirebbe una stringa
@@ -198,7 +210,8 @@ class NewsFeedTest extends TestCase
         $this->assertStringContainsString('Testo senza traduzioni.', (string) $item->description);
     }
 
-    public function test_il_canale_dichiara_se_stesso_e_punta_alle_news(): void
+    #[Test]
+    public function il_canale_dichiara_se_stesso_e_punta_alle_news(): void
     {
         Post::factory()->create();
 
@@ -212,7 +225,8 @@ class NewsFeedTest extends TestCase
         );
     }
 
-    public function test_il_feed_inglese_usa_gli_indirizzi_inglesi(): void
+    #[Test]
+    public function il_feed_inglese_usa_gli_indirizzi_inglesi(): void
     {
         Post::factory()->create(['slug' => 'press-release']);
 
@@ -224,21 +238,24 @@ class NewsFeedTest extends TestCase
         $this->assertSame(url('/en/news/press-release'), (string) $canale->item[0]->link);
     }
 
-    public function test_gli_indirizzi_vecchi_portano_al_feed(): void
+    #[Test]
+    public function gli_indirizzi_vecchi_portano_al_feed(): void
     {
         $this->get('/news/feed')->assertRedirect(url('/feed'));
         $this->get('/rss')->assertRedirect(url('/feed'));
         $this->get('/en/news/feed')->assertRedirect(url('/en/feed'));
     }
 
-    public function test_una_notizia_che_si_chiama_feed_non_ruba_l_indirizzo(): void
+    #[Test]
+    public function una_notizia_che_si_chiama_feed_non_ruba_l_indirizzo(): void
     {
         Post::factory()->create(['slug' => 'feed']);
 
         $this->get('/news/feed')->assertRedirect(url('/feed'));
     }
 
-    public function test_salvando_una_notizia_il_feed_si_aggiorna(): void
+    #[Test]
+    public function salvando_una_notizia_il_feed_si_aggiorna(): void
     {
         Post::factory()->create(['title' => 'Prima versione']);
 
@@ -249,14 +266,16 @@ class NewsFeedTest extends TestCase
         $this->assertSame('Versione corretta', (string) $this->feed()->channel->item[0]->title);
     }
 
-    public function test_il_sito_dichiara_il_feed_nell_intestazione(): void
+    #[Test]
+    public function il_sito_dichiara_il_feed_nell_intestazione(): void
     {
         $this->get('/news')
             ->assertSee('type="application/rss+xml"', false)
             ->assertSee('href="'.url('/feed').'"', false);
     }
 
-    public function test_il_guid_non_cambia_se_cambia_lo_slug(): void
+    #[Test]
+    public function il_guid_non_cambia_se_cambia_lo_slug(): void
     {
         $notizia = Post::factory()->create(['slug' => 'slug-di-partenza']);
 
@@ -270,7 +289,8 @@ class NewsFeedTest extends TestCase
         $this->assertSame(url('/news/slug-corretto-in-redazione'), (string) $item->link);
     }
 
-    public function test_la_copertina_viaggia_come_allegato(): void
+    #[Test]
+    public function la_copertina_viaggia_come_allegato(): void
     {
         Storage::fake('public');
 
@@ -294,7 +314,8 @@ class NewsFeedTest extends TestCase
         );
     }
 
-    public function test_il_feed_resta_valido_senza_notizie(): void
+    #[Test]
+    public function il_feed_resta_valido_senza_notizie(): void
     {
         $canale = $this->feed()->channel;
 
@@ -304,7 +325,8 @@ class NewsFeedTest extends TestCase
         $this->assertCount(0, iterator_to_array($canale->item ?? [], false));
     }
 
-    public function test_la_pagina_inglese_dichiara_il_feed_inglese(): void
+    #[Test]
+    public function la_pagina_inglese_dichiara_il_feed_inglese(): void
     {
         // `app()->setLocale()` riscrive `config('app.locale')`: chi decide il
         // prefisso confrontando le due lingue crede sempre di essere in

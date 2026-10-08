@@ -28,11 +28,17 @@ class GamePlayerStat extends Model
         'block_points', 'synced_at',
     ];
 
-    protected $casts = [
-        'is_captain' => 'boolean',
-        'is_libero' => 'boolean',
-        'synced_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_captain' => 'boolean',
+            'is_libero' => 'boolean',
+            'synced_at' => 'datetime',
+        ];
+    }
 
     public function game(): BelongsTo
     {

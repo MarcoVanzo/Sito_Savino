@@ -69,20 +69,26 @@ class Order extends Model
         'condizioni_versione', 'condizioni_impronta',
     ];
 
-    protected $casts = [
-        'total_price' => 'decimal:2',
-        // Scritto solo dai webhook di rimborso: fuori da $fillable come payment_id.
-        'refunded_amount' => 'decimal:2',
-        'status' => OrderStatus::class,
-        'payment_gateway' => PaymentGateway::class,
-        'shipping_address' => 'array',
-        'billing_address' => 'array',
-        'shipping_cost' => 'decimal:2',
-        'coupon_discount' => 'decimal:2',
-        'paid_at' => 'datetime',
-        'shipped_at' => 'datetime',
-        'privacy_accepted_at' => 'datetime',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'total_price' => 'decimal:2',
+            // Scritto solo dai webhook di rimborso: fuori da $fillable come payment_id.
+            'refunded_amount' => 'decimal:2',
+            'status' => OrderStatus::class,
+            'payment_gateway' => PaymentGateway::class,
+            'shipping_address' => 'array',
+            'billing_address' => 'array',
+            'shipping_cost' => 'decimal:2',
+            'coupon_discount' => 'decimal:2',
+            'paid_at' => 'datetime',
+            'shipped_at' => 'datetime',
+            'privacy_accepted_at' => 'datetime',
+        ];
+    }
 
     protected static function booted(): void
     {

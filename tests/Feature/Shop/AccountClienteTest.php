@@ -16,6 +16,7 @@ use App\Models\RichiestaDiRecesso;
 use App\Models\User;
 use App\Services\Payments\StripeCustomerService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -33,12 +34,14 @@ class AccountClienteTest extends TestCase
         $this->withoutVite();
     }
 
-    public function test_la_pagina_dell_account_richiede_l_accesso(): void
+    #[Test]
+    public function la_pagina_dell_account_richiede_l_accesso(): void
     {
         $this->get(route('shop.account'))->assertRedirect();
     }
 
-    public function test_il_cliente_vede_il_suo_account(): void
+    #[Test]
+    public function il_cliente_vede_il_suo_account(): void
     {
         $cliente = $this->cliente();
 
@@ -51,7 +54,8 @@ class AccountClienteTest extends TestCase
                 ->where('motivoPerNonCancellare', null));
     }
 
-    public function test_l_esportazione_contiene_account_ordini_e_newsletter(): void
+    #[Test]
+    public function l_esportazione_contiene_account_ordini_e_newsletter(): void
     {
         $cliente = $this->cliente();
         $ordine = Order::factory()->create(['user_id' => $cliente->id]);
@@ -67,7 +71,8 @@ class AccountClienteTest extends TestCase
         $this->assertStringNotContainsString('password', strtolower($risposta->getContent()));
     }
 
-    public function test_l_esportazione_contiene_recessi_e_messaggi_con_lo_stesso_indirizzo(): void
+    #[Test]
+    public function l_esportazione_contiene_recessi_e_messaggi_con_lo_stesso_indirizzo(): void
     {
         $cliente = $this->cliente();
         RichiestaDiRecesso::create([
@@ -82,7 +87,8 @@ class AccountClienteTest extends TestCase
             ->assertJsonPath('messaggi.0.oggetto', 'Domanda');
     }
 
-    public function test_chi_puo_ancora_ricevere_un_asta_non_pagata_non_si_cancella(): void
+    #[Test]
+    public function chi_puo_ancora_ricevere_un_asta_non_pagata_non_si_cancella(): void
     {
         // Il secondo in classifica di un'asta chiusa e non pagata può ancora
         // riceverla: cancellandosi, l'asta finiva a un vincitore nullo che
@@ -105,7 +111,8 @@ class AccountClienteTest extends TestCase
         }
     }
 
-    public function test_cancellato_l_account_il_registro_non_ne_tiene_i_dati(): void
+    #[Test]
+    public function cancellato_l_account_il_registro_non_ne_tiene_i_dati(): void
     {
         $cliente = $this->cliente();
         $cliente->update(['name' => 'Nome Riservato']);
@@ -130,7 +137,8 @@ class AccountClienteTest extends TestCase
         }
     }
 
-    public function test_la_cancellazione_chiede_la_password(): void
+    #[Test]
+    public function la_cancellazione_chiede_la_password(): void
     {
         $cliente = $this->cliente();
 
@@ -141,7 +149,8 @@ class AccountClienteTest extends TestCase
         $this->assertModelExists($cliente);
     }
 
-    public function test_cancellato_l_account_gli_ordini_restano_senza_legame(): void
+    #[Test]
+    public function cancellato_l_account_gli_ordini_restano_senza_legame(): void
     {
         $cliente = $this->cliente();
         $ordine = Order::factory()->create(['user_id' => $cliente->id]);
@@ -155,7 +164,8 @@ class AccountClienteTest extends TestCase
         $this->assertNull($ordine->fresh()->user_id);
     }
 
-    public function test_un_account_della_redazione_non_si_cancella_da_qui(): void
+    #[Test]
+    public function un_account_della_redazione_non_si_cancella_da_qui(): void
     {
         $redattore = User::factory()->create();
         $redattore->forceFill(['role' => UserRole::CommunicationManager])->save();
@@ -167,7 +177,8 @@ class AccountClienteTest extends TestCase
         $this->assertModelExists($redattore);
     }
 
-    public function test_cancellato_l_account_l_ordine_d_asta_conserva_il_recapito(): void
+    #[Test]
+    public function cancellato_l_account_l_ordine_d_asta_conserva_il_recapito(): void
     {
         // L'ordine d'asta non valorizza guest_email/guest_name: dopo la
         // cancellazione non restava nessuno a cui mandare spedizione,
@@ -199,7 +210,8 @@ class AccountClienteTest extends TestCase
         $this->assertSame('Nome al checkout', $ordineShop->guest_name);
     }
 
-    public function test_l_esportazione_comprende_gli_ordini_da_ospite_se_l_email_e_verificata(): void
+    #[Test]
+    public function l_esportazione_comprende_gli_ordini_da_ospite_se_l_email_e_verificata(): void
     {
         $cliente = $this->cliente();
         $daOspite = Order::factory()->create(['user_id' => null, 'guest_email' => $cliente->email]);
@@ -212,7 +224,8 @@ class AccountClienteTest extends TestCase
         $this->assertNotContains($diUnAltro->order_number, $numeri);
     }
 
-    public function test_senza_email_verificata_gli_ordini_da_ospite_restano_fuori(): void
+    #[Test]
+    public function senza_email_verificata_gli_ordini_da_ospite_restano_fuori(): void
     {
         // Chi registra un account con l'email di un altro non deve scaricarne
         // indirizzi e codice fiscale.
@@ -226,7 +239,8 @@ class AccountClienteTest extends TestCase
         $this->assertNotContains($daOspite->order_number, $numeri);
     }
 
-    public function test_l_esportazione_comprende_il_carrello(): void
+    #[Test]
+    public function l_esportazione_comprende_il_carrello(): void
     {
         $cliente = $this->cliente();
         $carrello = Cart::factory()->create(['user_id' => $cliente->id]);
@@ -237,7 +251,8 @@ class AccountClienteTest extends TestCase
             ->assertJsonPath('carrello.0.quantita', 2);
     }
 
-    public function test_cancellato_l_account_si_cancella_anche_il_cliente_su_stripe(): void
+    #[Test]
+    public function cancellato_l_account_si_cancella_anche_il_cliente_su_stripe(): void
     {
         config(['services.stripe.secret' => 'sk_test_finto']);
         $cliente = $this->cliente();
@@ -253,7 +268,8 @@ class AccountClienteTest extends TestCase
         $this->assertModelMissing($cliente);
     }
 
-    public function test_un_errore_di_stripe_non_blocca_la_cancellazione(): void
+    #[Test]
+    public function un_errore_di_stripe_non_blocca_la_cancellazione(): void
     {
         config(['services.stripe.secret' => 'sk_test_finto']);
         $cliente = $this->cliente();
@@ -269,7 +285,8 @@ class AccountClienteTest extends TestCase
         $this->assertModelMissing($cliente);
     }
 
-    public function test_senza_chiavi_di_stripe_non_si_chiama_stripe(): void
+    #[Test]
+    public function senza_chiavi_di_stripe_non_si_chiama_stripe(): void
     {
         config(['services.stripe.secret' => null]);
         $cliente = $this->cliente();

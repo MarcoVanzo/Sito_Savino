@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -47,7 +48,8 @@ class InformativaDelSitoTest extends TestCase
         return SiteSetting::getAllGrouped()['legal'] ?? [];
     }
 
-    public function test_il_pdf_promozionale_prende_il_nome_che_gli_spetta(): void
+    #[Test]
+    public function il_pdf_promozionale_prende_il_nome_che_gli_spetta(): void
     {
         $this->impostazione('privacy_policy', 'legal/Informativa generale Privacy.pdf');
 
@@ -59,7 +61,8 @@ class InformativaDelSitoTest extends TestCase
         $this->assertArrayNotHasKey('privacy_policy', $legal);
     }
 
-    public function test_l_informativa_cookie_del_vecchio_sito_se_ne_va(): void
+    #[Test]
+    public function l_informativa_cookie_del_vecchio_sito_se_ne_va(): void
     {
         $this->impostazione('cookie_policy', 'legal/Informativa Cookie.pdf');
 
@@ -68,7 +71,8 @@ class InformativaDelSitoTest extends TestCase
         $this->assertArrayNotHasKey('cookie_policy', $this->legal());
     }
 
-    public function test_riconosce_anche_la_chiave_scritta_per_esteso(): void
+    #[Test]
+    public function riconosce_anche_la_chiave_scritta_per_esteso(): void
     {
         // Le due forme convivono: `group` = 'legal' con chiave nuda, oppure
         // chiave `legal.x` nel gruppo predefinito. In produzione e in locale
@@ -85,7 +89,8 @@ class InformativaDelSitoTest extends TestCase
         $this->assertArrayNotHasKey('cookie_policy', $legal);
     }
 
-    public function test_non_passa_sopra_a_una_scelta_gia_fatta(): void
+    #[Test]
+    public function non_passa_sopra_a_una_scelta_gia_fatta(): void
     {
         $this->impostazione('informativa_promozionale', 'legal/Scelta-dalla-redazione.pdf');
         $this->impostazione('privacy_policy', 'legal/Informativa generale Privacy.pdf');
@@ -98,7 +103,8 @@ class InformativaDelSitoTest extends TestCase
         $this->assertArrayNotHasKey('privacy_policy', $legal);
     }
 
-    public function test_si_puo_rieseguire(): void
+    #[Test]
+    public function si_puo_rieseguire(): void
     {
         $this->impostazione('privacy_policy', 'legal/Informativa generale Privacy.pdf');
 

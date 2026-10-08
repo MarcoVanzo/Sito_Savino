@@ -18,9 +18,15 @@ class ShopEvent extends Model
         'user_id', 'session_id', 'ip_address', 'metadata',
     ];
 
-    protected $casts = [
-        'metadata' => 'array',
-    ];
+    /**
+     * @return array<string, string|class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+        ];
+    }
 
     // --- Relazioni ---
 

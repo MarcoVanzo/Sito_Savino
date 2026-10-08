@@ -11,6 +11,7 @@ use App\Models\StockMovement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -48,7 +49,8 @@ class PaymentWebhookStockTest extends TestCase
         ]);
     }
 
-    public function test_payment_webhook_does_not_decrement_stock_again(): void
+    #[Test]
+    public function payment_webhook_does_not_decrement_stock_again(): void
     {
         $product = Product::factory()->create(['stock' => 10]);
 

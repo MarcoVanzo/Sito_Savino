@@ -6,6 +6,7 @@ use App\Models\SiteSetting;
 use App\Support\CondizioniDiVendita;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -31,7 +32,8 @@ class IntestatarioDelBonificoMigrationTest extends TestCase
         (require database_path('migrations/2026_09_30_100000_intestatario_del_bonifico_per_esteso.php'))->up();
     }
 
-    public function test_il_valore_troncato_diventa_la_ragione_sociale(): void
+    #[Test]
+    public function il_valore_troncato_diventa_la_ragione_sociale(): void
     {
         // Come in produzione, con uno spazio non separabile per buona misura.
         $this->scrivi("Pallavolo Scandicci Savino Del BeneSoc.\u{00A0} Sport. Dilett. A Resp. Li");
@@ -42,7 +44,8 @@ class IntestatarioDelBonificoMigrationTest extends TestCase
         $this->assertSame(CondizioniDiVendita::RAGIONE_SOCIALE, SiteSetting::get('shop.bank_transfer_beneficiary'));
     }
 
-    public function test_un_intestatario_gia_corretto_non_si_tocca(): void
+    #[Test]
+    public function un_intestatario_gia_corretto_non_si_tocca(): void
     {
         $this->scrivi('Pallavolo Scandicci Savino Del Bene SSD a r.l.');
 
