@@ -3,36 +3,21 @@
 namespace App\Http\Requests;
 
 use App\Enums\PaymentGateway;
+use App\Http\Requests\Concerns\DatiDiSpedizioneEFatturazione;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreCheckoutRequest extends FormRequest
 {
+    use DatiDiSpedizioneEFatturazione;
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
         return true;
-    }
-
-    /**
-     * Sanitizza i dati in input prima della validazione.
-     */
-    protected function prepareForValidation(): void
-    {
-        if ($this->has('notes') && $this->notes !== null) {
-            $this->merge([
-                'notes' => strip_tags($this->notes),
-            ]);
-        }
-        // Normalizza il codice fiscale a maiuscole
-        if ($this->has('codice_fiscale') && $this->codice_fiscale !== null) {
-            $this->merge([
-                'codice_fiscale' => strtoupper(trim($this->codice_fiscale)),
-            ]);
-        }
     }
 
     /**
@@ -43,30 +28,13 @@ class StoreCheckoutRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'shipping_first_name' => ['required', 'string', 'max:100'],
-            'shipping_last_name' => ['required', 'string', 'max:100'],
-            'shipping_street' => ['required', 'string', 'max:255'],
-            'shipping_city' => ['required', 'string', 'max:100'],
-            'shipping_zip_code' => ['required', 'string', 'max:20'],
-            'shipping_province' => ['required', 'string', 'max:100'],
-            'country' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
-            'billing_same_as_shipping' => ['required', 'boolean'],
-            'payment_gateway' => ['required', 'string', Rule::in($this->gatewayAttivi())],
+            ...$this->regoleDegliIndirizzi(),
+            'payment_gateway' => $this->regolaDelMetodoDiPagamento(PaymentGateway::offertiAlCheckout()),
             'coupon_code' => ['nullable', 'string', 'max:50'],
-            'privacy_accepted' => ['required', 'accepted'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-            'codice_fiscale' => ['nullable', 'string', 'size:16', 'regex:/^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i'],
             'phone' => ['nullable', 'string', 'max:30'],
         ];
 
-        // Billing address fields required if not same as shipping
         if (! $this->boolean('billing_same_as_shipping')) {
-            $rules['billing_first_name'] = ['required', 'string', 'max:100'];
-            $rules['billing_last_name'] = ['required', 'string', 'max:100'];
-            $rules['billing_street'] = ['required', 'string', 'max:255'];
-            $rules['billing_city'] = ['required', 'string', 'max:100'];
-            $rules['billing_zip_code'] = ['required', 'string', 'max:20'];
-            $rules['billing_province'] = ['required', 'string', 'max:100'];
             $rules['billing_country'] = ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'];
         }
 
@@ -86,9 +54,6 @@ class StoreCheckoutRequest extends FormRequest
     }
 
     /**
-     * Aggiunge validazione condizionale per il CAP italiano.
-     */
-    /**
      * @return array<string, string>
      */
     public function messages(): array
@@ -98,44 +63,9 @@ class StoreCheckoutRequest extends FormRequest
         ];
     }
 
-    /**
-     * Metodi di pagamento accesi nel pannello.
-     *
-     * @return array<int, string>
-     */
-    private function gatewayAttivi(): array
+    public function withValidator(Validator $validator): void
     {
-        // La stessa regola della pagina di checkout, scritta una volta sola:
-        // un gateway senza credenziali non e' un'opzione valida.
-        return array_map(fn (PaymentGateway $gateway) => $gateway->value, PaymentGateway::offertiAlCheckout());
-    }
-
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-            if ($this->country === 'IT' && $this->shipping_zip_code
-                && ! preg_match('/^\d{5}$/', $this->shipping_zip_code)) {
-                $validator->errors()->add(
-                    'shipping_zip_code',
-                    __('validation.zip_code_it')
-                );
-            }
-            // Codice Fiscale obbligatorio per ordini in Italia
-            if ($this->country === 'IT' && empty($this->codice_fiscale)) {
-                $validator->errors()->add(
-                    'codice_fiscale',
-                    'Il Codice Fiscale è obbligatorio per ordini in Italia.'
-                );
-            }
-
-            // Validate Italian billing ZIP code
-            if (! $this->billing_same_as_shipping && $this->billing_country === 'IT') {
-                $billingZip = $this->billing_zip_code;
-                if ($billingZip && ! preg_match('/^\d{5}$/', $billingZip)) {
-                    $validator->errors()->add('billing_zip_code', 'Il CAP di fatturazione deve essere di 5 cifre per indirizzi italiani.');
-                }
-            }
-        });
+        $this->controllaIDatiItaliani($validator);
     }
 
     /**

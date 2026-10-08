@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentGateway;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DatiDelVincitoreDellAsta;
 use App\Mail\OrderConfirmation;
 use App\Models\Auction;
 use App\Models\Order;
@@ -18,12 +19,10 @@ use App\Services\Payments\StripePaymentService;
 use App\Support\CondizioniDiVendita;
 use App\Support\Locale;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,32 +30,6 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class AuctionCheckoutController extends Controller
 {
-    /**
-     * Dati richiesti al vincitore. Sono gli stessi del checkout dello shop;
-     * il metodo di pagamento si aggiunge in `regole()`, perché l'elenco dei
-     * metodi ammessi dipende dalle credenziali e dal pannello.
-     */
-    private const REGOLE = [
-        'shipping_first_name' => ['required', 'string', 'max:100'],
-        'shipping_last_name' => ['required', 'string', 'max:100'],
-        'shipping_street' => ['required', 'string', 'max:255'],
-        'shipping_city' => ['required', 'string', 'max:100'],
-        'shipping_zip_code' => ['required', 'string', 'max:20'],
-        'shipping_province' => ['required', 'string', 'max:100'],
-        'country' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/'],
-        'phone' => ['required', 'string', 'max:30'],
-        'codice_fiscale' => ['nullable', 'string', 'size:16', 'regex:/^[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]$/i'],
-        'billing_same_as_shipping' => ['required', 'boolean'],
-        'billing_first_name' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:100'],
-        'billing_last_name' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:100'],
-        'billing_street' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:255'],
-        'billing_city' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:100'],
-        'billing_zip_code' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:20'],
-        'billing_province' => ['required_if:billing_same_as_shipping,false', 'nullable', 'string', 'max:100'],
-        'privacy_accepted' => ['required', 'accepted'],
-        'notes' => ['nullable', 'string', 'max:1000'],
-    ];
-
     public function __construct(
         protected AuctionService $auctionService,
     ) {}
@@ -240,26 +213,9 @@ class AuctionCheckoutController extends Controller
     }
 
     /**
-     * Le regole del modulo, con i soli metodi di pagamento offerti ora.
-     *
-     * @return array<string, mixed>
-     */
-    private function regole(): array
-    {
-        return [
-            ...self::REGOLE,
-            'payment_gateway' => [
-                'required',
-                'string',
-                Rule::in(array_map(fn (PaymentGateway $g): string => $g->value, PaymentGateway::offertiAlleAste())),
-            ],
-        ];
-    }
-
-    /**
      * Processa il checkout dell'asta e avvia il pagamento sul gateway scelto.
      */
-    public function store(Request $request, string $token): RedirectResponse|SymfonyResponse
+    public function store(DatiDelVincitoreDellAsta $request, string $token): RedirectResponse|SymfonyResponse
     {
         $auction = Auction::where('winner_checkout_token', $token)->first();
 
@@ -280,14 +236,7 @@ class AuctionCheckoutController extends Controller
         // non qui: farla prima del lock lasciava passare due submit ravvicinati fino
         // alla INSERT, che falliva sull'indice unico (auction_id, user_id).
 
-        $this->normalizzaInput($request);
-        $validated = $request->validate($this->regole());
-
-        $erroriItalia = $this->erroriSuiDatiItaliani($validated);
-
-        if ($erroriItalia !== []) {
-            return back()->withErrors($erroriItalia);
-        }
+        $validated = $request->validated();
 
         $lock = Cache::lock('auction_checkout_lock:'.auth()->id(), 30);
 
@@ -336,44 +285,6 @@ class AuctionCheckoutController extends Controller
         } finally {
             $lock->release();
         }
-    }
-
-    /**
-     * Sanitizza input prima della validazione (allineato a StoreCheckoutRequest).
-     */
-    private function normalizzaInput(Request $request): void
-    {
-        if ($request->has('notes') && $request->notes !== null) {
-            $request->merge(['notes' => strip_tags($request->notes)]);
-        }
-
-        if ($request->has('codice_fiscale') && $request->codice_fiscale !== null) {
-            $request->merge(['codice_fiscale' => strtoupper(trim($request->codice_fiscale))]);
-        }
-    }
-
-    /**
-     * Per l'Italia il CAP e' di cinque cifre e il codice fiscale e'
-     * obbligatorio: serve per la fattura.
-     *
-     * @param  array<string, mixed>  $validated
-     * @return array<string, string>
-     */
-    private function erroriSuiDatiItaliani(array $validated): array
-    {
-        if ($validated['country'] !== 'IT') {
-            return [];
-        }
-
-        if (! preg_match('/^\d{5}$/', $validated['shipping_zip_code'])) {
-            return ['shipping_zip_code' => __('validation.zip_code_it')];
-        }
-
-        if (empty($validated['codice_fiscale'])) {
-            return ['codice_fiscale' => __('messages.auction.codice_fiscale_required')];
-        }
-
-        return [];
     }
 
     /**
