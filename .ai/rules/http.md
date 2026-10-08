@@ -13,3 +13,6 @@ Le scritture su ordini, giacenze, pagamenti e offerte stanno in una closure `DB:
 
 ## Niente API Resource
 Le props Inertia sono array costruiti nel controller (mapper privati `xxxToArray()`, `->through()` sui paginatori); gli endpoint AJAX e i webhook rispondono con `response()->json([...])`. Non aggiungere classi JsonResource.
+
+## Form Request per moduli pubblici e checkout
+Moduli pubblici e checkout (shop e aste) si validano con un Form Request in `app/Http/Requests`, con le regole condivise fra i due checkout. `$request->validate()` in linea solo per azioni piccole: carrello, coupon, account.
