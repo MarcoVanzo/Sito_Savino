@@ -396,7 +396,7 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   `async_payment_succeeded`. Le contestazioni avvisano per email.
 - **Aste**: stesso `Order`, stessi gateway (`PaymentGateway::offertiAlleAste()`).
   Il bonifico sposta il termine del vincitore
-  (`AuctionCheckoutController::terminePerIlBonifico`). Un pagamento arrivato con
+  (`OrdineDelVincitoreDellAsta::terminePerIlBonifico`). Un pagamento arrivato con
   l'asta già passata ad altri va in revisione da rimborsare
   (`HandlesPaymentWebhooks::astaPassataAdAltri`).
 - Importo incassato ≠ totale: meno → registrato ma ordine in revisione; più →

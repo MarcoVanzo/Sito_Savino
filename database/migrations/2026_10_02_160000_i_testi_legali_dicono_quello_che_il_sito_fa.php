@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  *   Spedizioni; la ricevuta del recesso e' a schermo e per email.
  * - Regolamento aste: il termine del vincitore sta nell'email e nella pagina
  *   di pagamento, e col bonifico diventa quello del bonifico
- *   (`AuctionCheckoutController::terminePerIlBonifico`); se non paga si scorre
+ *   (`OrdineDelVincitoreDellAsta::terminePerIlBonifico`); se non paga si scorre
  *   la classifica, non solo il secondo (`AuctionService`); l'asta benefica ha
  *   un testo libero, non i campi ente e quota.
  * - Informativa promozionale: la newsletter si conserva fino alla revoca, poi
