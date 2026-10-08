@@ -914,7 +914,7 @@ Sei livelli, ciascuno per ciò che gli altri non possono vedere:
 | Livello | Vede | Arriva a |
 |---------|------|----------|
 | `sorveglianza-sito.yml` (GitHub) | Sito irraggiungibile, giù del tutto o lento | Email di GitHub a chi ha modificato per ultimo il workflow |
-| Monitoring DO sul database | CPU e memoria oltre il 90%, disco oltre l'80% | Referente tecnico (MV Consulting) |
+| Monitoring DO sul database | CPU oltre il 90%, memoria oltre il 95% per 30 minuti (dal 6/10: al 90% su 5 minuti oscillava dopo la manutenzione DO del 4/10), disco oltre l'80% | Referente tecnico (MV Consulting) |
 | Webhook di Resend (`/api/webhooks/resend`) | Email ai clienti rimbalzate, segnalate come spam o non spedite | AvvisoTecnico → `allarmi@` |
 | Alert di App Platform (`alerts:` nella spec) | Deploy fallito, dominio non attivo, container che riparte in ciclo, memoria del web | Referente tecnico (MV Consulting), con `doctl apps update-alert-destinations` |
 | `App\Services\AvvisoTecnico` | Pianificatore fermo, comandi pianificati usciti con errore, job falliti (non coda `ai`), ordini da rivedere, contestazioni Stripe, `shop:sorveglia` | `AVVISI_EMAIL` (spec, livello d'app) via Resend |

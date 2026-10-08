@@ -163,7 +163,7 @@ class Ga4Credentials
      */
     private function cacheKey(): string
     {
-        return 'ga4:token:'.sha1($this->clientEmail);
+        return 'ga4:token:'.hash('xxh128', $this->clientEmail);
     }
 
     private static function rawServiceAccount(): ?string
