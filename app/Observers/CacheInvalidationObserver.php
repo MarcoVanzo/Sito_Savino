@@ -29,6 +29,7 @@ use App\Models\StockMovement;
 use App\Models\Team;
 use App\Services\GalleryArchive;
 use App\Services\NewsFeedBuilder;
+use App\Support\DimenticaLeChiavi;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -119,6 +120,7 @@ class CacheInvalidationObserver
     {
         $keys = self::MODEL_CACHE_MAP[get_class($model)] ?? [];
         $locales = $this->locales();
+        $daDimenticare = [];
 
         foreach ($keys as $key) {
             // L'archivio completo della gallery non si butta: ricostruirlo
@@ -132,19 +134,31 @@ class CacheInvalidationObserver
 
             // Chiave nuda (retrocompatibilità) + una variante per ogni lingua,
             // perché i controller pubblici suffissano sempre la locale.
-            Cache::forget($key);
+            $daDimenticare[] = $key;
 
             foreach ($locales as $locale) {
-                Cache::forget($key.':'.$locale);
+                $daDimenticare[] = $key.':'.$locale;
             }
         }
 
-        $this->dimenticaLeChiaviComposte($keys, $locales);
+        // Tutte in una query: chiave per chiave, sul database, una notizia
+        // salvata ne faceva più di cento (DimenticaLeChiavi).
+        DimenticaLeChiavi::insieme([
+            ...$daDimenticare,
+            ...$this->chiaviComposte($keys, $locales),
+            ...$this->chiaviDelModello($model, $locales),
+        ]);
 
         // Flush full-page response cache so visitors see fresh content
         $this->flushPageCache();
 
-        $this->dimenticaLeChiaviDelModello($model, $locales);
+        // Il menu nasconde le voci che portano a una pagina non pubblicata:
+        // mettendone una in bozza, la voce deve sparire subito. Senza questo
+        // restava fino alla scadenza della cache e continuava a portare a
+        // "pagina non trovata".
+        if ($model instanceof Page && $model->slug) {
+            MenuItem::clearCache();
+        }
     }
 
     /**
@@ -153,14 +167,17 @@ class CacheInvalidationObserver
      *
      * @param  array<int, string>  $keys
      * @param  array<int, string>  $locales
+     * @return list<string>
      */
-    private function dimenticaLeChiaviComposte(array $keys, array $locales): void
+    private function chiaviComposte(array $keys, array $locales): array
     {
+        $chiavi = [];
+
         // public:risultati:<competizione>:<locale>
         if (in_array('public:risultati', $keys, true)) {
             foreach (CompetitionType::cases() as $competition) {
                 foreach ($locales as $locale) {
-                    Cache::forget('public:risultati:'.$competition->value.':'.$locale);
+                    $chiavi[] = 'public:risultati:'.$competition->value.':'.$locale;
                 }
             }
         }
@@ -169,6 +186,8 @@ class CacheInvalidationObserver
         if (in_array(GalleryArchive::CHIAVE, $keys, true)) {
             GalleryArchive::dimenticaLeVariantiPerAtleta();
         }
+
+        return $chiavi;
     }
 
     /**
@@ -176,44 +195,41 @@ class CacheInvalidationObserver
      * news o di una pagina, l'elenco delle categorie.
      *
      * @param  array<int, string>  $locales
+     * @return list<string>
      */
-    private function dimenticaLeChiaviDelModello(Model $model, array $locales): void
+    private function chiaviDelModello(Model $model, array $locales): array
     {
+        $chiavi = [];
+
         // Post: invalida anche la cache per slug e le prime 5 pagine di listing.
         if ($model instanceof Post) {
             $slugs = array_filter([$model->slug, $model->getOriginal('slug')]);
 
             foreach ($locales as $locale) {
                 foreach ($slugs as $slug) {
-                    Cache::forget('public:news:'.$locale.':'.$slug);
+                    $chiavi[] = 'public:news:'.$locale.':'.$slug;
                 }
 
-                Cache::forget('public:news_categories:'.$locale);
+                $chiavi[] = 'public:news_categories:'.$locale;
             }
 
-            $this->forgetNewsListings($locales);
-            $this->dimenticaIlFeedDelleNotizie($locales);
+            $chiavi = [...$chiavi, ...$this->chiaviDelleListeDiNotizie($locales), ...$this->chiaviDelFeed($locales)];
         }
 
         // Categoria: cambia l'elenco dei filtri e, se ne cambia lo slug, anche
         // le chiavi delle liste filtrate.
         if ($model instanceof Category) {
-            $this->forgetNewsListings($locales);
-            $this->dimenticaIlFeedDelleNotizie($locales);
+            $chiavi = [...$chiavi, ...$this->chiaviDelleListeDiNotizie($locales), ...$this->chiaviDelFeed($locales)];
         }
 
         // Page: invalida la cache per slug
         if ($model instanceof Page && $model->slug) {
             foreach ($locales as $locale) {
-                Cache::forget('public:page:'.$model->slug.':'.$locale);
+                $chiavi[] = 'public:page:'.$model->slug.':'.$locale;
             }
-
-            // Il menu nasconde le voci che portano a una pagina non
-            // pubblicata: mettendone una in bozza, la voce deve sparire
-            // subito. Senza questo restava fino alla scadenza della cache e
-            // continuava a portare a "pagina non trovata".
-            MenuItem::clearCache();
         }
+
+        return $chiavi;
     }
 
     /**
@@ -222,31 +238,34 @@ class CacheInvalidationObserver
      * la mezz'ora di cache.
      *
      * @param  array<int, string>  $locales
+     * @return list<string>
      */
-    private function dimenticaIlFeedDelleNotizie(array $locales): void
+    private function chiaviDelFeed(array $locales): array
     {
-        foreach ($locales as $locale) {
-            Cache::forget(NewsFeedBuilder::chiaveDiCache($locale));
-        }
+        return array_map(NewsFeedBuilder::chiaveDiCache(...), array_values($locales));
     }
 
     /**
-     * Svuota le prime 5 pagine del listing news, sia quello completo sia
-     * quelli filtrati per categoria.
+     * Le prime 5 pagine del listing news, sia quello completo sia quelli
+     * filtrati per categoria.
      *
      * @param  array<int, string>  $locales
+     * @return list<string>
      */
-    private function forgetNewsListings(array $locales): void
+    private function chiaviDelleListeDiNotizie(array $locales): array
     {
         $categorySlugs = Category::query()->pluck('slug')->push('all');
+        $chiavi = [];
 
         foreach ($locales as $locale) {
             foreach ($categorySlugs as $categorySlug) {
                 for ($i = 1; $i <= 5; $i++) {
-                    Cache::forget('public:news:'.$locale.':cat:'.$categorySlug.':page:'.$i);
+                    $chiavi[] = 'public:news:'.$locale.':cat:'.$categorySlug.':page:'.$i;
                 }
             }
         }
+
+        return $chiavi;
     }
 
     /**
