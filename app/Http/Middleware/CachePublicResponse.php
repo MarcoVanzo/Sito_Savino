@@ -82,6 +82,8 @@ class CachePublicResponse
         $cached = Cache::get($cacheKey);
 
         if ($cached) {
+            TrackShopPageView::registraDallaCache($request);
+
             return response($cached['content'], $cached['status'])
                 ->withHeaders($cached['headers'])
                 ->header('X-Page-Cache', 'HIT');
