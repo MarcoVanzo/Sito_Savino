@@ -3,8 +3,8 @@
 namespace App\Filament\Pages\Settings;
 
 use App\Filament\Resources\LiveCreativeResource;
-use App\Models\LiveSession;
 use App\Observers\CacheInvalidationObserver;
+use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Section;
@@ -58,7 +58,7 @@ class DirettaSettingsPage extends BaseSettingsPage
     {
         parent::save();
 
-        app(CacheInvalidationObserver::class)->saved(new LiveSession);
+        app(CacheInvalidationObserver::class)->svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE);
     }
 
     protected function valoriPredefiniti(): array

@@ -211,8 +211,11 @@ const allaUscitaDalTuttoSchermo = () => {
     tuttoSchermo.value = document.fullscreenElement === contenitore.value;
 };
 
+// Esc chiude lo schermo intero simulato e basta: senza `preventDefault` il
+// `<dialog>` della diretta lo prende come richiesta di chiusura e sparisce tutto.
 const tastoEsc = (evento) => {
     if (evento.key === 'Escape' && simulato.value) {
+        evento.preventDefault();
         evento.stopPropagation();
         esci();
     }
