@@ -128,7 +128,7 @@ class ScansioneAccessibilitaSeeder extends Seeder
     }
 
     /**
-     * Una gara della società fra venti minuti con la diretta con sponsor:
+     * Una gara della società in corso con la diretta con sponsor:
      * uno spot prima della diretta e una cornice già mandata dalla regia, così
      * la scansione misura il pre-roll e la cornice accanto al player.
      */
@@ -142,7 +142,9 @@ class ScansioneAccessibilitaSeeder extends Seeder
             'season_id' => Season::query()->value('id') ?? Season::factory()->create()->id,
             'home_team_id' => $noi->id,
             'away_team_id' => $loro->id,
-            'match_date' => now()->addMinutes(20),
+            // Cominciata da mezz'ora: è «oggi» per il Match Day a qualunque
+            // ora gira la scansione. «Fra venti minuti» alle 23:40 era domani.
+            'match_date' => now()->subMinutes(30),
             'status' => GameStatus::Scheduled,
             'competition_type' => CompetitionType::Championship,
         ]);

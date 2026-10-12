@@ -42,6 +42,8 @@ class ScansioneAccessibilitaSeederTest extends TestCase
     #[Test]
     public function prepara_la_diretta_con_spot_e_cornice_della_regia(): void
     {
+        // A ridosso della mezzanotte: la gara di prova deve restare «di oggi».
+        $this->travelTo(now()->setTime(23, 45));
         Storage::fake('public');
 
         $this->seed(ScansioneAccessibilitaSeeder::class);
