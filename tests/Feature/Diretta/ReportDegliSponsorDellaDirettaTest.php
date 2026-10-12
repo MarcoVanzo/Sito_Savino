@@ -146,4 +146,16 @@ class ReportDegliSponsorDellaDirettaTest extends TestCase
             ->callAction('esporta')
             ->assertFileDownloaded('report-sponsor-diretta-'.now()->format('Y-m-d').'.csv');
     }
+
+    #[Test]
+    public function nel_csv_un_nome_che_sembra_una_formula_resta_testo(): void
+    {
+        $this->spot->update(['nome' => '=HYPERLINK("http://example.com";"x")']);
+        LiveAdStat::conta($this->gara->id, $this->spot->id, EventoDellaDiretta::Clic);
+        $report = app(ReportDellaDiretta::class);
+
+        $csv = $report->csv($report->righe());
+
+        $this->assertStringContainsString(';"\'=HYPERLINK(', $csv);
+    }
 }
