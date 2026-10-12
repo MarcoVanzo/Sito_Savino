@@ -16,7 +16,7 @@
  */
 import { creativitaValide, oggiLocale } from '@/Support/direttaConSponsor.js';
 
-const ms = (iso) => (iso ? Date.parse(iso) : NaN);
+const ms = (iso) => (iso ? Date.parse(iso) : Number.NaN);
 
 export function contenutoInOnda(stato, adesso, oggi = oggiLocale(new Date(adesso))) {
     if (!stato || stato.stato === 'inattiva') {

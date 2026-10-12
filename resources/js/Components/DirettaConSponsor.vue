@@ -393,7 +393,6 @@ defineExpose({ fase, modo });
                             :autoplay="!movimentoRidotto"
                             :loop="!movimentoRidotto"
                             playsinline
-                            aria-hidden="true"
                         ></video>
                     </a>
                 </template>
@@ -425,7 +424,7 @@ defineExpose({ fase, modo });
         >
             <img v-if="fasciaMobile" :src="fasciaMobile" :alt="inOnda.alt" class="block w-full h-auto">
             <img v-else-if="inOnda.tipo === 'immagine'" :src="inOnda.url" :alt="inOnda.alt" class="diretta-cornice__file">
-            <video v-else :ref="silenzia" :src="inOnda.url" class="diretta-cornice__file" muted preload="metadata" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline aria-hidden="true"></video>
+            <video v-else :ref="silenzia" :src="inOnda.url" class="diretta-cornice__file" muted preload="metadata" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline></video>
         </a>
 
         <div class="diretta-comandi mt-3 flex flex-wrap items-center justify-end gap-3 text-xs font-bold uppercase tracking-wider">

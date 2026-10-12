@@ -61,7 +61,7 @@ export function useStatoDellaDiretta({ statoUrl, oraUrl, attivo }) {
 
     const allaVisibilita = () => {
         if (document.visibilityState === 'visible') {
-            rileggi();
+            void rileggi();
         }
     };
 
@@ -78,9 +78,9 @@ export function useStatoDellaDiretta({ statoUrl, oraUrl, attivo }) {
             return;
         }
 
-        chiediLOra();
-        rileggi();
-        lettura = setInterval(rileggi, OGNI_QUANTO_RILEGGERE);
+        void chiediLOra();
+        void rileggi();
+        lettura = setInterval(() => void rileggi(), OGNI_QUANTO_RILEGGERE);
         orologio = setInterval(() => {
             adesso.value = Date.now();
         }, 1000);
