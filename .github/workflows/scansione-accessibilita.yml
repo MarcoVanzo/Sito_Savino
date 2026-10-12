@@ -159,6 +159,9 @@ jobs:
           echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env
           php artisan migrate --seed --force
           php artisan db:seed --class=ScansioneAccessibilitaSeeder --force
+          # Creatività e stato della diretta con sponsor stanno sul disco
+          # `public`: senza il collegamento /storage risponde 404.
+          php artisan storage:link
 
       - name: Percorre carrello, checkout, ordine e asta
         run: |

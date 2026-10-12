@@ -922,3 +922,28 @@ Forms\Components\Select::make('user_id')
 - Always activate the `medialibrary-development` skill when working with media uploads, conversions, collections, responsive images, or any code that uses the `HasMedia` interface or `InteractsWithMedia` trait.
 
 </laravel-boost-guidelines>
+
+## 28. Diretta con sponsor (`docs/DIRETTA.md`)
+
+- **Niente sopra il player** (YouTube API Developer Policies III.I.4/6,
+  III.G.1.c): il pre-roll è un player nostro che viene **prima** dell'iframe;
+  durante la gara la cornice sta **accanto** (`disposizione()` in
+  `resources/js/Support/direttaConSponsor.js`: player 75%, colonna e fascia
+  in due ritagli, mai sotto né sopra; sul telefono la fascia va sotto il
+  riquadro). Il player non scende sotto 480 px e l'iframe non si rimonta
+  cambiando disposizione. Un test lo verifica: tenerlo verde.
+- **Interruttore generale** `diretta_sponsor_abilitata` (gruppo `diretta`):
+  spento, `DirettaPerIlSito::perLaGara()` dà `null`, `LiveStreamModal` resta
+  quella di prima e le rotte `api/diretta/*` rispondono 404.
+- **Stato su Spaces, non sul database**: `StatoPubblicoDellaDiretta` scrive
+  `diretta/{gara}.json` (`max-age=5`) a ogni cambio (scheda della gara, regia,
+  `diretta:chiudi-le-pause`); il ciclo lo calcola il browser
+  (`cicloDellaCornice.js` e `CicloDellaCornice` PHP: stesse regole, cambiarle
+  insieme). Chi cambia lo stato passa da `RegiaDellaDiretta` (lock, `versione`
+  +1, ripubblica). JSON illeggibile = diretta senza sponsor, mai bloccata.
+- Gli sponsor della diretta li governa la comunicazione (`LiveSessionPolicy`,
+  `canManageSponsors`) con l'azione «Diretta e sponsor» sulla scheda della
+  gara: la gara la modifica solo l'area sportiva. Formati delle creatività in
+  `FormatiDelleCreativita` (MP4 letti da `FilmatoMp4`, niente ffprobe).
+- Report: `live_ad_stats` solo contatori (gara, creatività, evento, giorno),
+  nessun dato del visitatore; si incrementa con `LiveAdStat::conta()`.
