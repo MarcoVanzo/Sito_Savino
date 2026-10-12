@@ -211,6 +211,66 @@ describe('DirettaConSponsor', () => {
         expect(contenitore.classes()).not.toContain('diretta-con-sponsor--simulato');
     });
 
+    it('legge lo stato ogni dieci secondi e cambia disposizione senza rimontare l\'iframe', async () => {
+        vi.setSystemTime(new Date('2026-10-18T17:20:00+02:00'));
+        const stato = (versione, extra = {}) => ({
+            versione,
+            stato: 'in_onda',
+            ciclo: { attivo: false },
+            playlist: [cornice],
+            ...extra,
+        });
+        let risposta = stato(1);
+        globalThis.fetch = vi.fn(async (url) => ({
+            ok: true,
+            json: async () => (String(url).includes('/ora') ? { ora: Date.now() } : risposta),
+        }));
+
+        const diretta = monta({ sponsor: { gara: 5, preroll: null, stato: 'https://cdn/diretta/5.json', ora: '/api/diretta/ora' } });
+        larghezza(diretta, 1280);
+        await vi.advanceTimersByTimeAsync(10);
+        const iframe = diretta.findComponent({ name: 'ContenutoIncorporato' }).element;
+        expect(diretta.find('[data-sponsor="colonna"]').exists()).toBe(false);
+
+        risposta = stato(2, { stato: 'pausa', dalle: '2026-10-18T17:20:00+02:00', fino_alle: '2026-10-18T17:23:00+02:00', contenuto: cornice });
+        await vi.advanceTimersByTimeAsync(10_000);
+
+        expect(diretta.find('[data-sponsor="colonna"]').exists()).toBe(true);
+        expect(diretta.findComponent({ name: 'ContenutoIncorporato' }).element).toBe(iframe);
+        expect(diretta.emitted('evento').at(-1)[0]).toEqual({ evento: 'pausa_mostrata', creativita: 9 });
+
+        // A fine pausa torna piena, senza altre richieste.
+        await vi.advanceTimersByTimeAsync(3 * 60_000);
+        expect(diretta.find('[data-sponsor="colonna"]').exists()).toBe(false);
+    });
+
+    it('se lo stato non si legge la diretta va senza sponsor', async () => {
+        globalThis.fetch = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
+
+        const diretta = monta({ sponsor: { gara: 5, preroll: null, stato: 'https://cdn/diretta/5.json', ora: '/api/diretta/ora' } });
+        larghezza(diretta, 1280);
+        await vi.advanceTimersByTimeAsync(20_000);
+
+        expect(diretta.findComponent({ name: 'ContenutoIncorporato' }).exists()).toBe(true);
+        expect(diretta.find('[data-sponsor]').exists()).toBe(false);
+    });
+
+    it('durante il pre-roll e con la scheda nascosta non chiede lo stato', async () => {
+        globalThis.fetch = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
+        const diretta = monta({ sponsor: { gara: 6, preroll: { salta_dopo: 5, creativita: [video] }, stato: 'https://cdn/diretta/6.json', ora: null } });
+        await vi.advanceTimersByTimeAsync(3_000);
+        expect(globalThis.fetch).not.toHaveBeenCalled();
+
+        await diretta.find('video').trigger('ended');
+        await vi.advanceTimersByTimeAsync(10);
+        expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+
+        Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+        await vi.advanceTimersByTimeAsync(30_000);
+        expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+        Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+    });
+
     it('nessuna violazione di axe nei tre stati', async () => {
         vi.useRealTimers();
         const preroll = monta();

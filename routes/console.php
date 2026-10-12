@@ -137,6 +137,10 @@ Schedule::command('auction:close')->everyMinute()->withoutOverlapping();
 // Aste: verifica pagamenti vincitori (ogni ora)
 Schedule::command('auction:check-payments')->hourly()->withoutOverlapping();
 
+// Diretta con sponsor: lo spot della regia scaduto torna «in onda» anche nel
+// JSON letto dal sito (il browser lo calcola già da solo, è la rete di sicurezza).
+Schedule::command('diretta:chiudi-le-pause')->everyMinute()->withoutOverlapping();
+
 // Le disiscrizioni fatte su ActiveCampaign (Preference Center, link delle
 // campagne) non arrivano al sito da sole: senza questo la riga restava
 // "iscritta", con nome e IP.

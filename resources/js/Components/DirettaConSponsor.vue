@@ -19,6 +19,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
+import { useStatoDellaDiretta } from '@/Composables/useStatoDellaDiretta.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import {
     disposizione,
@@ -37,15 +38,16 @@ const props = defineProps({
     src: { type: String, required: true },
     titolo: { type: String, default: '' },
     linkDiretto: { type: String, default: null },
-    // DirettaPerIlSito: { gara, preroll: { salta_dopo, creativita: [...] } }
+    // DirettaPerIlSito: { gara, preroll: { salta_dopo, creativita: [...] }, stato, ora }
     sponsor: { type: Object, required: true },
-    // Lo sponsor in onda accanto al player (null = diretta piena).
+    // Uno sponsor imposto da fuori (anteprime e test): altrimenti decide lo stato.
     contenuto: { type: Object, default: null },
 });
 
 const emit = defineEmits(['evento']);
 
-const movimentoRidotto = ref(false);
+// Letto subito: con l'autoplay disegnato acceso, il video partirebbe prima.
+const movimentoRidotto = ref(typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches));
 
 // ─── Pre-roll ────────────────────────────────────────────────────────────
 const spot = ref(null);
@@ -89,15 +91,23 @@ const salta = () => {
     vaiAllaDiretta('preroll_saltato');
 };
 
-const avviaPreroll = () => {
-    const scelto = sceltaDelPreroll(props.sponsor?.preroll);
+/**
+ * Lo spot si sceglie subito, prima del primo disegno: con la diretta come
+ * fase iniziale l'iframe (e la lettura dello stato) partirebbero per un
+ * istante prima dello spot.
+ */
+const scelto = prerollGiaVisto(props.sponsor?.gara) ? null : sceltaDelPreroll(props.sponsor?.preroll);
 
-    if (!scelto || prerollGiaVisto(props.sponsor.gara)) {
+if (scelto) {
+    spot.value = scelto;
+    fase.value = 'preroll';
+}
+
+const avviaPreroll = () => {
+    if (fase.value !== 'preroll') {
         return;
     }
 
-    spot.value = scelto;
-    fase.value = 'preroll';
     segnaPrerollVisto(props.sponsor.gara);
     emit('evento', { evento: 'preroll_avviato', creativita: scelto.id });
 
@@ -134,16 +144,32 @@ const apriSponsor = (creativita) => {
     emit('evento', { evento: 'clic', creativita: creativita.id });
 };
 
+// ─── Stato durante la gara ──────────────────────────────────────────────
+const inDiretta = computed(() => fase.value === 'diretta');
+const statoDellaDiretta = useStatoDellaDiretta({
+    statoUrl: props.sponsor?.stato ?? null,
+    oraUrl: props.sponsor?.ora ?? null,
+    attivo: inDiretta,
+});
+const inOnda = computed(() => props.contenuto ?? statoDellaDiretta.contenuto.value);
+
+// Ogni volta che compare uno sponsor, una visualizzazione (ciclo o regia).
+watch(() => inOnda.value?.id, (id) => {
+    if (id != null && fase.value === 'diretta') {
+        emit('evento', { evento: statoDellaDiretta.inPausa.value ? 'pausa_mostrata' : 'ciclo_mostrato', creativita: id });
+    }
+});
+
 // ─── Disposizione e cornice ─────────────────────────────────────────────
 const contenitore = ref(null);
 const riquadro = ref(null);
 const larghezza = ref(1280);
 let osservatore = null;
 
-const modo = computed(() => modoDellaDisposizione({ larghezza: larghezza.value, conSponsor: fase.value === 'diretta' && Boolean(props.contenuto) }));
+const modo = computed(() => modoDellaDisposizione({ larghezza: larghezza.value, conSponsor: fase.value === 'diretta' && Boolean(inOnda.value) }));
 const rettangoli = computed(() => disposizione(modo.value));
 const srcSenzaTuttoSchermo = computed(() => indirizzoSenzaTuttoSchermo(props.src));
-const fasciaMobile = computed(() => props.contenuto?.fascia_mobile || null);
+const fasciaMobile = computed(() => inOnda.value?.fascia_mobile || null);
 
 // ─── Tutto schermo ──────────────────────────────────────────────────────
 const tuttoSchermo = ref(false);
@@ -198,12 +224,12 @@ const annuncio = computed(() => {
         return $t('stream.preroll_annuncio', { sponsor: spot.value.sponsor });
     }
 
-    return props.contenuto ? $t('stream.accanto', { sponsor: props.contenuto.sponsor }) : '';
+    return inOnda.value ? $t('stream.accanto', { sponsor: inOnda.value.sponsor }) : '';
 });
 
 onMounted(() => {
-    movimentoRidotto.value = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     avviaPreroll();
+    faiPartireLoSpot();
 
     if (typeof ResizeObserver !== 'undefined' && contenitore.value) {
         osservatore = new ResizeObserver(([voce]) => {
@@ -236,13 +262,13 @@ const silenzia = (video) => {
 };
 
 // Il video parte muto da sé (autoplay ammesso dai browser solo così).
-watch(fase, async (valore) => {
-    if (valore === 'preroll' && !movimentoRidotto.value) {
+const faiPartireLoSpot = async () => {
+    if (fase.value === 'preroll' && !movimentoRidotto.value) {
         await nextTick();
         silenzia(videoSpot.value);
         videoSpot.value?.play?.()?.catch?.(() => {});
     }
-});
+};
 
 defineExpose({ fase, modo });
 </script>
@@ -325,36 +351,37 @@ defineExpose({ fase, modo });
                 <!-- Lo sponsor accanto al player: due ritagli della stessa
                      creatività 1920×1080, colonna a destra e fascia sotto.
                      Nessuno dei due tocca il rettangolo del player. -->
-                <template v-if="modo === 'cornice' && contenuto">
+                <template v-if="modo === 'cornice' && inOnda">
                     <a
                         v-for="pezzo in ['colonna', 'fascia']"
                         :key="pezzo"
-                        :href="contenuto.link || undefined"
+                        :href="inOnda.link || undefined"
                         target="_blank"
                         rel="sponsored noopener"
                         class="diretta-cornice absolute overflow-hidden"
                         :class="`diretta-cornice--${pezzo}`"
                         :style="stileDelRettangolo(rettangoli[pezzo])"
-                        :aria-label="pezzo === 'colonna' && contenuto.link ? $t('stream.visita_nome', { sponsor: contenuto.sponsor }) : undefined"
+                        :aria-label="pezzo === 'colonna' && inOnda.link ? $t('stream.visita_nome', { sponsor: inOnda.sponsor }) : undefined"
                         :aria-hidden="pezzo === 'fascia' ? 'true' : undefined"
-                        :tabindex="pezzo === 'fascia' || !contenuto.link ? -1 : undefined"
+                        :tabindex="pezzo === 'fascia' || !inOnda.link ? -1 : undefined"
                         :data-sponsor="pezzo"
-                        @click="contenuto.link ? emit('evento', { evento: 'clic', creativita: contenuto.id }) : $event.preventDefault()"
+                        @click="inOnda.link ? emit('evento', { evento: 'clic', creativita: inOnda.id }) : $event.preventDefault()"
                     >
                         <img
-                            v-if="contenuto.tipo === 'immagine' || movimentoRidotto"
-                            :src="contenuto.poster || contenuto.url"
-                            :alt="pezzo === 'colonna' ? contenuto.alt : ''"
+                            v-if="inOnda.tipo === 'immagine'"
+                            :src="inOnda.url"
+                            :alt="pezzo === 'colonna' ? inOnda.alt : ''"
                             class="diretta-cornice__file"
                         >
                         <video
                             v-else
                             :ref="silenzia"
-                            :src="contenuto.url"
+                            :src="inOnda.url"
                             class="diretta-cornice__file"
                             muted
-                            autoplay
-                            loop
+                            preload="metadata"
+                            :autoplay="!movimentoRidotto"
+                            :loop="!movimentoRidotto"
                             playsinline
                             aria-hidden="true"
                         ></video>
@@ -375,20 +402,20 @@ defineExpose({ fase, modo });
 
         <!-- Telefono: la fascia sotto il riquadro, mai sopra il player. -->
         <a
-            v-if="fase === 'diretta' && modo === 'telefono' && contenuto"
-            :href="contenuto.link || undefined"
+            v-if="fase === 'diretta' && modo === 'telefono' && inOnda"
+            :href="inOnda.link || undefined"
             target="_blank"
             rel="sponsored noopener"
             class="diretta-fascia-mobile mt-2 block overflow-hidden rounded-xl"
             :class="{ 'diretta-fascia-mobile--ritaglio': !fasciaMobile }"
-            :aria-label="contenuto.link ? $t('stream.visita_nome', { sponsor: contenuto.sponsor }) : undefined"
-            :tabindex="contenuto.link ? undefined : -1"
+            :aria-label="inOnda.link ? $t('stream.visita_nome', { sponsor: inOnda.sponsor }) : undefined"
+            :tabindex="inOnda.link ? undefined : -1"
             data-sponsor="fascia-mobile"
-            @click="contenuto.link ? emit('evento', { evento: 'clic', creativita: contenuto.id }) : $event.preventDefault()"
+            @click="inOnda.link ? emit('evento', { evento: 'clic', creativita: inOnda.id }) : $event.preventDefault()"
         >
-            <img v-if="fasciaMobile" :src="fasciaMobile" :alt="contenuto.alt" class="block w-full h-auto">
-            <img v-else-if="contenuto.tipo === 'immagine' || movimentoRidotto" :src="contenuto.poster || contenuto.url" :alt="contenuto.alt" class="diretta-cornice__file">
-            <video v-else :ref="silenzia" :src="contenuto.url" class="diretta-cornice__file" muted autoplay loop playsinline aria-hidden="true"></video>
+            <img v-if="fasciaMobile" :src="fasciaMobile" :alt="inOnda.alt" class="block w-full h-auto">
+            <img v-else-if="inOnda.tipo === 'immagine'" :src="inOnda.url" :alt="inOnda.alt" class="diretta-cornice__file">
+            <video v-else :ref="silenzia" :src="inOnda.url" class="diretta-cornice__file" muted preload="metadata" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline aria-hidden="true"></video>
         </a>
 
         <div class="diretta-comandi mt-3 flex flex-wrap items-center justify-end gap-3 text-xs font-bold uppercase tracking-wider">

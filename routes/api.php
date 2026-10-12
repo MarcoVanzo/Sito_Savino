@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DirettaController;
 use App\Http\Controllers\SentryTunnelController;
 use App\Http\Controllers\Shop\AuctionController;
 use App\Http\Controllers\Webhooks\PayPalWebhookController;
@@ -50,3 +51,15 @@ Route::middleware('throttle:60,1,api.aste')->group(function () {
     Route::get('/aste/{auction}/status', [AuctionController::class, 'status'])
         ->name('api.auctions.status');
 });
+
+/*
+|--------------------------------------------------------------------------
+| API Routes — Diretta con sponsor
+|--------------------------------------------------------------------------
+| L'ora del server, chiesta una volta all'apertura della diretta: il JSON di
+| stato è un file statico e non può dirla. Nessun database.
+*/
+
+Route::get('/diretta/ora', [DirettaController::class, 'ora'])
+    ->middleware('throttle:30,1,api.diretta.ora')
+    ->name('api.diretta.ora');

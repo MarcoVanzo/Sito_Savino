@@ -5,6 +5,7 @@ namespace App\Support\Diretta;
 use App\Models\Game;
 use App\Models\LiveCreative;
 use App\Models\LiveSession;
+use App\Services\Diretta\StatoPubblicoDellaDiretta;
 
 /**
  * Gli sponsor della diretta di una gara come li riceve il sito.
@@ -22,10 +23,15 @@ class DirettaPerIlSito
     public const RELAZIONI = [
         'liveSession.creativitaDelPreroll.media',
         'liveSession.creativitaDelPreroll.sponsor',
+        'liveSession.creativitaDellaGara',
     ];
 
     /**
-     * @return array{gara: int, preroll: ?array{salta_dopo: int, creativita: list<array<string, mixed>>}}|null
+     * `stato` è l'indirizzo del JSON con cornici e regia (StatoPubblicoDellaDiretta),
+     * `ora` quello dell'orologio del server: ci sono solo se la gara ha
+     * creatività per la cornice.
+     *
+     * @return array{gara: int, preroll: ?array{salta_dopo: int, creativita: list<array<string, mixed>>}, stato: ?string, ora: ?string}|null
      */
     public static function perLaGara(Game $game): ?array
     {
@@ -40,14 +46,17 @@ class DirettaPerIlSito
         }
 
         $preroll = self::preroll($sessione);
+        $conCornici = $sessione->creativitaDellaGara->isNotEmpty();
 
-        if ($preroll === null) {
+        if ($preroll === null && ! $conCornici) {
             return null;
         }
 
         return [
             'gara' => $game->id,
             'preroll' => $preroll,
+            'stato' => $conCornici ? app(StatoPubblicoDellaDiretta::class)->url($game->id) : null,
+            'ora' => $conCornici ? route('api.diretta.ora') : null,
         ];
     }
 

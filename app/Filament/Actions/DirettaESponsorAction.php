@@ -6,6 +6,7 @@ use App\Enums\UsoCreativita;
 use App\Models\Game;
 use App\Models\LiveCreative;
 use App\Models\LiveSession;
+use App\Services\Diretta\StatoPubblicoDellaDiretta;
 use App\Support\Diretta\CicloDellaCornice;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
 use Filament\Actions\Action;
@@ -38,9 +39,19 @@ class DirettaESponsorAction
             ->fillForm(fn (Game $record): array => self::valori(LiveSession::perLaGara($record)))
             ->form(fn (Game $record): array => self::campi($record))
             ->action(function (Game $record, array $data): void {
-                self::salva($record, $data);
+                $sessione = self::salva($record, $data);
 
-                Notification::make()->title('Diretta salvata')->success()->send();
+                if (app(StatoPubblicoDellaDiretta::class)->pubblica($sessione)) {
+                    Notification::make()->title('Diretta salvata')->success()->send();
+
+                    return;
+                }
+
+                Notification::make()
+                    ->title('Diretta salvata, ma il sito non l\'ha ancora ricevuta')
+                    ->body('Lo stato non si è potuto scrivere sull\'archivio dei file: riprova fra poco. Intanto la diretta va senza sponsor durante la gara.')
+                    ->warning()
+                    ->send();
             });
     }
 

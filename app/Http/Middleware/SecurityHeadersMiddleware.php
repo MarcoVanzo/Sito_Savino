@@ -136,6 +136,11 @@ class SecurityHeadersMiddleware
         } else {
             $nonce = Vite::cspNonce();
 
+            // La diretta con sponsor legge il proprio stato da un JSON accanto
+            // alle creatività (Spaces): senza, il `fetch` veniva rifiutato e la
+            // cornice non compariva mai, senza errori lato server.
+            $connessioni = self::originiDeiDischi();
+
             $scriptSrc = [
                 self::SELF,
                 $nonce ? "'nonce-{$nonce}'" : "'unsafe-inline'",

@@ -320,9 +320,13 @@ class SecurityHeadersTest extends TestCase
             (string) $direttive->first(fn (string $d) => str_starts_with($d, 'img-src')),
         );
 
-        // Il sito pubblico non ne ha bisogno.
-        $pubblica = (string) $this->get('/')->headers->get('Content-Security-Policy');
-        $this->assertStringNotContainsString('digitaloceanspaces.com', $pubblica);
+        // Il sito pubblico ci legge solo lo stato della diretta con sponsor
+        // (un JSON accanto alle creatività), e solo con `fetch`.
+        $pubblica = collect(explode('; ', (string) $this->get('/')->headers->get('Content-Security-Policy')));
+        $this->assertStringContainsString(
+            'https://bucket.fra1.digitaloceanspaces.com',
+            (string) $pubblica->first(fn (string $d) => str_starts_with($d, 'connect-src')),
+        );
     }
 
     /**

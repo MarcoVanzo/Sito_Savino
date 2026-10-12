@@ -39,6 +39,7 @@ class LiveSession extends Model
         'pausa_durata_predefinita_secondi',
         'stato',
         'creativita_in_onda_id',
+        'pausa_dalle',
         'pausa_fino_alle',
         'versione',
     ];
@@ -62,6 +63,7 @@ class LiveSession extends Model
             'ciclo_fine' => 'datetime',
             'pausa_durata_predefinita_secondi' => 'integer',
             'stato' => StatoDellaDiretta::class,
+            'pausa_dalle' => 'datetime',
             'pausa_fino_alle' => 'datetime',
             'versione' => 'integer',
         ];
