@@ -6,7 +6,9 @@ use App\Enums\UsoCreativita;
 use App\Models\Game;
 use App\Models\LiveCreative;
 use App\Models\LiveSession;
+use App\Observers\CacheInvalidationObserver;
 use App\Support\Diretta\CicloDellaCornice;
+use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
 use Filament\Actions\Action;
 use Filament\Forms;
@@ -35,7 +37,7 @@ class DirettaESponsorAction
             ->modalDescription('Cosa vede chi guarda la diretta di questa gara dal sito. La diretta resta sempre visibile e comandabile: gli sponsor compaiono prima o accanto, mai sopra.')
             ->modalSubmitActionLabel('Salva')
             ->visible(fn (): bool => Diretta::abilitata() && (bool) auth()->user()?->can('update', LiveSession::class))
-            ->fillForm(fn (Game $record): array => self::valori(LiveSession::perLaGara($record)))
+            ->fillForm(fn (Game $record): array => self::valori(LiveSession::perLaGaraSenzaCrearla($record)))
             ->form(fn (Game $record): array => self::campi($record))
             ->action(function (Game $record, array $data): void {
                 self::salva($record, $data);
@@ -60,13 +62,23 @@ class DirettaESponsorAction
                 'ciclo_durata_secondi' => (int) $data['ciclo_durata_secondi'],
                 'ciclo_ritardo_minuti' => (int) $data['ciclo_ritardo_minuti'],
                 'pausa_durata_predefinita_secondi' => (int) $data['pausa_durata_predefinita_secondi'],
-                ...LiveSession::orariDelCiclo($game, (int) $data['ciclo_ritardo_minuti']),
             ]);
+
+            // L'inizio del ciclo si ricalcola solo se cambia il ritardo: un
+            // «Riparti da adesso» della regia non va perso salvando altro.
+            if ($sessione->isDirty('ciclo_ritardo_minuti') || $sessione->ciclo_inizio === null) {
+                $sessione->ciclo_inizio = LiveSession::orariDelCiclo($game, $sessione->ciclo_ritardo_minuti)['ciclo_inizio'];
+            }
+
+            $sessione->ciclo_fine ??= LiveSession::orariDelCiclo($game, $sessione->ciclo_ritardo_minuti)['ciclo_fine'];
             $sessione->versione++;
             $sessione->save();
 
             $sessione->ordina('creativitaDelPreroll', self::ids($data['preroll'] ?? []));
             $sessione->ordina('creativitaDellaGara', self::ids($data['gara'] ?? []));
+
+            // Il pre-roll viaggia nelle pagine in cache di home e calendario.
+            DB::afterCommit(fn () => app(CacheInvalidationObserver::class)->svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE));
 
             return $sessione;
         });
@@ -77,11 +89,13 @@ class DirettaESponsorAction
      */
     private static function valori(LiveSession $sessione): array
     {
+        $esiste = $sessione->exists;
+
         return [
             'preroll_attivo' => $sessione->preroll_attivo,
-            'preroll' => $sessione->creativitaDelPreroll()->pluck('live_creatives.id')->all(),
+            'preroll' => $esiste ? $sessione->creativitaDelPreroll()->pluck('live_creatives.id')->all() : [],
             'preroll_salta_dopo_secondi' => $sessione->preroll_salta_dopo_secondi,
-            'gara' => $sessione->creativitaDellaGara()->pluck('live_creatives.id')->all(),
+            'gara' => $esiste ? $sessione->creativitaDellaGara()->pluck('live_creatives.id')->all() : [],
             'ciclo_attivo' => $sessione->ciclo_attivo,
             'ciclo_ogni_minuti' => $sessione->ciclo_ogni_minuti,
             'ciclo_durata_secondi' => $sessione->ciclo_durata_secondi,

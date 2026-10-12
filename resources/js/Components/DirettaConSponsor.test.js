@@ -207,8 +207,12 @@ describe('DirettaConSponsor', () => {
         expect(contenitore.classes()).toContain('diretta-con-sponsor--simulato');
         expect(diretta.text()).toContain('Ruota il telefono');
 
-        await contenitore.trigger('keydown', { key: 'Escape' });
+        const esc = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+        contenitore.element.dispatchEvent(esc);
+        await nextTick();
         expect(contenitore.classes()).not.toContain('diretta-con-sponsor--simulato');
+        // La finestra della diretta non deve chiudersi insieme.
+        expect(esc.defaultPrevented).toBe(true);
     });
 
     it('nessuna violazione di axe nei tre stati', async () => {

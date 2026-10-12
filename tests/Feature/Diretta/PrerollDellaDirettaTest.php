@@ -216,4 +216,64 @@ class PrerollDellaDirettaTest extends TestCase
 
         $this->assertNotNull($this->nextGame()['diretta_sponsor']);
     }
+
+    #[Test]
+    public function aprire_la_finestra_senza_salvare_non_crea_la_diretta(): void
+    {
+        $this->accendi();
+        $utente = User::factory()->create();
+        $utente->forceFill(['role' => UserRole::CommunicationManager, 'is_active' => true])->save();
+        $this->actingAs($utente->refresh());
+
+        Livewire::test(ViewGame::class, ['record' => $this->gara()->getRouteKey()])
+            ->mountAction('direttaESponsor')
+            ->assertActionDataSet(['ciclo_ogni_minuti' => 10, 'preroll' => []]);
+
+        $this->assertSame(0, LiveSession::count());
+        $this->assertDatabaseMissing('activity_logs', ['model_type' => LiveSession::class]);
+    }
+
+    #[Test]
+    public function risalvare_non_annulla_riparti_da_adesso_ma_un_nuovo_ritardo_si(): void
+    {
+        $gara = $this->gara();
+        $sessione = LiveSession::perLaGara($gara);
+        $sessione->update(['ciclo_inizio' => $gara->match_date->copy()->addMinutes(42)]);
+        $dati = [
+            'preroll_attivo' => false, 'preroll_salta_dopo_secondi' => 5, 'ciclo_attivo' => true,
+            'ciclo_ogni_minuti' => 10, 'ciclo_durata_secondi' => 15, 'ciclo_ritardo_minuti' => 5,
+            'pausa_durata_predefinita_secondi' => 180,
+        ];
+
+        DirettaESponsorAction::salva($gara, $dati);
+        $this->assertSame('17:42', $sessione->refresh()->ciclo_inizio->format('H:i'));
+
+        DirettaESponsorAction::salva($gara, [...$dati, 'ciclo_ritardo_minuti' => 15]);
+        $this->assertSame('17:15', $sessione->refresh()->ciclo_inizio->format('H:i'));
+    }
+
+    #[Test]
+    public function se_la_gara_cambia_orario_il_ciclo_la_segue(): void
+    {
+        $gara = $this->gara();
+        $sessione = LiveSession::perLaGara($gara);
+
+        $gara->update(['match_date' => $gara->match_date->copy()->setTime(20, 30)]);
+
+        $sessione->refresh();
+        $this->assertSame('20:35', $sessione->ciclo_inizio->format('H:i'));
+        $this->assertSame('23:30', $sessione->ciclo_fine->format('H:i'));
+        $this->assertSame(2, $sessione->versione);
+    }
+
+    #[Test]
+    public function le_azioni_sulla_diretta_non_svuotano_le_cache_delle_pagine(): void
+    {
+        $sessione = LiveSession::perLaGara($this->gara());
+        Cache::put('public:home:it', 'in cache', 600);
+
+        $sessione->update(['ciclo_attivo' => false]);
+
+        $this->assertSame('in cache', Cache::get('public:home:it'));
+    }
 }

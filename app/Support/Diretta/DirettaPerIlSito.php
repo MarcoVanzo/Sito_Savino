@@ -18,6 +18,9 @@ use App\Models\LiveSession;
  */
 class DirettaPerIlSito
 {
+    /** Le cache delle pagine che portano il pre-roll con la gara (home e calendario). */
+    public const CHIAVI_DI_CACHE = ['public:home', 'public:risultati'];
+
     /** Le relazioni da caricare prima di chiamare `perLaGara()` su molte gare. */
     public const RELAZIONI = [
         'liveSession.creativitaDelPreroll.media',
