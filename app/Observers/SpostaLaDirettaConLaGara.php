@@ -3,13 +3,14 @@
 namespace App\Observers;
 
 use App\Models\Game;
+use App\Services\Diretta\StatoPubblicoDellaDiretta;
 use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
 use Illuminate\Support\Carbon;
 
 /**
  * Quando una gara cambia orario (sync della Lega o della CEV, rinvio a mano)
  * il ciclo della cornice sponsor la segue: senza, la cornice compariva agli
- * orari vecchi, prima della diretta vera.
+ * orari vecchi, prima della diretta vera. Il JSON letto dal sito si riscrive.
  */
 class SpostaLaDirettaConLaGara implements ShouldHandleEventsAfterCommit
 {
@@ -23,6 +24,10 @@ class SpostaLaDirettaConLaGara implements ShouldHandleEventsAfterCommit
             return;
         }
 
-        $game->liveSession()->first()?->seguiLaGara(Carbon::parse($prima), $game->match_date);
+        $sessione = $game->liveSession()->first();
+
+        if ($sessione !== null && $sessione->seguiLaGara(Carbon::parse($prima), $game->match_date)) {
+            app(StatoPubblicoDellaDiretta::class)->pubblica($sessione);
+        }
     }
 }

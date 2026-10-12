@@ -38,6 +38,7 @@ use App\Observers\ProductObserver;
 use App\Observers\ProductVariantObserver;
 use App\Observers\SpostaLaDirettaConLaGara;
 use App\Observers\StockMovementObserver;
+use App\Observers\TieneAggiornateLeDirette;
 use App\Observers\UserObserver;
 use App\Services\Analytics\WebAnalyticsService;
 use App\Services\Social\SocialAnalyticsService;
@@ -264,6 +265,7 @@ class AppServiceProvider extends ServiceProvider
         Evento::observe(CacheInvalidationObserver::class);
         LiveCreative::observe(CacheInvalidationObserver::class);
         Game::observe(SpostaLaDirettaConLaGara::class);
+        LiveCreative::observe(TieneAggiornateLeDirette::class);
 
         // Forza HTTPS in produzione, e la radice di APP_URL: gli URL assoluti
         // generati durante una richiesta (link di reset password, ritorni dei

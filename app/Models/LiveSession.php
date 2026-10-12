@@ -6,6 +6,7 @@ use App\Enums\StatoDellaDiretta;
 use App\Models\Traits\LogsActivity;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
 use App\Support\MatchDay;
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Database\Factories\LiveSessionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -108,24 +109,25 @@ class LiveSession extends Model
      * ciclo si sposta dello stesso scarto, così resta anche un eventuale
      * «Riparti da adesso» della regia relativo alla gara.
      */
-    public function seguiLaGara(CarbonInterface $prima, CarbonInterface $adesso): void
+    public function seguiLaGara(CarbonInterface $prima, CarbonInterface $adesso): bool
     {
         $scarto = $adesso->getTimestamp() - $prima->getTimestamp();
 
         if ($scarto === 0) {
-            return;
+            return false;
         }
 
         $this->ciclo_inizio = $this->ciclo_inizio?->copy()->addSeconds($scarto);
         $this->ciclo_fine = $this->ciclo_fine?->copy()->addSeconds($scarto);
         $this->versione++;
-        $this->save();
+
+        return $this->save();
     }
 
     /**
      * Inizio e fine del ciclo calcolati dall'orario della gara.
      *
-     * @return array{ciclo_inizio: \Carbon\Carbon, ciclo_fine: \Carbon\Carbon}
+     * @return array{ciclo_inizio: Carbon, ciclo_fine: Carbon}
      */
     public static function orariDelCiclo(Game $game, int $ritardoMinuti): array
     {
