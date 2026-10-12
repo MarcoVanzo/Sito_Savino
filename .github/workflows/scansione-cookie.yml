@@ -23,8 +23,11 @@ on:
         required: false
         default: '14'
 
+# Il token del lavoro legge soltanto: il push del risultato passa dalla deploy
+# key `SCANSIONE_DEPLOY_KEY`, l'unico attore che il ruleset di main lascia
+# scrivere senza i check richiesti (#199).
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: scansione-cookie
@@ -38,9 +41,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          # Il commit del risultato torna su main: senza il token di scrittura
-          # il push verrebbe rifiutato.
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Nessuna credenziale resta nella configurazione di git mentre
+          # girano npm e Playwright: la chiave entra solo nell'ultimo passo.
+          persist-credentials: false
 
       - uses: actions/setup-node@v5
         with:
@@ -50,10 +53,9 @@ jobs:
       # metterlo nel package.json farebbe scaricare un browser a ogni
       # `npm ci` di chiunque.
       #
-      # La versione è fissata e gli script di installazione non girano: questo
-      # lavoro ha il permesso di scrivere sul repository, quindi un postinstall
-      # di un pacchetto qualunque della catena scriverebbe su main con il token
-      # del lavoro. Si chiama il binario appena installato invece di `npx`,
+      # La versione è fissata e gli script di installazione non girano: la
+      # deploy key di questo lavoro scrive su main saltando i check, quindi un
+      # pacchetto qualunque della catena non deve poter eseguire codice. Si chiama il binario appena installato invece di `npx`,
       # che a pacchetto mancante lo scaricherebbe al volo dal registro, senza
       # versione.
       #
@@ -80,7 +82,11 @@ jobs:
             --pagine="$PAGINE" \
             --scrivi
 
+      # La deploy key salta i check richiesti su main: per questo vive solo in
+      # questo passo, in un file temporaneo, e serve al solo `git push`.
       - name: Pubblica il risultato
+        env:
+          SCANSIONE_DEPLOY_KEY: ${{ secrets.SCANSIONE_DEPLOY_KEY }}
         run: |
           if git diff --quiet -- database/data/cookie_rilevati.json; then
             echo "Niente di nuovo: il file resta com'è."
@@ -95,7 +101,13 @@ jobs:
           Aggiornato da .github/workflows/scansione-cookie.yml: e' la
           fotografia di cosa il sito carica prima e dopo il consenso, ed e'
           quella che la dichiarazione pubblica dei cookie mostra al visitatore."
-          git push
+
+          chiave="$RUNNER_TEMP/scansione_deploy_key"
+          printf '%s\n' "$SCANSIONE_DEPLOY_KEY" > "$chiave"
+          chmod 600 "$chiave"
+          GIT_SSH_COMMAND="ssh -i $chiave -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+            git push "git@github.com:${GITHUB_REPOSITORY}.git" HEAD:main
+          rm -f "$chiave"
 
       # Il commit arriva comunque, perché la fotografia è vera anche quando è
       # brutta: il lavoro rosso serve a farsene accorgere.
