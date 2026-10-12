@@ -3,19 +3,33 @@
 namespace Database\Seeders;
 
 use App\Enums\AuctionStatus;
+use App\Enums\CompetitionType;
+use App\Enums\GameStatus;
 use App\Enums\ProductType;
+use App\Enums\SponsorTier;
+use App\Enums\TipoCreativita;
 use App\Enums\UserRole;
+use App\Enums\UsoCreativita;
 use App\Models\Auction;
+use App\Models\Game;
+use App\Models\LiveCreative;
+use App\Models\LiveSession;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Season;
+use App\Models\SiteSetting;
+use App\Models\Sponsor;
+use App\Models\Team;
 use App\Models\User;
+use App\Services\Diretta\RegiaDellaDiretta;
+use App\Support\Diretta\ImpostazioniDellaDiretta;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 
 /**
- * I dati con cui la scansione di accessibilità percorre carrello, checkout e
- * checkout di un'asta sull'app locale (`scansione-accessibilita.yml`, lavoro
+ * I dati con cui la scansione di accessibilità percorre carrello, checkout,
+ * checkout di un'asta e diretta con sponsor sull'app locale (`scansione-accessibilita.yml`, lavoro
  * `flussi`).
  *
  * Quei passaggi non si possono scansionare sul sito vero: servono un
@@ -38,6 +52,9 @@ class ScansioneAccessibilitaSeeder extends Seeder
 
     /** Uuid fisso: la scansione apre `/shop/checkout/asta/{token}`. */
     public const TOKEN_ASTA = '00000000-0000-4000-8000-000000000a11';
+
+    /** L'indirizzo della diretta della gara di prova (la riconosce al secondo giro). */
+    public const DIRETTA = 'https://www.youtube.com/watch?v=scansioneA11y';
 
     public function run(): void
     {
@@ -105,6 +122,63 @@ class ScansioneAccessibilitaSeeder extends Seeder
             'deleted_at' => null,
         ])->save();
 
+        $this->direttaConSponsor();
+
         $this->command->info('Dati per la scansione di accessibilità pronti.');
+    }
+
+    /**
+     * Una gara della società in corso con la diretta con sponsor:
+     * uno spot prima della diretta e una cornice già mandata dalla regia, così
+     * la scansione misura il pre-roll e la cornice accanto al player.
+     */
+    private function direttaConSponsor(): void
+    {
+        SiteSetting::set('diretta_sponsor_abilitata', '1');
+
+        $noi = Team::query()->where('is_internal', true)->first() ?? Team::factory()->create(['is_internal' => true]);
+        $loro = Team::query()->where('is_internal', false)->first() ?? Team::factory()->create(['is_internal' => false]);
+        $gara = Game::query()->updateOrCreate(['stream_url' => self::DIRETTA], [
+            'season_id' => Season::query()->value('id') ?? Season::factory()->create()->id,
+            'home_team_id' => $noi->id,
+            'away_team_id' => $loro->id,
+            // Cominciata da mezz'ora: è «oggi» per il Match Day a qualunque
+            // ora gira la scansione. «Fra venti minuti» alle 23:40 era domani.
+            'match_date' => now()->subMinutes(30),
+            'status' => GameStatus::Scheduled,
+            'competition_type' => CompetitionType::Championship,
+        ]);
+
+        $sponsor = Sponsor::query()->firstOrCreate(['name' => 'Sponsor di prova'], ['tier' => SponsorTier::Official, 'url' => 'https://www.example.com/']);
+        $spot = $this->creativita($sponsor, UsoCreativita::Preroll, 'Spot di prova');
+        $cornice = $this->creativita($sponsor, UsoCreativita::Cornice, 'Cornice di prova');
+
+        $sessione = LiveSession::perLaGara($gara);
+        $sessione->update(['preroll_attivo' => true, 'preroll_salta_dopo_secondi' => 2]);
+        $sessione->ordina('creativitaDelPreroll', [$spot->id]);
+        $sessione->ordina('creativitaDellaGara', [$cornice->id]);
+
+        app(RegiaDellaDiretta::class)->mostra($sessione, $cornice, ImpostazioniDellaDiretta::PAUSA_DURATA_MASSIMA);
+    }
+
+    private function creativita(Sponsor $sponsor, UsoCreativita $uso, string $nome): LiveCreative
+    {
+        $creativita = LiveCreative::query()->updateOrCreate(['nome' => $nome], [
+            'sponsor_id' => $sponsor->id,
+            'uso' => $uso,
+            'tipo' => TipoCreativita::Immagine,
+            'durata_secondi' => 3,
+            'link_url' => 'https://www.example.com/',
+            'testo_alternativo' => ['it' => $nome.': marchio dello sponsor', 'en' => $nome.': sponsor logo'],
+            'attiva' => true,
+        ]);
+
+        if ($creativita->getFirstMedia(LiveCreative::COLLEZIONE_CONTENUTO) === null) {
+            $file = tempnam(sys_get_temp_dir(), 'a11y').'.png';
+            imagepng(imagecreatetruecolor(1920, 1080), $file, 9);
+            $creativita->addMedia($file)->toMediaCollection(LiveCreative::COLLEZIONE_CONTENUTO);
+        }
+
+        return $creativita;
     }
 }

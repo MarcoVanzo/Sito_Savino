@@ -361,6 +361,23 @@ async function main() {
             await controlla('modulo con errori');
         }, vincitore);
         await vincitore.close();
+
+        // La diretta con sponsor (ScansioneAccessibilitaSeeder): prima lo
+        // spot nel player del sito, poi la diretta con la cornice della regia
+        // accanto. Il riquadro di YouTube resta il segnaposto del consenso.
+        await passaggio('diretta con sponsor', async (scheda, controlla) => {
+            await apri(scheda, '/');
+            // La gara di prova è oggi: il pop-up del Match Day si chiude prima.
+            if (await scheda.locator('dialog[open]').count()) {
+                await scheda.keyboard.press('Escape');
+                await scheda.waitForTimeout(300);
+            }
+            await scheda.getByRole('button', { name: /guarda la diretta/i }).first().click();
+            await scheda.locator('[data-preroll]').waitFor({ timeout: 10000 });
+            await controlla('pre-roll');
+            await scheda.locator('[data-sponsor="colonna"]').waitFor({ timeout: 20000 });
+            await controlla('cornice accanto alla diretta');
+        });
     }
 
     await browser.close();

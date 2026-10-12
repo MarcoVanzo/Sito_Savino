@@ -96,6 +96,7 @@ const openNextGameStream = (event) => {
         title: `${partita.value?.home_team?.name ?? ''} — ${partita.value?.away_team?.name ?? ''}`,
         embedUrl: partita.value.stream_embed_url,
         url: partita.value.stream_url,
+        sponsor: partita.value.diretta_sponsor ?? null,
     };
 };
 

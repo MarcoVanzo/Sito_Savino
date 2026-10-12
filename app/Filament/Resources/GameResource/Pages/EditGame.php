@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\GameResource\Pages;
 
+use App\Filament\Actions\DirettaESponsorAction;
 use App\Filament\Resources\GameResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -13,6 +14,7 @@ class EditGame extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            DirettaESponsorAction::make(),
             Actions\DeleteAction::make(),
         ];
     }

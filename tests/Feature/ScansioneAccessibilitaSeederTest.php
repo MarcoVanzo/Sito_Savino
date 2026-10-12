@@ -3,10 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Auction;
+use App\Models\Game;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Diretta\DirettaPerIlSito;
+use App\Support\MatchDay;
 use Database\Seeders\ScansioneAccessibilitaSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\TestCase;
@@ -33,6 +37,28 @@ class ScansioneAccessibilitaSeederTest extends TestCase
         $asta = Auction::where('winner_checkout_token', ScansioneAccessibilitaSeeder::TOKEN_ASTA)->sole();
         $this->assertSame(User::where('email', ScansioneAccessibilitaSeeder::EMAIL)->value('id'), $asta->winner_user_id);
         $this->assertTrue($asta->winner_checkout_deadline->isFuture());
+    }
+
+    #[Test]
+    public function prepara_la_diretta_con_spot_e_cornice_della_regia(): void
+    {
+        // A ridosso della mezzanotte: la gara di prova deve restare «di oggi».
+        $this->travelTo(now()->setTime(23, 45));
+        Storage::fake('public');
+
+        $this->seed(ScansioneAccessibilitaSeeder::class);
+        $this->seed(ScansioneAccessibilitaSeeder::class);
+
+        $gara = Game::where('stream_url', ScansioneAccessibilitaSeeder::DIRETTA)->sole();
+        $this->assertSame($gara->id, MatchDay::stato()['gara']?->id);
+
+        $diretta = DirettaPerIlSito::perLaGara($gara->load(DirettaPerIlSito::RELAZIONI));
+        $this->assertCount(1, $diretta['preroll']['creativita']);
+        $this->assertNotNull($diretta['stato']);
+
+        $stato = json_decode(Storage::disk('public')->get("diretta/{$gara->id}.json"), true);
+        $this->assertSame('pausa', $stato['stato']);
+        $this->assertNotNull($stato['contenuto']);
     }
 
     #[Test]
