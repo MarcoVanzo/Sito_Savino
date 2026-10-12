@@ -941,6 +941,15 @@ Forms\Components\Select::make('user_id')
   (`cicloDellaCornice.js` e `CicloDellaCornice` PHP: stesse regole, cambiarle
   insieme). Chi cambia lo stato passa da `RegiaDellaDiretta` (lock, `versione`
   +1, ripubblica). JSON illeggibile = diretta senza sponsor, mai bloccata.
+  Il JSON si riscrive anche quando cambia una creatività
+  (`TieneAggiornateLeDirette`, a risposta data) o l'orario della gara
+  (`SpostaLaDirettaConLaGara`): un nuovo modo di toccarli deve ripubblicare.
+- **Cache delle pagine**: il pre-roll viaggia in home e calendario; le svuota
+  solo chi cambia il pre-roll, con `svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE)`.
+  `LiveSession` non sta nell'observer: la regia la salva a ogni pulsante.
+- **Mille spettatori sincronizzati**: gli eventi che tutti vivono insieme
+  (`ciclo_mostrato`, `pausa_mostrata`) partono sparpagliati entro un minuto
+  (`eventiDellaDiretta.js`); un evento sincronizzato nuovo va in quell'elenco.
 - Gli sponsor della diretta li governa la comunicazione (`LiveSessionPolicy`,
   `canManageSponsors`) con l'azione «Diretta e sponsor» sulla scheda della
   gara: la gara la modifica solo l'area sportiva. Formati delle creatività in
