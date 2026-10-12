@@ -167,6 +167,19 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
     }
 
     #[Test]
+    public function nell_elenco_lo_spot_video_non_finisce_in_un_immagine(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->utente(UserRole::CommunicationManager));
+        $video = LiveCreative::factory()->video()->create();
+        $video->addMedia(base_path('tests/Fixtures/Diretta/spot-1920x1080-2s.mp4'))->preservingOriginal()->toMediaCollection(LiveCreative::COLLEZIONE_CONTENUTO);
+
+        $this->get('/admin/creativita-diretta')
+            ->assertOk()
+            ->assertDontSee('spot-1920x1080-2s.mp4', false);
+    }
+
+    #[Test]
     public function una_creativita_scaduta_o_spenta_non_e_valida(): void
     {
         Storage::fake('public');

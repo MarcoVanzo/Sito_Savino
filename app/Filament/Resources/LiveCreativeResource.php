@@ -18,7 +18,9 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Le creatività sponsor della diretta: video e immagini da mandare in onda
@@ -190,6 +192,11 @@ class LiveCreativeResource extends Resource
                     ->label('Anteprima')
                     ->collection(LiveCreative::COLLEZIONE_CONTENUTO)
                     ->conversion('thumb')
+                    // Un video non ha miniatura: senza filtro la colonna metteva
+                    // l'MP4 in un `<img>` e l'anteprima usciva rotta.
+                    ->filterMediaUsing(fn (Collection $media): Collection => $media->filter(
+                        fn (Media $file): bool => str_starts_with((string) $file->mime_type, 'image/'),
+                    ))
                     ->checkFileExistence(false),
                 Tables\Columns\TextColumn::make('nome')
                     ->label('Nome')
