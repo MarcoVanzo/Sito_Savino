@@ -1181,7 +1181,20 @@
         "close": "Chiudi la diretta",
         "open_external": "Apri sulla piattaforma",
         "watch": "Guarda la diretta",
-        "live_badge": "Diretta"
+        "live_badge": "Diretta",
+        "preroll_regione": "Spot dello sponsor prima della diretta",
+        "preroll_annuncio": "Spot di {sponsor}. La diretta parte subito dopo.",
+        "salta": "Salta lo spot",
+        "salta_tra": "Puoi saltare tra {secondi} s",
+        "audio_attiva": "Attiva l'audio dello spot",
+        "audio_disattiva": "Disattiva l'audio dello spot",
+        "guarda_spot": "Guarda lo spot",
+        "visita": "Visita lo sponsor",
+        "visita_nome": "Visita {sponsor} (si apre in una nuova scheda)",
+        "accanto": "Accanto alla diretta: {sponsor}",
+        "tutto_schermo": "Tutto schermo",
+        "esci_tutto_schermo": "Esci dal tutto schermo",
+        "ruota": "Ruota il telefono in orizzontale per vederla più grande."
     },
     "palmares": {
         "open_hint": "Scopri il palmarès",

@@ -1,13 +1,15 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
+import DirettaConSponsor from '@/Components/DirettaConSponsor.vue';
 import { useTranslations } from '@/Composables/useTranslations.js';
 
 const $t = useTranslations();
 
 const props = defineProps({
-    // { title, embedUrl, url } — embedUrl è valorizzato solo per le
-    // piattaforme incorporabili (vedi App\Support\LiveStream).
+    // { title, embedUrl, url, sponsor } — embedUrl è valorizzato solo per le
+    // piattaforme incorporabili (vedi App\Support\LiveStream); `sponsor`
+    // solo con la diretta con sponsor accesa (DirettaPerIlSito).
     stream: {
         type: Object,
         default: null,
@@ -19,6 +21,9 @@ const emit = defineEmits(['close']);
 const isOpen = computed(() => Boolean(props.stream?.embedUrl));
 
 const close = () => emit('close');
+
+// Spento l'interruttore la finestra resta quella di sempre.
+const conSponsor = computed(() => Boolean(props.stream?.sponsor));
 
 const dialogEl = ref(null);
 
@@ -71,7 +76,7 @@ onBeforeUnmount(() => {
                 </p>
                 <div class="flex items-center gap-3 flex-shrink-0">
                     <a
-                        v-if="stream?.url"
+                        v-if="stream?.url && !conSponsor"
                         :href="stream.url"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -88,7 +93,15 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
+            <DirettaConSponsor
+                v-if="conSponsor"
+                :src="stream.embedUrl"
+                :titolo="stream?.title || $t('stream.modal_title')"
+                :link-diretto="stream?.url"
+                :sponsor="stream.sponsor"
+            />
+
+            <div v-else class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl">
                 <!-- La finestra si apre dal pulsante "Guarda la diretta": l'avvio
                      automatico è chiesto dal visitatore. Il riquadro, invece,
                      aspetta comunque il consenso di marketing o il clic. -->

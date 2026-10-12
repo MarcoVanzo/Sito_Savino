@@ -6,6 +6,7 @@ use App\Enums\TipoCreativita;
 use App\Enums\UsoCreativita;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
+use App\Support\LiveStream;
 use Database\Factories\LiveCreativeFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -107,6 +108,32 @@ class LiveCreative extends Model implements HasMedia
             ->where(fn (Builder $q) => $q->whereNull('valida_dal')->orWhereDate('valida_dal', '<=', $giorno))
             ->where(fn (Builder $q) => $q->whereNull('valida_al')->orWhereDate('valida_al', '>=', $giorno))
             ->whereHas('media', fn (Builder $m) => $m->where('collection_name', self::COLLEZIONE_CONTENUTO));
+    }
+
+    /**
+     * Quello che il sito riceve di una creatività. Le date di validità
+     * viaggiano con lei: la pagina può restare in cache oltre la mezzanotte,
+     * e la creatività la scarta il browser.
+     *
+     * @return array{id: int, tipo: string, url: string, poster: ?string, fascia_mobile: ?string, durata: int, link: ?string, alt: string, sponsor: string, dal: ?string, al: ?string}
+     */
+    public function perIlSito(): array
+    {
+        $file = $this->getFirstMedia(self::COLLEZIONE_CONTENUTO);
+
+        return [
+            'id' => $this->id,
+            'tipo' => $this->tipo->value,
+            'url' => (string) $file?->getUrl(),
+            'poster' => $this->tipo === TipoCreativita::Immagine ? $file?->getUrl() : null,
+            'fascia_mobile' => $this->getFirstMedia(self::COLLEZIONE_FASCIA_MOBILE)?->getUrl(),
+            'durata' => $this->durata_secondi,
+            'link' => LiveStream::externalUrl($this->link_url),
+            'alt' => (string) $this->getTranslation('testo_alternativo', app()->getLocale()),
+            'sponsor' => (string) $this->sponsor?->name,
+            'dal' => $this->valida_dal?->toDateString(),
+            'al' => $this->valida_al?->toDateString(),
+        ];
     }
 
     public function valida(?\DateTimeInterface $giorno = null): bool

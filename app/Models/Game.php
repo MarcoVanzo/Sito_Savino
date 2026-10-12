@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Le due squadre sono null quando la squadra è archiviata: Team usa
@@ -53,6 +54,16 @@ class Game extends Model
             'matchday' => 'integer',
             'set_scores' => 'array',
         ];
+    }
+
+    /**
+     * La diretta con sponsor della gara (pre-roll, cornice, regia).
+     *
+     * @return HasOne<LiveSession, $this>
+     */
+    public function liveSession(): HasOne
+    {
+        return $this->hasOne(LiveSession::class);
     }
 
     /**

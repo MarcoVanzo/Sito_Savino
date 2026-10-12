@@ -18,6 +18,7 @@ use App\Models\StaffMember;
 use App\Models\Team;
 use App\Services\PalmaresPresenter;
 use App\Services\SponsorDirectory;
+use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\LiveStream;
 use App\Support\MatchDay;
 use App\Support\PermalinkVecchioSito;
@@ -149,6 +150,10 @@ class PublicController extends Controller
         // può incorporare.
         $dati['stream_url'] = LiveStream::externalUrl($gara->stream_url);
         $dati['stream_embed_url'] = LiveStream::embedUrl($gara->stream_url);
+        // Dopo `toArray()`: la diretta con sponsor non deve finire intera nelle props.
+        $dati['diretta_sponsor'] = $dati['stream_embed_url'] !== null
+            ? DirettaPerIlSito::perLaGara($gara->loadMissing(DirettaPerIlSito::RELAZIONI))
+            : null;
 
         return $dati;
     }

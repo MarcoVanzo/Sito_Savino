@@ -30,6 +30,7 @@ const openStream = (event, game) => {
         title: `${game.home} — ${game.away}`,
         embedUrl: game.streamEmbedUrl,
         url: game.streamUrl,
+        sponsor: game.diretta ?? null,
     };
 };
 

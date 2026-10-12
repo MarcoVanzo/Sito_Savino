@@ -3,6 +3,8 @@
 namespace App\Filament\Pages\Settings;
 
 use App\Filament\Resources\LiveCreativeResource;
+use App\Models\LiveSession;
+use App\Observers\CacheInvalidationObserver;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Section;
@@ -46,6 +48,17 @@ class DirettaSettingsPage extends BaseSettingsPage
         foreach (['diretta_sponsor_abilitata', 'diretta_ciclo_attivo'] as $chiave) {
             $this->data[$chiave] = filter_var($this->data[$chiave] ?? false, FILTER_VALIDATE_BOOLEAN);
         }
+    }
+
+    /**
+     * Home e calendario tengono in cache il pre-roll delle gare: accendere o
+     * spegnere l'interruttore deve vedersi subito, come salvare una diretta.
+     */
+    public function save(): void
+    {
+        parent::save();
+
+        app(CacheInvalidationObserver::class)->saved(new LiveSession);
     }
 
     protected function valoriPredefiniti(): array

@@ -11,6 +11,7 @@ use App\Models\Season;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Services\Lvf\LvfPhaseLabel;
+use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\LiveStream;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -152,7 +153,7 @@ class RisultatiController extends Controller
      */
     private function presentGames(Season $season, CompetitionType $competitionType): array
     {
-        $games = Game::with(['homeTeam.media', 'awayTeam.media'])
+        $games = Game::with(['homeTeam.media', 'awayTeam.media', ...DirettaPerIlSito::RELAZIONI])
             ->withCount('playerStats')
             ->where('season_id', $season->id)
             ->where('competition_type', $competitionType)
@@ -205,6 +206,7 @@ class RisultatiController extends Controller
                     // le piattaforme incorporabili, altrimenti resta il link.
                     'streamUrl' => LiveStream::externalUrl($game->stream_url),
                     'streamEmbedUrl' => LiveStream::embedUrl($game->stream_url),
+                    'diretta' => LiveStream::embedUrl($game->stream_url) !== null ? DirettaPerIlSito::perLaGara($game) : null,
                     // Vero quando la gara riguarda una squadra della società:
                     // serve a evidenziarla e a filtrare il calendario.
                     'isOwn' => $homeIsOwn || $awayIsOwn,

@@ -11,6 +11,8 @@ use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
 use App\Models\HeroSlide;
+use App\Models\LiveCreative;
+use App\Models\LiveSession;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Page;
@@ -260,6 +262,8 @@ class AppServiceProvider extends ServiceProvider
         GalleryImage::observe(CacheInvalidationObserver::class);
         HeroSlide::observe(CacheInvalidationObserver::class);
         Evento::observe(CacheInvalidationObserver::class);
+        LiveSession::observe(CacheInvalidationObserver::class);
+        LiveCreative::observe(CacheInvalidationObserver::class);
 
         // Forza HTTPS in produzione, e la radice di APP_URL: gli URL assoluti
         // generati durante una richiesta (link di reset password, ritorni dei
