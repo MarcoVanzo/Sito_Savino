@@ -21,6 +21,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
 import { useStatoDellaDiretta } from '@/Composables/useStatoDellaDiretta.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
+import { registraEvento } from '@/Support/eventiDellaDiretta.js';
 import {
     disposizione,
     indirizzoSenzaTuttoSchermo,
@@ -44,7 +45,13 @@ const props = defineProps({
     contenuto: { type: Object, default: null },
 });
 
-const emit = defineEmits(['evento']);
+const emitDelComponente = defineEmits(['evento']);
+
+/** Ogni evento va al report dello sponsor (contatore anonimo) e a chi ascolta. */
+const emit = (nome, dati) => {
+    registraEvento(props.sponsor?.eventi, dati);
+    emitDelComponente(nome, dati);
+};
 
 // Letto subito: con l'autoplay disegnato acceso, il video partirebbe prima.
 const movimentoRidotto = ref(typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches));

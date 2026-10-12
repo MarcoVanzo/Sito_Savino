@@ -29,9 +29,9 @@ class DirettaPerIlSito
     /**
      * `stato` è l'indirizzo del JSON con cornici e regia (StatoPubblicoDellaDiretta),
      * `ora` quello dell'orologio del server: ci sono solo se la gara ha
-     * creatività per la cornice.
+     * creatività per la cornice. `eventi` riceve i contatori del report.
      *
-     * @return array{gara: int, preroll: ?array{salta_dopo: int, creativita: list<array<string, mixed>>}, stato: ?string, ora: ?string}|null
+     * @return array{gara: int, preroll: ?array{salta_dopo: int, creativita: list<array<string, mixed>>}, stato: ?string, ora: ?string, eventi: string}|null
      */
     public static function perLaGara(Game $game): ?array
     {
@@ -57,6 +57,7 @@ class DirettaPerIlSito
             'preroll' => $preroll,
             'stato' => $conCornici ? app(StatoPubblicoDellaDiretta::class)->url($game->id) : null,
             'ora' => $conCornici ? route('api.diretta.ora') : null,
+            'eventi' => route('api.diretta.eventi', $game),
         ];
     }
 

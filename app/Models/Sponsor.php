@@ -7,6 +7,7 @@ use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -31,6 +32,16 @@ class Sponsor extends Model implements HasMedia
         return [
             'tier' => SponsorTier::class,
         ];
+    }
+
+    /**
+     * Gli spot e le cornici della diretta.
+     *
+     * @return HasMany<LiveCreative, $this>
+     */
+    public function liveCreatives(): HasMany
+    {
+        return $this->hasMany(LiveCreative::class);
     }
 
     public function registerMediaConversions(?Media $media = null): void

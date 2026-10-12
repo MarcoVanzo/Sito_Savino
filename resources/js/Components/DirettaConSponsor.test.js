@@ -177,6 +177,18 @@ describe('DirettaConSponsor', () => {
         expect(diretta.findComponent({ name: 'ContenutoIncorporato' }).element).toBe(iframe);
     });
 
+    it('ogni evento parte anche verso il report dello sponsor', async () => {
+        navigator.sendBeacon = vi.fn(() => true);
+        const diretta = monta({ sponsor: { gara: 1, preroll: null, eventi: '/api/diretta/1/eventi' }, contenuto: cornice });
+        larghezza(diretta, 1280);
+        await nextTick();
+
+        await diretta.find('[data-sponsor="colonna"]').trigger('click');
+
+        expect(navigator.sendBeacon).toHaveBeenCalledWith('/api/diretta/1/eventi', expect.any(Blob));
+        delete navigator.sendBeacon;
+    });
+
     it('annuncia lo sponsor accanto alla diretta', async () => {
         const diretta = monta({ sponsor: { gara: 1, preroll: null }, contenuto: cornice });
         await nextTick();
