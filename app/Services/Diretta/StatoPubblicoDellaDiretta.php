@@ -27,6 +27,9 @@ class StatoPubblicoDellaDiretta
 {
     public const CARTELLA = 'diretta';
 
+    /** Fin dove guardare avanti quando una creatività cambia. */
+    private const GIORNI_DA_RIPUBBLICARE = 30;
+
     public function percorso(int $gara): string
     {
         return self::CARTELLA.'/'.$gara.'.json';
@@ -54,6 +57,27 @@ class StatoPubblicoDellaDiretta
 
             return false;
         }
+    }
+
+    /**
+     * Ripubblica le dirette delle gare da ieri ai prossimi giorni: sono
+     * poche, e cercare quelle che usano una creatività non funziona dopo una
+     * cancellazione (le righe ponte se ne vanno con lei).
+     */
+    public function ripubblicaLeDiretteVicine(): int
+    {
+        $pubblicate = 0;
+
+        LiveSession::query()
+            ->whereHas('game', fn ($gara) => $gara->whereBetween('match_date', [
+                now()->subDay(),
+                now()->addDays(self::GIORNI_DA_RIPUBBLICARE),
+            ]))
+            ->each(function (LiveSession $sessione) use (&$pubblicate): void {
+                $pubblicate += (int) $this->pubblica($sessione);
+            });
+
+        return $pubblicate;
     }
 
     /**

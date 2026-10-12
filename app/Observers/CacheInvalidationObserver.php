@@ -12,7 +12,6 @@ use App\Models\GalleryImage;
 use App\Models\Game;
 use App\Models\HeroSlide;
 use App\Models\LiveCreative;
-use App\Models\LiveSession;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\Player;
@@ -32,6 +31,7 @@ use App\Models\Team;
 use App\Services\GalleryArchive;
 use App\Services\NewsFeedBuilder;
 use App\Support\DimenticaLeChiavi;
+use App\Support\Diretta\DirettaPerIlSito;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -92,8 +92,9 @@ class CacheInvalidationObserver
         // (CachePublicResponse): senza, un evento salvato compare un minuto dopo.
         Evento::class => ['public:home'],
         // Il pre-roll della diretta viaggia con la gara in home e nel calendario.
-        LiveSession::class => ['public:home', 'public:risultati'],
-        LiveCreative::class => ['public:home', 'public:risultati'],
+        // LiveSession no: la regia la salva a ogni pulsante durante la gara, e
+        // il pre-roll lo cambia solo «Diretta e sponsor», che svuota da sé.
+        LiveCreative::class => DirettaPerIlSito::CHIAVI_DI_CACHE,
         Standing::class => ['public:risultati'],
         StaffMember::class => [...self::CHIAVI_STAGIONE, 'public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],
         GalleryEvent::class => ['public:gallery_images'],
@@ -121,9 +122,27 @@ class CacheInvalidationObserver
         $this->clearCachesForModel($model);
     }
 
+    /**
+     * Svuota delle chiavi senza un modello salvato: per i cambi che non
+     * passano da un salvataggio (impostazioni, elenchi ordinati della diretta).
+     *
+     * @param  list<string>  $keys
+     */
+    public function svuotaLeChiavi(array $keys): void
+    {
+        $this->clearCachesForKeys($keys, null);
+    }
+
     private function clearCachesForModel(Model $model): void
     {
-        $keys = self::MODEL_CACHE_MAP[get_class($model)] ?? [];
+        $this->clearCachesForKeys(self::MODEL_CACHE_MAP[get_class($model)] ?? [], $model);
+    }
+
+    /**
+     * @param  array<int, string>  $keys
+     */
+    private function clearCachesForKeys(array $keys, ?Model $model): void
+    {
         $locales = $this->locales();
         $daDimenticare = [];
 
@@ -151,7 +170,7 @@ class CacheInvalidationObserver
         DimenticaLeChiavi::insieme([
             ...$daDimenticare,
             ...$this->chiaviComposte($keys, $locales),
-            ...$this->chiaviDelModello($model, $locales),
+            ...($model !== null ? $this->chiaviDelModello($model, $locales) : []),
         ]);
 
         // Flush full-page response cache so visitors see fresh content

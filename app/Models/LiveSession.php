@@ -6,6 +6,7 @@ use App\Enums\StatoDellaDiretta;
 use App\Models\Traits\LogsActivity;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
 use App\Support\MatchDay;
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Database\Factories\LiveSessionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -74,19 +75,59 @@ class LiveSession extends Model
      */
     public static function perLaGara(Game $game): self
     {
-        return self::query()->firstOrCreate(['game_id' => $game->id], [
-            ...ImpostazioniDellaDiretta::perUnaGaraNuova(),
-            ...self::orariDelCiclo($game, ImpostazioniDellaDiretta::perUnaGaraNuova()['ciclo_ritardo_minuti']),
+        return self::query()->firstOrCreate(['game_id' => $game->id], self::valoriDiPartenza($game));
+    }
+
+    /**
+     * La diretta della gara così com'è, o com'è nascerebbe, senza scriverla:
+     * aprire la scheda per guardare non deve creare righe né voci nel registro.
+     */
+    public static function perLaGaraSenzaCrearla(Game $game): self
+    {
+        return self::query()->where('game_id', $game->id)->first()
+            ?? new self(['game_id' => $game->id, ...self::valoriDiPartenza($game)]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function valoriDiPartenza(Game $game): array
+    {
+        $predefiniti = ImpostazioniDellaDiretta::perUnaGaraNuova();
+
+        return [
+            ...$predefiniti,
+            ...self::orariDelCiclo($game, $predefiniti['ciclo_ritardo_minuti']),
             'preroll_attivo' => true,
             'stato' => StatoDellaDiretta::InOnda,
             'versione' => 1,
-        ]);
+        ];
+    }
+
+    /**
+     * La gara ha cambiato orario (sync della Lega o della CEV, rinvio): il
+     * ciclo si sposta dello stesso scarto, così resta anche un eventuale
+     * «Riparti da adesso» della regia relativo alla gara.
+     */
+    public function seguiLaGara(CarbonInterface $prima, CarbonInterface $adesso): bool
+    {
+        $scarto = $adesso->getTimestamp() - $prima->getTimestamp();
+
+        if ($scarto === 0) {
+            return false;
+        }
+
+        $this->ciclo_inizio = $this->ciclo_inizio?->copy()->addSeconds($scarto);
+        $this->ciclo_fine = $this->ciclo_fine?->copy()->addSeconds($scarto);
+        $this->versione++;
+
+        return $this->save();
     }
 
     /**
      * Inizio e fine del ciclo calcolati dall'orario della gara.
      *
-     * @return array{ciclo_inizio: CarbonInterface, ciclo_fine: CarbonInterface}
+     * @return array{ciclo_inizio: Carbon, ciclo_fine: Carbon}
      */
     public static function orariDelCiclo(Game $game, int $ritardoMinuti): array
     {

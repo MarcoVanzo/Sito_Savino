@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { registraEvento } from './eventiDellaDiretta.js';
+import { FINESTRA_DI_SPARPAGLIAMENTO, registraEvento } from './eventiDellaDiretta.js';
 
 describe('eventiDellaDiretta', () => {
     afterEach(() => {
@@ -32,5 +32,21 @@ describe('eventiDellaDiretta', () => {
         expect(registraEvento(null, { evento: 'clic', creativita: 1 })).toBe(false);
         expect(registraEvento('/x', { evento: 'clic', creativita: null })).toBe(false);
         expect(navigator.sendBeacon).not.toHaveBeenCalled();
+    });
+
+    it('le cornici viste da tutti insieme partono sparpagliate nel minuto', () => {
+        vi.useFakeTimers();
+        navigator.sendBeacon = vi.fn(() => true);
+
+        registraEvento('/x', { evento: 'ciclo_mostrato', creativita: 2 }, () => 0.5);
+        expect(navigator.sendBeacon).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(FINESTRA_DI_SPARPAGLIAMENTO / 2);
+        expect(navigator.sendBeacon).toHaveBeenCalledTimes(1);
+
+        // Il clic è del singolo visitatore: parte subito.
+        registraEvento('/x', { evento: 'clic', creativita: 2 });
+        expect(navigator.sendBeacon).toHaveBeenCalledTimes(2);
+        vi.useRealTimers();
     });
 });

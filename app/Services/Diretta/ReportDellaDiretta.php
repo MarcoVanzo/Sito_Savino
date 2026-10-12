@@ -79,7 +79,7 @@ class ReportDellaDiretta
 
         foreach ($righe as $riga) {
             fputcsv($file, [
-                $riga['gara'], $riga['data'], $riga['sponsor'], $riga['creativita'],
+                self::testo($riga['gara']), $riga['data'], self::testo($riga['sponsor']), self::testo($riga['creativita']),
                 $riga['preroll_avviati'], $riga['preroll_completati'], $riga['preroll_saltati'],
                 $riga['completamento'] === null ? '' : number_format($riga['completamento'], 1, ',', ''),
                 $riga['cicli'], $riga['regia'], $riga['clic'],
@@ -91,5 +91,15 @@ class ReportDellaDiretta
         fclose($file);
 
         return $csv;
+    }
+
+    /**
+     * Un testo che Excel non scambia per una formula: il file va a un
+     * destinatario esterno, e un nome che comincia con `=`, `+`, `-` o `@`
+     * verrebbe eseguito all'apertura (CSV injection).
+     */
+    private static function testo(string $valore): string
+    {
+        return preg_match('/^[=+\-@\t\r]/', $valore) === 1 ? "'".$valore : $valore;
     }
 }
