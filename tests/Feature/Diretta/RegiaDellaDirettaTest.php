@@ -8,6 +8,7 @@ use App\Enums\TipoCreativita;
 use App\Enums\UserRole;
 use App\Enums\UsoCreativita;
 use App\Filament\Pages\RegiaDiretta;
+use App\Jobs\RipubblicaLoStatoDelleDirette;
 use App\Models\Game;
 use App\Models\LiveCreative;
 use App\Models\LiveSession;
@@ -19,6 +20,7 @@ use App\Services\Diretta\StatoPubblicoDellaDiretta;
 use App\Support\Diretta\DirettaPerIlSito;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -260,5 +262,58 @@ class RegiaDellaDirettaTest extends TestCase
 
         SiteSetting::set('diretta_sponsor_abilitata', '0');
         $this->getJson('/api/diretta/ora')->assertNotFound();
+    }
+
+    #[Test]
+    public function spegnere_o_cancellare_una_cornice_la_toglie_dalle_dirette_pubblicate(): void
+    {
+        $sessione = $this->sessione();
+        [$prima, $seconda] = $sessione->creativitaDellaGara->all();
+        app(StatoPubblicoDellaDiretta::class)->pubblica($sessione);
+
+        $prima->update(['attiva' => false]);
+        app(StatoPubblicoDellaDiretta::class)->ripubblicaLeDiretteVicine();
+        $this->assertSame([$seconda->id], array_column($this->statoScritto($sessione)['playlist'], 'id'));
+
+        $seconda->delete();
+        app(StatoPubblicoDellaDiretta::class)->ripubblicaLeDiretteVicine();
+        $this->assertSame([], $this->statoScritto($sessione)['playlist']);
+    }
+
+    #[Test]
+    public function salvare_o_cancellare_una_creativita_ripubblica_a_risposta_data(): void
+    {
+        $cornice = $this->cornice();
+        Bus::fake();
+
+        $cornice->update(['attiva' => false]);
+        $cornice->delete();
+
+        Bus::assertDispatchedAfterResponseTimes(RipubblicaLoStatoDelleDirette::class, 2);
+    }
+
+    #[Test]
+    public function se_la_gara_cambia_orario_il_json_si_riscrive(): void
+    {
+        $sessione = $this->sessione();
+        app(StatoPubblicoDellaDiretta::class)->pubblica($sessione);
+
+        $sessione->game->update(['match_date' => now()->setTime(18, 0)]);
+
+        $this->assertSame('2026-10-18T18:05:00+02:00', $this->statoScritto($sessione)['ciclo']['inizio']);
+    }
+
+    #[Test]
+    public function mostra_offre_solo_le_cornici_della_gara(): void
+    {
+        $sessione = $this->sessione();
+        $estranea = $this->cornice();
+        $this->actingAs($this->regista);
+
+        Livewire::test(RegiaDiretta::class)
+            ->callAction('mostra', ['creativita' => $estranea->id, 'secondi' => 30])
+            ->assertHasActionErrors(['creativita']);
+
+        $this->assertSame(StatoDellaDiretta::InOnda, $sessione->refresh()->stato);
     }
 }

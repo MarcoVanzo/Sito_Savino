@@ -3,7 +3,6 @@
 namespace App\Filament\Pages;
 
 use App\Enums\StatoDellaDiretta;
-use App\Enums\UsoCreativita;
 use App\Filament\Resources\GameResource;
 use App\Models\Game;
 use App\Models\LiveCreative;
@@ -137,17 +136,20 @@ class RegiaDiretta extends Page
     {
         return $this->azione('mostra', 'Mostra…', 'heroicon-o-megaphone', 'primary',
             function (RegiaDellaDiretta $regia, LiveSession $s, array $data): bool {
-                $creativita = LiveCreative::query()->where('uso', UsoCreativita::Cornice)->findOrFail($data['creativita']);
+                $creativita = $s->creativitaDellaGara()->findOrFail($data['creativita']);
 
                 return $regia->mostra($s, $creativita, (int) $data['secondi']);
             })
+            ->disabled(fn (): bool => ($this->riepilogo()['cornici'] ?? 0) === 0)
             ->modalHeading('Mostra una cornice')
             ->modalSubmitActionLabel('Manda in onda')
             ->form(fn (): array => [
                 Forms\Components\Select::make('creativita')
                     ->label('Cornice')
-                    ->options(fn (): array => LiveCreative::query()->with('sponsor')->valide()->where('uso', UsoCreativita::Cornice)->orderBy('nome')->get()
-                        ->mapWithKeys(fn (LiveCreative $c): array => [$c->id => $c->nome.' — '.$c->sponsor?->name])->all())
+                    // Solo le cornici di questa gara: sono quelle che il sito
+                    // conosce e che il report accetta.
+                    ->options(fn (): array => $this->corniciDaMostrare())
+                    ->in(fn (): array => array_keys($this->corniciDaMostrare()))
                     ->required(),
                 Forms\Components\TextInput::make('secondi')
                     ->label('Per quanti secondi')
@@ -156,6 +158,19 @@ class RegiaDiretta extends Page
                     ->default(fn (): int => $this->sessione()->pausa_durata_predefinita_secondi ?? 60)
                     ->required(),
             ]);
+    }
+
+    /**
+     * Le cornici valide di questa gara, per «Mostra…».
+     *
+     * @return array<int, string>
+     */
+    private function corniciDaMostrare(): array
+    {
+        return ($this->sessione()?->creativitaDellaGara()->with(['sponsor', 'media'])->get() ?? collect())
+            ->filter(fn (LiveCreative $c): bool => $c->valida())
+            ->mapWithKeys(fn (LiveCreative $c): array => [$c->id => $c->nome.' — '.$c->sponsor?->name])
+            ->all();
     }
 
     public function finePausaAction(): Action
