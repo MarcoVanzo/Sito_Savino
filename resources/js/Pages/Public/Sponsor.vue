@@ -26,21 +26,20 @@ const settings = computed(() => inertiaPage.props.siteSettings ?? {});
 const contact = computed(() => settings.value.contact ?? {});
 const cd = computed(() => props.page?.content_data ?? {});
 
-// Tutti i riquadri hanno la stessa misura, tre per riga, qualunque sia il
-// livello: la redazione ha chiesto di togliere le griglie a quattro e a
-// cinque dei livelli minori. Il fondo e' bianco per tutti, perche' un logo e'
-// disegnato per stare sul bianco.
+// Tutti i riquadri hanno la stessa misura, 300x200 come sul vecchio sito,
+// qualunque sia il livello: la società li ha chiesti così (13/10/2026) perché
+// i rettangoli allungati facevano sembrare i marchi di grandezze troppo
+// diverse. Il fondo e' bianco per tutti, perche' un logo e' disegnato per
+// stare sul bianco.
 //
 // La fila e' un flex e non una griglia: cosi' un livello con un solo sponsor
 // (Mobility Partner, Official Radio...) o con due mostra i riquadri al centro
-// invece di lasciarli appoggiati a sinistra. La larghezza di ogni riquadro e'
-// un terzo dello spazio al netto dei due spazi vuoti fra le colonne.
+// invece di lasciarli appoggiati a sinistra. Sul telefono due per riga, con
+// le stesse proporzioni.
 //
-// Il logo riempie il riquadro invece di galleggiarci dentro: si fissa
-// l'altezza del riquadro e l'immagine ci sta dentro per intero
-// (`object-contain`), cosi' marchi larghi e marchi quadrati restano
-// otticamente della stessa importanza.
-const boxClass = 'h-24 md:h-28 p-5 w-[calc((100%-1.25rem)/2)] sm:w-[calc((100%-2.5rem)/3)]';
+// Il logo sta dentro il riquadro per intero (`object-contain`), cosi' marchi
+// larghi e marchi quadrati restano otticamente della stessa importanza.
+const boxClass = 'aspect-[3/2] p-6 w-[calc((100%-1.25rem)/2)] sm:w-[300px]';
 
 // L'indirizzo a cui arrivano le richieste di sponsorizzazione, con oggetto
 // già scritto: chi riceve la mail sa da dove arriva senza aprirla.

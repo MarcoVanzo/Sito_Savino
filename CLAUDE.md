@@ -398,7 +398,8 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
 
 - Livelli in `App\Enums\SponsorTier` (ordine dei case = ordine in pagina);
   raggruppamento in `App\Services\SponsorDirectory`, condiviso. L'elenco lo cura
-  la redazione. Le richieste vanno a `marketing@savinodelbenevolley.it`.
+  la redazione. I nomi delle sezioni li riscrive la redazione (Sponsor →
+  «Nomi delle sezioni», `SponsorTier::CHIAVE_DEI_NOMI`); vuoto = `nomePredefinito()`. Le richieste vanno a `marketing@savinodelbenevolley.it`.
 
 ## 16. Diretta streaming
 
