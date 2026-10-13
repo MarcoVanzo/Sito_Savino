@@ -277,16 +277,26 @@ const tuttoSchermo = ref(false);
 const simulato = ref(false);
 const pulsanteTuttoSchermo = ref(null);
 
+// Quanto si aspetta il tutto schermo del browser prima di simularlo.
+const ATTESA_DEL_TUTTO_SCHERMO = 1000;
+
+/**
+ * Il tutto schermo del browser, e se non arriva quello simulato. Alcuni
+ * browser incorporati (app, anteprime) lasciano la richiesta in sospeso per
+ * sempre, senza accettarla né rifiutarla: aspettandola e basta, il pulsante
+ * non faceva niente.
+ */
 const entra = async () => {
     const el = contenitore.value;
 
     if (tuttoSchermoDisponibile(el)) {
-        try {
-            await el.requestFullscreen();
+        const riuscito = await Promise.race([
+            Promise.resolve(el.requestFullscreen()).then(() => true, () => false),
+            new Promise((risolvi) => setTimeout(() => risolvi(false), ATTESA_DEL_TUTTO_SCHERMO)),
+        ]);
 
+        if (riuscito || document.fullscreenElement === el) {
             return;
-        } catch {
-            // Rifiutato (es. dentro un iframe): si simula.
         }
     }
 
@@ -310,7 +320,14 @@ const esci = async () => {
 const alternaTuttoSchermo = () => (tuttoSchermo.value ? esci() : entra());
 
 const allaUscitaDalTuttoSchermo = () => {
-    tuttoSchermo.value = document.fullscreenElement === contenitore.value;
+    const vero = document.fullscreenElement === contenitore.value;
+
+    // Il tutto schermo vero arrivato tardi, a simulato già acceso, lo sostituisce.
+    if (vero) {
+        simulato.value = false;
+    }
+
+    tuttoSchermo.value = vero || simulato.value;
 };
 
 // Esc chiude lo schermo intero simulato e basta: senza `preventDefault` il
