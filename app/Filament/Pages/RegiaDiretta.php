@@ -50,6 +50,14 @@ class RegiaDiretta extends Page
 
     public ?int $gara = null;
 
+    /**
+     * La diretta letta in questa richiesta: riepilogo, pulsanti visibili e
+     * disattivati la chiedevano una decina di volte a ogni giro del poll.
+     *
+     * @var array{0: ?int, 1: ?LiveSession}|null
+     */
+    private ?array $sessioneLetta = null;
+
     public static function canAccess(): bool
     {
         return (bool) auth()->user()?->can('update', LiveSession::class);
@@ -66,9 +74,23 @@ class RegiaDiretta extends Page
         return Diretta::abilitata();
     }
 
+    /**
+     * La prima gara non ancora finita che ha una diretta con sponsor: la
+     * regia serve lì. Prendendo solo la prima di oggi si apriva sull'U17
+     * delle 15 invece che sulla prima squadra delle 20:30, e senza gare oggi
+     * su quella di ieri.
+     */
     public function mount(): void
     {
-        $this->gara = MatchDay::garaDiOggi()->id ?? $this->gare()->first()?->id;
+        $gare = $this->gare()->loadExists('liveSession');
+        $nonFinite = $gare->filter(fn (Game $g): bool => $g->match_date->greaterThan(now()->subHours(MatchDay::ORE_DOPO_L_INIZIO)));
+
+        $this->gara = ($nonFinite->firstWhere('live_session_exists', true) ?? $nonFinite->first() ?? $gare->first())?->id;
+    }
+
+    public function updatedGara(): void
+    {
+        $this->sessioneLetta = null;
     }
 
     /** @return Collection<int, Game> */
@@ -86,9 +108,13 @@ class RegiaDiretta extends Page
 
     public function sessione(): ?LiveSession
     {
-        return $this->gara === null
-            ? null
-            : LiveSession::query()->with(['creativitaInOnda', 'creativitaDellaGara'])->where('game_id', $this->gara)->first();
+        if ($this->sessioneLetta === null || $this->sessioneLetta[0] !== $this->gara) {
+            $this->sessioneLetta = [$this->gara, $this->gara === null
+                ? null
+                : LiveSession::query()->with(['creativitaInOnda', 'creativitaDellaGara.media'])->where('game_id', $this->gara)->first()];
+        }
+
+        return $this->sessioneLetta[1];
     }
 
     /**
@@ -116,7 +142,9 @@ class RegiaDiretta extends Page
             'fino_alle' => $sessione->stato === StatoDellaDiretta::Pausa ? $sessione->pausa_fino_alle?->toIso8601String() : null,
             'ciclo_attivo' => $sessione->ciclo_attivo,
             'prossimo_ciclo' => $prossimo !== null ? $prossimo['inizio']->format('H:i:s') : null,
-            'cornici' => $sessione->creativitaDellaGara->count(),
+            // Solo quelle che il sito mostrerebbe: con tutte scadute «Pausa tra
+            // i set» diceva «Fatto» e per tre minuti non si vedeva niente.
+            'cornici' => $sessione->creativitaDellaGara->filter(fn (LiveCreative $c): bool => $c->valida())->count(),
         ];
     }
 
@@ -180,11 +208,22 @@ class RegiaDiretta extends Page
             ->visible(fn (): bool => $this->sessione()?->stato === StatoDellaDiretta::Pausa);
     }
 
-    public function cicloAction(): Action
+    /**
+     * Due azioni e non una che si inverte: con un doppio tocco dal telefono
+     * la seconda richiesta leggeva il ciclo già sospeso e lo riprendeva.
+     */
+    public function sospendiCicloAction(): Action
     {
-        return $this->azione('ciclo', fn (): string => $this->sessione()?->ciclo_attivo ? 'Sospendi ciclo' : 'Riprendi ciclo', 'heroicon-o-arrow-path', 'gray',
-            fn (RegiaDellaDiretta $regia, LiveSession $s) => $s->ciclo_attivo ? $regia->sospendiCiclo($s) : $regia->riprendiCiclo($s))
-            ->visible(fn (): bool => $this->sessione()?->stato !== StatoDellaDiretta::Inattiva);
+        return $this->azione('sospendiCiclo', 'Sospendi ciclo', 'heroicon-o-pause', 'gray',
+            fn (RegiaDellaDiretta $regia, LiveSession $s) => $regia->sospendiCiclo($s))
+            ->visible(fn (): bool => $this->sessione()?->stato !== StatoDellaDiretta::Inattiva && $this->sessione()?->ciclo_attivo);
+    }
+
+    public function riprendiCicloAction(): Action
+    {
+        return $this->azione('riprendiCiclo', 'Riprendi ciclo', 'heroicon-o-arrow-path', 'gray',
+            fn (RegiaDellaDiretta $regia, LiveSession $s) => $regia->riprendiCiclo($s))
+            ->visible(fn (): bool => $this->sessione()?->stato !== StatoDellaDiretta::Inattiva && ! $this->sessione()?->ciclo_attivo);
     }
 
     public function ripartiDaAdessoAction(): Action
@@ -231,6 +270,7 @@ class RegiaDiretta extends Page
                 }
 
                 $pubblicato = $esegui(app(RegiaDellaDiretta::class), $sessione, $data);
+                $this->sessioneLetta = null;
 
                 $pubblicato
                     ? Notification::make()->title('Fatto: il sito lo mostra entro una decina di secondi')->success()->send()

@@ -6,12 +6,16 @@ use App\Enums\EventoDellaDiretta as Evento;
 use App\Models\Game;
 use App\Models\LiveAdStat;
 use App\Models\LiveCreative;
+use App\Models\Sponsor;
 use Illuminate\Support\Collection;
 
 /**
  * Il report per lo sponsor: per gara e per creatività, quante volte è andata
  * in onda e quante è stata cliccata, con il tasso di completamento del
  * pre-roll (visti fino in fondo su avviati).
+ *
+ * Una grafica o uno sponsor cancellati restano nel report col nome copiato
+ * sui contatori (`sponsor_nome`, `creativita_nome`).
  */
 class ReportDellaDiretta
 {
@@ -21,10 +25,12 @@ class ReportDellaDiretta
     public function righe(?int $gara = null, ?int $sponsor = null): array
     {
         $contatori = LiveAdStat::query()
-            ->selectRaw('game_id, live_creative_id, evento, SUM(conteggio) as totale')
+            ->selectRaw('game_id, live_creative_id, sponsor_nome, creativita_nome, evento, SUM(conteggio) as totale')
             ->when($gara, fn ($q) => $q->where('game_id', $gara))
-            ->when($sponsor, fn ($q) => $q->whereIn('live_creative_id', LiveCreative::query()->where('sponsor_id', $sponsor)->select('id')))
-            ->groupBy('game_id', 'live_creative_id', 'evento')
+            ->when($sponsor, fn ($q) => $q->where(fn ($q) => $q
+                ->whereIn('live_creative_id', LiveCreative::query()->where('sponsor_id', $sponsor)->select('id'))
+                ->orWhere(fn ($q) => $q->whereNull('live_creative_id')->where('sponsor_nome', Sponsor::query()->whereKey($sponsor)->value('name')))))
+            ->groupBy('game_id', 'live_creative_id', 'sponsor_nome', 'creativita_nome', 'evento')
             ->get();
 
         if ($contatori->isEmpty()) {
@@ -35,7 +41,7 @@ class ReportDellaDiretta
         $creativita = LiveCreative::query()->with('sponsor')->whereIn('id', $contatori->pluck('live_creative_id')->unique())->get()->keyBy('id');
 
         return $contatori
-            ->groupBy(fn (LiveAdStat $riga): string => $riga->game_id.'-'.$riga->live_creative_id)
+            ->groupBy(fn (LiveAdStat $riga): string => $riga->game_id.'-'.($riga->live_creative_id ?? 'x-'.$riga->sponsor_nome.'-'.$riga->creativita_nome))
             ->map(function (Collection $gruppo) use ($gare, $creativita): array {
                 /** @var LiveAdStat $prima */
                 $prima = $gruppo->first();
@@ -48,8 +54,9 @@ class ReportDellaDiretta
                 return [
                     'gara' => $partita !== null ? $partita->homeTeam?->nomePubblico().' – '.$partita->awayTeam?->nomePubblico() : '#'.$prima->game_id,
                     'data' => (string) $partita?->match_date->format('d/m/Y H:i'),
-                    'sponsor' => (string) $spot?->sponsor?->name,
-                    'creativita' => (string) $spot?->nome,
+                    'quando' => (int) $partita?->match_date->getTimestamp(),
+                    'sponsor' => (string) ($spot->sponsor->name ?? $prima->sponsor_nome),
+                    'creativita' => (string) ($spot->nome ?? $prima->creativita_nome),
                     'preroll_avviati' => $avviati,
                     'preroll_completati' => $completati,
                     'preroll_saltati' => $totale(Evento::PrerollSaltato),
@@ -59,7 +66,13 @@ class ReportDellaDiretta
                     'clic' => $totale(Evento::Clic),
                 ];
             })
-            ->sortBy([['data', 'desc'], ['sponsor', 'asc'], ['creativita', 'asc']])
+            // Sulla data vera: `d/m/Y` come testo metteva il 31/01 prima del 13/10.
+            ->sortBy([['quando', 'desc'], ['sponsor', 'asc'], ['creativita', 'asc']])
+            ->map(function (array $riga): array {
+                unset($riga['quando']);
+
+                return $riga;
+            })
             ->values()
             ->all();
     }

@@ -142,8 +142,65 @@ class RegiaDellaDirettaTest extends TestCase
         $this->assertSame('inattiva', $json['stato']);
         $this->assertFalse($json['ciclo']['attivo']);
 
+        // Riaccendere riporta anche il ciclo: senza, nessuna cornice fino a fine gara.
         $this->regia()->riaccendi($sessione);
-        $this->assertSame('in_onda', $this->statoScritto($sessione)['stato']);
+        $json = $this->statoScritto($sessione);
+        $this->assertSame('in_onda', $json['stato']);
+        $this->assertTrue($json['ciclo']['attivo']);
+    }
+
+    #[Test]
+    public function sospendere_due_volte_non_riprende_il_ciclo(): void
+    {
+        $sessione = $this->sessione();
+        $this->actingAs($this->regista);
+
+        Livewire::test(RegiaDiretta::class)
+            ->callAction('sospendiCiclo')
+            ->assertActionHidden('sospendiCiclo')
+            ->assertActionVisible('riprendiCiclo');
+
+        // Il secondo tocco arrivato prima del ridisegno sospende di nuovo.
+        $this->regia()->sospendiCiclo($sessione);
+        $this->assertFalse($sessione->refresh()->ciclo_attivo);
+    }
+
+    #[Test]
+    public function con_le_cornici_tutte_spente_la_pausa_tra_i_set_non_si_puo_mandare(): void
+    {
+        $sessione = $this->sessione();
+        $sessione->creativitaDellaGara->each->update(['attiva' => false]);
+        $this->actingAs($this->regista);
+
+        Livewire::test(RegiaDiretta::class)->assertActionDisabled('pausaTraISet');
+    }
+
+    #[Test]
+    public function spegnere_l_interruttore_toglie_gli_sponsor_anche_a_chi_guarda_gia(): void
+    {
+        $sessione = $this->sessione();
+        $this->regia()->ripubblica($sessione);
+        $versione = $this->statoScritto($sessione)['versione'];
+
+        SiteSetting::set('diretta_sponsor_abilitata', '0');
+        $this->regia()->ripubblicaLeDiretteVicine();
+
+        $json = $this->statoScritto($sessione);
+        $this->assertGreaterThan($versione, $json['versione']);
+        $this->assertSame('inattiva', $json['stato']);
+        $this->assertFalse($json['ciclo']['attivo']);
+        $this->assertSame([], $json['playlist']);
+    }
+
+    #[Test]
+    public function il_testo_alternativo_viaggia_in_tutte_le_lingue(): void
+    {
+        $sessione = $this->sessione();
+        $sessione->creativitaDellaGara->first()->setTranslations('testo_alternativo', ['it' => 'Estra, energia', 'en' => 'Estra, energy'])->save();
+
+        $this->regia()->ripubblica($sessione);
+
+        $this->assertSame(['it' => 'Estra, energia', 'en' => 'Estra, energy'], $this->statoScritto($sessione)['playlist'][0]['alt']);
     }
 
     #[Test]
@@ -206,7 +263,8 @@ class RegiaDellaDirettaTest extends TestCase
         Livewire::test(RegiaDiretta::class)
             ->assertActionVisible('riaccendi')
             ->assertActionHidden('spegniTutto')
-            ->assertActionHidden('ciclo');
+            ->assertActionHidden('sospendiCiclo')
+            ->assertActionHidden('riprendiCiclo');
     }
 
     #[Test]
@@ -269,38 +327,43 @@ class RegiaDellaDirettaTest extends TestCase
     {
         $sessione = $this->sessione();
         [$prima, $seconda] = $sessione->creativitaDellaGara->all();
-        app(StatoPubblicoDellaDiretta::class)->pubblica($sessione);
+        $this->regia()->ripubblica($sessione);
+        $versione = $this->statoScritto($sessione)['versione'];
 
         $prima->update(['attiva' => false]);
-        app(StatoPubblicoDellaDiretta::class)->ripubblicaLeDiretteVicine();
+        $this->regia()->ripubblicaLeDiretteVicine();
         $this->assertSame([$seconda->id], array_column($this->statoScritto($sessione)['playlist'], 'id'));
+        // Chi ha già la diretta aperta accetta solo versioni più alte.
+        $this->assertGreaterThan($versione, $this->statoScritto($sessione)['versione']);
 
         $seconda->delete();
-        app(StatoPubblicoDellaDiretta::class)->ripubblicaLeDiretteVicine();
+        $this->regia()->ripubblicaLeDiretteVicine();
         $this->assertSame([], $this->statoScritto($sessione)['playlist']);
     }
 
     #[Test]
-    public function salvare_o_cancellare_una_creativita_ripubblica_a_risposta_data(): void
+    public function salvare_o_cancellare_una_creativita_ripubblica_a_risposta_data_una_volta_sola(): void
     {
-        $cornice = $this->cornice();
         Bus::fake();
+        $cornice = $this->cornice();
 
         $cornice->update(['attiva' => false]);
         $cornice->delete();
 
-        Bus::assertDispatchedAfterResponseTimes(RipubblicaLoStatoDelleDirette::class, 2);
+        Bus::assertDispatchedAfterResponseTimes(RipubblicaLoStatoDelleDirette::class, 1);
     }
 
     #[Test]
     public function se_la_gara_cambia_orario_il_json_si_riscrive(): void
     {
         $sessione = $this->sessione();
-        app(StatoPubblicoDellaDiretta::class)->pubblica($sessione);
+        $this->regia()->ripubblica($sessione);
+        $versione = $this->statoScritto($sessione)['versione'];
 
         $sessione->game->update(['match_date' => now()->setTime(18, 0)]);
 
         $this->assertSame('2026-10-18T18:05:00+02:00', $this->statoScritto($sessione)['ciclo']['inizio']);
+        $this->assertGreaterThan($versione, $this->statoScritto($sessione)['versione']);
     }
 
     #[Test]

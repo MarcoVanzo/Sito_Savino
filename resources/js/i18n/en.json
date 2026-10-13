@@ -1200,7 +1200,11 @@
         "prova_interruttore_spento": "Sponsors in the live stream are still switched off: on the site fans see the stream without sponsors until you switch them on.",
         "prova_senza_link": "This match has no YouTube, Vimeo, Twitch or Dailymotion link yet: add it from «Imposta».",
         "prova_senza_sponsor": "This match has no sponsors with active graphics yet: choose them from «Imposta». Meanwhile the stream opens without sponsors.",
-        "prova_torna": "Back to Diretta"
+        "prova_torna": "Back to Diretta",
+        "pausa": "Pause",
+        "riprendi": "Resume",
+        "pausa_sponsor": "Pause sponsor",
+        "riprendi_sponsor": "Resume sponsor"
     },
     "palmares": {
         "open_hint": "See her honours",

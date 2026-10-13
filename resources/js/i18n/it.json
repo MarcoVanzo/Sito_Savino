@@ -1200,7 +1200,11 @@
         "prova_interruttore_spento": "Gli sponsor nella diretta sono ancora spenti: sul sito i tifosi vedono la diretta senza sponsor finché non li accendi.",
         "prova_senza_link": "Questa partita non ha ancora un link di YouTube, Vimeo, Twitch o Dailymotion: mettilo da «Imposta».",
         "prova_senza_sponsor": "Questa partita non ha ancora sponsor con grafiche attive: sceglili da «Imposta». Intanto la diretta si apre senza sponsor.",
-        "prova_torna": "Torna a Diretta"
+        "prova_torna": "Torna a Diretta",
+        "pausa": "Pausa",
+        "riprendi": "Riprendi",
+        "pausa_sponsor": "Ferma lo sponsor",
+        "riprendi_sponsor": "Riprendi lo sponsor"
     },
     "palmares": {
         "open_hint": "Scopri il palmarès",

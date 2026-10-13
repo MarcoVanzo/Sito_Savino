@@ -11,7 +11,6 @@ use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
 use App\Models\Game;
 use App\Models\HeroSlide;
-use App\Models\LiveCreative;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\Player;
@@ -31,7 +30,6 @@ use App\Models\Team;
 use App\Services\GalleryArchive;
 use App\Services\NewsFeedBuilder;
 use App\Support\DimenticaLeChiavi;
-use App\Support\Diretta\DirettaPerIlSito;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -91,10 +89,12 @@ class CacheInvalidationObserver
         // Gli eventi non stanno nella cache della home, ma la pagina intera sì
         // (CachePublicResponse): senza, un evento salvato compare un minuto dopo.
         Evento::class => ['public:home'],
-        // Il pre-roll della diretta viaggia con la gara in home e nel calendario.
-        // LiveSession no: la regia la salva a ogni pulsante durante la gara, e
-        // il pre-roll lo cambia solo «Diretta», che svuota da sé.
-        LiveCreative::class => DirettaPerIlSito::CHIAVI_DI_CACHE,
+        // Il pre-roll della diretta viaggia con la gara in home e nel calendario,
+        // ma LiveCreative non sta qui: il file nuovo si salva dopo il record, e
+        // svuotare subito rimetterebbe in cache l'indirizzo vecchio. Lo fa
+        // RipubblicaLoStatoDelleDirette a risposta data. LiveSession nemmeno:
+        // la regia la salva a ogni pulsante, e il pre-roll lo cambia solo
+        // «Imposta», che svuota da sé.
         Standing::class => ['public:risultati'],
         StaffMember::class => [...self::CHIAVI_STAGIONE, 'public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],
         GalleryEvent::class => ['public:gallery_images'],

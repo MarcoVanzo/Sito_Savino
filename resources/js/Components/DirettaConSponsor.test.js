@@ -50,6 +50,7 @@ describe('DirettaConSponsor', () => {
         expect(diretta.find('[data-preroll] video').exists()).toBe(true);
         expect(diretta.findComponent({ name: 'ContenutoIncorporato' }).exists()).toBe(false);
 
+        await diretta.find('video').trigger('playing');
         await diretta.find('video').trigger('ended');
 
         expect(diretta.find('[data-preroll]').exists()).toBe(false);
@@ -218,7 +219,57 @@ describe('DirettaConSponsor', () => {
         const diretta = monta({ sponsor: { gara: 1, preroll: null }, contenuto: cornice });
         await nextTick();
 
+        // Nasce vuota: il testo presente al montaggio non verrebbe letto.
+        expect(diretta.find('[aria-live="polite"]').text()).toBe('');
+        await vi.advanceTimersByTimeAsync(300);
         expect(diretta.find('[aria-live="polite"]').text()).toBe('Accanto alla diretta: Estra');
+    });
+
+    it('uno spot che il browser non fa partire non blocca la diretta, anche senza «Salta»', async () => {
+        HTMLMediaElement.prototype.play = () => Promise.reject(new DOMException('NotAllowedError'));
+        const diretta = monta({ sponsor: { gara: 7, preroll: { salta_dopo: 0, creativita: [video] } } });
+        await vi.advanceTimersByTimeAsync(10);
+
+        expect(diretta.find('[data-guarda-spot]').exists()).toBe(true);
+        await vi.advanceTimersByTimeAsync(15_000);
+
+        expect(diretta.find('[data-preroll]').exists()).toBe(false);
+        expect(diretta.findComponent({ name: 'ContenutoIncorporato' }).exists()).toBe(true);
+    });
+
+    it('uno spot fermo in caricamento lascia la diretta poco dopo la sua durata', async () => {
+        const diretta = monta({ sponsor: { gara: 8, preroll: { salta_dopo: 0, creativita: [video] } } });
+        await vi.advanceTimersByTimeAsync(24_000);
+        expect(diretta.find('[data-preroll]').exists()).toBe(true);
+
+        await vi.advanceTimersByTimeAsync(1_000);
+        expect(diretta.find('[data-preroll]').exists()).toBe(false);
+        // Mai partito: nessun avvio né completamento nel report.
+        expect(diretta.emitted('evento')).toBeUndefined();
+    });
+
+    it('dopo «Salta» il fuoco passa al pulsante del tutto schermo', async () => {
+        const diretta = monta();
+        await vi.advanceTimersByTimeAsync(5_000);
+
+        diretta.find('[data-salta]').element.focus();
+        await diretta.find('[data-salta]').trigger('click');
+        await nextTick();
+
+        expect(document.activeElement).toBe(diretta.find('[data-tutto-schermo]').element);
+    });
+
+    it('la cornice video si ferma col suo pulsante', async () => {
+        const pausa = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+        const diretta = monta({ sponsor: { gara: 1, preroll: null }, contenuto: { ...cornice, tipo: 'video', url: 'https://cdn/cornice.mp4' } });
+        larghezza(diretta, 1280);
+        await nextTick();
+
+        await diretta.find('[data-pausa-cornice]').trigger('click');
+
+        expect(pausa).toHaveBeenCalledTimes(2);
+        expect(diretta.find('[data-pausa-cornice]').attributes('aria-pressed')).toBe('true');
+        pausa.mockRestore();
     });
 
     it('tutto schermo sul contenitore intero, con la cornice dentro', async () => {

@@ -20,6 +20,7 @@
  * iPhone, dove gli elementi non vanno a tutto schermo, si simula.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import ContenutoIncorporato from '@/Components/ContenutoIncorporato.vue';
 import { useStatoDellaDiretta } from '@/Composables/useStatoDellaDiretta.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
@@ -36,6 +37,21 @@ import {
 } from '@/Support/direttaConSponsor.js';
 
 const $t = useTranslations();
+const pagina = usePage();
+
+/**
+ * Il JSON dello stato è uno per tutte le lingue e porta il testo alternativo
+ * come `{it, en}`; il pre-roll arriva con la pagina, già nella sua lingua.
+ */
+const testoAlternativo = (creativita) => {
+    const alt = creativita?.alt;
+
+    if (alt && typeof alt === 'object') {
+        return alt[pagina.props.locale] || alt.it || Object.values(alt).find(Boolean) || '';
+    }
+
+    return alt || '';
+};
 
 const props = defineProps({
     src: { type: String, required: true },
@@ -63,14 +79,24 @@ const fase = ref('diretta');
 const secondiTrascorsi = ref(0);
 const audio = ref(false);
 const videoSpot = ref(null);
+// Il browser ha rifiutato di far partire il video (iPhone in risparmio
+// energetico, autoplay bloccato): lo spot dura come un'immagine, o la diretta
+// non partirebbe mai con uno spot che non si può saltare.
+const spotBloccato = ref(false);
+// Spot in pausa dal visitatore (WCAG 2.2.2): l'orologio si ferma con lui.
+const spotInPausa = ref(false);
 let orologio = null;
+
+// Margine oltre la durata dichiarata: un video che resta in caricamento senza
+// errori non deve tenere ferma la diretta.
+const MARGINE_DELLO_SPOT = 10;
 
 const saltaDopo = computed(() => Number(props.sponsor?.preroll?.salta_dopo ?? 0));
 const saltabile = computed(() => saltaDopo.value > 0);
 const mancanoASaltare = computed(() => Math.max(0, saltaDopo.value - secondiTrascorsi.value));
 // Con meno movimento il video non parte da solo: resta il primo fotogramma,
 // e lo spot dura come un'immagine.
-const spotFermo = computed(() => spot.value?.tipo === 'immagine' || movimentoRidotto.value);
+const spotFermo = computed(() => spot.value?.tipo === 'immagine' || movimentoRidotto.value || spotBloccato.value);
 
 const fermaOrologio = () => {
     if (orologio !== null) {
@@ -88,7 +114,15 @@ const vaiAllaDiretta = (comeFinisce) => {
     if (comeFinisce && spot.value) {
         emit('evento', { evento: comeFinisce, creativita: spot.value.id });
     }
+
+    // Il pulsante che aveva il fuoco («Salta») sparisce con lo spot: senza
+    // spostarlo, chi usa la tastiera ricomincerebbe dall'inizio della finestra.
+    const fuocoNeiComandi = Boolean(contenitore.value?.querySelector('[data-comandi-spot]')?.contains(document.activeElement));
     fase.value = 'diretta';
+
+    if (fuocoNeiComandi) {
+        nextTick(() => pulsanteTuttoSchermo.value?.focus());
+    }
 };
 
 const salta = () => {
@@ -121,16 +155,51 @@ const avviaPreroll = () => {
     if (!inProva) {
         segnaPrerollVisto(props.sponsor.gara);
     }
-    emit('evento', { evento: 'preroll_avviato', creativita: scelto.id });
+
+    // Il video si conta quando parte davvero (`playing`), non quando si apre.
+    if (scelto.tipo === 'immagine') {
+        emit('evento', { evento: 'preroll_avviato', creativita: scelto.id });
+    }
 
     orologio = setInterval(() => {
+        if (spotInPausa.value) {
+            return;
+        }
+
         secondiTrascorsi.value++;
+        const durata = Number(scelto.durata || 10);
 
         // Le immagini (e i video fermi) durano quanto deciso nel pannello.
-        if (spotFermo.value && secondiTrascorsi.value >= Number(scelto.durata || 10)) {
+        if (spotFermo.value && secondiTrascorsi.value >= durata) {
             vaiAllaDiretta('preroll_completato');
+        } else if (secondiTrascorsi.value >= durata + MARGINE_DELLO_SPOT) {
+            vaiAllaDiretta(null);
         }
     }, 1000);
+};
+
+let avvioContato = false;
+const spotPartito = () => {
+    if (!avvioContato && spot.value) {
+        avvioContato = true;
+        emit('evento', { evento: 'preroll_avviato', creativita: spot.value.id });
+    }
+};
+
+const alternaPausaDelloSpot = () => {
+    const video = videoSpot.value;
+
+    if (!video) {
+        return;
+    }
+
+    if (video.paused) {
+        spotInPausa.value = false;
+        video.play?.()?.catch?.(() => {});
+    } else {
+        spotInPausa.value = true;
+        video.pause();
+    }
 };
 
 const cambiaAudio = () => {
@@ -167,8 +236,9 @@ const statoDellaDiretta = useStatoDellaDiretta({
 const inOnda = computed(() => props.contenuto ?? statoDellaDiretta.contenuto.value);
 
 // Ogni volta che compare uno sponsor, una visualizzazione (ciclo o regia).
+// Con la scheda nascosta nessuno la vede: non si conta.
 watch(() => inOnda.value?.id, (id) => {
-    if (id != null && fase.value === 'diretta') {
+    if (id != null && fase.value === 'diretta' && document.visibilityState !== 'hidden') {
         emit('evento', { evento: statoDellaDiretta.inPausa.value ? 'pausa_mostrata' : 'ciclo_mostrato', creativita: id });
     }
 });
@@ -184,9 +254,28 @@ const rettangoli = computed(() => disposizione(modo.value));
 const srcSenzaTuttoSchermo = computed(() => indirizzoSenzaTuttoSchermo(props.src));
 const fasciaMobile = computed(() => inOnda.value?.fascia_mobile || null);
 
+// Le cornici video si possono fermare (WCAG 2.2.2): restano ferme anche per
+// gli sponsor successivi, finché il visitatore non le fa ripartire.
+const cornicePausa = ref(false);
+const corniceVideo = computed(() => fase.value === 'diretta' && inOnda.value?.tipo === 'video' && !movimentoRidotto.value);
+
+const applicaPausaDellaCornice = () => {
+    contenitore.value?.querySelectorAll('video[data-cornice]').forEach((video) => {
+        if (cornicePausa.value) {
+            video.pause();
+        } else {
+            video.play?.()?.catch?.(() => {});
+        }
+    });
+};
+
+watch(cornicePausa, applicaPausaDellaCornice);
+watch(() => inOnda.value?.id, () => nextTick(applicaPausaDellaCornice));
+
 // ─── Tutto schermo ──────────────────────────────────────────────────────
 const tuttoSchermo = ref(false);
 const simulato = ref(false);
+const pulsanteTuttoSchermo = ref(null);
 
 const entra = async () => {
     const el = contenitore.value;
@@ -235,7 +324,13 @@ const tastoEsc = (evento) => {
 };
 
 // ─── Annunci per gli screen reader ──────────────────────────────────────
+// La regione nasce vuota: un testo già presente al montaggio non si legge.
+const annunciPronti = ref(false);
 const annuncio = computed(() => {
+    if (!annunciPronti.value) {
+        return '';
+    }
+
     if (fase.value === 'preroll' && spot.value) {
         return $t('stream.preroll_annuncio', { sponsor: spot.value.sponsor });
     }
@@ -243,17 +338,24 @@ const annuncio = computed(() => {
     return inOnda.value ? $t('stream.accanto', { sponsor: inOnda.value.sponsor }) : '';
 });
 
+let attesaDegliAnnunci = null;
+
 onMounted(() => {
     avviaPreroll();
     faiPartireLoSpot();
+    attesaDegliAnnunci = setTimeout(() => {
+        annunciPronti.value = true;
+    }, 300);
 
-    if (typeof ResizeObserver !== 'undefined' && contenitore.value) {
+    // Si misura il riquadro, non il contenitore: a tutto schermo il riquadro
+    // è limitato dall'altezza e il player scenderebbe sotto i 480 px.
+    if (typeof ResizeObserver !== 'undefined' && riquadro.value) {
         osservatore = new ResizeObserver(([voce]) => {
             larghezza.value = voce.contentRect.width;
         });
-        osservatore.observe(contenitore.value);
-    } else if (contenitore.value) {
-        larghezza.value = contenitore.value.clientWidth || larghezza.value;
+        osservatore.observe(riquadro.value);
+    } else if (riquadro.value) {
+        larghezza.value = riquadro.value.clientWidth || larghezza.value;
     }
 
     document.addEventListener('fullscreenchange', allaUscitaDalTuttoSchermo);
@@ -261,6 +363,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     fermaOrologio();
+    clearTimeout(attesaDegliAnnunci);
     osservatore?.disconnect();
     document.removeEventListener('fullscreenchange', allaUscitaDalTuttoSchermo);
 });
@@ -282,11 +385,19 @@ const faiPartireLoSpot = async () => {
     if (fase.value === 'preroll' && !movimentoRidotto.value) {
         await nextTick();
         silenzia(videoSpot.value);
-        videoSpot.value?.play?.()?.catch?.(() => {});
+        videoSpot.value?.play?.()?.catch?.(() => {
+            spotBloccato.value = true;
+        });
     }
 };
 
-defineExpose({ fase, modo });
+// Con meno movimento lo spot video non parte da sé: lo fa partire il visitatore.
+const guardaLoSpot = () => {
+    spotBloccato.value = false;
+    videoSpot.value?.play?.()?.catch?.(() => {});
+};
+
+defineExpose({ fase, modo, simulato, esci });
 </script>
 
 <template>
@@ -327,9 +438,9 @@ defineExpose({ fase, modo });
                         :autoplay="!movimentoRidotto"
                         preload="auto"
                         :aria-label="spot.alt || spot.sponsor"
+                        @playing="spotPartito"
                         @ended="vaiAllaDiretta('preroll_completato')"
                         @error="spotNonDisponibile"
-                        @click="apriSponsor(spot)"
                     ></video>
                 </div>
             </section>
@@ -357,7 +468,7 @@ defineExpose({ fase, modo });
                         <img
                             v-if="inOnda.tipo === 'immagine'"
                             :src="inOnda.url"
-                            :alt="pezzo === 'colonna' ? inOnda.alt : ''"
+                            :alt="pezzo === 'colonna' ? testoAlternativo(inOnda) : ''"
                             class="diretta-cornice__file"
                         >
                         <video
@@ -365,6 +476,7 @@ defineExpose({ fase, modo });
                             :ref="silenzia"
                             :src="inOnda.url"
                             class="diretta-cornice__file"
+                            data-cornice
                             muted
                             preload="metadata"
                             :autoplay="!movimentoRidotto"
@@ -402,6 +514,21 @@ defineExpose({ fase, modo });
                     :aria-pressed="audio ? 'true' : 'false'"
                     @click="cambiaAudio"
                 >{{ audio ? $t('stream.audio_disattiva') : $t('stream.audio_attiva') }}</button>
+                <button
+                    v-if="spot.tipo === 'video' && !spotFermo"
+                    type="button"
+                    class="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                    :aria-pressed="spotInPausa ? 'true' : 'false'"
+                    data-pausa-spot
+                    @click="alternaPausaDelloSpot"
+                >{{ spotInPausa ? $t('stream.riprendi') : $t('stream.pausa') }}</button>
+                <button
+                    v-if="spot.tipo === 'video' && spotFermo"
+                    type="button"
+                    class="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                    data-guarda-spot
+                    @click="guardaLoSpot"
+                >{{ $t('stream.guarda_spot') }}</button>
                 <a
                     v-if="spot.link"
                     :href="spot.link"
@@ -435,14 +562,23 @@ defineExpose({ fase, modo });
             data-sponsor="fascia-mobile"
             @click="inOnda.link ? emit('evento', { evento: 'clic', creativita: inOnda.id }) : $event.preventDefault()"
         >
-            <img v-if="fasciaMobile" :src="fasciaMobile" :alt="inOnda.alt" class="block w-full h-auto">
-            <img v-else-if="inOnda.tipo === 'immagine'" :src="inOnda.url" :alt="inOnda.alt" class="diretta-cornice__file">
-            <video v-else :ref="silenzia" :src="inOnda.url" class="diretta-cornice__file" muted preload="metadata" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline></video>
+            <img v-if="fasciaMobile" :src="fasciaMobile" :alt="testoAlternativo(inOnda)" class="block w-full h-auto">
+            <img v-else-if="inOnda.tipo === 'immagine'" :src="inOnda.url" :alt="testoAlternativo(inOnda)" class="diretta-cornice__file">
+            <video v-else :ref="silenzia" :src="inOnda.url" class="diretta-cornice__file" data-cornice muted preload="metadata" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline></video>
         </a>
 
         <div class="diretta-comandi mt-3 flex flex-wrap items-center justify-end gap-3 text-xs font-bold uppercase tracking-wider">
             <p v-if="simulato" class="diretta-ruota mr-auto normal-case tracking-normal text-white/70">{{ $t('stream.ruota') }}</p>
             <button
+                v-if="corniceVideo"
+                type="button"
+                class="rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                :aria-pressed="cornicePausa ? 'true' : 'false'"
+                data-pausa-cornice
+                @click="cornicePausa = !cornicePausa"
+            >{{ cornicePausa ? $t('stream.riprendi_sponsor') : $t('stream.pausa_sponsor') }}</button>
+            <button
+                ref="pulsanteTuttoSchermo"
                 type="button"
                 class="rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                 :aria-pressed="tuttoSchermo ? 'true' : 'false'"
@@ -514,7 +650,7 @@ defineExpose({ fase, modo });
 
 .diretta-con-sponsor:fullscreen .diretta-riquadro,
 .diretta-con-sponsor--simulato .diretta-riquadro {
-    width: min(100%, calc((100vh - 4.5rem) * 16 / 9));
+    width: min(100%, calc((100dvh - 4.5rem) * 16 / 9));
     border-radius: 0;
 }
 
@@ -526,7 +662,7 @@ defineExpose({ fase, modo });
 .diretta-con-sponsor--simulato [data-comandi-spot] {
     /* Nel contenitore centrato la fascia (che ha solo un rapporto, senza
        larghezza propria) si restringeva a zero e spariva. */
-    width: min(100%, calc((100vh - 4.5rem) * 16 / 9));
+    width: min(100%, calc((100dvh - 4.5rem) * 16 / 9));
 }
 
 /* L'invito a girare il telefono serve solo finché è in verticale. */

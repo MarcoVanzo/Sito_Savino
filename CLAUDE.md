@@ -935,13 +935,19 @@ Forms\Components\Select::make('user_id')
   cambiando disposizione. Un test lo verifica: tenerlo verde.
 - **Interruttore generale** `diretta_sponsor_abilitata` (gruppo `diretta`):
   spento, `DirettaPerIlSito::perLaGara()` dà `null`, `LiveStreamModal` resta
-  quella di prima e le rotte `api/diretta/*` rispondono 404.
+  quella di prima (senza link verso la piattaforma, scelta della società), le
+  rotte `api/diretta/*` rispondono 404 e il JSON si ripubblica `inattiva`
+  per chi guarda già.
 - **Stato su Spaces, non sul database**: `StatoPubblicoDellaDiretta` scrive
   `diretta/{gara}.json` (`max-age=5`) a ogni cambio («Imposta», regia,
   `diretta:chiudi-le-pause`); il ciclo lo calcola il browser
   (`cicloDellaCornice.js` e `CicloDellaCornice` PHP: stesse regole, cambiarle
-  insieme). Chi cambia lo stato passa da `RegiaDellaDiretta` (lock, `versione`
-  +1, ripubblica). JSON illeggibile = diretta senza sponsor, mai bloccata.
+  insieme). **Ogni scrittura** (regia, «Imposta», gara spostata, creatività,
+  interruttore) passa da `RegiaDellaDiretta::cambia()`: lock, `versione` +1 e
+  JSON scritto prima di rilasciare il lock. Il browser accetta solo versioni
+  più alte: un `pubblica()` senza versione nuova non arriva a chi guarda.
+  JSON illeggibile = diretta senza sponsor, mai bloccata. Il testo
+  alternativo nel JSON è `{it, en}` (un file per tutte le lingue).
   Il JSON si riscrive anche quando cambia una creatività
   (`TieneAggiornateLeDirette`, a risposta data) o l'orario della gara
   (`SpostaLaDirettaConLaGara`): un nuovo modo di toccarli deve ripubblicare.
@@ -959,4 +965,8 @@ Forms\Components\Select::make('user_id')
   (`LiveCreativesRelationManager`); formati in `FormatiDelleCreativita` (MP4
   letti da `FilmatoMp4`, niente ffprobe).
 - Report: `live_ad_stats` solo contatori (gara, creatività, evento, giorno),
-  nessun dato del visitatore; si incrementa con `LiveAdStat::conta()`.
+  nessun dato del visitatore; si incrementa con `LiveAdStat::conta()`. Le
+  righe sopravvivono a creatività e sponsor cancellati (FK `nullOnDelete`,
+  nomi copiati in `LiveCreative::booted()`; lo sponsor cancella le sue
+  grafiche una per una, mai per cascata del DB). Eventi solo nel tempo della
+  gara e coerenti con l'uso della grafica (`DirettaController`).

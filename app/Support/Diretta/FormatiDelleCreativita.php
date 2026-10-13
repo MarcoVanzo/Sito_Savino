@@ -119,13 +119,13 @@ class FormatiDelleCreativita
      *
      * @return list<string>
      */
-    public static function erroriDelContenuto(TipoCreativita $tipo, string $percorso, ?string $mime): array
+    public static function erroriDelContenuto(TipoCreativita $tipo, string $percorso, ?string $mime, ?UsoCreativita $uso = null): array
     {
         if ($tipo === TipoCreativita::Immagine) {
             return self::erroriDellImmagine($percorso, self::LARGHEZZA, self::ALTEZZA, self::PESO_MASSIMO_IMMAGINE_KB);
         }
 
-        return self::erroriDelVideo($percorso, $mime);
+        return self::erroriDelVideo($percorso, $mime, $uso);
     }
 
     /** @return list<string> */
@@ -171,7 +171,7 @@ class FormatiDelleCreativita
     }
 
     /** @return list<string> */
-    private static function erroriDelVideo(string $percorso, ?string $mime): array
+    private static function erroriDelVideo(string $percorso, ?string $mime, ?UsoCreativita $uso): array
     {
         $filmato = FilmatoMp4::leggi($percorso);
 
@@ -187,6 +187,20 @@ class FormatiDelleCreativita
 
         if ($filmato['audio'] !== null && ! in_array($filmato['audio'], self::CODIFICHE_AUDIO, true)) {
             $errori[] = 'L\'audio non è codificato in AAC.';
+        }
+
+        // La cornice va in onda accanto alla diretta, che ha il suo audio.
+        if ($uso === UsoCreativita::Cornice && $filmato['audio'] !== null) {
+            $errori[] = 'La cornice video non deve avere audio: esportala senza traccia audio.';
+        }
+
+        if ($filmato['ruotato']) {
+            $errori[] = 'Il video è ruotato (girato in verticale o capovolto): esportalo già orizzontale, a 1920×1080.';
+        }
+
+        // Un MP4 frammentato senza durata dichiarata passerebbe qualsiasi limite.
+        if ($filmato['durata'] <= 0) {
+            $errori[] = 'La durata del video non si legge: esportalo come MP4 normale, non frammentato.';
         }
 
         if ($filmato['larghezza'] !== self::LARGHEZZA || $filmato['altezza'] !== self::ALTEZZA) {

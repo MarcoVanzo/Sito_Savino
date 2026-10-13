@@ -34,12 +34,14 @@ const cd = computed(() => props.page?.content_data ?? {});
 //
 // La fila e' un flex e non una griglia: cosi' un livello con un solo sponsor
 // (Mobility Partner, Official Radio...) o con due mostra i riquadri al centro
-// invece di lasciarli appoggiati a sinistra. Sul telefono due per riga, con
-// le stesse proporzioni.
+// invece di lasciarli appoggiati a sinistra. Sotto i 768 px due per riga,
+// con le stesse proporzioni e un margine interno più stretto: a 320 px il
+// logo resterebbe di 86×41 px. Due riquadri da 300 più lo spazio fra loro
+// non ci stanno prima di 668 px, e fra 640 e 667 ne restava uno per riga.
 //
 // Il logo sta dentro il riquadro per intero (`object-contain`), cosi' marchi
 // larghi e marchi quadrati restano otticamente della stessa importanza.
-const boxClass = 'aspect-[3/2] p-6 w-[calc((100%-1.25rem)/2)] sm:w-[300px]';
+const boxClass = 'aspect-[3/2] min-h-0 p-3 sm:p-6 w-[calc((100%-1.25rem)/2)] md:w-[300px]';
 
 // L'indirizzo a cui arrivano le richieste di sponsorizzazione, con oggetto
 // già scritto: chi riceve la mail sa da dove arriva senza aprirla.
@@ -139,7 +141,7 @@ const ogMeta = useOgMeta({
                                 @error="onImgError"
                             />
                             <div v-else class="w-full h-full flex flex-col items-center justify-center">
-                                <div class="text-savino-blue font-bold text-center uppercase tracking-wide">
+                                <div class="text-savino-blue text-xs sm:text-sm font-bold text-center uppercase tracking-wide break-words max-w-full">
                                     {{ sponsor.name }}
                                 </div>
                             </div>

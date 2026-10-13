@@ -69,6 +69,11 @@ class LiveCreativesRelationManager extends RelationManager
                             ->options(UsoCreativita::class)
                             ->default(UsoCreativita::Preroll->value)
                             ->required()
+                            // Come il tipo: uno spot già agganciato al pre-roll
+                            // di una gara, diventato cornice, restava nel
+                            // pre-roll, e il file non si ricontrollava con le
+                            // regole del nuovo uso.
+                            ->disabledOn('edit')
                             ->live(),
                         // Il tipo decide quale file si accetta: cambiarlo con
                         // il file già caricato lascerebbe un video segnato
@@ -105,7 +110,7 @@ class LiveCreativesRelationManager extends RelationManager
                                         return;
                                     }
 
-                                    foreach (FormatiDelleCreativita::erroriDelContenuto(self::tipo($get), $file->getRealPath(), $file->getMimeType()) as $errore) {
+                                    foreach (FormatiDelleCreativita::erroriDelContenuto(self::tipo($get), $file->getRealPath(), $file->getMimeType(), self::uso($get)) as $errore) {
                                         $fail($errore);
                                     }
                                 },

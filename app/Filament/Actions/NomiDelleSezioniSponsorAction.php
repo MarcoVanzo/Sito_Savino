@@ -50,8 +50,8 @@ class NomiDelleSezioniSponsorAction
             fn (SponsorTier $tier): Forms\Components\Component => Forms\Components\Grid::make(count($locali))
                 ->schema(array_map(
                     fn (string $locale): Forms\Components\TextInput => Forms\Components\TextInput::make("nomi.{$locale}.{$tier->value}")
-                        ->label($tier->nomePredefinito().' ('.strtoupper($locale).')')
-                        ->placeholder($tier->nomePredefinito())
+                        ->label($tier->nomePredefinito($locale).' ('.strtoupper($locale).')')
+                        ->placeholder($tier->nomePredefinito($locale))
                         ->maxLength(80),
                     $locali,
                 )),

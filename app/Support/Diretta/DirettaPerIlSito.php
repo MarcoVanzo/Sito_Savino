@@ -2,6 +2,7 @@
 
 namespace App\Support\Diretta;
 
+use App\Enums\UsoCreativita;
 use App\Models\Game;
 use App\Models\LiveCreative;
 use App\Models\LiveSession;
@@ -133,7 +134,8 @@ class DirettaPerIlSito
 
         $oggi = now()->toDateString();
         $creativita = $sessione->creativitaDelPreroll
-            ->filter(fn (LiveCreative $c): bool => $c->attiva
+            ->filter(fn (LiveCreative $c): bool => $c->uso === UsoCreativita::Preroll
+                && $c->attiva
                 && ($c->valida_al === null || $c->valida_al->toDateString() >= $oggi)
                 && $c->getFirstMedia(LiveCreative::COLLEZIONE_CONTENUTO) !== null)
             ->map(fn (LiveCreative $c): array => $c->perIlSito())

@@ -41,4 +41,13 @@ class CicloDellaCorniceTest extends TestCase
         $this->assertSame('17:15:00', CicloDellaCornice::prossimo($inizio, $fine, 10, 15, $this->ora('17:05:15'))['inizio']->format('H:i:s'));
         $this->assertNull(CicloDellaCornice::prossimo($inizio, $fine, 10, 15, $this->ora('19:55:20')));
     }
+
+    /** Come nel browser: il ciclo cominciato prima della fine arriva in fondo. */
+    #[Test]
+    public function il_ciclo_cominciato_prima_della_fine_resta_in_corso_anche_dopo(): void
+    {
+        $prossimo = CicloDellaCornice::prossimo($this->ora('17:05:00'), $this->ora('19:55:10'), 10, 15, $this->ora('19:55:12'));
+
+        $this->assertSame('19:55:00', $prossimo['inizio']->format('H:i:s'));
+    }
 }

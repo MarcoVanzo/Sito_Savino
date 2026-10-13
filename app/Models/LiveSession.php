@@ -7,7 +7,6 @@ use App\Models\Traits\LogsActivity;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
 use App\Support\MatchDay;
 use Carbon\Carbon;
-use Carbon\CarbonInterface;
 use Database\Factories\LiveSessionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -102,26 +101,6 @@ class LiveSession extends Model
             'stato' => StatoDellaDiretta::InOnda,
             'versione' => 1,
         ];
-    }
-
-    /**
-     * La gara ha cambiato orario (sync della Lega o della CEV, rinvio): il
-     * ciclo si sposta dello stesso scarto, così resta anche un eventuale
-     * «Riparti da adesso» della regia relativo alla gara.
-     */
-    public function seguiLaGara(CarbonInterface $prima, CarbonInterface $adesso): bool
-    {
-        $scarto = $adesso->getTimestamp() - $prima->getTimestamp();
-
-        if ($scarto === 0) {
-            return false;
-        }
-
-        $this->ciclo_inizio = $this->ciclo_inizio?->copy()->addSeconds($scarto);
-        $this->ciclo_fine = $this->ciclo_fine?->copy()->addSeconds($scarto);
-        $this->versione++;
-
-        return $this->save();
     }
 
     /**

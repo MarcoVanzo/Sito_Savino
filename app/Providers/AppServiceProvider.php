@@ -263,7 +263,6 @@ class AppServiceProvider extends ServiceProvider
         GalleryImage::observe(CacheInvalidationObserver::class);
         HeroSlide::observe(CacheInvalidationObserver::class);
         Evento::observe(CacheInvalidationObserver::class);
-        LiveCreative::observe(CacheInvalidationObserver::class);
         Game::observe(SpostaLaDirettaConLaGara::class);
         LiveCreative::observe(TieneAggiornateLeDirette::class);
 

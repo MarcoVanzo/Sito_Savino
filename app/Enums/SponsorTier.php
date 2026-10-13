@@ -53,17 +53,18 @@ enum SponsorTier: string implements HasLabel
     }
 
     /**
-     * Il nome del livello quando la redazione non ne ha scritto uno.
+     * Il nome del livello quando la redazione non ne ha scritto uno, nella
+     * lingua data (quella in uso se manca).
      */
-    public function nomePredefinito(): string
+    public function nomePredefinito(?string $locale = null): string
     {
         return match ($this) {
             self::Title => 'Title Sponsor',
             self::Main => 'Main Sponsor',
             self::Premium => 'Premium Partner',
             self::Mobility => 'Mobility Partner',
-            self::Technical => __('Sponsor Tecnico'),
-            self::Water => __('Acqua Ufficiale'),
+            self::Technical => __('Sponsor Tecnico', [], $locale),
+            self::Water => __('Acqua Ufficiale', [], $locale),
             self::Sister => 'Sister Companies',
             self::Health => 'Health & Performance Partner',
             self::Coffee => 'Official Coffee',
