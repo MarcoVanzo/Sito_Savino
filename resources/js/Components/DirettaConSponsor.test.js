@@ -299,7 +299,7 @@ describe('DirettaConSponsor', () => {
         expect(diretta.find('[data-diretta-con-sponsor] [data-sponsor="colonna"]').exists()).toBe(true);
     });
 
-    it('se il browser lascia in sospeso il tutto schermo, dopo un secondo lo simula', async () => {
+    it('se il browser lascia in sospeso il tutto schermo, dopo mezzo secondo lo simula', async () => {
         Object.defineProperty(document, 'fullscreenEnabled', { value: true, configurable: true });
         const diretta = monta({ sponsor: { gara: 1, preroll: null } });
         diretta.find('[data-diretta-con-sponsor]').element.requestFullscreen = () => new Promise(() => {});
@@ -308,7 +308,7 @@ describe('DirettaConSponsor', () => {
         await diretta.find('[data-tutto-schermo]').trigger('click');
         expect(diretta.find('[data-diretta-con-sponsor]').classes()).not.toContain('diretta-con-sponsor--simulato');
 
-        await vi.advanceTimersByTimeAsync(1000);
+        await vi.advanceTimersByTimeAsync(500);
         expect(diretta.find('[data-diretta-con-sponsor]').classes()).toContain('diretta-con-sponsor--simulato');
         expect(diretta.find('[data-tutto-schermo]').text()).toBe('Esci dal tutto schermo');
     });

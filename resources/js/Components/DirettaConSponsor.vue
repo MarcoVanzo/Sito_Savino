@@ -277,8 +277,9 @@ const tuttoSchermo = ref(false);
 const simulato = ref(false);
 const pulsanteTuttoSchermo = ref(null);
 
-// Quanto si aspetta il tutto schermo del browser prima di simularlo.
-const ATTESA_DEL_TUTTO_SCHERMO = 1000;
+// Quanto si aspetta il tutto schermo del browser prima di simularlo: quello
+// vero risponde in meno di 200 ms, e se arriva dopo sostituisce il simulato.
+const ATTESA_DEL_TUTTO_SCHERMO = 500;
 
 /**
  * Il tutto schermo del browser, e se non arriva quello simulato. Alcuni
