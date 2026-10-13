@@ -13,6 +13,7 @@ use App\Models\SiteSetting;
 use App\Models\Sponsor;
 use App\Models\User;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -252,5 +253,17 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
             ->assertSee('Colonna a destra')
             ->assertSee('20 MB')
             ->assertSee('modello della cornice');
+    }
+
+    #[Test]
+    public function il_modello_della_cornice_si_scarica_invece_di_aprirsi_come_pagina(): void
+    {
+        $this->actingAs($this->utente(UserRole::CommunicationManager));
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::bootCurrentPanel();
+
+        $this->grafiche(Sponsor::factory()->create())
+            ->assertSeeHtml('href="'.asset(LiveCreativesRelationManager::MODELLO_CORNICE).'"')
+            ->assertDontSeeHtml('href="'.asset(LiveCreativesRelationManager::MODELLO_CORNICE).'" wire:navigate');
     }
 }
