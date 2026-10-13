@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\SponsorResource\RelationManagers;
 
 use App\Enums\TipoCreativita;
 use App\Enums\UsoCreativita;
-use App\Filament\Resources\LiveCreativeResource\Pages;
 use App\Models\LiveCreative;
 use App\Support\Diretta\FormatiDelleCreativita;
 use Closure;
@@ -13,8 +12,8 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Resources\Concerns\Translatable;
-use Filament\Resources\Resource;
+use Filament\Resources\RelationManagers\Concerns\Translatable;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,50 +22,41 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Le creatività sponsor della diretta: video e immagini da mandare in onda
- * prima della diretta (pre-roll) o accanto al player durante la gara.
+ * Le grafiche dello sponsor per la diretta: spot prima della diretta
+ * (pre-roll) e cornici accanto al player durante la gara. Stanno dentro lo
+ * sponsor; quali vanno in onda in una partita si sceglie in Sponsor → Diretta.
  *
  * I formati si controllano al caricamento (FormatiDelleCreativita): un file
  * fuori misura verrebbe tagliato davanti allo sponsor. Il modello grafico
- * della cornice (`public/diretta/modello-cornice-1920x1080.png`) si scarica
- * dall'elenco.
+ * della cornice si scarica da qui.
  */
-class LiveCreativeResource extends Resource
+class LiveCreativesRelationManager extends RelationManager
 {
     use Translatable;
 
-    protected static ?string $model = LiveCreative::class;
+    protected static string $relationship = 'liveCreatives';
+
+    protected static ?string $title = 'Grafiche per la diretta';
+
+    protected static ?string $modelLabel = 'grafica';
+
+    protected static ?string $pluralModelLabel = 'grafiche';
 
     protected static ?string $recordTitleAttribute = 'nome';
 
-    protected static ?string $modelLabel = 'Creatività della diretta';
-
-    protected static ?string $pluralModelLabel = 'Creatività della diretta';
-
-    protected static ?string $navigationIcon = 'heroicon-o-play-circle';
-
-    protected static ?string $navigationLabel = 'Spot nella diretta';
-
-    protected static ?string $navigationGroup = 'Sponsor';
-
-    protected static ?int $navigationSort = 2;
-
-    protected static ?string $slug = 'creativita-diretta';
-
     public const MODELLO_CORNICE = 'diretta/modello-cornice-1920x1080.png';
 
-    public static function form(Form $form): Form
+    public function isReadOnly(): bool
+    {
+        return false;
+    }
+
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Section::make('Creatività')
                     ->schema([
-                        Forms\Components\Select::make('sponsor_id')
-                            ->label('Sponsor')
-                            ->relationship('sponsor', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
                         Forms\Components\TextInput::make('nome')
                             ->label('Nome')
                             ->helperText('Uso interno, per riconoscerla nella regia e nel report.')
@@ -184,7 +174,7 @@ class LiveCreativeResource extends Resource
             ]);
     }
 
-    public static function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
             ->columns([
@@ -201,9 +191,6 @@ class LiveCreativeResource extends Resource
                 Tables\Columns\TextColumn::make('nome')
                     ->label('Nome')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('sponsor.name')
-                    ->label('Sponsor')
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('uso')
                     ->label('Dove')
                     ->badge(),
@@ -223,9 +210,17 @@ class LiveCreativeResource extends Resource
                 Tables\Filters\SelectFilter::make('uso')
                     ->label('Dove')
                     ->options(UsoCreativita::class),
-                Tables\Filters\SelectFilter::make('sponsor_id')
-                    ->label('Sponsor')
-                    ->relationship('sponsor', 'name'),
+            ])
+            ->headerActions([
+                Tables\Actions\Action::make('modelloCornice')
+                    ->label('Modello della cornice')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->url(asset(self::MODELLO_CORNICE))
+                    ->extraAttributes(['download' => 'modello-cornice-1920x1080.png']),
+                Tables\Actions\LocaleSwitcher::make(),
+                Tables\Actions\CreateAction::make()
+                    ->label('Nuova grafica'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -236,21 +231,8 @@ class LiveCreativeResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
+            ->modifyQueryUsing(fn (Builder $query) => $query->with('media'))
             ->defaultSort('created_at', 'desc');
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListLiveCreatives::route('/'),
-            'create' => Pages\CreateLiveCreative::route('/create'),
-            'edit' => Pages\EditLiveCreative::route('/{record}/edit'),
-        ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->with(['media', 'sponsor']);
     }
 
     private static function tipo(Get $get): TipoCreativita

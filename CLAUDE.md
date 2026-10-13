@@ -936,7 +936,7 @@ Forms\Components\Select::make('user_id')
   spento, `DirettaPerIlSito::perLaGara()` dà `null`, `LiveStreamModal` resta
   quella di prima e le rotte `api/diretta/*` rispondono 404.
 - **Stato su Spaces, non sul database**: `StatoPubblicoDellaDiretta` scrive
-  `diretta/{gara}.json` (`max-age=5`) a ogni cambio (scheda della gara, regia,
+  `diretta/{gara}.json` (`max-age=5`) a ogni cambio («Imposta», regia,
   `diretta:chiudi-le-pause`); il ciclo lo calcola il browser
   (`cicloDellaCornice.js` e `CicloDellaCornice` PHP: stesse regole, cambiarle
   insieme). Chi cambia lo stato passa da `RegiaDellaDiretta` (lock, `versione`
@@ -950,9 +950,12 @@ Forms\Components\Select::make('user_id')
 - **Mille spettatori sincronizzati**: gli eventi che tutti vivono insieme
   (`ciclo_mostrato`, `pausa_mostrata`) partono sparpagliati entro un minuto
   (`eventiDellaDiretta.js`); un evento sincronizzato nuovo va in quell'elenco.
-- Gli sponsor della diretta li governa la comunicazione (`LiveSessionPolicy`,
-  `canManageSponsors`) con l'azione «Diretta e sponsor» sulla scheda della
-  gara: la gara la modifica solo l'area sportiva. Formati delle creatività in
-  `FormatiDelleCreativita` (MP4 letti da `FilmatoMp4`, niente ffprobe).
+- La diretta la governa la comunicazione (`LiveSessionPolicy`,
+  `canManageSponsors`) da Sponsor → Diretta: elenco delle gare e «Imposta»
+  (`ImpostaLaDirettaAction`: link, sponsor con le loro grafiche, ciclo). Da
+  lì scrive anche `games.stream_url`, l'unico campo della gara che tocca; il
+  resto della gara resta all'area sportiva. Le grafiche stanno nello sponsor
+  (`LiveCreativesRelationManager`); formati in `FormatiDelleCreativita` (MP4
+  letti da `FilmatoMp4`, niente ffprobe).
 - Report: `live_ad_stats` solo contatori (gara, creatività, evento, giorno),
   nessun dato del visitatore; si incrementa con `LiveAdStat::conta()`.
