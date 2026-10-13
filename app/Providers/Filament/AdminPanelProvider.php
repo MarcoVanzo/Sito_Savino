@@ -53,6 +53,9 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('images/logo.png'))
             ->sidebarCollapsibleOnDesktop()
             ->spa()
+            // In SPA i link hanno wire:navigate: un file (il modello della cornice)
+            // verrebbe caricato come pagina e mostrato come testo.
+            ->spaUrlExceptions(['*.png', '*.jpg', '*.jpeg', '*.webp', '*.svg', '*.pdf', '*.zip', '*.csv', '*.xlsx', '*.mp4'])
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->navigationGroups([
                 NavigationGroup::make()->label('Stagione')->icon('heroicon-o-trophy')->collapsed(),
