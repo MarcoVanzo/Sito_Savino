@@ -204,7 +204,8 @@ class PrerollDellaDirettaTest extends TestCase
 
         $dati = $pagina->get('mountedTableActionsData.0');
         $this->assertSame($gara->stream_url, $dati['stream_url']);
-        $this->assertSame([['sponsor_id' => $spot->sponsor_id, 'preroll' => [$spot->id], 'cornici' => [$cornice->id]]], array_values($dati['sponsor']));
+        $voci = array_map(fn (array $v): array => array_intersect_key($v, array_flip(['sponsor_id', 'preroll', 'cornici'])), array_values($dati['sponsor']));
+        $this->assertSame([['sponsor_id' => $spot->sponsor_id, 'preroll' => [$spot->id], 'cornici' => [$cornice->id]]], $voci);
     }
 
     #[Test]
@@ -325,5 +326,20 @@ class PrerollDellaDirettaTest extends TestCase
         $sessione->update(['ciclo_attivo' => false]);
 
         $this->assertSame('in cache', Cache::get('public:home:it'));
+    }
+
+    #[Test]
+    public function in_imposta_compare_l_anteprima_delle_grafiche_spuntate(): void
+    {
+        $this->comunicazione();
+        $gara = $this->gara();
+        $cornice = $this->spot(['uso' => UsoCreativita::Cornice, 'nome' => 'Cornice autunno']);
+        $sessione = LiveSession::perLaGara($gara);
+        $sessione->ordina('creativitaDellaGara', [$cornice->id]);
+
+        Livewire::test(DirettaSettingsPage::class)
+            ->mountTableAction('imposta', $gara)
+            ->assertSee('Cornice autunno')
+            ->assertSee('adt-colonna', false);
     }
 }

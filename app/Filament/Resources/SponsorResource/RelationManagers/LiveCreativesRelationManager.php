@@ -6,6 +6,7 @@ use App\Enums\TipoCreativita;
 use App\Enums\UsoCreativita;
 use App\Models\LiveCreative;
 use App\Support\Diretta\FormatiDelleCreativita;
+use App\Support\Diretta\ImpostazioniDellaDiretta;
 use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -223,6 +224,19 @@ class LiveCreativesRelationManager extends RelationManager
                     ->label('Nuova grafica'),
             ])
             ->actions([
+                Tables\Actions\Action::make('anteprima')
+                    ->label('Anteprima')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->modalHeading(fn (LiveCreative $record): string => 'Anteprima · '.$record->nome)
+                    ->modalDescription('Come la vede il tifoso sul sito.')
+                    ->modalContent(fn (LiveCreative $record) => view('filament.components.anteprima-della-diretta', [
+                        'grafica' => $record->perLAnteprima(),
+                        'saltaDopo' => ImpostazioniDellaDiretta::perUnaGaraNuova()['preroll_salta_dopo_secondi'],
+                    ]))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Chiudi')
+                    ->visible(fn (LiveCreative $record): bool => $record->getFirstMedia(LiveCreative::COLLEZIONE_CONTENUTO) !== null),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

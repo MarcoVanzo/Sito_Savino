@@ -17,6 +17,7 @@ use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 
 /**
  * «Imposta» sulle partite di Sponsor → Diretta: il link della diretta, gli
@@ -209,11 +210,20 @@ class ImpostaLaDirettaAction
                             Forms\Components\CheckboxList::make('preroll')
                                 ->label('Spot prima della diretta')
                                 ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll))
+                                ->live()
                                 ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll) !== []),
                             Forms\Components\CheckboxList::make('cornici')
                                 ->label('Cornici durante la gara')
                                 ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice))
+                                ->live()
                                 ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice) !== []),
+                            Forms\Components\Placeholder::make('anteprima')
+                                ->label('Anteprima')
+                                ->content(fn (Get $get): HtmlString => self::anteprimaDelleGrafiche(
+                                    [...self::ids($get('preroll') ?? []), ...self::ids($get('cornici') ?? [])],
+                                    (int) ($get('../../preroll_salta_dopo_secondi') ?? 5),
+                                ))
+                                ->visible(fn (Get $get): bool => self::ids($get('preroll') ?? []) !== [] || self::ids($get('cornici') ?? []) !== []),
                         ])
                         ->itemLabel(fn (array $state): ?string => Sponsor::query()->whereKey($state['sponsor_id'] ?? 0)->value('name'))
                         ->reorderable()
@@ -256,6 +266,25 @@ class ImpostaLaDirettaAction
                         ->columnSpanFull(),
                 ])->columns(2),
         ];
+    }
+
+    /**
+     * L'anteprima delle grafiche spuntate, come le vede il tifoso.
+     *
+     * @param  list<int>  $ids
+     */
+    private static function anteprimaDelleGrafiche(array $ids, int $saltaDopo): HtmlString
+    {
+        $html = LiveCreative::query()
+            ->with(['media', 'sponsor'])
+            ->whereKey($ids)
+            ->get()
+            ->sortBy(fn (LiveCreative $c): int|false => array_search($c->id, $ids, true))
+            ->map(fn (LiveCreative $c): string => '<p style="font-weight:600;margin:12px 0 6px">'.e($c->nome).'</p>'
+                .view('filament.components.anteprima-della-diretta', ['grafica' => $c->perLAnteprima(), 'saltaDopo' => $saltaDopo])->render())
+            ->implode('');
+
+        return new HtmlString($html);
     }
 
     /**

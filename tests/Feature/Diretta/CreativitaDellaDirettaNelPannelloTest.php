@@ -205,4 +205,35 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
         $creativita->update(['attiva' => true]);
         $this->assertSame(1, LiveCreative::valide()->count());
     }
+
+    #[Test]
+    public function l_anteprima_di_una_cornice_mostra_computer_e_telefono(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->utente(UserRole::CommunicationManager));
+        $cornice = LiveCreative::factory()->cornice()->create(['nome' => 'Cornice Estra']);
+        $cornice->addMedia($this->png(1920, 1080))->toMediaCollection(LiveCreative::COLLEZIONE_CONTENUTO);
+
+        $this->grafiche($cornice->sponsor)
+            ->mountTableAction('anteprima', $cornice)
+            ->assertSee('Computer')
+            ->assertSee('Telefono')
+            ->assertSee('adt-colonna', false)
+            ->assertSee($cornice->getFirstMediaUrl(LiveCreative::COLLEZIONE_CONTENUTO), false);
+    }
+
+    #[Test]
+    public function l_anteprima_di_uno_spot_mostra_salta_e_visita_lo_sponsor(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->utente(UserRole::CommunicationManager));
+        $spot = LiveCreative::factory()->create(['nome' => 'Spot Estra']);
+        $spot->addMedia($this->png(1920, 1080))->toMediaCollection(LiveCreative::COLLEZIONE_CONTENUTO);
+
+        $this->grafiche($spot->sponsor)
+            ->mountTableAction('anteprima', $spot)
+            ->assertSee('Prima della diretta')
+            ->assertSee('Visita lo sponsor')
+            ->assertSee('Puoi saltare tra 5 s');
+    }
 }

@@ -136,6 +136,17 @@ class LiveCreative extends Model implements HasMedia
         ];
     }
 
+    /**
+     * Quello che serve all'anteprima del pannello: i dati del sito più l'uso
+     * (spot o cornice), che il sito ricava da dove trova la grafica.
+     *
+     * @return array<string, mixed>
+     */
+    public function perLAnteprima(): array
+    {
+        return [...$this->perIlSito(), 'uso' => $this->uso->value];
+    }
+
     public function valida(?\DateTimeInterface $giorno = null): bool
     {
         $giorno = ($giorno ?? now())->format('Y-m-d');
