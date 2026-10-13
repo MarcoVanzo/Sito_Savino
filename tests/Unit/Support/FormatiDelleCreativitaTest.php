@@ -3,6 +3,7 @@
 namespace Tests\Unit\Support;
 
 use App\Enums\TipoCreativita;
+use App\Enums\UsoCreativita;
 use App\Support\Diretta\FormatiDelleCreativita;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -102,5 +103,27 @@ class FormatiDelleCreativitaTest extends TestCase
     public function la_durata_del_video_si_arrotonda_al_secondo(): void
     {
         $this->assertSame(2, FormatiDelleCreativita::durataDelVideo($this->fixture('spot-1920x1080-2s.mp4')));
+    }
+
+    #[Test]
+    public function il_riquadro_cosa_serve_dice_misure_peso_e_durata(): void
+    {
+        $spot = array_column(FormatiDelleCreativita::requisiti(UsoCreativita::Preroll, TipoCreativita::Video), 1, 0);
+
+        $this->assertSame('1920 × 1080 px (16:9, Full HD)', $spot['Misure']);
+        $this->assertSame('20 MB', $spot['Peso massimo']);
+        $this->assertSame('al massimo 30 secondi', $spot['Durata']);
+        $this->assertArrayNotHasKey('Colonna a destra', $spot);
+    }
+
+    #[Test]
+    public function per_la_cornice_il_riquadro_aggiunge_le_zone(): void
+    {
+        $cornice = array_column(FormatiDelleCreativita::requisiti(UsoCreativita::Cornice, TipoCreativita::Immagine), 1, 0);
+
+        $this->assertSame('2 MB', $cornice['Peso massimo']);
+        $this->assertSame('480 × 810 px', $cornice['Colonna a destra']);
+        $this->assertStringContainsString('1440 × 810 px', $cornice['Coperta dalla diretta']);
+        $this->assertStringContainsString('1080 × 300 px', $cornice['Fascia per il telefono']);
     }
 }

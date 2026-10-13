@@ -236,4 +236,21 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
             ->assertSee('Visita lo sponsor')
             ->assertSee('Puoi saltare tra 5 s');
     }
+
+    #[Test]
+    public function caricando_una_grafica_l_operatore_vede_cosa_serve(): void
+    {
+        $this->actingAs($this->utente(UserRole::CommunicationManager));
+
+        $this->grafiche(Sponsor::factory()->create())
+            ->mountTableAction('create')
+            ->assertSee('Cosa serve')
+            ->assertSee('1920 × 1080 px')
+            ->assertSee('2 MB')
+            ->assertDontSee('Colonna a destra')
+            ->setTableActionData(['uso' => UsoCreativita::Cornice->value, 'tipo' => TipoCreativita::Video->value])
+            ->assertSee('Colonna a destra')
+            ->assertSee('20 MB')
+            ->assertSee('modello della cornice');
+    }
 }

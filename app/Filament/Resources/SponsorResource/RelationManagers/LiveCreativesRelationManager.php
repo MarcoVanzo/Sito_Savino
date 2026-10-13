@@ -19,6 +19,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -84,6 +85,13 @@ class LiveCreativesRelationManager extends RelationManager
 
                 Forms\Components\Section::make('File')
                     ->schema([
+                        Forms\Components\Placeholder::make('formato_richiesto')
+                            ->hiddenLabel()
+                            ->content(fn (Get $get): HtmlString => new HtmlString(view('filament.components.formato-richiesto', [
+                                'voci' => FormatiDelleCreativita::requisiti(self::uso($get), self::tipo($get)),
+                                'modello' => self::uso($get) === UsoCreativita::Cornice ? asset(self::MODELLO_CORNICE) : null,
+                            ])->render()))
+                            ->columnSpanFull(),
                         SpatieMediaLibraryFileUpload::make('contenuto')
                             ->label('File')
                             ->collection(LiveCreative::COLLEZIONE_CONTENUTO)

@@ -79,6 +79,41 @@ class FormatiDelleCreativita
     }
 
     /**
+     * Cosa deve avere il file, voce per voce, per il riquadro «Cosa serve» del
+     * pannello. Le stesse misure che il controllo al caricamento verifica.
+     *
+     * @return list<array{0: string, 1: string}> coppie [voce, valore]
+     */
+    public static function requisiti(?UsoCreativita $uso, TipoCreativita $tipo): array
+    {
+        $video = $tipo === TipoCreativita::Video;
+        $voci = [
+            ['File', $video
+                ? ($uso === UsoCreativita::Cornice ? 'MP4 (video H.264), senza audio' : 'MP4 (video H.264, audio AAC)')
+                : 'JPG o PNG'],
+            ['Misure', self::LARGHEZZA.' × '.self::ALTEZZA.' px (16:9, Full HD)'],
+            ['Peso massimo', $video ? '20 MB' : '2 MB'],
+        ];
+
+        $voci[] = $video
+            ? ['Durata', 'al massimo '.self::DURATA_MASSIMA_SECONDI.' secondi']
+            : ['Durata in onda', 'la decidi tu qui sotto (al massimo '.self::DURATA_MASSIMA_SECONDI.' secondi)'];
+
+        if ($uso === UsoCreativita::Cornice) {
+            $voci[] = ['Coperta dalla diretta', '1440 × 810 px in alto a sinistra: colore neutro, niente testi'];
+            $voci[] = ['Colonna a destra', '480 × 810 px'];
+            $voci[] = ['Fascia sotto', '1920 × 270 px (è quella che si vede sul telefono)'];
+            $voci[] = ['Fascia per il telefono', 'facoltativa: JPG o PNG 1080 × 300 px, al massimo 1 MB'];
+        }
+
+        if ($uso === UsoCreativita::Preroll && $video) {
+            $voci[] = ['Audio', 'parte spento: il tifoso lo accende col pulsante'];
+        }
+
+        return $voci;
+    }
+
+    /**
      * Cosa non va nel file del contenuto principale; elenco vuoto = va bene.
      * Il tipo dell'immagine si legge dal contenuto, non dall'etichetta.
      *
