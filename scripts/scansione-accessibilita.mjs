@@ -375,7 +375,7 @@ async function main() {
             await scheda.getByRole('button', { name: /guarda la diretta/i }).first().click();
             await scheda.locator('[data-preroll]').waitFor({ timeout: 10000 });
             await controlla('pre-roll');
-            await scheda.locator('[data-sponsor="colonna"]').waitFor({ timeout: 20000 });
+            await scheda.locator('[data-cornice-file]').waitFor({ timeout: 20000 });
             await controlla('cornice accanto alla diretta');
         });
     }

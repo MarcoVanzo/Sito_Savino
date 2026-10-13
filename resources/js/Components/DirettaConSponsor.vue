@@ -277,16 +277,27 @@ const tuttoSchermo = ref(false);
 const simulato = ref(false);
 const pulsanteTuttoSchermo = ref(null);
 
+// Quanto si aspetta il tutto schermo del browser prima di simularlo: quello
+// vero risponde in meno di 200 ms, e se arriva dopo sostituisce il simulato.
+const ATTESA_DEL_TUTTO_SCHERMO = 500;
+
+/**
+ * Il tutto schermo del browser, e se non arriva quello simulato. Alcuni
+ * browser incorporati (app, anteprime) lasciano la richiesta in sospeso per
+ * sempre, senza accettarla né rifiutarla: aspettandola e basta, il pulsante
+ * non faceva niente.
+ */
 const entra = async () => {
     const el = contenitore.value;
 
     if (tuttoSchermoDisponibile(el)) {
-        try {
-            await el.requestFullscreen();
+        const riuscito = await Promise.race([
+            Promise.resolve(el.requestFullscreen()).then(() => true, () => false),
+            new Promise((risolvi) => setTimeout(() => risolvi(false), ATTESA_DEL_TUTTO_SCHERMO)),
+        ]);
 
+        if (riuscito || document.fullscreenElement === el) {
             return;
-        } catch {
-            // Rifiutato (es. dentro un iframe): si simula.
         }
     }
 
@@ -310,7 +321,14 @@ const esci = async () => {
 const alternaTuttoSchermo = () => (tuttoSchermo.value ? esci() : entra());
 
 const allaUscitaDalTuttoSchermo = () => {
-    tuttoSchermo.value = document.fullscreenElement === contenitore.value;
+    const vero = document.fullscreenElement === contenitore.value;
+
+    // Il tutto schermo vero arrivato tardi, a simulato già acceso, lo sostituisce.
+    if (vero) {
+        simulato.value = false;
+    }
+
+    tuttoSchermo.value = vero || simulato.value;
 };
 
 // Esc chiude lo schermo intero simulato e basta: senza `preventDefault` il
@@ -446,29 +464,19 @@ defineExpose({ fase, modo, simulato, esci });
             </section>
 
             <template v-else>
-                <!-- Lo sponsor accanto al player: due ritagli della stessa
-                     creatività 1920×1080, colonna a destra e fascia sotto.
-                     Nessuno dei due tocca il rettangolo del player. -->
+                <!-- Lo sponsor accanto al player. La creatività 1920×1080 è
+                     disegnata sul riquadro: il quarto in alto a sinistra
+                     (1440×810) è la zona del player, colonna e fascia sono il
+                     resto. Si mostra quindi un file solo, a riquadro intero,
+                     DIETRO il player (che sta sopra, z-10): niente copre la
+                     diretta e il video si scarica una volta, non una per
+                     ritaglio. Colonna e fascia sono solo le zone del link. -->
                 <template v-if="modo === 'cornice' && inOnda">
-                    <a
-                        v-for="pezzo in ['colonna', 'fascia']"
-                        :key="pezzo"
-                        :href="inOnda.link || undefined"
-                        target="_blank"
-                        rel="sponsored noopener"
-                        class="diretta-cornice absolute overflow-hidden"
-                        :class="`diretta-cornice--${pezzo}`"
-                        :style="stileDelRettangolo(rettangoli[pezzo])"
-                        :aria-label="pezzo === 'colonna' && inOnda.link ? $t('stream.visita_nome', { sponsor: inOnda.sponsor }) : undefined"
-                        :aria-hidden="pezzo === 'fascia' ? 'true' : undefined"
-                        :tabindex="pezzo === 'fascia' || !inOnda.link ? -1 : undefined"
-                        :data-sponsor="pezzo"
-                        @click="inOnda.link ? emit('evento', { evento: 'clic', creativita: inOnda.id }) : $event.preventDefault()"
-                    >
+                    <div class="diretta-cornice absolute inset-0" data-cornice-file>
                         <img
                             v-if="inOnda.tipo === 'immagine'"
                             :src="inOnda.url"
-                            :alt="pezzo === 'colonna' ? testoAlternativo(inOnda) : ''"
+                            :alt="testoAlternativo(inOnda)"
                             class="diretta-cornice__file"
                         >
                         <video
@@ -476,6 +484,7 @@ defineExpose({ fase, modo, simulato, esci });
                             :ref="silenzia"
                             :src="inOnda.url"
                             class="diretta-cornice__file"
+                            :aria-label="testoAlternativo(inOnda) || undefined"
                             data-cornice
                             muted
                             preload="metadata"
@@ -483,7 +492,23 @@ defineExpose({ fase, modo, simulato, esci });
                             :loop="!movimentoRidotto"
                             playsinline
                         ></video>
-                    </a>
+                    </div>
+                    <template v-if="inOnda.link">
+                        <a
+                            v-for="pezzo in ['colonna', 'fascia']"
+                            :key="pezzo"
+                            :href="inOnda.link"
+                            target="_blank"
+                            rel="sponsored noopener"
+                            class="diretta-cornice absolute"
+                            :style="stileDelRettangolo(rettangoli[pezzo])"
+                            :aria-label="pezzo === 'colonna' ? $t('stream.visita_nome', { sponsor: inOnda.sponsor }) : undefined"
+                            :aria-hidden="pezzo === 'fascia' ? 'true' : undefined"
+                            :tabindex="pezzo === 'fascia' ? -1 : undefined"
+                            :data-sponsor="pezzo"
+                            @click="emit('evento', { evento: 'clic', creativita: inOnda.id })"
+                        ></a>
+                    </template>
                 </template>
 
                 <div class="diretta-player absolute z-10" :style="stileDelRettangolo(rettangoli.player)" data-player>
@@ -595,27 +620,14 @@ defineExpose({ fase, modo, simulato, esci });
     transition: left 300ms ease, top 300ms ease, width 300ms ease, height 300ms ease, opacity 300ms ease;
 }
 
-/* I due ritagli mostrano la parte giusta della creatività 1920×1080: la
-   colonna è l'ultimo quarto in alto (da 1440 a 1920 px), la fascia l'ultimo
-   quarto in basso. */
+/* La creatività copre il riquadro intero, dietro il player. */
 .diretta-cornice__file {
     position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     max-width: none;
     object-fit: fill;
-}
-
-.diretta-cornice--colonna .diretta-cornice__file {
-    width: 400%;
-    height: 133.3333%;
-    left: -300%;
-    top: 0;
-}
-
-.diretta-cornice--fascia .diretta-cornice__file {
-    width: 100%;
-    height: 400%;
-    left: 0;
-    top: -300%;
 }
 
 /* Sul telefono, senza fascia propria: il quarto basso della cornice. */

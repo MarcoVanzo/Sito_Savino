@@ -340,7 +340,7 @@ class PrerollDellaDirettaTest extends TestCase
         Livewire::test(DirettaSettingsPage::class)
             ->mountTableAction('imposta', $gara)
             ->assertSee('Cornice autunno')
-            ->assertSee('adt-colonna', false);
+            ->assertSee('adt-sotto', false);
     }
 
     #[Test]
