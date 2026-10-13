@@ -77,6 +77,14 @@ describe('DirettaConSponsor', () => {
         expect(diretta.emitted('evento').at(-1)[0]).toEqual({ evento: 'preroll_saltato', creativita: 3 });
     });
 
+    it('i comandi dello spot stanno sotto il riquadro, non sopra il video', async () => {
+        const diretta = monta();
+        await nextTick();
+
+        expect(diretta.find('.diretta-riquadro [data-salta]').exists()).toBe(false);
+        expect(diretta.find('[data-comandi-spot] [data-salta]').exists()).toBe(true);
+    });
+
     it('con 0 secondi lo spot non si salta', async () => {
         const diretta = monta({ sponsor: { gara: 42, preroll: { salta_dopo: 0, creativita: [video] } } });
         await nextTick();
