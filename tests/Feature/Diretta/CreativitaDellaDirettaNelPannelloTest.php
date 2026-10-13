@@ -219,7 +219,7 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
             ->mountTableAction('anteprima', $cornice)
             ->assertSee('Computer')
             ->assertSee('Telefono')
-            ->assertSee('adt-colonna', false)
+            ->assertSee('adt-sotto', false)
             ->assertSee($cornice->getFirstMediaUrl(LiveCreative::COLLEZIONE_CONTENUTO), false);
     }
 

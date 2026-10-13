@@ -176,6 +176,20 @@ describe('DirettaConSponsor', () => {
         expect(diretta.find('[data-player] img').exists()).toBe(false);
     });
 
+    it('la cornice video si scarica una volta sola, dietro il player', async () => {
+        const diretta = monta({ sponsor: { gara: 1, preroll: null }, contenuto: { ...cornice, tipo: 'video', url: 'https://cdn/cornice.mp4' } });
+        larghezza(diretta, 1280);
+        await nextTick();
+
+        expect(diretta.findAll('video')).toHaveLength(1);
+        // Il file sta fuori dal player e sotto di lui: il player ha z-10, il file no.
+        expect(diretta.find('[data-player] video').exists()).toBe(false);
+        expect(diretta.find('[data-player]').classes()).toContain('z-10');
+        expect(diretta.find('[data-cornice-file]').classes()).not.toContain('z-10');
+        // Le zone del link non hanno file dentro.
+        expect(diretta.find('[data-sponsor="colonna"] video').exists()).toBe(false);
+    });
+
     it('sul telefono il player resta intero e la fascia va sotto il riquadro', async () => {
         const diretta = monta({ sponsor: { gara: 1, preroll: null }, contenuto: cornice });
         larghezza(diretta, 375);
@@ -267,7 +281,7 @@ describe('DirettaConSponsor', () => {
 
         await diretta.find('[data-pausa-cornice]').trigger('click');
 
-        expect(pausa).toHaveBeenCalledTimes(2);
+        expect(pausa).toHaveBeenCalledTimes(1);
         expect(diretta.find('[data-pausa-cornice]').attributes('aria-pressed')).toBe('true');
         pausa.mockRestore();
     });

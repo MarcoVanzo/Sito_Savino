@@ -2,10 +2,10 @@
     Anteprima di una grafica della diretta, come la vede il tifoso.
 
     Le misure ripetono quelle del sito (resources/js/Support/direttaConSponsor.js,
-    DirettaConSponsor.vue): player al 75% in alto a sinistra, colonna a destra
-    (ultimo quarto in alto della cornice 1920×1080), fascia sotto (ultimo
-    quarto in basso); sul telefono il player intero e la fascia sotto. Se
-    cambiano lì, vanno cambiate anche qui.
+    DirettaConSponsor.vue): la cornice 1920×1080 a riquadro intero, con il
+    player al 75% in alto a sinistra sopra di lei (un file solo, come sul
+    sito); sul telefono il player intero e la fascia sotto. Se cambiano lì,
+    vanno cambiate anche qui.
 
     @param array $grafica  LiveCreative::perLAnteprima()
     @param int   $saltaDopo  secondi prima di «Salta» (0 = non si salta)
@@ -31,11 +31,8 @@
         .adt-pieno { inset: 0; width: 100%; height: 100%; object-fit: contain; position: absolute; }
         .adt-player { position: absolute; left: 0; top: 0; width: 75%; height: 75%; z-index: 1; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #12305a, #001a38); color: #fff; font-weight: 700; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
         .adt-player-intero { width: 100%; height: 100%; }
-        .adt-pezzo { position: absolute; overflow: hidden; }
-        .adt-colonna { left: 75%; top: 0; width: 25%; height: 75%; }
-        .adt-colonna .adt-file { width: 400%; height: 133.3333%; left: -300%; top: 0; }
-        .adt-fascia { left: 0; top: 75%; width: 100%; height: 25%; }
-        .adt-fascia .adt-file, .adt-fascia-telefono .adt-file { width: 100%; height: 400%; left: 0; top: -300%; }
+        .adt-sotto { inset: 0; width: 100%; height: 100%; }
+        .adt-fascia-telefono .adt-file { width: 100%; height: 400%; left: 0; top: -300%; }
         .adt-fascia-telefono { position: relative; margin-top: 6px; overflow: hidden; border-radius: 6px; aspect-ratio: 1920 / 270; }
         .adt-fascia-telefono.adt-propria { aspect-ratio: auto; }
         .adt-fascia-telefono.adt-propria img { position: static; width: 100%; height: auto; display: block; }
@@ -50,16 +47,12 @@
             <div class="adt-schermo adt-computer">
                 <span class="adt-etichetta">Computer</span>
                 <div class="adt-riquadro">
+                    @if ($video)
+                        <video class="adt-file adt-sotto" src="{{ $grafica['url'] }}" muted autoplay loop playsinline></video>
+                    @else
+                        <img class="adt-file adt-sotto" src="{{ $grafica['url'] }}" alt="">
+                    @endif
                     <div class="adt-player">La diretta</div>
-                    @foreach (['adt-colonna', 'adt-fascia'] as $pezzo)
-                        <div class="adt-pezzo {{ $pezzo }}">
-                            @if ($video)
-                                <video class="adt-file" src="{{ $grafica['url'] }}" muted autoplay loop playsinline></video>
-                            @else
-                                <img class="adt-file" src="{{ $grafica['url'] }}" alt="">
-                            @endif
-                        </div>
-                    @endforeach
                 </div>
             </div>
 
