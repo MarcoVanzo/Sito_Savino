@@ -1193,7 +1193,14 @@
         "accanto": "Accanto alla diretta: {sponsor}",
         "tutto_schermo": "Tutto schermo",
         "esci_tutto_schermo": "Esci dal tutto schermo",
-        "ruota": "Ruota il telefono in orizzontale per vederla più grande."
+        "ruota": "Ruota il telefono in orizzontale per vederla più grande.",
+        "prova_titolo": "Prova della diretta",
+        "prova_occhiello": "Prova riservata allo staff",
+        "prova_spiegazione": "Questa è la diretta come la vedrà il tifoso, con gli spot e le cornici scelti per la partita. Solo chi gestisce gli sponsor apre questa pagina: i tifosi non la vedono e i numeri non finiscono nel report. Per vederla subito, la cornice compare appena parte la diretta e poi ogni minuto.",
+        "prova_interruttore_spento": "Gli sponsor nella diretta sono ancora spenti: sul sito i tifosi vedono la diretta senza sponsor finché non li accendi.",
+        "prova_senza_link": "Questa partita non ha ancora un link di YouTube, Vimeo, Twitch o Dailymotion: mettilo da «Imposta».",
+        "prova_senza_sponsor": "Questa partita non ha ancora sponsor con grafiche attive: sceglili da «Imposta». Intanto la diretta si apre senza sponsor.",
+        "prova_torna": "Torna a Diretta"
     },
     "palmares": {
         "open_hint": "Scopri il palmarès",

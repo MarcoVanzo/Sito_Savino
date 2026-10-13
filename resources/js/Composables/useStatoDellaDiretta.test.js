@@ -3,11 +3,11 @@ import { mount } from '@vue/test-utils';
 import { defineComponent, ref } from 'vue';
 import { useStatoDellaDiretta } from './useStatoDellaDiretta.js';
 
-function ospite(attivo) {
+function ospite(attivo, statoDiProva = null) {
     let esposto;
     const Ospite = defineComponent({
         setup() {
-            esposto = useStatoDellaDiretta({ statoUrl: 'https://cdn/diretta/1.json', oraUrl: null, attivo });
+            esposto = useStatoDellaDiretta({ statoUrl: statoDiProva ? null : 'https://cdn/diretta/1.json', oraUrl: null, attivo, statoDiProva });
 
             return () => null;
         },
@@ -53,5 +53,25 @@ describe('useStatoDellaDiretta', () => {
 
         await vi.advanceTimersByTimeAsync(60_000);
         expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('in prova la cornice compare appena parte la diretta e torna ogni minuto, senza richieste', async () => {
+        globalThis.fetch = vi.fn();
+        const cornice = { id: 4, url: 'https://cdn/c.png', durata: 15 };
+        const prova = { versione: 1, stato: 'in_onda', ciclo: { attivo: true, inizio: null, fine: null, ogni_minuti: 1, durata_secondi: 15 }, playlist: [cornice] };
+        const attivo = ref(false);
+        const { stato } = ospite(attivo, prova);
+
+        expect(stato().contenuto.value).toBeNull();
+        attivo.value = true;
+        await vi.advanceTimersByTimeAsync(10);
+        expect(stato().contenuto.value?.id).toBe(4);
+
+        await vi.advanceTimersByTimeAsync(20_000);
+        expect(stato().contenuto.value).toBeNull();
+
+        await vi.advanceTimersByTimeAsync(41_000);
+        expect(stato().contenuto.value?.id).toBe(4);
+        expect(globalThis.fetch).not.toHaveBeenCalled();
     });
 });

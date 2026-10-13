@@ -20,6 +20,9 @@ use App\Services\Diretta\StatoPubblicoDellaDiretta;
 class DirettaPerIlSito
 {
     /** Le cache delle pagine che portano il pre-roll con la gara (home e calendario). */
+    /** In prova la cornice torna ogni minuto. */
+    public const OGNI_MINUTI_IN_PROVA = 1;
+
     public const CHIAVI_DI_CACHE = ['public:home', 'public:risultati'];
 
     /** Le relazioni da caricare prima di chiamare `perLaGara()` su molte gare. */
@@ -61,6 +64,58 @@ class DirettaPerIlSito
             'stato' => $conCornici ? app(StatoPubblicoDellaDiretta::class)->url($game->id) : null,
             'ora' => $conCornici ? route('api.diretta.ora') : null,
             'eventi' => route('api.diretta.eventi', $game),
+        ];
+    }
+
+    /**
+     * La diretta della gara per la prova dello staff (`/prova-diretta`):
+     * come la vedrebbe il tifoso, ma anche a interruttore spento, senza
+     * contatori per il report e con la cornice che torna ogni minuto da
+     * quando parte la diretta (`inizio` lo mette il browser), per vederla
+     * senza aspettare il ciclo vero. La regia non la tocca.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function perLaProva(Game $game): ?array
+    {
+        $sessione = $game->liveSession;
+
+        if (! $sessione instanceof LiveSession) {
+            return null;
+        }
+
+        $sessione->loadMissing(['creativitaDelPreroll.media', 'creativitaDelPreroll.sponsor', 'creativitaDellaGara.media', 'creativitaDellaGara.sponsor']);
+        $preroll = self::preroll($sessione);
+        $cornici = $sessione->creativitaDellaGara
+            ->filter(fn (LiveCreative $c): bool => $c->valida())
+            ->map(fn (LiveCreative $c): array => $c->perIlSito())
+            ->values()
+            ->all();
+
+        if ($preroll === null && $cornici === []) {
+            return null;
+        }
+
+        return [
+            'gara' => $game->id,
+            'prova' => true,
+            'preroll' => $preroll,
+            'stato' => null,
+            'ora' => null,
+            'eventi' => null,
+            'stato_prova' => $cornici === [] ? null : [
+                'versione' => 1,
+                'stato' => 'in_onda',
+                'ciclo' => [
+                    'attivo' => true,
+                    'inizio' => null,
+                    'fine' => null,
+                    'ogni_minuti' => self::OGNI_MINUTI_IN_PROVA,
+                    'durata_secondi' => min($sessione->ciclo_durata_secondi, 45),
+                ],
+                'contenuto' => null,
+                'playlist' => $cornici,
+            ],
         ];
     }
 

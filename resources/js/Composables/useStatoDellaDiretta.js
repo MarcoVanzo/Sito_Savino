@@ -14,7 +14,7 @@ import { contenutoInOnda, scartoDellOrologio, statoPiuRecente } from '@/Support/
 
 export const OGNI_QUANTO_RILEGGERE = 10_000;
 
-export function useStatoDellaDiretta({ statoUrl, oraUrl, attivo }) {
+export function useStatoDellaDiretta({ statoUrl, oraUrl, attivo, statoDiProva = null }) {
     const stato = ref(null);
     const scarto = ref(0);
     const adesso = ref(Date.now());
@@ -73,7 +73,27 @@ export function useStatoDellaDiretta({ statoUrl, oraUrl, attivo }) {
         document.removeEventListener('visibilitychange', allaVisibilita);
     };
 
+    // Prova dello staff: nessuna richiesta, il ciclo parte quando parte la
+    // diretta e torna ogni minuto.
+    const avviaLaProva = () => {
+        if (orologio !== null) {
+            return;
+        }
+
+        stato.value = { ...statoDiProva, ciclo: { ...statoDiProva.ciclo, inizio: new Date().toISOString(), fine: new Date(Date.now() + 3 * 3600_000).toISOString() } };
+        adesso.value = Date.now();
+        orologio = setInterval(() => {
+            adesso.value = Date.now();
+        }, 1000);
+    };
+
     const avvia = () => {
+        if (statoDiProva) {
+            avviaLaProva();
+
+            return;
+        }
+
         if (!statoUrl || lettura !== null) {
             return;
         }

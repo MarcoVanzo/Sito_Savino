@@ -3,18 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Enums\EventoDellaDiretta;
+use App\Filament\Pages\Settings\DirettaSettingsPage;
 use App\Models\Game;
 use App\Models\LiveAdStat;
 use App\Models\LiveSession;
+use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
+use App\Support\LiveStream;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 /**
- * Le due chiamate del sito verso la diretta con sponsor. Spento
- * l'interruttore generale non rispondono: la funzione non esiste.
+ * Le chiamate del sito verso la diretta con sponsor. Spento l'interruttore
+ * generale `ora` ed `eventi` non rispondono: la funzione non esiste. La
+ * pagina di prova invece funziona sempre, ma solo per lo staff.
  */
 class DirettaController extends Controller
 {
@@ -60,5 +65,33 @@ class DirettaController extends Controller
         LiveAdStat::conta($game->id, $creativita, EventoDellaDiretta::from($dati['evento']));
 
         return response()->noContent();
+    }
+
+    /**
+     * La prova della diretta per lo staff: la stessa finestra che vede il
+     * tifoso, con spot e cornici della gara, anche a interruttore spento.
+     * Riservata a chi cura gli sponsor; mai in cache, mai indicizzata.
+     */
+    public function prova(Request $request, Game $game): \Inertia\Response|\Symfony\Component\HttpFoundation\Response
+    {
+        abort_unless((bool) $request->user()?->can('update', LiveSession::class), 403);
+
+        $game->load(['homeTeam', 'awayTeam']);
+
+        $risposta = Inertia::render('Public/ProvaDiretta', [
+            'gara' => [
+                'titolo' => $game->homeTeam?->nomePubblico().' — '.$game->awayTeam?->nomePubblico(),
+                'data' => $game->match_date->toIso8601String(),
+                'embedUrl' => LiveStream::embedUrl($game->stream_url),
+            ],
+            'sponsor' => DirettaPerIlSito::perLaProva($game),
+            'interruttoreAcceso' => ImpostazioniDellaDiretta::abilitata(),
+            'urlImposta' => DirettaSettingsPage::getUrl(),
+        ])->toResponse($request);
+
+        $risposta->headers->set('Cache-Control', 'no-store, private');
+        $risposta->headers->set('X-Robots-Tag', 'noindex, nofollow');
+
+        return $risposta;
     }
 }
