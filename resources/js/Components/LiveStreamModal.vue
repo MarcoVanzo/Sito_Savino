@@ -75,13 +75,6 @@ onBeforeUnmount(() => {
                     </span>
                 </p>
                 <div class="flex items-center gap-3 flex-shrink-0">
-                    <a
-                        v-if="stream?.url && !conSponsor"
-                        :href="stream.url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-white/60 hover:text-white text-xs font-bold uppercase tracking-wider"
-                    >{{ $t('stream.open_external') }}</a>
                     <button
                         type="button"
                         class="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20"
@@ -97,7 +90,6 @@ onBeforeUnmount(() => {
                 v-if="conSponsor"
                 :src="stream.embedUrl"
                 :titolo="stream?.title || $t('stream.modal_title')"
-                :link-diretto="stream?.url"
                 :sponsor="stream.sponsor"
             />
 
@@ -109,7 +101,6 @@ onBeforeUnmount(() => {
                     <ContenutoIncorporato
                         :src="stream.embedUrl"
                         :titolo="stream?.title || $t('stream.modal_title')"
-                        :link-diretto="stream?.url"
                         avvio-automatico
                         allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                     />

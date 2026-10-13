@@ -19,7 +19,6 @@ function monta(props = {}) {
         props: {
             src: SRC,
             titolo: 'Savino — Conegliano',
-            linkDiretto: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             sponsor: { gara: 42, preroll: { salta_dopo: 5, creativita: [video] } },
             ...props,
         },
@@ -83,6 +82,16 @@ describe('DirettaConSponsor', () => {
 
         expect(diretta.find('.diretta-riquadro [data-salta]').exists()).toBe(false);
         expect(diretta.find('[data-comandi-spot] [data-salta]').exists()).toBe(true);
+    });
+
+    it('dalla diretta non ci sono link verso YouTube, solo quelli degli sponsor', async () => {
+        const diretta = monta({ sponsor: { gara: 1, preroll: null }, contenuto: cornice });
+        larghezza(diretta, 1280);
+        await nextTick();
+
+        const esterni = diretta.findAll('a[href]').map((a) => a.attributes('href'));
+        expect(esterni.some((h) => /youtube|youtu\.be/.test(h))).toBe(false);
+        expect(esterni.every((h) => h === cornice.link)).toBe(true);
     });
 
     it('con 0 secondi lo spot non si salta', async () => {

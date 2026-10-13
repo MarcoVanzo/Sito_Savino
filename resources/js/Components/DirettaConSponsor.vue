@@ -13,7 +13,9 @@
  *    riquadro. Cambia solo la misura del contenitore: l'iframe non si
  *    smonta né si ricarica.
  *
- * Tutto schermo: quello del sito, sul contenitore intero (lo sponsor resta),
+ * Nessun collegamento verso la piattaforma (scelta della società: dalla
+ * diretta del sito non si esce verso YouTube); restano solo i link degli
+ * sponsor. Tutto schermo: quello del sito, sul contenitore intero (lo sponsor resta),
  * con il pulsante sotto il riquadro; quello di YouTube è spento (`fs=0`). Su
  * iPhone, dove gli elementi non vanno a tutto schermo, si simula.
  */
@@ -38,7 +40,6 @@ const $t = useTranslations();
 const props = defineProps({
     src: { type: String, required: true },
     titolo: { type: String, default: '' },
-    linkDiretto: { type: String, default: null },
     // DirettaPerIlSito: { gara, preroll: { salta_dopo, creativita: [...] }, stato, ora }
     sponsor: { type: Object, required: true },
     // Uno sponsor imposto da fuori (anteprime e test): altrimenti decide lo stato.
@@ -372,7 +373,6 @@ defineExpose({ fase, modo });
                     <ContenutoIncorporato
                         :src="srcSenzaTuttoSchermo"
                         :titolo="titolo"
-                        :link-diretto="linkDiretto"
                         avvio-automatico
                         allow="autoplay; encrypted-media; picture-in-picture"
                     />
@@ -437,13 +437,6 @@ defineExpose({ fase, modo });
 
         <div class="diretta-comandi mt-3 flex flex-wrap items-center justify-end gap-3 text-xs font-bold uppercase tracking-wider">
             <p v-if="simulato" class="diretta-ruota mr-auto normal-case tracking-normal text-white/70">{{ $t('stream.ruota') }}</p>
-            <a
-                v-if="linkDiretto"
-                :href="linkDiretto"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-white/70 hover:text-white"
-            >{{ $t('stream.open_external') }}</a>
             <button
                 type="button"
                 class="rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
