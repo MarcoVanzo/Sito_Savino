@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\SponsorTier;
 use App\Filament\Resources\SponsorResource\Pages;
+use App\Filament\Resources\SponsorResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Sponsor;
 use Filament\Forms;
@@ -107,7 +108,7 @@ class SponsorResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\LiveCreativesRelationManager::class,
         ];
     }
 

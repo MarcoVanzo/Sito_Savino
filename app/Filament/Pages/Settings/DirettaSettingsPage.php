@@ -2,7 +2,10 @@
 
 namespace App\Filament\Pages\Settings;
 
-use App\Filament\Resources\LiveCreativeResource;
+use App\Filament\Actions\ImpostaLaDirettaAction;
+use App\Filament\Resources\SponsorResource;
+use App\Models\Game;
+use App\Models\LiveCreative;
 use App\Observers\CacheInvalidationObserver;
 use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
@@ -11,22 +14,35 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Tables;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Interruttore generale e valori di partenza della diretta con sponsor.
+ * La diretta delle partite: l'elenco delle gare della società, dove per
+ * ognuna si mette il link e si scelgono sponsor e grafiche («Imposta»), più
+ * l'interruttore generale e i valori di partenza del ciclo.
  *
  * La usa la comunicazione, che cura gli sponsor: non serve essere
- * amministratori. Spento l'interruttore, il sito mostra la diretta come prima.
- * I valori del ciclo sono quelli con cui nasce la diretta di una gara: si
- * cambiano poi gara per gara nella scheda della partita.
+ * amministratori. Spento l'interruttore, il sito mostra la diretta come prima
+ * (il link della partita vale comunque).
  */
-class DirettaSettingsPage extends BaseSettingsPage
+class DirettaSettingsPage extends BaseSettingsPage implements HasTable
 {
+    use InteractsWithTable;
+
+    /** Da quanti giorni indietro l'elenco mostra le partite. */
+    private const GIORNI_INDIETRO = 2;
+
+    protected static string $view = 'filament.pages.diretta-page';
+
     protected static ?string $navigationIcon = 'heroicon-o-signal';
 
-    protected static ?string $navigationLabel = 'Diretta e sponsor';
+    protected static ?string $navigationLabel = 'Diretta';
 
-    protected static ?string $title = 'Diretta e sponsor';
+    protected static ?string $title = 'Diretta';
 
     protected static ?string $navigationGroup = 'Sponsor';
 
@@ -106,15 +122,75 @@ class DirettaSettingsPage extends BaseSettingsPage
                             ->numeric()->integer()
                             ->minValue(Diretta::PAUSA_DURATA_MINIMA)->maxValue(Diretta::PAUSA_DURATA_MASSIMA)->required(),
                     ])->columns(2),
-                Section::make('Creatività')
-                    ->description('Gli spot e le cornici si caricano in Sponsor → Spot nella diretta, dove si scarica anche il modello grafico della cornice.')
+                Section::make('Grafiche')
+                    ->description('Spot e cornici si caricano nella scheda di ogni sponsor («Grafiche per la diretta»), dove si scarica anche il modello grafico della cornice.')
                     ->schema([])
                     ->footerActions([
-                        Action::make('creativita')
-                            ->label('Vai agli spot')
-                            ->url(fn (): string => LiveCreativeResource::getUrl('index')),
+                        Action::make('sponsor')
+                            ->label('Vai agli sponsor')
+                            ->url(fn (): string => SponsorResource::getUrl('index')),
                     ]),
             ])
             ->statePath('data');
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->heading('Partite')
+            ->description('Le gare della società da due giorni fa in avanti: «Imposta» per il link della diretta, gli sponsor e le loro grafiche.')
+            ->query(
+                Game::query()
+                    ->with(['homeTeam', 'awayTeam', 'liveSession.creativitaDelPreroll', 'liveSession.creativitaDellaGara'])
+                    ->where(fn (Builder $q) => $q
+                        ->whereHas('homeTeam', fn (Builder $t) => $t->where('is_internal', true))
+                        ->orWhereHas('awayTeam', fn (Builder $t) => $t->where('is_internal', true)))
+            )
+            ->defaultSort('match_date')
+            ->columns([
+                Tables\Columns\TextColumn::make('match_date')
+                    ->label('Data')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('partita')
+                    ->label('Partita')
+                    ->getStateUsing(fn (Game $record): string => $record->homeTeam?->nomePubblico().' – '.$record->awayTeam?->nomePubblico())
+                    ->description(fn (Game $record): string => (string) $record->competition_type?->value),
+                Tables\Columns\IconColumn::make('con_link')
+                    ->label('Link')
+                    ->boolean()
+                    ->getStateUsing(fn (Game $record): bool => filled($record->stream_url)),
+                Tables\Columns\TextColumn::make('sponsor')
+                    ->label('Sponsor')
+                    ->getStateUsing(fn (Game $record): string => self::sponsorDellaGara($record))
+                    ->placeholder('—'),
+            ])
+            ->filters([
+                Tables\Filters\Filter::make('prossime')
+                    ->label('Solo da due giorni fa in avanti')
+                    ->default()
+                    ->query(fn (Builder $query): Builder => $query->where('match_date', '>=', now()->subDays(self::GIORNI_INDIETRO)->startOfDay())),
+            ])
+            ->actions([
+                ImpostaLaDirettaAction::make(),
+            ])
+            ->paginated([10, 25, 50]);
+    }
+
+    /** I nomi degli sponsor con almeno una grafica nella diretta della gara. */
+    private static function sponsorDellaGara(Game $game): string
+    {
+        $sessione = $game->liveSession;
+
+        if ($sessione === null) {
+            return '';
+        }
+
+        return $sessione->creativitaDelPreroll
+            ->merge($sessione->creativitaDellaGara)
+            ->loadMissing('sponsor')
+            ->map(fn (LiveCreative $c): string => (string) $c->sponsor?->name)
+            ->unique()
+            ->implode(', ');
     }
 }

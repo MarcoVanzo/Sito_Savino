@@ -6,8 +6,8 @@ use App\Enums\GameStatus;
 use App\Enums\TipoCreativita;
 use App\Enums\UserRole;
 use App\Enums\UsoCreativita;
-use App\Filament\Actions\DirettaESponsorAction;
-use App\Filament\Resources\GameResource\Pages\ViewGame;
+use App\Filament\Actions\ImpostaLaDirettaAction;
+use App\Filament\Pages\Settings\DirettaSettingsPage;
 use App\Models\Game;
 use App\Models\LiveCreative;
 use App\Models\LiveSession;
@@ -139,61 +139,111 @@ class PrerollDellaDirettaTest extends TestCase
         $this->assertSame($sessione->id, LiveSession::perLaGara($gara)->id);
     }
 
-    #[Test]
-    public function la_comunicazione_imposta_la_diretta_dalla_scheda_della_gara(): void
+    private function comunicazione(): User
     {
-        $this->accendi();
         $utente = User::factory()->create();
         $utente->forceFill(['role' => UserRole::CommunicationManager, 'is_active' => true])->save();
         $this->actingAs($utente->refresh());
-        $gara = $this->gara();
-        [$primo, $secondo] = [$this->spot(), $this->spot()];
 
-        Livewire::test(ViewGame::class, ['record' => $gara->getRouteKey()])
-            ->assertActionVisible('direttaESponsor')
-            ->callAction('direttaESponsor', [
+        return $utente;
+    }
+
+    #[Test]
+    public function dalla_pagina_diretta_si_mettono_link_sponsor_e_grafiche(): void
+    {
+        $this->accendi();
+        $utente = $this->comunicazione();
+        $gara = $this->gara();
+        $gara->update(['stream_url' => null]);
+        $primo = $this->spot();
+        $secondo = $this->spot(['sponsor_id' => $primo->sponsor_id]);
+        $cornice = $this->spot(['sponsor_id' => $primo->sponsor_id, 'uso' => UsoCreativita::Cornice]);
+        $altroSponsor = $this->spot();
+
+        Livewire::test(DirettaSettingsPage::class)
+            ->assertCanSeeTableRecords([$gara])
+            ->callTableAction('imposta', $gara, [
+                'stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'preroll_attivo' => true,
-                // Lo stato del Repeater semplice, come lo idrata il modulo.
-                'preroll' => ['a' => ['id' => $secondo->id], 'b' => ['id' => $primo->id]],
                 'preroll_salta_dopo_secondi' => 3,
-                'gara' => [],
+                // Lo stato del Repeater come lo idrata il modulo: chiavi interne.
+                'sponsor' => [
+                    'a' => ['sponsor_id' => $altroSponsor->sponsor_id, 'preroll' => [$altroSponsor->id], 'cornici' => []],
+                    // Una grafica di un altro sponsor spuntata per errore non passa.
+                    'b' => ['sponsor_id' => $primo->sponsor_id, 'preroll' => [$secondo->id, $primo->id, $altroSponsor->id], 'cornici' => [$cornice->id]],
+                ],
                 'ciclo_attivo' => true,
                 'ciclo_ogni_minuti' => 8,
                 'ciclo_durata_secondi' => 20,
                 'ciclo_ritardo_minuti' => 10,
                 'pausa_durata_predefinita_secondi' => 120,
             ])
-            ->assertHasNoActionErrors();
+            ->assertHasNoTableActionErrors();
 
+        $this->assertSame('https://www.youtube.com/watch?v=dQw4w9WgXcQ', $gara->refresh()->stream_url);
         $sessione = $gara->liveSession()->firstOrFail();
-        $this->assertSame([$secondo->id, $primo->id], $sessione->creativitaDelPreroll()->pluck('live_creatives.id')->all());
+        $this->assertSame([$altroSponsor->id, $secondo->id, $primo->id], $sessione->creativitaDelPreroll()->pluck('live_creatives.id')->all());
+        $this->assertSame([$cornice->id], $sessione->creativitaDellaGara()->pluck('live_creatives.id')->all());
         $this->assertSame(3, $sessione->preroll_salta_dopo_secondi);
         $this->assertSame('17:10', $sessione->ciclo_inizio->format('H:i'));
-        $this->assertSame(2, $sessione->versione);
         $this->assertDatabaseHas('activity_logs', ['model_type' => LiveSession::class, 'model_id' => $sessione->id, 'user_id' => $utente->id]);
     }
 
     #[Test]
-    public function con_l_interruttore_spento_l_azione_non_compare(): void
+    public function riaprendo_si_ritrovano_gli_sponsor_con_le_loro_grafiche(): void
     {
-        $utente = User::factory()->create();
-        $utente->forceFill(['role' => UserRole::CommunicationManager, 'is_active' => true])->save();
-        $this->actingAs($utente->refresh());
+        $this->comunicazione();
+        $gara = $this->gara();
+        $spot = $this->spot();
+        $cornice = $this->spot(['sponsor_id' => $spot->sponsor_id, 'uso' => UsoCreativita::Cornice]);
+        $sessione = LiveSession::perLaGara($gara);
+        $sessione->ordina('creativitaDelPreroll', [$spot->id]);
+        $sessione->ordina('creativitaDellaGara', [$cornice->id]);
 
-        Livewire::test(ViewGame::class, ['record' => $this->gara()->getRouteKey()])
-            ->assertActionHidden('direttaESponsor');
+        $pagina = Livewire::test(DirettaSettingsPage::class)->mountTableAction('imposta', $gara);
+
+        $dati = $pagina->get('mountedTableActionsData.0');
+        $this->assertSame($gara->stream_url, $dati['stream_url']);
+        $voci = array_map(fn (array $v): array => array_intersect_key($v, array_flip(['sponsor_id', 'preroll', 'cornici'])), array_values($dati['sponsor']));
+        $this->assertSame([['sponsor_id' => $spot->sponsor_id, 'preroll' => [$spot->id], 'cornici' => [$cornice->id]]], $voci);
     }
 
     #[Test]
-    public function l_area_sportiva_non_governa_gli_sponsor_della_diretta(): void
+    public function il_link_si_mette_anche_a_interruttore_spento(): void
     {
-        $this->accendi();
+        $this->comunicazione();
+        $gara = $this->gara();
+
+        Livewire::test(DirettaSettingsPage::class)
+            ->callTableAction('imposta', $gara, [
+                'stream_url' => 'https://www.youtube.com/watch?v=nuovoLink1',
+                'preroll_attivo' => false, 'preroll_salta_dopo_secondi' => 5, 'sponsor' => [],
+                'ciclo_attivo' => true, 'ciclo_ogni_minuti' => 10, 'ciclo_durata_secondi' => 15,
+                'ciclo_ritardo_minuti' => 5, 'pausa_durata_predefinita_secondi' => 180,
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertSame('https://www.youtube.com/watch?v=nuovoLink1', $gara->refresh()->stream_url);
+    }
+
+    #[Test]
+    public function un_link_non_web_si_rifiuta(): void
+    {
+        $this->comunicazione();
+        $gara = $this->gara();
+
+        Livewire::test(DirettaSettingsPage::class)
+            ->callTableAction('imposta', $gara, ['stream_url' => 'javascript:alert(1)'])
+            ->assertHasTableActionErrors(['stream_url']);
+    }
+
+    #[Test]
+    public function l_area_sportiva_non_apre_la_pagina_diretta(): void
+    {
         $utente = User::factory()->create();
         $utente->forceFill(['role' => UserRole::SportCoordinator, 'is_active' => true])->save();
-        $this->actingAs($utente->refresh());
 
-        Livewire::test(ViewGame::class, ['record' => $this->gara()->getRouteKey()])
-            ->assertActionHidden('direttaESponsor');
+        $this->actingAs($utente->refresh())->get('/admin/settings/diretta')->assertForbidden();
     }
 
     #[Test]
@@ -203,9 +253,10 @@ class PrerollDellaDirettaTest extends TestCase
         $this->accendi();
         $this->assertNull($this->nextGame()['diretta_sponsor']);
 
-        DirettaESponsorAction::salva($gara, [
+        $spot = $this->spot();
+        ImpostaLaDirettaAction::salva($gara, [
             'preroll_attivo' => true,
-            'preroll' => [$this->spot()->id],
+            'sponsor' => [['sponsor_id' => $spot->sponsor_id, 'preroll' => [$spot->id], 'cornici' => []]],
             'preroll_salta_dopo_secondi' => 5,
             'ciclo_attivo' => true,
             'ciclo_ogni_minuti' => 10,
@@ -225,9 +276,9 @@ class PrerollDellaDirettaTest extends TestCase
         $utente->forceFill(['role' => UserRole::CommunicationManager, 'is_active' => true])->save();
         $this->actingAs($utente->refresh());
 
-        Livewire::test(ViewGame::class, ['record' => $this->gara()->getRouteKey()])
-            ->mountAction('direttaESponsor')
-            ->assertActionDataSet(['ciclo_ogni_minuti' => 10, 'preroll' => []]);
+        Livewire::test(DirettaSettingsPage::class)
+            ->mountTableAction('imposta', $this->gara())
+            ->assertTableActionDataSet(['ciclo_ogni_minuti' => 10, 'sponsor' => []]);
 
         $this->assertSame(0, LiveSession::count());
         $this->assertDatabaseMissing('activity_logs', ['model_type' => LiveSession::class]);
@@ -245,10 +296,10 @@ class PrerollDellaDirettaTest extends TestCase
             'pausa_durata_predefinita_secondi' => 180,
         ];
 
-        DirettaESponsorAction::salva($gara, $dati);
+        ImpostaLaDirettaAction::salva($gara, $dati);
         $this->assertSame('17:42', $sessione->refresh()->ciclo_inizio->format('H:i'));
 
-        DirettaESponsorAction::salva($gara, [...$dati, 'ciclo_ritardo_minuti' => 15]);
+        ImpostaLaDirettaAction::salva($gara, [...$dati, 'ciclo_ritardo_minuti' => 15]);
         $this->assertSame('17:15', $sessione->refresh()->ciclo_inizio->format('H:i'));
     }
 
@@ -275,5 +326,20 @@ class PrerollDellaDirettaTest extends TestCase
         $sessione->update(['ciclo_attivo' => false]);
 
         $this->assertSame('in cache', Cache::get('public:home:it'));
+    }
+
+    #[Test]
+    public function in_imposta_compare_l_anteprima_delle_grafiche_spuntate(): void
+    {
+        $this->comunicazione();
+        $gara = $this->gara();
+        $cornice = $this->spot(['uso' => UsoCreativita::Cornice, 'nome' => 'Cornice autunno']);
+        $sessione = LiveSession::perLaGara($gara);
+        $sessione->ordina('creativitaDellaGara', [$cornice->id]);
+
+        Livewire::test(DirettaSettingsPage::class)
+            ->mountTableAction('imposta', $gara)
+            ->assertSee('Cornice autunno')
+            ->assertSee('adt-colonna', false);
     }
 }

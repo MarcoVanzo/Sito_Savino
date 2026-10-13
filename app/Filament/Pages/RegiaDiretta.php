@@ -3,7 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Enums\StatoDellaDiretta;
-use App\Filament\Resources\GameResource;
+use App\Filament\Pages\Settings\DirettaSettingsPage;
 use App\Models\Game;
 use App\Models\LiveCreative;
 use App\Models\LiveSession;
@@ -122,7 +122,7 @@ class RegiaDiretta extends Page
 
     public function urlDellaGara(): ?string
     {
-        return $this->gara !== null ? GameResource::getUrl('view', ['record' => $this->gara]) : null;
+        return $this->gara !== null ? DirettaSettingsPage::getUrl() : null;
     }
 
     public function pausaTraISetAction(): Action

@@ -93,7 +93,7 @@ class CacheInvalidationObserver
         Evento::class => ['public:home'],
         // Il pre-roll della diretta viaggia con la gara in home e nel calendario.
         // LiveSession no: la regia la salva a ogni pulsante durante la gara, e
-        // il pre-roll lo cambia solo «Diretta e sponsor», che svuota da sé.
+        // il pre-roll lo cambia solo «Diretta», che svuota da sé.
         LiveCreative::class => DirettaPerIlSito::CHIAVI_DI_CACHE,
         Standing::class => ['public:risultati'],
         StaffMember::class => [...self::CHIAVI_STAGIONE, 'public:staff_tecnico', 'public:staff_medico', 'public:organigramma:page'],

@@ -17,7 +17,8 @@ mai sopra. Funziona tutto anche senza nessuno in regia.
 
 ## 1. Accendere la funzione
 
-Sponsor → **Diretta e sponsor**: l'interruttore «Sponsor nella diretta».
+Sponsor → **Diretta**, in fondo alla pagina: l'interruttore «Sponsor nella
+diretta».
 Spento, la diretta sul sito è quella di sempre. Nella stessa pagina ci sono i
 valori di partenza per ogni gara nuova (ogni quanti minuti compare la cornice,
 per quanti secondi, quanti minuti dopo l'inizio della gara, durata degli spot
@@ -25,7 +26,8 @@ mandati dalla regia).
 
 ## 2. Caricare spot e cornici
 
-Sponsor → **Spot nella diretta** → Nuova.
+Sponsor → I Nostri Sponsor → lo sponsor → sezione **Grafiche per la
+diretta** → «Nuova grafica». Ogni sponsor ha le sue.
 
 - **Dove va in onda**: «Prima della diretta» (pre-roll) o «Cornice durante la
   gara».
@@ -38,7 +40,7 @@ Sponsor → **Spot nella diretta** → Nuova.
   non va in onda.
 
 Il pannello controlla i file al caricamento e dice cosa non va (misure, durata,
-peso). Dall'elenco si scarica il **modello della cornice**
+peso). Dalla stessa sezione si scarica il **modello della cornice**
 (`modello-cornice-1920x1080.png`) con le zone segnate, da mandare allo sponsor.
 
 ## 3. Formati da chiedere allo sponsor
@@ -61,15 +63,20 @@ parte spento; chi chiede meno animazioni nel sistema vede lo spot fermo.
 
 ## 4. Preparare la diretta di una gara
 
-Calendario e Risultati → la partita → **Diretta e sponsor** (in alto, compare
-con l'interruttore acceso; serve il link della diretta nella gara):
+Sponsor → **Diretta**: in alto l'elenco delle partite della società (da due
+giorni fa in avanti; togliendo il filtro anche le passate). Sulla partita,
+**Imposta**:
 
-- **Spot prima della diretta**: sì/no, quali spot (uno per visione, a
-  rotazione) e dopo quanti secondi si può saltare (0 = non si salta);
-- **Cornici in rotazione**: quelle che compaiono durante la gara, nell'ordine;
+- **Link della diretta**: l'indirizzo YouTube (o Vimeo, Twitch, Dailymotion)
+  della partita. Vale anche con gli sponsor spenti: è la diretta del sito;
+- **Sponsor**: «Aggiungi uno sponsor», sceglierlo e spuntare le sue grafiche:
+  gli spot da mandare prima della diretta e le cornici per la gara. Si possono
+  aggiungere più sponsor: ruotano nell'ordine dell'elenco (si trascinano);
+- **Spot prima della diretta**: sì/no e dopo quanti secondi si può saltare
+  (0 = non si salta). Uno spot per visione, a rotazione;
 - **Ciclo automatico**: ogni quanti minuti, per quanti secondi, quanti minuti
   dopo l'inizio. L'anteprima dice a che ore cadranno i primi cicli. Il ciclo
-  finisce tre ore dopo l'inizio della gara.
+  finisce tre ore dopo l'inizio della gara e segue la gara se cambia orario.
 
 Salvando, il sito riceve le impostazioni entro una decina di secondi.
 

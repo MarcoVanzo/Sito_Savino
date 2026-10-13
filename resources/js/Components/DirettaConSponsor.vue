@@ -13,7 +13,9 @@
  *    riquadro. Cambia solo la misura del contenitore: l'iframe non si
  *    smonta né si ricarica.
  *
- * Tutto schermo: quello del sito, sul contenitore intero (lo sponsor resta),
+ * Nessun collegamento verso la piattaforma (scelta della società: dalla
+ * diretta del sito non si esce verso YouTube); restano solo i link degli
+ * sponsor. Tutto schermo: quello del sito, sul contenitore intero (lo sponsor resta),
  * con il pulsante sotto il riquadro; quello di YouTube è spento (`fs=0`). Su
  * iPhone, dove gli elementi non vanno a tutto schermo, si simula.
  */
@@ -38,7 +40,6 @@ const $t = useTranslations();
 const props = defineProps({
     src: { type: String, required: true },
     titolo: { type: String, default: '' },
-    linkDiretto: { type: String, default: null },
     // DirettaPerIlSito: { gara, preroll: { salta_dopo, creativita: [...] }, stato, ora }
     sponsor: { type: Object, required: true },
     // Uno sponsor imposto da fuori (anteprime e test): altrimenti decide lo stato.
@@ -297,11 +298,11 @@ defineExpose({ fase, modo });
             <!-- Pre-roll: un player nostro, prima della diretta e non sopra. -->
             <section
                 v-if="fase === 'preroll' && spot"
-                class="absolute inset-0 flex flex-col"
+                class="absolute inset-0"
                 :aria-label="$t('stream.preroll_regione')"
                 data-preroll
             >
-                <div class="relative flex-1 min-h-0 bg-black">
+                <div class="relative h-full bg-black">
                     <img
                         v-if="spot.tipo === 'immagine'"
                         :src="spot.url"
@@ -325,35 +326,6 @@ defineExpose({ fase, modo });
                         @error="spotNonDisponibile"
                         @click="apriSponsor(spot)"
                     ></video>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between gap-2 bg-savino-blue/95 px-3 py-2 text-xs font-bold text-white">
-                    <div class="flex items-center gap-2">
-                        <button
-                            v-if="spot.tipo === 'video' && !movimentoRidotto"
-                            type="button"
-                            class="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-                            :aria-pressed="audio ? 'true' : 'false'"
-                            @click="cambiaAudio"
-                        >{{ audio ? $t('stream.audio_disattiva') : $t('stream.audio_attiva') }}</button>
-                        <a
-                            v-if="spot.link"
-                            :href="spot.link"
-                            target="_blank"
-                            rel="sponsored noopener"
-                            class="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-                            :aria-label="$t('stream.visita_nome', { sponsor: spot.sponsor })"
-                            @click="emit('evento', { evento: 'clic', creativita: spot.id })"
-                        >{{ $t('stream.visita') }}</a>
-                    </div>
-                    <button
-                        v-if="saltabile"
-                        type="button"
-                        class="rounded-lg bg-white px-4 py-2 text-savino-blue hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white aria-disabled:opacity-70"
-                        :aria-disabled="mancanoASaltare > 0 ? 'true' : 'false'"
-                        data-salta
-                        @click="salta"
-                    >{{ mancanoASaltare > 0 ? $t('stream.salta_tra', { secondi: mancanoASaltare }) : $t('stream.salta') }}</button>
                 </div>
             </section>
 
@@ -401,12 +373,48 @@ defineExpose({ fase, modo });
                     <ContenutoIncorporato
                         :src="srcSenzaTuttoSchermo"
                         :titolo="titolo"
-                        :link-diretto="linkDiretto"
                         avvio-automatico
                         allow="autoplay; encrypted-media; picture-in-picture"
                     />
                 </div>
             </template>
+        </div>
+
+        <!-- I comandi dello spot stanno sotto il riquadro: dentro, sul telefono,
+             andavano su due righe e coprivano metà del video. -->
+        <div
+            v-if="fase === 'preroll' && spot"
+            role="group"
+            :aria-label="$t('stream.preroll_regione')"
+            class="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-savino-blue px-3 py-2 text-xs font-bold text-white"
+            data-comandi-spot
+        >
+            <div class="flex items-center gap-2">
+                <button
+                    v-if="spot.tipo === 'video' && !movimentoRidotto"
+                    type="button"
+                    class="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                    :aria-pressed="audio ? 'true' : 'false'"
+                    @click="cambiaAudio"
+                >{{ audio ? $t('stream.audio_disattiva') : $t('stream.audio_attiva') }}</button>
+                <a
+                    v-if="spot.link"
+                    :href="spot.link"
+                    target="_blank"
+                    rel="sponsored noopener"
+                    class="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                    :aria-label="$t('stream.visita_nome', { sponsor: spot.sponsor })"
+                    @click="emit('evento', { evento: 'clic', creativita: spot.id })"
+                >{{ $t('stream.visita') }}</a>
+            </div>
+            <button
+                v-if="saltabile"
+                type="button"
+                class="rounded-lg bg-white px-4 py-2 text-savino-blue hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white aria-disabled:opacity-70"
+                :aria-disabled="mancanoASaltare > 0 ? 'true' : 'false'"
+                data-salta
+                @click="salta"
+            >{{ mancanoASaltare > 0 ? $t('stream.salta_tra', { secondi: mancanoASaltare }) : $t('stream.salta') }}</button>
         </div>
 
         <!-- Telefono: la fascia sotto il riquadro, mai sopra il player. -->
@@ -429,13 +437,6 @@ defineExpose({ fase, modo });
 
         <div class="diretta-comandi mt-3 flex flex-wrap items-center justify-end gap-3 text-xs font-bold uppercase tracking-wider">
             <p v-if="simulato" class="diretta-ruota mr-auto normal-case tracking-normal text-white/70">{{ $t('stream.ruota') }}</p>
-            <a
-                v-if="linkDiretto"
-                :href="linkDiretto"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-white/70 hover:text-white"
-            >{{ $t('stream.open_external') }}</a>
             <button
                 type="button"
                 class="rounded-lg bg-white/10 px-3 py-2 text-white hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
@@ -513,8 +514,21 @@ defineExpose({ fase, modo });
 }
 
 .diretta-con-sponsor:fullscreen .diretta-comandi,
-.diretta-con-sponsor--simulato .diretta-comandi {
+.diretta-con-sponsor--simulato .diretta-comandi,
+.diretta-con-sponsor:fullscreen .diretta-fascia-mobile,
+.diretta-con-sponsor--simulato .diretta-fascia-mobile,
+.diretta-con-sponsor:fullscreen [data-comandi-spot],
+.diretta-con-sponsor--simulato [data-comandi-spot] {
+    /* Nel contenitore centrato la fascia (che ha solo un rapporto, senza
+       larghezza propria) si restringeva a zero e spariva. */
     width: min(100%, calc((100vh - 4.5rem) * 16 / 9));
+}
+
+/* L'invito a girare il telefono serve solo finché è in verticale. */
+@media (orientation: landscape) {
+    .diretta-ruota {
+        display: none;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

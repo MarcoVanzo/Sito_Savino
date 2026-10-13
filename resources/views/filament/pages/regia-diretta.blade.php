@@ -24,7 +24,7 @@
         @if (! $this->abilitata())
             <x-filament::section>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                    Gli sponsor nella diretta sono spenti: si accendono da Sponsor → «Diretta e sponsor».
+                    Gli sponsor nella diretta sono spenti: si accendono da Sponsor → Diretta.
                 </p>
             </x-filament::section>
         @elseif ($riepilogo === null)
@@ -32,7 +32,7 @@
                 <p class="text-sm text-gray-600 dark:text-gray-300">
                     Questa gara non ha ancora una diretta con sponsor.
                     @if ($this->urlDellaGara())
-                        Impostala dalla <a href="{{ $this->urlDellaGara() }}" class="font-semibold text-primary-600 underline">scheda della partita</a> → «Diretta e sponsor».
+                        Impostala da <a href="{{ $this->urlDellaGara() }}" class="font-semibold text-primary-600 underline">Sponsor → Diretta</a> → «Imposta».
                     @endif
                 </p>
             </x-filament::section>
