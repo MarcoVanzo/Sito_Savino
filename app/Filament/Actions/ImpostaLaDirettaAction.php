@@ -12,6 +12,8 @@ use App\Services\Diretta\StatoPubblicoDellaDiretta;
 use App\Support\Diretta\CicloDellaCornice;
 use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
+use App\Support\LiveStream;
+use Closure;
 use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Notifications\Notification;
@@ -187,9 +189,17 @@ class ImpostaLaDirettaAction
                         // Finisce in un `href` e, se incorporabile, in un `src`:
                         // solo indirizzi web.
                         ->rule('url:http,https')
+                        // Il tifoso resta sul sito: si accettano solo i link
+                        // che il sito sa mostrare nella sua finestra. Il link
+                        // del canale (`/@canale/live`) non è un video.
+                        ->rule(fn (): Closure => function (string $attribute, mixed $valore, Closure $fail): void {
+                            if (filled($valore) && LiveStream::embedUrl((string) $valore) === null) {
+                                $fail('Questo link non si può mostrare dentro il sito. Usa il link della singola diretta (YouTube: Condividi → Copia link, es. https://youtube.com/live/…), non quello del canale.');
+                            }
+                        })
                         ->maxLength(500)
-                        ->placeholder('es. https://www.youtube.com/watch?v=...')
-                        ->helperText('Con un link YouTube, Vimeo, Twitch o Dailymotion la diretta si apre in una finestra dentro al sito. Altri indirizzi si aprono in una scheda nuova.'),
+                        ->placeholder('es. https://youtube.com/live/AbC123xyz')
+                        ->helperText('Il link della singola diretta: YouTube, Vimeo, Twitch o Dailymotion. Su YouTube: programma la diretta, poi Condividi → Copia link; la diretta deve consentire l\'incorporamento.'),
                 ]),
             Forms\Components\Section::make('Sponsor')
                 ->description(fn (): string => Diretta::abilitata()

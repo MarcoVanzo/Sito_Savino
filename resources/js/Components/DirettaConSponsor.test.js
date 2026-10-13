@@ -120,6 +120,14 @@ describe('DirettaConSponsor', () => {
         expect(seconda.find('[data-preroll]').exists()).toBe(false);
     });
 
+    it('in prova lo spot si rivede anche se già visto nella scheda', async () => {
+        sessionStorage.setItem('diretta-preroll-visto:42', '1');
+        const diretta = monta({ sponsor: { gara: 42, prova: true, preroll: { salta_dopo: 5, creativita: [video] } } });
+        await nextTick();
+
+        expect(diretta.find('[data-preroll]').exists()).toBe(true);
+    });
+
     it('uno spot che non si carica non ferma la diretta', async () => {
         const diretta = monta();
         await nextTick();

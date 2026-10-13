@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\MetaOAuthController;
+use App\Http\Controllers\DirettaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\PaymentVerificationController;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -107,6 +108,13 @@ Route::middleware(['auth', EnsureUserIsActive::class])
         Route::get('/connect', [MetaOAuthController::class, 'connect'])->name('connect');
         Route::get('/callback', [MetaOAuthController::class, 'callback'])->name('callback');
     });
+
+// La prova della diretta con sponsor per lo staff (Sponsor → Diretta →
+// «Prova»): fuori dal pannello per avere la pagina e le regole di sicurezza che
+// vede il tifoso; il controller verifica che l'utente curi gli sponsor.
+Route::get('/prova-diretta/{game}', [DirettaController::class, 'prova'])
+    ->middleware(['auth', EnsureUserIsActive::class])
+    ->name('diretta.prova');
 
 Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::prefix('profile')->name('profile.')->group(function () {

@@ -104,7 +104,9 @@ const salta = () => {
  * fase iniziale l'iframe (e la lettura dello stato) partirebbero per un
  * istante prima dello spot.
  */
-const scelto = prerollGiaVisto(props.sponsor?.gara) ? null : sceltaDelPreroll(props.sponsor?.preroll);
+// In prova (staff) lo spot si rivede a ogni apertura.
+const inProva = Boolean(props.sponsor?.prova);
+const scelto = !inProva && prerollGiaVisto(props.sponsor?.gara) ? null : sceltaDelPreroll(props.sponsor?.preroll);
 
 if (scelto) {
     spot.value = scelto;
@@ -116,7 +118,9 @@ const avviaPreroll = () => {
         return;
     }
 
-    segnaPrerollVisto(props.sponsor.gara);
+    if (!inProva) {
+        segnaPrerollVisto(props.sponsor.gara);
+    }
     emit('evento', { evento: 'preroll_avviato', creativita: scelto.id });
 
     orologio = setInterval(() => {
@@ -158,6 +162,7 @@ const statoDellaDiretta = useStatoDellaDiretta({
     statoUrl: props.sponsor?.stato ?? null,
     oraUrl: props.sponsor?.ora ?? null,
     attivo: inDiretta,
+    statoDiProva: props.sponsor?.stato_prova ?? null,
 });
 const inOnda = computed(() => props.contenuto ?? statoDellaDiretta.contenuto.value);
 

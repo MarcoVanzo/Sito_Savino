@@ -173,6 +173,13 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
             ])
             ->actions([
                 ImpostaLaDirettaAction::make(),
+                // La diretta come la vedrà il tifoso, anche a interruttore spento.
+                Tables\Actions\Action::make('prova')
+                    ->label('Prova')
+                    ->icon('heroicon-o-eye')
+                    ->color('gray')
+                    ->url(fn (Game $record): string => route('diretta.prova', $record))
+                    ->openUrlInNewTab(),
             ])
             ->paginated([10, 25, 50]);
     }

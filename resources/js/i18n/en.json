@@ -1193,7 +1193,14 @@
         "accanto": "Next to the live stream: {sponsor}",
         "tutto_schermo": "Full screen",
         "esci_tutto_schermo": "Exit full screen",
-        "ruota": "Turn your phone sideways to watch it bigger."
+        "ruota": "Turn your phone sideways to watch it bigger.",
+        "prova_titolo": "Live stream test",
+        "prova_occhiello": "Staff-only test",
+        "prova_spiegazione": "This is the live stream as fans will see it, with the spots and frames chosen for the match. Only sponsor managers can open this page: fans cannot see it and nothing is counted in the report. To see it straight away, the frame appears as soon as the stream starts and then every minute.",
+        "prova_interruttore_spento": "Sponsors in the live stream are still switched off: on the site fans see the stream without sponsors until you switch them on.",
+        "prova_senza_link": "This match has no YouTube, Vimeo, Twitch or Dailymotion link yet: add it from «Imposta».",
+        "prova_senza_sponsor": "This match has no sponsors with active graphics yet: choose them from «Imposta». Meanwhile the stream opens without sponsors.",
+        "prova_torna": "Back to Diretta"
     },
     "palmares": {
         "open_hint": "See her honours",

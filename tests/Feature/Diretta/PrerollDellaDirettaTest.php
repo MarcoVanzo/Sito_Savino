@@ -342,4 +342,26 @@ class PrerollDellaDirettaTest extends TestCase
             ->assertSee('Cornice autunno')
             ->assertSee('adt-colonna', false);
     }
+
+    #[Test]
+    public function il_link_del_canale_si_rifiuta_quello_della_diretta_no(): void
+    {
+        $this->comunicazione();
+        $gara = $this->gara();
+
+        Livewire::test(DirettaSettingsPage::class)
+            ->callTableAction('imposta', $gara, ['stream_url' => 'https://www.youtube.com/@savinodelbene/live'])
+            ->assertHasTableActionErrors(['stream_url']);
+
+        Livewire::test(DirettaSettingsPage::class)
+            ->callTableAction('imposta', $gara, [
+                'stream_url' => 'https://youtube.com/live/AbC123xyz9',
+                'preroll_attivo' => false, 'preroll_salta_dopo_secondi' => 5, 'sponsor' => [],
+                'ciclo_attivo' => true, 'ciclo_ogni_minuti' => 10, 'ciclo_durata_secondi' => 15,
+                'ciclo_ritardo_minuti' => 5, 'pausa_durata_predefinita_secondi' => 180,
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertSame('https://youtube.com/live/AbC123xyz9', $gara->refresh()->stream_url);
+    }
 }
