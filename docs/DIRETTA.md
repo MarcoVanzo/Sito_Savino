@@ -19,7 +19,9 @@ mai sopra. Funziona tutto anche senza nessuno in regia.
 
 Sponsor → **Diretta**, in fondo alla pagina: l'interruttore «Sponsor nella
 diretta».
-Spento, la diretta sul sito è quella di sempre. Nella stessa pagina ci sono i
+Spento, la diretta sul sito è quella di sempre, anche per chi la sta già
+guardando (gli sponsor spariscono entro una decina di secondi): è anche il
+freno d'emergenza. Nella stessa pagina ci sono i
 valori di partenza per ogni gara nuova (ogni quanti minuti compare la cornice,
 per quanti secondi, quanti minuti dopo l'inizio della gara, durata degli spot
 mandati dalla regia).
@@ -31,8 +33,8 @@ diretta** → «Nuova grafica». Ogni sponsor ha le sue.
 
 - **Dove va in onda**: «Prima della diretta» (pre-roll) o «Cornice durante la
   gara».
-- **Tipo**: video o immagine (non si cambia dopo il caricamento: per cambiare
-  tipo si crea un'altra creatività).
+- **Tipo**: video o immagine. Tipo e «Dove va in onda» non si cambiano dopo il
+  caricamento: per cambiarli si crea un'altra creatività.
 - **Testo alternativo**: cosa mostra la creatività, per chi non vede le
   immagini. Obbligatorio per le immagini.
 - **Link dello sponsor**: si apre in una nuova scheda, senza fermare la diretta.
@@ -40,7 +42,8 @@ diretta** → «Nuova grafica». Ogni sponsor ha le sue.
   non va in onda.
 
 Il pannello controlla i file al caricamento e dice cosa non va (misure, durata,
-peso). Dalla stessa sezione si scarica il **modello della cornice**
+peso, audio nelle cornici, video ruotati, MP4 «frammentati» di cui non si legge
+la durata: vanno esportati come MP4 normali). Dalla stessa sezione si scarica il **modello della cornice**
 (`modello-cornice-1920x1080.png`) con le zone segnate, da mandare allo sponsor.
 
 ## 3. Formati da chiedere allo sponsor
@@ -59,7 +62,10 @@ della cornice.
 
 Da evitare: lampeggi e cambi di colore rapidi, testi troppo piccoli (la
 colonna sul sito è larga circa 240 px su un portatile). L'audio dello spot
-parte spento; chi chiede meno animazioni nel sistema vede lo spot fermo.
+parte spento; chi chiede meno animazioni nel sistema vede lo spot fermo (con
+«Guarda lo spot» per farlo partire). Spot e cornici video hanno un pulsante di
+pausa. Se il telefono non fa partire lo spot (risparmio energetico), dura come
+un'immagine e poi parte la diretta: lo spot non blocca mai la partita.
 
 ## 4. Preparare la diretta di una gara
 
@@ -82,19 +88,20 @@ Salvando, il sito riceve le impostazioni entro una decina di secondi.
 
 ## 5. Regia dal telefono (facoltativa)
 
-Sponsor → **Regia diretta**, dal telefono a bordo campo. Si apre sulla gara di
-oggi; in alto lo stato, il conto alla rovescia dello spot in corso e l'ora del
+Sponsor → **Regia diretta**, dal telefono a bordo campo. Si apre sulla prima
+gara non ancora finita che ha la diretta impostata; in alto lo stato, il conto alla rovescia dello spot in corso e l'ora del
 prossimo ciclo.
 
 - **Pausa tra i set**: le cornici in rotazione, per la durata predefinita.
-  Intanto il ciclo automatico tace.
+  Intanto il ciclo automatico tace. Spenta se nessuna cornice della gara è
+  valida oggi.
 - **Mostra…**: una cornice scelta, per i secondi indicati.
 - **Fine pausa**: chiude subito lo spot in corso.
 - **Sospendi / Riprendi ciclo**: ferma o riavvia il ciclo automatico.
 - **Riparti da adesso**: il ciclo riprende a contare da ora (il primo sponsor
   esce fra un intervallo).
 - **Spegni tutto** (chiede conferma): nessuno sponsor durante la gara finché
-  non si preme **Riaccendi**. Il pre-roll resta.
+  non si preme **Riaccendi**, che riaccende anche il ciclo. Il pre-roll resta.
 
 Il pubblico vede il cambio entro circa dieci secondi. Ogni azione resta nel
 registro delle attività con il nome di chi l'ha fatta.
@@ -106,7 +113,12 @@ visti fino in fondo e saltati, tasso di completamento, cornici mostrate (ciclo
 e regia) e clic. Si filtra per gara e sponsor; **Esporta CSV** scarica il file
 da mandare allo sponsor (si apre in Excel).
 
-I numeri sono contatori anonimi: nessun dato di chi guarda, nessun cookie.
+I numeri sono contatori anonimi: nessun dato di chi guarda, nessun cookie. Si
+contano solo attorno alla gara (da un'ora prima a un'ora dopo la fine del
+ciclo) e solo eventi coerenti con la grafica (un «completato» solo per uno
+spot del pre-roll). Cancellare una grafica o uno sponsor non cancella il
+report: le righe restano con il loro nome. Meglio comunque spegnerle che
+cancellarle.
 
 ## Per chi sviluppa
 

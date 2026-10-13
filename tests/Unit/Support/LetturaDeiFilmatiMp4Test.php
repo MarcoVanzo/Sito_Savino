@@ -24,6 +24,7 @@ class LetturaDeiFilmatiMp4Test extends TestCase
             'durata' => 2.0,
             'larghezza' => 1920,
             'altezza' => 1080,
+            'ruotato' => false,
             'video' => 'avc1',
             'audio' => 'mp4a',
         ], FilmatoMp4::leggi($this->fixture('spot-1920x1080-2s.mp4')));
@@ -44,6 +45,26 @@ class LetturaDeiFilmatiMp4Test extends TestCase
     public function trova_l_intestazione_anche_in_fondo_al_file(): void
     {
         $this->assertSame(31.0, FilmatoMp4::leggi($this->fixture('spot-1920x1080-31s-moov-in-fondo.mp4'))['durata']);
+    }
+
+    /** Girato in verticale col telefono: 1920×1080 dichiarati più una rotazione. */
+    #[Test]
+    public function si_accorge_di_un_video_ruotato(): void
+    {
+        $filmato = FilmatoMp4::leggi($this->fixture('spot-1920x1080-ruotato.mp4'));
+
+        $this->assertSame(1920, $filmato['larghezza']);
+        $this->assertTrue($filmato['ruotato']);
+    }
+
+    /**
+     * `ffmpeg -movflags frag_keyframe`, 40 s: `mvhd` ne dichiara 10 (il primo
+     * pezzo) e non c'è `mehd`. La durata è ignota, non 10.
+     */
+    #[Test]
+    public function di_un_mp4_frammentato_senza_durata_complessiva_non_si_fida(): void
+    {
+        $this->assertSame(0.0, FilmatoMp4::leggi($this->fixture('spot-1920x1080-40s-frammentato.mp4'))['durata']);
     }
 
     #[Test]

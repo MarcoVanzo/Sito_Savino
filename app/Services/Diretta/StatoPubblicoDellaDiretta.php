@@ -3,8 +3,10 @@
 namespace App\Services\Diretta;
 
 use App\Enums\StatoDellaDiretta;
+use App\Enums\UsoCreativita;
 use App\Models\LiveCreative;
 use App\Models\LiveSession;
+use App\Support\Diretta\ImpostazioniDellaDiretta;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -28,7 +30,7 @@ class StatoPubblicoDellaDiretta
     public const CARTELLA = 'diretta';
 
     /** Fin dove guardare avanti quando una creatività cambia. */
-    private const GIORNI_DA_RIPUBBLICARE = 30;
+    public const GIORNI_DA_RIPUBBLICARE = 30;
 
     public function percorso(int $gara): string
     {
@@ -60,59 +62,60 @@ class StatoPubblicoDellaDiretta
     }
 
     /**
-     * Ripubblica le dirette delle gare da ieri ai prossimi giorni: sono
-     * poche, e cercare quelle che usano una creatività non funziona dopo una
-     * cancellazione (le righe ponte se ne vanno con lei).
-     */
-    public function ripubblicaLeDiretteVicine(): int
-    {
-        $pubblicate = 0;
-
-        LiveSession::query()
-            ->whereHas('game', fn ($gara) => $gara->whereBetween('match_date', [
-                now()->subDay(),
-                now()->addDays(self::GIORNI_DA_RIPUBBLICARE),
-            ]))
-            ->each(function (LiveSession $sessione) use (&$pubblicate): void {
-                $pubblicate += (int) $this->pubblica($sessione);
-            });
-
-        return $pubblicate;
-    }
-
-    /**
+     * Il JSON è uno per tutte le lingue: il testo alternativo viaggia con
+     * tutte le traduzioni e il browser sceglie quella della pagina.
+     *
+     * Con l'interruttore generale spento la diretta risulta inattiva: chi ha
+     * la pagina aperta smette di vedere gli sponsor alla lettura successiva.
+     *
      * @return array<string, mixed>
      */
     public function contenuto(LiveSession $sessione): array
     {
         $sessione->loadMissing(['creativitaDellaGara.media', 'creativitaDellaGara.sponsor', 'creativitaInOnda.media', 'creativitaInOnda.sponsor']);
         $oggi = now()->toDateString();
-        $inPausa = $sessione->stato === StatoDellaDiretta::Pausa;
+        $stato = ImpostazioniDellaDiretta::abilitata() ? $sessione->stato : StatoDellaDiretta::Inattiva;
+        $inPausa = $stato === StatoDellaDiretta::Pausa;
 
         return [
             'versione' => $sessione->versione,
             'ora_server' => now()->toIso8601String(),
-            'stato' => $sessione->stato->value,
+            'stato' => $stato->value,
             'dalle' => $inPausa ? $sessione->pausa_dalle?->toIso8601String() : null,
             'fino_alle' => $inPausa ? $sessione->pausa_fino_alle?->toIso8601String() : null,
             'ciclo' => [
-                'attivo' => $sessione->ciclo_attivo && $sessione->stato !== StatoDellaDiretta::Inattiva,
+                'attivo' => $sessione->ciclo_attivo && $stato !== StatoDellaDiretta::Inattiva,
                 'inizio' => $sessione->ciclo_inizio?->toIso8601String(),
                 'fine' => $sessione->ciclo_fine?->toIso8601String(),
                 'ogni_minuti' => $sessione->ciclo_ogni_minuti,
                 'durata_secondi' => $sessione->ciclo_durata_secondi,
             ],
             'contenuto' => $inPausa && $sessione->creativitaInOnda !== null
-                ? [...$sessione->creativitaInOnda->perIlSito(), 'durata' => $this->secondiDellaPausa($sessione)]
+                ? [...$this->creativita($sessione->creativitaInOnda), 'durata' => $this->secondiDellaPausa($sessione)]
                 : null,
-            'playlist' => $sessione->creativitaDellaGara
-                ->filter(fn (LiveCreative $c): bool => $c->attiva
+            'playlist' => $stato === StatoDellaDiretta::Inattiva ? [] : $sessione->creativitaDellaGara
+                ->filter(fn (LiveCreative $c): bool => $c->uso === UsoCreativita::Cornice
+                    && $c->attiva
                     && ($c->valida_al === null || $c->valida_al->toDateString() >= $oggi)
                     && $c->getFirstMedia(LiveCreative::COLLEZIONE_CONTENUTO) !== null)
-                ->map(fn (LiveCreative $c): array => $c->perIlSito())
+                ->map(fn (LiveCreative $c): array => $this->creativita($c))
                 ->values()
                 ->all(),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function creativita(LiveCreative $creativita): array
+    {
+        $alt = [];
+
+        foreach (config('app.supported_locales', ['it', 'en']) as $locale) {
+            $alt[$locale] = (string) $creativita->getTranslation('testo_alternativo', $locale);
+        }
+
+        return [...$creativita->perIlSito(), 'alt' => $alt];
     }
 
     private function secondiDellaPausa(LiveSession $sessione): int

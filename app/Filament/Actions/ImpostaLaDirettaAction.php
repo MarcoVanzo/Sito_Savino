@@ -8,7 +8,7 @@ use App\Models\LiveCreative;
 use App\Models\LiveSession;
 use App\Models\Sponsor;
 use App\Observers\CacheInvalidationObserver;
-use App\Services\Diretta\StatoPubblicoDellaDiretta;
+use App\Services\Diretta\RegiaDellaDiretta;
 use App\Support\Diretta\CicloDellaCornice;
 use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
@@ -44,9 +44,7 @@ class ImpostaLaDirettaAction
             ->fillForm(fn (Game $record): array => self::valori($record, LiveSession::perLaGaraSenzaCrearla($record)))
             ->form(fn (Game $record): array => self::campi($record))
             ->action(function (Game $record, array $data): void {
-                $sessione = self::salva($record, $data);
-
-                if (app(StatoPubblicoDellaDiretta::class)->pubblica($sessione)) {
+                if (self::salva($record, $data)) {
                     Notification::make()->title('Diretta salvata')->success()->send();
 
                     return;
@@ -61,47 +59,63 @@ class ImpostaLaDirettaAction
     }
 
     /**
+     * Salva la diretta della gara passando dalla regia (lock, versione,
+     * JSON pubblicato dalla riga bloccata): salvata insieme a un pulsante
+     * della regia, una delle due andava persa per chi guarda.
+     *
+     * Restituisce se il JSON del sito è stato scritto.
+     *
      * @param  array<string, mixed>  $data
      */
-    public static function salva(Game $game, array $data): LiveSession
+    public static function salva(Game $game, array $data): bool
     {
-        return DB::transaction(function () use ($game, $data): LiveSession {
+        [$preroll, $cornici] = self::grafiche($data['sponsor'] ?? []);
+
+        return DB::transaction(function () use ($game, $data, $preroll, $cornici): bool {
             if (array_key_exists('stream_url', $data)) {
                 $game->update(['stream_url' => filled($data['stream_url']) ? trim((string) $data['stream_url']) : null]);
             }
 
-            $sessione = LiveSession::perLaGara($game);
-            [$preroll, $cornici] = self::grafiche($data['sponsor'] ?? []);
-
-            $sessione->fill([
-                'preroll_attivo' => (bool) ($data['preroll_attivo'] ?? false),
-                // Nascosto con lo spot spento: resta il valore di prima.
-                'preroll_salta_dopo_secondi' => (int) ($data['preroll_salta_dopo_secondi'] ?? $sessione->preroll_salta_dopo_secondi),
-                'ciclo_attivo' => (bool) ($data['ciclo_attivo'] ?? false),
-                'ciclo_ogni_minuti' => (int) $data['ciclo_ogni_minuti'],
-                'ciclo_durata_secondi' => (int) $data['ciclo_durata_secondi'],
-                'ciclo_ritardo_minuti' => (int) $data['ciclo_ritardo_minuti'],
-                'pausa_durata_predefinita_secondi' => (int) $data['pausa_durata_predefinita_secondi'],
-            ]);
-
-            // L'inizio del ciclo si ricalcola solo se cambia il ritardo: un
-            // «Riparti da adesso» della regia non va perso salvando altro.
-            if ($sessione->isDirty('ciclo_ritardo_minuti') || $sessione->ciclo_inizio === null) {
-                $sessione->ciclo_inizio = LiveSession::orariDelCiclo($game, $sessione->ciclo_ritardo_minuti)['ciclo_inizio'];
-            }
-
-            $sessione->ciclo_fine ??= LiveSession::orariDelCiclo($game, $sessione->ciclo_ritardo_minuti)['ciclo_fine'];
-            $sessione->versione++;
-            $sessione->save();
-
-            $sessione->ordina('creativitaDelPreroll', $preroll);
-            $sessione->ordina('creativitaDellaGara', $cornici);
+            $pubblicato = app(RegiaDellaDiretta::class)->cambia(
+                LiveSession::perLaGara($game),
+                fn (LiveSession $sessione) => self::applica($sessione, $game, $data, $preroll, $cornici),
+            );
 
             // Il pre-roll viaggia nelle pagine in cache di home e calendario.
             DB::afterCommit(fn () => app(CacheInvalidationObserver::class)->svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE));
 
-            return $sessione;
+            return $pubblicato;
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  list<int>  $preroll
+     * @param  list<int>  $cornici
+     */
+    private static function applica(LiveSession $sessione, Game $game, array $data, array $preroll, array $cornici): void
+    {
+        $sessione->fill([
+            'preroll_attivo' => (bool) ($data['preroll_attivo'] ?? false),
+            // Nascosto con lo spot spento: resta il valore di prima.
+            'preroll_salta_dopo_secondi' => (int) ($data['preroll_salta_dopo_secondi'] ?? $sessione->preroll_salta_dopo_secondi),
+            'ciclo_attivo' => (bool) ($data['ciclo_attivo'] ?? false),
+            'ciclo_ogni_minuti' => (int) $data['ciclo_ogni_minuti'],
+            'ciclo_durata_secondi' => (int) $data['ciclo_durata_secondi'],
+            'ciclo_ritardo_minuti' => (int) $data['ciclo_ritardo_minuti'],
+            'pausa_durata_predefinita_secondi' => (int) $data['pausa_durata_predefinita_secondi'],
+        ]);
+
+        // L'inizio del ciclo si ricalcola solo se cambia il ritardo: un
+        // «Riparti da adesso» della regia non va perso salvando altro.
+        if ($sessione->isDirty('ciclo_ritardo_minuti') || $sessione->ciclo_inizio === null) {
+            $sessione->ciclo_inizio = LiveSession::orariDelCiclo($game, $sessione->ciclo_ritardo_minuti)['ciclo_inizio'];
+        }
+
+        $sessione->ciclo_fine ??= LiveSession::orariDelCiclo($game, $sessione->ciclo_ritardo_minuti)['ciclo_fine'];
+
+        $sessione->ordina('creativitaDelPreroll', $preroll);
+        $sessione->ordina('creativitaDellaGara', $cornici);
     }
 
     /**
@@ -211,7 +225,10 @@ class ImpostaLaDirettaAction
                         ->schema([
                             Forms\Components\Select::make('sponsor_id')
                                 ->label('Sponsor')
-                                ->options(fn (): array => Sponsor::query()->whereHas('liveCreatives', fn ($q) => $q->where('attiva', true))->orderBy('name')->pluck('name', 'id')->all())
+                                // Anche quelli con le grafiche tutte spente: uno già
+                                // scelto per la gara non deve diventare un valore
+                                // non ammesso che blocca il salvataggio.
+                                ->options(fn (): array => Sponsor::query()->whereHas('liveCreatives')->orderBy('name')->pluck('name', 'id')->all())
                                 ->searchable()
                                 ->required()
                                 ->distinct()
@@ -219,14 +236,14 @@ class ImpostaLaDirettaAction
                                 ->helperText('Compaiono gli sponsor con almeno una grafica: si caricano nella scheda dello sponsor.'),
                             Forms\Components\CheckboxList::make('preroll')
                                 ->label('Spot prima della diretta')
-                                ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll))
+                                ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll, $get('preroll') ?? []))
                                 ->live()
-                                ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll) !== []),
+                                ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Preroll, $get('preroll') ?? []) !== []),
                             Forms\Components\CheckboxList::make('cornici')
                                 ->label('Cornici durante la gara')
-                                ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice))
+                                ->options(fn (Get $get): array => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice, $get('cornici') ?? []))
                                 ->live()
-                                ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice) !== []),
+                                ->visible(fn (Get $get): bool => self::graficheDelloSponsor((int) $get('sponsor_id'), UsoCreativita::Cornice, $get('cornici') ?? []) !== []),
                             Forms\Components\Placeholder::make('anteprima')
                                 ->label('Anteprima')
                                 ->content(fn (Get $get): HtmlString => self::anteprimaDelleGrafiche(
@@ -235,7 +252,7 @@ class ImpostaLaDirettaAction
                                 ))
                                 ->visible(fn (Get $get): bool => self::ids($get('preroll') ?? []) !== [] || self::ids($get('cornici') ?? []) !== []),
                         ])
-                        ->itemLabel(fn (array $state): ?string => Sponsor::query()->whereKey($state['sponsor_id'] ?? 0)->value('name'))
+                        ->itemLabel(fn (array $state): ?string => self::nomiDegliSponsor()[(int) ($state['sponsor_id'] ?? 0)] ?? null)
                         ->reorderable()
                         ->collapsible()
                         ->defaultItems(0)
@@ -298,26 +315,48 @@ class ImpostaLaDirettaAction
     }
 
     /**
-     * Le grafiche attive dello sponsor per un uso, come opzioni da spuntare.
+     * I nomi degli sponsor per le etichette del Repeater: una query sola per
+     * richiesta invece di una per voce a ogni aggiornamento del modulo.
      *
      * @return array<int, string>
      */
-    private static function graficheDelloSponsor(int $sponsor, UsoCreativita $uso): array
+    private static function nomiDegliSponsor(): array
+    {
+        return once(fn (): array => Sponsor::query()->pluck('name', 'id')->all());
+    }
+
+    /**
+     * Le grafiche attive dello sponsor per un uso, come opzioni da spuntare,
+     * più quelle già scelte per la gara e poi spente: segnate, perché si
+     * possano vedere e togliere. Senza, restavano agganciate di nascosto e
+     * tornavano in onda appena riaccese.
+     *
+     * @param  array<int|string, mixed>  $scelte
+     * @return array<int, string>
+     */
+    private static function graficheDelloSponsor(int $sponsor, UsoCreativita $uso, array $scelte = []): array
     {
         if ($sponsor === 0) {
             return [];
         }
 
+        $scelte = self::ids($scelte);
+
         return LiveCreative::query()
             ->where('sponsor_id', $sponsor)
             ->where('uso', $uso)
-            ->where('attiva', true)
+            ->where(fn ($q) => $q->where('attiva', true)->orWhereKey($scelte))
             ->orderBy('nome')
             ->get()
-            ->mapWithKeys(fn (LiveCreative $c): array => [$c->id => $c->nome.' ('.$c->tipo->getLabel().', '.$c->durata_secondi.' s)'])
+            ->mapWithKeys(fn (LiveCreative $c): array => [$c->id => $c->nome.' ('.$c->tipo->getLabel().', '.$c->durata_secondi.' s)'.($c->attiva ? '' : ' — spenta, non va in onda')])
             ->all();
     }
 
+    /**
+     * I primi cicli come andranno davvero: con il ritardo invariato valgono
+     * gli orari salvati, che tengono conto di «Riparti da adesso» e della
+     * gara spostata.
+     */
     private static function anteprima(Game $game, Get $get): string
     {
         if (! $get('ciclo_attivo')) {
@@ -325,7 +364,11 @@ class ImpostaLaDirettaAction
         }
 
         $ogni = (int) $get('ciclo_ogni_minuti');
-        $orari = LiveSession::orariDelCiclo($game, (int) $get('ciclo_ritardo_minuti'));
+        $sessione = LiveSession::perLaGaraSenzaCrearla($game);
+        $orari = $sessione->exists && $sessione->ciclo_inizio !== null && $sessione->ciclo_fine !== null
+            && (int) $get('ciclo_ritardo_minuti') === $sessione->ciclo_ritardo_minuti
+                ? ['ciclo_inizio' => $sessione->ciclo_inizio, 'ciclo_fine' => $sessione->ciclo_fine]
+                : LiveSession::orariDelCiclo($game, (int) $get('ciclo_ritardo_minuti'));
         $istanti = CicloDellaCornice::primiIstanti($orari['ciclo_inizio'], $orari['ciclo_fine'], $ogni);
 
         if ($istanti === []) {

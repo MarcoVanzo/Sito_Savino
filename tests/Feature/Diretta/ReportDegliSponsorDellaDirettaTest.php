@@ -35,7 +35,8 @@ class ReportDegliSponsorDellaDirettaTest extends TestCase
         parent::setUp();
         SiteSetting::set('diretta_sponsor_abilitata', '1');
 
-        $this->gara = Game::factory()->create();
+        // Gli eventi contano solo attorno alla gara.
+        $this->gara = Game::factory()->create(['match_date' => now()->subMinutes(30)]);
         $sponsor = Sponsor::factory()->create(['name' => 'Estra']);
         $this->spot = LiveCreative::factory()->create(['sponsor_id' => $sponsor->id, 'nome' => 'Spot 15"']);
         $this->cornice = LiveCreative::factory()->create(['sponsor_id' => $sponsor->id, 'nome' => 'Cornice', 'uso' => UsoCreativita::Cornice]);
@@ -78,7 +79,7 @@ class ReportDegliSponsorDellaDirettaTest extends TestCase
         $this->evento('preroll_completato')->assertNoContent();
 
         $this->assertSame(
-            ['conteggio', 'created_at', 'evento', 'game_id', 'giorno', 'id', 'live_creative_id', 'updated_at'],
+            ['conteggio', 'created_at', 'creativita_nome', 'evento', 'game_id', 'giorno', 'id', 'live_creative_id', 'sponsor_nome', 'updated_at'],
             collect(array_keys(LiveAdStat::query()->sole()->getAttributes()))->sort()->values()->all(),
         );
     }
@@ -102,13 +103,62 @@ class ReportDegliSponsorDellaDirettaTest extends TestCase
     }
 
     #[Test]
-    public function oltre_trenta_al_minuto_per_indirizzo_si_ferma(): void
+    public function oltre_centoventi_al_minuto_per_indirizzo_si_ferma(): void
     {
-        foreach (range(1, 30) as $volta) {
+        foreach (range(1, 120) as $volta) {
             $this->evento('ciclo_mostrato', $this->cornice->id)->assertNoContent();
         }
 
         $this->evento('ciclo_mostrato', $this->cornice->id)->assertTooManyRequests();
+    }
+
+    #[Test]
+    public function fuori_dal_tempo_della_gara_o_dall_uso_della_grafica_non_si_conta(): void
+    {
+        // Un «completato» su una cornice, un ciclo su uno spot del pre-roll.
+        $this->evento('preroll_completato', $this->cornice->id)->assertUnprocessable();
+        $this->evento('ciclo_mostrato', $this->spot->id)->assertUnprocessable();
+
+        // Pre-roll spento per la gara: i suoi eventi non sono possibili.
+        LiveSession::query()->update(['preroll_attivo' => false]);
+        $this->evento('preroll_avviato')->assertUnprocessable();
+
+        // Tre giorni dopo la gara non guarda nessuno.
+        $this->travel(3)->days();
+        $this->evento('clic', $this->cornice->id)->assertUnprocessable();
+
+        $this->assertSame(0, LiveAdStat::count());
+    }
+
+    #[Test]
+    public function cancellare_la_grafica_o_lo_sponsor_non_cancella_il_report(): void
+    {
+        LiveAdStat::conta($this->gara->id, $this->spot->id, EventoDellaDiretta::PrerollAvviato);
+        LiveAdStat::conta($this->gara->id, $this->cornice->id, EventoDellaDiretta::Clic);
+        $sponsor = $this->spot->sponsor;
+
+        $this->spot->delete();
+        $righe = collect(app(ReportDellaDiretta::class)->righe(sponsor: $sponsor->id))->keyBy('creativita');
+        $this->assertSame(1, $righe['Spot 15"']['preroll_avviati']);
+        $this->assertSame('Estra', $righe['Spot 15"']['sponsor']);
+
+        $sponsor->delete();
+        $this->assertSame(0, LiveCreative::count());
+        $righe = collect(app(ReportDellaDiretta::class)->righe())->keyBy('creativita');
+        $this->assertSame(['Cornice', 'Spot 15"'], $righe->keys()->sort()->values()->all());
+        $this->assertSame(1, $righe['Cornice']['clic']);
+    }
+
+    #[Test]
+    public function il_report_mette_prima_le_gare_piu_recenti_secondo_la_data_vera(): void
+    {
+        $gennaio = Game::factory()->create(['match_date' => '2027-01-31 20:30:00']);
+        $ottobre = Game::factory()->create(['match_date' => '2026-10-13 20:30:00']);
+        LiveAdStat::conta($ottobre->id, $this->spot->id, EventoDellaDiretta::Clic);
+        LiveAdStat::conta($gennaio->id, $this->spot->id, EventoDellaDiretta::Clic);
+
+        // Come testo «31/01/2027» veniva prima di «13/10/2026».
+        $this->assertSame(['31/01/2027 20:30', '13/10/2026 20:30'], array_column(app(ReportDellaDiretta::class)->righe(sponsor: $this->spot->sponsor_id), 'data'));
     }
 
     #[Test]

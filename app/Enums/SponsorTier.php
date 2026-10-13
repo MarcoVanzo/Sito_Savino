@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use App\Models\SiteSetting;
 use Filament\Support\Contracts\HasLabel;
 
 /**
@@ -36,17 +37,36 @@ enum SponsorTier: string implements HasLabel
     case Silver = 'silver';
     case Standard = 'standard';
 
+    /**
+     * I nomi scelti dalla redazione (Sponsor → «Nomi delle sezioni»), lingua
+     * per lingua: `{"it": {"health": "…"}, "en": {…}}`. Un livello senza nome
+     * scritto usa `nomePredefinito()`.
+     */
+    public const CHIAVE_DEI_NOMI = 'sponsor_nomi_delle_sezioni';
+
     public function getLabel(): string
+    {
+        $nomi = SiteSetting::get(self::CHIAVE_DEI_NOMI);
+        $nome = is_array($nomi) ? trim((string) ($nomi[$this->value] ?? '')) : '';
+
+        return $nome !== '' ? $nome : $this->nomePredefinito();
+    }
+
+    /**
+     * Il nome del livello quando la redazione non ne ha scritto uno, nella
+     * lingua data (quella in uso se manca).
+     */
+    public function nomePredefinito(?string $locale = null): string
     {
         return match ($this) {
             self::Title => 'Title Sponsor',
             self::Main => 'Main Sponsor',
             self::Premium => 'Premium Partner',
             self::Mobility => 'Mobility Partner',
-            self::Technical => __('Sponsor Tecnico'),
-            self::Water => __('Acqua Ufficiale'),
+            self::Technical => __('Sponsor Tecnico', [], $locale),
+            self::Water => __('Acqua Ufficiale', [], $locale),
             self::Sister => 'Sister Companies',
-            self::Health => 'Health Partner',
+            self::Health => 'Health & Performance Partner',
             self::Coffee => 'Official Coffee',
             self::Sustainability => 'Sustainability Partner',
             self::Official => 'Official Partner',
@@ -73,6 +93,24 @@ enum SponsorTier: string implements HasLabel
             self::Premium, self::Mobility, self::Technical, self::Water, self::Silver => 'medium',
             default => 'small',
         };
+    }
+
+    /**
+     * Livelli che la redazione può rinominare: gli storici restano fuori.
+     *
+     * @return list<self>
+     */
+    public static function rinominabili(): array
+    {
+        $rinominabili = [];
+
+        foreach (self::cases() as $tier) {
+            if (! in_array($tier, [self::Gold, self::Silver, self::Standard], true)) {
+                $rinominabili[] = $tier;
+            }
+        }
+
+        return $rinominabili;
     }
 
     /**

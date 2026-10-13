@@ -45,7 +45,9 @@ class CicloDellaCornice
      */
     public static function prossimo(CarbonInterface $inizio, CarbonInterface $fine, int $ogniMinuti, int $durataSecondi, CarbonInterface $adesso): ?array
     {
-        if ($ogniMinuti <= 0 || $adesso->greaterThanOrEqualTo($fine)) {
+        // Un ciclo cominciato prima di `fine` arriva in fondo anche dopo, come
+        // nel browser: il controllo su `fine` sta sull'inizio del ciclo, sotto.
+        if ($ogniMinuti <= 0) {
             return null;
         }
 

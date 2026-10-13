@@ -6,7 +6,9 @@ use App\Filament\Actions\ImpostaLaDirettaAction;
 use App\Filament\Resources\SponsorResource;
 use App\Models\Game;
 use App\Models\LiveCreative;
+use App\Models\SiteSetting;
 use App\Observers\CacheInvalidationObserver;
+use App\Services\Diretta\RegiaDellaDiretta;
 use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta as Diretta;
 use Filament\Forms\Components\Actions\Action;
@@ -55,26 +57,46 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
         return (bool) auth()->user()?->role?->canManageSponsors();
     }
 
+    /**
+     * Solo le impostazioni della diretta, non `parent::mount()`: quella
+     * carica nel modulo tutte le impostazioni del sito, e lo stato di
+     * Livewire finisce nella pagina. Qui entra anche la comunicazione, che
+     * non deve vedere indirizzi degli avvisi e configurazioni interne.
+     */
     public function mount(): void
     {
-        parent::mount();
+        $data = [];
 
-        // Le chiavi nude arrivano col valore grezzo ('0'), che per il
-        // browser è una stringa piena, cioè un interruttore acceso.
-        foreach (['diretta_sponsor_abilitata', 'diretta_ciclo_attivo'] as $chiave) {
-            $this->data[$chiave] = filter_var($this->data[$chiave] ?? false, FILTER_VALIDATE_BOOLEAN);
+        foreach (Diretta::PREDEFINITI as $chiave => $predefinito) {
+            $data[$chiave] = SiteSetting::get($chiave, $predefinito);
         }
+
+        // I valori salvati arrivano grezzi ('0'), che per il browser è una
+        // stringa piena, cioè un interruttore acceso.
+        foreach (['diretta_sponsor_abilitata', 'diretta_ciclo_attivo'] as $chiave) {
+            $data[$chiave] = filter_var($data[$chiave], FILTER_VALIDATE_BOOLEAN);
+        }
+
+        $this->form->fill($data);
     }
 
     /**
      * Home e calendario tengono in cache il pre-roll delle gare: accendere o
      * spegnere l'interruttore deve vedersi subito, come salvare una diretta.
+     * Chi ha già la diretta aperta lo sa dal JSON, che si ripubblica: spento
+     * l'interruttore a gara in corso, gli sponsor spariscono anche a lui.
      */
     public function save(): void
     {
+        $prima = Diretta::abilitata();
+
         parent::save();
 
         app(CacheInvalidationObserver::class)->svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE);
+
+        if (Diretta::abilitata() !== $prima) {
+            app(RegiaDellaDiretta::class)->ripubblicaLeDiretteVicine();
+        }
     }
 
     protected function valoriPredefiniti(): array
@@ -141,7 +163,7 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
             ->description('Le gare della società da due giorni fa in avanti: «Imposta» per il link della diretta, gli sponsor e le loro grafiche.')
             ->query(
                 Game::query()
-                    ->with(['homeTeam', 'awayTeam', 'liveSession.creativitaDelPreroll', 'liveSession.creativitaDellaGara'])
+                    ->with(['homeTeam', 'awayTeam', 'liveSession.creativitaDelPreroll.sponsor', 'liveSession.creativitaDellaGara.sponsor'])
                     ->where(fn (Builder $q) => $q
                         ->whereHas('homeTeam', fn (Builder $t) => $t->where('is_internal', true))
                         ->orWhereHas('awayTeam', fn (Builder $t) => $t->where('is_internal', true)))
@@ -155,7 +177,7 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
                 Tables\Columns\TextColumn::make('partita')
                     ->label('Partita')
                     ->getStateUsing(fn (Game $record): string => $record->homeTeam?->nomePubblico().' – '.$record->awayTeam?->nomePubblico())
-                    ->description(fn (Game $record): string => (string) $record->competition_type?->value),
+                    ->description(fn (Game $record): string => (string) $record->competition_type?->getLabel()),
                 Tables\Columns\IconColumn::make('con_link')
                     ->label('Link')
                     ->boolean()
@@ -195,7 +217,6 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
 
         return $sessione->creativitaDelPreroll
             ->merge($sessione->creativitaDellaGara)
-            ->loadMissing('sponsor')
             ->map(fn (LiveCreative $c): string => (string) $c->sponsor?->name)
             ->unique()
             ->implode(', ');

@@ -53,6 +53,21 @@ class LiveCreative extends Model implements HasMedia
     protected string $logLabelField = 'nome';
 
     /**
+     * Prima di andarsene la grafica lascia il suo nome e quello dello
+     * sponsor sui contatori, che restano (creatività a `null`): il report
+     * di una campagna finita serve ancora allo sponsor.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (LiveCreative $creativita): void {
+            LiveAdStat::query()->where('live_creative_id', $creativita->id)->update([
+                'sponsor_nome' => $creativita->sponsor()->value('name'),
+                'creativita_nome' => $creativita->nome,
+            ]);
+        });
+    }
+
+    /**
      * @return array<string, string|class-string>
      */
     protected function casts(): array

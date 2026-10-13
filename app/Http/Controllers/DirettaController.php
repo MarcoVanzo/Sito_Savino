@@ -10,6 +10,7 @@ use App\Models\LiveSession;
 use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
 use App\Support\LiveStream;
+use App\Support\MatchDay;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -56,15 +57,44 @@ class DirettaController extends Controller
         ]);
 
         $creativita = (int) $dati['creativita'];
-        $inOnda = $creativita === $sessione->creativita_in_onda_id
-            || $sessione->creativitaDelPreroll()->whereKey($creativita)->exists()
-            || $sessione->creativitaDellaGara()->whereKey($creativita)->exists();
+        $evento = EventoDellaDiretta::from($dati['evento']);
 
-        abort_unless($inOnda, 422);
+        abort_unless($this->nelTempoDellaGara($game, $sessione) && $this->possibile($sessione, $evento, $creativita), 422);
 
-        LiveAdStat::conta($game->id, $creativita, EventoDellaDiretta::from($dati['evento']));
+        LiveAdStat::conta($game->id, $creativita, $evento);
 
         return response()->noContent();
+    }
+
+    /**
+     * Gli eventi contano solo attorno alla gara: un'ora prima del fischio
+     * d'inizio (il pre-roll si vede aprendo la diretta in anticipo) e fino a
+     * un'ora dopo la fine del ciclo. Fuori, nessuno sta guardando la diretta.
+     */
+    private function nelTempoDellaGara(Game $game, LiveSession $sessione): bool
+    {
+        $fine = $sessione->ciclo_fine ?? $game->match_date->copy()->addHours(MatchDay::ORE_DOPO_L_INIZIO);
+
+        return now()->between($game->match_date->copy()->subHour(), $fine->copy()->addHour());
+    }
+
+    /**
+     * L'evento è coerente con dove la creatività va in onda: un pre-roll
+     * solo per gli spot del pre-roll acceso, una cornice solo per quelle
+     * della gara. Senza, uno script poteva riempire il report di
+     * «completati» su una cornice.
+     */
+    private function possibile(LiveSession $sessione, EventoDellaDiretta $evento, int $creativita): bool
+    {
+        $nelPreroll = fn (): bool => $sessione->preroll_attivo && $sessione->creativitaDelPreroll()->whereKey($creativita)->exists();
+        $nellaGara = fn (): bool => $sessione->creativitaDellaGara()->whereKey($creativita)->exists();
+
+        return match ($evento) {
+            EventoDellaDiretta::PrerollAvviato, EventoDellaDiretta::PrerollCompletato, EventoDellaDiretta::PrerollSaltato => $nelPreroll(),
+            EventoDellaDiretta::CicloMostrato => $nellaGara(),
+            EventoDellaDiretta::PausaMostrata => $creativita === $sessione->creativita_in_onda_id || $nellaGara(),
+            EventoDellaDiretta::Clic => $creativita === $sessione->creativita_in_onda_id || $nelPreroll() || $nellaGara(),
+        };
     }
 
     /**

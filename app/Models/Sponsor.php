@@ -35,6 +35,18 @@ class Sponsor extends Model implements HasMedia
     }
 
     /**
+     * Le grafiche della diretta se ne vanno una per una, non con la cascata
+     * del database: così si cancellano i loro file su Spaces, le dirette
+     * pubblicate si riscrivono senza di loro e il report ne tiene i nomi.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Sponsor $sponsor): void {
+            $sponsor->liveCreatives()->get()->each->delete();
+        });
+    }
+
+    /**
      * Gli spot e le cornici della diretta.
      *
      * @return HasMany<LiveCreative, $this>

@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Game;
-use App\Services\Diretta\StatoPubblicoDellaDiretta;
+use App\Services\Diretta\RegiaDellaDiretta;
 use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
 use Illuminate\Support\Carbon;
 
@@ -26,8 +26,8 @@ class SpostaLaDirettaConLaGara implements ShouldHandleEventsAfterCommit
 
         $sessione = $game->liveSession()->first();
 
-        if ($sessione !== null && $sessione->seguiLaGara(Carbon::parse($prima), $game->match_date)) {
-            app(StatoPubblicoDellaDiretta::class)->pubblica($sessione);
+        if ($sessione !== null) {
+            app(RegiaDellaDiretta::class)->seguiLaGara($sessione, Carbon::parse($prima), $game->match_date);
         }
     }
 }

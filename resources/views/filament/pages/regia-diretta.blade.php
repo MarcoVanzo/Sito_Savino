@@ -49,10 +49,19 @@
                 </div>
 
                 @if ($riepilogo['fino_alle'])
+                    {{-- La chiave cambia con la scadenza: senza, il poll di Livewire
+                         lasciava il conto sulla pausa precedente dopo «Mostra…». --}}
                     <p
+                        wire:key="fine-pausa-{{ $riepilogo['fino_alle'] }}"
                         class="mt-3 text-3xl font-bold tabular-nums"
-                        x-data="{ fine: new Date(@js($riepilogo['fino_alle'])).getTime(), resto: '' }"
-                        x-init="const passo = () => { const s = Math.max(0, Math.round((fine - Date.now()) / 1000)); resto = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }; passo(); setInterval(passo, 1000)"
+                        x-data="{
+                            fine: new Date(@js($riepilogo['fino_alle'])).getTime(),
+                            resto: '',
+                            orologio: null,
+                            passo() { const s = Math.max(0, Math.round((this.fine - Date.now()) / 1000)); this.resto = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); },
+                            init() { this.passo(); this.orologio = setInterval(() => this.passo(), 1000); },
+                            destroy() { clearInterval(this.orologio); },
+                        }"
                         x-text="resto"
                         aria-live="off"
                     ></p>
@@ -73,7 +82,8 @@
                 @if ($this->finePausaAction->isVisible()) {{ $this->finePausaAction }} @endif
                 @if ($this->mostraAction->isVisible()) {{ $this->mostraAction }} @endif
                 <div class="grid grid-cols-2 gap-3">
-                    @if ($this->cicloAction->isVisible()) {{ $this->cicloAction }} @endif
+                    @if ($this->sospendiCicloAction->isVisible()) {{ $this->sospendiCicloAction }} @endif
+                    @if ($this->riprendiCicloAction->isVisible()) {{ $this->riprendiCicloAction }} @endif
                     @if ($this->ripartiDaAdessoAction->isVisible()) {{ $this->ripartiDaAdessoAction }} @endif
                 </div>
                 @if ($this->riaccendiAction->isVisible()) {{ $this->riaccendiAction }} @endif

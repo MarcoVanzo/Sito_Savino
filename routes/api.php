@@ -65,7 +65,11 @@ Route::get('/diretta/ora', [DirettaController::class, 'ora'])
     ->middleware('throttle:30,1,api.diretta.ora')
     ->name('api.diretta.ora');
 
-// I contatori del report sponsor: anonimi, 30 al minuto per indirizzo.
+// I contatori del report sponsor: anonimi, 120 al minuto per indirizzo. Uno
+// spettatore ne manda pochi all'ora, ma dietro la NAT di un operatore
+// mobile molti tifosi escono con lo stesso IP, e con 30 i loro eventi si
+// perdevano in silenzio (sendBeacon non vede il 429). Le regole su tempo e
+// uso della creatività stanno nel controller.
 Route::post('/diretta/{game}/eventi', [DirettaController::class, 'eventi'])
-    ->middleware('throttle:30,1,api.diretta.eventi')
+    ->middleware('throttle:120,1,api.diretta.eventi')
     ->name('api.diretta.eventi');

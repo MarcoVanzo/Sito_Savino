@@ -26,6 +26,17 @@ const close = () => emit('close');
 const conSponsor = computed(() => Boolean(props.stream?.sponsor));
 
 const dialogEl = ref(null);
+const diretta = ref(null);
+
+// Esc col fuoco fuori dal contenitore (dentro l'iframe o sullo sfondo) arriva
+// alla finestra come `cancel`: a tutto schermo simulato deve chiudere quello,
+// non la diretta.
+const allAnnullamento = (evento) => {
+    if (diretta.value?.simulato) {
+        evento.preventDefault();
+        diretta.value.esci();
+    }
+};
 
 // `showModal()` mette la finestra nel top layer: il fuoco resta dentro, l'Esc
 // la chiude e lo sfondo lo disegna ::backdrop. Prima erano tre cose scritte a
@@ -64,9 +75,10 @@ onBeforeUnmount(() => {
         class="live-stream-dialog"
         :aria-label="stream?.title || $t('stream.modal_title')"
         @close="close"
+        @cancel="allAnnullamento"
         @click.self="close"
     >
-        <div v-if="isOpen" class="w-full max-w-5xl">
+        <div v-if="isOpen" class="live-stream-finestra w-full max-w-5xl">
             <div class="flex items-center justify-between gap-4 mb-3">
                 <p class="text-white font-bold uppercase tracking-wider text-sm truncate">
                     <span class="inline-flex items-center gap-2">
@@ -88,6 +100,7 @@ onBeforeUnmount(() => {
 
             <DirettaConSponsor
                 v-if="conSponsor"
+                ref="diretta"
                 :src="stream.embedUrl"
                 :titolo="stream?.title || $t('stream.modal_title')"
                 :sponsor="stream.sponsor"
@@ -121,13 +134,22 @@ onBeforeUnmount(() => {
     padding: 1rem;
     border: 0;
     background: transparent;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .live-stream-dialog[open] {
     display: flex;
-    align-items: center;
+    align-items: safe center;
     justify-content: center;
+}
+
+/* Su un portatile basso (1366×768) il 16:9 a tutta larghezza, con testata e
+   comandi, non ci stava: tagliava la X in alto e «Salta» in basso. La
+   larghezza si ricava dall'altezza disponibile (11,5rem = margini, testata,
+   comandi dello spot e del tutto schermo). */
+.live-stream-finestra {
+    max-width: min(64rem, calc((100dvh - 11.5rem) * 16 / 9));
+    min-width: min(100%, 30rem);
 }
 
 .live-stream-dialog::backdrop {

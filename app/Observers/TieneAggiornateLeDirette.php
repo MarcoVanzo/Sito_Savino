@@ -14,11 +14,11 @@ class TieneAggiornateLeDirette
 {
     public function saved(LiveCreative $creativita): void
     {
-        RipubblicaLoStatoDelleDirette::dispatchAfterResponse();
+        RipubblicaLoStatoDelleDirette::richiedi();
     }
 
     public function deleted(LiveCreative $creativita): void
     {
-        RipubblicaLoStatoDelleDirette::dispatchAfterResponse();
+        RipubblicaLoStatoDelleDirette::richiedi();
     }
 }

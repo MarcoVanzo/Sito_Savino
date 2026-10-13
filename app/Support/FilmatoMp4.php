@@ -12,7 +12,11 @@ namespace App\Support;
  * (ISO/IEC 14496-12) e quelle che servono sono poche.
  *
  * - `moov/mvhd`: scala dei tempi e durata del filmato;
- * - `moov/trak/tkhd`: larghezza e altezza della traccia (virgola fissa 16.16);
+ * - `moov/mvex/mehd`: la durata degli MP4 frammentati (OBS, `ffmpeg
+ *   -movflags frag_keyframe`), che in `mvhd` hanno solo il primo pezzo;
+ * - `moov/trak/tkhd`: larghezza e altezza della traccia (virgola fissa 16.16)
+ *   e la matrice di trasformazione (un video girato in verticale col
+ *   telefono dichiara 1920×1080 e una rotazione);
  * - `moov/trak/mdia/hdlr`: se la traccia è video (`vide`) o audio (`soun`);
  * - `moov/trak/mdia/minf/stbl/stsd`: la codifica (`avc1` = H.264, `mp4a` = AAC).
  *
@@ -25,7 +29,7 @@ class FilmatoMp4
     private const MOOV_MASSIMO = 16 * 1024 * 1024;
 
     /**
-     * @return array{durata: float, larghezza: int, altezza: int, video: ?string, audio: ?string}|null
+     * @return array{durata: float, larghezza: int, altezza: int, ruotato: bool, video: ?string, audio: ?string}|null
      */
     public static function leggi(string $percorso): ?array
     {
@@ -35,15 +39,17 @@ class FilmatoMp4
             return null;
         }
 
-        $risultato = ['durata' => 0.0, 'larghezza' => 0, 'altezza' => 0, 'video' => null, 'audio' => null];
+        $risultato = ['durata' => 0.0, 'larghezza' => 0, 'altezza' => 0, 'ruotato' => false, 'video' => null, 'audio' => null];
         $durataTrovata = false;
+        $scala = 0;
 
         foreach (self::figli($moov) as [$tipo, $corpo]) {
             if ($tipo === 'mvhd') {
-                $durata = self::durataDaMvhd($corpo);
+                $tempi = self::tempiDaMvhd($corpo);
 
-                if ($durata !== null) {
-                    $risultato['durata'] = $durata;
+                if ($tempi !== null) {
+                    [$scala, $durata] = $tempi;
+                    $risultato['durata'] = (float) ($durata / $scala);
                     $durataTrovata = true;
                 }
             }
@@ -55,10 +61,27 @@ class FilmatoMp4
                     $risultato['video'] = $traccia['codifica'];
                     $risultato['larghezza'] = $traccia['larghezza'];
                     $risultato['altezza'] = $traccia['altezza'];
+                    $risultato['ruotato'] = $traccia['ruotato'];
                 }
 
                 if ($traccia['tipo'] === 'soun' && $risultato['audio'] === null) {
                     $risultato['audio'] = $traccia['codifica'];
+                }
+            }
+        }
+
+        // Frammentato (c'è `mvex`): `mvhd` dice solo la parte descritta in
+        // `moov`, il resto sta nei frammenti (un file da 40 s ne dichiarava
+        // 10). Vale la durata di `mehd`; senza, la durata è ignota (0) e chi
+        // chiama rifiuta il file.
+        if ($durataTrovata && self::scatoleNelPercorso($moov, ['mvex']) !== []) {
+            $risultato['durata'] = 0.0;
+
+            foreach (self::scatoleNelPercorso($moov, ['mvex', 'mehd']) as $mehd) {
+                $frammenti = self::durataDaMehd($mehd);
+
+                if ($frammenti !== null) {
+                    $risultato['durata'] = (float) ($frammenti / $scala);
                 }
             }
         }
@@ -163,7 +186,12 @@ class FilmatoMp4
         return $figli;
     }
 
-    private static function durataDaMvhd(string $corpo): ?float
+    /**
+     * Scala dei tempi (positiva) e durata nella stessa unità.
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    private static function tempiDaMvhd(string $corpo): ?array
     {
         $versione = ord($corpo[0] ?? "\0");
 
@@ -183,15 +211,26 @@ class FilmatoMp4
             $durata = unpack('N', substr($corpo, 16, 4))[1];
         }
 
-        return $scala > 0 ? $durata / $scala : null;
+        return $scala > 0 ? [$scala, $durata] : null;
+    }
+
+    private static function durataDaMehd(string $corpo): ?int
+    {
+        $versione = ord($corpo[0] ?? "\0");
+
+        if ($versione === 1) {
+            return strlen($corpo) >= 12 ? unpack('J', substr($corpo, 4, 8))[1] : null;
+        }
+
+        return strlen($corpo) >= 8 ? unpack('N', substr($corpo, 4, 4))[1] : null;
     }
 
     /**
-     * @return array{tipo: ?string, codifica: ?string, larghezza: int, altezza: int}
+     * @return array{tipo: ?string, codifica: ?string, larghezza: int, altezza: int, ruotato: bool}
      */
     private static function traccia(string $trak): array
     {
-        $traccia = ['tipo' => null, 'codifica' => null, 'larghezza' => 0, 'altezza' => 0];
+        $traccia = ['tipo' => null, 'codifica' => null, 'larghezza' => 0, 'altezza' => 0, 'ruotato' => false];
 
         foreach (self::figli($trak) as [$tipo, $corpo]) {
             if ($tipo === 'tkhd') {
@@ -199,6 +238,13 @@ class FilmatoMp4
                 if (strlen($corpo) >= 8) {
                     $traccia['larghezza'] = unpack('N', substr($corpo, -8, 4))[1] >> 16;
                     $traccia['altezza'] = unpack('N', substr($corpo, -4, 4))[1] >> 16;
+                }
+
+                // Prima delle misure, la matrice 3×3: a, b, u, c, d, v, x, y, w.
+                // Senza rotazione né ribaltamento a = d = 1.0 e b = c = 0.
+                if (strlen($corpo) >= 44) {
+                    [, $a, $b, , $c, $d] = unpack('N5', substr($corpo, -44, 20));
+                    $traccia['ruotato'] = ! ($a === 0x00010000 && $b === 0 && $c === 0 && $d === 0x00010000);
                 }
             }
 

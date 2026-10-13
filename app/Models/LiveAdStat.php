@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  */
 class LiveAdStat extends Model
 {
-    protected $fillable = ['game_id', 'live_creative_id', 'evento', 'giorno', 'conteggio'];
+    protected $fillable = ['game_id', 'live_creative_id', 'sponsor_nome', 'creativita_nome', 'evento', 'giorno', 'conteggio'];
 
     /**
      * @return array<string, string|class-string>
