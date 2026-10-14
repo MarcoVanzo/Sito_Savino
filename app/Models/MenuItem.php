@@ -6,11 +6,11 @@ use App\Enums\PostStatus;
 use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use App\Support\DocumentiLegali;
+use App\Support\RottaDelPercorso;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -366,8 +366,7 @@ class MenuItem extends Model implements HasMedia
 
         try {
             // Match the request against Laravel's routing system to find the matching route
-            $request = Request::create($cleanUrl, 'GET');
-            $route = app('router')->getRoutes()->match($request);
+            $route = RottaDelPercorso::trova($cleanUrl);
             $routeName = $route->getName();
 
             if ($routeName) {

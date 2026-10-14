@@ -119,7 +119,7 @@ class IndirizziPerLingua
     public static function perPercorso(string $percorso, string $lingua): ?string
     {
         try {
-            $rotta = Route::getRoutes()->match(Request::create($percorso, 'GET'));
+            $rotta = RottaDelPercorso::trova($percorso);
         } catch (Throwable) {
             return null;
         }

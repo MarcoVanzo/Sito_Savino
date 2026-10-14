@@ -382,21 +382,5 @@ onUnmounted(() => {
             </div>
         </section>
 
-        <!-- JSON-LD Structured Data -->
-        <component :is="'script'" type="application/ld+json">
-            {{ JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'Product',
-                name: currentAuction.title,
-                description: currentAuction.description,
-                image: mainImage,
-                offers: {
-                    '@type': 'Offer',
-                    price: displayPrice,
-                    priceCurrency: 'EUR',
-                    availability: currentAuction.is_active ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut',
-                },
-            }) }}
-        </component>
     </PublicLayout>
 </template>

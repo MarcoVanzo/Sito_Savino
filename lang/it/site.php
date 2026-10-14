@@ -34,9 +34,19 @@ return [
             'title' => 'Stagione',
             'description' => 'Roster, staff tecnico e medico della stagione corrente della Savino Del Bene Volley.',
         ],
-        'vivaio' => [
-            'title' => 'Settore Giovanile',
-            'description' => 'Le squadre del vivaio della Savino Del Bene Volley: rose, staff e campionati.',
+        // Una chiave per squadra: con una sola le tre pagine del vivaio
+        // avevano titolo e descrizione identici.
+        'vivaio-b1' => [
+            'title' => 'Serie B1 e Under 19 — rosa e staff',
+            'description' => 'La rosa e lo staff della squadra di Serie B1 e Under 19 del settore giovanile Savino Del Bene Volley: campionato nazionale di Serie B1 femminile e Under 19.',
+        ],
+        'vivaio-u17' => [
+            'title' => 'Under 17 — rosa e staff',
+            'description' => 'La rosa e lo staff della squadra Under 17 del settore giovanile Savino Del Bene Volley, al via nei campionati di Serie C e Under 17.',
+        ],
+        'vivaio-u15' => [
+            'title' => 'Under 15 — rosa e staff',
+            'description' => 'La rosa e lo staff della squadra Under 15 del settore giovanile Savino Del Bene Volley, al via nei campionati di Seconda Divisione e Under 15.',
         ],
         'risultati' => [
             'title' => 'Calendario e Risultati',
@@ -91,8 +101,81 @@ return [
             'description' => 'Contatta la Savino Del Bene Volley. Informazioni, sede e recapiti.',
         ],
         'atleta' => [
-            'title' => ':nome',
-            'description' => ':nome nella rosa della Savino Del Bene Volley: numeri, foto e palmarès.',
+            'title' => ':nome — :ruolo',
+            'description' => ':nome, :ruolo della Savino Del Bene Volley in Serie A1: scheda, statistiche della stagione, carriera, palmarès, notizie e foto.',
+            'description_senza_ruolo' => ':nome della Savino Del Bene Volley in Serie A1: scheda, statistiche della stagione, carriera, palmarès, notizie e foto.',
+        ],
+        'partita' => [
+            'title' => ':casa - :ospite :risultato, :competizione :data',
+            'description' => 'Partita :casa - :ospite del :data (:competizione): risultato, parziali dei set e tabellino con le statistiche delle atlete.',
+        ],
+        'prodotto' => [
+            'description' => ':nome: articolo ufficiale della Savino Del Bene Volley nello shop online della squadra.',
+        ],
+        'shop-categoria' => [
+            'description' => ':nome nello shop ufficiale della Savino Del Bene Volley: tutti gli articoli della categoria, con taglie e disponibilità.',
+        ],
+        'shop-cerca' => [
+            'title' => 'Cerca nello shop',
+            'description' => 'Cerca maglie, abbigliamento e accessori nello shop ufficiale della Savino Del Bene Volley.',
+        ],
+        'shop-guida-taglie' => [
+            'title' => 'Guida alle taglie',
+            'description' => 'Le misure di maglie e abbigliamento dello shop ufficiale della Savino Del Bene Volley, per scegliere la taglia giusta.',
+        ],
+        'shop-contatti' => [
+            'title' => 'Contatti dello shop',
+            'description' => 'Assistenza su ordini, spedizioni e resi dello shop ufficiale della Savino Del Bene Volley.',
+        ],
+        'asta' => [
+            'description' => ':nome: asta benefica della Savino Del Bene Volley.',
+        ],
+        'carrello' => [
+            'title' => 'Carrello',
+            'description' => 'Il carrello dello shop ufficiale della Savino Del Bene Volley.',
+        ],
+        'checkout' => [
+            'title' => 'Checkout',
+            'description' => 'Dati di spedizione e pagamento dell\'ordine nello shop della Savino Del Bene Volley.',
+        ],
+        'checkout-conferma' => [
+            'title' => 'Ordine ricevuto',
+            'description' => 'Conferma dell\'ordine nello shop della Savino Del Bene Volley.',
+        ],
+        'checkout-annullato' => [
+            'title' => 'Pagamento annullato',
+            'description' => 'Il pagamento dell\'ordine nello shop della Savino Del Bene Volley non è stato completato.',
+        ],
+        'account' => [
+            'title' => 'Il mio account',
+            'description' => 'I dati del tuo account nello shop della Savino Del Bene Volley.',
+        ],
+        'ordini' => [
+            'title' => 'I miei ordini',
+            'description' => 'Gli ordini fatti nello shop della Savino Del Bene Volley.',
+        ],
+        'ordine' => [
+            'title' => 'Dettaglio ordine',
+            'description' => 'Stato e dettaglio di un ordine nello shop della Savino Del Bene Volley.',
+        ],
+        'registrati' => [
+            'title' => 'Registrati',
+            'description' => 'Crea un account nello shop della Savino Del Bene Volley.',
+        ],
+        'recesso' => [
+            'title' => 'Recesso',
+            'description' => 'Modulo di recesso online per gli acquisti nello shop della Savino Del Bene Volley.',
+        ],
+        'newsletter' => [
+            'title' => 'Newsletter',
+            'description' => 'Gestione dell\'iscrizione alla newsletter della Savino Del Bene Volley.',
+        ],
+        'in-costruzione' => [
+            'title' => 'Pagina in costruzione',
+            'description' => 'Questa sezione del sito della Savino Del Bene Volley è in preparazione.',
+        ],
+        'pagina' => [
+            'description' => ':nome: informazioni ufficiali della Savino Del Bene Volley, squadra di pallavolo femminile di Serie A1.',
         ],
         'gallery-atleta' => [
             'title' => 'Le foto di :nome',
@@ -102,6 +185,17 @@ return [
             'title' => ':nome',
             'description' => 'Le foto di «:nome» nella gallery ufficiale della Savino Del Bene Volley.',
         ],
+    ],
+
+    /*
+     * I ruoli delle atlete nei titoli delle schede (PlayerPosition).
+     */
+    'ruoli' => [
+        'palleggiatrice' => 'palleggiatrice',
+        'schiacciatrice' => 'schiacciatrice',
+        'opposto' => 'opposto',
+        'centrale' => 'centrale',
+        'libero' => 'libero',
     ],
 
     /*

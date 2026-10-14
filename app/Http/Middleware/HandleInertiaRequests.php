@@ -44,6 +44,11 @@ class HandleInertiaRequests extends Middleware
                 'url' => $request->getSchemeAndHttpHost(),
                 'location' => $request->url(),
             ],
+            // Titolo, descrizione e immagine calcolati sul server
+            // (ServeSocialCrawlerMeta): il client li usa così come sono, così
+            // il titolo della scheda è lo stesso dell'HTML servito. Null sulle
+            // pagine che il server non sa descrivere (errori, pannello).
+            'seo' => fn () => $this->metaDellaPagina($request),
             'auth' => [
                 'user' => $request->user()?->only('id', 'name', 'email', 'role'),
                 'passwordExpiry' => fn () => $this->passwordExpiryNotice($request),
@@ -69,6 +74,25 @@ class HandleInertiaRequests extends Middleware
                 'dsn' => SentryDsn::perIlBrowser(),
                 'environment' => config('sentry.environment') ?? app()->environment(),
             ],
+        ];
+    }
+
+    /**
+     * @return array{title: string, description: string, image: ?string, type: string}|null
+     */
+    private function metaDellaPagina(Request $request): ?array
+    {
+        $meta = $request->attributes->get(ServeSocialCrawlerMeta::ATTRIBUTO_META);
+
+        if (! is_array($meta)) {
+            return null;
+        }
+
+        return [
+            'title' => (string) $meta['title'],
+            'description' => (string) $meta['description'],
+            'image' => $meta['image'] ?? null,
+            'type' => (string) $meta['type'],
         ];
     }
 

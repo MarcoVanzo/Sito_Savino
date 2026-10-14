@@ -76,8 +76,8 @@ class SocialCrawlerMetaTest extends TestCase
 
         $html = $this->get("/shop/prodotto/{$product->slug}")->assertOk()->getContent();
 
-        $this->assertStringContainsString('<title inertia>Maglia gara 2026 — Savino Del Bene Volley</title>', $html);
-        $this->assertStringContainsString('<meta property="og:title" content="Maglia gara 2026 — Savino Del Bene Volley" inertia="og:title">', $html);
+        $this->assertStringContainsString('<title inertia>Maglia gara 2026 | Savino Del Bene Volley</title>', $html);
+        $this->assertStringContainsString('<meta property="og:title" content="Maglia gara 2026 | Savino Del Bene Volley" inertia="og:title">', $html);
         $this->assertStringContainsString('content="La maglia ufficiale della stagione." inertia="description"', $html);
         $this->assertStringContainsString('og:type" content="product"', $html);
     }
@@ -100,14 +100,21 @@ class SocialCrawlerMetaTest extends TestCase
         $this->assertStringContainsString('<meta property="og:title" content="Savino Del Bene Volley" inertia="og:title">', $html);
     }
 
+    /**
+     * Le visite Inertia ricevono titolo e descrizione nella prop `seo`, così
+     * il client non ne compone uno diverso; i dati strutturati no, servono
+     * solo all'HTML del primo caricamento.
+     */
     #[Test]
-    public function le_visite_inertia_non_calcolano_i_meta(): void
+    public function le_visite_inertia_ricevono_il_titolo_ma_non_i_dati_strutturati(): void
     {
-        $product = Product::factory()->create(['slug' => 'maglia-x', 'is_active' => true]);
+        $product = Product::factory()->create(['name' => 'Maglia X', 'slug' => 'maglia-x', 'is_active' => true]);
 
         $this->withHeaders(['X-Inertia' => 'true'])->get("/shop/prodotto/{$product->slug}");
 
-        $this->assertNull(request()->attributes->get(ServeSocialCrawlerMeta::ATTRIBUTO_META));
+        $meta = request()->attributes->get(ServeSocialCrawlerMeta::ATTRIBUTO_META);
+        $this->assertSame('Maglia X | Savino Del Bene Volley', $meta['title']);
+        $this->assertSame([], $meta['jsonld']);
     }
 
     #[Test]
@@ -131,7 +138,7 @@ class SocialCrawlerMetaTest extends TestCase
 
         // Il prefisso di lingua non deve più far cadere la pagina sul
         // fallback generico della home.
-        $response->assertSee('News —', false);
+        $response->assertSee('News | Savino Del Bene Volley', false);
     }
 
     #[Test]
@@ -183,7 +190,7 @@ class SocialCrawlerMetaTest extends TestCase
         $this->withHeaders(self::CRAWLER)
             ->get('/sponsor/hospitality')
             ->assertStatus(200)
-            ->assertSee('Hospitality —', false)
+            ->assertSee('Hospitality | Savino Del Bene Volley', false)
             ->assertSee('Pacchetti hospitality per le aziende', false);
     }
 
@@ -225,12 +232,12 @@ class SocialCrawlerMetaTest extends TestCase
         $this->withHeaders(self::CRAWLER)
             ->get('/stagione')
             ->assertStatus(200)
-            ->assertSee('Stagione — Savino Del Bene Volley', false);
+            ->assertSee('Stagione | Savino Del Bene Volley', false);
 
         $this->withHeaders(self::CRAWLER)
             ->get('/en/stagione')
             ->assertStatus(200)
-            ->assertSee('Season — Savino Del Bene Volley', false)
+            ->assertSee('Season | Savino Del Bene Volley', false)
             ->assertSee('lang="en"', false);
     }
 

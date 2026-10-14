@@ -2,8 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\GameStatus;
 use App\Enums\PostStatus;
 use App\Http\Controllers\PageController;
+use App\Models\Auction;
+use App\Models\Game;
+use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\Player;
 use App\Models\Post;
@@ -13,6 +17,7 @@ use App\Models\Roster;
 use App\Models\Season;
 use App\Models\Team;
 use App\Services\GalleryArchive;
+use App\Services\Seo\DatiStrutturati;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route as RoutingRoute;
@@ -20,15 +25,21 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Intercetta i crawler social (Facebook, Twitter, WhatsApp, Telegram, LinkedIn)
- * e serve loro una pagina HTML minimale con i meta tag og: corretti.
+ * I meta di ogni pagina pubblica, calcolati sul server: titolo, descrizione,
+ * immagine, dati strutturati (JSON-LD) e briciole di pane.
  *
- * Questo sostituisce SSR per le anteprime social a costo zero.
+ * Tre destinatari, una sola fonte:
+ * - i crawler dei social ricevono un HTML minimale con i meta og: (sostituisce
+ *   l'SSR a costo zero);
+ * - il primo caricamento di chiunque altro li trova nell'HTML del layout
+ *   (app.blade.php), JSON-LD compreso: senza SSR Google e chi non esegue il
+ *   JavaScript non vedrebbero altro;
+ * - le visite Inertia ricevono titolo e descrizione nella prop condivisa
+ *   `seo` (HandleInertiaRequests), che il client usa così com'è: il titolo
+ *   della scheda non cambia fra HTML del server e pagina disegnata.
  *
  * La pagina si riconosce dal NOME della rotta, non dal percorso: il nome è lo
- * stesso in tutte le lingue (`contatti`, `en.contatti`) mentre l'indirizzo no
- * (`/contatti`, `/en/contacts`). Con la tabella indicizzata per percorso ogni
- * pagina inglese con slug tradotto cadeva sul ripiego generico della home.
+ * stesso in tutte le lingue (`contatti`, `en.contatti`) mentre l'indirizzo no.
  *
  * Quello che non si sa descrivere passa oltre (`$next`): un'anteprima inventata
  * è peggio di quella statica del layout, e soprattutto il 301 delle sezioni
@@ -37,10 +48,16 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class ServeSocialCrawlerMeta
 {
-    private const SITE_NAME = 'Savino Del Bene Volley';
+    private const SITE_NAME = DatiStrutturati::NOME;
 
-    /** Coda del titolo di ogni pagina condivisa sui social. */
-    private const TITLE_SUFFIX = ' — '.self::SITE_NAME;
+    /** Coda del titolo di ogni pagina, col nome della società. */
+    private const TITLE_SUFFIX = ' | '.self::SITE_NAME;
+
+    /**
+     * Oltre questa lunghezza il titolo di una notizia perde la coda col nome
+     * della società invece di farsi troncare da Google a metà frase.
+     */
+    private const TITOLO_MAX = 60;
 
     /**
      * User-agent patterns dei crawler social.
@@ -63,18 +80,18 @@ class ServeSocialCrawlerMeta
      * Pagine senza una pagina del CMS da cui prendere i testi: nome della rotta
      * (senza prefisso di lingua) => chiave sotto `site.social` nelle traduzioni.
      *
-     * Ci stanno solo le rotte che disegnano una pagina. Le rotte di rimando
-     * (`risultati`, `societa`, `youth`, i redirect SEO del vecchio sito) e
-     * quelle private del carrello restano fuori di proposito.
+     * Ogni pagina ha la sua chiave: due rotte con gli stessi testi sono due
+     * pagine con titolo e descrizione duplicati (audit SEO del 14/10/2026).
+     * Le rotte di rimando (`risultati`, `societa`, `youth`, i redirect del
+     * vecchio sito) restano fuori di proposito: non disegnano una pagina.
      */
     private const ROUTE_META = [
         'home' => 'home',
         'stagione' => 'stagione',
-        'stagione.b1' => 'vivaio',
-        'stagione.u17' => 'vivaio',
-        'stagione.u15' => 'vivaio',
+        'stagione.b1' => 'vivaio-b1',
+        'stagione.u17' => 'vivaio-u17',
+        'stagione.u15' => 'vivaio-u15',
         'stagione.risultati' => 'risultati',
-        'stagione.partita' => 'risultati',
         'stagione.classifica' => 'classifica',
         'stagione.cev' => 'cev',
         'stagione.coppa-italia' => 'coppa-italia',
@@ -84,28 +101,54 @@ class ServeSocialCrawlerMeta
         'staff' => 'staff',
         'sponsor' => 'sponsor',
         'shop' => 'shop',
-        'shop.search' => 'shop',
-        'shop.size-guide' => 'shop',
-        'shop.contacts' => 'shop',
+        'shop.search' => 'shop-cerca',
+        'shop.size-guide' => 'shop-guida-taglie',
+        'shop.contacts' => 'shop-contatti',
         'shop.auctions.index' => 'aste',
-        'shop.auctions.show' => 'aste',
+        'shop.cart' => 'carrello',
+        'shop.checkout' => 'checkout',
+        'shop.checkout.success' => 'checkout-conferma',
+        'shop.checkout.cancel' => 'checkout-annullato',
+        'shop.auction-checkout.show' => 'checkout',
+        'shop.auction-checkout.success' => 'checkout-conferma',
+        'shop.auction-checkout.cancel' => 'checkout-annullato',
+        'shop.account' => 'account',
+        'shop.orders' => 'ordini',
+        'shop.order.show' => 'ordine',
+        'shop.register' => 'registrati',
+        'recesso' => 'recesso',
+        'recesso.ricevuta' => 'recesso',
+        'newsletter.conferma.show' => 'newsletter',
+        'newsletter.unsubscribe.show' => 'newsletter',
+        'in-costruzione' => 'in-costruzione',
         'news.index' => 'news',
         'contatti' => 'contatti',
+    ];
+
+    /**
+     * Le pagine del calendario e la competizione delle loro gare.
+     */
+    private const CALENDARI = [
+        'stagione.risultati' => 'Campionato',
+        'stagione.cev' => 'Champions League',
+        'stagione.coppa-italia' => 'Coppa Italia',
+        'stagione.playoff' => 'Playoff',
     ];
 
     /** Attributo della richiesta da cui app.blade.php legge i meta della pagina. */
     public const ATTRIBUTO_META = 'meta_della_pagina';
 
+    public function __construct(private readonly DatiStrutturati $dati) {}
+
     public function handle(Request $request, Closure $next): Response
     {
-        // Per tutti gli altri gli stessi meta finiscono nell'HTML iniziale del
-        // layout (app.blade.php): senza SSR, Google e chiunque legga l'HTML
-        // senza eseguire il JavaScript vedeva per ogni pagina il titolo e il
-        // logo della home (parere del 5/10/2026). Le visite Inertia (XHR)
-        // non disegnano il layout: lì non serve calcolarli.
         if (! self::isSocialCrawler($request)) {
-            if ($request->isMethod('GET') && ! $request->header('X-Inertia')) {
-                $meta = $this->resolveMeta($request);
+            if ($request->isMethod('GET')) {
+                // Le visite Inertia non disegnano il layout: a loro servono
+                // solo titolo e descrizione, per la prop `seo`. I dati
+                // strutturati si calcolano per il primo caricamento.
+                $conIDati = ! $request->header('X-Inertia');
+                $meta = $this->resolveMeta($request, $conIDati);
 
                 if ($meta !== null) {
                     $request->attributes->set(self::ATTRIBUTO_META, $this->perIlLayout($meta));
@@ -115,7 +158,7 @@ class ServeSocialCrawlerMeta
             return $next($request);
         }
 
-        $meta = $this->resolveMeta($request);
+        $meta = $this->resolveMeta($request, false);
 
         if ($meta === null) {
             return $next($request);
@@ -155,11 +198,14 @@ class ServeSocialCrawlerMeta
     }
 
     /**
-     * Meta tag della pagina richiesta, o null se non c'è niente da dire.
+     * Meta della pagina richiesta, o null se non c'è niente da dire.
+     *
+     * Con `$conIDati` aggiunge i blocchi JSON-LD (`jsonld`): costano qualche
+     * query in più e servono solo all'HTML del primo caricamento.
      *
      * @return array<string, mixed>|null
      */
-    private function resolveMeta(Request $request): ?array
+    private function resolveMeta(Request $request, bool $conIDati): ?array
     {
         $route = $request->route();
 
@@ -175,23 +221,80 @@ class ServeSocialCrawlerMeta
         // slug da `defaults()`, dove nel percorso non compare.
         if (str_starts_with((string) $route->getActionName(), PageController::class.'@show')) {
             $slug = $route->parameter('slug');
+            $meta = is_string($slug) ? $this->resolveCmsPageMeta($slug, $locale) : null;
 
-            return is_string($slug) ? $this->resolveCmsPageMeta($slug, $locale) : null;
+            return $meta !== null && $conIDati
+                ? $this->conLeBriciole($meta, $request, $locale)
+                : $meta;
         }
 
         $nome = $this->nomeDellaRotta($route, $locale);
 
-        return match ($nome) {
-            'news.show' => $this->resolveNewsMeta($this->slugDiRotta($route, 'slug'), $locale),
-            'shop.product' => $this->resolveProductMeta($this->slugDiRotta($route, 'product'), $locale),
-            'shop.category' => $this->resolveCategoryMeta($this->slugDiRotta($route, 'category'), $locale),
-            'stagione.atleta' => $this->resolvePlayerMeta($this->slugDiRotta($route, 'slug'), $locale, inRosa: true),
-            'gallery.atleta' => $this->resolvePlayerMeta($this->slugDiRotta($route, 'slug'), $locale, inRosa: false),
+        $meta = match ($nome) {
+            'news.show' => $this->resolveNewsMeta($this->slugDiRotta($route, 'slug'), $locale, $conIDati),
+            'shop.product' => $this->resolveProductMeta($this->slugDiRotta($route, 'product'), $locale, $conIDati),
+            'shop.category' => $this->resolveCategoryMeta($this->slugDiRotta($route, 'category'), $locale, $conIDati),
+            'shop.auctions.show' => $this->resolveAuctionMeta($route->parameter('auction'), $locale),
+            'stagione.atleta' => $this->resolvePlayerMeta($this->slugDiRotta($route, 'slug'), $locale, true, $conIDati),
+            'stagione.partita' => $this->resolveGameMeta($route->parameter('game'), $locale, $conIDati),
+            'gallery.atleta' => $this->resolvePlayerMeta($this->slugDiRotta($route, 'slug'), $locale, false, $conIDati),
             'gallery.album' => $this->resolveAlbumMeta($this->slugDiRotta($route, 'slug'), $locale),
             default => isset(self::ROUTE_META[$nome])
                 ? $this->metaTradotti(self::ROUTE_META[$nome], $locale)
                 : null,
         };
+
+        if ($meta === null || ! $conIDati) {
+            return $meta;
+        }
+
+        $meta['jsonld'] = [
+            ...($meta['jsonld'] ?? []),
+            ...$this->datiDellaPaginaFissa($nome, $locale),
+        ];
+
+        return $nome === 'home' ? $meta : $this->conLeBriciole($meta, $request, $locale);
+    }
+
+    /**
+     * JSON-LD delle pagine fisse: la società e il sito solo in home, con la
+     * gara da annunciare; le gare della società sulle pagine del calendario.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function datiDellaPaginaFissa(string $nome, string $locale): array
+    {
+        if ($nome === 'home') {
+            $gara = $this->dati->garaDellaHome();
+
+            return array_values(array_filter([
+                $this->dati->squadra(),
+                $this->dati->sito($locale),
+                $gara !== null ? $this->dati->gara($gara, $locale) : null,
+            ]));
+        }
+
+        if (isset(self::CALENDARI[$nome])) {
+            $stagione = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
+
+            if (! $stagione) {
+                return [];
+            }
+
+            $gare = Game::with(['homeTeam.media', 'awayTeam.media'])
+                ->withExists('playerStats')
+                ->where('season_id', $stagione->id)
+                ->where('competition_type', self::CALENDARI[$nome])
+                ->where(fn ($query) => $query
+                    ->whereHas('homeTeam', fn ($team) => $team->where('is_internal', true))
+                    ->orWhereHas('awayTeam', fn ($team) => $team->where('is_internal', true)))
+                ->orderBy('match_date')
+                ->get();
+
+            return $this->dati->gare($gare, $locale);
+        }
+
+        return [];
     }
 
     /**
@@ -237,7 +340,7 @@ class ServeSocialCrawlerMeta
     /**
      * @return array<string, mixed>|null
      */
-    private function resolveNewsMeta(string $slug, string $locale = 'it'): ?array
+    private function resolveNewsMeta(string $slug, string $locale, bool $conIDati): ?array
     {
         // `published()` è obbligatorio: senza, un `curl -A "WhatsApp"` sullo slug
         // di una bozza ne restituiva titolo ed estratto. Stesso scope usato da
@@ -253,25 +356,30 @@ class ServeSocialCrawlerMeta
         // esplicitamente nella lingua dell'URL, altrimenti l'anteprima inglese
         // riporta il testo italiano.
         $title = $this->translated($post, 'title', $locale);
+        $metaDescription = $this->translated($post, 'meta_description', $locale);
         $excerpt = $this->translated($post, 'excerpt', $locale);
         $content = $this->translated($post, 'content', $locale);
 
+        $description = $metaDescription !== '' ? $metaDescription : $excerpt;
+
         return [
             'title' => $title,
-            'description' => $excerpt !== '' ? $excerpt : mb_substr(strip_tags($content), 0, 160),
+            'description' => $description !== '' ? $description : mb_substr(strip_tags($content), 0, 160),
             'image' => $post->getFirstMediaUrl('cover') ?: null,
             'type' => 'article',
+            'jsonld' => $conIDati ? [$this->dati->notizia($post, $locale)] : [],
+            'briciole' => [['name' => $this->etichetta('news', $locale), 'url' => route($this->prefisso($locale).'news.index')]],
         ];
     }
 
     /**
      * @return array<string, mixed>|null
      */
-    private function resolveProductMeta(string $slug, string $locale): ?array
+    private function resolveProductMeta(string $slug, string $locale, bool $conIDati): ?array
     {
         // Il binding risolve qualunque prodotto: lo scope pubblico va riapplicato
         // qui, come per le bozze delle news.
-        $product = Product::shoppable()->where('slug', $slug)->first();
+        $product = Product::shoppable()->with(['media', 'category', 'variants'])->where('slug', $slug)->first();
 
         if (! $product) {
             return null;
@@ -283,19 +391,32 @@ class ServeSocialCrawlerMeta
             ? $short
             : mb_substr(strip_tags($this->translated($product, 'description', $locale)), 0, 160);
 
+        $briciole = [['name' => $this->etichetta('shop', $locale), 'url' => route($this->prefisso($locale).'shop')]];
+
+        if ($product->category) {
+            $briciole[] = [
+                'name' => $this->translated($product->category, 'name', $locale),
+                'url' => route($this->prefisso($locale).'shop.category', ['category' => $product->category->slug]),
+            ];
+        }
+
         return [
             'title' => $name,
-            'description' => $description,
+            'description' => $description !== ''
+                ? $description
+                : (string) __('site.social.prodotto.description', ['nome' => $name], $locale),
             'image' => $product->getFirstMediaUrl('images', 'card')
                 ?: ($product->getFirstMediaUrl('images') ?: null),
             'type' => 'product',
+            'jsonld' => $conIDati ? [$this->dati->prodotto($product, $locale)] : [],
+            'briciole' => $briciole,
         ];
     }
 
     /**
      * @return array<string, mixed>|null
      */
-    private function resolveCategoryMeta(string $slug, string $locale): ?array
+    private function resolveCategoryMeta(string $slug, string $locale, bool $conIDati): ?array
     {
         $categoria = ProductCategory::where('slug', $slug)->first();
 
@@ -304,13 +425,93 @@ class ServeSocialCrawlerMeta
         }
 
         $name = $this->translated($categoria, 'name', $locale);
-        $description = mb_substr(strip_tags($this->translated($categoria, 'description', $locale)), 0, 160);
+        $description = mb_substr(trim(strip_tags($this->translated($categoria, 'description', $locale))), 0, 160);
+
+        $jsonld = [];
+
+        if ($conIDati) {
+            // Lo stesso insieme che la pagina mostra: la categoria e i suoi
+            // scaffali (ShopController::categoryShow), in ordine di vetrina.
+            $categorie = [$categoria->id, ...$categoria->children()->pluck('id')->all()];
+            $prodotti = Product::shoppable()->nelleCategorie($categorie)->inOrdineDiVetrina()->take(50)->get();
+            $jsonld[] = $this->dati->categoria($categoria, $prodotti, $locale);
+        }
 
         return [
             'title' => $name,
+            // La descrizione dello shop su ogni categoria era una descrizione
+            // duplicata: quella generata nomina la categoria.
             'description' => $description !== ''
                 ? $description
-                : (string) __('site.social.shop.description', [], $locale),
+                : (string) __('site.social.shop-categoria.description', ['nome' => $name], $locale),
+            'jsonld' => $jsonld,
+            'briciole' => [['name' => $this->etichetta('shop', $locale), 'url' => route($this->prefisso($locale).'shop')]],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function resolveAuctionMeta(mixed $asta, string $locale): ?array
+    {
+        if (! $asta instanceof Auction) {
+            return null;
+        }
+
+        $titolo = $this->translated($asta, 'title', $locale);
+        $descrizione = mb_substr(trim(strip_tags($this->translated($asta, 'description', $locale))), 0, 160);
+
+        return [
+            'title' => $titolo !== '' ? $titolo : (string) __('site.social.aste.title', [], $locale),
+            'description' => $descrizione !== ''
+                ? $descrizione
+                : (string) __('site.social.asta.description', ['nome' => $titolo], $locale),
+            'briciole' => [['name' => $this->etichetta('aste', $locale), 'url' => route($this->prefisso($locale).'shop.auctions.index')]],
+        ];
+    }
+
+    /**
+     * La scheda di una partita giocata: squadre, data e competizione nel
+     * titolo, una per gara invece del titolo del calendario su tutte.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function resolveGameMeta(mixed $gara, string $locale, bool $conIDati): ?array
+    {
+        if (! $gara instanceof Game) {
+            $gara = Game::find((int) $gara);
+        }
+
+        if (! $gara instanceof Game || ! $gara->homeTeam || ! $gara->awayTeam) {
+            return null;
+        }
+
+        // La scheda esiste solo per le gare giocate con il tabellino
+        // (RisultatiController::partita): per le altre il controller risponde
+        // 404, e il crawler non deve ricevere un'anteprima al suo posto.
+        if ($gara->status !== GameStatus::Completed
+            || $gara->home_score === null
+            || $gara->away_score === null
+            || ! $gara->playerStats()->exists()) {
+            return null;
+        }
+
+        $sostituzioni = [
+            'casa' => $gara->homeTeam->nomePubblico(),
+            'ospite' => $gara->awayTeam->nomePubblico(),
+            'data' => $gara->match_date->format('d/m/Y'),
+            'competizione' => $gara->competition_type?->getLabel() ?? '',
+            'risultato' => $gara->home_score.'-'.$gara->away_score,
+        ];
+
+        return [
+            ...$this->metaTradotti('partita', $locale, $sostituzioni),
+            'image' => $gara->homeTeam->is_internal ? $gara->awayTeam->logoUrl() : $gara->homeTeam->logoUrl(),
+            'jsonld' => $conIDati ? array_filter([$this->dati->gara($gara, $locale)]) : [],
+            'briciole' => [
+                ['name' => $this->etichetta('stagione', $locale), 'url' => route($this->prefisso($locale).'stagione')],
+                ['name' => $this->etichetta('risultati', $locale), 'url' => route($this->prefisso($locale).'stagione.risultati')],
+            ],
         ];
     }
 
@@ -334,6 +535,7 @@ class ServeSocialCrawlerMeta
                 return [
                     ...$this->metaTradotti('gallery-album', $locale, ['nome' => $foto['event_name'] ?? '']),
                     'image' => $foto['url'] ?? null,
+                    'briciole' => [['name' => $this->etichetta('gallery', $locale), 'url' => route($this->prefisso($locale).'gallery')]],
                 ];
             }
         }
@@ -347,7 +549,7 @@ class ServeSocialCrawlerMeta
      *
      * @return array<string, mixed>|null
      */
-    private function resolvePlayerMeta(string $slug, string $locale, bool $inRosa): ?array
+    private function resolvePlayerMeta(string $slug, string $locale, bool $inRosa, bool $conIDati): ?array
     {
         $id = (int) explode('-', $slug)[0];
 
@@ -362,28 +564,44 @@ class ServeSocialCrawlerMeta
         }
 
         if ($inRosa) {
-            // La pagina della stagione risponde 404 a uno slug che non è quello
+            // La pagina dell'atleta risponde 404 a uno slug che non è quello
             // di un'atleta in rosa: l'anteprima non può dire il contrario.
             if ($slug !== $player->id.'-'.Str::slug($player->full_name)) {
                 return null;
             }
 
-            $riga = $this->rigaDiRosa($player);
+            $riga = self::rigaDiRosa($player);
 
             if (! $riga) {
                 return null;
             }
 
+            $ruolo = $riga->role !== null
+                ? (string) __('site.ruoli.'.$riga->role->value, [], $locale)
+                : '';
+            $sostituzioni = [
+                'nome' => $player->full_name,
+                'ruolo' => $ruolo,
+                'numero' => (string) ($riga->jersey_number ?? ''),
+            ];
+            $indirizzo = route($this->prefisso($locale).'stagione.atleta', ['slug' => $slug]);
+
             return [
-                ...$this->metaTradotti('atleta', $locale, ['nome' => $player->full_name]),
+                'title' => $ruolo !== ''
+                    ? (string) __('site.social.atleta.title', $sostituzioni, $locale)
+                    : $player->full_name,
+                'description' => (string) __($ruolo !== '' ? 'site.social.atleta.description' : 'site.social.atleta.description_senza_ruolo', $sostituzioni, $locale),
                 'image' => $riga->official_photo_url,
                 'type' => 'profile',
+                'jsonld' => $conIDati ? [$this->dati->atleta($riga, $ruolo, $indirizzo)] : [],
+                'briciole' => [['name' => $this->etichetta('stagione', $locale), 'url' => route($this->prefisso($locale).'stagione')]],
             ];
         }
 
         return [
             ...$this->metaTradotti('gallery-atleta', $locale, ['nome' => $player->full_name]),
             'image' => $player->getFirstMediaUrl('players') ?: null,
+            'briciole' => [['name' => $this->etichetta('gallery', $locale), 'url' => route($this->prefisso($locale).'gallery')]],
         ];
     }
 
@@ -393,10 +611,10 @@ class ServeSocialCrawlerMeta
      *
      * Squadra e stagione sono scelte come in PublicController::stagioneForTeam:
      * `/stagione/atleta/{slug}` è solo la prima squadra, e un'atleta del vivaio
-     * lì risponde 404. Se qui bastasse una squadra interna qualunque, il
-     * crawler riceverebbe l'anteprima di una pagina che non esiste.
+     * lì risponde 404. Pubblico perché la pagina dell'atleta cerca la stessa
+     * riga: le due devono rispondere sì e no insieme.
      */
-    private function rigaDiRosa(Player $player): ?Roster
+    public static function rigaDiRosa(Player $player): ?Roster
     {
         $stagione = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
@@ -437,7 +655,10 @@ class ServeSocialCrawlerMeta
 
         $description = $metaDescription !== '' ? $metaDescription : $excerpt;
         if ($description === '') {
-            $description = mb_substr(strip_tags($content), 0, 160);
+            $description = mb_substr(trim(strip_tags($content)), 0, 160);
+        }
+        if ($description === '' && $title !== '') {
+            $description = (string) __('site.social.pagina.description', ['nome' => $title], $locale);
         }
 
         return [
@@ -460,34 +681,125 @@ class ServeSocialCrawlerMeta
     }
 
     /**
-     * Il nome della società chiude ogni titolo, ma una volta sola: i titoli
-     * delle pagine del CMS e quello della home lo contengono già.
+     * Il titolo breve di una pagina fissa, per le briciole.
      */
-    private function conIlNomeDelSito(string $titolo): string
+    private function etichetta(string $chiave, string $locale): string
     {
-        if ($titolo === '' || str_contains($titolo, self::SITE_NAME)) {
-            return $titolo !== '' ? $titolo : self::SITE_NAME;
-        }
+        return (string) __('site.social.'.$chiave.'.title', [], $locale);
+    }
 
-        return $titolo.self::TITLE_SUFFIX;
+    private function prefisso(string $locale): string
+    {
+        return $locale === config('app.fallback_locale') ? '' : $locale.'.';
     }
 
     /**
-     * I meta pronti per il layout: titolo col nome del sito, descrizione in
-     * testo semplice, immagine e tipo con i ripieghi del layout.
+     * Aggiunge le briciole di pane (BreadcrumbList) ai dati strutturati.
+     *
+     * Coerenti con il menu: se la pagina è una voce del menu principale, le
+     * briciole sono la sua sezione e lei; altrimenti la catena che ha dato
+     * chi ha risolto la pagina (`briciole`: la notizia sta sotto News, il
+     * prodotto sotto Shop e la sua categoria). Ultima voce la pagina stessa.
      *
      * @param  array<string, mixed>  $meta
-     * @return array{title: string, description: string, image: ?string, type: string}
+     * @return array<string, mixed>
+     */
+    private function conLeBriciole(array $meta, Request $request, string $locale): array
+    {
+        $home = ['name' => self::SITE_NAME, 'url' => route($this->prefisso($locale).'home')];
+        $pagina = ['name' => (string) ($meta['title'] ?? ''), 'url' => null];
+
+        $catena = $meta['briciole'] ?? $this->sezioneDelMenu($request);
+
+        $blocco = $this->dati->briciole([$home, ...$catena, $pagina]);
+
+        if ($blocco !== null) {
+            $meta['jsonld'] = [...($meta['jsonld'] ?? []), $blocco];
+        }
+
+        return $meta;
+    }
+
+    /**
+     * La sezione del menu principale che contiene la pagina corrente, se c'è.
+     * Una sezione senza un indirizzo diverso da quello della pagina non fa da
+     * anello: sarebbe la stessa pagina due volte.
+     *
+     * @return list<array{name: string, url: string}>
+     */
+    private function sezioneDelMenu(Request $request): array
+    {
+        $corrente = '/'.trim($request->path(), '/');
+
+        foreach (MenuItem::getTree('main') as $sezione) {
+            foreach ($sezione['children'] ?? [] as $voce) {
+                if ($this->percorso((string) ($voce['href'] ?? '')) !== $corrente) {
+                    continue;
+                }
+
+                $indirizzo = (string) ($sezione['href'] ?? '');
+
+                return $indirizzo !== '' && $this->percorso($indirizzo) !== $corrente
+                    ? [['name' => (string) $sezione['label'], 'url' => url($this->percorso($indirizzo))]]
+                    : [];
+            }
+        }
+
+        return [];
+    }
+
+    private function percorso(string $indirizzo): string
+    {
+        return '/'.trim((string) parse_url($indirizzo, PHP_URL_PATH), '/');
+    }
+
+    /**
+     * Il titolo completo: la coda col nome della società, una volta sola (i
+     * titoli del CMS e quello della home lo contengono già).
+     *
+     * Una notizia con un titolo lungo perde la coda: meglio il titolo intero
+     * senza il nome della società che il titolo tagliato da Google.
+     *
+     * @param  array<string, mixed>  $meta
+     */
+    private function titoloCompleto(array $meta): string
+    {
+        $titolo = trim((string) ($meta['title'] ?? ''));
+
+        if ($titolo === '') {
+            return self::SITE_NAME;
+        }
+
+        if (str_contains($titolo, self::SITE_NAME)) {
+            return $titolo;
+        }
+
+        $completo = $titolo.self::TITLE_SUFFIX;
+
+        if (($meta['type'] ?? null) === 'article' && mb_strlen($completo) > self::TITOLO_MAX) {
+            return $titolo;
+        }
+
+        return $completo;
+    }
+
+    /**
+     * I meta pronti per il layout e per la prop `seo`: titolo completo,
+     * descrizione in testo semplice, immagine, tipo e JSON-LD.
+     *
+     * @param  array<string, mixed>  $meta
+     * @return array{title: string, description: string, image: ?string, type: string, jsonld: list<array<string, mixed>>}
      */
     private function perIlLayout(array $meta): array
     {
         $descrizione = trim((string) preg_replace('/\s+/u', ' ', strip_tags((string) ($meta['description'] ?? ''))));
 
         return [
-            'title' => $this->conIlNomeDelSito((string) ($meta['title'] ?? '')),
+            'title' => $this->titoloCompleto($meta),
             'description' => Str::limit(html_entity_decode($descrizione, ENT_QUOTES | ENT_HTML5), 200),
             'image' => ($meta['image'] ?? null) ?: null,
             'type' => (string) ($meta['type'] ?? 'website'),
+            'jsonld' => array_values($meta['jsonld'] ?? []),
         ];
     }
 
@@ -496,7 +808,7 @@ class ServeSocialCrawlerMeta
      */
     private function buildMinimalHtml(array $meta, Request $request, string $locale = 'it'): string
     {
-        $title = e($this->conIlNomeDelSito((string) ($meta['title'] ?? '')));
+        $title = e($this->titoloCompleto($meta));
         $description = e($meta['description'] ?? '');
         $url = e($request->fullUrl());
         $siteName = self::SITE_NAME;

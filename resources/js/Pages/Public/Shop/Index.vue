@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, computed, onUnmounted, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link, usePage, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 import ProductCardSkeleton from '@/Components/Shop/ProductCardSkeleton.vue';
@@ -121,16 +121,6 @@ const loadMore = () => {
         <meta property="og:image" :content="ogMeta.image" />
         <meta property="og:url" :content="ogMeta.url" />
         <meta property="og:type" :content="ogMeta.type" />
-        <component :is="'script'" type="application/ld+json">
-            {{ JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'BreadcrumbList',
-                'itemListElement': [
-                    { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': usePage().props.ziggy.url },
-                    { '@type': 'ListItem', 'position': 2, 'name': 'Shop' },
-                ],
-            }) }}
-        </component>
     </Head>
 
     <PublicLayout>
