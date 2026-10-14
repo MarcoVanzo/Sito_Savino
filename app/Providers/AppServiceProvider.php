@@ -39,6 +39,7 @@ use App\Observers\ProductVariantObserver;
 use App\Observers\SpostaLaDirettaConLaGara;
 use App\Observers\StockMovementObserver;
 use App\Observers\TieneAggiornateLeDirette;
+use App\Observers\TraduceLeNotizieInInglese;
 use App\Observers\UserObserver;
 use App\Services\Analytics\WebAnalyticsService;
 use App\Services\Social\SocialAnalyticsService;
@@ -255,6 +256,7 @@ class AppServiceProvider extends ServiceProvider
         Auction::observe(AuctionObserver::class);
         ProductCategory::observe(CacheInvalidationObserver::class);
         Post::observe(CacheInvalidationObserver::class);
+        Post::observe(TraduceLeNotizieInInglese::class);
         Category::observe(CacheInvalidationObserver::class);
         Page::observe(CacheInvalidationObserver::class);
         Game::observe(CacheInvalidationObserver::class);

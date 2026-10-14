@@ -146,6 +146,10 @@ Schedule::command('diretta:chiudi-le-pause')->everyMinute()->withoutOverlapping(
 // "iscritta", con nome e IP.
 Schedule::command('newsletter:allinea-disiscritti')->dailyAt('05:15')->withoutOverlapping();
 
+// Notizie rimaste senza inglese (quota DeepL finita, DeepL giù): si ritentano
+// ogni notte, solo quelle dell'ultimo mese. Il job salta quelle già a posto.
+Schedule::command('notizie:traduci-in-inglese')->dailyAt('04:40')->withoutOverlapping();
+
 // Deve restare in fondo: copre gli eventi registrati sopra. `schedule:work`
 // manda l'output in /dev/null, quindi un comando che esce con errore non
 // lasciava traccia; così l'output si cattura e un fallimento arriva per email
