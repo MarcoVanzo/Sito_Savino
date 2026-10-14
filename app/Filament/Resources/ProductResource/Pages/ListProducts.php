@@ -45,12 +45,20 @@ class ListProducts extends ListRecords
         }
 
         DB::transaction(function () use ($order): void {
-            $posizioni = Product::withTrashed()
+            $esistenti = Product::withTrashed()
                 ->whereKey($order)
                 ->lockForUpdate()
-                ->pluck('sort_order')
-                ->sort()
+                ->pluck('sort_order', 'id');
+
+            // L'elenco arriva dal browser: un prodotto cancellato da un'altra
+            // scheda o un id ripetuto lascerebbero piu' id che posizioni.
+            $ids = collect($order)
+                ->map(fn (int|string $id): int => (int) $id)
+                ->unique()
+                ->filter(fn (int $id): bool => $esistenti->has($id))
                 ->values();
+
+            $posizioni = $esistenti->sort()->values();
 
             // Due prodotti alla stessa posizione (nati dopo la migrazione,
             // entrambi a zero) non si potrebbero scambiare: si allargano.
@@ -59,7 +67,7 @@ class ListProducts extends ListRecords
                 $posizioni = $posizioni->keys()->map(fn (int $i) => $partenza + $i);
             }
 
-            foreach (array_values($order) as $i => $id) {
+            foreach ($ids as $i => $id) {
                 Product::withTrashed()->whereKey($id)->toBase()->update(['sort_order' => $posizioni[$i]]);
             }
         });
