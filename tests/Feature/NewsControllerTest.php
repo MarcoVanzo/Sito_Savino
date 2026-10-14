@@ -180,7 +180,7 @@ class NewsControllerTest extends TestCase
         Post::factory()->create(['status' => PostStatus::Published, 'slug' => 'correlata', 'content' => '<p>Testo lunghissimo</p>'])
             ->categories()->attach($categoria);
 
-        $campi = ['id', 'slug', 'title', 'excerpt', 'published_at', 'image'];
+        $campi = ['id', 'slug', 'title', 'excerpt', 'published_at', 'image', 'image_alt'];
 
         $this->get('/news')->assertInertia(fn ($page) => $page
             ->where('posts.data.0', fn ($voce) => array_keys(collect($voce)->all()) === $campi)

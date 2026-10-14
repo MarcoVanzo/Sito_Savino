@@ -93,7 +93,7 @@ const ogMeta = useOgMeta({
                         <img
                             v-if="atleta.official_photo_url"
                             :src="atleta.official_photo_url"
-                            :alt="$t('atleta.photo_alt', { name: fullName })"
+                            :alt="atleta.photo_alt || $t('atleta.photo_alt', { name: fullName })"
                             class="w-full h-full object-cover object-top"
                             @error="onImgError"
                         />
@@ -245,7 +245,7 @@ const ogMeta = useOgMeta({
                         class="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow"
                     >
                         <div class="aspect-[16/10] bg-gray-100 overflow-hidden">
-                            <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="w-full h-full object-cover" loading="lazy" @error="onImgError" />
+                            <img v-if="post.image_url" :src="post.image_url" :alt="post.title || ''" class="w-full h-full object-cover" loading="lazy" @error="onImgError" />
                         </div>
                         <div class="p-4">
                             <p class="text-xs text-gray-500">{{ formatDate(post.published_at) }}</p>

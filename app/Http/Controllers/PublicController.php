@@ -272,6 +272,7 @@ class PublicController extends Controller
                     'role' => $riga->role,
                     'height_cm' => $riga->height_cm,
                     'official_photo_url' => $riga->official_photo_url,
+                    'photo_alt' => $giocatrice->testoAlternativoDellaFoto(conIlNome: true),
                 ],
                 'seasonName' => $riga->season?->name,
                 'statistiche' => $stat instanceof PlayerStat ? [
