@@ -91,6 +91,7 @@ class PublicController extends Controller
                     'excerpt' => $post->getTranslation('excerpt', app()->getLocale()),
                     'published_at' => $post->published_at?->toISOString(),
                     'image_url' => $post->getFirstMediaUrl('cover', 'card') ?: $post->getFirstMediaUrl('cover'),
+                    'image_alt' => $post->testoAlternativoDellaCopertina(),
                 ])->toArray();
 
             $heroSlides = HeroSlide::active()->ordered()->with('media')->get()
@@ -132,6 +133,8 @@ class PublicController extends Controller
                     'name' => $sponsor['name'],
                     'website_url' => $sponsor['website_url'],
                     'logo_url' => $sponsor['logo_url'],
+                    // `??`: le voci in cache da prima del campo non ce l'hanno.
+                    'logo_alt' => $sponsor['logo_alt'] ?? $sponsor['name'],
                 ])
                 ->values()
                 ->all(),
@@ -360,7 +363,7 @@ class PublicController extends Controller
         // (stagione.atleta): le giovanili sono quasi tutte minorenni.
         $conLeSchede = $teamSlug === 'savino-del-bene-volley';
 
-        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug, $categoria) {
+        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug, $categoria, $conLeSchede) {
             // Lo slug è quello della prima squadra, che è un record storico;
             // le squadre del vivaio si riconoscono dalla categoria. Le due
             // condizioni stanno dentro lo stesso gruppo, altrimenti l'OR
@@ -381,7 +384,7 @@ class PublicController extends Controller
             $section = $teamSlug === 'savino-del-bene-volley' ? 'a1' : 'youth';
 
             return [
-                ...$this->rosaDellaSquadra($team, $currentSeason),
+                ...$this->rosaDellaSquadra($team, $currentSeason, $conLeSchede),
                 'staffTecnico' => $this->staffDellaSezione(StaffType::Tecnico, $section),
                 'staffMedico' => $this->staffDellaSezione(StaffType::Medico, $section),
             ];
@@ -403,7 +406,7 @@ class PublicController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function rosaDellaSquadra(?Team $team, ?Season $currentSeason): array
+    private function rosaDellaSquadra(?Team $team, ?Season $currentSeason, bool $primaSquadra): array
     {
         if (! $team || ! $currentSeason) {
             return ['roster' => [], 'seasonName' => null, 'seasonStats' => [], 'teamInfo' => null];
@@ -431,7 +434,7 @@ class PublicController extends Controller
             ->get();
 
         return [
-            'roster' => $this->presentRoster($rosterEntries),
+            'roster' => $this->presentRoster($rosterEntries, $primaSquadra),
             'seasonName' => $currentSeason->name,
             'seasonStats' => $this->presentSeasonStats($rosterEntries, $team->id),
             'teamInfo' => [
@@ -477,9 +480,9 @@ class PublicController extends Controller
      * @param  Collection<int, Roster>  $rosterEntries
      * @return list<array<string, mixed>>
      */
-    private function presentRoster(Collection $rosterEntries): array
+    private function presentRoster(Collection $rosterEntries, bool $primaSquadra): array
     {
-        return $rosterEntries->map(function (Roster $entry): array {
+        return $rosterEntries->map(function (Roster $entry) use ($primaSquadra): array {
             $player = $entry->player;
 
             // Solo i campi che la pagina mostra. Con `toArray()` arrivavano
@@ -504,6 +507,10 @@ class PublicController extends Controller
             $row['playerSlug'] = $player instanceof Player
                 ? $player->id.'-'.Str::slug($player->full_name)
                 : null;
+
+            // Il nome nell'alt solo per la prima squadra: le giovanili sono
+            // minorenni.
+            $row['photo_alt'] = $player instanceof Player ? $player->testoAlternativoDellaFoto(conIlNome: $primaSquadra) : '';
 
             return $row;
         })->all();

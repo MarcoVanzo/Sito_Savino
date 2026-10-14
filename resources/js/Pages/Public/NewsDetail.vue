@@ -7,6 +7,7 @@ import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useLocale } from '@/Composables/useLocale.js';
+import { testoAlternativo } from '@/Support/testoAlternativo.js';
 
 const { onImgError } = useImageFallback();
 const { formatDate } = useLocale();
@@ -72,7 +73,7 @@ const ogMeta = useOgMeta({
         <div v-if="post?.media?.length" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
             <img
                 :src="post.media[0]?.original_url"
-                :alt="post.title"
+                :alt="testoAlternativo(post.image_alt, post.title)"
                 class="w-full rounded-xl shadow-2xl object-cover max-h-[500px]"
                 @error="onImgError"
             />

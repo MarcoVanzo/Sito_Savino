@@ -18,6 +18,7 @@ import PopupMatchDay from '@/Components/Home/PopupMatchDay.vue';
 import { isExternalLink, externalLinkAttrs } from '@/Support/menuLinks.js';
 import { useLocale } from '@/Composables/useLocale.js';
 import { useSafeUrl } from '@/Composables/useSafeUrl.js';
+import { testoAlternativo } from '@/Support/testoAlternativo.js';
 
 const { safeUrl } = useSafeUrl();
 const { onImgError } = useImageFallback();
@@ -113,6 +114,11 @@ const homeSettings = computed(() => settings.value.home ?? {});
 // Le slide arrivano dal pannello (Slide Hero): senza slide caricate resta lo
 // sfondo del blocco, non due immagini scelte nel codice.
 const slides = computed(() => (props.heroSlides ?? []).map(s => typeof s === 'string' ? s : (s.image || s.url || s)));
+
+// Testo alternativo di una slide (hero e fascia di foto): il titolo dato in
+// pannello, altrimenti il nome della squadra. Mai vuoto: sono foto vere, non
+// sfondi, e l'audit SEO del 14/10/2026 le contava fra le immagini mute.
+const testoDellaSlide = (index) => testoAlternativo(props.heroSlides?.[index]?.title, 'Savino Del Bene Volley');
 
 // Hero testi dal backend con fallback
 const heroTitle = computed(() => homeSettings.value.hero_title ?? '');
@@ -553,7 +559,7 @@ const ogMeta = useOgMeta({
                         <img 
                             v-if="index === 0"
                             :src="slide"
-                            alt=""
+                            :alt="testoDellaSlide(index)"
                             fetchpriority="high"
                             decoding="sync"
                             class="absolute inset-0 w-full h-full object-cover object-center hero-slide-inner"
@@ -873,7 +879,7 @@ const ogMeta = useOgMeta({
                                 :style="getTiltStyle(index)"
                             >
                                 <div class="aspect-video overflow-hidden relative">
-                                    <img v-if="post.image_url" :src="post.image_url" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" @error="onImgError" />
+                                    <img v-if="post.image_url" :src="post.image_url" :alt="testoAlternativo(post.image_alt, post.title)" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" @error="onImgError" />
                                     <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue/10 to-savino-fucsia/10 flex items-center justify-center">
                                         <span class="text-savino-fucsia text-4xl font-black opacity-30">SDB</span>
                                     </div>
@@ -931,14 +937,14 @@ const ogMeta = useOgMeta({
                     <!-- Primo set (originale) -->
                     <div v-for="(slide, i) in slides" :key="'marquee-a-' + i" class="marquee-item">
                         <div class="w-72 h-44 md:w-96 md:h-56 rounded-xl overflow-hidden shadow-lg mx-3 relative group">
-                            <img :src="slide" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
+                            <img :src="slide" :alt="testoDellaSlide(i)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
                             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                     </div>
                     <!-- Secondo set (duplicato per loop continuo) -->
                     <div v-for="(slide, i) in slides" :key="'marquee-b-' + i" class="marquee-item" aria-hidden="true">
                         <div class="w-72 h-44 md:w-96 md:h-56 rounded-xl overflow-hidden shadow-lg mx-3 relative group">
-                            <img :src="slide" alt="" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
+                            <img :src="slide" :alt="testoDellaSlide(i)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" @error="onImgError" />
                             <div class="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                     </div>

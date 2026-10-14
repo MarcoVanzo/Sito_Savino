@@ -105,7 +105,7 @@ const ogMeta = useOgMeta({
                     <!-- Lotto vinto -->
                     <div class="flex items-center gap-4 text-left bg-gray-50 rounded-lg p-4 mb-6">
                         <div class="w-16 h-16 bg-white rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
-                            <img v-if="productImage" :src="productImage" :alt="auctionTitle" class="w-full h-full object-cover" @error="onImgError" />
+                            <img v-if="productImage" :src="productImage" :alt="auctionTitle || ''" class="w-full h-full object-cover" @error="onImgError" />
                             <div v-else class="w-full h-full flex items-center justify-center text-2xl">🏐</div>
                         </div>
                         <div class="min-w-0">

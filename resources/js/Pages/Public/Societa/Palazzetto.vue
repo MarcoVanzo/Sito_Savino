@@ -119,7 +119,7 @@ const services = computed(() => Array.isArray(cd.value?.services) ? cd.value.ser
                             <img
                                 v-if="page?.cover_url"
                                 :src="page.cover_url"
-                                :alt="venueName"
+                                :alt="venueName || ''"
                                 class="w-full h-[500px] object-cover transform group-hover:scale-105 transition-transform duration-700"
                             />
                             <div v-else class="w-full h-[500px] bg-gradient-to-br from-savino-blue to-gray-900"></div>

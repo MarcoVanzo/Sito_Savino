@@ -600,7 +600,7 @@ const ogMeta = computed(() => useOgMeta({
                     class="gallery-album"
                 >
                     <div class="gallery-album__cover">
-                        <img :src="album.cover" :alt="album.name" class="gallery-album__img" loading="lazy" decoding="async" @error="onImgError" />
+                        <img :src="album.cover" :alt="album.name || ''" class="gallery-album__img" loading="lazy" decoding="async" @error="onImgError" />
                         <span class="gallery-album__count">{{ album.count }}</span>
                     </div>
                     <span class="gallery-album__name">{{ album.name }}</span>
@@ -638,7 +638,7 @@ const ogMeta = computed(() => useOgMeta({
                     :key="item.id"
                     type="button"
                     :data-idx="index"
-                    :aria-label="item.alt || $t('gallery.open_image')"
+                    :aria-label="item.title || item.alt || $t('gallery.open_image')"
                     @click="openLightbox(index)"
                     class="gallery-masonry__item"
                     :class="{
@@ -655,7 +655,7 @@ const ogMeta = computed(() => useOgMeta({
 
                     <img
                         :src="item.thumb || item.url"
-                        :alt="item.alt"
+                        :alt="item.alt || ''"
                         class="gallery-masonry__img"
                         :class="{ 'gallery-masonry__img--loaded': loadedImages.has(item.id) }"
                         loading="lazy"
@@ -670,7 +670,7 @@ const ogMeta = computed(() => useOgMeta({
                             <span class="gallery-masonry__category">{{ item.category }}</span>
                         </div>
                         <div class="gallery-masonry__overlay-bottom">
-                            <p class="gallery-masonry__alt">{{ item.alt }}</p>
+                            <p class="gallery-masonry__alt">{{ item.title || item.alt }}</p>
                             <div class="gallery-masonry__zoom">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/>
@@ -728,7 +728,7 @@ const ogMeta = computed(() => useOgMeta({
                         <img
                             v-if="filteredMedia[lightboxIndex]?.url"
                             :src="filteredMedia[lightboxIndex]?.url"
-                            :alt="filteredMedia[lightboxIndex]?.alt"
+                            :alt="filteredMedia[lightboxIndex]?.alt || ''"
                             class="gallery-lightbox__img"
                             @error="onImgError"
                         />
@@ -737,7 +737,7 @@ const ogMeta = computed(() => useOgMeta({
                         <div class="gallery-lightbox__info">
                             <div class="gallery-lightbox__info-left">
                                 <span class="gallery-lightbox__info-category">{{ filteredMedia[lightboxIndex]?.category }}</span>
-                                <span class="gallery-lightbox__info-alt">{{ filteredMedia[lightboxIndex]?.alt }}</span>
+                                <span class="gallery-lightbox__info-alt">{{ filteredMedia[lightboxIndex]?.title || filteredMedia[lightboxIndex]?.alt }}</span>
                             </div>
                             <span class="gallery-lightbox__info-counter">
                                 {{ lightboxIndex + 1 }} / {{ filteredMedia.length }}
@@ -754,7 +754,7 @@ const ogMeta = computed(() => useOgMeta({
                             class="gallery-lightbox__thumb"
                             :class="{ 'gallery-lightbox__thumb--active': Math.max(0, lightboxIndex - 4) + i === lightboxIndex }"
                         >
-                            <img :src="item.thumb || item.url" :alt="item.alt" @error="onImgError" />
+                            <img :src="item.thumb || item.url" :alt="item.alt || ''" @error="onImgError" />
                         </button>
                     </div>
             </template>

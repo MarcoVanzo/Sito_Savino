@@ -83,7 +83,7 @@ const ogMeta = useOgMeta({
                     >
                         <div class="flex items-start gap-4 mb-4">
                             <div class="flex-shrink-0 w-16 h-16 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
-                                <img v-if="partner.logo" :src="partner.logo" :alt="partner.name" class="w-full h-full object-contain p-1" loading="lazy" />
+                                <img v-if="partner.logo" :src="partner.logo" :alt="partner.name || ''" class="w-full h-full object-contain p-1" loading="lazy" />
                                 <span v-else class="text-2xl font-black text-savino-blue">{{ partner.initial }}</span>
                             </div>
                             <div class="min-w-0 flex-grow">

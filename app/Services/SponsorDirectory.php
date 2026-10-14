@@ -35,6 +35,7 @@ class SponsorDirectory
                     'tier' => $s->tier->value,
                     'website_url' => $s->url,
                     'logo_url' => self::indirizzoDelLogo($s),
+                    'logo_alt' => $s->testoAlternativoDelLogo(),
                     'sort_order' => $s->sort_order,
                 ])
                 ->groupBy('tier');

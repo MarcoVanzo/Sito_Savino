@@ -440,7 +440,7 @@ defineExpose({ fase, modo, simulato, esci });
                     <img
                         v-if="spot.tipo === 'immagine'"
                         :src="spot.url"
-                        :alt="spot.alt"
+                        :alt="spot.alt || ''"
                         class="w-full h-full object-contain"
                         :class="{ 'cursor-pointer': spot.link }"
                         @click="apriSponsor(spot)"

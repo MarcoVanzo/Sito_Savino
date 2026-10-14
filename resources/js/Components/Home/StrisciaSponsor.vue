@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { safeUrl } from '@/Composables/useSafeUrl.js';
+import { testoAlternativo } from '@/Support/testoAlternativo.js';
 
 const $t = useTranslations();
 
@@ -68,13 +69,16 @@ const durata = computed(() => `${elenco.value.length * 3}s`);
                         :rel="s.href ? 'noopener sponsored' : undefined"
                         class="logo-sponsor"
                     >
-                        <img v-if="s.logo_url" :src="s.logo_url" :alt="s.name" loading="lazy" class="max-h-16 max-w-[10rem] object-contain" />
+                        <img v-if="s.logo_url" :src="s.logo_url" :alt="testoAlternativo(s.logo_alt, s.name)" loading="lazy" class="max-h-16 max-w-[10rem] object-contain" />
                         <span v-else class="text-savino-blue font-bold text-sm">{{ s.name }}</span>
                     </component>
                 </li>
                 <!-- Seconda copia per il giro continuo: fuori dall'albero
                      dell'accessibilità e dal tasto Tab, o ogni sponsor si
-                     leggerebbe e si attraverserebbe due volte. -->
+                     leggerebbe e si attraverserebbe due volte. L'alt resta il
+                     nome: aria-hidden lo toglie agli screen reader, e per chi
+                     legge l'HTML (motori, audit) un logo senza testo e' un
+                     difetto. -->
                 <li v-for="s in elenco" :key="'b-' + s.id" class="striscia-voce" aria-hidden="true">
                     <component
                         :is="s.href ? 'a' : 'span'"
@@ -84,7 +88,7 @@ const durata = computed(() => `${elenco.value.length * 3}s`);
                         tabindex="-1"
                         class="logo-sponsor"
                     >
-                        <img v-if="s.logo_url" :src="s.logo_url" alt="" loading="lazy" class="max-h-16 max-w-[10rem] object-contain" />
+                        <img v-if="s.logo_url" :src="s.logo_url" :alt="testoAlternativo(s.logo_alt, s.name)" loading="lazy" class="max-h-16 max-w-[10rem] object-contain" />
                         <span v-else class="text-savino-blue font-bold text-sm">{{ s.name }}</span>
                     </component>
                 </li>
@@ -99,7 +103,7 @@ const durata = computed(() => `${elenco.value.length * 3}s`);
                     :rel="s.href ? 'noopener sponsored' : undefined"
                     class="logo-sponsor"
                 >
-                    <img v-if="s.logo_url" :src="s.logo_url" :alt="s.name" loading="lazy" class="max-h-16 max-w-[10rem] object-contain" />
+                    <img v-if="s.logo_url" :src="s.logo_url" :alt="testoAlternativo(s.logo_alt, s.name)" loading="lazy" class="max-h-16 max-w-[10rem] object-contain" />
                     <span v-else class="text-savino-blue font-bold text-sm">{{ s.name }}</span>
                 </component>
             </li>

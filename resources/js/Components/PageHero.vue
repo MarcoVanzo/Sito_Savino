@@ -32,7 +32,7 @@ defineProps({
         <img
             v-if="image"
             :src="image"
-            :alt="title"
+            :alt="title || ''"
             class="absolute inset-0 w-full h-full object-cover opacity-40"
         />
         <!-- Geometric Pattern Overlay (optional) -->

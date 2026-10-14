@@ -184,7 +184,7 @@ const ogMeta = useOgMeta({
                         >
                             <img
                                 :src="image.thumb || image.url"
-                                :alt="image.name"
+                                :alt="image.name || ''"
                                 loading="lazy"
                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
@@ -248,7 +248,7 @@ const ogMeta = useOgMeta({
                                 <img 
                                     v-if="mag.cover_image_url"
                                     :src="mag.cover_image_url" 
-                                    :alt="mag.title" 
+                                    :alt="mag.title || ''" 
                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
                                 <div v-else class="w-full h-full bg-gradient-to-br from-savino-blue to-indigo-900 p-4 flex flex-col justify-between text-white select-none">
@@ -354,7 +354,7 @@ const ogMeta = useOgMeta({
             >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-            <img v-if="lightboxImage" :src="lightboxImage.url" :alt="lightboxImage.name" class="max-h-[85vh] max-w-full object-contain rounded-lg" @click.stop />
+            <img v-if="lightboxImage" :src="lightboxImage.url" :alt="lightboxImage.name || ''" class="max-h-[85vh] max-w-full object-contain rounded-lg" @click.stop />
         </dialog>
     </PublicLayout>
 </template>

@@ -18,7 +18,7 @@ class Sponsor extends Model implements HasMedia
     use HasFactory, HasOptimizedMedia, HasTranslations, InteractsWithMedia, LogsActivity;
 
     protected $fillable = [
-        'name', 'url', 'tier', 'sort_order',
+        'name', 'url', 'tier', 'sort_order', 'testo_alternativo',
     ];
 
     // La tabella `sponsors` non ha una colonna `description`.
@@ -54,6 +54,15 @@ class Sponsor extends Model implements HasMedia
     public function liveCreatives(): HasMany
     {
         return $this->hasMany(LiveCreative::class);
+    }
+
+    /**
+     * Il testo alternativo del logo: quello scritto dalla redazione, altrimenti
+     * il nome dello sponsor (un logo dice chi e', non com'e' fatto).
+     */
+    public function testoAlternativoDelLogo(): string
+    {
+        return filled($this->testo_alternativo) ? trim($this->testo_alternativo) : (string) $this->name;
     }
 
     public function registerMediaConversions(?Media $media = null): void

@@ -58,7 +58,8 @@ export function searchMedia(media, query) {
     if (!query) return media
 
     return media.filter(m => {
-        const matchAlt = m.alt?.toLowerCase().includes(query)
+        // Il titolo e' la didascalia (con i nomi); l'alt solo album e data.
+        const matchAlt = (m.title ?? m.alt)?.toLowerCase().includes(query)
         const matchTags = m.tags?.some(t => t.toLowerCase().includes(query))
         const matchEvent = m.event_name?.toLowerCase().includes(query)
 

@@ -297,7 +297,7 @@ const ogMeta = useOgMeta({
                     <div v-if="giftCard.image" class="md:col-span-5 flex justify-center">
                         <img
                             :src="giftCard.image"
-                            :alt="giftCard.title"
+                            :alt="giftCard.title || ''"
                             width="390"
                             height="390"
                             loading="lazy"

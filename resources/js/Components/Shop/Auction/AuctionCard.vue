@@ -48,7 +48,7 @@ const priceLabel = computed(() => {
             <img
                 v-if="auction.image"
                 :src="auction.image"
-                :alt="auction.title"
+                :alt="auction.title || ''"
                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 loading="lazy"
                 @error="onImgError"

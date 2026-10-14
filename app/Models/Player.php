@@ -21,7 +21,7 @@ class Player extends Model implements HasMedia
 
     protected $fillable = [
         'first_name', 'last_name', 'date_of_birth',
-        'nationality', 'instagram_handle', 'lega_volley_id',
+        'nationality', 'instagram_handle', 'lega_volley_id', 'testo_alternativo',
         'ai_face_examples',
         'wikipedia_title', 'wikipedia_lang', 'wikipedia_revid', 'palmares_synced_at',
     ];
@@ -29,6 +29,9 @@ class Player extends Model implements HasMedia
     // Nessun campo traducibile sulla tabella `players`: `role` e `biography`
     // vivono rispettivamente su `rosters` e `staff_members`.
     public $translatable = [];
+
+    /** Il nome della squadra nei testi alternativi delle foto. */
+    public const SOCIETA = 'Savino Del Bene Volley';
 
     /**
      * @return array<string, string|class-string>
@@ -63,6 +66,25 @@ class Player extends Model implements HasMedia
     public function getFullNameAttribute()
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * Il testo alternativo della foto: quello scritto dalla redazione,
+     * altrimenti «Nome Cognome, Savino Del Bene Volley».
+     *
+     * Senza nome per il vivaio (`$conIlNome = false`): le giovanili sono
+     * minorenni, e il nome nell'alt indicizza la loro foto sui motori di
+     * ricerca per immagini. Il nome resta scritto nella card, accanto.
+     */
+    public function testoAlternativoDellaFoto(bool $conIlNome = true): string
+    {
+        if (filled($this->testo_alternativo)) {
+            return trim($this->testo_alternativo);
+        }
+
+        return $conIlNome
+            ? trim($this->full_name).', '.self::SOCIETA
+            : __('site.testi_alternativi.atleta_del_vivaio');
     }
 
     /**

@@ -169,6 +169,8 @@ class NewsController extends Controller
         if ($post instanceof Post) {
             $translatable = $post->translatable;
             $data = $post->toArray();
+            // Il testo alternativo della copertina, gia' con il ripiego sul titolo.
+            $data['image_alt'] = $post->testoAlternativoDellaCopertina($locale);
         } else {
             // Dati già in forma array (dalla cache)
             $translatable = (new Post)->translatable;
@@ -209,7 +211,7 @@ class NewsController extends Controller
      * Accetta anche le voci in cache scritte prima, con il post intero.
      *
      * @param  array<string, mixed>  $post
-     * @return array{id: mixed, slug: mixed, title: mixed, excerpt: mixed, published_at: mixed, image: ?string}
+     * @return array{id: mixed, slug: mixed, title: mixed, excerpt: mixed, published_at: mixed, image: ?string, image_alt: mixed}
      */
     private function voceDellElenco(array $post): array
     {
@@ -224,6 +226,7 @@ class NewsController extends Controller
             'excerpt' => $post['excerpt'] ?? null,
             'published_at' => $post['published_at'] ?? null,
             'image' => is_string($copertina) && $copertina !== '' ? $copertina : null,
+            'image_alt' => $post['image_alt'] ?? ($post['title'] ?? null),
         ];
     }
 

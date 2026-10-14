@@ -71,7 +71,7 @@ const handleAddToCart = () => {
                 <img
                     v-if="product.image_url"
                     :src="product.image_url"
-                    :alt="product.name"
+                    :alt="product.name || ''"
                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     loading="lazy"
                     @error="onImgError"

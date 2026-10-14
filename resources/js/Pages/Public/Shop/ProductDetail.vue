@@ -266,7 +266,7 @@ const handleAddToCart = () => {
                             <img
                                 v-if="mainImage"
                                 :src="mainImage"
-                                :alt="product?.name"
+                                :alt="product?.name || ''"
                                 class="w-full h-full object-cover transition-all duration-300"
                                 :style="zoomStyle"
                                 @error="onImgError"

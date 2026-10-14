@@ -111,7 +111,7 @@ function closeImage() {
                     >
                         <img
                             :src="image.thumb || image.url"
-                            :alt="image.name"
+                            :alt="image.name || ''"
                             loading="lazy"
                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
@@ -138,7 +138,7 @@ function closeImage() {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-            <img v-if="zoomImage" :src="zoomImage.url" :alt="zoomImage.name" class="max-w-full max-h-full object-contain rounded-lg" @click.stop />
+            <img v-if="zoomImage" :src="zoomImage.url" :alt="zoomImage.name || ''" class="max-w-full max-h-full object-contain rounded-lg" @click.stop />
         </dialog>
     </section>
 </template>

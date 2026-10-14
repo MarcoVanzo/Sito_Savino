@@ -13,6 +13,11 @@ return [
     // 3° turno"): Team::nomePubblico().
     'avversaria_da_definire' => 'Avversaria da definire',
 
+    // Testi alternativi generati per le immagini (Player::testoAlternativoDellaFoto).
+    'testi_alternativi' => [
+        'atleta_del_vivaio' => 'Atleta del settore giovanile, Savino Del Bene Volley',
+    ],
+
     'feed' => [
         'title' => 'Savino Del Bene Volley — News',
         'description' => 'Le notizie ufficiali della Savino Del Bene Volley: comunicati, risultati e vita del club.',

@@ -6,6 +6,7 @@ import { Head, usePage } from '@inertiajs/vue3';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { safeUrl } from '@/Composables/useSafeUrl';
+import { testoAlternativo } from '@/Support/testoAlternativo.js';
 
 const { onImgError } = useImageFallback();
 
@@ -135,7 +136,7 @@ const ogMeta = useOgMeta({
                             <img
                                 v-if="sponsor.logo_url"
                                 :src="sponsor.logo_url"
-                                :alt="sponsor.name"
+                                :alt="testoAlternativo(sponsor.logo_alt, sponsor.name)"
                                 class="w-full h-full object-contain"
                                 loading="lazy"
                                 @error="onImgError"

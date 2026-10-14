@@ -60,7 +60,7 @@ const textClass = computed(() => ({
         <img
             v-if="showImage"
             :src="src"
-            :alt="name"
+            :alt="name || ''"
             class="w-full h-full object-contain p-0.5"
             loading="lazy"
             decoding="async"

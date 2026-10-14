@@ -873,7 +873,7 @@ const ogMeta = useOgMeta({
                                 class="flex items-center gap-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0"
                             >
                                 <div class="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img v-if="item.product?.image_url" :src="item.product.image_url" :alt="item.name" class="w-full h-full object-cover" />
+                                    <img v-if="item.product?.image_url" :src="item.product.image_url" :alt="item.name || ''" class="w-full h-full object-cover" />
                                     <div v-else class="w-full h-full flex items-center justify-center">
                                         <svg aria-hidden="true" class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

@@ -187,7 +187,7 @@ onUnmounted(() => {
                             <img
                                 v-if="mainImage"
                                 :src="mainImage"
-                                :alt="currentAuction.title"
+                                :alt="currentAuction.title || ''"
                                 class="w-full h-full object-cover"
                                 @error="onImgError"
                             />

@@ -16,7 +16,7 @@ defineProps({
     <img
         v-if="logoUrl"
         :src="logoUrl"
-        :alt="name"
+        :alt="name || ''"
         class="w-36 h-28 rounded-xl object-contain bg-white mb-4 shadow-lg"
         :class="alignClass"
         @error="onImgError"

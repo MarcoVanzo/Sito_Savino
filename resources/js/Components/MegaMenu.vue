@@ -286,7 +286,7 @@ onBeforeUnmount(() => {
                                 <img
                                     v-if="revealedImages.has(index)"
                                     :src="item.menuImage || LOGOS.VOLLEY"
-                                    :alt="item.label"
+                                    :alt="item.label || ''"
                                     loading="lazy"
                                     :class="['absolute inset-0 w-full h-full object-cover transition-transform duration-[6s] ease-out group-hover:scale-110', posizioneImmagine(item)]"
                                     @error="onImgError"

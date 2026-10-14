@@ -69,6 +69,11 @@ class SponsorResource extends Resource
                     ->image()
                     ->maxSize(2048)
                     ->columnSpanFull(),
+                Forms\Components\TextInput::make('testo_alternativo')
+                    ->label('Testo alternativo del logo')
+                    ->helperText('Se resta vuoto si usa il nome dello sponsor, che di solito basta.')
+                    ->maxLength(255)
+                    ->columnSpanFull(),
             ]);
     }
 
