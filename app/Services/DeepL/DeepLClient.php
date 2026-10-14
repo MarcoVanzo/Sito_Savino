@@ -9,8 +9,9 @@ use Illuminate\Support\Facades\Http;
  * Traduzioni con le API di DeepL (v2).
  *
  * Le chiavi del piano Free finiscono con `:fx` e rispondono solo su
- * `api-free.deepl.com`; quelle a pagamento su `api.deepl.com`. L'host si
- * sceglie dalla chiave, così passare di piano vuol dire solo cambiarla.
+ * `api-free.deepl.com`; quelle a pagamento su `api.deepl.com`. Senza
+ * `services.deepl.url` l'indirizzo si sceglie dalla chiave, così passare di
+ * piano vuol dire solo cambiarla.
  *
  * L'HTML del corpo delle notizie viaggia con `tag_handling=html`: DeepL
  * traduce il testo e lascia intatti tag, attributi e link.
@@ -19,6 +20,7 @@ class DeepLClient
 {
     public function __construct(
         private readonly ?string $key,
+        private readonly ?string $url,
         private readonly string $targetLang,
         private readonly int $timeout,
     ) {}
@@ -26,9 +28,11 @@ class DeepLClient
     public static function fromConfig(): self
     {
         $key = config('services.deepl.key');
+        $url = config('services.deepl.url');
 
         return new self(
             is_string($key) && trim($key) !== '' ? trim($key) : null,
+            is_string($url) && trim($url) !== '' ? rtrim(trim($url), '/') : null,
             (string) config('services.deepl.target_lang', 'EN-GB'),
             (int) config('services.deepl.timeout', 30),
         );
@@ -97,6 +101,10 @@ class DeepLClient
 
     private function indirizzo(): string
     {
+        if ($this->url !== null) {
+            return $this->url.'/v2/translate';
+        }
+
         $host = str_ends_with((string) $this->key, ':fx') ? 'api-free.deepl.com' : 'api.deepl.com';
 
         return "https://{$host}/v2/translate";

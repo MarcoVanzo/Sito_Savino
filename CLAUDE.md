@@ -392,10 +392,13 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   `news/<anno>/<mese>/`.
 - Resta `posts.wp_id`, che serve ai `?p=` del vecchio sito (§23).
 - **Inglese automatico con DeepL** (`DEEPL_API_KEY`, piano Free, a livello
-  d'app): `TraduceLeNotizieInInglese` accoda `TraduciLaNotiziaInInglese` a ogni
-  salvataggio. Si scrive solo l'inglese vuoto, copia dell'italiano o ancora
-  automatico (impronte in `posts.traduzioni_automatiche`): quello corretto in
-  redazione non si tocca. Senza chiave non parte niente.
+  d'app): solo notizie pubblicate, 15 minuti dopo l'ultimo salvataggio
+  (`TraduceLeNotizieInInglese` → `TraduciLaNotiziaInInglese`). Si scrive solo
+  l'inglese vuoto, copia dell'italiano o ancora automatico (impronte in
+  `posts.traduzioni_automatiche`): quello corretto in redazione non si tocca.
+  `EditPost` non riscrive i campi di lingua lasciati com'erano all'apertura
+  (il plugin translatable riporterebbe indietro la traduzione nuova).
+  Recupero notturno: `notizie:traduci-in-inglese` (ultimi 30 giorni).
 - Le date delle notizie importate sono ora locale di WordPress: il connettore
   MCP le mostra spostate, leggerle con `CAST(published_at AS CHAR)`.
 

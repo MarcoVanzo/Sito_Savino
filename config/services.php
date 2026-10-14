@@ -182,11 +182,15 @@ return [
     // DeepL: traduce in inglese le notizie scritte in italiano (job in coda
     // dopo il salvataggio). Senza chiave la traduzione non parte e il sito
     // inglese mostra l'italiano, come prima. Le chiavi del piano Free finiscono
-    // con ":fx" e vanno sull'host api-free: l'indirizzo si sceglie da lì.
+    // con ":fx" e vanno sull'host api-free: senza DEEPL_API_URL l'indirizzo
+    // si sceglie da lì. Si traduce solo il pubblicato, dopo un quarto d'ora
+    // dall'ultimo salvataggio (attesa_minuti).
     'deepl' => [
         'key' => env('DEEPL_API_KEY'),
+        'url' => env('DEEPL_API_URL'),
         'target_lang' => env('DEEPL_TARGET_LANG', 'EN-GB'),
         'timeout' => (int) env('DEEPL_TIMEOUT', 30),
+        'attesa_minuti' => (int) env('DEEPL_ATTESA_MINUTI', 15),
     ],
 
     // CEV Champions League: calendario, risultati e classifica del girone dal

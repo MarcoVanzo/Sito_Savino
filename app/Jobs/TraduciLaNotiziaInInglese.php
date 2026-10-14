@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Enums\PostStatus;
 use App\Models\Post;
 use App\Services\DeepL\DeepLClient;
 use App\Services\DeepL\DeepLException;
@@ -12,15 +13,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Traduce in inglese, con DeepL, i campi italiani di una notizia.
+ * Traduce in inglese, con DeepL, i campi italiani di una notizia pubblicata.
+ *
+ * Parte un quarto d'ora dopo l'ultimo salvataggio (`services.deepl.attesa_minuti`):
+ * la redazione salva spesso mentre sistema un testo, e ogni giro rimanda a
+ * DeepL l'intero corpo. Se nel frattempo la notizia è stata salvata ancora, il
+ * job si rimette in coda per il nuovo termine; le altre copie accodate le
+ * scarta l'unicità. Le bozze non escono dal sito.
  *
  * Un campo inglese si scrive solo se è vuoto, se è la copia dell'italiano o
  * se è ancora la traduzione automatica di un italiano che nel frattempo è
- * cambiato. Quello che la redazione ha scritto o corretto a mano non si tocca:
- * lo dice l'impronta salvata in `posts.traduzioni_automatiche`.
- *
- * Il salvataggio fa ripartire l'observer, che accoda di nuovo il job: il
- * secondo giro non trova niente da tradurre e non chiama DeepL.
+ * cambiato (o è stato svuotato: allora l'inglese si toglie). Quello che la
+ * redazione ha scritto o corretto a mano non si tocca: lo dice l'impronta
+ * salvata in `posts.traduzioni_automatiche`.
  */
 class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, ShouldQueue
 {
@@ -37,9 +42,18 @@ class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, Should
     /** @var list<int> */
     public array $backoff = [30, 120, 600];
 
-    public int $uniqueFor = 600;
+    /** Più lungo dell'attesa: il lock non deve scadere mentre il job aspetta in coda. */
+    public int $uniqueFor = 3600;
 
     public function __construct(public int $postId) {}
+
+    /**
+     * Accoda la traduzione dopo il quarto d'ora di quiete.
+     */
+    public static function accoda(int $postId): void
+    {
+        static::dispatch($postId)->delay(now()->addMinutes(self::attesaMinuti()));
+    }
 
     public function uniqueId(): string
     {
@@ -56,18 +70,26 @@ class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, Should
 
         $post = Post::find($this->postId);
 
-        if ($post === null) {
+        if ($post === null || $post->status !== PostStatus::Published) {
             return;
         }
 
-        $daTradurre = $this->campiDaTradurre($post);
+        $quiete = $post->updated_at?->copy()->addMinutes(self::attesaMinuti());
 
-        if ($daTradurre === []) {
+        if ($quiete !== null && $quiete->isFuture()) {
+            static::dispatch($this->postId)->delay($quiete);
+
+            return;
+        }
+
+        $daFare = self::campiDaTradurre($post);
+
+        if ($daFare === []) {
             return;
         }
 
         try {
-            $tradotti = $this->traduci($deepl, $daTradurre);
+            $tradotti = $this->traduci($deepl, $daFare);
         } catch (DeepLException $e) {
             if ($e->quotaEsaurita()) {
                 $this->fail($e);
@@ -78,7 +100,7 @@ class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, Should
             throw $e;
         }
 
-        $this->scrivi($daTradurre, $tradotti);
+        $this->scrivi($daFare, $tradotti);
     }
 
     public function failed(\Throwable $exception): void
@@ -90,9 +112,12 @@ class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, Should
     }
 
     /**
+     * I campi su cui il job deve intervenire, con il testo letto adesso.
+     * Un italiano vuoto vuol dire togliere l'inglese automatico rimasto.
+     *
      * @return array<string, array{it: string, en: string}>
      */
-    private function campiDaTradurre(Post $post): array
+    public static function campiDaTradurre(Post $post): array
     {
         $memoria = $post->traduzioni_automatiche ?? [];
         $campi = [];
@@ -100,19 +125,16 @@ class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, Should
         foreach ([...self::CAMPI_DI_TESTO, ...self::CAMPI_HTML] as $campo) {
             $it = trim((string) $post->getTranslation($campo, 'it', false));
             $en = trim((string) $post->getTranslation($campo, 'en', false));
-
-            if ($it === '') {
-                continue;
-            }
-
             $automatica = $memoria[$campo] ?? null;
+            $ancoraAutomatica = $en !== '' && is_array($automatica) && ($automatica['en'] ?? null) === sha1($en);
 
             $daFare = match (true) {
+                $it === '' => $ancoraAutomatica,
                 // L'inglese è ancora quello prodotto da DeepL: si rifà solo se
                 // l'italiano è cambiato. Viene prima del confronto con
                 // l'italiano: un titolo fatto di soli nomi torna identico, e
                 // ritradurlo a ogni giro non finirebbe mai.
-                is_array($automatica) && ($automatica['en'] ?? null) === sha1($en) => ($automatica['it'] ?? null) !== sha1($it),
+                $ancoraAutomatica => ($automatica['it'] ?? null) !== sha1($it),
                 $en === '', $en === $it => true,
                 // Scritto o corretto in redazione.
                 default => false,
@@ -126,16 +148,24 @@ class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, Should
         return $campi;
     }
 
+    private static function attesaMinuti(): int
+    {
+        return max(0, (int) config('services.deepl.attesa_minuti', 15));
+    }
+
     /**
      * @param  array<string, array{it: string, en: string}>  $campi
-     * @return array<string, string>
+     * @return array<string, string> Campo => inglese; stringa vuota per i campi da togliere.
      */
     private function traduci(DeepLClient $deepl, array $campi): array
     {
-        $tradotti = [];
+        $tradotti = array_map(fn (): string => '', array_filter($campi, fn (array $testi): bool => $testi['it'] === ''));
 
         foreach ([[self::CAMPI_DI_TESTO, false], [self::CAMPI_HTML, true]] as [$gruppo, $html]) {
-            $nomi = array_values(array_intersect($gruppo, array_keys($campi)));
+            $nomi = array_values(array_filter(
+                $gruppo,
+                fn (string $nome): bool => isset($campi[$nome]) && $campi[$nome]['it'] !== '',
+            ));
 
             if ($nomi === []) {
                 continue;
@@ -173,12 +203,20 @@ class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, Should
                 $it = trim((string) $post->getTranslation($campo, 'it', false));
                 $en = trim((string) $post->getTranslation($campo, 'en', false));
 
-                if ($inglese === '' || $it !== $campi[$campo]['it'] || $en !== $campi[$campo]['en']) {
+                if ($it !== $campi[$campo]['it'] || $en !== $campi[$campo]['en']) {
                     continue;
                 }
 
-                $post->setTranslation($campo, 'en', $inglese);
-                $memoria[$campo] = ['it' => sha1($it), 'en' => sha1($inglese)];
+                if ($it === '') {
+                    $post->forgetTranslation($campo, 'en');
+                    unset($memoria[$campo]);
+                } elseif ($inglese !== '') {
+                    $post->setTranslation($campo, 'en', $inglese);
+                    $memoria[$campo] = ['it' => sha1($it), 'en' => sha1($inglese)];
+                } else {
+                    continue;
+                }
+
                 $scritti++;
             }
 
@@ -186,7 +224,7 @@ class TraduciLaNotiziaInInglese implements ShouldBeUniqueUntilProcessing, Should
                 return;
             }
 
-            $post->traduzioni_automatiche = $memoria;
+            $post->traduzioni_automatiche = $memoria === [] ? null : $memoria;
             $post->save();
         });
     }

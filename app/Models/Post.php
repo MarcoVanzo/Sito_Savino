@@ -37,6 +37,9 @@ class Post extends Model implements HasMedia
     /** Impronte tecniche della traduzione automatica: nel registro sono rumore. */
     protected array $logExclude = ['traduzioni_automatiche'];
 
+    /** Il registro è per il lavoro della redazione: la traduzione in coda non lascia righe. */
+    protected bool $logSoloDalPannello = true;
+
     /**
      * @return array<string, string|class-string>
      */
