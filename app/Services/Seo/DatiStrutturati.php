@@ -121,12 +121,11 @@ class DatiStrutturati
             ])),
         ];
 
-        if ($gara->competition_type !== null) {
-            $evento['superEvent'] = [
-                '@type' => 'SportsEvent',
-                'name' => $gara->competition_type->getLabel(),
-            ];
-        }
+        // La competizione va nella descrizione, non in un `superEvent`:
+        // Google legge un evento annidato come un secondo evento, senza data
+        // né luogo, e lo segnala come non valido.
+        $evento['description'] = $this->descrizioneDellaGara($gara, $casa, $ospite);
+        $evento['performer'] = $evento['competitor'];
 
         $offerta = $this->offertaBiglietti($gara);
 
@@ -135,6 +134,21 @@ class DatiStrutturati
         }
 
         return $evento;
+    }
+
+    private function descrizioneDellaGara(Game $gara, string $casa, string $ospite): string
+    {
+        $parti = array_filter([
+            $gara->competition_type?->getLabel(),
+            $gara->matchday ? $gara->matchday.'ª giornata' : null,
+        ]);
+        $descrizione = $casa.' - '.$ospite.($parti !== [] ? ', '.implode(', ', $parti) : '');
+
+        if ($gara->status === GameStatus::Completed && $gara->home_score !== null && $gara->away_score !== null) {
+            $descrizione .= ': '.$gara->home_score.'-'.$gara->away_score;
+        }
+
+        return $descrizione.'.';
     }
 
     /**
