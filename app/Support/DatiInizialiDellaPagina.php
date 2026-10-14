@@ -22,7 +22,7 @@ namespace App\Support;
 class DatiInizialiDellaPagina
 {
     /**
-     * Compila `@inertia` (o `@inertia('id')`). Con l'SSR acceso stampa il
+     * Compila `@inertia`, anche con l'id del contenitore fra parentesi. Con l'SSR acceso stampa il
      * corpo reso dal server, come la direttiva del pacchetto.
      */
     public static function compila(string $expression = ''): string

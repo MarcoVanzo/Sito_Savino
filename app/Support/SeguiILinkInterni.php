@@ -200,10 +200,12 @@ final class SeguiILinkInterni
      */
     private static function propsInertia(string $html): array
     {
-        if (preg_match('/data-page="([^"]*)"/', $html, $attributo)) {
-            $json = html_entity_decode($attributo[1], ENT_QUOTES | ENT_HTML5);
-        } elseif (preg_match('#<script[^>]*data-page="app"[^>]*>(.*?)</script>#s', $html, $script)) {
+        // Prima lo script: il suo attributo `data-page="app"` corrisponderebbe
+        // anche alla forma vecchia, quella con il JSON nell'attributo.
+        if (preg_match('#<script[^>]*data-page="app"[^>]*>(.*?)</script>#s', $html, $script)) {
             $json = $script[1];
+        } elseif (preg_match('/data-page="([^"]*)"/', $html, $attributo)) {
+            $json = html_entity_decode($attributo[1], ENT_QUOTES | ENT_HTML5);
         } else {
             return [];
         }
