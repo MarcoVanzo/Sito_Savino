@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/vue3';
 import LOGOS from '@/Constants/logos.js';
+import { metaDellaPagina } from '@/Support/metaDellaPagina.js';
 
 /**
  * Composable per generare meta tag OG dinamici per ogni pagina.
@@ -44,12 +45,15 @@ export function useOgMeta({
         fullTitle = suffix ? `${title} — ${siteName}` : title;
     }
 
-    return {
+    // Titolo, descrizione e immagine del server vincono: sono quelli
+    // dell'HTML servito (ServeSocialCrawlerMeta), e i due non devono
+    // divergere. Quelli calcolati qui restano il ripiego.
+    return metaDellaPagina(page.props, {
         title: fullTitle,
         description: description || defaultDescription,
         image: image || defaultImage,
         url: currentUrl || baseUrl,
         type,
         siteName,
-    };
+    });
 }

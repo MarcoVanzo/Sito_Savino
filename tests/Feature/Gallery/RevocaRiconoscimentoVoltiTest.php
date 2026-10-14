@@ -143,7 +143,9 @@ class RevocaRiconoscimentoVoltiTest extends TestCase
         foreach (['alt', 'description', 'keywords'] as $proprieta) {
             $this->assertStringNotContainsString('Bosetti', (string) $media->getCustomProperty($proprieta), $proprieta);
         }
-        $this->assertStringContainsString('Marco Gaspari', $media->getCustomProperty('alt'));
+        $this->assertStringContainsString('Marco Gaspari', $media->getCustomProperty('description'));
+        // L'alt non porta nomi: solo squadra, album e data (TestiSeoDellaFoto::altDellAlbum).
+        $this->assertSame('Savino Del Bene Volley - Savino vs Conegliano - 20/09/2026', $media->getCustomProperty('alt'));
     }
 
     #[Test]

@@ -58,17 +58,17 @@ class PagineDelleSquadreYouthTest extends TestCase
     }
 
     /**
-     * Il palmares resta alla prima squadra: le voci di Wikipedia delle
-     * giovanili non esistono.
+     * Le pagine delle atlete restano alla prima squadra: le giovanili sono
+     * quasi tutte minorenni.
      */
     #[Test]
-    public function le_giovanili_non_espongono_il_palmares(): void
+    public function le_giovanili_non_hanno_pagine_atleta(): void
     {
         $this->atletaDi('U17', 'Bianchi');
 
         $this->get('/stagione/u17')
             ->assertOk()
-            ->assertInertia(fn ($pagina) => $pagina->where('palmaresEnabled', false));
+            ->assertInertia(fn ($pagina) => $pagina->where('schedeAtlete', false));
     }
 
     /**

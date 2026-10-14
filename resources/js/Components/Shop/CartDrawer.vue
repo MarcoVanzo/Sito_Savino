@@ -199,7 +199,7 @@ onUnmounted(() => {
                             <img
                                 v-if="item.product?.image_url || item.image_url"
                                 :src="item.product?.image_url || item.image_url"
-                                :alt="item.product?.name || item.name"
+                                :alt="item.product?.name || item.name || ''"
                                 class="w-full h-full object-cover"
                                 loading="lazy"
                                 @error="onImgError"

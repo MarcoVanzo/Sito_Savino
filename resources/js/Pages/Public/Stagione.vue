@@ -1,12 +1,11 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import PageHero from '@/Components/PageHero.vue';
 import SeasonStatsTable from '@/Components/SeasonStatsTable.vue';
 import TeamLogo from '@/Components/TeamLogo.vue';
-import PlayerPalmaresModal from '@/Components/PlayerPalmaresModal.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { roleLabels, displayRole, getRoleLabels } from '@/data/playerRoles';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
@@ -42,18 +41,11 @@ const props = defineProps({
         type: Object,
         default: null,
     },
-    // Il palmarès si pubblica solo sulla prima squadra: sulle altre le card
-    // non si aprono.
-    palmaresEnabled: {
+    // Solo la prima squadra ha le pagine delle atlete: sulle altre le card
+    // non sono link.
+    schedeAtlete: {
         type: Boolean,
         default: false,
-    },
-    // Slug dell'atleta il cui banner va aperto: arriva da
-    // /stagione/atleta/{slug}, ed è anche quello che l'apertura scrive
-    // nell'indirizzo.
-    openPlayer: {
-        type: String,
-        default: null,
     },
     // Nome della squadra quando non è la prima (es. "Serie B1"): la pagina è
     // la stessa, il titolo no.
@@ -95,47 +87,8 @@ const ogMeta = useOgMeta({
     description: props.teamLabel ? $t('stagione.hero_description') : $t('stagione.og_description'),
 });
 
-// Il banner ha un indirizzo proprio — così il link è condivisibile e il tasto
-// indietro lo chiude — ma non aspetta il server per aprirsi: lo stato locale
-// comanda a schermo, l'indirizzo lo segue. Il giro sul server chiede solo
-// `openPlayer`, gli altri dati restano quelli già in pagina.
-const openedSlug = ref(props.openPlayer);
-
-watch(() => props.openPlayer, (slug) => {
-    openedSlug.value = slug;
-});
-
-const openedPlayer = computed(
-    () => (openedSlug.value
-        ? props.roster.find(item => item.playerSlug === openedSlug.value) ?? null
-        : null),
-);
-
-const openedStats = computed(
-    () => (openedSlug.value
-        ? props.seasonStats.find(row => row.playerSlug === openedSlug.value) ?? null
-        : null),
-);
-
-function navigate(url) {
-    router.get(url, {}, {
-        only: ['openPlayer'],
-        preserveState: true,
-        preserveScroll: true,
-    });
-}
-
-function openPalmares(item) {
-    if (!props.palmaresEnabled || !item.playerSlug) return;
-
-    openedSlug.value = item.playerSlug;
-    navigate(route('stagione.atleta', { slug: item.playerSlug }));
-}
-
-function closePalmares() {
-    openedSlug.value = null;
-    navigate(route('stagione'));
-}
+// Ogni card della prima squadra porta alla pagina dell'atleta.
+const haLaScheda = (item) => props.schedeAtlete && Boolean(item.playerSlug);
 </script>
 
 <template>
@@ -179,16 +132,12 @@ v-for="role in roles"
                 <!-- Griglia Atlete -->
                 <div v-if="filteredRoster.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <component
-                        :is="palmaresEnabled && item.playerSlug ? 'button' : 'div'"
+                        :is="haLaScheda(item) ? Link : 'div'"
                         v-for="item in filteredRoster"
                         :key="item.id"
-                        :type="palmaresEnabled && item.playerSlug ? 'button' : null"
-                        :aria-label="palmaresEnabled && item.playerSlug
-                            ? item.player.first_name + ' ' + item.player.last_name + ' — ' + $t('palmares.open_hint')
-                            : null"
-                        :class="palmaresEnabled && item.playerSlug ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-savino-fucsia focus:ring-offset-2' : ''"
-                        class="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-500 hover:-translate-y-1 text-left w-full"
-                        @click="openPalmares(item)"
+                        :href="haLaScheda(item) ? route('stagione.atleta', { slug: item.playerSlug }) : null"
+                        :class="haLaScheda(item) ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-savino-fucsia focus:ring-offset-2' : ''"
+                        class="group block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-500 hover:-translate-y-1 text-left w-full"
                     >
                         <!-- Immagine Atleta -->
                         <!-- Riquadro verticale e ancoraggio in alto: le foto ufficiali sono
@@ -197,7 +146,7 @@ v-for="role in roles"
                             <img
                                 v-if="item.official_photo_url"
                                 :src="item.official_photo_url"
-                                :alt="item.player.first_name + ' ' + item.player.last_name"
+                                :alt="item.photo_alt || ''"
                                 class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
                                 @error="onImgError"
@@ -214,10 +163,11 @@ v-for="role in roles"
 
                             <!-- Invito all'apertura: compare sulla foto al passaggio del mouse -->
                             <div
-                                v-if="palmaresEnabled && item.playerSlug"
+                                v-if="haLaScheda(item)"
+                                aria-hidden="true"
                                 class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-savino-blue/90 to-transparent px-4 pt-10 pb-4 translate-y-full group-hover:translate-y-0 group-focus:translate-y-0 transition-transform duration-500"
                             >
-                                <span class="text-white text-sm font-semibold">{{ $t('palmares.open_hint') }} →</span>
+                                <span class="text-white text-sm font-semibold">{{ $t('atleta.open_hint') }} →</span>
                             </div>
                         </div>
 
@@ -301,7 +251,7 @@ v-for="role in roles"
                             <img
                                 v-if="member.photo_url"
                                 :src="member.photo_url"
-                                :alt="member.name"
+                                :alt="[member.name, member.role].filter(Boolean).join(', ')"
                                 class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
                                 @error="onImgError"
@@ -335,7 +285,7 @@ v-for="role in roles"
                             <img
                                 v-if="member.photo_url"
                                 :src="member.photo_url"
-                                :alt="member.name"
+                                :alt="[member.name, member.role].filter(Boolean).join(', ')"
                                 class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                                 loading="lazy"
                                 @error="onImgError"
@@ -350,12 +300,6 @@ v-for="role in roles"
                 </div>
             </div>
         </section>
-
-        <PlayerPalmaresModal
-            :item="openedPlayer"
-            :stats="openedStats"
-            @close="closePalmares"
-        />
     </PublicLayout>
 </template>
 

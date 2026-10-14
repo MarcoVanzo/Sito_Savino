@@ -43,6 +43,7 @@ use App\Observers\UserObserver;
 use App\Services\Analytics\WebAnalyticsService;
 use App\Services\Social\SocialAnalyticsService;
 use App\Services\Wikipedia\WikipediaClient;
+use App\Support\DatiInizialiDellaPagina;
 use App\Support\FotoAlleggerita;
 use App\Support\HostFidati;
 use Closure;
@@ -60,6 +61,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\Compilers\BladeCompiler;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Resend\Client as ResendClient;
 use Resend\Contracts\Client as ResendClientContract;
@@ -135,6 +137,14 @@ class AppServiceProvider extends ServiceProvider
         // timeout, user agent): non è autowirable perché i parametri sono
         // scalari.
         $this->app->bind(WikipediaClient::class, static fn (): WikipediaClient => WikipediaClient::fromConfig());
+
+        // `@inertia` scrive la pagina iniziale in uno script JSON invece che
+        // nell'attributo `data-page` (DatiInizialiDellaPagina). Il pacchetto
+        // registra la sua direttiva allo stesso modo e prima di noi: questa,
+        // registrata dopo, la sostituisce.
+        $this->callAfterResolving('blade.compiler', static function (BladeCompiler $blade): void {
+            $blade->directive('inertia', [DatiInizialiDellaPagina::class, 'compila']);
+        });
     }
 
     /**

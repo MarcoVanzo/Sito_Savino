@@ -32,11 +32,21 @@ describe('StrisciaSponsor', () => {
         expect(copie).toHaveLength(8);
         copie.forEach((voce) => {
             expect(voce.find('a').attributes('tabindex')).toBe('-1');
-            expect(voce.find('img').attributes('alt')).toBe('');
         });
+        // Anche la copia porta il nome: aria-hidden la toglie agli screen
+        // reader, ma per i motori un logo con alt vuoto e' un logo muto.
+        expect(copie.map((voce) => voce.find('img').attributes('alt'))).toEqual(sponsor(8).map((s) => s.name));
         expect(striscia.find('li:not([aria-hidden]) img').attributes('alt')).toBe('Sponsor 1');
         expect(striscia.find('li:not([aria-hidden]) a').attributes('rel')).toContain('sponsored');
         expect(await violazioniAxe(striscia.element)).toEqual([]);
+    });
+
+    it('il logo usa il testo alternativo scritto dalla redazione, altrimenti il nome', () => {
+        const elenco = sponsor(2);
+        elenco[0].logo_alt = 'Estra, energia per lo sport';
+        const fermi = monta(StrisciaSponsor, { sponsor: elenco });
+
+        expect(fermi.findAll('img').map((img) => img.attributes('alt'))).toEqual(['Estra, energia per lo sport', 'Sponsor 2']);
     });
 
     it('in pausa mostra tutti i loghi fermi, una volta sola', async () => {

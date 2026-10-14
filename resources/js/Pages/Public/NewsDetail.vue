@@ -1,12 +1,13 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useLocale } from '@/Composables/useLocale.js';
+import { testoAlternativo } from '@/Support/testoAlternativo.js';
 
 const { onImgError } = useImageFallback();
 const { formatDate } = useLocale();
@@ -27,18 +28,6 @@ const formattedDate = computed(() => {
     return formatDate(props.post.published_at);
 });
 
-// `ziggy` è fra le props condivise da HandleInertiaRequests, ma un reload
-// parziale non lo rispedisce: l'optional chaining e il fallback su window
-// evitano che l'accesso a .url faccia crashare il render della pagina.
-// usePage() va chiamato in setup: dentro il getter del computed ricostruirebbe
-// un oggetto reattivo nuovo a ogni rivalutazione.
-const page = usePage();
-const canonicalUrl = computed(() => {
-    const base = page.props.ziggy?.url
-        || (typeof window !== 'undefined' ? window.location.origin : '');
-    return `${base}/news/${props.post?.slug ?? ''}`;
-});
-
 const ogMeta = useOgMeta({
     title: props.post?.title,
     description: props.post?.meta_description || props.post?.excerpt,
@@ -56,29 +45,6 @@ const ogMeta = useOgMeta({
         <meta property="og:image" :content="ogMeta.image" />
         <meta property="og:url" :content="ogMeta.url" />
         <meta property="og:type" :content="ogMeta.type" />
-        <component :is="'script'" type="application/ld+json" v-if="post">
-            {{ JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'NewsArticle',
-                'headline': post.title,
-                'datePublished': post.published_at,
-                'dateModified': post.updated_at || post.published_at,
-                'author': {
-                    '@type': 'Organization',
-                    'name': 'Savino Del Bene Volley',
-                },
-                'publisher': {
-                    '@type': 'Organization',
-                    'name': 'Savino Del Bene Volley',
-                },
-                'description': post.meta_description || post.excerpt || '',
-                'image': post.media?.length ? post.media[0].original_url : undefined,
-                'mainEntityOfPage': {
-                    '@type': 'WebPage',
-                    '@id': canonicalUrl,
-                },
-            }) }}
-        </component>
     </Head>
 
     <PublicLayout>
@@ -107,7 +73,7 @@ const ogMeta = useOgMeta({
         <div v-if="post?.media?.length" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
             <img
                 :src="post.media[0]?.original_url"
-                :alt="post.title"
+                :alt="testoAlternativo(post.image_alt, post.title)"
                 class="w-full rounded-xl shadow-2xl object-cover max-h-[500px]"
                 @error="onImgError"
             />

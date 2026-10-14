@@ -369,7 +369,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'hero_cta2_url',
-                'value' => '/ticketing',
+                'value' => '/ticketing/biglietteria',
                 'type' => 'url',
                 'group' => 'home',
                 'label' => 'URL CTA Secondario',
@@ -406,7 +406,7 @@ class SiteSettingSeeder extends Seeder
             ],
             [
                 'key' => 'cta_ticketing_url',
-                'value' => '/ticketing',
+                'value' => '/ticketing/biglietteria',
                 'type' => 'url',
                 'group' => 'home',
                 'label' => 'URL CTA Biglietteria',

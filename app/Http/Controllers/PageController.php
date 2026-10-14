@@ -370,6 +370,8 @@ class PageController extends Controller
                 'number' => $r->jersey_number,
                 'role' => $r->role?->value,
                 'photo_url' => $r->getFirstMediaUrl('rosters_official', 'card') ?: ($r->player?->getFirstMediaUrl('players', 'card') ?: $r->player?->getFirstMediaUrl('players') ?: null),
+                // La rosa della prima squadra (categoria A1): il nome nell'alt.
+                'photo_alt' => $r->player?->testoAlternativoDellaFoto() ?? '',
             ])
             ->toArray();
     }

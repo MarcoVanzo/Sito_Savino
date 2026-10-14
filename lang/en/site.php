@@ -11,6 +11,11 @@ return [
     // 3° turno"): Team::nomePubblico().
     'avversaria_da_definire' => 'Opponent to be confirmed',
 
+    // Testi alternativi generati per le immagini (Player::testoAlternativoDellaFoto).
+    'testi_alternativi' => [
+        'atleta_del_vivaio' => 'Youth team player, Savino Del Bene Volley',
+    ],
+
     'feed' => [
         'title' => 'Savino Del Bene Volley — News',
         'description' => 'Official news from Savino Del Bene Volley: press releases, results and club life.',
@@ -98,6 +103,54 @@ return [
             'title' => ':nome',
             'description' => 'Photos of “:nome” in the official Savino Del Bene Volley gallery.',
         ],
+        // Added by the SEO audit of 14/10/2026: one key per page, so no two
+        // pages share a title. Existing entries above are unchanged.
+        'vivaio-b1' => [
+            'title' => 'Serie B1 and Under 19 — squad and staff',
+            'description' => 'Squad and staff of the Savino Del Bene Volley Serie B1 and Under 19 youth team.',
+        ],
+        'vivaio-u17' => [
+            'title' => 'Under 17 — squad and staff',
+            'description' => 'Squad and staff of the Savino Del Bene Volley Under 17 youth team, playing Serie C and Under 17.',
+        ],
+        'vivaio-u15' => [
+            'title' => 'Under 15 — squad and staff',
+            'description' => 'Squad and staff of the Savino Del Bene Volley Under 15 youth team, playing Seconda Divisione and Under 15.',
+        ],
+        'partita' => [
+            'title' => ':casa - :ospite :risultato, :competizione :data',
+            'description' => ':casa - :ospite on :data (:competizione): result, set scores and box score.',
+        ],
+        'prodotto' => [
+            'description' => ':nome: official Savino Del Bene Volley merchandise from the team online shop.',
+        ],
+        'shop-categoria' => [
+            'description' => ':nome in the official Savino Del Bene Volley shop: every item in the category, with sizes and availability.',
+        ],
+        'shop-cerca' => ['title' => 'Search the shop', 'description' => 'Search jerseys, apparel and accessories in the official Savino Del Bene Volley shop.'],
+        'shop-guida-taglie' => ['title' => 'Size guide', 'description' => 'Measurements of jerseys and apparel in the official Savino Del Bene Volley shop.'],
+        'shop-contatti' => ['title' => 'Shop contacts', 'description' => 'Help with orders, shipping and returns in the official Savino Del Bene Volley shop.'],
+        'asta' => ['description' => ':nome: Savino Del Bene Volley charity auction.'],
+        'carrello' => ['title' => 'Cart', 'description' => 'Your cart in the official Savino Del Bene Volley shop.'],
+        'checkout' => ['title' => 'Checkout', 'description' => 'Shipping and payment details for your Savino Del Bene Volley shop order.'],
+        'checkout-conferma' => ['title' => 'Order received', 'description' => 'Confirmation of your Savino Del Bene Volley shop order.'],
+        'checkout-annullato' => ['title' => 'Payment cancelled', 'description' => 'The payment for your Savino Del Bene Volley shop order was not completed.'],
+        'account' => ['title' => 'My account', 'description' => 'Your Savino Del Bene Volley shop account.'],
+        'ordini' => ['title' => 'My orders', 'description' => 'Your Savino Del Bene Volley shop orders.'],
+        'ordine' => ['title' => 'Order details', 'description' => 'Status and details of a Savino Del Bene Volley shop order.'],
+        'registrati' => ['title' => 'Sign up', 'description' => 'Create a Savino Del Bene Volley shop account.'],
+        'recesso' => ['title' => 'Withdrawal', 'description' => 'Online withdrawal form for Savino Del Bene Volley shop purchases.'],
+        'newsletter' => ['title' => 'Newsletter', 'description' => 'Manage your Savino Del Bene Volley newsletter subscription.'],
+        'in-costruzione' => ['title' => 'Page under construction', 'description' => 'This section of the Savino Del Bene Volley website is being prepared.'],
+        'pagina' => ['description' => ':nome: official information from Savino Del Bene Volley, Serie A1 women\'s volleyball team.'],
+    ],
+
+    'ruoli' => [
+        'palleggiatrice' => 'setter',
+        'schiacciatrice' => 'outside hitter',
+        'opposto' => 'opposite',
+        'centrale' => 'middle blocker',
+        'libero' => 'libero',
     ],
 
     /*

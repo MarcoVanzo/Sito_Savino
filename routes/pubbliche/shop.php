@@ -25,6 +25,7 @@ use App\Http\Controllers\Shop\ShopAuthController;
 use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\ValidateCouponController;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\RedirectPrimaDelleRotteVecchie;
 use App\Http\Middleware\TrackShopPageView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -214,8 +215,10 @@ return function (string $loc, string $namePrefix): void {
         ->name('newsletter.conferma');
     Route::get('/in-costruzione', [PublicController::class, 'underConstruction'])->name('in-costruzione');
 
-    // Rotta dinamica per le pagine del CMS (CATCH-ALL)
+    // Rotta dinamica per le pagine del CMS (CATCH-ALL). Prima del CMS e del
+    // permalink delle notizie del vecchio sito, i redirect decisi a mano.
     Route::get('/{slug}', [PageController::class, 'show'])
+        ->middleware(RedirectPrimaDelleRotteVecchie::class)
         ->where('slug', '^(?!(?:admin|api|filament|livewire|storage|_debugbar|_ignition|dashboard|profile|login|register|logout|forgot-password|reset-password|verify-email|confirm-password|email|password|stagione|risultati|classifica|gallery|staff|societa|sponsor|news|shop|contatti|contacts|in-costruzione|en)$)[^/]+$')
         ->name('pages.show');
 };

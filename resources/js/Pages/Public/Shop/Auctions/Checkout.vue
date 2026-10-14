@@ -472,7 +472,7 @@ const inputClass = 'w-full px-4 py-3 rounded-lg border border-gray-200 focus:bor
 
                             <div class="flex items-center gap-3 pb-4 mb-4 border-b border-gray-100">
                                 <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img v-if="productImage" :src="productImage" :alt="auctionTitle" class="w-full h-full object-cover" @error="onImgError" />
+                                    <img v-if="productImage" :src="productImage" :alt="auctionTitle || ''" class="w-full h-full object-cover" @error="onImgError" />
                                     <div v-else class="w-full h-full flex items-center justify-center text-2xl">🏐</div>
                                 </div>
                                 <div class="flex-1 min-w-0">

@@ -3,7 +3,8 @@ import './bootstrap';
 import { annunciaIlCambioDiPagina } from './Support/annuncioCambioPagina.js';
 import { ricaricaDopoIlRilascio } from './Support/ricaricaDopoIlRilascio.js';
 
-import { createInertiaApp, router } from '@inertiajs/vue3';
+import { createInertiaApp, router, usePage } from '@inertiajs/vue3';
+import { titoloDellaPagina } from './Support/metaDellaPagina.js';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
@@ -31,10 +32,23 @@ installaDialogDiRipiego();
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
 void createInertiaApp({
+    // La pagina iniziale arriva in <script type="application/json">, non
+    // nell'attributo data-page (App\Support\DatiInizialiDellaPagina).
+    defaults: {
+        future: {
+            useScriptElementForInitialPage: true,
+        },
+    },
     // Le pagine che usano useOgMeta arrivano qui con il nome del sito già in
     // coda: senza questo controllo il titolo diventava
     // "Shop Ufficiale — Savino Del Bene Volley - Savino Del Bene Volley".
     title: (title) => {
+        // Il titolo calcolato dal server (prop `seo`, ServeSocialCrawlerMeta)
+        // vince su quello della pagina: è quello dell'HTML servito, e il
+        // client non deve riscriverlo diverso (audit SEO del 14/10/2026).
+        const titoloDelServer = titoloDellaPagina(usePage().props);
+        if (titoloDelServer) return titoloDelServer;
+
         if (!title) return appName;
 
         return title.includes(appName) ? title : `${title} - ${appName}`;

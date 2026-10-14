@@ -41,7 +41,7 @@ const elenco = computed(() => props.eventi.map((evento) => ({
             <ul class="grid gap-8" :class="elenco.length === 1 ? 'max-w-xl mx-auto' : elenco.length === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' : 'md:grid-cols-2 lg:grid-cols-3'">
                 <li v-for="evento in elenco" :key="evento.id" class="flex flex-col rounded-2xl overflow-hidden bg-gray-50 shadow-sm ring-1 ring-gray-200">
                     <div class="relative aspect-video bg-gradient-to-br from-savino-blue to-gray-900">
-                        <img v-if="evento.immagine" :src="evento.immagine" alt="" loading="lazy" class="w-full h-full object-cover" />
+                        <img v-if="evento.immagine" :src="evento.immagine" :alt="evento.titolo || ''" loading="lazy" class="w-full h-full object-cover" />
                         <div class="absolute top-4 left-4 rounded-lg bg-white px-3 py-2 text-center shadow-md" aria-hidden="true">
                             <div class="text-savino-blue text-2xl font-black leading-none">{{ evento.giorno }}</div>
                             <div class="text-savino-fucsia text-xs font-bold uppercase tracking-wider mt-1">{{ evento.mese }}</div>

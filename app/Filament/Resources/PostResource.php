@@ -76,6 +76,10 @@ class PostResource extends Resource
                             ->imageResizeTargetWidth('1400')
                             ->imageResizeTargetHeight('1400')
                             ->imageResizeUpscale(false),
+                        Forms\Components\TextInput::make('testo_alternativo')
+                            ->label('Testo alternativo della copertina')
+                            ->helperText('Cosa mostra la foto, per chi non vede le immagini e per i motori di ricerca. Se resta vuoto si usa il titolo della notizia.')
+                            ->maxLength(255),
                         Forms\Components\Select::make('categories')
                             ->label('Categorie')
                             ->multiple()

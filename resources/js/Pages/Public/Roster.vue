@@ -86,7 +86,7 @@ const ogMeta = useOgMeta({
                             <img
                                 v-if="player.photo_url"
                                 :src="player.photo_url"
-                                :alt="player.first_name + ' ' + player.last_name"
+                                :alt="player.photo_alt || `${player.first_name} ${player.last_name}`"
                                 class="w-full h-full object-cover object-top"
                                 loading="lazy"
                                 @error="onImgError"

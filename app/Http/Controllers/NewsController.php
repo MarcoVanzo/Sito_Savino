@@ -45,15 +45,15 @@ class NewsController extends Controller
 
             // Trasformiamo ogni post per estrarre la traduzione nella locale corrente prima di cacharlo.
             // ->through() restituisce un NUOVO paginator, non modifica l'originale.
-            $transformed = $paginator->through(fn ($post) => $this->postToArray($post));
+            $transformed = $paginator->through(fn ($post) => $this->voceDellElenco($this->postToArray($post)));
 
             return $transformed->toArray();
         });
 
         // La ripulitura avviene anche all'uscita dalla cache: le chiavi scritte
-        // prima di questa correzione contengono l'intero User dell'autore e
-        // restano valide per qualche minuto dopo il deploy.
-        $posts['data'] = array_map($this->publicAuthor(...), $posts['data'] ?? []);
+        // prima di questa correzione contengono il post intero (testo, media,
+        // autore) e restano valide per qualche minuto dopo il deploy.
+        $posts['data'] = array_map($this->voceDellElenco(...), $posts['data'] ?? []);
 
         return Inertia::render('Public/News', [
             'posts' => $posts,
@@ -140,7 +140,7 @@ class NewsController extends Controller
                 ->orderByDesc('id')
                 ->take(3)
                 ->get()
-                ->map(fn ($p) => $this->postToArray($p))
+                ->map(fn ($p) => $this->voceDellElenco($this->postToArray($p)))
                 ->values()
                 ->toArray();
 
@@ -152,7 +152,7 @@ class NewsController extends Controller
 
         return Inertia::render('Public/NewsDetail', [
             'post' => $this->publicAuthor($data['post']),
-            'relatedPosts' => array_map($this->publicAuthor(...), $data['relatedPosts']),
+            'relatedPosts' => array_map($this->voceDellElenco(...), $data['relatedPosts']),
         ]);
     }
 
@@ -169,6 +169,8 @@ class NewsController extends Controller
         if ($post instanceof Post) {
             $translatable = $post->translatable;
             $data = $post->toArray();
+            // Il testo alternativo della copertina, gia' con il ripiego sul titolo.
+            $data['image_alt'] = $post->testoAlternativoDellaCopertina($locale);
         } else {
             // Dati già in forma array (dalla cache)
             $translatable = (new Post)->translatable;
@@ -197,6 +199,35 @@ class NewsController extends Controller
         }
 
         return $this->publicAuthor($data);
+    }
+
+    /**
+     * Una notizia come la mostrano l'elenco e le correlate: titolo, data,
+     * sommario e copertina. Il testo intero, i meta, le categorie e i media
+     * con tutte le loro colonne restano al dettaglio: nell'elenco erano
+     * quasi tutto il JSON della pagina (audit SEO del 14/10/2026). L'autore
+     * non compare in nessuna delle due liste, quindi non parte.
+     *
+     * Accetta anche le voci in cache scritte prima, con il post intero.
+     *
+     * @param  array<string, mixed>  $post
+     * @return array{id: mixed, slug: mixed, title: mixed, excerpt: mixed, published_at: mixed, image: ?string, image_alt: mixed}
+     */
+    private function voceDellElenco(array $post): array
+    {
+        $copertina = array_key_exists('image', $post)
+            ? $post['image']
+            : ($post['media'][0]['original_url'] ?? null);
+
+        return [
+            'id' => $post['id'] ?? null,
+            'slug' => $post['slug'] ?? null,
+            'title' => $post['title'] ?? null,
+            'excerpt' => $post['excerpt'] ?? null,
+            'published_at' => $post['published_at'] ?? null,
+            'image' => is_string($copertina) && $copertina !== '' ? $copertina : null,
+            'image_alt' => $post['image_alt'] ?? ($post['title'] ?? null),
+        ];
     }
 
     /**

@@ -933,6 +933,8 @@
         "503_title": "Maintenance",
         "generic_title": "Error",
         "403_desc": "You don't have permission to access this page.",
+        "410_title": "Page removed",
+        "410_desc": "This page of the old website no longer exists.",
         "404_desc": "The page you're looking for doesn't exist or has been moved.",
         "500_desc": "Something went wrong. We're working to fix the issue.",
         "503_desc": "The site is under maintenance. We'll be back shortly.",
@@ -1337,5 +1339,25 @@
         "resume_motion": "Resume animations",
         "go_to_slide": "Image {n} of {total}",
         "gallery_label": "Scrolling photos"
+    },
+    "atleta": {
+        "eyebrow": "First team",
+        "back": "Back to the squad",
+        "jersey": "Number",
+        "role": "Position",
+        "nationality": "Nationality",
+        "height": "Height",
+        "birth_year": "Year of birth",
+        "stats_title": "Season statistics",
+        "stats_empty": "Statistics come from the league box scores after the first matches.",
+        "stats_source": "Source: Lega Pallavolo Serie A Femminile box scores.",
+        "career_title": "Career at Savino Del Bene",
+        "palmares_title": "Honours",
+        "news_title": "News",
+        "news_all": "All news",
+        "gallery_title": "Photos",
+        "gallery_text": "Photos of {name} in the official gallery.",
+        "photo_alt": "{name}, Savino Del Bene Volley",
+        "open_hint": "View profile"
     }
 }

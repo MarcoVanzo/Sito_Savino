@@ -96,7 +96,7 @@ class MenuItemSeeder extends Seeder
             ],
             [
                 'label' => ['it' => 'News & Comunicati', 'en' => 'News & Press Releases'],
-                'url' => '/stagione/news/',
+                'url' => '/news',
                 'description' => ['it' => 'Notizie e comunicati', 'en' => 'News and press releases'],
             ],
             [
@@ -114,7 +114,7 @@ class MenuItemSeeder extends Seeder
     {
         $societa = MenuItem::create([
             'label' => ['it' => 'Società', 'en' => 'Club'],
-            'url' => '/societa/',
+            'url' => '/societa/storia',
             'location' => 'main',
             'sort_order' => 1,
             'is_active' => true,
@@ -143,7 +143,7 @@ class MenuItemSeeder extends Seeder
             ],
             [
                 'label' => ['it' => 'Contatti', 'en' => 'Contact'],
-                'url' => '/societa/contatti/',
+                'url' => '/contatti',
                 'description' => ['it' => 'Recapiti e sede', 'en' => 'Contact details and address'],
             ],
             [
@@ -161,7 +161,7 @@ class MenuItemSeeder extends Seeder
     {
         $ticketing = MenuItem::create([
             'label' => ['it' => 'Ticketing', 'en' => 'Tickets'],
-            'url' => '/ticketing/',
+            'url' => '/ticketing/biglietteria',
             'location' => 'main',
             'sort_order' => 2,
             'is_active' => true,
@@ -175,7 +175,7 @@ class MenuItemSeeder extends Seeder
         $this->createChildren($ticketing, [
             [
                 'label' => ['it' => 'Biglietteria', 'en' => 'Box Office'],
-                'url' => '/ticketing/',
+                'url' => '/ticketing/biglietteria',
                 'description' => ['it' => 'Prezzi e punti vendita', 'en' => 'Prices and points of sale'],
             ],
             [
@@ -217,7 +217,7 @@ class MenuItemSeeder extends Seeder
         $this->createChildren($sponsor, [
             [
                 'label' => ['it' => 'I Nostri Sponsor', 'en' => 'Our Sponsors'],
-                'url' => '/sponsor/nostri-sponsor/',
+                'url' => '/sponsor',
                 'description' => ['it' => 'Loghi e Categorie', 'en' => 'Logos and categories'],
             ],
             [
@@ -248,7 +248,7 @@ class MenuItemSeeder extends Seeder
     {
         $youth = MenuItem::create([
             'label' => ['it' => 'SDB Youth', 'en' => 'SDB Youth'],
-            'url' => '/youth/',
+            'url' => '/youth/settore-giovanile',
             'location' => 'main',
             'sort_order' => 4,
             'is_active' => true,
@@ -262,12 +262,17 @@ class MenuItemSeeder extends Seeder
         $this->createChildren($youth, [
             [
                 'label' => ['it' => 'Serie B1 / U19', 'en' => 'Serie B1 / U19'],
-                'url' => '/youth/b1-u19/',
+                'url' => '/stagione/b1',
                 'description' => self::DESCRIPTION_ROSTER,
             ],
             [
-                'label' => ['it' => 'Serie U17 & U15', 'en' => 'U17 & U15'],
-                'url' => '/youth/u17-u15/',
+                'label' => ['it' => 'Serie C / Under 17', 'en' => 'Serie C / Under 17'],
+                'url' => '/stagione/u17',
+                'description' => self::DESCRIPTION_ROSTER,
+            ],
+            [
+                'label' => ['it' => 'Seconda Divisione / Under 15', 'en' => 'Second Division / Under 15'],
+                'url' => '/stagione/u15',
                 'description' => self::DESCRIPTION_ROSTER,
             ],
             [
@@ -309,12 +314,12 @@ class MenuItemSeeder extends Seeder
         $this->createChildren($camp, [
             [
                 'label' => ['it' => 'Tutte le Info', 'en' => 'All the Info'],
-                'url' => '/summer-camp/info/',
+                'url' => '/summer-camp',
                 'description' => ['it' => 'Programma e informazioni', 'en' => 'Programme and information'],
             ],
             [
                 'label' => ['it' => 'Iscrizione (Experience)', 'en' => 'Registration (Experience)'],
-                'url' => '/summer-camp/iscrizione/',
+                'url' => '/summer-camp',
                 'description' => ['it' => 'Form multi-step', 'en' => 'Multi-step form'],
             ],
         ]);
@@ -327,7 +332,7 @@ class MenuItemSeeder extends Seeder
     {
         $sociale = MenuItem::create([
             'label' => ['it' => 'Sociale', 'en' => 'Community'],
-            'url' => '/sociale/',
+            'url' => '/sociale/volley-4-all',
             'location' => 'main',
             'sort_order' => 6,
             'is_active' => true,
@@ -341,7 +346,7 @@ class MenuItemSeeder extends Seeder
         $this->createChildren($sociale, [
             [
                 'label' => ['it' => 'Progetti Sociali', 'en' => 'Community Projects'],
-                'url' => '/sociale/progetti/',
+                'url' => '/sociale/progetti-sociali',
                 'description' => ['it' => 'Inclusione e territorio', 'en' => 'Inclusion and community'],
             ],
             [
@@ -361,7 +366,7 @@ class MenuItemSeeder extends Seeder
             ],
             [
                 'label' => ['it' => 'Aste Benefiche', 'en' => 'Charity Auctions'],
-                'url' => '/sociale/aste/',
+                'url' => '/shop/aste',
                 'description' => ['it' => "Aste sull'e-shop ufficiale", 'en' => 'Auctions on the official e-shop'],
             ],
         ]);
@@ -374,7 +379,7 @@ class MenuItemSeeder extends Seeder
     {
         $media = MenuItem::create([
             'label' => ['it' => 'Comunicazione', 'en' => 'Media'],
-            'url' => '/comunicazione/',
+            'url' => '/comunicazione/accrediti-stampa',
             'location' => 'main',
             'sort_order' => 7,
             'is_active' => true,
@@ -388,12 +393,12 @@ class MenuItemSeeder extends Seeder
         $this->createChildren($media, [
             [
                 'label' => ['it' => 'Accrediti Stampa', 'en' => 'Press Accreditation'],
-                'url' => '/comunicazione/accrediti/',
+                'url' => '/comunicazione/accrediti-stampa',
                 'description' => ['it' => 'Form Richiesta', 'en' => 'Request form'],
             ],
             [
                 'label' => ['it' => 'Cartelle Stampa', 'en' => 'Press Kits'],
-                'url' => '/comunicazione/cartelle/',
+                'url' => '/comunicazione/cartelle-stampa',
                 'description' => ['it' => 'Materiali', 'en' => 'Downloads'],
             ],
             [
@@ -471,7 +476,7 @@ class MenuItemSeeder extends Seeder
         ]);
         $this->createChildren($footerStagione, [
             ['label' => ['it' => 'Roster A1', 'en' => 'A1 Roster'], 'url' => '/stagione'],
-            ['label' => ['it' => 'Risultati', 'en' => 'Results'], 'url' => '/risultati'],
+            ['label' => ['it' => 'Risultati', 'en' => 'Results'], 'url' => '/stagione/risultati'],
             ['label' => ['it' => 'Gallery', 'en' => 'Gallery'], 'url' => '/gallery'],
             ['label' => ['it' => 'Staff Tecnico', 'en' => 'Coaching Staff'], 'url' => '/staff'],
         ], 'footer');
@@ -479,15 +484,15 @@ class MenuItemSeeder extends Seeder
         // 2. Il Club
         $footerClub = MenuItem::create([
             'label' => self::LABEL_THE_CLUB,
-            'url' => '/societa',
+            'url' => '/societa/storia',
             'location' => 'footer',
             'sort_order' => 1,
             'is_active' => true,
             'is_highlight' => false,
         ]);
         $this->createChildren($footerClub, [
-            ['label' => ['it' => 'La Società', 'en' => 'The Club'], 'url' => '/societa'],
-            ['label' => ['it' => 'Settore Giovanile', 'en' => 'Youth Programme'], 'url' => '/youth'],
+            ['label' => ['it' => 'La Società', 'en' => 'The Club'], 'url' => '/societa/storia'],
+            ['label' => ['it' => 'Settore Giovanile', 'en' => 'Youth Programme'], 'url' => '/youth/settore-giovanile'],
             ['label' => ['it' => 'Sponsor', 'en' => 'Sponsors'], 'url' => '/sponsor'],
             ['label' => ['it' => 'News', 'en' => 'News'], 'url' => '/news'],
         ], 'footer');
@@ -495,17 +500,17 @@ class MenuItemSeeder extends Seeder
         // 3. Servizi
         $footerServizi = MenuItem::create([
             'label' => ['it' => 'Servizi', 'en' => 'Services'],
-            'url' => '/ticketing',
+            'url' => '/ticketing/biglietteria',
             'location' => 'footer',
             'sort_order' => 2,
             'is_active' => true,
             'is_highlight' => false,
         ]);
         $this->createChildren($footerServizi, [
-            ['label' => ['it' => 'Biglietteria', 'en' => 'Box Office'], 'url' => '/ticketing'],
+            ['label' => ['it' => 'Biglietteria', 'en' => 'Box Office'], 'url' => '/ticketing/biglietteria'],
             ['label' => ['it' => 'Shop Ufficiale', 'en' => 'Official Shop'], 'url' => '/shop'],
             ['label' => ['it' => 'Contatti', 'en' => 'Contact'], 'url' => '/contatti'],
-            ['label' => ['it' => 'Comunicazione', 'en' => 'Media'], 'url' => '/comunicazione'],
+            ['label' => ['it' => 'Comunicazione', 'en' => 'Media'], 'url' => '/comunicazione/accrediti-stampa'],
         ], 'footer');
     }
 

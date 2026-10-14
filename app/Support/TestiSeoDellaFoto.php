@@ -6,7 +6,8 @@ use App\Models\GalleryImage;
 
 /**
  * Titolo, alt, descrizione e parole chiave che l'analisi dei volti scrive su
- * una foto della gallery, a partire dalle persone taggate e dall'album.
+ * una foto della gallery, a partire dalle persone taggate e dall'album
+ * (l'alt solo dall'album: vedi altDellAlbum()).
  *
  * Stava dentro AnalyzeGalleryImageJob::optimizeForSeo. E' uscito da li'
  * perche' serve anche alla revoca del riconoscimento dei volti
@@ -45,7 +46,7 @@ class TestiSeoDellaFoto
         // Formato: "Bosetti, Gaspari - Partita vs Busto Arsizio - 01/07/2026"
         $titolo = implode(self::SEPARATORE, array_filter([$elencoNomi, $titoloAlbum, $data], fn ($parte) => $parte !== ''));
 
-        $alt = implode(self::SEPARATORE, array_filter(['Savino Del Bene Volley', $elencoNomi, $titoloAlbum], fn ($parte) => $parte !== ''));
+        $alt = self::altDellAlbum($titoloAlbum, $data);
 
         $descrizione = 'Foto ';
         if ($nomi !== []) {
@@ -67,6 +68,23 @@ class TestiSeoDellaFoto
             'descrizione' => $descrizione,
             'parole_chiave' => $paroleChiave,
         ];
+    }
+
+    /**
+     * Il testo alternativo di una foto della gallery: squadra, album e data.
+     *
+     * Mai i nomi delle persone: quelli della gallery vengono quasi tutti dal
+     * riconoscimento dei volti, che non e' una fonte da pubblicare nell'alt
+     * (indicizzato dai motori per immagini), e fra le persone fotografate ci
+     * sono le atlete minorenni del vivaio. I nomi restano nel titolo, che la
+     * revoca del consenso sa riscrivere.
+     */
+    public static function altDellAlbum(?string $titoloAlbum, ?string $data): string
+    {
+        return implode(self::SEPARATORE, array_filter(
+            ['Savino Del Bene Volley', trim((string) $titoloAlbum), trim((string) $data)],
+            fn (string $parte): bool => $parte !== '',
+        ));
     }
 
     /**

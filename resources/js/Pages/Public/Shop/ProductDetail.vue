@@ -4,7 +4,7 @@ import { useSanitize } from '@/Composables/useSanitize.js';
 import { ref, computed, nextTick, onMounted, watch } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import AvvisoGaranziaLegale from '@/Components/Shop/AvvisoGaranziaLegale.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { useCart } from '@/Composables/useCart.js';
 import { useFormatPrice } from '@/Composables/useFormatPrice.js';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
@@ -208,30 +208,6 @@ const handleAddToCart = () => {
         },
     });
 };
-
-// --- JSON-LD ---
-const structuredData = computed(() => {
-    const p = props.product;
-    if (!p) return {};
-    const baseUrl = usePage().props.ziggy?.url ?? '';
-    return {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
-        'name': p.name,
-        'description': p.description,
-        'image': p.images ?? [],
-        'sku': p.slug,
-        'offers': {
-            '@type': 'Offer',
-            'url': `${baseUrl}/shop/${p.slug}`,
-            'priceCurrency': 'EUR',
-            'price': displayPrice.value,
-            'availability': isOutOfStock.value
-                ? 'https://schema.org/OutOfStock'
-                : 'https://schema.org/InStock',
-        },
-    };
-});
 </script>
 
 <template>
@@ -243,9 +219,6 @@ const structuredData = computed(() => {
         <meta property="og:image" :content="ogMeta.image" />
         <meta property="og:url" :content="ogMeta.url" />
         <meta property="og:type" content="product" />
-        <component :is="'script'" type="application/ld+json">
-            {{ JSON.stringify(structuredData) }}
-        </component>
     </Head>
 
     <PublicLayout>
@@ -293,7 +266,7 @@ const structuredData = computed(() => {
                             <img
                                 v-if="mainImage"
                                 :src="mainImage"
-                                :alt="product?.name"
+                                :alt="product?.name || ''"
                                 class="w-full h-full object-cover transition-all duration-300"
                                 :style="zoomStyle"
                                 @error="onImgError"

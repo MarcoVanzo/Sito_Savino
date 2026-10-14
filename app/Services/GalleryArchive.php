@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\GalleryImage;
 use App\Models\Player;
 use App\Support\GenerazioneDiCache;
+use App\Support\TestiSeoDellaFoto;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -105,7 +106,13 @@ class GalleryArchive
             'id' => $img->id,
             'url' => $img->getFirstMediaUrl('gallery', 'lightbox') ?: $img->getFirstMediaUrl('gallery'),
             'thumb' => $img->getFirstMediaUrl('gallery', 'thumb') ?: $img->getFirstMediaUrl('gallery'),
-            'alt' => mb_substr($this->testoTradotto($img->title ?? __('Immagine Galleria'), $locale), 0, 255),
+            // Il titolo (con i nomi delle persone taggate) resta la didascalia;
+            // l'alt dice solo album e data, senza nomi: TestiSeoDellaFoto::altDellAlbum().
+            'title' => mb_substr($this->testoTradotto($img->title ?? __('Immagine Galleria'), $locale), 0, 255),
+            'alt' => mb_substr(TestiSeoDellaFoto::altDellAlbum(
+                $this->testoTradotto($img->galleryEvent?->title, $locale),
+                $img->galleryEvent?->event_date?->format('d/m/Y'),
+            ), 0, 255),
             'category' => $img->category ?? 'Partite',
             'tags' => $img->players->map(fn ($p) => $p->full_name)->values()->toArray(),
             'event_name' => $this->testoTradotto($img->galleryEvent?->title, $locale),

@@ -30,9 +30,10 @@ class Post extends Model implements HasMedia
         'author_id',
         'meta_title',
         'meta_description',
+        'testo_alternativo',
     ];
 
-    public $translatable = ['title', 'content', 'excerpt', 'meta_description'];
+    public $translatable = ['title', 'content', 'excerpt', 'meta_description', 'testo_alternativo'];
 
     /**
      * @return array<string, string|class-string>
@@ -77,6 +78,19 @@ class Post extends Model implements HasMedia
                 ->whereNull('published_at')
                 ->orWhere('published_at', '<=', now())
             );
+    }
+
+    /**
+     * Il testo alternativo della copertina nella lingua della pagina: quello
+     * scritto dalla redazione, altrimenti il titolo della notizia. Con il
+     * ripiego sull'italiano, come il titolo nelle schede.
+     */
+    public function testoAlternativoDellaCopertina(?string $lingua = null): string
+    {
+        $lingua ??= app()->getLocale();
+        $scritto = trim((string) $this->getTranslation('testo_alternativo', $lingua));
+
+        return $scritto !== '' ? $scritto : trim((string) $this->getTranslation('title', $lingua));
     }
 
     public function registerMediaConversions(?Media $media = null): void

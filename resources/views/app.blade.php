@@ -67,47 +67,15 @@
         <!-- Theme Color -->
         <meta name="theme-color" content="#003063">
 
-        <!-- Structured Data -->
-        <script type="application/ld+json" nonce="{{ $cspNonce }}">
-        {
-            "@@context": "https://schema.org",
-            "@@type": "SportsTeam",
-            "name": "Savino Del Bene Volley",
-            "sport": "Volleyball",
-            "url": "{{ config('app.url') }}",
-            "logo": "{{ config('app.url') }}/images/logo.png",
-            "location": {
-                "@@type": "Place",
-                "name": "Pala BigMat",
-                "address": {
-                    "@@type": "PostalAddress",
-                    "addressLocality": "Firenze",
-                    "addressRegion": "Toscana",
-                    "addressCountry": "IT"
-                }
-            },
-            "memberOf": {
-                "@@type": "SportsOrganization",
-                "name": "Lega Pallavolo Serie A Femminile"
-            }
-        }
-        </script>
-
-        <!-- WebSite Structured Data -->
-        <script type="application/ld+json" nonce="{{ $cspNonce }}">
-        {
-            "@@context": "https://schema.org",
-            "@@type": "WebSite",
-            "name": "Savino Del Bene Volley",
-            "url": "{{ config('app.url') }}",
-            "inLanguage": "{{ app()->getLocale() === 'en' ? 'en-US' : 'it-IT' }}",
-            "publisher": {
-                "@@type": "Organization",
-                "name": "Savino Del Bene Volley",
-                "logo": "{{ config('app.url') }}/images/logo.png"
-            }
-        }
-        </script>
+        {{-- Dati strutturati (schema.org) calcolati sul server da
+             ServeSocialCrawlerMeta / DatiStrutturati: la società e il sito in
+             home, la notizia, il prodotto, la partita, l'atleta e le briciole
+             di pane sulle altre pagine. Stanno nell'HTML servito, non li
+             scrive il JavaScript. JSON_HEX_TAG: un tag di chiusura nel titolo
+             non chiude lo script. --}}
+        @foreach ($metaDellaPagina['jsonld'] ?? [] as $blocco)
+        <script type="application/ld+json" nonce="{{ $cspNonce }}">{!! json_encode($blocco, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_INVALID_UTF8_SUBSTITUTE) !!}</script>
+        @endforeach
 
         <title inertia>{{ $metaDellaPagina['title'] ?? config('app.name', 'Savino Del Bene Volley') }}</title>
 

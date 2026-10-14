@@ -7,6 +7,7 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSanitize } from '@/Composables/useSanitize';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useLocale } from '@/Composables/useLocale.js';
+import { testoAlternativo } from '@/Support/testoAlternativo.js';
 import { collapseCategories } from '@/Support/collapseCategories.js';
 
 const { onImgError } = useImageFallback();
@@ -132,9 +133,9 @@ const ogMeta = useOgMeta({
                     >
                         <div class="aspect-video bg-gray-200 overflow-hidden">
                             <img
-                                v-if="post.media?.length"
-                                :src="post.media[0]?.original_url"
-                                :alt="post.title"
+                                v-if="post.image"
+                                :src="post.image"
+                                :alt="testoAlternativo(post.image_alt, post.title)"
                                 loading="lazy"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 @error="onImgError"

@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
                                testata e' il pulsante del negozio, che altrimenti si
                                confonderebbe con le voci in fucsia. La sezione aperta
                                si riconosce dalla sottolineatura. */
-                            $page.url.startsWith(item.href)
+                            $page.url.startsWith(item.sezione ?? item.href)
                                 ? 'text-white border-b-[3px] border-savino-fucsia pt-[3px]'
                                 : 'text-white/90 hover:text-white border-b-[3px] border-transparent pt-[3px]',
                         ]"
@@ -286,7 +286,7 @@ onBeforeUnmount(() => {
                                 <img
                                     v-if="revealedImages.has(index)"
                                     :src="item.menuImage || LOGOS.VOLLEY"
-                                    :alt="item.label"
+                                    :alt="item.label || ''"
                                     loading="lazy"
                                     :class="['absolute inset-0 w-full h-full object-cover transition-transform duration-[6s] ease-out group-hover:scale-110', posizioneImmagine(item)]"
                                     @error="onImgError"

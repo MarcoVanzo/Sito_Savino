@@ -144,7 +144,7 @@ const handleRemoveItem = (itemId) => {
                                     <img
                                         v-if="item.image"
                                         :src="item.image"
-                                        :alt="item.name"
+                                        :alt="item.name || ''"
                                         class="w-full h-full object-cover"
                                         loading="lazy"
                                         @error="onImgError"

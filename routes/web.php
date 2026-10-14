@@ -5,6 +5,7 @@ use App\Http\Controllers\DirettaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\PaymentVerificationController;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\RedirectPrimaDelleRotteVecchie;
 use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\SetLocale;
 use App\Services\SitemapBuilder;
@@ -30,6 +31,22 @@ Route::get('/sitemap.xml', function (SitemapBuilder $builder) {
         'Cache-Control' => 'public, max-age=3600',
     ]);
 })->name('sitemap');
+
+// Le notizie degli ultimi due giorni per Google News, e l'indice che tiene
+// insieme le due sitemap (dichiarato in robots.txt).
+Route::get('/sitemap-news.xml', function (SitemapBuilder $builder) {
+    return response($builder->renderNotizie(), 200, [
+        'Content-Type' => 'application/xml; charset=utf-8',
+        'Cache-Control' => 'public, max-age=1800',
+    ]);
+})->name('sitemap.notizie');
+
+Route::get('/sitemap-index.xml', function (SitemapBuilder $builder) {
+    return response($builder->renderIndice(), 200, [
+        'Content-Type' => 'application/xml; charset=utf-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+})->name('sitemap.indice');
 
 // RFC 9116: dove segnalare una vulnerabilità. Il buildpack di Heroku nega i
 // percorsi che iniziano col punto se la cartella non esiste (rispondeva 403):
@@ -81,7 +98,10 @@ foreach ($locales as $loc) {
         // prefisso, e prima di `shop.php`, che chiude con la rotta generica
         // `/{slug}` — dopo quella un redirect a un segmento non si raggiunge.
         (require __DIR__.'/pubbliche/sito.php')($namePrefix);
-        (require __DIR__.'/pubbliche/legacy.php')($namePrefix);
+        // I redirect decisi a mano dal pannello vincono sulle regole generiche
+        // degli indirizzi del vecchio sito (RedirectPrimaDelleRotteVecchie).
+        Route::middleware(RedirectPrimaDelleRotteVecchie::class)
+            ->group(fn () => (require __DIR__.'/pubbliche/legacy.php')($namePrefix));
         (require __DIR__.'/pubbliche/shop.php')($loc, $namePrefix);
     });
 }

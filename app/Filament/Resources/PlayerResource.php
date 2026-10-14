@@ -86,6 +86,11 @@ class PlayerResource extends Resource
                             ->imageResizeUpscale(false)
                             ->helperText('Immagine ottimale: quadrata (es. 800x800px).')
                             ->columnSpanFull(),
+                        Forms\Components\TextInput::make('testo_alternativo')
+                            ->label('Testo alternativo della foto')
+                            ->helperText('Vale anche per la foto ufficiale in rosa. Se resta vuoto: «Nome Cognome, Savino Del Bene Volley» (per il vivaio, senza nome).')
+                            ->maxLength(255)
+                            ->columnSpanFull(),
                     ]),
             ]);
     }

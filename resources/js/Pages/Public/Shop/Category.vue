@@ -2,7 +2,7 @@
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, watch, onUnmounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useSanitize } from '@/Composables/useSanitize';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
@@ -88,17 +88,6 @@ onUnmounted(() => {
         <meta property="og:image" :content="ogMeta.image" />
         <meta property="og:url" :content="ogMeta.url" />
         <meta property="og:type" :content="ogMeta.type" />
-        <component :is="'script'" type="application/ld+json">
-            {{ JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'BreadcrumbList',
-                'itemListElement': [
-                    { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': usePage().props.ziggy?.url },
-                    { '@type': 'ListItem', 'position': 2, 'name': 'Shop', 'item': `${usePage().props.ziggy?.url}/shop` },
-                    { '@type': 'ListItem', 'position': 3, 'name': category?.name },
-                ],
-            }) }}
-        </component>
     </Head>
 
     <PublicLayout>

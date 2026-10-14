@@ -109,7 +109,7 @@ const ogMeta = useOgMeta({
                             <img
                                 v-if="club.logo"
                                 :src="club.logo"
-                                :alt="club.name"
+                                :alt="club.name || ''"
                                 class="w-full h-full object-contain"
                                 loading="lazy"
                                 @error="onImgError"

@@ -25,7 +25,7 @@ class HeroSlideSeeder extends Seeder
             [
                 'subtitle' => 'Segui tutte le partite',
                 'cta_text' => 'Calendario',
-                'cta_url' => '/risultati',
+                'cta_url' => '/stagione/risultati',
                 'sort_order' => 1,
                 'is_active' => true,
             ]
