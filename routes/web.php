@@ -32,6 +32,22 @@ Route::get('/sitemap.xml', function (SitemapBuilder $builder) {
     ]);
 })->name('sitemap');
 
+// Le notizie degli ultimi due giorni per Google News, e l'indice che tiene
+// insieme le due sitemap (dichiarato in robots.txt).
+Route::get('/sitemap-news.xml', function (SitemapBuilder $builder) {
+    return response($builder->renderNotizie(), 200, [
+        'Content-Type' => 'application/xml; charset=utf-8',
+        'Cache-Control' => 'public, max-age=1800',
+    ]);
+})->name('sitemap.notizie');
+
+Route::get('/sitemap-index.xml', function (SitemapBuilder $builder) {
+    return response($builder->renderIndice(), 200, [
+        'Content-Type' => 'application/xml; charset=utf-8',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+})->name('sitemap.indice');
+
 // RFC 9116: dove segnalare una vulnerabilità. Il buildpack di Heroku nega i
 // percorsi che iniziano col punto se la cartella non esiste (rispondeva 403):
 // `public/.well-known/` c'è apposta, vuota, e la richiesta arriva qui. La

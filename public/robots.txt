@@ -21,4 +21,9 @@ Disallow: /storage/
 # sull'apex, e APP_URL varra' il dominio PRIMARY, che e' l'apex). Una sitemap
 # dichiarata su un host diverso da quello che la serve e' una sitemap che
 # Google considera di un altro sito.
+#
+# L'indice tiene insieme la sitemap del sito e quella delle notizie degli
+# ultimi due giorni (Google News); restano dichiarate anche una per una.
+Sitemap: https://savinodelbenevolley.it/sitemap-index.xml
 Sitemap: https://savinodelbenevolley.it/sitemap.xml
+Sitemap: https://savinodelbenevolley.it/sitemap-news.xml
