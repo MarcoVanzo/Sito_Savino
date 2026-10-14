@@ -42,7 +42,7 @@ const pannelloMobile = ref(null);
 useTrappolaDelFocus([barraMobile, pannelloMobile], computed(() => props.isOpen), { iniziale: pannelloMobile });
 
 // La voce della pagina in cui ci si trova: evidenziata e annunciata come tale.
-const voceCorrente = (item) => !!item.href && page.url.startsWith(item.href);
+const voceCorrente = (item) => !!item.href && page.url.startsWith(item.sezione ?? item.href);
 
 // Serve un link alla pagina della sezione solo quando nessuna sottovoce ci
 // porta già (a parità di indirizzo, barra finale a parte). Vale per la voce

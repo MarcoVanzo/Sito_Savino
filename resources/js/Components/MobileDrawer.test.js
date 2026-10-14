@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 import { mount, flushPromises } from '@vue/test-utils';
 
+const pagina = vi.hoisted(() => ({ url: '/' }));
+
 vi.mock('@inertiajs/vue3', () => ({
-    usePage: () => ({ url: '/', props: { auth: { user: null } } }),
+    usePage: () => ({ url: pagina.url, props: { auth: { user: null } } }),
     Link: { template: '<a href="#"><slot /></a>' },
     router: { post: vi.fn() },
 }));
@@ -27,7 +29,10 @@ beforeAll(() => {
 const { default: MobileDrawer } = await import('./MobileDrawer.vue');
 
 let wrapper;
-afterEach(() => wrapper?.unmount());
+afterEach(() => {
+    wrapper?.unmount();
+    pagina.url = '/';
+});
 
 // Con aria-modal sul solo elenco delle voci, il pulsante di chiusura (che sta
 // nella barra, fratello dell'elenco) usciva dall'albero accessibile.
@@ -63,5 +68,32 @@ describe('MobileDrawer come finestra modale', () => {
 
         expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
         expect(wrapper.find('[aria-modal]').exists()).toBe(false);
+    });
+});
+
+// Dal 14/10/2026 la voce punta alla pagina finale (`/societa/storia`), non al
+// rimando di sezione: senza `sezione` sulle altre pagine della Societa' la
+// voce non risultava piu' quella aperta.
+describe('MobileDrawer e la sezione aperta', () => {
+    it('la voce resta quella corrente su tutte le pagine della sua sezione', () => {
+        pagina.url = '/societa/organigramma';
+        wrapper = mount(MobileDrawer, {
+            attachTo: document.body,
+            props: { navigation: [{ label: 'Società', href: '/societa/storia', sezione: '/societa' }], isOpen: true },
+            global: { mocks: { $t: (chiave) => chiave, route: (nome) => `/${nome}` } },
+        });
+
+        expect(wrapper.find('a[aria-current="page"]').text()).toContain('Società');
+    });
+
+    it('senza sezione vale ancora l\'indirizzo della voce', () => {
+        pagina.url = '/societa/organigramma';
+        wrapper = mount(MobileDrawer, {
+            attachTo: document.body,
+            props: { navigation: [{ label: 'Società', href: '/societa/storia' }], isOpen: true },
+            global: { mocks: { $t: (chiave) => chiave, route: (nome) => `/${nome}` } },
+        });
+
+        expect(wrapper.find('a[aria-current="page"]').exists()).toBe(false);
     });
 });

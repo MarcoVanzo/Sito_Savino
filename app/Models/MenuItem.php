@@ -210,6 +210,7 @@ class MenuItem extends Model implements HasMedia
             'id' => $item->id,
             'label' => $item->label,
             'href' => static::href($item->url, $locale),
+            'sezione' => self::sezione($item->url, $locale),
             'description' => $item->description,
             'mottoTitle' => $item->motto_title,
             'mottoSubtitle' => $item->motto_subtitle,
@@ -222,6 +223,28 @@ class MenuItem extends Model implements HasMedia
                 ->values()
                 ->toArray(),
         ];
+    }
+
+    /**
+     * Il primo segmento dell'indirizzo, con la lingua: la testata lo usa per
+     * sottolineare la sezione in cui ci si trova.
+     *
+     * Non basta l'indirizzo della voce: dal 14/10/2026 punta alla pagina
+     * finale (`/societa/storia`, `/youth/settore-giovanile`) e non piu' al
+     * rimando di sezione, e sulle altre pagine della sezione la voce non
+     * risulterebbe piu' quella aperta.
+     */
+    private static function sezione(?string $url, string $locale): ?string
+    {
+        $url = trim((string) $url);
+
+        if (! str_starts_with($url, '/') || str_starts_with($url, '//')) {
+            return null;
+        }
+
+        $primo = explode('/', trim((string) parse_url($url, PHP_URL_PATH), '/'))[0];
+
+        return $primo === '' ? null : static::localizeUrl('/'.$primo, $locale);
     }
 
     /**

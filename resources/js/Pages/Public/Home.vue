@@ -121,7 +121,7 @@ const heroTagline = computed(() => homeSettings.value.hero_tagline || $t('home.h
 const heroCta1Label = computed(() => homeSettings.value.hero_cta1_label || $t('home.hero_cta1'));
 const heroCta1Url = computed(() => safeUrl(homeSettings.value.hero_cta1_url, '/stagione'));
 const heroCta2Label = computed(() => homeSettings.value.hero_cta2_label || $t('home.hero_cta2'));
-const heroCta2Url = computed(() => safeUrl(homeSettings.value.hero_cta2_url, '/ticketing'));
+const heroCta2Url = computed(() => safeUrl(homeSettings.value.hero_cta2_url, route('ticketing.page', 'biglietteria')));
 const heroVideoUrl = computed(() => homeSettings.value.hero_video_url || null);
 
 // Le slide arrivano dal CMS: interpolarle in una stringa `style` permetterebbe
@@ -158,7 +158,7 @@ const stats = computed(() => {
 // CTA Banner dal backend con fallback
 const ctaTicketingTitle = computed(() => homeSettings.value.cta_ticketing_title || $t('home.cta_ticketing_title'));
 const ctaTicketingText = computed(() => homeSettings.value.cta_ticketing_text || $t('home.cta_ticketing_text'));
-const ctaTicketingUrl = computed(() => safeUrl(homeSettings.value.cta_ticketing_url, '/ticketing'));
+const ctaTicketingUrl = computed(() => safeUrl(homeSettings.value.cta_ticketing_url, route('ticketing.page', 'biglietteria')));
 const ctaShopTitle = computed(() => homeSettings.value.cta_shop_title || $t('home.cta_shop_title'));
 const ctaShopText = computed(() => homeSettings.value.cta_shop_text || $t('home.cta_shop_text'));
 const ctaShopUrl = computed(() => safeUrl(homeSettings.value.cta_shop_url, '/shop'));
