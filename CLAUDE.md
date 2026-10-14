@@ -396,10 +396,12 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
 
 ## 15. Sponsor
 
-- Livelli in `App\Enums\SponsorTier` (ordine dei case = ordine in pagina);
-  raggruppamento in `App\Services\SponsorDirectory`, condiviso. L'elenco lo cura
-  la redazione. I nomi delle sezioni li riscrive la redazione (Sponsor →
-  «Nomi delle sezioni», `SponsorTier::CHIAVE_DEI_NOMI`); vuoto = `nomePredefinito()`. Le richieste vanno a `marketing@savinodelbenevolley.it`.
+- Livelli in `App\Enums\SponsorTier`; raggruppamento in
+  `App\Services\SponsorDirectory`, condiviso. L'elenco lo cura la redazione.
+  Nomi e ordine delle sezioni li decide la redazione (Sponsor → «Nomi e ordine
+  delle sezioni», `CHIAVE_DEI_NOMI` e `CHIAVE_DELL_ORDINE`): nome vuoto =
+  `nomePredefinito()`, livello assente dall'ordine salvato = in fondo, nell'ordine
+  dei case (quello chiesto dalla società). In pagina passare da `ordered()`. Le richieste vanno a `marketing@savinodelbenevolley.it`.
 
 ## 16. Diretta streaming
 
