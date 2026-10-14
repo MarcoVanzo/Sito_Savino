@@ -10,7 +10,6 @@ use App\Models\User;
 use App\Support\IndirizziPerLingua;
 use App\Support\SentryDsn;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -61,8 +60,8 @@ class HandleInertiaRequests extends Middleware
                 'newsletter_info' => fn () => $request->session()->get('newsletter_info'),
             ],
             'navigation' => fn () => $isPublic ? MenuItem::getTree('main') : [],
-            'footerMenu' => fn () => $isPublic ? MenuItem::getTree('footer') : [],
-            'siteSettings' => fn () => $isPublic ? $this->publicSiteSettings() : [],
+            'footerMenu' => fn () => $isPublic ? $this->footerMenu() : [],
+            'siteSettings' => fn () => $isPublic ? $this->publicSiteSettings($request) : [],
             // La versione dei testi dell'informativa: il banner la confronta con
             // quella salvata nel browser e, se è cambiata, torna a chiedere
             // invece di dare per buono un sì raccolto su un'altra informativa.
@@ -134,13 +133,44 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
+     * Gruppi di impostazioni che il layout e le pagine leggono da
+     * `siteSettings`. Viaggiano su ogni pagina: `shop`, `auctions`, `legal`,
+     * `brand` e `hero` non li legge nessun componente (lo shop riceve i suoi
+     * valori dai controller) e portavano a ogni visita anche testi della
+     * ricevuta e indirizzi interni (audit SEO del 14/10/2026). `home` serve
+     * solo alla homepage.
+     */
+    private const GRUPPI_CONDIVISI = ['general', 'footer', 'social', 'contact', 'analytics'];
+
+    /**
+     * Il menu del footer come lo legge SiteFooter.vue: colonne con etichetta
+     * e link. Immagini, motti e descrizioni sono del menu principale.
+     *
+     * @return list<array{label: mixed, children: list<array{label: mixed, href: mixed}>}>
+     */
+    private function footerMenu(): array
+    {
+        return array_map(fn (array $colonna): array => [
+            'label' => $colonna['label'] ?? null,
+            'children' => array_map(fn (array $voce): array => [
+                'label' => $voce['label'] ?? null,
+                'href' => $voce['href'] ?? null,
+            ], array_values($colonna['children'] ?? [])),
+        ], MenuItem::getTree('footer'));
+    }
+
+    /**
      * Impostazioni pubbliche del sito, gia' pronte per il front-end.
      *
      * @return array<string, mixed>
      */
-    private function publicSiteSettings(): array
+    private function publicSiteSettings(Request $request): array
     {
-        $settings = SiteSetting::getPublicGrouped();
+        $gruppi = $request->routeIs('home', 'en.home')
+            ? [...self::GRUPPI_CONDIVISI, 'home']
+            : self::GRUPPI_CONDIVISI;
+
+        $settings = array_intersect_key(SiteSetting::getPublicGrouped(), array_flip($gruppi));
 
         // Il pixel legge una configurazione d'ambiente, non un'impostazione del
         // pannello: viaggia insieme alle altre voci di analytics perche' il
@@ -160,12 +190,6 @@ class HandleInertiaRequests extends Middleware
         foreach (Page::CASELLE_PER_MODELLO as $caselle) {
             foreach ($caselle as $chiave) {
                 unset($settings['contact'][$chiave]);
-            }
-        }
-
-        foreach ($settings['legal'] ?? [] as $key => $path) {
-            if ($path) {
-                $settings['legal'][$key] = Storage::url($path);
             }
         }
 
@@ -193,7 +217,21 @@ class HandleInertiaRequests extends Middleware
                 $contentData = json_decode($contentData, true);
             }
 
-            return is_array($contentData) ? $contentData : [];
+            if (! is_array($contentData)) {
+                return [];
+            }
+
+            // Restano solo i recapiti: i testi della pagina (intestazione,
+            // modulo, argomenti, elenco degli uffici) Contatti.vue li legge da
+            // `page.content_data`, e in `siteSettings` viaggiavano su ogni
+            // pagina del sito.
+            return array_filter(
+                $contentData,
+                fn (mixed $valore, string|int $chiave): bool => ! is_array($valore)
+                    && ! str_starts_with((string) $chiave, 'form_')
+                    && ! str_starts_with((string) $chiave, 'hero_'),
+                ARRAY_FILTER_USE_BOTH,
+            );
         } catch (\Throwable) {
             // La tabella o la pagina possono non esistere ancora: il sito deve
             // reggere lo stesso.

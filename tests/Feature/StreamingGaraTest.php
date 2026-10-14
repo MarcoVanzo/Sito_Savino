@@ -64,7 +64,7 @@ class StreamingGaraTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('games.0.streamUrl', 'https://streaming-qualsiasi.example/diretta')
-                ->where('games.0.streamEmbedUrl', null)
+                ->missing('games.0.streamEmbedUrl')
             );
     }
 
@@ -76,8 +76,8 @@ class StreamingGaraTest extends TestCase
         $this->get(route('stagione.risultati'))
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('games.0.streamUrl', null)
-                ->where('games.0.streamEmbedUrl', null)
+                ->missing('games.0.streamUrl')
+                ->missing('games.0.streamEmbedUrl')
             );
     }
 }

@@ -99,6 +99,10 @@ class RisultatiController extends Controller
     {
         $data = $this->risultatiPayload($competitionType, $showStandings);
 
+        // La pagina mostra della classifica solo l'estratto: quozienti,
+        // ripartizione dei set e data di sincronizzazione restano alla pagina
+        // Classifica, che legge lo stesso payload in cache.
+        $data['standings'] = array_map($this->rigaDellEstratto(...), $data['standings']);
         $data['pageTitle'] = $pageTitle;
         $data['showStandings'] = $showStandings;
         $data['competition'] = $competitionType->value;
@@ -113,7 +117,7 @@ class RisultatiController extends Controller
      * la pagina Classifica riusa lo stesso payload proprio per non introdurre
      * una cache che CacheInvalidationObserver non saprebbe svuotare.
      *
-     * @return array{games: list<array<string, mixed>>, standings: list<array<string, mixed>>, seasonName: string}
+     * @return array{games: list<array<string, mixed>>, teams: array<int, array{name: string, logo: ?string, isOwn: bool}>, standings: list<array<string, mixed>>, seasonName: string}
      */
     private function risultatiPayload(CompetitionType $competitionType, bool $showStandings): array
     {
@@ -124,10 +128,11 @@ class RisultatiController extends Controller
             $currentSeason = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
 
             $games = [];
+            $teams = [];
             $standings = [];
 
             if ($currentSeason) {
-                $games = $this->presentGames($currentSeason, $competitionType);
+                ['games' => $games, 'teams' => $teams] = $this->presentGames($currentSeason, $competitionType);
 
                 if ($showStandings) {
                     $standings = $this->presentStandings($currentSeason, $competitionType);
@@ -136,7 +141,7 @@ class RisultatiController extends Controller
 
             $seasonName = $currentSeason->name ?? __('Stagione corrente');
 
-            return compact('games', 'standings', 'seasonName');
+            return compact('games', 'teams', 'standings', 'seasonName');
         });
     }
 
@@ -149,10 +154,18 @@ class RisultatiController extends Controller
      *
      * La data resta in ISO 8601: la formattazione è localizzata lato client.
      *
-     * @return list<array<string, mixed>>
+     * Nome, logo e appartenenza delle squadre stanno una volta sola in
+     * `teams`, e le gare ne portano l'id: con 182 gare ripetere su ognuna
+     * l'indirizzo assoluto dei due loghi era un terzo del JSON della pagina
+     * (audit SEO del 14/10/2026). Li ricompone `gareConLeSquadre.js`.
+     * Le chiavi nulle non viaggiano: la pagina le legge come assenti.
+     *
+     * @return array{games: list<array<string, mixed>>, teams: array<int, array{name: string, logo: ?string, isOwn: bool}>}
      */
     private function presentGames(Season $season, CompetitionType $competitionType): array
     {
+        $teams = [];
+
         $games = Game::with(['homeTeam.media', 'awayTeam.media', ...DirettaPerIlSito::RELAZIONI])
             ->withCount('playerStats')
             ->where('season_id', $season->id)
@@ -164,22 +177,29 @@ class RisultatiController extends Controller
             ->orderBy('matchday')
             ->orderBy('match_date')
             ->get()
-            ->map(function (Game $game): array {
+            ->map(function (Game $game) use (&$teams): array {
+                foreach ([$game->homeTeam, $game->awayTeam] as $team) {
+                    if ($team !== null && ! isset($teams[$team->id])) {
+                        $teams[$team->id] = [
+                            'name' => $team->nomePubblico(),
+                            'logo' => $this->teamLogo($team),
+                            'isOwn' => (bool) $team->is_internal,
+                        ];
+                    }
+                }
+
                 $homeIsOwn = (bool) $game->homeTeam?->is_internal;
                 $awayIsOwn = (bool) $game->awayTeam?->is_internal;
                 $played = $game->status === GameStatus::Completed
                     && $game->home_score !== null
                     && $game->away_score !== null;
+                $streamEmbedUrl = LiveStream::embedUrl($game->stream_url);
 
-                return [
+                return array_filter([
                     'id' => $game->id,
                     'matchDate' => $game->match_date->toIso8601String(),
-                    'home' => $game->homeTeam?->nomePubblico() ?? '',
-                    'away' => $game->awayTeam?->nomePubblico() ?? '',
-                    'homeLogo' => $this->teamLogo($game->homeTeam),
-                    'awayLogo' => $this->teamLogo($game->awayTeam),
-                    'homeIsOwn' => $homeIsOwn,
-                    'awayIsOwn' => $awayIsOwn,
+                    'homeTeam' => $game->homeTeam?->id,
+                    'awayTeam' => $game->awayTeam?->id,
                     'scoreHome' => $played ? $game->home_score : null,
                     'scoreAway' => $played ? $game->away_score : null,
                     'played' => $played,
@@ -187,30 +207,28 @@ class RisultatiController extends Controller
                     // tabellino da leggere: la rotta risponde 404 altrimenti.
                     'hasStats' => $played && $game->player_stats_count > 0,
                     'result' => $this->gameResult($game, $played, $homeIsOwn, $awayIsOwn),
-                    'statusLabel' => __('enums.game_status.'.$game->status->value),
                     'matchdayLabel' => $this->matchdayLabel($game),
                     'matchday' => $game->matchday,
-                    'phase' => $game->phase,
-                    'phaseLabel' => LvfPhaseLabel::translate($game->phase),
                     // In Champions i gironi giocano la stessa giornata negli
                     // stessi giorni: si raggruppa per giornata della fase a
                     // gironi, e il girone resta scritto su ogni gara
                     // (`matchdayLabel`). Raggruppando per girone le date dei
                     // cinque gironi si alternerebbero spezzando i gruppi.
+                    // Fuori dai gironi coincide con la fase della Lega, che
+                    // per questo non viaggia una seconda volta.
                     'groupPhase' => $this->eUnGironeCev($game) ? 'gironi' : $game->phase,
                     'groupPhaseLabel' => $this->eUnGironeCev($game)
                         ? __('enums.game.phase.fase_a_gironi')
                         : LvfPhaseLabel::translate($game->phase),
-                    'location' => $game->location,
                     // Diretta streaming: `streamEmbedUrl` è valorizzato solo per
                     // le piattaforme incorporabili, altrimenti resta il link.
                     'streamUrl' => LiveStream::externalUrl($game->stream_url),
-                    'streamEmbedUrl' => LiveStream::embedUrl($game->stream_url),
-                    'diretta' => LiveStream::embedUrl($game->stream_url) !== null ? DirettaPerIlSito::perLaGara($game) : null,
+                    'streamEmbedUrl' => $streamEmbedUrl,
+                    'diretta' => $streamEmbedUrl !== null ? DirettaPerIlSito::perLaGara($game) : null,
                     // Vero quando la gara riguarda una squadra della società:
                     // serve a evidenziarla e a filtrare il calendario.
                     'isOwn' => $homeIsOwn || $awayIsOwn,
-                ];
+                ], fn (mixed $value): bool => $value !== null);
             });
 
         // Ordine cronologico, non per numero di giornata: la Lega numera le
@@ -223,15 +241,30 @@ class RisultatiController extends Controller
         // quindi in ordine di giornata, tutta collocata alla data della sua
         // prima gara; i turni prima e dopo restano in ordine di data.
         $inizioDeiGironi = $games
-            ->filter(fn (array $game) => $game['groupPhase'] === 'gironi')
+            ->filter(fn (array $game) => ($game['groupPhase'] ?? null) === 'gironi')
             ->min('matchDate');
 
-        return $games
-            ->sortBy(fn (array $game) => $game['groupPhase'] === 'gironi'
+        $games = $games
+            ->sortBy(fn (array $game) => ($game['groupPhase'] ?? null) === 'gironi'
                 ? $inizioDeiGironi.'|'.str_pad((string) $game['matchday'], 2, '0', STR_PAD_LEFT).'|'.$game['matchDate']
                 : $game['matchDate'].'|00|'.$game['matchDate'])
             ->values()
             ->all();
+
+        return ['games' => $games, 'teams' => $teams];
+    }
+
+    /**
+     * Una riga di classifica come la mostra l'estratto della pagina Risultati.
+     *
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private function rigaDellEstratto(array $row): array
+    {
+        return array_intersect_key($row, array_flip([
+            'pos', 'team', 'logo', 'isOwn', 'girone', 'pts', 'played', 'won', 'lost', 'setWon', 'setLost',
+        ]));
     }
 
     private function eUnGironeCev(Game $game): bool

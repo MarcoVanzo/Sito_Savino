@@ -117,9 +117,10 @@ class RisultatiPageTest extends TestCase
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->has('games', 1)
             ->where('games.0.played', false)
-            ->where('games.0.result', null)
-            ->where('games.0.scoreHome', null)
-            ->where('games.0.scoreAway', null)
+            // Le chiavi nulle non viaggiano: la pagina le legge come assenti.
+            ->missing('games.0.result')
+            ->missing('games.0.scoreHome')
+            ->missing('games.0.scoreAway')
         );
     }
 
@@ -140,8 +141,10 @@ class RisultatiPageTest extends TestCase
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->where('games.0.result', 'win')
             ->where('games.0.played', true)
-            ->where('games.0.homeIsOwn', false)
-            ->where('games.0.awayIsOwn', true)
+            ->where('games.0.homeTeam', $this->rival->id)
+            ->where('games.0.awayTeam', $this->savino->id)
+            ->where("teams.{$this->rival->id}.isOwn", false)
+            ->where("teams.{$this->savino->id}.isOwn", true)
         );
     }
 
@@ -293,7 +296,43 @@ class RisultatiPageTest extends TestCase
             ->where('standings.0.girone', 'Girone D')
             ->where('games.0.matchdayLabel', '2ª Giornata · Girone D')
             ->where('games.1.matchdayLabel', 'Playoff · Andata')
-            ->where('games.1.phaseLabel', 'Playoff · Andata')
+            ->where('games.1.groupPhaseLabel', 'Playoff · Andata')
+        );
+    }
+
+    /**
+     * Audit SEO del 14/10/2026: la pagina passava 161 KB di JSON nel
+     * `data-page`. Le squadre viaggiano una volta sola in `teams`, la
+     * classifica è l'estratto e i campi che la pagina non legge non partono.
+     */
+    #[Test]
+    public function la_pagina_non_ripete_le_squadre_su_ogni_gara_e_manda_solo_l_estratto_della_classifica(): void
+    {
+        $this->game(['location' => 'Palazzetto', 'matchday' => 1, 'phase' => 'Andata']);
+        $this->standing($this->savino, 1, 30);
+
+        $this->get(route('stagione.risultati'))->assertInertia(fn (AssertableInertia $page) => $page
+            ->where("teams.{$this->savino->id}.name", 'Savino Del Bene Volley')
+            ->where("teams.{$this->rival->id}.name", 'Il Bisonte Firenze')
+            ->where('games.0.groupPhase', 'Andata')
+            ->missing('games.0.home')
+            ->missing('games.0.homeLogo')
+            ->missing('games.0.homeIsOwn')
+            ->missing('games.0.location')
+            ->missing('games.0.statusLabel')
+            ->missing('games.0.phase')
+            ->missing('games.0.phaseLabel')
+            ->missing('games.0.streamUrl')
+            ->where('standings.0.setWon', 26)
+            ->missing('standings.0.pointRatio')
+            ->missing('standings.0.won30')
+            ->missing('standings.0.syncedAt')
+        );
+
+        // La pagina Classifica, che legge la stessa cache, resta completa.
+        $this->get(route('stagione.classifica'))->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('standings.0.pointRatio')
+            ->has('standings.0.won30')
         );
     }
 }

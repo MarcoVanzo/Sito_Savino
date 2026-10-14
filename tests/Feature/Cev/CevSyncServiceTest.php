@@ -336,8 +336,11 @@ class CevSyncServiceTest extends TestCase
         $this->sync(1948, 2026);
         Season::where('lvf_season_year', 2026)->update(['is_current' => true]);
 
+        $daDefinire = Team::where('slug', Team::SLUG_DA_DEFINIRE)->value('id');
+
         $this->get(route('stagione.cev'))->assertInertia(fn ($page) => $page
-            ->where('games', fn ($games) => collect($games)->contains(fn ($g) => $g['away'] === 'Avversaria da definire' && $g['homeIsOwn']))
+            ->where("teams.{$daDefinire}.name", 'Avversaria da definire')
+            ->where('games', fn ($games) => collect($games)->contains(fn ($g) => ($g['awayTeam'] ?? null) === $daDefinire && $g['homeTeam'] === $this->savino->id))
         );
     }
 }

@@ -90,13 +90,18 @@ async function pagineDaVisitare() {
 async function versioneDellInformativa() {
     const risposta = await fetch(base);
     const html = await risposta.text();
-    const dati = html.match(/data-page="([^"]+)"/);
+    // Dal 14/10/2026 la pagina iniziale sta in <script data-page type="application/json">;
+    // l'attributo data-page resta come ripiego per un sito non ancora aggiornato.
+    const script = html.match(/<script data-page="[^"]*" type="application\/json">([\s\S]*?)<\/script>/);
+    const dati = script ? null : html.match(/data-page="([^"]+)"/);
 
-    if (! dati) {
+    if (! script && ! dati) {
         return null;
     }
 
-    const props = JSON.parse(dati[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#039;/g, "'"));
+    const props = script
+        ? JSON.parse(script[1])
+        : JSON.parse(dati[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#039;/g, "'"));
 
     return props?.props?.consensoCookie?.versione ?? null;
 }

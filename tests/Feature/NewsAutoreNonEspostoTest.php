@@ -36,14 +36,15 @@ class NewsAutoreNonEspostoTest extends TestCase
     }
 
     #[Test]
-    public function la_lista_delle_notizie_espone_dell_autore_solo_il_nome(): void
+    public function la_lista_delle_notizie_non_espone_l_autore(): void
     {
         Post::factory()->create(['author_id' => $this->autore()->id]);
 
         $response = $this->get('/news')->assertOk();
 
+        // L'elenco non mostra l'autore: dal 14/10/2026 non ne porta nemmeno il nome.
         $response->assertInertia(fn ($page) => $page->component('Public/News')
-            ->where('posts.data.0.author', ['name' => 'Redattrice'])
+            ->missing('posts.data.0.author')
         );
         $this->assertStringNotContainsString('redattrice@example.test', $response->getContent());
         $this->assertStringNotContainsString('333 0000000', $response->getContent());
@@ -89,12 +90,12 @@ class NewsAutoreNonEspostoTest extends TestCase
         $dettaglio = $this->get('/news/vecchia')->assertOk();
         $dettaglio->assertInertia(fn ($page) => $page
             ->where('post.author', ['name' => 'Redattrice'])
-            ->where('relatedPosts.0.author', ['name' => 'Redattrice'])
+            ->missing('relatedPosts.0.author')
         );
         $this->assertStringNotContainsString('redattrice@example.test', $dettaglio->getContent());
 
         $lista = $this->get('/news')->assertOk();
-        $lista->assertInertia(fn ($page) => $page->where('posts.data.0.author', ['name' => 'Redattrice']));
+        $lista->assertInertia(fn ($page) => $page->missing('posts.data.0.author'));
         $this->assertStringNotContainsString('cus_x', $lista->getContent());
     }
 }

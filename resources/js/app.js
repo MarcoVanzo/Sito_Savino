@@ -32,6 +32,13 @@ installaDialogDiRipiego();
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
 void createInertiaApp({
+    // La pagina iniziale arriva in <script type="application/json">, non
+    // nell'attributo data-page (App\Support\DatiInizialiDellaPagina).
+    defaults: {
+        future: {
+            useScriptElementForInitialPage: true,
+        },
+    },
     // Le pagine che usano useOgMeta arrivano qui con il nome del sito già in
     // coda: senza questo controllo il titolo diventava
     // "Shop Ufficiale — Savino Del Bene Volley - Savino Del Bene Volley".

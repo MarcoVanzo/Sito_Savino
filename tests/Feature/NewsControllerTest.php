@@ -166,4 +166,30 @@ class NewsControllerTest extends TestCase
             )
         );
     }
+
+    /**
+     * Audit SEO del 14/10/2026: l'elenco serializzava il post intero (testo,
+     * meta, categorie, media con tutte le colonne) per mostrarne il titolo.
+     */
+    #[Test]
+    public function l_elenco_e_le_correlate_portano_solo_i_campi_della_card(): void
+    {
+        $categoria = Category::factory()->create();
+        Post::factory()->create(['status' => PostStatus::Published, 'slug' => 'principale', 'content' => '<p>Testo lunghissimo</p>'])
+            ->categories()->attach($categoria);
+        Post::factory()->create(['status' => PostStatus::Published, 'slug' => 'correlata', 'content' => '<p>Testo lunghissimo</p>'])
+            ->categories()->attach($categoria);
+
+        $campi = ['id', 'slug', 'title', 'excerpt', 'published_at', 'image'];
+
+        $this->get('/news')->assertInertia(fn ($page) => $page
+            ->where('posts.data.0', fn ($voce) => array_keys(collect($voce)->all()) === $campi)
+            ->has('posts.links')
+        );
+
+        $this->get('/news/principale')->assertInertia(fn ($page) => $page
+            ->has('post.content')
+            ->where('relatedPosts.0', fn ($voce) => array_keys(collect($voce)->all()) === $campi)
+        );
+    }
 }

@@ -85,7 +85,7 @@ class LvfPhaseLabelTest extends TestCase
         $response->assertOk();
         $response->assertInertia(
             fn ($page) => $page->where('games.0.matchdayLabel', 'Round 3 · Second leg')
-                ->where('games.0.phase', 'Ritorno')
+                ->where('games.0.groupPhase', 'Ritorno')
         );
     }
 }

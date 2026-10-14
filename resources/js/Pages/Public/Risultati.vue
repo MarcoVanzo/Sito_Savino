@@ -8,6 +8,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useLocale } from '@/Composables/useLocale.js'
+import { gareConLeSquadre } from '@/Support/gareConLeSquadre.js'
 
 const $t = useTranslations();
 const { formatDate, formatTime } = useLocale();
@@ -47,6 +48,12 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    // Nome, logo e appartenenza delle squadre, per id: le gare portano solo
+    // `homeTeam`/`awayTeam` (vedi gareConLeSquadre.js).
+    teams: {
+        type: Object,
+        default: () => ({})
+    },
     standings: {
         type: Array,
         default: () => []
@@ -85,11 +92,13 @@ const onlyOwn = ref(
     new URLSearchParams(String(inertiaPage.url ?? '').split('?')[1] ?? '').get('squadra') === 'savino'
 )
 
+const allGames = computed(() => gareConLeSquadre(props.games, props.teams))
+
 const displayGames = computed(() =>
-    onlyOwn.value ? props.games.filter((game) => game.isOwn) : props.games
+    onlyOwn.value ? allGames.value.filter((game) => game.isOwn) : allGames.value
 )
 
-const ownGamesCount = computed(() => props.games.filter((game) => game.isOwn).length)
+const ownGamesCount = computed(() => allGames.value.filter((game) => game.isOwn).length)
 
 // Con centottantadue gare un elenco piatto è illeggibile: si raggruppa per
 // giornata, che è come la Lega organizza il calendario.
