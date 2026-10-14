@@ -1337,5 +1337,25 @@
         "resume_motion": "Resume animations",
         "go_to_slide": "Image {n} of {total}",
         "gallery_label": "Scrolling photos"
+    },
+    "atleta": {
+        "eyebrow": "First team",
+        "back": "Back to the squad",
+        "jersey": "Number",
+        "role": "Position",
+        "nationality": "Nationality",
+        "height": "Height",
+        "birth_year": "Year of birth",
+        "stats_title": "Season statistics",
+        "stats_empty": "Statistics come from the league box scores after the first matches.",
+        "stats_source": "Source: Lega Pallavolo Serie A Femminile box scores.",
+        "career_title": "Career at Savino Del Bene",
+        "palmares_title": "Honours",
+        "news_title": "News",
+        "news_all": "All news",
+        "gallery_title": "Photos",
+        "gallery_text": "Photos of {name} in the official gallery.",
+        "photo_alt": "{name}, Savino Del Bene Volley",
+        "open_hint": "View profile"
     }
 }

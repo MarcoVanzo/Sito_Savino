@@ -64,13 +64,12 @@ class PalmaresPageTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function palmares(string $url = '/stagione'): ?array
+    private function palmares(): ?array
     {
-        $roster = $this->get($url)
+        // Il palmarès sta nella pagina dell'atleta, non più nella rosa.
+        return $this->get('/stagione/atleta/'.$this->player->id.'-maja-ognjenovic')
             ->assertOk()
-            ->viewData('page')['props']['roster'];
-
-        return $roster[0]['palmares'] ?? null;
+            ->viewData('page')['props']['palmares'];
     }
 
     #[Test]
@@ -129,33 +128,33 @@ class PalmaresPageTest extends TestCase
     }
 
     #[Test]
-    public function lindirizzo_dellatleta_apre_il_banner(): void
+    public function la_pagina_dellatleta_ha_scheda_e_carriera(): void
     {
-        $this->honour();
-
         $slug = $this->player->id.'-maja-ognjenovic';
 
-        $props = $this->get("/stagione/atleta/{$slug}")->assertOk()->viewData('page')['props'];
+        $page = $this->get("/stagione/atleta/{$slug}")->assertOk()->viewData('page');
 
-        $this->assertSame($slug, $props['openPlayer']);
-        $this->assertTrue($props['palmaresEnabled']);
-        $this->assertSame($slug, $props['roster'][0]['playerSlug']);
+        $this->assertSame('Public/Atleta', $page['component']);
+        $this->assertSame('Maja', $page['props']['atleta']['first_name']);
+        $this->assertSame(10, $page['props']['atleta']['jersey_number']);
+        $this->assertCount(1, $page['props']['carriera']);
     }
 
     #[Test]
-    public function la_pagina_rosa_senza_atleta_non_apre_niente(): void
+    public function la_rosa_della_prima_squadra_porta_alle_schede_senza_il_palmares(): void
     {
         $props = $this->get('/stagione')->assertOk()->viewData('page')['props'];
 
-        $this->assertNull($props['openPlayer']);
-        $this->assertTrue($props['palmaresEnabled']);
+        $this->assertTrue($props['schedeAtlete']);
+        $this->assertSame($this->player->id.'-maja-ognjenovic', $props['roster'][0]['playerSlug']);
+        $this->assertArrayNotHasKey('palmares', $props['roster'][0]);
     }
 
     #[Test]
-    public function sulle_giovanili_il_palmares_non_si_pubblica(): void
+    public function le_giovanili_non_hanno_schede_atleta(): void
     {
         $props = $this->get('/stagione/b1')->assertOk()->viewData('page')['props'];
 
-        $this->assertFalse($props['palmaresEnabled']);
+        $this->assertFalse($props['schedeAtlete']);
     }
 }

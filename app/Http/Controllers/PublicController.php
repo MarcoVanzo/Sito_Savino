@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\StaffType;
 use App\Http\Controllers\Concerns\PresentaLeSquadre;
+use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Models\Evento;
 use App\Models\Game;
 use App\Models\HeroSlide;
@@ -205,24 +206,132 @@ class PublicController extends Controller
     }
 
     /**
-     * Stessa pagina di `/stagione`, con il banner di un'atleta già aperto.
+     * La pagina di un'atleta della prima squadra: foto, ruolo, numero,
+     * nazionalità, altezza, statistiche della stagione (dai tabellini della
+     * Lega), carriera nella società, palmarès, notizie e foto.
      *
-     * Il banner è una finestra sopra la rosa, non una pagina a sé: qui non si
-     * costruisce niente di diverso, si dice solo quale atleta mostrare. Serve
-     * perché un palmarès è qualcosa che si manda a qualcuno — senza un
-     * indirizzo proprio non sarebbe né condivisibile né raggiungibile dal
-     * tasto indietro.
+     * Solo prima squadra: le atlete del vivaio sono quasi tutte minorenni e
+     * non hanno una pagina propria. Lo slug è `{id}-{nome-cognome}`; uno slug
+     * che non è quello di un'atleta in rosa risponde 404, come prima.
      */
     public function stagioneAtleta(string $slug): Response
     {
+        $id = (int) explode('-', $slug)[0];
+        $giocatrice = $id > 0 ? Player::find($id) : null;
+
+        if (! $giocatrice || $slug !== $giocatrice->id.'-'.Str::slug($giocatrice->full_name)) {
+            abort(404);
+        }
+
+        $riga = ServeSocialCrawlerMeta::rigaDiRosa($giocatrice);
+
+        if (! $riga) {
+            abort(404);
+        }
+
         $locale = app()->getLocale();
 
-        return $this->stagioneForTeam(
-            'savino-del-bene-volley',
-            'A1',
-            "public:stagione:{$locale}",
-            openPlayerSlug: $slug,
-        );
+        $dati = Cache::remember("public:atleta:{$giocatrice->id}:{$locale}", now()->addMinutes(10), function () use ($giocatrice, $riga, $slug, $locale): array {
+            $giocatrice->load([
+                'honours' => fn ($query) => $query->visible(),
+                'stats' => fn ($query) => $query
+                    ->where('season_id', $riga->season_id)
+                    ->where(fn ($scoped) => $scoped->whereNull('team_id')->orWhere('team_id', $riga->team_id)),
+            ]);
+
+            $statistiche = $giocatrice->getRelation('stats');
+            $stat = $statistiche->firstWhere('team_id', $riga->team_id) ?? $statistiche->first();
+
+            return [
+                'atleta' => [
+                    'slug' => $slug,
+                    'first_name' => $giocatrice->first_name,
+                    'last_name' => $giocatrice->last_name,
+                    'nationality' => $giocatrice->nationality,
+                    // Solo l'anno: la data completa in archivio vale quasi
+                    // sempre 1° gennaio (si conosce solo l'anno).
+                    'anno_di_nascita' => $giocatrice->date_of_birth?->year,
+                    'instagram_url' => $giocatrice->instagramUrl(),
+                    'jersey_number' => $riga->jersey_number,
+                    'role' => $riga->role,
+                    'height_cm' => $riga->height_cm,
+                    'official_photo_url' => $riga->official_photo_url,
+                ],
+                'seasonName' => $riga->season?->name,
+                'statistiche' => $stat instanceof PlayerStat ? [
+                    'matchesPlayed' => (int) $stat->matches_played,
+                    'setsPlayed' => (int) $stat->sets_played,
+                    'points' => (int) $stat->points,
+                    'pointsPerSet' => $stat->pointsPerSet(),
+                    'attackPoints' => (int) $stat->attack_points,
+                    'attackPct' => $stat->attack_pct,
+                    'blocks' => (int) $stat->blocks,
+                    'aces' => (int) $stat->aces,
+                    'receptions' => (int) $stat->receptions,
+                    'receptionPositivePct' => $stat->reception_positive_pct,
+                ] : null,
+                'carriera' => $this->carrieraNellaSocieta($giocatrice),
+                'palmares' => app(PalmaresPresenter::class)->forPlayer($giocatrice),
+                'notizie' => $this->notizieDellAtleta($giocatrice, $locale),
+            ];
+        });
+
+        return Inertia::render('Public/Atleta', $dati);
+    }
+
+    /**
+     * Le stagioni dell'atleta nelle squadre della società, dalla più recente.
+     *
+     * @return list<array{season: ?string, team: ?string, jersey_number: ?int, role: mixed}>
+     */
+    private function carrieraNellaSocieta(Player $giocatrice): array
+    {
+        return Roster::with(['season', 'team'])
+            ->where('player_id', $giocatrice->id)
+            ->whereHas('team', fn ($query) => $query->where('is_internal', true))
+            ->get()
+            ->sortByDesc('season_id')
+            ->map(fn (Roster $riga) => [
+                'season' => $riga->season instanceof Season ? $riga->season->name : null,
+                'team' => $riga->team instanceof Team ? $riga->team->name : null,
+                'jersey_number' => $riga->jersey_number,
+                'role' => $riga->role,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Le ultime notizie che nominano l'atleta nel titolo. Non c'è un legame
+     * fra notizie e atlete in archivio: il nome intero nel titolo è il segno
+     * più affidabile, e due atlete con lo stesso cognome non si confondono.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function notizieDellAtleta(Player $giocatrice, string $locale): array
+    {
+        $nome = trim($giocatrice->first_name.' '.$giocatrice->last_name);
+
+        if ($nome === '') {
+            return [];
+        }
+
+        return Post::published()
+            ->with('media')
+            ->where(fn ($query) => $query
+                ->where('title', 'like', '%'.$nome.'%')
+                ->orWhere('title', 'like', '%'.mb_strtoupper($nome).'%'))
+            ->orderByDesc('published_at')
+            ->take(4)
+            ->get()
+            ->map(fn (Post $post) => [
+                'id' => $post->id,
+                'title' => $post->getTranslation('title', $locale),
+                'slug' => $post->slug,
+                'published_at' => $post->published_at?->toISOString(),
+                'image_url' => $post->getFirstMediaUrl('cover', 'card') ?: $post->getFirstMediaUrl('cover'),
+            ])
+            ->all();
     }
 
     /**
@@ -233,14 +342,12 @@ class PublicController extends Controller
         string $categoria,
         string $cacheKey,
         ?string $teamLabel = null,
-        ?string $openPlayerSlug = null,
     ): Response {
-        // Il palmarès si pubblica solo sulla prima squadra: le voci di
-        // Wikipedia delle giovanili non esistono, e una card cliccabile che
-        // apre una finestra vuota è peggio di una card che non si clicca.
-        $withPalmares = $teamSlug === 'savino-del-bene-volley';
+        // Solo le atlete della prima squadra hanno una pagina propria
+        // (stagione.atleta): le giovanili sono quasi tutte minorenni.
+        $conLeSchede = $teamSlug === 'savino-del-bene-volley';
 
-        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug, $categoria, $withPalmares) {
+        $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($teamSlug, $categoria) {
             // Lo slug è quello della prima squadra, che è un record storico;
             // le squadre del vivaio si riconoscono dalla categoria. Le due
             // condizioni stanno dentro lo stesso gruppo, altrimenti l'OR
@@ -261,7 +368,7 @@ class PublicController extends Controller
             $section = $teamSlug === 'savino-del-bene-volley' ? 'a1' : 'youth';
 
             return [
-                ...$this->rosaDellaSquadra($team, $currentSeason, $withPalmares),
+                ...$this->rosaDellaSquadra($team, $currentSeason),
                 'staffTecnico' => $this->staffDellaSezione(StaffType::Tecnico, $section),
                 'staffMedico' => $this->staffDellaSezione(StaffType::Medico, $section),
             ];
@@ -271,18 +378,9 @@ class PublicController extends Controller
             $data['teamLabel'] = $teamLabel;
         }
 
-        // Distingue "nessun palmarès in archivio" da "su questa pagina il
-        // palmarès non si pubblica": senza, le card delle giovanili sarebbero
-        // cliccabili per aprire una finestra che non ha niente da dire.
-        $data['palmaresEnabled'] = $withPalmares;
-        $data['openPlayer'] = $openPlayerSlug;
-
-        // Un indirizzo /stagione/atleta/{slug} che non corrisponde a nessuna
-        // atleta in rosa rispondeva 200 con la pagina della stagione: per i
-        // motori di ricerca ogni slug inventato era una pagina valida.
-        if ($openPlayerSlug !== null && ! collect($data['roster'] ?? [])->contains(fn ($voce): bool => ($voce['playerSlug'] ?? null) === $openPlayerSlug)) {
-            abort(404);
-        }
+        // Le card della prima squadra portano alla pagina dell'atleta; quelle
+        // del vivaio non sono link.
+        $data['schedeAtlete'] = $conLeSchede;
 
         return Inertia::render('Public/Stagione', $data);
     }
@@ -292,7 +390,7 @@ class PublicController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function rosaDellaSquadra(?Team $team, ?Season $currentSeason, bool $withPalmares): array
+    private function rosaDellaSquadra(?Team $team, ?Season $currentSeason): array
     {
         if (! $team || ! $currentSeason) {
             return ['roster' => [], 'seasonName' => null, 'seasonStats' => [], 'teamInfo' => null];
@@ -311,10 +409,6 @@ class PublicController extends Controller
             'player.stats' => fn ($query) => $query
                 ->where('season_id', $currentSeason->id)
                 ->where(fn ($scoped) => $scoped->whereNull('team_id')->orWhere('team_id', $team->id)),
-            // Le righe nascoste dalla redazione restano in archivio per
-            // non farle riapparire alla prossima importazione: qui non
-            // devono nemmeno arrivare.
-            'player.honours' => fn ($query) => $query->visible(),
         ])
             ->whereHas('player')
             ->where('team_id', $team->id)
@@ -324,7 +418,7 @@ class PublicController extends Controller
             ->get();
 
         return [
-            'roster' => $this->presentRoster($rosterEntries, $withPalmares),
+            'roster' => $this->presentRoster($rosterEntries),
             'seasonName' => $currentSeason->name,
             'seasonStats' => $this->presentSeasonStats($rosterEntries, $team->id),
             'teamInfo' => [
@@ -365,16 +459,14 @@ class PublicController extends Controller
 
     /**
      * Rosa pronta per la pagina: la riga di roster così com'è, più lo slug
-     * dell'atleta e — sulla prima squadra — il palmarès già aggregato.
+     * dell'atleta. Palmarès e Instagram stanno nella pagina dell'atleta.
      *
      * @param  Collection<int, Roster>  $rosterEntries
      * @return list<array<string, mixed>>
      */
-    private function presentRoster(Collection $rosterEntries, bool $withPalmares): array
+    private function presentRoster(Collection $rosterEntries): array
     {
-        $presenter = $withPalmares ? app(PalmaresPresenter::class) : null;
-
-        return $rosterEntries->map(function (Roster $entry) use ($presenter): array {
+        return $rosterEntries->map(function (Roster $entry): array {
             $player = $entry->player;
 
             // Solo i campi che la pagina mostra. Con `toArray()` arrivavano
@@ -399,12 +491,6 @@ class PublicController extends Controller
             $row['playerSlug'] = $player instanceof Player
                 ? $player->id.'-'.Str::slug($player->full_name)
                 : null;
-
-            $row['palmares'] = $presenter !== null && $player instanceof Player
-                ? $presenter->forPlayer($player)
-                : null;
-
-            $row['instagram_url'] = $player instanceof Player ? $player->instagramUrl() : null;
 
             return $row;
         })->all();

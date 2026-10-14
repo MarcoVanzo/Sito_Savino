@@ -1337,5 +1337,25 @@
         "resume_motion": "Riprendi le animazioni",
         "go_to_slide": "Immagine {n} di {total}",
         "gallery_label": "Scorrimento delle foto"
+    },
+    "atleta": {
+        "eyebrow": "Prima squadra",
+        "back": "Torna alla rosa",
+        "jersey": "Numero",
+        "role": "Ruolo",
+        "nationality": "Nazionalità",
+        "height": "Altezza",
+        "birth_year": "Anno di nascita",
+        "stats_title": "Statistiche della stagione",
+        "stats_empty": "Le statistiche arrivano dai tabellini della Lega dopo le prime gare.",
+        "stats_source": "Fonte: tabellini della Lega Pallavolo Serie A Femminile.",
+        "career_title": "Carriera alla Savino Del Bene",
+        "palmares_title": "Palmarès",
+        "news_title": "Notizie",
+        "news_all": "Tutte le notizie",
+        "gallery_title": "Foto",
+        "gallery_text": "Le foto di {name} nella gallery ufficiale.",
+        "photo_alt": "{name}, Savino Del Bene Volley",
+        "open_hint": "Vai alla scheda"
     }
 }
