@@ -71,8 +71,8 @@
              ServeSocialCrawlerMeta / DatiStrutturati: la società e il sito in
              home, la notizia, il prodotto, la partita, l'atleta e le briciole
              di pane sulle altre pagine. Stanno nell'HTML servito, non li
-             scrive il JavaScript. JSON_HEX_TAG: un `</script>` in un titolo
-             non chiude il blocco. --}}
+             scrive il JavaScript. JSON_HEX_TAG: un tag di chiusura nel titolo
+             non chiude lo script. --}}
         @foreach ($metaDellaPagina['jsonld'] ?? [] as $blocco)
         <script type="application/ld+json" nonce="{{ $cspNonce }}">{!! json_encode($blocco, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_INVALID_UTF8_SUBSTITUTE) !!}</script>
         @endforeach
