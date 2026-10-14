@@ -21,6 +21,16 @@ class RedirectDecisiDalPannelloTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Parte da una tabella vuota: la migrazione dei 404 di Search Console
+     * (14/10/2026) ne carica già alcuni.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Reindirizzamento::query()->delete();
+    }
+
     private function redirect(string $da, ?string $verso, CodiceDelRedirect $codice = CodiceDelRedirect::Permanente): Reindirizzamento
     {
         return Reindirizzamento::create(['from_path' => $da, 'to_path' => $verso, 'status_code' => $codice]);
@@ -154,6 +164,6 @@ class RedirectDecisiDalPannelloTest extends TestCase
         $this->redirect('/tag/playasone', '/news/play-as-one');
 
         $this->post('/tag/playasone')->assertStatus(405);
-        $this->assertSame(0, Reindirizzamento::sole()->hits);
+        $this->assertSame(0, Reindirizzamento::query()->where('from_path', '/tag/playasone')->sole()->hits);
     }
 }
