@@ -24,6 +24,7 @@
  */
 
 use App\Models\Category;
+use App\Support\SchedaAtletaDelVecchioSito;
 use Illuminate\Support\Facades\Route;
 
 return function (string $namePrefix): void {
@@ -151,9 +152,14 @@ return function (string $namePrefix): void {
     // Gli album per giornata (`/gallery/giornata-1-andata-…/`) qui non
     // esistono: c'è un archivio solo, sfogliabile. Le schede `/giocatrice/`
     // avevano per slug il cognome — a volte di due persone insieme
-    // (`daniele-fallani-stefano-campani`) — e non si riconducono all'atleta in
-    // modo affidabile: si arriva alla rosa.
+    // (`daniele-fallani-stefano-campani`): portano alla pagina dell'atleta
+    // quando il cognome (o nome e cognome) è di una sola atleta della prima
+    // squadra di oggi, altrimenti alla rosa.
     Route::get('/gallery/{any}', fn () => $vai('gallery'))->where('any', '.*');
-    Route::get('/giocatrice/{any}', fn () => $vai('stagione'))->where('any', '.*');
+    Route::get('/giocatrice/{any}', function (string $any) use ($vai) {
+        $slug = SchedaAtletaDelVecchioSito::slugDellaPagina((string) collect(explode('/', $any))->filter()->first());
+
+        return $slug !== null ? $vai('stagione.atleta', ['slug' => $slug]) : $vai('stagione');
+    })->where('any', '.*');
     Route::get('/archivi-partite/{any}', fn () => $vai('stagione.risultati'))->where('any', '.*');
 };
