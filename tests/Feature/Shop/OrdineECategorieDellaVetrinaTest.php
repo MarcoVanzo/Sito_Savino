@@ -125,6 +125,24 @@ class OrdineECategorieDellaVetrinaTest extends TestCase
     }
 
     #[Test]
+    public function il_riordino_ignora_i_prodotti_spariti_e_gli_id_ripetuti(): void
+    {
+        $home = ProductCategory::factory()->create();
+        $a = $this->maglia($home, 'Maglia A', 1);
+        $b = $this->maglia($home, 'Maglia B', 2);
+        $sparito = $this->maglia($home, 'Maglia C', 3);
+        $sparito->forceDelete();
+
+        Livewire::actingAs($this->amministratore())
+            ->test(ListProducts::class)
+            ->call('reorderTable', [$sparito->id, $b->id, $b->id, $a->id])
+            ->assertOk();
+
+        $this->assertSame(1, $b->fresh()->sort_order);
+        $this->assertSame(2, $a->fresh()->sort_order);
+    }
+
+    #[Test]
     public function si_puo_ancora_scegliere_di_vedere_i_piu_recenti(): void
     {
         $home = ProductCategory::factory()->create();
