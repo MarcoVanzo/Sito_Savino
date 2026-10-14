@@ -18,6 +18,16 @@ class RedirectNelPannelloTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Parte da una tabella vuota: la migrazione dei 404 di Search Console
+     * (14/10/2026) ne carica già alcuni.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Reindirizzamento::query()->delete();
+    }
+
     private function utente(UserRole $ruolo): User
     {
         $user = User::factory()->create();

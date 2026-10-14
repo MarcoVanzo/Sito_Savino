@@ -203,6 +203,10 @@ class DatiStrutturatiNellePagineTest extends TestCase
 
         $this->haICampi($evento, ['name', 'startDate', 'location', 'homeTeam', 'awayTeam', 'eventStatus', 'organizer', 'image']);
         $this->assertSame('Savino Del Bene Scandicci', $evento['homeTeam']['name']);
+        // Un evento annidato Google lo legge come un secondo evento non valido.
+        $this->assertArrayNotHasKey('superEvent', $evento);
+        $this->assertStringContainsString('3-1', $evento['description']);
+        $this->assertCount(2, $evento['performer']);
         $this->assertStringEndsWith('/stagione/risultati/'.$gara->id, $evento['url']);
     }
 
