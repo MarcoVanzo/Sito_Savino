@@ -8,8 +8,9 @@ use Filament\Support\Contracts\HasLabel;
 /**
  * I livelli di sponsorizzazione realmente in uso sul sito della società.
  *
- * L'ordine dei case è l'ordine in cui i gruppi compaiono nella pagina pubblica:
- * cambiarlo qui cambia la pagina, senza toccare il template.
+ * L'ordine dei case è l'ordine predefinito dei gruppi nella pagina pubblica
+ * (quello chiesto dalla società il 14/10/2026); la redazione lo cambia dal
+ * pannello (Sponsor → «Nomi e ordine delle sezioni»), vedi `ordered()`.
  *
  * `Gold`, `Silver` e `Standard` restano solo per compatibilità con i record
  * creati prima dell'allineamento: non vanno usati per nuovi sponsor.
@@ -21,15 +22,15 @@ enum SponsorTier: string implements HasLabel
     case Premium = 'premium';
     case Mobility = 'mobility';
     case Technical = 'technical';
-    case Water = 'water';
-    case Sister = 'sister';
     case Health = 'health';
-    case Coffee = 'coffee';
-    case Sustainability = 'sustainability';
+    case Sister = 'sister';
     case Official = 'official';
-    case Education = 'education';
-    case Supplier = 'supplier';
+    case Sustainability = 'sustainability';
+    case Water = 'water';
+    case Coffee = 'coffee';
     case Supporter = 'supporter';
+    case Supplier = 'supplier';
+    case Education = 'education';
     case Radio = 'radio';
     case Media = 'media';
 
@@ -38,11 +39,16 @@ enum SponsorTier: string implements HasLabel
     case Standard = 'standard';
 
     /**
-     * I nomi scelti dalla redazione (Sponsor → «Nomi delle sezioni»), lingua
+     * I nomi scelti dalla redazione (Sponsor → «Nomi e ordine delle sezioni»), lingua
      * per lingua: `{"it": {"health": "…"}, "en": {…}}`. Un livello senza nome
      * scritto usa `nomePredefinito()`.
      */
     public const CHIAVE_DEI_NOMI = 'sponsor_nomi_delle_sezioni';
+
+    /**
+     * L'ordine scelto dalla redazione: elenco dei `value` dei livelli.
+     */
+    public const CHIAVE_DELL_ORDINE = 'sponsor_ordine_delle_sezioni';
 
     public function getLabel(): string
     {
@@ -64,7 +70,7 @@ enum SponsorTier: string implements HasLabel
             self::Premium => 'Premium Partner',
             self::Mobility => 'Mobility Partner',
             self::Technical => __('Sponsor Tecnico', [], $locale),
-            self::Water => __('Acqua Ufficiale', [], $locale),
+            self::Water => 'Official Water',
             self::Sister => 'Sister Companies',
             self::Health => 'Health & Performance Partner',
             self::Coffee => 'Official Coffee',
@@ -96,7 +102,8 @@ enum SponsorTier: string implements HasLabel
     }
 
     /**
-     * Livelli che la redazione può rinominare: gli storici restano fuori.
+     * Livelli che la redazione può rinominare e ordinare, nell'ordine di
+     * pubblicazione: gli storici restano fuori.
      *
      * @return list<self>
      */
@@ -104,7 +111,7 @@ enum SponsorTier: string implements HasLabel
     {
         $rinominabili = [];
 
-        foreach (self::cases() as $tier) {
+        foreach (self::ordered() as $tier) {
             if (! in_array($tier, [self::Gold, self::Silver, self::Standard], true)) {
                 $rinominabili[] = $tier;
             }
@@ -114,12 +121,33 @@ enum SponsorTier: string implements HasLabel
     }
 
     /**
-     * Livelli in ordine di pubblicazione.
+     * Livelli in ordine di pubblicazione: prima quelli nell'ordine salvato
+     * dalla redazione, poi quelli che lì mancano (un livello nuovo, o un
+     * ordine mai salvato) nell'ordine dei case.
      *
      * @return list<self>
      */
     public static function ordered(): array
     {
-        return self::cases();
+        $salvato = SiteSetting::get(self::CHIAVE_DELL_ORDINE);
+        $salvato = is_string($salvato) ? json_decode($salvato, true) : $salvato;
+
+        $ordinati = [];
+
+        foreach (is_array($salvato) ? $salvato : [] as $valore) {
+            $tier = is_string($valore) ? self::tryFrom($valore) : null;
+
+            if ($tier !== null && ! in_array($tier, $ordinati, true)) {
+                $ordinati[] = $tier;
+            }
+        }
+
+        foreach (self::cases() as $tier) {
+            if (! in_array($tier, $ordinati, true)) {
+                $ordinati[] = $tier;
+            }
+        }
+
+        return $ordinati;
     }
 }
