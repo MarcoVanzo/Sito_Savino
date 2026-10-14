@@ -179,6 +179,16 @@ return [
         ),
     ],
 
+    // DeepL: traduce in inglese le notizie scritte in italiano (job in coda
+    // dopo il salvataggio). Senza chiave la traduzione non parte e il sito
+    // inglese mostra l'italiano, come prima. Le chiavi del piano Free finiscono
+    // con ":fx" e vanno sull'host api-free: l'indirizzo si sceglie da lì.
+    'deepl' => [
+        'key' => env('DEEPL_API_KEY'),
+        'target_lang' => env('DEEPL_TARGET_LANG', 'EN-GB'),
+        'timeout' => (int) env('DEEPL_TIMEOUT', 30),
+    ],
+
     // CEV Champions League: calendario, risultati e classifica del girone dal
     // vecchio portale competizioni della CEV, che pubblica pagine HTML
     // statiche (il sito nuovo, championsleague.cev.eu, le carica via

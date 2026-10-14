@@ -391,6 +391,11 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   notizie nascono solo nel pannello; i loro media vecchi stanno su Spaces sotto
   `news/<anno>/<mese>/`.
 - Resta `posts.wp_id`, che serve ai `?p=` del vecchio sito (§23).
+- **Inglese automatico con DeepL** (`DEEPL_API_KEY`, piano Free, a livello
+  d'app): `TraduceLeNotizieInInglese` accoda `TraduciLaNotiziaInInglese` a ogni
+  salvataggio. Si scrive solo l'inglese vuoto, copia dell'italiano o ancora
+  automatico (impronte in `posts.traduzioni_automatiche`): quello corretto in
+  redazione non si tocca. Senza chiave non parte niente.
 - Le date delle notizie importate sono ora locale di WordPress: il connettore
   MCP le mostra spostate, leggerle con `CAST(published_at AS CHAR)`.
 

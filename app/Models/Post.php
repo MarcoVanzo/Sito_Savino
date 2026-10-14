@@ -34,6 +34,9 @@ class Post extends Model implements HasMedia
 
     public $translatable = ['title', 'content', 'excerpt', 'meta_description'];
 
+    /** Impronte tecniche della traduzione automatica: nel registro sono rumore. */
+    protected array $logExclude = ['traduzioni_automatiche'];
+
     /**
      * @return array<string, string|class-string>
      */
@@ -42,6 +45,7 @@ class Post extends Model implements HasMedia
         return [
             'published_at' => 'datetime',
             'status' => PostStatus::class,
+            'traduzioni_automatiche' => 'array',
         ];
     }
 
