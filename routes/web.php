@@ -5,6 +5,7 @@ use App\Http\Controllers\DirettaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\PaymentVerificationController;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\RedirectPrimaDelleRotteVecchie;
 use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\SetLocale;
 use App\Services\SitemapBuilder;
@@ -81,7 +82,10 @@ foreach ($locales as $loc) {
         // prefisso, e prima di `shop.php`, che chiude con la rotta generica
         // `/{slug}` — dopo quella un redirect a un segmento non si raggiunge.
         (require __DIR__.'/pubbliche/sito.php')($namePrefix);
-        (require __DIR__.'/pubbliche/legacy.php')($namePrefix);
+        // I redirect decisi a mano dal pannello vincono sulle regole generiche
+        // degli indirizzi del vecchio sito (RedirectPrimaDelleRotteVecchie).
+        Route::middleware(RedirectPrimaDelleRotteVecchie::class)
+            ->group(fn () => (require __DIR__.'/pubbliche/legacy.php')($namePrefix));
         (require __DIR__.'/pubbliche/shop.php')($loc, $namePrefix);
     });
 }

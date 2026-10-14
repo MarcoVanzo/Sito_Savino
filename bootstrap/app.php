@@ -12,6 +12,7 @@ use App\Http\Middleware\SecurityHeadersMiddleware;
 use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Http\Middleware\UsaLIpDelClienteDiDigitalOcean;
 use App\Support\HostFidati;
+use App\Support\RedirectGestiti;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,7 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Inertia\Inertia;
 use Sentry\Laravel\Integration;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -121,6 +123,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Cosa NON arriva qui è deciso da `ignore_exceptions` in config/sentry.php.
         Integration::handles($exceptions);
 
+        // Prima del 404: il redirect deciso a mano per un indirizzo che nessuna
+        // rotta riconosce, e la lista dei vecchi indirizzi da mappare.
+        $exceptions->render(fn (NotFoundHttpException $e, Request $request) => RedirectGestiti::alNonTrovato($request));
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
@@ -141,7 +147,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             // Renderizza errori HTTP come pagine Inertia con il design del sito
-            if (in_array($response->getStatusCode(), [403, 404, 419, 429, 500, 503])
+            if (in_array($response->getStatusCode(), [403, 404, 410, 419, 429, 500, 503])
                 && ! $request->is('api/*', 'admin/*', 'filament/*', 'livewire/*')
                 && ! app()->environment('local')
             ) {

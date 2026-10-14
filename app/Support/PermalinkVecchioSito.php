@@ -15,9 +15,9 @@ use App\Models\Post;
  * passaggio del dominio cadrebbero tutti sulla rotta generica delle pagine CMS,
  * che risponde 404.
  *
- * Non serve una tabella di redirect: la corrispondenza è lo slug, che vive già
- * su `posts`. Una tabella sarebbe una seconda copia da tenere allineata a ogni
- * slug che la redazione corregge, e andrebbe stale in silenzio.
+ * La regola non passa da una tabella: la corrispondenza è lo slug, che vive
+ * già su `posts`, e una copia andrebbe stale a ogni slug corretto. La tabella
+ * `redirects` (`RedirectGestiti`) serve solo alle eccezioni e vince su questa.
  *
  * Quello che non si riconosce resta 404, e non diventa un 301 di massa verso
  * `/news`: i 2048 permalink rimasti sono l'archivio 2014-2021 che non è mai

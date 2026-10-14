@@ -933,6 +933,8 @@
         "503_title": "Manutenzione in Corso",
         "generic_title": "Errore",
         "403_desc": "Non hai i permessi per accedere a questa pagina.",
+        "410_title": "Pagina rimossa",
+        "410_desc": "Questa pagina del vecchio sito non esiste più.",
         "404_desc": "La pagina che stai cercando non esiste o è stata spostata.",
         "500_desc": "Qualcosa è andato storto. Stiamo lavorando per risolvere il problema.",
         "503_desc": "Il sito è in manutenzione. Torneremo operativi a breve.",

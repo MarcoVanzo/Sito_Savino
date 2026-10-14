@@ -8,6 +8,7 @@ use App\Http\Middleware\ServeSocialCrawlerMeta;
 use App\Models\Evento;
 use App\Models\Game;
 use App\Models\HeroSlide;
+use App\Models\IndirizzoDaMappare;
 use App\Models\Page;
 use App\Models\Player;
 use App\Models\PlayerStat;
@@ -23,6 +24,7 @@ use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\LiveStream;
 use App\Support\MatchDay;
 use App\Support\PermalinkVecchioSito;
+use App\Support\RedirectGestiti;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -45,11 +47,22 @@ class PublicController extends Controller
         $wpId = request()->integer('p');
 
         if ($wpId > 0) {
+            // Prima il redirect deciso a mano dal pannello (`/?p=<id>`), poi
+            // quello automatico; se non c'è nessuno dei due, il vecchio
+            // indirizzo finisce nei «404 da mappare».
+            $deciso = RedirectGestiti::rispostaPer(request());
+
+            if ($deciso !== null) {
+                return $deciso;
+            }
+
             $permalink = PermalinkVecchioSito::perWpId($wpId);
 
             if ($permalink !== null) {
                 return redirect()->to($permalink, 301);
             }
+
+            RedirectGestiti::registraMancante('/?p='.$wpId, IndirizzoDaMappare::ORIGINE_404);
         }
 
         $locale = app()->getLocale();

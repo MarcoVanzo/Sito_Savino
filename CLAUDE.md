@@ -582,6 +582,13 @@ Richiesto dalla Lega, indirizzo pubblicato a terzi.
   resta **404**, niente redirect generici a `/news`.
 - `?p={wp_id}` si risolve in `PublicController@home`.
 - Vecchi feed → `news.feed`.
+- **Redirect decisi a mano** (`redirects`, Amministrazione → Redirect, o
+  `php artisan redirect:importa file.csv [--dry-run]`): vincono su `legacy.php`
+  e sul permalink automatico. Si consultano solo da `RedirectPrimaDelleRotteVecchie`
+  (rotte legacy e `/{slug}`) e dal gestore dei 404, mai sulle rotte vere.
+  `from_path` sempre via `RedirectGestiti::normalizza()`. I vecchi indirizzi
+  senza destinazione finiscono in `redirect_mancanti` («404 da mappare»,
+  potati da `model:prune` dopo sei mesi).
 - **Lingua predefinita**: confrontare con `app.fallback_locale`, non
   `app.locale` (riscritta da `setLocale`). Prefisso lingua via
   `Route::has('en.…')`. Test `PermalinkVecchioSitoTest`.

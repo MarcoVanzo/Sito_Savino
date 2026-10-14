@@ -933,6 +933,8 @@
         "503_title": "Maintenance",
         "generic_title": "Error",
         "403_desc": "You don't have permission to access this page.",
+        "410_title": "Page removed",
+        "410_desc": "This page of the old website no longer exists.",
         "404_desc": "The page you're looking for doesn't exist or has been moved.",
         "500_desc": "Something went wrong. We're working to fix the issue.",
         "503_desc": "The site is under maintenance. We'll be back shortly.",

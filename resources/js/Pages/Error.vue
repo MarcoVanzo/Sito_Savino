@@ -26,6 +26,7 @@ const title = computed(() => {
     const titles = {
         403: $t('error.403_title'),
         404: $t('error.404_title'),
+        410: $t('error.410_title'),
         419: $t('error.419_title'),
         429: $t('error.429_title'),
         500: $t('error.500_title'),
@@ -38,6 +39,7 @@ const description = computed(() => {
     const descriptions = {
         403: $t('error.403_desc'),
         404: $t('error.404_desc'),
+        410: $t('error.410_desc'),
         419: $t('error.419_desc'),
         429: $t('error.429_desc'),
         500: $t('error.500_desc'),
