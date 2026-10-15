@@ -66,6 +66,34 @@ class GareImportateNelPannelloTest extends TestCase
     }
 
     #[Test]
+    public function i_biglietti_si_scrivono_solo_sulle_gare_in_casa(): void
+    {
+        $inCasa = $this->gara([
+            'lvf_match_id' => 3002,
+            'home_team_id' => Team::factory()->create(['is_internal' => true])->id,
+        ]);
+        $fuori = $this->gara();
+
+        Livewire::actingAs($this->redattore)->test(EditGame::class, ['record' => $inCasa->getRouteKey()])
+            ->assertSee('Link di vendita (Vivaticket)')
+            ->fillForm([
+                'biglietti_url' => 'https://www.vivaticket.com/it/ticket/savino-novara/1',
+                'biglietti_prezzo_da' => '15',
+                'biglietti_esauriti' => true,
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $inCasa->refresh();
+        $this->assertSame('https://www.vivaticket.com/it/ticket/savino-novara/1', $inCasa->biglietti_url);
+        $this->assertSame('15.00', $inCasa->biglietti_prezzo_da);
+        $this->assertTrue($inCasa->biglietti_esauriti);
+
+        Livewire::actingAs($this->redattore)->test(EditGame::class, ['record' => $fuori->getRouteKey()])
+            ->assertDontSee('Link di vendita (Vivaticket)');
+    }
+
+    #[Test]
     public function la_scheda_di_una_gara_cev_dice_da_dove_viene(): void
     {
         $cev = $this->gara(['cev_match_id' => 87417, 'competition_type' => CompetitionType::ChampionsLeague]);

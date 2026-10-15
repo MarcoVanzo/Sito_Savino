@@ -8,6 +8,7 @@ use App\Enums\PlayerPosition;
 use App\Enums\PostStatus;
 use App\Models\Game;
 use App\Models\GamePlayerStat;
+use App\Models\Page;
 use App\Models\Player;
 use App\Models\Post;
 use App\Models\Product;
@@ -157,6 +158,86 @@ class DatiStrutturatiNellePagineTest extends TestCase
         $gara = $this->delTipo($this->blocchi('/'), 'SportsEvent');
 
         $this->assertArrayNotHasKey('offers', $gara);
+    }
+
+    #[Test]
+    public function la_gara_in_casa_con_i_biglietti_della_scheda_ha_l_offerta_completa(): void
+    {
+        $this->paginaDelPalazzetto();
+        // Non è la prossima in casa: l'offerta viene dai dati della scheda.
+        $this->garaInCasa(['match_date' => now()->addDay()->setTime(18, 0)]);
+        $gara = $this->garaInCasa([
+            'match_date' => now()->addDays(10)->setTime(20, 30),
+            'location' => 'Palazzo Wanny FIRENZE',
+            'biglietti_url' => 'https://www.vivaticket.com/it/ticket/savino-conegliano/2',
+            'biglietti_in_vendita_dal' => now()->subDays(2)->setTime(10, 0),
+            'biglietti_prezzo_da' => 12.5,
+            'biglietti_esauriti' => true,
+        ]);
+
+        $evento = collect($this->blocchi('/stagione/risultati'))
+            ->first(fn (array $blocco) => $blocco['@type'] === 'SportsEvent'
+                && ($blocco['offers']['url'] ?? null) === $gara->biglietti_url);
+
+        $this->assertNotNull($evento, 'Nessun SportsEvent con l\'offerta della scheda');
+        $this->assertSame('Offer', $evento['offers']['@type']);
+        $this->assertSame('https://schema.org/SoldOut', $evento['offers']['availability']);
+        $this->assertSame('12.50', $evento['offers']['price']);
+        $this->assertSame('EUR', $evento['offers']['priceCurrency']);
+        $this->assertMatchesRegularExpression('/T10:00:00\+0[12]:00$/', $evento['offers']['validFrom']);
+        $this->assertMatchesRegularExpression('/T20:30:00\+0[12]:00$/', $evento['startDate']);
+        // La CEV scrive il nome di prima: è comunque il palazzetto, con l'indirizzo intero.
+        $this->assertSame('Pala BigMat', $evento['location']['name']);
+        $this->assertSame([
+            '@type' => 'PostalAddress',
+            'streetAddress' => 'Via del Cavallaccio, 18/20/22/24',
+            'postalCode' => '50142',
+            'addressLocality' => 'Firenze',
+            'addressRegion' => 'FI',
+            'addressCountry' => 'IT',
+        ], $evento['location']['address']);
+    }
+
+    #[Test]
+    public function senza_prezzo_l_offerta_non_ne_inventa_uno(): void
+    {
+        $this->garaInCasa(['biglietti_url' => 'https://www.vivaticket.com/it/ticket/savino-novara/1']);
+
+        $offerta = $this->delTipo($this->blocchi('/'), 'SportsEvent')['offers'];
+
+        $this->assertSame('https://schema.org/InStock', $offerta['availability']);
+        $this->assertArrayNotHasKey('price', $offerta);
+        $this->assertArrayNotHasKey('priceCurrency', $offerta);
+        $this->assertArrayNotHasKey('validFrom', $offerta);
+    }
+
+    #[Test]
+    public function la_prossima_in_casa_senza_link_porta_alla_biglietteria(): void
+    {
+        Page::updateOrCreate(['slug' => 'biglietteria'], [
+            'title' => ['it' => 'Biglietteria', 'en' => 'Tickets'],
+            'template' => 'Public/Ticketing',
+            'status' => PostStatus::Published,
+            'content_data' => ['it' => ['tickets_url' => null]],
+        ]);
+        $this->garaInCasa();
+
+        $offerta = $this->delTipo($this->blocchi('/'), 'SportsEvent')['offers'];
+
+        $this->assertSame(url('/ticketing/biglietteria'), $offerta['url']);
+    }
+
+    private function paginaDelPalazzetto(): void
+    {
+        Page::updateOrCreate(['slug' => 'palazzetto'], [
+            'title' => ['it' => 'Il Palazzetto', 'en' => 'The Arena'],
+            'template' => 'Public/Societa/Palazzetto',
+            'status' => PostStatus::Published,
+            'content_data' => ['it' => [
+                'venue_name' => 'Pala BigMat',
+                'venue_address' => 'Via del Cavallaccio, 18/20/22/24 — 50142 Firenze (FI)',
+            ]],
+        ]);
     }
 
     #[Test]
