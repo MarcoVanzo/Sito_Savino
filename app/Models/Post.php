@@ -36,6 +36,14 @@ class Post extends Model implements HasMedia
     public $translatable = ['title', 'content', 'excerpt', 'meta_description', 'testo_alternativo'];
 
     /**
+     * Lo stato della traduzione automatica (TraduciLaNotiziaInInglese) è
+     * contabilità del job: nel registro bastano i testi inglesi che scrive.
+     *
+     * @var list<string>
+     */
+    protected array $logExclude = ['traduzioni_automatiche'];
+
+    /**
      * @return array<string, string|class-string>
      */
     protected function casts(): array
@@ -43,6 +51,7 @@ class Post extends Model implements HasMedia
         return [
             'published_at' => 'datetime',
             'status' => PostStatus::class,
+            'traduzioni_automatiche' => 'array',
         ];
     }
 

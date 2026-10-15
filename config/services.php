@@ -292,6 +292,20 @@ return [
     ],
 
     /*
+    | Traduzione automatica delle notizie in inglese (Google Cloud Translation).
+    | Usa il service account di GA4: stesso progetto Google («Savino Analytics»),
+    | con il ruolo «Utente API Cloud Translation». Niente chiavi in più.
+    | Quota gratuita: 500.000 caratteri al mese; budget con avviso a 5 €.
+    */
+    'google_translate' => [
+        'attiva' => (bool) env('TRADUZIONE_AUTOMATICA', true),
+        // Minuti di attesa dopo l'ultimo salvataggio: la redazione corregge
+        // ancora, e ogni traduzione consuma caratteri della quota.
+        'ritardo_minuti' => (int) env('TRADUZIONE_AUTOMATICA_RITARDO', 30),
+        'timeout' => (int) env('GOOGLE_TRANSLATE_TIMEOUT', 60),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Meta (Instagram + Facebook) — Graph API
     |--------------------------------------------------------------------------

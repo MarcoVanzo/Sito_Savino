@@ -34,6 +34,7 @@ class Ga4Credentials
     private function __construct(
         public readonly string $clientEmail,
         private readonly string $privateKey,
+        public readonly string $projectId = '',
     ) {}
 
     public static function fromConfig(): ?self
@@ -70,23 +71,27 @@ class Ga4Credentials
             return null;
         }
 
-        return new self($email, $key);
+        return new self($email, $key, (string) ($data['project_id'] ?? ''));
     }
 
     /**
      * Access token OAuth2, tenuto in cache finché è valido.
      *
+     * Lo stesso service account serve anche la traduzione automatica delle
+     * notizie (Cloud Translation, nello stesso progetto Google): basta
+     * chiedere il token con un altro scope.
+     *
      * @throws Ga4Exception
      */
-    public function accessToken(): string
+    public function accessToken(string $scope = self::SCOPE): string
     {
-        $cached = Cache::get($this->cacheKey());
+        $cached = Cache::get($this->cacheKey($scope));
 
         if (is_string($cached) && $cached !== '') {
             return $cached;
         }
 
-        $assertion = $this->signedAssertion();
+        $assertion = $this->signedAssertion($scope);
 
         $response = Http::asForm()
             ->timeout((int) config('services.ga4.timeout', 30))
@@ -110,7 +115,7 @@ class Ga4Credentials
             throw new Ga4Exception('auth_failed', 'Google non ha restituito un access token');
         }
 
-        Cache::put($this->cacheKey(), $token, self::CACHE_TTL);
+        Cache::put($this->cacheKey($scope), $token, self::CACHE_TTL);
 
         return $token;
     }
@@ -120,13 +125,13 @@ class Ga4Credentials
      *
      * @throws Ga4Exception
      */
-    private function signedAssertion(): string
+    private function signedAssertion(string $scope): string
     {
         $now = time();
         $header = self::base64Url((string) json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
         $claims = self::base64Url((string) json_encode([
             'iss' => $this->clientEmail,
-            'scope' => self::SCOPE,
+            'scope' => $scope,
             'aud' => self::TOKEN_URL,
             'iat' => $now,
             'exp' => $now + self::JWT_LIFETIME,
@@ -158,12 +163,15 @@ class Ga4Credentials
     }
 
     /**
-     * Chiave di cache legata all'identità: cambiando service account il token
-     * vecchio non viene riusato.
+     * Chiave di cache legata all'identità e allo scope: cambiando service
+     * account il token vecchio non viene riusato, e quello di GA4 non vale per
+     * la traduzione.
      */
-    private function cacheKey(): string
+    private function cacheKey(string $scope): string
     {
-        return 'ga4:token:'.hash('xxh128', $this->clientEmail);
+        $identita = $scope === self::SCOPE ? $this->clientEmail : $this->clientEmail.'|'.$scope;
+
+        return 'ga4:token:'.hash('xxh128', $identita);
     }
 
     private static function rawServiceAccount(): ?string
