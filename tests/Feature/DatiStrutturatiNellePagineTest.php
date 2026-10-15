@@ -19,6 +19,7 @@ use App\Models\SiteSetting;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -138,6 +139,23 @@ class DatiStrutturatiNellePagineTest extends TestCase
         $this->assertSame('Pala BigMat', $gara['location']['name']);
         $this->assertSame('Firenze', $gara['location']['address']['addressLocality']);
         $this->assertSame('https://www.vivaticket.com/it/ticket/savino-novara/1', $gara['offers']['url']);
+    }
+
+    #[Test]
+    public function il_calendario_cerca_la_prossima_gara_in_casa_una_volta_sola(): void
+    {
+        foreach (range(1, 4) as $settimana) {
+            $this->garaInCasa(['match_date' => now()->addWeeks($settimana)->setTime(20, 0)]);
+        }
+
+        DB::enableQueryLog();
+        $this->get('/stagione/risultati')->assertOk();
+
+        $ricerche = array_filter(
+            DB::getQueryLog(),
+            fn (array $query) => str_starts_with($query['query'], 'select `id` from `games`'),
+        );
+        $this->assertCount(1, $ricerche);
     }
 
     #[Test]
