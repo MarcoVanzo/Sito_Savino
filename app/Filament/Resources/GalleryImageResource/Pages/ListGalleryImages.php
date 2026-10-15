@@ -7,6 +7,7 @@ use App\Filament\Traits\InvalidaLaCacheDopoIlRiordino;
 use App\Jobs\AnalyzeGalleryImageJob;
 use App\Models\GalleryEvent;
 use App\Models\GalleryImage;
+use App\Services\GalleryUploadService;
 use Filament\Actions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -37,8 +38,11 @@ class ListGalleryImages extends ListRecords
                         ->label('Titolo Evento')
                         ->required()
                         ->maxLength(255),
+                    // Obbligatoria come nella scheda dell'album: la gallery
+                    // pubblica ordina gli album per data.
                     DatePicker::make('event_date')
-                        ->label('Data Evento'),
+                        ->label('Data Evento')
+                        ->required(),
                     Select::make('category')
                         ->label('Categoria')
                         ->required()
@@ -72,23 +76,21 @@ class ListGalleryImages extends ListRecords
     }
 
     /**
-     * Crea l'album e ci porta dentro le foto appena caricate.
+     * Crea l'album e ci porta dentro le foto appena caricate. I doppioni si
+     * contano prima: se tutte le foto sono già in archivio l'album non nasce
+     * (15/10/2026: tre album per la stessa gara, due vuoti) e il messaggio
+     * dice in quale album stanno.
      *
      * @param  array<string, mixed>  $data
      */
     private function creaLEventoConLeFoto(array $data): void
     {
         try {
-            $event = GalleryEvent::create([
-                'title' => $data['title'],
-                'event_date' => $data['event_date'],
-                'category' => $data['category'],
-                'description' => $data['description'],
-                'is_active' => true,
-            ]);
-
+            /** @var array<int, array{0: string, 1: ?string}> $nuove */
+            $nuove = [];
+            /** @var array<int, int> $albumDeiDoppioni */
+            $albumDeiDoppioni = [];
             $duplicati = 0;
-            $caricate = 0;
 
             foreach ($data['uploaded_photos'] ?? [] as $key => $file) {
                 if (! is_string($file)) {
@@ -101,21 +103,47 @@ class ListGalleryImages extends ListRecords
                 }
 
                 $fileHash = $this->improntaDelFile($file);
+                $albumGiaUsato = $fileHash ? GalleryUploadService::albumDelDoppione($fileHash) : null;
 
-                if ($fileHash && GalleryImage::where('file_hash', $fileHash)->exists()) {
+                if ($albumGiaUsato !== null) {
                     $duplicati++;
+                    $albumDeiDoppioni[$albumGiaUsato] = $albumGiaUsato;
 
                     continue;
                 }
 
-                $this->aggiungiLaFoto($event, $file, $fileHash);
-                $caricate++;
+                $nuove[] = [$file, $fileHash];
             }
 
-            $body = $caricate.' foto in fase di analisi AI.';
+            if ($nuove === []) {
+                Notification::make()
+                    ->title('Nessun album creato')
+                    ->body('Le '.$duplicati.' foto sono già in archivio. '
+                        .GalleryUploadService::doveSonoIDoppioni($albumDeiDoppioni, null))
+                    ->warning()
+                    ->persistent()
+                    ->send();
+
+                return;
+            }
+
+            $event = GalleryEvent::create([
+                'title' => $data['title'],
+                'event_date' => $data['event_date'],
+                'category' => $data['category'],
+                'description' => $data['description'],
+                'is_active' => true,
+            ]);
+
+            foreach ($nuove as [$file, $fileHash]) {
+                $this->aggiungiLaFoto($event, $file, $fileHash);
+            }
+
+            $body = count($nuove).' foto in fase di analisi AI.';
 
             if ($duplicati > 0) {
-                $body .= ' '.$duplicati.' duplicati saltati.';
+                $body .= ' '.$duplicati.' duplicati saltati. '
+                    .GalleryUploadService::doveSonoIDoppioni($albumDeiDoppioni, $event);
             }
 
             Notification::make()

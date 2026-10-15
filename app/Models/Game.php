@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
 use App\Models\Traits\LogsActivity;
+use App\Services\AvvisoTecnico;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Le due squadre sono null quando la squadra è archiviata: Team usa
@@ -108,6 +110,52 @@ class Game extends Model
             $this->importataDallaCev() => 'CEV',
             default => null,
         };
+    }
+
+    /**
+     * I campi scritti dalla redazione su una gara importata (diretta e
+     * biglietti), solo quelli compilati: chi cancella la gara li perde.
+     *
+     * @return array<string, string>
+     */
+    public function datiDellaRedazione(): array
+    {
+        return array_filter([
+            'Diretta' => (string) $this->stream_url,
+            'Biglietti' => (string) $this->biglietti_url,
+            'In vendita dal' => (string) $this->biglietti_in_vendita_dal?->format('d/m/Y H:i'),
+            'Prezzo da' => $this->biglietti_prezzo_da !== null ? (string) $this->biglietti_prezzo_da.' €' : '',
+            'Esauriti' => $this->biglietti_esauriti ? 'sì' : '',
+        ], fn (string $valore): bool => $valore !== '');
+    }
+
+    /**
+     * Avvisa prima che un sync cancelli una gara sparita dalla fonte con dei
+     * dati della redazione: se la fonte l'ha solo rinumerata, la gara nuova
+     * nasce vuota e quei dati vanno rimessi a mano.
+     */
+    public function avvisaSeSiPerdonoIDatiDellaRedazione(): void
+    {
+        $dati = $this->datiDellaRedazione();
+
+        if ($dati === []) {
+            return;
+        }
+
+        $this->loadMissing(['homeTeam', 'awayTeam']);
+        $gara = $this->homeTeam?->nomePubblico().' - '.$this->awayTeam?->nomePubblico()
+            .' del '.$this->match_date->format('d/m/Y H:i');
+        $righe = collect($dati)->map(fn (string $valore, string $campo) => "{$campo}: {$valore}")->implode("\n");
+
+        Log::warning("Sync {$this->fonteDellaSincronizzazione()}: cancellata la gara {$gara} con i dati della redazione", $dati);
+
+        app(AvvisoTecnico::class)->invia(
+            'Gara tolta dal calendario: dati della redazione da rimettere',
+            "La {$this->fonteDellaSincronizzazione()} non elenca più la gara {$gara} (id {$this->id}), che è stata cancellata. "
+                ."Se è stata solo rinumerata, la gara nuova non ha questi dati, da rimettere dal pannello (Gare):\n\n{$righe}",
+            'gara-cancellata-dal-sync:'.$this->id,
+            86400,
+        );
     }
 
     /**

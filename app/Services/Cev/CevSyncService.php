@@ -268,6 +268,7 @@ class CevSyncService
                 continue;
             }
 
+            $game->avvisaSeSiPerdonoIDatiDellaRedazione();
             $game->delete();
             $removed++;
         }

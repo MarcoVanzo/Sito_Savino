@@ -3,11 +3,13 @@
 namespace Tests\Feature\Cev;
 
 use App\Enums\CompetitionType;
+use App\Enums\EsitoAvviso;
 use App\Enums\GameStatus;
 use App\Models\Game;
 use App\Models\Season;
 use App\Models\Standing;
 use App\Models\Team;
+use App\Services\AvvisoTecnico;
 use App\Services\Cev\CevException;
 use App\Services\Cev\CevSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -186,6 +188,27 @@ class CevSyncServiceTest extends TestCase
         $this->assertModelMissing($gara);
         $this->assertSame(1, $stats['matches_removed']);
         $this->assertSame(1, $stats['matches_created']);
+    }
+
+    #[Test]
+    public function togliere_una_gara_con_i_biglietti_della_redazione_avvisa(): void
+    {
+        $this->sync(1948, 2026);
+
+        $gara = Game::where('home_team_id', $this->savino->id)->orderBy('match_date')->first()
+            ?? Game::where('away_team_id', $this->savino->id)->orderBy('match_date')->firstOrFail();
+        $gara->update(['biglietti_url' => 'https://www.vivaticket.com/it/ticket/savino/1']);
+
+        $this->mock(AvvisoTecnico::class)
+            ->shouldReceive('invia')
+            ->once()
+            ->withArgs(fn (string $oggetto, string $testo) => str_contains($testo, 'Biglietti: https://www.vivaticket.com/it/ticket/savino/1'))
+            ->andReturn(EsitoAvviso::Inviato);
+
+        $this->sostituzioni = ["mID={$gara->cev_match_id}&" => 'mID=999999999&'];
+        $this->sync(1948, 2026);
+
+        $this->assertModelMissing($gara);
     }
 
     #[Test]

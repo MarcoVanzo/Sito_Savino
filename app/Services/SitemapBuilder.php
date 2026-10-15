@@ -11,14 +11,15 @@ use App\Models\Product;
 use App\Models\Reindirizzamento;
 use App\Models\Roster;
 use App\Models\Season;
+use App\Models\SiteSetting;
 use App\Models\Team;
 use App\Services\Seo\DatiStrutturati;
 use App\Support\IndirizziPerLingua;
 use App\Support\RedirectGestiti;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Spatie\Sitemap\Sitemap;
-use Spatie\Sitemap\SitemapIndex;
 use Spatie\Sitemap\Tags\Url;
 
 /**
@@ -54,7 +55,7 @@ class SitemapBuilder
      */
     public function render(string $parte): string
     {
-        return Cache::remember(self::CACHE_KEY.':'.$parte, self::CACHE_TTL, fn () => $this->build($parte)->render());
+        return Cache::remember(self::CACHE_KEY.':'.$parte, self::CACHE_TTL, fn () => $this->genera($parte));
     }
 
     /**
@@ -67,11 +68,24 @@ class SitemapBuilder
         $parti = [];
 
         foreach (self::PARTI as $parte) {
-            $parti[$parte] = $this->build($parte)->render();
+            $parti[$parte] = $this->genera($parte);
             Cache::put(self::CACHE_KEY.':'.$parte, $parti[$parte], self::CACHE_TTL);
         }
 
         return $parti;
+    }
+
+    /**
+     * L'XML di una parte, annotando quando è stato generato: è il `lastmod`
+     * della parte nell'indice.
+     */
+    private function genera(string $parte): string
+    {
+        $xml = $this->build($parte)->render();
+
+        Cache::put(self::CACHE_KEY.':'.$parte.':generata', now()->getTimestamp(), self::CACHE_TTL);
+
+        return $xml;
     }
 
     /**
@@ -152,7 +166,9 @@ class SitemapBuilder
             });
         }
 
-        if ($vuole('prodotti')) {
+        // A negozio chiuso la vetrina mostra la manutenzione: le schede non
+        // si propongono a Google.
+        if ($vuole('prodotti') && filter_var(SiteSetting::get('shop.enabled', true), FILTER_VALIDATE_BOOLEAN)) {
             $this->prodotti($addLocalizedUrls);
         }
 
@@ -280,17 +296,35 @@ class SitemapBuilder
     }
 
     /**
-     * L'indice: le parti del sito e la sitemap di Google News.
+     * L'indice: le parti del sito e la sitemap di Google News. Il `lastmod`
+     * di una parte è l'ora in cui è stata generata; se non si sa (cache
+     * vuota) non si scrive. Scritto a mano: `SitemapIndex` della libreria
+     * mette a ogni voce l'ora della richiesta, che Google impara a ignorare.
      */
     public function renderIndice(): string
     {
-        $indice = SitemapIndex::create();
+        $voci = [];
 
         foreach (self::PARTI as $parte) {
-            $indice->add(route('sitemap.parte', ['parte' => $parte]));
+            $generata = Cache::get(self::CACHE_KEY.':'.$parte.':generata');
+            $voci[route('sitemap.parte', ['parte' => $parte])] = is_int($generata)
+                ? Carbon::createFromTimestamp($generata, config('app.timezone'))->format(DATE_ATOM)
+                : null;
         }
 
-        return $indice->add(route('sitemap.notizie'))->render();
+        $voci[route('sitemap.notizie')] = null;
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
+            .'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
+
+        foreach ($voci as $indirizzo => $lastmod) {
+            $xml .= '  <sitemap>'."\n"
+                .'    <loc>'.htmlspecialchars($indirizzo, ENT_XML1).'</loc>'."\n"
+                .($lastmod !== null ? '    <lastmod>'.$lastmod.'</lastmod>'."\n" : '')
+                .'  </sitemap>'."\n";
+        }
+
+        return $xml.'</sitemapindex>'."\n";
     }
 
     /**

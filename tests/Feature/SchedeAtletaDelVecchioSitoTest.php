@@ -88,6 +88,30 @@ class SchedeAtletaDelVecchioSitoTest extends TestCase
     }
 
     #[Test]
+    public function a_inizio_stagione_con_la_rosa_ancora_vuota_il_rimando_e_temporaneo(): void
+    {
+        $this->stagione->update(['is_current' => false]);
+        Season::factory()->create(['is_current' => true]);
+
+        $this->get('/stagione/atleta/'.$this->atleta->id.'-ekaterina-antropova')
+            ->assertStatus(302)
+            ->assertRedirect(route('stagione'));
+    }
+
+    #[Test]
+    public function in_inglese_i_rimandi_restano_in_inglese(): void
+    {
+        $exAtleta = Player::factory()->create(['first_name' => 'Elena', 'last_name' => 'Pietrini']);
+
+        $this->get('/en/stagione/atleta/'.$this->atleta->id.'-katia-antropova')
+            ->assertStatus(301)
+            ->assertRedirect(route('en.stagione.atleta', ['slug' => $this->atleta->id.'-ekaterina-antropova']));
+        $this->get('/en/stagione/atleta/'.$exAtleta->id.'-elena-pietrini')
+            ->assertStatus(301)
+            ->assertRedirect(route('en.stagione'));
+    }
+
+    #[Test]
     public function uno_slug_con_il_nome_scritto_diversamente_porta_a_quello_giusto(): void
     {
         $this->get('/stagione/atleta/'.$this->atleta->id.'-katia-antropova')

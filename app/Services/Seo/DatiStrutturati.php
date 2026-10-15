@@ -60,6 +60,15 @@ class DatiStrutturati
      */
     private int|false|null $prossimaGaraInCasa = false;
 
+    /** @var list<string>|null */
+    private ?array $cittaDellaLega = null;
+
+    /** Link di vendita del Match Day o della Biglietteria; `false` = non ancora letto. */
+    private string|false|null $linkDeiBiglietti = false;
+
+    /** Indirizzo della pagina Biglietteria; `false` = non ancora letto. */
+    private string|false|null $paginaBiglietteria = false;
+
     /**
      * La società: solo in home, con i profili ufficiali in `sameAs`.
      *
@@ -103,9 +112,9 @@ class DatiStrutturati
     }
 
     /**
-     * Una partita. `offers` solo per la prossima gara in casa e solo se la
-     * redazione ha messo il link di vendita (Vivaticket): un'offerta senza
-     * biglietti in vendita sarebbe un dato falso.
+     * Una partita. `offers` solo per le gare in casa non giocate con un link
+     * di vendita (vedi offertaBiglietti): un'offerta senza biglietti in
+     * vendita sarebbe un dato falso.
      *
      * @return array<string, mixed>|null
      */
@@ -513,18 +522,26 @@ class DatiStrutturati
     }
 
     /**
-     * Il luogo della gara. La Lega e la CEV lo scrivono come «Impianto - Città»:
-     * la città diventa l'indirizzo, e il paese si ricava dal suo fuso orario
-     * (lo stesso elenco con cui si converte l'ora delle gare CEV).
+     * Il luogo della gara. La Lega lo scrive come «Impianto - Città», la CEV
+     * come «Impianto CITTÀ» (la città in maiuscolo, in fondo o in testa). Il
+     * paese si dichiara solo se si sa: dal fuso orario della città (lo
+     * stesso elenco con cui si convertono gli orari CEV), o Italia per le
+     * gare della Lega e per le città in cui la Lega gioca. Una città ignota
+     * resta senza paese: meglio niente che l'Italia per Obrenovac.
      *
      * @return array<string, mixed>
      */
     private function luogo(Game $gara): array
     {
         $luogo = trim((string) $gara->location);
+        $palazzetto = $this->palazzettoDiCasa();
 
-        if ($gara->homeTeam?->is_internal && ($palazzetto = $this->palazzettoDiCasa()) !== null
-            && ($luogo === '' || $this->eIlPalazzettoDiCasa($luogo, (string) $palazzetto['name']))) {
+        // Il Pala BigMat ha lo stesso indirizzo anche quando in casa è
+        // l'altra squadra di Firenze.
+        if ($palazzetto !== null && (
+            ($luogo === '' && $gara->homeTeam?->is_internal)
+            || ($luogo !== '' && $this->eIlPalazzettoDiCasa($luogo, (string) $palazzetto['name']))
+        )) {
             return $palazzetto;
         }
 
@@ -532,9 +549,9 @@ class DatiStrutturati
             return ['@type' => 'Place', 'name' => (string) $gara->homeTeam?->nomePubblico()];
         }
 
-        $parti = preg_split('/\s+-\s+/', $luogo) ?: [$luogo];
-        $citta = count($parti) > 1 ? trim((string) array_pop($parti)) : '';
-        $impianto = trim(implode(' - ', $parti));
+        [$impianto, $citta] = $gara->cev_match_id !== null
+            ? $this->impiantoECittaCev($luogo)
+            : $this->impiantoECittaLega($luogo);
 
         $indirizzo = ['@type' => 'PostalAddress'];
 
@@ -542,7 +559,7 @@ class DatiStrutturati
             $indirizzo['addressLocality'] = Str::title(mb_strtolower($citta));
         }
 
-        $paese = $this->paeseDellaCitta($citta);
+        $paese = $this->paeseDellaCitta($citta, $gara->cev_match_id === null);
 
         if ($paese !== null) {
             $indirizzo['addressCountry'] = $paese;
@@ -553,6 +570,56 @@ class DatiStrutturati
             'name' => $impianto,
             'address' => $indirizzo,
         ];
+    }
+
+    /**
+     * «Impianto - Città»: la città è dopo l'ultimo trattino.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function impiantoECittaLega(string $luogo): array
+    {
+        $parti = preg_split('/\s+-\s+/', $luogo) ?: [$luogo];
+        $citta = count($parti) > 1 ? trim((string) array_pop($parti)) : '';
+
+        return [trim(implode(' - ', $parti)), $citta];
+    }
+
+    /**
+     * «Eczacibasi Spor Salonu ISTANBUL», «TOVUZ Olympic Hall»: la città è la
+     * fila di parole tutte maiuscole in fondo (o, se manca, in testa). Le
+     * sigle senza vocali in testa alla fila («SKC OBRENOVAC») non sono città.
+     * Il nome dell'impianto resta quello scritto dalla CEV.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function impiantoECittaCev(string $luogo): array
+    {
+        $parole = preg_split('/\s+/u', $luogo) ?: [];
+        $maiuscola = fn (string $parola): bool => preg_match('/^\p{Lu}[\p{Lu}\-\']+$/u', $parola) === 1;
+
+        $fila = [];
+
+        for ($i = count($parole) - 1; $i >= 0 && $maiuscola($parole[$i]); $i--) {
+            array_unshift($fila, $parole[$i]);
+        }
+
+        if ($fila === []) {
+            for ($i = 0; $i < count($parole) && $maiuscola($parole[$i]); $i++) {
+                $fila[] = $parole[$i];
+            }
+        }
+
+        // Tutto maiuscolo: non si sa dove finisca l'impianto.
+        if (count($fila) === count($parole)) {
+            return [$luogo, ''];
+        }
+
+        while (count($fila) > 1 && preg_match('/[AEIOUYÀ-ÿ]/iu', $fila[0]) !== 1) {
+            array_shift($fila);
+        }
+
+        return [$luogo, implode(' ', $fila)];
     }
 
     /**
@@ -619,9 +686,17 @@ class DatiStrutturati
         return false;
     }
 
-    private function paeseDellaCitta(string $citta): ?string
+    private function paeseDellaCitta(string $citta, bool $garaDellaLega): ?string
     {
+        if ($garaDellaLega) {
+            return 'IT';
+        }
+
         $maiuscola = mb_strtoupper(trim($citta));
+
+        if ($maiuscola === '') {
+            return null;
+        }
 
         foreach ((array) config('services.cev.fusi_orari', []) as $fuso => $citta_del_fuso) {
             if (in_array($maiuscola, (array) $citta_del_fuso, true)) {
@@ -631,9 +706,31 @@ class DatiStrutturati
             }
         }
 
-        // Fuori dall'elenco dei fusi una città è italiana (stessa regola della
-        // conversione degli orari CEV).
-        return 'IT';
+        return in_array($maiuscola, $this->cittaDellaLega(), true) ? 'IT' : null;
+    }
+
+    /**
+     * Le città in cui si giocano le gare della Lega (tutte in Italia), lette
+     * una volta per richiesta: una gara CEV a Novara o a Treviso è in Italia.
+     *
+     * @return list<string>
+     */
+    private function cittaDellaLega(): array
+    {
+        if ($this->cittaDellaLega !== null) {
+            return $this->cittaDellaLega;
+        }
+
+        return $this->cittaDellaLega = Game::query()
+            ->whereNull('cev_match_id')
+            ->whereNotNull('location')
+            ->distinct()
+            ->pluck('location')
+            ->map(fn ($luogo) => mb_strtoupper($this->impiantoECittaLega(trim((string) $luogo))[1]))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**
@@ -680,11 +777,12 @@ class DatiStrutturati
     }
 
     /**
-     * I biglietti si vendono su Vivaticket. Con i dati della scheda della gara
-     * (Gare → Biglietti) l'offerta vale per qualunque gara in casa non ancora
-     * giocata; senza, solo per la prossima, l'unica di cui si sa che è in
-     * vendita, con il link del Match Day o della Biglietteria. Prezzo e data
-     * d'inizio vendita solo se la redazione li ha scritti: mai inventati.
+     * I biglietti si vendono su Vivaticket. Con il link nella scheda della
+     * gara (Gare → Biglietti) l'offerta vale per qualunque gara in casa non
+     * ancora giocata; senza, solo per la prossima, l'unica di cui si sa che è
+     * in vendita, con il link del Match Day o della Biglietteria. Prezzo e
+     * data d'inizio vendita solo se la redazione li ha scritti: mai inventati.
+     * Prima dell'inizio vendita l'offerta è `PreOrder`, non `InStock`.
      *
      * @return array<string, mixed>|null
      */
@@ -697,34 +795,35 @@ class DatiStrutturati
         }
 
         $linkDellaGara = $this->linkSicuro($gara->biglietti_url);
-        $haIDati = $linkDellaGara !== null || $gara->biglietti_in_vendita_dal !== null || $gara->biglietti_esauriti;
         $prossima = $this->eLaProssimaInCasa($gara);
 
-        if (! $haIDati && ! $prossima) {
+        if ($linkDellaGara === null && ! $prossima) {
             return null;
         }
 
-        // Il link del Match Day è quello della gara del giorno: per le altre
-        // si ripiega sulla pagina Biglietteria.
-        $link = $linkDellaGara
-            ?? ($prossima ? $this->linkDeiBiglietti() : null)
-            ?? $this->paginaBiglietteria();
+        // Il link del Match Day è quello della gara del giorno: se manca si
+        // ripiega sulla pagina Biglietteria.
+        $link = $linkDellaGara ?? $this->linkDeiBiglietti() ?? $this->paginaBiglietteria();
 
         if ($link === null) {
             return null;
         }
 
+        $inVenditaDal = $gara->biglietti_in_vendita_dal;
+
         $offerta = [
             '@type' => 'Offer',
             'url' => $link,
-            'availability' => $gara->biglietti_esauriti
-                ? 'https://schema.org/SoldOut'
-                : 'https://schema.org/InStock',
+            'availability' => match (true) {
+                $gara->biglietti_esauriti => 'https://schema.org/SoldOut',
+                $inVenditaDal !== null && $inVenditaDal->isFuture() => 'https://schema.org/PreOrder',
+                default => 'https://schema.org/InStock',
+            },
             'validThrough' => $gara->match_date->toIso8601String(),
         ];
 
-        if ($gara->biglietti_in_vendita_dal !== null) {
-            $offerta['validFrom'] = $gara->biglietti_in_vendita_dal->toIso8601String();
+        if ($inVenditaDal !== null) {
+            $offerta['validFrom'] = $inVenditaDal->toIso8601String();
         }
 
         if ($gara->biglietti_prezzo_da !== null) {
@@ -759,6 +858,10 @@ class DatiStrutturati
 
     private function linkDeiBiglietti(): ?string
     {
+        if ($this->linkDeiBiglietti !== false) {
+            return $this->linkDeiBiglietti;
+        }
+
         $link = $this->linkSicuro((string) SiteSetting::get('match_day_popup_url', ''));
 
         if ($link === null) {
@@ -766,7 +869,7 @@ class DatiStrutturati
             $link = $this->linkSicuro((string) ($dati['tickets_url'] ?? ''));
         }
 
-        return $link;
+        return $this->linkDeiBiglietti = $link;
     }
 
     /**
@@ -774,13 +877,15 @@ class DatiStrutturati
      */
     private function paginaBiglietteria(): ?string
     {
-        if (! Page::where('slug', 'biglietteria')->where('status', PostStatus::Published)->exists()) {
-            return null;
+        if ($this->paginaBiglietteria !== false) {
+            return $this->paginaBiglietteria;
         }
 
-        $percorso = PageController::percorsoPubblico('biglietteria');
+        $percorso = Page::where('slug', 'biglietteria')->where('status', PostStatus::Published)->exists()
+            ? PageController::percorsoPubblico('biglietteria')
+            : null;
 
-        return $percorso !== null ? url($percorso) : null;
+        return $this->paginaBiglietteria = $percorso !== null ? url($percorso) : null;
     }
 
     /**

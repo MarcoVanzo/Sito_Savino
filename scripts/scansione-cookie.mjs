@@ -67,12 +67,21 @@ async function indirizziDellaSitemap() {
 
     const indirizzi = [];
 
+    // Una parte che non risponde ferma la scansione: con le sue pagine
+    // saltate in silenzio la dichiarazione committata su main sarebbe monca.
     for (const sitemap of loc(xml).filter((indirizzo) => ! indirizzo.endsWith('/sitemap-news.xml'))) {
-        const parte = await fetch(`${base}${new URL(sitemap).pathname}`);
+        const percorso = new URL(sitemap).pathname;
+        const parte = await fetch(`${base}${percorso}`);
 
-        if (parte.ok) {
-            indirizzi.push(...loc(await parte.text()));
+        if (! parte.ok) {
+            throw new Error(`${percorso} non risponde (${parte.status}): senza non so quali pagine guardare.`);
         }
+
+        indirizzi.push(...loc(await parte.text()));
+    }
+
+    if (indirizzi.length === 0) {
+        throw new Error('La sitemap non elenca nessuna pagina: senza non so quali pagine guardare.');
     }
 
     return { stato: risposta.status, indirizzi };

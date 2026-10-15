@@ -140,14 +140,21 @@ async function indirizziDellaSitemap() {
     const indirizzi = [];
 
     for (const sitemap of loc(xml).filter((indirizzo) => ! indirizzo.endsWith('/sitemap-news.xml'))) {
-        const parte = await fetch(`${base}${new URL(sitemap).pathname}`);
+        const percorso = new URL(sitemap).pathname;
+        const parte = await fetch(`${base}${percorso}`);
 
-        if (parte.ok) {
-            indirizzi.push(...loc(await parte.text()));
+        if (! parte.ok) {
+            console.warn(`${percorso} non risponde (${parte.status}): le sue pagine restano fuori dal controllo.`);
+
+            continue;
         }
+
+        indirizzi.push(...loc(await parte.text()));
     }
 
-    return { stato: risposta.status, indirizzi };
+    return indirizzi.length > 0
+        ? { stato: risposta.status, indirizzi }
+        : { stato: 'nessuna pagina elencata', indirizzi: null };
 }
 
 /** Pagine dello shop e dei servizi che la sitemap non elenca. */
