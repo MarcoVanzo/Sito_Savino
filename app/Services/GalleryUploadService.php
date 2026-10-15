@@ -35,7 +35,7 @@ class GalleryUploadService
             // Calcola hash del file per rilevamento duplicati
             $fileHash = static::computeFileHash($file, $disk);
 
-            $albumGiaUsato = $fileHash ? static::albumDelDoppione($fileHash) : null;
+            $albumGiaUsato = $fileHash ? self::albumDelDoppione($fileHash) : null;
 
             if ($albumGiaUsato !== null) {
                 $duplicates++;
