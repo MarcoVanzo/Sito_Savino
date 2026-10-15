@@ -28,13 +28,18 @@ class GalleryUploadService
         $disk = $component->getDiskName();
         $duplicates = 0;
         $uploaded = 0;
+        /** @var array<int, int> $albumDeiDoppioni */
+        $albumDeiDoppioni = [];
 
         foreach ($state as $file) {
             // Calcola hash del file per rilevamento duplicati
             $fileHash = static::computeFileHash($file, $disk);
 
-            if ($fileHash && static::isDuplicate($fileHash)) {
+            $albumGiaUsato = $fileHash ? self::albumDelDoppione($fileHash) : null;
+
+            if ($albumGiaUsato !== null) {
                 $duplicates++;
+                $albumDeiDoppioni[$albumGiaUsato] = $albumGiaUsato;
                 Log::info('Gallery upload: duplicato rilevato', ['hash' => $fileHash]);
 
                 continue;
@@ -53,7 +58,8 @@ class GalleryUploadService
         if ($duplicates > 0) {
             Notification::make()
                 ->title('Duplicati rilevati')
-                ->body($duplicates.' foto già presenti nel sistema e saltate. '.$uploaded.' nuove foto caricate.')
+                ->body($duplicates.' foto già presenti nel sistema e saltate. '.$uploaded.' nuove foto caricate.'
+                    .' '.self::doveSonoIDoppioni($albumDeiDoppioni, $record))
                 ->warning()
                 ->persistent()
                 ->send();
@@ -153,5 +159,40 @@ class GalleryUploadService
     public static function isDuplicate(string $hash): bool
     {
         return GalleryImage::where('file_hash', $hash)->exists();
+    }
+
+    /**
+     * L'album che contiene già la foto con questa impronta, o null se la foto
+     * è nuova. Una foto senza album conta comunque come doppione (0).
+     */
+    private static function albumDelDoppione(string $hash): ?int
+    {
+        $foto = GalleryImage::where('file_hash', $hash)->first(['id', 'gallery_event_id']);
+
+        return $foto ? (int) $foto->gallery_event_id : null;
+    }
+
+    /**
+     * Dice dove stanno le foto saltate. Senza, chi ricarica in un album nuovo
+     * le stesse foto vede solo «già presenti» e un album vuoto, e non sa che
+     * le foto sono rimaste nel primo album creato (15/10/2026: tre album per
+     * la stessa gara, due vuoti).
+     *
+     * @param  array<int, int>  $albumIds
+     */
+    private static function doveSonoIDoppioni(array $albumIds, GalleryEvent $record): string
+    {
+        $altri = GalleryEvent::whereKey(array_diff($albumIds, [$record->id]))
+            ->orderBy('id')
+            ->get()
+            ->map(fn (GalleryEvent $album) => '«'.$album->title.'»'
+                .($album->event_date ? ' del '.$album->event_date->format('d/m/Y') : ' (senza data)')
+                .' [id '.$album->id.']');
+
+        if ($altri->isEmpty()) {
+            return in_array($record->id, $albumIds, true) ? 'Sono già in questo album.' : 'Sono in archivio fuori da un album.';
+        }
+
+        return 'Si trovano già '.($altri->count() === 1 ? 'nell\'album ' : 'negli album ').$altri->join(', ').'.';
     }
 }

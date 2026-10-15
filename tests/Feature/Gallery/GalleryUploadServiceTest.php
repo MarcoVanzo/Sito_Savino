@@ -200,4 +200,35 @@ class GalleryUploadServiceTest extends TestCase
 
         $componente->shouldHaveReceived('state')->with([]);
     }
+
+    /**
+     * Il 15/10/2026 la redazione ha ricaricato le stesse foto in due album
+     * nuovi: «già presenti» e album vuoti, senza sapere dove fossero finite.
+     */
+    #[Test]
+    public function il_doppione_dice_in_quale_album_si_trova_gia(): void
+    {
+        $primo = GalleryEvent::factory()->create(['title' => 'Giornata 4', 'event_date' => null]);
+        $nuovo = GalleryEvent::factory()->create(['title' => 'Giornata 4']);
+
+        GalleryUploadService::processUploads($this->componente(), [$this->fileSuDisco('a.jpg', 'gara')], $primo);
+        GalleryUploadService::processUploads($this->componente(), [$this->fileSuDisco('b.jpg', 'gara')], $nuovo);
+
+        $avviso = collect(session('filament.notifications'))->last();
+        $this->assertStringContainsString("nell'album «Giornata 4» (senza data) [id {$primo->id}]", $avviso['body']);
+    }
+
+    #[Test]
+    public function il_doppione_nello_stesso_album_lo_dice(): void
+    {
+        $evento = GalleryEvent::factory()->create();
+
+        GalleryUploadService::processUploads($this->componente(), [
+            $this->fileSuDisco('a.jpg', 'uguale'),
+            $this->fileSuDisco('b.jpg', 'uguale'),
+        ], $evento);
+
+        $avviso = collect(session('filament.notifications'))->last();
+        $this->assertStringContainsString('Sono già in questo album.', $avviso['body']);
+    }
 }

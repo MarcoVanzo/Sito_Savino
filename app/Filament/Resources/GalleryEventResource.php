@@ -51,8 +51,11 @@ class GalleryEventResource extends Resource
                             ->label('Titolo')
                             ->required()
                             ->maxLength(255),
+                        // Obbligatoria: la gallery pubblica ordina gli album per
+                        // data, e uno senza finisce in fondo all'elenco.
                         Forms\Components\DatePicker::make('event_date')
-                            ->label('Data Evento'),
+                            ->label('Data Evento')
+                            ->required(),
                         Forms\Components\Select::make('category')
                             ->label('Categoria')
                             ->required()
