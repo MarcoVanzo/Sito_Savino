@@ -105,6 +105,25 @@ class RedirectDecisiDalPannelloTest extends TestCase
     }
 
     #[Test]
+    public function i_vecchi_indirizzi_dell_audit_seo_finiscono_nella_lista(): void
+    {
+        // I casi del controllo SEO del 15/10/2026: permalink di una notizia
+        // mai importata, tag senza pagina, categoria di WordPress.
+        $this->get('/sconfitta-indolore/')->assertNotFound();
+        $this->get('/tag/una-parola-qualsiasi/')->assertStatus(301);
+        $this->get('/category/news/')->assertNotFound();
+        $this->get('/category/news/')->assertNotFound();
+
+        $righe = IndirizzoDaMappare::query()->pluck('hits', 'percorso')->all();
+
+        $this->assertSame([
+            '/category/news' => 2,
+            '/sconfitta-indolore' => 1,
+            '/tag/una-parola-qualsiasi' => 1,
+        ], collect($righe)->sortKeys()->all());
+    }
+
+    #[Test]
     public function le_sonde_e_i_404_qualsiasi_non_finiscono_nella_lista(): void
     {
         $this->get('/wp-login.php')->assertNotFound();

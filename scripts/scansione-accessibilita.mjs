@@ -118,16 +118,46 @@ async function versioneDellInformativa() {
     return props?.props?.consensoCookie?.versione ?? null;
 }
 
+/**
+ * Gli indirizzi delle pagine in sitemap. `/sitemap.xml` è un indice: si
+ * leggono le sitemap che elenca (quella di Google News è un doppione delle
+ * notizie), chieste al sito sotto esame e non all'host scritto nell'indice.
+ */
+async function indirizziDellaSitemap() {
+    const risposta = await fetch(`${base}/sitemap.xml`);
+
+    if (! risposta.ok) {
+        return { stato: risposta.status, indirizzi: null };
+    }
+
+    const loc = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    const xml = await risposta.text();
+
+    if (! xml.includes('<sitemapindex')) {
+        return { stato: risposta.status, indirizzi: loc(xml) };
+    }
+
+    const indirizzi = [];
+
+    for (const sitemap of loc(xml).filter((indirizzo) => ! indirizzo.endsWith('/sitemap-news.xml'))) {
+        const parte = await fetch(`${base}${new URL(sitemap).pathname}`);
+
+        if (parte.ok) {
+            indirizzi.push(...loc(await parte.text()));
+        }
+    }
+
+    return { stato: risposta.status, indirizzi };
+}
+
 /** Pagine dello shop e dei servizi che la sitemap non elenca. */
 const SEMPRE = ['/shop', '/shop/carrello', '/shop/aste', '/login', '/shop/registrati', '/contatti', '/recesso', '/en/shop'];
 
 async function pagineDaVisitare() {
     const scelte = new Map(SEMPRE.map((p) => [p, `${base}${p}`]));
-    const risposta = await fetch(`${base}/sitemap.xml`);
+    const { stato, indirizzi } = await indirizziDellaSitemap();
 
-    if (risposta.ok) {
-        const indirizzi = [...(await risposta.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-
+    if (indirizzi !== null) {
         for (const indirizzo of indirizzi) {
             const percorso = new URL(indirizzo).pathname;
             const famiglia = percorso.split('/').filter(Boolean).slice(0, 2).join('/') || 'home';
@@ -139,7 +169,7 @@ async function pagineDaVisitare() {
             }
         }
     } else {
-        console.warn(`La sitemap non risponde (${risposta.status}): controllo solo le pagine fisse.`);
+        console.warn(`La sitemap non risponde (${stato}): controllo solo le pagine fisse.`);
         scelte.set('home', `${base}/`);
     }
 

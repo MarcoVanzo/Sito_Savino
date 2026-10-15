@@ -17,15 +17,17 @@ class GenerateSitemapCommandTest extends TestCase
         Cache::flush();
 
         $this->artisan('sitemap:generate')
-            ->expectsOutputToContain('Sitemap aggiornata in cache')
+            ->expectsOutputToContain('sitemap-pagine.xml aggiornata in cache')
+            ->expectsOutputToContain('sitemap-gallery.xml aggiornata in cache')
             ->assertSuccessful();
 
-        $xml = Cache::get('sitemap.xml');
+        $xml = Cache::get('sitemap.xml:pagine');
 
         $this->assertIsString($xml);
         $this->assertStringContainsString('<urlset', $xml);
 
         // La rotta serve la stessa cache appena riscaldata.
-        $this->get('/sitemap.xml')->assertStatus(200)->assertSee('<urlset', false);
+        Cache::put('sitemap.xml:pagine', '<urlset><!-- dalla cache --></urlset>');
+        $this->get('/sitemap-pagine.xml')->assertStatus(200)->assertSee('dalla cache', false);
     }
 }

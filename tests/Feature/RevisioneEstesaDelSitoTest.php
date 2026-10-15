@@ -64,7 +64,7 @@ class RevisioneEstesaDelSitoTest extends TestCase
         $this->pagina('privacy-policy', 'Public/ContentPage');
         Cache::flush();
 
-        $xml = $this->get('/sitemap.xml')->assertOk()->getContent();
+        $xml = $this->get('/sitemap-pagine.xml')->assertOk()->getContent();
 
         $this->assertStringContainsString('/societa/organigramma</loc>', $xml);
         $this->assertStringNotContainsString('/organigramma</loc>'."\n", str_replace('/societa/organigramma</loc>', '', $xml));

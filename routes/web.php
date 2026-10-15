@@ -25,28 +25,32 @@ Route::domain('shop.savinodelbenevolley.it')->group(function () {
 // Non deve esistere un `public/sitemap.xml`, altrimenti il web server lo servirebbe
 // al posto di questa rotta — ed è così che in produzione sono finiti in sitemap
 // 378 URL `http://localhost:8000`.
-Route::get('/sitemap.xml', function (SitemapBuilder $builder) {
-    return response($builder->render(), 200, [
+//
+// L'indice elenca una sitemap per sezione (pagine, notizie, prodotti, atlete,
+// gallery) più quella di Google News; `/sitemap.xml`, l'indirizzo già inviato a
+// Search Console, serve lo stesso indice.
+$indiceDelleSitemap = fn (SitemapBuilder $builder) => response($builder->renderIndice(), 200, [
+    'Content-Type' => 'application/xml; charset=utf-8',
+    'Cache-Control' => 'public, max-age=3600',
+]);
+
+Route::get('/sitemap-index.xml', $indiceDelleSitemap)->name('sitemap.indice');
+Route::get('/sitemap.xml', $indiceDelleSitemap)->name('sitemap');
+
+Route::get('/sitemap-{parte}.xml', function (SitemapBuilder $builder, string $parte) {
+    return response($builder->render($parte), 200, [
         'Content-Type' => 'application/xml; charset=utf-8',
         'Cache-Control' => 'public, max-age=3600',
     ]);
-})->name('sitemap');
+})->whereIn('parte', SitemapBuilder::PARTI)->name('sitemap.parte');
 
-// Le notizie degli ultimi due giorni per Google News, e l'indice che tiene
-// insieme le due sitemap (dichiarato in robots.txt).
+// Le notizie degli ultimi due giorni per Google News.
 Route::get('/sitemap-news.xml', function (SitemapBuilder $builder) {
     return response($builder->renderNotizie(), 200, [
         'Content-Type' => 'application/xml; charset=utf-8',
         'Cache-Control' => 'public, max-age=1800',
     ]);
 })->name('sitemap.notizie');
-
-Route::get('/sitemap-index.xml', function (SitemapBuilder $builder) {
-    return response($builder->renderIndice(), 200, [
-        'Content-Type' => 'application/xml; charset=utf-8',
-        'Cache-Control' => 'public, max-age=3600',
-    ]);
-})->name('sitemap.indice');
 
 // RFC 9116: dove segnalare una vulnerabilità. Il buildpack di Heroku nega i
 // percorsi che iniziano col punto se la cartella non esiste (rispondeva 403):

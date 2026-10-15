@@ -29,6 +29,7 @@ class Game extends Model
         'location', 'stream_url', 'competition_type',
         'lvf_match_id', 'cev_match_id', 'matchday', 'phase', 'lvf_synced_at',
         'spectators', 'referees', 'set_scores', 'stats_synced_at',
+        'biglietti_url', 'biglietti_in_vendita_dal', 'biglietti_esauriti', 'biglietti_prezzo_da',
     ];
 
     /**
@@ -53,6 +54,9 @@ class Game extends Model
             'lvf_match_id' => 'integer',
             'matchday' => 'integer',
             'set_scores' => 'array',
+            'biglietti_in_vendita_dal' => 'datetime',
+            'biglietti_esauriti' => 'boolean',
+            'biglietti_prezzo_da' => 'decimal:2',
         ];
     }
 
