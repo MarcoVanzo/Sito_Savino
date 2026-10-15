@@ -5,6 +5,7 @@ namespace App\Services\Seo;
 use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
 use App\Enums\PostStatus;
+use App\Http\Controllers\PageController;
 use App\Models\Game;
 use App\Models\Page;
 use App\Models\Post;
@@ -37,8 +38,19 @@ class DatiStrutturati
     /** La voce di Wikipedia della società. */
     public const WIKIPEDIA = 'https://it.wikipedia.org/wiki/Pallavolo_Scandicci_Savino_Del_Bene';
 
+    /** Il PalaBigMat si chiamava Palazzo Wanny: la CEV usa ancora quel nome. */
+    private const NOMI_PRECEDENTI_DEL_PALAZZETTO = ['Palazzo Wanny'];
+
     /** Lunghezza massima di `headline` per Google. */
     private const HEADLINE_MAX = 110;
+
+    /**
+     * Il palazzetto letto una volta per richiesta (un calendario ha decine di
+     * gare); `false` = non ancora letto.
+     *
+     * @var array<string, mixed>|false|null
+     */
+    private array|false|null $palazzetto = false;
 
     /**
      * La società: solo in home, con i profili ufficiali in `sameAs`.
@@ -473,6 +485,12 @@ class DatiStrutturati
      */
     private function luogoDiCasa(): array
     {
+        $palazzetto = $this->palazzettoDiCasa();
+
+        if ($palazzetto !== null) {
+            return $palazzetto;
+        }
+
         $gara = Game::query()
             ->whereNotNull('location')
             ->whereHas('homeTeam', fn ($query) => $query->where('is_internal', true))
@@ -496,6 +514,11 @@ class DatiStrutturati
     private function luogo(Game $gara): array
     {
         $luogo = trim((string) $gara->location);
+
+        if ($gara->homeTeam?->is_internal && ($palazzetto = $this->palazzettoDiCasa()) !== null
+            && ($luogo === '' || $this->eIlPalazzettoDiCasa($luogo, (string) $palazzetto['name']))) {
+            return $palazzetto;
+        }
 
         if ($luogo === '') {
             return ['@type' => 'Place', 'name' => (string) $gara->homeTeam?->nomePubblico()];
@@ -522,6 +545,70 @@ class DatiStrutturati
             'name' => $impianto,
             'address' => $indirizzo,
         ];
+    }
+
+    /**
+     * Il palazzetto con l'indirizzo completo, dalla pagina Palazzetto del CMS
+     * (`venue_name`, `venue_address` «Via …, civico — CAP Città (PR)»). Null
+     * se la pagina non c'è o non ha i due campi.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function palazzettoDiCasa(): ?array
+    {
+        if ($this->palazzetto !== false) {
+            return $this->palazzetto;
+        }
+
+        $dati = $this->datiDellaPagina('palazzetto');
+        $nome = trim((string) ($dati['venue_name'] ?? ''));
+        $indirizzo = trim((string) ($dati['venue_address'] ?? ''));
+
+        if ($nome === '' || $indirizzo === '') {
+            return $this->palazzetto = null;
+        }
+
+        $postale = ['@type' => 'PostalAddress'];
+
+        if (preg_match('/^(.+?)\s+[—–-]\s+(\d{5})\s+(.+?)(?:\s*\((\w{2})\))?$/u', $indirizzo, $parti) === 1) {
+            $postale['streetAddress'] = trim($parti[1]);
+            $postale['postalCode'] = $parti[2];
+            $postale['addressLocality'] = trim($parti[3]);
+
+            if (($parti[4] ?? '') !== '') {
+                $postale['addressRegion'] = mb_strtoupper($parti[4]);
+            }
+        } else {
+            $postale['streetAddress'] = $indirizzo;
+        }
+
+        $postale['addressCountry'] = 'IT';
+
+        return $this->palazzetto = [
+            '@type' => 'Place',
+            'name' => $nome,
+            'address' => $postale,
+        ];
+    }
+
+    /**
+     * La Lega scrive il palazzetto col nome di oggi («Pala BigMat - Firenze»),
+     * la CEV ancora con quello di prima («Palazzo Wanny FIRENZE»).
+     */
+    private function eIlPalazzettoDiCasa(string $luogo, string $nome): bool
+    {
+        $normalizza = fn (string $testo): string => preg_replace('/[^a-z0-9]/', '', Str::lower(Str::ascii($testo))) ?? '';
+        $luogo = $normalizza($luogo);
+
+        foreach ([$nome, ...self::NOMI_PRECEDENTI_DEL_PALAZZETTO] as $candidato) {
+            $candidato = $normalizza($candidato);
+
+            if ($candidato !== '' && str_contains($luogo, $candidato)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function paeseDellaCitta(string $citta): ?string
@@ -585,10 +672,11 @@ class DatiStrutturati
     }
 
     /**
-     * I biglietti si vendono su Vivaticket: il link della gara del giorno
-     * (Homepage → Match Day) o quello della pagina Biglietteria. Vale solo per
-     * la prossima gara in casa non ancora giocata, l'unica di cui si sa che
-     * è in vendita.
+     * I biglietti si vendono su Vivaticket. Con i dati della scheda della gara
+     * (Gare → Biglietti) l'offerta vale per qualunque gara in casa non ancora
+     * giocata; senza, solo per la prossima, l'unica di cui si sa che è in
+     * vendita, con il link del Match Day o della Biglietteria. Prezzo e data
+     * d'inizio vendita solo se la redazione li ha scritti: mai inventati.
      *
      * @return array<string, mixed>|null
      */
@@ -600,6 +688,47 @@ class DatiStrutturati
             return null;
         }
 
+        $linkDellaGara = $this->linkSicuro($gara->biglietti_url);
+        $haIDati = $linkDellaGara !== null || $gara->biglietti_in_vendita_dal !== null || $gara->biglietti_esauriti;
+        $prossima = $this->eLaProssimaInCasa($gara);
+
+        if (! $haIDati && ! $prossima) {
+            return null;
+        }
+
+        // Il link del Match Day è quello della gara del giorno: per le altre
+        // si ripiega sulla pagina Biglietteria.
+        $link = $linkDellaGara
+            ?? ($prossima ? $this->linkDeiBiglietti() : null)
+            ?? $this->paginaBiglietteria();
+
+        if ($link === null) {
+            return null;
+        }
+
+        $offerta = [
+            '@type' => 'Offer',
+            'url' => $link,
+            'availability' => $gara->biglietti_esauriti
+                ? 'https://schema.org/SoldOut'
+                : 'https://schema.org/InStock',
+            'validThrough' => $gara->match_date->toIso8601String(),
+        ];
+
+        if ($gara->biglietti_in_vendita_dal !== null) {
+            $offerta['validFrom'] = $gara->biglietti_in_vendita_dal->toIso8601String();
+        }
+
+        if ($gara->biglietti_prezzo_da !== null) {
+            $offerta['price'] = number_format((float) $gara->biglietti_prezzo_da, 2, '.', '');
+            $offerta['priceCurrency'] = 'EUR';
+        }
+
+        return $offerta;
+    }
+
+    private function eLaProssimaInCasa(Game $gara): bool
+    {
         $prossimaInCasa = Game::query()
             ->where('status', GameStatus::Scheduled)
             ->where('match_date', '>=', now())
@@ -607,38 +736,56 @@ class DatiStrutturati
             ->orderBy('match_date')
             ->value('id');
 
-        if ((int) $prossimaInCasa !== $gara->id) {
-            return null;
-        }
+        return (int) $prossimaInCasa === $gara->id;
+    }
 
-        $link = $this->linkDeiBiglietti();
+    private function linkSicuro(?string $link): ?string
+    {
+        $link = trim((string) $link);
 
-        if ($link === null) {
-            return null;
-        }
-
-        return [
-            '@type' => 'Offer',
-            'url' => $link,
-            'availability' => 'https://schema.org/InStock',
-            'validThrough' => $gara->match_date->toIso8601String(),
-        ];
+        return str_starts_with($link, 'https://') ? $link : null;
     }
 
     private function linkDeiBiglietti(): ?string
     {
-        $link = trim((string) SiteSetting::get('match_day_popup_url', ''));
+        $link = $this->linkSicuro((string) SiteSetting::get('match_day_popup_url', ''));
 
-        if (! str_starts_with($link, 'https://')) {
-            $biglietteria = Page::where('slug', 'biglietteria')
-                ->where('status', PostStatus::Published)
-                ->first();
-            $dati = $biglietteria?->getTranslation('content_data', (string) config('app.fallback_locale'));
-            $dati = is_string($dati) ? json_decode($dati, true) : $dati;
-            $link = is_array($dati) ? trim((string) ($dati['tickets_url'] ?? '')) : '';
+        if ($link === null) {
+            $dati = $this->datiDellaPagina('biglietteria');
+            $link = $this->linkSicuro((string) ($dati['tickets_url'] ?? ''));
         }
 
-        return str_starts_with($link, 'https://') ? $link : null;
+        return $link;
+    }
+
+    /**
+     * La pagina Biglietteria del sito, se è pubblicata.
+     */
+    private function paginaBiglietteria(): ?string
+    {
+        if (! Page::where('slug', 'biglietteria')->where('status', PostStatus::Published)->exists()) {
+            return null;
+        }
+
+        $percorso = PageController::percorsoPubblico('biglietteria');
+
+        return $percorso !== null ? url($percorso) : null;
+    }
+
+    /**
+     * Il `content_data` della lingua predefinita di una pagina pubblicata.
+     *
+     * @return array<string, mixed>
+     */
+    private function datiDellaPagina(string $slug): array
+    {
+        $pagina = Page::where('slug', $slug)
+            ->where('status', PostStatus::Published)
+            ->first();
+        $dati = $pagina?->getTranslation('content_data', (string) config('app.fallback_locale'));
+        $dati = is_string($dati) ? json_decode($dati, true) : $dati;
+
+        return is_array($dati) ? $dati : [];
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Filament\Resources\GameResource\Pages;
 use App\Filament\Resources\GameResource\RelationManagers;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Game;
+use App\Models\Team;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -76,7 +77,7 @@ class GameResource extends Resource
                             ->hiddenLabel()
                             ->content(fn (?Game $record): string => 'Data, squadre, luogo e risultato arrivano dalla '
                                 .$record?->fonteDellaSincronizzazione()
-                                .' e vengono riallineati a ogni sincronizzazione: qui si modifica solo il link della diretta.'),
+                                .' e vengono riallineati a ogni sincronizzazione: qui si modificano solo il link della diretta e i biglietti.'),
                     ])
                     ->icon('heroicon-o-arrow-path')
                     ->visible(fn (?Game $record): bool => (bool) $record?->isImported()),
@@ -138,6 +139,32 @@ class GameResource extends Resource
                             ->helperText('Con un link YouTube, Vimeo, Twitch o Dailymotion la diretta si apre in una finestra dentro al sito. Altri indirizzi vengono aperti in una scheda nuova.')
                             ->columnSpanFull(),
                     ])->columns(2),
+                // Finiscono solo nei dati strutturati della gara (l'offerta di
+                // SportsEvent per Google): niente si inventa, un campo vuoto
+                // resta fuori.
+                Forms\Components\Section::make('Biglietti')
+                    ->description('Per i risultati di Google. Vuoti: la prossima gara in casa usa il link del Match Day o della Biglietteria, le altre non dichiarano biglietti.')
+                    ->schema([
+                        Forms\Components\TextInput::make('biglietti_url')
+                            ->label('Link di vendita (Vivaticket)')
+                            ->url()
+                            ->rule('url:https')
+                            ->maxLength(500)
+                            ->columnSpanFull(),
+                        Forms\Components\DateTimePicker::make('biglietti_in_vendita_dal')
+                            ->label('In vendita dal'),
+                        Forms\Components\TextInput::make('biglietti_prezzo_da')
+                            ->label('Prezzo più basso (€)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->helperText('Solo se è quello pubblicato su Vivaticket.'),
+                        Forms\Components\Toggle::make('biglietti_esauriti')
+                            ->label('Esauriti')
+                            ->inline(false),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->visible(fn (Forms\Get $get): bool => (bool) Team::find($get('home_team_id'))?->is_internal),
             ]);
     }
 

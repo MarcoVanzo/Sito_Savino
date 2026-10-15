@@ -29,10 +29,14 @@ class SitemapTest extends TestCase
     #[Test]
     public function la_sitemap_e_servita_come_xml(): void
     {
-        $this->get('/sitemap.xml')
-            ->assertStatus(200)
-            ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
-            ->assertSee('<urlset', false);
+        foreach (SitemapBuilder::PARTI as $parte) {
+            $this->get("/sitemap-{$parte}.xml")
+                ->assertStatus(200)
+                ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
+                ->assertSee('<urlset', false);
+        }
+
+        $this->get('/sitemap-altro.xml')->assertNotFound();
     }
 
     #[Test]
@@ -66,7 +70,7 @@ class SitemapTest extends TestCase
             'status' => PostStatus::Draft,
         ]);
 
-        $response = $this->get('/sitemap.xml');
+        $response = $this->get('/sitemap-notizie.xml');
 
         $response->assertSee("/news/{$pubblicata->slug}", false);
         $response->assertDontSee('/news/notizia-in-bozza', false);

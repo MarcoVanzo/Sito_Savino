@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\PostStatus;
 use App\Models\Player;
 use App\Models\Post;
+use App\Models\Product;
 use App\Models\Reindirizzamento;
 use App\Models\Roster;
 use App\Models\Season;
@@ -39,7 +40,7 @@ class SitemapConImmaginiNotizieEAtleteTest extends TestCase
         $post = Post::factory()->create(['slug' => 'con-copertina', 'status' => PostStatus::Published, 'published_at' => now()->subDay()]);
         $post->addMedia(UploadedFile::fake()->image('copertina.jpg', 1600, 900))->toMediaCollection('cover', 'public');
 
-        $xml = (string) $this->get('/sitemap.xml')->assertOk()->getContent();
+        $xml = (string) $this->get('/sitemap-notizie.xml')->assertOk()->getContent();
 
         $this->assertStringContainsString('/news/con-copertina', $xml);
         $this->assertMatchesRegularExpression('#<image:image>\s*<image:loc>[^<]*copertina\.jpg[^<]*</image:loc>#', $xml);
@@ -53,7 +54,7 @@ class SitemapConImmaginiNotizieEAtleteTest extends TestCase
         $atleta = Player::factory()->create(['first_name' => 'Ekaterina', 'last_name' => 'Antropova']);
         Roster::factory()->create(['player_id' => $atleta->id, 'team_id' => $squadra->id, 'season_id' => $stagione->id]);
 
-        $this->get('/sitemap.xml')->assertSee('/stagione/atleta/'.$atleta->id.'-ekaterina-antropova', false);
+        $this->get('/sitemap-atlete.xml')->assertSee('/stagione/atleta/'.$atleta->id.'-ekaterina-antropova', false);
     }
 
     #[Test]
@@ -62,7 +63,7 @@ class SitemapConImmaginiNotizieEAtleteTest extends TestCase
         Post::factory()->create(['slug' => 'spostata', 'status' => PostStatus::Published, 'published_at' => now()->subDay()]);
         Reindirizzamento::create(['from_path' => '/news/spostata', 'to_path' => '/news', 'status_code' => '301']);
 
-        $this->get('/sitemap.xml')->assertDontSee('/news/spostata', false);
+        $this->get('/sitemap-notizie.xml')->assertDontSee('/news/spostata', false);
     }
 
     #[Test]
@@ -80,16 +81,58 @@ class SitemapConImmaginiNotizieEAtleteTest extends TestCase
     }
 
     #[Test]
-    public function l_indice_elenca_le_due_sitemap_e_robots_lo_dichiara(): void
+    public function l_indice_elenca_le_sitemap_delle_sezioni_e_robots_lo_dichiara(): void
     {
-        $this->get('/sitemap-index.xml')
-            ->assertOk()
-            ->assertSee('<sitemapindex', false)
-            ->assertSee(url('/sitemap.xml'), false)
-            ->assertSee(url('/sitemap-news.xml'), false);
+        foreach (['/sitemap-index.xml', '/sitemap.xml'] as $indirizzo) {
+            $xml = (string) $this->get($indirizzo)
+                ->assertOk()
+                ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
+                ->getContent();
+
+            $this->assertStringContainsString('<sitemapindex', $xml);
+            preg_match_all('#<loc>([^<]+)</loc>#', $xml, $sitemap);
+            $this->assertSame([
+                url('/sitemap-pagine.xml'),
+                url('/sitemap-notizie.xml'),
+                url('/sitemap-prodotti.xml'),
+                url('/sitemap-atlete.xml'),
+                url('/sitemap-gallery.xml'),
+                url('/sitemap-news.xml'),
+            ], $sitemap[1]);
+        }
 
         $robots = (string) file_get_contents(public_path('robots.txt'));
         $this->assertStringContainsString('Sitemap: https://savinodelbenevolley.it/sitemap-index.xml', $robots);
         $this->assertStringContainsString('Sitemap: https://savinodelbenevolley.it/sitemap-news.xml', $robots);
+        $this->assertStringNotContainsString('Sitemap: https://savinodelbenevolley.it/sitemap.xml', $robots);
+    }
+
+    #[Test]
+    public function i_prodotti_disponibili_sono_in_sitemap_con_le_foto(): void
+    {
+        $disponibile = Product::factory()->create(['slug' => 'maglia-gara', 'name' => ['it' => 'Maglia gara'], 'is_active' => true, 'stock' => 5]);
+        $disponibile->addMedia(UploadedFile::fake()->image('maglia.jpg', 1200, 1200))->toMediaCollection('products', 'public');
+        Product::factory()->create(['slug' => 'sciarpa-esaurita', 'is_active' => true, 'stock' => 0]);
+        Product::factory()->create(['slug' => 'felpa-spenta', 'is_active' => false, 'stock' => 5]);
+
+        $xml = (string) $this->get('/sitemap-prodotti.xml')->assertOk()->getContent();
+
+        $this->assertStringContainsString(url('/shop/prodotto/maglia-gara'), $xml);
+        $this->assertMatchesRegularExpression('#<image:loc>[^<]*maglia\.jpg[^<]*</image:loc>#', $xml);
+        $this->assertStringNotContainsString('sciarpa-esaurita', $xml);
+        $this->assertStringNotContainsString('felpa-spenta', $xml);
+    }
+
+    #[Test]
+    public function la_sitemap_delle_notizie_recenti_ha_il_tag_news(): void
+    {
+        Post::factory()->create(['slug' => 'appena-uscita', 'title' => ['it' => 'Vittoria a Novara'], 'status' => PostStatus::Published, 'published_at' => now()->subHours(3)]);
+
+        $xml = (string) $this->get('/sitemap-news.xml')->assertOk()->getContent();
+
+        $this->assertStringContainsString('xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"', $xml);
+        $this->assertMatchesRegularExpression('#<news:publication>\s*<news:name>Savino Del Bene Volley</news:name>\s*<news:language>it</news:language>\s*</news:publication>#', $xml);
+        $this->assertStringContainsString('<news:title>Vittoria a Novara</news:title>', $xml);
+        $this->assertMatchesRegularExpression('#<news:publication_date>[^<]+[+-]\d{2}:\d{2}</news:publication_date>#', $xml);
     }
 }

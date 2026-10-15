@@ -47,6 +47,38 @@ if (! base) {
 const quantePagine = Number.parseInt(opzioni.pagine ?? '14', 10);
 
 /**
+ * Gli indirizzi delle pagine in sitemap. `/sitemap.xml` è un indice: si
+ * leggono le sitemap che elenca (quella di Google News è un doppione delle
+ * notizie), chieste al sito sotto esame e non all'host scritto nell'indice.
+ */
+async function indirizziDellaSitemap() {
+    const risposta = await fetch(`${base}/sitemap.xml`);
+
+    if (! risposta.ok) {
+        return { stato: risposta.status, indirizzi: null };
+    }
+
+    const loc = (xml) => [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    const xml = await risposta.text();
+
+    if (! xml.includes('<sitemapindex')) {
+        return { stato: risposta.status, indirizzi: loc(xml) };
+    }
+
+    const indirizzi = [];
+
+    for (const sitemap of loc(xml).filter((indirizzo) => ! indirizzo.endsWith('/sitemap-news.xml'))) {
+        const parte = await fetch(`${base}${new URL(sitemap).pathname}`);
+
+        if (parte.ok) {
+            indirizzi.push(...loc(await parte.text()));
+        }
+    }
+
+    return { stato: risposta.status, indirizzi };
+}
+
+/**
  * Le pagine da visitare, prese dalla sitemap del sito.
  *
  * Non si scandaglia tutto — duemila indirizzi per trovare gli stessi quattro
@@ -55,13 +87,12 @@ const quantePagine = Number.parseInt(opzioni.pagine ?? '14', 10);
  * accorge: si prende la sitemap e si campiona una pagina per famiglia.
  */
 async function pagineDaVisitare() {
-    const risposta = await fetch(`${base}/sitemap.xml`);
+    const { stato, indirizzi } = await indirizziDellaSitemap();
 
-    if (! risposta.ok) {
-        throw new Error(`La sitemap non risponde (${risposta.status}): senza non so quali pagine guardare.`);
+    if (indirizzi === null) {
+        throw new Error(`La sitemap non risponde (${stato}): senza non so quali pagine guardare.`);
     }
 
-    const indirizzi = [...(await risposta.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     const perFamiglia = new Map();
 
     for (const indirizzo of indirizzi) {
