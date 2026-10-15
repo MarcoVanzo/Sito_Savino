@@ -366,11 +366,23 @@ class DatiStrutturatiNellePagineTest extends TestCase
             'height_cm' => 202,
         ]);
 
-        $persona = $this->delTipo($this->blocchi('/stagione/atleta/'.$atleta->id.'-ekaterina-antropova'), 'Person');
+        $indirizzo = '/stagione/atleta/'.$atleta->id.'-ekaterina-antropova';
+        $blocchi = $this->blocchi($indirizzo);
+        $persona = $this->delTipo($blocchi, 'Person');
 
         $this->haICampi($persona, ['name', 'url', 'jobTitle', 'memberOf', 'nationality', 'height']);
+        $this->assertSame('SportsTeam', $persona['memberOf']['@type']);
         $this->assertSame('Savino Del Bene Volley', $persona['memberOf']['name']);
         $this->assertArrayNotHasKey('birthDate', $persona);
+
+        $briciole = $this->delTipo($blocchi, 'BreadcrumbList')['itemListElement'];
+        $this->assertSame(url('/stagione'), $briciole[1]['item']);
+        $this->assertStringStartsWith('Ekaterina Antropova', $briciole[2]['name']);
+
+        // Il titolo sta nell'HTML servito, non lo scrive Vue.
+        $html = (string) $this->get($indirizzo)->getContent();
+        $this->assertMatchesRegularExpression('#<title[^>]*>Ekaterina Antropova — [^<|]+ \| Savino Del Bene Volley</title>#u', $html);
+        $this->assertMatchesRegularExpression('#<meta name="description" content="Ekaterina Antropova[^"]+"#u', $html);
     }
 
     #[Test]
