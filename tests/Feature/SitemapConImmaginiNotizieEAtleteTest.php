@@ -102,9 +102,11 @@ class SitemapConImmaginiNotizieEAtleteTest extends TestCase
         }
 
         $robots = (string) file_get_contents(public_path('robots.txt'));
-        $this->assertStringContainsString('Sitemap: https://savinodelbenevolley.it/sitemap-index.xml', $robots);
-        $this->assertStringContainsString('Sitemap: https://savinodelbenevolley.it/sitemap-news.xml', $robots);
-        $this->assertStringNotContainsString('Sitemap: https://savinodelbenevolley.it/sitemap.xml', $robots);
+        preg_match_all('#^Sitemap: (.+)$#m', $robots, $dichiarate);
+        $this->assertSame([
+            'https://savinodelbenevolley.it/sitemap.xml',
+            'https://savinodelbenevolley.it/sitemap-news.xml',
+        ], $dichiarate[1]);
     }
 
     #[Test]
