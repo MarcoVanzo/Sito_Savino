@@ -107,6 +107,9 @@ class DatiStrutturati
             'sport' => 'Volleyball',
             'url' => $this->indirizzoDellaGara($gara, $locale),
             'startDate' => $gara->match_date->toIso8601String(),
+            // L'orario di fine non lo dà nessuno: la gara si chiude entro la
+            // mezzanotte del suo giorno.
+            'endDate' => $gara->match_date->copy()->endOfDay()->toIso8601String(),
             'eventStatus' => $this->statoDellEvento($gara),
             'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
             'location' => $this->luogo($gara),

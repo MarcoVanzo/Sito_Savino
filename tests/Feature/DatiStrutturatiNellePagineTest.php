@@ -132,6 +132,8 @@ class DatiStrutturatiNellePagineTest extends TestCase
         $this->haICampi($gara, ['name', 'startDate', 'location', 'homeTeam', 'awayTeam', 'eventStatus', 'organizer', 'image', 'offers']);
         // Data con il fuso, luogo con l'indirizzo.
         $this->assertMatchesRegularExpression('/T20:00:00\+0[12]:00$/', $gara['startDate']);
+        $this->assertMatchesRegularExpression('/T23:59:59\+0[12]:00$/', $gara['endDate']);
+        $this->assertSame(substr($gara['startDate'], 0, 10), substr($gara['endDate'], 0, 10));
         $this->assertSame('Pala BigMat', $gara['location']['name']);
         $this->assertSame('Firenze', $gara['location']['address']['addressLocality']);
         $this->assertSame('https://www.vivaticket.com/it/ticket/savino-novara/1', $gara['offers']['url']);
