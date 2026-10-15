@@ -7,6 +7,7 @@ use App\Http\Controllers\PageController;
 use App\Models\Page;
 use App\Models\Player;
 use App\Models\Post;
+use App\Models\Product;
 use App\Models\Reindirizzamento;
 use App\Models\Roster;
 use App\Models\Season;
@@ -34,6 +35,13 @@ class SitemapBuilder
 {
     private const CACHE_KEY = 'sitemap.xml';
 
+    /**
+     * Le sitemap del sito, una per sezione, servite da `/sitemap-{parte}.xml`
+     * e tenute insieme dall'indice: in un file solo stavano 2.700 indirizzi e
+     * 13.000 immagini, e Search Console non diceva quale sezione avesse errori.
+     */
+    public const PARTI = ['pagine', 'notizie', 'prodotti', 'atlete', 'gallery'];
+
     private const CACHE_TTL = 60 * 60 * 6;
 
     private const CACHE_KEY_NOTIZIE = 'sitemap-news.xml';
@@ -42,26 +50,35 @@ class SitemapBuilder
     private const CACHE_TTL_NOTIZIE = 60 * 30;
 
     /**
-     * XML della sitemap, ricalcolato al più ogni sei ore.
+     * XML di una parte della sitemap, ricalcolato al più ogni sei ore.
      */
-    public function render(): string
+    public function render(string $parte): string
     {
-        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, fn () => $this->build()->render());
+        return Cache::remember(self::CACHE_KEY.':'.$parte, self::CACHE_TTL, fn () => $this->build($parte)->render());
     }
 
     /**
-     * Ricalcola subito la sitemap e ne aggiorna la cache.
+     * Ricalcola subito tutte le parti e ne aggiorna la cache.
+     *
+     * @return array<string, string> l'XML di ogni parte
      */
-    public function refresh(): string
+    public function refresh(): array
     {
-        $xml = $this->build()->render();
+        $parti = [];
 
-        Cache::put(self::CACHE_KEY, $xml, self::CACHE_TTL);
+        foreach (self::PARTI as $parte) {
+            $parti[$parte] = $this->build($parte)->render();
+            Cache::put(self::CACHE_KEY.':'.$parte, $parti[$parte], self::CACHE_TTL);
+        }
 
-        return $xml;
+        return $parti;
     }
 
-    public function build(): Sitemap
+    /**
+     * Una parte della sitemap, o tutte insieme (null): l'unione serve ai
+     * controlli che passano ogni indirizzo.
+     */
+    public function build(?string $parte = null): Sitemap
     {
         $sitemap = Sitemap::create();
 
@@ -118,6 +135,55 @@ class SitemapBuilder
             }
         };
 
+        $vuole = fn (string $sezione): bool => $parte === null || $parte === $sezione;
+
+        if ($vuole('pagine')) {
+            $this->pagine($addLocalizedUrls);
+        }
+
+        if ($vuole('notizie')) {
+            Post::published()->with('media')->orderByDesc('published_at')->each(function (Post $post) use ($addLocalizedUrls): void {
+                $copertina = $post->getFirstMediaUrl('cover');
+
+                $addLocalizedUrls("/news/{$post->slug}", [
+                    'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
+                    'priority' => 0.6,
+                ], $post->updated_at, $copertina !== '' ? [[$copertina, (string) $post->getTranslation('title', 'it')]] : []);
+            });
+        }
+
+        if ($vuole('prodotti')) {
+            $this->prodotti($addLocalizedUrls);
+        }
+
+        // Le pagine delle atlete della prima squadra (stagione.atleta).
+        if ($vuole('atlete')) {
+            foreach ($this->atleteDellaPrimaSquadra() as $slug => $foto) {
+                $addLocalizedUrls("/stagione/atleta/{$slug}", [
+                    'freq' => Url::CHANGE_FREQUENCY_WEEKLY,
+                    'priority' => 0.6,
+                ], null, $foto !== null ? [[$foto, '']] : []);
+            }
+        }
+
+        // Gli album della gallery, con le loro foto (al più 20 per album).
+        if ($vuole('gallery')) {
+            foreach ($this->albumDellaGallery() as $slug => $immagini) {
+                $addLocalizedUrls("/gallery/album/{$slug}", [
+                    'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
+                    'priority' => 0.5,
+                ], null, $immagini);
+            }
+        }
+
+        return $sitemap;
+    }
+
+    /**
+     * Home, pagine fisse e pagine del CMS.
+     */
+    private function pagine(\Closure $addLocalizedUrls): void
+    {
         $addLocalizedUrls('/', [
             'freq' => Url::CHANGE_FREQUENCY_DAILY,
             'priority' => 1.0,
@@ -156,33 +222,35 @@ class SitemapBuilder
                 'priority' => 0.7,
             ], $page->updated_at);
         });
+    }
 
-        Post::published()->with('media')->orderByDesc('published_at')->each(function (Post $post) use ($addLocalizedUrls): void {
-            $copertina = $post->getFirstMediaUrl('cover');
+    /**
+     * Le schede dei prodotti in vendita e disponibili, con le foto. Un
+     * prodotto esaurito resta fuori: la scheda esiste, ma non è da proporre.
+     */
+    private function prodotti(\Closure $addLocalizedUrls): void
+    {
+        Product::shoppable()
+            ->with('media')
+            ->withSum('variants', 'stock')
+            ->orderBy('sort_order')
+            ->get()
+            ->filter(fn (Product $prodotto) => $prodotto->availableStock() > 0)
+            ->each(function (Product $prodotto) use ($addLocalizedUrls): void {
+                $nome = (string) $prodotto->getTranslation('name', 'it');
+                $immagini = $prodotto->getMedia('products')->concat($prodotto->getMedia('images'))
+                    ->map(fn ($media) => $media->getUrl())
+                    ->unique()
+                    ->take(10)
+                    ->map(fn (string $indirizzo) => [$indirizzo, $nome])
+                    ->values()
+                    ->all();
 
-            $addLocalizedUrls("/news/{$post->slug}", [
-                'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
-                'priority' => 0.6,
-            ], $post->updated_at, $copertina !== '' ? [[$copertina, (string) $post->getTranslation('title', 'it')]] : []);
-        });
-
-        // Le pagine delle atlete della prima squadra (stagione.atleta).
-        foreach ($this->atleteDellaPrimaSquadra() as $slug => $foto) {
-            $addLocalizedUrls("/stagione/atleta/{$slug}", [
-                'freq' => Url::CHANGE_FREQUENCY_WEEKLY,
-                'priority' => 0.6,
-            ], null, $foto !== null ? [[$foto, '']] : []);
-        }
-
-        // Gli album della gallery, con le loro foto (al più 20 per album).
-        foreach ($this->albumDellaGallery() as $slug => $immagini) {
-            $addLocalizedUrls("/gallery/album/{$slug}", [
-                'freq' => Url::CHANGE_FREQUENCY_MONTHLY,
-                'priority' => 0.5,
-            ], null, $immagini);
-        }
-
-        return $sitemap;
+                $addLocalizedUrls(route('shop.product', ['product' => $prodotto->slug], false), [
+                    'freq' => Url::CHANGE_FREQUENCY_WEEKLY,
+                    'priority' => 0.6,
+                ], $prodotto->updated_at, $immagini);
+            });
     }
 
     /**
@@ -212,14 +280,17 @@ class SitemapBuilder
     }
 
     /**
-     * L'indice: la sitemap del sito e quella delle notizie.
+     * L'indice: le parti del sito e la sitemap di Google News.
      */
     public function renderIndice(): string
     {
-        return SitemapIndex::create()
-            ->add(url('/sitemap.xml'))
-            ->add(url('/sitemap-news.xml'))
-            ->render();
+        $indice = SitemapIndex::create();
+
+        foreach (self::PARTI as $parte) {
+            $indice->add(route('sitemap.parte', ['parte' => $parte]));
+        }
+
+        return $indice->add(route('sitemap.notizie'))->render();
     }
 
     /**
