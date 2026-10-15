@@ -25,6 +25,7 @@ use App\Support\LiveStream;
 use App\Support\MatchDay;
 use App\Support\PermalinkVecchioSito;
 use App\Support\RedirectGestiti;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -227,22 +228,33 @@ class PublicController extends Controller
      * Lega), carriera nella società, palmarès, notizie e foto.
      *
      * Solo prima squadra: le atlete del vivaio sono quasi tutte minorenni e
-     * non hanno una pagina propria. Lo slug è `{id}-{nome-cognome}`; uno slug
-     * che non è quello di un'atleta in rosa risponde 404, come prima.
+     * non hanno una pagina propria. Lo slug è `{id}-{nome-cognome}`: l'id non
+     * cambia con la maglia né con la stagione, quindi l'indirizzo resta quello.
+     *
+     * Niente 404 per un'atleta che esiste: con il nome scritto diversamente
+     * (nome corretto in archivio) 301 sullo slug giusto, e se non è più nella
+     * prima squadra 301 sulla rosa. Uno slug senza atleta resta 404.
      */
-    public function stagioneAtleta(string $slug): Response
+    public function stagioneAtleta(string $slug): Response|RedirectResponse
     {
         $id = (int) explode('-', $slug)[0];
         $giocatrice = $id > 0 ? Player::find($id) : null;
 
-        if (! $giocatrice || $slug !== $giocatrice->id.'-'.Str::slug($giocatrice->full_name)) {
+        if (! $giocatrice) {
             abort(404);
         }
 
+        $prefisso = app()->getLocale() === config('app.fallback_locale') ? '' : app()->getLocale().'.';
         $riga = ServeSocialCrawlerMeta::rigaDiRosa($giocatrice);
 
         if (! $riga) {
-            abort(404);
+            return redirect()->route($prefisso.'stagione', [], 301);
+        }
+
+        $slugGiusto = $giocatrice->id.'-'.Str::slug($giocatrice->full_name);
+
+        if ($slug !== $slugGiusto) {
+            return redirect()->route($prefisso.'stagione.atleta', ['slug' => $slugGiusto], 301);
         }
 
         $locale = app()->getLocale();
