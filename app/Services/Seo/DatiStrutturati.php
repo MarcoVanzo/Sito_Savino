@@ -41,6 +41,14 @@ class DatiStrutturati
     private const HEADLINE_MAX = 110;
 
     /**
+     * L'id della prossima gara in casa, letto una volta per richiesta: il
+     * calendario passa da `offertaBiglietti()` per ogni gara della società
+     * (N+1 segnalato da Sentry su /stagione/risultati il 15/10/2026).
+     * `false` = non ancora letto.
+     */
+    private int|false|null $prossimaGaraInCasa = false;
+
+    /**
      * La società: solo in home, con i profili ufficiali in `sameAs`.
      *
      * @return array<string, mixed>
@@ -597,14 +605,17 @@ class DatiStrutturati
             return null;
         }
 
-        $prossimaInCasa = Game::query()
-            ->where('status', GameStatus::Scheduled)
-            ->where('match_date', '>=', now())
-            ->whereHas('homeTeam', fn ($query) => $query->where('is_internal', true))
-            ->orderBy('match_date')
-            ->value('id');
+        if ($this->prossimaGaraInCasa === false) {
+            $id = Game::query()
+                ->where('status', GameStatus::Scheduled)
+                ->where('match_date', '>=', now())
+                ->whereHas('homeTeam', fn ($query) => $query->where('is_internal', true))
+                ->orderBy('match_date')
+                ->value('id');
+            $this->prossimaGaraInCasa = $id === null ? null : (int) $id;
+        }
 
-        if ((int) $prossimaInCasa !== $gara->id) {
+        if ($this->prossimaGaraInCasa !== $gara->id) {
             return null;
         }
 
