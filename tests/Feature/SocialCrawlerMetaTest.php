@@ -260,13 +260,14 @@ class SocialCrawlerMetaTest extends TestCase
     }
 
     #[Test]
-    public function l_atleta_fuori_rosa_resta_un_404(): void
+    public function l_atleta_fuori_rosa_porta_alla_rosa_anche_per_il_crawler(): void
     {
         $fuoriRosa = Player::factory()->create(['first_name' => 'Nome', 'last_name' => 'Inventato']);
 
         $this->withHeaders(self::CRAWLER)
             ->get("/stagione/atleta/{$fuoriRosa->id}-nome-inventato")
-            ->assertStatus(404);
+            ->assertStatus(301)
+            ->assertRedirect('/stagione');
     }
 
     #[Test]

@@ -20,14 +20,25 @@ class SchedeAtletaDelVecchioSitoTest extends TestCase
 
     private Player $atleta;
 
+    private Season $stagione;
+
+    private Team $squadra;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $stagione = Season::factory()->create(['is_current' => true]);
-        $squadra = Team::factory()->create(['slug' => 'savino-del-bene-volley', 'category' => 'A1', 'is_internal' => true]);
-        $this->atleta = Player::factory()->create(['first_name' => 'Ekaterina', 'last_name' => 'Antropova']);
-        Roster::factory()->create(['player_id' => $this->atleta->id, 'team_id' => $squadra->id, 'season_id' => $stagione->id]);
+        $this->stagione = Season::factory()->create(['is_current' => true]);
+        $this->squadra = Team::factory()->create(['slug' => 'savino-del-bene-volley', 'category' => 'A1', 'is_internal' => true]);
+        $this->atleta = $this->inRosa('Ekaterina', 'Antropova');
+    }
+
+    private function inRosa(string $nome, string $cognome): Player
+    {
+        $atleta = Player::factory()->create(['first_name' => $nome, 'last_name' => $cognome]);
+        Roster::factory()->create(['player_id' => $atleta->id, 'team_id' => $this->squadra->id, 'season_id' => $this->stagione->id]);
+
+        return $atleta;
     }
 
     #[Test]
@@ -45,5 +56,42 @@ class SchedeAtletaDelVecchioSitoTest extends TestCase
     public function uno_slug_che_non_e_di_un_atleta_in_rosa_porta_alla_rosa(): void
     {
         $this->get('/giocatrice/daniele-fallani-stefano-campani/')->assertRedirect(route('stagione'));
+    }
+
+    #[Test]
+    public function il_cognome_si_confronta_senza_accenti_e_maiuscole(): void
+    {
+        $maja = $this->inRosa('Maja', 'Ognjenović');
+
+        $this->get('/giocatrice/Ognjenovic/')
+            ->assertStatus(301)
+            ->assertRedirect(route('stagione.atleta', ['slug' => $maja->id.'-maja-ognjenovic']));
+    }
+
+    #[Test]
+    public function due_atlete_con_lo_stesso_cognome_portano_alla_rosa(): void
+    {
+        $this->inRosa('Anna', 'Antropova');
+
+        $this->get('/giocatrice/antropova/')->assertStatus(301)->assertRedirect(route('stagione'));
+    }
+
+    #[Test]
+    public function la_pagina_di_un_atleta_uscita_di_rosa_porta_alla_rosa(): void
+    {
+        $exAtleta = Player::factory()->create(['first_name' => 'Elena', 'last_name' => 'Pietrini']);
+
+        $this->get('/stagione/atleta/'.$exAtleta->id.'-elena-pietrini')
+            ->assertStatus(301)
+            ->assertRedirect(route('stagione'));
+        $this->get('/stagione/atleta/999999-nessuna')->assertNotFound();
+    }
+
+    #[Test]
+    public function uno_slug_con_il_nome_scritto_diversamente_porta_a_quello_giusto(): void
+    {
+        $this->get('/stagione/atleta/'.$this->atleta->id.'-katia-antropova')
+            ->assertStatus(301)
+            ->assertRedirect(route('stagione.atleta', ['slug' => $this->atleta->id.'-ekaterina-antropova']));
     }
 }
