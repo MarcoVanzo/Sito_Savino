@@ -325,8 +325,10 @@ class RedirectGestiti
 
     /**
      * Se un redirect salvato per questo percorso scatterebbe: sì sulle rotte
-     * del vecchio sito e su `/{slug}` (passano da RedirectPrimaDelleRotteVecchie)
-     * e dove non risponde nessuna rotta (404); no su una pagina vera.
+     * del vecchio sito e su `/{slug}` (passano da RedirectPrimaDelleRotteVecchie),
+     * dove non risponde nessuna rotta e sulle rotte con parametri, che possono
+     * rispondere 404 (`/news/notizia-tolta`) e passare dal gestore dei 404.
+     * No solo su una pagina fissa (`/news`, `/stagione`).
      */
     private static function siConsultaSu(string $percorso): bool
     {
@@ -336,7 +338,8 @@ class RedirectGestiti
             return true;
         }
 
-        return in_array(RedirectPrimaDelleRotteVecchie::class, $rotta->gatherMiddleware(), true);
+        return $rotta->parameterNames() !== []
+            || in_array(RedirectPrimaDelleRotteVecchie::class, $rotta->gatherMiddleware(), true);
     }
 
     /**

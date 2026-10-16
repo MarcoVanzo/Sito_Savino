@@ -95,7 +95,15 @@ class RedirectNelPannelloTest extends TestCase
             ->call('create')
             ->assertHasNoFormErrors();
 
-        Reindirizzamento::query()->whereIn('from_path', ['/news', '/news-vecchie', '/vecchio-b', '/vecchio-c'])->delete();
+        // Una notizia tolta risponde 404 e il redirect lì scatta: il giro c'è.
+        Reindirizzamento::create(['from_path' => '/news/notizia-tolta', 'to_path' => '/vecchio-d', 'status_code' => '301']);
+
+        Livewire::test(CreateReindirizzamento::class)
+            ->fillForm(['from_path' => '/vecchio-d', 'status_code' => '301', 'to_path' => '/news/notizia-tolta'])
+            ->call('create')
+            ->assertHasFormErrors(['to_path']);
+
+        Reindirizzamento::query()->whereIn('from_path', ['/news', '/news-vecchie', '/vecchio-b', '/vecchio-c', '/news/notizia-tolta'])->delete();
 
         Livewire::test(CreateReindirizzamento::class)
             ->fillForm(['from_path' => '/pagina-tolta', 'status_code' => '410'])
