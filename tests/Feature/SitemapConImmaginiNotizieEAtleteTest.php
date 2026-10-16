@@ -11,6 +11,7 @@ use App\Models\Roster;
 use App\Models\Season;
 use App\Models\SiteSetting;
 use App\Models\Team;
+use App\Services\SitemapBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -138,17 +139,31 @@ class SitemapConImmaginiNotizieEAtleteTest extends TestCase
     }
 
     #[Test]
-    public function l_indice_data_le_parti_quando_sono_state_generate_e_non_all_ora_della_richiesta(): void
+    public function l_indice_data_le_parti_con_l_ultima_modifica_e_non_con_l_ora_di_generazione(): void
     {
-        $this->travelTo(now()->subHours(3));
-        $this->get('/sitemap-pagine.xml')->assertOk();
-        $generata = now()->format(DATE_ATOM);
-        $this->travelBack();
+        $post = Post::factory()->create(['slug' => 'ultima-modifica', 'status' => PostStatus::Published, 'published_at' => now()->subDays(10)]);
+        Post::query()->whereKey($post->id)->update(['updated_at' => now()->subDays(5)->startOfMinute()]);
+        $modificata = now()->subDays(5)->startOfMinute()->format(DATE_ATOM);
+
+        // Rigenerata tre ore dopo senza novità: la data non cambia.
+        $this->get('/sitemap-notizie.xml')->assertOk();
+        $this->travel(3)->hours();
+        app(SitemapBuilder::class)->refresh();
 
         $xml = (string) $this->get('/sitemap.xml')->assertOk()->getContent();
 
-        $this->assertStringContainsString('<loc>'.url('/sitemap-pagine.xml').'</loc>'."\n".'    <lastmod>'.$generata.'</lastmod>', $xml);
-        $this->assertSame(1, substr_count($xml, '<lastmod>'), 'Le parti non ancora generate restano senza data.');
+        $this->assertStringContainsString('<loc>'.url('/sitemap-notizie.xml').'</loc>'."\n".'    <lastmod>'.$modificata.'</lastmod>', $xml);
+    }
+
+    #[Test]
+    public function chiuso_lo_shop_i_prodotti_spariscono_subito_dalla_sitemap(): void
+    {
+        Product::factory()->create(['slug' => 'maglia-gara', 'is_active' => true, 'stock' => 5]);
+        $this->assertStringContainsString('maglia-gara', (string) $this->get('/sitemap-prodotti.xml')->getContent());
+
+        SiteSetting::set('shop.enabled', '0');
+
+        $this->assertStringNotContainsString('maglia-gara', (string) $this->get('/sitemap-prodotti.xml')->getContent());
     }
 
     #[Test]

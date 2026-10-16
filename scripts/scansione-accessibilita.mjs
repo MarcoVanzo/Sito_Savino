@@ -143,10 +143,10 @@ async function indirizziDellaSitemap() {
         const percorso = new URL(sitemap).pathname;
         const parte = await fetch(`${base}${percorso}`);
 
+        // Come la scansione dei cookie: una parte che non risponde ferma
+        // tutto. Saltarla lasciava la scansione verde con meno pagine.
         if (! parte.ok) {
-            console.warn(`${percorso} non risponde (${parte.status}): le sue pagine restano fuori dal controllo.`);
-
-            continue;
+            throw new Error(`${percorso} non risponde (${parte.status}): le sue pagine resterebbero fuori dal controllo.`);
         }
 
         indirizzi.push(...loc(await parte.text()));

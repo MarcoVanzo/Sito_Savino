@@ -55,7 +55,7 @@ class SitemapBuilder
      */
     public function render(string $parte): string
     {
-        return Cache::remember(self::CACHE_KEY.':'.$parte, self::CACHE_TTL, fn () => $this->genera($parte));
+        return Cache::remember($this->chiave($parte), self::CACHE_TTL, fn () => $this->genera($parte));
     }
 
     /**
@@ -69,23 +69,50 @@ class SitemapBuilder
 
         foreach (self::PARTI as $parte) {
             $parti[$parte] = $this->genera($parte);
-            Cache::put(self::CACHE_KEY.':'.$parte, $parti[$parte], self::CACHE_TTL);
+            Cache::put($this->chiave($parte), $parti[$parte], self::CACHE_TTL);
         }
 
         return $parti;
     }
 
     /**
-     * L'XML di una parte, annotando quando è stato generato: è il `lastmod`
-     * della parte nell'indice.
+     * La chiave di cache di una parte. Quella dei prodotti cambia con lo
+     * stato del negozio: chiuso lo shop, le schede sparivano dalla sitemap
+     * solo alla scadenza della cache (fino a sei ore).
+     */
+    private function chiave(string $parte): string
+    {
+        $chiave = self::CACHE_KEY.':'.$parte;
+
+        if ($parte === 'prodotti') {
+            $chiave .= self::shopAperto() ? ':aperto' : ':chiuso';
+        }
+
+        return $chiave;
+    }
+
+    private static function shopAperto(): bool
+    {
+        return filter_var(SiteSetting::get('shop.enabled', true), FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * L'XML di una parte, annotando la modifica più recente dei suoi
+     * indirizzi: è il `lastmod` della parte nell'indice. Con l'ora di
+     * generazione cambiava ogni sei ore anche senza novità, e Google impara a
+     * ignorarlo. Senza date negli indirizzi non si scrive.
      */
     private function genera(string $parte): string
     {
-        $xml = $this->build($parte)->render();
+        $sitemap = $this->build($parte);
+        $ultima = collect($sitemap->getTags())
+            ->map(fn ($tag) => $tag instanceof Url ? $tag->lastModificationDate : null)
+            ->filter()
+            ->max();
 
-        Cache::put(self::CACHE_KEY.':'.$parte.':generata', now()->getTimestamp(), self::CACHE_TTL);
+        Cache::put($this->chiave($parte).':modificata', $ultima?->getTimestamp(), self::CACHE_TTL);
 
-        return $xml;
+        return $sitemap->render();
     }
 
     /**
@@ -168,7 +195,7 @@ class SitemapBuilder
 
         // A negozio chiuso la vetrina mostra la manutenzione: le schede non
         // si propongono a Google.
-        if ($vuole('prodotti') && filter_var(SiteSetting::get('shop.enabled', true), FILTER_VALIDATE_BOOLEAN)) {
+        if ($vuole('prodotti') && self::shopAperto()) {
             $this->prodotti($addLocalizedUrls);
         }
 
@@ -297,8 +324,8 @@ class SitemapBuilder
 
     /**
      * L'indice: le parti del sito e la sitemap di Google News. Il `lastmod`
-     * di una parte è l'ora in cui è stata generata; se non si sa (cache
-     * vuota) non si scrive. Scritto a mano: `SitemapIndex` della libreria
+     * di una parte è la modifica più recente dei suoi indirizzi; se non si
+     * sa (cache vuota, nessuna data) non si scrive. Scritto a mano: `SitemapIndex` della libreria
      * mette a ogni voce l'ora della richiesta, che Google impara a ignorare.
      */
     public function renderIndice(): string
@@ -306,9 +333,9 @@ class SitemapBuilder
         $voci = [];
 
         foreach (self::PARTI as $parte) {
-            $generata = Cache::get(self::CACHE_KEY.':'.$parte.':generata');
-            $voci[route('sitemap.parte', ['parte' => $parte])] = is_int($generata)
-                ? Carbon::createFromTimestamp($generata, config('app.timezone'))->format(DATE_ATOM)
+            $modificata = Cache::get($this->chiave($parte).':modificata');
+            $voci[route('sitemap.parte', ['parte' => $parte])] = is_int($modificata)
+                ? Carbon::createFromTimestamp($modificata, config('app.timezone'))->format(DATE_ATOM)
                 : null;
         }
 
