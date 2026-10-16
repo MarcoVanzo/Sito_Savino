@@ -524,6 +524,9 @@ class LvfSyncService
         $normalized = mb_strtolower($competition ?? '');
 
         return match (true) {
+            // Prima di «coppa italia», che è dentro «supercoppa italiana».
+            // Non ha una pagina sua: resta nel calendario, col turno come fase.
+            str_contains($normalized, 'supercoppa') => CompetitionType::Championship,
             str_contains($normalized, 'coppa italia') => CompetitionType::CoppaItalia,
             str_contains($normalized, 'champions') => CompetitionType::ChampionsLeague,
             default => CompetitionType::Championship,

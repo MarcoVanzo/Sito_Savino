@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Lvf;
 
+use App\Enums\CompetitionType;
 use App\Enums\EsitoAvviso;
 use App\Enums\GameStatus;
 use App\Models\Game;
@@ -297,6 +298,22 @@ class LvfSyncServiceTest extends TestCase
         $this->assertSame(1, $stats['matches_removed']);
         $this->assertDatabaseMissing('games', ['lvf_match_id' => 747982]);
         $this->assertDatabaseHas('games', ['lvf_match_id' => 747983]);
+    }
+
+    #[Test]
+    public function la_finale_di_supercoppa_resta_nel_calendario_e_non_va_in_coppa_italia(): void
+    {
+        $this->travelTo('2026-10-16 12:00');
+        $this->fakeSite((string) file_get_contents(base_path('tests/Fixtures/Lvf/calendario-con-supercoppa.html')));
+
+        LvfSyncService::make()->sync(2026);
+
+        $this->assertDatabaseHas('games', [
+            'lvf_match_id' => 748470,
+            'competition_type' => CompetitionType::Championship->value,
+            'phase' => 'Supercoppa Italiana · Finale',
+            'location' => 'Palaflorio - Bari',
+        ]);
     }
 
     #[Test]
