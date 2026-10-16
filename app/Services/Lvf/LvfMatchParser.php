@@ -11,8 +11,9 @@ use DOMNode;
  * Estrae le gare dalle pagine `/calendario/` e `/risultati/` della Lega.
  *
  * Le due pagine usano la stessa tabella `table.risultati` ma con intestazioni in
- * ordine diverso: il calendario espone competizione e giornata, i risultati no,
- * e solo i risultati portano i set vinti in `th.num`. Per questo i campi vengono
+ * ordine diverso: il calendario espone competizione e giornata, i risultati
+ * solo la giornata nel titolo `h3` sopra le tabelle, e solo i risultati portano
+ * i set vinti in `th.num`. Per questo i campi vengono
  * riconosciuti dalla loro forma (codice gara, data, ora, giornata) e non dalla
  * posizione nella riga: un cambio d'ordine a monte non rompe il parser.
  */
@@ -134,6 +135,20 @@ class LvfMatchParser
             // Quel che resta e non è il link al Match Center è l'impianto.
             if (mb_stripos($text, 'match center') === false) {
                 $candidates[] = $text;
+            }
+        }
+
+        // La pagina risultati non ha la giornata nelle intestazioni: la scrive
+        // nel titolo sopra le tabelle di quella giornata. Sul calendario il
+        // titolo e' la data e non risponde allo schema.
+        if ($result['matchday'] === null) {
+            $giornata = $this->giornataFaseECompetizione(
+                LvfDocument::text($document->primo('preceding::h3[1]', $table))
+            );
+
+            if ($giornata !== null) {
+                $result['matchday'] = $giornata['matchday'];
+                $result['phase'] = $giornata['phase'];
             }
         }
 

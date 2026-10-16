@@ -38,6 +38,32 @@ class LvfParserTest extends TestCase
     }
 
     #[Test]
+    public function i_risultati_di_tutte_le_giornate_portano_giornata_e_fase_dal_titolo(): void
+    {
+        $matches = (new LvfMatchParser)->parse($this->fixture('risultati-tutte-le-giornate'));
+
+        $this->assertCount(6, $matches);
+
+        $byId = [];
+        foreach ($matches as $match) {
+            $byId[$match->lvfMatchId] = $match;
+        }
+
+        // L'anticipo della 4a di andata, giocato prima della 3a.
+        $anticipo = $byId[748008];
+        $this->assertSame('14/10/2026 20:00', $anticipo->playedAt->format('d/m/Y H:i'));
+        $this->assertSame(1, $anticipo->homeSets);
+        $this->assertSame(3, $anticipo->awaySets);
+        $this->assertSame(4, $anticipo->matchday);
+        $this->assertSame('Andata', $anticipo->phase);
+
+        $this->assertSame(1, $byId[747983]->matchday);
+        $this->assertFalse($byId[748006]->isPlayed());
+        $this->assertSame(4, $byId[748099]->matchday);
+        $this->assertSame('Ritorno', $byId[748099]->phase);
+    }
+
+    #[Test]
     public function estrae_le_gare_in_calendario_con_giornata_e_impianto(): void
     {
         $matches = (new LvfMatchParser)->parse($this->fixture('calendario-programmate'));
