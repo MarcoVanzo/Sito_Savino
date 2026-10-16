@@ -18,7 +18,6 @@ use Filament\Forms;
 use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 
 /**
@@ -71,21 +70,25 @@ class ImpostaLaDirettaAction
     {
         [$preroll, $cornici] = self::grafiche($data['sponsor'] ?? []);
 
-        return DB::transaction(function () use ($game, $data, $preroll, $cornici): bool {
-            if (array_key_exists('stream_url', $data)) {
-                $game->update(['stream_url' => filled($data['stream_url']) ? trim((string) $data['stream_url']) : null]);
-            }
+        // Il link della gara si scrive dentro la transazione di `cambia()`:
+        // con una transazione esterna il JSON partiva prima del suo commit, e
+        // se quel commit falliva il browser aveva già una versione che il
+        // database non aveva più (e scartava la successiva con lo stesso numero).
+        $pubblicato = app(RegiaDellaDiretta::class)->cambia(
+            LiveSession::perLaGara($game),
+            function (LiveSession $sessione) use ($game, $data, $preroll, $cornici): void {
+                if (array_key_exists('stream_url', $data)) {
+                    $game->update(['stream_url' => filled($data['stream_url']) ? trim((string) $data['stream_url']) : null]);
+                }
 
-            $pubblicato = app(RegiaDellaDiretta::class)->cambia(
-                LiveSession::perLaGara($game),
-                fn (LiveSession $sessione) => self::applica($sessione, $game, $data, $preroll, $cornici),
-            );
+                self::applica($sessione, $game, $data, $preroll, $cornici);
+            },
+        );
 
-            // Il pre-roll viaggia nelle pagine in cache di home e calendario.
-            DB::afterCommit(fn () => app(CacheInvalidationObserver::class)->svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE));
+        // Il pre-roll viaggia nelle pagine in cache di home e calendario.
+        app(CacheInvalidationObserver::class)->svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE);
 
-            return $pubblicato;
-        });
+        return $pubblicato;
     }
 
     /**

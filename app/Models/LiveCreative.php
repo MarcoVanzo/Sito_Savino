@@ -61,6 +61,7 @@ class LiveCreative extends Model implements HasMedia
     {
         static::deleting(function (LiveCreative $creativita): void {
             LiveAdStat::query()->where('live_creative_id', $creativita->id)->update([
+                'sponsor_id' => $creativita->sponsor_id,
                 'sponsor_nome' => $creativita->sponsor()->value('name'),
                 'creativita_nome' => $creativita->nome,
             ]);

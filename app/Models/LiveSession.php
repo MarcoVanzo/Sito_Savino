@@ -42,10 +42,11 @@ class LiveSession extends Model
         'pausa_dalle',
         'pausa_fino_alle',
         'versione',
+        'versione_pubblicata',
     ];
 
     /** La versione cambia a ogni scrittura: nel registro sarebbe solo rumore. */
-    protected array $logExclude = ['versione'];
+    protected array $logExclude = ['versione', 'versione_pubblicata'];
 
     /**
      * @return array<string, string|class-string>
@@ -66,7 +67,17 @@ class LiveSession extends Model
             'pausa_dalle' => 'datetime',
             'pausa_fino_alle' => 'datetime',
             'versione' => 'integer',
+            'versione_pubblicata' => 'integer',
         ];
+    }
+
+    /**
+     * L'ultimo cambio non è arrivato sul JSON che legge chi guarda (Spaces
+     * giù): la regia lo dice e il comando al minuto riprova.
+     */
+    public function nonPubblicata(): bool
+    {
+        return $this->exists && $this->versione_pubblicata < $this->versione;
     }
 
     /**

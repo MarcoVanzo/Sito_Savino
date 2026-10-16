@@ -115,6 +115,8 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
                 'testo_alternativo' => 'Sponsor',
             ])
             ->set('mountedTableActionsData.0.contenuto.nuovo', $this->png(1280, 720))
+            // Lo si dice appena caricato, non solo al «Salva».
+            ->assertNotified('Questo file non si può salvare')
             ->callMountedTableAction()
             ->assertHasTableActionErrors(['contenuto']);
 
@@ -165,6 +167,7 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
                 'durata_secondi' => 10,
             ])
             ->set('mountedTableActionsData.0.contenuto.nuovo', $video)
+            ->assertNotified('È un video: scegli «Video» come tipo')
             ->assertSet('mountedTableActionsData.0.durata_secondi', 10)
             ->set('mountedTableActionsData.0.tipo', TipoCreativita::Video->value)
             ->assertSet('mountedTableActionsData.0.durata_secondi', 2)

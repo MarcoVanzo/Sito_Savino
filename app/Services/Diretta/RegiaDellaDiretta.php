@@ -153,6 +153,25 @@ class RegiaDellaDiretta
     }
 
     /**
+     * Riprova a pubblicare le dirette il cui ultimo cambio non è arrivato
+     * sul JSON (Spaces giù): senza, dopo «Fine pausa» o «Spegni tutto» chi
+     * guarda restava sullo stato vecchio. Solo le gare da ieri in poi.
+     */
+    public function ripubblicaLeNonArrivate(): int
+    {
+        $pubblicate = 0;
+
+        LiveSession::query()
+            ->whereColumn('versione_pubblicata', '<', 'versione')
+            ->whereHas('game', fn ($gara) => $gara->where('match_date', '>=', now()->subDay()))
+            ->each(function (LiveSession $sessione) use (&$pubblicate): void {
+                $pubblicate += (int) $this->ripubblica($sessione);
+            });
+
+        return $pubblicate;
+    }
+
+    /**
      * Le pause già finite tornano in onda. Il browser lo sa già da
      * `fino_alle`: questa è la rete di sicurezza per chi apre la diretta dopo.
      * Si contano solo quelle chiuse davvero: sotto lock la regia può averla
@@ -202,7 +221,15 @@ class RegiaDellaDiretta
             $riga->versione++;
             $riga->save();
 
-            return [$riga, $this->statoPubblico->pubblica($riga)];
+            $pubblicato = $this->statoPubblico->pubblica($riga);
+
+            // Senza passare dal modello: non è un cambio della diretta.
+            if ($pubblicato) {
+                LiveSession::query()->whereKey($riga->id)->update(['versione_pubblicata' => $riga->versione]);
+                $riga->setRawAttributes([...$riga->getAttributes(), 'versione_pubblicata' => $riga->versione], true);
+            }
+
+            return [$riga, $pubblicato];
         });
 
         $sessione->setRawAttributes($aggiornata->getAttributes(), true);

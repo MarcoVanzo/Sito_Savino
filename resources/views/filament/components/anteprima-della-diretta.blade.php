@@ -76,7 +76,7 @@
                 </div>
             </div>
         </div>
-        <p class="adt-nota">Compare per {{ $grafica['durata'] }} secondi a ogni ciclo. La parte in alto a sinistra della cornice resta coperta dalla diretta.</p>
+        <p class="adt-nota">A ogni ciclo compare per i secondi impostati nella diretta della gara; nella «Pausa tra i set» della regia ruota ogni {{ $grafica['durata'] }} secondi. La parte in alto a sinistra della cornice resta coperta dalla diretta.</p>
     @else
         <div class="adt-schermi">
             <div class="adt-schermo adt-computer">

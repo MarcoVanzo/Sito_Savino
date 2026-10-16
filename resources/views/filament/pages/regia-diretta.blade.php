@@ -78,6 +78,10 @@
             </x-filament::section>
 
             <div class="grid grid-cols-1 gap-3">
+                @if ($this->ripubblicaAction->isVisible())
+                    <p class="text-sm font-medium text-danger-600">L'ultimo cambio non è arrivato al sito: chi guarda vede ancora lo stato di prima. Si riprova da solo ogni minuto.</p>
+                    {{ $this->ripubblicaAction }}
+                @endif
                 @if ($this->pausaTraISetAction->isVisible()) {{ $this->pausaTraISetAction }} @endif
                 @if ($this->finePausaAction->isVisible()) {{ $this->finePausaAction }} @endif
                 @if ($this->mostraAction->isVisible()) {{ $this->mostraAction }} @endif

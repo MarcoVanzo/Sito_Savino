@@ -106,6 +106,10 @@ prossimo ciclo.
 Il pubblico vede il cambio entro circa dieci secondi. Ogni azione resta nel
 registro delle attività con il nome di chi l'ha fatta.
 
+Se l'archivio dei file non risponde, il cambio si salva ma non arriva a chi
+guarda: la regia lo dice in rosso con **Ripubblica sul sito**, e comunque
+riprova da sola ogni minuto.
+
 ## 6. Report per lo sponsor
 
 Sponsor → **Report diretta**: per gara e per creatività, pre-roll avviati,
@@ -116,7 +120,8 @@ da mandare allo sponsor (si apre in Excel).
 I numeri sono contatori anonimi: nessun dato di chi guarda, nessun cookie. Si
 contano solo attorno alla gara (da un'ora prima a un'ora dopo la fine del
 ciclo) e solo eventi coerenti con la grafica (un «completato» solo per uno
-spot del pre-roll). Cancellare una grafica o uno sponsor non cancella il
+spot del pre-roll). Uno spot video che non parte (risparmio energetico,
+«riduci movimento») non conta né come avviato né come completato. Cancellare una grafica o uno sponsor non cancella il
 report: le righe restano con il loro nome. Meglio comunque spegnerle che
 cancellarle.
 

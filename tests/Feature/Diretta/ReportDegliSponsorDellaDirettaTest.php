@@ -79,7 +79,7 @@ class ReportDegliSponsorDellaDirettaTest extends TestCase
         $this->evento('preroll_completato')->assertNoContent();
 
         $this->assertSame(
-            ['conteggio', 'created_at', 'creativita_nome', 'evento', 'game_id', 'giorno', 'id', 'live_creative_id', 'sponsor_nome', 'updated_at'],
+            ['conteggio', 'created_at', 'creativita_nome', 'evento', 'game_id', 'giorno', 'id', 'live_creative_id', 'sponsor_id', 'sponsor_nome', 'updated_at'],
             collect(array_keys(LiveAdStat::query()->sole()->getAttributes()))->sort()->values()->all(),
         );
     }
@@ -123,9 +123,9 @@ class ReportDegliSponsorDellaDirettaTest extends TestCase
         LiveSession::query()->update(['preroll_attivo' => false]);
         $this->evento('preroll_avviato')->assertUnprocessable();
 
-        // Tre giorni dopo la gara non guarda nessuno.
+        // Tre giorni dopo la gara non guarda nessuno: non si conta, senza errore.
         $this->travel(3)->days();
-        $this->evento('clic', $this->cornice->id)->assertUnprocessable();
+        $this->evento('clic', $this->cornice->id)->assertNoContent();
 
         $this->assertSame(0, LiveAdStat::count());
     }
@@ -147,6 +147,19 @@ class ReportDegliSponsorDellaDirettaTest extends TestCase
         $righe = collect(app(ReportDellaDiretta::class)->righe())->keyBy('creativita');
         $this->assertSame(['Cornice', 'Spot 15"'], $righe->keys()->sort()->values()->all());
         $this->assertSame(1, $righe['Cornice']['clic']);
+    }
+
+    #[Test]
+    public function rinominare_lo_sponsor_non_toglie_dal_report_le_grafiche_cancellate(): void
+    {
+        LiveAdStat::conta($this->gara->id, $this->spot->id, EventoDellaDiretta::PrerollAvviato);
+        $sponsor = $this->spot->sponsor;
+
+        $this->spot->delete();
+        $sponsor->update(['name' => 'Estra Energie']);
+
+        $righe = collect(app(ReportDellaDiretta::class)->righe(sponsor: $sponsor->id))->keyBy('creativita');
+        $this->assertSame(1, $righe['Spot 15"']['preroll_avviati']);
     }
 
     #[Test]
