@@ -245,7 +245,7 @@ const ogMeta = useOgMeta({
                         class="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow"
                     >
                         <div class="aspect-[16/10] bg-gray-100 overflow-hidden">
-                            <img v-if="post.image_url" :src="post.image_url" :alt="post.title || ''" class="w-full h-full object-cover" loading="lazy" @error="onImgError" />
+                            <img v-if="post.image_url" :src="post.image_url" alt="" class="w-full h-full object-cover" loading="lazy" @error="onImgError" />
                         </div>
                         <div class="p-4">
                             <p class="text-xs text-gray-500">{{ formatDate(post.published_at) }}</p>

@@ -77,6 +77,16 @@ class RedirectNelPannelloTest extends TestCase
             ->call('create')
             ->assertHasFormErrors(['from_path']);
 
+        // /news-vecchie → /gia-mappato → /news → /news-vecchie: un giro.
+        Reindirizzamento::create(['from_path' => '/news', 'to_path' => '/news-vecchie', 'status_code' => '301']);
+
+        Livewire::test(CreateReindirizzamento::class)
+            ->fillForm(['from_path' => '/news-vecchie', 'status_code' => '301', 'to_path' => '/gia-mappato'])
+            ->call('create')
+            ->assertHasFormErrors(['to_path']);
+
+        Reindirizzamento::query()->where('from_path', '/news')->delete();
+
         Livewire::test(CreateReindirizzamento::class)
             ->fillForm(['from_path' => '/pagina-tolta', 'status_code' => '410'])
             ->call('create')
