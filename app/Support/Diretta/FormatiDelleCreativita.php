@@ -29,6 +29,13 @@ class FormatiDelleCreativita
 
     public const PESO_MASSIMO_VIDEO_KB = 20 * 1024;
 
+    /**
+     * Sopra si accetta ma si avvisa: chi salta lo spot dopo pochi secondi lo
+     * scarica comunque, e dal telefono 18 MB per 15 secondi sono tanti
+     * (circa 4 Mbit/s bastano per un 1080p).
+     */
+    public const PESO_CONSIGLIATO_VIDEO_KB = 8 * 1024;
+
     public const PESO_MASSIMO_IMMAGINE_KB = 2 * 1024;
 
     public const PESO_MASSIMO_FASCIA_MOBILE_KB = 1024;
@@ -81,7 +88,7 @@ class FormatiDelleCreativita
                 ? ($uso === UsoCreativita::Cornice ? 'MP4 (video H.264), senza audio' : 'MP4 (video H.264, audio AAC)')
                 : 'JPG o PNG'],
             ['Misure', self::LARGHEZZA.' × '.self::ALTEZZA.' px (16:9, Full HD)'],
-            ['Peso massimo', $video ? '20 MB' : '2 MB'],
+            ['Peso massimo', $video ? '20 MB (meglio sotto 8 MB: si guarda dal telefono)' : '2 MB'],
         ];
 
         $voci[] = $video

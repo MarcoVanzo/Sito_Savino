@@ -293,6 +293,14 @@ class LiveCreativesRelationManager extends RelationManager
                 }
             }
 
+            if (self::tipo($get) === TipoCreativita::Video && (int) $caricato->getSize() > FormatiDelleCreativita::PESO_CONSIGLIATO_VIDEO_KB * 1024) {
+                Notification::make()
+                    ->title('Video pesante per il telefono')
+                    ->body(sprintf('Pesa %.0f MB: si può salvare, ma chi lo salta dopo pochi secondi lo scarica comunque. Meglio sotto 8 MB (circa 4 Mbit/s bastano per un 1080p).', $caricato->getSize() / 1048576))
+                    ->warning()
+                    ->send();
+            }
+
             $errori = FormatiDelleCreativita::erroriDelContenuto(self::tipo($get), $caricato->getRealPath(), $caricato->getMimeType(), self::uso($get));
 
             if ($errori !== []) {

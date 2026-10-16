@@ -178,6 +178,19 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
     }
 
     #[Test]
+    public function un_video_pesante_si_accetta_ma_si_avvisa(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->utente(UserRole::CommunicationManager));
+
+        $this->grafiche(Sponsor::factory()->create())
+            ->mountTableAction('create')
+            ->setTableActionData(['nome' => 'Spot', 'uso' => UsoCreativita::Preroll->value, 'tipo' => TipoCreativita::Video->value])
+            ->set('mountedTableActionsData.0.contenuto.nuovo', UploadedFile::fake()->create('spot.mp4', 9 * 1024, 'video/mp4'))
+            ->assertNotified('Video pesante per il telefono');
+    }
+
+    #[Test]
     public function l_immagine_senza_testo_alternativo_non_si_salva(): void
     {
         Storage::fake('public');
