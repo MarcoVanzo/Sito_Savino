@@ -240,7 +240,7 @@ class LvfSyncService
         $removed = 0;
 
         foreach ($vanished as $game) {
-            if ($game->status === GameStatus::Completed || $game->player_stats_count > 0 || $game->match_date?->isPast()) {
+            if ($game->status === GameStatus::Completed || $game->player_stats_count > 0 || $game->match_date->isPast()) {
                 Log::warning(
                     "Sync Lega: la gara {$game->lvf_match_id} non è più sulle pagine della Lega ma ha "
                     .'un risultato, un tabellino o la data già passata: lasciata in archivio.'
