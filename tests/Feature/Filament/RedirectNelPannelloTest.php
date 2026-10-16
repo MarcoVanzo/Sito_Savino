@@ -77,15 +77,25 @@ class RedirectNelPannelloTest extends TestCase
             ->call('create')
             ->assertHasFormErrors(['from_path']);
 
-        // /news-vecchie → /gia-mappato → /news → /news-vecchie: un giro.
+        // /vecchio-a → /vecchio-b → /vecchio-c → /vecchio-a: un giro.
+        Reindirizzamento::create(['from_path' => '/vecchio-b', 'to_path' => '/vecchio-c', 'status_code' => '301']);
+        Reindirizzamento::create(['from_path' => '/vecchio-c', 'to_path' => '/vecchio-a', 'status_code' => '301']);
+
+        Livewire::test(CreateReindirizzamento::class)
+            ->fillForm(['from_path' => '/vecchio-a', 'status_code' => '301', 'to_path' => '/vecchio-b'])
+            ->call('create')
+            ->assertHasFormErrors(['to_path']);
+
+        // /news-vecchie → /gia-mappato → /news: /news è una pagina vera e lì il
+        // redirect salvato /news → /news-vecchie non scatta. Nessun giro.
         Reindirizzamento::create(['from_path' => '/news', 'to_path' => '/news-vecchie', 'status_code' => '301']);
 
         Livewire::test(CreateReindirizzamento::class)
             ->fillForm(['from_path' => '/news-vecchie', 'status_code' => '301', 'to_path' => '/gia-mappato'])
             ->call('create')
-            ->assertHasFormErrors(['to_path']);
+            ->assertHasNoFormErrors();
 
-        Reindirizzamento::query()->where('from_path', '/news')->delete();
+        Reindirizzamento::query()->whereIn('from_path', ['/news', '/news-vecchie', '/vecchio-b', '/vecchio-c'])->delete();
 
         Livewire::test(CreateReindirizzamento::class)
             ->fillForm(['from_path' => '/pagina-tolta', 'status_code' => '410'])

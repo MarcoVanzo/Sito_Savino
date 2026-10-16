@@ -44,6 +44,8 @@ class ImportaIRedirect extends Command
         $invariate = 0;
         /** @var list<array{int, string, string}> $scartate */
         $scartate = [];
+        /** @var array<string, string> $accettate */
+        $accettate = [];
 
         foreach ($righe as $numero => $campi) {
             $da = trim($campi[0] ?? '');
@@ -60,7 +62,9 @@ class ImportaIRedirect extends Command
                 continue;
             }
 
-            $errore = RedirectGestiti::errore($da, $verso, $codice);
+            // In prova nulla si salva: le righe già accettate si seguono da qui,
+            // o A→B e B→A nello stesso file risultavano «Create: 2».
+            $errore = RedirectGestiti::errore($da, $verso, $codice, $accettate);
 
             if ($errore !== null) {
                 $scartate[] = [$numero, $da, $errore];
@@ -82,6 +86,10 @@ class ImportaIRedirect extends Command
             }
 
             $redirect->exists ? $aggiornate++ : $create++;
+
+            if ($codice !== CodiceDelRedirect::Rimosso) {
+                $accettate[$percorso] = $verso;
+            }
 
             if (! $prova) {
                 $redirect->save();
