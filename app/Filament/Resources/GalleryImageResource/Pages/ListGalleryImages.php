@@ -91,6 +91,10 @@ class ListGalleryImages extends ListRecords
             /** @var array<int, int> $albumDeiDoppioni */
             $albumDeiDoppioni = [];
             $duplicati = 0;
+            // La stessa foto due volte nello stesso caricamento (un export
+            // ripetuto): nessuna delle due e' ancora in archivio.
+            /** @var array<string, true> $impronteViste */
+            $impronteViste = [];
 
             foreach ($data['uploaded_photos'] ?? [] as $key => $file) {
                 if (! is_string($file)) {
@@ -110,6 +114,16 @@ class ListGalleryImages extends ListRecords
                     $albumDeiDoppioni[$albumGiaUsato] = $albumGiaUsato;
 
                     continue;
+                }
+
+                if ($fileHash !== null && isset($impronteViste[$fileHash])) {
+                    $duplicati++;
+
+                    continue;
+                }
+
+                if ($fileHash !== null) {
+                    $impronteViste[$fileHash] = true;
                 }
 
                 $nuove[] = [$file, $fileHash];

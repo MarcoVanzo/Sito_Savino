@@ -113,6 +113,24 @@ class CreazioneAlbumConFotoTest extends TestCase
     }
 
     #[Test]
+    public function la_stessa_foto_due_volte_nello_stesso_caricamento_entra_una_volta(): void
+    {
+        $this->paginaDelleFoto()->callAction('create_event', [
+            'title' => 'Savino - Novara',
+            'event_date' => '2026-10-12',
+            'category' => 'Partite',
+            'uploaded_photos' => [
+                $this->fotoCaricata('prima.jpg', 'contenuto identico'),
+                $this->fotoCaricata('copia.jpg', 'contenuto identico'),
+                $this->fotoCaricata('altra.jpg', 'foto nuova'),
+            ],
+        ])->assertHasNoActionErrors();
+
+        $this->assertSame(2, GalleryImage::count());
+        Queue::assertPushed(AnalyzeGalleryImageJob::class, 2);
+    }
+
+    #[Test]
     public function con_sole_foto_gia_in_archivio_l_album_non_nasce_e_si_dice_dove_stanno(): void
     {
         $this->paginaDelleFoto()->callAction('create_event', [

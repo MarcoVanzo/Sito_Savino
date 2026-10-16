@@ -133,19 +133,18 @@ class RegiaDellaDiretta
     }
 
     /**
-     * Ripubblica le dirette delle gare da ieri ai prossimi giorni: sono
-     * poche, e cercare quelle che usano una creatività non funziona dopo una
-     * cancellazione (le righe ponte se ne vanno con lei).
+     * Ripubblica le dirette delle gare da ieri in poi, senza limite in
+     * avanti: una gara impostata con l'interruttore spento restava
+     * `inattiva` dopo l'accensione. Sono poche, e cercare quelle che usano
+     * una creatività non funziona dopo una cancellazione (le righe ponte se
+     * ne vanno con lei).
      */
-    public function ripubblicaLeDiretteVicine(): int
+    public function ripubblicaLeDiretteDaGiocare(): int
     {
         $pubblicate = 0;
 
         LiveSession::query()
-            ->whereHas('game', fn ($gara) => $gara->whereBetween('match_date', [
-                now()->subDay(),
-                now()->addDays(StatoPubblicoDellaDiretta::GIORNI_DA_RIPUBBLICARE),
-            ]))
+            ->whereHas('game', fn ($gara) => $gara->where('match_date', '>=', now()->subDay()))
             ->each(function (LiveSession $sessione) use (&$pubblicate): void {
                 $pubblicate += (int) $this->ripubblica($sessione);
             });
