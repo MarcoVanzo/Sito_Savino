@@ -8,6 +8,7 @@ use App\Models\Game;
 use App\Models\Season;
 use App\Models\Standing;
 use App\Models\Team;
+use App\Services\AvvisoTecnico;
 use App\Services\Cev\Data\CevMatch;
 use App\Services\Cev\Data\CevStandingRow;
 use Illuminate\Support\Facades\DB;
@@ -243,7 +244,9 @@ class CevSyncService
      * squadre e data certe). Con le stesse cautele del sync della Lega: se il
      * portale non ha restituito nessuna gara non si cancella niente, le gare
      * inserite a mano non si guardano, e una gara già giocata resta in
-     * archivio perché il risultato è storia.
+     * archivio perché il risultato è storia. Anche una gara con la data
+     * passata resta (il risultato può tardare, come per Macerata-Savino in
+     * Lega), ma se non è conclusa avvisa: rinumerata sarebbe un doppione.
      *
      * @param  list<int>  $seen
      */
@@ -268,12 +271,32 @@ class CevSyncService
                 continue;
             }
 
+            if ($game->match_date->isPast()) {
+                $this->avvisaDellaGaraPassataSparita($game);
+
+                continue;
+            }
+
             $game->avvisaSeSiPerdonoIDatiDellaRedazione();
             $game->delete();
             $removed++;
         }
 
         return $removed;
+    }
+
+    private function avvisaDellaGaraPassataSparita(Game $game): void
+    {
+        $game->loadMissing(['homeTeam', 'awayTeam']);
+        $gara = $game->homeTeam?->nomePubblico().' - '.$game->awayTeam?->nomePubblico().' del '.$game->match_date->format('d/m/Y H:i');
+
+        app(AvvisoTecnico::class)->invia(
+            'Gara passata sparita dal portale della CEV',
+            "Il portale della CEV non pubblica più la gara {$gara} (id {$game->id}, CEV {$game->cev_match_id}), già passata e senza risultato. "
+                .'È rimasta sul sito. Se è stata rinviata con un nuovo numero, la vecchia è un doppione da cancellare dal pannello (Gare).',
+            'gara-passata-sparita-dalla-cev:'.$game->id,
+            86400,
+        );
     }
 
     /**

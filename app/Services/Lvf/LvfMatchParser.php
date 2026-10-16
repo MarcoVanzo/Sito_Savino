@@ -141,7 +141,7 @@ class LvfMatchParser
         // La pagina risultati non ha la giornata nelle intestazioni: la scrive
         // nel titolo sopra le tabelle di quella giornata. Sul calendario il
         // titolo e' la data e non risponde allo schema.
-        if ($result['matchday'] === null) {
+        if ($result['matchday'] === null && $result['phase'] === null) {
             $giornata = $this->giornataFaseECompetizione(
                 LvfDocument::text($document->primo('preceding::h3[1]', $table))
             );
@@ -179,19 +179,33 @@ class LvfMatchParser
      * La Lega numera le giornate da 1 sia all'andata sia al ritorno: senza la
      * fase, la prima di ritorno e la prima di andata sono indistinguibili.
      *
-     * @return array{matchday: int, phase: string, competition: string|null}|null
+     * Le coppe a eliminazione scrivono il turno al posto della fase
+     * ("Supercoppa Italiana 1a Giornata - Finale"): la "giornata" li' non
+     * significa niente e la fase e' competizione e turno, come per la CEV
+     * ("Supercoppa Italiana · Finale"). Prima il titolo finiva nell'impianto.
+     *
+     * @return array{matchday: int|null, phase: string, competition: string|null}|null
      */
     private function giornataFaseECompetizione(string $text): ?array
     {
-        if (preg_match('/(\d+)\s*a?\s*Giornata\s*-\s*(Andata|Ritorno)/ui', $text, $m) !== 1) {
+        if (preg_match('/(\d+)\s*a?\s*Giornata\s*-\s*(\p{L}[\p{L} ]*)$/ui', $text, $m) !== 1) {
             return null;
         }
 
         $competition = trim(mb_substr($text, 0, (int) mb_strpos($text, $m[0])));
+        $fase = ucfirst(mb_strtolower(trim($m[2])));
+
+        if (in_array($fase, ['Andata', 'Ritorno'], true)) {
+            return [
+                'matchday' => (int) $m[1],
+                'phase' => $fase,
+                'competition' => $competition !== '' ? $competition : null,
+            ];
+        }
 
         return [
-            'matchday' => (int) $m[1],
-            'phase' => ucfirst(mb_strtolower($m[2])),
+            'matchday' => null,
+            'phase' => $competition !== '' ? "{$competition} · {$fase}" : $fase,
             'competition' => $competition !== '' ? $competition : null,
         ];
     }

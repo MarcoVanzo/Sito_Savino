@@ -3,6 +3,7 @@
 namespace Tests\Feature\Lvf;
 
 use App\Services\Lvf\LvfMatchParser;
+use App\Services\Lvf\LvfPhaseLabel;
 use App\Services\Lvf\LvfStandingsParser;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -77,6 +78,32 @@ class LvfParserTest extends TestCase
         $this->assertSame('Andata', $savino->phase);
         $this->assertSame('LVF A1 Fineco', $savino->competition);
         $this->assertSame('Pala BigMat - Firenze', $savino->location);
+    }
+
+    #[Test]
+    public function la_finale_di_supercoppa_ha_il_turno_nella_fase_e_l_impianto_vero(): void
+    {
+        $matches = collect((new LvfMatchParser)->parse($this->fixture('calendario-con-supercoppa')));
+
+        $finale = $matches->firstWhere('lvfMatchId', 748470);
+        $this->assertNotNull($finale);
+        $this->assertNull($finale->matchday);
+        $this->assertSame('Supercoppa Italiana · Finale', $finale->phase);
+        $this->assertSame('Supercoppa Italiana', $finale->competition);
+        $this->assertSame('Palaflorio - Bari', $finale->location);
+
+        $campionato = $matches->firstWhere('lvfMatchId', 747998);
+        $this->assertSame(3, $campionato->matchday);
+        $this->assertSame('Andata', $campionato->phase);
+        $this->assertSame('Palasport Jimmy George - Montichiari', $campionato->location);
+    }
+
+    #[Test]
+    public function il_turno_di_supercoppa_si_traduce_in_inglese(): void
+    {
+        app()->setLocale('en');
+
+        $this->assertSame('Italian Super Cup · Final', LvfPhaseLabel::translate('Supercoppa Italiana · Finale'));
     }
 
     #[Test]

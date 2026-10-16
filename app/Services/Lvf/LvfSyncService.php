@@ -9,6 +9,7 @@ use App\Models\Season;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Models\TeamLvfClubId;
+use App\Services\AvvisoTecnico;
 use App\Services\Lvf\Data\LvfMatch;
 use App\Services\Lvf\Data\LvfStandingRow;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +81,10 @@ class LvfSyncService
         // fino alla 17ª, mentre la classifica restava (correttamente) di sole 14
         // righe. Le gare scartate spariscono da sole al giro successivo, perché
         // removeVanishedMatches pota quelle non più viste.
+        $fuoriDivisione = array_values(array_map(
+            fn (LvfMatch $match): int => $match->lvfMatchId,
+            array_filter($matches, fn (LvfMatch $match) => ! $this->belongsToTrackedDivision($match->competition)),
+        ));
         $matches = array_values(array_filter(
             $matches,
             fn (LvfMatch $match) => $this->belongsToTrackedDivision($match->competition)
@@ -95,7 +100,7 @@ class LvfSyncService
             $stats[$created ? 'matches_created' : 'matches_updated']++;
         }
 
-        $stats['matches_removed'] = $this->removeVanishedMatches($season, $seenMatchIds);
+        $stats['matches_removed'] = $this->removeVanishedMatches($season, $seenMatchIds, $fuoriDivisione);
 
         $rows = $this->standingsParser->parse($this->client->standings($seasonYear));
         $stats['standings'] = $this->upsertStandings($season, $rows);
@@ -221,10 +226,16 @@ class LvfSyncService
      * 4. Nemmeno una gara con la data già passata: è giocata o da recuperare,
      *    e il suo risultato può non essere ancora uscito (l'anticipo
      *    Macerata-Savino del 14/10/2026 fu cancellato così, senza punteggio).
+     *    Ma se non è conclusa avvisa: rinviata e rinumerata, resterebbe un
+     *    doppione «in programma» con la data vecchia.
+     *
+     * Le gare che la Lega elenca in un'altra divisione (A2 importata per
+     * errore) si potano anche passate o concluse: non sono nostre.
      *
      * @param  list<int>  $seenMatchIds
+     * @param  list<int>  $fuoriDivisione  gare presenti sulle pagine ma di un'altra divisione
      */
-    private function removeVanishedMatches(Season $season, array $seenMatchIds): int
+    private function removeVanishedMatches(Season $season, array $seenMatchIds, array $fuoriDivisione = []): int
     {
         if ($seenMatchIds === []) {
             return 0;
@@ -240,7 +251,13 @@ class LvfSyncService
         $removed = 0;
 
         foreach ($vanished as $game) {
-            if ($game->status === GameStatus::Completed || $game->player_stats_count > 0 || $game->match_date->isPast()) {
+            $diUnAltraDivisione = in_array($game->lvf_match_id, $fuoriDivisione, true) && $game->player_stats_count === 0;
+
+            if (! $diUnAltraDivisione && $game->status !== GameStatus::Completed && $game->player_stats_count === 0 && $game->match_date->isPast()) {
+                $this->avvisaDellaGaraPassataSparita($game);
+            }
+
+            if (! $diUnAltraDivisione && ($game->status === GameStatus::Completed || $game->player_stats_count > 0 || $game->match_date->isPast())) {
                 Log::warning(
                     "Sync Lega: la gara {$game->lvf_match_id} non è più sulle pagine della Lega ma ha "
                     .'un risultato, un tabellino o la data già passata: lasciata in archivio.'
@@ -255,6 +272,25 @@ class LvfSyncService
         }
 
         return $removed;
+    }
+
+    /**
+     * Una gara passata e non conclusa che la Lega non elenca più: o il
+     * risultato arriverà, o è stata rinviata con un altro identificativo e
+     * questa resta un doppione da togliere a mano dal pannello.
+     */
+    private function avvisaDellaGaraPassataSparita(Game $game): void
+    {
+        $game->loadMissing(['homeTeam', 'awayTeam']);
+        $gara = $game->homeTeam?->nomePubblico().' - '.$game->awayTeam?->nomePubblico().' del '.$game->match_date->format('d/m/Y H:i');
+
+        app(AvvisoTecnico::class)->invia(
+            'Gara passata sparita dal calendario della Lega',
+            "La Lega non elenca più la gara {$gara} (id {$game->id}, Lega {$game->lvf_match_id}), già passata e senza risultato. "
+                .'È rimasta sul sito. Se è stata rinviata con un nuovo numero, la vecchia è un doppione da cancellare dal pannello (Gare).',
+            'gara-passata-sparita-dalla-lega:'.$game->id,
+            86400,
+        );
     }
 
     /**

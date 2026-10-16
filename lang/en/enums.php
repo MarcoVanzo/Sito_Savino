@@ -53,6 +53,13 @@ return [
             'semi_finals' => 'Semi Finals',
             'bronze_medal_match' => 'Bronze Medal Match',
             'gold_medal_match' => 'Final',
+            // Lega knockout cups (lvf:sync): competition and round.
+            'supercoppa_italiana' => 'Italian Super Cup',
+            'coppa_italia' => 'Italian Cup',
+            'finale' => 'Final',
+            'semifinale' => 'Semi-final',
+            'semifinali' => 'Semi-finals',
+            'quarti_di_finale' => 'Quarter-finals',
         ],
     ],
 ];

@@ -79,8 +79,8 @@ class LvfDivisionFilterTest extends TestCase
     #[Test]
     public function it_removes_matches_of_other_divisions_imported_before_the_filter_existed(): void
     {
-        // Prima delle gare: una gara con la data passata non si pota più.
-        $this->travelTo('2026-10-01 12:00');
+        // Dopo le gare: la A2 si pota anche con la data passata.
+        $this->travelTo('2026-12-01 12:00');
 
         // Primo giro senza filtro: entra anche la A2.
         config()->set('services.lvf.excluded_divisions', []);
