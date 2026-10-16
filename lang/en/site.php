@@ -92,8 +92,9 @@ return [
             'description' => 'Get in touch with Savino Del Bene Volley. Information, offices and contact details.',
         ],
         'atleta' => [
-            'title' => ':nome',
-            'description' => ':nome in the Savino Del Bene Volley squad: stats, photos and honours.',
+            'title' => ':nome — :ruolo',
+            'description' => ':nome, :ruolo at Savino Del Bene Volley in Serie A1: profile, season stats, career, honours, news and photos.',
+            'description_senza_ruolo' => ':nome of Savino Del Bene Volley in Serie A1: profile, season stats, career, honours, news and photos.',
         ],
         'gallery-atleta' => [
             'title' => 'Photos of :nome',

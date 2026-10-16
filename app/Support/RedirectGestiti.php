@@ -270,7 +270,41 @@ class RedirectGestiti
             return 'La destinazione coincide con la partenza: il redirect girerebbe su sé stesso.';
         }
 
+        if ($interna !== null && self::tornaAllaPartenza((string) $da, $interna)) {
+            return 'La destinazione, seguendo i redirect già salvati, riporta alla partenza: il browser girerebbe all\'infinito.';
+        }
+
         return null;
+    }
+
+    /**
+     * Segue i redirect salvati a partire dalla destinazione: `/a` → `/b`
+     * con `/b` → `/a` già in tabella è un giro senza fine anche se nessuno
+     * dei due punta a sé stesso.
+     */
+    private static function tornaAllaPartenza(string $da, string $destinazione): bool
+    {
+        $partenza = self::normalizza($da);
+        $passo = self::normalizza($destinazione);
+        $visti = [];
+
+        while ($passo !== null && ! isset($visti[$passo]) && count($visti) < 20) {
+            if ($passo === $partenza) {
+                return true;
+            }
+
+            $visti[$passo] = true;
+
+            $verso = Reindirizzamento::query()
+                ->where('from_path', $passo)
+                ->where('status_code', '!=', CodiceDelRedirect::Rimosso->value)
+                ->value('to_path');
+
+            $interna = is_string($verso) ? self::percorsoInterno($verso) : null;
+            $passo = is_string($interna) ? self::normalizza($interna) : null;
+        }
+
+        return false;
     }
 
     /**

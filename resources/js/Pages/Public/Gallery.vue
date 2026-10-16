@@ -144,7 +144,9 @@ const filteredMedia = computed(() => {
 function cambiaIndirizzo(url, album, { replace = false } = {}) {
     router[replace ? 'replace' : 'push']({
         url,
-        props: (current) => ({ ...current, currentAlbum: album }),
+        // `seo` e' del primo caricamento: lasciato li' vincerebbe sul titolo
+        // dell'album aperto (o chiuso) nella scheda del browser.
+        props: (current) => ({ ...current, currentAlbum: album, seo: null }),
         preserveState: true,
         preserveScroll: true,
     })
