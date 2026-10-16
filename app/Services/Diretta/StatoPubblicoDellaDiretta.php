@@ -29,9 +29,6 @@ class StatoPubblicoDellaDiretta
 {
     public const CARTELLA = 'diretta';
 
-    /** Fin dove guardare avanti quando una creatività cambia. */
-    public const GIORNI_DA_RIPUBBLICARE = 30;
-
     public function percorso(int $gara): string
     {
         return self::CARTELLA.'/'.$gara.'.json';

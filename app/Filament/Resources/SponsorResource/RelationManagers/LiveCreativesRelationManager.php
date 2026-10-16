@@ -85,6 +85,8 @@ class LiveCreativesRelationManager extends RelationManager
                             ->default(TipoCreativita::Immagine->value)
                             ->required()
                             ->live()
+                            // Si carica il file e poi si passa a «Video»: la durata va riletta.
+                            ->afterStateUpdated(fn (Get $get, Set $set) => self::leggiLaDurataDelVideo($get('contenuto'), $get, $set))
                             ->disabledOn('edit'),
                     ])->columns(2),
 
@@ -120,21 +122,7 @@ class LiveCreativesRelationManager extends RelationManager
                                     }
                                 },
                             ])
-                            ->afterStateUpdated(function (mixed $state, Get $get, Set $set): void {
-                                if (self::tipo($get) !== TipoCreativita::Video) {
-                                    return;
-                                }
-
-                                foreach (is_array($state) ? $state : [$state] as $file) {
-                                    if ($file instanceof TemporaryUploadedFile) {
-                                        $durata = FormatiDelleCreativita::durataDelVideo($file->getRealPath());
-
-                                        if ($durata !== null) {
-                                            $set('durata_secondi', min($durata, FormatiDelleCreativita::DURATA_MASSIMA_SECONDI));
-                                        }
-                                    }
-                                }
-                            })
+                            ->afterStateUpdated(fn (mixed $state, Get $get, Set $set) => self::leggiLaDurataDelVideo($state, $get, $set))
                             ->columnSpanFull(),
                         SpatieMediaLibraryFileUpload::make('fascia_mobile')
                             ->label('Fascia per il telefono (facoltativa)')
@@ -265,6 +253,27 @@ class LiveCreativesRelationManager extends RelationManager
             ])
             ->modifyQueryUsing(fn (Builder $query) => $query->with('media'))
             ->defaultSort('created_at', 'desc');
+    }
+
+    /**
+     * La durata di uno spot video viene dal file, non dall'operatore: col
+     * valore predefinito il pre-roll si tagliava o restava fermo.
+     */
+    private static function leggiLaDurataDelVideo(mixed $file, Get $get, Set $set): void
+    {
+        if (self::tipo($get) !== TipoCreativita::Video) {
+            return;
+        }
+
+        foreach (is_array($file) ? $file : [$file] as $caricato) {
+            if ($caricato instanceof TemporaryUploadedFile) {
+                $durata = FormatiDelleCreativita::durataDelVideo($caricato->getRealPath());
+
+                if ($durata !== null) {
+                    $set('durata_secondi', min($durata, FormatiDelleCreativita::DURATA_MASSIMA_SECONDI));
+                }
+            }
+        }
     }
 
     private static function tipo(Get $get): TipoCreativita

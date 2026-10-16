@@ -41,7 +41,7 @@ class RipubblicaLoStatoDelleDirette
         // Prima di lavorare: un cambio che arriva intanto ne chiede un'altra.
         app()->forgetInstance(self::IN_ATTESA);
 
-        $regia->ripubblicaLeDiretteVicine();
+        $regia->ripubblicaLeDiretteDaGiocare();
         $cache->svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE);
     }
 }

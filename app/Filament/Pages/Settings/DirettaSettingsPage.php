@@ -95,7 +95,7 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
         app(CacheInvalidationObserver::class)->svuotaLeChiavi(DirettaPerIlSito::CHIAVI_DI_CACHE);
 
         if (Diretta::abilitata() !== $prima) {
-            app(RegiaDellaDiretta::class)->ripubblicaLeDiretteVicine();
+            app(RegiaDellaDiretta::class)->ripubblicaLeDiretteDaGiocare();
         }
     }
 

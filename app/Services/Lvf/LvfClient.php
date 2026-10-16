@@ -91,7 +91,7 @@ class LvfClient
      *
      * @throws RuntimeException se la pagina non è raggiungibile o risponde con errore
      */
-    private function get(string $path, array $query = [], ?string $baseUrl = null): string
+    private function get(string $path, array $query = [], ?string $baseUrl = null, bool $seguiLAttesa = true): string
     {
         $url = ($baseUrl !== null && $baseUrl !== '' ? $baseUrl : $this->baseUrl).$path;
 
@@ -103,7 +103,9 @@ class LvfClient
             ])
                 ->timeout($this->timeout)
                 ->retry(2, 2000, throw: false)
-                ->get($url, $query);
+                // Con `query: []` Guzzle cancellerebbe la query scritta
+                // nell'indirizzo (quello della pagina di attesa).
+                ->get($url, $query === [] ? null : $query);
         } catch (ConnectionException $e) {
             throw new LvfException("Connessione a {$url} fallita: {$e->getMessage()}", previous: $e);
         }
@@ -118,6 +120,35 @@ class LvfClient
             throw new LvfException("{$url} ha restituito una risposta vuota.");
         }
 
+        $paginaVera = $this->paginaDaCaricare($body);
+
+        if ($paginaVera !== null) {
+            if (! $seguiLAttesa) {
+                throw new LvfException("{$url} risponde ancora con la pagina di attesa.");
+            }
+
+            return $this->get($paginaVera, [], $baseUrl, seguiLAttesa: false);
+        }
+
         return $body;
+    }
+
+    /**
+     * La Lega a volte serve dalla sua cache una pagina di attesa (200, meno
+     * di 1 KB) che carica quella vera via AJAX con `no_cache_sa=1`. Letta
+     * così, il parser trovava zero gare e il sync finiva «riuscito»: calendario
+     * e risultati fermi senza avvisi. Si segue l'indirizzo una volta.
+     */
+    private function paginaDaCaricare(string $body): ?string
+    {
+        if (! str_contains($body, 'caricaPaginaCompletaAjax')) {
+            return null;
+        }
+
+        if (preg_match("/caricaPaginaCompletaAjax\w*\(\s*'(\/[^']+)'/", $body, $trovato) !== 1) {
+            throw new LvfException('La Lega ha risposto con una pagina di attesa senza indirizzo leggibile.');
+        }
+
+        return html_entity_decode($trovato[1]);
     }
 }

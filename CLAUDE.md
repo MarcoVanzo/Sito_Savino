@@ -171,6 +171,9 @@ parsa le pagine pubbliche di `legavolleyfemminile.it`. Codice in
 `tests/Fixtures/Lvf/` (se cambia il markup: fixture, poi parser).
 
 - **Idempotenza**: upsert su `games.lvf_match_id` e `teams.lvf_club_id`.
+- La Lega a volte serve una **pagina di attesa** (~800 byte, carica quella vera
+  via AJAX con `no_cache_sa=1`): `LvfClient` la segue una volta, poi è errore.
+  Letta come pagina vera dava zero gare e un sync «riuscito».
 - Il calendario della Lega mostra solo le gare **da oggi in poi**: i risultati
   si leggono con `giornata=tutte` (senza, una giornata sola e anticipi o
   recuperi giocati sparivano). La potatura non cancella gare con data passata.

@@ -147,6 +147,34 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
     }
 
     #[Test]
+    public function la_durata_si_legge_anche_scegliendo_video_dopo_aver_caricato_il_file(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->utente(UserRole::CommunicationManager));
+        $video = UploadedFile::fake()->createWithContent(
+            'spot.mp4',
+            (string) file_get_contents(base_path('tests/Fixtures/Diretta/spot-1920x1080-2s.mp4')),
+        );
+
+        $this->grafiche(Sponsor::factory()->create())
+            ->mountTableAction('create')
+            ->setTableActionData([
+                'nome' => 'Spot Estra',
+                'uso' => UsoCreativita::Preroll->value,
+                'tipo' => TipoCreativita::Immagine->value,
+                'durata_secondi' => 10,
+            ])
+            ->set('mountedTableActionsData.0.contenuto.nuovo', $video)
+            ->assertSet('mountedTableActionsData.0.durata_secondi', 10)
+            ->set('mountedTableActionsData.0.tipo', TipoCreativita::Video->value)
+            ->assertSet('mountedTableActionsData.0.durata_secondi', 2)
+            ->callMountedTableAction()
+            ->assertHasNoTableActionErrors();
+
+        $this->assertSame(2, LiveCreative::sole()->durata_secondi);
+    }
+
+    #[Test]
     public function l_immagine_senza_testo_alternativo_non_si_salva(): void
     {
         Storage::fake('public');

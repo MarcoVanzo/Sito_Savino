@@ -183,7 +183,7 @@ class RegiaDellaDirettaTest extends TestCase
         $versione = $this->statoScritto($sessione)['versione'];
 
         SiteSetting::set('diretta_sponsor_abilitata', '0');
-        $this->regia()->ripubblicaLeDiretteVicine();
+        $this->regia()->ripubblicaLeDiretteDaGiocare();
 
         $json = $this->statoScritto($sessione);
         $this->assertGreaterThan($versione, $json['versione']);
@@ -323,6 +323,21 @@ class RegiaDellaDirettaTest extends TestCase
     }
 
     #[Test]
+    public function accendere_l_interruttore_ripubblica_anche_le_gare_lontane(): void
+    {
+        SiteSetting::set('diretta_sponsor_abilitata', '0');
+        $sessione = $this->sessione();
+        Game::query()->whereKey($sessione->game_id)->update(['match_date' => now()->addDays(40)->setTime(17, 0)]);
+        $this->regia()->ripubblica($sessione->refresh());
+        $this->assertSame('inattiva', $this->statoScritto($sessione)['stato']);
+
+        SiteSetting::set('diretta_sponsor_abilitata', '1');
+        $this->regia()->ripubblicaLeDiretteDaGiocare();
+
+        $this->assertNotSame('inattiva', $this->statoScritto($sessione)['stato']);
+    }
+
+    #[Test]
     public function spegnere_o_cancellare_una_cornice_la_toglie_dalle_dirette_pubblicate(): void
     {
         $sessione = $this->sessione();
@@ -331,13 +346,13 @@ class RegiaDellaDirettaTest extends TestCase
         $versione = $this->statoScritto($sessione)['versione'];
 
         $prima->update(['attiva' => false]);
-        $this->regia()->ripubblicaLeDiretteVicine();
+        $this->regia()->ripubblicaLeDiretteDaGiocare();
         $this->assertSame([$seconda->id], array_column($this->statoScritto($sessione)['playlist'], 'id'));
         // Chi ha già la diretta aperta accetta solo versioni più alte.
         $this->assertGreaterThan($versione, $this->statoScritto($sessione)['versione']);
 
         $seconda->delete();
-        $this->regia()->ripubblicaLeDiretteVicine();
+        $this->regia()->ripubblicaLeDiretteDaGiocare();
         $this->assertSame([], $this->statoScritto($sessione)['playlist']);
     }
 
