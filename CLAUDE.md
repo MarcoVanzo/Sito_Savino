@@ -966,6 +966,8 @@ Forms\Components\Select::make('user_id')
   interruttore) passa da `RegiaDellaDiretta::cambia()`: lock, `versione` +1 e
   JSON scritto prima di rilasciare il lock. Il browser accetta solo versioni
   più alte: un `pubblica()` senza versione nuova non arriva a chi guarda.
+  `versione_pubblicata` dice l'ultima arrivata sul JSON: se resta indietro
+  (Spaces giù) la regia mostra «Ripubblica» e `diretta:chiudi-le-pause` riprova.
   JSON illeggibile = diretta senza sponsor, mai bloccata. Il testo
   alternativo nel JSON è `{it, en}` (un file per tutte le lingue).
   Il JSON si riscrive anche quando cambia una creatività

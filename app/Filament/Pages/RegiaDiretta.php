@@ -250,6 +250,18 @@ class RegiaDiretta extends Page
     }
 
     /**
+     * Visibile solo se l'ultimo cambio non è arrivato a chi guarda: il
+     * pulsante appena premuto spesso sparisce («Fine pausa», «Spegni tutto»)
+     * e non si poteva riprovare. Il comando al minuto riprova comunque.
+     */
+    public function ripubblicaAction(): Action
+    {
+        return $this->azione('ripubblica', 'Ripubblica sul sito', 'heroicon-o-arrow-up-tray', 'danger',
+            fn (RegiaDellaDiretta $regia, LiveSession $s) => $regia->ripubblica($s))
+            ->visible(fn (): bool => (bool) $this->sessione()?->nonPubblicata());
+    }
+
+    /**
      * @param  string|Closure(): string  $etichetta
      * @param  Closure(RegiaDellaDiretta, LiveSession, array<string, mixed>): bool  $esegui
      */

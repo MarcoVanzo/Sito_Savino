@@ -13,6 +13,7 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\Concerns\Translatable;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -86,7 +87,7 @@ class LiveCreativesRelationManager extends RelationManager
                             ->required()
                             ->live()
                             // Si carica il file e poi si passa a «Video»: la durata va riletta.
-                            ->afterStateUpdated(fn (Get $get, Set $set) => self::leggiLaDurataDelVideo($get('contenuto'), $get, $set))
+                            ->afterStateUpdated(fn (Get $get, Set $set, string $operation) => self::controllaIlFile($get('contenuto'), $get, $set, $operation === 'edit'))
                             ->disabledOn('edit'),
                     ])->columns(2),
 
@@ -122,7 +123,7 @@ class LiveCreativesRelationManager extends RelationManager
                                     }
                                 },
                             ])
-                            ->afterStateUpdated(fn (mixed $state, Get $get, Set $set) => self::leggiLaDurataDelVideo($state, $get, $set))
+                            ->afterStateUpdated(fn (mixed $state, Get $get, Set $set, string $operation) => self::controllaIlFile($state, $get, $set, $operation === 'edit'))
                             ->columnSpanFull(),
                         SpatieMediaLibraryFileUpload::make('fascia_mobile')
                             ->label('Fascia per il telefono (facoltativa)')
@@ -256,22 +257,60 @@ class LiveCreativesRelationManager extends RelationManager
     }
 
     /**
-     * La durata di uno spot video viene dal file, non dall'operatore: col
-     * valore predefinito il pre-roll si tagliava o restava fermo.
+     * Appena caricato il file: la durata di uno spot video viene dal file,
+     * non dall'operatore (col valore predefinito il pre-roll si tagliava o
+     * restava fermo), e cosa non va si dice subito, non al «Salva» (FilePond
+     * accetta formati e peso di immagini e video insieme).
      */
-    private static function leggiLaDurataDelVideo(mixed $file, Get $get, Set $set): void
+    private static function controllaIlFile(mixed $file, Get $get, Set $set, bool $inModifica = false): void
     {
-        if (self::tipo($get) !== TipoCreativita::Video) {
-            return;
-        }
-
         foreach (is_array($file) ? $file : [$file] as $caricato) {
-            if ($caricato instanceof TemporaryUploadedFile) {
+            if (! $caricato instanceof TemporaryUploadedFile) {
+                continue;
+            }
+
+            // Il flusso naturale è caricare e poi scegliere il tipo: un file
+            // dell'altro tipo è un suggerimento, non un errore.
+            $tipoDelFile = in_array($caricato->getMimeType(), FormatiDelleCreativita::MIME_VIDEO, true)
+                || mb_strtolower($caricato->getClientOriginalExtension()) === 'mp4'
+                    ? TipoCreativita::Video
+                    : TipoCreativita::Immagine;
+
+            // In modifica il tipo è bloccato: niente suggerimento, l'errore sotto.
+            if ($tipoDelFile !== self::tipo($get) && ! $inModifica) {
+                Notification::make()
+                    ->title($tipoDelFile === TipoCreativita::Video ? 'È un video: scegli «Video» come tipo' : 'È un\'immagine: scegli «Immagine» come tipo')
+                    ->warning()
+                    ->send();
+
+                continue;
+            }
+
+            if (self::tipo($get) === TipoCreativita::Video) {
                 $durata = FormatiDelleCreativita::durataDelVideo($caricato->getRealPath());
 
                 if ($durata !== null) {
                     $set('durata_secondi', min($durata, FormatiDelleCreativita::DURATA_MASSIMA_SECONDI));
                 }
+            }
+
+            if (self::tipo($get) === TipoCreativita::Video && (int) $caricato->getSize() > FormatiDelleCreativita::PESO_CONSIGLIATO_VIDEO_KB * 1024) {
+                Notification::make()
+                    ->title('Video pesante per il telefono')
+                    ->body(sprintf('Pesa %.0f MB: si può salvare, ma chi lo salta dopo pochi secondi lo scarica comunque. Meglio sotto 8 MB (circa 4 Mbit/s bastano per un 1080p).', $caricato->getSize() / 1048576))
+                    ->warning()
+                    ->send();
+            }
+
+            $errori = FormatiDelleCreativita::erroriDelContenuto(self::tipo($get), $caricato->getRealPath(), $caricato->getMimeType(), self::uso($get));
+
+            if ($errori !== []) {
+                Notification::make()
+                    ->title('Questo file non si può salvare')
+                    ->body(implode(' ', $errori))
+                    ->danger()
+                    ->persistent()
+                    ->send();
             }
         }
     }

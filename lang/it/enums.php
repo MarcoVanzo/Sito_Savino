@@ -54,6 +54,13 @@ return [
             'semi_finals' => 'Semifinali',
             'bronze_medal_match' => 'Finale 3° posto',
             'gold_medal_match' => 'Finale',
+            // Coppe della Lega a eliminazione (lvf:sync): competizione e turno.
+            'supercoppa_italiana' => 'Supercoppa Italiana',
+            'coppa_italia' => 'Coppa Italia',
+            'finale' => 'Finale',
+            'semifinale' => 'Semifinale',
+            'semifinali' => 'Semifinali',
+            'quarti_di_finale' => 'Quarti di finale',
         ],
     ],
 ];

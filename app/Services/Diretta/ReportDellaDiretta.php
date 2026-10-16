@@ -6,7 +6,6 @@ use App\Enums\EventoDellaDiretta as Evento;
 use App\Models\Game;
 use App\Models\LiveAdStat;
 use App\Models\LiveCreative;
-use App\Models\Sponsor;
 use Illuminate\Support\Collection;
 
 /**
@@ -15,7 +14,8 @@ use Illuminate\Support\Collection;
  * pre-roll (visti fino in fondo su avviati).
  *
  * Una grafica o uno sponsor cancellati restano nel report col nome copiato
- * sui contatori (`sponsor_nome`, `creativita_nome`).
+ * sui contatori (`sponsor_nome`, `creativita_nome`) e con l'id dello sponsor,
+ * che regge il filtro anche dopo una rinomina.
  */
 class ReportDellaDiretta
 {
@@ -29,7 +29,7 @@ class ReportDellaDiretta
             ->when($gara, fn ($q) => $q->where('game_id', $gara))
             ->when($sponsor, fn ($q) => $q->where(fn ($q) => $q
                 ->whereIn('live_creative_id', LiveCreative::query()->where('sponsor_id', $sponsor)->select('id'))
-                ->orWhere(fn ($q) => $q->whereNull('live_creative_id')->where('sponsor_nome', Sponsor::query()->whereKey($sponsor)->value('name')))))
+                ->orWhere(fn ($q) => $q->whereNull('live_creative_id')->where('sponsor_id', $sponsor))))
             ->groupBy('game_id', 'live_creative_id', 'sponsor_nome', 'creativita_nome', 'evento')
             ->get();
 

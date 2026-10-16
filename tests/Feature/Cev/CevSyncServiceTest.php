@@ -191,6 +191,28 @@ class CevSyncServiceTest extends TestCase
     }
 
     #[Test]
+    public function una_gara_passata_che_sparisce_dal_portale_resta_e_avvisa(): void
+    {
+        $this->sync(1948, 2026);
+
+        $gara = Game::where('home_team_id', $this->savino->id)->orWhere('away_team_id', $this->savino->id)->orderBy('match_date')->first();
+        $this->assertNotNull($gara);
+        $this->travelTo($gara->match_date->copy()->addDay());
+
+        $this->mock(AvvisoTecnico::class)
+            ->shouldReceive('invia')
+            ->once()
+            ->withArgs(fn (string $oggetto, string $testo, string $chiave) => $chiave === 'gara-passata-sparita-dalla-cev:'.$gara->id)
+            ->andReturn(EsitoAvviso::Inviato);
+
+        $this->sostituzioni = ["mID={$gara->cev_match_id}&" => 'mID=999999999&'];
+        $stats = $this->sync(1948, 2026);
+
+        $this->assertModelExists($gara);
+        $this->assertSame(0, $stats['matches_removed']);
+    }
+
+    #[Test]
     public function togliere_una_gara_con_i_biglietti_della_redazione_avvisa(): void
     {
         $this->sync(1948, 2026);

@@ -130,10 +130,13 @@ class ListGalleryImages extends ListRecords
             }
 
             if ($nuove === []) {
+                // Senza doppioni i file non erano leggibili: «Le 0 foto sono già
+                // in archivio» non diceva niente.
                 Notification::make()
                     ->title('Nessun album creato')
-                    ->body('Le '.$duplicati.' foto sono già in archivio. '
-                        .GalleryUploadService::doveSonoIDoppioni($albumDeiDoppioni, null))
+                    ->body($duplicati > 0
+                        ? 'Le '.$duplicati.' foto sono già in archivio. '.GalleryUploadService::doveSonoIDoppioni($albumDeiDoppioni, null)
+                        : 'Nessuna foto leggibile fra quelle caricate: riprova il caricamento.')
                     ->warning()
                     ->persistent()
                     ->send();

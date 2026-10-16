@@ -144,9 +144,25 @@ describe('DirettaConSponsor', () => {
         await nextTick();
 
         expect(diretta.find('video').attributes('autoplay')).toBeUndefined();
+        // Senza avvio Safari non disegna niente: il frammento carica il primo fotogramma.
+        expect(diretta.find('video').attributes('src')).toBe('https://cdn/spot.mp4#t=0.1');
         vi.advanceTimersByTime(15000);
         await nextTick();
         expect(diretta.find('[data-preroll]').exists()).toBe(false);
+        // Mai partito: né avviato né completato, il report non supera il 100%.
+        expect(diretta.emitted('evento') ?? []).toEqual([]);
+    });
+
+    it('con meno movimento la cornice video mostra il primo fotogramma', async () => {
+        window.matchMedia = (query) => ({ matches: query.includes('reduce'), media: query, addEventListener() {}, removeEventListener() {} });
+        const corniceVideo = { ...cornice, id: 10, tipo: 'video', url: 'https://cdn/cornice.mp4', poster: null };
+        const diretta = monta({ sponsor: { gara: 1, preroll: null }, contenuto: corniceVideo });
+        larghezza(diretta, 1280);
+        await nextTick();
+
+        const fotogramma = diretta.find('[data-cornice-file] video');
+        expect(fotogramma.attributes('src')).toBe('https://cdn/cornice.mp4#t=0.1');
+        expect(fotogramma.attributes('preload')).toBe('metadata');
     });
 
     it('la cornice cambia la disposizione senza rimontare l\'iframe', async () => {

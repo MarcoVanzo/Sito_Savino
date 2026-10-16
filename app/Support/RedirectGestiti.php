@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Enums\CodiceDelRedirect;
+use App\Http\Middleware\RedirectPrimaDelleRotteVecchie;
 use App\Models\IndirizzoDaMappare;
 use App\Models\Reindirizzamento;
 use Illuminate\Contracts\Debug\ExceptionHandler;
@@ -224,9 +225,12 @@ class RedirectGestiti
      * Perché un redirect non si può salvare, o null se va bene. La usano il
      * pannello e `redirect:importa`.
      */
-    public static function errore(?string $da, ?string $verso, CodiceDelRedirect $codice): ?string
+    /**
+     * @param  array<string, string>  $inSospeso  redirect non ancora salvati (partenza normalizzata => destinazione), per la prova a secco di `redirect:importa`
+     */
+    public static function errore(?string $da, ?string $verso, CodiceDelRedirect $codice, array $inSospeso = []): ?string
     {
-        return self::erroreNellaPartenza($da) ?? self::erroreNellaDestinazione($da, $verso, $codice);
+        return self::erroreNellaPartenza($da) ?? self::erroreNellaDestinazione($da, $verso, $codice, $inSospeso);
     }
 
     public static function erroreNellaPartenza(?string $da): ?string
@@ -244,7 +248,10 @@ class RedirectGestiti
         return null;
     }
 
-    public static function erroreNellaDestinazione(?string $da, ?string $verso, CodiceDelRedirect $codice): ?string
+    /**
+     * @param  array<string, string>  $inSospeso
+     */
+    public static function erroreNellaDestinazione(?string $da, ?string $verso, CodiceDelRedirect $codice, array $inSospeso = []): ?string
     {
         $destinazione = trim((string) $verso);
 
@@ -270,7 +277,7 @@ class RedirectGestiti
             return 'La destinazione coincide con la partenza: il redirect girerebbe su sé stesso.';
         }
 
-        if ($interna !== null && self::tornaAllaPartenza((string) $da, $interna)) {
+        if ($interna !== null && self::tornaAllaPartenza((string) $da, $interna, $inSospeso)) {
             return 'La destinazione, seguendo i redirect già salvati, riporta alla partenza: il browser girerebbe all\'infinito.';
         }
 
@@ -281,8 +288,13 @@ class RedirectGestiti
      * Segue i redirect salvati a partire dalla destinazione: `/a` → `/b`
      * con `/b` → `/a` già in tabella è un giro senza fine anche se nessuno
      * dei due punta a sé stesso.
+     *
+     * Ci si ferma su una pagina vera: lì il redirect non si consulta (solo
+     * rotte del vecchio sito, `/{slug}` e 404), quindi il giro non avviene.
+     *
+     * @param  array<string, string>  $inSospeso
      */
-    private static function tornaAllaPartenza(string $da, string $destinazione): bool
+    private static function tornaAllaPartenza(string $da, string $destinazione, array $inSospeso = []): bool
     {
         $partenza = self::normalizza($da);
         $passo = self::normalizza($destinazione);
@@ -295,7 +307,11 @@ class RedirectGestiti
 
             $visti[$passo] = true;
 
-            $verso = Reindirizzamento::query()
+            if (! self::siConsultaSu($passo)) {
+                return false;
+            }
+
+            $verso = $inSospeso[$passo] ?? Reindirizzamento::query()
                 ->where('from_path', $passo)
                 ->where('status_code', '!=', CodiceDelRedirect::Rimosso->value)
                 ->value('to_path');
@@ -305,6 +321,31 @@ class RedirectGestiti
         }
 
         return false;
+    }
+
+    /**
+     * Se un redirect salvato per questo percorso scatterebbe: sì sulle rotte
+     * del vecchio sito e su `/{slug}` (passano da RedirectPrimaDelleRotteVecchie),
+     * dove non risponde nessuna rotta e sulle rotte con parametri, che possono
+     * rispondere 404 (`/news/notizia-tolta`) e passare dal gestore dei 404.
+     * No solo su una pagina fissa (`/news`, `/stagione`).
+     */
+    private static function siConsultaSu(string $percorso): bool
+    {
+        // I `?p=` del vecchio WordPress arrivano alla home, che li cerca fra
+        // i redirect (PublicController@home).
+        if (str_starts_with($percorso, '/?')) {
+            return true;
+        }
+
+        try {
+            $rotta = RottaDelPercorso::trova($percorso);
+        } catch (HttpException) {
+            return true;
+        }
+
+        return $rotta->parameterNames() !== []
+            || in_array(RedirectPrimaDelleRotteVecchie::class, $rotta->gatherMiddleware(), true);
     }
 
     /**

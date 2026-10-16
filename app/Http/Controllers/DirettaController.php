@@ -59,7 +59,14 @@ class DirettaController extends Controller
         $creativita = (int) $dati['creativita'];
         $evento = EventoDellaDiretta::from($dati['evento']);
 
-        abort_unless($this->nelTempoDellaGara($game, $sessione) && $this->possibile($sessione, $evento, $creativita), 422);
+        // Fuori dal tempo della gara non si conta, ma non è un errore: chi apre
+        // la diretta in anticipo manda i suoi eventi, e i 422 riempivano la
+        // console. Un evento incoerente con la grafica resta un 422.
+        if (! $this->nelTempoDellaGara($game, $sessione)) {
+            return response()->noContent();
+        }
+
+        abort_unless($this->possibile($sessione, $evento, $creativita), 422);
 
         LiveAdStat::conta($game->id, $creativita, $evento);
 

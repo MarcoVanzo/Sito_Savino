@@ -55,6 +55,18 @@ class ImportaIRedirectDaCsvTest extends TestCase
     }
 
     #[Test]
+    public function la_prova_vede_i_giri_dentro_lo_stesso_file(): void
+    {
+        $file = $this->csv(implode("\n", ['from,to,status', '/vecchio-a/,/vecchio-b,301', '/vecchio-b/,/vecchio-a,301']));
+
+        $this->artisan('redirect:importa', ['file' => $file, '--dry-run' => true])
+            ->expectsOutputToContain('Create: 1 · aggiornate: 0 · invariate: 0 · scartate: 1')
+            ->assertSuccessful();
+
+        $this->assertSame(0, Reindirizzamento::count());
+    }
+
+    #[Test]
     public function l_import_crea_aggiorna_e_scarta_col_motivo(): void
     {
         Reindirizzamento::create(['from_path' => '/vecchia-pagina', 'to_path' => '/news', 'status_code' => CodiceDelRedirect::Permanente]);

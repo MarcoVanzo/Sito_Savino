@@ -170,8 +170,10 @@ const avviaPreroll = () => {
         const durata = Number(scelto.durata || 10);
 
         // Le immagini (e i video fermi) durano quanto deciso nel pannello.
+        // Un video mai partito non è «completato»: senza «avviato» il report
+        // andava oltre il 100% (autoplay negato, meno movimento).
         if (spotFermo.value && secondiTrascorsi.value >= durata) {
-            vaiAllaDiretta('preroll_completato');
+            vaiAllaDiretta(scelto.tipo === 'immagine' || avvioContato ? 'preroll_completato' : null);
         } else if (secondiTrascorsi.value >= durata + MARGINE_DELLO_SPOT) {
             vaiAllaDiretta(null);
         }
@@ -257,6 +259,11 @@ const fasciaMobile = computed(() => inOnda.value?.fascia_mobile || null);
 // Le cornici video si possono fermare (WCAG 2.2.2): restano ferme anche per
 // gli sponsor successivi, finché il visitatore non le fa ripartire.
 const cornicePausa = ref(false);
+// Senza avvio automatico (meno movimento) Safari su iPhone non disegna il
+// primo fotogramma e il riquadro dello sponsor restava nero: il frammento
+// `#t=0.1` glielo fa caricare, con i soli metadati (non il file intero).
+const videoFermo = (url) => (movimentoRidotto.value && url ? `${url}#t=0.1` : url);
+
 const corniceVideo = computed(() => fase.value === 'diretta' && inOnda.value?.tipo === 'video' && !movimentoRidotto.value);
 
 const applicaPausaDellaCornice = () => {
@@ -448,7 +455,7 @@ defineExpose({ fase, modo, simulato, esci });
                     <video
                         v-else
                         ref="videoSpot"
-                        :src="spot.url"
+                        :src="videoFermo(spot.url)"
                         class="w-full h-full object-contain"
                         :class="{ 'cursor-pointer': spot.link }"
                         playsinline
@@ -482,7 +489,7 @@ defineExpose({ fase, modo, simulato, esci });
                         <video
                             v-else
                             :ref="silenzia"
-                            :src="inOnda.url"
+                            :src="videoFermo(inOnda.url)"
                             class="diretta-cornice__file"
                             :aria-label="testoAlternativo(inOnda) || undefined"
                             data-cornice
@@ -589,7 +596,7 @@ defineExpose({ fase, modo, simulato, esci });
         >
             <img v-if="fasciaMobile" :src="fasciaMobile" :alt="testoAlternativo(inOnda)" class="block w-full h-auto">
             <img v-else-if="inOnda.tipo === 'immagine'" :src="inOnda.url" :alt="testoAlternativo(inOnda)" class="diretta-cornice__file">
-            <video v-else :ref="silenzia" :src="inOnda.url" class="diretta-cornice__file" data-cornice muted preload="metadata" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline></video>
+            <video v-else :ref="silenzia" :src="videoFermo(inOnda.url)" class="diretta-cornice__file" data-cornice muted preload="metadata" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline></video>
         </a>
 
         <div class="diretta-comandi mt-3 flex flex-wrap items-center justify-end gap-3 text-xs font-bold uppercase tracking-wider">

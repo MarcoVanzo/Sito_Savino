@@ -176,6 +176,36 @@ class RegiaDellaDirettaTest extends TestCase
     }
 
     #[Test]
+    public function con_spaces_giu_la_regia_puo_ripubblicare_e_il_comando_riprova_da_solo(): void
+    {
+        $sessione = $this->sessione();
+        $this->regia()->ripubblica($sessione);
+        $this->actingAs($this->regista);
+
+        $guasto = $this->partialMock(StatoPubblicoDellaDiretta::class);
+        $guasto->shouldReceive('pubblica')->andReturn(false);
+        $this->app->forgetInstance(RegiaDellaDiretta::class);
+
+        $pagina = Livewire::test(RegiaDiretta::class)
+            ->assertActionHidden('ripubblica')
+            ->callAction('pausaTraISet')
+            ->assertActionVisible('ripubblica')
+            ->assertSee('non è arrivato al sito');
+        $this->assertTrue($sessione->refresh()->nonPubblicata());
+        $this->assertNotSame('pausa', $this->statoScritto($sessione)['stato']);
+
+        // Spaces torna: il comando al minuto pubblica senza che nessuno tocchi.
+        $this->app->forgetInstance(StatoPubblicoDellaDiretta::class);
+        $this->app->offsetUnset(StatoPubblicoDellaDiretta::class);
+        $this->app->forgetInstance(RegiaDellaDiretta::class);
+        $this->artisan('diretta:chiudi-le-pause')->assertSuccessful();
+
+        $this->assertFalse($sessione->refresh()->nonPubblicata());
+        $this->assertSame('pausa', $this->statoScritto($sessione)['stato']);
+        $pagina->call('$refresh')->assertActionHidden('ripubblica');
+    }
+
+    #[Test]
     public function spegnere_l_interruttore_toglie_gli_sponsor_anche_a_chi_guarda_gia(): void
     {
         $sessione = $this->sessione();

@@ -111,7 +111,7 @@ class FormatiDelleCreativitaTest extends TestCase
         $spot = array_column(FormatiDelleCreativita::requisiti(UsoCreativita::Preroll, TipoCreativita::Video), 1, 0);
 
         $this->assertSame('1920 × 1080 px (16:9, Full HD)', $spot['Misure']);
-        $this->assertSame('20 MB', $spot['Peso massimo']);
+        $this->assertSame('20 MB (meglio sotto 8 MB: si guarda dal telefono)', $spot['Peso massimo']);
         $this->assertSame('al massimo 30 secondi', $spot['Durata']);
         $this->assertArrayNotHasKey('Colonna a destra', $spot);
     }

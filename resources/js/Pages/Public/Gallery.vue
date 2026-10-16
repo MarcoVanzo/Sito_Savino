@@ -1,7 +1,7 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
 import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useImageFallback } from '@/Composables/useImageFallback.js'
 import { useOgMeta } from '@/Composables/useOgMeta'
@@ -141,12 +141,21 @@ const filteredMedia = computed(() => {
 // l'indirizzo con una visita solo lato client (niente richiesta: l'archivio e'
 // gia' qui) e lascia una voce nella cronologia, cosi' "indietro" torna
 // all'elenco.
+// I meta del server valgono per l'indirizzo con cui la pagina e' arrivata:
+// tornandoci (anche con `replace`, che riscrive la voce iniziale della
+// cronologia) si rimettono, invece di lasciare il titolo di ripiego.
+const paginaIniziale = usePage()
+const indirizzoIniziale = new URL(paginaIniziale.url, 'https://x').pathname
+const seoIniziale = paginaIniziale.props.seo ?? null
+
 function cambiaIndirizzo(url, album, { replace = false } = {}) {
+    const percorso = new URL(url, 'https://x').pathname
+
     router[replace ? 'replace' : 'push']({
         url,
         // `seo` e' del primo caricamento: lasciato li' vincerebbe sul titolo
         // dell'album aperto (o chiuso) nella scheda del browser.
-        props: (current) => ({ ...current, currentAlbum: album, seo: null }),
+        props: (current) => ({ ...current, currentAlbum: album, seo: percorso === indirizzoIniziale ? seoIniziale : null }),
         preserveState: true,
         preserveScroll: true,
     })

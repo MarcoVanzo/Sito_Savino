@@ -61,8 +61,11 @@ Route::middleware('throttle:60,1,api.aste')->group(function () {
 | anonimi del report per lo sponsor.
 */
 
+// 300 al minuto per indirizzo: al fischio d'inizio, dietro la NAT del
+// palazzetto o di un operatore mobile, tanti la aprono insieme, e col 429
+// restavano sull'orologio del telefono (cornici sfalsate fra spettatori).
 Route::get('/diretta/ora', [DirettaController::class, 'ora'])
-    ->middleware('throttle:30,1,api.diretta.ora')
+    ->middleware('throttle:300,1,api.diretta.ora')
     ->name('api.diretta.ora');
 
 // I contatori del report sponsor: anonimi, 120 al minuto per indirizzo. Uno
