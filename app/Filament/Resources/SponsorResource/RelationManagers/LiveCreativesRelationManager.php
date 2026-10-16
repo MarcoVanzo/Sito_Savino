@@ -101,8 +101,13 @@ class LiveCreativesRelationManager extends RelationManager
                             ->label('File')
                             ->collection(LiveCreative::COLLEZIONE_CONTENUTO)
                             ->required()
-                            ->acceptedFileTypes(fn (Get $get): array => FormatiDelleCreativita::mimeAmmessi(self::tipo($get)))
-                            ->maxSize(fn (Get $get): int => FormatiDelleCreativita::pesoMassimoKb(self::tipo($get)))
+                            // FilePond legge formati e limite una volta sola (`wire:ignore`),
+                            // col tipo iniziale «Immagine»: passando a «Video» restava 2 MB e
+                            // rifiutava i filmati (16/10/2026). Nel browser valgono i formati
+                            // di entrambi e il limite piu' alto; il tipo scelto lo controlla
+                            // `rules()` (FormatiDelleCreativita::erroriDelContenuto).
+                            ->acceptedFileTypes([...FormatiDelleCreativita::MIME_IMMAGINE, ...FormatiDelleCreativita::MIME_VIDEO])
+                            ->maxSize(FormatiDelleCreativita::PESO_MASSIMO_VIDEO_KB)
                             ->helperText(fn (Get $get): string => FormatiDelleCreativita::descrizione(self::uso($get), self::tipo($get)))
                             ->rules([
                                 fn (Get $get): Closure => function (string $attribute, mixed $file, Closure $fail) use ($get): void {

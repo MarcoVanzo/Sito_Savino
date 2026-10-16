@@ -56,6 +56,23 @@ class CreativitaDellaDirettaNelPannelloTest extends TestCase
     }
 
     #[Test]
+    public function il_caricamento_accetta_i_video_anche_se_si_apre_su_immagine(): void
+    {
+        // FilePond (`wire:ignore`) tiene formati e limite del primo rendering:
+        // il 16/10/2026 un MP4 da 18 MB veniva rifiutato oltre i 2 MB delle immagini.
+        $this->actingAs($this->utente(UserRole::CommunicationManager));
+
+        $campo = $this->grafiche(Sponsor::factory()->create())
+            ->mountTableAction('create')
+            ->instance()
+            ->getMountedTableActionForm()
+            ->getFlatFields(withHidden: true)['contenuto'];
+
+        $this->assertSame(20 * 1024, $campo->getMaxSize());
+        $this->assertContains('video/mp4', $campo->getAcceptedFileTypes());
+    }
+
+    #[Test]
     public function la_comunicazione_carica_una_cornice_in_formato(): void
     {
         Storage::fake('public');
