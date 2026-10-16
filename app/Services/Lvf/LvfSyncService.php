@@ -32,6 +32,9 @@ use Throwable;
  */
 class LvfSyncService
 {
+    /** L'avviso di una gara passata sparita parte una volta sola (60 giorni). */
+    private const SILENZIO_DELL_AVVISO = 60 * 86400;
+
     public function __construct(
         private readonly LvfClient $client,
         private readonly LvfMatchParser $matchParser,
@@ -281,6 +284,12 @@ class LvfSyncService
      */
     private function avvisaDellaGaraPassataSparita(Game $game): void
     {
+        // Rinviata dalla redazione: sparire è normale. E solo per le gare
+        // della settimana: oltre, l'avviso è già partito o non serve più.
+        if ($game->status === GameStatus::Postponed || $game->match_date->lt(now()->subDays(7))) {
+            return;
+        }
+
         $game->loadMissing(['homeTeam', 'awayTeam']);
         $gara = $game->homeTeam?->nomePubblico().' - '.$game->awayTeam?->nomePubblico().' del '.$game->match_date->format('d/m/Y H:i');
 
@@ -289,7 +298,8 @@ class LvfSyncService
             "La Lega non elenca più la gara {$gara} (id {$game->id}, Lega {$game->lvf_match_id}), già passata e senza risultato. "
                 .'È rimasta sul sito. Se è stata rinviata con un nuovo numero, la vecchia è un doppione da cancellare dal pannello (Gare).',
             'gara-passata-sparita-dalla-lega:'.$game->id,
-            86400,
+            // Una volta sola: la gara resta com'è finché qualcuno non decide.
+            self::SILENZIO_DELL_AVVISO,
         );
     }
 

@@ -34,6 +34,9 @@ use Illuminate\Support\Str;
  */
 class CevSyncService
 {
+    /** L'avviso di una gara passata sparita parte una volta sola (60 giorni). */
+    private const SILENZIO_DELL_AVVISO = 60 * 86400;
+
     private ?Team $squadraDellaSocieta = null;
 
     public function __construct(
@@ -287,6 +290,12 @@ class CevSyncService
 
     private function avvisaDellaGaraPassataSparita(Game $game): void
     {
+        // Rinviata dalla redazione: sparire è normale. E solo per le gare
+        // della settimana: oltre, l'avviso è già partito o non serve più.
+        if ($game->status === GameStatus::Postponed || $game->match_date->lt(now()->subDays(7))) {
+            return;
+        }
+
         $game->loadMissing(['homeTeam', 'awayTeam']);
         $gara = $game->homeTeam?->nomePubblico().' - '.$game->awayTeam?->nomePubblico().' del '.$game->match_date->format('d/m/Y H:i');
 
@@ -295,7 +304,8 @@ class CevSyncService
             "Il portale della CEV non pubblica più la gara {$gara} (id {$game->id}, CEV {$game->cev_match_id}), già passata e senza risultato. "
                 .'È rimasta sul sito. Se è stata rinviata con un nuovo numero, la vecchia è un doppione da cancellare dal pannello (Gare).',
             'gara-passata-sparita-dalla-cev:'.$game->id,
-            86400,
+            // Una volta sola: la gara resta com'è finché qualcuno non decide.
+            self::SILENZIO_DELL_AVVISO,
         );
     }
 

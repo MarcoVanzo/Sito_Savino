@@ -261,7 +261,7 @@ const fasciaMobile = computed(() => inOnda.value?.fascia_mobile || null);
 const cornicePausa = ref(false);
 // Senza avvio automatico (meno movimento) Safari su iPhone non disegna il
 // primo fotogramma e il riquadro dello sponsor restava nero: il frammento
-// `#t=0.1` glielo fa caricare.
+// `#t=0.1` glielo fa caricare, con i soli metadati (non il file intero).
 const videoFermo = (url) => (movimentoRidotto.value && url ? `${url}#t=0.1` : url);
 
 const corniceVideo = computed(() => fase.value === 'diretta' && inOnda.value?.tipo === 'video' && !movimentoRidotto.value);
@@ -494,7 +494,7 @@ defineExpose({ fase, modo, simulato, esci });
                             :aria-label="testoAlternativo(inOnda) || undefined"
                             data-cornice
                             muted
-                            :preload="movimentoRidotto ? 'auto' : 'metadata'"
+                            preload="metadata"
                             :autoplay="!movimentoRidotto"
                             :loop="!movimentoRidotto"
                             playsinline
@@ -596,7 +596,7 @@ defineExpose({ fase, modo, simulato, esci });
         >
             <img v-if="fasciaMobile" :src="fasciaMobile" :alt="testoAlternativo(inOnda)" class="block w-full h-auto">
             <img v-else-if="inOnda.tipo === 'immagine'" :src="inOnda.url" :alt="testoAlternativo(inOnda)" class="diretta-cornice__file">
-            <video v-else :ref="silenzia" :src="videoFermo(inOnda.url)" class="diretta-cornice__file" data-cornice muted :preload="movimentoRidotto ? 'auto' : 'metadata'" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline></video>
+            <video v-else :ref="silenzia" :src="videoFermo(inOnda.url)" class="diretta-cornice__file" data-cornice muted preload="metadata" :autoplay="!movimentoRidotto" :loop="!movimentoRidotto" playsinline></video>
         </a>
 
         <div class="diretta-comandi mt-3 flex flex-wrap items-center justify-end gap-3 text-xs font-bold uppercase tracking-wider">

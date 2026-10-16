@@ -87,7 +87,9 @@ class ImportaIRedirect extends Command
 
             $redirect->exists ? $aggiornate++ : $create++;
 
-            if ($codice !== CodiceDelRedirect::Rimosso) {
+            if ($codice === CodiceDelRedirect::Rimosso) {
+                unset($accettate[$percorso]);
+            } else {
                 $accettate[$percorso] = $verso;
             }
 

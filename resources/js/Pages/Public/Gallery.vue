@@ -144,11 +144,12 @@ const filteredMedia = computed(() => {
 // I meta del server valgono per l'indirizzo con cui la pagina e' arrivata:
 // tornandoci (anche con `replace`, che riscrive la voce iniziale della
 // cronologia) si rimettono, invece di lasciare il titolo di ripiego.
-const indirizzoIniziale = typeof window !== 'undefined' ? window.location.pathname : null
-const seoIniziale = usePage().props.seo ?? null
+const paginaIniziale = usePage()
+const indirizzoIniziale = new URL(paginaIniziale.url, 'https://x').pathname
+const seoIniziale = paginaIniziale.props.seo ?? null
 
 function cambiaIndirizzo(url, album, { replace = false } = {}) {
-    const percorso = new URL(url, window.location.origin).pathname
+    const percorso = new URL(url, 'https://x').pathname
 
     router[replace ? 'replace' : 'push']({
         url,

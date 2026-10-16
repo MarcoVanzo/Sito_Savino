@@ -188,7 +188,7 @@ class LvfMatchParser
      */
     private function giornataFaseECompetizione(string $text): ?array
     {
-        if (preg_match('/(\d+)\s*a?\s*Giornata\s*-\s*(\p{L}[\p{L} ]*)$/ui', $text, $m) !== 1) {
+        if (preg_match('/(\d+)\s*a?\s*Giornata\s*-\s*(\p{L}.*?)\s*$/ui', $text, $m) !== 1) {
             return null;
         }
 

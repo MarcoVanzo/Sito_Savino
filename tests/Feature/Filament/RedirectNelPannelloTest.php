@@ -103,7 +103,15 @@ class RedirectNelPannelloTest extends TestCase
             ->call('create')
             ->assertHasFormErrors(['to_path']);
 
-        Reindirizzamento::query()->whereIn('from_path', ['/news', '/news-vecchie', '/vecchio-b', '/vecchio-c', '/news/notizia-tolta'])->delete();
+        // I `?p=` del vecchio WordPress li cerca la home: anche lì il giro c'è.
+        Reindirizzamento::create(['from_path' => '/?p=5', 'to_path' => '/vecchio-e', 'status_code' => '301']);
+
+        Livewire::test(CreateReindirizzamento::class)
+            ->fillForm(['from_path' => '/vecchio-e', 'status_code' => '301', 'to_path' => '/?p=5'])
+            ->call('create')
+            ->assertHasFormErrors(['to_path']);
+
+        Reindirizzamento::query()->whereIn('from_path', ['/news', '/news-vecchie', '/vecchio-b', '/vecchio-c', '/news/notizia-tolta', '/?p=5'])->delete();
 
         Livewire::test(CreateReindirizzamento::class)
             ->fillForm(['from_path' => '/pagina-tolta', 'status_code' => '410'])

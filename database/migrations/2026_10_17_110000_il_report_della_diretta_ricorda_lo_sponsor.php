@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Schema;
  * Il report filtrato per sponsor ritrovava le righe delle grafiche
  * cancellate confrontando il nome copiato con quello attuale: rinominato lo
  * sponsor, sparivano. Si copia anche l'id, senza vincolo: deve restare anche
- * quando lo sponsor non c'è più.
+ * quando lo sponsor non c'è più. Le righe già staccate dalla grafica non si
+ * ricollegano per nome (due sponsor omonimi): al 17/10/2026 non ce n'erano.
  */
 return new class extends Migration
 {
@@ -25,12 +26,6 @@ return new class extends Migration
             ->whereNull('live_ad_stats.sponsor_id')
             ->join('live_creatives', 'live_creatives.id', '=', 'live_ad_stats.live_creative_id')
             ->update(['live_ad_stats.sponsor_id' => DB::raw('live_creatives.sponsor_id')]);
-
-        DB::table('live_ad_stats')
-            ->whereNull('live_ad_stats.sponsor_id')
-            ->whereNull('live_ad_stats.live_creative_id')
-            ->join('sponsors', 'sponsors.name', '=', 'live_ad_stats.sponsor_nome')
-            ->update(['live_ad_stats.sponsor_id' => DB::raw('sponsors.id')]);
     }
 
     public function down(): void

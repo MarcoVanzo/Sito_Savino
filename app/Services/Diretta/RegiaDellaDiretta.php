@@ -161,11 +161,19 @@ class RegiaDellaDiretta
     {
         $pubblicate = 0;
 
+        // Al primo fallimento ci si ferma: Spaces è ancora giù, e ogni
+        // tentativo tiene il lock della riga (la regia aspetta) fino al timeout.
         LiveSession::query()
             ->whereColumn('versione_pubblicata', '<', 'versione')
             ->whereHas('game', fn ($gara) => $gara->where('match_date', '>=', now()->subDay()))
-            ->each(function (LiveSession $sessione) use (&$pubblicate): void {
-                $pubblicate += (int) $this->ripubblica($sessione);
+            ->each(function (LiveSession $sessione) use (&$pubblicate): bool {
+                if (! $this->ripubblica($sessione)) {
+                    return false;
+                }
+
+                $pubblicate++;
+
+                return true;
             });
 
         return $pubblicate;

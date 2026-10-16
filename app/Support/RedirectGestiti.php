@@ -2,8 +2,8 @@
 
 namespace App\Support;
 
-use App\Http\Middleware\RedirectPrimaDelleRotteVecchie;
 use App\Enums\CodiceDelRedirect;
+use App\Http\Middleware\RedirectPrimaDelleRotteVecchie;
 use App\Models\IndirizzoDaMappare;
 use App\Models\Reindirizzamento;
 use Illuminate\Contracts\Debug\ExceptionHandler;
@@ -332,6 +332,12 @@ class RedirectGestiti
      */
     private static function siConsultaSu(string $percorso): bool
     {
+        // I `?p=` del vecchio WordPress arrivano alla home, che li cerca fra
+        // i redirect (PublicController@home).
+        if (str_starts_with($percorso, '/?')) {
+            return true;
+        }
+
         try {
             $rotta = RottaDelPercorso::trova($percorso);
         } catch (HttpException) {

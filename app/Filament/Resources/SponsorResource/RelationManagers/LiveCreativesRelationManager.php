@@ -87,7 +87,7 @@ class LiveCreativesRelationManager extends RelationManager
                             ->required()
                             ->live()
                             // Si carica il file e poi si passa a «Video»: la durata va riletta.
-                            ->afterStateUpdated(fn (Get $get, Set $set) => self::controllaIlFile($get('contenuto'), $get, $set))
+                            ->afterStateUpdated(fn (Get $get, Set $set, string $operation) => self::controllaIlFile($get('contenuto'), $get, $set, $operation === 'edit'))
                             ->disabledOn('edit'),
                     ])->columns(2),
 
@@ -123,7 +123,7 @@ class LiveCreativesRelationManager extends RelationManager
                                     }
                                 },
                             ])
-                            ->afterStateUpdated(fn (mixed $state, Get $get, Set $set) => self::controllaIlFile($state, $get, $set))
+                            ->afterStateUpdated(fn (mixed $state, Get $get, Set $set, string $operation) => self::controllaIlFile($state, $get, $set, $operation === 'edit'))
                             ->columnSpanFull(),
                         SpatieMediaLibraryFileUpload::make('fascia_mobile')
                             ->label('Fascia per il telefono (facoltativa)')
@@ -262,7 +262,7 @@ class LiveCreativesRelationManager extends RelationManager
      * restava fermo), e cosa non va si dice subito, non al «Salva» (FilePond
      * accetta formati e peso di immagini e video insieme).
      */
-    private static function controllaIlFile(mixed $file, Get $get, Set $set): void
+    private static function controllaIlFile(mixed $file, Get $get, Set $set, bool $inModifica = false): void
     {
         foreach (is_array($file) ? $file : [$file] as $caricato) {
             if (! $caricato instanceof TemporaryUploadedFile) {
@@ -276,7 +276,8 @@ class LiveCreativesRelationManager extends RelationManager
                     ? TipoCreativita::Video
                     : TipoCreativita::Immagine;
 
-            if ($tipoDelFile !== self::tipo($get)) {
+            // In modifica il tipo è bloccato: niente suggerimento, l'errore sotto.
+            if ($tipoDelFile !== self::tipo($get) && ! $inModifica) {
                 Notification::make()
                     ->title($tipoDelFile === TipoCreativita::Video ? 'È un video: scegli «Video» come tipo' : 'È un\'immagine: scegli «Immagine» come tipo')
                     ->warning()

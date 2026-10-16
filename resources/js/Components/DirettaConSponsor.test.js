@@ -162,7 +162,7 @@ describe('DirettaConSponsor', () => {
 
         const fotogramma = diretta.find('[data-cornice-file] video');
         expect(fotogramma.attributes('src')).toBe('https://cdn/cornice.mp4#t=0.1');
-        expect(fotogramma.attributes('preload')).toBe('auto');
+        expect(fotogramma.attributes('preload')).toBe('metadata');
     });
 
     it('la cornice cambia la disposizione senza rimontare l\'iframe', async () => {

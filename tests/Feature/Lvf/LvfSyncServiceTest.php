@@ -313,7 +313,9 @@ class LvfSyncServiceTest extends TestCase
         $this->mock(AvvisoTecnico::class)
             ->shouldReceive('invia')
             ->once()
-            ->withArgs(fn (string $oggetto, string $testo, string $chiave) => str_contains($testo, 'Lega 747982') && str_starts_with($chiave, 'gara-passata-sparita-dalla-lega:'))
+            ->withArgs(fn (string $oggetto, string $testo, string $chiave, int $silenzio) => str_contains($testo, 'Lega 747982')
+                && str_starts_with($chiave, 'gara-passata-sparita-dalla-lega:')
+                && $silenzio >= 30 * 86400)
             ->andReturn(EsitoAvviso::Inviato);
         $this->fakeSite($this->matchHtml(747983, date: '18/10/2026'));
         $stats = LvfSyncService::make()->sync(2026);
@@ -321,6 +323,23 @@ class LvfSyncServiceTest extends TestCase
         // Resta, ma qualcuno lo sa: rinviata e rinumerata sarebbe un doppione.
         $this->assertSame(0, $stats['matches_removed']);
         $this->assertDatabaseHas('games', ['lvf_match_id' => 747982]);
+    }
+
+    #[Test]
+    public function una_gara_rinviata_dalla_redazione_o_vecchia_non_avvisa_se_sparisce(): void
+    {
+        $this->travelTo('2026-10-01 12:00');
+        $this->fakeSite($this->matchHtml(747982, date: '14/10/2026').$this->matchHtml(747984, date: '02/10/2026'));
+        LvfSyncService::make()->sync(2026);
+        Game::where('lvf_match_id', 747982)->update(['status' => GameStatus::Postponed]);
+
+        $this->travelTo('2026-10-16 12:00');
+        $this->mock(AvvisoTecnico::class)->shouldNotReceive('invia');
+        $this->fakeSite($this->matchHtml(747983, date: '18/10/2026'));
+        LvfSyncService::make()->sync(2026);
+
+        $this->assertDatabaseHas('games', ['lvf_match_id' => 747982]);
+        $this->assertDatabaseHas('games', ['lvf_match_id' => 747984]);
     }
 
     #[Test]
