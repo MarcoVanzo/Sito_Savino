@@ -218,6 +218,9 @@ class LvfSyncService
      *    (`game_player_stats`), che sono l'unica copia di quel referto. Sparire
      *    dal calendario remoto è normale a fine stagione; perdere lo storico no.
      *    Il caso resta a log perché merita un occhio umano.
+     * 4. Nemmeno una gara con la data già passata: è giocata o da recuperare,
+     *    e il suo risultato può non essere ancora uscito (l'anticipo
+     *    Macerata-Savino del 14/10/2026 fu cancellato così, senza punteggio).
      *
      * @param  list<int>  $seenMatchIds
      */
@@ -237,10 +240,10 @@ class LvfSyncService
         $removed = 0;
 
         foreach ($vanished as $game) {
-            if ($game->status === GameStatus::Completed || $game->player_stats_count > 0) {
+            if ($game->status === GameStatus::Completed || $game->player_stats_count > 0 || $game->match_date->isPast()) {
                 Log::warning(
                     "Sync Lega: la gara {$game->lvf_match_id} non è più sulle pagine della Lega ma ha "
-                    .'un risultato o un tabellino: lasciata in archivio.'
+                    .'un risultato, un tabellino o la data già passata: lasciata in archivio.'
                 );
 
                 continue;

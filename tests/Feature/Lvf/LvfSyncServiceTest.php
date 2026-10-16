@@ -283,7 +283,8 @@ class LvfSyncServiceTest extends TestCase
     {
         // Una gara rinviata viene tolta dal calendario della Lega: se restasse
         // in archivio il sito continuerebbe a pubblicarla con data e avversaria
-        // ormai false.
+        // ormai false. Prima delle gare: una gara con la data passata resta.
+        $this->travelTo('2026-10-01 12:00');
         $this->fakeSite($this->matchHtml(747982));
         LvfSyncService::make()->sync(2026);
         $this->assertDatabaseHas('games', ['lvf_match_id' => 747982]);
@@ -294,6 +295,24 @@ class LvfSyncServiceTest extends TestCase
         $this->assertSame(1, $stats['matches_removed']);
         $this->assertDatabaseMissing('games', ['lvf_match_id' => 747982]);
         $this->assertDatabaseHas('games', ['lvf_match_id' => 747983]);
+    }
+
+    #[Test]
+    public function una_gara_con_la_data_passata_non_viene_cancellata_dalla_potatura(): void
+    {
+        // L'anticipo Macerata-Savino del 14/10/2026 non stava più sul
+        // calendario (solo gare future) né sulla giornata mostrata dai
+        // risultati: era ancora "in programma" e la potatura l'ha cancellato.
+        $this->travelTo('2026-10-01 12:00');
+        $this->fakeSite($this->matchHtml(747982, date: '14/10/2026'));
+        LvfSyncService::make()->sync(2026);
+
+        $this->travelTo('2026-10-16 12:00');
+        $this->fakeSite($this->matchHtml(747983, date: '18/10/2026'));
+        $stats = LvfSyncService::make()->sync(2026);
+
+        $this->assertSame(0, $stats['matches_removed']);
+        $this->assertDatabaseHas('games', ['lvf_match_id' => 747982]);
     }
 
     #[Test]

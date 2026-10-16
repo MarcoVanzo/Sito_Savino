@@ -42,11 +42,16 @@ class LvfClient
     }
 
     /**
-     * Pagina risultati: stesse gare del calendario ma con i set vinti.
+     * Pagina risultati di tutte le giornate, con i set vinti.
+     *
+     * Senza `giornata=tutte` la Lega mostra una giornata sola (l'ultima
+     * completa), e il calendario solo le gare da oggi in poi: un anticipo o un
+     * recupero appena giocato non stava su nessuna delle due pagine, e la
+     * potatura lo cancellava (Macerata-Savino del 14/10/2026).
      */
     public function results(int $seasonYear): string
     {
-        return $this->get('/risultati/', ['stagione' => $seasonYear]);
+        return $this->get('/risultati/', ['stagione' => $seasonYear, 'giornata' => 'tutte']);
     }
 
     public function standings(int $seasonYear): string

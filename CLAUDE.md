@@ -171,6 +171,9 @@ parsa le pagine pubbliche di `legavolleyfemminile.it`. Codice in
 `tests/Fixtures/Lvf/` (se cambia il markup: fixture, poi parser).
 
 - **Idempotenza**: upsert su `games.lvf_match_id` e `teams.lvf_club_id`.
+- Il calendario della Lega mostra solo le gare **da oggi in poi**: i risultati
+  si leggono con `giornata=tutte` (senza, una giornata sola e anticipi o
+  recuperi giocati sparivano). La potatura non cancella gare con data passata.
 - **Il lavoro manuale non si tocca**: le gare senza `lvf_match_id` non vengono
   mai modificate né cancellate.
 - `teams` contiene squadre interne (`is_internal = true`) e avversarie: una
