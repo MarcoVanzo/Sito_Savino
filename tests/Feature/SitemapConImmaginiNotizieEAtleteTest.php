@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Reindirizzamento;
 use App\Models\Roster;
 use App\Models\Season;
+use App\Models\SiteSetting;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -123,6 +124,31 @@ class SitemapConImmaginiNotizieEAtleteTest extends TestCase
         $this->assertMatchesRegularExpression('#<image:loc>[^<]*maglia\.jpg[^<]*</image:loc>#', $xml);
         $this->assertStringNotContainsString('sciarpa-esaurita', $xml);
         $this->assertStringNotContainsString('felpa-spenta', $xml);
+    }
+
+    #[Test]
+    public function a_negozio_chiuso_i_prodotti_non_sono_in_sitemap(): void
+    {
+        SiteSetting::set('shop.enabled', false);
+        Product::factory()->create(['slug' => 'maglia-gara', 'is_active' => true, 'stock' => 5]);
+
+        $xml = (string) $this->get('/sitemap-prodotti.xml')->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('maglia-gara', $xml);
+    }
+
+    #[Test]
+    public function l_indice_data_le_parti_quando_sono_state_generate_e_non_all_ora_della_richiesta(): void
+    {
+        $this->travelTo(now()->subHours(3));
+        $this->get('/sitemap-pagine.xml')->assertOk();
+        $generata = now()->format(DATE_ATOM);
+        $this->travelBack();
+
+        $xml = (string) $this->get('/sitemap.xml')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<loc>'.url('/sitemap-pagine.xml').'</loc>'."\n".'    <lastmod>'.$generata.'</lastmod>', $xml);
+        $this->assertSame(1, substr_count($xml, '<lastmod>'), 'Le parti non ancora generate restano senza data.');
     }
 
     #[Test]

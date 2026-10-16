@@ -165,7 +165,7 @@ class GalleryUploadService
      * L'album che contiene già la foto con questa impronta, o null se la foto
      * è nuova. Una foto senza album conta comunque come doppione (0).
      */
-    private static function albumDelDoppione(string $hash): ?int
+    public static function albumDelDoppione(string $hash): ?int
     {
         $foto = GalleryImage::where('file_hash', $hash)->first(['id', 'gallery_event_id']);
 
@@ -178,11 +178,13 @@ class GalleryUploadService
      * le foto sono rimaste nel primo album creato (15/10/2026: tre album per
      * la stessa gara, due vuoti).
      *
+     * Senza album di destinazione (`null`) tutti gli album contano come altri.
+     *
      * @param  array<int, int>  $albumIds
      */
-    private static function doveSonoIDoppioni(array $albumIds, GalleryEvent $record): string
+    public static function doveSonoIDoppioni(array $albumIds, ?GalleryEvent $record): string
     {
-        $altri = GalleryEvent::whereKey(array_diff($albumIds, [$record->id]))
+        $altri = GalleryEvent::whereKey(array_diff($albumIds, $record ? [$record->id] : []))
             ->orderBy('id')
             ->get()
             ->map(fn (GalleryEvent $album) => '«'.$album->title.'»'
@@ -190,7 +192,7 @@ class GalleryUploadService
                 .' [id '.$album->id.']');
 
         if ($altri->isEmpty()) {
-            return in_array($record->id, $albumIds, true) ? 'Sono già in questo album.' : 'Sono in archivio fuori da un album.';
+            return $record && in_array($record->id, $albumIds, true) ? 'Sono già in questo album.' : 'Sono in archivio fuori da un album.';
         }
 
         return 'Si trovano già '.($altri->count() === 1 ? 'nell\'album ' : 'negli album ').$altri->join(', ').'.';

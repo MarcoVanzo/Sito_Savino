@@ -564,8 +564,9 @@ class ServeSocialCrawlerMeta
         }
 
         if ($inRosa) {
-            // La pagina dell'atleta risponde 404 a uno slug che non è quello
-            // di un'atleta in rosa: l'anteprima non può dire il contrario.
+            // Con uno slug che non è quello giusto, o un'atleta fuori rosa, la
+            // pagina dell'atleta risponde con un redirect (o 404 se l'atleta
+            // non c'è): l'anteprima non può dire il contrario.
             if ($slug !== $player->id.'-'.Str::slug($player->full_name)) {
                 return null;
             }
@@ -616,13 +617,7 @@ class ServeSocialCrawlerMeta
      */
     public static function rigaDiRosa(Player $player): ?Roster
     {
-        $stagione = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
-
-        $squadra = Team::where('is_internal', true)
-            ->where(fn ($query) => $query
-                ->where('slug', 'savino-del-bene-volley')
-                ->orWhere('category', 'A1'))
-            ->first();
+        [$stagione, $squadra] = self::stagioneESquadraDellaRosa();
 
         if (! $stagione || ! $squadra) {
             return null;
@@ -633,6 +628,36 @@ class ServeSocialCrawlerMeta
             ->where('season_id', $stagione->id)
             ->where('team_id', $squadra->id)
             ->first();
+    }
+
+    /**
+     * Se la rosa della prima squadra nella stagione corrente ha già delle
+     * atlete. A inizio stagione la Season nuova nasce prima delle rose: in
+     * quei giorni un'atleta "fuori rosa" non lo è davvero.
+     */
+    public static function rosaDellaStagioneCompilata(): bool
+    {
+        [$stagione, $squadra] = self::stagioneESquadraDellaRosa();
+
+        return $stagione && $squadra && Roster::where('season_id', $stagione->id)
+            ->where('team_id', $squadra->id)
+            ->exists();
+    }
+
+    /**
+     * @return array{0: ?Season, 1: ?Team}
+     */
+    private static function stagioneESquadraDellaRosa(): array
+    {
+        $stagione = Season::current()->latest('id')->first() ?? Season::latest('id')->first();
+
+        $squadra = Team::where('is_internal', true)
+            ->where(fn ($query) => $query
+                ->where('slug', 'savino-del-bene-volley')
+                ->orWhere('category', 'A1'))
+            ->first();
+
+        return [$stagione, $squadra];
     }
 
     /**

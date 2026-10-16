@@ -246,6 +246,7 @@ class LvfSyncService
                 continue;
             }
 
+            $game->avvisaSeSiPerdonoIDatiDellaRedazione();
             $game->delete();
             $removed++;
         }

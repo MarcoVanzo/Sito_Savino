@@ -233,7 +233,10 @@ class PublicController extends Controller
      *
      * Niente 404 per un'atleta che esiste: con il nome scritto diversamente
      * (nome corretto in archivio) 301 sullo slug giusto, e se non è più nella
-     * prima squadra 301 sulla rosa. Uno slug senza atleta resta 404.
+     * prima squadra redirect sulla rosa: 301 se la rosa della stagione c'è,
+     * 302 se è ancora vuota (a inizio stagione tutte le atlete sembrerebbero
+     * uscite, e un 301 di massa le toglierebbe dall'indice). Uno slug senza
+     * atleta resta 404.
      */
     public function stagioneAtleta(string $slug): Response|RedirectResponse
     {
@@ -248,7 +251,7 @@ class PublicController extends Controller
         $riga = ServeSocialCrawlerMeta::rigaDiRosa($giocatrice);
 
         if (! $riga) {
-            return redirect()->route($prefisso.'stagione', [], 301);
+            return redirect()->route($prefisso.'stagione', [], ServeSocialCrawlerMeta::rosaDellaStagioneCompilata() ? 301 : 302);
         }
 
         $slugGiusto = $giocatrice->id.'-'.Str::slug($giocatrice->full_name);

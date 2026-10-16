@@ -93,18 +93,60 @@ class CreazioneAlbumConFotoTest extends TestCase
     {
         $this->paginaDelleFoto()->callAction('create_event', [
             'title' => 'Primo album',
+            'event_date' => '2026-10-12',
             'category' => 'Partite',
             'uploaded_photos' => [$this->fotoCaricata('prima.jpg', 'contenuto identico')],
         ]);
 
         $this->paginaDelleFoto()->callAction('create_event', [
             'title' => 'Secondo album',
+            'event_date' => '2026-10-12',
             'category' => 'Eventi',
-            'uploaded_photos' => [$this->fotoCaricata('seconda.jpg', 'contenuto identico')],
+            'uploaded_photos' => [
+                $this->fotoCaricata('seconda.jpg', 'contenuto identico'),
+                $this->fotoCaricata('terza.jpg', 'foto nuova'),
+            ],
         ]);
 
-        $this->assertSame(2, GalleryEvent::count(), 'I due album esistono comunque.');
-        $this->assertSame(1, GalleryImage::count(), 'La foto no: è la stessa.');
+        $this->assertSame(2, GalleryEvent::count());
+        $this->assertSame(2, GalleryImage::count(), 'La foto ripetuta non diventa una seconda riga.');
+    }
+
+    #[Test]
+    public function con_sole_foto_gia_in_archivio_l_album_non_nasce_e_si_dice_dove_stanno(): void
+    {
+        $this->paginaDelleFoto()->callAction('create_event', [
+            'title' => 'Savino - Novara',
+            'event_date' => '2026-10-12',
+            'category' => 'Partite',
+            'uploaded_photos' => [$this->fotoCaricata('prima.jpg', 'contenuto identico')],
+        ]);
+        $primo = GalleryEvent::sole();
+
+        $this->paginaDelleFoto()
+            ->callAction('create_event', [
+                'title' => 'Savino - Novara (bis)',
+                'event_date' => '2026-10-12',
+                'category' => 'Partite',
+                'uploaded_photos' => [$this->fotoCaricata('seconda.jpg', 'contenuto identico')],
+            ])
+            ->assertNotified('Nessun album creato');
+
+        $this->assertSame([$primo->id], GalleryEvent::pluck('id')->all());
+    }
+
+    #[Test]
+    public function la_data_e_obbligatoria(): void
+    {
+        $this->paginaDelleFoto()
+            ->callAction('create_event', [
+                'title' => 'Senza data',
+                'category' => 'Partite',
+                'uploaded_photos' => [$this->fotoCaricata('a.jpg', 'contenuto')],
+            ])
+            ->assertHasActionErrors(['event_date']);
+
+        $this->assertSame(0, GalleryEvent::count());
     }
 
     #[Test]
@@ -127,6 +169,7 @@ class CreazioneAlbumConFotoTest extends TestCase
         $this->paginaDelleFoto()
             ->callAction('create_event', [
                 'title' => 'Album vuoto',
+                'event_date' => '2026-10-12',
                 'category' => 'Partite',
                 'uploaded_photos' => [],
             ])

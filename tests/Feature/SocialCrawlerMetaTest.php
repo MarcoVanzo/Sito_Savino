@@ -262,6 +262,7 @@ class SocialCrawlerMetaTest extends TestCase
     #[Test]
     public function l_atleta_fuori_rosa_porta_alla_rosa_anche_per_il_crawler(): void
     {
+        $this->atletaInRosa();
         $fuoriRosa = Player::factory()->create(['first_name' => 'Nome', 'last_name' => 'Inventato']);
 
         $this->withHeaders(self::CRAWLER)

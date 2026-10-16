@@ -17,6 +17,7 @@ use App\Models\Roster;
 use App\Models\Season;
 use App\Models\SiteSetting;
 use App\Models\Team;
+use App\Services\Seo\DatiStrutturati;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -243,6 +244,76 @@ class DatiStrutturatiNellePagineTest extends TestCase
         $offerta = $this->delTipo($this->blocchi('/'), 'SportsEvent')['offers'];
 
         $this->assertSame(url('/ticketing/biglietteria'), $offerta['url']);
+    }
+
+    #[Test]
+    public function prima_dell_inizio_vendita_i_biglietti_sono_in_prevendita(): void
+    {
+        $this->garaInCasa([
+            'biglietti_url' => 'https://www.vivaticket.com/it/ticket/savino-novara/1',
+            'biglietti_in_vendita_dal' => now()->addDay()->setTime(10, 0),
+        ]);
+
+        $offerta = $this->delTipo($this->blocchi('/'), 'SportsEvent')['offers'];
+
+        $this->assertSame('https://schema.org/PreOrder', $offerta['availability']);
+        $this->assertArrayHasKey('validFrom', $offerta);
+    }
+
+    #[Test]
+    public function una_gara_che_non_e_la_prossima_senza_link_non_dichiara_biglietti(): void
+    {
+        SiteSetting::set('match_day_popup_url', 'https://www.vivaticket.com/it/ticket/savino-novara/1');
+        $this->garaInCasa(['match_date' => now()->addDay()->setTime(18, 0)]);
+        $dopo = $this->garaInCasa([
+            'match_date' => now()->addDays(10)->setTime(20, 30),
+            'biglietti_in_vendita_dal' => now()->subDay(),
+            'biglietti_prezzo_da' => 12,
+        ]);
+
+        $evento = app(DatiStrutturati::class)->gara($dopo, 'it');
+
+        $this->assertArrayNotHasKey('offers', $evento);
+    }
+
+    #[Test]
+    public function le_trasferte_cev_hanno_il_paese_solo_se_si_sa(): void
+    {
+        $this->garaInCasa(['location' => 'PalaIgor - Novara']);
+        $trasferta = fn (string $luogo): array => app(DatiStrutturati::class)->gara(Game::factory()->create([
+            'season_id' => $this->stagione->id,
+            'home_team_id' => $this->avversaria->id,
+            'away_team_id' => $this->savino->id,
+            'cev_match_id' => random_int(1, 999999),
+            'location' => $luogo,
+        ]), 'it')['location'];
+
+        $istanbul = $trasferta('Eczacibasi Spor Salonu ISTANBUL');
+        $this->assertSame('Eczacibasi Spor Salonu ISTANBUL', $istanbul['name']);
+        $this->assertSame(['@type' => 'PostalAddress', 'addressLocality' => 'Istanbul', 'addressCountry' => 'TR'], $istanbul['address']);
+
+        // Città ignota: niente paese, e la sigla non fa parte della città.
+        $this->assertSame(['@type' => 'PostalAddress', 'addressLocality' => 'Obrenovac'], $trasferta('Sportsko Kulturni Centar - SKC OBRENOVAC')['address']);
+
+        // Una città dove gioca la Lega è in Italia.
+        $this->assertSame('IT', $trasferta('Pala Igor Gorgonzola NOVARA')['address']['addressCountry']);
+        $this->assertSame('Tovuz', $trasferta('TOVUZ Olympic Hall')['address']['addressLocality']);
+    }
+
+    #[Test]
+    public function il_derby_fuori_casa_al_palazzetto_ha_l_indirizzo_intero(): void
+    {
+        $this->paginaDelPalazzetto();
+        $derby = Game::factory()->create([
+            'season_id' => $this->stagione->id,
+            'home_team_id' => $this->avversaria->id,
+            'away_team_id' => $this->savino->id,
+            'location' => 'Pala BigMat - Firenze',
+        ]);
+
+        $luogo = app(DatiStrutturati::class)->gara($derby, 'it')['location'];
+
+        $this->assertSame('50142', $luogo['address']['postalCode']);
     }
 
     private function paginaDelPalazzetto(): void

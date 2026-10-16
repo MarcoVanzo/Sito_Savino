@@ -52,17 +52,6 @@ class FormatiDelleCreativita
 
     private const CODIFICHE_AUDIO = ['mp4a'];
 
-    /** @return list<string> */
-    public static function mimeAmmessi(TipoCreativita $tipo): array
-    {
-        return $tipo === TipoCreativita::Video ? self::MIME_VIDEO : self::MIME_IMMAGINE;
-    }
-
-    public static function pesoMassimoKb(TipoCreativita $tipo): int
-    {
-        return $tipo === TipoCreativita::Video ? self::PESO_MASSIMO_VIDEO_KB : self::PESO_MASSIMO_IMMAGINE_KB;
-    }
-
     /** Il testo d'aiuto del campo di caricamento. */
     public static function descrizione(?UsoCreativita $uso, ?TipoCreativita $tipo): string
     {
