@@ -295,9 +295,10 @@ class LiveCreativesRelationManager extends RelationManager
             }
 
             if (self::tipo($get) === TipoCreativita::Video && (int) $caricato->getSize() > FormatiDelleCreativita::PESO_CONSIGLIATO_VIDEO_KB * 1024) {
+                // MB decimali, come li mostra il campo di caricamento.
                 Notification::make()
                     ->title('Video pesante per il telefono')
-                    ->body(sprintf('Pesa %.0f MB: si può salvare, ma chi lo salta dopo pochi secondi lo scarica comunque. Meglio sotto 8 MB (circa 4 Mbit/s bastano per un 1080p).', $caricato->getSize() / 1048576))
+                    ->body(sprintf('Pesa %.0f MB: si può salvare, ma chi lo salta dopo pochi secondi lo scarica comunque. Meglio sotto 8 MB (circa 4 Mbit/s bastano per un 1080p).', $caricato->getSize() / 1_000_000))
                     ->warning()
                     ->send();
             }
