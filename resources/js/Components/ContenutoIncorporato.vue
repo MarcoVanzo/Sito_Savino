@@ -59,7 +59,13 @@ onBeforeUnmount(() => {
 const caricato = computed(() => consensoDato.value || chiestoDalVisitatore.value);
 
 const piattaforma = computed(() => {
-    const host = URL.canParse(props.src) ? new URL(props.src).hostname : '';
+    // Niente URL.canParse: manca sui browser vecchi (Smart TV, Safari < 17).
+    let host;
+    try {
+        host = new URL(props.src).hostname;
+    } catch {
+        return '';
+    }
 
     if (host === '') return '';
 

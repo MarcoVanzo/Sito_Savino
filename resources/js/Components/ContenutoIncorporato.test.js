@@ -39,6 +39,19 @@ describe('ContenutoIncorporato', () => {
         expect(video.text()).toContain('Carica il video (YouTube raccoglie cookie)');
     });
 
+    it('funziona anche sui browser senza URL.canParse (Smart TV)', async () => {
+        Object.defineProperty(URL, 'canParse', { value: undefined, configurable: true });
+
+        try {
+            const video = monta();
+            await nextTick();
+
+            expect(video.text()).toContain('Carica il video (YouTube raccoglie cookie)');
+        } finally {
+            delete URL.canParse;
+        }
+    });
+
     it('offre il link diretto al video in alternativa', async () => {
         const video = monta();
         await nextTick();
