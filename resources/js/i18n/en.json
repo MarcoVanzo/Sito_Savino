@@ -1206,7 +1206,11 @@
         "pausa": "Pause",
         "riprendi": "Resume",
         "pausa_sponsor": "Pause sponsor",
-        "riprendi_sponsor": "Resume sponsor"
+        "riprendi_sponsor": "Resume sponsor",
+        "pagina_titolo": "Live stream",
+        "pagina_descrizione": "Watch Savino Del Bene Volley matches live.",
+        "pagina_nessuna": "There is no live match right now. Come back on match day: the link always stays the same.",
+        "pagina_calendario": "See the schedule"
     },
     "palmares": {
         "open_hint": "See her honours",

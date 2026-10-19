@@ -81,6 +81,10 @@ return [
             'title' => 'Gallery',
             'description' => 'Galleria fotografica ufficiale della Savino Del Bene Volley.',
         ],
+        'diretta' => [
+            'title' => 'Diretta streaming',
+            'description' => 'Guarda in diretta streaming le partite della Savino Del Bene Volley.',
+        ],
         'staff' => [
             'title' => 'Staff',
             'description' => 'Staff tecnico e medico della Savino Del Bene Volley.',

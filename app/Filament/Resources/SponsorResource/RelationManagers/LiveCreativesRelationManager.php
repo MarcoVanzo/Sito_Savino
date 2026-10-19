@@ -47,7 +47,8 @@ class LiveCreativesRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'nome';
 
-    public const MODELLO_CORNICE = 'diretta/modello-cornice-1920x1080.png';
+    // Non in public/diretta/: la cartella oscurerebbe la pagina /diretta.
+    public const MODELLO_CORNICE = 'images/diretta/modello-cornice-1920x1080.png';
 
     public function isReadOnly(): bool
     {

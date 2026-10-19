@@ -98,6 +98,7 @@ class ServeSocialCrawlerMeta
         'stagione.playoff' => 'playoff',
         'stagione.foto-ufficiale' => 'foto-ufficiale',
         'gallery' => 'gallery',
+        'diretta' => 'diretta',
         'staff' => 'staff',
         'sponsor' => 'sponsor',
         'shop' => 'shop',

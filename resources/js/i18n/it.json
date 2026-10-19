@@ -1206,7 +1206,11 @@
         "pausa": "Pausa",
         "riprendi": "Riprendi",
         "pausa_sponsor": "Ferma lo sponsor",
-        "riprendi_sponsor": "Riprendi lo sponsor"
+        "riprendi_sponsor": "Riprendi lo sponsor",
+        "pagina_titolo": "Diretta streaming",
+        "pagina_descrizione": "Guarda in diretta streaming le partite della Savino Del Bene Volley.",
+        "pagina_nessuna": "Al momento non c'è una partita in diretta. Torna qui il giorno della gara: il link resta sempre lo stesso.",
+        "pagina_calendario": "Vedi il calendario"
     },
     "palmares": {
         "open_hint": "Scopri il palmarès",
