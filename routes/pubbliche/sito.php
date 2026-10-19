@@ -12,6 +12,7 @@
  * fra le sezioni; qui ci sono le rotte del sito, lo shop e' nel file accanto.
  */
 
+use App\Http\Controllers\DirettaController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PageController;
@@ -70,6 +71,8 @@ return function (string $namePrefix): void {
     Route::get('/gallery/atleta/{slug}/data', [GalleryController::class, 'galleryData'])->name('gallery.atleta.data');
     // Indirizzo proprio di ogni album, da condividere (`{id}-{titolo}`)
     Route::get('/gallery/album/{slug}', [GalleryController::class, 'galleryAlbum'])->name('gallery.album');
+    // Indirizzo fisso della diretta, da promuovere: la gara in corso o la prossima
+    Route::get('/diretta', [DirettaController::class, 'pagina'])->name('diretta');
     Route::get('/staff', [PublicController::class, 'staff'])->name('staff');
     Route::get('/societa', function () use ($namePrefix) {
         return redirect()->route($namePrefix.'societa.page', ['slug' => 'storia']);

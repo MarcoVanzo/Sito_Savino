@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\EventoDellaDiretta;
+use App\Enums\GameStatus;
 use App\Filament\Pages\Settings\DirettaSettingsPage;
 use App\Models\Game;
 use App\Models\LiveAdStat;
@@ -11,6 +12,7 @@ use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
 use App\Support\LiveStream;
 use App\Support\MatchDay;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -102,6 +104,52 @@ class DirettaController extends Controller
             EventoDellaDiretta::PausaMostrata => $creativita === $sessione->creativita_in_onda_id || $nellaGara(),
             EventoDellaDiretta::Clic => $creativita === $sessione->creativita_in_onda_id || $nelPreroll() || $nellaGara(),
         };
+    }
+
+    /**
+     * L'indirizzo fisso della diretta (`/diretta`) da promuovere sui social:
+     * la gara della società con un link di diretta, in corso o la prossima.
+     * Senza, la pagina lo dice e rimanda al calendario (non è un 404: il link
+     * resta valido fra una gara e l'altra).
+     */
+    public function pagina(): \Inertia\Response
+    {
+        $gara = Game::with(['homeTeam', 'awayTeam'])
+            ->whereNotNull('stream_url')
+            ->where('stream_url', '!=', '')
+            ->where('match_date', '>', now()->subHours(MatchDay::ORE_DOPO_L_INIZIO))
+            ->where('status', '!=', GameStatus::Postponed)
+            ->where(function (Builder $query) {
+                $query->whereHas('homeTeam', fn (Builder $team) => $team->where('is_internal', true))
+                    ->orWhereHas('awayTeam', fn (Builder $team) => $team->where('is_internal', true));
+            })
+            ->orderBy('match_date')
+            ->first();
+
+        return Inertia::render('Public/Diretta', [
+            'gara' => $gara !== null ? $this->garaPerLaPagina($gara) : null,
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function garaPerLaPagina(Game $gara): array
+    {
+        $embedUrl = LiveStream::embedUrl($gara->stream_url);
+
+        return [
+            'id' => $gara->id,
+            'casa' => ['nome' => $gara->homeTeam?->nomePubblico(), 'logo' => $gara->homeTeam?->logoUrl()],
+            'ospite' => ['nome' => $gara->awayTeam?->nomePubblico(), 'logo' => $gara->awayTeam?->logoUrl()],
+            'data' => $gara->match_date->toIso8601String(),
+            'luogo' => $gara->location,
+            'embedUrl' => $embedUrl,
+            'url' => LiveStream::externalUrl($gara->stream_url),
+            'sponsor' => $embedUrl !== null
+                ? DirettaPerIlSito::perLaGara($gara->loadMissing(DirettaPerIlSito::RELAZIONI))
+                : null,
+        ];
     }
 
     /**

@@ -67,6 +67,10 @@ return [
             'title' => 'Gallery',
             'description' => 'The official photo gallery of Savino Del Bene Volley.',
         ],
+        'diretta' => [
+            'title' => 'Live stream',
+            'description' => 'Watch Savino Del Bene Volley matches live.',
+        ],
         'staff' => [
             'title' => 'Staff',
             'description' => 'Coaching and medical staff of Savino Del Bene Volley.',

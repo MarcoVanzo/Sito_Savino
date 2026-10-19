@@ -27,6 +27,7 @@ return [
     ['etichetta' => 'Campagna Abbonamenti', 'slug' => 'abbonamenti', 'gruppo' => 'Ticketing', 'ordine' => 2],
     ['etichetta' => 'Accessibilità & Info', 'slug' => 'accessibilita', 'gruppo' => 'Ticketing', 'ordine' => 3],
     ['etichetta' => 'Convenzioni', 'slug' => 'convenzioni', 'gruppo' => 'Ticketing', 'ordine' => 4],
+    ['etichetta' => 'SDB Volley Club Race', 'slug' => 'club-race', 'gruppo' => 'Ticketing', 'ordine' => 5],
 
     ['etichetta' => 'Diventa Sponsor', 'slug' => 'diventa-sponsor', 'gruppo' => 'Sponsor', 'ordine' => 2],
     ['etichetta' => 'Title Sponsor (SDB)', 'slug' => 'title-sponsor', 'gruppo' => 'Sponsor', 'ordine' => 3],

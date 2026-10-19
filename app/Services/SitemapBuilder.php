@@ -239,6 +239,7 @@ class SitemapBuilder
             '/stagione/risultati' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.8],
             '/stagione/classifica' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.8],
             '/gallery' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.7],
+            '/diretta' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.6],
             '/staff' => ['freq' => Url::CHANGE_FREQUENCY_MONTHLY, 'priority' => 0.7],
             '/sponsor' => ['freq' => Url::CHANGE_FREQUENCY_MONTHLY, 'priority' => 0.7],
             '/shop' => ['freq' => Url::CHANGE_FREQUENCY_WEEKLY, 'priority' => 0.8],

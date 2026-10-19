@@ -74,7 +74,10 @@ giorni fa in avanti; togliendo il filtro anche le passate). Sulla partita,
 **Imposta**:
 
 - **Link della diretta**: l'indirizzo YouTube (o Vimeo, Twitch, Dailymotion)
-  della partita. Vale anche con gli sponsor spenti: è la diretta del sito;
+  della partita. Vale anche con gli sponsor spenti: è la diretta del sito.
+  Da promuovere c'è l'indirizzo fisso **`/diretta`**: porta sempre alla gara
+  della società con il link, in corso (fino a tre ore dall'inizio) o la
+  prossima; senza, dice che non c'è una diretta e rimanda al calendario;
 - **Sponsor**: «Aggiungi uno sponsor», sceglierlo e spuntare le sue grafiche:
   gli spot da mandare prima della diretta e le cornici per la gara. Si possono
   aggiungere più sponsor: ruotano nell'ordine dell'elenco (si trascinano);
