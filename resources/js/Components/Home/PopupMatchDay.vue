@@ -15,11 +15,22 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    // MatchDay::stato()['popup_diretta']: senza biglietti da vendere (trasferta
+    // o gara cominciata) il pop-up porta alla diretta, che apre la home.
+    diretta: {
+        type: Boolean,
+        default: false,
+    },
 });
+
+const emit = defineEmits(['guarda']);
+
+const perLaDiretta = computed(() => !props.popup && props.diretta);
 
 // Una volta per visita e per giorno: chi chiude il pop-up e torna in home
 // dalla stessa scheda non lo rivede, chi torna il giorno della gara dopo sì.
-const CHIAVE_VISTO = 'match-day-popup-visto';
+// Chiavi diverse: chi ha visto i biglietti al mattino vede la diretta la sera.
+const chiaveVisto = () => (perLaDiretta.value ? 'match-day-popup-diretta-visto' : 'match-day-popup-visto');
 
 const dialogo = ref(null);
 const aperto = ref(false);
@@ -32,7 +43,7 @@ const oggi = () => new Date().toLocaleDateString('sv');
 
 const giaVisto = () => {
     try {
-        return sessionStorage.getItem(CHIAVE_VISTO) === oggi();
+        return sessionStorage.getItem(chiaveVisto()) === oggi();
     } catch {
         // Senza sessionStorage non si può ricordare: meglio non mostrarlo a
         // ogni pagina che mostrarlo sempre.
@@ -42,7 +53,7 @@ const giaVisto = () => {
 
 const ricordaVisto = () => {
     try {
-        sessionStorage.setItem(CHIAVE_VISTO, oggi());
+        sessionStorage.setItem(chiaveVisto(), oggi());
     } catch {
         // Niente da fare: al prossimo caricamento giaVisto() dirà di no.
     }
@@ -66,6 +77,11 @@ const chiudi = () => {
     aperto.value = false;
 };
 
+const guarda = (event) => {
+    chiudi();
+    emit('guarda', event);
+};
+
 // Due finestre sovrapposte al primo ingresso sarebbero troppe: il pop-up
 // aspetta che il visitatore abbia risposto al banner dei cookie.
 let attesa = null;
@@ -75,7 +91,7 @@ const dopoIlConsenso = () => {
 };
 
 onMounted(() => {
-    if (!props.popup || giaVisto()) {
+    if ((!props.popup && !props.diretta) || giaVisto()) {
         return;
     }
 
@@ -94,7 +110,7 @@ onUnmounted(() => {
 
 <template>
     <dialog
-        v-if="popup"
+        v-if="popup || diretta"
         ref="dialogo"
         aria-labelledby="popup-match-day-titolo"
         class="popup-match-day m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl p-0 shadow-2xl backdrop:bg-gray-950/80"
@@ -109,18 +125,34 @@ onUnmounted(() => {
             >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
-            <h2 id="popup-match-day-titolo" class="mt-2 text-3xl font-black uppercase tracking-tight">
-                {{ popup.titolo || $t('home.match_day_badge') }}
-            </h2>
-            <p v-if="popup.testo" class="mt-4 text-white/80 leading-relaxed">{{ popup.testo }}</p>
-            <a
-                :href="indirizzo"
-                v-bind="isExternalLink(indirizzo) ? externalLinkAttrs(indirizzo) : {}"
-                class="mt-8 inline-flex items-center gap-3 rounded-lg bg-savino-fucsia px-8 py-4 text-sm font-bold uppercase tracking-wider text-white hover:bg-white hover:text-savino-blue transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                @click="chiudi"
-            >
-                {{ popup.pulsante || $t('common.buy_tickets') }}
-            </a>
+            <template v-if="perLaDiretta">
+                <h2 id="popup-match-day-titolo" class="mt-2 text-3xl font-black uppercase tracking-tight">
+                    {{ $t('home.popup_diretta_titolo') }}
+                </h2>
+                <p class="mt-4 text-white/80 leading-relaxed">{{ $t('home.popup_diretta_testo') }}</p>
+                <button
+                    type="button"
+                    class="mt-8 inline-flex items-center gap-3 rounded-lg bg-savino-fucsia px-8 py-4 text-sm font-bold uppercase tracking-wider text-white hover:bg-white hover:text-savino-blue transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    data-popup-diretta
+                    @click="guarda"
+                >
+                    {{ $t('stream.watch') }}
+                </button>
+            </template>
+            <template v-else>
+                <h2 id="popup-match-day-titolo" class="mt-2 text-3xl font-black uppercase tracking-tight">
+                    {{ popup.titolo || $t('home.match_day_badge') }}
+                </h2>
+                <p v-if="popup.testo" class="mt-4 text-white/80 leading-relaxed">{{ popup.testo }}</p>
+                <a
+                    :href="indirizzo"
+                    v-bind="isExternalLink(indirizzo) ? externalLinkAttrs(indirizzo) : {}"
+                    class="mt-8 inline-flex items-center gap-3 rounded-lg bg-savino-fucsia px-8 py-4 text-sm font-bold uppercase tracking-wider text-white hover:bg-white hover:text-savino-blue transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    @click="chiudi"
+                >
+                    {{ popup.pulsante || $t('common.buy_tickets') }}
+                </a>
+            </template>
         </div>
     </dialog>
 </template>

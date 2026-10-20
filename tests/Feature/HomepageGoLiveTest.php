@@ -84,6 +84,48 @@ class HomepageGoLiveTest extends TestCase
     }
 
     #[Test]
+    public function in_trasferta_il_pop_up_porta_alla_diretta_da_un_ora_prima(): void
+    {
+        $this->travelTo(now()->setTime(18, 0));
+        $this->garaDiOggi(inCasa: false, attributi: ['stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']);
+
+        $this->assertFalse(MatchDay::stato()['popup_diretta']);
+        $this->assertFalse(MatchDay::stato()['diretta_vicina']);
+
+        $this->travelTo(now()->setTime(19, 45));
+        $this->get('/')->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('matchDay.popup', null)
+            ->where('matchDay.popupDiretta', true)
+            ->where('matchDay.direttaVicina', true)
+        );
+
+        SiteSetting::set('match_day_popup_attivo', false, 'home');
+        $this->assertFalse(MatchDay::stato()['popup_diretta']);
+    }
+
+    #[Test]
+    public function in_casa_la_diretta_prende_il_posto_dei_biglietti_dopo_il_fischio_d_inizio(): void
+    {
+        $this->travelTo(now()->setTime(20, 0));
+        $gara = $this->garaDiOggi(inCasa: true, attributi: ['stream_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']);
+
+        $stato = MatchDay::stato();
+        $this->assertNotNull($stato['popup']);
+        $this->assertFalse($stato['popup_diretta']);
+
+        $this->assertTrue($stato['diretta_vicina']);
+
+        $this->travelTo(now()->setTime(21, 0));
+        $stato = MatchDay::stato();
+        $this->assertNull($stato['popup']);
+        $this->assertTrue($stato['popup_diretta']);
+
+        // Un link che non si apre nel sito non ha pop-up: porterebbe fuori.
+        $gara->update(['stream_url' => 'https://www.example.com/diretta']);
+        $this->assertFalse(MatchDay::stato()['popup_diretta']);
+    }
+
+    #[Test]
     public function accesa_a_mano_su_una_trasferta_non_vende_biglietti(): void
     {
         $this->garaDiOggi(inCasa: false);

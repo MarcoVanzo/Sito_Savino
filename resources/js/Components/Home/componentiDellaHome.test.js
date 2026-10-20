@@ -140,6 +140,25 @@ describe('PopupMatchDay', () => {
         expect(seconda.find('dialog').element.open).toBe(false);
     });
 
+    it('senza biglietti da vendere porta alla diretta, con un ricordo suo', async () => {
+        salvaIlConsenso({ statistiche: false, marketing: false, versione: VERSIONE });
+        // Visto il pop-up dei biglietti al mattino, quello della diretta arriva lo stesso.
+        sessionStorage.setItem('match-day-popup-visto', new Date().toLocaleDateString('sv'));
+        const finestra = monta(PopupMatchDay, { popup: null, diretta: true });
+
+        vi.advanceTimersByTime(2000);
+        await nextTick();
+        await nextTick();
+
+        expect(finestra.find('dialog').element.open).toBe(true);
+        expect(finestra.find('a').exists()).toBe(false);
+        await finestra.find('[data-popup-diretta]').trigger('click');
+        expect(finestra.emitted('guarda')).toHaveLength(1);
+        expect(finestra.find('dialog').element.open).toBe(false);
+        vi.useRealTimers();
+        expect(await violazioniAxe(finestra.element)).toEqual([]);
+    });
+
     it('con il consenso già dato si apre da solo e porta al link della redazione', async () => {
         salvaIlConsenso({ statistiche: false, marketing: false, versione: VERSIONE });
         const finestra = monta(PopupMatchDay, { popup: { ...popup, url: 'https://www.vivaticket.com/partita' } });
