@@ -134,15 +134,36 @@ function cancellaICookieDelPixel() {
 }
 
 /**
+ * Un identificativo per evento, che Meta usa per riconoscere lo stesso evento
+ * arrivato due volte (dal browser e dalla Conversions API).
+ */
+function nuovoEventId() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+/**
+ * L'`eventID` dell'acquisto si ricava dal numero d'ordine, perche' il server
+ * (InviaAcquistoAMeta) deve poterlo ricalcolare da solo: e' cio' che fa
+ * contare una volta sola l'ordine arrivato dal browser e dal webhook.
+ */
+export function eventIdDellAcquisto(orderNumber) {
+    return `purchase-${orderNumber}`;
+}
+
+/**
  * `metodo` e' `track` per gli eventi standard di Meta, `trackCustom` per i
- * nostri.
+ * nostri. Ogni evento porta un `eventID`.
  *
  * @returns {boolean} se l'evento e' partito davvero
  */
-function track(event, params, metodo = 'track') {
+function track(event, params, { metodo = 'track', eventId = nuovoEventId() } = {}) {
     if (!pixelId || !scriptLoaded || !window.fbq || !allowed()) return false;
 
-    params === undefined ? window.fbq(metodo, event) : window.fbq(metodo, event, params);
+    window.fbq(metodo, event, params ?? {}, { eventID: eventId });
 
     return true;
 }
@@ -180,7 +201,7 @@ export function trackAddToCart({ id, name, value, quantity = 1, currency = 'EUR'
  * conversione personalizzata.
  */
 export function trackTicketClick(destinazione) {
-    track('TicketClick', { destinazione: String(destinazione) }, 'trackCustom');
+    track('TicketClick', { destinazione: String(destinazione) }, { metodo: 'trackCustom' });
 }
 
 /** Un modulo inviato con successo (contatti, newsletter, accredito stampa). */
@@ -211,5 +232,5 @@ export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR'
         num_items: items.reduce((total, item) => total + (Number(item.quantity) || 0), 0),
         value: Number(value) || 0,
         currency,
-    }));
+    }, { eventId: eventIdDellAcquisto(orderNumber) }));
 }
