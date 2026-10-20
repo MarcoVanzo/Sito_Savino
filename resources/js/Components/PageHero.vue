@@ -29,7 +29,7 @@ defineProps({
 <template>
     <section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-savino-blue to-gray-900"></div>
-        <img
+        <img fetchpriority="high"
             v-if="image"
             :src="image"
             :alt="title || ''"

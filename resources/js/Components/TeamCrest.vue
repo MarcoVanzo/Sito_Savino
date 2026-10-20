@@ -13,7 +13,7 @@ defineProps({
 </script>
 
 <template>
-    <img
+    <img loading="lazy"
         v-if="logoUrl"
         :src="logoUrl"
         :alt="name || ''"

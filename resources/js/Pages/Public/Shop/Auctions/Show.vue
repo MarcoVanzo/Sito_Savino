@@ -184,7 +184,7 @@ onUnmounted(() => {
                     <div>
                         <!-- Main Image -->
                         <div class="relative aspect-square bg-gray-800 rounded-2xl overflow-hidden mb-4">
-                            <img
+                            <img fetchpriority="high"
                                 v-if="mainImage"
                                 :src="mainImage"
                                 :alt="currentAuction.title || ''"
@@ -221,7 +221,7 @@ onUnmounted(() => {
                                         : 'border-transparent opacity-60 hover:opacity-100',
                                 ]"
                             >
-                                <img :src="img.thumbnail" :alt="`${currentAuction.title} ${index + 1}`" class="w-full h-full object-cover" @error="onImgError" />
+                                <img loading="lazy" :src="img.thumbnail" :alt="`${currentAuction.title} ${index + 1}`" class="w-full h-full object-cover" @error="onImgError" />
                             </button>
                         </div>
                     </div>

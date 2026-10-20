@@ -90,7 +90,7 @@ const ogMeta = useOgMeta({
 
                 <div class="flex flex-col sm:flex-row gap-8 items-start">
                     <div class="shrink-0 w-48 sm:w-64 aspect-[3/4] rounded-2xl overflow-hidden bg-white/10">
-                        <img
+                        <img fetchpriority="high"
                             v-if="atleta.official_photo_url"
                             :src="atleta.official_photo_url"
                             :alt="atleta.photo_alt || $t('atleta.photo_alt', { name: fullName })"

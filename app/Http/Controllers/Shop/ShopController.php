@@ -17,6 +17,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ShopController extends Controller
 {
@@ -36,6 +37,9 @@ class ShopController extends Controller
     {
         $this->storico = app(StoricoPrezzi::class)->righePer($prodotti);
     }
+
+    /** Lo stesso `sizes` della foto grande in ProductDetail.vue. */
+    public const MISURE_DELLA_FOTO = '(min-width: 1280px) 600px, (min-width: 1024px) 45vw, 100vw';
 
     /**
      * Mappa un Product Eloquent model in un array con campi tradotti e image_url.
@@ -79,6 +83,10 @@ class ShopController extends Controller
             ] : null,
             'image_url' => $p->getImageUrl('card'),
             'images' => $media->map(fn ($m) => $m->getUrl())->values()->all(),
+            // Le stesse foto per la pagina: la misura giusta in WebP per la
+            // vista grande e la miniatura per la striscia (`images` resta
+            // l'originale, per og:image).
+            'immagini' => $media->map(fn ($m) => self::fotoDellaScheda($m))->values()->all(),
             'variants' => $p->relationLoaded('variants') ? $p->variants : [],
             // Null quando la redazione ha tolto la voce o non c'e' nessuna
             // guida caricata: il frontend non mostra un link che non porta
@@ -224,6 +232,35 @@ class ShopController extends Controller
     }
 
     /**
+     * Una foto della scheda: `src` e `srcset` con le conversioni WebP gia'
+     * generate (in ripiego `zoom`, poi l'originale), `miniatura` per la
+     * striscia sotto la foto grande.
+     *
+     * @return array{src: string, srcset: string|null, miniatura: string}
+     */
+    private static function fotoDellaScheda(Media $media): array
+    {
+        $misure = array_filter([
+            'scheda_media' => 800,
+            'scheda' => 1200,
+        ], fn (string $conversione) => $media->hasGeneratedConversion($conversione), ARRAY_FILTER_USE_KEY);
+
+        $srcset = collect($misure)->map(fn (int $larghezza, string $conversione) => $media->getUrl($conversione).' '.$larghezza.'w')->implode(', ');
+
+        $src = match (true) {
+            isset($misure['scheda']) => $media->getUrl('scheda'),
+            $media->hasGeneratedConversion('zoom') => $media->getUrl('zoom'),
+            default => $media->getUrl(),
+        };
+
+        return [
+            'src' => $src,
+            'srcset' => $srcset !== '' ? $srcset : null,
+            'miniatura' => $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : $src,
+        ];
+    }
+
+    /**
      * Pagina dettaglio prodotto.
      * La view viene tracciata dal middleware TrackShopPageView.
      */
@@ -236,10 +273,20 @@ class ShopController extends Controller
 
         $product->load(['variants', 'category', 'media']);
 
+        $scheda = $this->mapProduct($product);
+        $prima = $scheda['immagini'][0] ?? null;
+
         return Inertia::render('Public/Shop/ProductDetail', [
-            'product' => $this->mapProduct($product),
+            'product' => $scheda,
             'relatedProducts' => $this->prodottiCorrelati($product),
         ])->withViewData([
+            // La foto grande e' l'elemento LCP della scheda: la stessa serie di
+            // ProductDetail.vue, chiesta subito dall'HTML servito.
+            'immaginiDaPrecaricare' => $prima !== null ? [[
+                'href' => $prima['src'],
+                'srcset' => $prima['srcset'],
+                'sizes' => self::MISURE_DELLA_FOTO,
+            ]] : [],
             // Le lingue in cui la scheda e' scritta: le altre non entrano
             // negli hreflang e, aperte, sono noindex (app.blade.php).
             'lingueDellaPagina' => array_values(array_filter(

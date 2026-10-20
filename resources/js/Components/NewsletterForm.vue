@@ -262,12 +262,23 @@ function handleSubmit() {
 <style scoped>
 .newsletter-cta-btn {
     position: relative;
+}
+
+/* Ombra ferma che pulsa di opacita': un `box-shadow` animato non si compone. */
+.newsletter-cta-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: 0 0 25px rgba(201, 168, 76, 0.4), 0 0 50px rgba(201, 168, 76, 0.2);
+    opacity: 0.5;
     animation: newsletterGlow 2.5s ease-in-out infinite;
 }
 
 @keyframes newsletterGlow {
-    0%, 100% { box-shadow: 0 0 15px rgba(201, 168, 76, 0.2), 0 0 30px rgba(201, 168, 76, 0.1); }
-    50% { box-shadow: 0 0 25px rgba(201, 168, 76, 0.4), 0 0 50px rgba(201, 168, 76, 0.2); }
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
 }
 
 .newsletter-success-anim {
@@ -286,12 +297,12 @@ function handleSubmit() {
 }
 
 /* Il pulsante di pausa della home ferma anche questo bagliore (WCAG 2.2.2). */
-.movimento-fermo .newsletter-cta-btn {
+.movimento-fermo .newsletter-cta-btn::after {
     animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .newsletter-cta-btn {
+    .newsletter-cta-btn::after {
         animation: none;
     }
     .newsletter-success-anim {

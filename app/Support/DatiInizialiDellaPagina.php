@@ -30,7 +30,7 @@ class DatiInizialiDellaPagina
         $id = trim(trim($expression), "\'\"") ?: 'app';
 
         return '<?php if (!isset($__inertiaSsrDispatched)) { $__inertiaSsrDispatched = true; $__inertiaSsrResponse = app(\Inertia\Ssr\Gateway::class)->dispatch($page); } '
-            .'if ($__inertiaSsrResponse) { echo $__inertiaSsrResponse->body; } else { ?>'
+            .'if ($__inertiaSsrResponse) { echo \\'.self::class.'::corpoDellSsr($__inertiaSsrResponse->body, $page, \''.$id.'\'); } else { ?>'
             .'<script data-page="'.$id.'" type="application/json"><?php echo \\'.self::class.'::json($page); ?></script><div id="'.$id.'"></div>'
             .'<?php } ?>';
     }
@@ -41,5 +41,35 @@ class DatiInizialiDellaPagina
     public static function json(array $page): string
     {
         return (string) json_encode($page, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    }
+
+    /**
+     * Il corpo reso dal server SSR, con il JSON della pagina riscritto da
+     * `json()`.
+     *
+     * Il client SSR di Inertia scrive il JSON escapando solo `/`: il `</script>`
+     * non puo' piu' comparire, ma `<!--` seguito da `<script` (un incorporamento
+     * copiato da Instagram in una notizia) mette ancora il parser HTML nello
+     * stato da cui la chiusura non lo fa uscire. Si sostituisce il blocco con
+     * quello di sempre, che neutralizza `<` e `>`.
+     *
+     * @param  array<string, mixed>  $page
+     */
+    public static function corpoDellSsr(string $corpo, array $page, string $id = 'app'): string
+    {
+        $apertura = '<script data-page="'.$id.'" type="application/json">';
+        $inizio = strpos($corpo, $apertura);
+
+        if ($inizio === false) {
+            return $corpo;
+        }
+
+        $fine = strpos($corpo, '</script>', $inizio);
+
+        if ($fine === false) {
+            return $corpo;
+        }
+
+        return substr($corpo, 0, $inizio).$apertura.self::json($page).substr($corpo, $fine);
     }
 }

@@ -44,7 +44,7 @@ const chiudi = () => finestra.value?.close();
                     <h2 id="avviso-garanzia-titolo" class="text-lg font-bold text-savino-blue">{{ $t('garanzia_legale.title') }}</h2>
                     <button type="button" class="text-gray-600 hover:text-gray-900 text-2xl leading-none" :aria-label="$t('garanzia_legale.close')" @click="chiudi">&times;</button>
                 </div>
-                <img :src="immagine" :alt="$t('garanzia_legale.alt')" aria-describedby="avviso-garanzia-trascrizione" width="910" height="1287" class="w-full h-auto" />
+                <img loading="lazy" :src="immagine" :alt="$t('garanzia_legale.alt')" aria-describedby="avviso-garanzia-trascrizione" width="910" height="1287" class="w-full h-auto" />
                 <p id="avviso-garanzia-trascrizione" class="sr-only">{{ $t('garanzia_legale.transcript') }}</p>
                 <p class="mt-4 text-sm text-center">
                     <a :href="$t('garanzia_legale.url')" target="_blank" rel="noopener noreferrer" class="text-savino-blue underline font-semibold">

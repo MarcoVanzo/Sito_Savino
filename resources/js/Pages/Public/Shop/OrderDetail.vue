@@ -96,7 +96,7 @@ const formatDate = (dateString) => {
                             <ul class="divide-y divide-gray-100">
                                 <li v-for="item in order.items" :key="item.id" class="p-6 flex items-center gap-6">
                                     <div class="w-20 h-20 flex-shrink-0 bg-gray-50 rounded-md overflow-hidden border border-gray-100">
-                                        <img :src="item.product?.image_url" :alt="item.product?.name || ''" @error="onImgError" class="w-full h-full object-cover object-center" />
+                                        <img loading="lazy" :src="item.product?.image_url" :alt="item.product?.name || ''" @error="onImgError" class="w-full h-full object-cover object-center" />
                                     </div>
                                     <div class="flex-1 flex flex-col justify-center">
                                         <h4 class="text-base font-bold text-gray-900">{{ item.product?.name }}</h4>

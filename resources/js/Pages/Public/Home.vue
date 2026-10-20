@@ -147,8 +147,25 @@ const slideBackground = (slide) => {
 // 300-450 KB il telefono scaricava 3-4 MB prima di mostrare la prima foto
 // (Lighthouse mobile: LCP 20 s). Si assegna lo sfondo solo alla slide in
 // scena e alla successiva, cosi' la dissolvenza la trova gia' pronta.
-const slidePronte = ref(new Set([0, 1]));
-const sfondoDellaSlide = (slide, index) => (slidePronte.value.has(index) ? slideBackground(slide) : {});
+//
+// La prima e' un <img> con le due misure (`hero_mobile` 1200 px in WebP e
+// `hero` 1920 px), la stessa serie precaricata dall'HTML servito
+// (PublicController::primaSlideDaPrecaricare). Gli sfondi si assegnano solo
+// dopo il montaggio, quando si sa quanto e' largo lo schermo: sul telefono
+// prendono la misura piccola.
+const slidePronte = ref(new Set([0]));
+const schermoPiccolo = ref(false);
+const versioneMobile = (index) => props.heroSlides?.[index]?.image_mobile || null;
+const srcsetDellaSlide = (index) => {
+    const mobile = versioneMobile(index);
+
+    return mobile ? `${mobile} 1200w, ${slides.value[index]} 1920w` : undefined;
+};
+const sfondoDellaSlide = (slide, index) => {
+    if (!slidePronte.value.has(index)) return {};
+
+    return slideBackground(schermoPiccolo.value && versioneMobile(index) ? versioneMobile(index) : slide);
+};
 
 // Stats section dal backend con fallback
 const statsTitle = computed(() => homeSettings.value.stats_title || $t('home.stats_title'));
@@ -435,6 +452,11 @@ const getCachedTiltHandlers = (index) => {
 // === LIFECYCLE ===
 onMounted(async () => {
     movimentoFermo.value = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    // Fino a 1200 px fisici basta la misura per telefono (`hero_mobile`).
+    schermoPiccolo.value = window.innerWidth * (window.devicePixelRatio || 1) <= 1200;
+    if (slides.value.length > 1) {
+        slidePronte.value.add(1);
+    }
 
     // Slideshow — transitionend per cleanup senza scatti
     if (!heroVideoUrl.value) {
@@ -528,7 +550,6 @@ const ogMeta = useOgMeta({
         <meta property="og:image" :content="ogMeta.image" />
         <meta property="og:url" :content="ogMeta.url" />
         <meta property="og:type" :content="ogMeta.type" />
-        <link v-if="slides.length" rel="preload" as="image" :href="slides[0]" fetchpriority="high" />
     </Head>
     <PublicLayout :class="{ 'movimento-fermo': movimentoFermo }">
         <!-- HERO SECTION -->
@@ -559,6 +580,10 @@ const ogMeta = useOgMeta({
                         <img 
                             v-if="index === 0"
                             :src="slide"
+                            :srcset="srcsetDellaSlide(index)"
+                            sizes="100vw"
+                            width="1920"
+                            height="1080"
                             :alt="testoDellaSlide(index)"
                             fetchpriority="high"
                             decoding="sync"
@@ -1169,37 +1194,63 @@ const ogMeta = useOgMeta({
 }
 
 /* === CTA GLOW EFFECT === */
-.cta-glow-gold {
-    position: relative;
-    animation: ctaGlowGold 2.5s ease-in-out infinite;
-}
-
-@keyframes ctaGlowGold {
-    0%, 100% { box-shadow: 0 0 15px rgba(201, 168, 76, 0.2), 0 0 30px rgba(201, 168, 76, 0.1); }
-    50% { box-shadow: 0 0 25px rgba(201, 168, 76, 0.4), 0 0 50px rgba(201, 168, 76, 0.2); }
-}
-
+/* Il bagliore e' un'ombra ferma su un livello a parte, che pulsa solo di
+   opacita': animare `box-shadow` ridisegnava il pulsante a ogni fotogramma
+   (Lighthouse, «animazioni non composite», audit del 20/10/2026). */
+.cta-glow-gold,
 .cta-glow-red {
     position: relative;
-    animation: ctaGlowRed 2.5s ease-in-out infinite;
 }
 
-@keyframes ctaGlowRed {
-    0%, 100% { box-shadow: 0 0 15px rgba(223, 51, 143, 0.2), 0 0 30px rgba(223, 51, 143, 0.1); }
-    50% { box-shadow: 0 0 25px rgba(223, 51, 143, 0.4), 0 0 50px rgba(223, 51, 143, 0.2); }
+.cta-glow-gold::after,
+.cta-glow-red::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.5;
+    animation: ctaGlow 2.5s ease-in-out infinite;
+}
+
+.cta-glow-gold::after {
+    box-shadow: 0 0 25px rgba(201, 168, 76, 0.4), 0 0 50px rgba(201, 168, 76, 0.2);
+}
+
+.cta-glow-red::after {
+    box-shadow: 0 0 25px rgba(223, 51, 143, 0.4), 0 0 50px rgba(223, 51, 143, 0.2);
+}
+
+@keyframes ctaGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
 }
 
 /* === MATCH CARD GRADIENT SHIFT === */
+/* Il gradiente scorre con `transform` su un livello largo tre volte la card,
+   non con `background-position`, che non si compone. */
 .match-card-gradient {
-    background: linear-gradient(135deg, #003063, #0B1521, #003063, #0B1521);
-    background-size: 300% 300%;
+    position: relative;
+    isolation: isolate;
+    background: #003063;
+}
+
+.match-card-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(90deg, #003063, #0B1521, #003063, #0B1521, #003063);
     animation: gradientShift 8s ease infinite;
+    pointer-events: none;
 }
 
 @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-66.666%); }
 }
 
 /* === NEWS CARD ELEVATION === */
@@ -1292,9 +1343,9 @@ const ogMeta = useOgMeta({
 /* === PAUSA DEL MOVIMENTO (pulsante) === */
 .movimento-fermo .badge-glow,
 .movimento-fermo .badge-icon,
-.movimento-fermo .cta-glow-gold,
-.movimento-fermo .cta-glow-red,
-.movimento-fermo .match-card-gradient,
+.movimento-fermo .cta-glow-gold::after,
+.movimento-fermo .cta-glow-red::after,
+.movimento-fermo .match-card-gradient::before,
 .movimento-fermo .marquee-track,
 .movimento-fermo .hero-slide-inner,
 .movimento-fermo .slide-progress {
@@ -1326,11 +1377,9 @@ const ogMeta = useOgMeta({
     .badge-icon {
         animation: none !important;
     }
-    .cta-glow-gold,
-    .cta-glow-red {
-        animation: none !important;
-    }
-    .match-card-gradient {
+    .cta-glow-gold::after,
+    .cta-glow-red::after,
+    .match-card-gradient::before {
         animation: none !important;
     }
     .marquee-track {

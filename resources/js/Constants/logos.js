@@ -25,5 +25,22 @@ export const LOGOS = {
     LVF_SMALL: '/images/logo-lvf-small.png',
 };
 
+/**
+ * Il logo volley in WebP alle misure in cui si mostra (64-125 px in testata,
+ * 56-80 nel footer): l'originale PNG e' 1600x1600, 100 KB, ed era l'elemento
+ * LCP della home (audit del 20/10/2026). `LOGOS.VOLLEY` resta l'originale per
+ * og:image e i ripieghi. La stessa serie e' precaricata in app.blade.php
+ * (`App\Support\LogoDelSito`): un test le confronta.
+ */
+export const LOGO_VOLLEY_SRCSET = '/images/logo-volley-128.webp 128w, /images/logo-volley-256.webp 256w, /images/logo-volley-384.webp 384w';
+
+/**
+ * La serie di misure per un logo, solo se e' il logo volley del sito: un logo
+ * caricato dalla redazione (`site_logo`) non ha varianti.
+ */
+export function srcsetDelLogo(src) {
+    return src === LOGOS.VOLLEY ? LOGO_VOLLEY_SRCSET : undefined;
+}
+
 export default LOGOS;
 

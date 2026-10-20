@@ -765,7 +765,7 @@ const ogMeta = computed(() => useOgMeta({
                             class="gallery-lightbox__thumb"
                             :class="{ 'gallery-lightbox__thumb--active': Math.max(0, lightboxIndex - 4) + i === lightboxIndex }"
                         >
-                            <img :src="item.thumb || item.url" :alt="item.alt || ''" @error="onImgError" />
+                            <img loading="lazy" :src="item.thumb || item.url" :alt="item.alt || ''" @error="onImgError" />
                         </button>
                     </div>
             </template>

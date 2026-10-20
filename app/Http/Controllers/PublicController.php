@@ -21,6 +21,7 @@ use App\Models\Team;
 use App\Services\PalmaresPresenter;
 use App\Services\SponsorDirectory;
 use App\Support\Diretta\DirettaPerIlSito;
+use App\Support\ImmaginiDaPrecaricare;
 use App\Support\LiveStream;
 use App\Support\MatchDay;
 use App\Support\PermalinkVecchioSito;
@@ -100,7 +101,8 @@ class PublicController extends Controller
                     'id' => $slide->id,
                     'title' => $slide->title,
                     'subtitle' => $slide->subtitle,
-                    'image' => $slide->getFirstMediaUrl('hero-slides', 'hero') ?: $slide->getFirstMediaUrl('hero-slides') ?: '/images/hero1.jpg',
+                    'image' => $slide->immaginiDellHero()['grande'],
+                    'image_mobile' => $slide->immaginiDellHero()['mobile'],
                     'cta_text' => $slide->cta_text,
                     'cta_url' => $slide->cta_url,
                 ])->toArray();
@@ -146,6 +148,8 @@ class PublicController extends Controller
             'eventi' => Evento::inArrivo()->with('media')->take(3)->get()
                 ->map(fn (Evento $evento) => $evento->perLaHome())
                 ->all(),
+        ])->withViewData([
+            'immaginiDaPrecaricare' => ImmaginiDaPrecaricare::primaSlideDellHero($data['heroSlides']),
         ]);
     }
 

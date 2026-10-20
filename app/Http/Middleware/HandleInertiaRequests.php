@@ -10,7 +10,9 @@ use App\Models\User;
 use App\Support\IndirizziPerLingua;
 use App\Support\SentryDsn;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Inertia\Middleware;
+use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,7 +41,14 @@ class HandleInertiaRequests extends Middleware
             // Le pagine usano `ziggy.url`/`ziggy.location` per i dati strutturati
             // e i meta Open Graph, che richiedono URL assoluti. La direttiva
             // @routes espone solo l'helper JS, non questa prop.
+            //
+            // Il server SSR non ha la direttiva @routes: al primo caricamento
+            // (non nelle visite Inertia) riceve qui l'elenco chiuso delle rotte
+            // (config/ziggy.php), per i `route()` dei componenti (paginaSsr.js).
             'ziggy' => fn () => [
+                ...($this->serveIlServerSsr($request)
+                    ? Arr::only((new Ziggy)->toArray(), ['routes', 'port', 'defaults'])
+                    : []),
                 'url' => $request->getSchemeAndHttpHost(),
                 'location' => $request->url(),
             ],
@@ -74,6 +83,15 @@ class HandleInertiaRequests extends Middleware
                 'environment' => config('sentry.environment') ?? app()->environment(),
             ],
         ];
+    }
+
+    /**
+     * Se questa risposta passa dal server SSR: solo i caricamenti interi, con
+     * l'SSR acceso (INERTIA_SSR_ENABLED).
+     */
+    private function serveIlServerSsr(Request $request): bool
+    {
+        return (bool) config('inertia.ssr.enabled') && ! $request->header('X-Inertia');
     }
 
     /**

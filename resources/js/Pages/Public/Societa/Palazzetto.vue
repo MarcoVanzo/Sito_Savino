@@ -116,7 +116,7 @@ const services = computed(() => Array.isArray(cd.value?.services) ? cd.value.ser
                         <div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl group border-8 border-white">
                             <div class="absolute inset-0 bg-savino-blue/10 group-hover:bg-transparent transition-colors duration-500 z-10 pointer-events-none"></div>
                             <!-- La foto è la copertina della pagina, caricata dal pannello. -->
-                            <img
+                            <img fetchpriority="high"
                                 v-if="page?.cover_url"
                                 :src="page.cover_url"
                                 :alt="venueName || ''"

@@ -71,7 +71,7 @@ const ogMeta = useOgMeta({
 
         <!-- COVER IMAGE -->
         <div v-if="post?.media?.length" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
-            <img
+            <img fetchpriority="high"
                 :src="post.media[0]?.original_url"
                 :alt="testoAlternativo(post.image_alt, post.title)"
                 class="w-full rounded-xl shadow-2xl object-cover max-h-[500px]"
