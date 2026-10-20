@@ -15,6 +15,7 @@ use App\Services\AdminNotificationService;
 use App\Services\AvvisoNuovoOrdine;
 use App\Services\CartService;
 use App\Services\CheckoutService;
+use App\Services\MetaConversioni\ConsensoDiMarketingDellOrdine;
 use App\Services\Payments\PayPalPaymentService;
 use App\Services\Payments\StripePaymentService;
 use Illuminate\Http\RedirectResponse;
@@ -45,6 +46,7 @@ class CheckoutController extends Controller
         protected CartService $cartService,
         protected CheckoutService $checkoutService,
         protected AdminNotificationService $adminNotificationService,
+        protected ConsensoDiMarketingDellOrdine $consensoDiMarketing,
     ) {}
 
     /**
@@ -129,6 +131,14 @@ class CheckoutController extends Controller
                 $cart,
                 $orderData,
                 auth()->user(),
+            );
+
+            $this->consensoDiMarketing->registra(
+                $order,
+                $request->validated('consenso_riferimento'),
+                $request->validated('meta_fbp'),
+                $request->validated('meta_fbc'),
+                $request->userAgent(),
             );
 
             // Track begin_checkout event

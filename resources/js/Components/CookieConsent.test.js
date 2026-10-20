@@ -6,12 +6,16 @@ const VERSIONE = '2026-09-22';
 
 const aggiornaStatistiche = vi.fn();
 const aggiornaMarketing = vi.fn();
+const aggiornaPubblicita = vi.fn();
 
 // I due che accendono e spengono davvero la misurazione. Sono mock perché
 // GA4 e il Pixel non si caricano in un test, ma *che* vengano chiamati, e con
 // quale valore, è esattamente ciò che questi test devono provare: fino a
 // settembre 2026 il banner raccoglieva una scelta che poi non pilotava nulla.
-vi.mock('../analytics.js', () => ({ updateAnalyticsConsent: (...a) => aggiornaStatistiche(...a) }));
+vi.mock('../analytics.js', () => ({
+    updateAnalyticsConsent: (...a) => aggiornaStatistiche(...a),
+    updateAdsConsent: (...a) => aggiornaPubblicita(...a),
+}));
 vi.mock('../meta-pixel.js', () => ({ updateMarketingConsent: (...a) => aggiornaMarketing(...a) }));
 
 // Le props della pagina Inertia, che i test cambiano: la versione
@@ -64,6 +68,7 @@ describe('CookieConsent', () => {
         localStorage.clear();
         aggiornaStatistiche.mockClear();
         aggiornaMarketing.mockClear();
+        aggiornaPubblicita.mockClear();
         window.axios = { post: vi.fn().mockResolvedValue({ data: {} }) };
         globalThis.route = (nome) => `/${nome}`;
         pagina.props = { consensoCookie: { versione: VERSIONE }, locale: 'it' };
@@ -145,6 +150,8 @@ describe('CookieConsent', () => {
 
         expect(aggiornaStatistiche).toHaveBeenCalledWith(true);
         expect(aggiornaMarketing).toHaveBeenCalledWith(true);
+        // Consent Mode di Google: ad_storage & c. seguono il marketing.
+        expect(aggiornaPubblicita).toHaveBeenCalledWith(true);
 
         const salvato = leggiIlConsenso(VERSIONE);
         expect(salvato.scelto).toBe(true);
@@ -161,6 +168,7 @@ describe('CookieConsent', () => {
 
         expect(aggiornaStatistiche).toHaveBeenCalledWith(false);
         expect(aggiornaMarketing).toHaveBeenCalledWith(false);
+        expect(aggiornaPubblicita).toHaveBeenCalledWith(false);
 
         // Rifiutare è una scelta: il banner non deve tornare a chiedere.
         const salvato = leggiIlConsenso(VERSIONE);

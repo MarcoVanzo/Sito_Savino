@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted, onBeforeUnmount, computed, nextTick } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { updateAnalyticsConsent } from '../analytics.js';
+import { updateAdsConsent, updateAnalyticsConsent } from '../analytics.js';
 import { updateMarketingConsent } from '../meta-pixel.js';
 import { leggiIlConsenso, salvaIlConsenso, registraIlConsenso, consensoInAttesa } from '../consenso.js';
 import { useTrappolaDelFocus } from '@/Composables/useTrappolaDelFocus.js';
@@ -111,6 +111,7 @@ onMounted(() => {
     if (salvato.versioneSuperata || salvato.scaduta) {
         updateAnalyticsConsent(false);
         updateMarketingConsent(false);
+        updateAdsConsent(false);
     }
 
     // Una registrazione rimasta indietro (rete assente nel momento della
@@ -170,6 +171,8 @@ const saveConsent = () => {
     // sito. Da qui la misurazione parte, o si ferma, davvero.
     updateAnalyticsConsent(consent.analytics);
     updateMarketingConsent(consent.marketing);
+    // Consent Mode di Google: i segnali pubblicitari seguono il marketing.
+    updateAdsConsent(consent.marketing);
 
     // La prova della scelta, sul server. Non si aspetta: il sito si comporta
     // già come il visitatore ha chiesto.

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Support\LiveStream;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -399,5 +400,27 @@ class SecurityHeadersTest extends TestCase
         $this->assertStringNotContainsString('script-src *', $csp);
         $this->assertStringNotContainsString("script-src 'unsafe-hashes'", $csp);
         $this->assertStringNotContainsString('connect-src *', $csp);
+    }
+
+    /**
+     * Google Ads entra nella policy solo quando c'e' l'ID: senza, il sito non
+     * apre host pubblicitari che non usa.
+     */
+    #[Test]
+    public function gli_host_di_google_ads_entrano_solo_con_l_id(): void
+    {
+        $senza = (string) $this->get('/')->headers->get('Content-Security-Policy');
+        $this->assertStringNotContainsString('googleadservices.com', $senza);
+        $this->assertStringNotContainsString('doubleclick.net', $senza);
+
+        config(['services.google_ads.id' => 'AW-123456789']);
+        // La pagina in cache tiene l'header con cui e' stata costruita.
+        Cache::flush();
+        $con = (string) $this->get('/')->headers->get('Content-Security-Policy');
+
+        foreach (['script-src', 'connect-src', 'frame-src'] as $nome) {
+            [$direttiva] = array_values(array_filter(explode('; ', $con), fn (string $riga) => str_starts_with($riga, $nome.' ')));
+            $this->assertStringContainsString('https://googleads.g.doubleclick.net', $direttiva, $nome);
+        }
     }
 }

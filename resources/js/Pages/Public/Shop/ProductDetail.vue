@@ -12,7 +12,7 @@ import { useOgMeta } from '@/Composables/useOgMeta';
 import ProductCard from '@/Components/Shop/ProductCard.vue';
 import EtichetteProdotto from '@/Components/Shop/EtichetteProdotto.vue';
 import StatoArticolo from '@/Components/Shop/StatoArticolo.vue';
-import { trackViewContent, trackAddToCart } from '@/meta-pixel.js';
+import { prodottoVisto, aggiuntoAlCarrello } from '@/conversioni.js';
 
 
 const $t = useTranslations();
@@ -79,12 +79,12 @@ const isTouchDevice = ref(false);
 onMounted(() => {
     isTouchDevice.value = window.matchMedia('(hover: none)').matches;
 
-    trackViewContent({
+    prodottoVisto({
         id: props.product.id,
         name: props.product.name,
         // Il prezzo che si paga, non il barrato (`price` con uno sconto
         // annunciabile e' il riferimento dei 30 giorni).
-        value: displayPrice.value,
+        price: displayPrice.value,
     });
 });
 
@@ -189,11 +189,11 @@ const handleAddToCart = () => {
     cartError.value = '';
     // Prima della chiamata e non nella callback: `addToCart` naviga via Inertia
     // e il componente può essere già smontato quando la risposta arriva.
-    trackAddToCart({
+    aggiuntoAlCarrello({
         id: props.product.id,
         name: props.product.name,
-        // Taglia e firma comprese: e' il valore che il carrello fa pagare.
-        value: displayPrice.value * quantity.value,
+        // Taglia e firma comprese: e' il prezzo che il carrello fa pagare.
+        price: displayPrice.value,
         quantity: quantity.value,
     });
     addToCart({

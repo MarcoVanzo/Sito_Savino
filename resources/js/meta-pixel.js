@@ -21,10 +21,13 @@
  *    di Meta si aspetta di trovare in coda quando finisce di caricarsi.
  */
 
+import { unaVoltaPerOrdine } from './Support/unaVoltaPerOrdine.js';
+
 let pixelId = null;
 let requiresConsent = false;
 let consentGranted = true;
 let scriptLoaded = false;
+let contatoreEventi = 0;
 
 function ensureStub() {
     if (window.fbq) return;
@@ -131,11 +134,44 @@ function cancellaICookieDelPixel() {
     }
 }
 
-/** @returns {boolean} se l'evento e' partito davvero */
-function track(event, params) {
+/**
+ * Un identificativo per evento, che Meta usa per riconoscere lo stesso evento
+ * arrivato due volte (dal browser e dalla Conversions API).
+ */
+function nuovoEventId() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+
+    // Safari prima della 15.4 non ha randomUUID ma ha getRandomValues.
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+        return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    contatoreEventi += 1;
+
+    return `${Date.now().toString(36)}-${contatoreEventi}`;
+}
+
+/**
+ * L'`eventID` dell'acquisto si ricava dal numero d'ordine, perche' il server
+ * (InviaAcquistoAMeta) deve poterlo ricalcolare da solo: e' cio' che fa
+ * contare una volta sola l'ordine arrivato dal browser e dal webhook.
+ */
+export function eventIdDellAcquisto(orderNumber) {
+    return `purchase-${orderNumber}`;
+}
+
+/**
+ * `metodo` e' `track` per gli eventi standard di Meta, `trackCustom` per i
+ * nostri. Ogni evento porta un `eventID`.
+ *
+ * @returns {boolean} se l'evento e' partito davvero
+ */
+function track(event, params, { metodo = 'track', eventId = nuovoEventId() } = {}) {
     if (!pixelId || !scriptLoaded || !window.fbq || !allowed()) return false;
 
-    params === undefined ? window.fbq('track', event) : window.fbq('track', event, params);
+    window.fbq(metodo, event, params ?? {}, { eventID: eventId });
 
     return true;
 }
@@ -167,6 +203,20 @@ export function trackAddToCart({ id, name, value, quantity = 1, currency = 'EUR'
     });
 }
 
+/**
+ * Clic verso la biglietteria (Vivaticket). Evento nostro e non `Lead`: chi
+ * clicca non ha lasciato un contatto, e nelle campagne si usa come
+ * conversione personalizzata.
+ */
+export function trackTicketClick(destinazione) {
+    track('TicketClick', { destinazione: String(destinazione) }, { metodo: 'trackCustom' });
+}
+
+/** Un modulo inviato con successo (contatti, newsletter, accredito stampa). */
+export function trackLead(formName) {
+    track('Lead', { content_name: String(formName) });
+}
+
 /** Checkout aperto. */
 export function trackInitiateCheckout({ value, numItems, currency = 'EUR' }) {
     track('InitiateCheckout', {
@@ -177,41 +227,18 @@ export function trackInitiateCheckout({ value, numItems, currency = 'EUR' }) {
 }
 
 /**
- * Ordine concluso. Il blocco è per numero d'ordine e vive nella sessione del
- * browser: ricaricare la pagina di conferma non deve produrre una seconda
- * conversione.
- *
- * L'ordine si segna come tracciato solo se l'evento e' partito: senza
- * consenso (o prima che lo script sia pronto) `track` non manda nulla, e
- * segnarlo lo stesso impedirebbe di contarlo se il cliente accetta i cookie
- * di marketing sulla pagina di conferma, che si ricarica da sola.
+ * Ordine concluso, una volta sola per numero d'ordine (`unaVoltaPerOrdine`):
+ * ricaricare la pagina di conferma non deve produrre una seconda conversione.
  */
 export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR' }) {
     if (!pixelId || !orderNumber) return;
 
-    const key = `meta-pixel-purchase-${orderNumber}`;
-
-    try {
-        if (sessionStorage.getItem(key)) return;
-    } catch {
-        // Storage non disponibile (navigazione privata, storage pieno): meglio
-        // un evento in più che una conversione persa.
-    }
-
-    const inviato = track('Purchase', {
+    unaVoltaPerOrdine(`meta-pixel-purchase-${orderNumber}`, () => track('Purchase', {
         content_ids: items.map((item) => String(item.id)),
         contents: items.map((item) => ({ id: String(item.id), quantity: Number(item.quantity) || 1 })),
         content_type: 'product',
         num_items: items.reduce((total, item) => total + (Number(item.quantity) || 0), 0),
         value: Number(value) || 0,
         currency,
-    });
-
-    if (!inviato) return;
-
-    try {
-        sessionStorage.setItem(key, '1');
-    } catch {
-        // Come sopra: senza storage si rinuncia alla deduplica.
-    }
+    }, { eventId: eventIdDellAcquisto(orderNumber) }));
 }

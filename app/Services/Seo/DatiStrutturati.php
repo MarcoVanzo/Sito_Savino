@@ -11,7 +11,9 @@ use App\Models\Page;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductVariant;
 use App\Models\Roster;
+use App\Models\ShippingZone;
 use App\Models\SiteSetting;
 use App\Models\Team;
 use App\Support\MatchDay;
@@ -63,6 +65,9 @@ class DatiStrutturati
     /** @var list<string>|null */
     private ?array $cittaDellaLega = null;
 
+    /** @var list<ShippingZone>|null */
+    private ?array $zoneDiSpedizione = null;
+
     /** Link di vendita del Match Day o della Biglietteria; `false` = non ancora letto. */
     private string|false|null $linkDeiBiglietti = false;
 
@@ -113,7 +118,7 @@ class DatiStrutturati
 
     /**
      * Una partita. `offers` solo per le gare in casa non giocate con un link
-     * di vendita (vedi offertaBiglietti): un'offerta senza biglietti in
+     * di vendita e un prezzo (vedi offertaBiglietti): un'offerta senza biglietti in
      * vendita sarebbe un dato falso.
      *
      * @return array<string, mixed>|null
@@ -266,6 +271,11 @@ class DatiStrutturati
     }
 
     /**
+     * La scheda di un prodotto. Con le taglie diventa un `ProductGroup`: ogni
+     * taglia e' un `Product` con il suo SKU (quello del pannello), il suo
+     * prezzo e la sua disponibilita'. Spedizione e reso vengono dalla
+     * configurazione vera (zone di spedizione, condizioni di vendita).
+     *
      * @return array<string, mixed>
      */
     public function prodotto(Product $prodotto, string $locale): array
@@ -287,19 +297,7 @@ class DatiStrutturati
             'url' => $indirizzo,
             'image' => $immagini !== [] ? $immagini : [$this->logo()],
             'brand' => ['@type' => 'Brand', 'name' => self::NOME],
-            'offers' => [
-                '@type' => 'Offer',
-                'url' => $indirizzo,
-                'price' => number_format($prodotto->effectivePrice(), 2, '.', ''),
-                'priceCurrency' => 'EUR',
-                'availability' => $prodotto->availableStock() > 0
-                    ? 'https://schema.org/InStock'
-                    : 'https://schema.org/OutOfStock',
-                'itemCondition' => $prodotto->usato_o_autografato
-                    ? 'https://schema.org/UsedCondition'
-                    : 'https://schema.org/NewCondition',
-                'seller' => ['@type' => 'Organization', 'name' => self::NOME],
-            ],
+            'offers' => $this->offertaDelProdotto($prodotto, $indirizzo, $prodotto->effectivePrice(), $prodotto->availableStock()),
         ];
 
         if ($descrizione !== '') {
@@ -310,7 +308,143 @@ class DatiStrutturati
             $scheda['sku'] = (string) $prodotto->sku;
         }
 
-        return $scheda;
+        $taglie = ProductVariant::query()->where('product_id', $prodotto->id)->orderBy('id')->get()->filter(fn (ProductVariant $taglia) => filled($taglia->sku));
+
+        if ($taglie->isEmpty()) {
+            return $scheda;
+        }
+
+        $gruppo = $scheda;
+        $gruppo['@type'] = 'ProductGroup';
+        $gruppo['productGroupID'] = filled($prodotto->sku) ? (string) $prodotto->sku : (string) $prodotto->id;
+        $gruppo['variesBy'] = ['https://schema.org/size'];
+        unset($gruppo['offers'], $gruppo['sku']);
+
+        $gruppo['hasVariant'] = $taglie->values()->map(function (ProductVariant $taglia) use ($scheda, $prodotto, $indirizzo): array {
+            $variante = [
+                '@type' => 'Product',
+                'name' => trim($scheda['name'].' '.$taglia->size),
+                'sku' => (string) $taglia->sku,
+                'image' => $scheda['image'],
+                'offers' => $this->offertaDelProdotto(
+                    $prodotto,
+                    $indirizzo,
+                    $prodotto->effectivePrice() + (float) $taglia->price_modifier,
+                    (int) $taglia->stock,
+                ),
+            ];
+
+            if (filled($taglia->size)) {
+                $variante['size'] = (string) $taglia->size;
+            }
+
+            return $variante;
+        })->all();
+
+        return $gruppo;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function offertaDelProdotto(Product $prodotto, string $indirizzo, float $prezzo, int $giacenza): array
+    {
+        $offerta = [
+            '@type' => 'Offer',
+            'url' => $indirizzo,
+            'price' => number_format($prezzo, 2, '.', ''),
+            'priceCurrency' => 'EUR',
+            'availability' => $giacenza > 0
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock',
+            'itemCondition' => $prodotto->usato_o_autografato
+                ? 'https://schema.org/UsedCondition'
+                : 'https://schema.org/NewCondition',
+            'seller' => ['@type' => 'Organization', 'name' => self::NOME],
+        ];
+
+        $spedizioni = $this->spedizioni($prezzo, $prodotto->pesoPerLaSpedizione());
+
+        if ($spedizioni !== []) {
+            $offerta['shippingDetails'] = $spedizioni;
+            $offerta['hasMerchantReturnPolicy'] = $this->politicaDiReso();
+        }
+
+        return $offerta;
+    }
+
+    /**
+     * Le zone di spedizione attive, con il costo che il checkout farebbe
+     * pagare per un pezzo (`ShippingZone::calculateShippingCost`: soglia
+     * gratuita e fasce di peso). La zona «resto del mondo» (`*`) non ha paesi
+     * da dichiarare e resta fuori. I tempi: 1-2 giorni lavorativi di
+     * preparazione (condizioni di vendita, art. 4) piu' quelli della zona.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function spedizioni(float $prezzo, float $peso): array
+    {
+        if ($this->zoneDiSpedizione === null) {
+            $this->zoneDiSpedizione = ShippingZone::query()->active()->orderBy('sort_order')->get()->all();
+        }
+
+        $dettagli = [];
+
+        foreach ($this->zoneDiSpedizione as $zona) {
+            $paesi = array_values(array_filter((array) $zona->countries, fn ($paese) => is_string($paese) && preg_match('/^[A-Z]{2}$/', $paese) === 1));
+
+            if ($paesi === [] || $zona->estimated_days_min === null || $zona->estimated_days_max === null) {
+                continue;
+            }
+
+            $dettagli[] = [
+                '@type' => 'OfferShippingDetails',
+                'shippingRate' => [
+                    '@type' => 'MonetaryAmount',
+                    'value' => number_format($zona->calculateShippingCost($prezzo, $peso), 2, '.', ''),
+                    'currency' => 'EUR',
+                ],
+                'shippingDestination' => array_map(fn (string $paese) => ['@type' => 'DefinedRegion', 'addressCountry' => $paese], $paesi),
+                'deliveryTime' => [
+                    '@type' => 'ShippingDeliveryTime',
+                    'handlingTime' => ['@type' => 'QuantitativeValue', 'minValue' => 1, 'maxValue' => 2, 'unitCode' => 'DAY'],
+                    'transitTime' => [
+                        '@type' => 'QuantitativeValue',
+                        'minValue' => (int) $zona->estimated_days_min,
+                        'maxValue' => (int) $zona->estimated_days_max,
+                        'unitCode' => 'DAY',
+                    ],
+                ],
+            ];
+        }
+
+        return $dettagli;
+    }
+
+    /**
+     * Il recesso delle condizioni di vendita: 14 giorni, reso per posta a
+     * spese del cliente (pagina Resi e rimborsi). Vale nei paesi in cui si
+     * spedisce.
+     *
+     * @return array<string, mixed>
+     */
+    private function politicaDiReso(): array
+    {
+        $paesi = collect($this->zoneDiSpedizione ?? [])
+            ->flatMap(fn (ShippingZone $zona) => (array) $zona->countries)
+            ->filter(fn ($paese) => is_string($paese) && preg_match('/^[A-Z]{2}$/', $paese) === 1)
+            ->unique()
+            ->values()
+            ->all();
+
+        return [
+            '@type' => 'MerchantReturnPolicy',
+            'applicableCountry' => $paesi,
+            'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            'merchantReturnDays' => 14,
+            'returnMethod' => 'https://schema.org/ReturnByMail',
+            'returnFees' => 'https://schema.org/ReturnFeesCustomerResponsibility',
+        ];
     }
 
     /**
@@ -781,7 +915,8 @@ class DatiStrutturati
      * gara (Gare → Biglietti) l'offerta vale per qualunque gara in casa non
      * ancora giocata; senza, solo per la prossima, l'unica di cui si sa che è
      * in vendita, con il link del Match Day o della Biglietteria. Prezzo e
-     * data d'inizio vendita solo se la redazione li ha scritti: mai inventati.
+     * data d'inizio vendita solo se la redazione li ha scritti: mai inventati,
+     * e senza il prezzo l'offerta non c'e'.
      * Prima dell'inizio vendita l'offerta è `PreOrder`, non `InStock`.
      *
      * @return array<string, mixed>|null
@@ -826,10 +961,15 @@ class DatiStrutturati
             $offerta['validFrom'] = $inVenditaDal->toIso8601String();
         }
 
-        if ($gara->biglietti_prezzo_da !== null) {
-            $offerta['price'] = number_format((float) $gara->biglietti_prezzo_da, 2, '.', '');
-            $offerta['priceCurrency'] = 'EUR';
+        // Senza prezzo l'offerta resta fuori: Google la segnala come non
+        // valida (audit SEO del 20/10/2026) e la biglietteria non ha un
+        // listino da cui ricavarne uno.
+        if ($gara->biglietti_prezzo_da === null) {
+            return null;
         }
+
+        $offerta['price'] = number_format((float) $gara->biglietti_prezzo_da, 2, '.', '');
+        $offerta['priceCurrency'] = 'EUR';
 
         return $offerta;
     }

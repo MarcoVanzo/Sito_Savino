@@ -14,6 +14,8 @@ import { initMetaPixel, trackPageView as trackPixelPageView } from './meta-pixel
 import { leggiIlConsenso } from './consenso.js';
 import { avviaLaDiagnostica } from './diagnostica.js';
 import { installaDialogDiRipiego } from './Support/dialogDiRipiego.js';
+import { contaLeNavigazioni } from './Support/visualizzazioniDiPagina.js';
+import { seguiIClicVersoLaBiglietteria } from './conversioni.js';
 
 // Prima di tutto il resto: anche la prima pagina Inertia si carica su richiesta.
 // Solo le visite GET si possono riaprire con un indirizzo.
@@ -106,27 +108,39 @@ void createInertiaApp({
         // il titolo nuovo viene letto dallo screen reader (WCAG 2.4.3, 4.1.3).
         annunciaIlCambioDiPagina(router);
 
-        if (measurementId) {
-            initAnalytics(measurementId, consenso.scelto && consenso.statistiche);
+        const analyticsConfig = props.initialPage.props.siteSettings?.analytics ?? {};
 
+        if (measurementId || analyticsConfig.google_ads_id) {
+            // Google Ads (GOOGLE_ADS_ID) usa lo stesso gtag.js, ma sotto il
+            // consenso di marketing.
+            initAnalytics(measurementId, consenso.scelto && consenso.statistiche, {
+                adsId: analyticsConfig.google_ads_id ?? null,
+                adsPurchaseLabel: analyticsConfig.google_ads_purchase_label ?? null,
+                hasMarketingConsent: consenso.scelto && consenso.marketing,
+            });
+        }
+
+        if (measurementId) {
             // Senza questo, in una SPA GA4 attribuirebbe tutto il traffico alla
             // pagina d'ingresso: è proprio la misura pagina per pagina che serve.
-            // Il rinvio di un tick serve a leggere il titolo già aggiornato.
-            router.on('navigate', () => window.setTimeout(trackPageView, 0));
+            // La pagina d'ingresso la manda il tag quando si carica.
+            contaLeNavigazioni(router, trackPageView);
         }
 
         // Meta Pixel: misura il funnel pubblicitario, non il traffico. Vive
         // accanto a GA4 ma è indipendente — uno può essere configurato e l'altro no.
-        const analytics = props.initialPage.props.siteSettings?.analytics ?? {};
-
-        if (analytics.meta_pixel_id) {
-            initMetaPixel(analytics.meta_pixel_id, {
-                needsConsent: analytics.meta_pixel_requires_consent === true,
+        if (analyticsConfig.meta_pixel_id) {
+            initMetaPixel(analyticsConfig.meta_pixel_id, {
+                needsConsent: analyticsConfig.meta_pixel_requires_consent === true,
                 hasConsent: consenso.scelto && consenso.marketing,
             });
 
-            router.on('navigate', () => window.setTimeout(trackPixelPageView, 0));
+            contaLeNavigazioni(router, trackPixelPageView);
         }
+
+        // I clic verso Vivaticket, da qualunque link della pagina: partono
+        // solo verso i tag che hanno gia' il loro consenso.
+        seguiIClicVersoLaBiglietteria(document);
 
         // Errori JavaScript verso Sentry, senza consenso perché non scrive nel
         // browser e passa dal nostro server (vedi diagnostica.js).
