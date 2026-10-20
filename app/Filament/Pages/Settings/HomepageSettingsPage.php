@@ -71,7 +71,11 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
             ? 'Acceso a mano, senza una gara in programma oggi.'
             : sprintf('Acceso per %s – %s delle %s.', $gara->homeTeam?->nomePubblico(), $gara->awayTeam?->nomePubblico(), $gara->match_date->format('H:i'));
 
-        return $testo.($stato['popup'] !== null ? ' Il pop-up dei biglietti è attivo.' : ' Nessun pop-up (gara in trasferta, già cominciata o pop-up spento).');
+        return $testo.match (true) {
+            $stato['popup'] !== null => ' Il pop-up dei biglietti è attivo.',
+            $stato['popup_diretta'] => ' Il pop-up porta alla diretta.',
+            default => ' Nessun pop-up (biglietti non in vendita, diretta senza link o non ancora vicina, oppure pop-up spento).',
+        };
     }
 
     /**

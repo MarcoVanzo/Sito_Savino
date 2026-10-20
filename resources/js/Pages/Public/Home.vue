@@ -670,6 +670,16 @@ const ogMeta = useOgMeta({
                         <!-- Gli indirizzi arrivano dalle impostazioni: uno esterno
                              (Vivaticket) con <Link> partirebbe come XHR e il
                              pulsante non porterebbe da nessuna parte. -->
+                        <button
+                            v-if="matchDay?.direttaVicina && partita?.stream_embed_url"
+                            type="button"
+                            class="inline-flex items-center justify-center gap-3 px-8 py-4 border-2 border-white bg-white text-savino-blue hover:bg-savino-fucsia hover:border-savino-fucsia hover:text-white text-sm font-bold uppercase tracking-widest transition-all duration-300"
+                            data-hero-diretta
+                            @click="openNextGameStream"
+                        >
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                            {{ $t('stream.watch') }}
+                        </button>
                         <component
                             :is="isExternalLink(heroCta1Url) ? 'a' : Link"
                             v-bind="externalLinkAttrs(heroCta1Url)"
@@ -709,6 +719,22 @@ const ogMeta = useOgMeta({
                     class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2 text-savino-blue text-xs font-bold uppercase tracking-wider hover:bg-savino-blue hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
                     {{ $t('home.match_day_tickets') }}
+                </component>
+                <!-- Durante la gara la diretta sta qui, in cima: il pulsante
+                     della sezione della partita, da telefono, va cercato scorrendo. -->
+                <component
+                    :is="partita.stream_embed_url ? 'button' : 'a'"
+                    v-if="matchDay.gara && partita?.stream_url"
+                    :type="partita.stream_embed_url ? 'button' : undefined"
+                    :href="partita.stream_embed_url ? undefined : partita.stream_url"
+                    :target="partita.stream_embed_url ? undefined : '_blank'"
+                    :rel="partita.stream_embed_url ? undefined : 'noopener noreferrer'"
+                    class="inline-flex items-center gap-2 rounded-lg bg-savino-blue px-5 py-2 text-white text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-savino-blue transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    data-fascia-diretta
+                    @click="openNextGameStream"
+                >
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+                    {{ $t('stream.watch') }}
                 </component>
             </div>
         </div>
@@ -987,7 +1013,12 @@ const ogMeta = useOgMeta({
 
 
         <LiveStreamModal :stream="activeStream" @close="closeStream" />
-        <PopupMatchDay v-if="matchDayAttivo && matchDay.popup" :popup="matchDay.popup" />
+        <PopupMatchDay
+            v-if="matchDayAttivo && (matchDay.popup || matchDay.popupDiretta)"
+            :popup="matchDay.popup"
+            :diretta="Boolean(matchDay.popupDiretta)"
+            @guarda="openNextGameStream"
+        />
     </PublicLayout>
 </template>
 

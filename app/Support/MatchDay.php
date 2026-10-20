@@ -20,6 +20,10 @@ use Illuminate\Database\Eloquent\Builder;
  * Il pop-up vende biglietti: in automatico compare solo per le gare in casa e
  * prima del fischio d'inizio. Acceso a mano, decide la redazione, ma mai su
  * una trasferta: i biglietti li vende la squadra di casa.
+ *
+ * Dove non ci sono biglietti da vendere (trasferta, o gara già cominciata) il
+ * pop-up porta alla diretta, se la gara ne ha una incorporabile: da un'ora
+ * prima del fischio d'inizio, come i contatori della diretta.
  */
 class MatchDay
 {
@@ -36,8 +40,11 @@ class MatchDay
      */
     public const ORE_DOPO_L_INIZIO = 3;
 
+    /** Da quanto prima del fischio d'inizio il pop-up offre la diretta. */
+    public const MINUTI_PRIMA_DELLA_DIRETTA = 60;
+
     /**
-     * @return array{attivo: bool, gara: ?Game, in_casa: bool, popup: ?array{titolo: string, testo: string, pulsante: string, url: string}}
+     * @return array{attivo: bool, gara: ?Game, in_casa: bool, popup: ?array{titolo: string, testo: string, pulsante: string, url: string}, popup_diretta: bool, diretta_vicina: bool}
      */
     public static function stato(): array
     {
@@ -60,13 +67,17 @@ class MatchDay
         $riferimento = $gara ?? self::prossimaGara();
         $trasferta = $riferimento !== null && ! $riferimento->homeTeam?->is_internal;
 
+        $popup = self::popupAttivo() && ! $trasferta && ($modalita === self::ACCESO || ($inCasa && $prima))
+            ? self::popup()
+            : null;
+
         return [
             'attivo' => true,
             'gara' => $gara,
             'in_casa' => $inCasa,
-            'popup' => self::popupAttivo() && ! $trasferta && ($modalita === self::ACCESO || ($inCasa && $prima))
-                ? self::popup()
-                : null,
+            'popup' => $popup,
+            'popup_diretta' => $popup === null && self::popupAttivo() && self::direttaVicina($gara),
+            'diretta_vicina' => self::direttaVicina($gara),
         ];
     }
 
@@ -121,6 +132,18 @@ class MatchDay
             ->first();
     }
 
+    /**
+     * La gara ha una diretta che si apre nel sito e manca al massimo un'ora
+     * al fischio d'inizio (o è già cominciata: `garaDiOggi()` la tiene fino
+     * a tre ore dopo).
+     */
+    private static function direttaVicina(?Game $gara): bool
+    {
+        return $gara !== null
+            && LiveStream::embedUrl($gara->stream_url) !== null
+            && now()->greaterThanOrEqualTo($gara->match_date->copy()->subMinutes(self::MINUTI_PRIMA_DELLA_DIRETTA));
+    }
+
     private static function popupAttivo(): bool
     {
         return filter_var(SiteSetting::get('match_day_popup_attivo', true), FILTER_VALIDATE_BOOLEAN);
@@ -143,10 +166,10 @@ class MatchDay
     }
 
     /**
-     * @return array{attivo: false, gara: null, in_casa: false, popup: null}
+     * @return array{attivo: false, gara: null, in_casa: false, popup: null, popup_diretta: false, diretta_vicina: false}
      */
     private static function spento(): array
     {
-        return ['attivo' => false, 'gara' => null, 'in_casa' => false, 'popup' => null];
+        return ['attivo' => false, 'gara' => null, 'in_casa' => false, 'popup' => null, 'popup_diretta' => false, 'diretta_vicina' => false];
     }
 }
