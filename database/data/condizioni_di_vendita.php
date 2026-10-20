@@ -51,12 +51,22 @@ return [
             'it' => 'Condizioni generali di vendita dello shop ufficiale della Savino Del Bene Volley: ordini, prezzi, pagamenti, consegna, recesso e garanzia.',
             'en' => 'General terms of sale of the Savino Del Bene Volley official shop: orders, prices, payments, delivery, withdrawal and warranty.',
         ],
-        // Nessuna versione precedente: sono il primo testo pubblicato.
+        // Le revisioni si pubblicano frase per frase con migrazioni a guardia
+        // (l'ultima: 2026_10_20_110000_condizioni_lingua_archiviazione_e_accessibilita).
+        //
+        // Revisione del 20 ottobre 2026: lingua del contratto (art. 12 c. 1
+        // lett. d del d.lgs. 70/2003: il checkout e le condizioni esistono in
+        // italiano e in inglese, la conferma parte nella lingua dell'ordine),
+        // archiviazione e dove il cliente lo ritrova (art. 12 c. 1 lett. b:
+        // istantanea in versioni_condizioni, PDF allegato alla conferma, pagina
+        // dell'ordine), richiamo alla dichiarazione di accessibilità.
+        // TODO(cliente): quale lingua prevale se le due versioni divergono.
+        // Il testo non lo dice: è una scelta della società, non del codice.
         'firme' => [],
         'contenuto' => [
             'it' => <<<HTML
             <h2>Condizioni generali di vendita</h2>
-            <p>Queste condizioni regolano gli acquisti fatti sullo shop ufficiale della Savino Del Bene Volley, compresi i beni aggiudicati nelle aste online. Sono aggiornate al 2 ottobre 2026. Ti chiediamo di leggerle prima di ordinare: al momento dell'ordine ti viene chiesto di accettarle, e te le mandiamo di nuovo con la conferma.</p>
+            <p>Queste condizioni regolano gli acquisti fatti sullo shop ufficiale della Savino Del Bene Volley, compresi i beni aggiudicati nelle aste online. Sono aggiornate al 20 ottobre 2026. Ti chiediamo di leggerle prima di ordinare: al momento dell'ordine ti viene chiesto di accettarle, e te le mandiamo di nuovo con la conferma.</p>
 
             <h3>1. Chi vende</h3>
             <p>{$societa}<br />
@@ -68,6 +78,8 @@ return [
             <p>Scegli i prodotti, inserisci i dati di spedizione e il metodo di pagamento, e confermi con il pulsante <strong>«Ordine con obbligo di pagamento»</strong>. Prima di premerlo vedi il riepilogo dell'ordine con il prezzo totale, le spese di spedizione e i tempi di consegna stimati, e puoi correggere i dati inseriti.</p>
             <p>Il contratto è concluso quando ricevi l'email di conferma dell'ordine, che riporta il riepilogo, queste condizioni in sintesi e l'informativa sul diritto di recesso con il relativo modulo.</p>
             <p>Per le aste il contratto si conclude con l'aggiudicazione: il vincitore riceve un'email con il collegamento per completare il pagamento entro il termine indicato. Se il pagamento non arriva entro quel termine l'aggiudicazione decade e il bene può essere assegnato al miglior offerente successivo.</p>
+            <p><strong>Lingua.</strong> Puoi concludere il contratto in italiano o in inglese: vale la lingua del sito in cui fai l'ordine, e nella stessa lingua ricevi l'email di conferma e queste condizioni.</p>
+            <p><strong>Dove ritrovi il contratto.</strong> Il contratto viene archiviato: insieme all'ordine conserviamo il testo esatto delle condizioni e dell'informativa sul recesso che hai accettato. Lo ricevi in PDF allegato all'email di conferma. Il riepilogo dell'ordine e la ricevuta restano nella pagina dell'ordine, che apri dal link nell'email di conferma e, se hai un account, da «I miei ordini» nell'area personale.</p>
 
             <h3>3. Prezzi</h3>
             <p>I prezzi sono in euro e comprendono l'IVA. Le spese di spedizione dipendono dal paese di destinazione e dal peso dell'ordine, sono gratuite sopra la soglia di spesa indicata nella pagina <a href="/spedizioni">Spedizioni</a> e sono mostrate prima della conferma. Quando un prodotto è in promozione, accanto al prezzo scontato indichiamo il prezzo più basso applicato nei 30 giorni precedenti la riduzione, come prevede l'art. 17-bis del Codice del consumo.</p>
@@ -95,10 +107,13 @@ return [
 
             <h3>10. Legge applicabile e foro</h3>
             <p>Il contratto è regolato dalla legge italiana. Restano salve le tutele più favorevoli che ti riconosce la legge del paese in cui risiedi abitualmente. Per le controversie è competente il giudice del luogo in cui risiedi o hai il domicilio, se sei un consumatore in Italia.</p>
+            
+            <h3>11. Accessibilità</h3>
+            <p>Lo shop è pensato per essere usato da tutti, anche con le tecnologie assistive. A che punto siamo, i limiti che conosciamo e come segnalarci un problema sono nella <a href="/dichiarazione-di-accessibilita">Dichiarazione di accessibilità</a>.</p>
             HTML,
             'en' => <<<HTML
             <h2>General terms of sale</h2>
-            <p>These terms govern purchases made on the official Savino Del Bene Volley shop, including items won in online auctions. Last updated 2 October 2026. Please read them before ordering: you are asked to accept them when you place the order, and we send them to you again with the confirmation.</p>
+            <p>These terms govern purchases made on the official Savino Del Bene Volley shop, including items won in online auctions. Last updated 20 October 2026. Please read them before ordering: you are asked to accept them when you place the order, and we send them to you again with the confirmation.</p>
 
             <h3>1. The seller</h3>
             <p>{$societa}<br />
@@ -110,6 +125,8 @@ return [
             <p>You choose the products, enter your delivery details and payment method, and confirm with the <strong>"Order with obligation to pay"</strong> button. Before pressing it you see the order summary with the total price, shipping costs and estimated delivery time, and you can correct the data entered.</p>
             <p>The contract is concluded when you receive the order confirmation email, which contains the summary, a summary of these terms and the information on the right of withdrawal with the withdrawal form.</p>
             <p>For auctions the contract is concluded when the item is awarded: the winner receives an email with a link to complete payment within the stated deadline. If payment is not received in time, the award lapses and the item may be offered to the next highest bidder.</p>
+            <p><strong>Language.</strong> You can conclude the contract in Italian or in English: the language is the one of the site where you place the order, and you receive the confirmation email and these terms in that same language.</p>
+            <p><strong>Where to find your contract.</strong> The contract is archived: together with the order we keep the exact text of the terms and of the withdrawal information you accepted. You receive it as a PDF attached to the confirmation email. The order summary and the receipt remain on the order page, which you open from the link in the confirmation email and, if you have an account, from “My Orders” in your personal area.</p>
 
             <h3>3. Prices</h3>
             <p>Prices are in euro and include VAT. Shipping costs depend on the destination country and the weight of the order, are free above the spending threshold shown on the <a href="/en/spedizioni">Shipping</a> page, and are shown before confirmation. When a product is on sale, next to the reduced price we show the lowest price applied in the 30 days before the reduction, as required by article 17-bis of the Italian Consumer Code.</p>
@@ -137,6 +154,9 @@ return [
 
             <h3>10. Governing law and jurisdiction</h3>
             <p>The contract is governed by Italian law, without prejudice to any more favourable protection granted to you by the law of the country where you habitually reside. If you are a consumer, the courts of the place where you reside or are domiciled have jurisdiction.</p>
+            
+            <h3>11. Accessibility</h3>
+            <p>The shop is designed to be usable by everyone, including with assistive technologies. Where we stand, the known limitations and how to report a problem are in the <a href="/en/dichiarazione-di-accessibilita">Accessibility statement</a>.</p>
             HTML,
         ],
     ],

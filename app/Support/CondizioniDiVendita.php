@@ -33,7 +33,9 @@ class CondizioniDiVendita
     // 2026-10-02: pagamenti (metodi di Stripe, annullo dopo un'ora degli
     // ordini non pagati), spedizione gratuita sopra la soglia, tempi di
     // consegna come preparazione piu' spedizione.
-    public const VERSIONE = '2026-10-02';
+    // 2026-10-20: lingua del contratto, archiviazione e dove ritrovarlo,
+    // richiamo alla dichiarazione di accessibilita'.
+    public const VERSIONE = '2026-10-20';
 
     /**
      * La ragione sociale per esteso: venditore (art. 49 c. 1 lett. b) e
