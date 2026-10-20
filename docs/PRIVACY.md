@@ -191,6 +191,18 @@ visitatore raggiungeva Google prima di qualsiasi scelta, per una cosa che
 possiamo servire noi. Ora stanno in `public/fonts`, i `@font-face` in
 `resources/css/app.css`, e la CSP non ha più bisogno degli host di Google.
 
+**reCAPTCHA non c'è** (analisi di conformità del 20/10/2026). Chi trova
+`_grecaptcha`, `_form_1_` o `acf` nel `localStorage` vede i residui del
+vecchio WordPress, che sullo stesso indirizzo incorporava il modulo
+ActiveCampaign (`activehosted.com/f/embed.php?id=1`) e il reCAPTCHA di
+Contact Form 7. Il sito nuovo non lo carica da nessuna parte: né nel codice,
+né nei contenuti del database, né nel pannello o nel suo login (verificato con
+un browser pulito). I moduli pubblici si difendono con honeypot e `throttle`.
+`resources/js/Support/residuiDelVecchioSito.js` toglie quelle chiavi al primo
+caricamento, e `scripts/verifica-preconsenso.mjs` (ogni lunedì, in
+`scansione-cookie.yml`) fallisce se una richiesta a `google.com/recaptcha` o
+`gstatic.com` parte prima del consenso.
+
 **CompreFace non è una terza parte**: gira su un droplet della società, a
 Francoforte, raggiungibile solo dalla VPC (`COMPREFACE_HOST`). Le fotografie non
 escono verso servizi di riconoscimento esterni.
