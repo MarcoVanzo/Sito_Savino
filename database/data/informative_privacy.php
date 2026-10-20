@@ -56,6 +56,9 @@ $cf = '94217750481';
 
 return [
     'privacy-policy' => [
+        // La data della revisione in vigore, uguale alla frase «È aggiornata
+        // al …» del testo (un test le confronta).
+        'versione' => '2026-10-05',
         'firme' => [
             // Testo originale, fino al 22 settembre 2026.
             'esclusivamente dati tecnici necessari alla navigazione',
@@ -264,6 +267,11 @@ return [
     ],
 
     'cookie-policy' => [
+        // La data della revisione in vigore: è anche la versione del consenso
+        // ai cookie (`ConsensoCookie::versione()`). Si cambia insieme alla
+        // frase «È aggiornata al …» del testo — un test le confronta — e un
+        // consenso dato su una versione precedente fa tornare il banner.
+        'versione' => '2026-10-02',
         'firme' => [
             // Testo originale, fino al 22 settembre 2026.
             'non utilizza cookie di profilazione',

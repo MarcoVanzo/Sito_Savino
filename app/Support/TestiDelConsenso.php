@@ -31,7 +31,7 @@ class TestiDelConsenso
      */
     public static function perICookie(): array
     {
-        $testi = ['versione' => ConsensoCookie::VERSIONE];
+        $testi = ['versione' => ConsensoCookie::versione()];
 
         foreach (self::lingue() as $lingua) {
             $frontend = self::traduzioni($lingua);

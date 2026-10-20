@@ -21,7 +21,7 @@ Ultima verifica sul codice: **23 settembre 2026**.
 | Lettura unica di quel file | `App\Support\TestiDelleInformative` |
 | Pagine pubbliche | `pages` con slug `privacy-policy` e `cookie-policy`, template `Public/ContentPage` |
 | Elenco dei cookie in fondo alla Cookie Policy | `database/data/cookie_rilevati.json` (scansione) descritto da `database/data/catalogo_cookie.json` |
-| Versione dell'informativa a cui si lega il consenso | `App\Models\ConsensoCookie::VERSIONE` |
+| Versione dell'informativa a cui si lega il consenso | `versione` della `cookie-policy` in `database/data/informative_privacy.php`, letta da `App\Models\ConsensoCookie::versione()` |
 | Informativa comunicazioni promozionali e informativa fornitori (it + en) | `database/data/informative_da_documento.php`, letto da `App\Support\InformativeDaDocumento`; pagine `informativa-comunicazioni-promozionali` e `informativa-fornitori` (dal 26/09/2026, prima erano PDF) |
 | Documenti PDF di governance | Impostazioni → Documenti Legali, gruppo `legal`, file in `legal/` su Spaces |
 
@@ -43,9 +43,14 @@ tecnici" mentre il sito caricava Google Analytics, con un indirizzo sbagliato e
 un indirizzo email che non esiste: ogni ambiente nuovo, e il database dei test,
 nascevano con quella. Ora il seeder legge `TestiDelleInformative::contenuto()`.
 
-**Quando alzare `ConsensoCookie::VERSIONE`**: quando cambia *ciò che si
-dichiara* — un tracker nuovo, una finalità diversa, un destinatario in più — non
-a ogni ritocco di stile. Alzarla fa ricomparire il banner a tutti.
+**La versione del consenso è la data della Cookie Policy** (dal 20/10/2026).
+Ogni revisione pubblicata della Cookie Policy porta una `versione` nuova nel
+file dati, uguale alla frase «È aggiornata al …» (lo verifica
+`tests/Unit/Support/VersioniDelleInformativeTest.php`), e il banner ricompare a
+tutti: è ciò che la policy promette. Fino ad allora era una costante a parte,
+`ConsensoCookie::VERSIONE`, e la revisione del 2 ottobre è uscita senza
+alzarla. Un ritocco di stile che non deve far tornare il banner non è una
+revisione: non cambia la data.
 
 
 ### L'informativa del sito è la pagina, non un PDF
@@ -303,8 +308,9 @@ Quattro cose, nell'ordine:
    giuridica;
 3. se entra un fornitore, va nei destinatari e — se è extra-UE — nella sezione
    dei trasferimenti;
-4. se cambia quello che si dichiara al visitatore sui cookie, si alza
-   `ConsensoCookie::VERSIONE` e il banner torna a chiedere.
+4. se cambia quello che si dichiara al visitatore sui cookie, si pubblica una
+   revisione della Cookie Policy con la sua `versione` nuova e il banner torna
+   a chiedere.
 
 Un cookie nuovo si spiega in `database/data/catalogo_cookie.json`, non
 nell'editor del pannello: finché non è lì, la dichiarazione lo pubblica come

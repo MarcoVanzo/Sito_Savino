@@ -7,6 +7,7 @@ use App\Models\ConsensoCookie;
 use App\Models\Page;
 use App\Models\VersioneTestiConsenso;
 use App\Services\CatenaDeiConsensi;
+use App\Support\TestiDelleInformative;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -38,8 +39,21 @@ class ConsensoCookieTest extends TestCase
         $this->assertTrue($consenso->statistiche);
         $this->assertFalse($consenso->marketing);
         $this->assertSame('concesso', $consenso->azione);
-        $this->assertSame(ConsensoCookie::VERSIONE, $consenso->versione);
+        $this->assertSame(ConsensoCookie::versione(), $consenso->versione);
         $this->assertSame($risposta->json('riferimento'), $consenso->riferimento);
+    }
+
+    /**
+     * Il banner riconosce una scelta superata confrontandola con questa
+     * versione (`leggiIlConsenso` in `consenso.js`): se la pagina passasse
+     * altro che la data della Cookie Policy, una revisione della policy non
+     * lo farebbe tornare.
+     */
+    #[Test]
+    public function la_pagina_passa_al_banner_la_versione_della_cookie_policy(): void
+    {
+        $this->get('/cookie-policy')->assertInertia(fn ($pagina) => $pagina
+            ->where('consensoCookie.versione', TestiDelleInformative::versione('cookie-policy')));
     }
 
     #[Test]
@@ -199,7 +213,7 @@ class ConsensoCookieTest extends TestCase
         $it = json_decode((string) file_get_contents(resource_path('js/i18n/it.json')), true);
         $en = json_decode((string) file_get_contents(resource_path('js/i18n/en.json')), true);
 
-        $this->assertSame(ConsensoCookie::VERSIONE, $testi['versione']);
+        $this->assertSame(ConsensoCookie::versione(), $testi['versione']);
         $this->assertSame($it['cookie']['description'], $testi['lingue']['it']['banner']['description']);
         $this->assertSame($en['cookie']['marketing_desc'], $testi['lingue']['en']['banner']['marketing_desc']);
         $this->assertSame('<p>Usiamo cookie tecnici.</p>', $testi['lingue']['it']['cookie_policy']['testo']);

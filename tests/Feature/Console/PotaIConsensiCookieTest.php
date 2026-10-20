@@ -35,7 +35,7 @@ class PotaIConsensiCookieTest extends TestCase
             'statistiche' => true,
             'marketing' => false,
             'azione' => 'concesso',
-            'versione' => ConsensoCookie::VERSIONE,
+            'versione' => ConsensoCookie::versione(),
         ]);
 
         $this->travelBack();

@@ -31,7 +31,7 @@ class VerificaIConsensiCookieTest extends TestCase
             'statistiche' => true,
             'marketing' => $marketing,
             'azione' => 'concesso',
-            'versione' => ConsensoCookie::VERSIONE,
+            'versione' => ConsensoCookie::versione(),
             'impronta_ip' => ConsensoCookie::improntaDi('203.0.113.7'),
         ]);
     }
@@ -119,7 +119,7 @@ class VerificaIConsensiCookieTest extends TestCase
             'statistiche' => true,
             'marketing' => true,
             'azione' => 'concesso',
-            'versione' => ConsensoCookie::VERSIONE,
+            'versione' => ConsensoCookie::versione(),
             'created_at' => now(),
         ]);
 
@@ -169,7 +169,7 @@ class VerificaIConsensiCookieTest extends TestCase
             'statistiche' => false,
             'marketing' => false,
             'azione' => 'rifiutato',
-            'versione' => ConsensoCookie::VERSIONE,
+            'versione' => ConsensoCookie::versione(),
             'created_at' => now(),
         ]);
 
