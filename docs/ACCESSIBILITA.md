@@ -22,6 +22,9 @@ comportamenti propri di un browser. Per questo serve anche la prova sotto.
 
 ## 2. Protocollo di prova manuale (VoiceOver o NVDA)
 
+La versione da compilare, con banner dei cookie e registrazione e i criteri
+WCAG per ogni passo, è [`docs/accessibilita/test-screen-reader.md`](accessibilita/test-screen-reader.md).
+
 Da fare a ogni rilascio che tocca shop o layout, e comunque una volta a
 trimestre. Durata: circa 45 minuti. Ambiente: sito di staging o produzione con
 un **prodotto di prova** e pagamento a **bonifico** (l'ordine si annulla dal
