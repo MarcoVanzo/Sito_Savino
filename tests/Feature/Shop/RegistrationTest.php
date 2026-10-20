@@ -4,6 +4,7 @@ namespace Tests\Feature\Shop;
 
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Support\TestiDelleInformative;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -33,7 +34,6 @@ class RegistrationTest extends TestCase
             'email' => 'mario@example.com',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
-            'privacy_accepted' => true,
         ]);
 
         $response->assertRedirect();
@@ -55,7 +55,6 @@ class RegistrationTest extends TestCase
             'email' => 'mario@example.com',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
-            'privacy_accepted' => true,
         ])->assertRedirect();
 
         $this->assertDatabaseHas('users', ['email' => 'mario@example.com', 'is_active' => true]);
@@ -67,7 +66,28 @@ class RegistrationTest extends TestCase
     {
         $response = $this->post(route('shop.register.store'), []);
 
-        $response->assertSessionHasErrors(['name', 'email', 'password', 'privacy_accepted']);
+        $response->assertSessionHasErrors(['name', 'email', 'password']);
+        $response->assertSessionDoesntHaveErrors('privacy_accepted');
+    }
+
+    /**
+     * L'informativa si legge, non si accetta: nessuna casella da spuntare, ma
+     * l'account ricorda quale versione era linkata nel modulo.
+     */
+    #[Test]
+    public function la_registrazione_senza_casella_privacy_ricorda_la_versione_dell_informativa(): void
+    {
+        $this->post(route('shop.register.store'), [
+            'name' => 'Mario Rossi',
+            'email' => 'mario@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame(
+            TestiDelleInformative::versione('privacy-policy'),
+            User::where('email', 'mario@example.com')->value('informativa_privacy_versione'),
+        );
     }
 
     #[Test]
@@ -80,7 +100,6 @@ class RegistrationTest extends TestCase
             'email' => 'existing@example.com',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
-            'privacy_accepted' => true,
         ]);
 
         $response->assertSessionHasErrors('email');

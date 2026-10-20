@@ -4,7 +4,6 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import InputError from '@/Components/InputError.vue';
-import Checkbox from '@/Components/Checkbox.vue';
 
 import { useTranslations } from '@/Composables/useTranslations.js';
 import { ref, computed } from 'vue';
@@ -20,7 +19,6 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
-    privacy_accepted: false,
 });
 
 const showPassword = ref(false);
@@ -254,31 +252,16 @@ const submit = () => {
                         <!-- Divider -->
                         <div class="border-t border-gray-700/50"></div>
 
-                        <!-- Privacy Policy -->
-                        <div>
-                            <label for="privacy_accepted" class="flex items-start gap-3 cursor-pointer group">
-                                <div class="mt-0.5">
-                                    <Checkbox
-                                        id="privacy_accepted"
-                                        name="privacy_accepted"
-                                        v-model:checked="form.privacy_accepted"
-                                        required
-                                        :aria-invalid="!!form.errors.privacy_accepted"
-                                        :aria-describedby="form.errors.privacy_accepted ? 'errore-privacy_accepted' : undefined"
-                                    />
-                                </div>
-                                <span class="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors">
-                                    {{ $t('shop.accept_privacy_1') }}
-                                    <a
-                                        :href="route('pages.show', 'privacy-policy')"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="text-savino-fucsia-chiaro underline font-medium"
-                                    >{{ $t('shop.accept_privacy_2') }}</a>
-                                </span>
-                            </label>
-                            <InputError scuro id="errore-privacy_accepted" class="mt-2" :message="form.errors.privacy_accepted" />
-                        </div>
+                        <!-- Informativa privacy: si legge, non si accetta -->
+                        <p class="text-sm text-gray-400 leading-relaxed">
+                            {{ $t('shop.privacy_notice_1') }}
+                            <a
+                                :href="route('pages.show', 'privacy-policy')"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-savino-fucsia-chiaro underline font-medium"
+                            >{{ $t('shop.privacy_notice_2') }}</a>.
+                        </p>
 
                         <!-- Submit Button -->
                         <div class="pt-2">

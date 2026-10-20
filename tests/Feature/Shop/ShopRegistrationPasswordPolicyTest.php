@@ -24,7 +24,6 @@ class ShopRegistrationPasswordPolicyTest extends TestCase
             'email' => 'mario@example.com',
             'password' => 'Pass123!',
             'password_confirmation' => 'Pass123!',
-            'privacy_accepted' => true,
         ]);
 
         $response->assertSessionHasErrors('password');
@@ -39,7 +38,6 @@ class ShopRegistrationPasswordPolicyTest extends TestCase
             'email' => 'mario2@example.com',
             'password' => 'PasswordSicura1!',
             'password_confirmation' => 'PasswordSicura1!',
-            'privacy_accepted' => true,
         ]);
 
         $response->assertSessionHasNoErrors();
