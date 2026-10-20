@@ -100,7 +100,8 @@ class PublicController extends Controller
                     'id' => $slide->id,
                     'title' => $slide->title,
                     'subtitle' => $slide->subtitle,
-                    'image' => $slide->getFirstMediaUrl('hero-slides', 'hero') ?: $slide->getFirstMediaUrl('hero-slides') ?: '/images/hero1.jpg',
+                    'image' => $slide->immaginiDellHero()['grande'],
+                    'image_mobile' => $slide->immaginiDellHero()['mobile'],
                     'cta_text' => $slide->cta_text,
                     'cta_url' => $slide->cta_url,
                 ])->toArray();
@@ -146,7 +147,33 @@ class PublicController extends Controller
             'eventi' => Evento::inArrivo()->with('media')->take(3)->get()
                 ->map(fn (Evento $evento) => $evento->perLaHome())
                 ->all(),
+        ])->withViewData([
+            'immaginiDaPrecaricare' => self::primaSlideDaPrecaricare($data['heroSlides']),
         ]);
+    }
+
+    /**
+     * La prima foto dell'hero, la stessa serie che Home.vue mette nello
+     * `srcset`: senza video in testa e' l'immagine piu' grande della pagina.
+     *
+     * @param  array<int, array<string, mixed>>  $slide
+     * @return list<array{href: string, srcset: string|null, sizes: string}>
+     */
+    private static function primaSlideDaPrecaricare(array $slide): array
+    {
+        $prima = $slide[0] ?? null;
+
+        if (! is_array($prima) || filled(SiteSetting::get('home.hero_video_url')) || ! is_string($prima['image'] ?? null)) {
+            return [];
+        }
+
+        $mobile = $prima['image_mobile'] ?? null;
+
+        return [[
+            'href' => $mobile ?: $prima['image'],
+            'srcset' => $mobile ? $mobile.' 1200w, '.$prima['image'].' 1920w' : null,
+            'sizes' => '100vw',
+        ]];
     }
 
     /**

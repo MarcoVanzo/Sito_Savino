@@ -4,7 +4,7 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import MegaMenu from '@/Components/MegaMenu.vue';
 import SiteFooter from '@/Components/SiteFooter.vue';
 import { useImageFallback } from '@/Composables/useImageFallback.js';
-import LOGOS from '@/Constants/logos.js';
+import LOGOS, { srcsetDelLogo } from '@/Constants/logos.js';
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 import CartBadge from '@/Components/Shop/CartBadge.vue';
 import CartDrawer from '@/Components/Shop/CartDrawer.vue';
@@ -180,7 +180,7 @@ watch(desktopNav, (isDesktop) => {
 
                             <!-- Volley Logo -->
                             <Link :href="route('home')" class="block z-10 transition-transform duration-300 hover:scale-105">
-                                <img :src="siteLogo" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[var(--volley-logo-h)] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
+                                <img :src="siteLogo" :srcset="srcsetDelLogo(siteLogo)" sizes="(min-width: 640px) 125px, 64px" width="125" height="125" alt="Savino Del Bene Volley" fetchpriority="high" decoding="sync" class="h-[var(--volley-logo-h)] w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" @error="onImgError" />
                             </Link>
                         </div>
                     </div>

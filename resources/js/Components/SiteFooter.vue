@@ -6,7 +6,7 @@ import { useImageFallback } from '@/Composables/useImageFallback.js';
 import { useSanitize } from '@/Composables/useSanitize.js';
 import { useSafeUrl } from '@/Composables/useSafeUrl.js';
 import { isExternalLink } from '@/Support/menuLinks.js';
-import LOGOS from '@/Constants/logos.js';
+import LOGOS, { srcsetDelLogo } from '@/Constants/logos.js';
 import NewsletterForm from '@/Components/NewsletterForm.vue';
 
 const $t = useTranslations();
@@ -127,6 +127,11 @@ const socialLinks = computed(() => {
                     <div class="flex flex-wrap items-center gap-3 sm:gap-5 mb-6">
                         <img
                             :src="footerLogo"
+                            :srcset="srcsetDelLogo(footerLogo)"
+                            sizes="80px"
+                            width="80"
+                            height="80"
+                            loading="lazy"
                             alt="Savino Del Bene Volley"
                             class="h-14 sm:h-20 w-auto object-contain"
                             @error="onImgError"
@@ -136,6 +141,9 @@ const socialLinks = computed(() => {
                              fuori asse rispetto al volley: i due vanno letti come una coppia. -->
                         <img
                             :src="LOGOS.CORPORATE_LEFT_WHITE"
+                            width="291"
+                            height="64"
+                            loading="lazy"
                             alt="Savino Del Bene Corporate"
                             class="h-11 sm:h-16 max-w-full w-auto object-contain"
                             @error="onImgError"

@@ -23,8 +23,12 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
+                // Le librerie comuni in un chunk stabile fra un rilascio e
+                // l'altro (resta in cache). Sentry no: lo carica
+                // `diagnostica.js` solo quando serve, e dentro `vendor` lo
+                // scaricava ogni pagina (37 KB compressi, audit del 20/10/2026).
                 manualChunks(id) {
-                    if (id.includes('node_modules')) {
+                    if (id.includes('node_modules') && !id.includes('@sentry')) {
                         return 'vendor';
                     }
                 },

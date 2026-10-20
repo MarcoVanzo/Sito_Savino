@@ -3,6 +3,11 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+        {{-- Le immagini LCP si chiedono subito, senza aspettare il JavaScript
+             (App\Support\ImmaginiDaPrecaricare). --}}
+        @foreach (\App\Support\ImmaginiDaPrecaricare::perLaPagina($immaginiDaPrecaricare ?? []) as $immagine)
+        <link rel="preload" as="image" href="{{ $immagine['href'] }}" @if ($immagine['srcset']) imagesrcset="{{ $immagine['srcset'] }}" @endif @if ($immagine['sizes']) imagesizes="{{ $immagine['sizes'] }}" @endif fetchpriority="high">
+        @endforeach
         {{-- Description e og: portano l'attributo `inertia` con una chiave: al
              primo render il gestore del <Head> di Inertia li toglie e al loro
              posto restano quelli della pagina. Senza, nel DOM ce n'erano due
