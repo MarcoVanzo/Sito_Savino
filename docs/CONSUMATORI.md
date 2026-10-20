@@ -45,8 +45,8 @@ Verifica del 20/10/2026 sul testo di EUR-Lex del Regolamento di esecuzione
   l'avviso intero), sotto la casella del checkout, email di conferma. Il
   regolamento prevede la visualizzazione annidata solo per l'etichetta
   GARAN (allegato II), non per l'avviso: l'avviso dietro un clic segue le
-  linee guida della Commissione per i negozi online, da confermare con il
-  consulente legale se si preferisce mostrarlo aperto in scheda prodotto.
+  linee guida della Commissione per i negozi online. Scelta confermata dalla
+  società il 20/10/2026: resta dietro il clic.
 
 ### Le versioni delle condizioni
 

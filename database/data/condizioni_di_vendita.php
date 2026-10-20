@@ -59,9 +59,9 @@ return [
         // italiano e in inglese, la conferma parte nella lingua dell'ordine),
         // archiviazione e dove il cliente lo ritrova (art. 12 c. 1 lett. b:
         // istantanea in versioni_condizioni, PDF allegato alla conferma, pagina
-        // dell'ordine), richiamo alla dichiarazione di accessibilità.
-        // TODO(cliente): quale lingua prevale se le due versioni divergono.
-        // Il testo non lo dice: è una scelta della società, non del codice.
+        // dell'ordine), richiamo alla dichiarazione di accessibilità. Se le
+        // due versioni non coincidono vale l'italiano: scelta della società
+        // (Marco, 20/10/2026).
         'firme' => [],
         'contenuto' => [
             'it' => <<<HTML
@@ -78,7 +78,7 @@ return [
             <p>Scegli i prodotti, inserisci i dati di spedizione e il metodo di pagamento, e confermi con il pulsante <strong>«Ordine con obbligo di pagamento»</strong>. Prima di premerlo vedi il riepilogo dell'ordine con il prezzo totale, le spese di spedizione e i tempi di consegna stimati, e puoi correggere i dati inseriti.</p>
             <p>Il contratto è concluso quando ricevi l'email di conferma dell'ordine, che riporta il riepilogo, queste condizioni in sintesi e l'informativa sul diritto di recesso con il relativo modulo.</p>
             <p>Per le aste il contratto si conclude con l'aggiudicazione: il vincitore riceve un'email con il collegamento per completare il pagamento entro il termine indicato. Se il pagamento non arriva entro quel termine l'aggiudicazione decade e il bene può essere assegnato al miglior offerente successivo.</p>
-            <p><strong>Lingua.</strong> Puoi concludere il contratto in italiano o in inglese: vale la lingua del sito in cui fai l'ordine, e nella stessa lingua ricevi l'email di conferma e queste condizioni.</p>
+            <p><strong>Lingua.</strong> Puoi concludere il contratto in italiano o in inglese: vale la lingua del sito in cui fai l'ordine, e nella stessa lingua ricevi l'email di conferma e queste condizioni. Se la versione italiana e quella inglese non coincidono, vale quella italiana.</p>
             <p><strong>Dove ritrovi il contratto.</strong> Il contratto viene archiviato: insieme all'ordine conserviamo il testo esatto delle condizioni e dell'informativa sul recesso che hai accettato. Lo ricevi in PDF allegato all'email di conferma. Il riepilogo dell'ordine e la ricevuta restano nella pagina dell'ordine, che apri dal link nell'email di conferma e, se hai un account, da «I miei ordini» nell'area personale.</p>
 
             <h3>3. Prezzi</h3>
@@ -125,7 +125,7 @@ return [
             <p>You choose the products, enter your delivery details and payment method, and confirm with the <strong>"Order with obligation to pay"</strong> button. Before pressing it you see the order summary with the total price, shipping costs and estimated delivery time, and you can correct the data entered.</p>
             <p>The contract is concluded when you receive the order confirmation email, which contains the summary, a summary of these terms and the information on the right of withdrawal with the withdrawal form.</p>
             <p>For auctions the contract is concluded when the item is awarded: the winner receives an email with a link to complete payment within the stated deadline. If payment is not received in time, the award lapses and the item may be offered to the next highest bidder.</p>
-            <p><strong>Language.</strong> You can conclude the contract in Italian or in English: the language is the one of the site where you place the order, and you receive the confirmation email and these terms in that same language.</p>
+            <p><strong>Language.</strong> You can conclude the contract in Italian or in English: the language is the one of the site where you place the order, and you receive the confirmation email and these terms in that same language. If the Italian and English versions differ, the Italian version prevails.</p>
             <p><strong>Where to find your contract.</strong> The contract is archived: together with the order we keep the exact text of the terms and of the withdrawal information you accepted. You receive it as a PDF attached to the confirmation email. The order summary and the receipt remain on the order page, which you open from the link in the confirmation email and, if you have an account, from “My Orders” in your personal area.</p>
 
             <h3>3. Prices</h3>

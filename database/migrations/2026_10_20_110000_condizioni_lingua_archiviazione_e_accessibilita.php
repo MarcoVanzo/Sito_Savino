@@ -31,10 +31,10 @@ return new class extends Migration
         ['Sono aggiornate al 2 ottobre 2026.', 'Sono aggiornate al 20 ottobre 2026.'],
         ['Last updated 2 October 2026. Please read', 'Last updated 20 October 2026. Please read'],
         ['può essere assegnato al miglior offerente successivo.</p>', 'può essere assegnato al miglior offerente successivo.</p>
-<p><strong>Lingua.</strong> Puoi concludere il contratto in italiano o in inglese: vale la lingua del sito in cui fai l\'ordine, e nella stessa lingua ricevi l\'email di conferma e queste condizioni.</p>
+<p><strong>Lingua.</strong> Puoi concludere il contratto in italiano o in inglese: vale la lingua del sito in cui fai l\'ordine, e nella stessa lingua ricevi l\'email di conferma e queste condizioni. Se la versione italiana e quella inglese non coincidono, vale quella italiana.</p>
 <p><strong>Dove ritrovi il contratto.</strong> Il contratto viene archiviato: insieme all\'ordine conserviamo il testo esatto delle condizioni e dell\'informativa sul recesso che hai accettato. Lo ricevi in PDF allegato all\'email di conferma. Il riepilogo dell\'ordine e la ricevuta restano nella pagina dell\'ordine, che apri dal link nell\'email di conferma e, se hai un account, da «I miei ordini» nell\'area personale.</p>'],
         ['the item may be offered to the next highest bidder.</p>', 'the item may be offered to the next highest bidder.</p>
-<p><strong>Language.</strong> You can conclude the contract in Italian or in English: the language is the one of the site where you place the order, and you receive the confirmation email and these terms in that same language.</p>
+<p><strong>Language.</strong> You can conclude the contract in Italian or in English: the language is the one of the site where you place the order, and you receive the confirmation email and these terms in that same language. If the Italian and English versions differ, the Italian version prevails.</p>
 <p><strong>Where to find your contract.</strong> The contract is archived: together with the order we keep the exact text of the terms and of the withdrawal information you accepted. You receive it as a PDF attached to the confirmation email. The order summary and the receipt remain on the order page, which you open from the link in the confirmation email and, if you have an account, from “My Orders” in your personal area.</p>'],
         ['hai il domicilio, se sei un consumatore in Italia.</p>', 'hai il domicilio, se sei un consumatore in Italia.</p>
 
