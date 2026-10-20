@@ -179,6 +179,10 @@ class HandleInertiaRequests extends Middleware
         $settings['analytics']['meta_pixel_requires_consent'] =
             (bool) config('services.meta.pixel_requires_consent');
 
+        // Google Ads, come il pixel, da variabile d'ambiente: vuoto = spento.
+        $settings['analytics']['google_ads_id'] = ((string) config('services.google_ads.id')) ?: null;
+        $settings['analytics']['google_ads_purchase_label'] = ((string) config('services.google_ads.purchase_label')) ?: null;
+
         $contactOverrides = $this->contactPageOverrides();
 
         if ($contactOverrides !== []) {

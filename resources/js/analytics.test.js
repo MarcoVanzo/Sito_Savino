@@ -193,3 +193,81 @@ describe('analytics: e-commerce', () => {
         expect(eventi('purchase')).toHaveLength(1);
     });
 });
+
+describe('analytics: Consent Mode e Google Ads', () => {
+    const aggiornamenti = () => window.dataLayer.filter((voce) => voce[0] === 'consent' && voce[1] === 'update').map((voce) => voce[2]);
+    const config = () => window.dataLayer.filter((voce) => voce[0] === 'config').map((voce) => voce[1]);
+
+    beforeEach(() => {
+        sessionStorage.clear();
+    });
+
+    it('senza ID Ads il marketing aggiorna i tre segnali pubblicitari e non carica Ads', async () => {
+        const { initAnalytics, updateAdsConsent } = await freshModule();
+
+        initAnalytics('G-TEST12345', true);
+        updateAdsConsent(true);
+
+        expect(aggiornamenti().at(-1)).toEqual({ ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
+        expect(config()).toEqual(['G-TEST12345']);
+
+        updateAdsConsent(false);
+        expect(aggiornamenti().at(-1)).toEqual({ ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+    });
+
+    it('con l\'ID Ads si configura solo con il consenso di marketing', async () => {
+        const { initAnalytics, updateAdsConsent } = await freshModule();
+
+        initAnalytics('G-TEST12345', true, { adsId: 'AW-123456789', adsPurchaseLabel: 'abcDEF' });
+        expect(config()).toEqual(['G-TEST12345']);
+
+        updateAdsConsent(true);
+        expect(config()).toEqual(['G-TEST12345', 'AW-123456789']);
+        expect(gtagScripts()).toHaveLength(1);
+    });
+
+    it('con solo Ads e il marketing, gtag.js si carica con l\'ID Ads e GA4 resta spento', async () => {
+        const { initAnalytics } = await freshModule();
+
+        initAnalytics(null, false, { adsId: 'AW-123456789', hasMarketingConsent: true });
+
+        expect(gtagScripts()[0].src).toContain('id=AW-123456789');
+        expect(config()).toEqual(['AW-123456789']);
+        expect(window.dataLayer.filter((voce) => voce[0] === 'event')).toEqual([]);
+    });
+
+    it('la conversione d\'acquisto di Ads parte una volta, solo con il marketing', async () => {
+        const { initAnalytics, updateAdsConsent, trackPurchase } = await freshModule();
+        const ordine = { orderNumber: 'SDB-2026-0100', value: 40 };
+        const conversioni = () => window.dataLayer.filter((voce) => voce[0] === 'event' && voce[1] === 'conversion').map((voce) => voce[2]);
+
+        initAnalytics('G-TEST12345', true, { adsId: 'AW-123456789', adsPurchaseLabel: 'abcDEF' });
+        trackPurchase(ordine);
+        expect(conversioni()).toEqual([]);
+
+        updateAdsConsent(true);
+        trackPurchase(ordine);
+        trackPurchase(ordine);
+
+        expect(conversioni()).toEqual([{ send_to: 'AW-123456789/abcDEF', value: 40, currency: 'EUR', transaction_id: 'SDB-2026-0100' }]);
+    });
+
+    it('senza etichetta d\'acquisto Ads non manda conversioni', async () => {
+        const { initAnalytics, trackPurchase } = await freshModule();
+
+        initAnalytics('G-TEST12345', true, { adsId: 'AW-123456789', hasMarketingConsent: true });
+        trackPurchase({ orderNumber: 'SDB-2026-0101', value: 40 });
+
+        expect(window.dataLayer.some((voce) => voce[1] === 'conversion')).toBe(false);
+    });
+
+    it('la revoca del marketing cancella i cookie _gcl_ di Ads', async () => {
+        const { initAnalytics, updateAdsConsent } = await freshModule();
+        document.cookie = '_gcl_au=1.1.123; path=/';
+
+        initAnalytics('G-TEST12345', true, { adsId: 'AW-123456789', hasMarketingConsent: true });
+        updateAdsConsent(false);
+
+        expect(document.cookie).not.toContain('_gcl_au');
+    });
+});

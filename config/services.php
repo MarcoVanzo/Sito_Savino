@@ -292,6 +292,16 @@ return [
     ],
 
     /*
+    | Google Ads: ID dell'account (AW-…) e etichetta della conversione
+    | d'acquisto. Vuoti per impostazione: con l'ID il tag si carica solo con il
+    | consenso di marketing (analytics.js) e la CSP apre gli host di Ads.
+    */
+    'google_ads' => [
+        'id' => env('GOOGLE_ADS_ID'),
+        'purchase_label' => env('GOOGLE_ADS_PURCHASE_LABEL'),
+    ],
+
+    /*
     | Traduzione automatica delle notizie in inglese (Google Cloud Translation).
     | Usa il service account di GA4: stesso progetto Google («Savino Analytics»),
     | con il ruolo «Utente API Cloud Translation». Niente chiavi in più.

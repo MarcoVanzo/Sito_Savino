@@ -19,6 +19,14 @@ let measurementId = null;
 let scriptLoaded = false;
 let consentGranted = false;
 
+// Google Ads (GOOGLE_ADS_ID, vuoto per impostazione): stesso gtag.js di GA4,
+// ma sotto il consenso di marketing e non quello di statistica.
+let adsId = null;
+let adsPurchaseLabel = null;
+let adsConfigured = false;
+let marketingGranted = false;
+let libraryLoaded = false;
+
 // Deve accodare l'oggetto `arguments`, non un array: gtag.js distingue i due
 // casi e un array verrebbe interpretato come un messaggio dataLayer qualunque
 // invece che come un comando gtag. È il motivo per cui lo snippet ufficiale di
@@ -32,17 +40,29 @@ function ensureDataLayer() {
     window.gtag = window.gtag || gtag;
 }
 
+/**
+ * gtag.js una volta sola, con il primo ID che ottiene il consenso: GA4 e Ads
+ * lo condividono, e un secondo `config` aggiunge l'altra destinazione.
+ */
+function loadLibrary(id) {
+    if (libraryLoaded) return;
+
+    libraryLoaded = true;
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`;
+    document.head.appendChild(script);
+
+    gtag('js', new Date());
+}
+
 function loadScript() {
     if (scriptLoaded || !measurementId) return;
 
     scriptLoaded = true;
+    loadLibrary(measurementId);
 
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
-    document.head.appendChild(script);
-
-    gtag('js', new Date());
     // `send_page_view: false`: la prima visualizzazione la inviamo noi insieme a
     // tutte le altre, altrimenti la pagina d'ingresso verrebbe contata due volte.
     gtag('config', measurementId, { send_page_view: false });
@@ -50,13 +70,24 @@ function loadScript() {
     trackPageView();
 }
 
-/**
- * Prepara la misurazione. Il tag parte solo se il consenso c'è già.
- */
-export function initAnalytics(id, hasConsent) {
-    if (!id) return;
+function loadAds() {
+    if (adsConfigured || !adsId || !marketingGranted) return;
 
-    measurementId = id;
+    adsConfigured = true;
+    loadLibrary(adsId);
+    gtag('config', adsId);
+}
+
+/**
+ * Prepara la misurazione. Il tag parte solo se il consenso c'è già: GA4 con
+ * quello di statistica, Google Ads (`adsId`) con quello di marketing.
+ */
+export function initAnalytics(id, hasConsent, { adsId: idAds = null, adsPurchaseLabel: etichetta = null, hasMarketingConsent = false } = {}) {
+    if (!id && !idAds) return;
+
+    measurementId = id || null;
+    adsId = idAds || null;
+    adsPurchaseLabel = etichetta || null;
     ensureDataLayer();
 
     gtag('consent', 'default', {
@@ -67,6 +98,29 @@ export function initAnalytics(id, hasConsent) {
     });
 
     if (hasConsent) updateAnalyticsConsent(true);
+    if (hasMarketingConsent) updateAdsConsent(true);
+}
+
+/**
+ * Da chiamare quando l'utente accetta o revoca i cookie di marketing.
+ *
+ * Consent Mode v2: con il sì `ad_storage`, `ad_user_data` e
+ * `ad_personalization` passano a granted, con il no tornano denied e i cookie
+ * `_gcl_*` di Ads gia' scritti si cancellano. Google Ads si carica solo se
+ * c'e' un ID.
+ */
+export function updateAdsConsent(granted) {
+    marketingGranted = Boolean(granted);
+
+    if (!marketingGranted) cancellaICookie((nome) => nome.startsWith('_gcl_'));
+
+    if (!measurementId && !adsId) return;
+
+    ensureDataLayer();
+    const valore = marketingGranted ? 'granted' : 'denied';
+    gtag('consent', 'update', { ad_storage: valore, ad_user_data: valore, ad_personalization: valore });
+
+    if (marketingGranted) loadAds();
 }
 
 /**
@@ -77,7 +131,7 @@ export function initAnalytics(id, hasConsent) {
  * nuovi, ma quelli che ci sono resterebbero per due anni.
  */
 export function updateAnalyticsConsent(granted) {
-    if (!granted) cancellaICookieDiAnalytics();
+    if (!granted) cancellaICookie((nome) => nome === '_ga' || nome.startsWith('_ga_'));
 
     if (!measurementId) return;
 
@@ -163,14 +217,37 @@ export function trackBeginCheckout({ value, items = [], currency = 'EUR' }) {
  * pixel (`unaVoltaPerOrdine`, chiave propria).
  */
 export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR' }) {
-    if (!measurementId || !orderNumber) return;
+    if (!orderNumber) return;
 
-    unaVoltaPerOrdine(`ga4-purchase-${orderNumber}`, () => track('purchase', {
+    if (measurementId) unaVoltaPerOrdine(`ga4-purchase-${orderNumber}`, () => track('purchase', {
         transaction_id: String(orderNumber),
         currency,
         value: Number(value) || 0,
         items: articoli(items),
     }));
+
+    trackAdsPurchase({ orderNumber, value, currency });
+}
+
+/**
+ * La conversione d'acquisto di Google Ads (`GOOGLE_ADS_PURCHASE_LABEL`), una
+ * volta per ordine e solo con il consenso di marketing.
+ */
+function trackAdsPurchase({ orderNumber, value, currency }) {
+    if (!adsId || !adsPurchaseLabel || !orderNumber) return;
+
+    unaVoltaPerOrdine(`gads-purchase-${orderNumber}`, () => {
+        if (!adsConfigured || !marketingGranted) return false;
+
+        gtag('event', 'conversion', {
+            send_to: `${adsId}/${adsPurchaseLabel}`,
+            value: Number(value) || 0,
+            currency,
+            transaction_id: String(orderNumber),
+        });
+
+        return true;
+    });
 }
 
 /**
@@ -190,17 +267,18 @@ export function trackGenerateLead(formName) {
 }
 
 /**
- * GA4 scrive i suoi cookie sul dominio piu' alto che il browser gli concede
- * (`.savinodelbenevolley.it` anche visitando `www.`), con o senza il punto:
- * si cancellano sul nome dell'host e su ciascuno dei domini che lo contengono.
+ * GA4 e Ads scrivono i loro cookie sul dominio piu' alto che il browser gli
+ * concede (`.savinodelbenevolley.it` anche visitando `www.`), con o senza il
+ * punto: si cancellano sul nome dell'host e su ciascuno dei domini che lo
+ * contengono.
  */
-function cancellaICookieDiAnalytics() {
+function cancellaICookie(daCancellare) {
     if (typeof document === 'undefined') return;
 
     const nomi = document.cookie
         .split(';')
         .map((coppia) => coppia.split('=')[0].trim())
-        .filter((nome) => nome === '_ga' || nome.startsWith('_ga_'));
+        .filter(daCancellare);
 
     if (nomi.length === 0) return;
 
