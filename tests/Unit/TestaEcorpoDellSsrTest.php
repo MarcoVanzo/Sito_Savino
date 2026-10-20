@@ -47,4 +47,11 @@ class TestaEcorpoDellSsrTest extends TestCase
         $this->assertStringContainsString('<div id="app"><h1>Titolo</h1></div>', $riscritto);
         $this->assertSame(2, substr_count($riscritto, '<!--'), 'restano solo i segnaposto del frammento');
     }
+
+    #[Test]
+    public function un_corpo_senza_lo_script_della_pagina_resta_com_e(): void
+    {
+        $this->assertSame('<div id="app"></div>', DatiInizialiDellaPagina::corpoDellSsr('<div id="app"></div>', []));
+        $this->assertSame('<script data-page="app" type="application/json">{', DatiInizialiDellaPagina::corpoDellSsr('<script data-page="app" type="application/json">{', []));
+    }
 }

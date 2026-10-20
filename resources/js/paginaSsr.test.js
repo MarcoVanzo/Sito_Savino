@@ -70,4 +70,8 @@ describe('paginaSsr', () => {
 
         expect(useSanitize().sanitize('<p onclick="x()">ciao</p><script>alert(1)</script>')).toBe('<p>ciao</p>');
     });
+
+    it('route() fuori da una richiesta SSR e\' un errore, non un link sbagliato', () => {
+        expect(() => globalThis.route('home')).toThrow('fuori da una richiesta SSR');
+    });
 });
