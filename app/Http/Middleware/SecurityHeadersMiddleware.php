@@ -20,6 +20,9 @@ class SecurityHeadersMiddleware
      */
     private const PIXEL_DI_META = 'https://www.facebook.com';
 
+    /** Google Maps (frame) e Google Ads (conversioni) usano lo stesso host. */
+    private const GOOGLE = 'https://www.google.com';
+
     /**
      * Gli host a cui Google Ads manda conversioni e remarketing (guida CSP di
      * Google per gtag.js). Entrano nella policy solo con `GOOGLE_ADS_ID`.
@@ -27,7 +30,7 @@ class SecurityHeadersMiddleware
     private const GOOGLE_ADS = [
         'https://www.googleadservices.com',
         'https://googleads.g.doubleclick.net',
-        'https://www.google.com',
+        self::GOOGLE,
         'https://td.doubleclick.net',
     ];
 
@@ -195,13 +198,13 @@ class SecurityHeadersMiddleware
             // l'errore si leggeva solo nella console del visitatore.
             'frame-src '.implode(' ', [
                 self::SELF,
-                'https://www.google.com', 'https://maps.google.com',
+                self::GOOGLE, 'https://maps.google.com',
                 'https://www.youtube.com', 'https://www.youtube-nocookie.com',
                 'https://player.vimeo.com',
                 'https://player.twitch.tv',
                 'https://www.dailymotion.com', 'https://geo.dailymotion.com',
                 self::PIXEL_DI_META,
-                ...($pannello ? [] : array_diff(self::googleAds(), ['https://www.google.com'])),
+                ...($pannello ? [] : array_diff(self::googleAds(), [self::GOOGLE])),
             ]),
             "media-src 'self' https:",
             ...($worker ? ['worker-src '.implode(' ', $worker)] : []),

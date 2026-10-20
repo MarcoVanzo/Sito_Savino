@@ -27,6 +27,7 @@ let pixelId = null;
 let requiresConsent = false;
 let consentGranted = true;
 let scriptLoaded = false;
+let contatoreEventi = 0;
 
 function ensureStub() {
     if (window.fbq) return;
@@ -142,7 +143,14 @@ function nuovoEventId() {
         return crypto.randomUUID();
     }
 
-    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+    // Safari prima della 15.4 non ha randomUUID ma ha getRandomValues.
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+        return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    contatoreEventi += 1;
+
+    return `${Date.now().toString(36)}-${contatoreEventi}`;
 }
 
 /**

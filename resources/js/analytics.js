@@ -278,7 +278,7 @@ function cancellaICookie(daCancellare) {
     const nomi = document.cookie
         .split(';')
         .map((coppia) => coppia.split('=')[0].trim())
-        .filter(daCancellare);
+        .filter((nome) => daCancellare(nome));
 
     if (nomi.length === 0) return;
 
