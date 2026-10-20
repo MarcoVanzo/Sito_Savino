@@ -142,6 +142,12 @@ class SitemapBuilder
             $indirizzi = [$predefinita => url('/'.ltrim($path, '/'))];
 
             foreach (IndirizziPerLingua::lingue() as $lingua) {
+                // `lingue`: quelle in cui la pagina e' scritta (un prodotto
+                // senza traduzione resta solo in italiano).
+                if (isset($config['lingue']) && ! in_array($lingua, $config['lingue'], true)) {
+                    continue;
+                }
+
                 if ($lingua !== $predefinita && ($indirizzo = IndirizziPerLingua::perPercorso($path, $lingua)) !== null) {
                     $indirizzi[$lingua] = $indirizzo;
                 }
@@ -293,6 +299,7 @@ class SitemapBuilder
                 $addLocalizedUrls(route('shop.product', ['product' => $prodotto->slug], false), [
                     'freq' => Url::CHANGE_FREQUENCY_WEEKLY,
                     'priority' => 0.6,
+                    'lingue' => array_values(array_filter(IndirizziPerLingua::lingue(), fn (string $lingua) => $prodotto->tradottoIn($lingua))),
                 ], $prodotto->updated_at, $immagini);
             });
     }

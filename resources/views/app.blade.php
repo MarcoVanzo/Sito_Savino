@@ -25,7 +25,14 @@
             // al percorso dichiarava indirizzi 404. Una lingua in cui la
             // pagina non esiste non si dichiara.
             $alternati = [];
+            // `lingueDellaPagina` (withViewData): le lingue in cui la pagina
+            // e' scritta davvero. Una scheda prodotto senza traduzione non
+            // dichiara l'inglese e, aperta in inglese, e' noindex.
+            $lingueDellaPagina = $lingueDellaPagina ?? null;
             foreach (\App\Support\IndirizziPerLingua::lingue() as $lingua) {
+                if (is_array($lingueDellaPagina) && ! in_array($lingua, $lingueDellaPagina, true)) {
+                    continue;
+                }
                 $indirizzo = $lingua === $currentLocale
                     ? url()->current()
                     : \App\Support\IndirizziPerLingua::perRichiesta(request(), $lingua, false);
@@ -35,6 +42,9 @@
             }
             $predefinita = \App\Support\IndirizziPerLingua::linguaPredefinita();
         @endphp
+        @if (is_array($lingueDellaPagina) && ! in_array($currentLocale, $lingueDellaPagina, true))
+        <meta name="robots" content="noindex, follow">
+        @endif
         @if (count($alternati) > 1)
             @foreach ($alternati as $lingua => $indirizzo)
         <link rel="alternate" hreflang="{{ $lingua }}" href="{{ $indirizzo }}">
