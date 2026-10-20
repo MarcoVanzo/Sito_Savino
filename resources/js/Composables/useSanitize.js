@@ -1,13 +1,29 @@
 import DOMPurify from 'dompurify';
 
 // Hook: forza rel="noopener noreferrer" su tutti i link con target="_blank"
-// Guard SSR: DOMPurify hooks richiedono il DOM, registra solo lato client
-if (typeof window !== 'undefined') {
-    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+function aggiungiIlControlloDeiLink(istanza) {
+    istanza.addHook('afterSanitizeAttributes', (node) => {
         if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
             node.setAttribute('rel', 'noopener noreferrer');
         }
     });
+}
+
+// Nel browser DOMPurify usa il DOM della pagina. Nel server SSR non c'e' un
+// DOM: paginaSsr.js gli da' quello di jsdom con `usaIlPurificatore`, cosi'
+// server e browser sanificano con le stesse regole e producono lo stesso HTML.
+let purificatore = DOMPurify;
+
+if (typeof window !== 'undefined') {
+    aggiungiIlControlloDeiLink(DOMPurify);
+}
+
+/**
+ * @param {ReturnType<typeof DOMPurify>} istanza DOMPurify legato a un DOM (jsdom)
+ */
+export function usaIlPurificatore(istanza) {
+    aggiungiIlControlloDeiLink(istanza);
+    purificatore = istanza;
 }
 
 /**
@@ -23,7 +39,7 @@ export function useSanitize() {
      */
     const sanitize = (dirty) => {
         if (!dirty) return '';
-        return DOMPurify.sanitize(dirty, {
+        return purificatore.sanitize(dirty, {
             ALLOWED_TAGS: [
                 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                 'p', 'br', 'hr',

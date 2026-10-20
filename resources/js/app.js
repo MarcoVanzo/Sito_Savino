@@ -4,9 +4,9 @@ import { annunciaIlCambioDiPagina } from './Support/annuncioCambioPagina.js';
 import { ricaricaDopoIlRilascio } from './Support/ricaricaDopoIlRilascio.js';
 
 import { createInertiaApp, router, usePage } from '@inertiajs/vue3';
-import { titoloDellaPagina } from './Support/metaDellaPagina.js';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createApp, h } from 'vue';
+import { createSSRApp, h } from 'vue';
+import { installaLeTraduzioni, routeNellaLingua, titoloDellaScheda } from './Support/appInertia.js';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createTranslations } from './i18n/index.js';
 import { initAnalytics, trackPageView } from './analytics.js';
@@ -39,49 +39,32 @@ void createInertiaApp({
             useScriptElementForInitialPage: true,
         },
     },
-    // Le pagine che usano useOgMeta arrivano qui con il nome del sito già in
-    // coda: senza questo controllo il titolo diventava
-    // "Shop Ufficiale — Savino Del Bene Volley - Savino Del Bene Volley".
-    title: (title) => {
-        // Il titolo calcolato dal server (prop `seo`, ServeSocialCrawlerMeta)
-        // vince su quello della pagina: è quello dell'HTML servito, e il
-        // client non deve riscriverlo diverso (audit SEO del 14/10/2026).
-        const titoloDelServer = titoloDellaPagina(usePage().props);
-        if (titoloDelServer) return titoloDelServer;
-
-        if (!title) return appName;
-
-        return title.includes(appName) ? title : `${title} - ${appName}`;
-    },
+    // Le regole del titolo sono in comune con il server SSR (appInertia.js).
+    title: (title) => titoloDellaScheda(title, usePage().props, appName),
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,
             import.meta.glob('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        const app = createApp({ render: () => h(App, props) })
+        // createSSRApp: con l'SSR acceso l'HTML c'e' gia' e Vue lo idrata;
+        // senza (server SSR spento o caduto) lo disegna da zero.
+        const app = createSSRApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue);
 
         const originalRoute = window.route;
-        window.route = (name, params, absolute, config) => {
-            const condivisa = props.initialPage.props.locale;
-            const locale = typeof condivisa === 'string' ? condivisa : '';
-            if (locale && locale !== 'it' && name && !name.startsWith(locale + '.')) {
-                const localizedName = `${locale}.${name}`;
-                if (window.Ziggy?.routes[localizedName] || typeof originalRoute().has === 'function' && originalRoute().has(localizedName)) {
-                    return originalRoute(localizedName, params, absolute, config);
-                }
-            }
-            return originalRoute(name, params, absolute, config);
-        };
+        const condivisa = props.initialPage.props.locale;
+        window.route = routeNellaLingua(
+            originalRoute,
+            typeof condivisa === 'string' ? condivisa : '',
+            (nome) => Boolean(window.Ziggy?.routes[nome])
+                || (typeof originalRoute().has === 'function' && originalRoute().has(nome)),
+        );
         app.config.globalProperties.route = window.route;
 
         // i18n: register $t as global translation function
-        app.config.globalProperties.$t = function (key, params = {}) {
-            const locale = this.$page?.props?.locale || props.initialPage.props.locale || 'it';
-            return createTranslations(locale)(key, params);
-        };
+        installaLeTraduzioni(app, props.initialPage.props.locale);
         if (typeof window !== 'undefined') {
             window.$t = function (key, params = {}) {
                 const page = window.document.getElementById('app')?.__vue_app__?.config.globalProperties.$page;

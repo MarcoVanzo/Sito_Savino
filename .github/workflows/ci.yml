@@ -143,6 +143,15 @@ jobs:
       - name: Esegui test PHPUnit
         run: php artisan test ${{ github.event_name != 'push' && '--coverage-clover=coverage.xml' || '' }}
 
+      # L'HTML iniziale con l'SSR: il server Node vero (bundle di `npm run
+      # build`) e i test del gruppo `ssr`, che senza server si saltano.
+      - name: Test SSR (HTML iniziale)
+        run: |
+          TZ=Europe/Rome node --max-old-space-size=160 bootstrap/ssr/ssr.js > ssr.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:13714/health && break; sleep 1; done
+          php vendor/phpunit/phpunit/phpunit --group ssr --fail-on-skipped
+          if grep -E "Error|TypeError|ReferenceError" ssr.log; then echo "Errori nel server SSR"; exit 1; fi
+
       # Cricchetto sulla copertura delle aree che toccano denaro: checkout,
       # carrello, aste e webhook dei gateway. Non è una percentuale
       # complessiva — quella si alza scrivendo test sui getter e non dice

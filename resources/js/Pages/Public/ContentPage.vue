@@ -140,7 +140,7 @@ const ogMeta = useOgMeta({
                                 rel="noopener noreferrer" 
                                 class="group relative block overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                             >
-                                <img 
+                                <img loading="lazy" 
                                     :src="page.content_data.button_image" 
                                     :alt="page.content_data.button_text || $t('content_page.portal_cta_fallback')" 
                                     class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
@@ -245,7 +245,7 @@ const ogMeta = useOgMeta({
                         >
                             <!-- Cover Thumbnail -->
                             <div class="w-1/3 relative bg-savino-blue flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                <img 
+                                <img loading="lazy" 
                                     v-if="mag.cover_image_url"
                                     :src="mag.cover_image_url" 
                                     :alt="mag.title || ''" 

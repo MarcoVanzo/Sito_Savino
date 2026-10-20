@@ -286,9 +286,11 @@ services:
   - key: APP_LOCALE
     scope: RUN_AND_BUILD_TIME
     value: it
+  # SSR di Inertia: il processo Node lo avvia start.sh nello stesso
+  # container (127.0.0.1:13714). Se cade, Laravel serve la pagina senza SSR.
   - key: INERTIA_SSR_ENABLED
     scope: RUN_AND_BUILD_TIME
-    value: "false"
+    value: "true"
   - key: COMPREFACE_HOST
     scope: RUN_AND_BUILD_TIME
     value: http://10.114.0.3:8000

@@ -167,7 +167,7 @@ watch(desktopNav, (isDesktop) => {
                                         <div class="p-4 flex flex-col items-center justify-center text-center bg-gradient-to-b from-white to-gray-50">
                                             <!-- Qui il fondo è bianco: ci va il marchio a colori,
                                                  come prescrive il brandbook per i fondi chiari. -->
-                                            <img :src="corporateLogo" :alt="corporateName || ''" class="w-48 h-16 object-contain mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
+                                            <img loading="lazy" :src="corporateLogo" :alt="corporateName || ''" class="w-48 h-16 object-contain mb-3" @error="(e) => onImgError(e, LOGOS.CORPORATE_LEFT)" />
                                             <h4 class="text-sm font-black text-[#0B1521] uppercase tracking-wider mb-1 whitespace-nowrap">{{ corporateName }}</h4>
                                             <p class="text-[10px] text-gray-500 mb-4">{{ corporateDescription }}</p>
                                             <a :href="corporateUrl || undefined" :target="corporateUrl ? '_blank' : undefined" :rel="corporateUrl ? 'noopener noreferrer' : undefined" class="inline-flex items-center justify-center px-4 py-2 bg-[#0B1521] text-white text-[10px] font-bold uppercase rounded-md hover:bg-savino-fucsia transition-colors w-full cursor-pointer">

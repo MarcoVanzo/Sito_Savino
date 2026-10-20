@@ -6,7 +6,7 @@
         "node": "22.x"
     },
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && vite build --ssr",
         "build:prod": "vite build",
         "build:ssr": "vite build --ssr",
         "dev": "vite",
@@ -35,7 +35,6 @@
         "eslint-plugin-vue": "^10.10.0",
         "eslint-plugin-vuejs-accessibility": "^2.6.0",
         "globals": "^17.8.0",
-        "jsdom": "^29.1.1",
         "laravel-vite-plugin": "^3.1",
         "postcss": "^8.5.15",
         "postcss-nesting": "^14.0.0",
@@ -50,6 +49,7 @@
         "@vue/server-renderer": "^3.5.39",
         "axios": "^1.18.1",
         "dompurify": "^3.4.11",
+        "jsdom": "^29.1.1",
         "vue": "^3.5.43"
     }
 }

@@ -16,11 +16,19 @@
              ServeSocialCrawlerMeta (CLAUDE.md §19), non questo layout. --}}
         @php
             $metaDellaPagina = request()->attributes->get(\App\Http\Middleware\ServeSocialCrawlerMeta::ATTRIBUTO_META);
+            // Con l'SSR acceso la pagina si rende qui, prima dei meta: titolo e
+            // description del suo <Head> riempiono i nostri invece di
+            // ripeterli (App\Support\TestaDellSsr). `@inertia` riusa la stessa
+            // risposta.
+            $__inertiaSsrDispatched = true;
+            $__inertiaSsrResponse = app(\Inertia\Ssr\Gateway::class)->dispatch($page);
+            $testaSsr = \App\Support\TestaDellSsr::separa($__inertiaSsrResponse?->head);
+            $metaSsr = $testaSsr['meta'];
         @endphp
         {{-- Con $metaDellaPagina (ServeSocialCrawlerMeta) l'HTML iniziale
              descrive la pagina vera anche senza SSR: titolo, descrizione e
              immagine di una notizia, di un prodotto, di un'atleta. --}}
-        <meta name="description" content="{{ $metaDellaPagina['description'] ?? __('site.default_description') }}" inertia="description">
+        <meta name="description" content="{{ $metaDellaPagina['description'] ?? $metaSsr['description'] ?? __('site.default_description') }}" inertia="description">
         <link rel="canonical" href="{{ url()->current() }}">
         @php
             $cspNonce = \Illuminate\Support\Facades\Vite::cspNonce();
@@ -56,15 +64,15 @@
               href="{{ \App\Services\NewsFeedBuilder::indirizzo($currentLocale) }}">
 
         <!-- Open Graph -->
-        <meta property="og:type" content="{{ $metaDellaPagina['type'] ?? 'website' }}" inertia="og:type">
+        <meta property="og:type" content="{{ $metaDellaPagina['type'] ?? $metaSsr['og:type'] ?? 'website' }}" inertia="og:type">
         <meta property="og:site_name" content="Savino Del Bene Volley">
         <meta property="og:locale" content="{{ app()->getLocale() === 'en' ? 'en_US' : 'it_IT' }}">
-        <meta property="og:title" content="{{ $metaDellaPagina['title'] ?? config('app.name', 'Savino Del Bene Volley') }}" inertia="og:title">
+        <meta property="og:title" content="{{ $metaDellaPagina['title'] ?? $metaSsr['og:title'] ?? $testaSsr['title'] ?? config('app.name', 'Savino Del Bene Volley') }}" inertia="og:title">
         {{-- L'indirizzo della pagina, non APP_URL: ogni pagina senza un suo
              og:url dichiarava di essere la home. --}}
         <meta property="og:url" content="{{ url()->current() }}" inertia="og:url">
-        <meta property="og:image" content="{{ $metaDellaPagina['image'] ?? config('app.url').'/images/logo.png' }}" inertia="og:image">
-        <meta property="og:description" content="{{ $metaDellaPagina['description'] ?? __('site.default_og_description') }}" inertia="og:description">
+        <meta property="og:image" content="{{ $metaDellaPagina['image'] ?? $metaSsr['og:image'] ?? config('app.url').'/images/logo.png' }}" inertia="og:image">
+        <meta property="og:description" content="{{ $metaDellaPagina['description'] ?? $metaSsr['og:description'] ?? $metaSsr['description'] ?? __('site.default_og_description') }}" inertia="og:description">
 
         <!-- Twitter Card -->
         <meta name="twitter:card" content="summary_large_image">
@@ -82,7 +90,7 @@
         <script type="application/ld+json" nonce="{{ $cspNonce }}">{!! json_encode($blocco, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_INVALID_UTF8_SUBSTITUTE) !!}</script>
         @endforeach
 
-        <title inertia>{{ $metaDellaPagina['title'] ?? config('app.name', 'Savino Del Bene Volley') }}</title>
+        <title inertia>{{ $metaDellaPagina['title'] ?? $testaSsr['title'] ?? config('app.name', 'Savino Del Bene Volley') }}</title>
 
         <!-- Favicon -->
         <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -97,7 +105,9 @@
         <!-- Scripts -->
         @routes(null, $cspNonce)
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
-        @inertiaHead
+        {{-- Il resto del <Head> della pagina reso dall'SSR (robots, link):
+             titolo e meta li ha gia' stampati il layout qui sopra. --}}
+        {!! $testaSsr['resto'] !!}
     </head>
     <body class="font-sans antialiased">
         @inertia
