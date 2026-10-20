@@ -6,7 +6,7 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
-import { trackInitiateCheckout } from '@/meta-pixel.js'
+import { checkoutIniziato } from '@/conversioni.js'
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -46,9 +46,14 @@ onMounted(() => {
         return;
     }
 
-    trackInitiateCheckout({
+    checkoutIniziato({
         value: Number(props.cartTotal),
-        numItems: Number(props.itemCount),
+        items: props.cart.items.map((item) => ({
+            id: item.product_id ?? item.product?.id,
+            name: item.product?.name || item.name,
+            price: Number(item.unit_price),
+            quantity: Number(item.quantity ?? 1),
+        })),
     });
 });
 

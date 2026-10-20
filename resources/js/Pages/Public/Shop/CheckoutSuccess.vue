@@ -4,7 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { useOgMeta } from '@/Composables/useOgMeta';
 import { useFormatPrice } from '@/Composables/useFormatPrice';
 import { useTranslations } from '@/Composables/useTranslations.js';
-import { trackPurchase } from '@/meta-pixel.js';
+import { acquistoConcluso } from '@/conversioni.js';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const $t = useTranslations();
@@ -39,11 +39,13 @@ const maxPolls = 12; // 12 × 5s = 60s
 onMounted(() => {
     // L'ordine con il bonifico non è ancora incassato, ma è comunque una
     // conversione: la campagna ha portato l'acquisto, il resto è amministrazione.
-    trackPurchase({
+    acquistoConcluso({
         orderNumber: props.order.order_number,
         value: Number(props.order.total_price),
         items: (props.order.items ?? []).map((item) => ({
             id: item.product_id,
+            name: item.product?.name ?? '',
+            price: Number(item.price_at_time_of_purchase),
             quantity: item.quantity,
         })),
     });

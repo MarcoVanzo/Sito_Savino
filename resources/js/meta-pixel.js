@@ -21,6 +21,8 @@
  *    di Meta si aspetta di trovare in coda quando finisce di caricarsi.
  */
 
+import { unaVoltaPerOrdine } from './Support/unaVoltaPerOrdine.js';
+
 let pixelId = null;
 let requiresConsent = false;
 let consentGranted = true;
@@ -177,41 +179,18 @@ export function trackInitiateCheckout({ value, numItems, currency = 'EUR' }) {
 }
 
 /**
- * Ordine concluso. Il blocco è per numero d'ordine e vive nella sessione del
- * browser: ricaricare la pagina di conferma non deve produrre una seconda
- * conversione.
- *
- * L'ordine si segna come tracciato solo se l'evento e' partito: senza
- * consenso (o prima che lo script sia pronto) `track` non manda nulla, e
- * segnarlo lo stesso impedirebbe di contarlo se il cliente accetta i cookie
- * di marketing sulla pagina di conferma, che si ricarica da sola.
+ * Ordine concluso, una volta sola per numero d'ordine (`unaVoltaPerOrdine`):
+ * ricaricare la pagina di conferma non deve produrre una seconda conversione.
  */
 export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR' }) {
     if (!pixelId || !orderNumber) return;
 
-    const key = `meta-pixel-purchase-${orderNumber}`;
-
-    try {
-        if (sessionStorage.getItem(key)) return;
-    } catch {
-        // Storage non disponibile (navigazione privata, storage pieno): meglio
-        // un evento in più che una conversione persa.
-    }
-
-    const inviato = track('Purchase', {
+    unaVoltaPerOrdine(`meta-pixel-purchase-${orderNumber}`, () => track('Purchase', {
         content_ids: items.map((item) => String(item.id)),
         contents: items.map((item) => ({ id: String(item.id), quantity: Number(item.quantity) || 1 })),
         content_type: 'product',
         num_items: items.reduce((total, item) => total + (Number(item.quantity) || 0), 0),
         value: Number(value) || 0,
         currency,
-    });
-
-    if (!inviato) return;
-
-    try {
-        sessionStorage.setItem(key, '1');
-    } catch {
-        // Come sopra: senza storage si rinuncia alla deduplica.
-    }
+    }));
 }

@@ -136,3 +136,60 @@ describe('analytics', () => {
         expect(views).toHaveLength(0);
     });
 });
+
+describe('analytics: e-commerce', () => {
+    function eventi(nome) {
+        return [...window.dataLayer].filter((voce) => voce[0] === 'event' && voce[1] === nome).map((voce) => voce[2]);
+    }
+
+    beforeEach(() => {
+        sessionStorage.clear();
+    });
+
+    it('manda view_item, add_to_cart e begin_checkout nello schema di GA4', async () => {
+        const { initAnalytics, trackViewItem, trackAddToCart, trackBeginCheckout } = await freshModule();
+
+        initAnalytics('G-TEST12345', true);
+        trackViewItem({ id: 12, name: 'Maglia gara', price: 79.9 });
+        trackAddToCart({ id: 12, name: 'Maglia gara', price: 79.9, quantity: 2 });
+        trackBeginCheckout({ value: 159.8, items: [{ id: 12, name: 'Maglia gara', price: 79.9, quantity: 2 }] });
+
+        expect(eventi('view_item')[0]).toEqual({
+            currency: 'EUR',
+            value: 79.9,
+            items: [{ item_id: '12', item_name: 'Maglia gara', price: 79.9, quantity: 1 }],
+        });
+        expect(eventi('add_to_cart')[0]).toEqual(expect.objectContaining({ value: 159.8, currency: 'EUR' }));
+        expect(eventi('add_to_cart')[0].items[0].quantity).toBe(2);
+        expect(eventi('begin_checkout')[0]).toEqual(expect.objectContaining({ value: 159.8, currency: 'EUR' }));
+    });
+
+    it('conta un acquisto una volta sola per ordine, con transaction_id', async () => {
+        const { initAnalytics, trackPurchase } = await freshModule();
+        const ordine = { orderNumber: 'SDB-2026-0001', value: 159.8, items: [{ id: 12, name: 'Maglia', price: 79.9, quantity: 2 }] };
+
+        initAnalytics('G-TEST12345', true);
+        trackPurchase(ordine);
+        trackPurchase(ordine);
+
+        expect(eventi('purchase')).toHaveLength(1);
+        expect(eventi('purchase')[0]).toEqual(expect.objectContaining({ transaction_id: 'SDB-2026-0001', value: 159.8, currency: 'EUR' }));
+    });
+
+    it('senza consenso non manda eventi e non consuma l\'acquisto', async () => {
+        const { initAnalytics, updateAnalyticsConsent, trackViewItem, trackPurchase } = await freshModule();
+        const ordine = { orderNumber: 'SDB-2026-0002', value: 10 };
+
+        initAnalytics('G-TEST12345', false);
+        trackViewItem({ id: 1, name: 'Sciarpa', price: 10 });
+        trackPurchase(ordine);
+
+        expect(window.dataLayer.filter((voce) => voce[0] === 'event')).toHaveLength(0);
+        expect(sessionStorage.getItem('ga4-purchase-SDB-2026-0002')).toBeNull();
+
+        updateAnalyticsConsent(true);
+        trackPurchase(ordine);
+
+        expect(eventi('purchase')).toHaveLength(1);
+    });
+});

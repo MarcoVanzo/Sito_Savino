@@ -13,6 +13,8 @@
  *    misura "pagina per pagina" che serve al pannello.
  */
 
+import { unaVoltaPerOrdine } from './Support/unaVoltaPerOrdine.js';
+
 let measurementId = null;
 let scriptLoaded = false;
 let consentGranted = false;
@@ -102,6 +104,73 @@ export function trackPageView() {
         page_path: window.location.pathname + window.location.search,
         page_title: document.title,
     });
+}
+
+/**
+ * Un evento GA4, solo con il tag caricato e il consenso dato: le stesse
+ * condizioni di `trackPageView`.
+ *
+ * @returns {boolean} se l'evento e' partito davvero
+ */
+function track(evento, parametri) {
+    if (!measurementId || !scriptLoaded || !consentGranted) return false;
+
+    gtag('event', evento, parametri);
+
+    return true;
+}
+
+/**
+ * Le righe nello schema e-commerce di GA4. `price` e' il prezzo unitario
+ * pagato (sconto, taglia e firma compresi), non il barrato.
+ *
+ * @param {Array<{ id: number|string, name?: string, price?: number, quantity?: number }>} righe
+ */
+function articoli(righe) {
+    return righe.map((riga) => ({
+        item_id: String(riga.id),
+        item_name: riga.name ?? '',
+        price: Number(riga.price) || 0,
+        quantity: Number(riga.quantity) || 1,
+    }));
+}
+
+function valoreDi(righe) {
+    return Math.round(righe.reduce((totale, riga) => totale + (Number(riga.price) || 0) * (Number(riga.quantity) || 1), 0) * 100) / 100;
+}
+
+/** Scheda prodotto aperta. */
+export function trackViewItem({ id, name, price, currency = 'EUR' }) {
+    const righe = [{ id, name, price, quantity: 1 }];
+
+    track('view_item', { currency, value: valoreDi(righe), items: articoli(righe) });
+}
+
+/** Prodotto aggiunto al carrello; `price` e' quello di un pezzo. */
+export function trackAddToCart({ id, name, price, quantity = 1, currency = 'EUR' }) {
+    const righe = [{ id, name, price, quantity }];
+
+    track('add_to_cart', { currency, value: valoreDi(righe), items: articoli(righe) });
+}
+
+/** Checkout aperto: `value` e' il totale del carrello (coupon e spedizione esclusi). */
+export function trackBeginCheckout({ value, items = [], currency = 'EUR' }) {
+    track('begin_checkout', { currency, value: Number(value) || 0, items: articoli(items) });
+}
+
+/**
+ * Ordine concluso, una volta sola per numero d'ordine come il `Purchase` del
+ * pixel (`unaVoltaPerOrdine`, chiave propria).
+ */
+export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR' }) {
+    if (!measurementId || !orderNumber) return;
+
+    unaVoltaPerOrdine(`ga4-purchase-${orderNumber}`, () => track('purchase', {
+        transaction_id: String(orderNumber),
+        currency,
+        value: Number(value) || 0,
+        items: articoli(items),
+    }));
 }
 
 /**
