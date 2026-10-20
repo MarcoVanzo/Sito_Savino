@@ -6,6 +6,7 @@ use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
 use App\Enums\PlayerPosition;
 use App\Enums\PostStatus;
+use App\Enums\ProductType;
 use App\Models\Game;
 use App\Models\GamePlayerStat;
 use App\Models\Page;
@@ -13,8 +14,10 @@ use App\Models\Player;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\ProductVariant;
 use App\Models\Roster;
 use App\Models\Season;
+use App\Models\ShippingZone;
 use App\Models\SiteSetting;
 use App\Models\Team;
 use App\Services\Seo\DatiStrutturati;
@@ -111,6 +114,7 @@ class DatiStrutturatiNellePagineTest extends TestCase
             'status' => GameStatus::Scheduled,
             'competition_type' => CompetitionType::Championship,
             'location' => 'Pala BigMat - Firenze',
+            'biglietti_prezzo_da' => 10,
         ], $attributi));
     }
 
@@ -218,16 +222,18 @@ class DatiStrutturatiNellePagineTest extends TestCase
     }
 
     #[Test]
-    public function senza_prezzo_l_offerta_non_ne_inventa_uno(): void
+    public function senza_prezzo_la_partita_non_dichiara_l_offerta(): void
     {
-        $this->garaInCasa(['biglietti_url' => 'https://www.vivaticket.com/it/ticket/savino-novara/1']);
+        // Un'offerta con il prezzo vuoto e' quella che il Rich Results Test
+        // segnalava (audit SEO del 20/10/2026): meglio nessuna.
+        $this->garaInCasa([
+            'biglietti_url' => 'https://www.vivaticket.com/it/ticket/savino-novara/1',
+            'biglietti_prezzo_da' => null,
+        ]);
 
-        $offerta = $this->delTipo($this->blocchi('/'), 'SportsEvent')['offers'];
+        $evento = $this->delTipo($this->blocchi('/'), 'SportsEvent');
 
-        $this->assertSame('https://schema.org/InStock', $offerta['availability']);
-        $this->assertArrayNotHasKey('price', $offerta);
-        $this->assertArrayNotHasKey('priceCurrency', $offerta);
-        $this->assertArrayNotHasKey('validFrom', $offerta);
+        $this->assertArrayNotHasKey('offers', $evento);
     }
 
     #[Test]
@@ -417,6 +423,53 @@ class DatiStrutturatiNellePagineTest extends TestCase
         $this->assertStringStartsWith('https://schema.org/', $scheda['offers']['availability']);
         $this->assertArrayNotHasKey('aggregateRating', $scheda);
         $this->assertArrayNotHasKey('review', $scheda);
+    }
+
+    #[Test]
+    public function il_prodotto_dichiara_spedizioni_delle_zone_e_reso_a_14_giorni(): void
+    {
+        ShippingZone::factory()->create([
+            'countries' => ['IT'], 'flat_rate' => 7.5, 'free_threshold' => 100,
+            'weight_rates' => [], 'estimated_days_min' => 2, 'estimated_days_max' => 7, 'is_active' => true, 'sort_order' => 1,
+        ]);
+        ShippingZone::factory()->create([
+            'countries' => ['FR', 'DE'], 'flat_rate' => 17, 'free_threshold' => null,
+            'weight_rates' => [], 'estimated_days_min' => 3, 'estimated_days_max' => 5, 'is_active' => true, 'sort_order' => 2,
+        ]);
+        // Il resto del mondo non ha paesi da dichiarare.
+        ShippingZone::factory()->create(['countries' => ['*'], 'flat_rate' => 50, 'is_active' => true, 'sort_order' => 3]);
+        $prodotto = Product::factory()->create(['slug' => 'sciarpa', 'price' => 20, 'stock' => 5, 'is_active' => true]);
+
+        $offerta = $this->delTipo($this->blocchi('/shop/prodotto/'.$prodotto->slug), 'Product')['offers'];
+
+        $this->assertCount(2, $offerta['shippingDetails']);
+        $italia = $offerta['shippingDetails'][0];
+        $this->assertSame('7.50', $italia['shippingRate']['value']);
+        $this->assertSame('IT', $italia['shippingDestination'][0]['addressCountry']);
+        $this->assertSame(2, $italia['deliveryTime']['transitTime']['minValue']);
+        $this->assertSame(7, $italia['deliveryTime']['transitTime']['maxValue']);
+        $this->assertSame(['FR', 'DE'], array_column($offerta['shippingDetails'][1]['shippingDestination'], 'addressCountry'));
+
+        $reso = $offerta['hasMerchantReturnPolicy'];
+        $this->assertSame(14, $reso['merchantReturnDays']);
+        $this->assertSame(['IT', 'FR', 'DE'], $reso['applicableCountry']);
+        $this->assertSame('https://schema.org/MerchantReturnFiniteReturnWindow', $reso['returnPolicyCategory']);
+    }
+
+    #[Test]
+    public function il_prodotto_con_le_taglie_e_un_gruppo_con_lo_sku_di_ogni_taglia(): void
+    {
+        $prodotto = Product::factory()->create(['slug' => 'maglia', 'type' => ProductType::Variable, 'price' => 40, 'sku' => null, 'is_active' => true]);
+        ProductVariant::factory()->create(['product_id' => $prodotto->id, 'size' => 'S', 'sku' => 'MAGLIA-S', 'stock' => 2, 'price_modifier' => 0]);
+        ProductVariant::factory()->create(['product_id' => $prodotto->id, 'size' => 'XL', 'sku' => 'MAGLIA-XL', 'stock' => 0, 'price_modifier' => 5]);
+
+        $gruppo = $this->delTipo($this->blocchi('/shop/prodotto/'.$prodotto->slug), 'ProductGroup');
+
+        $this->assertSame((string) $prodotto->id, $gruppo['productGroupID']);
+        $this->assertSame(['MAGLIA-S', 'MAGLIA-XL'], array_column($gruppo['hasVariant'], 'sku'));
+        $this->assertSame('45.00', $gruppo['hasVariant'][1]['offers']['price']);
+        $this->assertSame('https://schema.org/OutOfStock', $gruppo['hasVariant'][1]['offers']['availability']);
+        $this->assertArrayNotHasKey('offers', $gruppo);
     }
 
     #[Test]
