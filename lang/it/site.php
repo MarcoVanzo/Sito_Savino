@@ -30,6 +30,9 @@ return [
      * inglese: con le stringhe cablate nel codice `/en/season` annunciava
      * "Stagione — Savino Del Bene Volley".
      */
+    // Il titolo dell'HTML servito con un 404 (bootstrap/app.php).
+    'pagina_non_trovata' => 'Pagina non trovata | Savino Del Bene Volley',
+
     'social' => [
         'home' => [
             'title' => 'Savino Del Bene Volley — Sito Ufficiale',
