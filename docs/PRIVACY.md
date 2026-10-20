@@ -178,7 +178,7 @@ non un registro statistico: non aggiungerci altro.
 | Sentry | diagnostica degli errori: indirizzo della pagina, tipo di browser e traccia tecnica del guasto, del server e (dal 25/09/2026) del browser. **Non** l'IP né l'utente (`send_default_pii` a `false`, `sendDefaultPii: false`), **non** i parametri delle query (`sql_bindings` a `false`). Gli errori del browser passano dal tunnel `/api/diagnostica`: il browser non contatta Sentry, che vede solo l'IP del server. Nessun cookie né storage, quindi niente consenso. Progetto nella regione europea | `config/sentry.php`, `SENTRY_LARAVEL_DSN`, `resources/js/diagnostica.js`, `SentryTunnelController` |
 | ActiveCampaign | newsletter | `services.activecampaign` |
 | Google Ireland | GA4, **solo dopo il consenso statistico** | `resources/js/analytics.js` |
-| Meta Platforms Ireland | pixel, **solo dopo il consenso marketing** (`META_PIXEL_REQUIRES_CONSENT`, predefinito `true`) | `resources/js/meta-pixel.js` |
+| Meta Platforms Ireland | pixel, **solo dopo il consenso marketing** (`META_PIXEL_REQUIRES_CONSENT`, predefinito `true`); contitolare per raccolta e trasmissione (art. 26), l'informativa linka il Controller Addendum di Meta dal 20/10/2026 | `resources/js/meta-pixel.js` |
 | Google (Maps), YouTube, Vimeo, Twitch, Dailymotion | l'IP di chi carica la mappa o un video: solo col consenso di marketing o dopo un clic sul segnaposto (`ContenutoIncorporato.vue`) | `Societa/Palazzetto.vue`, `LiveStreamModal.vue`, `PageMediaTail.vue` |
 
 **Il poco che riceve Sentry è configurazione, non fortuna.** `send_default_pii`
