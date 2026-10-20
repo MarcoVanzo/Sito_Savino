@@ -14,6 +14,7 @@ import { initMetaPixel, trackPageView as trackPixelPageView } from './meta-pixel
 import { leggiIlConsenso } from './consenso.js';
 import { avviaLaDiagnostica } from './diagnostica.js';
 import { installaDialogDiRipiego } from './Support/dialogDiRipiego.js';
+import { contaLeNavigazioni } from './Support/visualizzazioniDiPagina.js';
 
 // Prima di tutto il resto: anche la prima pagina Inertia si carica su richiesta.
 // Solo le visite GET si possono riaprire con un indirizzo.
@@ -111,8 +112,8 @@ void createInertiaApp({
 
             // Senza questo, in una SPA GA4 attribuirebbe tutto il traffico alla
             // pagina d'ingresso: è proprio la misura pagina per pagina che serve.
-            // Il rinvio di un tick serve a leggere il titolo già aggiornato.
-            router.on('navigate', () => window.setTimeout(trackPageView, 0));
+            // La pagina d'ingresso la manda il tag quando si carica.
+            contaLeNavigazioni(router, trackPageView);
         }
 
         // Meta Pixel: misura il funnel pubblicitario, non il traffico. Vive
@@ -125,7 +126,7 @@ void createInertiaApp({
                 hasConsent: consenso.scelto && consenso.marketing,
             });
 
-            router.on('navigate', () => window.setTimeout(trackPixelPageView, 0));
+            contaLeNavigazioni(router, trackPixelPageView);
         }
 
         // Errori JavaScript verso Sentry, senza consenso perché non scrive nel
