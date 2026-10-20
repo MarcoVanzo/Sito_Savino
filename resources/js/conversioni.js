@@ -8,6 +8,7 @@
  */
 import * as ga4 from './analytics.js';
 import * as pixel from './meta-pixel.js';
+import { leggiIlConsenso } from './consenso.js';
 
 /**
  * Scheda prodotto aperta.
@@ -104,4 +105,31 @@ export function seguiIClicVersoLaBiglietteria(radice = document) {
     radice.addEventListener('click', alClic, true);
 
     return () => radice.removeEventListener('click', alClic, true);
+}
+
+function cookie(nome) {
+    const coppia = document.cookie.split(';').map((voce) => voce.trim()).find((voce) => voce.startsWith(`${nome}=`));
+
+    return coppia ? decodeURIComponent(coppia.slice(nome.length + 1)) : null;
+}
+
+/**
+ * Cosa viaggia con l'ordine per la Conversions API: il riferimento della
+ * scelta sul banner (il server la ricontrolla sul registro dei consensi) e i
+ * cookie `_fbp`/`_fbc` del pixel. Senza consenso di marketing valido, niente.
+ *
+ * @returns {{ consenso_riferimento: string|null, meta_fbp: string|null, meta_fbc: string|null }}
+ */
+export function consensoPerLOrdine(versioneAttesa = null) {
+    const consenso = leggiIlConsenso(versioneAttesa);
+
+    if (!consenso.scelto || !consenso.marketing || !consenso.riferimento) {
+        return { consenso_riferimento: null, meta_fbp: null, meta_fbc: null };
+    }
+
+    return {
+        consenso_riferimento: consenso.riferimento,
+        meta_fbp: cookie('_fbp'),
+        meta_fbc: cookie('_fbc'),
+    };
 }

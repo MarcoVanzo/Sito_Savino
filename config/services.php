@@ -349,6 +349,18 @@ return [
         // non governava niente. La variabile resta per poterlo riaprire in
         // fretta, ma il posto giusto per decidere è il banner.
         'pixel_requires_consent' => filter_var(env('META_PIXEL_REQUIRES_CONSENT', true), FILTER_VALIDATE_BOOL),
+
+        // Conversions API: l'acquisto mandato anche dal server
+        // (App\Jobs\InviaAcquistoAMeta), solo per gli ordini fatti con il
+        // consenso di marketing. Spenta finche' privacy e cookie policy non lo
+        // dichiarano. Il token si genera in Events Manager → Impostazioni del
+        // pixel; il codice di prova (Test Events) tiene gli eventi fuori dalle
+        // statistiche.
+        'capi' => [
+            'enabled' => filter_var(env('META_CAPI_ENABLED', false), FILTER_VALIDATE_BOOL),
+            'token' => env('META_CAPI_TOKEN'),
+            'test_event_code' => env('META_CAPI_TEST_EVENT_CODE'),
+        ],
     ],
 
 ];

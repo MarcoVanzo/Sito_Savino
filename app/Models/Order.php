@@ -49,7 +49,17 @@ class Order extends Model
         'guest_email', 'guest_name', 'guest_phone', 'phone',
         'shipping_address', 'billing_address', 'country', 'billing_country',
         'codice_fiscale', 'notes', 'order_token',
+        'meta_fbp', 'meta_fbc', 'meta_user_agent',
     ];
+
+    /**
+     * Gli identificativi di Meta e lo user agent servono solo alla Conversions
+     * API: l'ordine arriva intero alla pagina di conferma, e non devono finire
+     * nel browser.
+     *
+     * @var list<string>
+     */
+    protected $hidden = ['meta_fbp', 'meta_fbc', 'meta_user_agent', 'consenso_cookie_riferimento'];
 
     protected string $logLabelField = 'order_number';
 
@@ -87,6 +97,8 @@ class Order extends Model
             'paid_at' => 'datetime',
             'shipped_at' => 'datetime',
             'privacy_accepted_at' => 'datetime',
+            'consenso_marketing' => 'boolean',
+            'meta_acquisto_inviato_at' => 'datetime',
         ];
     }
 

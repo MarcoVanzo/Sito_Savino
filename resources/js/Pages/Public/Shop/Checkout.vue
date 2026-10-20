@@ -6,7 +6,7 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useOgMeta } from '@/Composables/useOgMeta'
 import { useFormatPrice } from '@/Composables/useFormatPrice.js'
-import { checkoutIniziato } from '@/conversioni.js'
+import { checkoutIniziato, consensoPerLOrdine } from '@/conversioni.js'
 
 const $t = useTranslations();
 const { formatPrice } = useFormatPrice();
@@ -78,6 +78,10 @@ const form = useForm({
     coupon_code: '',
     notes: '',
     privacy_accepted: false,
+    // Riempiti all'invio, solo con il consenso di marketing (consensoPerLOrdine).
+    consenso_riferimento: null,
+    meta_fbp: null,
+    meta_fbc: null,
     guest_name: authUser?.name || '',
     guest_email: authUser?.email || '',
     guest_phone: '',
@@ -277,6 +281,7 @@ const submitOrder = () => {
         vaiAlPrimoErrore();
         return;
     }
+    Object.assign(form, consensoPerLOrdine(page.props.consensoCookie?.versione ?? null));
     form.post(route('shop.checkout.store'), {
         preserveScroll: true,
         onError: (errori) => {

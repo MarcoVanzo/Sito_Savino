@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Webhooks\Traits;
 
 use App\Enums\OrderStatus;
 use App\Enums\StockMovementType;
+use App\Jobs\InviaAcquistoAMeta;
 use App\Mail\OrderConfirmation;
 use App\Models\Order;
 use App\Models\Product;
@@ -210,6 +211,7 @@ trait HandlesPaymentWebhooks
             // 4. Send order confirmation email (queued)
             $this->sendOrderConfirmationEmail($order);
             app(AvvisoNuovoOrdine::class)->invia($order);
+            InviaAcquistoAMeta::seServe($order);
 
             // 5. Notify admin panel
             app(AdminNotificationService::class)->notifyPaymentReceived($order);

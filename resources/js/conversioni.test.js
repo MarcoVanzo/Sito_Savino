@@ -139,3 +139,34 @@ describe('conversioni: biglietteria e moduli', () => {
         expect(window.fbq).toBeUndefined();
     });
 });
+
+describe('conversioni: consenso sull\'ordine', () => {
+    const salva = (scelta) => localStorage.setItem('cookie-consent-v2', JSON.stringify({ versione: 'v1', data: new Date().toISOString(), riferimento: 'rif-1', ...scelta }));
+
+    beforeEach(() => {
+        localStorage.clear();
+        document.cookie = '_fbp=fb.1.1700000000000.123456; path=/';
+    });
+
+    it('con il consenso di marketing manda il riferimento e _fbp', async () => {
+        const { conversioni } = await moduliNuovi();
+        salva({ statistiche: false, marketing: true });
+
+        expect(conversioni.consensoPerLOrdine('v1')).toEqual({
+            consenso_riferimento: 'rif-1',
+            meta_fbp: 'fb.1.1700000000000.123456',
+            meta_fbc: null,
+        });
+    });
+
+    it('senza marketing, o su un\'informativa vecchia, non manda niente', async () => {
+        const { conversioni } = await moduliNuovi();
+        const vuoto = { consenso_riferimento: null, meta_fbp: null, meta_fbc: null };
+
+        salva({ statistiche: true, marketing: false });
+        expect(conversioni.consensoPerLOrdine('v1')).toEqual(vuoto);
+
+        salva({ statistiche: true, marketing: true });
+        expect(conversioni.consensoPerLOrdine('v2')).toEqual(vuoto);
+    });
+});
