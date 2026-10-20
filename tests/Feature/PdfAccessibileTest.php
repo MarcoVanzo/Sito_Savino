@@ -21,6 +21,17 @@ class PdfAccessibileTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Qui si prova il ripiego di dompdf: dove c'è Chrome il PDF lo farebbe
+     * lui (PdfTaggatiConChromeTest).
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['services.chrome.abilitato' => false]);
+    }
+
     #[Test]
     public function l_allegato_delle_condizioni_dichiara_lingua_e_titolo(): void
     {

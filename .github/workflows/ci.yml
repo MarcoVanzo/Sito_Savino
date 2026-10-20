@@ -141,6 +141,10 @@ jobs:
 
       # Test PHPUnit con MySQL 8.4 (coverage solo nelle run complete)
       - name: Esegui test PHPUnit
+        # Chrome è nel runner e fa i PDF taggati (PdfTaggatiConChromeTest);
+        # su Ubuntu 24.04 la sua sandbox non parte da utente normale.
+        env:
+          CHROME_SENZA_SANDBOX: 'true'
         run: php artisan test ${{ github.event_name != 'push' && '--coverage-clover=coverage.xml' || '' }}
 
       # Cricchetto sulla copertura delle aree che toccano denaro: checkout,

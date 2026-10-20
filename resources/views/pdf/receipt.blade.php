@@ -67,7 +67,7 @@
         /* --- Riquadri informativi --- */
         .cards { margin-top: 26px; }
         .cards td.card {
-            width: 33.33%;
+            width: 32%;
             background-color: #F3F4F7;
             padding: 12px 14px;
             vertical-align: top;
@@ -231,7 +231,7 @@
             </td>
             <td class="title-cell">
                 <div class="brand-name">Savino Del Bene Volley · Shop ufficiale</div>
-                <div class="doc-title">Ricevuta di acquisto</div>
+                <h1 class="doc-title">Ricevuta di acquisto</h1>
             </td>
             <td class="amount-cell">
                 <div class="amount-label">Totale</div>

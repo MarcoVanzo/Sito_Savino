@@ -51,6 +51,16 @@ return [
         'sale' => env('CONSENSI_SALE'),
     ],
 
+    // Chrome senza interfaccia per i PDF taggati (PdfConChrome). Vuoto: si
+    // cerca nei percorsi soliti; assente, i PDF li fa dompdf, senza tag.
+    'chrome' => [
+        'path' => env('CHROME_PATH'),
+        'abilitato' => (bool) env('PDF_CON_CHROME', true),
+        // Necessario dove la sandbox di Chrome non parte (runner di CI su
+        // Ubuntu 24.04). Da root si toglie comunque.
+        'senza_sandbox' => (bool) env('CHROME_SENZA_SANDBOX', false),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

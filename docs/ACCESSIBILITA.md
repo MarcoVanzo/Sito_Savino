@@ -110,7 +110,36 @@ una persona non è ancora conclusa».
   conforme: vedi la dichiarazione. Chi prepara un PDF nuovo lo esporta da
   Word/InDesign con «PDF con tag», titolo del documento e lingua impostati.
 - **PDF che generiamo noi** (condizioni allegate all'ordine, ricevuta):
-  titolo mostrato e lingua (da `<html lang>`) li mette
-  `App\Support\Accessibilita\PdfAccessibile`, che sostituisce il wrapper di
-  laravel-dompdf (`PdfAccessibileServiceProvider`). dompdf non produce PDF
-  taggati: l'alternativa accessibile sono le pagine del sito.
+  passano tutti da `App\Support\Accessibilita\PdfAccessibile`, che
+  sostituisce il wrapper di laravel-dompdf (`PdfAccessibileServiceProvider`).
+  Dal 20/10/2026, **dove c'è Chrome**, il PDF lo stampa Chrome senza
+  interfaccia dallo stesso HTML (`PdfConChrome`): taggato (StructTreeRoot con
+  titoli, paragrafi, tabelle e `TH`), con titolo mostrato e `/Lang` da
+  `<html lang>`. Senza Chrome (`CHROME_PATH` vuoto e nessun binario nei
+  percorsi soliti, o `PDF_CON_CHROME=false`) ripiega su dompdf: titolo e
+  lingua sì, tag no. Test: `PdfTaggatiConChromeTest` (in CI con il Chrome del
+  runner, `CHROME_SENZA_SANDBOX=true`), `PdfAccessibileTest` per il ripiego.
+  **In produzione Chrome non è ancora installato**: web e worker di App
+  Platform (buildpack, worker da 0,5 GB) generano ancora con dompdf finché
+  non si aggiunge il binario e si misura la memoria. Fino ad allora la
+  dichiarazione di accessibilità resta com'è.
+- **PDF statici su Spaces, controllo del 20/10/2026** (`pdfinfo`, `pdffonts`,
+  `pdftotext` e lettura del catalogo). Non si modificano qui: vanno
+  riesportati dai sorgenti dalla società.
+
+  | File | Tag | Titolo | Lingua | Altro |
+  | --- | --- | --- | --- | --- |
+  | `legal/Modello-Organizzativo_compressed.pdf` (Modello 231, 39 pag.) | **no** (passato da iLovePDF, che li toglie) | assente | it | 43 immagini senza testo alternativo; Arial non incorporato |
+  | `legal/Protocollo-1-Codice-di-condotta.pdf` (15 pag.) | sì | assente | it-IT | nessun titolo strutturato (solo paragrafi); Arial non incorporato |
+  | `legal/Protocollo-2-Bullismo-e-cyberbullismo.pdf` (14 pag.) | sì, con titoli | assente | it-IT | Arial non incorporato |
+  | `legal/Protocollo-3-Razzismo-e-xenofobia.pdf` (14 pag.) | sì, con titoli | assente | it-IT | Arial non incorporato |
+  | `documenti/bilancio_SDBVolley_24-25-2.pdf` (bilancio di sostenibilità, 33 pag.) | **no** (InDesign poi iLovePDF) | assente | it-IT | 128 immagini senza testo alternativo; titolo mostrato spento |
+
+  Come riesportarli: **Word** → File › Proprietà › Titolo compilato; stili
+  «Titolo 1/2» per i capitoli; testo alternativo alle immagini; Salva con
+  nome › PDF › Opzioni: «Tag della struttura del documento per
+  l'accessibilità» e «Conforme a PDF/A» (incorpora i caratteri). **InDesign**
+  → titolo in File › Informazioni file, alt nelle Opzioni di esportazione
+  oggetto, Esporta › PDF interattivo/stampa con «Crea PDF con tag» e
+  «Visualizza titolo del documento». **Non ricomprimere** con iLovePDF o
+  servizi simili: toglie i tag.
