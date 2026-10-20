@@ -138,9 +138,8 @@ una persona non è ancora conclusa».
 
   Il carattere Arial dei file Word resta non incorporato (si risolve solo
   riesportando). Per chiudere davvero: **bilancio** riesportato da InDesign con
-  «Crea PDF con tag» e alt alle foto (i testi alternativi già scritti per le 38
-  immagini con contenuto sono nello script della sessione del 20/10, da
-  riprendere), **Protocollo 1** da Word con gli stili «Titolo». Come
+  «Crea PDF con tag» e alt alle foto (i testi alternativi delle 38 immagini con
+  contenuto sono in `docs/accessibilita/alt-bilancio-2024-25.md`), **Protocollo 1** da Word con gli stili «Titolo». Come
   riesportarli: **Word** → File › Proprietà › Titolo compilato; stili
   «Titolo 1/2» per i capitoli; testo alternativo alle immagini; Salva con nome
   › PDF › Opzioni: «Tag della struttura del documento per l'accessibilità» e
