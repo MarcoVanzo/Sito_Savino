@@ -133,11 +133,16 @@ function cancellaICookieDelPixel() {
     }
 }
 
-/** @returns {boolean} se l'evento e' partito davvero */
-function track(event, params) {
+/**
+ * `metodo` e' `track` per gli eventi standard di Meta, `trackCustom` per i
+ * nostri.
+ *
+ * @returns {boolean} se l'evento e' partito davvero
+ */
+function track(event, params, metodo = 'track') {
     if (!pixelId || !scriptLoaded || !window.fbq || !allowed()) return false;
 
-    params === undefined ? window.fbq('track', event) : window.fbq('track', event, params);
+    params === undefined ? window.fbq(metodo, event) : window.fbq(metodo, event, params);
 
     return true;
 }
@@ -167,6 +172,20 @@ export function trackAddToCart({ id, name, value, quantity = 1, currency = 'EUR'
         value: Number(value) || 0,
         currency,
     });
+}
+
+/**
+ * Clic verso la biglietteria (Vivaticket). Evento nostro e non `Lead`: chi
+ * clicca non ha lasciato un contatto, e nelle campagne si usa come
+ * conversione personalizzata.
+ */
+export function trackTicketClick(destinazione) {
+    track('TicketClick', { destinazione: String(destinazione) }, 'trackCustom');
+}
+
+/** Un modulo inviato con successo (contatti, newsletter, accredito stampa). */
+export function trackLead(formName) {
+    track('Lead', { content_name: String(formName) });
 }
 
 /** Checkout aperto. */

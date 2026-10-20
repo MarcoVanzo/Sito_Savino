@@ -51,3 +51,57 @@ export function acquistoConcluso({ orderNumber, value, items = [] }) {
     pixel.trackPurchase({ orderNumber, value, items });
     ga4.trackPurchase({ orderNumber, value, items });
 }
+
+/**
+ * Un modulo inviato con successo: da chiamare nell'`onSuccess`, mai al clic.
+ *
+ * @param {'contatti'|'newsletter'|'accredito_stampa'} formName
+ */
+export function moduloInviato(formName) {
+    ga4.trackGenerateLead(formName);
+    pixel.trackLead(formName);
+}
+
+const BIGLIETTERIA = /(^|\.)vivaticket\.(com|it)$/i;
+
+/**
+ * L'indirizzo della biglietteria a cui porta un clic, o null.
+ *
+ * @param {EventTarget|null} bersaglio
+ * @returns {string|null}
+ */
+export function destinazioneVersoLaBiglietteria(bersaglio) {
+    const link = bersaglio instanceof Element ? bersaglio.closest('a[href]') : null;
+
+    if (!link) return null;
+
+    try {
+        const indirizzo = new URL(link.getAttribute('href'), window.location.href);
+
+        return BIGLIETTERIA.test(indirizzo.hostname) ? indirizzo.href : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * I link a Vivaticket li scrive la redazione in molti punti (pagina Ticketing,
+ * pop-up del Match Day, menu, schede delle gare): un solo ascolto su tutto il
+ * documento li prende tutti, anche quelli aggiunti dopo.
+ *
+ * @returns {() => void} per staccare l'ascolto
+ */
+export function seguiIClicVersoLaBiglietteria(radice = document) {
+    const alClic = (evento) => {
+        const destinazione = destinazioneVersoLaBiglietteria(evento.target);
+
+        if (!destinazione) return;
+
+        ga4.trackTicketClick(destinazione);
+        pixel.trackTicketClick(destinazione);
+    };
+
+    radice.addEventListener('click', alClic, true);
+
+    return () => radice.removeEventListener('click', alClic, true);
+}

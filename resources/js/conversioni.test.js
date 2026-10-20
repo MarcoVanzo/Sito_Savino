@@ -80,3 +80,62 @@ describe('conversioni', () => {
         expect(document.head.querySelectorAll('script')).toHaveLength(0);
     });
 });
+
+describe('conversioni: biglietteria e moduli', () => {
+    it('riconosce i link a Vivaticket e ignora gli altri', async () => {
+        const { conversioni } = await moduliNuovi();
+        document.body.innerHTML = `
+            <a id="biglietti" href="https://www.vivaticket.com/it/ticket/savino"><span id="dentro">Biglietti</span></a>
+            <a id="gift" href="https://savinodelbenevolley.vivaticket.it/it/vivacard/prices">Gift card</a>
+            <a id="finto" href="https://vivaticket.com.esempio.it/">Finto</a>
+            <a id="interno" href="/stagione">Stagione</a>`;
+
+        expect(conversioni.destinazioneVersoLaBiglietteria(document.getElementById('dentro'))).toBe('https://www.vivaticket.com/it/ticket/savino');
+        expect(conversioni.destinazioneVersoLaBiglietteria(document.getElementById('gift'))).toContain('vivacard');
+        expect(conversioni.destinazioneVersoLaBiglietteria(document.getElementById('finto'))).toBeNull();
+        expect(conversioni.destinazioneVersoLaBiglietteria(document.getElementById('interno'))).toBeNull();
+    });
+
+    it('un clic verso Vivaticket arriva a GA4 e al pixel con la destinazione', async () => {
+        const { ga4, pixel, conversioni } = await moduliNuovi();
+        document.body.innerHTML = '<a id="biglietti" href="https://www.vivaticket.com/it/ticket/savino">Biglietti</a>';
+
+        ga4.initAnalytics('G-TEST12345', true);
+        pixel.initMetaPixel('2048882385693445', { needsConsent: true, hasConsent: true });
+        const stacca = conversioni.seguiIClicVersoLaBiglietteria(document);
+        document.getElementById('biglietti').addEventListener('click', (evento) => evento.preventDefault());
+        document.getElementById('biglietti').click();
+        stacca();
+
+        const ga4Clic = window.dataLayer.find((voce) => voce[0] === 'event' && voce[1] === 'ticket_click');
+        const pixelClic = window.fbq.queue.find((voce) => voce[1] === 'TicketClick');
+        expect(ga4Clic[2]).toEqual({ destinazione: 'https://www.vivaticket.com/it/ticket/savino' });
+        expect(pixelClic[0]).toBe('trackCustom');
+    });
+
+    it('un modulo inviato diventa generate_lead su GA4 e Lead sul pixel', async () => {
+        const { ga4, pixel, conversioni } = await moduliNuovi();
+
+        ga4.initAnalytics('G-TEST12345', true);
+        pixel.initMetaPixel('2048882385693445', { needsConsent: true, hasConsent: true });
+        conversioni.moduloInviato('contatti');
+
+        expect(window.dataLayer.find((voce) => voce[1] === 'generate_lead')[2]).toEqual({ form_name: 'contatti' });
+        expect(window.fbq.queue.find((voce) => voce[1] === 'Lead')[2]).toEqual(expect.objectContaining({ content_name: 'contatti' }));
+    });
+
+    it('senza consenso il clic verso la biglietteria non manda niente', async () => {
+        const { ga4, pixel, conversioni } = await moduliNuovi();
+        document.body.innerHTML = '<a id="biglietti" href="https://www.vivaticket.com/x">Biglietti</a>';
+
+        ga4.initAnalytics('G-TEST12345', false);
+        pixel.initMetaPixel('2048882385693445', { needsConsent: true, hasConsent: false });
+        const stacca = conversioni.seguiIClicVersoLaBiglietteria(document);
+        document.getElementById('biglietti').addEventListener('click', (evento) => evento.preventDefault());
+        document.getElementById('biglietti').click();
+        stacca();
+
+        expect(window.dataLayer.filter((voce) => voce[0] === 'event')).toEqual([]);
+        expect(window.fbq).toBeUndefined();
+    });
+});

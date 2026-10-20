@@ -174,6 +174,22 @@ export function trackPurchase({ orderNumber, value, items = [], currency = 'EUR'
 }
 
 /**
+ * Clic verso la biglietteria (Vivaticket): biglietti, abbonamenti, gift card.
+ * Il sito non vende i biglietti, quindi e' la conversione che si puo' misurare.
+ */
+export function trackTicketClick(destinazione) {
+    track('ticket_click', { destinazione: String(destinazione) });
+}
+
+/**
+ * Un modulo inviato con successo (contatti, newsletter, accredito stampa).
+ * Si chiama dalla risposta riuscita, mai dal clic sul pulsante.
+ */
+export function trackGenerateLead(formName) {
+    track('generate_lead', { form_name: String(formName) });
+}
+
+/**
  * GA4 scrive i suoi cookie sul dominio piu' alto che il browser gli concede
  * (`.savinodelbenevolley.it` anche visitando `www.`), con o senza il punto:
  * si cancellano sul nome dell'host e su ciascuno dei domini che lo contengono.

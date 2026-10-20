@@ -15,6 +15,7 @@ import { leggiIlConsenso } from './consenso.js';
 import { avviaLaDiagnostica } from './diagnostica.js';
 import { installaDialogDiRipiego } from './Support/dialogDiRipiego.js';
 import { contaLeNavigazioni } from './Support/visualizzazioniDiPagina.js';
+import { seguiIClicVersoLaBiglietteria } from './conversioni.js';
 
 // Prima di tutto il resto: anche la prima pagina Inertia si carica su richiesta.
 // Solo le visite GET si possono riaprire con un indirizzo.
@@ -128,6 +129,10 @@ void createInertiaApp({
 
             contaLeNavigazioni(router, trackPixelPageView);
         }
+
+        // I clic verso Vivaticket, da qualunque link della pagina: partono
+        // solo verso i tag che hanno gia' il loro consenso.
+        seguiIClicVersoLaBiglietteria(document);
 
         // Errori JavaScript verso Sentry, senza consenso perché non scrive nel
         // browser e passa dal nostro server (vedi diagnostica.js).
