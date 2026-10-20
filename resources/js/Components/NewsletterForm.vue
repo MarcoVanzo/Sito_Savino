@@ -1,5 +1,6 @@
 <script setup>
 import { useTranslations } from '@/Composables/useTranslations.js';
+import { moduloInviato } from '@/conversioni.js';
 import { ref, computed, nextTick } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 
@@ -45,6 +46,7 @@ function handleSubmit() {
         onSuccess: () => {
             submitted.value = true;
             form.reset();
+            moduloInviato('newsletter');
             nextTick(() => esito.value?.focus());
         },
         onError: () => {

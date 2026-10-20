@@ -1,5 +1,6 @@
 <script setup>
 import { vaiAlPrimoErrore } from '@/Support/primoErrore.js';
+import { moduloInviato } from '@/conversioni.js';
 import { useTranslations } from '@/Composables/useTranslations.js';
 import PublicLayout from '@/Layouts/PublicLayout.vue'
 import NotaInformativaModulo from '@/Components/NotaInformativaModulo.vue'
@@ -53,6 +54,7 @@ function submitAccreditation() {
         onSuccess: () => {
             accreditationSent.value = true
             accreditationForm.reset()
+            moduloInviato('accredito_stampa')
         },
     })
 }

@@ -11,6 +11,7 @@ use App\Services\StoricoPrezzi;
 use App\Support\CmsFile;
 use App\Support\EtichetteDelProdotto;
 use App\Support\GuidaTaglie;
+use App\Support\IndirizziPerLingua;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -286,6 +287,12 @@ class ShopController extends Controller
                 'srcset' => $prima['srcset'],
                 'sizes' => self::MISURE_DELLA_FOTO,
             ]] : [],
+            // Le lingue in cui la scheda e' scritta: le altre non entrano
+            // negli hreflang e, aperte, sono noindex (app.blade.php).
+            'lingueDellaPagina' => array_values(array_filter(
+                IndirizziPerLingua::lingue(),
+                fn (string $lingua) => $product->tradottoIn($lingua),
+            )),
         ]);
     }
 

@@ -49,7 +49,7 @@ describe('meta pixel', () => {
         expect(pixelScripts()).toHaveLength(1);
         expect(calls()[0]).toEqual(['set', 'autoConfig', false, '2048882385693445']);
         expect(calls()[1]).toEqual(['init', '2048882385693445']);
-        expect(calls()[2]).toEqual(['track', 'PageView']);
+        expect(calls()[2]).toEqual(['track', 'PageView', {}, { eventID: expect.any(String) }]);
     });
 
     it('spegne l\'advanced matching automatico prima di init', async () => {
@@ -86,7 +86,7 @@ describe('meta pixel', () => {
         updateMarketingConsent(true);
         trackPageView();
 
-        expect(calls().slice(-2)).toEqual([['consent', 'grant'], ['track', 'PageView']]);
+        expect(calls().slice(-2)).toEqual([['consent', 'grant'], ['track', 'PageView', {}, { eventID: expect.any(String) }]]);
     });
 
     it('con il consenso richiesto aspetta il consenso', async () => {
@@ -111,7 +111,7 @@ describe('meta pixel', () => {
 
         expect(events[1]).toEqual(['track', 'ViewContent', expect.objectContaining({
             content_ids: ['12'], value: 79.9, currency: 'EUR',
-        })]);
+        }), { eventID: expect.any(String) }]);
         expect(events[2][2].contents).toEqual([{ id: '12', quantity: 2 }]);
         expect(events[3][2]).toEqual(expect.objectContaining({ value: 159.8, num_items: 2 }));
     });
@@ -174,5 +174,29 @@ describe('meta pixel', () => {
 
         expect(calls().filter((call) => call[1] === 'Purchase')).toHaveLength(1);
         expect(sessionStorage.getItem('meta-pixel-purchase-SDB-2026-0003')).toBe('1');
+    });
+
+    it('ogni evento ha un eventID suo', async () => {
+        const { initMetaPixel, trackPageView, trackAddToCart } = await freshModule();
+
+        initMetaPixel('2048882385693445');
+        trackPageView();
+        trackAddToCart({ id: 1, name: 'Maglia', value: 50 });
+
+        const id = calls().filter((call) => call[0] === 'track').map((call) => call[3]?.eventID);
+
+        expect(id).toHaveLength(3);
+        id.forEach((valore) => expect(valore).toMatch(/\S{8,}/));
+        expect(new Set(id).size).toBe(3);
+    });
+
+    it('l\'eventID del Purchase viene dal numero d\'ordine, come sul server', async () => {
+        const { initMetaPixel, trackPurchase } = await freshModule();
+
+        initMetaPixel('2048882385693445');
+        trackPurchase({ orderNumber: 'SDB-2026-0007', value: 10 });
+
+        const acquisto = calls().find((call) => call[1] === 'Purchase');
+        expect(acquisto[3]).toEqual({ eventID: 'purchase-SDB-2026-0007' });
     });
 });

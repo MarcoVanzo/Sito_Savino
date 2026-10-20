@@ -32,6 +32,12 @@ class StoreCheckoutRequest extends FormRequest
             'payment_gateway' => $this->regolaDelMetodoDiPagamento(PaymentGateway::offertiAlCheckout()),
             'coupon_code' => ['nullable', 'string', 'max:50'],
             'phone' => ['nullable', 'string', 'max:30'],
+            // Il consenso di marketing del banner e i cookie di Meta, per la
+            // Conversions API (ConsensoDiMarketingDellOrdine): facoltativi,
+            // un valore storto si scarta e non blocca l'ordine.
+            'consenso_riferimento' => ['nullable', 'string', 'max:36'],
+            'meta_fbp' => ['nullable', 'string', 'max:255'],
+            'meta_fbc' => ['nullable', 'string', 'max:255'],
         ];
 
         if (! $this->boolean('billing_same_as_shipping')) {
