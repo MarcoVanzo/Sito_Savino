@@ -21,6 +21,7 @@ use App\Models\Team;
 use App\Services\PalmaresPresenter;
 use App\Services\SponsorDirectory;
 use App\Support\Diretta\DirettaPerIlSito;
+use App\Support\ImmaginiDaPrecaricare;
 use App\Support\LiveStream;
 use App\Support\MatchDay;
 use App\Support\PermalinkVecchioSito;
@@ -148,32 +149,8 @@ class PublicController extends Controller
                 ->map(fn (Evento $evento) => $evento->perLaHome())
                 ->all(),
         ])->withViewData([
-            'immaginiDaPrecaricare' => self::primaSlideDaPrecaricare($data['heroSlides']),
+            'immaginiDaPrecaricare' => ImmaginiDaPrecaricare::primaSlideDellHero($data['heroSlides']),
         ]);
-    }
-
-    /**
-     * La prima foto dell'hero, la stessa serie che Home.vue mette nello
-     * `srcset`: senza video in testa e' l'immagine piu' grande della pagina.
-     *
-     * @param  array<int, array<string, mixed>>  $slide
-     * @return list<array{href: string, srcset: string|null, sizes: string}>
-     */
-    private static function primaSlideDaPrecaricare(array $slide): array
-    {
-        $prima = $slide[0] ?? null;
-
-        if (! is_array($prima) || filled(SiteSetting::get('home.hero_video_url')) || ! is_string($prima['image'] ?? null)) {
-            return [];
-        }
-
-        $mobile = $prima['image_mobile'] ?? null;
-
-        return [[
-            'href' => $mobile ?: $prima['image'],
-            'srcset' => $mobile ? $mobile.' 1200w, '.$prima['image'].' 1920w' : null,
-            'sizes' => '100vw',
-        ]];
     }
 
     /**

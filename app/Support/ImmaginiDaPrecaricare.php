@@ -57,4 +57,29 @@ class ImmaginiDaPrecaricare
 
         return $immagini;
     }
+
+    /**
+     * La prima foto dell'hero, la stessa serie che Home.vue mette nello
+     * `srcset`: senza video in testa e' l'immagine piu'
+     * grande della home (PublicController::home).
+     *
+     * @param  array<int, array<string, mixed>>  $slide
+     * @return list<array{href: string, srcset: string|null, sizes: string}>
+     */
+    public static function primaSlideDellHero(array $slide): array
+    {
+        $prima = $slide[0] ?? null;
+
+        if (! is_array($prima) || filled(SiteSetting::get('home.hero_video_url')) || ! is_string($prima['image'] ?? null)) {
+            return [];
+        }
+
+        $mobile = $prima['image_mobile'] ?? null;
+
+        return [[
+            'href' => $mobile ?: $prima['image'],
+            'srcset' => $mobile ? $mobile.' 1200w, '.$prima['image'].' 1920w' : null,
+            'sizes' => '100vw',
+        ]];
+    }
 }

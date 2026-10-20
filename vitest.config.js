@@ -43,7 +43,9 @@ export default defineConfig({
             include: ['resources/js/**/*.js'],
             // `testing/` sono gli attrezzi dei test (Inertia finta, axe, lettore
             // virtuale): non e' codice che arriva al browser.
-            exclude: ['resources/js/**/*.test.js', 'resources/js/bootstrap.js', 'resources/js/testing/**'],
+            // `ssr.js` apre solo la porta del server: il rendering sta in
+            // paginaSsr.js, che ha i suoi test.
+            exclude: ['resources/js/**/*.test.js', 'resources/js/bootstrap.js', 'resources/js/testing/**', 'resources/js/ssr.js'],
         },
     },
 });

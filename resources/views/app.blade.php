@@ -9,7 +9,7 @@
         <link rel="preload" as="image" href="{{ $immagine['href'] }}" @if ($immagine['srcset']) imagesrcset="{{ $immagine['srcset'] }}" @endif @if ($immagine['sizes']) imagesizes="{{ $immagine['sizes'] }}" @endif fetchpriority="high">
         @endforeach
         {{-- Description e og: portano l'attributo `inertia` con una chiave: al
-             primo render il gestore del <Head> di Inertia li toglie e al loro
+             primo render il gestore del Head di Inertia di Inertia li toglie e al loro
              posto restano quelli della pagina. Senza, nel DOM ce n'erano due
              di ciascuno (questi generici e quelli della pagina) e Google
              poteva prendere il primo. Ai crawler dei social risponde
@@ -17,7 +17,7 @@
         @php
             $metaDellaPagina = request()->attributes->get(\App\Http\Middleware\ServeSocialCrawlerMeta::ATTRIBUTO_META);
             // Con l'SSR acceso la pagina si rende qui, prima dei meta: titolo e
-            // description del suo <Head> riempiono i nostri invece di
+            // description del suo Head di Inertia riempiono i nostri invece di
             // ripeterli (App\Support\TestaDellSsr). `@inertia` riusa la stessa
             // risposta.
             $__inertiaSsrDispatched = true;
@@ -105,7 +105,7 @@
         <!-- Scripts -->
         @routes(null, $cspNonce)
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
-        {{-- Il resto del <Head> della pagina reso dall'SSR (robots, link):
+        {{-- Il resto del Head di Inertia della pagina reso dall'SSR (robots, link):
              titolo e meta li ha gia' stampati il layout qui sopra. --}}
         {!! $testaSsr['resto'] !!}
     </head>
