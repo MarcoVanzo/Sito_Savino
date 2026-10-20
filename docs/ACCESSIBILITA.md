@@ -123,23 +123,28 @@ una persona non è ancora conclusa».
   Platform (buildpack, worker da 0,5 GB) generano ancora con dompdf finché
   non si aggiunge il binario e si misura la memoria. Fino ad allora la
   dichiarazione di accessibilità resta com'è.
-- **PDF statici su Spaces, controllo del 20/10/2026** (`pdfinfo`, `pdffonts`,
-  `pdftotext` e lettura del catalogo). Non si modificano qui: vanno
-  riesportati dai sorgenti dalla società.
+- **PDF statici su Spaces, controllo e correzioni del 20/10/2026** (`pdfinfo`,
+  `pdffonts`, `pdftotext`, lettura del catalogo, controllo di Acrobat). Senza i
+  sorgenti (Word, InDesign) si è corretto quello che si poteva senza toccare il
+  contenuto: testo estratto e pagine renderizzate confrontati con l'originale.
 
-  | File | Tag | Titolo | Lingua | Altro |
-  | --- | --- | --- | --- | --- |
-  | `legal/Modello-Organizzativo_compressed.pdf` (Modello 231, 39 pag.) | **no** (passato da iLovePDF, che li toglie) | assente | it | 43 immagini senza testo alternativo; Arial non incorporato |
-  | `legal/Protocollo-1-Codice-di-condotta.pdf` (15 pag.) | sì | assente | it-IT | nessun titolo strutturato (solo paragrafi); Arial non incorporato |
-  | `legal/Protocollo-2-Bullismo-e-cyberbullismo.pdf` (14 pag.) | sì, con titoli | assente | it-IT | Arial non incorporato |
-  | `legal/Protocollo-3-Razzismo-e-xenofobia.pdf` (14 pag.) | sì, con titoli | assente | it-IT | Arial non incorporato |
-  | `documenti/bilancio_SDBVolley_24-25-2.pdf` (bilancio di sostenibilità, 33 pag.) | **no** (InDesign poi iLovePDF) | assente | it-IT | 128 immagini senza testo alternativo; titolo mostrato spento |
+  | File | Prima | Dopo |
+  | --- | --- | --- |
+  | `legal/Modello-Organizzativo_compressed.pdf` (è il **Modello organizzativo e di controllo dell'attività sportiva**, safeguarding, non il Modello 231) | senza tag, senza titolo | taggato con Acrobat, titolo e lingua, segnalibri, testo alternativo ai due organigrammi, frecce di pagina decorative. Restano 4 avvisi da sistemare a mano nell'albero dei tag (annotazioni dell'indice, intestazioni di una tabella, un elenco, un salto di livello nei titoli) |
+  | `legal/Protocollo-1-Codice-di-condotta.pdf` | taggato, senza titolo | titolo; mancano ancora i titoli strutturati (solo paragrafi) |
+  | `legal/Protocollo-2-Bullismo-e-cyberbullismo.pdf` | taggato, senza titolo | titolo |
+  | `legal/Protocollo-3-Razzismo-e-xenofobia.pdf` | taggato, senza titolo | titolo |
+  | `documenti/bilancio_SDBVolley_24-25-2.pdf` | senza tag, senza titolo | titolo e lingua. **Resta senza tag**: il tagging automatico di Acrobat riordina il disegno e a pagina 8 un livello semitrasparente copre un titolo, quindi quella versione non è pubblicabile |
 
-  Come riesportarli: **Word** → File › Proprietà › Titolo compilato; stili
-  «Titolo 1/2» per i capitoli; testo alternativo alle immagini; Salva con
-  nome › PDF › Opzioni: «Tag della struttura del documento per
-  l'accessibilità» e «Conforme a PDF/A» (incorpora i caratteri). **InDesign**
-  → titolo in File › Informazioni file, alt nelle Opzioni di esportazione
-  oggetto, Esporta › PDF interattivo/stampa con «Crea PDF con tag» e
-  «Visualizza titolo del documento». **Non ricomprimere** con iLovePDF o
-  servizi simili: toglie i tag.
+  Il carattere Arial dei file Word resta non incorporato (si risolve solo
+  riesportando). Per chiudere davvero: **bilancio** riesportato da InDesign con
+  «Crea PDF con tag» e alt alle foto (i testi alternativi già scritti per le 38
+  immagini con contenuto sono nello script della sessione del 20/10, da
+  riprendere), **Protocollo 1** da Word con gli stili «Titolo». Come
+  riesportarli: **Word** → File › Proprietà › Titolo compilato; stili
+  «Titolo 1/2» per i capitoli; testo alternativo alle immagini; Salva con nome
+  › PDF › Opzioni: «Tag della struttura del documento per l'accessibilità» e
+  «Conforme a PDF/A» (incorpora i caratteri). **InDesign** → titolo in File ›
+  Informazioni file, alt nelle Opzioni di esportazione oggetto, Esporta ›
+  PDF interattivo/stampa con «Crea PDF con tag» e «Visualizza titolo del
+  documento». **Non ricomprimere** con iLovePDF o servizi simili: toglie i tag.
