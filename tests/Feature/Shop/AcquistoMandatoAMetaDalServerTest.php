@@ -284,4 +284,49 @@ class AcquistoMandatoAMetaDalServerTest extends TestCase
         $this->assertNull($order->refresh()->meta_acquisto_inviato_at);
         $this->assertSame(5, (new InviaAcquistoAMeta($order))->tries);
     }
+
+    #[Test]
+    public function con_la_conversions_api_spenta_si_salva_il_consenso_ma_non_gli_identificativi(): void
+    {
+        config(['services.meta.capi.enabled' => false]);
+        $this->consenso(marketing: true);
+
+        $order = $this->ordinaConPayPal([
+            'consenso_riferimento' => self::RIFERIMENTO,
+            'meta_fbp' => 'fb.1.1700000000000.123456789',
+        ]);
+
+        $this->assertTrue($order->consenso_marketing);
+        $this->assertNull($order->meta_fbp);
+        $this->assertNull($order->meta_user_agent);
+    }
+
+    #[Test]
+    public function inviato_l_acquisto_l_ordine_non_tiene_piu_gli_identificativi(): void
+    {
+        $order = $this->ordinePagabile(consenso: true);
+
+        $this->incassaConPayPal($order);
+
+        $order->refresh();
+        $this->assertNotNull($order->meta_acquisto_inviato_at);
+        $this->assertNull($order->meta_fbp);
+        $this->assertNull($order->meta_user_agent);
+        $this->assertTrue($order->consenso_marketing);
+    }
+
+    #[Test]
+    public function dopo_7_giorni_gli_identificativi_mai_usati_si_cancellano(): void
+    {
+        $vecchio = $this->ordinePagabile(consenso: true);
+        $vecchio->forceFill(['created_at' => now()->subDays(8)])->save();
+        $recente = Order::factory()->create();
+        $recente->forceFill(['meta_fbp' => 'fb.1.1.1', 'meta_user_agent' => 'Prova'])->save();
+
+        $this->artisan('meta:dimentica-gli-identificativi')->assertSuccessful();
+
+        $this->assertNull($vecchio->refresh()->meta_fbp);
+        $this->assertNull($vecchio->meta_user_agent);
+        $this->assertSame('fb.1.1.1', $recente->refresh()->meta_fbp);
+    }
 }

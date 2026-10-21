@@ -77,7 +77,13 @@ class InviaAcquistoAMeta implements ShouldBeUnique, ShouldQueue
 
         MetaConversioniClient::fromConfig()->invia(self::pixelId(), [$this->evento($order)]);
 
-        $order->forceFill(['meta_acquisto_inviato_at' => now()])->saveQuietly();
+        // Arrivato a Meta, l'ordine non tiene piu' i suoi identificativi.
+        $order->forceFill([
+            'meta_acquisto_inviato_at' => now(),
+            'meta_fbp' => null,
+            'meta_fbc' => null,
+            'meta_user_agent' => null,
+        ])->saveQuietly();
     }
 
     /**
