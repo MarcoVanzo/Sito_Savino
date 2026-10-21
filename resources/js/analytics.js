@@ -147,16 +147,18 @@ export function updateAnalyticsConsent(granted) {
  * leggerebbe quelli del documento, che durante una navigazione Inertia sono
  * ancora quelli della pagina precedente.
  */
-export function trackPageView() {
+export function trackPageView(titolo = document.title, indirizzo = window.location.href) {
     // Il tag caricato non si può togliere, ma dopo una revoca smette di ricevere
     // visualizzazioni: continuare a mandarle vorrebbe dire misurare comunque
     // chi ha detto di no.
     if (!measurementId || !scriptLoaded || !consentGranted) return;
 
+    const url = new URL(indirizzo, window.location.href);
+
     gtag('event', 'page_view', {
-        page_location: window.location.href,
-        page_path: window.location.pathname + window.location.search,
-        page_title: document.title,
+        page_location: url.href,
+        page_path: url.pathname + url.search,
+        page_title: titolo,
     });
 }
 
