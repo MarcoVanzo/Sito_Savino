@@ -98,11 +98,15 @@ return [
             // pubblico arrivavano al confronto, senza lasciare impronte.
             'Per tutti gli altri volti che compaiono in una fotografia il confronto avviene sul momento',
             'For every other face in a photograph the comparison happens there and then',
+            // Revisione del 5 ottobre 2026, fino al 21: l'acquisto arrivava a
+            // Meta solo dal pixel nel browser, senza la Conversions API.
+            'È aggiornata al 5 ottobre 2026.',
+            'Last updated 5 October 2026.',
         ],
         'contenuto' => [
             'it' => <<<HTML
             <h2>Informativa sul trattamento dei dati personali</h2>
-            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 5 ottobre 2026.</p>
+            <p>Ai sensi degli articoli 13 e 14 del Regolamento UE 2016/679 (GDPR), questa pagina descrive come il sito tratta i dati personali di chi lo visita. È aggiornata al 21 ottobre 2026.</p>
 
             <h3>Titolare del trattamento</h3>
             <p>{$societa} — {$sede}<br />
@@ -130,7 +134,7 @@ return [
                 <li><strong>Recesso, garanzia, rimborsi e contestazioni dei pagamenti</strong>: dare seguito alle tue richieste e difendere i diritti della società se un pagamento viene contestato. Base giuridica: obbligo di legge (Codice del consumo) e legittimo interesse del titolare alla tutela dei propri diritti.</li>
                 <li><strong>Obblighi fiscali e contabili</strong>: tenere ordini e documenti per il tempo che la legge impone. Base giuridica: obbligo di legge (articolo 6 §1 lettera c del GDPR).</li>
                 <li><strong>Verifica della carta per le aste</strong>: per fare offerte devi verificare una carta di pagamento. Stripe riceve nome, email e i dati della carta (che il sito non vede) e crea un tuo profilo cliente, che si cancella insieme all'account. Base giuridica: esecuzione del contratto.</li>
-                <li><strong>Misurazione delle inserzioni</strong>: solo se hai accettato i cookie di marketing, il pixel di Meta riceve articoli, quantità e valore di ciò che metti nel carrello e compri. Base giuridica: consenso.</li>
+                <li><strong>Misurazione delle inserzioni</strong>: solo se hai accettato i cookie di marketing, il pixel di Meta riceve articoli, quantità e valore di ciò che metti nel carrello e compri. Quando il pagamento è confermato, lo stesso acquisto lo comunichiamo a Meta anche dal nostro server (API Conversions), perché lo conti una volta sola anche se il browser blocca il pixel: numero d'ordine, importo, articoli, la tua email e il tuo telefono in forma cifrata non reversibile (SHA-256), gli identificativi dei cookie di Meta (<code>_fbp</code>, <code>_fbc</code>) e il tipo di browser. Registriamo sull'ordine che il consenso c'era, e quale scelta sul banner lo prova. Base giuridica: consenso, che vale per gli ordini fatti dopo averlo dato; revocarlo da «Preferenze cookie» ferma l'invio per gli ordini successivi.</li>
                 <li><strong>Statistiche dello shop</strong>: contiamo le pagine dello shop viste, gli ordini avviati e quelli conclusi, senza indirizzo IP né identificativo di sessione, per sapere quali articoli interessano. Base giuridica: legittimo interesse del titolare.</li>
             </ul>
             <p>I dati degli ordini non servono a mandarti promozioni: la newsletter arriva solo se ti iscrivi a parte e confermi. Il pagamento lo gestiscono PayPal o Stripe, che ricevono importo e numero d'ordine (Stripe anche la tua email); la consegna il corriere. Entrambi sono titolari autonomi, come spiegato più sotto. Quanto conserviamo ordini e recessi è scritto in <a href="#conservazione">Per quanto tempo li conserviamo</a>.</p>
@@ -166,6 +170,7 @@ return [
                 <li>Dichiarazioni di recesso inviate dal sito: 10 anni dall'invio quando si riferiscono a un ordine fatto sul sito, perché sono la prova del recesso e il diritto al rimborso si prescrive in dieci anni; 12 mesi quando il numero d'ordine indicato non corrisponde a nessun ordine.</li>
                 <li>Account del negozio: finché resta attivo; alla cancellazione restano solo i documenti fiscali.</li>
                 <li>Carrelli lasciati a metà: 7 giorni dalla creazione.</li>
+                <li>Identificativi dei cookie di Meta e tipo di browser salvati con un ordine per l'API Conversions: si cancellano appena l'acquisto è comunicato a Meta, e comunque dopo 7 giorni.</li>
                 <li>Sessione di navigazione: 8 ore dall'ultima pagina aperta.</li>
                 <li>Prova del consenso ai cookie: 24 mesi — i 12 di validità della scelta più 12 per poter rispondere a eventuali contestazioni.</li>
                 <li>Statistiche di Google Analytics 4: 14 mesi.</li>
@@ -182,7 +187,7 @@ return [
             HTML,
             'en' => <<<HTML
             <h2>Privacy notice</h2>
-            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 5 October 2026.</p>
+            <p>Under Articles 13 and 14 of Regulation (EU) 2016/679 (GDPR), this page explains how the site handles the personal data of its visitors. Last updated 21 October 2026.</p>
 
             <h3>Data controller</h3>
             <p>{$societa} — {$sede}, Italy<br />
@@ -210,7 +215,7 @@ return [
                 <li><strong>Withdrawal, warranty, refunds and payment disputes</strong>: handling your requests and defending the club's rights if a payment is disputed. Legal basis: legal obligation (Italian Consumer Code) and the controller's legitimate interest in protecting its rights.</li>
                 <li><strong>Tax and accounting obligations</strong>: keeping orders and documents for as long as the law requires. Legal basis: legal obligation (Article 6(1)(c) GDPR).</li>
                 <li><strong>Card verification for auctions</strong>: to bid you must verify a payment card. Stripe receives your name, email and card details (which the site never sees) and creates a customer profile for you, deleted together with your account. Legal basis: performance of the contract.</li>
-                <li><strong>Advertising measurement</strong>: only if you have accepted marketing cookies, the Meta pixel receives the items, quantities and value of what you add to the cart and buy. Legal basis: consent.</li>
+                <li><strong>Advertising measurement</strong>: only if you have accepted marketing cookies, the Meta pixel receives the items, quantities and value of what you add to the cart and buy. Once payment is confirmed, we also report the same purchase to Meta from our server (Conversions API), so that it is counted once even if the browser blocks the pixel: order number, amount, items, your email and phone number in irreversibly encrypted form (SHA-256), the identifiers of Meta's cookies (<code>_fbp</code>, <code>_fbc</code>) and the browser type. We record on the order that consent was given, and which choice on the banner proves it. Legal basis: consent, which applies to orders placed after giving it; withdrawing it from "Cookie preferences" stops the sending for later orders.</li>
                 <li><strong>Shop statistics</strong>: we count shop pages viewed, orders started and orders completed, without IP address or session identifier, to learn which items interest people. Legal basis: the controller's legitimate interest.</li>
             </ul>
             <p>Order data is not used to send you promotions: the newsletter only arrives if you subscribe separately and confirm. Payment is handled by PayPal or Stripe, which receive the amount and the order number (Stripe also your email); delivery by the courier. Both act as independent controllers, as explained below. How long we keep orders and withdrawals is set out in <a href="#conservazione">How long we keep it</a>.</p>
@@ -246,6 +251,7 @@ return [
                 <li>Withdrawal notices sent from the site: 10 years from sending when they refer to an order placed on the site, because they are the proof of withdrawal and the right to a refund lapses after ten years; 12 months when the order number given does not match any order.</li>
                 <li>Shop account: as long as it is active; after deletion only tax documents remain.</li>
                 <li>Carts left halfway: 7 days from creation.</li>
+                <li>Meta cookie identifiers and browser type stored with an order for the Conversions API: deleted as soon as the purchase is reported to Meta, and in any case after 7 days.</li>
                 <li>Browsing session: 8 hours from the last page opened.</li>
                 <li>Proof of cookie consent: 24 months — the 12 for which the choice is valid plus 12 to be able to answer any dispute.</li>
                 <li>Google Analytics 4 statistics: 14 months.</li>
@@ -284,17 +290,22 @@ return [
             // non riconducibile, e la prova cancellata dopo 12 mesi.
             "Non conserviamo il tuo indirizzo IP, ma solo un'impronta che non è riconducibile a te.",
             'We do not keep your IP address, only a fingerprint that cannot be traced back to you.',
+            // Revisione del 2 ottobre 2026, fino al 21: il consenso di
+            // marketing non diceva della Conversions API né dei segnali di
+            // Google Consent Mode.
+            'Questa pagina spiega quali usiamo e come decidi tu. È aggiornata al 2 ottobre 2026.',
+            'This page explains which ones we use and what you get to decide. Last updated 2 October 2026.',
         ],
         'contenuto' => [
             'it' => <<<'HTML'
             <h2>Informativa sui cookie</h2>
-            <p>I cookie sono piccoli file che un sito lascia nel browser di chi lo visita. Alcuni servono a far funzionare le pagine, altri a capire come vengono lette, altri ancora a misurare le campagne pubblicitarie. Questa pagina spiega quali usiamo e come decidi tu. È aggiornata al 2 ottobre 2026.</p>
+            <p>I cookie sono piccoli file che un sito lascia nel browser di chi lo visita. Alcuni servono a far funzionare le pagine, altri a capire come vengono lette, altri ancora a misurare le campagne pubblicitarie. Questa pagina spiega quali usiamo e come decidi tu. È aggiornata al 21 ottobre 2026.</p>
 
             <h3>Cosa puoi scegliere</h3>
             <ul>
                 <li><strong>Necessari</strong>: tengono la sessione, il carrello e la sicurezza dei moduli. Senza, il sito non funziona, e per questo non si possono disattivare. Non servono a riconoscerti altrove.</li>
                 <li><strong>Statistici</strong>: ci dicono quante persone leggono il sito e quali pagine. Partono solo se dai il consenso.</li>
-                <li><strong>Marketing</strong>: misurano le inserzioni su Facebook e Instagram, e permettono di caricare da sé la mappa e i video ospitati da altri (più sotto). Partono solo se dai il consenso.</li>
+                <li><strong>Marketing</strong>: misurano le inserzioni su Facebook e Instagram, e permettono di caricare da sé la mappa e i video ospitati da altri (più sotto). Partono solo se dai il consenso. Lo stesso consenso vale per l'acquisto che comunichiamo a Meta anche dal nostro server (API Conversions, vedi la <a href="/privacy-policy#acquisti">Privacy Policy</a>) e per i segnali con cui diciamo a Google Analytics che i dati possono servire anche alla pubblicità (Google Consent Mode): senza il consenso glielo neghiamo.</li>
             </ul>
             <p>Finché non scegli, il sito carica soltanto i cookie necessari: nessuna statistica, nessuna misurazione pubblicitaria.</p>
 
@@ -315,13 +326,13 @@ return [
             HTML,
             'en' => <<<'HTML'
             <h2>Cookie notice</h2>
-            <p>Cookies are small files a website leaves in the visitor's browser. Some make the pages work, some tell us how they are read, others measure advertising campaigns. This page explains which ones we use and what you get to decide. Last updated 2 October 2026.</p>
+            <p>Cookies are small files a website leaves in the visitor's browser. Some make the pages work, some tell us how they are read, others measure advertising campaigns. This page explains which ones we use and what you get to decide. Last updated 21 October 2026.</p>
 
             <h3>What you can choose</h3>
             <ul>
                 <li><strong>Necessary</strong>: they keep the session, the cart and the security of the forms. Without them the site does not work, which is why they cannot be turned off. They are not used to recognise you elsewhere.</li>
                 <li><strong>Statistics</strong>: they tell us how many people read the site, and which pages. They only start if you consent.</li>
-                <li><strong>Marketing</strong>: they measure the ads on Facebook and Instagram, and let the map and videos hosted by others load on their own (see below). They only start if you consent.</li>
+                <li><strong>Marketing</strong>: they measure the ads on Facebook and Instagram, and let the map and videos hosted by others load on their own (see below). They only start if you consent. The same consent covers the purchase we also report to Meta from our server (Conversions API, see the <a href="/en/privacy-policy#acquisti">Privacy Policy</a>) and the signals by which we tell Google Analytics that the data may also be used for advertising (Google Consent Mode): without consent we deny it.</li>
             </ul>
             <p>Until you choose, the site loads necessary cookies only: no statistics, no advertising measurement.</p>
 

@@ -31,6 +31,18 @@ envs:
   scope: RUN_AND_BUILD_TIME
   type: SECRET
   value: EV[1:xuY5u2kyLv789WXxYgzt0++SIZJDacim:/faML89QUfH/adwTcFfKE0hH/GAzdseIoVigmSjA69C/irVc+F1NXu7C0Oy2BeAx]
+# Conversions API di Meta (InviaAcquistoAMeta): l'acquisto mandato anche dal
+# server, solo per gli ordini fatti con il consenso di marketing, al pixel
+# della società (dataset 1568575508334000, impostato nel pannello). Il token si
+# genera in Events Manager su quel dataset; a livello d'app perché il job gira
+# sul worker. Va dichiarata nell'informativa (lo è dal 21/10/2026).
+- key: META_CAPI_ENABLED
+  scope: RUN_AND_BUILD_TIME
+  value: "true"
+- key: META_CAPI_TOKEN
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:9LKuN0Wf9Fba+An3NNIrfgCMP2zWPWb8:8h+qUtNq5ekzhCnWH5UKREhuOBmuwaH3dPRBvUrHEi4o1qAyLY15Qy9dRDNYg+s5HJZBiTMuT/pIcek+MgmHlX4XgGt1RDy/UjPSeZhgU4rUC4GD5vlQPfx3FW+8KBmtnrRUtVDvZCWw/Mauf2EIme63rL0ouUH8LjoFzHzgADlgg3GubhcEGMRoxGLaIZfq7ZXJQFoH4vdp967HEFQ0dygMjDFqv0REVHJqYbP9daez6wX0iDSKfFgKtcIPRfpgxTJYhE7UOLqgl4xDEIhK1eN5L2P/64ATQA==]
 # La posta transazionale. Stanno qui, a livello di app, e non sotto i singoli
 # componenti perche' servono a tutti e tre: il web manda la reimpostazione
 # della password, il worker tutte le altre (sono Mailable ShouldQueue) e lo

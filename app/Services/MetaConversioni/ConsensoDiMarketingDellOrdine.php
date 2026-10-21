@@ -2,6 +2,7 @@
 
 namespace App\Services\MetaConversioni;
 
+use App\Jobs\InviaAcquistoAMeta;
 use App\Models\ConsensoCookie;
 use App\Models\Order;
 
@@ -27,10 +28,21 @@ class ConsensoDiMarketingDellOrdine
         $order->forceFill([
             'consenso_marketing' => true,
             'consenso_cookie_riferimento' => $riferimento,
-            'meta_fbp' => $this->identificativo($fbp, 'fb.'),
-            'meta_fbc' => $this->identificativo($fbc, 'fb.'),
-            'meta_user_agent' => $userAgent !== null && $userAgent !== '' ? mb_substr($userAgent, 0, 1000) : null,
-        ])->save();
+        ]);
+
+        // Gli identificativi di Meta servono solo a mandare l'acquisto: con la
+        // Conversions API spenta non si raccolgono. Dopo l'invio li cancella
+        // InviaAcquistoAMeta, e quelli rimasti (un bonifico, un pagamento mai
+        // arrivato) `meta:dimentica-gli-identificativi` dopo 7 giorni.
+        if (InviaAcquistoAMeta::accesa()) {
+            $order->forceFill([
+                'meta_fbp' => $this->identificativo($fbp, 'fb.'),
+                'meta_fbc' => $this->identificativo($fbc, 'fb.'),
+                'meta_user_agent' => $userAgent !== null && $userAgent !== '' ? mb_substr($userAgent, 0, 1000) : null,
+            ]);
+        }
+
+        $order->save();
     }
 
     public function eConcesso(?string $riferimento): bool

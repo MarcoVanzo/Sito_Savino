@@ -40,8 +40,13 @@ class ConsensoCookie extends Model
      * sul segnaposto) invece di partire con la pagina. Il consenso di
      * marketing dato prima copriva solo il pixel di Meta: adesso fa caricare
      * anche YouTube e Google Maps, quindi va richiesto su questa versione.
+     *
+     * 2026-10-21: il consenso di marketing copre anche l'acquisto comunicato a
+     * Meta dal server (Conversions API, InviaAcquistoAMeta) e i segnali
+     * pubblicitari di Google Consent Mode, e il pixel diventa quello della
+     * societa'. La Cookie Policy lo dice: la scelta va richiesta.
      */
-    public const VERSIONE = '2026-09-26';
+    public const VERSIONE = '2026-10-21';
 
     protected $fillable = [
         'riferimento',
