@@ -360,6 +360,22 @@ class DatiStrutturatiNellePagineTest extends TestCase
     }
 
     #[Test]
+    public function la_notizia_programmata_non_risulta_modificata_prima_di_uscire(): void
+    {
+        $post = Post::factory()->create([
+            'slug' => 'notizia-programmata',
+            'status' => PostStatus::Published,
+            'published_at' => now()->subHour(),
+        ]);
+        // Salvata il giorno prima, con l'uscita programmata.
+        Post::whereKey($post->id)->toBase()->update(['updated_at' => now()->subDay()]);
+
+        $articolo = $this->delTipo($this->blocchi('/news/'.$post->slug), 'NewsArticle');
+
+        $this->assertSame($articolo['datePublished'], $articolo['dateModified']);
+    }
+
+    #[Test]
     public function la_partita_giocata_e_uno_sportsevent(): void
     {
         $gara = $this->garaInCasa([
@@ -467,6 +483,7 @@ class DatiStrutturatiNellePagineTest extends TestCase
 
         $this->assertSame((string) $prodotto->id, $gruppo['productGroupID']);
         $this->assertSame(['MAGLIA-S', 'MAGLIA-XL'], array_column($gruppo['hasVariant'], 'sku'));
+        $this->assertSame($gruppo['description'], $gruppo['hasVariant'][0]['description']);
         $this->assertSame('45.00', $gruppo['hasVariant'][1]['offers']['price']);
         $this->assertSame('https://schema.org/OutOfStock', $gruppo['hasVariant'][1]['offers']['availability']);
         $this->assertArrayNotHasKey('offers', $gruppo);

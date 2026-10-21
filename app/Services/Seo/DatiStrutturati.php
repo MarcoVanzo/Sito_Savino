@@ -249,6 +249,17 @@ class DatiStrutturati
         // larghezza, e `card`/`detail` stanno sotto o al limite.
         $immagine = $post->getFirstMediaUrl('cover') ?: $this->logo();
 
+        // Una notizia programmata si salva prima di uscire: `updated_at`
+        // precede `published_at`, e Google trovava una modifica anteriore alla
+        // pubblicazione (Rich Results Test del 21/10/2026). La modifica non va
+        // mai prima della pubblicazione.
+        $pubblicata = $post->published_at ?? $post->created_at;
+        $modificata = $post->updated_at ?? $pubblicata;
+
+        if ($pubblicata !== null && ($modificata === null || $modificata->lessThan($pubblicata))) {
+            $modificata = $pubblicata;
+        }
+
         $articolo = [
             '@context' => 'https://schema.org',
             '@type' => 'NewsArticle',
@@ -256,8 +267,8 @@ class DatiStrutturati
             'url' => $indirizzo,
             'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $indirizzo],
             'image' => [$immagine],
-            'datePublished' => ($post->published_at ?? $post->created_at)?->toIso8601String(),
-            'dateModified' => ($post->updated_at ?? $post->published_at)?->toIso8601String(),
+            'datePublished' => $pubblicata?->toIso8601String(),
+            'dateModified' => $modificata?->toIso8601String(),
             'author' => $this->autore($post),
             'publisher' => $this->editore(),
             'inLanguage' => $locale === 'en' ? 'en-US' : 'it-IT',
@@ -326,6 +337,9 @@ class DatiStrutturati
                 'name' => trim($scheda['name'].' '.$taglia->size),
                 'sku' => (string) $taglia->sku,
                 'image' => $scheda['image'],
+                // La descrizione e' quella del prodotto: Google la chiede anche
+                // sulla singola taglia (facoltativa, ma segnalata).
+                ...(isset($scheda['description']) ? ['description' => $scheda['description']] : []),
                 'offers' => $this->offertaDelProdotto(
                     $prodotto,
                     $indirizzo,
