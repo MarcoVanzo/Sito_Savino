@@ -160,13 +160,11 @@ class DirettaSettingsPage extends BaseSettingsPage implements HasTable
     {
         return $table
             ->heading('Partite')
-            ->description('Le gare della società da due giorni fa in avanti: «Imposta» per il link della diretta, gli sponsor e le loro grafiche.')
+            ->description('Le gare della prima squadra (A1) da due giorni fa in avanti: «Imposta» per il link della diretta, gli sponsor e le loro grafiche.')
             ->query(
                 Game::query()
                     ->with(['homeTeam', 'awayTeam', 'liveSession.creativitaDelPreroll.sponsor', 'liveSession.creativitaDellaGara.sponsor'])
-                    ->where(fn (Builder $q) => $q
-                        ->whereHas('homeTeam', fn (Builder $t) => $t->where('is_internal', true))
-                        ->orWhereHas('awayTeam', fn (Builder $t) => $t->where('is_internal', true)))
+                    ->dellaPrimaSquadra()
             )
             ->defaultSort('match_date')
             ->columns([

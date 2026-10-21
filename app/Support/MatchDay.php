@@ -5,14 +5,13 @@ namespace App\Support;
 use App\Enums\GameStatus;
 use App\Models\Game;
 use App\Models\SiteSetting;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * La modalità Match Day della homepage: fascia «Oggi si gioca», sezione della
  * partita in tema scuro e pop-up verso la biglietteria.
  *
  * La accende l'impostazione `match_day_modalita` (Impostazioni → Homepage):
- * `auto` nel giorno di una gara della società, fino a tre ore dal fischio
+ * `auto` nel giorno di una gara della prima squadra (A1, mai il vivaio), fino a tre ore dal fischio
  * d'inizio; `off` la spegne; `on` la accende a mano **solo per il giorno in cui
  * la si sceglie** (`match_day_acceso_il`): dimenticata accesa, la home direbbe
  * «Oggi si gioca» per settimane.
@@ -71,13 +70,17 @@ class MatchDay
             ? self::popup()
             : null;
 
+        $direttaVicina = self::direttaVicina($gara);
+
         return [
             'attivo' => true,
             'gara' => $gara,
             'in_casa' => $inCasa,
             'popup' => $popup,
-            'popup_diretta' => $popup === null && self::popupAttivo() && self::direttaVicina($gara),
-            'diretta_vicina' => self::direttaVicina($gara),
+            // Il pop-up apre la finestra del sito: un link che porta fuori no.
+            'popup_diretta' => $popup === null && self::popupAttivo() && $direttaVicina
+                && LiveStream::embedUrl($gara?->stream_url) !== null,
+            'diretta_vicina' => $direttaVicina,
         ];
     }
 
@@ -93,7 +96,7 @@ class MatchDay
     }
 
     /**
-     * La gara della società in programma oggi, anche se è già cominciata:
+     * La gara della prima squadra in programma oggi, anche se è già cominciata:
      * durante la partita la home deve restare in Match Day. Finita (tre ore
      * dopo l'inizio) no, e nemmeno le rinviate.
      *
@@ -107,16 +110,13 @@ class MatchDay
             ->where('match_date', '>', now()->subHours(self::ORE_DOPO_L_INIZIO))
             ->where('match_date', '<=', now()->endOfDay())
             ->where('status', '!=', GameStatus::Postponed)
-            ->where(function (Builder $query) {
-                $query->whereHas('homeTeam', fn (Builder $team) => $team->where('is_internal', true))
-                    ->orWhereHas('awayTeam', fn (Builder $team) => $team->where('is_internal', true));
-            })
+            ->dellaPrimaSquadra()
             ->orderBy('match_date')
             ->first();
     }
 
     /**
-     * La prossima gara in programma della società, la stessa che la home
+     * La prossima gara in programma della prima squadra, la stessa che la home
      * mostra nella sezione della partita quando non si gioca oggi.
      */
     public static function prossimaGara(): ?Game
@@ -124,23 +124,21 @@ class MatchDay
         return Game::with(['homeTeam', 'awayTeam'])
             ->where('status', GameStatus::Scheduled)
             ->where('match_date', '>=', now())
-            ->where(function (Builder $query) {
-                $query->whereHas('homeTeam', fn (Builder $team) => $team->where('is_internal', true))
-                    ->orWhereHas('awayTeam', fn (Builder $team) => $team->where('is_internal', true));
-            })
+            ->dellaPrimaSquadra()
             ->orderBy('match_date')
             ->first();
     }
 
     /**
-     * La gara ha una diretta che si apre nel sito e manca al massimo un'ora
-     * al fischio d'inizio (o è già cominciata: `garaDiOggi()` la tiene fino
-     * a tre ore dopo).
+     * La gara ha un link di diretta e manca al massimo un'ora al fischio
+     * d'inizio (o è già cominciata: `garaDiOggi()` la tiene fino a tre ore
+     * dopo). Vale per i pulsanti di hero e fascia, che con un link non
+     * incorporabile aprono una scheda nuova.
      */
     private static function direttaVicina(?Game $gara): bool
     {
         return $gara !== null
-            && LiveStream::embedUrl($gara->stream_url) !== null
+            && LiveStream::externalUrl($gara->stream_url) !== null
             && now()->greaterThanOrEqualTo($gara->match_date->copy()->subMinutes(self::MINUTI_PRIMA_DELLA_DIRETTA));
     }
 

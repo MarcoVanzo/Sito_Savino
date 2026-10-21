@@ -634,14 +634,15 @@ const ogMeta = useOgMeta({
 
             <!-- Slide Indicators -->
             <div v-if="!heroVideoUrl" class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3">
-                <button type="button" 
+                <button
                     v-for="(slide, index) in slides"
                     :key="'indicator-' + index"
-                    @click="goToSlide(index)"
+                    type="button"
                     class="group relative h-1 rounded-full transition-all duration-700 overflow-hidden py-5 -my-5"
                     :class="currentSlide === index ? 'w-12 bg-white/30' : 'w-6 bg-white/20 hover:bg-white/30'"
                     :aria-label="$t('accessibilita.go_to_slide', { n: index + 1, total: slides.length })"
                     :aria-current="currentSlide === index ? 'true' : undefined"
+                    @click="goToSlide(index)"
                 >
                     <span 
                         v-if="currentSlide === index"
@@ -692,19 +693,23 @@ const ogMeta = useOgMeta({
                         class="hero-text-reveal hero-text-delay-3 flex flex-col sm:flex-row gap-4 justify-end"
                         :class="{ 'revealed': heroRevealed }"
                     >
-                        <!-- Gli indirizzi arrivano dalle impostazioni: uno esterno
-                             (Vivaticket) con <Link> partirebbe come XHR e il
-                             pulsante non porterebbe da nessuna parte. -->
-                        <button
-                            v-if="matchDay?.direttaVicina && partita?.stream_embed_url"
-                            type="button"
-                            class="inline-flex items-center justify-center gap-3 px-8 py-4 border-2 border-white bg-white text-savino-blue hover:bg-savino-fucsia hover:border-savino-fucsia hover:text-white text-sm font-bold uppercase tracking-widest transition-all duration-300"
+                        <component
+                            :is="partita?.stream_embed_url ? 'button' : 'a'"
+                            v-if="matchDay?.direttaVicina && partita?.stream_url"
+                            :type="partita.stream_embed_url ? 'button' : undefined"
+                            :href="partita.stream_embed_url ? undefined : partita.stream_url"
+                            :target="partita.stream_embed_url ? undefined : '_blank'"
+                            :rel="partita.stream_embed_url ? undefined : 'noopener noreferrer'"
+                            class="inline-flex items-center justify-center gap-3 px-8 py-4 border-2 border-white bg-white text-savino-blue hover:bg-savino-fucsia hover:border-savino-fucsia hover:text-white text-sm font-bold uppercase tracking-widest transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                             data-hero-diretta
                             @click="openNextGameStream"
                         >
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
                             {{ $t('stream.watch') }}
-                        </button>
+                        </component>
+                        <!-- Gli indirizzi arrivano dalle impostazioni: uno esterno
+                             (Vivaticket) con <Link> partirebbe come XHR e il
+                             pulsante non porterebbe da nessuna parte. -->
                         <component
                             :is="isExternalLink(heroCta1Url) ? 'a' : Link"
                             v-bind="externalLinkAttrs(heroCta1Url)"
@@ -745,11 +750,12 @@ const ogMeta = useOgMeta({
                 >
                     {{ $t('home.match_day_tickets') }}
                 </component>
-                <!-- Durante la gara la diretta sta qui, in cima: il pulsante
-                     della sezione della partita, da telefono, va cercato scorrendo. -->
+                <!-- Da un'ora prima del fischio d'inizio la diretta sta qui, in
+                     cima: il pulsante della sezione della partita, da telefono,
+                     va cercato scorrendo. Stessa regola del pulsante nell'hero. -->
                 <component
                     :is="partita.stream_embed_url ? 'button' : 'a'"
-                    v-if="matchDay.gara && partita?.stream_url"
+                    v-if="matchDay.direttaVicina && partita?.stream_url"
                     :type="partita.stream_embed_url ? 'button' : undefined"
                     :href="partita.stream_embed_url ? undefined : partita.stream_url"
                     :target="partita.stream_embed_url ? undefined : '_blank'"
@@ -916,13 +922,20 @@ const ogMeta = useOgMeta({
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     <!-- News reali dal backend -->
                     <template v-if="latestNews.length > 0">
-                        <div 
-                            v-for="(post, index) in latestNews" 
-                            :key="post.id" 
+                        <!-- L'inclinazione è solo decorativa (spenta su touch e con
+                             movimento ridotto): la scheda si usa dal link qui dentro,
+                             raggiungibile da tastiera. Gli eventi stanno sul contenitore,
+                             che non si inclina: misurare la scheda inclinata la farebbe
+                             tremare. Lasciata col tasto Tab, torna dritta. -->
+                        <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
+                        <div
+                            v-for="(post, index) in latestNews"
+                            :key="post.id"
                             class="tilt-card-wrapper"
                             data-reveal
                             @mousemove="getCachedTiltHandlers(index).onMousemove($event)"
-                            @mouseleave="getCachedTiltHandlers(index).onMouseleave($event)"
+                            @mouseleave="getCachedTiltHandlers(index).onMouseleave()"
+                            @focusout="getCachedTiltHandlers(index).onMouseleave()"
                         >
                             <Link 
                                 :href="route('news.show', post.slug)" 
