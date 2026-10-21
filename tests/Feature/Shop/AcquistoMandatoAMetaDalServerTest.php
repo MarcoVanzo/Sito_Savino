@@ -329,4 +329,18 @@ class AcquistoMandatoAMetaDalServerTest extends TestCase
         $this->assertNull($vecchio->meta_user_agent);
         $this->assertSame('fb.1.1.1', $recente->refresh()->meta_fbp);
     }
+
+    #[Test]
+    public function la_prova_manda_un_evento_solo_a_test_events(): void
+    {
+        Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1])]);
+
+        $this->artisan('meta:prova-conversioni', ['codice' => 'TEST123'])
+            ->expectsOutputToContain('eventi ricevuti 1')
+            ->assertSuccessful();
+
+        $corpo = $this->chiamateAMeta()[0]->data();
+        $this->assertSame('TEST123', $corpo['test_event_code']);
+        $this->assertSame('PageView', $corpo['data'][0]['event_name']);
+    }
 }
