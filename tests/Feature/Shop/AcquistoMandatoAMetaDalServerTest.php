@@ -272,13 +272,14 @@ class AcquistoMandatoAMetaDalServerTest extends TestCase
     public function un_rifiuto_di_meta_fa_ritentare_il_job_e_non_segna_l_ordine(): void
     {
         $order = $this->ordinePagabile(consenso: true);
-        Http::fake(['graph.facebook.com/*' => Http::response(['error' => ['message' => 'Invalid parameter']], 400)]);
+        Http::fake(['graph.facebook.com/*' => Http::response(['error' => ['message' => 'Invalid parameter', 'error_user_msg' => 'Manca un dato del cliente']], 400)]);
 
         try {
             (new InviaAcquistoAMeta($order))->handle();
             $this->fail('Il job doveva fallire per essere ritentato.');
         } catch (MetaConversioniException $e) {
             $this->assertStringContainsString('Invalid parameter', $e->getMessage());
+            $this->assertStringContainsString('Manca un dato del cliente', $e->getMessage());
         }
 
         $this->assertNull($order->refresh()->meta_acquisto_inviato_at);
@@ -342,5 +343,6 @@ class AcquistoMandatoAMetaDalServerTest extends TestCase
         $corpo = $this->chiamateAMeta()[0]->data();
         $this->assertSame('TEST123', $corpo['test_event_code']);
         $this->assertSame('PageView', $corpo['data'][0]['event_name']);
+        $this->assertNotEmpty($corpo['data'][0]['user_data']['external_id']);
     }
 }

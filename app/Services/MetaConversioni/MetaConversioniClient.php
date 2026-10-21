@@ -68,10 +68,18 @@ class MetaConversioniClient
         if (! $risposta->successful()) {
             $errore = is_array($json['error'] ?? null) ? $json['error'] : [];
 
+            // `message` e' generico («Invalid parameter»): il motivo vero sta
+            // in `error_user_title` / `error_user_msg`.
+            $dettaglio = trim(implode(' — ', array_filter([
+                $errore['message'] ?? null,
+                $errore['error_user_title'] ?? null,
+                $errore['error_user_msg'] ?? null,
+            ], fn ($parte) => is_string($parte) && $parte !== '')));
+
             throw new MetaConversioniException(sprintf(
                 'Conversions API: HTTP %d, %s',
                 $risposta->status(),
-                mb_substr((string) ($errore['message'] ?? $risposta->body()), 0, 300),
+                mb_substr($dettaglio !== '' ? $dettaglio : $risposta->body(), 0, 500),
             ));
         }
 
