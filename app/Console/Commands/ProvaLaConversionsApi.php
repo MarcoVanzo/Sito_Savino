@@ -38,7 +38,12 @@ class ProvaLaConversionsApi extends Command
                 'event_id' => 'prova-'.now()->format('YmdHis'),
                 'action_source' => 'website',
                 'event_source_url' => url('/'),
-                'user_data' => ['client_user_agent' => 'meta:prova-conversioni'],
+                // Meta vuole almeno un dato del cliente oltre allo user agent:
+                // senza risponde 400 «Invalid parameter».
+                'user_data' => [
+                    'client_user_agent' => 'meta:prova-conversioni',
+                    'external_id' => [hash('sha256', 'meta:prova-conversioni')],
+                ],
             ]]);
         } catch (MetaConversioniException $e) {
             $this->error($e->getMessage());
