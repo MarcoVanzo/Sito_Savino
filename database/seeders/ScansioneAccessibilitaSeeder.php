@@ -136,7 +136,9 @@ class ScansioneAccessibilitaSeeder extends Seeder
     {
         SiteSetting::set('diretta_sponsor_abilitata', '1');
 
-        $noi = Team::query()->where('is_internal', true)->first() ?? Team::factory()->create(['is_internal' => true]);
+        // La prima squadra: la diretta e il Match Day sono solo suoi, non del vivaio.
+        $noi = Team::query()->where('is_internal', true)->where('category', Team::CATEGORIA_PRIMA_SQUADRA)->first()
+            ?? Team::factory()->create(['is_internal' => true, 'category' => Team::CATEGORIA_PRIMA_SQUADRA]);
         $loro = Team::query()->where('is_internal', false)->first() ?? Team::factory()->create(['is_internal' => false]);
         $gara = Game::query()->updateOrCreate(['stream_url' => self::DIRETTA], [
             'season_id' => Season::query()->value('id') ?? Season::factory()->create()->id,

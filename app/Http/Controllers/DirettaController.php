@@ -12,7 +12,6 @@ use App\Support\Diretta\DirettaPerIlSito;
 use App\Support\Diretta\ImpostazioniDellaDiretta;
 use App\Support\LiveStream;
 use App\Support\MatchDay;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -108,7 +107,7 @@ class DirettaController extends Controller
 
     /**
      * L'indirizzo fisso della diretta (`/diretta`) da promuovere sui social:
-     * la gara della società con un link di diretta, in corso o la prossima.
+     * la gara della prima squadra (A1) con un link di diretta, in corso o la prossima.
      * Senza, la pagina lo dice e rimanda al calendario (non è un 404: il link
      * resta valido fra una gara e l'altra).
      */
@@ -119,10 +118,7 @@ class DirettaController extends Controller
             ->where('stream_url', '!=', '')
             ->where('match_date', '>', now()->subHours(MatchDay::ORE_DOPO_L_INIZIO))
             ->where('status', '!=', GameStatus::Postponed)
-            ->where(function (Builder $query) {
-                $query->whereHas('homeTeam', fn (Builder $team) => $team->where('is_internal', true))
-                    ->orWhereHas('awayTeam', fn (Builder $team) => $team->where('is_internal', true));
-            })
+            ->dellaPrimaSquadra()
             ->orderBy('match_date')
             ->first();
 

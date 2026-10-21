@@ -6,6 +6,7 @@ use App\Enums\CompetitionType;
 use App\Enums\GameStatus;
 use App\Models\Traits\LogsActivity;
 use App\Services\AvvisoTecnico;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -178,6 +179,25 @@ class Game extends Model
     /**
      * @return BelongsTo<Team, $this>
      */
+    /**
+     * Le gare della prima squadra (Serie A1), in casa o in trasferta: le
+     * squadre del vivaio sono interne anche loro, ma Match Day e diretta
+     * sono solo della prima.
+     *
+     * @param  Builder<Game>  $query
+     * @return Builder<Game>
+     */
+    public function scopeDellaPrimaSquadra(Builder $query): Builder
+    {
+        $primaSquadra = fn (Builder $team) => $team
+            ->where('is_internal', true)
+            ->where('category', Team::CATEGORIA_PRIMA_SQUADRA);
+
+        return $query->where(fn (Builder $gare) => $gare
+            ->whereHas('homeTeam', $primaSquadra)
+            ->orWhereHas('awayTeam', $primaSquadra));
+    }
+
     /**
      * @return BelongsTo<Team, $this>
      */

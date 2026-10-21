@@ -16,7 +16,6 @@ use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -99,9 +98,7 @@ class RegiaDiretta extends Page
         return Game::query()
             ->with(['homeTeam', 'awayTeam'])
             ->whereBetween('match_date', [now()->subDays(self::GIORNI_PRIMA)->startOfDay(), now()->addDays(self::GIORNI_DOPO)->endOfDay()])
-            ->where(fn (Builder $q) => $q
-                ->whereHas('homeTeam', fn (Builder $t) => $t->where('is_internal', true))
-                ->orWhereHas('awayTeam', fn (Builder $t) => $t->where('is_internal', true)))
+            ->dellaPrimaSquadra()
             ->orderBy('match_date')
             ->get();
     }

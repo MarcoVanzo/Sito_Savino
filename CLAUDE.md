@@ -653,6 +653,8 @@ framework si insegna allo script, non si silenzia. `--html=mappa.html` per la ma
   (valido solo il giorno in cui si sceglie). Pop-up e «Biglietti» solo per gare
   in casa e prima del fischio d'inizio; il pop-up aspetta il banner cookie.
   Conto alla rovescia al minuto (`conteggioAllaPartita.js`, WCAG 2.2.2).
+- **Match Day, diretta in home, `/diretta` e regia: solo la prima squadra (A1)**,
+  mai il vivaio (anche lui `is_internal`): `Game::dellaPrimaSquadra()`.
 - **Striscia sponsor** a colori, ferma col pulsante di pausa; sotto sei non scorre.
 - **Eventi** (`App\Models\Evento`): i prossimi tre pubblicati e non finiti.
 - Test: `HomepageGoLiveTest`, `EventiEMatchDayNelPannelloTest`,
