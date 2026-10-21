@@ -32,7 +32,11 @@ export function contaLeNavigazioni(router, invia, aspettaIlTitolo = titoloDellaP
         const dalServer = evento?.detail?.page?.props?.seo?.title;
 
         aspettaIlTitolo(typeof dalServer === 'string' && dalServer !== '' ? dalServer : null, precedente)
-            .then((titolo) => invia(titolo, indirizzo));
+            .then(
+                (titolo) => invia(titolo, indirizzo),
+                // Un'attesa andata storta non costa la visualizzazione.
+                () => invia(document.title, indirizzo),
+            );
     });
 }
 
