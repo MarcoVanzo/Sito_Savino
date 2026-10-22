@@ -7,6 +7,7 @@ use App\Models\ContactMessage;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * Richieste di accredito stampa inviate dalla pagina Comunicazione.
@@ -67,7 +68,7 @@ class PressAccreditationController extends Controller
                 // dopo, quando la richiesta HTTP non c'è più.
                 'extra_data' => [...$dettagli, 'lingua' => app()->getLocale()],
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Errore salvataggio richiesta accredito nel database', ['error' => $e->getMessage()]);
         }
 
@@ -92,7 +93,7 @@ class PressAccreditationController extends Controller
                         ->subject('Accredito stampa: '.$validated['outlet']);
                 }
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Errore invio email accredito stampa', ['error' => $e->getMessage()]);
         }
 

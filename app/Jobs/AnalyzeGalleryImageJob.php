@@ -16,6 +16,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class AnalyzeGalleryImageJob implements ShouldQueue
 {
@@ -186,7 +187,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
                 'detected_persons' => count($detectedPersons),
                 'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $totalMs = round((microtime(true) - $startTime) * 1000);
             Log::error("AnalyzeGalleryImageJob: [ERROR] Image #{$imageId} failed after {$totalMs}ms", [
                 'error' => $e->getMessage(),
@@ -220,7 +221,7 @@ class AnalyzeGalleryImageJob implements ShouldQueue
     /**
      * Handle a job failure after all retries exhausted.
      */
-    public function failed(\Throwable $exception): void
+    public function failed(Throwable $exception): void
     {
         Log::error('AnalyzeGalleryImageJob definitively failed', [
             'gallery_image_id' => $this->galleryImage->id,

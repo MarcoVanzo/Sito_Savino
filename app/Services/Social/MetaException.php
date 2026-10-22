@@ -2,6 +2,8 @@
 
 namespace App\Services\Social;
 
+use RuntimeException;
+
 /**
  * Errore della Graph API tradotto in una causa che si può mostrare e su cui si
  * può decidere.
@@ -19,7 +21,7 @@ namespace App\Services\Social;
  *   invalid_metric metrica o parametro rifiutato (codice 100)
  *   unavailable    rete, timeout o 5xx
  */
-class MetaException extends \RuntimeException
+class MetaException extends RuntimeException
 {
     public function __construct(
         public readonly string $reason,

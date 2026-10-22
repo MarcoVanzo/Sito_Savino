@@ -5,9 +5,9 @@ namespace App\Filament\Pages\Settings;
 use App\Services\Analytics\WebAnalyticsService;
 use App\Services\Social\MetaOAuthService;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Support\HtmlString;
 
 /**
@@ -24,7 +24,7 @@ use Illuminate\Support\HtmlString;
  */
 class AnalyticsSettingsPage extends BaseSettingsPage
 {
-    protected static ?string $navigationIcon = 'heroicon-o-chart-pie';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chart-pie';
 
     protected static ?string $navigationLabel = 'Analytics';
 
@@ -44,13 +44,13 @@ class AnalyticsSettingsPage extends BaseSettingsPage
      * `SiteSetting::set()` da sola scriverebbe `group = general` e il valore
      * non arriverebbe mai al sito pubblico.
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
         $serviceAccount = app(WebAnalyticsService::class)->serviceAccountEmail();
         $oauth = app(MetaOAuthService::class);
 
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Misurazione del sito')
                     ->description('Il tag che raccoglie i dati sulle pagine pubbliche.')
                     ->schema([

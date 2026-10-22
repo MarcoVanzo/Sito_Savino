@@ -12,9 +12,9 @@ namespace App\Filament\Traits;
  */
 trait InvalidaLaCacheDopoIlRiordino
 {
-    public function reorderTable(array $order): void
+    public function reorderTable(array $order, int|string|null $draggedRecordKey = null): void
     {
-        parent::reorderTable($order);
+        parent::reorderTable($order, $draggedRecordKey);
 
         $model = $this->getTable()->getModel();
         $record = $model::query()->find(reset($order));

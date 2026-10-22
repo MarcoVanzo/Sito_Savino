@@ -35,8 +35,8 @@ class TitoliEDescrizioniDellePagineTest extends TestCase
     {
         $html = (string) $this->get($indirizzo)->assertOk()->getContent();
 
-        preg_match('#<title inertia>(.*?)</title>#s', $html, $titolo);
-        preg_match('#<meta name="description" content="([^"]*)" inertia="description">#', $html, $descrizione);
+        preg_match('#<title data-inertia>(.*?)</title>#s', $html, $titolo);
+        preg_match('#<meta name="description" content="([^"]*)" data-inertia="description">#', $html, $descrizione);
 
         return [
             'title' => html_entity_decode($titolo[1] ?? '', ENT_QUOTES),
@@ -49,7 +49,7 @@ class TitoliEDescrizioniDellePagineTest extends TestCase
     {
         $response = $this->get('/')->assertOk();
 
-        $this->assertStringContainsString('<title inertia>Savino Del Bene Volley — Sito Ufficiale</title>', (string) $response->getContent());
+        $this->assertStringContainsString('<title data-inertia>Savino Del Bene Volley — Sito Ufficiale</title>', (string) $response->getContent());
         // Lo stesso titolo arriva al client, che non ne compone un altro.
         $this->assertSame('Savino Del Bene Volley — Sito Ufficiale', $response->viewData('page')['props']['seo']['title']);
     }

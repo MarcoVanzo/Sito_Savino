@@ -3,10 +3,12 @@
 namespace App\Console\Commands;
 
 use Aws\S3\S3Client;
+use DateTimeImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\AwsS3V3Adapter;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Throwable;
 
 /**
  * Ripara Content-Type e Cache-Control degli oggetti su DigitalOcean Spaces.
@@ -61,7 +63,7 @@ class FixRemoteMediaMetadata extends Command
         $query = Media::query()->orderBy('id');
 
         if ($since = $this->option('since')) {
-            $query->where('updated_at', '>=', new \DateTimeImmutable($since));
+            $query->where('updated_at', '>=', new DateTimeImmutable($since));
         }
 
         $checked = 0;
@@ -98,7 +100,7 @@ class FixRemoteMediaMetadata extends Command
     {
         try {
             $head = $client->headObject(['Bucket' => $bucket, 'Key' => $key]);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return self::ESITO_ASSENTE;
         }
 

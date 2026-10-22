@@ -44,11 +44,12 @@ class HtmlInizialeConLSsrTest extends TestCase
     }
 
     /**
-     * Il corpo dentro `<div id="app">`, cioe' cio' che ha reso il server.
+     * Il corpo dentro il contenitore dell'app, cioe' cio' che ha reso il
+     * server (Inertia 3 lo marca con `data-server-rendered`).
      */
     private function corpo(string $html): string
     {
-        $inizio = strpos($html, '<div id="app">');
+        $inizio = strpos($html, '<div data-server-rendered="true" id="app">');
         $this->assertNotFalse($inizio, 'manca il contenitore dell\'app');
 
         $corpo = substr($html, $inizio);

@@ -17,9 +17,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ReportSponsorDiretta extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationGroup = 'Sponsor';
+    protected static string|\UnitEnum|null $navigationGroup = 'Sponsor';
 
     protected static ?string $navigationLabel = 'Report diretta';
 
@@ -29,7 +29,7 @@ class ReportSponsorDiretta extends Page
 
     protected static ?string $slug = 'report-diretta';
 
-    protected static string $view = 'filament.pages.report-sponsor-diretta';
+    protected string $view = 'filament.pages.report-sponsor-diretta';
 
     public ?int $gara = null;
 

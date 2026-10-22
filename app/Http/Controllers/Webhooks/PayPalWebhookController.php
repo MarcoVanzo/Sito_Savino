@@ -7,6 +7,8 @@ use App\Services\Payments\PayPalPaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
+use Throwable;
 
 class PayPalWebhookController
 {
@@ -34,13 +36,13 @@ class PayPalWebhookController
                     'paypal-transmission-time' => $request->header('PAYPAL-TRANSMISSION-TIME', ''),
                 ],
             );
-        } catch (\RuntimeException $e) {
+        } catch (RuntimeException $e) {
             Log::warning('PayPal webhook: verifica fallita', [
                 'error' => $e->getMessage(),
             ]);
 
             return response()->json(['error' => 'Verifica fallita'], 400);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('PayPal webhook: errore generico', [
                 'error' => $e->getMessage(),
             ]);

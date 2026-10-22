@@ -12,6 +12,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class CheckUnpaidOrders extends Command
 {
@@ -165,7 +166,7 @@ class CheckUnpaidOrders extends Command
             ]);
 
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Errore invio promemoria pagamento', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
@@ -222,7 +223,7 @@ class CheckUnpaidOrders extends Command
             ]);
 
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Errore cancellazione ordine non pagato', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
@@ -247,7 +248,7 @@ class CheckUnpaidOrders extends Command
         try {
             Mail::to($recipientEmail, $recipientName)
                 ->queue(new OrderCancelled($order));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Errore invio email cancellazione ordine', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),

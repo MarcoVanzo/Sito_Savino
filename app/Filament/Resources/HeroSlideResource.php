@@ -2,16 +2,26 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\HeroSlideResource\Pages;
+use App\Filament\Resources\HeroSlideResource\Pages\CreateHeroSlide;
+use App\Filament\Resources\HeroSlideResource\Pages\EditHeroSlide;
+use App\Filament\Resources\HeroSlideResource\Pages\ListHeroSlides;
 use App\Models\HeroSlide;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class HeroSlideResource extends Resource
 {
@@ -25,19 +35,19 @@ class HeroSlideResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Slides Hero';
 
-    protected static ?string $navigationIcon = 'heroicon-o-photo';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-photo';
 
-    protected static ?string $navigationGroup = 'Pagine & Extra';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pagine & Extra';
 
     protected static ?int $navigationSort = 45;
 
     protected static bool $shouldRegisterNavigation = false;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Immagine')
+        return $schema
+            ->components([
+                Section::make('Immagine')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('image')
                             ->label('Immagine Slide')
@@ -51,33 +61,33 @@ class HeroSlideResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Contenuto')
+                Section::make('Contenuto')
                     ->schema([
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Titolo')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('subtitle')
+                        TextInput::make('subtitle')
                             ->label('Sottotitolo')
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('cta_text')
+                        TextInput::make('cta_text')
                             ->label('Testo CTA')
                             ->maxLength(255),
                         // Niente ->url(): le CTA puntano quasi sempre a percorsi
                         // interni (es. /biglietteria), che la regola url() scarta.
-                        Forms\Components\TextInput::make('cta_url')
+                        TextInput::make('cta_url')
                             ->label('URL CTA')
                             ->helperText('Percorso interno (es. /biglietteria) o URL completo.')
                             ->maxLength(255),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Impostazioni')
+                Section::make('Impostazioni')
                     ->schema([
-                        Forms\Components\TextInput::make('sort_order')
+                        TextInput::make('sort_order')
                             ->label('Ordine')
                             ->numeric()
                             ->default(0),
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label('Attiva')
                             ->default(true),
                     ])->columns(2),
@@ -88,22 +98,22 @@ class HeroSlideResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('image')
+                SpatieMediaLibraryImageColumn::make('image')
                     ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('Immagine')
                     ->collection('hero-slides')
                     ->circular(),
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('subtitle')
+                TextColumn::make('subtitle')
                     ->label('Sottotitolo')
                     ->limit(40),
-                Tables\Columns\ToggleColumn::make('is_active')
+                ToggleColumn::make('is_active')
                     ->label('Attiva'),
-                Tables\Columns\TextColumn::make('sort_order')
+                TextColumn::make('sort_order')
                     ->label('Ordine')
                     ->sortable(),
             ])
@@ -112,13 +122,13 @@ class HeroSlideResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -133,9 +143,9 @@ class HeroSlideResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListHeroSlides::route('/'),
-            'create' => Pages\CreateHeroSlide::route('/create'),
-            'edit' => Pages\EditHeroSlide::route('/{record}/edit'),
+            'index' => ListHeroSlides::route('/'),
+            'create' => CreateHeroSlide::route('/create'),
+            'edit' => EditHeroSlide::route('/{record}/edit'),
         ];
     }
 

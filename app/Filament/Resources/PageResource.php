@@ -5,18 +5,32 @@ namespace App\Filament\Resources;
 use App\Enums\PageTemplate;
 use App\Enums\PostStatus;
 use App\Filament\Forms\PageTemplateForms;
-use App\Filament\Resources\PageResource\Pages;
+use App\Filament\Resources\PageResource\Pages\CreatePage;
+use App\Filament\Resources\PageResource\Pages\EditPage;
+use App\Filament\Resources\PageResource\Pages\ListPages;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Page;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class PageResource extends Resource
 {
@@ -32,17 +46,17 @@ class PageResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Pagine';
 
-    protected static ?string $navigationIcon = 'heroicon-o-document';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document';
 
-    protected static ?string $navigationGroup = 'Pagine & Extra';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pagine & Extra';
 
     protected static ?int $navigationSort = 3;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Grid::make([
+        return $schema
+            ->components([
+                Grid::make([
                     'default' => 1,
                     'lg' => 3,
                 ])
@@ -58,129 +72,129 @@ class PageResource extends Resource
      * Colonna di sinistra: contenuto della pagina e impostazioni del suo
      * template.
      *
-     * @return array<int, Forms\Components\Component>
+     * @return array<int, Component>
      */
     private static function colonnaPrincipale(): array
     {
         return [
-            Forms\Components\Group::make([
-                Forms\Components\Section::make('Contenuto Principale')
+            Group::make([
+                Section::make('Contenuto Principale')
                     ->schema([
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Titolo')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
-                        Forms\Components\TextInput::make('slug')
+                            ->afterStateUpdated(fn (string $operation, $state, Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+                        TextInput::make('slug')
                             ->label('URL Slug')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
-                        Forms\Components\RichEditor::make('content')
+                        RichEditor::make('content')
                             ->label('Contenuto')
                             ->columnSpanFull(),
-                        Forms\Components\Textarea::make('excerpt')
+                        Textarea::make('excerpt')
                             ->label('Riassunto (Excerpt)')
                             ->columnSpanFull(),
                     ])
                     ->columns(2)
                     ->collapsible(),
 
-                Forms\Components\Group::make([
+                Group::make([
                     // FORM: SOCIETA / ORGANIGRAMMA
-                    Forms\Components\Section::make('Impostazioni Pagina Società')
+                    Section::make('Impostazioni Pagina Società')
                         ->label('Dati Società / Organigramma')
                         ->schema(PageTemplateForms::getSocietaSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Organigramma)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Organigramma)),
 
                     // FORM: STORIA
-                    Forms\Components\Section::make('Impostazioni Pagina Storia')
+                    Section::make('Impostazioni Pagina Storia')
                         ->schema(PageTemplateForms::getStoriaSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Storia)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Storia)),
 
                     // FORM: PALAZZETTO
-                    Forms\Components\Section::make('Impostazioni Pagina Palazzetto')
+                    Section::make('Impostazioni Pagina Palazzetto')
                         ->schema(PageTemplateForms::getPalazzettoSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Palazzetto)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Palazzetto)),
 
                     // FORM: SAFEGUARDING
-                    Forms\Components\Section::make('Impostazioni Pagina Safeguarding')
+                    Section::make('Impostazioni Pagina Safeguarding')
                         ->schema(PageTemplateForms::getSafeguardingSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Safeguarding)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Safeguarding)),
 
                     // FORM: CONTATTI (No outer Section/Card to prevent nested borders!)
-                    Forms\Components\Group::make(PageTemplateForms::getContattiSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Contatti)),
+                    Group::make(PageTemplateForms::getContattiSchema())
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Contatti)),
 
                     // FORM: TICKETING
-                    Forms\Components\Section::make('Impostazioni Pagina Biglietteria')
+                    Section::make('Impostazioni Pagina Biglietteria')
                         ->schema(PageTemplateForms::getTicketingSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Ticketing)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Ticketing)),
 
                     // FORM: CLUB RACE
-                    Forms\Components\Section::make('Convenzioni per gli abbonati')
+                    Section::make('Convenzioni per gli abbonati')
                         ->schema(PageTemplateForms::getConvenzioniSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Convenzioni)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Convenzioni)),
 
                     // FORM: PROGETTO AFFILIAZIONI
-                    Forms\Components\Section::make('Societa\' del progetto affiliazioni')
+                    Section::make('Societa\' del progetto affiliazioni')
                         ->schema(PageTemplateForms::getAffiliazioniSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Affiliazioni)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Affiliazioni)),
 
-                    Forms\Components\Section::make('Impostazioni Pagina Club Race')
+                    Section::make('Impostazioni Pagina Club Race')
                         ->schema(PageTemplateForms::getClubRaceSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::ClubRace)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::ClubRace)),
 
                     // FORM: SUMMER CAMP
-                    Forms\Components\Section::make('Impostazioni Pagina Summer Camp')
+                    Section::make('Impostazioni Pagina Summer Camp')
                         ->schema(PageTemplateForms::getSummerCampSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::SummerCamp)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::SummerCamp)),
 
                     // FORM: PROGETTI SOCIALI
-                    Forms\Components\Section::make('Impostazioni Pagina Progetti Sociali')
+                    Section::make('Impostazioni Pagina Progetti Sociali')
                         ->schema(PageTemplateForms::getSocialeSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Sociale)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Sociale)),
 
                     // FORM: SPONSOR
-                    Forms\Components\Section::make('Impostazioni Pagina Sponsor')
+                    Section::make('Impostazioni Pagina Sponsor')
                         ->schema(PageTemplateForms::getSponsorSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Sponsor)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Sponsor)),
 
                     // FORM: SETTORE GIOVANILE
-                    Forms\Components\Section::make('Impostazioni Pagina Settore Giovanile')
+                    Section::make('Impostazioni Pagina Settore Giovanile')
                         ->schema(PageTemplateForms::getYouthSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Youth)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Youth)),
 
                     // FORM: TALENT DAY
-                    Forms\Components\Section::make('Impostazioni Pagina Talent Day')
+                    Section::make('Impostazioni Pagina Talent Day')
                         ->schema(PageTemplateForms::getTalentDaySchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::TalentDay)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::TalentDay)),
 
                     // FORM: COMUNICAZIONE
-                    Forms\Components\Section::make('Impostazioni Pagina Comunicazione')
+                    Section::make('Impostazioni Pagina Comunicazione')
                         ->schema(PageTemplateForms::getComunicazioneSchema())
-                        ->visible(fn (Forms\Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Comunicazione)),
+                        ->visible(fn (Get $get) => PageTemplate::scelto($get('template'), PageTemplate::Comunicazione)),
 
                     // FORM: ISCRIZIONE EXPERIENCE (SUMMER CAMP)
-                    Forms\Components\Section::make('Pulsante Grafico Iscrizione (Experience)')
+                    Section::make('Pulsante Grafico Iscrizione (Experience)')
                         ->schema(PageTemplateForms::getCampEnrollmentSchema())
-                        ->visible(fn (Forms\Get $get) => $get('slug') === 'iscrizione-experience'),
+                        ->visible(fn (Get $get) => $get('slug') === 'iscrizione-experience'),
 
                     // FORM: DOUBLE FACE YOUTUBE EMBED
-                    Forms\Components\Section::make('Video YouTube Double Face')
+                    Section::make('Video YouTube Double Face')
                         ->schema(PageTemplateForms::getDoubleFaceSchema())
-                        ->visible(fn (Forms\Get $get) => $get('slug') === 'double-face'),
+                        ->visible(fn (Get $get) => $get('slug') === 'double-face'),
 
                     // FORM: MAGAZINE PDF UPLOAD
-                    Forms\Components\Section::make('Archivio Edizioni Magazine')
+                    Section::make('Archivio Edizioni Magazine')
                         ->schema(PageTemplateForms::getMagazineSchema())
-                        ->visible(fn (Forms\Get $get) => $get('slug') === 'magazine'),
+                        ->visible(fn (Get $get) => $get('slug') === 'magazine'),
 
                     // FORM: PAGINE DI CONTENUTO (pulsante + galleria foto)
-                    Forms\Components\Section::make('Pulsante e Galleria Fotografica')
+                    Section::make('Pulsante e Galleria Fotografica')
                         ->schema(PageTemplateForms::getContentPageSchema())
-                        ->visible(fn (Forms\Get $get) => ($get('template') === null || PageTemplate::scelto($get('template'), PageTemplate::ContentPage, PageTemplate::Predefinito)) && $get('slug') !== 'iscrizione-experience'),
+                        ->visible(fn (Get $get) => ($get('template') === null || PageTemplate::scelto($get('template'), PageTemplate::ContentPage, PageTemplate::Predefinito)) && $get('slug') !== 'iscrizione-experience'),
                 ])->columnSpanFull(),
             ])->columnSpan(['lg' => 2]),
         ];
@@ -189,36 +203,43 @@ class PageResource extends Resource
     /**
      * Colonna di destra: pubblicazione, SEO, copertina e galleria.
      *
-     * @return array<int, Forms\Components\Component>
+     * @return array<int, Component>
      */
     private static function colonnaLaterale(): array
     {
         return [
-            Forms\Components\Group::make([
-                Forms\Components\Section::make('Stato & Associazione')
+            Group::make([
+                Section::make('Stato & Associazione')
                     ->schema([
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label('Stato Pubblicazione')
                             ->options(PostStatus::class)
                             ->default(PostStatus::Published)
                             ->required(),
-                        Forms\Components\Select::make('template')
+                        Select::make('template')
                             ->label('Template Pagina')
                             ->options(PageTemplate::opzioni())
+                            // Home, Contatti… non sono fra le voci ma la loro
+                            // pagina li tiene: Filament 4 rifiuterebbe al
+                            // salvataggio un valore fuori dalla tendina.
+                            ->in(fn (?Page $record): array => array_values(array_filter([
+                                ...array_keys(PageTemplate::opzioni()),
+                                $record?->template,
+                            ])))
                             ->live()
                             ->nullable(),
-                        Forms\Components\Select::make('parent_id')
+                        Select::make('parent_id')
                             ->relationship('parent', 'title', fn (Builder $query, $record) => $record ? $query->where('id', '!=', $record->id) : $query)
                             ->label('Pagina Genitore')
                             ->searchable(),
-                        Forms\Components\Select::make('author_id')
+                        Select::make('author_id')
                             ->label('Autore')
                             ->relationship('author', 'name')
                             ->searchable()
                             ->default(fn () => auth()->id()),
                     ]),
 
-                Forms\Components\Section::make('Immagine di Copertina')
+                Section::make('Immagine di Copertina')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('cover')
                             ->label('Copertina')
@@ -227,12 +248,12 @@ class PageResource extends Resource
                             ->maxSize(5120),
                     ]),
 
-                Forms\Components\Section::make('Impostazioni SEO')
+                Section::make('Impostazioni SEO')
                     ->schema([
-                        Forms\Components\TextInput::make('meta_title')
+                        TextInput::make('meta_title')
                             ->label('Meta Titolo (SEO)')
                             ->maxLength(255),
-                        Forms\Components\Textarea::make('meta_description')
+                        Textarea::make('meta_description')
                             ->label('Meta Descrizione (SEO)')
                             ->maxLength(255)
                             ->rows(3),
@@ -249,14 +270,14 @@ class PageResource extends Resource
             ->paginationPageOptions([50, 100, 'all'])
             ->defaultPaginationPageOption(50)
             ->columns([
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('parent.title')
+                TextColumn::make('parent.title')
                     ->label('Genitore')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
                     ->color(fn ($state): string => match ($state instanceof PostStatus ? $state : PostStatus::tryFrom((string) $state)) {
@@ -265,21 +286,21 @@ class PageResource extends Resource
                     }),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label('Stato')
                     ->options(PostStatus::class),
-                Tables\Filters\SelectFilter::make('template')
+                SelectFilter::make('template')
                     ->label('Sezione (Template)')
                     ->options(PageTemplate::opzioni()),
             ])
-            ->actions([
-                Tables\Actions\Action::make('Anteprima')
+            ->recordActions([
+                Action::make('Anteprima')
                     ->url(fn ($record) => url($record->slug ?? ''))
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-eye'),
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
             ])
-            ->bulkActions(static::standardBulkActions());
+            ->toolbarActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array
@@ -292,9 +313,9 @@ class PageResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPages::route('/'),
-            'create' => Pages\CreatePage::route('/create'),
-            'edit' => Pages\EditPage::route('/{record}/edit'),
+            'index' => ListPages::route('/'),
+            'create' => CreatePage::route('/create'),
+            'edit' => EditPage::route('/{record}/edit'),
         ];
     }
 

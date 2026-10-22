@@ -3,18 +3,32 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PostStatus;
-use App\Filament\Resources\PostResource\Pages;
+use App\Filament\Resources\PostResource\Pages\CreatePost;
+use App\Filament\Resources\PostResource\Pages\EditPost;
+use App\Filament\Resources\PostResource\Pages\ListPosts;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Post;
-use Filament\Forms;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class PostResource extends Resource
 {
@@ -30,42 +44,42 @@ class PostResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Notizie / Articoli';
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?string $navigationLabel = 'News & Comunicati';
 
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?int $navigationSort = 6;
 
     protected static ?string $slug = 'news';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Contenuto Principale')
+        return $schema
+            ->components([
+                Section::make('Contenuto Principale')
                     ->schema([
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Titolo')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
-                        Forms\Components\TextInput::make('slug')
+                            ->afterStateUpdated(fn (string $operation, $state, Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+                        TextInput::make('slug')
                             ->label('URL Slug')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
-                        Forms\Components\RichEditor::make('content')
+                        RichEditor::make('content')
                             ->label('Contenuto')
                             ->columnSpanFull(),
-                        Forms\Components\Textarea::make('excerpt')
+                        Textarea::make('excerpt')
                             ->label('Riassunto (Excerpt)')
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Media e Categorie')
+                Section::make('Media e Categorie')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('cover')
                             ->label('Immagine di Copertina')
@@ -76,47 +90,47 @@ class PostResource extends Resource
                             ->imageResizeTargetWidth('1400')
                             ->imageResizeTargetHeight('1400')
                             ->imageResizeUpscale(false),
-                        Forms\Components\TextInput::make('testo_alternativo')
+                        TextInput::make('testo_alternativo')
                             ->label('Testo alternativo della copertina')
                             ->helperText('Cosa mostra la foto, per chi non vede le immagini e per i motori di ricerca. Se resta vuoto si usa il titolo della notizia.')
                             ->maxLength(255),
-                        Forms\Components\Select::make('categories')
+                        Select::make('categories')
                             ->label('Categorie')
                             ->multiple()
                             ->relationship('categories', 'name')
                             ->preload(),
-                        Forms\Components\Select::make('tags')
+                        Select::make('tags')
                             ->label('Tag')
                             ->multiple()
                             ->relationship('tags', 'name')
                             ->preload(),
                     ]),
 
-                Forms\Components\Section::make('Pubblicazione e SEO')
+                Section::make('Pubblicazione e SEO')
                     ->schema([
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label('Stato Pubblicazione')
                             ->options(PostStatus::class)
                             ->default(PostStatus::Draft)
                             ->required()
                             ->live()
-                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                 // Auto-imposta published_at quando si pubblica
                                 if ($state === PostStatus::Published->value && ! $get('published_at')) {
                                     $set('published_at', now()->format('Y-m-d H:i:s'));
                                 }
                             }),
-                        Forms\Components\Select::make('author_id')
+                        Select::make('author_id')
                             ->label('Autore')
                             ->relationship('author', 'name')
                             ->searchable()
                             ->default(fn () => auth()->id()),
-                        Forms\Components\DateTimePicker::make('published_at')
+                        DateTimePicker::make('published_at')
                             ->label('Data e Ora Pubblicazione'),
-                        Forms\Components\TextInput::make('meta_title')
+                        TextInput::make('meta_title')
                             ->label('Meta Titolo (SEO)')
                             ->maxLength(255),
-                        Forms\Components\Textarea::make('meta_description')
+                        Textarea::make('meta_description')
                             ->label('Meta Descrizione (SEO)')
                             ->maxLength(255)
                             ->columnSpanFull(),
@@ -128,48 +142,48 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('cover')
+                SpatieMediaLibraryImageColumn::make('cover')
                     ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('')
                     ->collection('cover')
                     ->circular(),
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo')
                     ->searchable()
                     ->sortable()
                     ->limit(50),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Stato')
                     ->badge()
                     ->color(fn ($state): string => match ($state instanceof PostStatus ? $state : PostStatus::tryFrom((string) $state)) {
                         PostStatus::Published => 'success',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('published_at')
+                TextColumn::make('published_at')
                     ->label('Data Pubblicazione')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('author.name')
+                TextColumn::make('author.name')
                     ->label('Autore')
                     ->searchable()
                     ->sortable(),
             ])
             ->defaultSort('published_at', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label('Stato')
                     ->options(PostStatus::class),
             ])
-            ->actions([
-                Tables\Actions\Action::make('Anteprima')
+            ->recordActions([
+                Action::make('Anteprima')
                     ->url(fn ($record) => url('news/'.($record->slug ?? '')))
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-eye'),
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
             ])
-            ->bulkActions(static::standardBulkActions());
+            ->toolbarActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array
@@ -182,9 +196,9 @@ class PostResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPosts::route('/'),
-            'create' => Pages\CreatePost::route('/create'),
-            'edit' => Pages\EditPost::route('/{record}/edit'),
+            'index' => ListPosts::route('/'),
+            'create' => CreatePost::route('/create'),
+            'edit' => EditPost::route('/{record}/edit'),
         ];
     }
 

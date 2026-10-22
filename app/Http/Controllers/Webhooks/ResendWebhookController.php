@@ -12,6 +12,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
  * Le email che Resend non è riuscito a consegnare.
@@ -86,7 +87,7 @@ class ResendWebhookController extends Controller
         // Una email d'allarme che rimbalza produrrebbe un altro allarme verso
         // la stessa casella, e così via: quel caso resta a Sentry.
         if (array_intersect(array_map('strtolower', $destinatari), array_map('strtolower', AvvisoTecnico::destinatari())) !== []) {
-            report(new \RuntimeException("Email d'allarme {$evento}: la casella degli avvisi non riceve."));
+            report(new RuntimeException("Email d'allarme {$evento}: la casella degli avvisi non riceve."));
 
             return response('', 204);
         }

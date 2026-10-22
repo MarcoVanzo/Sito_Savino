@@ -4,10 +4,10 @@ namespace App\Filament\Resources\AuctionResource\Pages;
 
 use App\Filament\Resources\AuctionResource;
 use App\Models\Auction;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 
 class EditAuction extends EditRecord
 {
@@ -23,7 +23,7 @@ class EditAuction extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 

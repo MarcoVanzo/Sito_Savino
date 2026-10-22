@@ -20,15 +20,15 @@ class SocialTrendWidget extends ChartWidget
 {
     use HasAnalyticsPeriod;
 
-    protected static ?string $heading = 'Andamento Instagram';
+    protected ?string $heading = 'Andamento Instagram';
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 
     protected static ?int $sort = 2;
 
-    protected static ?string $maxHeight = '280px';
+    protected ?string $maxHeight = '280px';
 
     /** L'account scelto in testata. Reattiva come il periodo: vedi HasAnalyticsPeriod. */
     #[Reactive]

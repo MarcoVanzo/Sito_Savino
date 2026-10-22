@@ -5,8 +5,8 @@ namespace App\Filament\Resources\PageResource\Pages;
 use App\Filament\Resources\PageResource;
 use App\Filament\Resources\PageResource\Concerns\PreservaContentData;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use LaraZeus\SpatieTranslatable\Resources\Pages\CreateRecord\Concerns\Translatable;
 
 /**
  * Creazione di una pagina in più lingue.

@@ -6,27 +6,34 @@ use App\Enums\StaffType;
 use App\Filament\Actions\RevocaRiconoscimentoVoltiAction;
 use App\Filament\Actions\TrainAiFacesAction;
 use App\Filament\Clusters\SerieA1;
-use App\Filament\Resources\StaffMemberResource\Pages;
+use App\Filament\Resources\StaffMemberResource\Pages\CreateStaffMember;
+use App\Filament\Resources\StaffMemberResource\Pages\EditStaffMember;
+use App\Filament\Resources\StaffMemberResource\Pages\ListStaffMembers;
 use App\Filament\Traits\HasStandardTableActions;
+use App\Filament\Traits\SchedaDelloStaff;
 use App\Models\StaffMember;
 use App\Services\FacialRecognitionService;
-use Filament\Forms;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
-use Filament\Pages\SubNavigationPosition;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class StaffMemberResource extends Resource
 {
     use HasStandardTableActions;
+    use SchedaDelloStaff;
     use Translatable;
 
-    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     protected static ?string $model = StaffMember::class;
 
@@ -38,7 +45,7 @@ class StaffMemberResource extends Resource
 
     protected static ?string $cluster = SerieA1::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-briefcase';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static ?string $navigationLabel = 'Staff e Medico';
 
@@ -54,102 +61,44 @@ class StaffMemberResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Anagrafica e Ruolo')
-                    ->schema([
-                        Forms\Components\TextInput::make('first_name')
-                            ->label('Nome')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('last_name')
-                            ->label('Cognome')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\Select::make('type')
-                            ->label('Sezione (Tipologia)')
-                            ->options([
-                                StaffType::Tecnico->value => StaffType::Tecnico->label(),
-                                StaffType::Medico->value => StaffType::Medico->label(),
-                            ])
-                            ->required()
-                            ->helperText('Determina in quale pagina del sito comparirà.'),
-                        Forms\Components\TextInput::make('role')
-                            ->label('Ruolo specifico')
-                            ->required()
-                            ->maxLength(255)
-                            ->helperText('Es. Allenatore, Presidente, Medico...'),
-                        Forms\Components\Hidden::make('section')
-                            ->default('a1'),
-                    ])->columns(2),
+        return $schema
+            ->components([
+                self::anagraficaDelloStaff('a1'),
 
-                Forms\Components\Section::make('Foto Profilo')
-                    ->schema([
-                        SpatieMediaLibraryFileUpload::make('avatar')
-                            ->label('Immagine di Profilo (Avatar)')
-                            ->collection('staff')
-                            ->image()
-                            ->maxSize(5120)
-                            ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth('1200')
-                            ->imageResizeTargetHeight('1200')
-                            ->imageResizeUpscale(false)
-                            ->helperText('Immagine ottimale: quadrata (es. 800x800px).')
-                            ->columnSpanFull(),
-                    ]),
+                self::fotoDelProfilo(),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('avatar')
-                    ->checkFileExistence(false)
-                    ->conversion('thumb')
-                    ->label('')
-                    ->collection('staff')
-                    ->circular(),
-                Tables\Columns\TextColumn::make('first_name')
-                    ->label('Nome')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('last_name')
-                    ->label('Cognome')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('role')
-                    ->label('Ruolo')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('type')
-                    ->label('Sezione')
-                    ->badge()
-                    ->sortable(),
-            ])
+            ->columns(self::colonneDelloStaff())
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->filters([
-                Tables\Filters\SelectFilter::make('type')
+                SelectFilter::make('type')
                     ->label('Filtra per Sezione')
                     ->options([
                         StaffType::Tecnico->value => StaffType::Tecnico->label(),
                         StaffType::Medico->value => StaffType::Medico->label(),
                     ]),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\Action::make('trainAi')
+            ->recordActions([
+                EditAction::make(),
+                ActionGroup::make([
+                    Action::make('trainAi')
                         ->label('Addestra AI (Upload Foto)')
                         ->icon('heroicon-o-cpu-chip')
                         ->color('info')
                         ->modalHeading('Addestramento Riconoscimento Facciale')
                         ->modalDescription('Carica foto del volto di questa persona. L\'AI imparerà a riconoscerla nelle foto della gallery.')
-                        ->form(TrainAiFacesAction::formSchema())
+                        ->schema(TrainAiFacesAction::formSchema())
                         ->action(function (StaffMember $record, array $data) {
                             TrainAiFacesAction::execute($record, $data);
                         }),
-                    Tables\Actions\Action::make('resetAi')
+                    Action::make('resetAi')
                         ->label('Resetta Memoria Volto')
                         ->icon('heroicon-o-trash')
                         ->color('danger')
@@ -172,9 +121,9 @@ class StaffMemberResource extends Resource
                     ->icon('heroicon-o-sparkles')
                     ->color('info'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -182,9 +131,9 @@ class StaffMemberResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListStaffMembers::route('/'),
-            'create' => Pages\CreateStaffMember::route('/create'),
-            'edit' => Pages\EditStaffMember::route('/{record}/edit'),
+            'index' => ListStaffMembers::route('/'),
+            'create' => CreateStaffMember::route('/create'),
+            'edit' => EditStaffMember::route('/{record}/edit'),
         ];
     }
 }

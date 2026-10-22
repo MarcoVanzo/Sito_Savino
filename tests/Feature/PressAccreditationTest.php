@@ -327,7 +327,7 @@ class PressAccreditationTest extends TestCase
             ->test(ManagePressAccreditations::class)
             ->assertTableActionHasLabel('markAsReplied', 'Reinvia conferma', $richiesta)
             ->mountTableAction('edit', $richiesta)
-            ->assertSee('05/10/2026 13:10')
-            ->assertSee('Da qui non parte nessuna email');
+            ->assertMountedActionModalSee('05/10/2026 13:10')
+            ->assertMountedActionModalSee('Da qui non parte nessuna email');
     }
 }

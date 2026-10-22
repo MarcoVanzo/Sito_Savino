@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages\Concerns;
 
+use LogicException;
+
 /**
  * Limita l'accesso a una pagina del pannello in base al ruolo.
  *
@@ -32,7 +34,7 @@ trait RestrictsAccessByRole
         $ability = static::requiredAbility();
 
         if (! method_exists($user->role, $ability)) {
-            throw new \LogicException(sprintf(
+            throw new LogicException(sprintf(
                 'La pagina %s richiede il permesso "%s", che non esiste su %s.',
                 static::class,
                 $ability,

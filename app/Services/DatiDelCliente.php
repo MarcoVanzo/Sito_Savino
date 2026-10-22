@@ -20,6 +20,7 @@ use App\Support\CondizioniDiVendita;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Quello che il sito sa di un cliente dello shop, per l'esportazione e per la
@@ -266,7 +267,7 @@ class DatiDelCliente
 
         try {
             app(StripeCustomerService::class)->cancellaCustomer($idCliente);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Stripe: cliente non cancellato insieme all\'account', [
                 'user_id' => $utente->id,
                 'errore' => $e::class,

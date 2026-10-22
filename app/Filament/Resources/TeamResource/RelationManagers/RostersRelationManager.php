@@ -3,10 +3,16 @@
 namespace App\Filament\Resources\TeamResource\RelationManagers;
 
 use App\Enums\PlayerPosition;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -16,33 +22,33 @@ class RostersRelationManager extends RelationManager
 
     protected static ?string $title = 'Roster';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\Select::make('player_id')
+        return $schema->components([
+            Select::make('player_id')
                 ->label('Giocatrice')
                 ->relationship('player', 'last_name')
                 ->searchable()
                 ->preload()
                 ->required(),
-            Forms\Components\Select::make('season_id')
+            Select::make('season_id')
                 ->label('Stagione')
                 ->relationship('season', 'name')
                 ->preload()
                 ->required(),
-            Forms\Components\TextInput::make('jersey_number')
+            TextInput::make('jersey_number')
                 ->label('Numero Maglia')
                 ->numeric()
                 ->minValue(1)
                 ->maxValue(99),
-            Forms\Components\Select::make('role')
+            Select::make('role')
                 ->label('Ruolo')
                 ->options(PlayerPosition::class)
                 ->required(),
-            Forms\Components\TextInput::make('height_cm')
+            TextInput::make('height_cm')
                 ->label('Altezza (cm)')
                 ->numeric(),
-            Forms\Components\Toggle::make('is_captain')
+            Toggle::make('is_captain')
                 ->label('Capitano'),
         ]);
     }
@@ -52,26 +58,26 @@ class RostersRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['player', 'season']))
             ->columns([
-                Tables\Columns\TextColumn::make('player.full_name')
+                TextColumn::make('player.full_name')
                     ->label('Giocatrice')
                     ->searchable(['first_name', 'last_name']),
-                Tables\Columns\TextColumn::make('season.name')
+                TextColumn::make('season.name')
                     ->label('Stagione'),
-                Tables\Columns\TextColumn::make('jersey_number')
+                TextColumn::make('jersey_number')
                     ->label('N°'),
-                Tables\Columns\TextColumn::make('role')
+                TextColumn::make('role')
                     ->label('Ruolo'),
-                Tables\Columns\IconColumn::make('is_captain')
+                IconColumn::make('is_captain')
                     ->label('Cap.')
                     ->boolean(),
             ])
             ->defaultSort('season_id', 'desc')
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                CreateAction::make(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ]);
     }
 }

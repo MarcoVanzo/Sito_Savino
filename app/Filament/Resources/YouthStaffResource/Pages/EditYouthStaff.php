@@ -3,9 +3,10 @@
 namespace App\Filament\Resources\YouthStaffResource\Pages;
 
 use App\Filament\Resources\YouthStaffResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
+use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 
 class EditYouthStaff extends EditRecord
 {
@@ -16,8 +17,8 @@ class EditYouthStaff extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\LocaleSwitcher::make(),
-            Actions\DeleteAction::make(),
+            LocaleSwitcher::make(),
+            DeleteAction::make(),
         ];
     }
 }

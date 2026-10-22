@@ -7,10 +7,19 @@ use App\Enums\PlayerHonourCategory;
 use App\Filament\Actions\ImportPalmaresAction;
 use App\Models\Player;
 use App\Models\PlayerHonour;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use InvalidArgumentException;
@@ -32,50 +41,50 @@ class PlayerHonoursRelationManager extends RelationManager
 
     protected static ?string $title = 'Palmarès';
 
-    protected static ?string $icon = 'heroicon-o-trophy';
+    protected static string|\BackedEnum|null $icon = 'heroicon-o-trophy';
 
     protected static ?string $recordTitleAttribute = 'edition';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Select::make('category')
+        return $schema
+            ->components([
+                Select::make('category')
                     ->label('Tipo')
                     ->options(PlayerHonourCategory::class)
                     ->default(PlayerHonourCategory::Club->value)
                     ->required(),
-                Forms\Components\Select::make('medal')
+                Select::make('medal')
                     ->label('Medaglia')
                     ->options(HonourMedal::class)
                     ->placeholder('Nessuna — titolo vinto')
                     ->helperText('Da valorizzare solo per le medaglie in nazionale.'),
-                Forms\Components\TextInput::make('competition.it')
+                TextInput::make('competition.it')
                     ->label('Competizione (IT)')
                     ->required()
                     ->maxLength(180),
-                Forms\Components\TextInput::make('competition.en')
+                TextInput::make('competition.en')
                     ->label('Competizione (EN)')
                     ->helperText('Lasciando vuoto, in inglese si vede il testo italiano.')
                     ->maxLength(180),
-                Forms\Components\TextInput::make('edition')
+                TextInput::make('edition')
                     ->label('Edizione')
                     ->placeholder('2020-21, Rio de Janeiro 2016…')
                     ->maxLength(160),
-                Forms\Components\TextInput::make('year')
+                TextInput::make('year')
                     ->label('Anno')
                     ->numeric()
                     ->minValue(1900)
                     ->maxValue(2100)
                     ->helperText('Serve solo a ordinare cronologicamente.'),
-                Forms\Components\TextInput::make('note.it')
+                TextInput::make('note.it')
                     ->label('Premio / nota (IT)')
                     ->placeholder('Miglior palleggiatrice')
                     ->maxLength(180),
-                Forms\Components\TextInput::make('note.en')
+                TextInput::make('note.en')
                     ->label('Premio / nota (EN)')
                     ->maxLength(180),
-                Forms\Components\Toggle::make('is_visible')
+                Toggle::make('is_visible')
                     ->label('Visibile sul sito')
                     ->default(true),
             ])
@@ -93,48 +102,48 @@ class PlayerHonoursRelationManager extends RelationManager
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->columns([
-                Tables\Columns\TextColumn::make('category')
+                TextColumn::make('category')
                     ->label('Tipo')
                     ->badge(),
-                Tables\Columns\TextColumn::make('competition')
+                TextColumn::make('competition')
                     ->label('Competizione')
                     ->wrap()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('edition')
+                TextColumn::make('edition')
                     ->label('Edizione'),
-                Tables\Columns\TextColumn::make('medal')
+                TextColumn::make('medal')
                     ->label('Medaglia')
                     ->badge()
                     ->placeholder('titolo'),
-                Tables\Columns\TextColumn::make('note')
+                TextColumn::make('note')
                     ->label('Premio / nota')
                     ->wrap()
                     ->placeholder('—'),
-                Tables\Columns\TextColumn::make('source')
+                TextColumn::make('source')
                     ->label('Origine')
                     ->badge()
                     ->color(fn (string $state): string => $state === PlayerHonour::SOURCE_WIKIPEDIA ? 'gray' : 'success')
                     ->formatStateUsing(fn (string $state): string => $state === PlayerHonour::SOURCE_WIKIPEDIA ? 'Wikipedia' : 'Redazione'),
-                Tables\Columns\IconColumn::make('is_visible')
+                IconColumn::make('is_visible')
                     ->label('Online')
                     ->boolean(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('category')
+                SelectFilter::make('category')
                     ->label('Tipo')
                     ->options(PlayerHonourCategory::class),
             ])
             ->headerActions([
                 ImportPalmaresAction::make($this->player()),
-                Tables\Actions\CreateAction::make()
+                CreateAction::make()
                     ->label('Aggiungi riga')
-                    ->mutateFormDataUsing(static::markAsManual(...)),
+                    ->mutateDataUsing(static::markAsManual(...)),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make()
+            ->recordActions([
+                EditAction::make()
                     ->mutateRecordDataUsing(static::splitTranslations(...))
-                    ->mutateFormDataUsing(static::markAsManual(...)),
-                Tables\Actions\Action::make('hide')
+                    ->mutateDataUsing(static::markAsManual(...)),
+                Action::make('hide')
                     ->label('Rimuovi')
                     ->icon('heroicon-o-eye-slash')
                     ->color('danger')
@@ -151,16 +160,16 @@ class PlayerHonoursRelationManager extends RelationManager
 
                         $record->delete();
                     }),
-                Tables\Actions\Action::make('restore')
+                Action::make('restore')
                     ->label('Ripristina')
                     ->icon('heroicon-o-eye')
                     ->color('success')
                     ->visible(fn (PlayerHonour $record): bool => ! $record->is_visible)
                     ->action(fn (PlayerHonour $record) => $record->update(['is_visible' => true])),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->emptyStateHeading('Nessun palmarès')

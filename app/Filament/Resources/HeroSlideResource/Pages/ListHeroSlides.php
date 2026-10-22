@@ -5,9 +5,9 @@ namespace App\Filament\Resources\HeroSlideResource\Pages;
 use App\Filament\Pages\Settings\HomepageSettingsPage;
 use App\Filament\Resources\HeroSlideResource;
 use App\Filament\Traits\InvalidaLaCacheDopoIlRiordino;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Pages\ListRecords\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Resources\Pages\ListRecords\Concerns\Translatable;
 
 class ListHeroSlides extends ListRecords
 {
@@ -24,7 +24,7 @@ class ListHeroSlides extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 }

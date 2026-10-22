@@ -12,6 +12,7 @@ use App\Support\SentryDsn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Inertia\Middleware;
+use Throwable;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -254,7 +255,7 @@ class HandleInertiaRequests extends Middleware
                     && ! str_starts_with((string) $chiave, 'hero_'),
                 ARRAY_FILTER_USE_BOTH,
             );
-        } catch (\Throwable) {
+        } catch (Throwable) {
             // La tabella o la pagina possono non esistere ancora: il sito deve
             // reggere lo stesso.
             return [];

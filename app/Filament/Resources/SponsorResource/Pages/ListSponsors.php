@@ -4,7 +4,7 @@ namespace App\Filament\Resources\SponsorResource\Pages;
 
 use App\Filament\Actions\NomiDelleSezioniSponsorAction;
 use App\Filament\Resources\SponsorResource;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListSponsors extends ListRecords
@@ -15,7 +15,7 @@ class ListSponsors extends ListRecords
     {
         return [
             NomiDelleSezioniSponsorAction::make(),
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 }

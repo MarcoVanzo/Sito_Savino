@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ConsensoCookie;
 use Closure;
+use DateTimeInterface;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -154,7 +155,7 @@ class CatenaDeiConsensi
             $valori[$campo] = match (true) {
                 $valore === null => null,
                 in_array($campo, ['statistiche', 'marketing'], true) => (string) (int) (bool) $valore,
-                $valore instanceof \DateTimeInterface => $valore->format('Y-m-d H:i:s'),
+                $valore instanceof DateTimeInterface => $valore->format('Y-m-d H:i:s'),
                 default => (string) $valore,
             };
         }
@@ -223,7 +224,7 @@ class CatenaDeiConsensi
      * verifica. Si toglie sempre una testa contigua (fino all'ultimo id più
      * vecchio del limite): un buco in mezzo spezzerebbe la catena.
      */
-    public static function pota(\DateTimeInterface $limite): int
+    public static function pota(DateTimeInterface $limite): int
     {
         return self::conIlLucchetto(function () use ($limite) {
             $finoA = DB::table('consensi_cookie')->where('created_at', '<', $limite)->max('id');

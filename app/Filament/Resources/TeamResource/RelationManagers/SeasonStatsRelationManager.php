@@ -5,9 +5,10 @@ namespace App\Filament\Resources\TeamResource\RelationManagers;
 use App\Filament\Resources\PlayerStatResource;
 use App\Models\PlayerStat;
 use App\Models\Season;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -40,7 +41,7 @@ class SeasonStatsRelationManager extends RelationManager
 
     protected static ?string $title = 'Statistiche stagione';
 
-    protected static ?string $icon = 'heroicon-o-chart-bar';
+    protected static string|\BackedEnum|null $icon = 'heroicon-o-chart-bar';
 
     protected static ?string $recordTitleAttribute = 'id';
 
@@ -72,9 +73,9 @@ class SeasonStatsRelationManager extends RelationManager
     /**
      * Nessun form: qui non si crea né si modifica.
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([]);
+        return $schema->components([]);
     }
 
     public function table(Table $table): Table
@@ -91,7 +92,7 @@ class SeasonStatsRelationManager extends RelationManager
             ])
             ->defaultSort('points', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('season_id')
+                SelectFilter::make('season_id')
                     ->label('Stagione')
                     ->relationship('season', 'name')
                     // Senza un default si sommerebbero visivamente più stagioni
@@ -102,14 +103,14 @@ class SeasonStatsRelationManager extends RelationManager
             // Una rosa sta in una schermata: paginare complicherebbe il confronto.
             ->paginated(false)
             ->headerActions([])
-            ->actions([
-                Tables\Actions\Action::make('open')
+            ->recordActions([
+                Action::make('open')
                     ->label('Dettaglio')
                     ->icon('heroicon-m-eye')
                     ->url(fn (PlayerStat $record): string => PlayerStatResource::getUrl('view', ['record' => $record]))
                     ->visible(fn (PlayerStat $record): bool => PlayerStatResource::canView($record)),
             ])
-            ->bulkActions([])
+            ->toolbarActions([])
             ->emptyStateIcon('heroicon-o-chart-bar')
             ->emptyStateHeading('Nessuna statistica per questa stagione')
             ->emptyStateDescription(

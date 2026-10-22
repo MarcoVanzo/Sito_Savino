@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 /**
  * La funzione di recesso online (art. 54-bis del Codice del Consumo,
@@ -111,7 +112,7 @@ class RecessoController extends Controller
 
             try {
                 Mail::to($richiesta->email, $richiesta->nome)->send(new RicevutaDiRecesso($richiesta));
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error('Ricevuta di recesso non inviata', ['richiesta' => $richiesta->id, 'errore' => $e->getMessage()]);
             }
         }
@@ -128,7 +129,7 @@ class RecessoController extends Controller
 
                 try {
                     Mail::to($richiesta->emailDellOrdine())->send(new AvvisoDiRecessoAlTitolare($richiesta));
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     Log::error('Avviso di recesso al titolare non inviato', ['richiesta' => $richiesta->id, 'errore' => $e->getMessage()]);
                 }
             }
@@ -138,7 +139,7 @@ class RecessoController extends Controller
 
         try {
             Mail::to($casella)->queue(new AvvisoDiRecessoAlloShop($richiesta));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Avviso di recesso allo shop non accodato', ['richiesta' => $richiesta->id, 'errore' => $e->getMessage()]);
         }
 

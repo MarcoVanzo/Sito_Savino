@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * L'acquisto mandato a Meta dal server (Conversions API), accanto al
@@ -90,7 +91,7 @@ class InviaAcquistoAMeta implements ShouldBeUnique, ShouldQueue
      * L'ultimo tentativo fallito arriva su Sentry: un acquisto non attribuito
      * non si vede da nessun'altra parte.
      */
-    public function failed(\Throwable $e): void
+    public function failed(Throwable $e): void
     {
         report($e);
 

@@ -3,9 +3,10 @@
 namespace App\Filament\Resources\ManagementResource\Pages;
 
 use App\Filament\Resources\ManagementResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
+use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 
 class EditManagement extends EditRecord
 {
@@ -16,8 +17,8 @@ class EditManagement extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\LocaleSwitcher::make(),
-            Actions\DeleteAction::make(),
+            LocaleSwitcher::make(),
+            DeleteAction::make(),
         ];
     }
 }

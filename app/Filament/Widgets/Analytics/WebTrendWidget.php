@@ -16,15 +16,15 @@ class WebTrendWidget extends ChartWidget
 {
     use HasAnalyticsPeriod;
 
-    protected static ?string $heading = 'Andamento giornaliero';
+    protected ?string $heading = 'Andamento giornaliero';
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected static bool $isDiscovered = false;
 
     protected static ?int $sort = 2;
 
-    protected static ?string $maxHeight = '280px';
+    protected ?string $maxHeight = '280px';
 
     /** Il sito scelto in testata. Reattiva come il periodo: vedi HasAnalyticsPeriod. */
     #[Reactive]

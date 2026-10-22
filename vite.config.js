@@ -1,6 +1,20 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
+import tailwindcss from '@tailwindcss/vite';
+
+// Il tema del pannello Filament (4+) vuole Tailwind 4, il sito pubblico e'
+// su Tailwind 3: @tailwindcss/vite si limita ai CSS del pannello, e il
+// `tailwindcss` che importa il tema di Filament punta all'alias
+// `tailwindcss4` (package.json). Il resto passa da postcss.config.js.
+const CSS_DEL_PANNELLO = /\/resources\/css\/filament\/.*\.css(?:\?.*)?$/;
+
+function tailwind4SoloPerIlPannello() {
+    return tailwindcss().map((plugin) => (plugin.transform?.filter
+        ? { ...plugin, transform: { ...plugin.transform, filter: { id: { include: [CSS_DEL_PANNELLO] } } } }
+        : plugin));
+}
 
 export default defineConfig({
     // `VUE_HYDRATION_DETAILS=1 npm run build`: i mismatch di idratazione fra
@@ -9,7 +23,11 @@ export default defineConfig({
     define: {
         __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: process.env.VUE_HYDRATION_DETAILS === '1',
     },
+    resolve: {
+        alias: [{ find: /^tailwindcss$/, replacement: fileURLToPath(new URL('./node_modules/tailwindcss4/index.css', import.meta.url)) }],
+    },
     plugins: [
+        tailwind4SoloPerIlPannello(),
         laravel({
             input: [
                 'resources/js/app.js',

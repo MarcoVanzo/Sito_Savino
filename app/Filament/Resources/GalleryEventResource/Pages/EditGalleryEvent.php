@@ -4,9 +4,9 @@ namespace App\Filament\Resources\GalleryEventResource\Pages;
 
 use App\Filament\Resources\GalleryEventResource;
 use App\Models\GalleryEvent;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 
 class EditGalleryEvent extends EditRecord
 {
@@ -17,7 +17,7 @@ class EditGalleryEvent extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->requiresConfirmation()
                 ->modalDescription('Attenzione: verranno eliminate anche tutte le foto associate a questo evento. L\'operazione è irreversibile.')
                 ->before(function (GalleryEvent $record) {

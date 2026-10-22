@@ -4,11 +4,11 @@ namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
 use App\Models\Product;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Pages\ListRecords\Concerns\Translatable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use LaraZeus\SpatieTranslatable\Resources\Pages\ListRecords\Concerns\Translatable;
 
 class ListProducts extends ListRecords
 {
@@ -19,7 +19,7 @@ class ListProducts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make(),
         ];
     }
 
@@ -38,7 +38,7 @@ class ListProducts extends ListRecords
      *
      * @param  array<int|string>  $order
      */
-    public function reorderTable(array $order): void
+    public function reorderTable(array $order, int|string|null $draggedRecordKey = null): void
     {
         if (! $this->getTable()->isReorderable() || $order === []) {
             return;

@@ -2,21 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\NewsletterSubscriberResource\Pages;
+use App\Filament\Resources\NewsletterSubscriberResource\Pages\ListNewsletterSubscribers;
 use App\Jobs\SyncNewsletterToActiveCampaign;
 use App\Models\NewsletterSubscriber;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class NewsletterSubscriberResource extends Resource
 {
     protected static ?string $model = NewsletterSubscriber::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-envelope';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
-    protected static ?string $navigationGroup = 'Marketing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Marketing';
 
     protected static ?string $navigationLabel = 'Newsletter';
 
@@ -41,41 +48,41 @@ class NewsletterSubscriberResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->searchable()
                     ->sortable()
                     ->copyable(),
-                Tables\Columns\TextColumn::make('first_name')
+                TextColumn::make('first_name')
                     ->label('Nome')
                     ->searchable()
                     ->placeholder('—'),
-                Tables\Columns\IconColumn::make('synced_to_ac')
+                IconColumn::make('synced_to_ac')
                     ->label('Sync AC')
                     ->boolean()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('ac_contact_id')
+                TextColumn::make('ac_contact_id')
                     ->label('AC ID')
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('source')
+                TextColumn::make('source')
                     ->label('Fonte')
                     ->badge()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('ip_address')
+                TextColumn::make('ip_address')
                     ->label('IP')
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('subscribed_at')
+                TextColumn::make('subscribed_at')
                     ->label('Iscritto il')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 // Doppio opt-in: senza conferma dal link dell'email l'iscritto
                 // non arriva ad ActiveCampaign, qualunque azione si lanci qui.
-                Tables\Columns\TextColumn::make('confermato_il')
+                TextColumn::make('confermato_il')
                     ->label('Confermato il')
                     ->dateTime('d/m/Y H:i')
                     ->placeholder('In attesa di conferma')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('unsubscribed_at')
+                TextColumn::make('unsubscribed_at')
                     ->label('Disiscritto il')
                     ->dateTime('d/m/Y H:i')
                     ->placeholder('Attivo')
@@ -83,18 +90,18 @@ class NewsletterSubscriberResource extends Resource
             ])
             ->defaultSort('subscribed_at', 'desc')
             ->filters([
-                Tables\Filters\TernaryFilter::make('synced_to_ac')
+                TernaryFilter::make('synced_to_ac')
                     ->label('Stato sincronizzazione')
                     ->placeholder('Tutti')
                     ->trueLabel('Sincronizzati')
                     ->falseLabel('Non sincronizzati'),
-                Tables\Filters\Filter::make('active')
+                Filter::make('active')
                     ->label('Solo attivi')
                     ->query(fn ($query) => $query->whereNull('unsubscribed_at'))
                     ->default(),
             ])
-            ->actions([
-                Tables\Actions\Action::make('retry_sync')
+            ->recordActions([
+                Action::make('retry_sync')
                     ->label('Risincronizza')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
@@ -106,7 +113,7 @@ class NewsletterSubscriberResource extends Resource
                         SyncNewsletterToActiveCampaign::dispatch($record);
                         Notification::make()->success()->title('Sincronizzazione avviata')->send();
                     }),
-                Tables\Actions\Action::make('unsubscribe')
+                Action::make('unsubscribe')
                     ->label('Disiscrivi')
                     ->icon('heroicon-o-no-symbol')
                     ->color('danger')
@@ -117,7 +124,7 @@ class NewsletterSubscriberResource extends Resource
                         $record->unsubscribe('cms');
                         Notification::make()->success()->title('Contatto disiscritto')->send();
                     }),
-                Tables\Actions\Action::make('resubscribe')
+                Action::make('resubscribe')
                     ->label('Riattiva')
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('success')
@@ -133,12 +140,12 @@ class NewsletterSubscriberResource extends Resource
                         SyncNewsletterToActiveCampaign::dispatch($record);
                         Notification::make()->success()->title('Iscrizione riattivata')->send();
                     }),
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->label('Elimina')
                     ->modalDescription('Cancella definitivamente il contatto, qui e su ActiveCampaign. Usare per le richieste di cancellazione dei dati; per la sola uscita dalla lista serve "Disiscrivi".'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkAction::make('retry_sync_bulk')
+            ->toolbarActions([
+                BulkAction::make('retry_sync_bulk')
                     ->label('Risincronizza selezionati')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
@@ -153,7 +160,7 @@ class NewsletterSubscriberResource extends Resource
                         }
                         Notification::make()->success()->title("{$count} sincronizzazioni avviate")->send();
                     }),
-                Tables\Actions\BulkAction::make('unsubscribe_bulk')
+                BulkAction::make('unsubscribe_bulk')
                     ->label('Disiscrivi selezionati')
                     ->icon('heroicon-o-no-symbol')
                     ->color('danger')
@@ -168,7 +175,7 @@ class NewsletterSubscriberResource extends Resource
                         }
                         Notification::make()->success()->title("{$count} contatti disiscritti")->send();
                     }),
-                Tables\Actions\DeleteBulkAction::make()
+                DeleteBulkAction::make()
                     ->label('Elimina selezionati')
                     ->modalDescription('Cancella definitivamente i contatti, qui e su ActiveCampaign.'),
             ]);
@@ -177,7 +184,7 @@ class NewsletterSubscriberResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListNewsletterSubscribers::route('/'),
+            'index' => ListNewsletterSubscribers::route('/'),
         ];
     }
 

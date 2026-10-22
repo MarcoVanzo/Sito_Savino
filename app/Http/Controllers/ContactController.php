@@ -7,6 +7,7 @@ use App\Models\ContactMessage;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class ContactController extends Controller
 {
@@ -36,7 +37,7 @@ class ContactController extends Controller
                 'message' => $validated['message'],
                 'status' => 'unread',
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Errore salvataggio messaggio contatti nel database', ['error' => $e->getMessage()]);
             // Non blocchiamo l'utente se il salvataggio fallisce, procediamo con l'invio email
         }
@@ -54,7 +55,7 @@ class ContactController extends Controller
                         ->subject('Contatto dal sito: '.($validated['subject'] ?? 'Messaggio'));
                 }
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Errore invio email contatti', ['error' => $e->getMessage()]);
             // Non blocchiamo l'utente se la mail fallisce, il log e il DB ci sono
         }

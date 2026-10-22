@@ -4,7 +4,9 @@ namespace App\Services\Lvf;
 
 use App\Services\Lvf\Data\LvfBoxScore;
 use App\Services\Lvf\Data\LvfPlayerStat;
+use DOMElement;
 use DOMNode;
+use DOMNodeList;
 
 /**
  * Estrae il tabellino di una gara da `TabellinoGara_i.asp?IdGara=<id>`.
@@ -279,7 +281,7 @@ class LvfBoxScoreParser
      * piu' esterna ha una sola riga che ingloba l'intero documento e
      * supererebbe qualunque controllo per sottostringa.
      */
-    private function eLaTabellaDeiSet(LvfDocument $document, ?\DOMNodeList $rows): bool
+    private function eLaTabellaDeiSet(LvfDocument $document, ?DOMNodeList $rows): bool
     {
         if (($rows->length ?? 0) < 2) {
             return false;
@@ -392,7 +394,7 @@ class LvfBoxScoreParser
         foreach ($document->xpath->query('./th | ./td', $row) ?: [] as $cell) {
             $span = 1;
 
-            if ($cell instanceof \DOMElement && $cell->hasAttribute('colspan')) {
+            if ($cell instanceof DOMElement && $cell->hasAttribute('colspan')) {
                 $span = max(1, (int) $cell->getAttribute('colspan'));
             }
 

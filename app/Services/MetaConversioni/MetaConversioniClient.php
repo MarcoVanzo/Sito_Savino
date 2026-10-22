@@ -3,6 +3,7 @@
 namespace App\Services\MetaConversioni;
 
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 /**
  * Trasporto verso la Conversions API di Meta (`/{pixel}/events`).
@@ -58,7 +59,7 @@ class MetaConversioniClient
                 ->timeout($this->timeout)
                 ->withQueryParameters(['access_token' => $this->token])
                 ->post(self::BASE_URL.$this->versione.'/'.rawurlencode($pixelId).'/events', $corpo);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             throw new MetaConversioniException('Conversions API non raggiungibile: '.$e->getMessage(), 0, $e);
         }
 

@@ -6,23 +6,23 @@ use App\Filament\Pages\Concerns\RestrictsAccessByRole;
 use App\Models\MenuItem;
 use App\Models\SiteSetting;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class OfficialPhotoPage extends Page implements HasForms
 {
     use InteractsWithForms;
     use RestrictsAccessByRole;
 
-    protected static ?string $navigationIcon = 'heroicon-o-camera';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-camera';
 
     protected static ?string $navigationLabel = 'Foto Ufficiale';
 
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?string $title = 'Foto Ufficiale';
 
@@ -30,7 +30,7 @@ class OfficialPhotoPage extends Page implements HasForms
 
     protected static ?string $slug = 'foto-ufficiale';
 
-    protected static string $view = 'filament.pages.official-photo-page';
+    protected string $view = 'filament.pages.official-photo-page';
 
     public ?array $data = [];
 
@@ -44,10 +44,10 @@ class OfficialPhotoPage extends Page implements HasForms
         ]);
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Caricamento Documento')
                     ->description('Carica qui il PDF della Foto Ufficiale della Stagione')
                     ->schema([

@@ -2,16 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\MenuItemResource\Pages;
+use App\Filament\Resources\MenuItemResource\Pages\CreateMenuItem;
+use App\Filament\Resources\MenuItemResource\Pages\EditMenuItem;
+use App\Filament\Resources\MenuItemResource\Pages\ListMenuItems;
 use App\Models\MenuItem;
-use Filament\Forms;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class MenuItemResource extends Resource
 {
@@ -25,48 +37,48 @@ class MenuItemResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Voci Menu';
 
-    protected static ?string $navigationIcon = 'heroicon-o-bars-3';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-bars-3';
 
-    protected static ?string $navigationGroup = 'Pagine & Extra';
+    protected static string|\UnitEnum|null $navigationGroup = 'Pagine & Extra';
 
     protected static ?int $navigationSort = 46;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Contenuto')
+        return $schema
+            ->components([
+                Section::make('Contenuto')
                     ->schema([
-                        Forms\Components\TextInput::make('label')
+                        TextInput::make('label')
                             ->label('Etichetta')
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('url')
+                        TextInput::make('url')
                             ->label('URL (lascia vuoto per "Pagina in costruzione")')
                             ->nullable()
                             ->maxLength(255),
-                        Forms\Components\Textarea::make('description')
+                        Textarea::make('description')
                             ->label('Descrizione')
                             ->rows(3)
                             ->maxLength(255)
                             ->columnSpanFull(),
-                        Forms\Components\TextInput::make('motto_title')
+                        TextInput::make('motto_title')
                             ->label('Titolo Motto')
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('motto_subtitle')
+                        TextInput::make('motto_subtitle')
                             ->label('Sottotitolo Motto')
                             ->maxLength(255),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Gerarchia e Posizione')
+                Section::make('Gerarchia e Posizione')
                     ->schema([
-                        Forms\Components\Select::make('parent_id')
+                        Select::make('parent_id')
                             ->label('Voce Genitore')
                             ->relationship('parent', 'label', fn (Builder $query, $record) => $record ? $query->where('id', '!=', $record->id) : $query
                             )
                             ->searchable()
                             ->nullable(),
-                        Forms\Components\Select::make('location')
+                        Select::make('location')
                             ->label('Posizione')
                             ->options([
                                 'main' => 'Menu Principale',
@@ -74,24 +86,24 @@ class MenuItemResource extends Resource
                             ])
                             ->default('main')
                             ->required(),
-                        Forms\Components\TextInput::make('sort_order')
+                        TextInput::make('sort_order')
                             ->label('Ordine')
                             ->numeric()
                             ->default(0),
                     ])->columns(3),
 
-                Forms\Components\Section::make('Impostazioni')
+                Section::make('Impostazioni')
                     ->schema([
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label('Attiva')
                             ->default(true),
-                        Forms\Components\Toggle::make('is_highlight')
+                        Toggle::make('is_highlight')
                             ->label('Evidenziata')
                             ->helperText('La voce esce dalla barra del menu e diventa il pulsante pieno in testata (oggi lo Shop). Una sola voce per volta.')
                             ->default(false),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Immagine')
+                Section::make('Immagine')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('image')
                             ->label('Immagine Menu')
@@ -101,7 +113,7 @@ class MenuItemResource extends Resource
                             ->columnSpanFull(),
                         // Il riquadro e' piu' stretto della foto, quindi qualcosa si
                         // taglia sempre: qui si sceglie quale parte tenere.
-                        Forms\Components\Select::make('menu_image_position')
+                        Select::make('menu_image_position')
                             ->label('Parte della foto da tenere')
                             ->helperText('Se il soggetto non sta al centro dello scatto, spostare qui l\'inquadratura.')
                             ->options([
@@ -121,17 +133,17 @@ class MenuItemResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('label')
+                TextColumn::make('label')
                     ->label('Etichetta')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('url')
+                TextColumn::make('url')
                     ->label('URL')
                     ->limit(40),
-                Tables\Columns\TextColumn::make('parent.label')
+                TextColumn::make('parent.label')
                     ->label('Genitore')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('location')
+                TextColumn::make('location')
                     ->label('Posizione')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -139,29 +151,29 @@ class MenuItemResource extends Resource
                         'footer' => 'gray',
                         default => 'gray',
                     }),
-                Tables\Columns\ToggleColumn::make('is_active')
+                ToggleColumn::make('is_active')
                     ->label('Attiva'),
-                Tables\Columns\TextColumn::make('sort_order')
+                TextColumn::make('sort_order')
                     ->label('Ordine')
                     ->sortable(),
             ])
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->filters([
-                Tables\Filters\SelectFilter::make('location')
+                SelectFilter::make('location')
                     ->label('Posizione')
                     ->options([
                         'main' => 'Menu Principale',
                         'footer' => 'Footer',
                     ]),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -176,9 +188,9 @@ class MenuItemResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListMenuItems::route('/'),
-            'create' => Pages\CreateMenuItem::route('/create'),
-            'edit' => Pages\EditMenuItem::route('/{record}/edit'),
+            'index' => ListMenuItems::route('/'),
+            'create' => CreateMenuItem::route('/create'),
+            'edit' => EditMenuItem::route('/{record}/edit'),
         ];
     }
 

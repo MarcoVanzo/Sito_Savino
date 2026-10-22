@@ -2,13 +2,13 @@
 
 namespace App\Filament\Pages\Settings;
 
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class GeneraliSettingsPage extends BaseSettingsPage
 {
-    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
 
     protected static ?string $navigationLabel = 'Generali';
 
@@ -18,10 +18,10 @@ class GeneraliSettingsPage extends BaseSettingsPage
 
     protected static ?string $slug = 'settings/generali';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Sito')->schema([
                     TextInput::make('site_logo')
                         ->label('Logo del sito')

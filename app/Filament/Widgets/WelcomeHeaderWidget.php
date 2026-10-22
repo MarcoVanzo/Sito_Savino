@@ -6,7 +6,7 @@ use Filament\Widgets\Widget;
 
 class WelcomeHeaderWidget extends Widget
 {
-    protected static string $view = 'filament.widgets.welcome-header-widget';
+    protected string $view = 'filament.widgets.welcome-header-widget';
 
     protected int|string|array $columnSpan = 'full';
 

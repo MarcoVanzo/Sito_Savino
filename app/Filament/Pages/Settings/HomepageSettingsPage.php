@@ -6,15 +6,22 @@ use App\Filament\Resources\HeroSlideResource;
 use App\Models\HeroSlide;
 use App\Models\SiteSetting;
 use App\Support\MatchDay;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Form;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
@@ -23,7 +30,7 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
 {
     use InteractsWithTable;
 
-    protected static ?string $navigationIcon = 'heroicon-o-home';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-home';
 
     protected static ?string $navigationLabel = 'Homepage';
 
@@ -33,7 +40,7 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
 
     protected static ?string $slug = 'settings/homepage';
 
-    protected static string $view = 'filament.pages.homepage-settings-page';
+    protected string $view = 'filament.pages.homepage-settings-page';
 
     public string $activeTab = 'settings';
 
@@ -108,10 +115,10 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
         ];
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Hero')->schema([
                     TextInput::make('hero_title')->label('Titolo'),
                     TextInput::make('hero_subtitle')->label('Accento'),
@@ -237,22 +244,22 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
                 HeroSlide::query()->with('media')
             )
             ->columns([
-                Tables\Columns\SpatieMediaLibraryImageColumn::make('image')
+                SpatieMediaLibraryImageColumn::make('image')
                     ->checkFileExistence(false)
                     ->conversion('thumb')
                     ->label('Immagine')
                     ->collection('hero-slides')
                     ->circular(),
-                Tables\Columns\TextColumn::make('title')
+                TextColumn::make('title')
                     ->label('Titolo')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('subtitle')
+                TextColumn::make('subtitle')
                     ->label('Sottotitolo')
                     ->limit(40),
-                Tables\Columns\ToggleColumn::make('is_active')
+                ToggleColumn::make('is_active')
                     ->label('Attiva'),
-                Tables\Columns\TextColumn::make('sort_order')
+                TextColumn::make('sort_order')
                     ->label('Ordine')
                     ->sortable(),
             ])
@@ -261,18 +268,18 @@ class HomepageSettingsPage extends BaseSettingsPage implements HasTable
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make()
+            ->recordActions([
+                EditAction::make()
                     ->url(fn (HeroSlide $record): string => HeroSlideResource::getUrl('edit', ['record' => $record])),
-                Tables\Actions\DeleteAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('create')
+                Action::make('create')
                     ->label('Nuova Slide Hero')
                     ->icon('heroicon-o-plus')
                     ->url(HeroSlideResource::getUrl('create')),

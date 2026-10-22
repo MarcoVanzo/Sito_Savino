@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\ProductCategoryResource\Pages;
 
 use App\Filament\Resources\ProductCategoryResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Resources\Pages\EditRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 
 class EditProductCategory extends EditRecord
 {
@@ -20,9 +20,9 @@ class EditProductCategory extends EditRecord
             // La cancellazione è definitiva e i prodotti resterebbero senza
             // categoria (la chiave esterna li mette a NULL) senza che nessuno
             // lo dica: con prodotti dentro non si cancella, e lo si spiega.
-            Actions\DeleteAction::make()
+            DeleteAction::make()
                 ->modalDescription('La categoria viene eliminata per sempre. Si può fare solo se è vuota.')
-                ->before(function (Actions\DeleteAction $action): void {
+                ->before(function (DeleteAction $action): void {
                     $prodotti = $this->getRecord()->products()->count();
 
                     if ($prodotti === 0) {

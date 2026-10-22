@@ -17,6 +17,7 @@ use App\Services\Seo\DatiStrutturati;
 use App\Support\IndirizziPerLingua;
 use App\Support\RedirectGestiti;
 use Carbon\Carbon;
+use Closure;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Spatie\Sitemap\Sitemap;
@@ -231,7 +232,7 @@ class SitemapBuilder
     /**
      * Home, pagine fisse e pagine del CMS.
      */
-    private function pagine(\Closure $addLocalizedUrls): void
+    private function pagine(Closure $addLocalizedUrls): void
     {
         $addLocalizedUrls('/', [
             'freq' => Url::CHANGE_FREQUENCY_DAILY,
@@ -278,7 +279,7 @@ class SitemapBuilder
      * Le schede dei prodotti in vendita e disponibili, con le foto. Un
      * prodotto esaurito resta fuori: la scheda esiste, ma non è da proporre.
      */
-    private function prodotti(\Closure $addLocalizedUrls): void
+    private function prodotti(Closure $addLocalizedUrls): void
     {
         Product::shoppable()
             ->with('media')

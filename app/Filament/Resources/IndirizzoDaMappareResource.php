@@ -3,12 +3,17 @@
 namespace App\Filament\Resources;
 
 use App\Enums\CodiceDelRedirect;
-use App\Filament\Resources\IndirizzoDaMappareResource\Pages;
+use App\Filament\Resources\IndirizzoDaMappareResource\Pages\ListIndirizziDaMappare;
 use App\Models\IndirizzoDaMappare;
 use App\Models\Reindirizzamento;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Gate;
 
@@ -28,9 +33,9 @@ class IndirizzoDaMappareResource extends Resource
 
     protected static ?string $pluralModelLabel = '404 da mappare';
 
-    protected static ?string $navigationIcon = 'heroicon-o-question-mark-circle';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-question-mark-circle';
 
-    protected static ?string $navigationGroup = 'Amministrazione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Amministrazione';
 
     protected static ?int $navigationSort = 91;
 
@@ -38,28 +43,28 @@ class IndirizzoDaMappareResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('percorso')
+                TextColumn::make('percorso')
                     ->label('Vecchio indirizzo')
                     ->searchable()
                     ->limit(80),
-                Tables\Columns\TextColumn::make('origine')
+                TextColumn::make('origine')
                     ->label('Oggi')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => $state === IndirizzoDaMappare::ORIGINE_LEGACY
                         ? 'pagina generica'
                         : '404')
                     ->color(fn (string $state): string => $state === IndirizzoDaMappare::ORIGINE_LEGACY ? 'warning' : 'danger'),
-                Tables\Columns\TextColumn::make('hits')
+                TextColumn::make('hits')
                     ->label('Richieste')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('last_hit_at')
+                TextColumn::make('last_hit_at')
                     ->label('Ultima richiesta')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('origine')
+                SelectFilter::make('origine')
                     ->label('Oggi')
                     ->options([
                         IndirizzoDaMappare::ORIGINE_404 => '404',
@@ -67,8 +72,8 @@ class IndirizzoDaMappareResource extends Resource
                     ]),
             ])
             ->defaultSort('hits', 'desc')
-            ->actions([
-                Tables\Actions\Action::make('creaRedirect')
+            ->recordActions([
+                Action::make('creaRedirect')
                     ->label('Crea redirect')
                     ->icon('heroicon-o-arrow-uturn-right')
                     ->visible(fn (): bool => Gate::allows('create', Reindirizzamento::class))
@@ -76,19 +81,19 @@ class IndirizzoDaMappareResource extends Resource
                         'from_path' => $record->percorso,
                         'status_code' => CodiceDelRedirect::Permanente->value,
                     ])
-                    ->form(ReindirizzamentoResource::campi())
+                    ->schema(ReindirizzamentoResource::campi())
                     ->action(function (array $data): void {
                         // Il salvataggio toglie anche la riga da qui.
                         Reindirizzamento::create($data);
 
                         Notification::make()->title('Redirect creato')->success()->send();
                     }),
-                Tables\Actions\DeleteAction::make()
+                DeleteAction::make()
                     ->label('Ignora'),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
                         ->label('Ignora'),
                 ]),
             ]);
@@ -97,7 +102,7 @@ class IndirizzoDaMappareResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListIndirizziDaMappare::route('/'),
+            'index' => ListIndirizziDaMappare::route('/'),
         ];
     }
 }

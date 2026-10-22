@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\YouthRosterResource\Pages;
 
 use App\Filament\Resources\YouthRosterResource;
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditYouthRoster extends EditRecord
@@ -18,7 +18,7 @@ class EditYouthRoster extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

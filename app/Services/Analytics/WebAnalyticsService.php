@@ -7,6 +7,7 @@ use App\Models\WebAnalyticsDaily;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * I dati della pagina "Analytics Sito".
@@ -242,7 +243,7 @@ class WebAnalyticsService
                     ],
                 );
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Lo storico è un di più: un errore qui non deve togliere la pagina.
             Log::warning('GA4: salvataggio della serie giornaliera fallito', ['error' => $e->getMessage()]);
         }

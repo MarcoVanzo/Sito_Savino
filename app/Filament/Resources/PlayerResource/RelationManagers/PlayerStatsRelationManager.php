@@ -4,9 +4,10 @@ namespace App\Filament\Resources\PlayerResource\RelationManagers;
 
 use App\Filament\Resources\PlayerStatResource;
 use App\Models\PlayerStat;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -31,7 +32,7 @@ class PlayerStatsRelationManager extends RelationManager
 
     protected static ?string $title = 'Statistiche';
 
-    protected static ?string $icon = 'heroicon-o-chart-bar';
+    protected static string|\BackedEnum|null $icon = 'heroicon-o-chart-bar';
 
     protected static ?string $recordTitleAttribute = 'id';
 
@@ -43,9 +44,9 @@ class PlayerStatsRelationManager extends RelationManager
     /**
      * Nessun form: qui non si crea né si modifica.
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([]);
+        return $schema->components([]);
     }
 
     public function table(Table $table): Table
@@ -53,10 +54,10 @@ class PlayerStatsRelationManager extends RelationManager
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['season', 'team']))
             ->columns([
-                Tables\Columns\TextColumn::make('season.name')
+                TextColumn::make('season.name')
                     ->label('Stagione')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('team.name')
+                TextColumn::make('team.name')
                     ->label('Squadra')
                     ->placeholder('—')
                     ->sortable(),
@@ -69,20 +70,20 @@ class PlayerStatsRelationManager extends RelationManager
             ->defaultSort('season_id', 'desc')
             ->paginated(false)
             ->headerActions([
-                Tables\Actions\Action::make('create_manual')
+                Action::make('create_manual')
                     ->label('Nuova riga manuale')
                     ->icon('heroicon-m-plus')
                     ->url(fn (): string => PlayerStatResource::getUrl('create'))
                     ->visible(fn (): bool => PlayerStatResource::canCreate()),
             ])
-            ->actions([
-                Tables\Actions\Action::make('open')
+            ->recordActions([
+                Action::make('open')
                     ->label('Dettaglio')
                     ->icon('heroicon-m-eye')
                     ->url(fn (PlayerStat $record): string => PlayerStatResource::getUrl('view', ['record' => $record]))
                     ->visible(fn (PlayerStat $record): bool => PlayerStatResource::canView($record)),
             ])
-            ->bulkActions([])
+            ->toolbarActions([])
             ->emptyStateIcon('heroicon-o-chart-bar')
             ->emptyStateHeading('Nessuna statistica')
             ->emptyStateDescription(

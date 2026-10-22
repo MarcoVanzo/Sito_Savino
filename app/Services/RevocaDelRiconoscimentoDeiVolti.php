@@ -12,6 +12,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * La revoca del consenso al riconoscimento dei volti (art. 9 §2 a GDPR,
@@ -107,7 +108,7 @@ class RevocaDelRiconoscimentoDeiVolti
     {
         try {
             $this->revoca($persona, ancheITagManuali: $this->staPerSparire($persona), motivo: 'cancellazione della scheda');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
     }
@@ -136,7 +137,7 @@ class RevocaDelRiconoscimentoDeiVolti
             Log::warning('Revoca volti: CompreFace non raggiungibile', ['persona' => $persona::class.'#'.$persona->getKey(), 'errore' => $e->getMessage()]);
 
             return self::COMPREFACE_NON_RAGGIUNGIBILE;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('Revoca volti: CompreFace in errore', ['persona' => $persona::class.'#'.$persona->getKey(), 'errore' => $e->getMessage()]);
 
             return self::COMPREFACE_IN_ERRORE;
@@ -186,7 +187,7 @@ class RevocaDelRiconoscimentoDeiVolti
                 'changes' => ['new' => ['motivo' => $motivo, ...$esito]],
                 'created_at' => now(),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
     }

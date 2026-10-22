@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 
 class NextMatchWidget extends Widget
 {
-    protected static string $view = 'filament.widgets.next-match-widget';
+    protected string $view = 'filament.widgets.next-match-widget';
 
     protected static ?int $sort = 3;
 

@@ -2,18 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ContactMessageResource\Pages;
+use App\Filament\Resources\ContactMessageResource\Pages\ManageContactMessages;
+use App\Filament\Traits\TabellaMessaggiModulo;
 use App\Http\Controllers\PressAccreditationController;
 use App\Models\ContactMessage;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class ContactMessageResource extends Resource
 {
+    use TabellaMessaggiModulo;
+
     protected static ?string $model = ContactMessage::class;
 
     /**
@@ -28,7 +40,7 @@ class ContactMessageResource extends Resource
         'replied' => 'Risposto',
     ];
 
-    protected static ?string $navigationIcon = 'heroicon-o-envelope';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
     protected static ?string $navigationLabel = 'Messaggi Contatti';
 
@@ -36,7 +48,7 @@ class ContactMessageResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Messaggi Contatti';
 
-    protected static ?string $navigationGroup = 'Società';
+    protected static string|\UnitEnum|null $navigationGroup = 'Società';
 
     protected static ?int $navigationSort = 5;
 
@@ -47,28 +59,28 @@ class ContactMessageResource extends Resource
         return false;
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Dettagli Messaggio')
+        return $schema
+            ->components([
+                Section::make('Dettagli Messaggio')
                     ->description('Visualizza i dettagli del messaggio inviato dall\'utente dal modulo contatti.')
                     ->icon('heroicon-o-envelope')
                     ->schema([
-                        Forms\Components\Grid::make(2)
+                        Grid::make(2)
                             ->schema([
-                                Forms\Components\TextInput::make('name')
+                                TextInput::make('name')
                                     ->label('Nome Mittente')
                                     ->readOnly(),
-                                Forms\Components\TextInput::make('email')
+                                TextInput::make('email')
                                     ->label('Email Mittente')
                                     ->email()
                                     ->readOnly(),
                             ]),
-                        Forms\Components\TextInput::make('subject')
+                        TextInput::make('subject')
                             ->label('Oggetto')
                             ->readOnly(),
-                        Forms\Components\Textarea::make('message')
+                        Textarea::make('message')
                             ->label('Messaggio')
                             ->rows(5)
                             ->readOnly()
@@ -76,20 +88,20 @@ class ContactMessageResource extends Resource
                     ])
                     ->columnSpan(2),
 
-                Forms\Components\Section::make('Stato & Gestione')
+                Section::make('Stato & Gestione')
                     ->description('Aggiorna lo stato del messaggio per tenere traccia delle letture e risposte.')
                     ->icon('heroicon-o-cog-6-tooth')
                     ->schema([
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label('Stato Messaggio')
                             ->options(self::STATUS_LABELS)
                             ->default('unread')
                             ->required(),
-                        Forms\Components\Textarea::make('extra_data.admin_notes')
+                        Textarea::make('extra_data.admin_notes')
                             ->label('Note Amministratore')
                             ->rows(3)
                             ->placeholder('Es: Telefonato al cliente per dettagli...'),
-                        Forms\Components\Placeholder::make('created_at')
+                        Placeholder::make('created_at')
                             ->label('Ricevuto il')
                             ->content(fn ($record): string => $record && $record->created_at ? $record->created_at->format('d/m/Y H:i:s') : '-'),
                     ])
@@ -101,73 +113,27 @@ class ContactMessageResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nome Mittente')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->label('Email')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('subject')
-                    ->label('Oggetto')
-                    ->searchable()
-                    ->limit(40),
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Stato')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => self::STATUS_LABELS[$state] ?? $state)
-                    ->color(fn (string $state): string => match ($state) {
-                        'unread' => 'danger',
-                        'read' => 'warning',
-                        'replied' => 'success',
-                        default => 'gray',
-                    }),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Ricevuto il')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
-            ])
+            ->columns(self::colonneMessaggio('Nome Mittente'))
             ->defaultSort('created_at', 'desc')
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->label('Stato')
-                    ->options(self::STATUS_LABELS),
+                self::filtroStato(),
             ])
-            ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\EditAction::make()
-                        // Il modulo ha il solo campo `extra_data.admin_notes`: senza
-                        // questa fusione il salvataggio riscriveva `extra_data` con
-                        // la sola nota e cancellava ciò che il sito aveva raccolto
-                        // (testata, ruolo, gara, telefono).
-                        ->mutateFormDataUsing(function (array $data, $record): array {
-                            $data['extra_data'] = array_merge(
-                                is_array($record->extra_data) ? $record->extra_data : [],
-                                is_array($data['extra_data'] ?? null) ? $data['extra_data'] : [],
-                            );
-
-                            return $data;
-                        }),
-                    Tables\Actions\Action::make('markAsRead')
-                        ->label('Segna come Letto')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('warning')
-                        ->visible(fn ($record) => $record->status === 'unread')
-                        ->action(fn ($record) => $record->update(['status' => 'read'])),
-                    Tables\Actions\Action::make('markAsReplied')
+            ->recordActions([
+                ActionGroup::make([
+                    self::azioneModificaNote(),
+                    self::azioneSegnaLetto(),
+                    Action::make('markAsReplied')
                         ->label('Segna come Risposto')
                         ->icon('heroicon-o-chat-bubble-left-right')
                         ->color('success')
                         ->visible(fn ($record) => $record->status !== 'replied')
                         ->action(fn ($record) => $record->update(['status' => 'replied'])),
-                    Tables\Actions\DeleteAction::make(),
+                    DeleteAction::make(),
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -184,7 +150,7 @@ class ContactMessageResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageContactMessages::route('/'),
+            'index' => ManageContactMessages::route('/'),
         ];
     }
 }

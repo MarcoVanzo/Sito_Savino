@@ -15,6 +15,8 @@ use App\Support\Locale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use LogicException;
+use Throwable;
 
 /**
  * L'ordine del vincitore di un'asta: scrittura, termine del bonifico,
@@ -241,7 +243,7 @@ class OrdineDelVincitoreDellAsta
 
         try {
             return $this->urlDelGateway($order);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Errore riapertura sessione di pagamento asta', [
                 'order_id' => $order->id,
                 'message' => $e->getMessage(),
@@ -263,7 +265,7 @@ class OrdineDelVincitoreDellAsta
         return match ($order->payment_gateway) {
             PaymentGateway::Stripe => app(StripePaymentService::class)->createSession($order),
             PaymentGateway::PayPal => app(PayPalPaymentService::class)->createSession($order),
-            default => throw new \LogicException("Metodo di pagamento non ammesso per le aste: {$order->payment_gateway?->value}"),
+            default => throw new LogicException("Metodo di pagamento non ammesso per le aste: {$order->payment_gateway?->value}"),
         };
     }
 
@@ -292,7 +294,7 @@ class OrdineDelVincitoreDellAsta
 
             app(AdminNotificationService::class)->notifyNewOrder($order);
             app(AvvisoNuovoOrdine::class)->invia($order);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('Bonifico d\'asta: email o avviso non partiti', [
                 'order_id' => $order->id,
                 'message' => $e->getMessage(),

@@ -4,7 +4,12 @@ namespace App\Filament\Forms\Templates;
 
 use App\Filament\Forms\CampiDelleStatistiche;
 use App\Filament\Forms\EtichetteDeiCampi;
-use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Tabs\Tab;
 
 /**
  * Le schede del form della pagina Settore Giovanile.
@@ -22,41 +27,41 @@ class YouthTemplateForm
     /**
      * Hero, introduzione e i numeri del vivaio.
      *
-     * @return array<int, Forms\Components\Tabs\Tab>
+     * @return array<int, Tab>
      */
     public static function schedaInfoEStatistiche(): array
     {
         return [
-            Forms\Components\Tabs\Tab::make('Info & Statistiche')
+            Tab::make('Info & Statistiche')
                 ->icon('heroicon-o-information-circle')
                 ->schema([
-                    Forms\Components\Fieldset::make('Hero')
+                    Fieldset::make('Hero')
                         ->schema([
-                            Forms\Components\TextInput::make('content_data.hero_subtitle')
+                            TextInput::make('content_data.hero_subtitle')
                                 ->label(EtichetteDeiCampi::HERO_SUBTITLE)
                                 ->placeholder('es. LINEA VERDE'),
-                            Forms\Components\Textarea::make('content_data.hero_description')
+                            Textarea::make('content_data.hero_description')
                                 ->label(EtichetteDeiCampi::HERO_DESCRIPTION)
                                 ->placeholder('es. Il futuro della pallavolo nasce dalle nostre giovani atlete...'),
                         ]),
 
-                    Forms\Components\Fieldset::make('Introduzione')
+                    Fieldset::make('Introduzione')
                         ->schema([
-                            Forms\Components\TextInput::make('content_data.intro_label')
+                            TextInput::make('content_data.intro_label')
                                 ->label('Etichetta Intro')
                                 ->placeholder('es. IL NOSTRO IMPEGNO'),
-                            Forms\Components\TextInput::make('content_data.intro_title')
+                            TextInput::make('content_data.intro_title')
                                 ->label('Titolo Intro')
                                 ->placeholder('es. Coltiviamo Talenti, Cresciamo Persone'),
-                            Forms\Components\Textarea::make('content_data.intro_paragraph_1')
+                            Textarea::make('content_data.intro_paragraph_1')
                                 ->label('Paragrafo Intro 1')
                                 ->rows(3),
-                            Forms\Components\Textarea::make('content_data.intro_paragraph_2')
+                            Textarea::make('content_data.intro_paragraph_2')
                                 ->label('Paragrafo Intro 2')
                                 ->rows(3),
                         ])->columns(1),
 
-                    Forms\Components\Fieldset::make('Numeri del Settore Giovanile')
+                    Fieldset::make('Numeri del Settore Giovanile')
                         ->schema([
                             CampiDelleStatistiche::griglia([
                                 ['valore' => 'content_data.stat_athletes', 'etichetta' => 'content_data.stat_athletes_label',
@@ -79,29 +84,29 @@ class YouthTemplateForm
      * Non sono la galleria in coda alla pagina: la redazione le vuole grandi e
      * al centro del racconto, una per squadra, come sul sito precedente.
      *
-     * @return array<int, Forms\Components\Tabs\Tab>
+     * @return array<int, Tab>
      */
     public static function schedaFotoDelleSquadre(): array
     {
         return [
-            Forms\Components\Tabs\Tab::make('Foto delle Squadre')
+            Tab::make('Foto delle Squadre')
                 ->icon('heroicon-o-user-group')
                 ->schema([
-                    Forms\Components\TextInput::make('content_data.team_photos_heading')
+                    TextInput::make('content_data.team_photos_heading')
                         ->label('Titolo della sezione')
                         ->placeholder('es. Le Nostre Squadre')
                         ->columnSpanFull(),
-                    Forms\Components\Repeater::make('content_data.team_photos')
+                    Repeater::make('content_data.team_photos')
                         ->label('Squadre')
                         ->schema([
-                            Forms\Components\TextInput::make('title')
+                            TextInput::make('title')
                                 ->label('Squadra')
                                 ->required()
                                 ->placeholder('es. Under 19'),
-                            Forms\Components\TextInput::make('caption')
+                            TextInput::make('caption')
                                 ->label('Didascalia')
                                 ->placeholder('es. Stagione 2026/2027'),
-                            Forms\Components\FileUpload::make('photo')
+                            FileUpload::make('photo')
                                 ->label('Foto di squadra')
                                 ->image()
                                 ->directory('settore-giovanile')
@@ -123,33 +128,33 @@ class YouthTemplateForm
     /**
      * Talent day e recruiting.
      *
-     * @return array<int, Forms\Components\Tabs\Tab>
+     * @return array<int, Tab>
      */
     public static function schedaScouting(): array
     {
         return [
-            Forms\Components\Tabs\Tab::make('Scouting Giovanile')
+            Tab::make('Scouting Giovanile')
                 ->icon('heroicon-o-magnifying-glass')
                 ->schema([
-                    Forms\Components\TextInput::make('content_data.scouting_label')
+                    TextInput::make('content_data.scouting_label')
                         ->label('Etichetta Scouting')
                         ->placeholder('es. TALENT SCOUTING'),
-                    Forms\Components\TextInput::make('content_data.scouting_title')
+                    TextInput::make('content_data.scouting_title')
                         ->label('Titolo Sezione Scouting')
                         ->placeholder('es. Diventa una di Noi'),
-                    Forms\Components\Textarea::make('content_data.scouting_description')
+                    Textarea::make('content_data.scouting_description')
                         ->label('Descrizione Scouting')
                         ->rows(3),
-                    Forms\Components\Textarea::make('content_data.scouting_info')
+                    Textarea::make('content_data.scouting_info')
                         ->label('Informazioni di Contatto Scouting')
                         ->rows(2),
-                    Forms\Components\TextInput::make('content_data.scouting_cta_primary')
+                    TextInput::make('content_data.scouting_cta_primary')
                         ->label('Testo del Pulsante')
                         ->placeholder('es. Scrivi al settore giovanile'),
                     // Il pulsante e' uno solo e apre la posta: se questo campo
                     // resta vuoto vale l'indirizzo in Impostazioni -> Contatti,
                     // e senza nessuno dei due il pulsante non compare.
-                    Forms\Components\TextInput::make('content_data.scouting_email')
+                    TextInput::make('content_data.scouting_email')
                         ->label('Email del settore giovanile')
                         ->email()
                         ->placeholder('es. giovanile@savinodelbenevolley.it'),

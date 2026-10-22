@@ -4,7 +4,7 @@ namespace App\Filament\Resources\PlayerStatResource\Pages;
 
 use App\Filament\Resources\PlayerStatResource;
 use App\Models\PlayerStat;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Carbon;
 
@@ -17,7 +17,7 @@ class ListPlayerStats extends ListRecords
         return [
             // Resta disponibile: le giovanili non hanno tabellini della Lega e
             // i loro totali si inseriscono qui.
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->label('Nuova riga manuale'),
         ];
     }

@@ -1,10 +1,5 @@
+{{-- Il link «torna all'accesso» sotto il titolo lo decide getSubheading(). --}}
 <x-filament-panels::page.simple>
-    @if (filament()->hasLogin() && ! $inviataA)
-        <x-slot name="subheading">
-            {{ $this->loginAction }}
-        </x-slot>
-    @endif
-
     @if ($inviataA)
         <div class="space-y-4 text-center" aria-live="polite">
             <x-filament::icon
@@ -34,17 +29,6 @@
             </x-filament::button>
         </div>
     @else
-        {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_PASSWORD_RESET_REQUEST_FORM_BEFORE, scopes: $this->getRenderHookScopes()) }}
-
-        <x-filament-panels::form id="form" wire:submit="request">
-            {{ $this->form }}
-
-            <x-filament-panels::form.actions
-                :actions="$this->getCachedFormActions()"
-                :full-width="$this->hasFullWidthFormActions()"
-            />
-        </x-filament-panels::form>
-
-        {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_PASSWORD_RESET_REQUEST_FORM_AFTER, scopes: $this->getRenderHookScopes()) }}
+        {{ $this->content }}
     @endif
 </x-filament-panels::page.simple>

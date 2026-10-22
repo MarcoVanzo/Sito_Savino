@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\MenuItem;
 use Illuminate\Console\Command;
+use Throwable;
 
 class SeedMenuImages extends Command
 {
@@ -49,7 +50,7 @@ class SeedMenuImages extends Command
                             ->toMediaCollection('menu-images', $disk);
                         $url = $item->getFirstMediaUrl('menu-images');
                         $this->info("✓ {$item->label} → {$url}");
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         $this->error("✗ {$item->label}: ".$e->getMessage());
                     }
                 } else {

@@ -2,13 +2,13 @@
 
 namespace App\Filament\Pages\Settings;
 
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class SocialSettingsPage extends BaseSettingsPage
 {
-    protected static ?string $navigationIcon = 'heroicon-o-share';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-share';
 
     protected static ?string $navigationLabel = 'Social';
 
@@ -18,10 +18,10 @@ class SocialSettingsPage extends BaseSettingsPage
 
     protected static ?string $slug = 'settings/social';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Section::make('Social Media')->schema([
                     TextInput::make('social_instagram')->label('Instagram')->url(),
                     TextInput::make('social_facebook')->label('Facebook')->url(),

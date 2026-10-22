@@ -7,10 +7,11 @@ use App\Services\Wikipedia\PalmaresImporter;
 use App\Services\Wikipedia\PalmaresParser;
 use App\Services\Wikipedia\WikipediaClient;
 use App\Services\Wikipedia\WikipediaPageResolver;
-use Filament\Forms;
-use Filament\Forms\Get;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Tables\Actions\Action;
+use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
 use Throwable;
@@ -45,13 +46,13 @@ class ImportPalmaresAction
             ->modalSubmitActionLabel('Importa')
             ->modalWidth('3xl')
             ->fillForm(fn (): array => self::initialState($player))
-            ->form([
-                Forms\Components\TextInput::make('wikipedia_title')
+            ->schema([
+                TextInput::make('wikipedia_title')
                     ->label('Voce di Wikipedia')
                     ->helperText('Titolo esatto della voce su it.wikipedia.org. Correggilo se l\'atleta agganciata non è quella giusta.')
                     ->live(onBlur: true)
                     ->required(),
-                Forms\Components\Placeholder::make('anteprima')
+                Placeholder::make('anteprima')
                     ->label('Anteprima')
                     ->content(fn (Get $get): HtmlString => self::preview((string) $get('wikipedia_title'))),
             ])

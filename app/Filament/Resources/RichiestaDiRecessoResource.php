@@ -2,12 +2,19 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\RichiestaDiRecessoResource\Pages;
+use App\Filament\Resources\RichiestaDiRecessoResource\Pages\EditRichiestaDiRecesso;
+use App\Filament\Resources\RichiestaDiRecessoResource\Pages\ListRichiesteDiRecesso;
 use App\Models\RichiestaDiRecesso;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -24,11 +31,11 @@ class RichiestaDiRecessoResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Richieste di recesso';
 
-    protected static ?string $navigationIcon = 'heroicon-o-arrow-uturn-left';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-uturn-left';
 
     protected static ?string $navigationLabel = 'Richieste di recesso';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 4;
 
@@ -41,27 +48,27 @@ class RichiestaDiRecessoResource extends Resource
         return $aperte > 0 ? (string) $aperte : null;
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\Section::make('Dichiarazione del cliente')
+        return $schema->components([
+            Section::make('Dichiarazione del cliente')
                 ->description('Inviata dal sito: non si modifica.')
                 ->schema([
-                    Forms\Components\TextInput::make('numero_ordine')->label('Numero d\'ordine')->disabled(),
-                    Forms\Components\DateTimePicker::make('inviata_il')->label('Inviata il')->seconds()->disabled(),
-                    Forms\Components\TextInput::make('nome')->label('Nome')->disabled(),
-                    Forms\Components\TextInput::make('email')->label('Email')->disabled()
+                    TextInput::make('numero_ordine')->label('Numero d\'ordine')->disabled(),
+                    DateTimePicker::make('inviata_il')->label('Inviata il')->seconds()->disabled(),
+                    TextInput::make('nome')->label('Nome')->disabled(),
+                    TextInput::make('email')->label('Email')->disabled()
                         ->helperText(fn (?RichiestaDiRecesso $record) => $record?->emailDiversaDaQuellaDellOrdine()
                             ? 'Diversa da quella dell\'ordine ('.$record->emailDellOrdine().'): verificare chi ha inviato la dichiarazione prima di rimborsare.'
                             : null),
-                    Forms\Components\Textarea::make('articoli')->label('Articoli')->placeholder('Tutto l\'ordine')->disabled()->columnSpanFull(),
+                    Textarea::make('articoli')->label('Articoli')->placeholder('Tutto l\'ordine')->disabled()->columnSpanFull(),
                 ])->columns(2),
-            Forms\Components\Section::make('Gestione')
+            Section::make('Gestione')
                 ->schema([
-                    Forms\Components\DateTimePicker::make('gestita_il')
+                    DateTimePicker::make('gestita_il')
                         ->label('Gestita il')
                         ->helperText('Da compilare quando il rimborso è stato eseguito.'),
-                    Forms\Components\Textarea::make('note_interne')->label('Note interne')->rows(4)->columnSpanFull(),
+                    Textarea::make('note_interne')->label('Note interne')->rows(4)->columnSpanFull(),
                 ])->columns(2),
         ]);
     }
@@ -72,25 +79,25 @@ class RichiestaDiRecessoResource extends Resource
             ->modifyQueryUsing(fn ($query) => $query->with('order.user'))
             ->defaultSort('inviata_il', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('inviata_il')->label('Inviata il')->dateTime('d/m/Y H:i')->sortable(),
-                Tables\Columns\TextColumn::make('numero_ordine')->label('Ordine')->searchable()
+                TextColumn::make('inviata_il')->label('Inviata il')->dateTime('d/m/Y H:i')->sortable(),
+                TextColumn::make('numero_ordine')->label('Ordine')->searchable()
                     ->description(fn (RichiestaDiRecesso $r) => $r->order_id ? null : 'non trovato fra gli ordini'),
-                Tables\Columns\TextColumn::make('nome')->label('Cliente')->searchable()
+                TextColumn::make('nome')->label('Cliente')->searchable()
                     ->description(fn (RichiestaDiRecesso $r) => $r->emailDiversaDaQuellaDellOrdine()
                         ? $r->email.' — diversa da quella dell\'ordine ('.$r->emailDellOrdine().')'
                         : $r->email),
-                Tables\Columns\TextColumn::make('scadenza')
+                TextColumn::make('scadenza')
                     ->label('Scadenza rimborso')
                     ->state(fn (RichiestaDiRecesso $r) => $r->inviata_il->copy()->addDays(14))
                     ->date('d/m/Y')
                     ->color(fn (RichiestaDiRecesso $r) => $r->gestita_il === null && $r->inviata_il->copy()->addDays(14)->isPast() ? 'danger' : null),
-                Tables\Columns\IconColumn::make('gestita')
+                IconColumn::make('gestita')
                     ->label('Gestita')
                     ->state(fn (RichiestaDiRecesso $r) => $r->gestita_il !== null)
                     ->boolean(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('gestita_il')
+                TernaryFilter::make('gestita_il')
                     ->label('Stato')
                     ->nullable()
                     ->trueLabel('Gestite')
@@ -100,16 +107,16 @@ class RichiestaDiRecessoResource extends Resource
                         false: fn (Builder $q) => $q->whereNull('gestita_il'),
                     ),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make()->label('Apri'),
+            ->recordActions([
+                EditAction::make()->label('Apri'),
             ]);
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListRichiesteDiRecesso::route('/'),
-            'edit' => Pages\EditRichiestaDiRecesso::route('/{record}/edit'),
+            'index' => ListRichiesteDiRecesso::route('/'),
+            'edit' => EditRichiestaDiRecesso::route('/{record}/edit'),
         ];
     }
 }

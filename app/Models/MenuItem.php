@@ -7,6 +7,7 @@ use App\Models\Traits\HasOptimizedMedia;
 use App\Models\Traits\LogsActivity;
 use App\Support\DocumentiLegali;
 use App\Support\RottaDelPercorso;
+use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -406,7 +407,7 @@ class MenuItem extends Model implements HasMedia
                     $localizedPath = route($targetRouteName, $parameters, false);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback for non-matching URLs (e.g. pages still in development or raw custom paths)
         }
 

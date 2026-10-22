@@ -7,8 +7,20 @@ use App\Filament\Forms\Templates\ComunicazioneTemplateForm;
 use App\Filament\Forms\Templates\TicketingTemplateForm;
 use App\Filament\Forms\Templates\YouthTemplateForm;
 use App\Support\DocumentiLegali;
-use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 
 class PageTemplateForms
 {
@@ -20,12 +32,12 @@ class PageTemplateForms
      * della diretta delle gare (App\Support\LiveStream): YouTube, Vimeo, Twitch
      * e Dailymotion, e nessun altro dominio.
      *
-     * @return array<int, Forms\Components\Component>
+     * @return array<int, Component>
      */
     private static function mediaTailSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.video_url')
+            TextInput::make('content_data.video_url')
                 ->label('Video (YouTube, Vimeo, Twitch o Dailymotion)')
                 ->url()
                 ->helperText('Incolla il link del video. Compare in fondo alla pagina, dopo il testo.')
@@ -50,19 +62,19 @@ class PageTemplateForms
      * Serve al bilancio di sostenibilita', che ha un'edizione per stagione, ma
      * vale per qualunque pagina di contenuto che debba allegare dei documenti.
      */
-    private static function documentsRepeater(string $label): Forms\Components\Repeater
+    private static function documentsRepeater(string $label): Repeater
     {
-        return Forms\Components\Repeater::make('content_data.documents')
+        return Repeater::make('content_data.documents')
             ->label($label)
             ->schema([
-                Forms\Components\TextInput::make('title')
+                TextInput::make('title')
                     ->label('Titolo')
                     ->required()
                     ->placeholder('es. Bilancio di Sostenibilita\' 2024/2025'),
-                Forms\Components\Textarea::make('description')
+                Textarea::make('description')
                     ->label(EtichetteDeiCampi::SHORT_DESCRIPTION)
                     ->rows(2),
-                Forms\Components\FileUpload::make('file')
+                FileUpload::make('file')
                     ->label('File PDF')
                     ->acceptedFileTypes([EtichetteDeiCampi::PDF_MIME])
                     ->directory('documenti')
@@ -88,12 +100,12 @@ class PageTemplateForms
     public static function getContentPageSchema(): array
     {
         return [
-            Forms\Components\Fieldset::make('Pulsante')
+            Fieldset::make('Pulsante')
                 ->schema([
-                    Forms\Components\TextInput::make('content_data.button_text')
+                    TextInput::make('content_data.button_text')
                         ->label(EtichetteDeiCampi::BUTTON_TEXT)
                         ->placeholder('es. Scrivici'),
-                    Forms\Components\TextInput::make('content_data.button_url')
+                    TextInput::make('content_data.button_url')
                         ->label('Destinazione')
                         ->helperText('Indirizzo web oppure mailto:indirizzo@dominio.it')
                         ->placeholder('es. mailto:marketing@savinodelbenevolley.it'),
@@ -111,39 +123,39 @@ class PageTemplateForms
      * contenuti di quello: le tappe di selezione, i turni per anno di nascita e
      * il modulo d'iscrizione non avevano dove stare.
      *
-     * @return array<int, Forms\Components\Component>
+     * @return array<int, Component>
      */
     public static function getTalentDaySchema(): array
     {
         return [
-            Forms\Components\Fieldset::make('Intestazione')
+            Fieldset::make('Intestazione')
                 ->schema([
-                    Forms\Components\TextInput::make('content_data.hero_label')
+                    TextInput::make('content_data.hero_label')
                         ->label('Etichetta sopra il titolo')
                         ->placeholder('es. Talent Scouting'),
-                    Forms\Components\TextInput::make('content_data.hero_subtitle')
+                    TextInput::make('content_data.hero_subtitle')
                         ->label('Sottotitolo')
                         ->placeholder('es. Insegui il Tuo Sogno'),
                 ])
                 ->columns(2),
 
-            Forms\Components\TextInput::make('content_data.stages_title')
+            TextInput::make('content_data.stages_title')
                 ->label('Titolo della sezione tappe')
                 ->placeholder('es. Le Tappe'),
-            Forms\Components\Repeater::make('content_data.stages')
+            Repeater::make('content_data.stages')
                 ->label('Tappe')
                 ->schema([
-                    Forms\Components\TextInput::make('date')
+                    TextInput::make('date')
                         ->label('Data')
                         ->required()
                         ->placeholder('es. 19 Maggio'),
-                    Forms\Components\TextInput::make('place')
+                    TextInput::make('place')
                         ->label('Sede')
                         ->placeholder('es. Palasport, via Rialdoli, Scandicci (FI)'),
-                    Forms\Components\TextInput::make('status')
+                    TextInput::make('status')
                         ->label('Stato')
                         ->placeholder('es. Disponibile oppure Sold out'),
-                    Forms\Components\Toggle::make('sold_out')
+                    Toggle::make('sold_out')
                         ->label('Esaurita')
                         ->helperText('Spegne l\'evidenza colorata sullo stato. Quando tutte le tappe sono esaurite o concluse, il pulsante del modulo di iscrizione sparisce da solo.'),
                 ])
@@ -154,16 +166,16 @@ class PageTemplateForms
                 ->collapsible()
                 ->itemLabel(fn (array $state): ?string => trim(($state['date'] ?? '').' — '.($state['place'] ?? '')) ?: null),
 
-            Forms\Components\TextInput::make('content_data.slots_title')
+            TextInput::make('content_data.slots_title')
                 ->label('Titolo della sezione turni')
                 ->placeholder('es. Orari e Categorie'),
-            Forms\Components\Repeater::make('content_data.slots')
+            Repeater::make('content_data.slots')
                 ->label('Turni')
                 ->schema([
-                    Forms\Components\TextInput::make('time')
+                    TextInput::make('time')
                         ->label('Orario')
                         ->placeholder('es. 16:00-17:30'),
-                    Forms\Components\TextInput::make('years')
+                    TextInput::make('years')
                         ->label('Anni di nascita')
                         ->placeholder('es. atlete nate dal 2012 al 2014'),
                 ])
@@ -172,21 +184,21 @@ class PageTemplateForms
                 ->defaultItems(0)
                 ->createItemButtonLabel('Aggiungi turno'),
 
-            Forms\Components\Fieldset::make('Iscrizione')
+            Fieldset::make('Iscrizione')
                 ->schema([
-                    Forms\Components\TextInput::make('content_data.signup_title')
+                    TextInput::make('content_data.signup_title')
                         ->label('Titolo'),
-                    Forms\Components\Textarea::make('content_data.signup_description')
+                    Textarea::make('content_data.signup_description')
                         ->label('Descrizione')
                         ->rows(2),
-                    Forms\Components\TextInput::make('content_data.signup_url')
+                    TextInput::make('content_data.signup_url')
                         ->label('Link al modulo d\'iscrizione')
                         ->url()
                         ->placeholder('https://...'),
-                    Forms\Components\TextInput::make('content_data.signup_cta')
+                    TextInput::make('content_data.signup_cta')
                         ->label(EtichetteDeiCampi::BUTTON_TEXT)
                         ->placeholder('es. Iscriviti'),
-                    Forms\Components\TextInput::make('content_data.signup_email')
+                    TextInput::make('content_data.signup_email')
                         ->label('Email per informazioni')
                         ->email()
                         ->helperText('Se vuoto vale quella in Impostazioni -> Contatti.'),
@@ -196,7 +208,7 @@ class PageTemplateForms
                     // Con un testo sotto quella chiave il Repeater delle
                     // Convenzioni riceveva una stringa e la pagina Talent Day
                     // non si apriva piu' in redazione (500).
-                    Forms\Components\Textarea::make('content_data.partners_note')
+                    Textarea::make('content_data.partners_note')
                         ->label('Societa\' partner')
                         ->rows(2)
                         ->columnSpanFull(),
@@ -213,10 +225,10 @@ class PageTemplateForms
     public static function getSocietaSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.hero_subheading')
+            TextInput::make('content_data.hero_subheading')
                 ->label(EtichetteDeiCampi::HERO_SUBTITLE)
                 ->placeholder('es. Dal 1982'),
-            Forms\Components\Textarea::make('content_data.hero_description')
+            Textarea::make('content_data.hero_description')
                 ->label(EtichetteDeiCampi::HERO_DESCRIPTION)
                 ->helperText('Mostrata sotto al titolo quando la pagina non ha un contenuto testuale.')
                 ->rows(3),
@@ -226,7 +238,7 @@ class PageTemplateForms
     /**
      * Biglietteria e Campagna Abbonamenti: il form sta in TicketingTemplateForm.
      *
-     * @return array<int, Forms\Components\Component>
+     * @return array<int, Component>
      */
     public static function getTicketingSchema(): array
     {
@@ -238,48 +250,48 @@ class PageTemplateForms
      * il link al loro sito e il riassunto dello sconto. L'introduzione sta
      * nell'editor della pagina.
      *
-     * @return array<int, Forms\Components\Component>
+     * @return array<int, Component>
      */
     public static function getConvenzioniSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.hero_label')
+            TextInput::make('content_data.hero_label')
                 ->label(EtichetteDeiCampi::HERO_BADGE),
-            Forms\Components\Textarea::make('content_data.hero_subtitle')
+            Textarea::make('content_data.hero_subtitle')
                 ->label(EtichetteDeiCampi::HERO_SUBTITLE),
-            Forms\Components\TextInput::make('content_data.partners_heading')
+            TextInput::make('content_data.partners_heading')
                 ->label('Titolo dell\'elenco dei partner')
                 ->placeholder('es. I nostri partner'),
-            Forms\Components\Textarea::make('content_data.partners_empty')
+            Textarea::make('content_data.partners_empty')
                 ->label('Testo quando non ci sono partner')
                 ->rows(2)
                 ->placeholder('es. Le convenzioni della stagione sono in arrivo.'),
-            Forms\Components\Repeater::make('content_data.partners')
+            Repeater::make('content_data.partners')
                 ->label('Partner convenzionati')
                 ->schema([
-                    Forms\Components\TextInput::make('name')
+                    TextInput::make('name')
                         ->label('Nome del partner')
                         ->required()
                         ->placeholder('es. Trattoria da Mario'),
-                    Forms\Components\TextInput::make('url')
+                    TextInput::make('url')
                         ->label('Sito o pagina dedicata')
                         ->url()
                         ->placeholder('es. https://www.partner.it/savino')
                         ->helperText('Il nome del partner rimanda qui.'),
-                    Forms\Components\TextInput::make('discount')
+                    TextInput::make('discount')
                         ->label('Sconto')
                         ->placeholder('es. 10%'),
-                    Forms\Components\FileUpload::make('logo')
+                    FileUpload::make('logo')
                         ->label('Logo (facoltativo)')
                         ->image()
                         ->directory('convenzioni')
                         ->maxSize(2048),
-                    Forms\Components\Textarea::make('description')
+                    Textarea::make('description')
                         ->label('Su cosa si applica')
                         ->rows(2)
                         ->placeholder('es. Sul conto a pranzo e a cena, bevande escluse')
                         ->columnSpanFull(),
-                    Forms\Components\Textarea::make('how_to_use')
+                    Textarea::make('how_to_use')
                         ->label('Come usarla')
                         ->rows(2)
                         ->placeholder('es. Presentando la tessera dell\'abbonamento e un documento d\'identità')
@@ -307,34 +319,34 @@ class PageTemplateForms
     public static function getAffiliazioniSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.hero_label')
+            TextInput::make('content_data.hero_label')
                 ->label(EtichetteDeiCampi::HERO_BADGE)
                 ->placeholder('es. Progetto Affiliazioni'),
-            Forms\Components\Textarea::make('content_data.hero_description')
+            Textarea::make('content_data.hero_description')
                 ->label(EtichetteDeiCampi::HERO_DESCRIPTION)
                 ->rows(2),
-            Forms\Components\TextInput::make('content_data.clubs_heading')
+            TextInput::make('content_data.clubs_heading')
                 ->label('Titolo dell\'elenco')
                 ->placeholder('es. Le societa\' del progetto')
                 ->columnSpanFull(),
-            Forms\Components\Repeater::make('content_data.affiliates')
+            Repeater::make('content_data.affiliates')
                 ->label('Societa\' del progetto')
                 ->schema([
-                    Forms\Components\TextInput::make('name')
+                    TextInput::make('name')
                         ->label('Nome della societa\'')
                         ->required()
                         ->placeholder('es. Volley Appennino'),
-                    Forms\Components\Select::make('tier')
+                    Select::make('tier')
                         ->label('Livello')
                         ->options(AffiliateTier::opzioni())
                         ->default(AffiliateTier::Affiliated->value)
                         ->required(),
-                    Forms\Components\TextInput::make('url')
+                    TextInput::make('url')
                         ->label('Sito della societa\'')
                         ->url()
                         ->placeholder('es. https://www.volleyappennino.it')
                         ->helperText('Il logo rimanda qui. Senza indirizzo resta un riquadro non cliccabile.'),
-                    Forms\Components\FileUpload::make('logo')
+                    FileUpload::make('logo')
                         ->label('Logo')
                         ->image()
                         ->directory('affiliazioni')
@@ -359,26 +371,26 @@ class PageTemplateForms
     public static function getClubRaceSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.hero_label')
+            TextInput::make('content_data.hero_label')
                 ->label(EtichetteDeiCampi::HERO_BADGE),
-            Forms\Components\Textarea::make('content_data.hero_subtitle')
+            Textarea::make('content_data.hero_subtitle')
                 ->label(EtichetteDeiCampi::HERO_SUBTITLE)
                 ->rows(2),
-            Forms\Components\Fieldset::make('Classifica')
+            Fieldset::make('Classifica')
                 ->schema([
-                    Forms\Components\TextInput::make('content_data.standings_title')
+                    TextInput::make('content_data.standings_title')
                         ->label('Titolo della classifica')
                         ->placeholder('es. Classifica'),
-                    Forms\Components\TextInput::make('content_data.standings_updated')
+                    TextInput::make('content_data.standings_updated')
                         ->label('Aggiornata al')
                         ->placeholder('es. 12 gennaio 2027'),
-                    Forms\Components\Repeater::make('content_data.standings')
+                    Repeater::make('content_data.standings')
                         ->label('Società in classifica')
                         ->schema([
-                            Forms\Components\TextInput::make('club')
+                            TextInput::make('club')
                                 ->label('Società')
                                 ->required(),
-                            Forms\Components\TextInput::make('points')
+                            TextInput::make('points')
                                 ->label('Punti')
                                 ->numeric()
                                 ->minValue(0)
@@ -390,7 +402,7 @@ class PageTemplateForms
                         ->createItemButtonLabel('Aggiungi società')
                         ->itemLabel(fn (array $state): ?string => $state['club'] ?? null)
                         ->collapsible(),
-                    Forms\Components\Textarea::make('content_data.standings_note')
+                    Textarea::make('content_data.standings_note')
                         ->label('Nota sotto la classifica')
                         ->rows(2)
                         ->columnSpanFull(),
@@ -405,19 +417,19 @@ class PageTemplateForms
     public static function getStoriaSchema(): array
     {
         return [
-            Forms\Components\Repeater::make('content_data.timeline')
+            Repeater::make('content_data.timeline')
                 ->defaultItems(0)
                 ->label('Tappe Fondamentali (Timeline)')
                 ->schema([
-                    Forms\Components\TextInput::make('year')
+                    TextInput::make('year')
                         ->label('Anno')
                         ->required()
                         ->placeholder('es. 1982'),
-                    Forms\Components\TextInput::make('title')
+                    TextInput::make('title')
                         ->label('Titolo della Tappa')
                         ->required()
                         ->placeholder('es. Le Origini'),
-                    Forms\Components\Textarea::make('description')
+                    Textarea::make('description')
                         ->label('Descrizione dettagliata')
                         ->required()
                         ->placeholder('Inserisci la descrizione della tappa...'),
@@ -434,31 +446,31 @@ class PageTemplateForms
     public static function getPalazzettoSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.venue_name')
+            TextInput::make('content_data.venue_name')
                 ->label('Nome della struttura')
                 ->placeholder('es. Pala BigMat'),
-            Forms\Components\TextInput::make('content_data.venue_address')
+            TextInput::make('content_data.venue_address')
                 ->label('Indirizzo completo')
                 ->placeholder('es. Via del Tridente, 5 — 50127 Firenze (FI)'),
-            Forms\Components\TextInput::make('content_data.maps_link')
+            TextInput::make('content_data.maps_link')
                 ->label('Link Google Maps (Pulsante "Apri su Maps")')
                 ->placeholder('es. https://maps.app.goo.gl/...'),
             // Google dà il codice HTML intero (Condividi → Incorpora una mappa):
             // chi lo incolla così com'è non deve sapere cosa sia un `src`.
-            Forms\Components\TextInput::make('content_data.maps_iframe_src')
+            TextInput::make('content_data.maps_iframe_src')
                 ->label('Mappa Google incorporata')
                 ->placeholder('es. <iframe src="https://www.google.com/maps/embed?pb=…"></iframe>')
                 ->helperText('Su Google Maps cerca il palazzetto, poi Condividi → Incorpora una mappa → Copia HTML e incolla qui tutto il codice. Se lasci vuoto, la mappa si centra sull\'indirizzo qui sopra.')
                 ->dehydrateStateUsing(fn (?string $state): ?string => self::srcDellaMappa($state)),
-            Forms\Components\Repeater::make('content_data.services')
+            Repeater::make('content_data.services')
                 ->defaultItems(0)
                 ->label('Servizi della struttura')
                 ->schema([
-                    Forms\Components\TextInput::make('name')
+                    TextInput::make('name')
                         ->label('Nome Servizio')
                         ->required()
                         ->placeholder('es. Capienza 3500 Posti'),
-                    Forms\Components\TextInput::make('icon')
+                    TextInput::make('icon')
                         ->label('Icona (SVG Path d-attribute o nome)')
                         ->placeholder('es. M17 20h5v-2...'),
                 ])
@@ -491,23 +503,23 @@ class PageTemplateForms
     public static function getSafeguardingSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.report_title')
+            TextInput::make('content_data.report_title')
                 ->label('Titolo Sezione Segnalazioni')
                 ->placeholder('es. Segnalazioni'),
-            Forms\Components\Textarea::make('content_data.report_description')
+            Textarea::make('content_data.report_description')
                 ->label('Descrizione Sezione Segnalazioni')
                 ->placeholder('es. Per segnalare comportamenti non conformi...'),
-            Forms\Components\TextInput::make('content_data.report_email')
+            TextInput::make('content_data.report_email')
                 ->label('Email per Segnalazioni')
                 ->placeholder('es. safeguarding@savinodelbenevolley.it'),
-            Forms\Components\Repeater::make('content_data.documents')
+            Repeater::make('content_data.documents')
                 ->label('Documenti Ufficiali scaricabili')
                 ->schema([
-                    Forms\Components\TextInput::make('title')
+                    TextInput::make('title')
                         ->label('Titolo Documento')
                         ->required()
                         ->placeholder('es. Codice di Condotta a Tutela dei Minori'),
-                    Forms\Components\Textarea::make('description')
+                    Textarea::make('description')
                         ->label(EtichetteDeiCampi::SHORT_DESCRIPTION)
                         ->placeholder('es. Linee guida specifiche per garantire un ambiente sportivo sicuro...'),
                     // Era un campo di testo che chiedeva l'indirizzo del file: per usarlo
@@ -521,20 +533,20 @@ class PageTemplateForms
                     // footer li prende da li'. Caricarli una seconda volta qui
                     // significava due copie: sostituito il PDF da una parte, l'altra
                     // restava alla versione vecchia senza che niente lo dicesse.
-                    Forms\Components\Select::make('documento_legale')
+                    Select::make('documento_legale')
                         ->label('PDF da Documenti Legali')
                         ->options(DocumentiLegali::ETICHETTE)
                         ->placeholder('Nessuno: carico un PDF qui')
                         ->helperText('Scegliendo un documento il link usa il file caricato in Documenti Legali.')
                         ->live(),
-                    Forms\Components\FileUpload::make('file')
+                    FileUpload::make('file')
                         ->label('File PDF del documento')
                         ->acceptedFileTypes([EtichetteDeiCampi::PDF_MIME])
                         ->directory('safeguarding')
                         ->helperText('Senza PDF il documento compare sul sito senza pulsante di download.')
                         ->preserveFilenames()
-                        ->hidden(fn (Forms\Get $get) => filled($get('documento_legale'))),
-                    Forms\Components\TextInput::make('icon')
+                        ->hidden(fn (Get $get) => filled($get('documento_legale'))),
+                    TextInput::make('icon')
                         ->label('Icona SVG (Opzionale)')
                         ->placeholder('es. M12 4.354a4...'),
                 ])
@@ -551,31 +563,31 @@ class PageTemplateForms
     public static function getContattiSchema(): array
     {
         return [
-            Forms\Components\Tabs::make('ContattiPageTabs')
+            Tabs::make('ContattiPageTabs')
                 ->tabs([
-                    Forms\Components\Tabs\Tab::make('Testi della Pagina')
+                    Tab::make('Testi della Pagina')
                         ->icon('heroicon-o-document-text')
                         ->schema([
-                            Forms\Components\Fieldset::make('Intestazione (Hero)')
+                            Fieldset::make('Intestazione (Hero)')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.hero_subtitle')
+                                    TextInput::make('content_data.hero_subtitle')
                                         ->label('Sottotitolo')
                                         ->placeholder('es. Dal 1982'),
-                                    Forms\Components\Textarea::make('content_data.hero_description')
+                                    Textarea::make('content_data.hero_description')
                                         ->label('Descrizione Introduttiva')
                                         ->rows(3)
                                         ->columnSpanFull(),
                                 ])->columns(2),
 
-                            Forms\Components\Fieldset::make('Modulo di Contatto')
+                            Fieldset::make('Modulo di Contatto')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.form_subtitle')
+                                    TextInput::make('content_data.form_subtitle')
                                         ->label('Sopratitolo del Modulo')
                                         ->placeholder('es. Scrivici direttamente'),
-                                    Forms\Components\TextInput::make('content_data.form_title')
+                                    TextInput::make('content_data.form_title')
                                         ->label('Titolo del Modulo')
                                         ->placeholder('es. Scrivici'),
-                                    Forms\Components\TextInput::make('content_data.form_success_message')
+                                    TextInput::make('content_data.form_success_message')
                                         ->label('Messaggio di Conferma Invio')
                                         ->placeholder('es. Messaggio inviato con successo!'),
                                 ])->columns(2),
@@ -583,63 +595,63 @@ class PageTemplateForms
                             // Il template legge queste etichette da content_data:
                             // senza i campi qui restavano scritte online che in
                             // redazione non si trovavano da nessuna parte.
-                            Forms\Components\Fieldset::make('Etichette del modulo')
+                            Fieldset::make('Etichette del modulo')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.form_label_name')
+                                    TextInput::make('content_data.form_label_name')
                                         ->label('Etichetta "Nome"')
                                         ->placeholder('es. Nome e Cognome'),
-                                    Forms\Components\TextInput::make('content_data.form_placeholder_name')
+                                    TextInput::make('content_data.form_placeholder_name')
                                         ->label('Testo guida "Nome"')
                                         ->placeholder('es. Mario Rossi'),
-                                    Forms\Components\TextInput::make('content_data.form_label_email')
+                                    TextInput::make('content_data.form_label_email')
                                         ->label('Etichetta "Email"'),
-                                    Forms\Components\TextInput::make('content_data.form_placeholder_email')
+                                    TextInput::make('content_data.form_placeholder_email')
                                         ->label('Testo guida "Email"')
                                         ->placeholder('es. mario.rossi@email.it'),
-                                    Forms\Components\TextInput::make('content_data.form_label_subject')
+                                    TextInput::make('content_data.form_label_subject')
                                         ->label('Etichetta "Oggetto"'),
-                                    Forms\Components\TextInput::make('content_data.form_label_message')
+                                    TextInput::make('content_data.form_label_message')
                                         ->label('Etichetta "Messaggio"'),
-                                    Forms\Components\TextInput::make('content_data.form_placeholder_message')
+                                    TextInput::make('content_data.form_placeholder_message')
                                         ->label('Testo guida "Messaggio"')
                                         ->placeholder('es. Scrivi il tuo messaggio...'),
-                                    Forms\Components\TextInput::make('content_data.form_submit_label')
+                                    TextInput::make('content_data.form_submit_label')
                                         ->label('Pulsante di invio')
                                         ->placeholder('es. Invia Messaggio'),
-                                    Forms\Components\TextInput::make('content_data.form_sending_label')
+                                    TextInput::make('content_data.form_sending_label')
                                         ->label('Pulsante durante l\'invio')
                                         ->placeholder('es. Invio in corso...'),
-                                    Forms\Components\TextInput::make('content_data.form_reset_label')
+                                    TextInput::make('content_data.form_reset_label')
                                         ->label('Pulsante di annullamento')
                                         ->placeholder('es. Annulla'),
                                 ])->columns(2),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Argomenti del Modulo')
+                    Tab::make('Argomenti del Modulo')
                         ->icon('heroicon-o-chat-bubble-left-right')
                         ->schema([
-                            Forms\Components\Repeater::make('content_data.form_topics')
+                            Repeater::make('content_data.form_topics')
                                 ->defaultItems(0)
                                 ->label('Argomenti selezionabili')
                                 ->helperText('Compaiono nella tendina "Oggetto" del modulo di contatto. Il suggerimento, se compilato, appare quando il visitatore sceglie quell\'argomento.')
                                 ->addActionLabel('Aggiungi argomento')
                                 ->itemLabel(fn (array $state): ?string => $state['label'] ?? $state['value'] ?? null)
                                 ->schema([
-                                    Forms\Components\TextInput::make('value')
+                                    TextInput::make('value')
                                         ->label('Argomento')
                                         ->helperText('Testo che arriva nella mail.')
                                         ->required(),
-                                    Forms\Components\TextInput::make('label')
+                                    TextInput::make('label')
                                         ->label('Etichetta mostrata')
                                         ->helperText('Se vuota si usa l\'argomento.'),
-                                    Forms\Components\TextInput::make('tip_title')
+                                    TextInput::make('tip_title')
                                         ->label('Titolo del suggerimento'),
-                                    Forms\Components\Textarea::make('tip_text')
+                                    Textarea::make('tip_text')
                                         ->label('Testo del suggerimento')
                                         ->rows(2),
-                                    Forms\Components\TextInput::make('tip_link_text')
+                                    TextInput::make('tip_link_text')
                                         ->label('Testo del link'),
-                                    Forms\Components\TextInput::make('tip_link_url')
+                                    TextInput::make('tip_link_url')
                                         ->label('Indirizzo del link')
                                         ->placeholder('es. /ticketing'),
                                 ])
@@ -647,40 +659,40 @@ class PageTemplateForms
                                 ->columnSpanFull(),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Recapiti e Dati Societari')
+                    Tab::make('Recapiti e Dati Societari')
                         ->icon('heroicon-o-building-office-2')
                         ->schema([
-                            Forms\Components\Placeholder::make('recapiti_spostati')
+                            Placeholder::make('recapiti_spostati')
                                 ->label('Recapiti, sede e dati fiscali')
                                 ->content('Si modificano in Impostazioni → Contatti: da lì valgono per tutto il sito (footer compreso). I campi che stavano qui salvavano una copia che le pagine non leggevano.'),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Rubrica Referenti')
+                    Tab::make('Rubrica Referenti')
                         ->icon('heroicon-o-users')
                         ->schema([
-                            Forms\Components\Fieldset::make('Elenco Dinamico Contatti')
+                            Fieldset::make('Elenco Dinamico Contatti')
                                 ->schema([
-                                    Forms\Components\Repeater::make('content_data.contacts_list')
+                                    Repeater::make('content_data.contacts_list')
                                         ->label('Contatti in Rubrica')
                                         ->addActionLabel('Aggiungi Referente / Dipartimento')
                                         ->itemLabel(fn (array $state): ?string => $state['role'] ?? null)
                                         ->schema([
-                                            Forms\Components\TextInput::make('category')
+                                            TextInput::make('category')
                                                 ->label('Categoria Raggruppamento')
                                                 ->helperText('Es. SERIE A1, SDB VOLLEY YOUTH')
                                                 ->required(),
-                                            Forms\Components\TextInput::make('role')
+                                            TextInput::make('role')
                                                 ->label('Ruolo o Nome Dipartimento')
                                                 ->required()
                                                 ->placeholder('es. DIRETTORE GENERALE'),
-                                            Forms\Components\TextInput::make('name')
+                                            TextInput::make('name')
                                                 ->label('Nome del Referente')
                                                 ->placeholder('es. Francesco Paoletti (Opzionale)'),
-                                            Forms\Components\TextInput::make('email')
+                                            TextInput::make('email')
                                                 ->label('Indirizzo Email')
                                                 ->email()
                                                 ->placeholder('es. info@... (Opzionale)'),
-                                            Forms\Components\TextInput::make('phone')
+                                            TextInput::make('phone')
                                                 ->label('Telefono')
                                                 ->placeholder('es. 333 88 24 951 (Opzionale)'),
                                         ])
@@ -703,16 +715,16 @@ class PageTemplateForms
     public static function getCampEnrollmentSchema(): array
     {
         return [
-            Forms\Components\TextInput::make('content_data.button_text')
+            TextInput::make('content_data.button_text')
                 ->label('Testo del Pulsante')
                 ->placeholder('es. Accedi al Portale Iscrizioni')
                 ->required(),
-            Forms\Components\TextInput::make('content_data.button_url')
+            TextInput::make('content_data.button_url')
                 ->label('URL di Destinazione Esterna')
                 ->placeholder('es. https://partner-organizzatore.it/iscrizioni')
                 ->url()
                 ->required(),
-            Forms\Components\FileUpload::make('content_data.button_image')
+            FileUpload::make('content_data.button_image')
                 ->label('Pulsante Grafico (Immagine/Banner)')
                 ->helperText('Se caricata, l\'immagine verrà usata come banner grafico cliccabile al posto del pulsante testuale standard.')
                 ->image()
@@ -727,24 +739,24 @@ class PageTemplateForms
     public static function getMagazineSchema(): array
     {
         return [
-            Forms\Components\Repeater::make('content_data.magazines')
+            Repeater::make('content_data.magazines')
                 ->defaultItems(0)
                 ->label('Edizioni del Magazine (PDF)')
                 ->schema([
-                    Forms\Components\TextInput::make('title')
+                    TextInput::make('title')
                         ->label('Titolo Edizione')
                         ->required()
                         ->placeholder('es. Numero 1 — Ottobre 2026'),
-                    Forms\Components\TextInput::make('publish_date')
+                    TextInput::make('publish_date')
                         ->label('Data / Periodo di Pubblicazione')
                         ->placeholder('es. Ottobre 2026'),
-                    Forms\Components\FileUpload::make('file_url')
+                    FileUpload::make('file_url')
                         ->label('File PDF del Magazine')
                         ->acceptedFileTypes([EtichetteDeiCampi::PDF_MIME])
                         ->directory('magazines/pdfs')
                         ->required()
                         ->preserveFilenames(),
-                    Forms\Components\FileUpload::make('cover_image_url')
+                    FileUpload::make('cover_image_url')
                         ->label('Immagine di Copertina')
                         ->image()
                         ->directory('magazines/covers')
@@ -763,19 +775,19 @@ class PageTemplateForms
     public static function getDoubleFaceSchema(): array
     {
         return [
-            Forms\Components\Repeater::make('content_data.youtube_videos')
+            Repeater::make('content_data.youtube_videos')
                 ->defaultItems(0)
                 ->label('Video YouTube (Double Face)')
                 ->schema([
-                    Forms\Components\TextInput::make('title')
+                    TextInput::make('title')
                         ->label('Titolo Video')
                         ->required()
                         ->placeholder('es. Intervista a Ekaterina Antropova'),
-                    Forms\Components\TextInput::make('youtube_url')
+                    TextInput::make('youtube_url')
                         ->label('URL / Link Video YouTube')
                         ->required()
                         ->placeholder('es. https://www.youtube.com/watch?v=... o https://youtu.be/...'),
-                    Forms\Components\Textarea::make('description')
+                    Textarea::make('description')
                         ->label('Descrizione (Opzionale)')
                         ->rows(2),
                 ])
@@ -792,67 +804,67 @@ class PageTemplateForms
     public static function getSummerCampSchema(): array
     {
         return [
-            Forms\Components\Tabs::make('Summer Camp')
+            Tabs::make('Summer Camp')
                 ->tabs([
-                    Forms\Components\Tabs\Tab::make('Informazioni Generali')
+                    Tab::make('Informazioni Generali')
                         ->icon('heroicon-o-information-circle')
                         ->schema([
-                            Forms\Components\Fieldset::make('Intestazioni e Copertina')
+                            Fieldset::make('Intestazioni e Copertina')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.hero_label')
+                                    TextInput::make('content_data.hero_label')
                                         ->label(EtichetteDeiCampi::HERO_BADGE)
                                         ->placeholder('es. SUMMER CAMP & EXPERIENCE'),
-                                    Forms\Components\TextInput::make('content_data.hero_subtitle')
+                                    TextInput::make('content_data.hero_subtitle')
                                         ->label(EtichetteDeiCampi::HERO_SUBTITLE)
                                         ->placeholder('es. Entra nel Mondo del Volley Professionistico'),
-                                    Forms\Components\TextInput::make('content_data.camp_section_label')
+                                    TextInput::make('content_data.camp_section_label')
                                         ->label('Etichetta Sezione Camp')
                                         ->placeholder('es. IL CAMP'),
-                                    Forms\Components\TextInput::make('content_data.camp_title')
+                                    TextInput::make('content_data.camp_title')
                                         ->label('Titolo Sezione Camp')
                                         ->placeholder('es. Un\'Esperienza Unica'),
                                 ]),
-                            Forms\Components\Fieldset::make('Descrizione del Camp')
+                            Fieldset::make('Descrizione del Camp')
                                 ->schema([
-                                    Forms\Components\Textarea::make('content_data.camp_description_1')
+                                    Textarea::make('content_data.camp_description_1')
                                         ->label('Descrizione Paragrafo 1')
                                         ->rows(3),
-                                    Forms\Components\Textarea::make('content_data.camp_description_2')
+                                    Textarea::make('content_data.camp_description_2')
                                         ->label('Descrizione Paragrafo 2')
                                         ->rows(3),
                                 ])->columns(1),
-                            Forms\Components\Fieldset::make('Badge Camp (Volley Experience)')
+                            Fieldset::make('Badge Camp (Volley Experience)')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.camp_badge_title')
+                                    TextInput::make('content_data.camp_badge_title')
                                         ->label('Titolo Badge')
                                         ->placeholder('es. Summer Camp 2026'),
-                                    Forms\Components\TextInput::make('content_data.camp_badge_subtitle')
+                                    TextInput::make('content_data.camp_badge_subtitle')
                                         ->label('Sottotitolo Badge')
                                         ->placeholder('es. Scandicci & Firenze'),
                                 ])->columns(2),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Attività')
+                    Tab::make('Attività')
                         ->icon('heroicon-o-sparkles')
                         ->schema([
-                            Forms\Components\TextInput::make('content_data.activities_section_label')
+                            TextInput::make('content_data.activities_section_label')
                                 ->label('Etichetta Sezione Attività')
                                 ->placeholder('es. LE NOSTRE ATTIVITÀ'),
-                            Forms\Components\TextInput::make('content_data.activities_title')
+                            TextInput::make('content_data.activities_title')
                                 ->label('Titolo Sezione Attività')
                                 ->placeholder('es. Non Solo Pallavolo'),
-                            Forms\Components\Repeater::make('content_data.activities')
+                            Repeater::make('content_data.activities')
                                 ->defaultItems(0)
                                 ->label('Elenco Attività')
                                 ->schema([
-                                    Forms\Components\TextInput::make('title')
+                                    TextInput::make('title')
                                         ->label('Titolo Attività')
                                         ->required(),
-                                    Forms\Components\TextInput::make('icon')
+                                    TextInput::make('icon')
                                         ->label('Emoji / Icona')
                                         ->placeholder('es. 🏐')
                                         ->required(),
-                                    Forms\Components\Textarea::make('description')
+                                    Textarea::make('description')
                                         ->label('Descrizione Attività')
                                         ->required()
                                         ->rows(2),
@@ -863,26 +875,26 @@ class PageTemplateForms
                                 ->collapsible(),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Date e Turni')
+                    Tab::make('Date e Turni')
                         ->icon('heroicon-o-calendar')
                         ->schema([
-                            Forms\Components\TextInput::make('content_data.dates_section_label')
+                            TextInput::make('content_data.dates_section_label')
                                 ->label('Etichetta Sezione Date')
                                 ->placeholder('es. TURNI & DATE'),
-                            Forms\Components\TextInput::make('content_data.dates_title')
+                            TextInput::make('content_data.dates_title')
                                 ->label('Titolo Sezione Date')
                                 ->placeholder('es. Scegli la Tua Settimana'),
-                            Forms\Components\Repeater::make('content_data.dates')
+                            Repeater::make('content_data.dates')
                                 ->defaultItems(0)
                                 ->label('Elenco Turni')
                                 ->schema([
-                                    Forms\Components\TextInput::make('period')
+                                    TextInput::make('period')
                                         ->label('Periodo (es. Settimana 1)')
                                         ->required(),
-                                    Forms\Components\TextInput::make('dates')
+                                    TextInput::make('dates')
                                         ->label('Date Effettive (es. 15 - 20 Giugno)')
                                         ->required(),
-                                    Forms\Components\Select::make('status')
+                                    Select::make('status')
                                         ->label('Stato Turno')
                                         ->options([
                                             'Iscrizioni Aperte' => 'Iscrizioni Aperte',
@@ -898,18 +910,18 @@ class PageTemplateForms
                                 ->collapsible(),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('In Evidenza')
+                    Tab::make('In Evidenza')
                         ->icon('heroicon-o-list-bullet')
                         ->schema([
-                            Forms\Components\TagsInput::make('content_data.highlights')
+                            TagsInput::make('content_data.highlights')
                                 ->label('Punti di Forza (Highlights)')
                                 ->placeholder('Scrivi e premi Invio per aggiungere (es. Staff Tecnico Qualificato)'),
-                            Forms\Components\Fieldset::make('Call to Action (Iscrizione)')
+                            Fieldset::make('Call to Action (Iscrizione)')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.cta_text')
+                                    TextInput::make('content_data.cta_text')
                                         ->label('Testo Pulsante CTA')
                                         ->placeholder('es. Iscriviti Ora'),
-                                    Forms\Components\TextInput::make('content_data.cta_url')
+                                    TextInput::make('content_data.cta_url')
                                         ->label('URL Pulsante CTA (Se vuoto, usa email di contatto)')
                                         ->placeholder('es. https://...'),
                                 ])->columns(1),
@@ -925,69 +937,69 @@ class PageTemplateForms
     public static function getSocialeSchema(): array
     {
         return [
-            Forms\Components\Tabs::make('Progetti Sociali')
+            Tabs::make('Progetti Sociali')
                 ->tabs([
-                    Forms\Components\Tabs\Tab::make('Informazioni Generali')
+                    Tab::make('Informazioni Generali')
                         ->icon('heroicon-o-information-circle')
                         ->schema([
-                            Forms\Components\Fieldset::make('Intestazioni e Mission')
+                            Fieldset::make('Intestazioni e Mission')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.hero_badge')
+                                    TextInput::make('content_data.hero_badge')
                                         ->label(EtichetteDeiCampi::HERO_BADGE)
                                         ->placeholder('es. PROGETTI SOCIALI'),
-                                    Forms\Components\TextInput::make('content_data.hero_description')
+                                    TextInput::make('content_data.hero_description')
                                         ->label(EtichetteDeiCampi::HERO_DESCRIPTION)
                                         ->placeholder('es. Più di uno sport: un impegno costante verso il territorio...'),
-                                    Forms\Components\TextInput::make('content_data.mission_badge')
+                                    TextInput::make('content_data.mission_badge')
                                         ->label('Etichetta Sezione Missione')
                                         ->placeholder('es. LA NOSTRA MISSIONE'),
-                                    Forms\Components\TextInput::make('content_data.mission_title')
+                                    TextInput::make('content_data.mission_title')
                                         ->label('Titolo Missione')
                                         ->placeholder('es. I Nostri Valori in Campo'),
                                 ]),
-                            Forms\Components\Fieldset::make('Titoli Sezioni')
+                            Fieldset::make('Titoli Sezioni')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.initiatives_badge')
+                                    TextInput::make('content_data.initiatives_badge')
                                         ->label('Etichetta Sezione Iniziative')
                                         ->placeholder('es. COSA FACCIAMO'),
-                                    Forms\Components\TextInput::make('content_data.initiatives_title')
+                                    TextInput::make('content_data.initiatives_title')
                                         ->label('Titolo Sezione Iniziative')
                                         ->placeholder('es. Le Nostre Iniziative'),
-                                    Forms\Components\TextInput::make('content_data.results_badge')
+                                    TextInput::make('content_data.results_badge')
                                         ->label('Etichetta Sezione Impatto')
                                         ->placeholder('es. I RISULTATI'),
-                                    Forms\Components\TextInput::make('content_data.impact_title')
+                                    TextInput::make('content_data.impact_title')
                                         ->label('Titolo Sezione Impatto')
                                         ->placeholder('es. Il Nostro Impatto'),
                                 ]),
-                            Forms\Components\Fieldset::make('Testi della Missione')
+                            Fieldset::make('Testi della Missione')
                                 ->schema([
-                                    Forms\Components\Textarea::make('content_data.mission_text_1')
+                                    Textarea::make('content_data.mission_text_1')
                                         ->label('Testo Paragrafo 1')
                                         ->rows(3),
-                                    Forms\Components\Textarea::make('content_data.mission_text_2')
+                                    Textarea::make('content_data.mission_text_2')
                                         ->label('Testo Paragrafo 2')
                                         ->rows(3),
                                 ])->columns(1),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Progetti')
+                    Tab::make('Progetti')
                         ->icon('heroicon-o-folder-open')
                         ->schema([
-                            Forms\Components\Repeater::make('content_data.projects')
+                            Repeater::make('content_data.projects')
                                 ->defaultItems(0)
                                 ->label('Elenco Progetti')
                                 ->schema([
-                                    Forms\Components\TextInput::make('title')
+                                    TextInput::make('title')
                                         ->label('Titolo Progetto')
                                         ->required(),
-                                    Forms\Components\TextInput::make('tag')
+                                    TextInput::make('tag')
                                         ->label('Tag / Categoria')
                                         ->placeholder('es. INCLUSIONE'),
-                                    Forms\Components\TextInput::make('icon')
+                                    TextInput::make('icon')
                                         ->label('Emoji / Icona')
                                         ->placeholder('es. 🏐'),
-                                    Forms\Components\Select::make('color')
+                                    Select::make('color')
                                         ->label('Colore Tema')
                                         ->options([
                                             'savino-blue' => 'Blu Savino',
@@ -996,7 +1008,7 @@ class PageTemplateForms
                                             'savino-fucsia' => 'Fucsia Savino',
                                         ])
                                         ->required(),
-                                    Forms\Components\Textarea::make('description')
+                                    Textarea::make('description')
                                         ->label('Descrizione Progetto')
                                         ->rows(3)
                                         ->columnSpanFull(),
@@ -1007,13 +1019,13 @@ class PageTemplateForms
                                     // perche' i progetti che si raccontano in
                                     // una pagina non hanno un referente a cui
                                     // scrivere.
-                                    Forms\Components\TextInput::make('contact_email')
+                                    TextInput::make('contact_email')
                                         ->label('Email di contatto (pulsante "Contattaci")')
                                         ->email()
                                         ->placeholder('es. federico.latanza@savinodelbenevolley.it')
                                         ->helperText('Compilata, la scheda mostra "Contattaci" e apre la posta al posto di "Scopri".')
                                         ->columnSpanFull(),
-                                    Forms\Components\TextInput::make('link')
+                                    TextInput::make('link')
                                         ->label('Link "Scopri" (opzionale)')
                                         ->placeholder('es. /sociale/volley-4-all oppure https://...')
                                         ->helperText('Usato solo se non c\'e\' un indirizzo di posta.')
@@ -1025,17 +1037,17 @@ class PageTemplateForms
                                 ->collapsible(),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Impatto e Numeri')
+                    Tab::make('Impatto e Numeri')
                         ->icon('heroicon-o-chart-bar')
                         ->schema([
-                            Forms\Components\Repeater::make('content_data.impact_stats')
+                            Repeater::make('content_data.impact_stats')
                                 ->defaultItems(0)
                                 ->label('Statistiche d\'Impatto')
                                 ->schema([
-                                    Forms\Components\TextInput::make('value')
+                                    TextInput::make('value')
                                         ->label('Valore (es. 500+ o €50K)')
                                         ->required(),
-                                    Forms\Components\TextInput::make('label')
+                                    TextInput::make('label')
                                         ->label('Etichetta / Descrizione (es. Ragazzi Coinvolti)')
                                         ->required(),
                                 ])
@@ -1045,7 +1057,7 @@ class PageTemplateForms
                                 ->collapsible(),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Foto e Video')
+                    Tab::make('Foto e Video')
                         ->icon('heroicon-o-photo')
                         ->schema(self::mediaTailSchema()),
                 ])
@@ -1059,47 +1071,47 @@ class PageTemplateForms
     public static function getSponsorSchema(): array
     {
         return [
-            Forms\Components\Tabs::make('Sponsor')
+            Tabs::make('Sponsor')
                 ->tabs([
-                    Forms\Components\Tabs\Tab::make('Testi Hero')
+                    Tab::make('Testi Hero')
                         ->icon('heroicon-o-presentation-chart-bar')
                         ->schema([
-                            Forms\Components\TextInput::make('content_data.hero_subtitle')
+                            TextInput::make('content_data.hero_subtitle')
                                 ->label(EtichetteDeiCampi::HERO_SUBTITLE)
                                 ->placeholder('es. I NOSTRI PARTNER'),
-                            Forms\Components\Textarea::make('content_data.hero_description')
+                            Textarea::make('content_data.hero_description')
                                 ->label(EtichetteDeiCampi::HERO_DESCRIPTION)
                                 ->placeholder('es. Grazie al sostegno dei nostri sponsor continuiamo a crescere...'),
                         ]),
 
-                    Forms\Components\Tabs\Tab::make('Call to Action & Statistiche')
+                    Tab::make('Call to Action & Statistiche')
                         ->icon('heroicon-o-hand-raised')
                         ->schema([
-                            Forms\Components\Fieldset::make('Testi Call to Action ("Diventa Partner")')
+                            Fieldset::make('Testi Call to Action ("Diventa Partner")')
                                 ->schema([
-                                    Forms\Components\TextInput::make('content_data.cta_subtitle')
+                                    TextInput::make('content_data.cta_subtitle')
                                         ->label('Sottotitolo CTA')
                                         ->placeholder('es. UNISCITI A NOI'),
-                                    Forms\Components\TextInput::make('content_data.cta_title')
+                                    TextInput::make('content_data.cta_title')
                                         ->label('Titolo CTA')
                                         ->placeholder('es. Diventa Partner'),
-                                    Forms\Components\Textarea::make('content_data.cta_description')
+                                    Textarea::make('content_data.cta_description')
                                         ->label('Descrizione CTA')
                                         ->placeholder('es. Unisciti alla famiglia della Savino Del Bene Volley...'),
-                                    Forms\Components\TextInput::make('content_data.cta_button_text')
+                                    TextInput::make('content_data.cta_button_text')
                                         ->label('Testo Pulsante CTA')
                                         ->placeholder('es. Diventa Partner'),
-                                    Forms\Components\TextInput::make('content_data.contact_email')
+                                    TextInput::make('content_data.contact_email')
                                         ->label('Email che riceve le richieste')
                                         ->email()
                                         ->helperText('Se vuota si usa l\'email di contatto generale del sito.'),
-                                    Forms\Components\TextInput::make('content_data.contact_subject')
+                                    TextInput::make('content_data.contact_subject')
                                         ->label('Oggetto della mail')
                                         ->placeholder('es. Savino Del Bene Volley — Richiesta di sponsorizzazione')
                                         ->helperText('Viene precompilato nella mail di chi scrive.'),
                                 ]),
 
-                            Forms\Components\Fieldset::make('Statistiche d\'Impatto')
+                            Fieldset::make('Statistiche d\'Impatto')
                                 ->schema([
                                     CampiDelleStatistiche::griglia([
                                         ['valore' => 'content_data.stat1_value', 'etichetta' => 'content_data.stat1_label',
@@ -1122,7 +1134,7 @@ class PageTemplateForms
     public static function getYouthSchema(): array
     {
         return [
-            Forms\Components\Tabs::make('Settore Giovanile')
+            Tabs::make('Settore Giovanile')
                 ->tabs([
                     ...YouthTemplateForm::schedaInfoEStatistiche(),
                     ...YouthTemplateForm::schedaFotoDelleSquadre(),
@@ -1138,7 +1150,7 @@ class PageTemplateForms
     public static function getComunicazioneSchema(): array
     {
         return [
-            Forms\Components\Tabs::make('Comunicazione')
+            Tabs::make('Comunicazione')
                 ->tabs([
                     ...ComunicazioneTemplateForm::schedaAccrediti(),
                     ...ComunicazioneTemplateForm::schedaCartelleStampa(),

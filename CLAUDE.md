@@ -106,7 +106,8 @@ Ripetute qui perché le sessioni cloud (telefono) vedono solo il repository.
     una globale riassegnata.
   - `useSanitize` sul server usa DOMPurify con il DOM di **jsdom** (fra le
     `dependencies`, esterno al bundle).
-  - Titolo, description e og: li stampa solo `app.blade.php`
+  - Titolo, description e og: li stampa solo `app.blade.php` (con
+    `data-inertia`, Inertia 3)
     (`TestaDellSsr` toglie i doppioni dall'head dell'SSR); il JSON della
     pagina passa da `DatiInizialiDellaPagina::corpoDellSsr`.
   - Test: `HtmlInizialeConLSsrTest` (`--group ssr`, server vero, passo
@@ -336,6 +337,16 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   file, video, documenti legali). Ogni rotta che pubblica una `Page` passa di lì.
 
 ### Pannello Filament
+- **Filament 5** (Livewire 4) con `lara-zeus/spatie-translatable` (al posto del plugin
+  ufficiale abbandonato). Il tema del pannello è su **Tailwind 4** (alias npm
+  `tailwindcss4`, `@tailwindcss/vite` limitato a `resources/css/filament/`), il
+  sito pubblico resta su **Tailwind 3** (`postcss.config.js` salta il tema).
+- Livewire 4 risponde su `livewire-{hash}/…` (hash dall'`APP_KEY`): nei
+  filtri sui percorsi usare `livewire*`, mai `livewire/*`.
+- `EditPage` cambia lingua sullo stato grezzo (come il plugin di Filament 3);
+  le altre risorse usano il cambio di lingua di lara-zeus, che passa da
+  `getState()`: un campo non deidratato (es. `stock` in modifica) non deve
+  essere `required` in quel contesto.
 - Repeater facoltativi: `defaultItems(0)`.
 - Un campo `hidden()` (anche `Select`) non viene deidratato: per valori fissi
   `Forms\Components\Hidden`.

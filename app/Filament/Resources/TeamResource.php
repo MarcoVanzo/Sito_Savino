@@ -2,15 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TeamResource\Pages;
-use App\Filament\Resources\TeamResource\RelationManagers;
+use App\Filament\Resources\TeamResource\Pages\CreateTeam;
+use App\Filament\Resources\TeamResource\Pages\EditTeam;
+use App\Filament\Resources\TeamResource\Pages\ListTeams;
+use App\Filament\Resources\TeamResource\RelationManagers\RostersRelationManager;
+use App\Filament\Resources\TeamResource\RelationManagers\SeasonStatsRelationManager;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\Team;
-use Filament\Forms;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -30,12 +43,12 @@ class TeamResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Squadre';
 
-    protected static ?string $navigationIcon = 'heroicon-o-flag';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-flag';
 
     // La tabella `teams` ospita anche le avversarie importate dalla Lega, ed è
     // qui che se ne carica il logo: la voce sta quindi accanto a classifica e
     // risultati e non più solo nella sezione youth.
-    protected static ?string $navigationGroup = 'Stagione';
+    protected static string|\UnitEnum|null $navigationGroup = 'Stagione';
 
     protected static ?string $navigationLabel = 'Squadre';
 
@@ -66,30 +79,30 @@ class TeamResource extends Resource
         )->all();
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Dettagli Squadra')
+        return $schema
+            ->components([
+                Section::make('Dettagli Squadra')
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label('Nome Squadra')
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
-                            ->afterStateUpdated(fn (string $operation, $state, Forms\Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
-                        Forms\Components\TextInput::make('slug')
+                            ->afterStateUpdated(fn (string $operation, $state, Set $set) => $operation === 'create' ? $set('slug', Str::slug($state)) : null),
+                        TextInput::make('slug')
                             ->label('Slug')
                             ->required()
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
-                        Forms\Components\Select::make('category')
+                        Select::make('category')
                             ->label('Categoria')
                             ->options(fn () => self::categoryOptions())
                             ->helperText('Determina a quale sotto-sezione youth appartiene. Le avversarie importate dalla Lega non hanno categoria.'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Logo')
+                Section::make('Logo')
                     ->description('Il logo caricato qui è quello che il sito usa e non viene mai sovrascritto dalla sincronizzazione con la Lega, che scrive su una collezione separata.')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('custom_logo')
@@ -108,7 +121,7 @@ class TeamResource extends Resource
                         // Sola lettura: il logo della Lega si mostra come
                         // anteprima e non come campo di upload, così non c'è
                         // modo di sovrascriverlo o cancellarlo per sbaglio.
-                        Forms\Components\Placeholder::make('imported_logo')
+                        Placeholder::make('imported_logo')
                             ->label('Logo importato dalla Lega (sola lettura)')
                             ->content(function (?Team $record): HtmlString|string {
                                 $media = $record?->getFirstMedia(Team::LOGO_IMPORTED);
@@ -122,7 +135,7 @@ class TeamResource extends Resource
                                 );
                             }),
 
-                        Forms\Components\Placeholder::make('logo_in_use')
+                        Placeholder::make('logo_in_use')
                             ->label('Logo attualmente in uso')
                             ->content(function (?Team $record): string {
                                 if ($record?->hasCustomLogo()) {
@@ -140,16 +153,16 @@ class TeamResource extends Resource
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Dati dalla Lega')
+                Section::make('Dati dalla Lega')
                     ->description('Valori gestiti dalla sincronizzazione: si mostrano solo per chiarezza.')
                     ->schema([
-                        Forms\Components\TextInput::make('lvf_club_id')
+                        TextInput::make('lvf_club_id')
                             ->label('ID club Lega')
                             ->disabled()
                             ->dehydrated(false)
                             ->placeholder('non agganciata')
                             ->helperText('Identificativo della società sul sito della Lega. Cambia a ogni stagione ed è gestito dall\'import.'),
-                        Forms\Components\Placeholder::make('is_internal_label')
+                        Placeholder::make('is_internal_label')
                             ->label('Tipo squadra')
                             ->content(fn (?Team $record): string => $record?->is_internal
                                 ? 'Squadra della società'
@@ -167,25 +180,25 @@ class TeamResource extends Resource
             ->columns([
                 // Logo effettivo: custom se c'è, altrimenti quello della Lega
                 // o l'indirizzo remoto (Team::logoUrl()).
-                Tables\Columns\ImageColumn::make('logo')
+                ImageColumn::make('logo')
                     ->checkFileExistence(false)
                     ->label('')
                     ->height(32)
                     ->getStateUsing(fn (Team $record) => $record->logoUrl()),
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label('Nome Squadra')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('category')
+                TextColumn::make('category')
                     ->label('Categoria')
                     ->badge()
                     ->placeholder('—')
                     ->searchable(),
-                Tables\Columns\IconColumn::make('is_internal')
+                IconColumn::make('is_internal')
                     ->label('Nostra')
                     ->boolean()
                     ->alignCenter(),
-                Tables\Columns\IconColumn::make('has_custom_logo')
+                IconColumn::make('has_custom_logo')
                     ->label('Logo CMS')
                     ->alignCenter()
                     ->boolean()
@@ -193,45 +206,45 @@ class TeamResource extends Resource
                     ->tooltip(fn (Team $record) => $record->hasCustomLogo()
                         ? 'Logo caricato dal CMS: la sincronizzazione non lo tocca'
                         : 'Nessun logo caricato dal CMS: si usa quello della Lega'),
-                Tables\Columns\TextColumn::make('lvf_club_id')
+                TextColumn::make('lvf_club_id')
                     ->label('ID Lega')
                     ->placeholder('—')
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('name')
             ->filters([
-                Tables\Filters\SelectFilter::make('category')
+                SelectFilter::make('category')
                     ->label('Categoria')
                     ->options(fn () => self::categoryOptions()),
-                Tables\Filters\TernaryFilter::make('is_internal')
+                TernaryFilter::make('is_internal')
                     ->label('Tipo squadra')
                     ->placeholder('Tutte')
                     ->trueLabel('Squadre della società')
                     ->falseLabel('Avversarie importate'),
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions(static::softDeleteBulkActions());
+            ->toolbarActions(static::softDeleteBulkActions());
     }
 
     public static function getRelations(): array
     {
         return [
-            RelationManagers\RostersRelationManager::class,
+            RostersRelationManager::class,
             // Solo per le squadre della società: si nasconde da sola sulle
             // avversarie importate (canViewForRecord).
-            RelationManagers\SeasonStatsRelationManager::class,
+            SeasonStatsRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTeams::route('/'),
-            'create' => Pages\CreateTeam::route('/create'),
-            'edit' => Pages\EditTeam::route('/{record}/edit'),
+            'index' => ListTeams::route('/'),
+            'create' => CreateTeam::route('/create'),
+            'edit' => EditTeam::route('/{record}/edit'),
         ];
     }
 

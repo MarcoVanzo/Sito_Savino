@@ -4,7 +4,7 @@ namespace App\Filament\Resources\PostResource\Pages;
 
 use App\Filament\Resources\PostResource;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Resources\Pages\CreateRecord\Concerns\Translatable;
+use LaraZeus\SpatieTranslatable\Resources\Pages\CreateRecord\Concerns\Translatable;
 
 class CreatePost extends CreateRecord
 {

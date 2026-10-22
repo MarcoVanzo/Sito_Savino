@@ -2,15 +2,23 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ShippingZoneResource\Pages;
+use App\Filament\Resources\ShippingZoneResource\Pages\CreateShippingZone;
+use App\Filament\Resources\ShippingZoneResource\Pages\EditShippingZone;
+use App\Filament\Resources\ShippingZoneResource\Pages\ListShippingZones;
 use App\Filament\Traits\HasStandardTableActions;
 use App\Models\ShippingZone;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Concerns\Translatable;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class ShippingZoneResource extends Resource
 {
@@ -25,35 +33,35 @@ class ShippingZoneResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Zone Spedizione';
 
-    protected static ?string $navigationIcon = 'heroicon-o-truck';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-truck';
 
     protected static ?string $navigationLabel = 'Zone Spedizione';
 
-    protected static ?string $navigationGroup = 'Shop Ufficiale';
+    protected static string|\UnitEnum|null $navigationGroup = 'Shop Ufficiale';
 
     protected static ?int $navigationSort = 8;
 
     protected static ?string $slug = 'shop/zone-spedizione';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Dettagli Zona')
+        return $schema
+            ->components([
+                Section::make('Dettagli Zona')
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label('Nome Zona')
                             ->required()
                             ->unique(ignoreRecord: true),
-                        Forms\Components\TagsInput::make('countries')
+                        TagsInput::make('countries')
                             ->label('Codici Paese (ISO 3166-1)')
                             ->helperText('Es: IT, DE, FR. Usa * per catch-all'),
-                        Forms\Components\TextInput::make('flat_rate')
+                        TextInput::make('flat_rate')
                             ->label('Tariffa Base (€)')
                             ->numeric()
                             ->prefix('€')
                             ->required(),
-                        Forms\Components\TextInput::make('free_threshold')
+                        TextInput::make('free_threshold')
                             ->label('Soglia Spedizione Gratuita (€)')
                             ->numeric()
                             ->prefix('€')
@@ -64,25 +72,25 @@ class ShippingZoneResource extends Resource
                             ->helperText(fn (): string => ShippingZone::sogliaGlobale() !== null
                                 ? 'Ora non conta: vale la soglia globale di '.number_format(ShippingZone::sogliaGlobale(), 2, ',', '.').' € delle Impostazioni Shop. Svuotala lì per usare questa.'
                                 : 'Lasciare vuoto per disabilitare. Se si compila la soglia globale nelle Impostazioni Shop, vale quella per tutte le zone.'),
-                        Forms\Components\TextInput::make('estimated_days_min')
+                        TextInput::make('estimated_days_min')
                             ->label('Giorni Min')
                             ->numeric(),
-                        Forms\Components\TextInput::make('estimated_days_max')
+                        TextInput::make('estimated_days_max')
                             ->label('Giorni Max')
                             ->numeric(),
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label('Attiva')
                             ->default(true),
-                        Forms\Components\TextInput::make('sort_order')
+                        TextInput::make('sort_order')
                             ->label('Ordine')
                             ->numeric()
                             ->default(0),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Fasce di peso')
+                Section::make('Fasce di peso')
                     ->description('Tariffe diverse a seconda del peso del collo. Lascia l\'elenco vuoto per applicare sempre la tariffa base.')
                     ->schema([
-                        Forms\Components\Repeater::make('weight_rates')
+                        Repeater::make('weight_rates')
                             ->label('')
                             // Facoltativo: con una riga aperta d'ufficio, una
                             // zona nuova non si salverebbe finche' non la si
@@ -90,13 +98,13 @@ class ShippingZoneResource extends Resource
                             ->defaultItems(0)
                             ->addActionLabel('Aggiungi una fascia')
                             ->schema([
-                                Forms\Components\TextInput::make('max_weight')
+                                TextInput::make('max_weight')
                                     ->label('Fino a (kg)')
                                     ->numeric()
                                     ->minValue(0)
                                     ->suffix('kg')
                                     ->helperText('Vuoto = da qui in su. Tienine al massimo una senza limite.'),
-                                Forms\Components\TextInput::make('rate')
+                                TextInput::make('rate')
                                     ->label('Tariffa (€)')
                                     ->numeric()
                                     ->minValue(0)
@@ -119,32 +127,32 @@ class ShippingZoneResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label('Nome')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('countries')
+                TextColumn::make('countries')
                     ->label('Paesi')
                     ->formatStateUsing(fn ($state): string => is_array($state) ? implode(', ', $state) : ($state ?? '')),
-                Tables\Columns\TextColumn::make('flat_rate')
+                TextColumn::make('flat_rate')
                     ->label('Tariffa')
                     ->money('EUR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('fasce')
+                TextColumn::make('fasce')
                     ->label('Fasce di peso')
                     ->state(fn (ShippingZone $record): string => $record->fasceOrdinate() === []
                         ? 'Solo tariffa base'
                         : count($record->fasceOrdinate()).' fasce')
                     ->badge()
                     ->color(fn (ShippingZone $record): string => $record->fasceOrdinate() === [] ? 'gray' : 'success'),
-                Tables\Columns\TextColumn::make('free_threshold')
+                TextColumn::make('free_threshold')
                     ->label('Soglia Gratis')
                     ->money('EUR')
                     ->placeholder('-'),
-                Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label('Attiva')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('sort_order')
+                TextColumn::make('sort_order')
                     ->label('Ordine')
                     ->sortable(),
                 ...static::timestampColumns(),
@@ -153,10 +161,10 @@ class ShippingZoneResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions(static::standardBulkActions());
+            ->toolbarActions(static::standardBulkActions());
     }
 
     public static function getRelations(): array
@@ -169,9 +177,9 @@ class ShippingZoneResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListShippingZones::route('/'),
-            'create' => Pages\CreateShippingZone::route('/create'),
-            'edit' => Pages\EditShippingZone::route('/{record}/edit'),
+            'index' => ListShippingZones::route('/'),
+            'create' => CreateShippingZone::route('/create'),
+            'edit' => EditShippingZone::route('/{record}/edit'),
         ];
     }
 }
