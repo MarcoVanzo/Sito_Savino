@@ -10,6 +10,7 @@ use App\Filament\Resources\StaffMemberResource\Pages\CreateStaffMember;
 use App\Filament\Resources\StaffMemberResource\Pages\EditStaffMember;
 use App\Filament\Resources\StaffMemberResource\Pages\ListStaffMembers;
 use App\Filament\Traits\HasStandardTableActions;
+use App\Filament\Traits\SchedaDelloStaff;
 use App\Models\StaffMember;
 use App\Services\FacialRecognitionService;
 use Filament\Actions\Action;
@@ -17,17 +18,10 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,6 +30,7 @@ use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 class StaffMemberResource extends Resource
 {
     use HasStandardTableActions;
+    use SchedaDelloStaff;
     use Translatable;
 
     protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
@@ -70,74 +65,16 @@ class StaffMemberResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Anagrafica e Ruolo')
-                    ->schema([
-                        TextInput::make('first_name')
-                            ->label('Nome')
-                            ->required()
-                            ->maxLength(255),
-                        TextInput::make('last_name')
-                            ->label('Cognome')
-                            ->required()
-                            ->maxLength(255),
-                        Select::make('type')
-                            ->label('Sezione (Tipologia)')
-                            ->options([
-                                StaffType::Tecnico->value => StaffType::Tecnico->label(),
-                                StaffType::Medico->value => StaffType::Medico->label(),
-                            ])
-                            ->required()
-                            ->helperText('Determina in quale pagina del sito comparirà.'),
-                        TextInput::make('role')
-                            ->label('Ruolo specifico')
-                            ->required()
-                            ->maxLength(255)
-                            ->helperText('Es. Allenatore, Presidente, Medico...'),
-                        Hidden::make('section')
-                            ->default('a1'),
-                    ])->columns(2),
+                self::anagraficaDelloStaff('a1'),
 
-                Section::make('Foto Profilo')
-                    ->schema([
-                        SpatieMediaLibraryFileUpload::make('avatar')
-                            ->label('Immagine di Profilo (Avatar)')
-                            ->collection('staff')
-                            ->image()
-                            ->maxSize(5120)
-                            ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth('1200')
-                            ->imageResizeTargetHeight('1200')
-                            ->imageResizeUpscale(false)
-                            ->helperText('Immagine ottimale: quadrata (es. 800x800px).')
-                            ->columnSpanFull(),
-                    ]),
+                self::fotoDelProfilo(),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                SpatieMediaLibraryImageColumn::make('avatar')
-                    ->checkFileExistence(false)
-                    ->conversion('thumb')
-                    ->label('')
-                    ->collection('staff')
-                    ->circular(),
-                TextColumn::make('first_name')
-                    ->label('Nome')
-                    ->searchable(),
-                TextColumn::make('last_name')
-                    ->label('Cognome')
-                    ->searchable(),
-                TextColumn::make('role')
-                    ->label('Ruolo')
-                    ->searchable(),
-                TextColumn::make('type')
-                    ->label('Sezione')
-                    ->badge()
-                    ->sortable(),
-            ])
+            ->columns(self::colonneDelloStaff())
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->filters([

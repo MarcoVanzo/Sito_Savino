@@ -7,18 +7,16 @@ use App\Filament\Resources\ManagementResource\Pages\CreateManagement;
 use App\Filament\Resources\ManagementResource\Pages\EditManagement;
 use App\Filament\Resources\ManagementResource\Pages\ListManagement;
 use App\Filament\Traits\HasStandardTableActions;
+use App\Filament\Traits\SchedaDelloStaff;
 use App\Models\StaffMember;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
@@ -26,6 +24,7 @@ use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 class ManagementResource extends Resource
 {
     use HasStandardTableActions;
+    use SchedaDelloStaff;
     use Translatable;
 
     protected static ?string $model = StaffMember::class;
@@ -75,47 +74,14 @@ class ManagementResource extends Resource
                             ->helperText('Es. Allenatore, Presidente, Medico...'),
                     ])->columns(2),
 
-                Section::make('Foto Profilo')
-                    ->schema([
-                        SpatieMediaLibraryFileUpload::make('avatar')
-                            ->label('Immagine di Profilo (Avatar)')
-                            ->collection('staff')
-                            ->image()
-                            ->maxSize(5120)
-                            ->imageResizeMode('contain')
-                            ->imageResizeTargetWidth('1200')
-                            ->imageResizeTargetHeight('1200')
-                            ->imageResizeUpscale(false)
-                            ->helperText('Immagine ottimale: quadrata (es. 800x800px).')
-                            ->columnSpanFull(),
-                    ]),
+                self::fotoDelProfilo(),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                SpatieMediaLibraryImageColumn::make('avatar')
-                    ->checkFileExistence(false)
-                    ->conversion('thumb')
-                    ->label('')
-                    ->collection('staff')
-                    ->circular(),
-                TextColumn::make('first_name')
-                    ->label('Nome')
-                    ->searchable(),
-                TextColumn::make('last_name')
-                    ->label('Cognome')
-                    ->searchable(),
-                TextColumn::make('role')
-                    ->label('Ruolo')
-                    ->searchable(),
-                TextColumn::make('type')
-                    ->label('Sezione')
-                    ->badge()
-                    ->sortable(),
-            ])
+            ->columns(self::colonneDelloStaff())
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
             ->filters([
