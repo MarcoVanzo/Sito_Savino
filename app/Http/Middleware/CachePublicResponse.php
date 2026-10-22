@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Support\GenerazioneDiCache;
 use Closure;
-use Illuminate\Auth\SessionGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -146,10 +145,9 @@ class CachePublicResponse
             return true;
         }
 
-        $guard = Auth::guard('web');
-
-        return $guard instanceof SessionGuard
-            && $request->cookies->has($guard->getRecallerName());
+        // La guardia `web` è di sessione (config/auth.php): dal framework
+        // 13.38 il tipo lo dice già, il controllo instanceof era ridondante.
+        return $request->cookies->has(Auth::guard('web')->getRecallerName());
     }
 
     /**
