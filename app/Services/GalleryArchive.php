@@ -36,11 +36,16 @@ class GalleryArchive
     private const BLOCCO = 500;
 
     /**
+     * L'archivio pesa diversi megabyte in cache: una pagina d'album lo
+     * chiedeva tre volte (controller due, anteprima social per i crawler una),
+     * e ogni volta era la stessa riga enorme letta dal database e
+     * deserializzata. `memo()` la tiene in memoria per la richiesta.
+     *
      * @return list<array<string, mixed>>
      */
     public function media(?Player $filtro, string $locale): array
     {
-        return Cache::remember($this->chiave($filtro, $locale), $this->durata(), fn (): array => $this->costruisci($filtro, $locale));
+        return Cache::memo()->remember($this->chiave($filtro, $locale), $this->durata(), fn (): array => $this->costruisci($filtro, $locale));
     }
 
     /**
@@ -49,7 +54,7 @@ class GalleryArchive
     public function riscalda(): void
     {
         foreach (config('app.supported_locales', ['it']) as $locale) {
-            Cache::put($this->chiave(null, $locale), $this->costruisci(null, $locale), $this->durata());
+            Cache::memo()->put($this->chiave(null, $locale), $this->costruisci(null, $locale), $this->durata());
         }
     }
 
