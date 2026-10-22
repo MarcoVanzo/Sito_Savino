@@ -37,7 +37,8 @@ describe('paginaSsr', () => {
         const { head, body } = await rendiLaPagina(pagina('it', 'https://savinodelbenevolley.it/che-non-esiste'));
 
         expect(body).toContain('<script data-page="app" type="application/json">');
-        expect(body).toMatch(/<div id="app">.*Pagina non Trovata/s);
+        // Inertia 3 marca il contenitore reso dal server (data-server-rendered).
+        expect(body).toMatch(/<div data-server-rendered="true" id="app">.*Pagina non Trovata/s);
         expect(head.join('')).toContain('Savino Del Bene Volley');
     });
 

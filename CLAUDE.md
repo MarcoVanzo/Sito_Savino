@@ -106,7 +106,8 @@ Ripetute qui perché le sessioni cloud (telefono) vedono solo il repository.
     una globale riassegnata.
   - `useSanitize` sul server usa DOMPurify con il DOM di **jsdom** (fra le
     `dependencies`, esterno al bundle).
-  - Titolo, description e og: li stampa solo `app.blade.php`
+  - Titolo, description e og: li stampa solo `app.blade.php` (con
+    `data-inertia`, Inertia 3)
     (`TestaDellSsr` toglie i doppioni dall'head dell'SSR); il JSON della
     pagina passa da `DatiInizialiDellaPagina::corpoDellSsr`.
   - Test: `HtmlInizialeConLSsrTest` (`--group ssr`, server vero, passo

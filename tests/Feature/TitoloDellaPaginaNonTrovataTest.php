@@ -19,7 +19,7 @@ class TitoloDellaPaginaNonTrovataTest extends TestCase
     {
         $html = $this->get('/indirizzo-che-non-esiste-davvero')->assertNotFound()->getContent();
 
-        $this->assertStringContainsString('<title inertia>Pagina non trovata | Savino Del Bene Volley</title>', $html);
+        $this->assertStringContainsString('<title data-inertia>Pagina non trovata | Savino Del Bene Volley</title>', $html);
     }
 
     #[Test]
@@ -27,6 +27,6 @@ class TitoloDellaPaginaNonTrovataTest extends TestCase
     {
         $html = $this->get('/en/an-address-that-does-not-exist')->assertNotFound()->getContent();
 
-        $this->assertStringContainsString('<title inertia>Page not found | Savino Del Bene Volley</title>', $html);
+        $this->assertStringContainsString('<title data-inertia>Page not found | Savino Del Bene Volley</title>', $html);
     }
 }

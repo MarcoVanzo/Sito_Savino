@@ -34,13 +34,6 @@ installaDialogDiRipiego();
 const appName = import.meta.env.VITE_APP_NAME || 'Savino Del Bene Volley';
 
 void createInertiaApp({
-    // La pagina iniziale arriva in <script type="application/json">, non
-    // nell'attributo data-page (App\Support\DatiInizialiDellaPagina).
-    defaults: {
-        future: {
-            useScriptElementForInitialPage: true,
-        },
-    },
     // Le regole del titolo sono in comune con il server SSR (appInertia.js).
     title: (title) => titoloDellaScheda(title, usePage().props, appName),
     resolve: (name) =>

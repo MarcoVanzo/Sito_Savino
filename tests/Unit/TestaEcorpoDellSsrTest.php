@@ -17,7 +17,7 @@ class TestaEcorpoDellSsrTest extends TestCase
     public function la_testa_dell_ssr_cede_titolo_e_meta_al_layout(): void
     {
         $testa = TestaDellSsr::separa([
-            '<title inertia>Shop &amp; Store</title>',
+            '<title data-inertia>Shop &amp; Store</title>',
             '<meta name="description" content="Maglie &quot;ufficiali&quot;" inertia>',
             '<meta property="og:image" content="https://esempio.it/a.jpg" inertia>',
             '<meta name="robots" content="noindex, nofollow" inertia>',

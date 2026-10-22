@@ -66,11 +66,6 @@ export function rendiLaPagina(page) {
     return richiesta.run({ route }, () => createInertiaApp({
         page,
         render: renderToString,
-        defaults: {
-            future: {
-                useScriptElementForInitialPage: true,
-            },
-        },
         title: (title) => titoloDellaScheda(title, page.props, appName),
         resolve: (name) => resolvePageComponent(
             `./Pages/${name}.vue`,

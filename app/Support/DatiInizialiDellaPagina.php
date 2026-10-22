@@ -9,7 +9,7 @@ namespace App\Support;
  * Nell'attributo ogni virgoletta del JSON diventava `&quot;`: sulla pagina
  * Risultati 148 KB di dati pesavano 230 KB di HTML (audit SEO del
  * 14/10/2026). Nello script il JSON viaggia così com'è, e il client di
- * Inertia lo legge da lì (`future.useScriptElementForInitialPage` in app.js).
+ * Inertia 3 lo legge sempre da lì.
  *
  * La direttiva del pacchetto stampa il JSON con i flag predefiniti, che non
  * toccano `<`: un testo della redazione con `<!--` e `<script` (un incorporamento
