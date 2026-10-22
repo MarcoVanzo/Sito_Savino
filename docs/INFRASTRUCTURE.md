@@ -125,7 +125,7 @@ l'app è agganciata con la voce `vpc:` della spec.
 
 | Tecnologia | Versione | Ruolo |
 |-----------|---------|-------|
-| **PHP** | `^8.4` (`composer.json`; in locale 8.5) | Linguaggio backend |
+| **PHP** | `^8.5` (`composer.json`; produzione e locale 8.5) | Linguaggio backend |
 | **Laravel** | 13.34.0 | Framework MVC |
 | **Filament** | 3.3.54 | Pannello admin (CMS) |
 | **Inertia.js** | 2.0 (`inertia-laravel` 2.0.24) | Bridge server↔client (SSR non attivo, vedi §6) |

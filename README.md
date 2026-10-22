@@ -6,7 +6,7 @@ Sito web ufficiale della **Savino Del Bene Volley Scandicci**, squadra di Serie 
 
 | Componente | Tecnologia |
 |---|---|
-| **Backend** | Laravel 13.x, PHP ≥ 8.4 |
+| **Backend** | Laravel 13.x, PHP ≥ 8.5 |
 | **Admin** | Filament v3 |
 | **Frontend** | Vue 3 + Inertia.js 2 (rendering client-side, SSR non attivo) |
 | **Styling** | Tailwind CSS v3 |
