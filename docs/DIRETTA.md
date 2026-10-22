@@ -31,6 +31,10 @@ mandati dalla regia).
 Sponsor → I Nostri Sponsor → lo sponsor → sezione **Grafiche per la
 diretta** → «Nuova grafica». Ogni sponsor ha le sue.
 
+Per grafiche che non sono di uno sponsor (per esempio la cornice dello shop
+ufficiale) si crea uno sponsor con **Solo diretta** acceso: va in onda come gli
+altri ma non compare nella pagina Sponsor né nella striscia della home.
+
 - **Dove va in onda**: «Prima della diretta» (pre-roll) o «Cornice durante la
   gara».
 - **Tipo**: video o immagine. Tipo e «Dove va in onda» non si cambiano dopo il

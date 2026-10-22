@@ -430,7 +430,7 @@ Codice in `app/Services/Cev/`, test in `tests/Fixtures/Cev/`.
   Nomi e ordine delle sezioni li decide la redazione (Sponsor → «Nomi e ordine
   delle sezioni», `CHIAVE_DEI_NOMI` e `CHIAVE_DELL_ORDINE`): nome vuoto =
   `nomePredefinito()`, livello assente dall'ordine salvato = in fondo, nell'ordine
-  dei case (quello chiesto dalla società). In pagina passare da `ordered()`. Le richieste vanno a `marketing@savinodelbenevolley.it`.
+  dei case (quello chiesto dalla società). In pagina passare da `ordered()`. Gli sponsor `solo_diretta` (es. la cornice dello shop) stanno solo nella diretta: `SponsorDirectory` li esclude. Le richieste vanno a `marketing@savinodelbenevolley.it`.
 
 ## 16. Diretta streaming
 
